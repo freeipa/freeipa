@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2010-10-12 11:51-0400\n"
+"POT-Creation-Date: 2010-10-13 14:22-0400\n"
 "PO-Revision-Date: 2010-05-11 20:03+0530\n"
 "Last-Translator: gundachandru <gundachandru@gmail.com>\n"
 "Language-Team: Kannada\n"
@@ -151,7 +151,7 @@ msgstr "ಗುಪ್ತಪದಗಳು ಹೊಂದಾಣಿಕೆಯಾಗು�
 msgid "Command not implemented"
 msgstr "ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್)ಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲಾಗಿಲ್ಲ"
 
-#: ipalib/errors.py:783 ipalib/errors.py:1023
+#: ipalib/errors.py:783 ipalib/errors.py:1023 ipalib/errors.py:1254
 #, python-format
 msgid "%(reason)s"
 msgstr "%(reason)s"
@@ -269,6 +269,11 @@ msgstr "%(info)s"
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "ಪ್ರಮಾಣಪತ್ರದ ಕಾರ್ಯಾಚರಣೆಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲು ಆಗುತ್ತಿಲ್ಲ: %(error)s"
 
+#: ipalib/errors.py:1237
+#, fuzzy, python-format
+msgid "Certificate format error: %(error)s"
+msgstr "ಪ್ರಮಾಣಪತ್ರದ ಕಾರ್ಯಾಚರಣೆಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲು ಆಗುತ್ತಿಲ್ಲ: %(error)s"
+
 #: ipalib/frontend.py:380
 msgid "Results are truncated, try a more specific search"
 msgstr "ಫಲಿತಾಂಶಗಳು ಕತ್ತರಿಸಲ್ಪಟ್ಟಿವೆ, ಹೆಚ್ಚ್ಹು ನಿರ್ದಿಷ್ಟವಾದ ಶೋಧನೆ ಪ್ರಯತ್ನಿಸಿ"
@@ -281,7 +286,7 @@ msgstr ""
 msgid "print entries as stored on the server"
 msgstr ""
 
-#: ipalib/frontend.py:914
+#: ipalib/frontend.py:940
 msgid "Forward to server instead of running locally"
 msgstr ""
 
@@ -535,23 +540,28 @@ msgid_plural "%(count)d ACIs matched"
 msgstr[0] "%(count)d ACI ತಾಳೆಯಾಗುತ್ತಿದೆ"
 msgstr[1] "%(count)d ACIಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
 
-#: ipalib/plugins/automount.py:107 ipalib/plugins/host.py:134
+#: ipalib/plugins/automount.py:103
+#, fuzzy
+msgid "Automount"
+msgstr "ಮ್ಯಾಪ್‌ಗಳ ಆಟೋಮೌಂಟ್"
+
+#: ipalib/plugins/automount.py:109 ipalib/plugins/host.py:134
 msgid "Location"
 msgstr "ಸ್ಥಳ"
 
-#: ipalib/plugins/automount.py:108
+#: ipalib/plugins/automount.py:110
 msgid "Automount location name"
 msgstr "ಆಟೊಮೌಂಟ್ ತಾಣದ ಹೆಸರು"
 
-#: ipalib/plugins/automount.py:224
+#: ipalib/plugins/automount.py:226
 msgid "Map"
 msgstr "ನಕ್ಷೆ"
 
-#: ipalib/plugins/automount.py:225
+#: ipalib/plugins/automount.py:227
 msgid "Automount map name"
 msgstr "ಆಟೊಮೌಂಟ್ ಮ್ಯಾಪ್‌ನ ಹೆಸರು"
 
-#: ipalib/plugins/automount.py:230 ipalib/plugins/group.py:108
+#: ipalib/plugins/automount.py:232 ipalib/plugins/group.py:108
 #: ipalib/plugins/hbac.py:151 ipalib/plugins/hbacsvc.py:72
 #: ipalib/plugins/hbacsvcgroup.py:77 ipalib/plugins/host.py:124
 #: ipalib/plugins/hostgroup.py:81 ipalib/plugins/netgroup.py:96
@@ -561,39 +571,39 @@ msgstr "ಆಟೊಮೌಂಟ್ ಮ್ಯಾಪ್‌ನ ಹೆಸರು"
 msgid "Description"
 msgstr "ವಿವರಣೆ"
 
-#: ipalib/plugins/automount.py:234
+#: ipalib/plugins/automount.py:236
 msgid "Automount Maps"
 msgstr "ಮ್ಯಾಪ್‌ಗಳ ಆಟೋಮೌಂಟ್"
 
-#: ipalib/plugins/automount.py:306
+#: ipalib/plugins/automount.py:308
 msgid "Key"
 msgstr "ಕೀ"
 
-#: ipalib/plugins/automount.py:307
+#: ipalib/plugins/automount.py:309
 msgid "Automount key name"
 msgstr "ಆಟೊಮೌಂಟ್ ಕೀ ಹೆಸರು"
 
-#: ipalib/plugins/automount.py:312
+#: ipalib/plugins/automount.py:314
 msgid "Mount information"
 msgstr "ಮೌಂಟ್ ಮಾಹಿತಿ"
 
-#: ipalib/plugins/automount.py:316
+#: ipalib/plugins/automount.py:318
 msgid "description"
 msgstr "ವಿವರಣೆ"
 
-#: ipalib/plugins/automount.py:320
+#: ipalib/plugins/automount.py:322
 msgid "Automount Keys"
 msgstr "ಕೀಗಳ ಆಟೋಮೌಂಟ್"
 
-#: ipalib/plugins/automount.py:340
+#: ipalib/plugins/automount.py:342
 msgid "Mount point"
 msgstr "ಮೌಂಟ್ ಪಾಯಂಟ್"
 
-#: ipalib/plugins/automount.py:344
+#: ipalib/plugins/automount.py:346
 msgid "Parent map"
 msgstr "Parent map"
 
-#: ipalib/plugins/automount.py:345
+#: ipalib/plugins/automount.py:347
 msgid "Name of parent automount map (default: auto.master)"
 msgstr "Name of parent automount map (default: auto.master)"
 
@@ -679,7 +689,7 @@ msgstr "ಪ್ರಮಾಣಪತ್ರದ ಸಹಿಯ ಕೋರಿಕೆಯ ಡ
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr "ಪ್ರಮಾಣಪತ್ರದ ಸಹಿಯ ಕೋರಿಕೆಯ ಡಿಕೋಡಿಂಗ್‌ನ ವಿಫಲತೆ: %s"
 
-#: ipalib/plugins/cert.py:171 ipalib/plugins/service.py:162
+#: ipalib/plugins/cert.py:171 ipalib/plugins/service.py:197
 msgid "Principal"
 msgstr "Principal"
 
@@ -692,9 +702,7 @@ msgid "automatically add the principal if it doesn't exist"
 msgstr "ಸ್ವಯಂಚಾಲಿತವಾಗಿ principal ಸೇರಿಸಿ ಅದು ಅಸ್ತಿತ್ವದಲ್ಲಿ ಇಲ್ಲದಿದ್ದಲ್ಲಿ"
 
 #: ipalib/plugins/cert.py:187 ipalib/plugins/cert.py:392
-#: ipalib/plugins/host.py:154 ipalib/plugins/service.py:185
-#: ipalib/plugins/service.py:265 ipalib/plugins/service.py:304
-#: ipalib/plugins/service.py:343
+#: ipalib/plugins/host.py:154 ipalib/plugins/service.py:204
 msgid "Certificate"
 msgstr "ಪ್ರಮಾಣಪತ್ರ"
 
@@ -910,61 +918,61 @@ msgstr "ಡೈನಮಿಕ್ ಅಪ್‌ಡೇಟ್ ಅನುಮತಿಸಬ�
 msgid "BIND update policy"
 msgstr "BIND update policy"
 
-#: ipalib/plugins/dns.py:411 ipalib/plugins/dns.py:445
-#: ipalib/plugins/dns.py:480 ipalib/plugins/dns.py:595
-#: ipalib/plugins/dns.py:680 ipalib/plugins/dns.py:804
+#: ipalib/plugins/dns.py:426 ipalib/plugins/dns.py:460
+#: ipalib/plugins/dns.py:495 ipalib/plugins/dns.py:610
+#: ipalib/plugins/dns.py:695 ipalib/plugins/dns.py:819
 msgid "Zone name"
 msgstr "ವಲಯದ ಹೆಸರು"
 
-#: ipalib/plugins/dns.py:485
+#: ipalib/plugins/dns.py:500
 msgid "resource name"
 msgstr "ರೀಸೊರ್ಸ್ ಹೆಸರು"
 
-#: ipalib/plugins/dns.py:490 ipalib/plugins/dns.py:605
-#: ipalib/plugins/dns.py:696
+#: ipalib/plugins/dns.py:505 ipalib/plugins/dns.py:620
+#: ipalib/plugins/dns.py:711
 msgid "Record type"
 msgstr "ದಾಖಲೆಯ ಬಗೆ"
 
-#: ipalib/plugins/dns.py:494 ipalib/plugins/dns.py:609
+#: ipalib/plugins/dns.py:509 ipalib/plugins/dns.py:624
 msgid "Data"
 msgstr "ದತ್ತಾಂಶ"
 
-#: ipalib/plugins/dns.py:495 ipalib/plugins/dns.py:610
+#: ipalib/plugins/dns.py:510 ipalib/plugins/dns.py:625
 msgid "Type-specific data"
 msgstr "ನಮೂನೆ-ನಿಗದಿತ ದತ್ತಾಂಶ"
 
-#: ipalib/plugins/dns.py:502
+#: ipalib/plugins/dns.py:517
 msgid "Time to live"
 msgstr "ಉಳಿದಿರಬೇಕಾದ ಸಮಯ"
 
-#: ipalib/plugins/dns.py:507
+#: ipalib/plugins/dns.py:522
 msgid "Class"
 msgstr "ವರ್ಗ"
 
-#: ipalib/plugins/dns.py:600 ipalib/plugins/dns.py:692
-#: ipalib/plugins/dns.py:809
+#: ipalib/plugins/dns.py:615 ipalib/plugins/dns.py:707
+#: ipalib/plugins/dns.py:824
 msgid "Resource name"
 msgstr "ರೀಸೊರ್ಸ್ ಹೆಸರು"
 
-#: ipalib/plugins/dns.py:685
+#: ipalib/plugins/dns.py:700
 msgid "Search criteria"
 msgstr "ಹುಡುಕು criteria"
 
-#: ipalib/plugins/dns.py:700
+#: ipalib/plugins/dns.py:715
 msgid "type-specific data"
 msgstr "ನಮೂನೆ-ನಿಗದಿತ ದತ್ತಾಂಶ"
 
-#: ipalib/plugins/dns.py:850
+#: ipalib/plugins/dns.py:865
 #, fuzzy, python-format
 msgid "Found '%(value)s'"
 msgstr "\"%(value)s\" ಗುಂಪನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
-#: ipalib/plugins/dns.py:854
+#: ipalib/plugins/dns.py:869
 #, fuzzy
 msgid "Hostname"
 msgstr "ಹೋಸ್ಟ್  ಹೆಸರು"
 
-#: ipalib/plugins/dns.py:867
+#: ipalib/plugins/dns.py:882
 #, python-format
 msgid "Host '%(host)s' not found"
 msgstr ""
@@ -1099,8 +1107,8 @@ msgstr "ಬಳಕೆದಾರನ ವರ್ಗ"
 msgid "Service category the rule applies to"
 msgstr "ನಿಯಮ ಅನ್ವಯಿಸುವಂತಹ ಬಳಕೆದಾರನ ವರ್ಗ"
 
-#: ipalib/plugins/hbac.py:147 ipalib/plugins/hbac.py:309
-#: ipalib/plugins/hbac.py:347
+#: ipalib/plugins/hbac.py:147 ipalib/plugins/hbac.py:325
+#: ipalib/plugins/hbac.py:363
 msgid "Access time"
 msgstr "ಪ್ರವೇಶದ ಸಮಯ"
 
@@ -1129,7 +1137,7 @@ msgid "Source hosts"
 msgstr "ಮೂಲ ಹೋಸ್ಟ್ ವರ್ಗ"
 
 #: ipalib/plugins/hbac.py:174 ipalib/plugins/hbacsvc.py:60
-#: ipalib/plugins/service.py:157
+#: ipalib/plugins/service.py:192
 msgid "Services"
 msgstr "ಸೇವೆಗಳು(ಸರ್ವೀಸಸ್)"
 
@@ -1152,12 +1160,12 @@ msgstr "ಸೇವೆಗಳು(ಸರ್ವೀಸಸ್)"
 msgid "Description of service"
 msgstr "ವಿವರಣೆ"
 
-#: ipalib/plugins/hbacsvc.py:84 ipalib/plugins/service.py:176
+#: ipalib/plugins/hbacsvc.py:84 ipalib/plugins/service.py:216
 #, python-format
 msgid "Added service \"%(value)s\""
 msgstr "\"%(value)s\" ಸೇವೆ(ಸರ್ವೀಸ್)ಯನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
-#: ipalib/plugins/hbacsvc.py:93 ipalib/plugins/service.py:224
+#: ipalib/plugins/hbacsvc.py:93 ipalib/plugins/service.py:255
 #, python-format
 msgid "Deleted service \"%(value)s\""
 msgstr "\"%(value)s\" ಸೇವೆ(ಸರ್ವೀಸ್)ಯನ್ನು ಅಳಿಸಲಾಗಿದೆ"
@@ -1250,9 +1258,7 @@ msgstr "ಬಳಕೆದಾರನ ಗುಪ್ತಪದ"
 msgid "Password used in bulk enrollment"
 msgstr "ದೊಡ್ಡ ಪ್ರಮಾಣದ ದಾಖಲಾತಿಯಲ್ಲಿ ಬಳಸಲಾದ ಗುಪ್ತಪದ"
 
-#: ipalib/plugins/host.py:155 ipalib/plugins/service.py:186
-#: ipalib/plugins/service.py:266 ipalib/plugins/service.py:305
-#: ipalib/plugins/service.py:344
+#: ipalib/plugins/host.py:155 ipalib/plugins/service.py:205
 msgid "Base-64 encoded server certificate"
 msgstr "Base-64 ಎನ್‌ಕೋಡೆಡ್ ಸರ್ವರ್ ಪ್ರಮಾಣಪತ್ರ"
 
@@ -1303,11 +1309,11 @@ msgid_plural "%(count)d hosts matched"
 msgstr[0] "%(count)d ಹೋಸ್ಟ್‌ ತಾಳೆಯಾಗುತ್ತಿದೆ"
 msgstr[1] "%(count)d ಹೋಸ್ಟ್‌ಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
 
-#: ipalib/plugins/host.py:337 ipalib/plugins/service.py:83
+#: ipalib/plugins/host.py:337 ipalib/plugins/service.py:84
 msgid "Keytab"
 msgstr ""
 
-#: ipalib/plugins/host.py:359 ipalib/plugins/service.py:386
+#: ipalib/plugins/host.py:359 ipalib/plugins/service.py:399
 #, fuzzy, python-format
 msgid "Removed kerberos key from \"%(value)s\""
 msgstr "\"%(value)s\" ರೋಲ್‌ಗ್ರೂಪನ್ನು ಅಳಿಸಲಾಗಿದೆ"
@@ -1444,28 +1450,33 @@ msgstr ""
 msgid "Dict of I18N messages"
 msgstr ""
 
-#: ipalib/plugins/krbtpolicy.py:62 ipalib/plugins/passwd.py:52
+#: ipalib/plugins/krbtpolicy.py:59
+#, fuzzy
+msgid "Kerberos Ticket Policy"
+msgstr "Kerberos principal"
+
+#: ipalib/plugins/krbtpolicy.py:64 ipalib/plugins/passwd.py:52
 msgid "User name"
 msgstr "ಬಳಕೆದಾರನ ಹೆಸರು"
 
-#: ipalib/plugins/krbtpolicy.py:63
+#: ipalib/plugins/krbtpolicy.py:65
 msgid "Manage ticket policy for specific user"
 msgstr "ನಿಗದಿತ ಬಳಕೆದಾರನಿಗೆ ಟಿಕೆಟ್ ಪಾಲಿಸಿಯನ್ನು ನಿರ್ವಹಿಸು"
 
-#: ipalib/plugins/krbtpolicy.py:68
+#: ipalib/plugins/krbtpolicy.py:70
 msgid "Max life"
 msgstr "ಗರಿಷ್ಟ ಜೀವಿತಾವಧಿ"
 
-#: ipalib/plugins/krbtpolicy.py:69
+#: ipalib/plugins/krbtpolicy.py:71
 #, fuzzy
 msgid "Maximum ticket life (seconds)"
 msgstr "ಗರಿಷ್ಟ ಟಿಕೆಟ್ ಜೀವಿತಾವಧಿ"
 
-#: ipalib/plugins/krbtpolicy.py:73
+#: ipalib/plugins/krbtpolicy.py:75
 msgid "Max renew"
 msgstr "ಗರಿಷ್ಟ ನವೀಕರಣ"
 
-#: ipalib/plugins/krbtpolicy.py:74
+#: ipalib/plugins/krbtpolicy.py:76
 #, fuzzy
 msgid "Maximum renewable age (seconds)"
 msgstr "ಗರಿಷ್ಟ ನವೀಕರಿಸಬಲ್ಲ ಆಯಸ್ಸು"
@@ -1621,78 +1632,83 @@ msgstr ""
 msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:173
+#: ipalib/plugins/pwpolicy.py:170
+#, fuzzy
+msgid "Password Policy"
+msgstr "ಗುಪ್ತಪದ"
+
+#: ipalib/plugins/pwpolicy.py:175
 msgid "Group"
 msgstr "ಗುಂಪು"
 
-#: ipalib/plugins/pwpolicy.py:174
+#: ipalib/plugins/pwpolicy.py:176
 #, fuzzy
 msgid "Manage password policy for specific group"
 msgstr "ನಿಗದಿತ ಬಳಕೆದಾರನಿಗೆ ಟಿಕೆಟ್ ಪಾಲಿಸಿಯನ್ನು ನಿರ್ವಹಿಸು"
 
-#: ipalib/plugins/pwpolicy.py:179
+#: ipalib/plugins/pwpolicy.py:181
 msgid "Max lifetime (days)"
 msgstr "ಗರಿಷ್ಟ ಜೀವಿತಾವಧಿ (ದಿನಗಳು)"
 
-#: ipalib/plugins/pwpolicy.py:180
+#: ipalib/plugins/pwpolicy.py:182
 msgid "Maximum password lifetime (in days)"
 msgstr "ಗುಪ್ತಪದದ ಗರಿಷ್ಟ ಜೀವಿತಾವಧಿ (ದಿನಗಳಲ್ಲಿ)"
 
-#: ipalib/plugins/pwpolicy.py:185
+#: ipalib/plugins/pwpolicy.py:187
 msgid "Min lifetime (hours)"
 msgstr "ಕನಿಷ್ಟ ಜೀವಿತಾವಧಿ (ಘಂಟೆಗಳು)"
 
-#: ipalib/plugins/pwpolicy.py:186
+#: ipalib/plugins/pwpolicy.py:188
 msgid "Minimum password lifetime (in hours)"
 msgstr "ಗುಪ್ತಪದದ ಕನಿಷ್ಟ ಜೀವಿತಾವಧಿ (ಘಂಟೆಗಳಲ್ಲಿ)"
 
-#: ipalib/plugins/pwpolicy.py:191
+#: ipalib/plugins/pwpolicy.py:193
 msgid "History size"
 msgstr "ಇತಿಹಾಸದ ಗಾತ್ರ"
 
-#: ipalib/plugins/pwpolicy.py:192
+#: ipalib/plugins/pwpolicy.py:194
 msgid "Password history size"
 msgstr "ಗುಪ್ತಪದ ಇತಿಹಾಸದ ಗಾತ್ರ"
 
-#: ipalib/plugins/pwpolicy.py:197
+#: ipalib/plugins/pwpolicy.py:199
 msgid "Character classes"
 msgstr "ಕ್ಯಾರೆಕ್ಟರ್ ಕ್ಲಾಸ್‌ಗಳು"
 
-#: ipalib/plugins/pwpolicy.py:198
+#: ipalib/plugins/pwpolicy.py:200
 msgid "Minimum number of character classes"
 msgstr "ಕನಿಷ್ಟ ಸಂಖ್ಯೆಯ ಕ್ಯಾರಕ್ಟರ್ ಕ್ಲಾಸ್‌ಗಳು"
 
-#: ipalib/plugins/pwpolicy.py:204
+#: ipalib/plugins/pwpolicy.py:206
 msgid "Min length"
 msgstr "ಕನಿಷ್ಟ ಉದ್ದ"
 
-#: ipalib/plugins/pwpolicy.py:205
+#: ipalib/plugins/pwpolicy.py:207
 msgid "Minimum length of password"
 msgstr "ಗುಪ್ತಪದದ ಕನಿಷ್ಟ ಉದ್ದ"
 
-#: ipalib/plugins/pwpolicy.py:210
+#: ipalib/plugins/pwpolicy.py:212
 msgid "Priority"
 msgstr "ಆದ್ಯತೆ"
 
-#: ipalib/plugins/pwpolicy.py:211
+#: ipalib/plugins/pwpolicy.py:213
 #, fuzzy
 msgid "Priority of the policy (higher number means lower priority"
 msgstr "ಪಾಲಿಸಿಯ ಆದ್ಯತೆ (ಗರಿಷ್ಟ ಸಂಖ್ಯೆ ಕನಿಷ್ಟ ಆದ್ಯತೆಗೆ ಸಮನಾಗಿರುತ್ತದೆ)"
 
-#: ipalib/plugins/pwpolicy.py:263
+#: ipalib/plugins/pwpolicy.py:265
 #, fuzzy
 msgid "Maximum password life must be greater than minimum."
 msgstr "ಗುಪ್ತಪದದ ಗರಿಷ್ಟ ಜೀವಿತಾವಧಿ (ದಿನಗಳಲ್ಲಿ)"
 
-#: ipalib/plugins/pwpolicy.py:328
+#: ipalib/plugins/pwpolicy.py:330
 msgid "priority cannot be set on global policy"
 msgstr "ಗ್ಲೋಬಲ್ ಪಾಲಿಸಿಯಲ್ಲಿ ಆದ್ಯತೆಯನ್ನು ಸೆಟ್ ಮಾಡಲಾಗುವುದಿಲ್ಲ"
 
-#: ipalib/plugins/pwpolicy.py:367
+#: ipalib/plugins/pwpolicy.py:369
 msgid "User"
 msgstr "ಬಳಕೆದಾರ"
 
-#: ipalib/plugins/pwpolicy.py:368
+#: ipalib/plugins/pwpolicy.py:370
 #, fuzzy
 msgid "Display effective policy for a specific user"
 msgstr "ನಿಗದಿತ ಬಳಕೆದಾರನಿಗೆ ಟಿಕೆಟ್ ಪಾಲಿಸಿಯನ್ನು ನಿರ್ವಹಿಸು"
@@ -1735,28 +1751,28 @@ msgid_plural "%(count)d rolegroups matched"
 msgstr[0] "%(count)d ರೋಲ್‌ಗ್ರೂಪ್ ತಾಳೆಯಾಗುತ್ತಿದೆ"
 msgstr[1] "%(count)d ರೋಲ್‌ಗ್ರೂಪ್‌ಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
 
-#: ipalib/plugins/service.py:163
+#: ipalib/plugins/service.py:198
 msgid "Service principal"
 msgstr "Service principal"
 
-#: ipalib/plugins/service.py:181
+#: ipalib/plugins/service.py:221
 #, fuzzy
 msgid "force principal name even if not in DNS"
 msgstr "ಈ ಹೋಸ್ಟ್‌ಗೆ Kerberos principalನ ಹೆಸರು"
 
-#: ipalib/plugins/service.py:261
+#: ipalib/plugins/service.py:292
 #, fuzzy, python-format
 msgid "Modified service \"%(value)s\""
 msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
-#: ipalib/plugins/service.py:298
+#: ipalib/plugins/service.py:323
 #, fuzzy, python-format
 msgid "%(count)d service matched"
 msgid_plural "%(count)d services matched"
 msgstr[0] "%(count)d ಬಳಕೆದಾರ ತಾಳೆಯಾಗುತ್ತಿದ್ದಾನೆ"
 msgstr[1] "%(count)d ಬಳಕೆದಾರರು ತಾಳೆಯಾಗುತ್ತಿದ್ದಾರೆ"
 
-#: ipalib/plugins/service.py:396
+#: ipalib/plugins/service.py:409
 #, fuzzy
 msgid "Service principal has no kerberos key"
 msgstr "Service principal"

@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2010-10-12 11:51-0400\n"
+"POT-Creation-Date: 2010-10-13 14:22-0400\n"
 "PO-Revision-Date: 2010-02-12 16:31+0000\n"
 "Last-Translator: Andrew Martynov <andrewm@inventa.ru>\n"
 "Language-Team: Russian <trans-ru@fedoraproject.org>\n"
@@ -152,7 +152,7 @@ msgstr "Пароли не совпадают"
 msgid "Command not implemented"
 msgstr "Команда пока не реализована"
 
-#: ipalib/errors.py:783 ipalib/errors.py:1023
+#: ipalib/errors.py:783 ipalib/errors.py:1023 ipalib/errors.py:1254
 #, python-format
 msgid "%(reason)s"
 msgstr "%(reason)s"
@@ -273,6 +273,11 @@ msgstr "%(info)s"
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "Операция с сертификатом не может быть завершена: %(error)s"
 
+#: ipalib/errors.py:1237
+#, fuzzy, python-format
+msgid "Certificate format error: %(error)s"
+msgstr "Операция с сертификатом не может быть завершена: %(error)s"
+
 #: ipalib/frontend.py:380
 msgid "Results are truncated, try a more specific search"
 msgstr "Результаты усечены. Попробуйте задать более точные условия поиска"
@@ -285,7 +290,7 @@ msgstr ""
 msgid "print entries as stored on the server"
 msgstr ""
 
-#: ipalib/frontend.py:914
+#: ipalib/frontend.py:940
 msgid "Forward to server instead of running locally"
 msgstr ""
 
@@ -538,23 +543,27 @@ msgstr[0] "совпадает %(count)d ACI"
 msgstr[1] "совпадают %(count)d ACI"
 msgstr[2] "совпадают %(count)d ACI"
 
-#: ipalib/plugins/automount.py:107 ipalib/plugins/host.py:134
+#: ipalib/plugins/automount.py:103
+msgid "Automount"
+msgstr ""
+
+#: ipalib/plugins/automount.py:109 ipalib/plugins/host.py:134
 msgid "Location"
 msgstr ""
 
-#: ipalib/plugins/automount.py:108
+#: ipalib/plugins/automount.py:110
 msgid "Automount location name"
 msgstr ""
 
-#: ipalib/plugins/automount.py:224
+#: ipalib/plugins/automount.py:226
 msgid "Map"
 msgstr ""
 
-#: ipalib/plugins/automount.py:225
+#: ipalib/plugins/automount.py:227
 msgid "Automount map name"
 msgstr ""
 
-#: ipalib/plugins/automount.py:230 ipalib/plugins/group.py:108
+#: ipalib/plugins/automount.py:232 ipalib/plugins/group.py:108
 #: ipalib/plugins/hbac.py:151 ipalib/plugins/hbacsvc.py:72
 #: ipalib/plugins/hbacsvcgroup.py:77 ipalib/plugins/host.py:124
 #: ipalib/plugins/hostgroup.py:81 ipalib/plugins/netgroup.py:96
@@ -564,39 +573,39 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: ipalib/plugins/automount.py:234
+#: ipalib/plugins/automount.py:236
 msgid "Automount Maps"
 msgstr ""
 
-#: ipalib/plugins/automount.py:306
+#: ipalib/plugins/automount.py:308
 msgid "Key"
 msgstr ""
 
-#: ipalib/plugins/automount.py:307
+#: ipalib/plugins/automount.py:309
 msgid "Automount key name"
 msgstr ""
 
-#: ipalib/plugins/automount.py:312
+#: ipalib/plugins/automount.py:314
 msgid "Mount information"
 msgstr ""
 
-#: ipalib/plugins/automount.py:316
+#: ipalib/plugins/automount.py:318
 msgid "description"
 msgstr ""
 
-#: ipalib/plugins/automount.py:320
+#: ipalib/plugins/automount.py:322
 msgid "Automount Keys"
 msgstr ""
 
-#: ipalib/plugins/automount.py:340
+#: ipalib/plugins/automount.py:342
 msgid "Mount point"
 msgstr ""
 
-#: ipalib/plugins/automount.py:344
+#: ipalib/plugins/automount.py:346
 msgid "Parent map"
 msgstr ""
 
-#: ipalib/plugins/automount.py:345
+#: ipalib/plugins/automount.py:347
 msgid "Name of parent automount map (default: auto.master)"
 msgstr ""
 
@@ -681,7 +690,7 @@ msgstr "Сбой при декодировании Certificate Signing Request"
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr "Сбой при декодировании Certificate Signing Request: %s"
 
-#: ipalib/plugins/cert.py:171 ipalib/plugins/service.py:162
+#: ipalib/plugins/cert.py:171 ipalib/plugins/service.py:197
 msgid "Principal"
 msgstr ""
 
@@ -694,9 +703,7 @@ msgid "automatically add the principal if it doesn't exist"
 msgstr ""
 
 #: ipalib/plugins/cert.py:187 ipalib/plugins/cert.py:392
-#: ipalib/plugins/host.py:154 ipalib/plugins/service.py:185
-#: ipalib/plugins/service.py:265 ipalib/plugins/service.py:304
-#: ipalib/plugins/service.py:343
+#: ipalib/plugins/host.py:154 ipalib/plugins/service.py:204
 msgid "Certificate"
 msgstr ""
 
@@ -910,61 +917,61 @@ msgstr ""
 msgid "BIND update policy"
 msgstr ""
 
-#: ipalib/plugins/dns.py:411 ipalib/plugins/dns.py:445
-#: ipalib/plugins/dns.py:480 ipalib/plugins/dns.py:595
-#: ipalib/plugins/dns.py:680 ipalib/plugins/dns.py:804
+#: ipalib/plugins/dns.py:426 ipalib/plugins/dns.py:460
+#: ipalib/plugins/dns.py:495 ipalib/plugins/dns.py:610
+#: ipalib/plugins/dns.py:695 ipalib/plugins/dns.py:819
 msgid "Zone name"
 msgstr ""
 
-#: ipalib/plugins/dns.py:485
+#: ipalib/plugins/dns.py:500
 msgid "resource name"
 msgstr ""
 
-#: ipalib/plugins/dns.py:490 ipalib/plugins/dns.py:605
-#: ipalib/plugins/dns.py:696
+#: ipalib/plugins/dns.py:505 ipalib/plugins/dns.py:620
+#: ipalib/plugins/dns.py:711
 #, fuzzy
 msgid "Record type"
 msgstr "неверный тип"
 
-#: ipalib/plugins/dns.py:494 ipalib/plugins/dns.py:609
+#: ipalib/plugins/dns.py:509 ipalib/plugins/dns.py:624
 msgid "Data"
 msgstr ""
 
-#: ipalib/plugins/dns.py:495 ipalib/plugins/dns.py:610
+#: ipalib/plugins/dns.py:510 ipalib/plugins/dns.py:625
 msgid "Type-specific data"
 msgstr ""
 
-#: ipalib/plugins/dns.py:502
+#: ipalib/plugins/dns.py:517
 msgid "Time to live"
 msgstr ""
 
-#: ipalib/plugins/dns.py:507
+#: ipalib/plugins/dns.py:522
 msgid "Class"
 msgstr ""
 
-#: ipalib/plugins/dns.py:600 ipalib/plugins/dns.py:692
-#: ipalib/plugins/dns.py:809
+#: ipalib/plugins/dns.py:615 ipalib/plugins/dns.py:707
+#: ipalib/plugins/dns.py:824
 msgid "Resource name"
 msgstr ""
 
-#: ipalib/plugins/dns.py:685
+#: ipalib/plugins/dns.py:700
 msgid "Search criteria"
 msgstr ""
 
-#: ipalib/plugins/dns.py:700
+#: ipalib/plugins/dns.py:715
 msgid "type-specific data"
 msgstr ""
 
-#: ipalib/plugins/dns.py:850
+#: ipalib/plugins/dns.py:865
 #, fuzzy, python-format
 msgid "Found '%(value)s'"
 msgstr "Добавлена группа \"%(value)s\""
 
-#: ipalib/plugins/dns.py:854
+#: ipalib/plugins/dns.py:869
 msgid "Hostname"
 msgstr ""
 
-#: ipalib/plugins/dns.py:867
+#: ipalib/plugins/dns.py:882
 #, python-format
 msgid "Host '%(host)s' not found"
 msgstr ""
@@ -1098,8 +1105,8 @@ msgstr ""
 msgid "Service category the rule applies to"
 msgstr ""
 
-#: ipalib/plugins/hbac.py:147 ipalib/plugins/hbac.py:309
-#: ipalib/plugins/hbac.py:347
+#: ipalib/plugins/hbac.py:147 ipalib/plugins/hbac.py:325
+#: ipalib/plugins/hbac.py:363
 msgid "Access time"
 msgstr ""
 
@@ -1127,7 +1134,7 @@ msgid "Source hosts"
 msgstr ""
 
 #: ipalib/plugins/hbac.py:174 ipalib/plugins/hbacsvc.py:60
-#: ipalib/plugins/service.py:157
+#: ipalib/plugins/service.py:192
 msgid "Services"
 msgstr ""
 
@@ -1147,12 +1154,12 @@ msgstr ""
 msgid "Description of service"
 msgstr ""
 
-#: ipalib/plugins/hbacsvc.py:84 ipalib/plugins/service.py:176
+#: ipalib/plugins/hbacsvc.py:84 ipalib/plugins/service.py:216
 #, fuzzy, python-format
 msgid "Added service \"%(value)s\""
 msgstr "Добавлен пользователь \"%(value)s\""
 
-#: ipalib/plugins/hbacsvc.py:93 ipalib/plugins/service.py:224
+#: ipalib/plugins/hbacsvc.py:93 ipalib/plugins/service.py:255
 #, fuzzy, python-format
 msgid "Deleted service \"%(value)s\""
 msgstr "Удален пользователь \"%(value)s\""
@@ -1240,9 +1247,7 @@ msgstr ""
 msgid "Password used in bulk enrollment"
 msgstr ""
 
-#: ipalib/plugins/host.py:155 ipalib/plugins/service.py:186
-#: ipalib/plugins/service.py:266 ipalib/plugins/service.py:305
-#: ipalib/plugins/service.py:344
+#: ipalib/plugins/host.py:155 ipalib/plugins/service.py:205
 msgid "Base-64 encoded server certificate"
 msgstr ""
 
@@ -1293,11 +1298,11 @@ msgstr[0] "совпадает %(count)d узел"
 msgstr[1] "совпадает %(count)d узла"
 msgstr[2] "совпадает %(count)d узлов"
 
-#: ipalib/plugins/host.py:337 ipalib/plugins/service.py:83
+#: ipalib/plugins/host.py:337 ipalib/plugins/service.py:84
 msgid "Keytab"
 msgstr ""
 
-#: ipalib/plugins/host.py:359 ipalib/plugins/service.py:386
+#: ipalib/plugins/host.py:359 ipalib/plugins/service.py:399
 #, fuzzy, python-format
 msgid "Removed kerberos key from \"%(value)s\""
 msgstr "Удалена rolegroup \"%(value)s\""
@@ -1433,27 +1438,31 @@ msgstr ""
 msgid "Dict of I18N messages"
 msgstr ""
 
-#: ipalib/plugins/krbtpolicy.py:62 ipalib/plugins/passwd.py:52
+#: ipalib/plugins/krbtpolicy.py:59
+msgid "Kerberos Ticket Policy"
+msgstr ""
+
+#: ipalib/plugins/krbtpolicy.py:64 ipalib/plugins/passwd.py:52
 msgid "User name"
 msgstr ""
 
-#: ipalib/plugins/krbtpolicy.py:63
+#: ipalib/plugins/krbtpolicy.py:65
 msgid "Manage ticket policy for specific user"
 msgstr ""
 
-#: ipalib/plugins/krbtpolicy.py:68
+#: ipalib/plugins/krbtpolicy.py:70
 msgid "Max life"
 msgstr ""
 
-#: ipalib/plugins/krbtpolicy.py:69
+#: ipalib/plugins/krbtpolicy.py:71
 msgid "Maximum ticket life (seconds)"
 msgstr ""
 
-#: ipalib/plugins/krbtpolicy.py:73
+#: ipalib/plugins/krbtpolicy.py:75
 msgid "Max renew"
 msgstr ""
 
-#: ipalib/plugins/krbtpolicy.py:74
+#: ipalib/plugins/krbtpolicy.py:76
 msgid "Maximum renewable age (seconds)"
 msgstr ""
 
@@ -1606,75 +1615,79 @@ msgstr ""
 msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:173
+#: ipalib/plugins/pwpolicy.py:170
+msgid "Password Policy"
+msgstr ""
+
+#: ipalib/plugins/pwpolicy.py:175
 msgid "Group"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:174
+#: ipalib/plugins/pwpolicy.py:176
 msgid "Manage password policy for specific group"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:179
+#: ipalib/plugins/pwpolicy.py:181
 msgid "Max lifetime (days)"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:180
+#: ipalib/plugins/pwpolicy.py:182
 msgid "Maximum password lifetime (in days)"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:185
+#: ipalib/plugins/pwpolicy.py:187
 msgid "Min lifetime (hours)"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:186
+#: ipalib/plugins/pwpolicy.py:188
 msgid "Minimum password lifetime (in hours)"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:191
+#: ipalib/plugins/pwpolicy.py:193
 msgid "History size"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:192
+#: ipalib/plugins/pwpolicy.py:194
 msgid "Password history size"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:197
+#: ipalib/plugins/pwpolicy.py:199
 msgid "Character classes"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:198
+#: ipalib/plugins/pwpolicy.py:200
 msgid "Minimum number of character classes"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:204
+#: ipalib/plugins/pwpolicy.py:206
 msgid "Min length"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:205
+#: ipalib/plugins/pwpolicy.py:207
 msgid "Minimum length of password"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:210
+#: ipalib/plugins/pwpolicy.py:212
 msgid "Priority"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:211
+#: ipalib/plugins/pwpolicy.py:213
 msgid "Priority of the policy (higher number means lower priority"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:263
+#: ipalib/plugins/pwpolicy.py:265
 msgid "Maximum password life must be greater than minimum."
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:328
+#: ipalib/plugins/pwpolicy.py:330
 msgid "priority cannot be set on global policy"
 msgstr "приоритет не может быть задан для глобальной политики"
 
-#: ipalib/plugins/pwpolicy.py:367
+#: ipalib/plugins/pwpolicy.py:369
 msgid "User"
 msgstr ""
 
-#: ipalib/plugins/pwpolicy.py:368
+#: ipalib/plugins/pwpolicy.py:370
 msgid "Display effective policy for a specific user"
 msgstr ""
 
@@ -1717,20 +1730,20 @@ msgstr[0] "совпадает %(count)d rolegroup"
 msgstr[1] "совпадают %(count)d rolegroup"
 msgstr[2] "совпадают %(count)d rolegroup"
 
-#: ipalib/plugins/service.py:163
+#: ipalib/plugins/service.py:198
 msgid "Service principal"
 msgstr ""
 
-#: ipalib/plugins/service.py:181
+#: ipalib/plugins/service.py:221
 msgid "force principal name even if not in DNS"
 msgstr ""
 
-#: ipalib/plugins/service.py:261
+#: ipalib/plugins/service.py:292
 #, fuzzy, python-format
 msgid "Modified service \"%(value)s\""
 msgstr "Изменен пользователь \"%(value)s\""
 
-#: ipalib/plugins/service.py:298
+#: ipalib/plugins/service.py:323
 #, fuzzy, python-format
 msgid "%(count)d service matched"
 msgid_plural "%(count)d services matched"
@@ -1738,7 +1751,7 @@ msgstr[0] "совпадает %(count)d пользователь"
 msgstr[1] "совпадают %(count)d пользователя"
 msgstr[2] "совпадают %(count)d пользователей"
 
-#: ipalib/plugins/service.py:396
+#: ipalib/plugins/service.py:409
 msgid "Service principal has no kerberos key"
 msgstr ""
 
