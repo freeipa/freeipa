@@ -122,7 +122,7 @@ class user(LDAPObject):
         Password('userpassword?',
             cli_name='password',
             label=_('Password'),
-            doc=_('Set the user password'),
+            doc=_('Prompt to set the user password'),
             # FIXME: This is temporary till bug is fixed causing updates to
             # bomb out via the webUI.
             exclude='webui',
