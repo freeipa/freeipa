@@ -82,6 +82,10 @@ def erase_ds_instance_data(serverid):
         shutil.rmtree("/var/lock/dirsrv/slapd-%s" % serverid)
     except:
         pass
+    try:
+        os.unlink("/var/run/slapd-%s.socket" % serverid)
+    except:
+        pass
 #    try:
 #        shutil.rmtree("/var/log/dirsrv/slapd-%s" % serverid)
 #    except:
