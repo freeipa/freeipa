@@ -69,3 +69,11 @@ require {
 };
 
 allow ipa_kpasswd_t krb5kdc_conf_t:dir search_dir_perms;
+
+optional_policy(`
+    gen_require(`
+             type kerberos_password_port_t;
+    ')
+    corenet_tcp_bind_kerberos_password_port(ipa_kpasswd_t)
+')
+

@@ -85,7 +85,9 @@ Requires: python-krbV
 Requires: acl
 Requires: python-pyasn1 >= 0.0.9a
 Requires: libcap
-%if 0%{?fedora} >= 12 || 0%{?rhel} >= 6
+%{?fc12:Requires: selinux-policy >= 3.6.32-123}
+%{?fc13:Requires: selinux-policy >= 3.7.19-40}
+%if 0%{?fedora} >= 14 || 0%{?rhel} >= 6
 Requires: selinux-policy
 %endif
 Requires(post): selinux-policy-base
