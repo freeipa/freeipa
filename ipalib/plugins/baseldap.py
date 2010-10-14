@@ -157,6 +157,14 @@ _attr_options = (
     ),
 )
 
+# addattr can cause parameters to have more than one value even if not defined
+# as multivalue, make sure this isn't the case
+def _check_single_value_attrs(params, entry_attrs):
+    for (a, v) in entry_attrs.iteritems():
+        if isinstance(v, (list, tuple)) and len(v) > 1:
+            if a in params and not params[a].multivalue:
+                raise errors.OnlyOneValueAllowed(attr=a)
+
 
 class CallbackInterface(Method):
     """
@@ -276,6 +284,8 @@ class LDAPCreate(CallbackInterface, crud.Create):
                 dn = callback(
                     self, ldap, dn, entry_attrs, attrs_list, *keys, **options
                 )
+
+        _check_single_value_attrs(self.params, entry_attrs)
 
         try:
             ldap.add_entry(dn, entry_attrs, normalize=self.obj.normalize_dn)
@@ -464,7 +474,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 except errors.ExecutionError, e:
                     try:
                         (dn, old_entry) = self._call_exc_callbacks(
-                            keys, options, e, ldap.get_entry, dn, attrs_list,
+                            keys, options, e, ldap.get_entry, dn, [],
                             normalize=self.obj.normalize_dn
                         )
                     except errors.NotFound:
@@ -490,6 +500,8 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 dn = callback(
                     self, ldap, dn, entry_attrs, attrs_list, *keys, **options
                 )
+
+        _check_single_value_attrs(self.params, entry_attrs)
 
         try:
             ldap.update_entry(dn, entry_attrs, normalize=self.obj.normalize_dn)

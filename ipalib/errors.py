@@ -1165,14 +1165,14 @@ class DatabaseError(ExecutionError):
 
     For example:
 
-    >>> raise DatabaseError(desc="Can't contact LDAP server", info='')
+    >>> raise DatabaseError(desc="Can't contact LDAP server", info='Info goes here')
     Traceback (most recent call last):
       ...
-    DatabaseError: Can't contact LDAP server:
+    DatabaseError: Can't contact LDAP server: Info goes here
     """
 
     errno = 4203
-    format = _('%(desc)s:%(info)s')
+    format = _('%(desc)s: %(info)s')
 
 
 class LimitsExceeded(ExecutionError):
@@ -1204,6 +1204,37 @@ class ObjectclassViolation(ExecutionError):
 
     errno = 4205
     format = _('%(info)s')
+
+class NotAllowedOnRDN(ExecutionError):
+    """
+    **4206** Raised when an RDN value is modified.
+
+    For example:
+
+    >>> raise NotAllowedOnRDN()
+    Traceback (most recent call last):
+      ...
+    NotAllowedOnRDN: modifying primary key is not allowed
+    """
+
+    errno = 4206
+    format = _('modifying primary key is not allowed')
+
+
+class OnlyOneValueAllowed(ExecutionError):
+    """
+    **4207** Raised when trying to set more than one value to single-value attributes
+
+    For example:
+
+    >> raise OnlyOneValueAllowed(attr='ipasearchtimelimit')
+    Traceback (most recent call last):
+      ...
+    OnlyOneValueAllowed: ipasearchtimelimit: Only one value allowed.
+    """
+
+    errno = 4207
+    format = _('%(attr)s: Only one value allowed.')
 
 
 class CertificateError(ExecutionError):

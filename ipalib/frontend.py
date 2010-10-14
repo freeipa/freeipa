@@ -504,7 +504,7 @@ class Command(HasParam):
         a dictionary. The incoming attribute may be a string or
         a list.
 
-        Any attribute found that is also a param is silently dropped.
+        Any attribute found that is also a param is validated.
 
         append controls whether this returns a list of values or a single
         value.

@@ -70,21 +70,21 @@ def _handle_errors(e, **kw):
     try:
         # re-raise the error so we can handle it
         raise e
-    except _ldap.NO_SUCH_OBJECT, e:
+    except _ldap.NO_SUCH_OBJECT:
         # args = kw.get('args', '')
         # raise errors.NotFound(msg=notfound(args))
         raise errors.NotFound(reason='no such entry')
-    except _ldap.ALREADY_EXISTS, e:
+    except _ldap.ALREADY_EXISTS:
         raise errors.DuplicateEntry()
-    except _ldap.CONSTRAINT_VIOLATION, e:
+    except _ldap.CONSTRAINT_VIOLATION:
         # This error gets thrown by the uniqueness plugin
         if info == 'Another entry with the same attribute value already exists':
             raise errors.DuplicateEntry()
         else:
             raise errors.DatabaseError(desc=desc, info=info)
-    except _ldap.INSUFFICIENT_ACCESS, e:
+    except _ldap.INSUFFICIENT_ACCESS:
         raise errors.ACIError(info=info)
-    except _ldap.INVALID_CREDENTIALS, e:
+    except _ldap.INVALID_CREDENTIALS:
         raise errors.ACIError(info="%s %s" % (info, desc))
     except _ldap.NO_SUCH_ATTRIBUTE:
         # this is raised when a 'delete' attribute isn't found.
@@ -93,12 +93,14 @@ def _handle_errors(e, **kw):
         raise errors.MidairCollision()
     except _ldap.OBJECT_CLASS_VIOLATION:
         raise errors.ObjectclassViolation(info=info)
-    except _ldap.ADMINLIMIT_EXCEEDED, e:
+    except _ldap.ADMINLIMIT_EXCEEDED:
         raise errors.LimitsExceeded()
-    except _ldap.SIZELIMIT_EXCEEDED, e:
+    except _ldap.SIZELIMIT_EXCEEDED:
         raise errors.LimitsExceeded()
-    except _ldap.TIMELIMIT_EXCEEDED, e:
+    except _ldap.TIMELIMIT_EXCEEDED:
         raise errors.LimitsExceeded()
+    except _ldap.NOT_ALLOWED_ON_RDN:
+        raise errors.NotAllowedOnRDN(attr=info)
     except _ldap.SUCCESS:
         pass
     except _ldap.LDAPError, e:
@@ -254,6 +256,20 @@ class ldap2(CrudBackend, Encoder):
             return obj.syntax
         else:
             return None
+
+    def get_single_value(self, attr):
+        """
+        Check the schema to see if the attribute is single-valued.
+
+        If the attribute is in the schema then returns True/False
+
+        If there is a problem loading the schema or the attribute is
+        not in the schema return None
+        """
+        if self.schema:
+            obj = self.schema.get_obj(_ldap.schema.AttributeType, attr)
+            return obj and obj.single_value
+        return None
 
     @encode_args(2, 3, 'bind_dn', 'bind_pw')
     def create_connection(self, ccache=None, bind_dn='', bind_pw='',
@@ -690,13 +706,15 @@ class ldap2(CrudBackend, Encoder):
                 adds = list(v.difference(old_v))
                 rems = list(old_v.difference(v))
 
+                is_single_value = self.get_single_value(k)
+
+                value_count = len(old_v) + len(adds) - len(rems)
+                if is_single_value and value_count > 1:
+                    raise errors.OnlyOneValueAllowed(attr=k)
+
                 force_replace = False
-                if k in self._FORCE_REPLACE_ON_UPDATE_ATTRS:
+                if k in self._FORCE_REPLACE_ON_UPDATE_ATTRS or is_single_value:
                     force_replace = True
-                elif self.schema:
-                    obj = self.schema.get_obj(_ldap.schema.AttributeType, k)
-                    if obj and obj.single_value:
-                        force_replace = True
                 elif len(adds) == 1 and len(rems) == 1:
                     force_replace = True
 
