@@ -33,8 +33,10 @@ class NTPInstance(service.Service):
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
     def __write_config(self):
-        # The template sets the config to point towards ntp.pool.org, but
-        # they request that software not point towards the default pool.
+
+        self.fstore.backup_file("/etc/ntp.conf")
+        self.fstore.backup_file("/etc/sysconfig/ntpd")
+
         # We use the OS variable to point it towards either the rhel
         # or fedora pools. Other distros should be added in the future
         # or we can get our own pool.
@@ -44,24 +46,89 @@ class NTPInstance(service.Service):
         elif ipautil.file_exists("/etc/redhat-release"):
             os = "rhel"
 
-        sub_dict = { }
-        sub_dict["SERVERA"] = "0.%s.pool.ntp.org" % os
-        sub_dict["SERVERB"] = "1.%s.pool.ntp.org" % os
-        sub_dict["SERVERC"] = "2.%s.pool.ntp.org" % os
+        srv_vals = []
+        srv_vals.append("0.%s.pool.ntp.org" % os)
+        srv_vals.append("1.%s.pool.ntp.org" % os)
+        srv_vals.append("2.%s.pool.ntp.org" % os)
+        srv_vals.append("127.127.1.0")
+        fudge = ["fudge", "127.127.1.0", "stratum", "10"]
 
-        ntp_conf = ipautil.template_file(ipautil.SHARE_DIR + "ntp.conf.server.template", sub_dict)
-        ntp_sysconf = ipautil.template_file(ipautil.SHARE_DIR + "ntpd.sysconfig.template", {})
+        #read in memory, change it, then overwrite file
+        file_changed = False
+        fudge_present = False
+        ntpconf = []
+        fd = open("/etc/ntp.conf", "r")
+        for line in fd:
+            opt = line.split()
+            if len(opt) < 1:
+                ntpconf.append(line)
+                continue
 
-        self.fstore.backup_file("/etc/ntp.conf")
-        self.fstore.backup_file("/etc/sysconfig/ntpd")
+            if opt[0] == "server":
+                match = False
+                for srv in srv_vals:
+                    if opt[1] == srv:
+                        match = True
+                        break
+                if match:
+                    srv_vals.remove(srv)
+                else:
+                    file_changed = True
+                    line = ""
+            elif opt[0] == "fudge":
+                if opt[0:4] == fudge[0:4]:
+                    fudge_present = True
+                else:
+                    file_changed = True
+                    line = ""
 
-        fd = open("/etc/ntp.conf", "w")
-        fd.write(ntp_conf)
+            ntpconf.append(line)
+
+        if file_changed or len(srv_vals) != 0 or not fudge_present:
+            fd = open("/etc/ntp.conf", "w")
+            for line in ntpconf:
+                fd.write(line)
+            fd.write("\n### Added by IPA Installer ###\n")
+            if len(srv_vals) != 0:
+                for srv in srv_vals:
+                    fd.write("server "+srv+"\n")
+            if not fudge_present:
+                fd.write("fudge 127.127.1.0 stratum 10\n")
+            fd.close()
+
+        #read in memory, find OPTIONS, check/change it, then overwrite file
+        file_changed = False
+        found_options = False
+        ntpdsysc = []
+        fd = open("/etc/sysconfig/ntpd", "r")
+        for line in fd:
+            sline = line.strip()
+            if sline.find("OPTIONS") == 0:
+                found_options = True
+                opts = sline.split("=", 1)
+                if len(opts) != 2:
+                    optvals=""
+                else:
+                    optvals = opts[1].strip(' "')
+                if optvals.find("-x") == -1:
+                    optvals += " -x"
+                    file_changed = True
+                if optvals.find("-g") == -1:
+                    optvals += " -g"
+                    file_changed = True
+                if file_changed:
+                    line = 'OPTIONS="'+optvals+'"\n'
+            ntpdsysc.append(line)
         fd.close()
+        if not found_options:
+            ntpdsysc.insert(0, 'OPTIONS="-x -g"\n')
+            file_changed = True
 
-        fd = open("/etc/sysconfig/ntpd", "w")
-        fd.write(ntp_sysconf)
-        fd.close()
+        if file_changed:
+            fd = open("/etc/sysconfig/ntpd", "w")
+            for line in ntpdsysc:
+                fd.write(line)
+            fd.close()
 
     def __stop(self):
         self.backup_state("running", self.is_running())
