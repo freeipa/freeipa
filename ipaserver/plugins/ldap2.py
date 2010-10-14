@@ -515,9 +515,9 @@ class ldap2(CrudBackend, Encoder):
         if time_limit is None or size_limit is None:
             (cdn, config) = self.get_ipa_config()
             if time_limit is None:
-                time_limit = config.get('ipasearchtimelimit')[0]
+                time_limit = config.get('ipasearchtimelimit', [-1])[0]
             if size_limit is None:
-                size_limit = config.get('ipasearchrecordslimit')[0]
+                size_limit = config.get('ipasearchrecordslimit', [0])[0]
         if not isinstance(size_limit, int):
             size_limit = int(size_limit)
         if not isinstance(time_limit, float):
@@ -568,16 +568,22 @@ class ldap2(CrudBackend, Encoder):
         """
         return self.find_entries(None, attrs_list, dn, self.SCOPE_BASE, time_limit=time_limit, size_limit=size_limit, normalize=normalize)[0][0]
 
+    config_defaults = {'ipasearchtimelimit': [2], 'ipasearchrecordslimit': [0]}
     def get_ipa_config(self):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
         cdn = "%s,%s" % (api.Object.config.get_dn(), api.env.basedn)
         try:
-            return self.find_entries(None, None, cdn, self.SCOPE_BASE,
-                time_limit=2, size_limit=10)[0][0]
+            (cdn, config_entry) = self.find_entries(
+                base_dn=cdn, scope=self.SCOPE_BASE, time_limit=2, size_limit=10
+            )[0][0]
         except errors.NotFound:
-            return (cdn, {'ipasearchtimelimit': [2], 'ipasearchrecordslimit': [0]})
+            config_entry = {}
         except Exception, e:
             raise e
+        for a in self.config_defaults:
+            if a not in config_entry:
+                config_entry[a] = self.config_defaults[a]
+        return (cdn, config_entry)
 
     def get_schema(self):
         """Returns a copy of the current LDAP schema."""
