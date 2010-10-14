@@ -43,6 +43,7 @@ from ipalib import errors
 from ipalib.request import context
 from ipapython import ipautil, dnsclient
 import httplib
+import socket
 from ipapython.nsslib import NSSHTTPS, NSSConnection
 from nss.error import NSPRError
 from urllib2 import urlparse
@@ -370,3 +371,5 @@ class xmlclient(Connectible):
             raise NetworkError(uri=server, error=str(e))
         except ProtocolError, e:
             raise NetworkError(uri=server, error=e.errmsg)
+        except socket.error, e:
+            raise NetworkError(uri=server, error=str(e))
