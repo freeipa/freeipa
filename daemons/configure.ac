@@ -280,6 +280,7 @@ AC_CONFIG_FILES([
     ipa-slapi-plugins/ipa-pwd-extop/Makefile
     ipa-slapi-plugins/ipa-winsync/Makefile
     ipa-slapi-plugins/ipa-version/Makefile
+    ipa-slapi-plugins/ipa-uuid/Makefile
 ])
 
 AC_OUTPUT

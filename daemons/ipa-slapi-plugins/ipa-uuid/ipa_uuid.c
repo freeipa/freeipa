@@ -1,0 +1,1250 @@
+/** BEGIN COPYRIGHT BLOCK
+ * This Program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; version 2 of the License.
+ *
+ * This Program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this Program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ * Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * In addition, as a special exception, Red Hat, Inc. gives You the additional
+ * right to link the code of this Program with code not covered under the GNU
+ * General Public License ("Non-GPL Code") and to distribute linked combinations
+ * including the two, subject to the limitations in this paragraph. Non-GPL Code
+ * permitted under this exception must only link to the code of this Program
+ * through those well defined interfaces identified in the file named EXCEPTION
+ * found in the source code files (the "Approved Interfaces"). The files of
+ * Non-GPL Code may instantiate templates or use macros or inline functions from
+ * the Approved Interfaces without causing the resulting work to be covered by
+ * the GNU General Public License. Only Red Hat, Inc. may make changes or
+ * additions to the list of Approved Interfaces. You must obey the GNU General
+ * Public License in all respects for all of the Program code and other code used
+ * in conjunction with the Program except the Non-GPL Code covered by this
+ * exception. If you modify this file, you may extend this exception to your
+ * version of the file, but you are not obligated to do so. If you do not wish to
+ * provide this exception without modification, you must delete this exception
+ * statement from your version and license this file solely under the GPL without
+ * exception.
+ *
+ *
+ * Copyright (C) 2010 Red Hat, Inc.
+ * All rights reserved.
+ * END COPYRIGHT BLOCK **/
+
+/**
+ * IPA UUID plug-in
+ */
+#include <string.h>
+#include <stdbool.h>
+#include "slapi-plugin.h"
+#include "nspr.h"
+#include "prclist.h"
+
+#ifndef TEMP_TEMP_GET_A_DEFINE_FROM_389DS_TEAM
+int slapi_uniqueIDGenerateString(char **uId);
+#endif
+
+#define IPAUUID_PLUGIN_NAME "ipa-uuid-plugin"
+#define IPAUUID_PLUGIN_VERSION 0x00010000
+
+#define IPAUUID_DN "cn=IPA UUID,cn=plugins,cn=config" /* temporary */
+
+#define IPAUUID_SUCCESS 0
+#define IPAUUID_FAILURE -1
+
+#ifndef discard_const
+#define discard_const(ptr) ((void *)((uintptr_t)(ptr)))
+#endif
+
+#define log_func discard_const(__func__)
+
+#define LOG(fmt, ...) \
+    slapi_log_error(SLAPI_LOG_PLUGIN, \
+                    IPAUUID_PLUGIN_NAME, \
+                    fmt, ##__VA_ARGS__)
+
+#define LOG_CONFIG(fmt, ...) \
+    slapi_log_error(SLAPI_LOG_CONFIG, \
+                    IPAUUID_PLUGIN_NAME, \
+                    fmt, ##__VA_ARGS__)
+
+#define LOG_FATAL(fmt, ...) \
+    slapi_log_error(SLAPI_LOG_FATAL, log_func, \
+                    "[file %s, line %d]: " fmt, \
+                    __FILE__, __LINE__, ##__VA_ARGS__)
+
+#define LOG_TRACE(fmt, ...) \
+    slapi_log_error(SLAPI_LOG_TRACE, log_func, fmt, ##__VA_ARGS__)
+
+#define LOG_OOM() LOG_FATAL("Out of Memory!\n")
+
+/**
+ * IPA UUID config types
+ */
+#define IPAUUID_ATTR             "ipaUuidAttr"
+#define IPAUUID_PREFIX           "ipaUuidPrefix"
+#define IPAUUID_GENERATE         "ipaUuidMagicRegen"
+#define IPAUUID_FILTER           "ipaUuidFilter"
+#define IPAUUID_SCOPE            "ipaUuidScope"
+
+#define IPAUUID_FEATURE_DESC      "IPA UUID"
+#define IPAUUID_PLUGIN_DESC       "IPA UUID plugin"
+#define IPAUUID_INT_PREOP_DESC    "IPA UUID internal preop plugin"
+#define IPAUUID_POSTOP_DESC       "IPA UUID postop plugin"
+
+static Slapi_PluginDesc pdesc = {
+    IPAUUID_FEATURE_DESC,
+    "Red Hat, Inc.",
+    "1.0",
+    IPAUUID_PLUGIN_DESC
+};
+
+/**
+ * linked list of config entries
+ */
+
+struct configEntry {
+    PRCList list;
+    char *dn;
+    char *attr;
+    char *prefix;
+    char *filter;
+    Slapi_Filter *slapi_filter;
+    char *generate;
+    char *scope;
+};
+
+static PRCList *ipauuid_global_config = NULL;
+static PRRWLock *g_ipauuid_cache_lock;
+
+static void *_PluginID = NULL;
+static char *_PluginDN = NULL;
+
+static int g_plugin_started = 0;
+
+
+/**
+ *
+ * management functions
+ *
+ */
+int ipauuid_init(Slapi_PBlock * pb);
+static int ipauuid_start(Slapi_PBlock * pb);
+static int ipauuid_close(Slapi_PBlock * pb);
+static int ipauuid_internal_preop_init(Slapi_PBlock *pb);
+static int ipauuid_postop_init(Slapi_PBlock * pb);
+
+/**
+ *
+ * Local operation functions
+ *
+ */
+static int ipauuid_load_plugin_config();
+static int ipauuid_parse_config_entry(Slapi_Entry * e, bool apply);
+static void ipauuid_delete_config();
+static void ipauuid_free_config_entry(struct configEntry ** entry);
+
+/**
+ *
+ * helpers
+ *
+ */
+static char *ipauuid_get_dn(Slapi_PBlock * pb);
+static int ipauuid_dn_is_config(char *dn);
+static int ipauuid_list_contains_attr(char **list, char *attr);
+static int ipauuid_list_contains_attrs(char **list, char **attrs);
+static void ipauuid_list_remove_attr(char **list, char *attr);
+
+/**
+ *
+ * the ops (where the real work is done)
+ *
+ */
+static int ipauuid_config_check_post_op(Slapi_PBlock * pb);
+static int ipauuid_pre_op(Slapi_PBlock * pb, int modtype);
+static int ipauuid_mod_pre_op(Slapi_PBlock * pb);
+static int ipauuid_add_pre_op(Slapi_PBlock * pb);
+
+/**
+ * debug functions - global, for the debugger
+ */
+void ipauuid_dump_config();
+void ipauuid_dump_config_entry(struct configEntry *);
+
+/**
+ * set the debug level
+ */
+#ifdef _WIN32
+int *module_ldap_debug = 0;
+
+void plugin_init_debug_level(int *level_ptr)
+{
+    module_ldap_debug = level_ptr;
+}
+#endif
+
+/**
+ *
+ * Deal with cache locking
+ *
+ */
+void ipauuid_read_lock()
+{
+    PR_RWLock_Rlock(g_ipauuid_cache_lock);
+}
+
+void ipauuid_write_lock()
+{
+    PR_RWLock_Wlock(g_ipauuid_cache_lock);
+}
+
+void ipauuid_unlock()
+{
+    PR_RWLock_Unlock(g_ipauuid_cache_lock);
+}
+
+/**
+ *
+ * Get the plug-in version
+ *
+ */
+int ipauuid_version()
+{
+    return IPAUUID_PLUGIN_VERSION;
+}
+
+/**
+ * Plugin identity mgmt
+ */
+void setPluginID(void *pluginID)
+{
+    _PluginID = pluginID;
+}
+
+void *getPluginID()
+{
+    return _PluginID;
+}
+
+void setPluginDN(char *pluginDN)
+{
+    _PluginDN = pluginDN;
+}
+
+char *getPluginDN()
+{
+    return _PluginDN;
+}
+
+/*
+	ipauuid_init
+	-------------
+	adds our callbacks to the list
+*/
+int
+ipauuid_init(Slapi_PBlock *pb)
+{
+    int status = IPAUUID_SUCCESS;
+    char *plugin_identity = NULL;
+
+    LOG_TRACE("--in-->\n");
+
+        /**
+	 * Store the plugin identity for later use.
+	 * Used for internal operations
+	 */
+
+    slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY, &plugin_identity);
+    PR_ASSERT(plugin_identity);
+    setPluginID(plugin_identity);
+
+    if (slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION,
+                         SLAPI_PLUGIN_VERSION_01) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_START_FN,
+                         (void *) ipauuid_start) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_CLOSE_FN,
+                         (void *) ipauuid_close) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION,
+                         (void *) &pdesc) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_PRE_MODIFY_FN,
+                         (void *) ipauuid_mod_pre_op) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_PRE_ADD_FN,
+                         (void *) ipauuid_add_pre_op) != 0 ||
+        /* internal preoperation */
+        slapi_register_plugin("internalpreoperation",  /* op type */
+                              1,        /* Enabled */
+                              "ipauuid_init",   /* this function desc */
+                              ipauuid_internal_preop_init,  /* init func */
+                              IPAUUID_INT_PREOP_DESC,      /* plugin desc */
+                              NULL,     /* ? */
+                              plugin_identity   /* access control */
+        ) ||
+        /* the config change checking post op */
+        slapi_register_plugin("postoperation",  /* op type */
+                              1,        /* Enabled */
+                              "ipauuid_init",   /* this function desc */
+                              ipauuid_postop_init,  /* init func for post op */
+                              IPAUUID_POSTOP_DESC,      /* plugin desc */
+                              NULL,     /* ? */
+                              plugin_identity   /* access control */
+        )
+        ) {
+        LOG_FATAL("failed to register plugin\n");
+        status = IPAUUID_FAILURE;
+    }
+
+    LOG_TRACE("<--out--\n");
+    return status;
+}
+
+static int
+ipauuid_internal_preop_init(Slapi_PBlock *pb)
+{
+    int status = IPAUUID_SUCCESS;
+
+    if (slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION,
+                         SLAPI_PLUGIN_VERSION_01) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION,
+                         (void *) &pdesc) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_PRE_MODIFY_FN,
+                         (void *) ipauuid_mod_pre_op) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_PRE_ADD_FN,
+                         (void *) ipauuid_add_pre_op) != 0) {
+        status = IPAUUID_FAILURE;
+    }
+ 
+    return status;
+}
+
+static int
+ipauuid_postop_init(Slapi_PBlock *pb)
+{
+    int status = IPAUUID_SUCCESS;
+
+    if (slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION,
+                         SLAPI_PLUGIN_VERSION_01) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION,
+                         (void *) &pdesc) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_POST_ADD_FN,
+                         (void *) ipauuid_config_check_post_op) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODRDN_FN,
+                         (void *) ipauuid_config_check_post_op) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_POST_DELETE_FN,
+                         (void *) ipauuid_config_check_post_op) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODIFY_FN,
+                         (void *) ipauuid_config_check_post_op) != 0) {
+        LOG_FATAL("failed to register plugin\n");
+        status = IPAUUID_FAILURE;
+    }
+
+    return status;
+}
+
+
+/*
+	ipauuid_start
+	--------------
+	Kicks off the config cache.
+	It is called after ipauuid_init.
+*/
+static int
+ipauuid_start(Slapi_PBlock * pb)
+{
+    char *plugindn = NULL;
+
+    LOG_TRACE("--in-->\n");
+
+    /* Check if we're already started */
+    if (g_plugin_started) {
+        goto done;
+    }
+
+    g_ipauuid_cache_lock = PR_NewRWLock(PR_RWLOCK_RANK_NONE, "ipaUuid");
+
+    if (!g_ipauuid_cache_lock) {
+        LOG_FATAL("lock creation failed\n");
+
+        return IPAUUID_FAILURE;
+    }
+
+    /**
+	 *	Get the plug-in target dn from the system
+	 *	and store it for future use. This should avoid
+	 *	hardcoding of DN's in the code.
+	 */
+    slapi_pblock_get(pb, SLAPI_TARGET_DN, &plugindn);
+    if (NULL == plugindn || 0 == strlen(plugindn)) {
+        LOG("had to use hard coded config dn\n");
+        plugindn = IPAUUID_DN;
+    } else {
+        LOG("config at %s\n", plugindn);
+
+    }
+
+    setPluginDN(plugindn);
+
+    /*
+     * Load the config for our plug-in
+     */
+    ipauuid_global_config = (PRCList *)
+        slapi_ch_calloc(1, sizeof(struct configEntry));
+    PR_INIT_CLIST(ipauuid_global_config);
+
+    if (ipauuid_load_plugin_config() != IPAUUID_SUCCESS) {
+        LOG_FATAL("unable to load plug-in configuration\n");
+        return IPAUUID_FAILURE;
+    }
+
+    g_plugin_started = 1;
+    LOG("ready for service\n");
+    LOG_TRACE("<--out--\n");
+
+done:
+    return IPAUUID_SUCCESS;
+}
+
+/*
+	ipauuid_close
+	--------------
+	closes down the cache
+*/
+static int
+ipauuid_close(Slapi_PBlock * pb)
+{
+    LOG_TRACE( "--in-->\n");
+
+    ipauuid_delete_config();
+
+    slapi_ch_free((void **)&ipauuid_global_config);
+
+    LOG_TRACE("<--out--\n");
+
+    return IPAUUID_SUCCESS;
+}
+
+/*
+ * config looks like this
+ * - cn=myplugin
+ * --- cn=posix
+ * ------ cn=accounts
+ * ------ cn=groups
+ * --- cn=samba
+ * --- cn=etc
+ * ------ cn=etc etc
+ */
+static int
+ipauuid_load_plugin_config()
+{
+    int status = IPAUUID_SUCCESS;
+    int result;
+    int i;
+    time_t now;
+    Slapi_PBlock *search_pb;
+    Slapi_Entry **entries = NULL;
+
+    LOG_TRACE("--in-->\n");
+
+    ipauuid_write_lock();
+    ipauuid_delete_config();
+
+    search_pb = slapi_pblock_new();
+
+    slapi_search_internal_set_pb(search_pb, getPluginDN(),
+                                 LDAP_SCOPE_SUBTREE, "objectclass=*",
+                                 NULL, 0, NULL, NULL, getPluginID(), 0);
+    slapi_search_internal_pb(search_pb);
+    slapi_pblock_get(search_pb, SLAPI_PLUGIN_INTOP_RESULT, &result);
+
+    if (LDAP_SUCCESS != result) {
+        status = IPAUUID_FAILURE;
+        goto cleanup;
+    }
+
+    slapi_pblock_get(search_pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES,
+                     &entries);
+    if (NULL == entries || NULL == entries[0]) {
+        status = IPAUUID_SUCCESS;
+        goto cleanup;
+    }
+
+    for (i = 0; (entries[i] != NULL); i++) {
+        /* We don't care about the status here because we may have
+         * some invalid config entries, but we just want to continue
+         * looking for valid ones. */
+        ipauuid_parse_config_entry(entries[i], true);
+    }
+
+  cleanup:
+    slapi_free_search_results_internal(search_pb);
+    slapi_pblock_destroy(search_pb);
+    ipauuid_unlock();
+    LOG_TRACE("<--out--\n");
+
+    return status;
+}
+
+/*
+ * ipauuid_parse_config_entry()
+ *
+ * Parses a single config entry.  If apply is non-zero, then
+ * we will load and start using the new config.  You can simply
+ * validate config without making any changes by setting apply
+ * to 0.
+ *
+ * Returns IPAUUID_SUCCESS if the entry is valid and IPAUUID_FAILURE
+ * if it is invalid.
+ */
+static int
+ipauuid_parse_config_entry(Slapi_Entry * e, bool apply)
+{
+    char *value;
+    struct configEntry *entry = NULL;
+    struct configEntry *config_entry;
+    PRCList *list;
+    int entry_added = 0;
+    int i = 0;
+    int ret = IPAUUID_SUCCESS;
+
+    LOG_TRACE("--in-->\n");
+
+    /* If this is the main UUID plug-in config entry, just bail. */
+    if (strcasecmp(getPluginDN(), slapi_entry_get_ndn(e)) == 0) {
+        ret = IPAUUID_FAILURE;
+        goto bail;
+    }
+
+    entry = (struct configEntry *)
+    slapi_ch_calloc(1, sizeof(struct configEntry));
+    if (NULL == entry) {
+        ret = IPAUUID_FAILURE;
+        goto bail;
+    }
+
+    value = slapi_entry_get_ndn(e);
+    if (value) {
+        entry->dn = slapi_ch_strdup(value);
+    }
+
+    LOG_CONFIG("----------> dn [%s]\n", entry->dn);
+
+    entry->attr = slapi_entry_attr_get_charptr(e, IPAUUID_ATTR);
+    if (!entry->attr) {
+        LOG_FATAL("The %s config setting is required for %s.\n",
+                  IPAUUID_ATTR, entry->dn);
+        ret = IPAUUID_FAILURE;
+        goto bail;
+    }
+
+    LOG_CONFIG("----------> %s [%s]\n", IPAUUID_ATTR, entry->attr);
+
+    value = slapi_entry_attr_get_charptr(e, IPAUUID_PREFIX);
+    if (value && value[0]) {
+        entry->prefix = value;
+    }
+
+    LOG_CONFIG("----------> %s [%s]\n", IPAUUID_PREFIX, entry->prefix);
+
+    value = slapi_entry_attr_get_charptr(e, IPAUUID_GENERATE);
+    if (value) {
+        entry->generate = value;
+    }
+
+    LOG_CONFIG("----------> %s [%s]\n", IPAUUID_GENERATE, entry->generate);
+
+    value = slapi_entry_attr_get_charptr(e, IPAUUID_FILTER);
+    if (value) {
+        entry->filter = value;
+        if (NULL == (entry->slapi_filter = slapi_str2filter(value))) {
+            LOG_FATAL("Error: Invalid search filter in entry [%s]: [%s]\n",
+                      entry->dn, value);
+            ret = IPAUUID_FAILURE;
+            goto bail;
+        }
+    } else {
+        LOG_FATAL("The %s config setting is required for %s.\n",
+                  IPAUUID_FILTER, entry->dn);
+        ret = IPAUUID_FAILURE;
+        goto bail;
+    }
+
+    LOG_CONFIG("----------> %s [%s]\n", IPAUUID_FILTER, value);
+
+    value = slapi_entry_attr_get_charptr(e, IPAUUID_SCOPE);
+    if (value) {
+        entry->scope = value;
+    } else {
+        LOG_FATAL("The %s config config setting is required for %s.\n",
+                  IPAUUID_SCOPE, entry->dn);
+        ret = IPAUUID_FAILURE;
+        goto bail;
+    }
+
+    LOG_CONFIG("----------> %s [%s]\n", IPAUUID_SCOPE, entry->scope);
+
+    /* If we were only called to validate config, we can
+     * just bail out before applying the config changes */
+    if (!apply) {
+        goto bail;
+    }
+
+    /**
+     * Finally add the entry to the list.
+     * We sort by scope dn length with longer
+     * dn's first - this allows the scope
+     * checking code to be simple and quick and
+     * cunningly linear.
+     */
+    if (!PR_CLIST_IS_EMPTY(ipauuid_global_config)) {
+        list = PR_LIST_HEAD(ipauuid_global_config);
+        while (list != ipauuid_global_config) {
+            config_entry = (struct configEntry *) list;
+
+            if (slapi_dn_issuffix(entry->scope, config_entry->scope)) {
+                PR_INSERT_BEFORE(&(entry->list), list);
+                LOG_CONFIG("store [%s] before [%s] \n",
+                           entry->scope, config_entry->scope);
+                entry_added = 1;
+                break;
+            }
+
+          next:
+            list = PR_NEXT_LINK(list);
+
+            if (ipauuid_global_config == list) {
+                /* add to tail */
+                PR_INSERT_BEFORE(&(entry->list), list);
+                LOG_CONFIG("store [%s] at tail\n", entry->scope);
+                entry_added = 1;
+                break;
+            }
+        }
+    } else {
+        /* first entry */
+        PR_INSERT_LINK(&(entry->list), ipauuid_global_config);
+        LOG_CONFIG("store [%s] at head \n", entry->scope);
+        entry_added = 1;
+    }
+
+bail:
+    if (0 == entry_added) {
+        /* Don't log error if we weren't asked to apply config */
+        if (apply && (entry != NULL)) {
+            LOG_FATAL("Invalid config entry [%s] skipped\n", entry->dn);
+        }
+        ipauuid_free_config_entry(&entry);
+    } else {
+        ret = IPAUUID_SUCCESS;
+    }
+
+    LOG_TRACE("<--out--\n");
+
+    return ret;
+}
+
+static void
+ipauuid_free_config_entry(struct configEntry **entry)
+{
+    struct configEntry *e;
+
+    if (!entry || !*entry) {
+        return;
+    }
+
+    e = *entry;
+
+    if (e->dn) {
+        LOG_CONFIG("freeing config entry [%s]\n", e->dn);
+        slapi_ch_free_string(&e->dn);
+    }
+
+    if (e->attr) {
+        slapi_ch_free_string(&e->attr);
+    }
+
+    if (e->prefix) {
+        slapi_ch_free_string(&e->prefix);
+    }
+
+    if (e->filter) {
+        slapi_ch_free_string(&e->filter);
+    }
+
+    if (e->slapi_filter) {
+        slapi_filter_free(e->slapi_filter, 1);
+    }
+
+    if (e->generate) {
+        slapi_ch_free_string(&e->generate);
+    }
+
+    if (e->scope) {
+        slapi_ch_free_string(&e->scope);
+    }
+
+    slapi_ch_free((void **)entry);
+}
+
+static void
+ipauuid_delete_configEntry(PRCList *entry)
+{
+    PR_REMOVE_LINK(entry);
+    ipauuid_free_config_entry((struct configEntry **) &entry);
+}
+
+static void
+ipauuid_delete_config()
+{
+    PRCList *list;
+
+    while (!PR_CLIST_IS_EMPTY(ipauuid_global_config)) {
+        list = PR_LIST_HEAD(ipauuid_global_config);
+        ipauuid_delete_configEntry(list);
+    }
+
+    return;
+}
+
+/****************************************************
+	Helpers
+****************************************************/
+
+static char *ipauuid_get_dn(Slapi_PBlock * pb)
+{
+    char *dn = NULL;
+
+    LOG_TRACE("--in-->\n");
+
+    if (slapi_pblock_get(pb, SLAPI_TARGET_DN, &dn)) {
+        LOG_FATAL("failed to get dn of changed entry");
+    }
+
+    LOG_TRACE("<--out--\n");
+
+    return dn;
+}
+
+/* config check
+        matching config dn or a descendent reloads config
+*/
+static int ipauuid_dn_is_config(char *dn)
+{
+    int ret = 0;
+
+    LOG_TRACE("--in-->\n");
+
+    if (slapi_dn_issuffix(dn, getPluginDN())) {
+        ret = 1;
+    }
+
+    LOG_TRACE("<--out--\n");
+
+    return ret;
+}
+
+/****************************************************
+        Functions that actually do things other
+        than config and startup
+****************************************************/
+
+/*
+ * ipauuid_list_contains_attr()
+ *
+ * Checks if a attr is contained in a list of attrs.
+ * Returns 1 if the attr is found, 0 otherwise.
+ */
+static int
+ipauuid_list_contains_attr(char **list, char *attr)
+{
+    int ret = 0;
+    int i = 0;
+
+    if (list && attr) {
+        for (i = 0; list[i]; i++) {
+            if (slapi_attr_types_equivalent(attr, list[i])) {
+                ret = 1;
+                break;
+            }
+        }
+    }
+
+    return ret;
+}
+
+/*
+ * ipauuid_list_contains_attrs()
+ *
+ * Checks if all attrs in one list (attrs) are contained
+ * in another list of attrs (list).  Returns 1 if all
+ * attrs are found, 0 otherwise.
+ */
+static int
+ipauuid_list_contains_attrs(char **list, char **attrs)
+{
+    int ret = 1;
+    int i = 0;
+    int j = 0;
+
+    if (list && attrs) {
+        for (i = 0; attrs[i]; i++) {
+            int found = 0;
+
+            for (j = 0; list[j]; j++) {
+                if (slapi_attr_types_equivalent(attrs[i], list[i])) {
+                    found = 1;
+                    break;
+                }
+            }
+
+            if (!found) {
+                ret = 0;
+                break;
+            }
+        }
+    } else {
+        ret = 0;
+    }
+
+    return ret;
+}
+
+/*
+ * ipauuid_list_remove_attr()
+ *
+ * Removes a attr from a list of attrs.
+ */
+static void 
+ipauuid_list_remove_attr(char **list, char *attr)
+{
+    int i = 0;
+    int found_attr = 0;
+
+    if (list && attr) {
+        /* Go through the list until we find the attr that
+         * we want to remove.  We simply free the attr we
+         * want to remove and shift the remaining array
+         * elements down by one index.  This will leave us
+         * with two NULL elements at the end of the list,
+         * but this should not cause any problems. */
+        for (i = 0; list[i]; i++) {
+            if (found_attr) {
+                list[i] = list[i + 1];
+            } else if (slapi_attr_types_equivalent(attr, list[i])) {
+                slapi_ch_free_string(&list[i]);
+                list[i] = list[i + 1];
+                found_attr = 1;
+            }
+        }
+    }
+}
+
+/* for mods and adds:
+	where dn's are supplied, the closest in scope
+	is used as long as the type filter matches
+        and the attr value has not been generated yet.
+*/
+
+static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
+{
+    char *dn = NULL;
+    PRCList *list = NULL;
+    struct configEntry *cfgentry = NULL;
+    struct slapi_entry *e = NULL;
+    Slapi_Entry *resulting_e = NULL;
+    char *value = NULL;
+    char **generated_attrs = NULL;
+    Slapi_Mods *smods = NULL;
+    Slapi_Mod *smod = NULL;
+    Slapi_Mod *next_mod;
+    LDAPMod **mods;
+    bool free_entry = false;
+    char *errstr = NULL;
+    bool generate = false;
+    int ret = LDAP_SUCCESS;
+
+    LOG_TRACE("--in-->\n");
+
+    /* Just bail if we aren't ready to service requests yet. */
+    if (!g_plugin_started) {
+        goto done;
+    }
+
+    dn = ipauuid_get_dn(pb);
+    if (!dn) {
+        goto done;
+    }
+
+    if (modtype != LDAP_CHANGETYPE_ADD &&
+        modtype != LDAP_CHANGETYPE_MODIFY) {
+        goto done;
+    }
+
+    if (LDAP_CHANGETYPE_ADD == modtype) {
+        slapi_pblock_get(pb, SLAPI_ADD_ENTRY, &e);
+    } else {
+        /* xxxPAR: Ideally SLAPI_MODIFY_EXISTING_ENTRY should be
+         * available but it turns out that is only true if you are
+         * a dbm backend pre-op plugin - lucky dbm backend pre-op
+         * plugins.
+         * I think that is wrong since the entry is useful for filter
+         * tests and schema checks and this plugin shouldn't be limited
+         * to a single backend type, but I don't want that fight right
+         * now so we go get the entry here
+         *
+         slapi_pblock_get( pb, SLAPI_MODIFY_EXISTING_ENTRY, &e);
+         */
+        Slapi_DN *tmp_dn = slapi_sdn_new_dn_byref(dn);
+        if (tmp_dn) {
+            slapi_search_internal_get_entry(tmp_dn, NULL, &e, getPluginID());
+            slapi_sdn_free(&tmp_dn);
+            free_entry = true;
+        }
+
+        /* grab the mods - we'll put them back later with
+         * our modifications appended
+         */
+        slapi_pblock_get(pb, SLAPI_MODIFY_MODS, &mods);
+        smods = slapi_mods_new();
+        slapi_mods_init_passin(smods, mods);
+
+        /* We need the resulting entry after the mods are applied to
+         * see if the entry is within the scope. */
+        if (e) {
+            resulting_e = slapi_entry_dup(e);
+            if (mods && (slapi_entry_apply_mods(resulting_e, mods) != LDAP_SUCCESS)) {
+                /* The mods don't apply cleanly, so we just let this op go
+                 * to let the main server handle it. */
+                goto done;
+            }
+        }
+    }
+
+    if (NULL == e) {
+        goto done;
+    }
+
+    if (ipauuid_dn_is_config(dn)) {
+        /* Validate config changes, but don't apply them.
+         * This allows us to reject invalid config changes
+         * here at the pre-op stage.  Applying the config
+         * needs to be done at the post-op stage. */
+        Slapi_Entry *test_e = NULL;
+
+        /* For a MOD, we need to check the resulting entry */
+        if (LDAP_CHANGETYPE_ADD == modtype) {
+            test_e = e;
+        } else {
+            test_e = resulting_e;
+        }
+
+        if (ipauuid_parse_config_entry(test_e, false) != IPAUUID_SUCCESS) {
+            /* Refuse the operation if config parsing failed. */
+            ret = LDAP_UNWILLING_TO_PERFORM;
+            if (LDAP_CHANGETYPE_ADD == modtype) {
+                errstr = slapi_ch_smprintf("Not a valid IPA UUID "
+                                           "configuration entry.");
+            } else {
+                errstr = slapi_ch_smprintf("Changes result in an invalid "
+                                           "IPA UUID configuration.");
+            }
+        }
+
+        /* We're done, so just bail. */
+        goto done;
+    }
+
+    ipauuid_read_lock();
+
+    if (!PR_CLIST_IS_EMPTY(ipauuid_global_config)) {
+        list = PR_LIST_HEAD(ipauuid_global_config);
+
+        for(list = PR_LIST_HEAD(ipauuid_global_config);
+            list != ipauuid_global_config;
+            list = PR_NEXT_LINK(list)) {
+            cfgentry = (struct configEntry *) list;
+
+            /* Did we already service this attr? */
+            if (ipauuid_list_contains_attr(generated_attrs,
+                                           cfgentry->attr)) {
+                continue;
+            }
+
+            /* is the entry in scope? */
+            if (cfgentry->scope) {
+                if (!slapi_dn_issuffix(dn, cfgentry->scope)) {
+                    continue;
+                }
+            }
+
+            /* does the entry match the filter? */
+            if (cfgentry->slapi_filter) {
+                Slapi_Entry *test_e = NULL;
+
+                /* For a MOD operation, we need to check the filter
+                 * against the resulting entry. */
+                if (LDAP_CHANGETYPE_ADD == modtype) {
+                    test_e = e;
+                } else {
+                    test_e = resulting_e;
+                }
+
+                ret = slapi_vattr_filter_test(pb, test_e,
+                                              cfgentry->slapi_filter, 0);
+                if (ret != LDAP_SUCCESS) {
+                    continue;
+                }
+            }
+
+            switch(modtype) {
+            case LDAP_CHANGETYPE_ADD:
+                /* Generate the value if the magic value is set or if the
+                 * attr is missing. */
+                value = slapi_entry_attr_get_charptr(e, cfgentry->attr);
+
+                if (!value ||
+                    !slapi_UTF8CASECMP(cfgentry->generate, value)) {
+                    generate = true;
+                }
+
+                slapi_ch_free_string(&value);
+                break;
+
+            case LDAP_CHANGETYPE_MODIFY:
+                /* check mods for magic value */
+                next_mod = slapi_mod_new();
+                smod = slapi_mods_get_first_smod(smods, next_mod);
+                while (smod) {
+                    char *attr = (char *)slapi_mod_get_type(smod);
+
+                    /* See if the attr matches the configured attr. */
+                    if (!slapi_attr_types_equivalent(cfgentry->attr, attr)) {
+                        slapi_mod_done(next_mod);
+                        smod = slapi_mods_get_next_smod(smods, next_mod);
+                        continue;
+                    }
+
+                    /* If all values are being deleted, we need to
+                     * generate a new value. */
+                    if (SLAPI_IS_MOD_DELETE(slapi_mod_get_operation(smod))) {
+                        int numvals = slapi_mod_get_num_values(smod);
+
+                        if (numvals == 0) {
+                            generate = true;
+                        } else {
+                            Slapi_Attr *sattr = NULL;
+                            int e_numvals = 0;
+
+                            slapi_entry_attr_find(e, attr, &sattr);
+                            if (sattr) {
+                                slapi_attr_get_numvalues(sattr, &e_numvals);
+                                if (numvals >= e_numvals) {
+                                    generate = true;
+                                }
+                            }
+                        }
+                    } else {
+                        struct berval *bv;
+
+                        /* If this attr is already slated for generation,
+                         * a previous mod in this same modify operation
+                         * either removed all values or set the magic value.
+                         * It's possible that this mod is adding a valid value,
+                         * which means we would not want to generate a new one.
+                         * It is safe to reset the flag since it will be
+                         * re-added here if necessary. */
+                        generate = false;
+
+                        /* This is either adding or replacing a value */
+                        bv = slapi_mod_get_first_value(smod);
+                        /* If we have a value, see if it's the magic value. */
+                        if (bv) {
+                            int len = strlen(cfgentry->generate);
+                            if (len == bv->bv_len) {
+                                if (!slapi_UTF8NCASECMP(bv->bv_val,
+                                                        cfgentry->generate,
+                                                        len)) {
+                                    generate = true;
+
+                                    /* also remove this mod, as we will add
+                                     * it again later */
+                                    slapi_mod_remove_value(next_mod);
+                                }
+                            }
+                        } else {
+                            /* This is a replace with no new values, so we need
+                             * to generate a new value */
+                            generate = true;
+                        }
+                    }
+
+                    slapi_mod_done(next_mod);
+                    smod = slapi_mods_get_next_smod(smods, next_mod);
+                }
+
+                slapi_mod_free(&next_mod);
+                break;
+
+            default:
+                /* never reached, just silence compiler */
+                break;
+            }
+
+            /* We need to perform one last check for modify operations.
+             * If an entry within the scope has not triggered generation yet,
+             * we need to see if a value exists for the managed attr in the
+             * resulting entry.
+             * This will catch a modify operation that brings an entry into
+             * scope for a managed range, but doesn't supply a value for the
+             * managed attr. */
+            if ((LDAP_CHANGETYPE_MODIFY == modtype) && !generate) {
+                Slapi_Attr *attr = NULL;
+                if (slapi_entry_attr_find(resulting_e,
+                                          cfgentry->attr, &attr) != 0) {
+                    generate = true;
+                }
+            }
+
+            if (generate) {
+                char *new_value;
+
+                /* create the value to add */
+                ret = slapi_uniqueIDGenerateString(&value);
+                if (ret != 0) {
+                    errstr = slapi_ch_smprintf("Allocation of a new value for"
+                                               " attr %s failed! Unable to "
+                                               "proceed.", cfgentry->attr);
+                    break;
+                }
+
+                if (cfgentry->prefix) {
+                    new_value = slapi_ch_smprintf("%s%s",
+                                                  cfgentry->prefix, value);
+                } else {
+                    new_value = slapi_ch_smprintf("%s", value);
+                }
+
+                /* do the mod */
+                if (LDAP_CHANGETYPE_ADD == modtype) {
+                    /* add - set in entry */
+                    slapi_entry_attr_set_charptr(e, cfgentry->attr, new_value);
+                } else {
+                    /* mod - add to mods */
+                    slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
+                                          cfgentry->attr, new_value);
+                }
+
+                /* Make sure we don't generate for this
+                 * attr again by keeping a list of attrs
+                 * we have generated for already.
+                 */
+                slapi_ch_array_add(&generated_attrs,
+                                   slapi_ch_strdup(cfgentry->attr));
+
+                /* free up */
+                slapi_ch_free_string(&value);
+                slapi_ch_free_string(&new_value);
+            }
+        }
+    }
+
+    ipauuid_unlock();
+
+    ret = LDAP_SUCCESS;
+
+done:
+    if (smods != NULL) {
+        /* Put the updated mods back into place. */
+        mods = slapi_mods_get_ldapmods_passout(smods);
+        slapi_pblock_set(pb, SLAPI_MODIFY_MODS, mods);
+        slapi_mods_free(&smods);
+    }
+
+    slapi_ch_array_free(generated_attrs);
+
+    if (free_entry && e) {
+        slapi_entry_free(e);
+    }
+
+    if (resulting_e) {
+        slapi_entry_free(resulting_e);
+    }
+
+    if (ret) {
+        LOG("operation failure [%d]\n", ret);
+        slapi_send_ldap_result(pb, ret, NULL, errstr, 0, NULL);
+        slapi_ch_free((void **)&errstr);
+        ret = IPAUUID_FAILURE;
+    }
+
+    LOG_TRACE("<--out--\n");
+
+    return ret;
+}
+
+static int ipauuid_add_pre_op(Slapi_PBlock * pb)
+{
+    return ipauuid_pre_op(pb, LDAP_CHANGETYPE_ADD);
+}
+
+static int ipauuid_mod_pre_op(Slapi_PBlock * pb)
+{
+    return ipauuid_pre_op(pb, LDAP_CHANGETYPE_MODIFY);
+}
+
+static int ipauuid_config_check_post_op(Slapi_PBlock * pb)
+{
+    char *dn;
+
+    LOG_TRACE("--in-->\n");
+
+    if ((dn = ipauuid_get_dn(pb))) {
+        if (ipauuid_dn_is_config(dn))
+            ipauuid_load_plugin_config();
+    }
+
+    LOG_TRACE("<--out--\n");
+
+    return 0;
+}
+
+
+/****************************************************
+	End of
+	Functions that actually do things other
+	than config and startup
+****************************************************/
+
+/**
+ * debug functions to print config
+ */
+void ipauuid_dump_config()
+{
+    PRCList *list;
+
+    ipauuid_read_lock();
+
+    if (!PR_CLIST_IS_EMPTY(ipauuid_global_config)) {
+        list = PR_LIST_HEAD(ipauuid_global_config);
+        while (list != ipauuid_global_config) {
+            ipauuid_dump_config_entry((struct configEntry *) list);
+            list = PR_NEXT_LINK(list);
+        }
+    }
+
+    ipauuid_unlock();
+}
+
+
+void ipauuid_dump_config_entry(struct configEntry * entry)
+{
+    int i = 0;
+
+    printf("<---- attr type ------> %s\n", entry->attr);
+    printf("<---- filter ---------> %s\n", entry->filter);
+    printf("<---- scope ----------> %s\n", entry->scope);
+    printf("<---- generate flag --> %s\n", entry->generate);
+    printf("<---- prefix ---------> %s\n", entry->prefix);
+}

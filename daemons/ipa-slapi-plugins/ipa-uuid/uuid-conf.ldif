@@ -1,0 +1,15 @@
+dn: cn=IPA UUID,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: nsSlapdPlugin
+objectclass: extensibleObject
+cn: IPA UUID
+nsslapd-pluginpath: libipa_uuid
+nsslapd-plugininitfunc: ipauuid_init
+nsslapd-plugintype: preoperation
+nsslapd-pluginenabled: on
+nsslapd-pluginid: ipauuid_version
+nsslapd-pluginversion: 1.0
+nsslapd-pluginvendor: Red Hat, Inc.
+nsslapd-plugindescription: IPA UUID plugin
+nsslapd-plugin-depends-on-type: database
