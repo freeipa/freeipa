@@ -40,6 +40,7 @@ app_DATA =				\
 	ldapi.ldif			\
 	wsgi.py				\
 	user_private_groups.ldif	\
+	uuid-ipauniqueid.ldif		\
 	$(NULL)
 
 EXTRA_DIST =				\
