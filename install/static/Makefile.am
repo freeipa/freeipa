@@ -36,7 +36,6 @@ app_DATA =                              \
 	entity.js 			\
 	webui.js 			\
 	user.js 			\
-	user-add.inc 			\
 	ipalogo.png			\
 	gray-fade-line.png		\
 	Mainnav-background.png		\
