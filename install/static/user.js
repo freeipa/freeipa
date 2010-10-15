@@ -171,11 +171,68 @@ function user_status_load(container, dt, result)
     dt.after(dd);
 }
 
-var pwd_temp = '<a href="jslink" onclick="return (resetpwd_on_click(this))" title="A">Reset Password</a>';
+
+
+function resetpwd_on_click(){
+
+    function reset_password(new_password){
+        var dialog =  resetpwd_dialog;
+
+        var user_pkey = $.bbq.getState('user-pkey');
+        var pw_pkey;
+        if (user_pkey === ipa_whoami_pkey){
+            pw_pkey = [];
+        }else{
+            pw_pkey = [user_pkey];
+        }
+
+        ipa_cmd('passwd',
+                pw_pkey, {"password":new_password},
+                function(){
+                    alert("Password change complete");
+                    dialog.dialog("close");
+                },
+                function(){});
+    }
+
+
+    var resetpwd_dialog =
+        $('<div ><dl class="modal">'+
+          '<dt>New Password</dt>'+
+          '<dd class="first" ><input id="password_1" type="password"/></dd>'+
+          '<dt>Repeat Password</dt>'+
+          '<dd class="first"><input id="password_2" type="password"/></dd>'+
+          '</dl></div>');
+    resetpwd_dialog.dialog(
+        { modal: true,
+          minWidth:400,
+          buttons: {
+              'Reset Password': function(){
+                  var p1 = $("#password_1").val();
+                  var p2 = $("#password_2").val();
+                  if (p1 != p2){
+                      alert("passwords must match");
+                      return;
+                  }
+                  reset_password(p1);
+              },
+              'Cancel':function(){
+                  resetpwd_dialog.dialog('close');
+              }
+          }});
+    return false;
+}
+
 function user_password_load(container, dt, result)
 {
-    var dd = ipa_create_first_dd(this.name, pwd_temp.replace('A', 'userpassword'));
-    dt.after(dd);
+    dt.after(ipa_create_first_dd(
+        this.name,
+        $('<a/>',{
+            href:"jslink",
+            click:resetpwd_on_click,
+            title:'userpassword',
+            text: 'reset password'
+        })));
 }
 
 var select_temp = '<select title="st"></select>';

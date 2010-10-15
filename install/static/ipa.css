@@ -279,6 +279,7 @@ span.main-separator{
 
 .strikethrough { text-decoration: line-through; }
 
+
 .certificate-status-valid {
     list-style-type: circle;
     color: #008000;
@@ -296,4 +297,26 @@ span.main-separator{
 
 .certificate-status-active {
     list-style-type: disc;
+}
+
+dl.modal {
+    clear: both;
+    margin-left: 15px;
+    margin-top: 18px;
+    white-space: nowrap;
+}
+
+dl.modal dt {
+    clear: left;
+    float: left;
+    padding-bottom: 0px;
+    padding-right: 0px;
+    text-align: right;
+    width: 150px;
+}
+
+dl.modal dd {
+    float: left;
+    padding-bottom: 0px;
+    margin-left: 10px;
 }

@@ -52,19 +52,22 @@ var self_serv_tab_set =
         { name:'identity', label:'IDENTITY', children: [
             {name:'user', label:'Users', setup:ipa_entity_setup}]}];
 
+
+var ipa_whoami_pkey;
+
+
 /* main (document onready event handler) */
 $(function() {
 
-    var whoami_pkey;
 
     function whoami_on_win(data, text_status, xhr) {
         $(window).bind('hashchange', window_hashchange);
         if (!data.error){
             var whoami = data.result.result[0];
-            whoami_pkey=whoami.uid[0];
+            ipa_whoami_pkey=whoami.uid[0];
             $('#loggedinas').find('strong').text(whoami.krbprincipalname[0]);
             $('#loggedinas a').fragment(
-                {'user-facet':'details', 'user-pkey':whoami_pkey},2);
+                {'user-facet':'details', 'user-pkey':ipa_whoami_pkey},2);
 
             var navigation = $('#navigation');
 
@@ -75,7 +78,7 @@ $(function() {
             }else{
                 nav_create(self_serv_tab_set, navigation, 'tabs');
 
-                var state = {'user-pkey':whoami_pkey ,
+                var state = {'user-pkey':ipa_whoami_pkey ,
                              'user-facet': jQuery.bbq.getState('user-facet') ||
                              'details'};
                 $.bbq.pushState(state);
