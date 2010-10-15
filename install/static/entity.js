@@ -208,13 +208,13 @@ function ipa_entity_generate_views(obj_name, container, switch_view)
         title: 'search',
         text: 'Search',
         click: switch_view
-    }).prepend('<img src="search.png"/>'));
+    }));
 
     ul.append($('<li></li>', {
         text: 'Details',
         title: 'details',
         click: switch_view
-    }).prepend('<img src="' + obj_name +'_details.png"/>'));
+    }).prepend('| '));
 
     var attribute_members = ipa_objs[obj_name].attribute_members;
     for (attr in attribute_members) {
@@ -227,7 +227,7 @@ function ipa_entity_generate_views(obj_name, container, switch_view)
                 title: m,
                 text:label,
                 click: switch_view
-            }).prepend('<img src="' + ipa_objs[m].name + '_member.png"/>'));
+            }).prepend('| '));
         }
     }
 
@@ -253,9 +253,7 @@ function ipa_entity_quick_links(tr, attr, value, entry_attrs) {
             nav_push_state(state);
             return false;
         }
-    }).append($('<img/>', {
-         src: obj_name+'_details.png'
-    })).appendTo(td);
+    }).appendTo(td);
 
     var attribute_members = ipa_objs[obj_name].attribute_members;
     for (attr_name in attribute_members) {
@@ -267,6 +265,7 @@ function ipa_entity_quick_links(tr, attr, value, entry_attrs) {
             $("<a/>", {
                 href: '#'+m,
                 title: label,
+                text: label,
                 click: function(m) {
                     return function() {
                         var state = {};
@@ -277,9 +276,7 @@ function ipa_entity_quick_links(tr, attr, value, entry_attrs) {
                         return false;
                     }
                 }(m)
-            }).append($('<img/>', {
-                src: m+'_member.png'
-            })).appendTo(td);
+            }).append(' | ' ).appendTo(td);
         }
     }
 }

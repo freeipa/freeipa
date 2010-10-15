@@ -274,6 +274,7 @@ span.main-separator{
 .entity-views li {
     display:inline;
     cursor: pointer;
+    padding: 3px;
 }
 
 .strikethrough { text-decoration: line-through; }
