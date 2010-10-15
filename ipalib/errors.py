@@ -746,6 +746,7 @@ class PasswordMismatch(InvocationError):
     errno = 3011
     format = _('Passwords do not match')
 
+
 class NotImplementedError(InvocationError):
     """
     **3012** Raise when a function hasn't been implemented.
@@ -753,6 +754,15 @@ class NotImplementedError(InvocationError):
 
     errno = 3012
     format = _('Command not implemented')
+
+
+class NotConfiguredError(InvocationError):
+    """
+    **3013** Raise when there is no configuration
+    """
+
+    errno = 3013
+    format = _('Client is not configured. Run ipa-client-install.')
 
 
 ##############################################################################

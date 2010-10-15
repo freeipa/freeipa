@@ -37,7 +37,7 @@ import frontend
 import backend
 import plugable
 import util
-from errors import PublicError, CommandError, HelpError, InternalError, NoSuchNamespaceError, ValidationError, NotFound
+from errors import PublicError, CommandError, HelpError, InternalError, NoSuchNamespaceError, ValidationError, NotFound, NotConfiguredError
 from constants import CLI_TAB
 from parameters import Password, Bytes, File
 from text import _
@@ -945,6 +945,8 @@ def run(api):
             api.register(klass)
         api.load_plugins()
         api.finalize()
+        if not 'config_loaded' in api.env:
+            raise NotConfiguredError()
         sys.exit(api.Backend.cli.run(argv))
     except KeyboardInterrupt:
         print ''

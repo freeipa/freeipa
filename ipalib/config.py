@@ -389,6 +389,8 @@ class Env(object):
             if key not in self:
                 self[key] = value
                 i += 1
+        if 'config_loaded' not in self: # we loaded at least 1 file
+            self['config_loaded'] = True
         return (i, len(items))
 
     def _join(self, key, *parts):

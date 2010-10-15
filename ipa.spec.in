@@ -153,6 +153,7 @@ this package should be installed on every client machine.
 Summary: IPA administrative tools
 Group: System Environment/Base
 Requires: %{name}-python = %{version}-%{release}
+Requires: %{name}-client = %{version}-%{release}
 Requires: python-krbV
 Requires: python-ldap
 
