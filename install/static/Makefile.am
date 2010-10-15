@@ -20,6 +20,7 @@ app_DATA =                              \
 	jquery-ui.js			\
 	jquery.ba-bbq.js		\
 	jquery-ui.css			\
+	certificate.js 			\
 	group.js 			\
 	host.js 			\
 	hostgroup.js 			\

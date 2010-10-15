@@ -76,6 +76,7 @@ from ipalib.plugins.baseldap import *
 from ipalib import x509
 from ipalib import _, ngettext
 from ipalib import util
+import nss.nss as nss
 from nss.error import NSPRError
 
 
@@ -203,7 +204,7 @@ class service(LDAPObject):
             cli_name='certificate',
             label=_('Certificate'),
             doc=_('Base-64 encoded server certificate'),
-        ),
+        )
     )
 
 api.register(service)
@@ -357,7 +358,33 @@ class service_show(LDAPRetrieve):
     """
     member_attributes = ['managedby']
     takes_options = LDAPRetrieve.takes_options
-    has_output_params = LDAPRetrieve.has_output_params + output_params
+
+    has_output_params = LDAPRetrieve.has_output_params + output_params + (
+        Str('subject',
+            label=_('Subject'),
+        ),
+        Str('serial_number',
+            label=_('Serial Number'),
+        ),
+        Str('issuer',
+            label=_('Issuer'),
+        ),
+        Str('valid_not_before',
+            label=_('Not Before'),
+        ),
+        Str('valid_not_after',
+            label=_('Not After'),
+        ),
+        Str('md5_fingerprint',
+            label=_('Fingerprint (MD5)'),
+        ),
+        Str('sha1_fingerprint',
+            label=_('Fingerprint (SHA1)'),
+        ),
+        Str('revocation_reason?',
+            label=_('Revocation reason'),
+        )
+    )
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if 'krblastpwdchange' in entry_attrs:
@@ -366,6 +393,16 @@ class service_show(LDAPRetrieve):
                 del entry_attrs['krblastpwdchange']
         else:
             entry_attrs['has_keytab'] = False
+
+        if 'usercertificate' in entry_attrs:
+            cert = x509.load_certificate(entry_attrs['usercertificate'][0], datatype=x509.DER)
+            entry_attrs['subject'] = unicode(cert.subject)
+            entry_attrs['serial_number'] = unicode(cert.serial_number)
+            entry_attrs['issuer'] = unicode(cert.issuer)
+            entry_attrs['valid_not_before'] = unicode(cert.valid_not_before_str)
+            entry_attrs['valid_not_after'] = unicode(cert.valid_not_after_str)
+            entry_attrs['md5_fingerprint'] = unicode(nss.data_to_hex(nss.md5_digest(cert.der_data), 64)[0])
+            entry_attrs['sha1_fingerprint'] = unicode(nss.data_to_hex(nss.sha1_digest(cert.der_data), 64)[0])
 
         return dn
 

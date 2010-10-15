@@ -1,0 +1,17 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "result": {
+            "certificate": "MIIC2DCCAcCgAwIBAgIBFTANBgkqhkiG9w0BAQsFADAuMQwwCgYDVQQKEwNJUEExHjAcBgNVBAMTFUNlcnRpZmljYXRlIEF1dGhvcml0eTAeFw0xMDEwMTUwNTE3MzZaFw0xMTA0MTMwNTE3MzZaMCgxDDAKBgNVBAoTA0lQQTEYMBYGA1UEAxMPZGV2LmV4YW1wbGUuY29tMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDk18o/IK1Qe0Y/eURWsIHcJ/TmGdNy1h2fhzGIILtv8Qgq1K3U4T9eGAZVambpo1SUnJY+k+AAo43TyavSU05se4DIsw00XrrOyD5UunwsW+b+cIUCWbBJLFy9ODsVDJduXrj0RZGHEyta3VuO/gJBtdI9anjVvgegqXUBkenjPwIDAQABo4GKMIGHMB8GA1UdIwQYMBaAFCv9XyGV5ijtHriYMcECVmnNiMMAMD8GCCsGAQUFBwEBBDMwMTAvBggrBgEFBQcwAYYjaHR0cDovL2Rldi5leGFtcGxlLmNvbTo5MTgwL2NhL29jc3AwDgYDVR0PAQH/BAQDAgTwMBMGA1UdJQQMMAoGCCsGAQUFBwMBMA0GCSqGSIb3DQEBCwUAA4IBAQB/OtoBZUYuGD0KZWpNdzIVdCxCTzZAetHA+o97cZCdufiBckZfZ9LEkQdL2MWvcnLlXOnRnQO/BnEAAtYVe4dpmizuzPn1+JTmK9+7q2HhQhXuU2NcsWutgYySNme7eNmfqi8uDoQ8FOPX4LvxLQDyKjkOogs6cEMZePMK8RE60ulHKdYfI23rRNtIExOl1zLJXkpExuXNq1flshyaLLu84B9zwE5FhSD/XAjPyAqYP97IPIkUfWpMyEs3N12JVCVNm0/753CDI946RPnyPpsULZufBV/8sdhDnULHfPIUMPgdOYemm9cYTP/V1uhwwCnFemhSAXSM/g6e9Xm4hH7s",
+            "issuer": "CN=Certificate Authority,O=IPA",
+            "md5_fingerprint": "87:ca:33:52:e3:07:4c:82:76:24:8d:53:ba:da:b3:fe",
+            "request_id": "50",
+            "serial_number": "1",
+            "sha1_fingerprint": "9f:fc:d3:e2:3b:f0:c1:1d:fc:5c:09:fa:f4:10:de:7b:b2:25:ae:7c",
+            "subject": "CN=dev.example.com,O=IPA",
+            "valid_not_after": "Wed Apr 13 05:17:36 2011 UTC",
+            "valid_not_before": "Fri Oct 15 05:17:36 2010 UTC"
+        }
+    }
+}
