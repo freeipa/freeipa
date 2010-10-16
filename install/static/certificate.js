@@ -53,38 +53,15 @@ function certificate_parse_dn(dn) {
     return result;
 }
 
-function certificate_confirmation_dialog(spec) {
-    var that = {};
-    spec = spec || {};
-
-    var dialog = $('<div/>', {
-        'title': spec.title
-    });
-
-    dialog.append(spec.message);
-
-    that.open = function() {
-        dialog.dialog({
-            modal: true,
-            width: 300,
-            height: 150,
-            buttons: {
-                'Close': function() {
-                    dialog.dialog('destroy');
-                }
-            }
-        });
-    };
-
-    return that;
-}
-
 function certificate_get_dialog(spec) {
     var that = {};
     spec = spec || {};
 
+    that.title = spec.title || '';
+    that.usercertificate = spec.usercertificate || '';
+
     var dialog = $('<div/>', {
-        'title': spec.title
+        'title': that.title
     });
 
     var textarea = $('<textarea/>', {
@@ -94,7 +71,7 @@ function certificate_get_dialog(spec) {
 
     textarea.val(
         BEGIN_CERTIFICATE_REQUEST+'\n'+
-        spec.usercertificate+'\n'+
+        that.usercertificate+'\n'+
         END_CERTIFICATE_REQUEST
     );
 
@@ -118,8 +95,11 @@ function certificate_revoke_dialog(spec) {
     var that = {};
     spec = spec || {};
 
+    that.title = spec.title || '';
+    that.revoke = spec.revoke;
+
     var dialog = $('<div/>', {
-        'title': spec.title
+        'title': that.title
     });
 
     var table = $('<table/>').appendTo(dialog);
@@ -160,8 +140,8 @@ function certificate_revoke_dialog(spec) {
                 'Revoke': function() {
                     var values = {};
                     values['reason'] = select.val();
-                    if (spec.revoke) {
-                        spec.revoke(values);
+                    if (that.revoke) {
+                        that.revoke(values);
                     }
                     dialog.dialog('destroy');
                 },
@@ -179,8 +159,11 @@ function certificate_restore_dialog(spec) {
     var that = {};
     spec = spec || {};
 
+    that.title = spec.title || '';
+    that.restore = spec.restore;
+
     var dialog = $('<div/>', {
-        'title': spec.title
+        'title': that.title
     });
 
     dialog.append(
@@ -195,8 +178,8 @@ function certificate_restore_dialog(spec) {
             buttons: {
                 'Restore': function() {
                     var values = {};
-                    if (spec.restore) {
-                        spec.restore(values);
+                    if (that.restore) {
+                        that.restore(values);
                     }
                     dialog.dialog('destroy');
                 },
@@ -214,11 +197,17 @@ function certificate_view_dialog(spec) {
     var that = {};
     spec = spec || {};
 
+    that.title = spec.title || '';
     that.subject = certificate_parse_dn(spec.subject);
+    that.serial_number = spec.serial_number || '';
     that.issuer = certificate_parse_dn(spec.issuer);
+    that.issued_on = spec.issued_on || '';
+    that.expires_on = spec.expires_on || '';
+    that.md5_fingerprint = spec.md5_fingerprint || '';
+    that.sha1_fingerprint = spec.sha1_fingerprint || '';
 
     var dialog = $('<div/>', {
-        'title': spec.title
+        'title': that.title
     });
 
     var table = $('<table/>').appendTo(dialog);
@@ -250,7 +239,7 @@ function certificate_view_dialog(spec) {
     tr = $('<tr/>').appendTo(table);
     $('<td>Serial Number:</td>').appendTo(tr);
     $('<td/>', {
-        'html': spec.serial_number
+        'html': that.serial_number
     }).appendTo(tr);
 
     tr = $('<tr/>').appendTo(table);
@@ -286,13 +275,13 @@ function certificate_view_dialog(spec) {
     tr = $('<tr/>').appendTo(table);
     $('<td>Issued On:</td>').appendTo(tr);
     $('<td/>', {
-        'html': spec.issued_on
+        'html': that.issued_on
     }).appendTo(tr);
 
     tr = $('<tr/>').appendTo(table);
     $('<td>Expires On:</td>').appendTo(tr);
     $('<td/>', {
-        'html': spec.expires_on
+        'html': that.expires_on
     }).appendTo(tr);
 
     tr = $('<tr/>').appendTo(table);
@@ -304,13 +293,13 @@ function certificate_view_dialog(spec) {
     tr = $('<tr/>').appendTo(table);
     $('<td>SHA1 Fingerprint:</td>').appendTo(tr);
     $('<td/>', {
-        'html': spec.sha1_fingerprint
+        'html': that.sha1_fingerprint
     }).appendTo(tr);
 
     tr = $('<tr/>').appendTo(table);
     $('<td>MD5 Fingerprint:</td>').appendTo(tr);
     $('<td/>', {
-        'html': spec.md5_fingerprint
+        'html': that.md5_fingerprint
     }).appendTo(tr);
 
     that.open = function() {
@@ -333,8 +322,11 @@ function certificate_request_dialog(spec) {
     var that = {};
     spec = spec || {};
 
+    that.title = spec.title || '';
+    that.request = spec.request;
+
     var dialog = $('<div/>', {
-        'title': spec.title
+        'title': that.title
     });
 
     dialog.append('Copy and paste the Base64-encoded CSR below:');
@@ -365,8 +357,8 @@ function certificate_request_dialog(spec) {
                         $.trim(request)+'\n'+
                         END_CERTIFICATE_REQUEST+'\n';
                     values['request'] = request;
-                    if (spec.request) {
-                        spec.request(values);
+                    if (that.request) {
+                        that.request(values);
                     }
                     dialog.dialog('destroy');
                 },
