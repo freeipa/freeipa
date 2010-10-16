@@ -35,13 +35,50 @@ ipa_entity_set_add_definition('host', [
 ]);
 
 ipa_entity_set_details_definition('host', [
-    ipa_stanza({name:'host', label:'Host Details'}).
+    ipa_stanza({name:'details', label:'Host Details'}).
         input({name:'fqdn', label:'Fully Qualified Domain Name'}).
         input({name:'krbprincipalname', label:'Kerberos Principal'}).
-        input({name:'serverhostname', label:'Server Host Name'})
+        input({name:'serverhostname', label:'Server Host Name'}),
+    ipa_stanza({name:'enrollment', label:'Enrollment'}).
+        input({name:'enrollment_status', label:'Status',
+               load:host_enrollment_status_load}),
+    ipa_stanza({name:'certificate', label:'Host Certificate'}).
+        input({name:'certificate_status', label:'Status',
+               load:host_usercertificate_load})
 ]);
 
 ipa_entity_set_association_definition('host', {
     'hostgroup': { associator: SerialAssociator },
     'rolegroup': { associator: SerialAssociator }
 });
+
+function host_enrollment_status_load(container, dt, result) {
+    // skip enrollment_status
+}
+
+function host_usercertificate_load(container, dt, result) {
+
+    var panel = certificate_status_panel({
+        'entity_type': 'host',
+        'entity_label': 'Host',
+        'result': result,
+        'get_entity_pkey': function(result) {
+            var values = result['fqdn'];
+            return values ? values[0] : null;
+        },
+        'get_entity_name': function(result) {
+            return this.get_entity_pkey(result);
+        },
+        'get_entity_principal': function(result) {
+            var values = result['krbprincipalname'];
+            return values ? values[0] : null;
+        },
+        'get_entity_certificate': function(result) {
+            var values = result['usercertificate'];
+            return values ? values[0].__base64__ : null;
+        }
+    });
+
+    var dd = ipa_create_first_dd(this.name, panel);
+    dt.after(dd);
+}

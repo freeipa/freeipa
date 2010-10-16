@@ -20,10 +20,6 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-var SERVICE_CERTIFICATE_VALID   = 1;
-var SERVICE_CERTIFICATE_REVOKED = 2;
-var SERVICE_CERTIFICATE_MISSING = 3;
-
 ipa_entity_set_search_definition('service', [
     ['krbprincipalname', 'Principal', null],
     ['quick_links', 'Quick Links', ipa_entity_quick_links]
@@ -94,273 +90,27 @@ function service_provisioning_status_load(container, dt, result) {
 
 function service_usercertificate_load(container, dt, result) {
 
-    var li1, li2, li3;
-
-    function set_status(status, revocation_reason) {
-        li1.css('list-style-type', status == SERVICE_CERTIFICATE_VALID ? 'disc' : 'circle');
-        li2.css('list-style-type', status == SERVICE_CERTIFICATE_REVOKED ? 'disc' : 'circle');
-        li3.css('list-style-type', status == SERVICE_CERTIFICATE_MISSING ? 'disc' : 'circle');
-
-        $('#revocation_reason').html(revocation_reason ? CRL_REASON[revocation_reason] : '');
-        $('#restore_button').css('visibility', revocation_reason == 6 ? 'visible' : 'hidden')
-    }
-
-    function check_status(serial_number) {
-        ipa_cmd(
-            'cert_show',
-            [serial_number],
-            { },
-            function(data, text_status, xhr) {
-                var revocation_reason = data.result.result.revocation_reason;
-                if (revocation_reason) {
-                    set_status(SERVICE_CERTIFICATE_REVOKED, revocation_reason);
-                } else {
-                    set_status(SERVICE_CERTIFICATE_VALID);
-                }
-            }
-        );
-    }
-
-    function get_certificate(result) {
-
-        var usercertificate = result['usercertificate'];
-        if (!usercertificate) {
-            set_status(SERVICE_CERTIFICATE_MISSING);
-            return;
+    var panel = certificate_status_panel({
+        'entity_type': 'service',
+        'entity_label': 'Service',
+        'result': result,
+        'get_entity_pkey': function(result) {
+            var values = result['krbprincipalname'];
+            return values ? values[0] : null;
+        },
+        'get_entity_name': function(result) {
+            var value = this.get_entity_pkey(result);
+            return value ? value.replace(/@.*$/, '') : null;
+        },
+        'get_entity_principal': function(result) {
+            return this.get_entity_pkey(result);
+        },
+        'get_entity_certificate': function(result) {
+            var values = result['usercertificate'];
+            return values ? values[0].__base64__ : null;
         }
+    });
 
-        var krbprincipalname = result['krbprincipalname'][0];
-        var service_name = krbprincipalname.replace(/@.*$/, '');
-
-        var dialog = certificate_get_dialog({
-            'title': 'Certificate for Service '+service_name,
-            'usercertificate': usercertificate[0].__base64__
-        });
-
-        dialog.open();
-    }
-
-    function view_certificate(result) {
-
-        var usercertificate = result['usercertificate'];
-        if (!usercertificate) {
-            set_status(SERVICE_CERTIFICATE_MISSING);
-            return;
-        }
-
-        var krbprincipalname = result['krbprincipalname'][0];
-        var service_name = krbprincipalname.replace(/@.*$/, '');
-
-        var dialog = certificate_view_dialog({
-            'title': 'Certificate for Service '+service_name,
-            'subject': result['subject'],
-            'serial_number': result['serial_number'],
-            'issuer': result['issuer'],
-            'issued_on': result['valid_not_before'],
-            'expires_on': result['valid_not_after'],
-            'md5_fingerprint': result['md5_fingerprint'],
-            'sha1_fingerprint': result['sha1_fingerprint']
-        });
-
-        dialog.open();
-    }
-
-    function revoke_certificate(result) {
-
-        var usercertificate = result['usercertificate'];
-        if (!usercertificate) {
-            set_status(SERVICE_CERTIFICATE_MISSING);
-            return;
-        }
-
-        var krbprincipalname = result['krbprincipalname'][0];
-        var service_name = krbprincipalname.replace(/@.*$/, '');
-
-        var serial_number = result['serial_number'];
-
-        var dialog = certificate_revoke_dialog({
-            'title': 'Revoke Certificate for Service '+service_name,
-            'revoke': function(values) {
-                var reason = values['reason'];
-
-                ipa_cmd(
-                    'cert_revoke',
-                    [serial_number],
-                    {
-                        'revocation_reason': reason
-                    },
-                    function(data, text_status, xhr) {
-                        check_status(serial_number);
-                    }
-                );
-            }
-        });
-
-        dialog.open();
-    }
-
-    function restore_certificate(result) {
-
-        var usercertificate = result['usercertificate'];
-        if (!usercertificate) {
-            set_status(SERVICE_CERTIFICATE_MISSING);
-            return;
-        }
-
-        var krbprincipalname = result['krbprincipalname'][0];
-        var service_name = krbprincipalname.replace(/@.*$/, '');
-
-        var serial_number = result['serial_number'];
-
-        var dialog = certificate_restore_dialog({
-            'title': 'Restore Certificate for Service '+service_name,
-            'restore': function(values) {
-                ipa_cmd(
-                    'cert_remove_hold',
-                    [serial_number],
-                    { },
-                    function(data, text_status, xhr) {
-                        check_status(serial_number);
-                    }
-                );
-            }
-        });
-
-        dialog.open();
-    }
-
-    function request_certificate(result) {
-
-        var krbprincipalname = result['krbprincipalname'][0];
-        var service_name = krbprincipalname.replace(/@.*$/, '');
-
-        var dialog = certificate_request_dialog({
-            'title': 'Issue New Certificate for Service '+service_name,
-            'request': function(values) {
-                var request = values['request'];
-
-                ipa_cmd(
-                    'cert_request',
-                    [request],
-                    {
-                        'principal': krbprincipalname
-                    },
-                    function(data, text_status, xhr) {
-                        check_status(data.result.result.serial_number);
-                    }
-                );
-            }
-        });
-
-        dialog.open();
-    }
-
-    var krbprincipalname = result['krbprincipalname'][0];
-
-    var table = $('<table/>');
-
-    var tr = $('<tr/>').appendTo(table);
-
-    var td = $('<td/>').appendTo(tr);
-    li1 = $('<li/>', {
-        style: 'color: green;'
-    }).appendTo(td);
-
-    td = $('<td/>').appendTo(tr);
-    td.append('Valid Certificate Present:');
-
-    td = $('<td/>').appendTo(tr);
-    $('<input/>', {
-        'type': 'button',
-        'value': 'Get',
-        'click': function() {
-            ipa_cmd('service_show', [krbprincipalname], {},
-                function(data, text_status, xhr) {
-                    get_certificate(data.result.result);
-                }
-            );
-        }
-    }).appendTo(td);
-
-    $('<input/>', {
-        'type': 'button',
-        'value': 'Revoke',
-        'click': function() {
-            ipa_cmd('service_show', [krbprincipalname], {},
-                function(data, text_status, xhr) {
-                    revoke_certificate(data.result.result);
-                }
-            );
-        }
-    }).appendTo(td);
-
-    $('<input/>', {
-        'type': 'button',
-        'value': 'View',
-        'click': function() {
-            ipa_cmd('service_show', [krbprincipalname], {},
-                function(data, text_status, xhr) {
-                    view_certificate(data.result.result);
-                }
-            );
-        }
-    }).appendTo(td);
-
-    tr = $('<tr/>').appendTo(table);
-
-    td = $('<td/>').appendTo(tr);
-    li2 = $('<li/>', {
-        'style': 'color: red;'
-    }).appendTo(td);
-
-    td = $('<td/>').appendTo(tr);
-    td.append('Certificate Revoked:');
-
-    td = $('<td/>').appendTo(tr);
-    td.append($('<span/>', {
-        'id': 'revocation_reason'
-    }));
-    td.append(' ');
-
-    $('<input/>', {
-        'id': 'restore_button',
-        'type': 'button',
-        'value': 'Restore',
-        'click': function() {
-            ipa_cmd('service_show', [krbprincipalname], {},
-                function(data, text_status, xhr) {
-                    restore_certificate(data.result.result);
-                }
-            );
-        }
-    }).appendTo(td);
-
-    tr = $('<tr/>').appendTo(table);
-
-    td = $('<td/>').appendTo(tr);
-    li3 = $('<li/>', {
-        'style': 'color: goldenrod;'
-    }).appendTo(td);
-
-    td = $('<td/>').appendTo(tr);
-    td.append('No Valid Certificate:');
-
-    td = $('<td/>').appendTo(tr);
-    $('<input/>', {
-        'type': 'button',
-        'value': 'New Certificate',
-        'click': function() {
-            request_certificate(result);
-        }
-    }).appendTo(td);
-
-    var dd = ipa_create_first_dd(this.name, table);
+    var dd = ipa_create_first_dd(this.name, panel);
     dt.after(dd);
-
-    var usercertificate = result['usercertificate'];
-    if (usercertificate) {
-        check_status(result.serial_number);
-    } else {
-        set_status(SERVICE_CERTIFICATE_MISSING);
-    }
 }

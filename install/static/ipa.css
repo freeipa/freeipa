@@ -278,3 +278,22 @@ span.main-separator{
 }
 
 .strikethrough { text-decoration: line-through; }
+
+.certificate-status-valid {
+    list-style-type: circle;
+    color: #008000;
+}
+
+.certificate-status-revoked {
+    list-style-type: circle;
+    color: #ff0000;
+}
+
+.certificate-status-missing {
+    list-style-type: circle;
+    color: #daa520;
+}
+
+.certificate-status-active {
+    list-style-type: disc;
+}

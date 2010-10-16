@@ -18,6 +18,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+var BEGIN_CERTIFICATE = '-----BEGIN CERTIFICATE-----';
+var END_CERTIFICATE   = '-----END CERTIFICATE-----';
+
 var BEGIN_CERTIFICATE_REQUEST = '-----BEGIN CERTIFICATE REQUEST-----';
 var END_CERTIFICATE_REQUEST   = '-----END CERTIFICATE REQUEST-----';
 
@@ -35,19 +38,33 @@ var CRL_REASON = [
     'AA Compromise'
 ];
 
+var CERTIFICATE_STATUS_MISSING = 0;
+var CERTIFICATE_STATUS_VALID   = 1;
+var CERTIFICATE_STATUS_REVOKED = 2;
+
 function certificate_parse_dn(dn) {
 
     var result = {};
+    if (!dn) return result;
 
     // TODO: Use proper LDAP DN parser
     var rdns = dn.split(',');
     for (var i=0; i<rdns.length; i++) {
         var rdn = rdns[i];
-        var parts = rdn.split('=');
-        var name = parts[0].toLowerCase();
-        var value = parts[1];
+        if (!rdn) continue;
 
-        result[name] = value;
+        var parts = rdn.split('=');
+        var name = $.trim(parts[0].toLowerCase());
+        var value = $.trim(parts[1]);
+
+        var old_value = result[name];
+        if (!old_value) {
+            result[name] = value;
+        } else if (typeof old_value == "string") {
+            result[name] = [old_value, value];
+        } else {
+            result[name].push(value);
+        }
     }
 
     return result;
@@ -70,9 +87,9 @@ function certificate_get_dialog(spec) {
     }).appendTo(dialog);
 
     textarea.val(
-        BEGIN_CERTIFICATE_REQUEST+'\n'+
+        BEGIN_CERTIFICATE+'\n'+
         that.usercertificate+'\n'+
-        END_CERTIFICATE_REQUEST
+        END_CERTIFICATE
     );
 
     that.open = function() {
@@ -368,6 +385,294 @@ function certificate_request_dialog(spec) {
             }
         });
     };
+
+    return that;
+}
+
+function certificate_status_panel(spec) {
+    var that = $('<div/>');
+    spec = spec || {};
+
+    that.entity_type = spec.entity_type;
+    that.entity_label = spec.entity_label || that.entity_type;
+
+    that.result = spec.result;
+
+    that.get_entity_pkey = spec.get_entity_pkey;
+    that.get_entity_name = spec.get_entity_name;
+    that.get_entity_principal = spec.get_entity_principal;
+    that.get_entity_certificate = spec.get_entity_certificate;
+
+    var li1, li2, li3;
+
+    function init() {
+        var pkey = that.get_entity_pkey(that.result);
+
+        var table = $('<table/>').appendTo(that);
+
+        var tr = $('<tr/>').appendTo(table);
+
+        var td = $('<td/>').appendTo(tr);
+        li1 = $('<li/>', {
+            'class': 'certificate-status-valid'
+        }).appendTo(td);
+
+        td = $('<td/>').appendTo(tr);
+        td.append('Valid Certificate Present:');
+
+        td = $('<td/>').appendTo(tr);
+        $('<input/>', {
+            'id': 'get_button',
+            'type': 'button',
+            'value': 'Get',
+            'click': function() {
+                ipa_cmd(that.entity_type+'_show', [pkey], {},
+                    function(data, text_status, xhr) {
+                        get_certificate(data.result.result);
+                    }
+                );
+            }
+        }).appendTo(td);
+
+        $('<input/>', {
+            'id': 'revoke_button',
+            'type': 'button',
+            'value': 'Revoke',
+            'click': function() {
+                ipa_cmd(that.entity_type+'_show', [pkey], {},
+                    function(data, text_status, xhr) {
+                        revoke_certificate(data.result.result);
+                    }
+                );
+            }
+        }).appendTo(td);
+
+        $('<input/>', {
+            'id': 'view_button',
+            'type': 'button',
+            'value': 'View',
+            'click': function() {
+                ipa_cmd(that.entity_type+'_show', [pkey], {},
+                    function(data, text_status, xhr) {
+                        view_certificate(data.result.result);
+                    }
+                );
+            }
+        }).appendTo(td);
+
+        tr = $('<tr/>').appendTo(table);
+
+        td = $('<td/>').appendTo(tr);
+        li2 = $('<li/>', {
+            'class': 'certificate-status-revoked'
+        }).appendTo(td);
+
+        td = $('<td/>').appendTo(tr);
+        td.append('Certificate Revoked:');
+
+        td = $('<td/>').appendTo(tr);
+        td.append($('<span/>', {
+            'id': 'revocation_reason'
+        }));
+        td.append(' ');
+
+        $('<input/>', {
+            'id': 'restore_button',
+            'type': 'button',
+            'value': 'Restore',
+            'click': function() {
+                ipa_cmd(that.entity_type+'_show', [pkey], {},
+                    function(data, text_status, xhr) {
+                        restore_certificate(data.result.result);
+                    }
+                );
+            }
+        }).appendTo(td);
+
+        tr = $('<tr/>').appendTo(table);
+
+        td = $('<td/>').appendTo(tr);
+        li3 = $('<li/>', {
+            'class': 'certificate-status-missing'
+        }).appendTo(td);
+
+        td = $('<td/>').appendTo(tr);
+        td.append('No Valid Certificate:');
+
+        td = $('<td/>').appendTo(tr);
+        $('<input/>', {
+            'type': 'button',
+            'value': 'New Certificate',
+            'click': function() {
+                request_certificate(that.result);
+            }
+        }).appendTo(td);
+
+        var entity_certificate = that.get_entity_certificate(that.result);
+        if (entity_certificate) {
+            check_status(that.result.serial_number);
+        } else {
+            set_status(CERTIFICATE_STATUS_MISSING);
+        }
+    }
+
+    function set_status(status, revocation_reason) {
+        li1.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_VALID);
+        li2.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_REVOKED);
+        li3.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_MISSING);
+
+        $('#get_button', that).css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
+        $('#revoke_button', that).css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
+        $('#view_button', that).css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
+        $('#revocation_reason', that).html(revocation_reason == undefined ? '' : CRL_REASON[revocation_reason]);
+        $('#restore_button', that).css('visibility', revocation_reason == 6 ? 'visible' : 'hidden');
+    }
+
+    function check_status(serial_number) {
+        ipa_cmd(
+            'cert_show',
+            [serial_number],
+            { },
+            function(data, text_status, xhr) {
+                var revocation_reason = data.result.result.revocation_reason;
+                if (revocation_reason == undefined) {
+                    set_status(CERTIFICATE_STATUS_VALID);
+                } else {
+                    set_status(CERTIFICATE_STATUS_REVOKED, revocation_reason);
+                }
+            }
+        );
+    }
+
+    function view_certificate(result) {
+
+        var entity_certificate = that.get_entity_certificate(result);
+        if (!entity_certificate) {
+            set_status(CERTIFICATE_STATUS_MISSING);
+            return;
+        }
+
+        var entity_name = that.get_entity_name(result);
+
+        var dialog = certificate_view_dialog({
+            'title': 'Certificate for '+that.entity_label+' '+entity_name,
+            'subject': result['subject'],
+            'serial_number': result['serial_number'],
+            'issuer': result['issuer'],
+            'issued_on': result['valid_not_before'],
+            'expires_on': result['valid_not_after'],
+            'md5_fingerprint': result['md5_fingerprint'],
+            'sha1_fingerprint': result['sha1_fingerprint']
+        });
+
+        dialog.open();
+    }
+
+    function get_certificate(result) {
+
+        var entity_certificate = that.get_entity_certificate(result);
+        if (!entity_certificate) {
+            set_status(CERTIFICATE_STATUS_MISSING);
+            return;
+        }
+
+        var entity_name = that.get_entity_name(result);
+
+        var dialog = certificate_get_dialog({
+            'title': 'Certificate for '+that.entity_label+' '+entity_name,
+            'usercertificate': entity_certificate
+        });
+
+        dialog.open();
+    }
+
+    function request_certificate(result) {
+
+        var entity_name = that.get_entity_name(result);
+        var entity_principal = that.get_entity_principal(result);
+
+        var dialog = certificate_request_dialog({
+            'title': 'Issue New Certificate for '+that.entity_label+' '+entity_name,
+            'request': function(values) {
+                var request = values['request'];
+
+                ipa_cmd(
+                    'cert_request',
+                    [request],
+                    {
+                        'principal': entity_principal
+                    },
+                    function(data, text_status, xhr) {
+                        check_status(data.result.result.serial_number);
+                    }
+                );
+            }
+        });
+
+        dialog.open();
+    }
+
+    function revoke_certificate(result) {
+
+        var entity_certificate = that.get_entity_certificate(result);
+        if (!entity_certificate) {
+            set_status(CERTIFICATE_STATUS_MISSING);
+            return;
+        }
+
+        var entity_name = that.get_entity_name(result);
+        var serial_number = result['serial_number'];
+
+        var dialog = certificate_revoke_dialog({
+            'title': 'Revoke Certificate for '+that.entity_label+' '+entity_name,
+            'revoke': function(values) {
+                var reason = values['reason'];
+
+                ipa_cmd(
+                    'cert_revoke',
+                    [serial_number],
+                    {
+                        'revocation_reason': reason
+                    },
+                    function(data, text_status, xhr) {
+                        check_status(serial_number);
+                    }
+                );
+            }
+        });
+
+        dialog.open();
+    }
+
+    function restore_certificate(result) {
+
+        var entity_certificate = that.get_entity_certificate(result);
+        if (!entity_certificate) {
+            set_status(CERTIFICATE_STATUS_MISSING);
+            return;
+        }
+
+        var entity_name = that.get_entity_name(result);
+        var serial_number = result['serial_number'];
+
+        var dialog = certificate_restore_dialog({
+            'title': 'Restore Certificate for '+that.entity_label+' '+entity_name,
+            'restore': function(values) {
+                ipa_cmd(
+                    'cert_remove_hold',
+                    [serial_number],
+                    { },
+                    function(data, text_status, xhr) {
+                        check_status(serial_number);
+                    }
+                );
+            }
+        });
+
+        dialog.open();
+    }
+
+    init();
 
     return that;
 }
