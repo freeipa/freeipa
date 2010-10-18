@@ -191,7 +191,7 @@ objectClass: ipaConfigObject
 ipaUserSearchFields: uid,givenname,sn,telephonenumber,ou,title
 ipaGroupSearchFields: cn,description
 ipaSearchTimeLimit: 2
-ipaSearchRecordsLimit: 0
+ipaSearchRecordsLimit: 100
 ipaHomesRootDir: /home
 ipaDefaultLoginShell: /bin/sh
 ipaDefaultPrimaryGroup: ipausers
