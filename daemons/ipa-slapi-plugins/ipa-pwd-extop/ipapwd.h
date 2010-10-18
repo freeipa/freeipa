@@ -71,22 +71,17 @@
 #define log_func discard_const(__func__)
 
 #define LOG(fmt, ...) \
-    do { \
-        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME, \
-                        fmt, ##__VA_ARGS__); \
-    } while (0)
+    slapi_log_error(SLAPI_LOG_PLUGIN, \
+                    IPAPWD_PLUGIN_NAME, \
+                    fmt, ##__VA_ARGS__)
 
 #define LOG_FATAL(fmt, ...) \
-    do { \
-        slapi_log_error(SLAPI_LOG_PLUGIN, log_func, \
-                        "[file %s, line %d]: " fmt, \
-                        __FILE__, __LINE__, ##__VA_ARGS__); \
-    } while (0)
+    slapi_log_error(SLAPI_LOG_FATAL, log_func, \
+                    "[file %s, line %d]: " fmt, \
+                    __FILE__, __LINE__, ##__VA_ARGS__)
 
 #define LOG_TRACE(fmt, ...) \
-    do { \
-        slapi_log_error(SLAPI_LOG_PLUGIN, log_func, fmt, ##__VA_ARGS__); \
-    } while (0)
+    slapi_log_error(SLAPI_LOG_TRACE, log_func, fmt, ##__VA_ARGS__)
 
 #define LOG_OOM() LOG_FATAL("Out of Memory!\n")
 
