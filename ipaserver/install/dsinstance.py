@@ -484,7 +484,7 @@ class DsInstance(service.Service):
             os.write(admpwdfd, password)
             os.close(admpwdfd)
 
-            args = ["/usr/bin/ldappasswd",
+            args = ["/usr/bin/ldappasswd", "-h", self.fqdn,
                     "-ZZ", "-x", "-D", "cn=Directory Manager",
                     "-y", dmpwdfile, "-T", admpwdfile,
                     "uid=admin,cn=users,cn=accounts,"+self.suffix]
