@@ -72,6 +72,7 @@ class user(LDAPObject):
     attribute_members = {
         'memberof': ['group', 'netgroup', 'rolegroup', 'taskgroup'],
     }
+    rdnattr = 'uid'
 
     label = _('Users')
 

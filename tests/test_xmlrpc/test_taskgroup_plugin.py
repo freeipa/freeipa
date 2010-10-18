@@ -32,6 +32,7 @@ taskgroup1 = u'test-taskgroup-1'
 taskgroup1_dn = u'cn=%s,cn=taskgroups,cn=accounts,%s' % (
     taskgroup1, api.env.basedn
 )
+renamedtaskgroup1 = u'test-taskgroup1'
 
 taskgroup2 = u'test-taskgroup-2'
 taskgroup2_dn = u'cn=%s,cn=taskgroups,cn=accounts,%s' % (
@@ -75,6 +76,13 @@ class test_taskgroup(Declarative):
         dict(
             desc='Try to delete non-existent %r' % taskgroup1,
             command=('taskgroup_del', [taskgroup1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Try to rename non-existent %r' % taskgroup1,
+            command=('taskgroup_del', [taskgroup1], dict(setattr=u'cn=%s' % renamedtaskgroup1)),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
@@ -358,6 +366,36 @@ class test_taskgroup(Declarative):
                     'member_rolegroup': [rolegroup1],
                 }
             ),
+        ),
+
+
+        dict(
+            desc='Rename %r' % taskgroup1,
+            command=('taskgroup_mod', [taskgroup1], dict(setattr=u'cn=%s' % renamedtaskgroup1)),
+            expected=dict(
+                value=taskgroup1,
+                result=dict(
+                    cn=[renamedtaskgroup1],
+                    description=[u'New desc 1'],
+                    member_rolegroup=[u'test-rolegroup-1'],
+                ),
+                summary=u'Modified taskgroup "%s"' % taskgroup1
+            )
+        ),
+
+
+        dict(
+            desc='Rename %r back' % renamedtaskgroup1,
+            command=('taskgroup_mod', [renamedtaskgroup1], dict(setattr=u'cn=%s' % taskgroup1)),
+            expected=dict(
+                value=renamedtaskgroup1,
+                result=dict(
+                    cn=[taskgroup1],
+                    description=[u'New desc 1'],
+                    member_rolegroup=[u'test-rolegroup-1'],
+                ),
+                summary=u'Modified taskgroup "%s"' % renamedtaskgroup1
+            )
         ),
 
 

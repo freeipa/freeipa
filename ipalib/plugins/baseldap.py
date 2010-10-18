@@ -77,6 +77,7 @@ class LDAPObject(Object):
     rdn_attribute = ''
     uuid_attribute = ''
     attribute_members = {}
+    rdnattr = None
 
     container_not_found_msg = _('container entry (%(container)s) not found')
     parent_not_found_msg = _('%(parent)s: %(oname)s not found')
@@ -541,14 +542,31 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         _check_single_value_attrs(self.params, entry_attrs)
 
+        rdnupdate = False
         try:
+            if self.obj.rdnattr and self.obj.rdnattr in entry_attrs:
+                # RDN change
+                ldap.update_entry_rdn(dn, unicode('%s=%s' % (self.obj.rdnattr,
+                    entry_attrs[self.obj.rdnattr])))
+                dn = self.obj.get_dn(entry_attrs[self.obj.rdnattr])
+                del entry_attrs[self.obj.rdnattr]
+                options['rdnupdate'] = True
+                rdnupdate = True
+
             ldap.update_entry(dn, entry_attrs, normalize=self.obj.normalize_dn)
         except errors.ExecutionError, e:
+            # Exception callbacks will need to test for options['rdnupdate']
+            # to decide what to do. An EmptyModlist in this context doesn't
+            # mean an error occurred, just that there were no other updates to
+            # perform.
             try:
                 self._call_exc_callbacks(
                     keys, options, e, ldap.update_entry, dn, entry_attrs,
                     normalize=self.obj.normalize_dn
                 )
+            except errors.EmptyModlist, e:
+                if not rdnupdate:
+                    raise e
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
 

@@ -90,6 +90,7 @@ class group(LDAPObject):
         'member': ['user', 'group'],
         'memberof': ['group', 'netgroup', 'rolegroup', 'taskgroup'],
     }
+    rdnattr = 'cn'
 
     label = _('User Groups')
 

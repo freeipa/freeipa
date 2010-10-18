@@ -234,6 +234,13 @@ class test_host(Declarative):
 
 
         dict(
+            desc='Try to rename %r' % fqdn1,
+            command=('host_mod', [fqdn1], dict(setattr=u'fqdn=changed')),
+            expected=errors.NotAllowedOnRDN()
+        ),
+
+
+        dict(
             desc='Delete %r' % fqdn1,
             command=('host_del', [fqdn1], {}),
             expected=dict(

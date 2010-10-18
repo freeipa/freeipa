@@ -27,6 +27,7 @@ from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
 group1 = u'testgroup1'
 group2 = u'testgroup2'
+renamedgroup1 = u'testgroup'
 user1 = u'tuser1'
 
 invalidgroup1=u'+tgroup1'
@@ -61,6 +62,13 @@ class test_group(Declarative):
         dict(
             desc='Try to delete non-existent %r' % group1,
             command=('group_del', [group1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Try to rename non-existent %r' % group1,
+            command=('group_mod', [group1], dict(setattr=u'cn=%s' % renamedgroup1)),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
@@ -327,6 +335,8 @@ class test_group(Declarative):
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'admins'],
                         'description': [u'Account administrators group'],
+                        'memberof_rolegroup': [u'replicaadmin'],
+                        'memberof_taskgroup': [u'managereplica', u'deletereplica'],
                     },
                     {
                         'dn': u'cn=ipausers,cn=groups,cn=accounts,%s' % api.env.basedn,
@@ -450,6 +460,36 @@ class test_group(Declarative):
                     'description': [u'New desc 1'],
                 },
             ),
+        ),
+
+
+        dict(
+            desc='Rename %r' % group1,
+            command=('group_mod', [group1], dict(setattr=u'cn=%s' % renamedgroup1)),
+            expected=dict(
+                value=group1,
+                result=dict(
+                    cn=[renamedgroup1],
+                    description=[u'New desc 1'],
+                    gidnumber=[fuzzy_digits],
+                ),
+                summary=u'Modified group "%s"' % group1
+            )
+        ),
+
+
+        dict(
+            desc='Rename %r back' % renamedgroup1,
+            command=('group_mod', [renamedgroup1], dict(setattr=u'cn=%s' % group1)),
+            expected=dict(
+                value=renamedgroup1,
+                result=dict(
+                    cn=[group1],
+                    description=[u'New desc 1'],
+                    gidnumber=[fuzzy_digits],
+                ),
+                summary=u'Modified group "%s"' % renamedgroup1
+            )
         ),
 
 

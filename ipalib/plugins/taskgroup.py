@@ -47,6 +47,7 @@ class taskgroup(LDAPObject):
         'member': ['user', 'group', 'rolegroup'],
         # FIXME: taskgroup can be member of ???
     }
+    rdnattr='cn'
 
     label = _('Task Groups')
 

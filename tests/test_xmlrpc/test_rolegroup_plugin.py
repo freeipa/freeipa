@@ -31,6 +31,7 @@ rolegroup1 = u'test-rolegroup-1'
 rolegroup1_dn = u'cn=%s,cn=rolegroups,cn=accounts,%s' % (
     rolegroup1, api.env.basedn
 )
+renamedrolegroup1 = u'test-rolegroup'
 
 rolegroup2 = u'test-rolegroup-2'
 rolegroup2_dn = u'cn=%s,cn=rolegroups,cn=accounts,%s' % (
@@ -68,6 +69,13 @@ class test_rolegroup(Declarative):
         dict(
             desc='Try to delete non-existent %r' % rolegroup1,
             command=('rolegroup_del', [rolegroup1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Try to rename non-existent %r' % rolegroup1,
+            command=('rolegroup_del', [rolegroup1], dict(setattr=u'cn=%s' % renamedrolegroup1)),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
@@ -352,6 +360,34 @@ class test_rolegroup(Declarative):
                 result=True,
                 value=group1,
                 summary=u'Deleted group "testgroup1"',
+            )
+        ),
+
+
+        dict(
+            desc='Rename %r' % rolegroup1,
+            command=('rolegroup_mod', [rolegroup1], dict(setattr=u'cn=%s' % renamedrolegroup1)),
+            expected=dict(
+                value=rolegroup1,
+                result=dict(
+                    cn=[renamedrolegroup1],
+                    description=[u'New desc 1'],
+                ),
+                summary=u'Modified rolegroup "%s"' % rolegroup1
+            )
+        ),
+
+
+        dict(
+            desc='Rename %r back' % renamedrolegroup1,
+            command=('rolegroup_mod', [renamedrolegroup1], dict(setattr=u'cn=%s' % rolegroup1)),
+            expected=dict(
+                value=renamedrolegroup1,
+                result=dict(
+                    cn=[rolegroup1],
+                    description=[u'New desc 1'],
+                ),
+                summary=u'Modified rolegroup "%s"' % renamedrolegroup1
             )
         ),
 

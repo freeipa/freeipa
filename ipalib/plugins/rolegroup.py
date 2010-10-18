@@ -75,6 +75,7 @@ class rolegroup(LDAPObject):
         'member': ['user', 'group', 'host', 'hostgroup'],
         'memberof': ['taskgroup'],
     }
+    rdnattr='cn'
 
     label = _('Role Groups')
 

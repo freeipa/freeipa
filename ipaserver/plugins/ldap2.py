@@ -681,6 +681,8 @@ class ldap2(CrudBackend, Encoder):
         del_old -- delete old RDN value (default True)
         """
         dn = self.normalize_dn(dn)
+        if dn.startswith(new_rdn + ","):
+            raise errors.EmptyModlist()
         try:
             self.conn.rename_s(dn, new_rdn, delold=int(del_old))
         except _ldap.LDAPError, e:

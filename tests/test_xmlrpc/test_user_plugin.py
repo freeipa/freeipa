@@ -31,6 +31,7 @@ from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 user_memberof = (u'cn=ipausers,cn=groups,cn=accounts,%s' % api.env.basedn,)
 user1=u'tuser1'
 user2=u'tuser2'
+renameduser1=u'tuser'
 
 invaliduser1=u'+tuser1'
 invaliduser2=u'tuser1234567890123456789012345678901234567890'
@@ -61,6 +62,13 @@ class test_user(Declarative):
         dict(
             desc='Try to delete non-existent %r' % user1,
             command=('user_del', [user1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Try to rename non-existent %r' % user1,
+            command=('user_mod', [user1], dict(setattr=u'uid=tuser')),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
@@ -297,6 +305,49 @@ class test_user(Declarative):
                 value=user1,
             ),
 
+        ),
+
+
+        dict(
+            desc='Rename %r' % user1,
+            command=('user_mod', [user1], dict(setattr=u'uid=%s' % renameduser1)),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Finkle'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[renameduser1],
+                    memberof_group=[u'ipausers'],
+                ),
+                summary=u'Modified user "%s"' % user1,
+                value=user1,
+            ),
+        ),
+
+
+        dict(
+            desc='Rename %r to same value' % renameduser1,
+            command=('user_mod', [renameduser1], dict(setattr=u'uid=%s' % renameduser1)),
+            expected=errors.EmptyModlist(),
+        ),
+
+
+        dict(
+            desc='Rename back %r' % renameduser1,
+            command=('user_mod', [renameduser1], dict(setattr=u'uid=%s' % user1)),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Finkle'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    memberof_group=[u'ipausers'],
+                ),
+                summary=u'Modified user "%s"' % renameduser1,
+                value=renameduser1,
+            ),
         ),
 
 
