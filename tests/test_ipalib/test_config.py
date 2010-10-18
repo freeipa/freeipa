@@ -389,7 +389,7 @@ class test_Env(ClassChecker):
         assert o._merge_from_file(override) == (4, 6)
         for (k, v) in orig.items():
             assert o[k] is v
-        assert list(o) == sorted(keys + ('key0', 'key1', 'key2', 'key3'))
+        assert list(o) == sorted(keys + ('key0', 'key1', 'key2', 'key3', 'config_loaded'))
         for i in xrange(4):
             assert o['key%d' % i] == ('var%d' % i)
         keys = tuple(o)
