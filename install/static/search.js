@@ -279,8 +279,8 @@ function search_display(obj_name, data)
 
     if (data.result.truncated) {
         tfoot.text(
-            'More than ' + ipa_record_limit + ' results returned. ' +
-            'First ' + ipa_record_limit + ' results shown.'
+            'Query returned results than configured size limit will show.' +
+            'First ' + data.result.count + ' results shown.'
         );
     } else {
         tfoot.text(data.result.summary);
