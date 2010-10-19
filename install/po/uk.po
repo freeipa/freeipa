@@ -5,18 +5,18 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
+"Report-Msgid-Bugs-To: https://hosted.fedoraproject."
+"org/projects/freeipa/newticket\n"
 "POT-Creation-Date: 2010-10-13 14:22-0400\n"
-"PO-Revision-Date: 2010-09-28 18:04+0300\n"
+"PO-Revision-Date: 2010-10-19 19:53+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation@linux.org.ua>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n%10>"
+"=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Lokalize 1.1\n"
 
 #: ipalib/cli.py:507
@@ -123,6 +123,7 @@ msgid_plural "command %(name)r takes at most %(count)d arguments"
 msgstr[0] "команда %(name)r приймає не більше %(count)d аргументу"
 msgstr[1] "команда %(name)r приймає не більше %(count)d аргументів"
 msgstr[2] "команда %(name)r приймає не більше %(count)d аргументів"
+msgstr[3] "команда %(name)r приймає не більше %(count)d аргументу"
 
 #: ipalib/errors.py:674
 #, python-format
@@ -168,8 +169,8 @@ msgstr "Щоб створити службу вузла, вам слід зар�
 #: ipalib/errors.py:831
 #, python-format
 msgid ""
-"Service principal is not of the form: service/fully-qualified host name: "
-"%(reason)s"
+"Service principal is not of the form: service/fully-qualified host name: %"
+"(reason)s"
 msgstr ""
 "Реєстраційний запис служби вказано у формі, відмінній від: служба/повна "
 "назва вузла: %(reason)s"
@@ -192,8 +193,8 @@ msgstr "Вже є posix-групою"
 #, python-format
 msgid "Principal is not of the form user@REALM: %(principal)r"
 msgstr ""
-"Реєстраційний запис вказано у формі, відмінній від користувач@ОБЛАСТЬ: "
-"%(principal)r"
+"Реєстраційний запис вказано у формі, відмінній від користувач@ОБЛАСТЬ: %"
+"(principal)r"
 
 #: ipalib/errors.py:911
 msgid "This entry is already unlocked"
@@ -275,9 +276,9 @@ msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "Не вдалося завершити дію з сертифікатом: %(error)s"
 
 #: ipalib/errors.py:1237
-#, fuzzy, python-format
+#, python-format
 msgid "Certificate format error: %(error)s"
-msgstr "Не вдалося завершити дію з сертифікатом: %(error)s"
+msgstr "Помилка форматування сертифіката: %(error)s"
 
 #: ipalib/frontend.py:380
 msgid "Results are truncated, try a more specific search"
@@ -543,11 +544,11 @@ msgid_plural "%(count)d ACIs matched"
 msgstr[0] "встановлено відповідність %(count)d ACI"
 msgstr[1] "встановлено відповідність %(count)d ACI"
 msgstr[2] "встановлено відповідність %(count)d ACI"
+msgstr[3] "встановлено відповідність %(count)d ACI"
 
 #: ipalib/plugins/automount.py:103
-#, fuzzy
 msgid "Automount"
-msgstr "Карти автоматичного монтування"
+msgstr "Автоматичне монтування"
 
 #: ipalib/plugins/automount.py:109 ipalib/plugins/host.py:134
 msgid "Location"
@@ -636,7 +637,7 @@ msgstr "Встановити для атрибута пару назва-зна�
 
 #: ipalib/plugins/baseldap.py:359
 msgid "Continuous mode: Don't stop on errors."
-msgstr ""
+msgstr "Режим неперервної роботи: не зупинятися у разі помилок."
 
 #: ipalib/plugins/baseldap.py:517
 msgid "the entry was deleted while being modified"
@@ -826,8 +827,8 @@ msgstr "Обмеження часу пошуку"
 #: ipalib/plugins/config.py:104
 msgid "Max. amount of time (sec.) for a search (-1 is unlimited)"
 msgstr ""
-"Максимальний проміжок часу (у секундах) для виконання однієї дії з пошуку "
-"(-1 — без обмежень)"
+"Максимальний проміжок часу (у секундах) для виконання однієї дії з пошуку (-"
+"1 — без обмежень)"
 
 #: ipalib/plugins/config.py:109
 msgid "Search size limit"
@@ -1018,9 +1019,8 @@ msgid "Added group \"%(value)s\""
 msgstr "Додано групу «%(value)s»"
 
 #: ipalib/plugins/group.py:139
-#, fuzzy
 msgid "Create as a non-POSIX group?"
-msgstr "Створити як групу posix?"
+msgstr "Створити як групу, що не відповідає POSIX?"
 
 #: ipalib/plugins/group.py:160
 #, python-format
@@ -1033,9 +1033,8 @@ msgid "Modified group \"%(value)s\""
 msgstr "Змінено групу «%(value)s»"
 
 #: ipalib/plugins/group.py:196
-#, fuzzy
 msgid "change to a POSIX group"
-msgstr "змінити на групу posix"
+msgstr "змінити на групу POSIX"
 
 #: ipalib/plugins/group.py:222 ipalib/plugins/hbacsvcgroup.py:129
 #, python-format
@@ -1044,6 +1043,7 @@ msgid_plural "%(count)d groups matched"
 msgstr[0] "встановлено відповідність %(count)d групи"
 msgstr[1] "встановлено відповідність %(count)d груп"
 msgstr[2] "встановлено відповідність %(count)d груп"
+msgstr[3] "встановлено відповідність %(count)d групи"
 
 #: ipalib/plugins/group.py:257
 #, python-format
@@ -1152,14 +1152,12 @@ msgid "Service name"
 msgstr "Назва служби"
 
 #: ipalib/plugins/hbacsvc.py:66
-#, fuzzy
 msgid "HBAC Service"
-msgstr "Служби"
+msgstr "Служба HBAC"
 
 #: ipalib/plugins/hbacsvc.py:73
-#, fuzzy
 msgid "Description of service"
-msgstr "Опис"
+msgstr "Опис служби"
 
 #: ipalib/plugins/hbacsvc.py:84 ipalib/plugins/service.py:216
 #, python-format
@@ -1172,44 +1170,39 @@ msgid "Deleted service \"%(value)s\""
 msgstr "Вилучено службу «%(value)s»"
 
 #: ipalib/plugins/hbacsvcgroup.py:66
-#, fuzzy
 msgid "HBAC Service Groups"
-msgstr "Групи служб"
+msgstr "Група служб HBAC"
 
 #: ipalib/plugins/hbacsvcgroup.py:71
-#, fuzzy
 msgid "Service group name"
-msgstr "Назва служби"
+msgstr "Назва групи служб"
 
 #: ipalib/plugins/hbacsvcgroup.py:78
-#, fuzzy
 msgid "HBAC service group description"
-msgstr "Опис мережевої групи"
+msgstr "Опис групи служб HBAC"
 
 #: ipalib/plugins/hbacsvcgroup.py:81
-#, fuzzy
 msgid "Member services"
-msgstr "Користувачі-учасники"
+msgstr "Служби учасників"
 
 #: ipalib/plugins/hbacsvcgroup.py:85
-#, fuzzy
 msgid "Member service groups"
-msgstr "Групи ролей-учасники"
+msgstr "Групи служб учасників"
 
 #: ipalib/plugins/hbacsvcgroup.py:101
-#, fuzzy, python-format
+#, python-format
 msgid "Added HBAC Service group \"%(value)s\""
-msgstr "Додано групу ролей «%(value)s»"
+msgstr "Додано групу служб HBAC «%(value)s»"
 
 #: ipalib/plugins/hbacsvcgroup.py:110
-#, fuzzy, python-format
+#, python-format
 msgid "Deleted HBAC Service group \"%(value)s\""
-msgstr "Вилучено групу ролей «%(value)s»"
+msgstr "Вилучено групу служб HBAC «%(value)s»"
 
 #: ipalib/plugins/hbacsvcgroup.py:119
-#, fuzzy, python-format
+#, python-format
 msgid "Modified HBAC Service group \"%(value)s\""
-msgstr "Змінено групу ролей «%(value)s»"
+msgstr "Змінено групу служб HBAC «%(value)s»"
 
 #: ipalib/plugins/host.py:86
 msgid "Fully-qualified hostname required"
@@ -1309,6 +1302,7 @@ msgid_plural "%(count)d hosts matched"
 msgstr[0] "встановлено відповідність %(count)d вузла"
 msgstr[1] "встановлено відповідність %(count)d вузлів"
 msgstr[2] "встановлено відповідність %(count)d вузлів"
+msgstr[3] "встановлено відповідність %(count)d вузла"
 
 #: ipalib/plugins/host.py:337 ipalib/plugins/service.py:84
 msgid "Keytab"
@@ -1365,6 +1359,7 @@ msgid_plural "%(count)d hostgroups matched"
 msgstr[0] "встановлено відповідність %(count)d групи вузлів"
 msgstr[1] "встановлено відповідність %(count)d груп вузлів"
 msgstr[2] "встановлено відповідність %(count)d груп вузлів"
+msgstr[3] "встановлено відповідність %(count)d групи вузлів"
 
 #: ipalib/plugins/internal.py:39
 msgid "Logged In As"
@@ -1392,7 +1387,7 @@ msgstr "Зареєструвати"
 
 #: ipalib/plugins/internal.py:46
 msgid "Delete"
-msgstr ""
+msgstr "Вилучити"
 
 #: ipalib/plugins/internal.py:49
 msgid "Quick Links"
@@ -1400,15 +1395,15 @@ msgstr "Швидкі посилання"
 
 #: ipalib/plugins/internal.py:50
 msgid "Select All"
-msgstr ""
+msgstr "Вибрати все"
 
 #: ipalib/plugins/internal.py:51
 msgid "Unselect All"
-msgstr ""
+msgstr "Скасувати вибір всього"
 
 #: ipalib/plugins/internal.py:52
 msgid "Do you really want to delete the selected entries?"
-msgstr ""
+msgstr "Ви справді бажаєте вилучити позначені записи?"
 
 #: ipalib/plugins/internal.py:55
 msgid "Identity Details"
@@ -1451,9 +1446,8 @@ msgid "Dict of I18N messages"
 msgstr "Словник перекладених повідомлень"
 
 #: ipalib/plugins/krbtpolicy.py:59
-#, fuzzy
 msgid "Kerberos Ticket Policy"
-msgstr "Реєстраційний запис Kerberos"
+msgstr "Правила квитків Kerberos"
 
 #: ipalib/plugins/krbtpolicy.py:64 ipalib/plugins/passwd.py:52
 msgid "User name"
@@ -1530,6 +1524,8 @@ msgstr "RDN контейнера груп у DS"
 #: ipalib/plugins/migration.py:200
 msgid "Continous operation mode. Errors are reported but the process continues"
 msgstr ""
+"Режим неперервної обробки. Програма повідомляє про помилки, але продовжує "
+"обробку."
 
 #: ipalib/plugins/migration.py:208
 msgid "Lists of objects migrated; categorized by type."
@@ -1581,9 +1577,9 @@ msgstr ""
 "скористатися обліковими записами Kerberos."
 
 #: ipalib/plugins/migration.py:297
-#, fuzzy, python-format
+#, python-format
 msgid "Container for %(container)s not found"
-msgstr "не знайдено запис контейнера (%(container)s)"
+msgstr "Контейнера для %(container)s не знайдено"
 
 #: ipalib/plugins/misc.py:38
 #, python-format
@@ -1605,6 +1601,7 @@ msgid_plural "%(count)d plugins loaded"
 msgstr[0] "завантажено %(count)d додаток"
 msgstr[1] "завантажено %(count)d додатки"
 msgstr[2] "завантажено %(count)d додатків"
+msgstr[3] "завантажено %(count)d додаток"
 
 #: ipalib/plugins/misc.py:116
 msgid "Number of plugins loaded"
@@ -1642,13 +1639,12 @@ msgstr "Унікальний ід. IPA"
 #, python-format
 msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
 msgstr ""
-"пріоритет повинен мати унікальне значення (%(prio)d вже використано для "
-"%(gname)s)"
+"пріоритет повинен мати унікальне значення (%(prio)d вже використано для %"
+"(gname)s)"
 
 #: ipalib/plugins/pwpolicy.py:170
-#, fuzzy
 msgid "Password Policy"
-msgstr "Пароль"
+msgstr "Правила для паролів"
 
 #: ipalib/plugins/pwpolicy.py:175
 msgid "Group"
@@ -1761,6 +1757,7 @@ msgid_plural "%(count)d rolegroups matched"
 msgstr[0] "встановлено відповідність %(count)d групи ролей"
 msgstr[1] "встановлено відповідність %(count)d груп ролей"
 msgstr[2] "встановлено відповідність %(count)d груп ролей"
+msgstr[3] "встановлено відповідність %(count)d групи ролей"
 
 #: ipalib/plugins/service.py:198
 msgid "Service principal"
@@ -1783,6 +1780,7 @@ msgid_plural "%(count)d services matched"
 msgstr[0] "встановлено відповідність %(count)d служби"
 msgstr[1] "встановлено відповідність %(count)d служб"
 msgstr[2] "встановлено відповідність %(count)d служб"
+msgstr[3] "встановлено відповідність %(count)d служби"
 
 #: ipalib/plugins/service.py:409
 msgid "Service principal has no kerberos key"
@@ -1790,93 +1788,93 @@ msgstr "Реєстраційний запис служби не має ключ�
 
 #: ipalib/plugins/sudocmd.py:60
 msgid "SudoCmds"
-msgstr ""
+msgstr "Команди sudo"
 
 #: ipalib/plugins/sudocmd.py:65
 msgid "Sudo Command"
-msgstr ""
+msgstr "Команда sudo"
 
 #: ipalib/plugins/sudocmd.py:72
-#, fuzzy
 msgid "A description of this command"
-msgstr "Опис цього вузла"
+msgstr "Опис цієї команди"
 
 #: ipalib/plugins/sudocmd.py:99
-#, fuzzy, python-format
+#, python-format
 msgid "Added sudo command \"%(value)s\""
-msgstr "Додано вузол «%(value)s»"
+msgstr "Додано команду sudo «%(value)s»"
 
 #: ipalib/plugins/sudocmd.py:108
-#, fuzzy, python-format
+#, python-format
 msgid "Deleted sudo command \"%(value)s\""
-msgstr "Вилучено вузол «%(value)s»"
+msgstr "Вилучено команду sudo «%(value)s»"
 
 #: ipalib/plugins/sudocmd.py:117
-#, fuzzy, python-format
+#, python-format
 msgid "Modified sudo command \"%(value)s\""
-msgstr "Змінено вузол «%(value)s»"
+msgstr "Змінено команду sudo «%(value)s»"
 
 #: ipalib/plugins/sudocmd.py:127
-#, fuzzy, python-format
+#, python-format
 msgid "%(count)d sudo command matched"
 msgid_plural "%(count)d sudo command matched"
-msgstr[0] "встановлено відповідність %(count)d вузла"
-msgstr[1] "встановлено відповідність %(count)d вузлів"
-msgstr[2] "встановлено відповідність %(count)d вузлів"
+msgstr[0] "встановлено відповідність %(count)d команди sudo"
+msgstr[1] "встановлено відповідність %(count)d команд sudo"
+msgstr[2] "встановлено відповідність %(count)d команд sudo"
+msgstr[3] "встановлено відповідність %(count)d команди sudo"
 
 #: ipalib/plugins/sudocmdgroup.py:66 ipalib/plugins/sudocmdgroup.py:85
 #: ipalib/plugins/sudorule.py:81 ipalib/plugins/sudorule.py:85
 msgid "Sudo Command Groups"
-msgstr ""
+msgstr "Групи команд sudo"
 
 #: ipalib/plugins/sudocmdgroup.py:71
-#, fuzzy
 msgid "Sudo Command Group name"
-msgstr "Назва групи"
+msgstr "Назва групи команд sudo"
 
 #: ipalib/plugins/sudocmdgroup.py:81
 msgid "Commands"
-msgstr ""
+msgstr "Команди"
 
 #: ipalib/plugins/sudocmdgroup.py:98
-#, fuzzy, python-format
+#, python-format
 msgid "Added sudo command group \"%(value)s\""
-msgstr "Додано групу «%(value)s»"
+msgstr "Додано групу команд sudo «%(value)s»"
 
 #: ipalib/plugins/sudocmdgroup.py:108
-#, fuzzy, python-format
+#, python-format
 msgid "Deleted sudo command group \"%(value)s\""
-msgstr "Вилучено групу «%(value)s»"
+msgstr "Вилучено групу команд sudo «%(value)s»"
 
 #: ipalib/plugins/sudocmdgroup.py:118
-#, fuzzy, python-format
+#, python-format
 msgid "Modified sudo command group \"%(value)s\""
-msgstr "Змінено групу «%(value)s»"
+msgstr "Змінено групу команд sudo «%(value)s»"
 
 #: ipalib/plugins/sudocmdgroup.py:129
-#, fuzzy, python-format
+#, python-format
 msgid "%(count)d sudo command group matched"
 msgid_plural "%(count)d sudo command groups matched"
-msgstr[0] "встановлено відповідність %(count)d групи"
-msgstr[1] "встановлено відповідність %(count)d груп"
-msgstr[2] "встановлено відповідність %(count)d груп"
+msgstr[0] "встановлено відповідність %(count)d групи команд sudo"
+msgstr[1] "встановлено відповідність %(count)d груп команд sudo"
+msgstr[2] "встановлено відповідність %(count)d груп команд sudo"
+msgstr[3] "встановлено відповідність %(count)d групи команд sudo"
 
 #: ipalib/plugins/sudorule.py:48
 msgid "SudoRule"
-msgstr ""
+msgstr "Правило sudo"
 
 #: ipalib/plugins/sudorule.py:73
 msgid "Sudo Allow Commands"
-msgstr ""
+msgstr "Команди дозволу sudo"
 
 #: ipalib/plugins/sudorule.py:77
 msgid "Sudo Deny Commands"
-msgstr ""
+msgstr "Команди заборони sudo"
 
 #: ipalib/plugins/sudorule.py:109
-#, fuzzy, python-format
+#, python-format
 msgid "Added sudo rule \"%(value)s\""
-msgstr "Додано користувача «%(value)s»"
+msgstr "Додано правило sudo «%(value)s»"
 
 #: ipalib/plugins/taskgroup.py:51
 msgid "Task Groups"
@@ -1916,6 +1914,7 @@ msgid_plural "%(count)d taskgroups matched"
 msgstr[0] "встановлено відповідність %(count)d групи завдань"
 msgstr[1] "встановлено відповідність %(count)d груп завдань"
 msgstr[2] "встановлено відповідність %(count)d груп завдань"
+msgstr[3] "встановлено відповідність %(count)d групи завдань"
 
 #: ipalib/plugins/user.py:84
 msgid "User login"
@@ -1985,21 +1984,19 @@ msgstr "Групи завдань"
 
 #: ipalib/plugins/user.py:159
 msgid "Telephone Number"
-msgstr ""
+msgstr "Номер телефону"
 
 #: ipalib/plugins/user.py:161
 msgid "Mobile Telephone Number"
-msgstr ""
+msgstr "Номер мобільного телефону"
 
 #: ipalib/plugins/user.py:163
-#, fuzzy
 msgid "Pager Number"
-msgstr "Серійний номер"
+msgstr "Номер пейджера"
 
 #: ipalib/plugins/user.py:166
-#, fuzzy
 msgid "Fax Number"
-msgstr "Серійний номер"
+msgstr "Номер факсу"
 
 #: ipalib/plugins/user.py:177
 #, python-format
@@ -2032,16 +2029,17 @@ msgid_plural "%(count)d users matched"
 msgstr[0] "встановлено відповідність %(count)d користувача"
 msgstr[1] "встановлено відповідність %(count)d користувачів"
 msgstr[2] "встановлено відповідність %(count)d користувачів"
+msgstr[3] "встановлено відповідність %(count)d користувача"
 
 #: ipalib/plugins/user.py:283
-#, fuzzy, python-format
+#, python-format
 msgid "Disabled user account \"%(value)s\""
-msgstr "Вилучено користувача «%(value)s»"
+msgstr "Вимкнено обліковий запис користувача «%(value)s»"
 
 #: ipalib/plugins/user.py:309
-#, fuzzy, python-format
+#, python-format
 msgid "Enabled user account \"%(value)s\""
-msgstr "Розблоковано користувача «%(value)s»"
+msgstr "Увімкнено обліковий запис користувача «%(value)s»"
 
 #: ipaserver/install/certs.py:599 ipaserver/plugins/dogtag.py:1313
 #: ipaserver/plugins/dogtag.py:1398 ipaserver/plugins/dogtag.py:1463
@@ -2069,11 +2067,11 @@ msgstr "Операційна система вузла і її версія (н�
 #: ipaserver/plugins/selfsign.py:98
 #, python-format
 msgid ""
-"Request subject \"%(request_subject)s\" does not match the form "
-"\"%(subject_base)s\""
+"Request subject \"%(request_subject)s\" does not match the form \"%"
+"(subject_base)s\""
 msgstr ""
-"Об’єкт запиту «%(request_subject)s» вказано у формі, відмінній від "
-"«%(subject_base)s»"
+"Об’єкт запиту «%(request_subject)s» вказано у формі, відмінній від «%"
+"(subject_base)s»"
 
 #: ipaserver/plugins/selfsign.py:103
 #, python-format
@@ -2095,444 +2093,453 @@ msgstr "помилка certutil"
 #: ipa-client/config.c:55
 #, c-format
 msgid "cannot open configuration file %s\n"
-msgstr ""
+msgstr "не вдалося відкрити файл налаштувань %s\n"
 
 #: ipa-client/config.c:62
 #, c-format
 msgid "cannot stat() configuration file %s\n"
-msgstr ""
+msgstr "не вдалося обробити функцією stat() файл налаштування %s\n"
 
 #: ipa-client/config.c:75
 #, c-format
 msgid "read error\n"
-msgstr ""
+msgstr "помилка читання\n"
 
 #: ipa-client/ipa-getkeytab.c:138 ipa-client/ipa-getkeytab.c:838
 #, c-format
 msgid "No system preferred enctypes ?!\n"
-msgstr ""
+msgstr "Немає основних системних типів шифрування?!\n"
 
 #: ipa-client/ipa-getkeytab.c:146
 #, c-format
 msgid "Out of memory!?\n"
-msgstr ""
+msgstr "Не вистачає пам'яті!?\n"
 
 #: ipa-client/ipa-getkeytab.c:164 ipa-client/ipa-getkeytab.c:179
 #, c-format
 msgid "Out of memory\n"
-msgstr ""
+msgstr "Не вистачає пам'яті\n"
 
 #: ipa-client/ipa-getkeytab.c:194
 #, c-format
 msgid "Warning unrecognized encryption type: [%s]\n"
-msgstr ""
+msgstr "Попередження: невідомий тип шифрування: [%s]\n"
 
 #: ipa-client/ipa-getkeytab.c:209
 #, c-format
 msgid "Warning unrecognized salt type: [%s]\n"
-msgstr ""
+msgstr "Попередження: невідомий тип солі (salt): [%s]\n"
 
 #: ipa-client/ipa-getkeytab.c:235
 #, c-format
 msgid "Enctype comparison failed!\n"
-msgstr ""
+msgstr "Спроба порівняння значень типу шифрування зазнала невдачі!\n"
 
 #: ipa-client/ipa-getkeytab.c:297
 #, c-format
 msgid "Failed to create random key!\n"
-msgstr ""
+msgstr "Не вдалося створити випадковий ключ!\n"
 
 #: ipa-client/ipa-getkeytab.c:310 ipa-client/ipa-getkeytab.c:327
 #: ipa-client/ipa-getkeytab.c:335 ipa-client/ipa-getkeytab.c:372
 #, c-format
 msgid "Failed to create key!\n"
-msgstr ""
+msgstr "Не вдалося створити ключ!\n"
 
 #: ipa-client/ipa-getkeytab.c:317 ipa-client/ipa-getkeytab.c:350
 #, c-format
 msgid "Out of memory!\n"
-msgstr ""
+msgstr "Не вистачає пам'яті!\n"
 
 #: ipa-client/ipa-getkeytab.c:361
 #, c-format
 msgid "Bad or unsupported salt type (%d)!\n"
-msgstr ""
+msgstr "Помилковий або непідтримуваний тип солі (salt) (%d)!\n"
 
 #: ipa-client/ipa-getkeytab.c:481
 #, c-format
 msgid "No keys accepted by KDC\n"
-msgstr ""
+msgstr "Жоден з ключів не прийнято KDC\n"
 
 #: ipa-client/ipa-getkeytab.c:496
 #, c-format
 msgid "Out of memory \n"
-msgstr ""
+msgstr "Не вистачає пам'яті \n"
 
 #: ipa-client/ipa-getkeytab.c:534
 #, c-format
 msgid "Out of Memory!\n"
-msgstr ""
+msgstr "Не вистачає пам'яті!\n"
 
 #: ipa-client/ipa-getkeytab.c:541
 #, c-format
 msgid "Failed to create control!\n"
-msgstr ""
+msgstr "Не вдалося створити керування!\n"
 
 #: ipa-client/ipa-getkeytab.c:565
 #, c-format
 msgid "Unable to initialize ldap library!\n"
-msgstr ""
+msgstr "Не вдалося ініціалізувати бібліотеку ldap!\n"
 
 #: ipa-client/ipa-getkeytab.c:572
 #, c-format
 msgid "Unable to set ldap options!\n"
-msgstr ""
+msgstr "Не вдалося встановити значення параметрів ldap!\n"
 
 #: ipa-client/ipa-getkeytab.c:579
 #, c-format
 msgid "Simple bind failed\n"
-msgstr ""
+msgstr "Невдала спроба простого прив’язування\n"
 
 #: ipa-client/ipa-getkeytab.c:589
 #, c-format
 msgid "SASL Bind failed!\n"
-msgstr ""
+msgstr "Невдала спроба прив’язування SASL!\n"
 
 #: ipa-client/ipa-getkeytab.c:605 ipa-client/ipa-getkeytab.c:618
 #: ipa-client/ipa-getkeytab.c:625 ipa-client/ipa-getkeytab.c:632
 #, c-format
 msgid "Operation failed! %s\n"
-msgstr ""
+msgstr "Невдала спроба виконання дії! %s\n"
 
 #: ipa-client/ipa-getkeytab.c:638 ipa-client/ipa-getkeytab.c:648
 #, c-format
 msgid "Missing reply control!\n"
-msgstr ""
+msgstr "Немає керування відповіддю!\n"
 
 #: ipa-client/ipa-getkeytab.c:655
 #, c-format
 msgid "ber_init() failed, Invalid control ?!\n"
-msgstr ""
+msgstr "Спроба виконання ber_init() зазнала невдачі. Некоректне керування?!\n"
 
 #: ipa-client/ipa-getkeytab.c:674
 #, c-format
 msgid "ber_scanf() failed, Invalid control ?!\n"
-msgstr ""
+msgstr "Спроба виконання ber_scanf() зазнала невдачі. Некоректне керування?!\n"
 
 #: ipa-client/ipa-getkeytab.c:715
-#, fuzzy
 msgid "New Principal Password"
-msgstr "Назва реєстраційного запису"
+msgstr "Новий пароль реєстраційного запису"
 
 #: ipa-client/ipa-getkeytab.c:721
 msgid "Verify Principal Password"
-msgstr ""
+msgstr "Перевірка пароля реєстраційного запису"
 
 #: ipa-client/ipa-getkeytab.c:779 ipa-client/ipa-join.c:965
 msgid "Print as little as possible"
-msgstr ""
+msgstr "Виводити мінімум даних"
 
 #: ipa-client/ipa-getkeytab.c:779 ipa-client/ipa-join.c:965
 msgid "Output only on errors"
-msgstr ""
+msgstr "Виводити лише повідомлення про помилки"
 
 #: ipa-client/ipa-getkeytab.c:781
 msgid "Contact this specific KDC Server"
-msgstr ""
+msgstr "Встановити зв’язок з вказаним сервером KDC"
 
 #: ipa-client/ipa-getkeytab.c:782
-#, fuzzy
 msgid "Server Name"
-msgstr "Назва служби"
+msgstr "Назва сервера"
 
 #: ipa-client/ipa-getkeytab.c:784 ipa-client/ipa-rmkeytab.c:188
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 msgstr ""
+"Реєстраційний запис, для якого слід отримати таблицю ключів (приклад: ftp/"
+"ftp.example.com@EXAMPLE.COM)"
 
 #: ipa-client/ipa-getkeytab.c:785 ipa-client/ipa-rmkeytab.c:189
-#, fuzzy
 msgid "Kerberos Service Principal Name"
-msgstr "Реєстраційний запис Kerberos"
+msgstr "Назва реєстраційного запису служби Kerberos"
 
 #: ipa-client/ipa-getkeytab.c:787 ipa-client/ipa-join.c:973
 #: ipa-client/ipa-rmkeytab.c:191
 msgid "File were to store the keytab information"
-msgstr ""
+msgstr "Файл, у якому зберігатимуться дані таблиці ключів"
 
 #: ipa-client/ipa-getkeytab.c:788 ipa-client/ipa-join.c:973
 #: ipa-client/ipa-rmkeytab.c:191
 msgid "Keytab File Name"
-msgstr ""
+msgstr "Назва файла таблиці ключів"
 
 #: ipa-client/ipa-getkeytab.c:790
 msgid "Encryption types to request"
-msgstr ""
+msgstr "Типи шифрування, запит щодо яких слід надсилати"
 
 #: ipa-client/ipa-getkeytab.c:791
 msgid "Comma separated encryption types list"
-msgstr ""
+msgstr "Список типів шифрування, відокремлених комами"
 
 #: ipa-client/ipa-getkeytab.c:793
 msgid "Show the list of permitted encryption types and exit"
-msgstr ""
+msgstr "Показати список дозволених типів шифрування і завершити роботу"
 
 #: ipa-client/ipa-getkeytab.c:794
 msgid "Permitted Encryption Types"
-msgstr ""
+msgstr "Дозволені типи шифрування"
 
 #: ipa-client/ipa-getkeytab.c:796
 msgid "Asks for a non-random password to use for the principal"
 msgstr ""
+"Запитати невипадковий пароль, який слід використати для реєстраційного запису"
 
 #: ipa-client/ipa-getkeytab.c:798
-#, fuzzy
 msgid "LDAP DN"
-msgstr "URI LDAP"
+msgstr "DN LDAP"
 
 #: ipa-client/ipa-getkeytab.c:798
 msgid "DN to bind as if not using kerberos"
 msgstr ""
+"DN, до якого слід виконати прив’язку, якщо не використовується kerberos"
 
 #: ipa-client/ipa-getkeytab.c:800 ipa-client/ipa-join.c:975
-#, fuzzy
 msgid "LDAP password"
-msgstr "Пароль"
+msgstr "Пароль LDAP"
 
 #: ipa-client/ipa-getkeytab.c:800 ipa-client/ipa-join.c:975
 msgid "password to use if not using kerberos"
-msgstr ""
+msgstr "пароль, який слід використати, якщо не використовується kerberos"
 
 #: ipa-client/ipa-getkeytab.c:825 ipa-client/ipa-rmkeytab.c:207
 #, c-format
 msgid "Kerberos context initialization failed\n"
-msgstr ""
+msgstr "Невдала спроба ініціалізації контексту Kerberos\n"
 
 #: ipa-client/ipa-getkeytab.c:841
 #, c-format
 msgid "Supported encryption types:\n"
-msgstr ""
+msgstr "Підтримувані типи шифрування:\n"
 
 #: ipa-client/ipa-getkeytab.c:845
 #, c-format
 msgid "Warning: failed to convert type (#%d)\n"
-msgstr ""
+msgstr "Попередження: не вдалося виконати перетворення типу (№%d)\n"
 
 #: ipa-client/ipa-getkeytab.c:864
 #, c-format
 msgid "Bind password required when using a bind DN.\n"
-msgstr ""
+msgstr "У разі використання прив’язки DN слід вказати пароль прив’язки.\n"
 
 #: ipa-client/ipa-getkeytab.c:877
 #, c-format
 msgid ""
 "Warning: salt types are not honored with randomized passwords (see opt. -P)\n"
 msgstr ""
+"Попередження: для випадкових паролів типи солі (salt) не мають значення (див."
+" параметр -P)\n"
 
 #: ipa-client/ipa-getkeytab.c:889
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid Service Principal Name\n"
-msgstr "Реєстраційний запис служби"
+msgstr "Некоректна назва реєстраційного запису служби\n"
 
 #: ipa-client/ipa-getkeytab.c:897
 #, c-format
 msgid "Kerberos Credential Cache not found. Do you have a Kerberos Ticket?\n"
 msgstr ""
+"Не знайдено кешу реєстраційних даних Kerberos. Чи є у вас квиток Kerberos?\n"
 
 #: ipa-client/ipa-getkeytab.c:905
 #, c-format
 msgid ""
 "Kerberos User Principal not found. Do you have a valid Credential Cache?\n"
 msgstr ""
+"Не знайдено реєстраційного запису користувача Kerberos. Ви маєте ви "
+"коректний кеш реєстраційних даних?\n"
 
 #: ipa-client/ipa-getkeytab.c:913
 #, c-format
 msgid "Failed to open Keytab\n"
-msgstr ""
+msgstr "Не вдалося відкрити таблицю ключів\n"
 
 #: ipa-client/ipa-getkeytab.c:920
 #, c-format
 msgid "Failed to create key material\n"
-msgstr ""
+msgstr "Не вдалося створити вихідні дані для ключа\n"
 
 #: ipa-client/ipa-getkeytab.c:939
 #, c-format
 msgid "Failed to add key to the keytab\n"
-msgstr ""
+msgstr "Не вдалося додати ключ до таблиці ключів\n"
 
 #: ipa-client/ipa-getkeytab.c:948
 #, c-format
 msgid "Failed to close the keytab\n"
-msgstr ""
+msgstr "Не вдалося закрити таблицю ключів\n"
 
 #: ipa-client/ipa-getkeytab.c:954
 #, c-format
 msgid "Keytab successfully retrieved and stored in: %s\n"
-msgstr ""
+msgstr "Таблицю ключів успішно отримати і збережено до: %s\n"
 
 #: ipa-client/ipa-join.c:67
 #, c-format
 msgid "No permission to join this host to the IPA domain.\n"
-msgstr ""
+msgstr "Немає дозволу на долучення цього вузла до домену IPA.\n"
 
 #: ipa-client/ipa-join.c:104 ipa-client/ipa-join.c:116
 #, c-format
 msgid "No write permissions on keytab file '%s'\n"
-msgstr ""
+msgstr "Немає дозволу на запис до файла таблиці ключів «%s»\n"
 
 #: ipa-client/ipa-join.c:121
 #, c-format
 msgid "access() on %s failed: errno = %d\n"
-msgstr ""
+msgstr "Невдала спроба виконання access() для %s: номер помилки = %d\n"
 
 #: ipa-client/ipa-join.c:200
 #, c-format
 msgid "Unable to enable SSL in LDAP\n"
-msgstr ""
+msgstr "Не вдалося увімкнути SSL у LDAP\n"
 
 #: ipa-client/ipa-join.c:206
 #, c-format
 msgid "Unable to set LDAP version\n"
-msgstr ""
+msgstr "Не вдалося встановити версію LDAP\n"
 
 #: ipa-client/ipa-join.c:216
 #, c-format
 msgid "Bind failed: %s\n"
-msgstr ""
+msgstr "Невдала спроба прив’язки: %s\n"
 
 #: ipa-client/ipa-join.c:249
 #, c-format
 msgid "Search for %s on rootdse failed with error %d"
 msgstr ""
+"Спроба пошуку %s у rootdse завершилася невдало з повідомленням про помилку %d"
 
 #: ipa-client/ipa-join.c:259 ipa-client/ipa-join.c:311
 #, c-format
 msgid "No values for %s"
-msgstr ""
+msgstr "Немає значень %s"
 
 #: ipa-client/ipa-join.c:302
 #, c-format
 msgid "Search for ipaCertificateSubjectBase failed with error %d"
 msgstr ""
+"Спроба пошуку ipaCertificateSubjectBase завершилася невдало з повідомлення "
+"про помилку %d"
 
 #: ipa-client/ipa-join.c:368
 #, c-format
 msgid "Unable to determine root DN of %s\n"
-msgstr ""
+msgstr "Не вдалося визначити кореневий DN %s\n"
 
 #: ipa-client/ipa-join.c:377
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to determine certificate subject of %s\n"
-msgstr "Не вдалося декодувати сертифікат у записі"
+msgstr "Не вдалося визначити призначення сертифіката %s\n"
 
 #: ipa-client/ipa-join.c:385
 #, c-format
 msgid "Unable to make an LDAP connection to %s\n"
-msgstr ""
+msgstr "Не вдалося створити з’єднання LDAP з %s\n"
 
 #: ipa-client/ipa-join.c:394
 #, c-format
 msgid "Searching with %s in %s\n"
-msgstr ""
+msgstr "Пошук на основі %s у %s\n"
 
 #: ipa-client/ipa-join.c:400
 #, c-format
 msgid "ldap_search_ext_s: %s\n"
-msgstr ""
+msgstr "ldap_search_ext_s: %s\n"
 
 #: ipa-client/ipa-join.c:408
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to find host '%s'\n"
-msgstr "не вдалося декодувати csr: %s"
+msgstr "Не вдалося знайти вузол «%s»\n"
 
 #: ipa-client/ipa-join.c:415
 #, c-format
 msgid "Unable to get binddn for host '%s'\n"
-msgstr ""
+msgstr "Не вдалося отримати binddn для вузла «%s»\n"
 
 #: ipa-client/ipa-join.c:428
 #, c-format
 msgid "Host already has principal, trying bind anyway\n"
-msgstr ""
+msgstr "У вузла вже є реєстраційний запис, повторна спроба прив’язки\n"
 
 #: ipa-client/ipa-join.c:442 ipa-client/ipa-join.c:579
-#, fuzzy, c-format
+#, c-format
 msgid "Host is already joined.\n"
-msgstr "Цей запис вже заблоковано"
+msgstr "Вузол вже приєднано.\n"
 
 #: ipa-client/ipa-join.c:446
-#, fuzzy, c-format
+#, c-format
 msgid "Incorrect password.\n"
-msgstr "Пароль користувача"
+msgstr "Некоректний пароль.\n"
 
 #: ipa-client/ipa-join.c:457
 #, c-format
 msgid "principal not found in host entry\n"
-msgstr ""
+msgstr "у запису вузла реєстраційного запису не знайдено\n"
 
 #: ipa-client/ipa-join.c:564
 #, c-format
 msgid "principal not found in XML-RPC response\n"
-msgstr ""
+msgstr "реєстраційного запису не знайдено у XML-RPC відповіді\n"
 
 #: ipa-client/ipa-join.c:646 ipa-client/ipa-join.c:823
 #, c-format
 msgid "Unable to determine IPA server from %s\n"
-msgstr ""
+msgstr "Не вдалося визначити сервер IPA з %s\n"
 
 #: ipa-client/ipa-join.c:662 ipa-client/ipa-join.c:838
 #, c-format
 msgid "The hostname must be fully-qualified: %s\n"
-msgstr ""
+msgstr "Назву вузла слід вказувати повністю: %s\n"
 
 #: ipa-client/ipa-join.c:671 ipa-client/ipa-join.c:848
 #, c-format
 msgid "Unable to join host: Kerberos context initialization failed\n"
 msgstr ""
+"Не вдалося долучити вузол: невдала спроба ініціалізації контексту Kerberos\n"
 
 #: ipa-client/ipa-join.c:679
 #, c-format
 msgid "Error resolving keytab: %s.\n"
-msgstr ""
+msgstr "Помилка при визначенні адрес таблиці ключів: %s.\n"
 
 #: ipa-client/ipa-join.c:689
 #, c-format
 msgid "Error parsing \"%s\": %s.\n"
-msgstr ""
+msgstr "Помилка під час обробки «%s»: %s.\n"
 
 #: ipa-client/ipa-join.c:707
 #, c-format
 msgid "Error obtaining initial credentials: %s.\n"
-msgstr ""
+msgstr "Помилка під час отримання початкових реєстраційних даних: %s.\n"
 
 #: ipa-client/ipa-join.c:718
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to generate Kerberos Credential Cache\n"
-msgstr "не отримано реєстраційних даних Kerberos"
+msgstr "Не вдалося створити кеш реєстраційних даних Kerberos\n"
 
 #: ipa-client/ipa-join.c:726
-#, fuzzy, c-format
+#, c-format
 msgid "Error storing creds in credential cache: %s.\n"
-msgstr "Помилковий формат кешу реєстраційних даних"
+msgstr "Помилка під час спроби збереження реєстраційних даних у кеші: %s.\n"
 
 #: ipa-client/ipa-join.c:769
 #, c-format
 msgid "Unenrollment successful.\n"
-msgstr ""
+msgstr "Успішне скасування реєстрації.\n"
 
 #: ipa-client/ipa-join.c:772
 #, c-format
 msgid "Unenrollment failed.\n"
-msgstr ""
+msgstr "Спроба скасування реєстрації зазнала невдачі.\n"
 
 #: ipa-client/ipa-join.c:777
 #, c-format
 msgid "result not found in XML-RPC response\n"
-msgstr ""
+msgstr "у відповіді XML-RPC не знайдено результату\n"
 
 #: ipa-client/ipa-join.c:855
 #, c-format
 msgid "Unable to join host: Kerberos Credential Cache not found\n"
 msgstr ""
+"Не вдалося долучити вузол: не знайдено кешу реєстраційних даних Kerberos\n"
 
 #: ipa-client/ipa-join.c:863
 #, c-format
@@ -2540,158 +2547,156 @@ msgid ""
 "Unable to join host: Kerberos User Principal not found and host password not "
 "provided.\n"
 msgstr ""
+"Не вдалося долучити вузол: не знайдено реєстраційного запису користувача "
+"Kerberos і не вказано пароля вузла.\n"
 
 #: ipa-client/ipa-join.c:877
 #, c-format
 msgid "fork() failed\n"
-msgstr ""
+msgstr "невдала спроба виконання fork()\n"
 
 #: ipa-client/ipa-join.c:906
 #, c-format
 msgid "ipa-getkeytab not found\n"
-msgstr ""
+msgstr "Не знайдено ipa-getkeytab\n"
 
 #: ipa-client/ipa-join.c:909
 #, c-format
 msgid "ipa-getkeytab has bad permissions?\n"
-msgstr ""
+msgstr "Помилкові права доступу до ipa-getkeytab?\n"
 
 #: ipa-client/ipa-join.c:912
 #, c-format
 msgid "executing ipa-getkeytab failed, errno %d\n"
-msgstr ""
+msgstr "спроба виконання ipa-getkeytab зазнала невдачі, номер помилки %d\n"
 
 #: ipa-client/ipa-join.c:924
 #, c-format
 msgid "child exited with %d\n"
-msgstr ""
+msgstr "дочірній процес завершив роботу з повідомленням %d\n"
 
 #: ipa-client/ipa-join.c:930
-#, fuzzy, c-format
+#, c-format
 msgid "Certificate subject base is: %s\n"
-msgstr "Базовий об’єкт сертифікації"
+msgstr "Базовий об’єкт сертифікації: %s\n"
 
 #: ipa-client/ipa-join.c:963
 msgid "Print the raw XML-RPC output"
-msgstr ""
+msgstr "Вивести дані XML-RPC без обробки"
 
 #: ipa-client/ipa-join.c:963
 msgid "XML-RPC debugging Output"
-msgstr ""
+msgstr "Діагностичні дані XML-RPC"
 
 #: ipa-client/ipa-join.c:967
 msgid "Unenroll this host"
-msgstr ""
+msgstr "Скасувати реєстрацію цього вузла"
 
 #: ipa-client/ipa-join.c:967
 msgid "Unenroll this host from IPA server"
-msgstr ""
+msgstr "Скасувати реєстрацію цього вузла на сервері IPA"
 
 #: ipa-client/ipa-join.c:969
 msgid "Use this hostname instead of the node name"
-msgstr ""
+msgstr "Використовувати цю назву замість назви вузла"
 
 #: ipa-client/ipa-join.c:969
-#, fuzzy
 msgid "Host Name"
 msgstr "Назва вузла"
 
 #: ipa-client/ipa-join.c:971
 msgid "IPA Server to use"
-msgstr ""
+msgstr "Сервер IPA, який слід використовувати"
 
 #: ipa-client/ipa-join.c:971
-#, fuzzy
 msgid "IPA Server Name"
-msgstr "Назва служби"
+msgstr "Назва сервера IPA"
 
 #: ipa-client/ipa-rmkeytab.c:44
 #, c-format
 msgid "Unable to parse principal name\n"
-msgstr ""
+msgstr "Не вдалося обробити назву реєстраційного запису\n"
 
 #: ipa-client/ipa-rmkeytab.c:46
 #, c-format
 msgid "krb5_parse_name %d: %s\n"
-msgstr ""
+msgstr "krb5_parse_name %d: %s\n"
 
 #: ipa-client/ipa-rmkeytab.c:56
-#, fuzzy, c-format
+#, c-format
 msgid "Removing principal %s\n"
-msgstr "Реєстраційний запис служби"
+msgstr "Вилучення реєстраційного запису %s\n"
 
 #: ipa-client/ipa-rmkeytab.c:69
 #, c-format
 msgid "Failed to open keytab\n"
-msgstr ""
+msgstr "Не вдалося відкрити таблицю ключів\n"
 
 #: ipa-client/ipa-rmkeytab.c:73
 #, c-format
 msgid "principal not found\n"
-msgstr ""
+msgstr "реєстраційного запису не знайдено\n"
 
 #: ipa-client/ipa-rmkeytab.c:75
 #, c-format
 msgid "krb5_kt_get_entry %d: %s\n"
-msgstr ""
+msgstr "krb5_kt_get_entry %d: %s\n"
 
 #: ipa-client/ipa-rmkeytab.c:83
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to remove entry\n"
-msgstr "Не вдалося декодувати сертифікат у записі"
+msgstr "Не вдалося вилучити запис\n"
 
 #: ipa-client/ipa-rmkeytab.c:85
 #, c-format
 msgid "kvno %d\n"
-msgstr ""
+msgstr "kvno %d\n"
 
 #: ipa-client/ipa-rmkeytab.c:86
 #, c-format
 msgid "krb5_kt_remove_entry %d: %s\n"
-msgstr ""
+msgstr "krb5_kt_remove_entry %d: %s\n"
 
 #: ipa-client/ipa-rmkeytab.c:119
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to parse principal\n"
-msgstr "Реєстраційний запис Kerberos"
+msgstr "Не вдалося обробити реєстраційний запис\n"
 
 #: ipa-client/ipa-rmkeytab.c:121
 #, c-format
 msgid "krb5_unparse_name %d: %s\n"
-msgstr ""
+msgstr "krb5_unparse_name %d: %s\n"
 
 #: ipa-client/ipa-rmkeytab.c:186
-#, fuzzy
 msgid "Print debugging information"
-msgstr "Інформація щодо монтування"
+msgstr "Вивести діагностичні дані"
 
 #: ipa-client/ipa-rmkeytab.c:186
 msgid "Debugging output"
-msgstr ""
+msgstr "Діагностична інформація"
 
 #: ipa-client/ipa-rmkeytab.c:193
 msgid "Remove all principals in this realm"
-msgstr ""
+msgstr "Вилучити всі реєстраційні записи у цій області"
 
 #: ipa-client/ipa-rmkeytab.c:193
-#, fuzzy
 msgid "Realm name"
-msgstr "Назва правила"
+msgstr "Назва області"
 
 #: ipa-client/ipa-rmkeytab.c:241
 #, c-format
 msgid "Failed to open keytab '%s'\n"
-msgstr ""
+msgstr "Не вдалося відкрити таблицю ключів «%s»\n"
 
 #: ipa-client/ipa-rmkeytab.c:255
 #, c-format
 msgid "Closing keytab failed\n"
-msgstr ""
+msgstr "Спроба закриття таблиці ключів зазнала невдачі\n"
 
 #: ipa-client/ipa-rmkeytab.c:257
 #, c-format
 msgid "krb5_kt_close %d: %s\n"
-msgstr ""
+msgstr "krb5_kt_close %d: %s\n"
 
 #~ msgid "Locked user \"%(value)s\""
 #~ msgstr "Заблоковано користувача «%(value)s»"
