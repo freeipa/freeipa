@@ -282,6 +282,7 @@ AC_CONFIG_FILES([
     ipa-slapi-plugins/ipa-winsync/Makefile
     ipa-slapi-plugins/ipa-version/Makefile
     ipa-slapi-plugins/ipa-uuid/Makefile
+    ipa-slapi-plugins/ipa-modrdn/Makefile
 ])
 
 AC_OUTPUT
