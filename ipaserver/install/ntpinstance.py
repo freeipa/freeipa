@@ -1,6 +1,7 @@
 # Authors: Karl MacMillan <kmacmillan@redhat.com>
+# Authors: Simo Sorce <ssorce@redhat.com>
 #
-# Copyright (C) 2007  Red Hat
+# Copyright (C) 2007-2010  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or
@@ -97,37 +98,40 @@ class NTPInstance(service.Service):
             fd.close()
 
         #read in memory, find OPTIONS, check/change it, then overwrite file
-        file_changed = False
-        found_options = False
-        ntpdsysc = []
+        needopts = [ {'val':'-x', 'need':True},
+                     {'val':'-g', 'need':True} ]
         fd = open("/etc/sysconfig/ntpd", "r")
-        for line in fd:
-            sline = line.strip()
-            if sline.find("OPTIONS") == 0:
-                found_options = True
-                opts = sline.split("=", 1)
-                if len(opts) != 2:
-                    optvals=""
-                else:
-                    optvals = opts[1].strip(' "')
-                if optvals.find("-x") == -1:
-                    optvals += " -x"
-                    file_changed = True
-                if optvals.find("-g") == -1:
-                    optvals += " -g"
-                    file_changed = True
-                if file_changed:
-                    line = 'OPTIONS="'+optvals+'"\n'
-            ntpdsysc.append(line)
+        lines = fd.readlines()
         fd.close()
-        if not found_options:
-            ntpdsysc.insert(0, 'OPTIONS="-x -g"\n')
-            file_changed = True
+        for line in lines:
+            sline = line.strip()
+            if not sline.startswith('OPTIONS'):
+                continue
+            sline = sline.replace('"', '')
+            for opt in needopts:
+                if sline.find(opt['val']) != -1:
+                    opt['need'] = False
 
-        if file_changed:
+        newopts = []
+        for opt in needopts:
+            if opt['need']:
+                newopts.append(opt['val'])
+
+        done = False
+        if newopts:
             fd = open("/etc/sysconfig/ntpd", "w")
-            for line in ntpdsysc:
-                fd.write(line)
+            for line in lines:
+                if not done:
+                    sline = line.strip()
+                    if not sline.startswith('OPTIONS'):
+                        fd.write(line)
+                        continue
+                    sline = sline.replace('"', '')
+                    (variable, opts) = sline.split('=', 1)
+                    fd.write('OPTIONS="%s %s"\n' % (opts, ' '.join(newopts)))
+                    done = True
+                else:
+                    fd.write(line)
             fd.close()
 
     def __stop(self):
