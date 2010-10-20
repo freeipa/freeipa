@@ -1270,7 +1270,7 @@ class CertificateFormatError(CertificateError):
     >>> raise CertificateFormatError(error=u'improperly formated DER-encoded certificate')
     Traceback (most recent call last):
       ...
-    CertificateFormatError: improperly formated DER-encoded certificate
+    CertificateFormatError: Certificate format error: improperly formated DER-encoded certificate
 
     """
 
