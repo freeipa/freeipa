@@ -1,0 +1,11 @@
+# add plugin configuration for ipauniqueid
+dn: cn=Kerberos Principal Name,cn=IPA MODRDN,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: extensibleObject
+cn: Kerberos Principal Name
+ipaModRDNsourceAttr: uid
+ipaModRDNtargetAttr: krbPrincipalName
+ipaModRDNsuffix: @$REALM
+ipaModRDNfilter: (&(objectclass=posixaccount)(objectclass=krbPrincipalAux))
+ipaModRDNscope: $SUFFIX

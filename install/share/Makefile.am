@@ -41,6 +41,7 @@ app_DATA =				\
 	wsgi.py				\
 	user_private_groups.ldif	\
 	uuid-ipauniqueid.ldif		\
+	modrdn-krbprinc.ldif		\
 	$(NULL)
 
 EXTRA_DIST =				\

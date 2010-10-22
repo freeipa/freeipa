@@ -213,6 +213,7 @@ class DsInstance(service.Service):
         self.step("enabling ldapi", self.__enable_ldapi)
         self.step("configuring uniqueness plugin", self.__set_unique_attrs)
         self.step("configuring uuid plugin", self.__config_uuid_module)
+        self.step("configuring modrdn plugin", self.__config_modrdn_module)
         self.step("creating indices", self.__create_indices)
         self.step("configuring ssl for ds instance", self.__enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
@@ -389,6 +390,10 @@ class DsInstance(service.Service):
     def __config_uuid_module(self):
         self._ldap_mod("uuid-conf.ldif")
         self._ldap_mod("uuid-ipauniqueid.ldif", self.sub_dict)
+
+    def __config_modrdn_module(self):
+        self._ldap_mod("modrdn-conf.ldif")
+        self._ldap_mod("modrdn-krbprinc.ldif", self.sub_dict)
 
     def __user_private_groups(self):
         if has_managed_entries(self.fqdn, self.dm_password):
