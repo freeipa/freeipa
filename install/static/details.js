@@ -118,7 +118,7 @@ function ipa_stanza(spec){
                 var input = $('input', $(this));
                 if (!input.length) return;
 
-                if (input.is('strikethrough')) return;
+                if (input.is('.strikethrough')) return;
 
                 var value = $.trim(input.val());
                 if (!value) value = '';
@@ -299,8 +299,13 @@ function ipa_details_update(container, pkey, on_win, on_fail)
             var param_info = ipa_get_param_info(obj_name, field.name);
             if (param_info) {
                 if (param_info['primary_key']) continue;
-                if (values.length === 1) modlist[field.name] = values[0];
-                if (values.length > 1) modlist[field.name] = values;
+                if (values.length === 1) {
+                    modlist[field.name] = values[0];
+                }else if (values.length > 1){
+                    modlist[field.name] = values;
+                } else if (param_info['multivalue']){
+                        modlist[field.name] = [];
+                }
             } else {
                 if (values.length) attrs_wo_option[field.name] = values;
             }
@@ -436,9 +441,6 @@ function ipa_create_input(obj_name, attr, value,hint)
     return input;
 }
 
-/* HTML template for _ipa_create_remove_link() */
-var _ipa_a_remove_template =
-    '<a href="jslink" onclick="return (_ipa_remove_on_click(this))" title="A">Remove</a>';
 
 /* creates a Remove link for deleting attribute values */
 function _ipa_create_remove_link(attr, param_info)
@@ -451,7 +453,12 @@ function _ipa_create_remove_link(attr, param_info)
     if ((param_info['required']) || (param_info['class'] == 'Password'))
         return ('');
 
-    return (_ipa_a_remove_template.replace('A', attr));
+    return $('<a/>',{
+        href:"jslink",
+        click: function (){return (_ipa_remove_on_click(this))},
+        title: attr,
+        text: 'Remove'});
+
 }
 
 
@@ -464,7 +471,7 @@ function _ipa_create_text_input(attr, value, param_info)
         var dd = jobj.parents('dd').slice(0, 1)[0];
         dd = dd.previousElementSibling;
 
-        while(dd.nodeName === 'dd'){
+        while(dd.nodeName.toUpperCase() === 'DD'){
             dd = dd.previousElementSibling;
             index += 1;
             if (index > 100 )
@@ -500,10 +507,10 @@ function _ipa_create_text_input(attr, value, param_info)
             index = calculate_dd_index($(this));
 
             var previous_value = entry_attrs[key] || "";
-            if (previous_value.length >=  index){
-                previous_value= previous_value[index];
-            }else{
+            if (index >= previous_value.length){
                 previous_value = '';
+            }else{
+                previous_value= previous_value[index];
             }
 
             this.previousElementSibling.value =  previous_value;
@@ -537,13 +544,19 @@ function _ipa_add_on_click(obj)
     var par = jobj.parent();
     var obj_name = jobj.closest('.details-container').attr('title');
 
-    par.prepend(ipa_create_input(obj_name, attr, ''));
+    var param_info = ipa_get_param_info(obj_name, '');
+    var input = _ipa_create_text_input(attr, '', param_info);
+
+    par.prepend(input);
     jobj.next('input').focus();
     jobj.remove();
     par.after( ipa_create_other_dd(attr,_ipa_a_add_template.replace('A', attr)));
 
     return (false);
 }
+
+
+
 
 function _ipa_remove_on_click(obj)
 {
@@ -552,8 +565,14 @@ function _ipa_remove_on_click(obj)
     var par = jobj.parent();
 
     var input = par.find('input');
-    input.addClass('strikethrough');
 
+    if (input.is('.strikethrough')){
+        input.removeClass('strikethrough');
+        jobj.text("Remove");
+    }else{
+        input.addClass('strikethrough');
+        jobj.text("Undo");
+    }
     return (false);
 }
 
