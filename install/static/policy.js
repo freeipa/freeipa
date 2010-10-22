@@ -53,6 +53,7 @@ ipa_entity_set_search_definition('dns', [
     ['quick_links', 'Quick Links', ipa_entity_quick_links]
 ]);
 
+
 ipa_entity_set_add_definition('dns', [
     'dialog-add-dns', 'Add New Zone', [
         ['idnsname', 'Name', null],
@@ -80,6 +81,385 @@ ipa_entity_set_details_definition('dns', [
 
 ipa_entity_set_association_definition('dns', {
 });
+
+
+ipa_entity_set_facet_definition('dns', [
+    ipa_facet({name:'records'})]
+);
+
+function create_records_facet(){
+
+    var that = {};
+
+    var record_types =[ 'a', 'aaaa', 'dname', 'cname', 'mx', 'ns', 'ptr',
+                        'srv', 'txt', 'a6', 'afsdb', 'cert', 'ds', 'hinfo',
+                        'key', 'kx', 'loc', 'md', 'minfo', 'naptr', 'nsec',
+                        'nxt', 'rrsig', 'sshfp'];
+
+    function create_type_select(id,add_none) {
+        var type_select = $('<select/>',{
+            id: id
+        });
+
+        if (add_none){
+            type_select.append($('<option/>',{
+                text: '(any)',
+                value: ''
+            }));
+        }
+        for (var t = 0 ; t < record_types.length ; t += 1){
+            var record_type = record_types[t].toUpperCase();
+
+            type_select.append($('<option/>',{
+                text: record_type,
+                value: record_type
+            }));
+        }
+        return type_select;
+    }
+
+
+    var  entry_attrs = {};
+
+
+    function add_click(){
+
+        var add_dialog = $('<div/>',{
+            id: 'add_dns_resource_record',
+            title: 'Add DNS Resource Record'
+        });
+        var dl = $('<dl></dl>').appendTo(add_dialog);
+        dl.append('<dt>Resource</dt>');
+        dl.append( $('<dd/>').
+                   append($('<input type="text" id="dns-record-resource" />')));
+        dl.append('<dt>Type</dt>');
+        dl.append(  $('<dd/>').append(create_type_select('dns-record-type')));
+        dl.append('<dt>Data</dt>');
+        dl.append($('<dd/>').append($('<textarea/>',{
+            id: 'dns-record-data',
+            rows:"8",
+            cols:"20"
+        })));
+
+
+        function add(evt, called_from_add_and_edit) {
+            var params = [];
+            var options = {};
+            function add_win(data, text_status, xhr) {
+                reload();
+                if (called_from_add_and_edit) {
+                }
+            };
+
+            function add_fail(data, text_status, xhr) {
+            };
+
+            params.push(  $.bbq.getState('dns-pkey', true));
+            params.push(add_dialog.find('#dns-record-resource').val());
+            params.push(add_dialog.find('#dns-record-type').val());
+            params.push(add_dialog.find('#dns-record-data').val());
+
+            ipa_cmd('dns_add_rr', params, options, add_win, add_fail);
+            //add_dialog.dialog('close');
+        };
+
+        function add_and_close(evt) {
+            add(evt, true);
+            add_dialog.dialog('close');
+        };
+
+        function cancel() {
+            add_dialog.dialog('close');
+        };
+
+
+        add_dialog.dialog({
+            modal: true,
+            buttons: {
+                'Add many': add,
+                'Add and Close': add_and_close,
+                'Cancel': cancel
+            }
+        });
+    }
+
+
+
+    function delete_records(records_table){
+
+        var zone = $.bbq.getState('dns-pkey', true);
+
+        var thead = records_table.find('thead');
+        thead.find("INPUT[type='checkbox']").
+            attr('checked', false);
+
+        var i = 0;
+
+        var tbody = records_table.find('tbody');
+
+
+        var delete_dialog = $('<div/>', {
+            title: ipa_messages.button.delete,
+            'class': 'search-dialog-delete',
+        });
+        var to_delete_table =
+            $('<table class="search-table" >'+
+              '<thead><tr><th>Resource</th><th>Type</th></tr></thead>'+
+              '<tbody></tbody></table>').appendTo(delete_dialog);
+
+        var to_delete_body =  to_delete_table.find('tbody');
+        var delete_list = [];
+        tbody.find("INPUT[type='checkbox']").each(
+            function(index, box){
+                if (box.checked){
+                    var tr = $(box).parents('tr');
+                    var resource = $(tr).find('[title="idnsname"]').text();
+                    var type = $(tr).find('[title="type"]').
+                        text().toUpperCase();
+                    var data = $(tr).find('[title="data"]').text();
+                    var params = [zone, resource, type, data];
+                    delete_list.push(params);
+                    to_delete_body.append(
+                        $('<tr></tr>').
+                            append($('<td></td>',{html:resource}).
+                                   after($('<td></td>',{html:type}))));
+                }
+            }
+        );
+
+        function delete_on_click() {
+            var delete_count = delete_list.length;
+            function delete_complete(){
+                delete_count -= 1;
+                if (delete_count === 0 ){
+                    reload();
+                    delete_dialog.dialog('close');
+                }
+            }
+            for (var i = 0; i < delete_list.length; i += 1){
+                ipa_cmd('dns_del_rr',delete_list[i],{},
+                        delete_complete,delete_complete);
+            }
+        };
+
+        function cancel_on_click() {
+            delete_dialog.dialog('close');
+        };
+
+
+        if (delete_list.length == 0)
+            return;
+
+        delete_dialog.append($('<P/>',
+                               {text:ipa_messages.search.delete_confirm}));
+
+        delete_dialog.dialog({
+            modal: true,
+            buttons: {
+                'Delete': delete_on_click,
+                'Cancel': cancel_on_click,
+            },
+        });
+
+
+    }
+
+    function setup(obj_name, container,switch_view){
+        that.container = container;
+        var pkey = $.bbq.getState('dns' + '-pkey', true);
+        ipa_entity_generate_views(obj_name, container, switch_view);
+
+        container.attr('title', obj_name);
+        container.addClass('search-container');
+
+        var h2 = $('<h2></h2>',{
+            text: "Records for DNS Zone:" + pkey
+        }).appendTo(container);
+
+
+        var div = $('<div class="search-controls"></div>')
+            .appendTo(container);
+
+        var control_span =$('<span class="record-filter"></span>').appendTo(div);
+
+        control_span.append('Resource');
+        control_span.append($('<input />',{
+            type: "text",
+            id: 'dns-record-resource-filter',
+            name: 'search-' + obj_name + '-filter'
+        }));
+
+        control_span.append('Type');
+
+        create_type_select('dns-record-type-filter',true).
+            appendTo(control_span);
+        //commented out until data is searchable
+        //control_span.append('Data');
+        //control_span.append($('<input />',{
+        //    type: "text",
+        //    id: 'dns-record-data-filter',
+        //    name: 'search-' + obj_name + '-filter'
+        //}));
+
+
+        ipa_make_button('ui-icon-search',ipa_messages.button.find).
+            click(function(){load(container)}).appendTo(control_span);
+
+        ipa_make_button('ui-icon-plus',ipa_messages.button.add).
+            click(add_click).appendTo(control_span);
+
+        ipa_make_button('ui-icon-trash',ipa_messages.button.delete).
+            click(function(){delete_records(records_table);}).
+            appendTo(control_span);
+
+
+        div.append('<span class="records-buttons"></span>');
+
+        var records_results = $('<div/>', {
+            class: 'records-results'
+        }).appendTo(container);
+
+        var records_table = $('<table/>', {
+            class: 'search-table',
+        }).appendTo(records_results);
+
+        var thead = $('<thead><tr></tr></thead>').appendTo(records_table);
+        var tbody = $('<tbody></tbody>').appendTo(records_table);;
+        var tfoot = $('<tfoot></tfoot>').appendTo(records_table);;
+
+        var tr = thead.find('tr');
+        tr.append($('<th style="width: 15px" />').append(
+            $('<input />',{
+                type: 'checkbox',
+                click : function (evt){
+                    tbody.find("INPUT[type='checkbox']").
+                        attr('checked', this.checked);
+                }
+            })
+        ));
+        tr.append($('<th>Resource</th>'));
+        tr.append($('<th>Record Type</th>'));
+        tr.append($('<th>Data</th>'));
+
+        load(container);
+    }
+
+
+    function load_on_win(data){
+        display('dns',data);
+    }
+
+    function load_on_fail(data){
+        display('dns',data);
+    }
+
+    function  reload(){
+        load(that.container);
+    }
+
+
+    function  load(container){
+
+        var options = {};
+
+        var resource_filter = container.find("#dns-record-resource-filter")
+            .val()
+        if (resource_filter){
+            options.idnsname = resource_filter;
+        }
+
+        var type_filter = container.find("#dns-record-type-filter").val()
+        if (type_filter){
+            options.type = type_filter;
+        }
+
+        var data_filter = container.find("#dns-record-data-filter").val()
+        if (data_filter){
+            options.data = data_filter;
+        }
+
+
+        var pkey = $.bbq.getState('dns' + '-pkey', true);
+        ipa_cmd('dns_find_rr',[pkey],options,load_on_win, load_on_fail);
+
+    }
+
+
+    function generate_tr(thead, tbody, result){
+        var tr = $('<tr></tr>').appendTo(tbody);
+
+        search_generate_checkbox_td(tr, /*pkey_value*/ '');
+
+        //TODO get this fixed on the back end.  For now, workaround
+
+        if (result.idnsname){
+        tr.append($('<td/>',{
+            title:'idnsname',
+            text: result.idnsname[0]
+        }));
+        }else{
+            tr.append($('<td/>',{
+                title:'idnsname',
+                text: result.dn.split(',')[0].split('=')[1]
+            }));
+
+        }
+
+        for (var i = 0; i < record_types.length; i += 1){
+            var field_name =  record_types[i];
+            var field = result[field_name+'record'];
+            if ( field ){
+                var record_type = field_name;
+                var record_data = field[0];
+                break;
+            }
+        }
+
+        tr.append($('<td/>',{
+            title:'type',
+            text: record_type
+        }));
+        tr.append($('<td/>',{
+            title:'data',
+            text: record_data
+        }));
+    }
+
+    //TODO this is cut and pasted from search, we need to unify
+    function display(obj_name, data){
+        var selector = '.search-container[title=' + obj_name + ']';
+        var thead = $(selector + ' thead');
+        var tbody = $(selector + ' tbody');
+        var tfoot = $(selector + ' tfoot');
+
+        tbody.find('tr').remove();
+
+        var result = data.result.result;
+        for (var i = 0; i < result.length; ++i){
+            generate_tr(thead, tbody, result[i]);
+        }
+
+        if (data.result.truncated) {
+            tfoot.text(
+                'Query returned results than configured size limit will show.' +
+                    'First ' + data.result.count + ' results shown.'
+            );
+        } else {
+            tfoot.text(data.result.summary);
+        }
+
+    }
+
+    that.setup = setup;
+    that.load = load;
+
+    return that;
+};
+
+
+var records_facet = create_records_facet();
+
+
 
 
 /**Automount*/
