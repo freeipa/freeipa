@@ -1,0 +1,20 @@
+{
+    "error": null, 
+    "id": 0, 
+    "result": {
+        "count": 1, 
+        "result": [
+            {
+                "cn": [
+                    "helpdesk"
+                ], 
+                "description": [
+                    "Helpdesk"
+                ], 
+                "dn": "cn=helpdesk,cn=roles,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+            }
+        ], 
+        "summary": "1 role matched", 
+        "truncated": false
+    }
+}

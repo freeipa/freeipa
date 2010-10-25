@@ -138,6 +138,8 @@ class delegation(Object):
         json_dict = dict(
             (a, getattr(self, a)) for a in json_friendly_attributes
         )
+        json_dict['primary_key'] = self.primary_key.name
+
         json_dict['methods'] = [m for m in self.methods]
         return json_dict
 

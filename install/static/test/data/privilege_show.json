@@ -1,0 +1,39 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "result": {
+            "attributelevelrights": {
+                "aci": "rscwo",
+                "businesscategory": "rscwo",
+                "cn": "rscwo",
+                "description": "rscwo",
+                "member": "rscwo",
+                "memberof": "rsc",
+                "nsaccountlock": "rscwo",
+                "o": "rscwo",
+                "objectclass": "rscwo",
+                "ou": "rscwo",
+                "owner": "rscwo",
+                "seealso": "rscwo"
+            },
+            "cn": [
+                "dnsserver"
+            ],
+            "description": [
+                "DNS Servers"
+            ],
+            "dn": "cn=dnsserver,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "memberindirect": [
+                "krbprincipalname=dns/ipa.ayoung.boston.devel.redhat.com@ayoung.boston.devel.redhat.com,cn=services,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+            ],
+            "objectclass": [
+                "top",
+                "groupofnames",
+                "nestedgroup"
+            ]
+        },
+        "summary": null,
+        "value": "dnsserver"
+    }
+}

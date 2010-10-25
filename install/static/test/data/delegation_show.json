@@ -1,0 +1,20 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "result": {
+            "aciname": "delegme",
+            "attrs": [
+                "cn"
+            ],
+            "filter": "(memberOf=cn=ipausers,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com)",
+            "group": "muppets",
+            "membergroup": "cn=ipausers,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "permissions": [
+                "write"
+            ]
+        },
+        "summary": null,
+        "value": "delegme"
+    }
+}

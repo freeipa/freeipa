@@ -92,39 +92,6 @@ function ipa_sudocmdgroup_search_facet(spec) {
         that.search_facet_init();
     };
 
-    that.create = function(container) {
-
-        that.search_facet_create(container);
-
-        container.children().last().prepend(
-            $('<h2/>', { 'html': IPA.metadata.sudocmdgroup.label }));
-        container.children().last().prepend('<br/><br/>');
-
-    };
-
-    that.setup = function(container) {
-
-        that.search_facet_setup(container);
-
-        var action_panel = that.get_action_panel();
-
-        var li = $('li[title=sudorule]', action_panel);
-        li.click(function() {
-            var state = {};
-            state['sudorule-entity'] = 'sudorule';
-            nav_push_state(state);
-            return false;
-        });
-
-        li = $('li[title=sudocmd]', action_panel);
-        li.click(function() {
-            var state = {};
-            state['sudorule-entity'] = 'sudocmd';
-            nav_push_state(state);
-            return false;
-        });
-    };
-
     return that;
 }
 

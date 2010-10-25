@@ -19,7 +19,7 @@
  */
 
 
-
+module('navigation');
 
 test("Testing nav_create().", function() {
 

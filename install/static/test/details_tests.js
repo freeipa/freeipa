@@ -19,6 +19,8 @@
  */
 
 
+module('details');
+
 test("Testing ipa_details_section.create().", function() {
 
     IPA.ajax_options.async = false;

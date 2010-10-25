@@ -70,7 +70,7 @@ class selfservice(Object):
     bindable = False
     object_name = 'selfservice',
     object_name_plural = 'selfservice',
-    label = _('Permissions')
+    label = _('Self Service Permissions')
 
     takes_params = (
         Str('aciname',
@@ -101,6 +101,7 @@ class selfservice(Object):
         json_dict = dict(
             (a, getattr(self, a)) for a in json_friendly_attributes
         )
+        json_dict['primary_key'] = self.primary_key.name
         json_dict['methods'] = [m for m in self.methods]
         return json_dict
 

@@ -23,30 +23,6 @@
 
 
 
-/* ACI */
-ipa_entity_set_search_definition('aci', [
-    ['cn', 'ACI name', null]
-]);
-
-ipa_entity_set_add_definition('aci', [
-    'dialog-add-aci', 'Add New Aci', [
-        ['cn', 'Name', null],
-        ['description', 'Description', null],
-    ]
-]);
-
-ipa_entity_set_details_definition('aci', [
-    ipa_stanza({name:'ipaserver', label:'Aci Details'}).
-        input({name:'cn', label:'Name'}).
-        input({name:'description', label:'Description'})
-]);
-
-
-
-
-
-
-
 /* Configuration */
 ipa_entity_set_details_definition('config',[
 

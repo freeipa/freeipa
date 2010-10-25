@@ -8,6 +8,7 @@ SUBDIRS =  				\
 
 appdir = $(IPA_DATA_DIR)/static
 app_DATA =                              \
+	aci.js				\
 	add.js				\
 	associate.js			\
 	ipa_logo_180x50.png		\

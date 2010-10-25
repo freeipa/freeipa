@@ -18,6 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+module('ipa');
+
 test("Testing ipa_init().", function() {
 
     expect(1);

@@ -88,24 +88,34 @@ function ipa_add_dialog(spec) {
         that.dialog_init();
     };
 
-    that.add = function(record, on_success, on_error) {
+    /* Fields that are not displayed  directly, but that are managed by
+       another mechanism, such as the ACI permissions*/
+    that.additional_fields = [];
+    that.additional_field = function(field) {
+        that.additional_fields.push(field);
+    }
 
+    function save_field(field, record, args, options){
         var pkey_name = IPA.metadata[that.entity_name].primary_key;
+        var value = record[field.name];
+        if (!value) return;
+        if (field.name == pkey_name) {
+            args.push(value);
+        } else {
+            options[field.name] = value;
+        }
+    }
+
+    that.add = function(record, on_success, on_error) {
 
         var args = [];
         var options = {};
 
         for (var i=0; i<that.fields.length; i++) {
-            var field = that.fields[i];
-
-            var value = record[field.name];
-            if (!value) continue;
-
-            if (field.name == pkey_name) {
-                args.push(value);
-            } else {
-                options[field.name] = value;
-            }
+            save_field(that.fields[i], record, args, options);
+        }
+        for (var i=0; i<that.additional_fields.length; i++) {
+            save_field(that.additional_fields[i], record, args, options);
         }
 
         ipa_cmd('add', args, options, on_success, on_error, that.entity_name);

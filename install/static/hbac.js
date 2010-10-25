@@ -121,15 +121,6 @@ function ipa_hbac_search_facet(spec) {
 
         that.search_facet_create(container);
 
-
-        container.children().last().prepend(
-            $('<h2/>', { 'html': IPA.metadata.hbac.label }));
-        container.children().last().prepend('<br/><br/>');
-
-    };
-
-    that.setup = function(container) {
-        that.search_facet_setup(container);
     };
 
     return that;

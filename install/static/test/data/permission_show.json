@@ -1,0 +1,41 @@
+{
+    "error": null,
+    "id": 6,
+    "result": {
+        "result": {
+            "attributelevelrights": {
+                "aci": "rscwo",
+                "businesscategory": "rscwo",
+                "cn": "rscwo",
+                "description": "rscwo",
+                "member": "rscwo",
+                "nsaccountlock": "rscwo",
+                "o": "rscwo",
+                "objectclass": "rscwo",
+                "ou": "rscwo",
+                "owner": "rscwo",
+                "seealso": "rscwo"
+            },
+            "cn": [
+                "addusers"
+            ],
+            "description": [
+                "Add Users"
+            ],
+            "dn": "cn=addusers,cn=permissions,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "member": [
+                "cn=useradmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+            ],
+            "objectclass": [
+                "top",
+                "groupofnames"
+            ],
+            "permissions": [
+                "add"
+            ],
+            "type": "user"
+        },
+        "summary": null,
+        "value": "addusers"
+    }
+}

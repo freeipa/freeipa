@@ -79,6 +79,15 @@ function ipa_details_field(spec) {
         }
 
         if (that.values) {
+            /*
+              Too much logic currently assumes an array.
+              This is true everywhere but ACIs. */
+
+            if (!(that.values instanceof Array)){
+                that.values = [that.values];
+            }
+
+
             dd = ipa_create_first_dd(that.name);
             dd.append(ipa_details_field_create_input.call(that, that.values[0], hint_span, rights, 0));
             dd.appendTo(that.container);
@@ -165,6 +174,7 @@ function ipa_details_section(spec){
         field.entity_name = that.entity_name;
         that.fields.push(field);
         that.fields_by_name[field.name] = field;
+        return field;
     };
 
     that.create_field = function(spec) {
@@ -396,6 +406,7 @@ function ipa_details_facet(spec) {
         section.entity_name = that.entity_name;
         that.sections.push(section);
         that.sections_by_name[section.name] = section;
+        return section;
     };
 
     that.create_section = function(spec) {
@@ -413,7 +424,11 @@ function ipa_details_facet(spec) {
 
     that.get_primary_key = function() {
         var pkey_name = IPA.metadata[that.entity_name].primary_key;
-        return that.record[pkey_name][0];
+        if (that.record[pkey_name] instanceof Array){
+            return that.record[pkey_name][0];
+        }else{
+            return that.record[pkey_name];
+        }
     };
 
     that.get_section_header_prefix = function(visible) {
@@ -630,6 +645,11 @@ function ipa_details_update(on_win, on_fail)
 
     for (var i=0; i<that.sections.length; i++) {
         var section = that.sections[i];
+
+        if (section.save){
+            section.save(modlist);
+            continue;
+        }
 
         var div = $('#'+that.entity_name+'-'+that.name+'-'+section.name, that.container);
 

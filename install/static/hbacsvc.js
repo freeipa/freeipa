@@ -86,36 +86,6 @@ function ipa_hbacsvc_search_facet(spec) {
         that.search_facet_init();
     };
 
-    that.create = function(container) {
-        that.search_facet_create(container);
-        container.children().last().prepend(
-            $('<h2/>', { 'html': IPA.metadata.hbacsvc.label }));
-        container.children().last().prepend('<br/><br/>');
-    };
-
-    that.setup = function(container) {
-
-        that.search_facet_setup(container);
-
-        var action_panel = that.get_action_panel();
-
-        var li = $('li[title=hbac]', action_panel);
-        li.click(function() {
-            var state = {};
-            state['hbac-entity'] = 'hbac';
-            nav_push_state(state);
-            return false;
-        });
-
-        li = $('li[title=hbacsvcgroup]', action_panel);
-        li.click(function() {
-            var state = {};
-            state['hbac-entity'] = 'hbacsvcgroup';
-            nav_push_state(state);
-            return false;
-        });
-    };
-
     return that;
 }
 

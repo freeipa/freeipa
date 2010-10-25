@@ -47,6 +47,12 @@ var admin_tab_set = [
         {name:'krbtpolicy', entity:'krbtpolicy'}
     ]},
     {name:'ipaserver', children: [
+        {name:'role',entity:'role'  ,children:[
+            {name:'privilege',entity:'privilege' },
+            {name:'permission', entity:'permission'}
+        ]},
+        {name:'selfservice'  ,entity:'selfservice'},
+        {name:'delegation'  ,entity:'delegation'},
         {name:'config', entity:'config'}
     ]}
 ];

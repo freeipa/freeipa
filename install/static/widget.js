@@ -686,7 +686,11 @@ function ipa_table_widget(spec) {
             var name = that.columns[i].name;
             var values = result[name];
             if (!values) continue;
-            record[name] = values[index];
+            if (values instanceof Array){
+                record[name] = values[index];
+            }else{
+                record[name] = values;
+            }
         }
         return record;
     };

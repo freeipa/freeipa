@@ -1,0 +1,26 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "result": {
+            "cn": [
+                "testperm"
+            ],
+            "description": [
+                "description"
+            ],
+            "dn": "cn=testperm,cn=permissions,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "objectclass": [
+                "groupofnames",
+                "top"
+            ],
+            "permissions": [
+                "read",
+                "write"
+            ],
+            "targetgroup": "ipausers"
+        },
+        "summary": "Added permission \"testperm\"",
+        "value": "testperm"
+    }
+}

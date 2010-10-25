@@ -86,19 +86,6 @@ function ipa_sudorule_search_facet(spec) {
         that.search_facet_init();
     };
 
-    that.create = function(container) {
-        that.search_facet_create(container);
-
-        container.children().last().prepend(
-            $('<h2/>', { 'html': IPA.metadata.sudorule.label }));
-        container.children().last().prepend('<br/><br/>');
-
-    };
-
-    that.setup = function(container) {
-        that.search_facet_setup(container);
-    };
-
     return that;
 }
 
