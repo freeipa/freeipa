@@ -2,13 +2,7 @@ dn: cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
-objectClass: krbPwdPolicy
 cn: accounts
-krbMinPwdLife: 3600
-krbPwdMinDiffChars: 0
-krbPwdMinLength: 8
-krbPwdHistoryLength: 0
-krbMaxPwdLife: 7776000
 
 dn: cn=users,cn=accounts,$SUFFIX
 changetype: add
@@ -271,5 +265,5 @@ objectClass: ldapsubentry
 objectClass: cosSuperDefinition
 objectClass: cosClassicDefinition
 cosTemplateDn: cn=cosTemplates,cn=accounts,$SUFFIX
-cosAttribute: krbPwdPolicyReference
+cosAttribute: krbPwdPolicyReference override
 cosSpecifier: memberOf

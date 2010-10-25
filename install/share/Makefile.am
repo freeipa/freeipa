@@ -15,6 +15,7 @@ app_DATA =				\
 	default-aci.ldif		\
 	default-hbac.ldif		\
 	default-keytypes.ldif		\
+	default-pwpolicy.ldif		\
 	delegation.ldif			\
 	dns.ldif			\
 	kerberos.ldif			\

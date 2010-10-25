@@ -335,8 +335,8 @@ class test_group(Declarative):
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'admins'],
                         'description': [u'Account administrators group'],
-                        'memberof_rolegroup': [u'replicaadmin'],
-                        'memberof_taskgroup': [u'managereplica', u'deletereplica'],
+                        'memberof_rolegroup': [u'hostadmin', u'replicaadmin'],
+                        'memberof_taskgroup': [u'addhosts', u'removehosts', u'modifyhosts', u'manage_host_keytab', u'enroll_host', u'managereplica', u'deletereplica'],
                     },
                     {
                         'dn': u'cn=ipausers,cn=groups,cn=accounts,%s' % api.env.basedn,

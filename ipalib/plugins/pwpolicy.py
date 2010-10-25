@@ -63,6 +63,7 @@ from ipalib import api
 from ipalib import Int, Str
 from ipalib.plugins.baseldap import *
 from ipalib import _
+from ipapython.ipautil import run
 
 class cosentry(LDAPObject):
     """
@@ -154,8 +155,7 @@ class cosentry_find(LDAPSearch):
 api.register(cosentry_find)
 
 
-GLOBAL_POLICY_NAME = u'GLOBAL'
-
+global_policy_dn = 'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn)
 
 class pwpolicy(LDAPObject):
     """
@@ -168,7 +168,37 @@ class pwpolicy(LDAPObject):
     default_attributes = [
         'cn', 'cospriority', 'krbmaxpwdlife', 'krbminpwdlife',
         'krbpwdhistorylength', 'krbpwdmindiffchars', 'krbpwdminlength',
+        'krbpwdmaxfailure', 'krbpwdfailurecountinterval',
+        'krbpwdlockoutduration',
     ]
+    has_lockout = False
+    lockout_params = ()
+    (stdout, stderr, rc) = run(['klist', '-V'], raiseonerr=False)
+    if rc == 0:
+        if stdout.find('version 1.8') > -1:
+            has_lockout = True
+
+    if has_lockout:
+        lockout_params = (
+            Int('krbpwdmaxfailure?',
+                cli_name='maxfail',
+                label=_('Max failures'),
+                doc=_('Consecutive failures before lockout'),
+                minvalue=0,
+            ),
+            Int('krbpwdfailurecountinterval?',
+                cli_name='failinterval',
+                label=_('Failure reset interval'),
+                doc=_('Period after which failure count will be reset (seconds)'),
+                minvalue=0,
+            ),
+            Int('krbpwdlockoutduration?',
+                cli_name='lockouttime',
+                label=_('Lockout duration'),
+                doc=_('Period for which lockout is enforced (seconds)'),
+                minvalue=0,
+            ),
+        )
 
     label = _('Password Policy')
 
@@ -216,14 +246,14 @@ class pwpolicy(LDAPObject):
             doc=_('Priority of the policy (higher number means lower priority'),
             minvalue=0,
         ),
-    )
+    ) + lockout_params
 
     def get_dn(self, *keys, **options):
         if keys[-1] is not None:
             return self.backend.make_dn_from_attr(
                 self.primary_key.name, keys[-1], self.container_dn
             )
-        return self.api.env.container_accounts
+        return global_policy_dn
 
     def convert_time_for_output(self, entry_attrs, **options):
         # Convert seconds to hours and days for displaying to user
@@ -348,8 +378,6 @@ class pwpolicy_mod(LDAPUpdate):
         if not options.get('raw', False):
             if options.get('cospriority') is not None:
                 entry_attrs['cospriority'] = [unicode(options['cospriority'])]
-            if keys[-1] is None:
-                entry_attrs['cn'] = GLOBAL_POLICY_NAME
         self.obj.convert_time_for_output(entry_attrs, **options)
         return dn
 
@@ -394,8 +422,6 @@ class pwpolicy_show(LDAPRetrieve):
                         entry_attrs['cospriority'] = cos_entry['cospriority']
                 except errors.NotFound:
                     pass
-            else:
-                entry_attrs['cn'] = GLOBAL_POLICY_NAME
         self.obj.convert_time_for_output(entry_attrs, **options)
         return dn
 
@@ -418,13 +444,6 @@ class pwpolicy_find(LDAPSearch):
                 except errors.NotFound:
                     pass
                 self.obj.convert_time_for_output(e[1], **options)
-        if not args[-1]:
-            global_entry = self.api.Command.pwpolicy_show(
-                all=options.get('all', False), raw=options.get('raw', False)
-            )['result']
-            dn = global_entry['dn']
-            del global_entry['dn']
-            entries.insert(0, (dn, global_entry))
 
 api.register(pwpolicy_find)
 

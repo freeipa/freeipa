@@ -169,6 +169,7 @@ class KrbInstance(service.Service):
         self.step("adding default ACIs", self.__add_default_acis)
         self.step("configuring KDC", self.__create_instance)
         self.step("adding default keytypes", self.__add_default_keytypes)
+        self.step("adding default password policy", self.__add_default_pwpolicy)
         self.step("creating a keytab for the directory", self.__create_ds_keytab)
         self.step("creating a keytab for the machine", self.__create_host_keytab)
         self.step("exporting the kadmin keytab", self.__export_kadmin_changepw_keytab)
@@ -302,6 +303,9 @@ class KrbInstance(service.Service):
 
     def __add_default_keytypes(self):
         self._ldap_mod("default-keytypes.ldif", self.sub_dict)
+
+    def __add_default_pwpolicy(self):
+        self._ldap_mod("default-pwpolicy.ldif", self.sub_dict)
 
     def __create_replica_instance(self):
         self.__create_instance(replica=True)

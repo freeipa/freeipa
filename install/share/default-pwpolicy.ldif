@@ -1,0 +1,14 @@
+dn: cn=global_policy,cn=$REALM,cn=kerberos,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+objectClass: krbPwdPolicy
+krbMinPwdLife: 3600
+krbPwdMinDiffChars: 0
+krbPwdMinLength: 8
+krbPwdHistoryLength: 0
+krbMaxPwdLife: 7776000
+krbPwdMaxFailure: 3
+krbPwdFailureCountInterval: 60
+krbPwdLockoutDuration: 10
+

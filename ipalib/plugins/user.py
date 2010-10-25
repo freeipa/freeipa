@@ -177,6 +177,7 @@ class user_add(LDAPCreate):
             home_dir = '%s/%s' % (homes_root, keys[-1])
             home_dir = home_dir.replace('//', '/').rstrip('/')
             entry_attrs['homedirectory'] = home_dir
+        entry_attrs.setdefault('krbpwdpolicyreference', 'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn))
 
         if ldap.has_upg():
             # User Private Groups - uidNumber == gidNumber
