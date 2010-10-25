@@ -781,7 +781,7 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
     LDAPMod **mods;
     bool free_entry = false;
     char *errstr = NULL;
-    bool generate = false;
+    bool generate;
     int ret = LDAP_SUCCESS;
 
     LOG_TRACE("--in-->\n");
@@ -884,6 +884,8 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
             list != ipauuid_global_config;
             list = PR_NEXT_LINK(list)) {
             cfgentry = (struct configEntry *) list;
+
+            generate = false;
 
             /* Did we already service this attr? */
             if (ipauuid_list_contains_attr(generated_attrs,
