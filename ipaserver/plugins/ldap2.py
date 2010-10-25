@@ -489,7 +489,7 @@ class ldap2(CrudBackend, Encoder):
 
     @encode_args(1, 2, 3)
     @decode_retval()
-    def find_entries(self, filter, attrs_list=None, base_dn='',
+    def find_entries(self, filter=None, attrs_list=None, base_dn='',
             scope=_ldap.SCOPE_SUBTREE, time_limit=None, size_limit=None,
             normalize=True):
         """
@@ -578,8 +578,6 @@ class ldap2(CrudBackend, Encoder):
             )[0][0]
         except errors.NotFound:
             config_entry = {}
-        except Exception, e:
-            raise e
         for a in self.config_defaults:
             if a not in config_entry:
                 config_entry[a] = self.config_defaults[a]
