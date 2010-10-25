@@ -514,7 +514,6 @@ ipauuid_parse_config_entry(Slapi_Entry * e, bool apply)
     if (value) {
         entry->dn = slapi_ch_strdup(value);
     }
-
     LOG_CONFIG("----------> dn [%s]\n", entry->dn);
 
     entry->attr = slapi_entry_attr_get_charptr(e, IPAUUID_ATTR);
@@ -524,21 +523,18 @@ ipauuid_parse_config_entry(Slapi_Entry * e, bool apply)
         ret = IPAUUID_FAILURE;
         goto bail;
     }
-
     LOG_CONFIG("----------> %s [%s]\n", IPAUUID_ATTR, entry->attr);
 
     value = slapi_entry_attr_get_charptr(e, IPAUUID_PREFIX);
     if (value && value[0]) {
         entry->prefix = value;
     }
-
     LOG_CONFIG("----------> %s [%s]\n", IPAUUID_PREFIX, entry->prefix);
 
     value = slapi_entry_attr_get_charptr(e, IPAUUID_GENERATE);
     if (value) {
         entry->generate = value;
     }
-
     LOG_CONFIG("----------> %s [%s]\n", IPAUUID_GENERATE, entry->generate);
 
     value = slapi_entry_attr_get_charptr(e, IPAUUID_FILTER);
@@ -556,7 +552,6 @@ ipauuid_parse_config_entry(Slapi_Entry * e, bool apply)
         ret = IPAUUID_FAILURE;
         goto bail;
     }
-
     LOG_CONFIG("----------> %s [%s]\n", IPAUUID_FILTER, value);
 
     value = slapi_entry_attr_get_charptr(e, IPAUUID_SCOPE);
@@ -568,7 +563,6 @@ ipauuid_parse_config_entry(Slapi_Entry * e, bool apply)
         ret = IPAUUID_FAILURE;
         goto bail;
     }
-
     LOG_CONFIG("----------> %s [%s]\n", IPAUUID_SCOPE, entry->scope);
 
     /* If we were only called to validate config, we can
@@ -879,197 +873,200 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
     ipauuid_read_lock();
     locked = true;
 
-    if (!PR_CLIST_IS_EMPTY(ipauuid_global_config)) {
-        list = PR_LIST_HEAD(ipauuid_global_config);
+    if (PR_CLIST_IS_EMPTY(ipauuid_global_config)) {
+        goto done;
+    }
 
-        for(list = PR_LIST_HEAD(ipauuid_global_config);
-            list != ipauuid_global_config;
-            list = PR_NEXT_LINK(list)) {
-            cfgentry = (struct configEntry *) list;
+    list = PR_LIST_HEAD(ipauuid_global_config);
 
-            generate = false;
+    for(list = PR_LIST_HEAD(ipauuid_global_config);
+        list != ipauuid_global_config;
+        list = PR_NEXT_LINK(list)) {
+        cfgentry = (struct configEntry *) list;
 
-            /* Did we already service this attr? */
-            if (ipauuid_list_contains_attr(generated_attrs,
-                                           cfgentry->attr)) {
+        generate = false;
+
+        /* Did we already service this attr? */
+        if (ipauuid_list_contains_attr(generated_attrs,
+                                       cfgentry->attr)) {
+            continue;
+        }
+
+        /* is the entry in scope? */
+        if (cfgentry->scope) {
+            if (!slapi_dn_issuffix(dn, cfgentry->scope)) {
                 continue;
             }
+        }
 
-            /* is the entry in scope? */
-            if (cfgentry->scope) {
-                if (!slapi_dn_issuffix(dn, cfgentry->scope)) {
-                    continue;
-                }
+        /* does the entry match the filter? */
+        if (cfgentry->slapi_filter) {
+            Slapi_Entry *test_e = NULL;
+
+            /* For a MOD operation, we need to check the filter
+             * against the resulting entry. */
+            if (LDAP_CHANGETYPE_ADD == modtype) {
+                test_e = e;
+            } else {
+                test_e = resulting_e;
             }
 
-            /* does the entry match the filter? */
-            if (cfgentry->slapi_filter) {
-                Slapi_Entry *test_e = NULL;
+            ret = slapi_vattr_filter_test(pb, test_e,
+                                          cfgentry->slapi_filter, 0);
+            if (ret != LDAP_SUCCESS) {
+                continue;
+            }
+        }
 
-                /* For a MOD operation, we need to check the filter
-                 * against the resulting entry. */
-                if (LDAP_CHANGETYPE_ADD == modtype) {
-                    test_e = e;
-                } else {
-                    test_e = resulting_e;
-                }
+        switch(modtype) {
+        case LDAP_CHANGETYPE_ADD:
+            /* Generate the value if the magic value is set or if the
+             * attr is missing. */
+            value = slapi_entry_attr_get_charptr(e, cfgentry->attr);
 
-                ret = slapi_vattr_filter_test(pb, test_e,
-                                              cfgentry->slapi_filter, 0);
-                if (ret != LDAP_SUCCESS) {
-                    continue;
-                }
+            if (!value ||
+                !slapi_UTF8CASECMP(cfgentry->generate, value)) {
+                generate = true;
             }
 
-            switch(modtype) {
-            case LDAP_CHANGETYPE_ADD:
-                /* Generate the value if the magic value is set or if the
-                 * attr is missing. */
-                value = slapi_entry_attr_get_charptr(e, cfgentry->attr);
+            slapi_ch_free_string(&value);
+            break;
 
-                if (!value ||
-                    !slapi_UTF8CASECMP(cfgentry->generate, value)) {
-                    generate = true;
+        case LDAP_CHANGETYPE_MODIFY:
+            /* check mods for magic value */
+            next_mod = slapi_mod_new();
+            smod = slapi_mods_get_first_smod(smods, next_mod);
+            while (smod) {
+                char *attr = (char *)slapi_mod_get_type(smod);
+
+                /* See if the attr matches the configured attr. */
+                if (!slapi_attr_types_equivalent(cfgentry->attr, attr)) {
+                    slapi_mod_done(next_mod);
+                    smod = slapi_mods_get_next_smod(smods, next_mod);
+                    continue;
                 }
 
-                slapi_ch_free_string(&value);
-                break;
+                /* If all values are being deleted, we need to
+                 * generate a new value. */
+                if (SLAPI_IS_MOD_DELETE(slapi_mod_get_operation(smod))) {
+                    int numvals = slapi_mod_get_num_values(smod);
 
-            case LDAP_CHANGETYPE_MODIFY:
-                /* check mods for magic value */
-                next_mod = slapi_mod_new();
-                smod = slapi_mods_get_first_smod(smods, next_mod);
-                while (smod) {
-                    char *attr = (char *)slapi_mod_get_type(smod);
+                    if (numvals == 0) {
+                        generate = true;
+                    } else {
+                        Slapi_Attr *sattr = NULL;
+                        int e_numvals = 0;
 
-                    /* See if the attr matches the configured attr. */
-                    if (!slapi_attr_types_equivalent(cfgentry->attr, attr)) {
-                        slapi_mod_done(next_mod);
-                        smod = slapi_mods_get_next_smod(smods, next_mod);
-                        continue;
+                        slapi_entry_attr_find(e, attr, &sattr);
+                        if (sattr) {
+                            slapi_attr_get_numvalues(sattr, &e_numvals);
+                            if (numvals >= e_numvals) {
+                                generate = true;
+                            }
+                        }
                     }
+                } else {
+                    struct berval *bv;
 
-                    /* If all values are being deleted, we need to
-                     * generate a new value. */
-                    if (SLAPI_IS_MOD_DELETE(slapi_mod_get_operation(smod))) {
-                        int numvals = slapi_mod_get_num_values(smod);
+                    /* If this attr is already slated for generation,
+                     * a previous mod in this same modify operation
+                     * either removed all values or set the magic value.
+                     * It's possible that this mod is adding a valid value,
+                     * which means we would not want to generate a new one.
+                     * It is safe to reset the flag since it will be
+                     * re-added here if necessary. */
+                    generate = false;
 
-                        if (numvals == 0) {
-                            generate = true;
-                        } else {
-                            Slapi_Attr *sattr = NULL;
-                            int e_numvals = 0;
+                    /* This is either adding or replacing a value */
+                    bv = slapi_mod_get_first_value(smod);
+                    /* If we have a value, see if it's the magic value. */
+                    if (bv) {
+                        int len = strlen(cfgentry->generate);
+                        if (len == bv->bv_len) {
+                            if (!slapi_UTF8NCASECMP(bv->bv_val,
+                                                    cfgentry->generate,
+                                                    len)) {
+                                generate = true;
 
-                            slapi_entry_attr_find(e, attr, &sattr);
-                            if (sattr) {
-                                slapi_attr_get_numvalues(sattr, &e_numvals);
-                                if (numvals >= e_numvals) {
-                                    generate = true;
-                                }
+                                /* also remove this mod, as we will add
+                                 * it again later */
+                                slapi_mod_remove_value(next_mod);
                             }
                         }
                     } else {
-                        struct berval *bv;
-
-                        /* If this attr is already slated for generation,
-                         * a previous mod in this same modify operation
-                         * either removed all values or set the magic value.
-                         * It's possible that this mod is adding a valid value,
-                         * which means we would not want to generate a new one.
-                         * It is safe to reset the flag since it will be
-                         * re-added here if necessary. */
-                        generate = false;
-
-                        /* This is either adding or replacing a value */
-                        bv = slapi_mod_get_first_value(smod);
-                        /* If we have a value, see if it's the magic value. */
-                        if (bv) {
-                            int len = strlen(cfgentry->generate);
-                            if (len == bv->bv_len) {
-                                if (!slapi_UTF8NCASECMP(bv->bv_val,
-                                                        cfgentry->generate,
-                                                        len)) {
-                                    generate = true;
-
-                                    /* also remove this mod, as we will add
-                                     * it again later */
-                                    slapi_mod_remove_value(next_mod);
-                                }
-                            }
-                        } else {
-                            /* This is a replace with no new values, so we need
-                             * to generate a new value */
-                            generate = true;
-                        }
+                        /* This is a replace with no new values, so we need
+                         * to generate a new value */
+                        generate = true;
                     }
-
-                    slapi_mod_done(next_mod);
-                    smod = slapi_mods_get_next_smod(smods, next_mod);
                 }
 
-                slapi_mod_free(&next_mod);
+                slapi_mod_done(next_mod);
+                smod = slapi_mods_get_next_smod(smods, next_mod);
+            }
+
+            slapi_mod_free(&next_mod);
+            break;
+
+        default:
+            /* never reached, just silence compiler */
+            break;
+        }
+
+        /* We need to perform one last check for modify operations.
+         * If an entry within the scope has not triggered generation yet,
+         * we need to see if a value exists for the managed attr in the
+         * resulting entry.
+         * This will catch a modify operation that brings an entry into
+         * scope for a managed range, but doesn't supply a value for the
+         * managed attr. */
+        if ((LDAP_CHANGETYPE_MODIFY == modtype) && !generate) {
+            Slapi_Attr *attr = NULL;
+            if (slapi_entry_attr_find(resulting_e,
+                                      cfgentry->attr, &attr) != 0) {
+                generate = true;
+            }
+        }
+
+        if (generate) {
+            char *new_value;
+
+            /* create the value to add */
+            ret = slapi_uniqueIDGenerateString(&value);
+            if (ret != 0) {
+                errstr = slapi_ch_smprintf("Allocation of a new value for"
+                                           " attr %s failed! Unable to "
+                                           "proceed.", cfgentry->attr);
                 break;
-
-            default:
-                /* never reached, just silence compiler */
-                break;
             }
 
-            /* We need to perform one last check for modify operations.
-             * If an entry within the scope has not triggered generation yet,
-             * we need to see if a value exists for the managed attr in the
-             * resulting entry.
-             * This will catch a modify operation that brings an entry into
-             * scope for a managed range, but doesn't supply a value for the
-             * managed attr. */
-            if ((LDAP_CHANGETYPE_MODIFY == modtype) && !generate) {
-                Slapi_Attr *attr = NULL;
-                if (slapi_entry_attr_find(resulting_e,
-                                          cfgentry->attr, &attr) != 0) {
-                    generate = true;
-                }
+            if (cfgentry->prefix) {
+                new_value = slapi_ch_smprintf("%s%s",
+                                              cfgentry->prefix, value);
+            } else {
+                new_value = slapi_ch_smprintf("%s", value);
             }
 
-            if (generate) {
-                char *new_value;
-
-                /* create the value to add */
-                ret = slapi_uniqueIDGenerateString(&value);
-                if (ret != 0) {
-                    errstr = slapi_ch_smprintf("Allocation of a new value for"
-                                               " attr %s failed! Unable to "
-                                               "proceed.", cfgentry->attr);
-                    break;
-                }
-
-                if (cfgentry->prefix) {
-                    new_value = slapi_ch_smprintf("%s%s",
-                                                  cfgentry->prefix, value);
-                } else {
-                    new_value = slapi_ch_smprintf("%s", value);
-                }
-
-                /* do the mod */
-                if (LDAP_CHANGETYPE_ADD == modtype) {
-                    /* add - set in entry */
-                    slapi_entry_attr_set_charptr(e, cfgentry->attr, new_value);
-                } else {
-                    /* mod - add to mods */
-                    slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
-                                          cfgentry->attr, new_value);
-                }
-
-                /* Make sure we don't generate for this
-                 * attr again by keeping a list of attrs
-                 * we have generated for already.
-                 */
-                slapi_ch_array_add(&generated_attrs,
-                                   slapi_ch_strdup(cfgentry->attr));
-
-                /* free up */
-                slapi_ch_free_string(&value);
-                slapi_ch_free_string(&new_value);
+            /* do the mod */
+            if (LDAP_CHANGETYPE_ADD == modtype) {
+                /* add - set in entry */
+                slapi_entry_attr_set_charptr(e, cfgentry->attr, new_value);
+            } else {
+                /* mod - add to mods */
+                slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
+                                      cfgentry->attr, new_value);
             }
+
+            /* Make sure we don't generate for this
+             * attr again by keeping a list of attrs
+             * we have generated for already.
+             */
+            slapi_ch_array_add(&generated_attrs,
+                               slapi_ch_strdup(cfgentry->attr));
+
+            /* free up */
+            slapi_ch_free_string(&value);
+            slapi_ch_free_string(&new_value);
+
         }
     }
 
