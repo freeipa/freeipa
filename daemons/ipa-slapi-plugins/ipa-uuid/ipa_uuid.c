@@ -156,8 +156,6 @@ static void ipauuid_free_config_entry(struct configEntry ** entry);
 static char *ipauuid_get_dn(Slapi_PBlock * pb);
 static int ipauuid_dn_is_config(char *dn);
 static int ipauuid_list_contains_attr(char **list, char *attr);
-static int ipauuid_list_contains_attrs(char **list, char **attrs);
-static void ipauuid_list_remove_attr(char **list, char *attr);
 
 /**
  *
@@ -174,18 +172,6 @@ static int ipauuid_add_pre_op(Slapi_PBlock * pb);
  */
 void ipauuid_dump_config();
 void ipauuid_dump_config_entry(struct configEntry *);
-
-/**
- * set the debug level
- */
-#ifdef _WIN32
-int *module_ldap_debug = 0;
-
-void plugin_init_debug_level(int *level_ptr)
-{
-    module_ldap_debug = level_ptr;
-}
-#endif
 
 /**
  *
@@ -774,73 +760,6 @@ ipauuid_list_contains_attr(char **list, char *attr)
     return ret;
 }
 
-/*
- * ipauuid_list_contains_attrs()
- *
- * Checks if all attrs in one list (attrs) are contained
- * in another list of attrs (list).  Returns 1 if all
- * attrs are found, 0 otherwise.
- */
-static int
-ipauuid_list_contains_attrs(char **list, char **attrs)
-{
-    int ret = 1;
-    int i = 0;
-    int j = 0;
-
-    if (list && attrs) {
-        for (i = 0; attrs[i]; i++) {
-            int found = 0;
-
-            for (j = 0; list[j]; j++) {
-                if (slapi_attr_types_equivalent(attrs[i], list[i])) {
-                    found = 1;
-                    break;
-                }
-            }
-
-            if (!found) {
-                ret = 0;
-                break;
-            }
-        }
-    } else {
-        ret = 0;
-    }
-
-    return ret;
-}
-
-/*
- * ipauuid_list_remove_attr()
- *
- * Removes a attr from a list of attrs.
- */
-static void 
-ipauuid_list_remove_attr(char **list, char *attr)
-{
-    int i = 0;
-    int found_attr = 0;
-
-    if (list && attr) {
-        /* Go through the list until we find the attr that
-         * we want to remove.  We simply free the attr we
-         * want to remove and shift the remaining array
-         * elements down by one index.  This will leave us
-         * with two NULL elements at the end of the list,
-         * but this should not cause any problems. */
-        for (i = 0; list[i]; i++) {
-            if (found_attr) {
-                list[i] = list[i + 1];
-            } else if (slapi_attr_types_equivalent(attr, list[i])) {
-                slapi_ch_free_string(&list[i]);
-                list[i] = list[i + 1];
-                found_attr = 1;
-            }
-        }
-    }
-}
-
 /* for mods and adds:
 	where dn's are supplied, the closest in scope
 	is used as long as the type filter matches
@@ -1210,41 +1129,3 @@ static int ipauuid_config_check_post_op(Slapi_PBlock * pb)
     return 0;
 }
 
-
-/****************************************************
-	End of
-	Functions that actually do things other
-	than config and startup
-****************************************************/
-
-/**
- * debug functions to print config
- */
-void ipauuid_dump_config()
-{
-    PRCList *list;
-
-    ipauuid_read_lock();
-
-    if (!PR_CLIST_IS_EMPTY(ipauuid_global_config)) {
-        list = PR_LIST_HEAD(ipauuid_global_config);
-        while (list != ipauuid_global_config) {
-            ipauuid_dump_config_entry((struct configEntry *) list);
-            list = PR_NEXT_LINK(list);
-        }
-    }
-
-    ipauuid_unlock();
-}
-
-
-void ipauuid_dump_config_entry(struct configEntry * entry)
-{
-    int i = 0;
-
-    printf("<---- attr type ------> %s\n", entry->attr);
-    printf("<---- filter ---------> %s\n", entry->filter);
-    printf("<---- scope ----------> %s\n", entry->scope);
-    printf("<---- generate flag --> %s\n", entry->generate);
-    printf("<---- prefix ---------> %s\n", entry->prefix);
-}
