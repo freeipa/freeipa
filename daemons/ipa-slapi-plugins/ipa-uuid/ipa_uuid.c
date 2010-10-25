@@ -783,6 +783,7 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
     char *errstr = NULL;
     bool generate;
     int ret = LDAP_SUCCESS;
+    bool locked = false;
 
     LOG_TRACE("--in-->\n");
 
@@ -876,6 +877,7 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
     }
 
     ipauuid_read_lock();
+    locked = true;
 
     if (!PR_CLIST_IS_EMPTY(ipauuid_global_config)) {
         list = PR_LIST_HEAD(ipauuid_global_config);
@@ -1071,11 +1073,13 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
         }
     }
 
-    ipauuid_unlock();
-
     ret = LDAP_SUCCESS;
 
 done:
+    if (locked) {
+        ipauuid_unlock();
+    }
+
     if (smods != NULL) {
         /* Put the updated mods back into place. */
         mods = slapi_mods_get_ldapmods_passout(smods);
