@@ -90,6 +90,7 @@ int slapi_uniqueIDGenerateString(char **uId);
 #define IPAUUID_GENERATE         "ipaUuidMagicRegen"
 #define IPAUUID_FILTER           "ipaUuidFilter"
 #define IPAUUID_SCOPE            "ipaUuidScope"
+#define IPAUUID_ENFORCE          "ipaUuidEnforce"
 
 #define IPAUUID_FEATURE_DESC      "IPA UUID"
 #define IPAUUID_PLUGIN_DESC       "IPA UUID plugin"
@@ -116,6 +117,7 @@ struct configEntry {
     Slapi_Filter *slapi_filter;
     char *generate;
     char *scope;
+    bool enforce;
 };
 
 static PRCList *ipauuid_global_config = NULL;
@@ -564,6 +566,10 @@ ipauuid_parse_config_entry(Slapi_Entry * e, bool apply)
         goto bail;
     }
     LOG_CONFIG("----------> %s [%s]\n", IPAUUID_SCOPE, entry->scope);
+
+    entry->enforce = slapi_entry_attr_get_bool(e, IPAUUID_ENFORCE);
+    LOG_CONFIG("----------> %s [%s]\n",
+               IPAUUID_ENFORCE, entry->enforce ? "True" : "False");
 
     /* If we were only called to validate config, we can
      * just bail out before applying the config changes */
@@ -1067,6 +1073,23 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
             slapi_ch_free_string(&value);
             slapi_ch_free_string(&new_value);
 
+        } else {
+            char *bindDN = NULL;
+            int is_root;
+
+            slapi_pblock_get(pb, SLAPI_CONN_DN, &bindDN);
+            is_root = slapi_dn_isroot(bindDN);
+
+            /* If not set to the magic value, check enforcement */
+            if (cfgentry->enforce && is_root != 1) {
+                /* only Directory Manager can set arbitrary values when
+                 * enforce is enabled. */
+                errstr = slapi_ch_smprintf("Only the Directory Manager "
+                                           "can set arbitrary values "
+                                           "for %s\n", cfgentry->attr);
+                ret = LDAP_INSUFFICIENT_ACCESS;
+                goto done;
+            }
         }
     }
 
