@@ -26,7 +26,7 @@ dnl - Check for KRB5
 dnl ---------------------------------------------------------------------------
 
 KRB5_LIBS=
-AC_CHECK_HEADER(krb5.h)
+AC_CHECK_HEADER(krb5.h, [], [AC_MSG_ERROR([krb5.h not found])])
 
 krb5_impl=mit
 
@@ -123,7 +123,7 @@ dnl - Check for POPT
 dnl ---------------------------------------------------------------------------
 
 POPT_LIBS=
-AC_CHECK_HEADER(popt.h)
+AC_CHECK_HEADER(popt.h, [], [AC_MSG_ERROR([popt.h not found])])
 AC_CHECK_LIB(popt, poptGetContext, [POPT_LIBS="-lpopt"])
 AC_SUBST(POPT_LIBS)
 
@@ -132,7 +132,7 @@ dnl - Check for SASL
 dnl ---------------------------------------------------------------------------
 
 SASL_LIBS=
-AC_CHECK_HEADER(sasl/sasl.h)
+AC_CHECK_HEADER(sasl/sasl.h, [], [AC_MSG_ERROR([sasl/sasl.h not found])])
 AC_CHECK_LIB(sasl2, sasl_client_init, [SASL_LIBS="-lsasl2"])
 AC_SUBST(SASL_LIBS)
 
@@ -153,7 +153,7 @@ dnl - Check for CURL
 dnl ---------------------------------------------------------------------------
 
 CURL_LIBS=
-AC_CHECK_HEADER(curl/curl.h)
+AC_CHECK_HEADER(curl/curl.h, [], [AC_MSG_ERROR([curl/curl.h not found])])
 AC_CHECK_LIB(curl, curl_easy_init, [CURL_LIBS="-lcurl"])
 if test "x$CURL_LIBS" = "x" ; then
   AC_MSG_ERROR([curl not found])
@@ -165,7 +165,7 @@ dnl - Check for XMLRPC-C
 dnl ---------------------------------------------------------------------------
 
 XMLRPC_LIBS=
-AC_CHECK_HEADER(xmlrpc-c/base.h)
+AC_CHECK_HEADER(xmlrpc-c/base.h, [], [AC_MSG_ERROR([xmlrpc-c/base.h not found])])
 AC_CHECK_LIB(xmlrpc_client, xmlrpc_client_init2, [XMLRPC_LIBS="-lxmlrpc -lxmlrpc_client -lxmlrpc_util"])
 if test "x$XMLRPC_LIBS" = "x" ; then
   AC_MSG_ERROR([xmlrpc-c not found])

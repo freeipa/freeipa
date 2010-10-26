@@ -77,7 +77,7 @@ dnl - Check for KRB5
 dnl ---------------------------------------------------------------------------
 
 KRB5_LIBS=
-AC_CHECK_HEADER(krb5.h)
+AC_CHECK_HEADER(krb5.h, [], [AC_MSG_ERROR([krb5.h not found])])
 
 krb5_impl=mit
 
@@ -197,6 +197,7 @@ dnl ---------------------------------------------------------------------------
 dnl This is a very simple check, we should probably check also for MD4_Init and
 dnl probably also the version we are using is recent enough
 SSL_LIBS=
+AC_CHECK_HEADER(openssl/des.h, [], [AC_MSG_ERROR([openssl/des.h not found])])
 AC_CHECK_LIB(crypto, DES_set_key_unchecked, [SSL_LIBS="-lcrypto"])
 AC_SUBST(SSL_LIBS)
 
