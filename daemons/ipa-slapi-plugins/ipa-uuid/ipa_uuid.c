@@ -987,17 +987,13 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
                     bv = slapi_mod_get_first_value(smod);
                     /* If we have a value, see if it's the magic value. */
                     if (bv) {
-                        int len = strlen(cfgentry->generate);
-                        if (len == bv->bv_len) {
-                            if (!slapi_UTF8NCASECMP(bv->bv_val,
-                                                    cfgentry->generate,
-                                                    len)) {
-                                generate = true;
+                        if (!slapi_UTF8CASECMP(bv->bv_val,
+                                               cfgentry->generate)) {
+                            generate = true;
 
-                                /* also remove this mod, as we will add
-                                 * it again later */
-                                slapi_mod_remove_value(next_mod);
-                            }
+                            /* also remove this mod, as we will add
+                             * it again later */
+                            slapi_mod_remove_value(next_mod);
                         }
                     } else {
                         /* This is a replace with no new values, so we need
@@ -1054,8 +1050,52 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
 
             /* do the mod */
             if (LDAP_CHANGETYPE_ADD == modtype) {
+                Slapi_DN *sdn;
+                Slapi_RDN *rdn;
+                char *attr;
+                char *nrdn;
+
                 /* add - set in entry */
                 slapi_entry_attr_set_charptr(e, cfgentry->attr, new_value);
+
+                /* check to see if we need to change the RDN too */
+                rdn = slapi_rdn_new();
+                if (!rdn) {
+                    LOG_OOM();
+                    ret = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                sdn = slapi_sdn_new_dn_byval(dn);
+                if (!sdn) {
+                    LOG_OOM();
+                    ret = LDAP_OPERATIONS_ERROR;
+                    slapi_rdn_free(&rdn);
+                    goto done;
+                }
+                slapi_rdn_set_sdn(rdn, sdn);
+                ret = slapi_rdn_contains_attr(rdn, cfgentry->attr, &attr);
+                slapi_rdn_done(rdn);
+                if (ret == 1) {
+                    /* no need to recheck if it is valid, it will be handled
+                     * later by checking the value in the entry */
+                    nrdn = slapi_ch_smprintf("%s=%s",
+                                             cfgentry->attr, new_value);
+                    if (!nrdn) {
+                        LOG_OOM();
+                        ret = LDAP_OPERATIONS_ERROR;
+                        slapi_rdn_free(&rdn);
+                        slapi_sdn_free(&sdn);
+                        goto done;
+                    }
+
+                    slapi_rdn_set_dn(rdn, nrdn);
+                    slapi_ch_free_string(&nrdn);
+                    slapi_sdn_set_rdn(sdn, rdn);
+                    slapi_entry_set_sdn(e, sdn);
+                }
+                slapi_rdn_free(&rdn);
+                slapi_sdn_free(&sdn);
+
             } else {
                 /* mod - add to mods */
                 slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
