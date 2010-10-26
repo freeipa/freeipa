@@ -252,6 +252,10 @@ function AssociationList(obj, pkey, manyObj, associationColumns, jobj, associati
     }
 
     this.setup = function() {
+        //TODO I18N
+        var header_message = manyObj + "(s) enrolled in "  +
+            this.obj + " " + pkey;
+        this.container.append($("<h2/>",{html:  header_message }) );
         association_list_create(this.obj, this.container);
         this.container.find(".search-filter").css("display", "none");
         this.container.find(".search-buttons").html("");
@@ -288,7 +292,6 @@ function AssociationList(obj, pkey, manyObj, associationColumns, jobj, associati
     }
 }
 
-/* FIXME: TEMPORARY FACET GENERATORS; WE NEED A BETTER WAY! */
 
 function association_form_create(jobj)
 {
