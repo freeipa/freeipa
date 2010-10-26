@@ -114,6 +114,7 @@ objectClass: posixaccount
 objectClass: krbprincipalaux
 objectClass: krbticketpolicyaux
 objectClass: inetuser
+objectClass: ipaobject
 uid: admin
 krbPrincipalName: admin@$REALM
 cn: Administrator
@@ -124,6 +125,7 @@ homeDirectory: /home/admin
 loginShell: /bin/bash
 gecos: Administrator
 nsAccountLock: False
+ipaUniqueID: autogenerate
 
 dn: cn=radius,$SUFFIX
 changetype: add

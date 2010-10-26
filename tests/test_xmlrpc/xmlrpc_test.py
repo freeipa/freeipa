@@ -36,7 +36,7 @@ fuzzy_digits = Fuzzy('^\d+$', type=basestring)
 
 # Matches an ipauniqueid like u'784d85fd-eae7-11de-9d01-54520012478b'
 fuzzy_uuid = Fuzzy(
-    '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    '^[0-9a-f]{8}-[0-9a-f]{8}-[0-9a-f]{8}-[0-9a-f]{8}$'
 )
 
 

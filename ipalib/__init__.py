@@ -883,11 +883,6 @@ from parameters import BytesEnum, StrEnum, AccessTime, File
 from errors import SkipPluginModule
 from text import _, ngettext, GettextFactory, NGettextFactory
 
-# We can't import the python uuid since it includes ctypes which makes
-# httpd throw up when run in in mod_python due to SELinux issues
-import ipauuid as uuid
-
-
 version_info = (2, 0, 0, 'alpha', 0)
 if version_info[3] == 'final':
     __version__ = '%d.%d.%d' % version_info[:3]

@@ -22,7 +22,7 @@ import os
 import tempfile
 from ipapython import sysrestore
 from ipapython import ipautil
-from ipalib import uuid, errors
+from ipalib import errors
 import ldap
 from ipaserver import ipaldap
 import base64
@@ -104,7 +104,6 @@ class Service:
         path = ipautil.SHARE_DIR + ldif
 
         if sub_dict is not None:
-            sub_dict['UUID'] = str(uuid.uuid1())
             txt = ipautil.template_file(path, sub_dict)
             fd = ipautil.write_tmp_file(txt)
             path = fd.name
@@ -153,7 +152,7 @@ class Service:
         classes = entry.getValues("objectclass")
         classes = classes + ["ipaobject", "ipaservice", "pkiuser"]
         entry.setValues("objectclass", list(set(classes)))
-        entry.setValue("ipauniqueid", str(uuid.uuid1()))
+        entry.setValue("ipauniqueid", 'autogenerate')
         entry.setValue("managedby", hostdn)
         conn.addEntry(entry)
         conn.unbind()

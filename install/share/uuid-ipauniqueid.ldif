@@ -5,6 +5,7 @@ objectclass: top
 objectclass: extensibleObject
 cn: IPA Unique IDs
 ipaUuidAttr: ipaUniqueID
-ipaUuidMagicRegen: 0
+ipaUuidMagicRegen: autogenerate
 ipaUuidFilter: (|(objectclass=ipaObject)(objectclass=ipaAssociation))
 ipaUuidScope: $SUFFIX
+ipaUuidEnforce: TRUE

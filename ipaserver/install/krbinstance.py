@@ -32,7 +32,6 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipalib import util
 from ipalib import errors
-from ipalib import uuid
 
 from ipaserver import ipaldap
 
@@ -121,7 +120,7 @@ class KrbInstance(service.Service):
         host_entry.setValue('serverhostname', self.fqdn.split('.',1)[0])
         host_entry.setValue('cn', self.fqdn)
         host_entry.setValue('fqdn', self.fqdn)
-        host_entry.setValue('ipauniqueid', str(uuid.uuid1()))
+        host_entry.setValue('ipauniqueid', 'autogenerate')
         host_entry.setValue('managedby', host_dn)
         conn.addEntry(host_entry)
         conn.unbind()

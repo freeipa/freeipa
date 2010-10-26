@@ -23,7 +23,7 @@ Base classes for LDAP plugins.
 import re
 import json
 
-from ipalib import crud, errors, uuid
+from ipalib import crud, errors
 from ipalib import Method, Object
 from ipalib import Flag, Int, List, Str
 from ipalib.base import NameSpace
@@ -266,7 +266,7 @@ class LDAPCreate(CallbackInterface, crud.Create):
             )
 
         if self.obj.uuid_attribute:
-            entry_attrs[self.obj.uuid_attribute] = str(uuid.uuid1())
+            entry_attrs[self.obj.uuid_attribute] = 'autogenerate'
 
         if options.get('all', False):
             attrs_list = ['*']

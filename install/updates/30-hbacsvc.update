@@ -3,49 +3,49 @@ default:objectclass: ipahbacservice
 default:objectclass: ipaobject
 default:cn: sshd
 default:description: sshd
-default:ipauniqueid:$UUID
+default:ipauniqueid:autogenerate
 
 dn: cn=ftp,cn=hbacservices,cn=accounts,$SUFFIX
 default:objectclass: ipahbacservice
 default:objectclass: ipaobject
 default:cn: ftp
 default:description: ftp
-default:ipauniqueid:$UUID
+default:ipauniqueid:autogenerate
 
 dn: cn=su,cn=hbacservices,cn=accounts,$SUFFIX
 default:objectclass: ipahbacservice
 default:objectclass: ipaobject
 default:cn: su
 default:description: su
-default:ipauniqueid:$UUID
+default:ipauniqueid:autogenerate
 
 dn: cn=login,cn=hbacservices,cn=accounts,$SUFFIX
 default:objectclass: ipahbacservice
 default:objectclass: ipaobject
 default:cn: login
 default:description: login
-default:ipauniqueid:$UUID
+default:ipauniqueid:autogenerate
 
 dn: cn=su-l,cn=hbacservices,cn=accounts,$SUFFIX
 default:objectclass: ipahbacservice
 default:objectclass: ipaobject
 default:cn: su-l
 default:description: su with login shell
-default:ipauniqueid:$UUID
+default:ipauniqueid:autogenerate
 
 dn: cn=sudo,cn=hbacservices,cn=accounts,$SUFFIX
 default:objectclass: ipahbacservice
 default:objectclass: ipaobject
 default:cn: sudo
 default:description: sudo
-default:ipauniqueid:$UUID
+default:ipauniqueid:autogenerate
 
 dn: cn=sudo-i,cn=hbacservices,cn=accounts,$SUFFIX
 default:objectclass: ipahbacservice
 default:objectclass: ipaobject
 default:cn: sudo-i
 default:description: sudo-i
-default:ipauniqueid:$UUID
+default:ipauniqueid:autogenerate
 
 dn: cn=SUDO,cn=hbacservicegroups,cn=accounts,$SUFFIX
 default:objectClass: ipaobject
@@ -54,7 +54,7 @@ default:objectClass: nestedGroup
 default:objectClass: groupOfNames
 default:objectClass: top
 default:cn: SUDO
-default:ipauniqueid:$UUID
+default:ipauniqueid:autogenerate
 default:description: Default group of SUDO related services
 default:member: cn=sudo,cn=hbacservices,cn=accounts,$SUFFIX
 default:member: cn=sudo-i,cn=hbacservices,cn=accounts,$SUFFIX

@@ -27,7 +27,7 @@ Example: Migrate users and groups from DS to IPA
 import logging
 import re
 
-from ipalib import api, errors, output, uuid
+from ipalib import api, errors, output
 from ipalib import Command, List, Password, Str, Flag
 from ipalib.cli import to_cli
 if api.env.in_server and api.env.context in ['lite', 'server']:
@@ -58,7 +58,7 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx):
         ctx['def_group_gid'] = g_attrs['gidnumber'][0]
 
     # fill in required attributes by IPA
-    entry_attrs['ipauniqueid'] = str(uuid.uuid1())
+    entry_attrs['ipauniqueid'] = 'autogenerate'
     if 'homedirectory' not in entry_attrs:
         homes_root = config.get('ipahomesrootdir', ('/home', ))[0]
         home_dir = '%s/%s' % (homes_root, pkey)
@@ -112,7 +112,7 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx):
             entry_attrs['member'] = []
         entry_attrs['member'] += new_members
 
-    entry_attrs['ipauniqueid'] = str(uuid.uuid1())
+    entry_attrs['ipauniqueid'] = 'autogenerate'
     convert_members('member', overwrite=True)
     convert_members('uniquemember')
 

@@ -39,7 +39,7 @@ from ldap.dn import escape_dn_chars
 from ipaserver import ipaldap
 from ipaserver.install import ldapupdate
 from ipaserver.install import httpinstance
-from ipalib import util, uuid, errors
+from ipalib import util, errors
 from ipaserver.plugins.ldap2 import ldap2
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
@@ -475,9 +475,7 @@ class DsInstance(service.Service):
         self._ldap_mod("ldapi.ldif", self.sub_dict)
 
     def add_hbac(self):
-        self.sub_dict['UUID'] = str(uuid.uuid1())
         self._ldap_mod("default-hbac.ldif", self.sub_dict)
-        del self.sub_dict['UUID']
 
     def change_admin_password(self, password):
         logging.debug("Changing admin password")
