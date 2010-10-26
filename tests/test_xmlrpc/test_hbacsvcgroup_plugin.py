@@ -123,7 +123,6 @@ class test_hbacsvcgroup(Declarative):
                 failed=dict(
                     member=dict(
                         hbacsvc=tuple(),
-                        hbacsvcgroup=tuple(),
                     ),
                 ),
                 result={
@@ -213,7 +212,6 @@ class test_hbacsvcgroup(Declarative):
                 failed=dict(
                     member=dict(
                         hbacsvc=tuple(),
-                        hbacsvcgroup=tuple(),
                     ),
                 ),
                 completed=1,

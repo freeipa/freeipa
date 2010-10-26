@@ -20,8 +20,7 @@
 HBAC Service Groups
 
 HBAC service groups can contain any number of individual services,
-or "members", and can also contain other service groups. Every group must
-have a description.
+or "members". Every group must have a description.
 
 EXAMPLES:
 
@@ -37,7 +36,6 @@ EXAMPLES:
  Add a new group to the "login" group:
    ipa hbacsvcgroup-add --desc="switch users" suers
    ipa hbacsvcgroup-add-member --hbacsvcs=su,su-l suers
-   ipa hbacsvsgroup-add-member --hbacsvsgroups=suers login
 
  Delete an HBAC services group:
    ipa hbacsvcgroup-del login
@@ -56,14 +54,10 @@ class hbacsvcgroup(LDAPObject):
     object_name = 'hbacsvcgroup'
     object_name_plural = 'hbacsvcgroups'
     object_class = ['ipaobject', 'ipahbacservicegroup']
-    default_attributes = [ 'cn', 'description', 'member', 'memberof',
-        'memberindirect',
-    ]
+    default_attributes = [ 'cn', 'description', 'member' ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
-        'member': ['hbacsvc', 'hbacsvcgroup'],
-        'memberof': ['hbacsvcgroup'],
-        'memberindirect': ['hbacsvc', 'hbacsvcgroup'],
+        'member': ['hbacsvc'],
     }
 
     label = _('HBAC Service Groups')

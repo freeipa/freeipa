@@ -41,7 +41,7 @@ objectClasses: (1.3.6.1.1.1.2.17 NAME 'automount' DESC 'Automount information' S
 attributeTypes: (2.16.840.1.113730.3.8.3.17 NAME 'hostCApolicy' DESC 'Policy on how to treat host requests for cert operations.' EQUALITY caseIgnoreMatch ORDERING caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v2' )
 objectClasses: (2.16.840.1.113730.3.8.4.9 NAME 'ipaCAaccess' STRUCTURAL MAY (member $ hostCApolicy) X-ORIGIN 'IPA v2' )
 objectClasses: (2.16.840.1.113730.3.8.4.10 NAME 'ipaHBACService' STRUCTURAL MUST ( cn ) MAY ( description $ memberOf ) X-ORIGIN 'IPA v2' )
-objectClasses: (2.16.840.1.113730.3.8.4.11 NAME 'ipaHBACServiceGroup' DESC 'IPA HBAC service group object class' SUP nestedGroup STRUCTURAL X-ORIGIN 'IPA v2' )
+objectClasses: (2.16.840.1.113730.3.8.4.11 NAME 'ipaHBACServiceGroup' DESC 'IPA HBAC service group object class' SUP groupOfNames STRUCTURAL X-ORIGIN 'IPA v2' )
 attributeTypes: (1.3.6.1.4.1.2428.20.0.0 NAME 'dNSTTL' DESC 'An integer denoting time to live' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 )
 attributeTypes: (1.3.6.1.4.1.2428.20.0.1 NAME 'dNSClass' DESC 'The class of a resource record' EQUALITY caseIgnoreIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
 attributeTypes: (1.3.6.1.4.1.2428.20.1.12 NAME 'pTRRecord' DESC 'domain name pointer, RFC 1035' EQUALITY caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
