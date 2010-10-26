@@ -26,9 +26,10 @@ Example: Migrate users and groups from DS to IPA
 
 import logging
 import re
+import ldap as _ldap
 
 from ipalib import api, errors, output
-from ipalib import Command, List, Password, Str, Flag
+from ipalib import Command, List, Password, Str, Flag, StrEnum
 from ipalib.cli import to_cli
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
@@ -44,8 +45,10 @@ from ipalib.text import Gettext # FIXME: remove once the other Gettext FIXME is 
 _krb_err_msg = _('Kerberos principal %s already exists. Use \'ipa user-mod\' to set it manually.')
 _grp_err_msg = _('Failed to add user to the default group. Use \'ipa group-add-member\' to add manually.')
 
+_supported_schemas = (u'RFC2307bis', u'RFC2307')
 
-def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx):
+
+def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs):
     # get default primary group for new users
     if 'def_group_dn' not in ctx:
         def_group = config.get('ipadefaultprimarygroup')
@@ -90,36 +93,79 @@ def _post_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx):
 
 # GROUP MIGRATION CALLBACKS AND VARS
 
-def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx):
-    def convert_members(member_attr, overwrite=False):
+def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs):
+    def convert_members_rfc2307bis(member_attr, search_bases, overwrite=False):
         """
         Convert DNs in member attributes to work in IPA.
         """
         new_members = []
         entry_attrs.setdefault(member_attr, [])
         for m in entry_attrs[member_attr]:
-            col = m.find(',')
-            if col == -1:
+            try:
+                # what str2dn returns looks like [[('cn', 'foo', 4)], [('dc', 'example', 1)], [('dc', 'com', 1)]]
+                rdn = _ldap.dn.str2dn(m ,flags=_ldap.DN_FORMAT_LDAPV3)[0]
+                rdnval = rdn[0][1]
+            except IndexError:
+                api.log.error('Malformed DN %s has no RDN?' % m)
                 continue
-            if m.startswith('uid'):
-                m = '%s,%s' % (m[0:col], api.env.container_user)
-            elif m.startswith('cn'):
-                m = '%s,%s' % (m[0:col], api.env.container_group)
+
+            if m.lower().endswith(search_bases['user']):
+                api.log.info('migrating user %s' % m)
+                m = '%s=%s,%s' % (api.Object.user.primary_key.name,
+                                  rdnval,
+                                  api.env.container_user)
+            elif m.lower().endswith(search_bases['group']):
+                api.log.info('migrating group %s' % m)
+                m = '%s=%s,%s' % (api.Object.group.primary_key.name,
+                                  rdnval,
+                                  api.env.container_group)
+            else:
+                api.log.error('entry %s does not belong into any known container' % m)
+                continue
+
             m = ldap.normalize_dn(m)
             new_members.append(m)
+
         del entry_attrs[member_attr]
         if overwrite:
             entry_attrs['member'] = []
         entry_attrs['member'] += new_members
 
+    def convert_members_rfc2307(member_attr):
+        """
+        Convert usernames in member attributes to work in IPA.
+        """
+        new_members = []
+        entry_attrs.setdefault(member_attr, [])
+        for m in entry_attrs[member_attr]:
+            memberdn = '%s=%s,%s' % (api.Object.user.primary_key.name,
+                                     m,
+                                     api.env.container_user)
+            new_members.append(ldap.normalize_dn(memberdn))
+        entry_attrs['member'] = new_members
+
+    schema = kwargs.get('schema', None)
     entry_attrs['ipauniqueid'] = 'autogenerate'
-    convert_members('member', overwrite=True)
-    convert_members('uniquemember')
+    if schema == 'RFC2307bis':
+        search_bases = kwargs.get('search_bases', None)
+        if not search_bases:
+            raise ValueError('Search bases not specified')
+
+        convert_members_rfc2307bis('member', search_bases, overwrite=True)
+        convert_members_rfc2307bis('uniquemember', search_bases)
+    elif schema == 'RFC2307':
+        convert_members_rfc2307('memberuid')
+    else:
+        raise ValueError('Schema %s not supported' % schema)
 
     return dn
 
 
 # DS MIGRATION PLUGIN
+
+def construct_filter(template, oc_list):
+    oc_subfilter = ''.join([ '(objectclass=%s)' % oc for oc in oc_list])
+    return template % oc_subfilter
 
 def validate_ldapuri(ugettext, ldapuri):
     m = re.match('^ldaps?://[-\w\.]+(:\d+)?$', ldapuri)
@@ -152,14 +198,18 @@ class migrate_ds(Command):
         #
         # If pre_callback return value evaluates to False, migration
         # of the current object is aborted.
-        'user': (
-            '(&(objectClass=person)(uid=*))',
-            _pre_migrate_user, _post_migrate_user
-        ),
-        'group': (
-            '(&(|(objectClass=groupOfUniqueNames)(objectClass=groupOfNames))(cn=*))',
-            _pre_migrate_group, None
-        ),
+        'user': {
+            'filter_template' : '(&(|%s)(uid=*))',
+            'oc_option' : 'userobjectclass',
+            'pre_callback' : _pre_migrate_user,
+            'post_callback' : _post_migrate_user
+        },
+        'group': {
+            'filter_template' : '(&(|%s)(cn=*))',
+            'oc_option' : 'groupobjectclass',
+            'pre_callback' : _pre_migrate_group,
+            'post_callback' : None
+        },
     }
     migrate_order = ('user', 'group')
 
@@ -195,6 +245,28 @@ class migrate_ds(Command):
             label=_('Group container'),
             doc=_('RDN of container for groups in DS'),
             default=u'ou=groups',
+            autofill=True,
+        ),
+        List('userobjectclass?',
+            cli_name='user_objectclass',
+            label=_('User object class'),
+            doc=_('Comma-separated list of objectclasses used to search for user entries in DS'),
+            default=(u'person',),
+            autofill=True,
+        ),
+        List('groupobjectclass?',
+            cli_name='group_objectclass',
+            label=_('Group object class'),
+            doc=_('Comma-separated list of objectclasses used to search for group entries in DS'),
+            default=(u'groupOfUniqueNames', u'groupOfNames'),
+            autofill=True,
+        ),
+        StrEnum('schema?',
+            cli_name='schema',
+            label=_('LDAP schema'),
+            doc=_('The schema used on the LDAP server. Supported values are RFC2307 and RFC2307bis. The default is RFC2307bis'),
+            values=_supported_schemas,
+            default=_supported_schemas[0],
             autofill=True,
         ),
         Flag('continue?',
@@ -268,19 +340,26 @@ can use their Kerberos accounts.''')
                 else:
                     options[p.name] = tuple()
 
+    def _get_search_bases(self, options, ds_base_dn, migrate_order):
+        search_bases = dict()
+        for ldap_obj_name in migrate_order:
+            search_bases[ldap_obj_name] = '%s,%s' % (
+                options['%scontainer' % to_cli(ldap_obj_name)], ds_base_dn
+            )
+        return search_bases
+
     def migrate(self, ldap, config, ds_ldap, ds_base_dn, options):
         """
         Migrate objects from DS to LDAP.
         """
         migrated = {} # {'OBJ': ['PKEY1', 'PKEY2', ...], ...}
         failed = {} # {'OBJ': {'PKEY1': 'Failed 'cos blabla', ...}, ...}
+        search_bases = self._get_search_bases(options, ds_base_dn, self.migrate_order)
         for ldap_obj_name in self.migrate_order:
             ldap_obj = self.api.Object[ldap_obj_name]
 
-            search_filter = self.migrate_objects[ldap_obj_name][0]
-            search_base = '%s,%s' % (
-                options['%scontainer' % to_cli(ldap_obj_name)], ds_base_dn
-            )
+            search_filter = construct_filter(self.migrate_objects[ldap_obj_name]['filter_template'],
+                                             options[to_cli(self.migrate_objects[ldap_obj_name]['oc_option'])])
             exclude = options['exclude_%ss' % to_cli(ldap_obj_name)]
             context = {}
 
@@ -290,7 +369,7 @@ can use their Kerberos accounts.''')
             # FIXME: with limits set, we get a strange 'Success' exception
             try:
                 (entries, truncated) = ds_ldap.find_entries(
-                    search_filter, ['*'], search_base, ds_ldap.SCOPE_ONELEVEL#,
+                    search_filter, ['*'], search_bases[ldap_obj_name], ds_ldap.SCOPE_ONELEVEL#,
                     #time_limit=0, size_limit=0
                 )
             except errors.NotFound:
@@ -320,11 +399,12 @@ can use their Kerberos accounts.''')
                     )
                 )
 
-                callback = self.migrate_objects[ldap_obj_name][1]
+                callback = self.migrate_objects[ldap_obj_name]['pre_callback']
                 if callable(callback):
                     dn = callback(
                         ldap, pkey, dn, entry_attrs, failed[ldap_obj_name],
-                        config, context
+                        config, context, schema = options['schema'],
+                        search_bases = search_bases
                     )
                     if not dn:
                         continue
@@ -336,7 +416,7 @@ can use their Kerberos accounts.''')
                 else:
                     migrated[ldap_obj_name].append(pkey)
 
-                    callback = self.migrate_objects[ldap_obj_name][2]
+                    callback = self.migrate_objects[ldap_obj_name]['post_callback']
                     if callable(callback):
                         callback(
                             ldap, pkey, dn, entry_attrs, failed[ldap_obj_name],
