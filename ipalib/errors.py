@@ -1095,6 +1095,21 @@ class ManagedGroupError(ExecutionError):
     errno = 4020
     format = _('Deleting a managed group is not allowed. It must be detached first.')
 
+class ManagedPolicyError(ExecutionError):
+    """
+    **4021** Raised when password policy is assigned to a managed group
+
+    For example:
+
+    >>> raise ManagedPolicyError()
+    Traceback (most recent call last):
+      ...
+    ManagedPolicyError: A managed group cannot have a password policy.
+    """
+
+    errno = 4021
+    format = _('A managed group cannot have a password policy.')
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).

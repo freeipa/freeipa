@@ -115,7 +115,10 @@ class cosentry_add(LDAPCreate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         # check for existence of the group
-        self.api.Command.group_show(keys[-1])
+        result = self.api.Command.group_show(keys[-1], all=True)['result']
+        oc = map(lambda x:x.lower(),result['objectclass'])
+        if 'mepmanagedentry' in oc:
+            raise errors.ManagedPolicyError()
         self.obj.check_priority_uniqueness(*keys, **options)
         del entry_attrs['cn']
         return dn

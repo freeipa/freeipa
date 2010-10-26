@@ -149,7 +149,18 @@ class test_pwpolicy(XMLRPC_test):
         entry = api.Command['pwpolicy_mod'](self.group, krbminpwdlife=50)['result']
         assert_attr_equal(entry, 'krbminpwdlife', '50')
 
-    def test_a_pwpolicy_del(self):
+    def test_a_pwpolicy_managed(self):
+        """
+        Test adding password policy to a managed group.
+        """
+        try:
+            entry = api.Command['pwpolicy_add'](self.user, krbminpwdlife=50, cospriority=2)['result']
+        except errors.ManagedPolicyError:
+            pass
+        else:
+            assert False
+
+    def test_b_pwpolicy_del(self):
         """
         Test the `xmlrpc.pwpolicy_del` method.
         """
