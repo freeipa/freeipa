@@ -784,6 +784,7 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
     bool generate;
     int ret = LDAP_SUCCESS;
     bool locked = false;
+    bool set_attr;
 
     LOG_TRACE("--in-->\n");
 
@@ -891,6 +892,7 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
         cfgentry = (struct configEntry *) list;
 
         generate = false;
+        set_attr = false;
 
         /* Did we already service this attr? */
         if (ipauuid_list_contains_attr(generated_attrs,
@@ -936,6 +938,9 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
             }
 
             slapi_ch_free_string(&value);
+
+            /* always true on add if we match the scope */
+            set_attr = true;
             break;
 
         case LDAP_CHANGETYPE_MODIFY:
@@ -951,6 +956,9 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
                     smod = slapi_mods_get_next_smod(smods, next_mod);
                     continue;
                 }
+
+                /* ok we found the attr so that means we are going to set it */
+                set_attr = true;
 
                 /* If all values are being deleted, we need to
                  * generate a new value. */
@@ -1026,7 +1034,13 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
             if (slapi_entry_attr_find(resulting_e,
                                       cfgentry->attr, &attr) != 0) {
                 generate = true;
+                set_attr = true;
             }
+        }
+
+        /* nothing to do keep looping */
+        if (!set_attr) {
+            continue;
         }
 
         if (generate) {
