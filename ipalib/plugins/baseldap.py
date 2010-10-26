@@ -426,6 +426,13 @@ class LDAPRetrieve(LDAPQuery):
     """
     has_output = output.standard_entry
 
+    takes_options = (
+        Flag('rights',
+            label=_('Rights'),
+            doc=_('Display the access rights to modify this entry (requires --all)'),
+        ),
+    )
+
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
@@ -454,6 +461,17 @@ class LDAPRetrieve(LDAPQuery):
                 )
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
+
+        if options.get('rights', False) and options.get('all', False):
+            rights = ldap.get_effective_rights(dn, ['*', 'nsaccountlock'])
+            if 'attributelevelrights' in rights[1]:
+                rights = rights[1]['attributelevelrights']
+                rights = rights[0].split(', ')
+                rdict = {}
+                for r in rights:
+                    (k,v) = r.split(':')
+                    rdict[k] = v
+                entry_attrs['attributelevelrights'] = rdict
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
