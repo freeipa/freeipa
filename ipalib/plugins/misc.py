@@ -44,7 +44,7 @@ class env(LocalOrRemote):
     takes_options = LocalOrRemote.takes_options + (
         Flag('all',
             cli_name='all',
-            doc=_('retrieve all attributes'),
+            doc=_('retrieve and print all attributes from the server. Affects command output.'),
             exclude='webui',
             flags=['no_output'],
             default=True,

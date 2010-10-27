@@ -796,8 +796,8 @@ class Command(HasParam):
 
         This method gets called by `HasParam._create_param_namespace()`.
 
-        For commnds that return entries two special options are generated:
-        --all   makes the command retrieve/dispaly all attribute
+        For commands that return entries two special options are generated:
+        --all   makes the command retrieve/display all attributes
         --raw   makes the command display attributes as they are stored
 
         Subclasses can override this to customize how the arguments are
@@ -810,13 +810,13 @@ class Command(HasParam):
             if isinstance(o, (Entry, ListOfEntries)):
                 yield Flag('all',
                     cli_name='all',
-                    doc=_('retrieve all attributes'),
+                    doc=_('retrieve and print all attributes from the server. Affects command output.'),
                     exclude='webui',
                     flags=['no_output'],
                 )
                 yield Flag('raw',
                     cli_name='raw',
-                    doc=_('print entries as stored on the server'),
+                    doc=_('print entries as stored on the server. Only affects output format.'),
                     exclude='webui',
                     flags=['no_output'],
                 )

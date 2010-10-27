@@ -139,7 +139,7 @@ class exshowuser(Command):
         Flag('all',
             # the doc keyword argument is what you see when you go
             # `ipa COMMAND --help` or `ipa help COMMAND`
-            doc='retrieve all attributes',
+            doc='retrieve and print all attributes from the server. Affects command output.',
             flags=['no_output'],
         ),
     )
