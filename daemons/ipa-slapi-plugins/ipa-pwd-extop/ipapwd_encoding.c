@@ -350,35 +350,29 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
         case KRB5_KDB_SALTTYPE_NORMAL:
 
-            /* If pre auth is required we can set a random salt, otherwise
-             * we have to use a more conservative approach and set the salt
-             * to be REALMprincipal (the concatenation of REALM and principal
-             * name without any separator) */
-#if 0
-            if (krbTicketFlags & KTF_REQUIRES_PRE_AUTH) {
-                salt.length = KRB5P_SALT_SIZE;
-                salt.data = malloc(KRB5P_SALT_SIZE);
-                if (!salt.data) {
-                    LOG_OOM();
-                    goto enc_error;
-                }
-                krberr = krb5_c_random_make_octets(krbctx, &salt);
-                if (krberr) {
-                    LOG_FATAL("krb5_c_random_make_octets failed [%s]\n",
-                              krb5_get_error_message(krbctx, krberr));
-                    goto enc_error;
-                }
-            } else {
-#endif
-                krberr = krb5_principal2salt(krbctx, princ, &salt);
-                if (krberr) {
-                    LOG_FATAL("krb5_principal2salt failed [%s]\n",
-                              krb5_get_error_message(krbctx, krberr));
-                    goto enc_error;
-                }
-#if 0
+            krberr = krb5_principal2salt(krbctx, princ, &salt);
+            if (krberr) {
+                LOG_FATAL("krb5_principal2salt failed [%s]\n",
+                          krb5_get_error_message(krbctx, krberr));
+                goto enc_error;
             }
-#endif
+            break;
+
+        case KRB5_KDB_SALTTYPE_SPECIAL:
+
+            /* make random salt */
+            salt.length = KRB5P_SALT_SIZE;
+            salt.data = malloc(KRB5P_SALT_SIZE);
+            if (!salt.data) {
+                LOG_OOM();
+                goto enc_error;
+            }
+            krberr = krb5_c_random_make_octets(krbctx, &salt);
+            if (krberr) {
+                LOG_FATAL("krb5_c_random_make_octets failed [%s]\n",
+                          krb5_get_error_message(krbctx, krberr));
+                goto enc_error;
+            }
             break;
 
         case KRB5_KDB_SALTTYPE_V4:

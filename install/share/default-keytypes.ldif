@@ -3,9 +3,13 @@ dn: cn=$REALM,cn=kerberos,$SUFFIX
 changetype: modify
 add: krbSupportedEncSaltTypes
 krbSupportedEncSaltTypes: aes256-cts:normal
+krbSupportedEncSaltTypes: aes256-cts:special
 krbSupportedEncSaltTypes: aes128-cts:normal
+krbSupportedEncSaltTypes: aes128-cts:special
 krbSupportedEncSaltTypes: des3-hmac-sha1:normal
+krbSupportedEncSaltTypes: des3-hmac-sha1:special
 krbSupportedEncSaltTypes: arcfour-hmac:normal
+krbSupportedEncSaltTypes: arcfour-hmac:special
 krbSupportedEncSaltTypes: des-hmac-sha1:normal
 krbSupportedEncSaltTypes: des-cbc-md5:normal
 krbSupportedEncSaltTypes: des-cbc-crc:normal
@@ -22,10 +26,8 @@ krbMaxRenewableAge: 604800
 dn: cn=$REALM,cn=kerberos,$SUFFIX
 changetype: modify
 add: krbDefaultEncSaltTypes
-krbDefaultEncSaltTypes: aes256-cts:normal
-krbDefaultEncSaltTypes: aes128-cts:normal
-krbDefaultEncSaltTypes: des3-hmac-sha1:normal
-krbDefaultEncSaltTypes: arcfour-hmac:normal
-krbDefaultEncSaltTypes: des-hmac-sha1:normal
-krbDefaultEncSaltTypes: des-cbc-md5:normal
+krbDefaultEncSaltTypes: aes256-cts:special
+krbDefaultEncSaltTypes: aes128-cts:special
+krbDefaultEncSaltTypes: des3-hmac-sha1:special
+krbDefaultEncSaltTypes: arcfour-hmac:special
 
