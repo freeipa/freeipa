@@ -46,6 +46,22 @@ def is_rule(obj):
     return callable(obj) and getattr(obj, RULE_FLAG, False) is True
 
 
+def entry_count(entry):
+    """
+    Return the number of entries in an entry. This is primarly for the
+    failed output parameter so we don't print empty values.
+
+    We also use this to determine if a non-zero return value is needed.
+    """
+    num_entries = 0
+    for f in entry:
+        if type(entry[f]) is dict:
+            num_entries = num_entries + entry_count(entry[f])
+        else:
+            num_entries = num_entries + len(entry[f])
+
+    return num_entries
+
 
 class HasParam(Plugin):
     """
@@ -844,22 +860,6 @@ class Command(HasParam):
                 continue
             yield param
 
-    def number_failed(self, failed):
-        """
-        Return the number of entries in the failed output parameter.
-
-        This is used to determine whether the failed members should be
-        displayed and what the return value should be.
-        """
-        num_failed = 0
-        for f in failed:
-            if type(failed[f]) is dict:
-                num_failed = num_failed + self.number_failed(failed[f])
-            else:
-                num_failed = num_failed + len(failed[f])
-
-        return num_failed
-
     def output_for_cli(self, textui, output, *args, **options):
         """
         Generic output method. Prints values the output argument according
@@ -899,7 +899,7 @@ class Command(HasParam):
             if o.lower() == 'count' and result == 0:
                 rv = 1
             elif o.lower() == 'failed':
-                if self.number_failed(result) == 0:
+                if entry_count(result) == 0:
                     # Don't display an empty failed list
                     continue
                 else:

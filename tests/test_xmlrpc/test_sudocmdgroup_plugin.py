@@ -384,7 +384,7 @@ class test_sudocmdgroup(Declarative):
                 failed=dict(
                     member=dict(
                         sudocmdgroup=tuple(),
-                        sudocmd=(u'notfound',),
+                        sudocmd=[(u'notfound', u'no such entry')],
                     ),
                 ),
                 result={
@@ -430,7 +430,7 @@ class test_sudocmdgroup(Declarative):
                 failed=dict(
                     member=dict(
                         sudocmdgroup=tuple(),
-                        sudocmd=(u'notfound',),
+                        sudocmd=[(u'notfound', u'This entry is not a member of the group')],
                     ),
                 ),
                 result={

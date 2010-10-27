@@ -117,6 +117,12 @@ global_output_params = (
     Str('externalhost?',
         label=_('External host'),
     ),
+    Str('memberhost',
+        label=_('Failed hosts/hostgroups'),
+    ),
+    Str('memberuser',
+        label=_('Failed users/groups'),
+    ),
 )
 
 
@@ -818,7 +824,7 @@ class LDAPModMember(LDAPQuery):
                 name = to_cli(ldap_obj_name)
                 doc = self.member_param_doc % ldap_obj.object_name_plural
                 yield List('%s?' % name, cli_name='%ss' % name, doc=doc,
-                           label=ldap_obj.object_name_plural)
+                           label=ldap_obj.object_name)
 
     def get_member_dns(self, **options):
         dns = {}
@@ -835,8 +841,8 @@ class LDAPModMember(LDAPQuery):
                     ldap_obj = self.api.Object[ldap_obj_name]
                     try:
                         dns[attr][ldap_obj_name].append(ldap_obj.get_dn(name))
-                    except errors.PublicError:
-                        failed[attr][ldap_obj_name].append(name)
+                    except errors.PublicError, e:
+                        failed[attr][ldap_obj_name].append((name, unicode(e)))
         return (dns, failed)
 
 
@@ -884,10 +890,11 @@ class LDAPAddMember(LDAPModMember):
                         continue
                     try:
                         ldap.add_entry_to_group(m_dn, dn, attr)
-                    except errors.PublicError:
+                    except errors.PublicError, e:
                         ldap_obj = self.api.Object[ldap_obj_name]
-                        failed[attr][ldap_obj_name].append(
-                            ldap_obj.get_primary_key_from_dn(m_dn)
+                        failed[attr][ldap_obj_name].append((
+                            ldap_obj.get_primary_key_from_dn(m_dn),
+                            unicode(e),)
                         )
                     else:
                         completed += 1
@@ -985,10 +992,11 @@ class LDAPRemoveMember(LDAPModMember):
                         continue
                     try:
                         ldap.remove_entry_from_group(m_dn, dn, attr)
-                    except errors.PublicError:
+                    except errors.PublicError, e:
                         ldap_obj = self.api.Object[ldap_obj_name]
-                        failed[attr][ldap_obj_name].append(
-                            ldap_obj.get_primary_key_from_dn(m_dn)
+                        failed[attr][ldap_obj_name].append((
+                            ldap_obj.get_primary_key_from_dn(m_dn),
+                            unicode(e),)
                         )
                     else:
                         completed += 1

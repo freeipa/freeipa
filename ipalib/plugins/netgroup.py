@@ -156,13 +156,13 @@ class netgroup_add_member(LDAPAddMember):
             external_hosts = entry_attrs_.get('externalhost', [])
             failed_hosts = []
             for host in failed['memberhost']['host']:
-                host = host.lower()
-                host_dn = self.api.Object['host'].get_dn(host)
-                if host not in external_hosts and host_dn not in members:
-                    external_hosts.append(host)
+                hostname = host[0].lower()
+                host_dn = self.api.Object['host'].get_dn(hostname)
+                if hostname not in external_hosts and host_dn not in members:
+                    external_hosts.append(hostname)
                     completed_external += 1
                 else:
-                    failed_hosts.append(host)
+                    failed_hosts.append(hostname)
             if completed_external:
                 try:
                     ldap.update_entry(dn, {'externalhost': external_hosts})
@@ -190,12 +190,12 @@ class netgroup_remove_member(LDAPRemoveMember):
             failed_hosts = []
             completed_external = 0
             for host in failed['memberhost']['host']:
-                host = host.lower()
-                if host in external_hosts:
-                    external_hosts.remove(host)
+                hostname = host[0].lower()
+                if hostname in external_hosts:
+                    external_hosts.remove(hostname)
                     completed_external += 1
                 else:
-                    failed_hosts.append(host)
+                    failed_hosts.append(hostname)
             if completed_external:
                 try:
                     ldap.update_entry(dn, {'externalhost': external_hosts})

@@ -274,7 +274,17 @@ class textui(backend.Backend):
                     self.print_indented(format % (attr, self.encode_binary(v)), indent)
             else:
                 value = map(lambda v: self.encode_binary(v), value)
-                text = ', '.join(value)
+                if len(value) > 0 and type(value[0]) in (list, tuple):
+                    # This is where we print failed add/remove members
+                    for l in value:
+                        text = ': '.join(l)
+                        self.print_indented(format % (attr, self.encode_binary(text)), indent)
+                    return
+                else:
+                    if len(value) > 0:
+                        text = ', '.join(value)
+                    else:
+                        return
                 line_len = self.get_tty_width()
                 if line_len and text:
                     s_indent = '%s%s' % (
@@ -343,6 +353,8 @@ class textui(backend.Backend):
                 label = labels.get(key, key)
                 value = entry[key]
                 if isinstance(value, dict):
+                    if frontend.entry_count(value) == 0:
+                        continue
                     self.print_indented(format % (label, ''), indent)
                     self.print_entry(
                         value, order, labels, print_all, format,

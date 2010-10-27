@@ -35,6 +35,16 @@ netgroup_dn = None
 # See if our LDAP server is up and we can talk to it over GSSAPI
 ccache = krbV.default_context().default_ccache().name
 
+def entry_in_failed(entry, failed):
+    """
+    entry is what we're looking for
+    failed is a tuple of tuples of the form (failure, exception)
+    """
+    for f in failed:
+        if entry == f[0]:
+            return True
+    return False
+
 class test_netgroup(XMLRPC_test):
     """
     Test the `netgroup` plugin.
@@ -150,7 +160,7 @@ class test_netgroup(XMLRPC_test):
         failed = ret['failed']
         assert 'memberhost' in failed
         assert 'host' in failed['memberhost']
-        assert self.host_fqdn in failed['memberhost']['host']
+        assert entry_in_failed(self.host_fqdn, failed['memberhost']['host'])
 
         kw = {'raw': True}
         kw['hostgroup'] = self.hg_cn
@@ -159,7 +169,7 @@ class test_netgroup(XMLRPC_test):
         failed = ret['failed']
         assert 'memberhost' in failed
         assert 'hostgroup' in failed['memberhost']
-        assert self.hg_cn in failed['memberhost']['hostgroup']
+        assert entry_in_failed(self.hg_cn, failed['memberhost']['hostgroup'])
 
         kw = {'raw': True}
         kw['user'] = self.user_uid
@@ -168,7 +178,7 @@ class test_netgroup(XMLRPC_test):
         failed = ret['failed']
         assert 'memberuser' in failed
         assert 'user' in failed['memberuser']
-        assert self.user_uid in failed['memberuser']['user']
+        assert entry_in_failed(self.user_uid, failed['memberuser']['user'])
 
         kw = {'raw': True}
         kw['group'] = self.group_cn
@@ -177,7 +187,7 @@ class test_netgroup(XMLRPC_test):
         failed = ret['failed']
         assert 'memberuser' in failed
         assert 'group' in failed['memberuser']
-        assert self.group_cn in failed['memberuser']['group']
+        assert entry_in_failed(self.group_cn, failed['memberuser']['group'])
 
     def test_5_netgroup_add_member(self):
         """
@@ -301,7 +311,7 @@ class test_netgroup(XMLRPC_test):
         failed = ret['failed']
         assert 'memberhost' in failed
         assert 'host' in failed['memberhost']
-        assert self.host_fqdn in failed['memberhost']['host']
+        assert entry_in_failed(self.host_fqdn, failed['memberhost']['host'])
 
         kw = {'raw': True}
         kw['hostgroup'] = self.hg_cn
@@ -310,7 +320,7 @@ class test_netgroup(XMLRPC_test):
         failed = ret['failed']
         assert 'memberhost' in failed
         assert 'hostgroup' in failed['memberhost']
-        assert self.hg_cn in failed['memberhost']['hostgroup']
+        assert entry_in_failed(self.hg_cn, failed['memberhost']['hostgroup'])
 
         kw = {'raw': True}
         kw['user'] = self.user_uid
@@ -320,7 +330,7 @@ class test_netgroup(XMLRPC_test):
         failed = ret['failed']
         assert 'memberuser' in failed
         assert 'user' in failed['memberuser']
-        assert self.user_uid in failed['memberuser']['user']
+        assert entry_in_failed(self.user_uid, failed['memberuser']['user'])
 
         kw = {'raw': True}
         kw['group'] = self.group_cn
@@ -329,7 +339,7 @@ class test_netgroup(XMLRPC_test):
         failed = ret['failed']
         assert 'memberuser' in failed
         assert 'group' in failed['memberuser']
-        assert self.group_cn in failed['memberuser']['group']
+        assert entry_in_failed(self.group_cn, failed['memberuser']['group'])
 
     def test_b_netgroup_del(self):
         """

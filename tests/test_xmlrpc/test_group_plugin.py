@@ -403,7 +403,7 @@ class test_group(Declarative):
                 completed=0,
                 failed=dict(
                     member=dict(
-                        group=(u'notfound',),
+                        group=[(u'notfound', u'no such entry')],
                         user=tuple(),
                     ),
                 ),
@@ -449,7 +449,7 @@ class test_group(Declarative):
                 completed=0,
                 failed=dict(
                     member=dict(
-                        group=(u'notfound',),
+                        group=[(u'notfound', u'This entry is not a member of the group')],
                         user=tuple(),
                     ),
                 ),
