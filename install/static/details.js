@@ -123,6 +123,7 @@ function ipa_stanza(spec){
                 var value = $.trim(input.val());
                 if (!value) value = '';
 
+
                 values.push(value);
             });
 
@@ -480,20 +481,34 @@ function _ipa_create_text_input(attr, value, param_info)
         return index;
     }
 
+    function validate_input(text, param_info,error_link){
+        if(param_info && param_info.pattern){
+            var regex = new RegExp( param_info.pattern );
+            if (!text.match(regex)) {
+                error_link.style.display ="block";
+                if ( param_info.pattern_errmsg){
+                    error_link.innerHTML =  param_info.pattern_errmsg;
+                }
+            }else{
+                error_link.style.display ="none";
+            }
+        }
+    }
+
     var input = $("<Span />");
     input.append($("<input/>",{
         type:"text",
         name:attr,
         value:value.toString(),
-        keypress: function(){
-            var validation_info=param_info;
+        keyup: function(){
             var undo_link=this.nextElementSibling;
             undo_link.style.display ="inline";
-            if(false){
-                var error_link = undo_link.nextElementSibling;
-                error_link.style.display ="block";
-            }
+            var error_link = undo_link.nextElementSibling;
+
+            var text = $(this).val();
+            validate_input(text, param_info,error_link);
         }
+
     }));
     input.append($("<a/>",{
         html:"undo",
@@ -515,6 +530,8 @@ function _ipa_create_text_input(attr, value, param_info)
 
             this.previousElementSibling.value =  previous_value;
             this.style.display = "none";
+            var error_link = this.nextElementSibling;
+            validate_input(previous_value, param_info,error_link);
         }
     }));
     input.append($("<span/>",{
