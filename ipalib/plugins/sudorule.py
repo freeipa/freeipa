@@ -38,6 +38,7 @@ class sudorule(LDAPObject):
 
     ]
     uuid_attribute = 'ipauniqueid'
+    rdn_attribute = 'ipauniqueid'
     attribute_members = {
         'memberuser': ['user', 'group'],
         'memberhost': ['host', 'hostgroup'],
@@ -87,16 +88,6 @@ class sudorule(LDAPObject):
         ),
 
     )
-
-    def get_dn(self, *keys, **kwargs):
-        try:
-            (dn, entry_attrs) = self.backend.find_entry_by_attr(
-                self.primary_key.name, keys[-1], self.object_class, [''],
-                self.container_dn
-            )
-        except errors.NotFound:
-            dn = super(sudorule, self).get_dn(*keys, **kwargs)
-        return dn
 
 api.register(sudorule)
 

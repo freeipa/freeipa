@@ -76,6 +76,7 @@ class netgroup(LDAPObject):
         'nisdomainname', 'memberuser', 'memberhost',
     ]
     uuid_attribute = 'ipauniqueid'
+    rdn_attribute = 'ipauniqueid'
     attribute_members = {
         'memberof': ['netgroup'],
         'memberuser': ['user', 'group'],
@@ -108,24 +109,6 @@ class netgroup(LDAPObject):
         ),
     )
 
-    def get_dn(self, *keys, **kwargs):
-        try:
-            (dn, entry_attrs) = self.backend.find_entry_by_attr(
-                self.primary_key.name, keys[-1], self.object_class, [''],
-                self.container_dn
-            )
-        except errors.NotFound:
-            dn = super(netgroup, self).get_dn(*keys, **kwargs)
-        return dn
-
-    def get_primary_key_from_dn(self, dn):
-        pkey = self.primary_key.name
-        (dn, entry_attrs) = self.backend.get_entry(dn, [pkey])
-        try:
-            return entry_attrs[pkey][0]
-        except (KeyError, IndexError):
-            return ''
-
 api.register(netgroup)
 
 
@@ -135,13 +118,7 @@ class netgroup_add(LDAPCreate):
     """
     has_output_params = output_params
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        if not dn.startswith('cn='):
-            msg = 'netgroup with name "%s" already exists' % keys[-1]
-            raise errors.DuplicateEntry(message=msg)
         entry_attrs.setdefault('nisdomainname', self.api.env.domain)
-        dn = ldap.make_dn(
-            entry_attrs, self.obj.uuid_attribute, self.obj.container_dn
-        )
         return dn
 
 api.register(netgroup_add)

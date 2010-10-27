@@ -73,18 +73,31 @@ class LDAPObject(Object):
     search_attributes_config = None
     default_attributes = []
     hidden_attributes = ['objectclass', 'aci']
+    # set rdn_attribute only if RDN attribute differs from primary key!
+    rdn_attribute = ''
     uuid_attribute = ''
     attribute_members = {}
 
     container_not_found_msg = _('container entry (%(container)s) not found')
     parent_not_found_msg = _('%(parent)s: %(oname)s not found')
     object_not_found_msg = _('%(pkey)s: %(oname)s not found')
+    already_exists_msg = _('%(oname)s with name "%(pkey)s" already exists')
 
     def get_dn(self, *keys, **kwargs):
         if self.parent_object:
             parent_dn = self.api.Object[self.parent_object].get_dn(*keys[:-1])
         else:
             parent_dn = self.container_dn
+        if self.rdn_attribute:
+            try:
+                (dn, entry_attrs) = self.backend.find_entry_by_attr(
+                    self.primary_key.name, keys[-1], self.object_class, [''],
+                    self.container_dn
+                )
+            except errors.NotFound:
+                pass
+            else:
+                return dn
         if self.primary_key and keys[-1] is not None:
             return self.backend.make_dn_from_attr(
                 self.primary_key.name, keys[-1], parent_dn
@@ -92,6 +105,14 @@ class LDAPObject(Object):
         return parent_dn
 
     def get_primary_key_from_dn(self, dn):
+        if self.rdn_attribute:
+            (dn, entry_attrs) = self.backend.get_entry(
+                dn, [self.primary_key.name]
+            )
+            try:
+                return entry_attrs[pkey][0]
+            except (KeyError, IndexError):
+                return ''
         return dn[len(self.primary_key.name) + 1:dn.find(',')]
 
     def get_ancestor_primary_keys(self):
@@ -131,7 +152,7 @@ class LDAPObject(Object):
         'parent_object', 'container_dn', 'object_name', 'object_name_plural',
         'object_class', 'object_class_config', 'default_attributes', 'label',
         'hidden_attributes', 'uuid_attribute', 'attribute_members', 'name',
-        'takes_params',
+        'takes_params', 'rdn_attribute',
     )
     def __json__(self):
         json_dict = dict(
@@ -254,8 +275,6 @@ class LDAPCreate(CallbackInterface, crud.Create):
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
-        dn = self.obj.get_dn(*keys, **options)
-
         entry_attrs = self.args_options_2_entry(*keys, **options)
         entry_attrs['objectclass'] = self.obj.object_class
 
@@ -267,6 +286,19 @@ class LDAPCreate(CallbackInterface, crud.Create):
 
         if self.obj.uuid_attribute:
             entry_attrs[self.obj.uuid_attribute] = 'autogenerate'
+
+        dn = self.obj.get_dn(*keys, **options)
+        if self.obj.rdn_attribute:
+            if not dn.startswith('%s=' % self.obj.primary_key.name):
+                raise errors.DuplicateEntry(
+                    message=self.obj.already_exists_msg % {
+                        'oname': self.obj.object_name,
+                        'pkey': keys[-1],
+                    }
+                )
+            dn = ldap.make_dn(
+                entry_attrs, self.obj.rdn_attribute, self.obj.container_dn
+            )
 
         if options.get('all', False):
             attrs_list = ['*']
@@ -311,9 +343,15 @@ class LDAPCreate(CallbackInterface, crud.Create):
                 )
 
         try:
-            (dn, entry_attrs) = ldap.get_entry(
-                dn, attrs_list, normalize=self.obj.normalize_dn
-            )
+            if self.obj.rdn_attribute:
+                (dn, entry_attrs) = ldap.find_entry_by_attr(
+                    self.obj.primary_key.name, keys[-1], None, attrs_list,
+                    self.obj.container_dn
+                )
+            else:
+                (dn, entry_attrs) = ldap.get_entry(
+                    dn, attrs_list, normalize=self.obj.normalize_dn
+                )
         except errors.ExecutionError, e:
             try:
                 (dn, entry_attrs) = self._call_exc_callbacks(

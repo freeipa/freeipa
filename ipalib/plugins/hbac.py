@@ -108,6 +108,7 @@ class hbac(LDAPObject):
         'memberhostgroup',
     ]
     uuid_attribute = 'ipauniqueid'
+    rdn_attribute = 'ipauniqueid'
     attribute_members = {
         'memberuser': ['user', 'group'],
         'memberhost': ['host', 'hostgroup'],
@@ -192,24 +193,6 @@ class hbac(LDAPObject):
         ),
     )
 
-    def get_dn(self, *keys, **kwargs):
-        try:
-            (dn, entry_attrs) = self.backend.find_entry_by_attr(
-                self.primary_key.name, keys[-1], self.object_class, [''],
-                self.container_dn
-            )
-        except errors.NotFound:
-            dn = super(hbac, self).get_dn(*keys, **kwargs)
-        return dn
-
-    def get_primary_key_from_dn(self, dn):
-        pkey = self.primary_key.name
-        (dn, entry_attrs) = self.backend.get_entry(dn, [pkey])
-        try:
-            return entry_attrs[pkey][0]
-        except (KeyError, IndexError):
-            return ''
-
 api.register(hbac)
 
 
@@ -218,14 +201,9 @@ class hbac_add(LDAPCreate):
     Create a new HBAC rule.
     """
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        if not dn.startswith('cn='):
-            msg = 'HBAC rule with name "%s" already exists' % keys[-1]
-            raise errors.DuplicateEntry(message=msg)
         # HBAC rules are enabled by default
         entry_attrs['ipaenabledflag'] = 'TRUE'
-        return ldap.make_dn(
-            entry_attrs, self.obj.uuid_attribute, self.obj.container_dn
-        )
+        return dn
 
 api.register(hbac_add)
 
