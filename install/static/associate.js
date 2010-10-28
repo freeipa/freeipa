@@ -25,14 +25,14 @@
 /**
 *This associator is built for the case where each association requires a separate rpc
 */
-function SerialAssociator(form, manyObjPkeys, on_success)
+function serial_associate(form, manyObjPkeys, on_success)
 {
     var associator = this;
     this.form = form;
     this.manyObjPkeys =  manyObjPkeys;
     this.on_success = on_success;
 
-    this.associateNext = function(){
+    this.associate_next = function(){
         var form = this.form;
         //TODO assert pre-conditions
         var  manyObjPkey =  manyObjPkeys.shift();
@@ -46,7 +46,7 @@ function SerialAssociator(form, manyObjPkeys, on_success)
                          if (data.error){
                              alert('error adding member: '+data.error.message);
                          }else{
-                             associator.associateNext();
+                             associator.associate_next();
                          }
                      },
                      function(xhr, text_status, error_thrown) {
@@ -57,53 +57,117 @@ function SerialAssociator(form, manyObjPkeys, on_success)
             associator.on_success();
         }
     }
+    this.associate_next();
 }
+
+
+function serial_delete(delete_method, one_entity, one_entity_pkey, many_entity,
+                       many_entity_pkeys, on_success){
+    var that = {};
+    that.one_entity = one_entity;
+    that.on_success = on_success;
+    that.many_entity_pkeys = many_entity_pkeys;
+    that.delete_next = function(){
+        var  many_entity_pkey =  this.many_entity_pkeys.shift();
+        if (many_entity_pkey){
+            var options = {};
+            options[one_entity] = one_entity_pkey;
+            var args = [many_entity_pkey];
+            ipa_cmd( delete_method,args, options ,
+                     function(data, text_status, xhr) {
+                         if (data.error){
+                             alert("error deleting member: "
+                                   +data.error.message);
+                         }else{
+                             that.delete_next();
+                         }
+                     },
+                     function(xhr, text_status, error_thrown) {
+                         alert("associateFailure");
+                     },
+                     many_entity );
+        }else{
+            this.on_success();
+        }
+    }
+
+    that.delete_next();
+}
+
+function bulk_delete(delete_method, one_entity, one_entity_pkey, many_entity,
+                     many_entity_pkeys, on_success){
+    if (many_entity_pkeys.length){
+        var options = {};
+        options[one_entity] = one_entity_pkey;
+        var option = many_entity_pkeys.shift();
+        while(many_entity_pkeys.length > 0) {
+                option += ',' + many_entity_pkeys.shift();
+            }
+
+            var options = {
+                'all':true
+            };
+            options[many_entity] = option;
+            var args = [one_entity_pkey];
+            ipa_cmd( delete_method,args, options ,
+                     function(data, text_status, xhr) {
+                         if (data.error){
+                             alert("error deleting member: "
+                                   +data.error.message);
+                         }else{
+                             on_success();
+                         }
+                     },
+                     function(xhr, text_status, error_thrown) {
+                         alert("associateFailure");
+                     },
+                     one_entity );
+    }else{
+        on_success();
+    }
+}
+
 
 /**
 *This associator is for the common case where all the asociations can be sent
 in a single rpc
 */
-function BulkAssociator(form, manyObjPkeys, on_success)
+function bulk_associate(form, manyObjPkeys, on_success)
 {
     var associator = this;
     this.form = form;
     this.manyObjPkeys = manyObjPkeys;
     this.on_success = on_success;
 
-    this.associateNext = function() {
-        var form = this.form;
-        var option = manyObjPkeys.shift();
-        while(manyObjPkeys.length > 0) {
-            option += ',' + manyObjPkeys.shift();
-        }
-
-        var options = {
-          'all':true
-        };
-        options[form.manyObj] = option;
-
-        var args = [form.pkey];
-
-        ipa_cmd( form.method,args, options ,
-                 function(data, text_status, xhr) {
-                     if (data.error){
-                         alert('error adding member: '+data.error.message);
-                     }else{
-                         associator.on_success();
-                     }
-                 },
-                 function(xhr, text_status, error_thrown) {
-                     alert('associateFailure');
-                 },
-                 form.oneObj );
+    var form = this.form;
+    var option = manyObjPkeys.shift();
+    while(manyObjPkeys.length > 0) {
+        option += ',' + manyObjPkeys.shift();
     }
+    var options = {
+        'all':true
+    };
+    options[form.manyObj] = option;
+    var args = [form.pkey];
+    ipa_cmd( form.method,args, options ,
+             function(data, text_status, xhr) {
+                 if (data.error){
+                     alert('error adding member: '+data.error.message);
+                 }else{
+                     associator.on_success();
+                 }
+             },
+             function(xhr, text_status, error_thrown) {
+                 alert('associateFailure');
+             },
+             form.oneObj );
 }
 
 /**
  *  Create a form for a one to many association.
  *
  */
-function AssociationForm(oneObj, pkey, manyObj, on_success, associatorConstructor, method)
+function AssociationForm(oneObj, pkey, manyObj, on_success, associator, method)
 {
     var form = this;
 
@@ -121,10 +185,9 @@ function AssociationForm(oneObj, pkey, manyObj, on_success, associatorConstructo
     else
         this.method = 'add_member';
 
-    if (associatorConstructor)
-        this.associatorConstructor = associatorConstructor;
-    else
-        this.associatorConstructor = BulkAssociator;
+    this.associator = associator;
+
+
 
     this.setup = function() {
         var label = IPA.metadata[form.manyObj].label;
@@ -203,9 +266,7 @@ function AssociationForm(oneObj, pkey, manyObj, on_success, associatorConstructo
         $('#enrollments', form.dialog).children().each(function (i, selected) {
             manyObjPkeys.push(selected.value);
         });
-        var associator =
-            new this.associatorConstructor(form, manyObjPkeys, on_success);
-        associator.associateNext();
+        this.associator(form, manyObjPkeys, on_success);
     };
 }
 
@@ -271,7 +332,15 @@ function ipa_association_facet(spec) {
         ];
 
         var config = that.get_config(that.other_entity);
-        that.associator = config ? config.associator : null;
+
+        if ( config && config.associator ===  'serial' ){
+            that.associator = serial_associate;
+            that.deleter = serial_delete;
+        }else{
+            that.associator = bulk_associate;
+            that.deleter = bulk_delete;
+        }
+
         that.method = config ? config.method : null;
 
         that.setup_views(container);
@@ -284,15 +353,21 @@ function ipa_association_facet(spec) {
         container.find('.search-filter').css('display', 'none');
         container.find('.search-buttons').html('');
 
-        $('<input/>', {
-            type:  'button',
-            value: 'enroll',
-            click: function() {
-                that.show_enrollment_dialog();
-            }
-        }).appendTo(container.find('.search-buttons'));
+        var ctrls = container.find('.search-buttons');
 
-        var header = $('<tr></tr>').appendTo(container.find('.search-table thead:last'));
+        ipa_make_button( 'ui-icon-plus',IPA.messages.button.enroll).
+            click(function() {
+                that.show_enrollment_dialog(container);
+            }).appendTo(ctrls);
+
+        ipa_make_button('ui-icon-trash',IPA.messages.button.delete).
+            click(function(){
+                that.delete_on_click(container);
+            }).appendTo(ctrls);
+
+
+
+        var header = container.find('.search-table thead:last').find("tr");;
         for (var i =0 ; i != that.columns.length ;i++){
             $('<th></th>',{
                 html: that.columns[i].title
@@ -301,21 +376,91 @@ function ipa_association_facet(spec) {
         that.refresh(container);
     };
 
+    that.delete_on_click = function(container) {
+        var delete_list = [];
+        var delete_dialog = $('<div></div>', {
+            title: IPA.messages.button.delete,
+            'class': 'search-dialog-delete'
+        });
+
+        function delete_on_click() {
+            that.deleter('remove_member', that.entity_name,
+                          that.pkey, that.other_entity, delete_list,
+                          function(){ that.refresh(container)});
+            delete_dialog.dialog('close');
+        }
+        function delete_on_win() {
+            delete_dialog.dialog('close');
+        }
+        function cancel_on_click() {
+            delete_dialog.dialog('close');
+        }
+        var confirm_list = $('<ul/>');
+        var delete_list = [];
+        container.find('.search-selector').each(function () {
+            if (this.checked){
+                delete_list.push(this.title);
+                confirm_list.append($('<li/>',{text: this.title}));
+            }
+        });
+        if (delete_list.length == 0){
+            return;
+        }
+        delete_dialog.append(confirm_list);
+        delete_dialog.append(
+            $('<p/>',
+              {text:IPA.messages.search.delete_confirm}));
+
+
+        delete_dialog.dialog({
+            modal: true,
+            buttons: {
+                'Delete': delete_on_click,
+                'Cancel': cancel_on_click
+            }
+        });
+    }
+
     that.refresh = function(container) {
 
         function refresh_on_success(data, text_status, xhr) {
             var tbody = container.find('.search-table tbody');
             tbody.empty();
             var associationList = data.result.result[that.columns[0].column];
+            //TODO, this is masking an error where the wrong
+            //direction association is presented upon page reload.
+            //if the associationList is unset, it is because
+            //form.associationColumns[0] doesn't exist in the results
+            if (!associationList) return;
+
+
             for (var j = 0; j < associationList.length; j++){
+                var association = associationList[j];
                 var row  = $('<tr/>').appendTo(tbody);
+                search_generate_checkbox_td(row, association);
+
+
                 for (var k = 0; k < that.columns.length ;k++){
                     var column = that.columns[k].column;
                     $('<td></td>',{
-                        html: data.result.result[column][j]
+                        html:data.result.result[column][j],
                     }).appendTo(row);
                 }
             }
+
+            tbody.find('.search-a-pkey').click(function () {
+                var jobj = $(this);
+                var state = {};
+                state[that.other_entity + '-facet'] = 'details';
+                state[that.other_entity + '-pkey'] = $(this).text();
+                //Before this will work, we need to set the tab one level up
+                //for example:
+                //state['identity'] = 0;
+                //but we have no way of getting the index.
+
+                $.bbq.pushState(state);
+                return (false);
+            });
         }
 
         function refresh_on_error(xhr, text_status, error_thrown) {
@@ -328,14 +473,16 @@ function ipa_association_facet(spec) {
         ipa_cmd('show', [that.pkey], {}, refresh_on_success, refresh_on_error, that.entity_name);
     };
 
-    that.show_enrollment_dialog = function() {
+    that.show_enrollment_dialog = function(container) {
+
+
 
         var enrollment_dialog = new AssociationForm(
             that.entity_name,
             that.pkey,
             that.other_entity,
             function() {
-                that.refresh();
+                that.refresh(container);
                 enrollment_dialog.close();
             },
             that.associator,

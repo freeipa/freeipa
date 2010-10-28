@@ -70,7 +70,7 @@ ipa_entity_set_association_definition('taskgroup', {
 });
 
 ipa_entity_set_association_definition('rolegroup', {
-    'rolegroup': { associator: BulkAssociator }
+    'rolegroup': { }
 });
 
 
@@ -98,7 +98,7 @@ ipa_entity_set_details_definition('rolegroup', [
 ]);
 
 ipa_entity_set_association_definition('rolegroup', {
-    'taskgroup': { associator: SerialAssociator }
+    'taskgroup': { associator: 'serial' }
 });
 
 /* Configuration */

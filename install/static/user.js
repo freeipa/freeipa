@@ -75,10 +75,10 @@ ipa_entity_set_details_definition('user', [
 ]);
 
 ipa_entity_set_association_definition('user', {
-    'group': { associator: SerialAssociator },
-    'netgroup': { associator: SerialAssociator },
-    'rolegroup': { associator: SerialAssociator },
-    'taskgroup': { associator: SerialAssociator }
+    'group': { associator: 'serial' },
+    'netgroup': { associator: 'serial' },
+    'rolegroup': { associator: 'serial' },
+    'taskgroup': { associator: 'serial' }
 });
 
 /* Account status Toggle button */

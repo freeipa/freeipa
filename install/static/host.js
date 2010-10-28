@@ -48,8 +48,8 @@ ipa_entity_set_details_definition('host', [
 ]);
 
 ipa_entity_set_association_definition('host', {
-    'hostgroup': { associator: SerialAssociator },
-    'rolegroup': { associator: SerialAssociator }
+    'hostgroup': { associator: 'serial' },
+    'rolegroup': { associator: 'serial' }
 });
 
 function host_enrollment_status_load(container, dt, result) {

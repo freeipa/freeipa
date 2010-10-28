@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-test("Testing SerialAssociator().", function() {
+test("Testing serial_associate().", function() {
 
     expect(10);
 
@@ -62,8 +62,8 @@ test("Testing SerialAssociator().", function() {
         ok(true, "on_success() is invoked.");
     };
 
-    var associator = new SerialAssociator(form, manyObjPkeys, on_success);
-    associator.associateNext();
+    var associator = serial_associate(form, manyObjPkeys, on_success);
+    //associator.associateNext();
 
     ipa_cmd = orig_ipa_cmd;
 });
@@ -117,8 +117,8 @@ test("Testing BulkAssociator().", function() {
         ok(true, "on_success() is invoked.");
     };
 
-    var associator = new BulkAssociator(form, manyObjPkeys, on_success);
-    associator.associateNext();
+    var associator = bulk_associate(form, manyObjPkeys, on_success);
+    //associator.associateNext();
 
     ipa_cmd = orig_ipa_cmd;
 });

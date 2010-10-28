@@ -44,9 +44,9 @@ ipa_entity_set_details_definition('group',[
 ]);
 
 ipa_entity_set_association_definition('group', {
-    'netgroup': { associator: SerialAssociator },
-    'rolegroup': { associator: SerialAssociator },
-    'taskgroup': { associator: SerialAssociator }
+    'netgroup': { associator: 'serial' },
+    'rolegroup': { associator: 'serial' },
+    'taskgroup': { associator: 'serial' }
 });
 
 function f_posix(dlg, mode)
