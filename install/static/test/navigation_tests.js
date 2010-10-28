@@ -40,7 +40,7 @@ test("Testing nav_create().", function() {
         same(jobj[0].nodeName,'DIV','group Div');
 
     }
-    ipa_objs= {};
+    IPA.metadata = {};
     var navigation = $('<div id="navigation"/>').appendTo(document.body);
     var user_mock_called = false;
     var group_mock_called = false;

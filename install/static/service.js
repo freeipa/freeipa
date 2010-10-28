@@ -20,34 +20,101 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-ipa_entity_set_search_definition('service', [
-    ['krbprincipalname', 'Principal', null],
-    ['quick_links', 'Quick Links', ipa_entity_quick_links]
-]);
+function ipa_service() {
 
-ipa_entity_set_add_definition('service', [
-    'dialog-add-service', 'Add New Service', [
-        ['krbprincipalname', 'Principal', service_add_krbprincipalname],
-        ['service', 'Service', null],
-        ['host', 'Host Name', null]
-    ]
-]);
+    var that = ipa_entity({
+        'name': 'service'
+    });
 
-ipa_entity_set_details_definition('service', [
-    ipa_stanza({name:'details', label:'Service Details'}).
-        input({name:'krbprincipalname',
-               label:'Principal',
-               setup:service_krbprincipalname_setup,
-               load:service_krbprincipalname_load}).
-        input({name:'service', label:'Service', load:service_service_load}).
-        input({name:'host', label:'Host Name', load:service_host_load}),
-    ipa_stanza({name:'provisioning', label:'Provisioning'}).
-        input({name:'provisioning_status', label:'Status',
-               load:service_provisioning_status_load}),
-    ipa_stanza({name:'certificate', label:'Service Certificate'}).
-        input({name:'certificate_status', label:'Status',
-               load:service_usercertificate_load})
-]);
+    that.init = function() {
+        that.create_add_dialog({
+            'name': 'add',
+            'title': 'Add New Service',
+            'init': ipa_service_add_init
+        });
+
+        that.create_search_facet({
+            'name': 'search',
+            'label': 'Search',
+            'init': ipa_service_search_init
+        });
+
+        that.create_details_facet({
+            'name': 'details',
+            'label': 'Details',
+            'init': ipa_service_details_init
+        });
+    };
+
+    that.init();
+
+    return that;
+}
+
+IPA.add_entity(ipa_service());
+
+function ipa_service_add_init() {
+
+    this.create_field({
+        name: 'krbprincipalname',
+        label: 'Principal',
+        setup: service_add_krbprincipalname
+    });
+
+    this.create_field({name:'service', label:'Service'});
+    this.create_field({name:'host', label:'Host Name'});
+}
+
+function ipa_service_search_init() {
+
+    this.create_column({name:'krbprincipalname', label:'Principal'});
+
+    this.create_column({
+        name: 'quick_links',
+        label: 'Quick Links',
+        setup: ipa_entity_quick_links
+    });
+}
+
+function ipa_service_details_init() {
+
+    var section = this.create_section({name:'details', label:'Service Details'});
+
+    section.create_field({
+        name: 'krbprincipalname',
+        label: 'Principal',
+        setup: service_krbprincipalname_setup,
+        load: service_krbprincipalname_load
+    });
+
+    section.create_field({
+        name: 'service',
+        label: 'Service',
+        load: service_service_load
+    });
+
+    section.create_field({
+        name: 'host',
+        label: 'Host Name',
+        load: service_host_load
+    });
+
+    section = this.create_section({name:'provisioning', label:'Provisioning'});
+
+    section.create_field({
+        name: 'provisioning_status',
+        label: 'Status',
+        load: service_provisioning_status_load
+    });
+
+    section = this.create_section({name:'certificate', label:'Service Certificate'});
+
+    section.create_field({
+        name: 'certificate_status',
+        label: 'Status',
+        load: service_usercertificate_load
+    });
+}
 
 function service_add_krbprincipalname(add_dialog, mode) {
     if (mode == IPA_ADD_UPDATE) {

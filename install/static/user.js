@@ -90,12 +90,12 @@ function toggle_on_click(obj)
     if (val == 'Active') {
         ipa_cmd(
             'lock', [qs['pkey']], {}, on_lock_win, on_fail,
-            ipa_objs['user']['name']
+            IPA.metadata['user']['name']
         );
     } else {
         ipa_cmd(
             'unlock', [qs['pkey']], {}, on_lock_win, on_fail,
-            ipa_objs['user']['name']
+            IPA.metadata['user']['name']
         );
     }
     return (false);

@@ -18,110 +18,102 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-test("Testing ipa_entity_set_search_definition().", function() {
+test('Testing ipa_entity_set_search_definition().', function() {
 
     var uid_callback = function() {
         return true;
     };
 
-    ipa_entity_set_search_definition("user", [
-        ["uid", "Login", uid_callback],
+    ipa_entity_set_search_definition('user', [
+        ['uid', 'Login', uid_callback]
     ]);
 
-    var list = ipa_entity_search_list["user"];
+    var facet = ipa_entity_get_search_facet('user');
     ok(
-        list,
-        "ipa_entity_search_list[\"user\"] is not null"
+        facet,
+        'ipa_entity_get_search_facet(\'user\') is not null'
     );
 
-    var attr = list[0];
+    var column = facet.get_columns()[0];
     ok(
-        attr,
-        "ipa_entity_search_list[\"user\"][0] is not null"
+        column,
+        'column is not null'
     );
 
     equals(
-        attr[0], "uid",
-        "ipa_entity_search_list[\"user\"][0][0]"
+        column.name, 'uid',
+        'column.name'
     );
 
     equals(
-        attr[1], "Login",
-        "ipa_entity_search_list[\"user\"][0][1]"
-    );
-
-    var callback = attr[2];
-    ok(
-        callback,
-        "ipa_entity_search_list[\"user\"][0][2] not null"
+        column.label, 'Login',
+        'column.label'
     );
 
     ok(
-        callback(),
-        "ipa_entity_search_list[\"user\"][0][2]() works"
+        column.setup,
+        'column.setup not null'
+    );
+
+    ok(
+        column.setup(),
+        'column.setup() works'
     );
 });
 
-test("Testing ipa_entity_generate_views().", function() {
+test('Testing ipa_entity_generate_views().', function() {
 
-    ipa_ajax_options["async"] = false;
+    var orig_show_page = IPA.show_page;
+    IPA.ajax_options.async = false;
 
-    ipa_init(
-        "data",
+    IPA.init(
+        'data',
         true,
         function(data, text_status, xhr) {
-            ok(true, "ipa_init() succeeded.");
+            ok(true, 'ipa_init() succeeded.');
         },
         function(xhr, text_status, error_thrown) {
-            ok(false, "ipa_init() failed: "+error_thrown);
+            ok(false, 'ipa_init() failed: '+error_thrown);
         }
     );
 
-    var container = $("<div/>");
+    var entity = ipa_entity({
+        'name': 'user'
+    });
+
+    IPA.add_entity(entity);
+
+    var facet = entity.create_association_facet({
+        'name': 'associate'
+    });
+
+    var container = $('<div/>');
 
     var counter = 0;
-    var callback = function() {
+    IPA.show_page = function(entity_name, facet_name, other_entity) {
         counter++;
     };
 
-    ipa_entity_generate_views("user", container, callback);
+    facet.setup_views(container);
 
     var list = container.children();
-    var facets = list.children();
+    var views = list.children();
 
     equals(
-        facets.length, 6,
-        "Checking number of facets"
-    )
+        views.length, 4,
+        'Checking number of views'
+    );
 
-    var search = facets.first();
-
-    equals(
-        search.attr("title"), "search",
-        "Checking the search facet"
-    )
-
-    search.click();
-
-    var details = search.next();
-
-    equals(
-        details.attr("title"), "details",
-        "Checking the details facet"
-    )
-
-    details.click();
-
-    var facet = details.next();
-    var attribute_members = ipa_objs["user"].attribute_members;
+    facet = views.first();
+    var attribute_members = IPA.metadata['user'].attribute_members;
     for (attribute_member in attribute_members) {
         var objects = attribute_members[attribute_member];
         for (var i = 0; i < objects.length; i++) {
             var object = objects[i];
 
             equals(
-                facet.attr("title"), object,
-                "Checking the "+object+" facet"
+                facet.attr('title'), object,
+                'Checking the '+object+' facet'
             );
 
             facet.click();
@@ -131,12 +123,14 @@ test("Testing ipa_entity_generate_views().", function() {
     }
 
     equals(
-        counter, 6,
-        "Checking callback invocations"
+        counter, 4,
+        'Checking callback invocations'
     );
+
+    IPA.show_page = orig_show_page;
 });
 
-test("Testing ipa_entity_quick_links().", function() {
+test('Testing ipa_entity_quick_links().', function() {
 
     var orig_push_state = nav_push_state;
     var orig_get_state = nav_get_state;
@@ -154,37 +148,37 @@ test("Testing ipa_entity_quick_links().", function() {
         delete state[key];
     };
 
-    ipa_ajax_options["async"] = false;
+    IPA.ajax_options.async = false;
 
-    ipa_init(
-        "data",
+    IPA.init(
+        'data',
         true,
         function(data, text_status, xhr) {
-            ok(true, "ipa_init() succeeded.");
+            ok(true, 'ipa_init() succeeded.');
         },
         function(xhr, text_status, error_thrown) {
-            ok(false, "ipa_init() failed: "+error_thrown);
+            ok(false, 'ipa_init() failed: '+error_thrown);
         }
     );
 
-    var obj_name = "user";
-    var pkey = ipa_objs[obj_name].primary_key;
-    var pkey_value = "test";
+    var obj_name = 'user';
+    var pkey = IPA.metadata[obj_name].primary_key;
+    var pkey_value = 'test';
 
     var entry_attrs = {};
     entry_attrs[pkey] =  [pkey_value];
 
-    var container = $("<div/>", {
+    var container = $('<div/>', {
         title: obj_name,
-        class: "search-container"
+        class: 'search-container'
     });
 
     var search_table = $('<table/>', {
         class: 'search-table'
     }).appendTo(container);
 
-    var tbody = $("<tbody/>").appendTo(search_table);
-    var tr = $("<tr/>").appendTo(tbody);
+    var tbody = $('<tbody/>').appendTo(search_table);
+    var tr = $('<tr/>').appendTo(tbody);
 
     ipa_entity_quick_links(tr, null, null, entry_attrs);
 
@@ -192,23 +186,23 @@ test("Testing ipa_entity_quick_links().", function() {
     var link = td.children().first();
 
     equals(
-        link.attr("href"), "#details",
-        "Checking details link"
+        link.attr('href'), '#details',
+        'Checking details link'
     );
 
     link.click();
 
     equals(
-        state[obj_name+"-facet"], "details",
-        "Checking state[\""+obj_name+"-facet\"]"
+        state[obj_name+'-facet'], 'details',
+        'Checking state[\''+obj_name+'-facet\']'
     );
 
     equals(
-        state[obj_name+"-pkey"], pkey_value,
-        "Checking state[\""+obj_name+"-pkey\"]"
+        state[obj_name+'-pkey'], pkey_value,
+        'Checking state[\''+obj_name+'-pkey\']'
     );
 
-    var attribute_members = ipa_objs[obj_name].attribute_members;
+    var attribute_members = IPA.metadata[obj_name].attribute_members;
     for (attr_name in attribute_members) {
         var objs = attribute_members[attr_name];
         for (var i = 0; i < objs.length; ++i) {
@@ -217,25 +211,25 @@ test("Testing ipa_entity_quick_links().", function() {
             link = link.next();
 
             equals(
-                link.attr("href"), "#"+m,
-                "Checking "+m+" link"
+                link.attr('href'), '#'+m,
+                'Checking '+m+' link'
             );
 
             link.click();
 
             equals(
-                state[obj_name+"-facet"], "associate",
-                "Checking state[\""+obj_name+"-facet\"]"
+                state[obj_name+'-facet'], 'associate',
+                'Checking state[\''+obj_name+'-facet\']'
             );
 
             equals(
-                state[obj_name+"-enroll"], m,
-                "Checking state[\""+obj_name+"-enroll\"]"
+                state[obj_name+'-enroll'], m,
+                'Checking state[\''+obj_name+'-enroll\']'
             );
 
             equals(
-                state[obj_name+"-pkey"], pkey_value,
-                "Checking state[\""+obj_name+"-pkey\"]"
+                state[obj_name+'-pkey'], pkey_value,
+                'Checking state[\''+obj_name+'-pkey\']'
             );
         }
     }

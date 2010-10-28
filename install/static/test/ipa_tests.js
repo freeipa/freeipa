@@ -22,9 +22,9 @@ test("Testing ipa_init().", function() {
 
     expect(1);
 
-    ipa_ajax_options["async"] = false;
+    IPA.ajax_options.async = false;
 
-    ipa_init(
+    IPA.init(
         "data",
         true,
         function(data, text_status, xhr) {
@@ -153,7 +153,7 @@ test("Testing successful ipa_cmd().", function() {
         "Checking ajax invocation counter"
     );
 
-    var dialog = ipa_dialog.parent('.ui-dialog');
+    var dialog = IPA.error_dialog.parent('.ui-dialog');
 
     ok(
         !dialog.length,
@@ -223,7 +223,7 @@ test("Testing unsuccessful ipa_cmd().", function() {
 
     ipa_cmd(method, args, options, success_handler, error_handler, object);
 
-    var dialog = ipa_dialog.parent('.ui-dialog');
+    var dialog = IPA.error_dialog.parent('.ui-dialog');
 
     equals(
         ajax_counter, 1,
@@ -231,7 +231,7 @@ test("Testing unsuccessful ipa_cmd().", function() {
     );
 
     ok(
-        dialog.length == 1 && ipa_dialog.dialog('isOpen'),
+        dialog.length == 1 && IPA.error_dialog.dialog('isOpen'),
         "The dialog box is created and open."
     );
 
@@ -256,7 +256,7 @@ test("Testing unsuccessful ipa_cmd().", function() {
 
     // search the retry button from the beginning again because the dialog
     // has been recreated
-    dialog = ipa_dialog.parent('.ui-dialog');
+    dialog = IPA.error_dialog.parent('.ui-dialog');
     retry = $('button', dialog).first();
     retry.trigger('click');
 
@@ -272,7 +272,7 @@ test("Testing unsuccessful ipa_cmd().", function() {
 
     // search the cancel button from the beginning because the dialog has
     // been recreated
-    dialog = ipa_dialog.parent('.ui-dialog');
+    dialog = IPA.error_dialog.parent('.ui-dialog');
     var cancel = $('button', dialog).first().next();
     cancel.trigger('click');
 
@@ -282,7 +282,7 @@ test("Testing unsuccessful ipa_cmd().", function() {
     );
 
     ok(
-        !ipa_dialog.dialog('isOpen'),
+        !IPA.error_dialog.dialog('isOpen'),
         "After cancel, the dialog box is closed."
     );
 

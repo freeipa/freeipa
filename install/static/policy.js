@@ -20,33 +20,6 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-ipa_entity_set_search_definition('hbac', [
-    ['cn', 'Name', null],
-    ['description', 'description', null],
-    ['quick_links', 'Quick Links', ipa_entity_quick_links]
-]);
-
-ipa_entity_set_add_definition('hbac', [
-    'dialog-add-hbac', 'Add New Zone', [
-        ['cn', 'Name', null]
-    ]
-]);
-
-ipa_entity_set_details_definition('hbac', [
-    ipa_stanza({name:'identity', label:'HBAC Details'}).
-        input({name:'cn', label:'HBAC Name'}).
-        input({name:'accessruletype', label:'Rule Type'}).
-        input({name:'description', label:'Description'}).
-        input({name:'hostcategory', label:'Host Category'}).
-        input({name:'ipaenabledflag', label:'Enabled'}).
-        input({name:'servicecategory', label:'Service Category'}).
-        input({name:'sourcehostcategory', label:'Source Host Category'}).
-        input({name:'usercategory', label:'User Category'})
-]);
-
-ipa_entity_set_association_definition('hbac', {
-});
-
 /* DNS */
 ipa_entity_set_search_definition('dns', [
     ['idnsname', 'Zone Name', null],
@@ -84,12 +57,19 @@ ipa_entity_set_association_definition('dns', {
 
 
 ipa_entity_set_facet_definition('dns', [
-    ipa_facet({name:'records'})]
+    ipa_records_facet({
+        'name': 'records',
+        'label': 'Records'
+    })]
 );
 
-function create_records_facet(){
+function ipa_records_facet(spec){
 
-    var that = {};
+    spec = spec || {};
+
+    var that = ipa_facet(spec);
+
+    that.record = null;
 
     var record_types =[ 'a', 'aaaa', 'dname', 'cname', 'mx', 'ns', 'ptr',
                         'srv', 'txt', 'a6', 'afsdb', 'cert', 'ds', 'hinfo',
@@ -149,10 +129,10 @@ function create_records_facet(){
                 reload();
                 if (called_from_add_and_edit) {
                 }
-            };
+            }
 
             function add_fail(data, text_status, xhr) {
-            };
+            }
 
             params.push(  $.bbq.getState('dns-pkey', true));
             params.push(add_dialog.find('#dns-record-resource').val());
@@ -161,16 +141,16 @@ function create_records_facet(){
 
             ipa_cmd('dns_add_rr', params, options, add_win, add_fail);
             //add_dialog.dialog('close');
-        };
+        }
 
         function add_and_close(evt) {
             add(evt, true);
             add_dialog.dialog('close');
-        };
+        }
 
         function cancel() {
             add_dialog.dialog('close');
-        };
+        }
 
 
         add_dialog.dialog({
@@ -199,8 +179,8 @@ function create_records_facet(){
 
 
         var delete_dialog = $('<div/>', {
-            title: ipa_messages.button.delete,
-            'class': 'search-dialog-delete',
+            title: IPA.messages.button.delete,
+            'class': 'search-dialog-delete'
         });
         var to_delete_table =
             $('<table class="search-table" >'+
@@ -240,40 +220,49 @@ function create_records_facet(){
                 ipa_cmd('dns_del_rr',delete_list[i],{},
                         delete_complete,delete_complete);
             }
-        };
+        }
 
         function cancel_on_click() {
             delete_dialog.dialog('close');
-        };
+        }
 
 
         if (delete_list.length == 0)
             return;
 
         delete_dialog.append($('<P/>',
-                               {text:ipa_messages.search.delete_confirm}));
+                               {text: IPA.messages.search.delete_confirm}));
 
         delete_dialog.dialog({
             modal: true,
             buttons: {
                 'Delete': delete_on_click,
-                'Cancel': cancel_on_click,
-            },
+                'Cancel': cancel_on_click
+            }
         });
 
 
     }
 
-    function setup(obj_name, container,switch_view){
-        that.container = container;
-        var pkey = $.bbq.getState('dns' + '-pkey', true);
-        ipa_entity_generate_views(obj_name, container, switch_view);
+    that.is_dirty = function() {
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var record = $.bbq.getState(that.entity_name + '-record', true) || '';
+        return pkey != that.pkey || record != that.record;
+    };
 
-        container.attr('title', obj_name);
+    function setup(container, unspecified){
+
+        that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        that.record = $.bbq.getState(that.entity_name + '-record', true) || '';
+
+        that.container = container;
+        that.setup_views(container);
+
+        container.attr('title', that.entity_name);
         container.addClass('search-container');
 
         var h2 = $('<h2></h2>',{
-            text: "Records for DNS Zone:" + pkey
+            text: "Records for DNS Zone:" + that.pkey
         }).appendTo(container);
 
 
@@ -286,7 +275,7 @@ function create_records_facet(){
         control_span.append($('<input />',{
             type: "text",
             id: 'dns-record-resource-filter',
-            name: 'search-' + obj_name + '-filter'
+            name: 'search-' + that.entity_name + '-filter'
         }));
 
         control_span.append('Type');
@@ -302,13 +291,13 @@ function create_records_facet(){
         //}));
 
 
-        ipa_make_button('ui-icon-search',ipa_messages.button.find).
+        ipa_make_button('ui-icon-search', IPA.messages.button.find).
             click(function(){load(container)}).appendTo(control_span);
 
-        ipa_make_button('ui-icon-plus',ipa_messages.button.add).
+        ipa_make_button('ui-icon-plus', IPA.messages.button.add).
             click(add_click).appendTo(control_span);
 
-        ipa_make_button('ui-icon-trash',ipa_messages.button.delete).
+        ipa_make_button('ui-icon-trash', IPA.messages.button.delete).
             click(function(){delete_records(records_table);}).
             appendTo(control_span);
 
@@ -316,16 +305,16 @@ function create_records_facet(){
         div.append('<span class="records-buttons"></span>');
 
         var records_results = $('<div/>', {
-            class: 'records-results'
+            'class': 'records-results'
         }).appendTo(container);
 
         var records_table = $('<table/>', {
-            class: 'search-table',
+            'class': 'search-table'
         }).appendTo(records_results);
 
         var thead = $('<thead><tr></tr></thead>').appendTo(records_table);
-        var tbody = $('<tbody></tbody>').appendTo(records_table);;
-        var tfoot = $('<tfoot></tfoot>').appendTo(records_table);;
+        var tbody = $('<tbody></tbody>').appendTo(records_table);
+        var tfoot = $('<tfoot></tfoot>').appendTo(records_table);
 
         var tr = thead.find('tr');
         tr.append($('<th style="width: 15px" />').append(
@@ -363,17 +352,17 @@ function create_records_facet(){
         var options = {};
 
         var resource_filter = container.find("#dns-record-resource-filter")
-            .val()
+            .val();
         if (resource_filter){
             options.idnsname = resource_filter;
         }
 
-        var type_filter = container.find("#dns-record-type-filter").val()
+        var type_filter = container.find("#dns-record-type-filter").val();
         if (type_filter){
             options.type = type_filter;
         }
 
-        var data_filter = container.find("#dns-record-data-filter").val()
+        var data_filter = container.find("#dns-record-data-filter").val();
         if (data_filter){
             options.data = data_filter;
         }
@@ -454,12 +443,7 @@ function create_records_facet(){
     that.load = load;
 
     return that;
-};
-
-
-var records_facet = create_records_facet();
-
-
+}
 
 
 /**Automount*/

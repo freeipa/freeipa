@@ -71,21 +71,25 @@ function nav_generate_tabs(nls, container, tabclass, depth)
     container.append(ul);
 
     for (var i = 0; i < nls.length; ++i) {
-        var n = nls[i];
+        var tab = nls[i];
 
-        var name = n.name;
-        if ((ipa_objs[n.name]) && (ipa_objs[n.name].label)){
-            name = ipa_objs[n.name].label;
+        var label = tab.name;
+        if ((IPA.metadata[tab.name]) && (IPA.metadata[tab.name].label)){
+            label = IPA.metadata[tab.name].label;
         }
 
-        var li = nav_create_tab_li(n.name, name);
+        var li = nav_create_tab_li(tab.name, label);
         ul.append(li);
 
-        var div = nav_create_tab_div(n.name);
+        var div = nav_create_tab_div(tab.name);
         container.append(div);
 
-        if (n.children) {
-            nav_generate_tabs(n.children, div, tabclass, depth +1 );
+        if (tab.children) {
+            nav_generate_tabs(tab.children, div, tabclass, depth +1 );
+        } else {
+            var entity = ipa_get_entity(tab.name);
+            entity.label = tab.label;
+            entity.setup = tab.setup;
         }
     }
 }
@@ -126,6 +130,7 @@ function _nav_update_tabs(nls, container)
         _nav_update_tabs(tab.children, container2);
 
     } else if (tab.setup) {
-        tab.setup(container2);
+        var entity = IPA.get_entity(tab.name);
+        entity.setup(container2);
     }
 }

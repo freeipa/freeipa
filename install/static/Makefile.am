@@ -18,6 +18,7 @@ app_DATA =                              \
 	jquery-ui.css			\
 	certificate.js 			\
 	group.js 			\
+	hbac.js 			\
 	host.js 			\
 	hostgroup.js 			\
 	index.xhtml 			\

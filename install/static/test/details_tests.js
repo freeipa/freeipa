@@ -114,7 +114,10 @@ test("Testing details lifecycle:setup, load, save ().", function(){
             input({name:'carlicense', label:'Car License'})
     ]);
 
-    ipa_details_create(container, ipa_entity_details_list[obj_name]);
+    var entity = ipa_get_entity(obj_name);
+    var facet = entity.get_facet('details');
+    var sections = facet.get_sections();
+    ipa_details_create(container, sections);
 
     var contact = container.find('dl#contact.entryattrs');
     ok(contact);
@@ -126,10 +129,10 @@ test("Testing details lifecycle:setup, load, save ().", function(){
     same('initials',dts[5].title);
 
     //TODO extract into Fixture
-    ipa_ajax_options["async"] = false;
-    $.ajaxSetup(ipa_ajax_options);
-    ipa_json_url = './data';
-    ipa_use_static_files = true;
+    IPA.ajax_options.async = false;
+    $.ajaxSetup(IPA.ajax_options);
+    IPA.json_url = './data';
+    IPA.use_static_files = true;
 
     container.attr('id','user');
 
@@ -139,7 +142,7 @@ test("Testing details lifecycle:setup, load, save ().", function(){
     ipa_details_load(container,
                      'kfrog',
                      function(){load_success_called = true},
-                     function(){load_failure_called = true})
+                     function(){load_failure_called = true});
 
     ok (load_success_called,'load success called');
     ok (!load_failure_called,'load failure not called');
@@ -151,13 +154,13 @@ test("Testing details lifecycle:setup, load, save ().", function(){
     ipa_details_load(container,
                      'kfrog',
                      function(){load_success_called = true},
-                     function(){load_failure_called = true})
+                     function(){load_failure_called = true});
 
 
     ipa_details_update(container,
                      'kfrog',
                      function(){update_success_called = true},
-                     function(){update_failure_called = true})
+                     function(){update_failure_called = true});
 
     ok (update_success_called,'update success called');
     ok (!update_failure_called,'update failure not called');

@@ -40,3 +40,5 @@ ipa_entity_set_details_definition('netgroup', [
         input({name:'nisdomainname', label:'NIS Domain'})
 ]);
 
+ipa_entity_set_association_definition('netgroup', {
+});

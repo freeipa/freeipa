@@ -21,262 +21,298 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js */
 
-var ipa_entity_search_list = {};
-var ipa_entity_add_list = {};
+function ipa_facet(spec) {
 
-//moving this to details
-//var ipa_entity_details_list = {};
-var ipa_entity_association_list = {};
+    spec = spec || {};
 
-var ipa_entity_facet_list = {};
+    var that = {};
+    that.name = spec.name;
+    that.label = spec.label;
+    that.entity_name = spec.entity_name;
 
-function ipa_facet(spec){
-    return spec;
-};
+    that.init = spec.init;
+    that.setup = spec.setup;
 
+    that.setup_views = ipa_facet_setup_views;
+
+    return that;
+}
+
+function ipa_entity(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+    that.name = spec.name;
+    that.label = spec.label;
+
+    that.setup = spec.setup;
+
+    that.add_dialog = null;
+
+    that.facets = [];
+    that.facets_by_name = {};
+
+    this.facet_name = null;
+
+    that.get_add_dialog = function() {
+        return that.add_dialog;
+    };
+
+    that.create_add_dialog = function(spec) {
+        spec.entity_name = that.name;
+        that.add_dialog = ipa_add_dialog(spec);
+        return that.add_dialog;
+    };
+
+    that.get_facets = function() {
+        return that.facets;
+    };
+
+    that.get_facet = function(name) {
+        return that.facets_by_name[name];
+    };
+
+    that.add_facet = function(facet) {
+        that.facets.push(facet);
+        that.facets_by_name[facet.name] = facet;
+    };
+
+    that.create_search_facet = function(spec) {
+        spec.entity_name = that.name;
+        var facet = ipa_search_facet(spec);
+        that.add_facet(facet);
+        return facet;
+    };
+
+    that.create_details_facet = function(spec) {
+        spec.entity_name = that.name;
+        var facet = ipa_details_facet(spec);
+        that.add_facet(facet);
+        return facet;
+    };
+
+    that.create_association_facet = function(spec) {
+        spec.entity_name = that.name;
+        var facet = ipa_association_facet(spec);
+        that.add_facet(facet);
+        return facet;
+    };
+
+    return that;
+}
 
 /* use this to track individual changes between two hashchange events */
 var window_hash_cache = {};
 
-function ipa_entity_set_search_definition(obj_name, data)
-{
-    ipa_entity_search_list[obj_name] = data;
+function ipa_get_entity(entity_name) {
+
+    var entity = IPA.get_entity(entity_name);
+    if (entity) return entity;
+
+    entity = ipa_entity({
+        'name': entity_name
+    });
+
+    IPA.add_entity(entity);
+    return entity;
 }
 
-function ipa_entity_set_add_definition(obj_name, data)
-{
-    ipa_entity_add_list[obj_name] = data;
+function ipa_entity_get_search_facet(entity_name) {
+
+    var entity = ipa_get_entity(entity_name);
+
+    var facet = entity.get_facet('search');
+    if (facet) return facet;
+
+    facet = entity.create_search_facet({
+        'name': 'search',
+        'label': 'Search'
+    });
+
+    return facet;
 }
 
-function ipa_entity_set_details_definition(obj_name, data)
-{
-    ipa_entity_details_list[obj_name] = data;
-}
+function ipa_entity_set_search_definition(entity_name, data) {
 
-function ipa_entity_get_details_sections(obj_name)
-{
-    var sections = ipa_entity_details_list[obj_name];
-    if (sections) return sections;
-    return [];
-}
+    var facet = ipa_entity_get_search_facet(entity_name);
 
-function ipa_entity_set_association_definition(obj_name, data)
-{
-    ipa_entity_association_list[obj_name] = data;
-}
-
-
-function ipa_entity_set_facet_definition(obj_name, data)
-{
-    function facet(spec){
-        return spec;
+    for (var i=0; i<data.length; i++) {
+        var defn = data[i];
+        facet.create_column({
+            'name': defn[0],
+            'label': defn[1],
+            'setup': defn[2]
+        });
     }
-
-    ipa_entity_facet_list[obj_name] = data;
 }
 
+function ipa_entity_set_add_definition(entity_name, data) {
+
+    var entity = ipa_get_entity(entity_name);
+
+    var dialog = entity.create_add_dialog({
+        'name': data[0],
+        'title': data[1]
+    });
+
+    for (var i=0; i<data[2].length; i++) {
+        var field = data[2][i];
+        dialog.create_field({
+            name: field[0],
+            label: field[1],
+            setup: field[2]
+        });
+    }
+}
+
+function ipa_entity_get_add_dialog(entity_name) {
+
+    var entity = ipa_get_entity(entity_name);
+    return entity.get_add_dialog();
+}
+
+function ipa_entity_get_details_facet(entity_name) {
+
+    var entity = ipa_get_entity(entity_name);
+
+    var facet = entity.get_facet('details');
+    if (facet) return facet;
+
+    facet = entity.create_details_facet({
+        'name': 'details',
+        'label': 'Details'
+    });
+
+    return facet;
+}
+
+function ipa_entity_set_details_definition(entity_name, sections) {
+
+    var facet = ipa_entity_get_details_facet(entity_name);
+
+    for (var i=0; i<sections.length; i++) {
+        var section = sections[i];
+        facet.add_section(section);
+    }
+}
+
+function ipa_entity_get_association_facet(entity_name) {
+
+    var entity = ipa_get_entity(entity_name);
+
+    var facet = entity.get_facet('associate');
+    if (facet) return facet;
+
+    facet = entity.create_association_facet({
+        'name': 'associate'
+    });
+
+    return facet;
+}
+
+function ipa_entity_set_association_definition(entity_name, data) {
+
+    var facet = ipa_entity_get_association_facet(entity_name);
+
+    for (var other_entity in data) {
+        var config = data[other_entity];
+        facet.create_config({
+            'name': other_entity,
+            'associator': config.associator,
+            'method': config.method
+        });
+    }
+}
+
+function ipa_entity_set_facet_definition(entity_name, list) {
+
+    var entity = ipa_get_entity(entity_name);
+
+    for (var i=0; i<list.length; i++) {
+        var facet = list[i];
+        facet.entity_name = entity_name;
+        entity.add_facet(facet);
+    }
+}
 
 function ipa_details_only_setup(container){
-    ipa_entity_setup(container, 'details');
+    ipa_entity_setup.call(this, container, 'details');
 }
 
-function ipa_entity_setup(container, unspecified)
-{
+function ipa_entity_setup(container, unspecified) {
 
-    var id = container.attr('id');
-    var state = id + '-facet';
-    var facet = $.bbq.getState(state, true) || unspecified || 'search';
-    var last_facet = window_hash_cache[state];
-
-    var facet_renders = {
-        search : function(){
-            state = id + '-filter';
-            var filter = $.bbq.getState(state, true);
-            var last_filter = window_hash_cache[state];
-            if (filter == last_filter) return;
-            _ipa_entity_setup(container);
-            window_hash_cache[state] = filter;
-
-        },
-        details : function (){
-            state = id + '-pkey';
-            var pkey = $.bbq.getState(state, true);
-            var last_pkey = window_hash_cache[state];
-            if (pkey == last_pkey) return;
-            _ipa_entity_setup(container);
-            window_hash_cache[state] = pkey;
-        },
-        associate : function () {
-            state = id + '-enroll';
-            var enroll = $.bbq.getState(state, true);
-            var last_enroll = window_hash_cache[state];
-            if (enroll == last_enroll) return;
-            _ipa_entity_setup(container);
-            window_hash_cache[state] = enroll;
-        },
-        records : function () {
-            state = id + '-record';
-            var records = $.bbq.getState(state, true);
-            var last_records = window_hash_cache[state];
-            if (records == last_records) return;
-            _ipa_entity_setup(container);
-            window_hash_cache[state] = record;
-        }
-    };
-
-    if (facet != last_facet) {
-        _ipa_entity_setup(container,unspecified);
-        window_hash_cache[state] = facet;
-    } else{
-        var render = facet_renders[facet];
-        if (render) {
-            render();
-        }
-        //TODO handle error.
-    }
-
-}
-
-function _ipa_entity_setup(container, unspecified) {
-
-    var obj_name = container.attr('id');
-
-    function reset_on_click() {
-        ipa_details_reset(container);
-        return (false);
-    }
-
-    function update_on_click() {
-        var pkey_name = ipa_objs[obj_name].primary_key;
-        ipa_details_update(container, ipa_details_cache[obj_name][pkey_name][0]);
-        return (false);
-    }
-
-    function new_on_click() {
-        add_dialog_create(obj_name, ipa_entity_add_list[obj_name]);
-        return (false);
-    }
-
-    function switch_view() {
-        var enroll_obj_name = $(this).attr('title');
-        var state = {};
-        if (enroll_obj_name != 'search' &&
-            enroll_obj_name != 'details' &&
-            enroll_obj_name != 'records') {
-            state[obj_name + '-facet'] = 'associate';
-            state[obj_name + '-enroll'] = enroll_obj_name;
-        } else {
-            state[obj_name + '-facet'] = enroll_obj_name;
-            state[obj_name + '-enroll'] = '';
-        }
-        $.bbq.pushState(state);
-    }
-
-    var facet_setups = {
-        search : function (unspecified) {
-            var filter = $.bbq.getState(obj_name + '-filter', true) || '';
-            search_create(obj_name, ipa_entity_search_list[obj_name], container);
-            ipa_make_button( 'ui-icon-plus',ipa_messages.button.add).
-                click(new_on_click).
-                appendTo($( "div#" + obj_name + " > div.search-controls"))
-            search_load(container, filter);
-        },
-
-        details : function(unspecified) {
-            var pkey = $.bbq.getState(obj_name + '-pkey', true);
-            ipa_entity_generate_views(obj_name, container, switch_view);
-            var sections = ipa_entity_get_details_sections(obj_name);
-            ipa_details_create(container, sections);
-            container.find('.details-reset').click(reset_on_click);
-            container.find('.details-update').click(update_on_click);
-            if (pkey||unspecified){
-                ipa_details_load(container, pkey, null, null);
-            }
-        },
-
-        associate : function facet(unspecified) {
-            var pkey = $.bbq.getState(obj_name + '-pkey', true) || '';
-            var enroll_obj_name = $.bbq.getState(obj_name + '-enroll', true) || '';
-            var attr = ipa_get_member_attribute(obj_name, enroll_obj_name);
-            var columns  = [
-                {
-                    title: ipa_objs[enroll_obj_name].label,
-                    column: attr + '_' + enroll_obj_name
-                }
-            ];
-            var association = ipa_entity_association_list[obj_name];
-            var association_config = association ? association[enroll_obj_name] : null;
-            var associator = association_config ? association_config.associator : null;
-            var method = association_config ? association_config.method : null;
-            var frm = new AssociationList(
-                obj_name, pkey, enroll_obj_name, columns, container,
-                associator, method
-            );
-            ipa_entity_generate_views(obj_name, container, switch_view);
-            frm.setup();
-        },
-
-        records: function(unspecified) {
-            records_facet.setup(obj_name, container, switch_view );
-        }
-
-    }
-
+    var entity = this;
 
     container.empty();
 
-    var facet = $.bbq.getState(obj_name + '-facet', true) ||
-        unspecified || 'search';
+    var facet_name = $.bbq.getState(entity.name + '-facet', true) || unspecified || 'search';
 
-    var facet_setup_function = facet_setups[facet];
-    if (facet_setup_function){
-        facet_setup_function(unspecified);
+    var facet = entity.get_facet(facet_name);
+    if (!facet) return;
+
+    if (IPA.entity_name == entity.name) {
+        if (entity.facet_name == facet_name) {
+            if (!facet.is_dirty()) return;
+
+        } else {
+            entity.facet_name = facet_name;
+        }
+    } else {
+        IPA.entity_name = entity.name;
+    }
+
+    if (facet.setup) {
+        facet.setup(container, unspecified);
     }
 }
 
-function ipa_entity_generate_views(obj_name, container, switch_view)
-{
-    var ul = $('<ul></ul>', {'class': 'entity-views'});
+function ipa_facet_setup_views(container) {
 
-    //TODO for single instance entites, don't display search
-    ul.append($('<li></li>', {
-        title: 'search',
-        text: 'Search',
-        click: switch_view
-    }));
+    var facet = this;
 
-    ul.append($('<li></li>', {
-        text: 'Details',
-        title: 'details',
-        click: switch_view
-    }).prepend('| '));
+    var ul = $('<ul/>', {'class': 'entity-views'});
 
-    var attribute_members = ipa_objs[obj_name].attribute_members;
-    for (attr in attribute_members) {
-        var objs = attribute_members[attr];
-        for (var i = 0; i < objs.length; ++i) {
-            var m = objs[i];
-            var label = ipa_objs[m].label;
+    var entity = IPA.get_entity(facet.entity_name);
+    var facets = entity.get_facets();
 
-            ul.append($('<li></li>', {
-                title: m,
-                text:label,
-                click: switch_view
-            }).prepend('| '));
-        }
-    }
+    for (var i=0; i<facets.length; i++) {
+        var other_facet = facets[i];
+        var facet_name = other_facet.name;
 
-    //TODO Additional facets go here
+        if (other_facet.label) {
 
-    var facets = ipa_entity_facet_list[obj_name];
-    if (facets){
-        for (var f = 0; f < facets.length; f += 1){
-            var facet = facets[f];
-            ul.append($('<li></li>', {
-                text: facet.name,
-                title: facet.name,
-                click: switch_view
-            }).prepend('| '));
+            var label = other_facet.label;
+            if (i > 0) label = '| '+label;
+
+            ul.append($('<li/>', {
+                title: other_facet.name,
+                text: label,
+                click: function(entity_name, facet_name) {
+                    return function() { IPA.show_page(entity_name, facet_name); }
+                }(facet.entity_name, facet_name)
+            }));
+
+        } else { // For now empty label indicates an association facet
+
+            var attribute_members = IPA.metadata[facet.entity_name].attribute_members;
+            for (var attribute_member in attribute_members) {
+                var other_entities = attribute_members[attribute_member];
+                for (var j = 0; j < other_entities.length; j++) {
+                    var other_entity = other_entities[j];
+                    var label = IPA.metadata[other_entity].label;
+
+                    if (i > 0 || j > 0) label = '| ' + label;
+
+                    ul.append($('<li/>', {
+                        title: other_entity,
+                        text: label,
+                        click: function(entity_name, facet_name, other_entity) {
+                            return function() { IPA.show_page(entity_name, facet_name, other_entity); }
+                        }(facet.entity_name, facet_name, other_entity)
+                    }));
+                }
+            }
         }
     }
 
@@ -286,11 +322,10 @@ function ipa_entity_generate_views(obj_name, container, switch_view)
 function ipa_entity_quick_links(tr, attr, value, entry_attrs) {
 
     var obj_name = tr.closest('.search-container').attr('title');
-    var pkey = ipa_objs[obj_name].primary_key;
+    var pkey = IPA.metadata[obj_name].primary_key;
     var pkey_value = entry_attrs[pkey][0];
 
-    var td = $("<td/>");
-    tr.append(td);
+    var td = $("<td/>").appendTo(tr);
 
     $("<a/>", {
         href: "#details",
@@ -304,12 +339,12 @@ function ipa_entity_quick_links(tr, attr, value, entry_attrs) {
         }
     }).appendTo(td);
 
-    var attribute_members = ipa_objs[obj_name].attribute_members;
+    var attribute_members = IPA.metadata[obj_name].attribute_members;
     for (attr_name in attribute_members) {
         var objs = attribute_members[attr_name];
         for (var i = 0; i < objs.length; ++i) {
             var m = objs[i];
-            var label = ipa_objs[m].label;
+            var label = IPA.metadata[m].label;
 
             $("<a/>", {
                 href: '#'+m,

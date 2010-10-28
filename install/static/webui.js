@@ -59,41 +59,37 @@ var ipa_whoami_pkey;
 /* main (document onready event handler) */
 $(function() {
 
-
     function whoami_on_win(data, text_status, xhr) {
         $(window).bind('hashchange', window_hashchange);
-        if (!data.error){
-            var whoami = data.result.result[0];
-            ipa_whoami_pkey=whoami.uid[0];
-            $('#loggedinas').find('strong').text(whoami.krbprincipalname[0]);
-            $('#loggedinas a').fragment(
-                {'user-facet':'details', 'user-pkey':ipa_whoami_pkey},2);
 
-            var navigation = $('#navigation');
+        var whoami = data.result.result[0];
+        ipa_whoami_pkey=whoami.uid[0];
+        $('#loggedinas').find('strong').text(whoami.krbprincipalname[0]);
+        $('#loggedinas a').fragment(
+            {'user-facet':'details', 'user-pkey':ipa_whoami_pkey},2);
 
-            if (whoami.hasOwnProperty('memberof_rolegroup') &&
-                whoami.memberof_rolegroup.length > 0){
-                nav_create(admin_tab_set, navigation, 'tabs');
+        var navigation = $('#navigation');
 
-            }else{
-                nav_create(self_serv_tab_set, navigation, 'tabs');
+        if (whoami.hasOwnProperty('memberof_rolegroup') &&
+            whoami.memberof_rolegroup.length > 0){
+            nav_create(admin_tab_set, navigation, 'tabs');
 
-                var state = {'user-pkey':ipa_whoami_pkey ,
-                             'user-facet': jQuery.bbq.getState('user-facet') ||
-                             'details'};
-                $.bbq.pushState(state);
-            }
+        } else {
+            nav_create(self_serv_tab_set, navigation, 'tabs');
 
-
-            $('#login_header').html(ipa_messages.login.header);
-        }else{
-            alert("Unable to find prinicpal for logged in user");
+            var state = {'user-pkey':ipa_whoami_pkey ,
+                         'user-facet': jQuery.bbq.getState('user-facet') ||
+                         'details'};
+            $.bbq.pushState(state);
         }
-    };
+
+
+        $('#login_header').html(IPA.messages.login.header);
+    }
 
     function init_on_win(data, text_status, xhr) {
         ipa_cmd('user_find', [], {"whoami":"true","all":"true"}, whoami_on_win, init_on_error, null);
-    };
+    }
 
     function init_on_error(xhr, text_status, error_thrown) {
         var navigation = $('#navigation').empty();
@@ -102,7 +98,7 @@ $(function() {
         navigation.append('<p>'+error_thrown.message+'</p>');
     }
 
-    ipa_init(null, null, init_on_win, init_on_error);
+    IPA.init(null, null, init_on_win, init_on_error);
 });
 
 /* main loop (hashchange event handler) */

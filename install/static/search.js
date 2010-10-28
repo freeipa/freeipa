@@ -21,30 +21,127 @@
 
 /* REQUIRES: ipa.js */
 
-function search_create(obj_name, scl, container)
-{
-    if (!scl){
-        scl = [];
+function ipa_search_column(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    that.name = spec.name;
+    that.label = spec.label || that.name;
+    that.facet = spec.facet;
+
+    that.init = spec.init || init;
+    that.setup = spec.setup || setup;
+
+    function init() {
     }
+
+    function setup(tr, attr, value, entry_attrs) {
+        search_generate_td(tr, attr, value, entry_attrs);
+    }
+
+    return that;
+}
+
+function ipa_search_facet(spec) {
+
+    spec = spec || {};
+
+    var that = ipa_facet(spec);
+
+    that.init = spec.init || init;
+    that.setup = spec.setup || setup;
+
+    that.columns = [];
+    that.columns_by_name = {};
+
+    that.get_columns = function() {
+        return that.columns;
+    };
+
+    that.get_column = function(name) {
+        return that.columns_by_name[name];
+    };
+
+    that.add_column = function(column) {
+        that.columns.push(column);
+        that.columns_by_name[column.name] = column;
+    };
+
+    that.create_column = function(spec) {
+        spec.facet = that;
+        var column = ipa_search_column(spec);
+        that.add_column(column);
+        return column;
+    };
+
+    function init() {
+    }
+
+    that.is_dirty = function() {
+        var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
+        return filter != that.filter;
+    };
+
+    function setup(container, unspecified) {
+
+        that.filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
+
+        search_create(that.entity_name, that.columns, container);
+
+        ipa_make_button('ui-icon-plus', IPA.messages.button.add).
+            click(function() {
+                var entity = IPA.get_entity(that.entity_name);
+                if (entity) {
+                    entity.add_dialog.open();
+                    return false;
+                }
+
+                var dialog = ipa_entity_get_add_dialog(that.entity_name);
+                dialog.open();
+
+                return false;
+            }).
+            appendTo($('.search-controls', container));
+
+        search_load(container, that.filter);
+    }
+
+    if (spec.columns) {
+        for (var i=0; i<spec.columns.length; i++) {
+            var column = spec.columns[i];
+            column.facet = that;
+            that.add_column(column);
+        }
+    }
+
+    that.init();
+
+    return that;
+}
+
+
+function search_create(entity_name, columns, container) {
 
     function find_on_click() {
         var filter = $(this).prev('input[type=text]').val();
         var state = {};
-        state[obj_name + '-filter'] = filter;
+        state[entity_name + '-filter'] = filter;
         $.bbq.pushState(state);
-    };
+    }
 
     function delete_on_click_outer() {
         var delete_list = [];
         var delete_dialog = $('<div></div>', {
-            title: ipa_messages.button.delete,
-            'class': 'search-dialog-delete',
+            title: IPA.messages.button.delete,
+            'class': 'search-dialog-delete'
         });
 
         function delete_on_click() {
-            ipa_cmd('del', delete_list, {}, delete_on_win, null, obj_name);
+            ipa_cmd('del', delete_list, {}, delete_on_win, null, entity_name);
             delete_dialog.dialog('close');
-        };
+        }
 
         function delete_on_win() {
             for (var i = 0; i < delete_list.length; ++i) {
@@ -54,11 +151,11 @@ function search_create(obj_name, scl, container)
                 if (chk)
                     chk.closest('tr').remove();
             }
-        };
+        }
 
         function cancel_on_click() {
             delete_dialog.dialog('close');
-        };
+        }
 
         container.find('.search-selector').each(function () {
             var jobj = $(this);
@@ -69,45 +166,52 @@ function search_create(obj_name, scl, container)
         if (delete_list.length == 0)
             return;
 
-        delete_dialog.text(ipa_messages.search.delete_confirm);
+        delete_dialog.text(IPA.messages.search.delete_confirm);
 
         delete_dialog.dialog({
             modal: true,
             buttons: {
                 'Delete': delete_on_click,
-                'Cancel': cancel_on_click,
-            },
+                'Cancel': cancel_on_click
+            }
         });
-    };
+    }
 
     if (!container) {
         alert('ERROR: search_create: Second argument "container" missing!');
-        return;
+        return null;
     }
 
-    container.attr('title', obj_name);
+    container.attr('title', entity_name);
     container.addClass('search-container');
 
-    container.append('<div class="search-controls"></div>');
-    var div = container.children().last();
-    div.append('<span class="search-filter"></span>');
-    var jobj = div.children().last();
-    jobj.append('<input type="text" />');
-    jobj.children().last().attr('name', 'search-' + obj_name + '-filter')
-    ipa_make_button('ui-icon-search',ipa_messages.button.find).
-        click(find_on_click).appendTo(jobj);
+    var search_controls = $('<div/>', {
+        'class': 'search-controls'
+    }).appendTo(container);
 
-    ipa_make_button('ui-icon-trash',ipa_messages.button.delete).
-        click(delete_on_click_outer).appendTo(jobj);
+    var search_filter = $('<span/>', {
+        'class': 'search-filter'
+    }).appendTo(search_controls);
 
-    div.append('<span class="search-buttons"></span>');
+    var filter = $('<input/>', {
+        'type': 'text',
+        'name': 'search-' + entity_name + '-filter'
+    }).appendTo(search_filter);
+
+    ipa_make_button('ui-icon-search', IPA.messages.button.find).
+        click(find_on_click).appendTo(search_filter);
+
+    ipa_make_button('ui-icon-trash',IPA.messages.button.delete).
+        click(delete_on_click_outer).appendTo(search_filter);
+
+    search_controls.append('<span class="search-buttons"></span>');
 
     var search_results = $('<div/>', {
-        class: 'search-results'
+        'class': 'search-results'
     }).appendTo(container);
 
     var search_table = $('<table/>', {
-        class: 'search-table'
+        'class': 'search-table'
     }).appendTo(search_results);
 
     search_table.append('<thead><tr></tr></thead>');
@@ -116,9 +220,9 @@ function search_create(obj_name, scl, container)
 
     var tr = search_table.find('tr');
     search_insert_checkbox_th(tr);
-    for (var i = 0; i < scl.length; ++i) {
-        var c = scl[i];
-        search_insert_th(tr, obj_name, c[0], c[1], c[2]);
+    for (var i = 0; i < columns.length; ++i) {
+        var c = columns[i];
+        search_insert_th(tr, entity_name, c.name, c.label, c.setup);
     }
 }
 
@@ -144,7 +248,7 @@ function search_insert_checkbox_th(jobj)
 
     var checkbox = $('<input />', {
         type: 'checkbox',
-        title: 'Select All',
+        title: 'Select All'
     });
     checkbox.click(select_all_on_click);
 
@@ -174,38 +278,41 @@ function search_insert_th(jobj, obj_name, attr, name, render_call)
     jobj.append(th);
 }
 
-function search_load(jobj, criteria, on_win, on_fail)
+function search_load(container, criteria, on_win, on_fail)
 {
-    var obj_name = jobj.attr('id');
+    var entity_name = container.attr('id');
 
     function search_on_success(data, text_status, xhr) {
         if (on_win)
             on_win(data, text_status, xhr);
         if (data.error)
             return;
-        search_display(obj_name, data);
-    };
+        search_display(entity_name, data);
+    }
 
     function search_on_error(xhr, text_status, error_thrown) {
         if (on_fail)
             on_fail(xhr, text_status, error_thrown);
 
-        var search_results = $('.search-results', jobj);
+        var search_results = $('.search-results', container);
         search_results.append('<p>Error: '+error_thrown.name+'</p>');
         search_results.append('<p>URL: '+this.url+'</p>');
         search_results.append('<p>'+error_thrown.message+'</p>');
     }
 
     ipa_cmd(
-      'find', [criteria], {all: true}, search_on_success, search_on_error, obj_name
+      'find', [criteria], {all: true}, search_on_success, search_on_error, entity_name
     );
 }
 
 function search_generate_tr(thead, tbody, entry_attrs)
 {
     var obj_name = tbody.closest('.search-container').attr('title');
-    var pkey = ipa_objs[obj_name].primary_key;
+    var pkey = IPA.metadata[obj_name].primary_key;
     var pkey_value = entry_attrs[pkey];
+
+    var entity = IPA.get_entity(obj_name);
+    var facet = entity ? entity.get_facet('search') : null;
 
     tbody.append('<tr></tr>');
     var tr = tbody.children().last();
@@ -217,11 +324,17 @@ function search_generate_tr(thead, tbody, entry_attrs)
         var attr = jobj.attr('abbr');
         var value = entry_attrs[attr];
 
+        var column = facet ? facet.get_column(attr) : null;
         var render_call = window[jobj.attr('title')];
-        if (typeof render_call == 'function') {
+
+        if (column && column.setup) {
+            column.setup(tr, attr, value, entry_attrs);
+
+        } else if (typeof render_call == 'function') {
             render_call(tr, attr, value, entry_attrs);
+
         } else
-            search_generate_td(tr, attr, value);
+            search_generate_td(tr, attr, value, entry_attrs);
     }
 
     tbody.find('.search-a-pkey').click(function () {
@@ -242,7 +355,7 @@ function search_generate_checkbox_td(tr, pkey)
         name: pkey,
         title: pkey,
         type: 'checkbox',
-        'class': 'search-selector',
+        'class': 'search-selector'
     });
     var td = $('<td></td>');
 
@@ -253,7 +366,7 @@ function search_generate_checkbox_td(tr, pkey)
 var _search_td_template = '<td title="A">V</td>';
 var _search_a_pkey_template = '<a href="jslink" class="search-a-pkey">V</a>';
 
-function search_generate_td(tr, attr, value)
+function search_generate_td(tr, attr, value, entry_attrs)
 {
     var obj_name = tr.closest('.search-container').attr('title');
 

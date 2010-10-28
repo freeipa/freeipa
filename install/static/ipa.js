@@ -22,48 +22,82 @@
 
 var IPA_DEFAULT_JSON_URL = '/ipa/json';
 
-var ipa_json_url;
-var ipa_use_static_files;
-
-var ipa_ajax_options = {
-    type: 'POST',
-    contentType: 'application/json',
-    dataType: 'json',
-    async: true,
-    processData: false
-};
-
 /* JSON-RPC ID counter */
 var ipa_jsonrpc_id = 0;
 
-/* IPA objects data in JSON format */
-var ipa_messages = {};
-var ipa_objs = {};
+var IPA = function() {
 
-var ipa_dialog = $('<div/>', {id: 'ipa_dialog'});
+    var that = {};
 
-/* initialize the IPA JSON-RPC helper
- * arguments:
- *   url - JSON-RPC URL to use (optional) */
-function ipa_init(url, use_static_files, on_win, on_error)
-{
-    if (url)
-        ipa_json_url = url;
+    that.json_url = null;
+    that.use_static_files = false;
 
-    if (use_static_files)
-        ipa_use_static_files = use_static_files;
+    that.ajax_options = {
+        type: 'POST',
+        contentType: 'application/json',
+        dataType: 'json',
+        async: true,
+        processData: false
+    };
 
-    $.ajaxSetup(ipa_ajax_options);
+    that.messages = {};
+    that.metadata = {};
 
-    ipa_cmd('json_metadata', [], {},
-        function(data, text_status, xhr) {
-            ipa_objs = data.result.metadata;
-            ipa_messages = data.result.messages;
-            if (on_win) on_win(data, text_status, xhr);
-        },
-        on_error
-    );
-}
+    that.entities = [];
+    that.entities_by_name = {};
+
+    that.error_dialog = $('<div/>', {
+        id: 'error_dialog'
+    });
+
+    /* initialize the IPA JSON-RPC helper
+     * arguments:
+     *   url - JSON-RPC URL to use (optional) */
+    that.init = function(url, use_static_files, on_success, on_error) {
+        if (url)
+            that.json_url = url;
+
+        if (use_static_files)
+            that.use_static_files = use_static_files;
+
+        $.ajaxSetup(that.ajax_options);
+
+        ipa_cmd('json_metadata', [], {},
+            function(data, text_status, xhr) {
+                that.metadata = data.result.metadata;
+                that.messages = data.result.messages;
+                if (on_success) on_success(data, text_status, xhr);
+            },
+            on_error
+        );
+    };
+
+    that.get_entities = function() {
+        return that.entities;
+    };
+
+    that.get_entity = function(name) {
+        return that.entities_by_name[name];
+    };
+
+    that.add_entity = function(entity) {
+        that.entities.push(entity);
+        that.entities_by_name[entity.name] = entity;
+    };
+
+    that.show_page = function(entity_name, facet_name, other_entity) {
+
+        var entity = IPA.get_entity(entity_name);
+        var facet = entity.get_facet(facet_name);
+
+        var state = {};
+        state[entity_name + '-facet'] = facet_name;
+        state[entity_name + '-enroll'] = other_entity ? other_entity : '';
+        $.bbq.pushState(state);
+    };
+
+    return that;
+}();
 
 /* call an IPA command over JSON-RPC
  * arguments:
@@ -96,26 +130,26 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
     }
 
     function ipa_error_handler(xhr, text_status, error_thrown) {
-        ipa_dialog.empty();
-        ipa_dialog.attr('title', 'Error: '+error_thrown.name);
+        IPA.error_dialog.empty();
+        IPA.error_dialog.attr('title', 'Error: '+error_thrown.name);
 
-        ipa_dialog.append('<p>URL: '+this.url+'</p>');
+        IPA.error_dialog.append('<p>URL: '+this.url+'</p>');
         if (error_thrown.message) {
-            ipa_dialog.append('<p>'+error_thrown.message+'</p>');
+            IPA.error_dialog.append('<p>'+error_thrown.message+'</p>');
         }
 
         var that = this;
 
-        ipa_dialog.dialog({
+        IPA.error_dialog.dialog({
             modal: true,
             width: 400,
             buttons: {
                 'Retry': function() {
-                    ipa_dialog.dialog('close');
+                    IPA.error_dialog.dialog('close');
                     ipa_cmd(name, args, options, win_callback, fail_callback, objname);
                 },
                 'Cancel': function() {
-                    ipa_dialog.dialog('close');
+                    IPA.error_dialog.dialog('close');
                     fail_callback.call(that, xhr, text_status, error_thrown);
                 }
             }
@@ -129,12 +163,12 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
     if (objname)
         method_name = objname + '_' + name;
 
-    var url = ipa_json_url;
+    var url = IPA.json_url;
 
     if (!url)
         url = IPA_DEFAULT_JSON_URL;
 
-    if (ipa_use_static_files)
+    if (IPA.use_static_files)
         url += '/' + method_name + '.json';
 
     var data = {
@@ -182,7 +216,7 @@ function ipa_parse_qs(qs)
 /* helper function used to retrieve information about an attribute */
 function ipa_get_param_info(obj_name, attr)
 {
-    var ipa_obj = ipa_objs[obj_name];
+    var ipa_obj = IPA.metadata[obj_name];
     if (!ipa_obj) return null;
 
     var takes_params = ipa_obj.takes_params;
@@ -200,10 +234,10 @@ function ipa_get_param_info(obj_name, attr)
 /* helper function used to retrieve attr name with members of type `member` */
 function ipa_get_member_attribute(obj_name, member)
 {
-    var ipa_obj = ipa_objs[obj_name];
+    var ipa_obj = IPA.metadata[obj_name];
     if (!ipa_obj) return null;
 
-    var attribute_members = ipa_obj.attribute_members
+    var attribute_members = ipa_obj.attribute_members;
     for (var a in attribute_members) {
         var objs = attribute_members[a];
         for (var i = 0; i < objs.length; ++i) {

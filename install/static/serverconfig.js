@@ -66,6 +66,9 @@ ipa_entity_set_details_definition('taskgroup', [
         input({name:'description', label:'Description'})
 ]);
 
+ipa_entity_set_association_definition('taskgroup', {
+});
+
 ipa_entity_set_association_definition('rolegroup', {
     'rolegroup': { associator: BulkAssociator }
 });

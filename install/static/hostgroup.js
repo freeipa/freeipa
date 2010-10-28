@@ -38,3 +38,6 @@ ipa_entity_set_details_definition('hostgroup', [
         input({name:'cn', label:'Name'}).
         input({name: 'description', label:'Description'})
 ]);
+
+ipa_entity_set_association_definition('hostgroup', {
+});

@@ -1,5 +1,6 @@
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
+ *    Endi Sukma Dewata <edewata@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -23,40 +24,108 @@
 var IPA_ADD_POPULATE = 1;
 var IPA_ADD_UPDATE = 2;
 
-function add_dialog_create(obj_name, adl)
-{
-    var add_dialog = $('<div></div>');
+function ipa_add_field(spec) {
 
-    function add(evt, called_from_add_and_edit) {
+    spec = spec || {};
+
+    var that = {};
+    that.name = spec.name;
+    that.label = spec.label;
+
+    that.init = spec.init;
+    that.setup = spec.setup;
+
+    return that;
+}
+
+function ipa_add_dialog(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+    that.name = spec.name;
+    that.title = spec.title;
+    that.entity_name = spec.entity_name;
+
+    that.init = spec.init;
+
+    that.fields = [];
+    that.fields_by_name = {};
+
+    var dialog = $('<div/>');
+
+    that.get_fields = function() {
+        return that.fields;
+    };
+
+    that.get_field = function(name) {
+        return that.fields_by_name[name];
+    };
+
+    that.add_field = function(field) {
+        that.fields.push(field);
+        that.fields_by_name[field.name] = field;
+    };
+
+    that.create_field = function(spec) {
+        var field = ipa_add_field(spec);
+        that.add_field(field);
+        return field;
+    };
+
+    that.open = function() {
+        dialog.empty();
+        dialog.attr('id', that.name);
+        dialog.attr('title', that.title);
+
+        for (var i = 0; i < that.fields.length; ++i) {
+            var field = that.fields[i];
+            if (field.setup) {
+                field.setup(dialog, IPA_ADD_POPULATE);
+            } else {
+                dialog.append('<label>' + field.label + '</label>');
+                dialog.append('<input type="text" name="' + field.name + '" />');
+            }
+        }
+
+        dialog.dialog({
+            modal: true,
+            buttons: {
+                'Add': that.add,
+                'Add and edit': that.add_and_edit,
+                'Cancel': that.cancel
+            }
+        });
+    };
+
+    that.add = function(evt, called_from_add_and_edit) {
         var pkey = [];
         var options = {};
-        var pkey_name = ipa_objs[obj_name].primary_key;
+        var pkey_name = IPA.metadata[that.entity_name].primary_key;
 
         function add_win(data, text_status, xhr) {
             if (called_from_add_and_edit) {
                 var state = {};
-                state[obj_name + '-facet'] = 'details';
-                state[obj_name + '-pkey'] = pkey[0];
+                state[that.entity_name + '-facet'] = 'details';
+                state[that.entity_name + '-pkey'] = pkey[0];
                 $.bbq.pushState(state);
             }
-        };
+        }
 
-        var fields = adl[2];
-        for (var i = 0; i < fields.length; ++i) {
-            var f = fields[i];
-            var attr = f[0];
-            if (typeof f[2] == 'function') {
-                var value = f[2](add_dialog, IPA_ADD_UPDATE);
+        for (var i = 0; i < that.fields.length; ++i) {
+            var field = that.fields[i];
+            if (field.setup) {
+                var value = field.setup(dialog, IPA_ADD_UPDATE);
                 if (value != null) {
-                    if (attr == pkey_name)
+                    if (field.name == pkey_name)
                         pkey = [value];
                     else
-                        options[attr] = value;
+                        options[field.name] = value;
                 }
             }
         }
 
-        add_dialog.find('input').each(function () {
+        dialog.find('input').each(function () {
             var jobj = $(this);
             var attr = jobj.attr('name');
             var value = jobj.val();
@@ -68,40 +137,20 @@ function add_dialog_create(obj_name, adl)
             }
         });
 
-        ipa_cmd('add', pkey, options, add_win, null, obj_name);
-        add_dialog.dialog('close');
+        ipa_cmd('add', pkey, options, add_win, null, that.entity_name);
     };
 
-    function add_and_edit(evt) {
-        add(evt, true);
-        add_dialog.dialog('close');
+    that.add_and_edit = function(evt) {
+        that.add(evt, true);
+        dialog.dialog('close');
     };
 
-    function cancel() {
-        add_dialog.dialog('close');
+    that.cancel = function() {
+        dialog.dialog('close');
     };
 
-    add_dialog.attr('id', adl[0]);
-    add_dialog.attr('title', adl[1]);
+    if (that.init) that.init();
 
-    var fields = adl[2];
-    for (var i = 0; i < fields.length; ++i) {
-        var f = fields[i];
-        if (typeof f[2] == 'function') {
-            f[2](add_dialog, IPA_ADD_POPULATE);
-        } else {
-            add_dialog.append('<label>' + f[1] + '</label>');
-            add_dialog.append('<input type="text" name="' + f[0] + '" />');
-        }
-    }
-
-    add_dialog.dialog({
-        modal: true,
-        buttons: {
-            'Add': add,
-            'Add and edit': add_and_edit,
-            'Cancel': cancel
-        }
-    });
+    return that;
 }
 

@@ -44,13 +44,13 @@ function SerialAssociator(form, manyObjPkeys, on_success)
             ipa_cmd( form.method,args, options ,
                      function(data, text_status, xhr) {
                          if (data.error){
-                             alert("error adding member: "+data.error.message);
+                             alert('error adding member: '+data.error.message);
                          }else{
                              associator.associateNext();
                          }
                      },
                      function(xhr, text_status, error_thrown) {
-                         alert("associateFailure");
+                         alert('associateFailure');
                      },
                      form.manyObj );
         }else{
@@ -74,11 +74,11 @@ function BulkAssociator(form, manyObjPkeys, on_success)
         var form = this.form;
         var option = manyObjPkeys.shift();
         while(manyObjPkeys.length > 0) {
-            option += "," + manyObjPkeys.shift();
+            option += ',' + manyObjPkeys.shift();
         }
 
         var options = {
-          "all":true
+          'all':true
         };
         options[form.manyObj] = option;
 
@@ -87,13 +87,13 @@ function BulkAssociator(form, manyObjPkeys, on_success)
         ipa_cmd( form.method,args, options ,
                  function(data, text_status, xhr) {
                      if (data.error){
-                         alert("error adding member: "+data.error.message);
+                         alert('error adding member: '+data.error.message);
                      }else{
                          associator.on_success();
                      }
                  },
                  function(xhr, text_status, error_thrown) {
-                     alert("associateFailure");
+                     alert('associateFailure');
                  },
                  form.oneObj );
     }
@@ -127,7 +127,7 @@ function AssociationForm(oneObj, pkey, manyObj, on_success, associatorConstructo
         this.associatorConstructor = BulkAssociator;
 
     this.setup = function() {
-        var label = ipa_objs[form.manyObj].label;
+        var label = IPA.metadata[form.manyObj].label;
 
         form.dialog.attr('title', 'Enroll '+form.oneObj+' '+form.pkey+' in '+label);
 
@@ -139,20 +139,20 @@ function AssociationForm(oneObj, pkey, manyObj, on_success, associatorConstructo
         var enrollments = $('#enrollments', form.dialog);
         enrollments.html('');
 
-        $("#addToList", form.dialog).click(function(){
+        $('#addToList', form.dialog).click(function(){
             $('#availableList :selected', form.dialog).each(function(i, selected){
                 enrollments.append(selected);
             });
             $('#availableList :selected', form.dialog).remove();
         });
-        $("#removeFromList", form.dialog).click(function(){
+        $('#removeFromList', form.dialog).click(function(){
             $('#enrollments :selected', form.dialog).each(function(i, selected){
                 availableList.append(selected);
             });
             $('#enrollments :selected', form.dialog).remove();
         });
 
-        $("#find", form.dialog).click(function(){
+        $('#find', form.dialog).click(function(){
             form.search();
         });
 
@@ -170,29 +170,29 @@ function AssociationForm(oneObj, pkey, manyObj, on_success, associatorConstructo
 
     this.close = function() {
         form.dialog.dialog('close');
-    }
+    };
 
     this.search = function() {
 
         function search_on_win(data, text_status, xhr) {
             var results = data.result;
-            var list = $("#availableList", form.dialog);
-            list.html("");
+            var list = $('#availableList', form.dialog);
+            list.html('');
 
-            var searchColumn = ipa_objs[form.manyObj].primary_key;
+            var searchColumn = IPA.metadata[form.manyObj].primary_key;
 
             for (var i =0; i != results.count; i++){
                 var result = results.result[i];
-                $("<option></option>",{
+                $('<option></option>',{
                     value: result[searchColumn][0],
                     html: result[searchColumn][0]
                 }).appendTo(list);
             }
-        };
+        }
 
         function search_on_fail(xhr, text_status, errow_thrown) {
-            alert("associationSearchFailure");
-        };
+            alert('associationSearchFailure');
+        }
 
         var queryFilter = $('#associateFilter', form.dialog).val();
         ipa_cmd('find', [queryFilter], {}, search_on_win, null, form.manyObj);
@@ -209,32 +209,109 @@ function AssociationForm(oneObj, pkey, manyObj, on_success, associatorConstructo
     };
 }
 
-/**
-    A modfied version of search. It shows the  associations for an object.
-*/
-function AssociationList(obj, pkey, manyObj, associationColumns, jobj, associationConstructor, method)
-{
-    var form = this;
+function ipa_association_config(spec) {
+    spec = spec || {};
 
-    this.obj = obj;
-    this.pkey = pkey;
-    this.associationColumns = associationColumns;
-    this.manyObj = manyObj;
-    this.container = jobj;
-    this.associationConstructor = associationConstructor;
-    this.method = method;
+    var that = {};
 
-    this.refresh = function() {
+    that.name = spec.name;
+    that.associator = spec.associator;
+    that.method = spec.method;
+
+    return that;
+}
+
+function ipa_association_facet(spec) {
+
+    spec = spec || {};
+
+    var that = ipa_facet(spec);
+
+    that.configs = [];
+    that.configs_by_name = {};
+
+    that.other_entity = null;
+
+    that.get_configs = function() {
+        return that.configs;
+    };
+
+    that.get_config = function(name) {
+        return that.configs_by_name[name];
+    };
+
+    that.add_config = function(config) {
+        that.configs.push(config);
+        that.configs_by_name[config.name] = config;
+    };
+
+    that.create_config = function(spec) {
+        var config = ipa_association_config(spec);
+        that.add_config(config);
+        return config;
+    };
+
+    that.is_dirty = function() {
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var other_entity = $.bbq.getState(that.entity_name + '-enroll', true) || '';
+        return pkey != that.pkey || other_entity != that.other_entity;
+    };
+
+    that.setup = function(container, unspecified) {
+
+        that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        that.other_entity = $.bbq.getState(that.entity_name + '-enroll', true) || '';
+
+        that.member_attrribute = ipa_get_member_attribute(that.entity_name, that.other_entity);
+        that.columns = [
+            {
+                'title': IPA.metadata[that.other_entity].label,
+                'column': that.member_attrribute + '_' + that.other_entity
+            }
+        ];
+
+        var config = that.get_config(that.other_entity);
+        that.associator = config ? config.associator : null;
+        that.method = config ? config.method : null;
+
+        that.setup_views(container);
+
+        //TODO I18N
+        var header_message = that.other_entity + '(s) enrolled in '  +
+            that.entity_name + ' ' + that.pkey;
+        container.append($('<h2/>',{html:  header_message }) );
+        association_list_create(that.entity_name, container);
+        container.find('.search-filter').css('display', 'none');
+        container.find('.search-buttons').html('');
+
+        $('<input/>', {
+            type:  'button',
+            value: 'enroll',
+            click: function() {
+                that.show_enrollment_dialog();
+            }
+        }).appendTo(container.find('.search-buttons'));
+
+        var header = $('<tr></tr>').appendTo(container.find('.search-table thead:last'));
+        for (var i =0 ; i != that.columns.length ;i++){
+            $('<th></th>',{
+                html: that.columns[i].title
+            }).appendTo(header);
+        }
+        that.refresh(container);
+    };
+
+    that.refresh = function(container) {
 
         function refresh_on_success(data, text_status, xhr) {
-            var tbody = form.container.find('.search-table tbody');
+            var tbody = container.find('.search-table tbody');
             tbody.empty();
-            var associationList = data.result.result[form.associationColumns[0].column];
+            var associationList = data.result.result[that.columns[0].column];
             for (var j = 0; j < associationList.length; j++){
-                var row  = $("<tr/>").appendTo(tbody);
-                for (var k = 0; k < associationColumns.length ;k++){
-                    var column = form.associationColumns[k].column;
-                    $("<td></td>",{
+                var row  = $('<tr/>').appendTo(tbody);
+                for (var k = 0; k < that.columns.length ;k++){
+                    var column = that.columns[k].column;
+                    $('<td></td>',{
                         html: data.result.result[column][j]
                     }).appendTo(row);
                 }
@@ -242,54 +319,32 @@ function AssociationList(obj, pkey, manyObj, associationColumns, jobj, associati
         }
 
         function refresh_on_error(xhr, text_status, error_thrown) {
-            var search_results = $('.search-results', jobj).empty();
+            var search_results = $('.search-results', container).empty();
             search_results.append('<p>Error: '+error_thrown.name+'</p>');
             search_results.append('<p>URL: '+this.url+'</p>');
             search_results.append('<p>'+error_thrown.message+'</p>');
         }
 
-        ipa_cmd('show', [this.pkey], {}, refresh_on_success, refresh_on_error, form.obj);
-    }
+        ipa_cmd('show', [that.pkey], {}, refresh_on_success, refresh_on_error, that.entity_name);
+    };
 
-    this.setup = function() {
-        //TODO I18N
-        var header_message = manyObj + "(s) enrolled in "  +
-            this.obj + " " + pkey;
-        this.container.append($("<h2/>",{html:  header_message }) );
-        association_list_create(this.obj, this.container);
-        this.container.find(".search-filter").css("display", "none");
-        this.container.find(".search-buttons").html("");
-        $("<input/>", {
-            type:  'button',
-            value: 'enroll',
-            click: function() {
-                form.show_enrollment_dialog();
-            }
-        }).appendTo(this.container.find(".search-buttons"));
-        var header = $("<tr></tr>").appendTo(this.container.find('.search-table thead:last'));
-        for (var i =0 ; i != associationColumns.length ;i++){
-            $("<th></th>",{
-                html: associationColumns[i].title
-            }).appendTo(header);
-        }
-        this.refresh();
-    }
-
-    this.show_enrollment_dialog = function() {
+    that.show_enrollment_dialog = function() {
 
         var enrollment_dialog = new AssociationForm(
-            this.obj,
-            this.pkey,
-            this.manyObj,
+            that.entity_name,
+            that.pkey,
+            that.other_entity,
             function() {
-                form.refresh();
+                that.refresh();
                 enrollment_dialog.close();
             },
-            this.associationConstructor,
-            this.method
+            that.associator,
+            that.method
         );
         enrollment_dialog.setup();
-    }
+    };
+
+    return that;
 }
 
 
