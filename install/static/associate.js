@@ -321,7 +321,7 @@ function ipa_association_facet(spec) {
         function refresh_on_error(xhr, text_status, error_thrown) {
             var search_results = $('.search-results', container).empty();
             search_results.append('<p>Error: '+error_thrown.name+'</p>');
-            search_results.append('<p>URL: '+this.url+'</p>');
+            search_results.append('<p>'+error_thrown.title+'</p>');
             search_results.append('<p>'+error_thrown.message+'</p>');
         }
 

@@ -109,35 +109,7 @@ var IPA = function() {
  *   objname - name of an IPA object (optional) */
 function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
 {
-    function ipa_success_handler(data, text_status, xhr) {
-        if (!data) {
-            var error_thrown = {
-                name: 'HTTP Error '+xhr.status,
-                message: data ? xhr.statusText : "No response"
-            };
-            ipa_error_handler.call(this, xhr, text_status, error_thrown);
-
-        } else if (data.error) {
-            var error_thrown = {
-                name: 'IPA Error '+data.error.code,
-                message: data.error.message
-            };
-            ipa_error_handler.call(this, xhr, text_status, error_thrown);
-
-        } else if (win_callback) {
-            win_callback.call(this, data, text_status, xhr);
-        }
-    }
-
-    function ipa_error_handler(xhr, text_status, error_thrown) {
-        IPA.error_dialog.empty();
-        IPA.error_dialog.attr('title', 'Error: '+error_thrown.name);
-
-        IPA.error_dialog.append('<p>URL: '+this.url+'</p>');
-        if (error_thrown.message) {
-            IPA.error_dialog.append('<p>'+error_thrown.message+'</p>');
-        }
-
+    function dialog_open(xhr, text_status, error_thrown) {
         var that = this;
 
         IPA.error_dialog.dialog({
@@ -154,6 +126,60 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
                 }
             }
         });
+    }
+
+    function success_handler(data, text_status, xhr) {
+        if (!data) {
+            var error_thrown = {
+                title: 'HTTP Error '+xhr.status,
+                message: data ? xhr.statusText : "No response"
+            };
+            http_error_handler.call(this, xhr, text_status, error_thrown);
+
+        } else if (data.error) {
+            var error_thrown = {
+                title: 'IPA Error '+data.error.code,
+                message: data.error.message
+            };
+            ipa_error_handler.call(this, xhr, text_status, error_thrown);
+
+        } else if (win_callback) {
+            win_callback.call(this, data, text_status, xhr);
+        }
+    }
+
+    function error_handler(xhr, text_status, error_thrown) {
+        error_thrown.title = 'AJAX Error: '+error_thrown.name;
+        ajax_error_handler.call(this, xhr, text_status, error_thrown);
+    }
+
+    function ajax_error_handler(xhr, text_status, error_thrown) {
+        IPA.error_dialog.empty();
+        IPA.error_dialog.attr('title', error_thrown.title);
+
+        IPA.error_dialog.append('<p>URL: '+this.url+'</p>');
+        IPA.error_dialog.append('<p>'+error_thrown.message+'</p>');
+
+        dialog_open.call(this, xhr, text_status, error_thrown);
+    }
+
+    function http_error_handler(xhr, text_status, error_thrown) {
+        IPA.error_dialog.empty();
+        IPA.error_dialog.attr('title', error_thrown.title);
+
+        IPA.error_dialog.append('<p>URL: '+this.url+'</p>');
+        IPA.error_dialog.append('<p>'+error_thrown.message+'</p>');
+
+        dialog_open.call(this, xhr, text_status, error_thrown);
+    }
+
+    function ipa_error_handler(xhr, text_status, error_thrown) {
+        IPA.error_dialog.empty();
+        IPA.error_dialog.attr('title', error_thrown.title);
+
+        IPA.error_dialog.append('<p>'+error_thrown.message+'</p>');
+
+        dialog_open.call(this, xhr, text_status, error_thrown);
     }
 
     var id = ipa_jsonrpc_id++;
@@ -180,8 +206,8 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
     var request = {
         url: url,
         data: JSON.stringify(data),
-        success: ipa_success_handler,
-        error: ipa_error_handler
+        success: success_handler,
+        error: error_handler
     };
 
     $.ajax(request);

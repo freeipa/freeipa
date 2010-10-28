@@ -335,7 +335,7 @@ function ipa_details_load(container, pkey, on_win, on_fail)
 
         var details = $('.details', container).empty();
         details.append('<p>Error: '+error_thrown.name+'</p>');
-        details.append('<p>URL: '+this.url+'</p>');
+        details.append('<p>'+error_thrown.title+'</p>');
         details.append('<p>'+error_thrown.message+'</p>');
     }
 

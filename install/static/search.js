@@ -296,7 +296,7 @@ function search_load(container, criteria, on_win, on_fail)
 
         var search_results = $('.search-results', container);
         search_results.append('<p>Error: '+error_thrown.name+'</p>');
-        search_results.append('<p>URL: '+this.url+'</p>');
+        search_results.append('<p>'+error_thrown.title+'</p>');
         search_results.append('<p>'+error_thrown.message+'</p>');
     }
 
