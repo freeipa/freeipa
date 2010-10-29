@@ -15,7 +15,7 @@ openssl-devel
 nspr-devel
 nss-devel
 mozldap-devel
-mod_python
+mod_wsgi
 gcc
 python-ldap
 TurboGears
