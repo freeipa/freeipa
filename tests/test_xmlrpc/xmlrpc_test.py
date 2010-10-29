@@ -39,6 +39,10 @@ fuzzy_uuid = Fuzzy(
     '^[0-9a-f]{8}-[0-9a-f]{8}-[0-9a-f]{8}-[0-9a-f]{8}$'
 )
 
+# Matches netgroup dn
+fuzzy_netgroupdn = Fuzzy(
+    'ipauniqueid=[0-9a-f]{8}-[0-9a-f]{8}-[0-9a-f]{8}-[0-9a-f]{8},cn=ng,cn=alt,%s' % api.env.basedn
+)
 
 try:
     if not api.Backend.xmlclient.isconnected():

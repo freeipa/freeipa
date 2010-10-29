@@ -90,7 +90,6 @@ hbacsvc = [
 hbacsvcgroup = [
     u'ipaobject',
     u'ipahbacservicegroup',
-    u'nestedGroup',
     u'groupOfNames',
     u'top',
 ]
@@ -105,4 +104,10 @@ sudocmdgroup = [
     u'ipasudocmdgrp',
     u'groupOfNames',
     u'top',
+]
+
+netgroup = [
+    u'ipaobject',
+    u'ipaassociation',
+    u'ipanisnetgroup',
 ]

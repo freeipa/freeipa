@@ -199,14 +199,17 @@ class LDAPObject(Object):
         return parent_dn
 
     def get_primary_key_from_dn(self, dn):
-        if self.rdn_attribute:
-            (dn, entry_attrs) = self.backend.get_entry(
-                dn, [self.primary_key.name]
-            )
-            try:
-                return entry_attrs[pkey][0]
-            except (KeyError, IndexError):
-                return ''
+        try:
+            if self.rdn_attribute:
+                (dn, entry_attrs) = self.backend.get_entry(
+                    dn, [self.primary_key.name]
+                )
+                try:
+                    return entry_attrs[self.primary_key.name][0]
+                except (KeyError, IndexError):
+                    return ''
+        except errors.NotFound:
+            pass
         return dn[len(self.primary_key.name) + 1:dn.find(',')]
 
     def get_ancestor_primary_keys(self):

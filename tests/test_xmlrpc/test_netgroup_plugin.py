@@ -21,13 +21,13 @@
 Test the `ipalib/plugins/netgroup.py` module.
 """
 
-import sys
 import nose
 import krbV
-from xmlrpc_test import XMLRPC_test, assert_attr_equal, assert_is_member
 from ipalib import api
 from ipalib import errors
 from ipaserver.plugins.ldap2 import ldap2
+from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_netgroupdn
+from tests.test_xmlrpc import objectclasses
 
 # Global so we can save the value between tests
 netgroup_dn = None
@@ -35,371 +35,1047 @@ netgroup_dn = None
 # See if our LDAP server is up and we can talk to it over GSSAPI
 ccache = krbV.default_context().default_ccache().name
 
-def entry_in_failed(entry, failed):
-    """
-    entry is what we're looking for
-    failed is a tuple of tuples of the form (failure, exception)
-    """
-    for f in failed:
-        if entry == f[0]:
-            return True
-    return False
+netgroup1 = u'netgroup1'
+netgroup2 = u'netgroup2'
 
-class test_netgroup(XMLRPC_test):
+host1 = u'ipatesthost.%s' % api.env.domain
+host_dn1 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (host1, api.env.basedn)
+
+unknown_host = u'unknown'
+
+hostgroup1 = u'hg1'
+hostgroup_dn1 = u'cn=%s,cn=hostgroups,cn=accounts,%s' % (hostgroup1, api.env.basedn)
+
+user1 = u'jexample'
+
+# user2 is a member of testgroup
+user2 = u'pexample'
+
+group1 = u'testgroup'
+
+class test_netgroup(Declarative):
     """
     Test the `netgroup` plugin.
     """
-    ng_cn = u'ng1'
-    ng_description = u'Netgroup'
-    ng_kw = {'cn': ng_cn, 'description': ng_description, 'nisdomainname': u'example.com', 'raw': True}
 
-    host_fqdn = u'ipatesthost.%s' % api.env.domain
-    host_description = u'Test host'
-    host_localityname = u'Undisclosed location'
-    host_kw = {'fqdn': host_fqdn, 'description': host_description, 'localityname': host_localityname, 'raw': True, 'force': True}
+    cleanup_commands = [
+        ('netgroup_del', [netgroup1], {}),
+        ('netgroup_del', [netgroup2], {}),
+        ('host_del', [host1], {}),
+        ('hostgroup_del', [hostgroup1], {}),
+        ('user_del', [user1], {}),
+        ('user_del', [user2], {}),
+        ('group_del', [group1], {}),
+    ]
 
-    hg_cn = u'hg1'
-    hg_description = u'Netgroup'
-    hg_kw = {'cn': hg_cn, 'description': hg_description, 'raw': True}
+    tests=[
 
-    user_uid = u'jexample'
-    user_givenname = u'Jim'
-    user_sn = u'Example'
-    user_home = u'/home/%s' % user_uid
-    user_kw = {'givenname': user_givenname,'sn': user_sn,'uid': user_uid,'homedirectory': user_home, 'raw': True}
+        dict(
+            desc='Try to retrieve non-existent %r' % netgroup1,
+            command=('netgroup_show', [netgroup1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
-    # user2 is a member of testgroup
-    user2_uid = u'pexample'
-    user2_givenname = u'Pete'
-    user2_sn = u'Example'
-    user2_home = u'/home/%s' % user2_uid
-    user2_kw = {'givenname': user2_givenname,'sn': user2_sn,'uid': user2_uid,'homedirectory': user2_home, 'raw': True}
 
-    group_cn = u'testgroup'
-    group_description = u'This is a test'
-    group_kw = {'description': group_description,'cn': group_cn}
+        dict(
+            desc='Try to update non-existent %r' % netgroup1,
+            command=('netgroup_mod', [netgroup1],
+                dict(description=u'Updated hostgroup 1')
+            ),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
-    def test_1_netgroup_add(self):
-        """
-        Test the `xmlrpc.netgroup_add` method.
-        """
-        entry = api.Command['netgroup_add'](**self.ng_kw)['result']
-        assert_attr_equal(entry, 'description', self.ng_description)
-        assert_attr_equal(entry, 'cn', self.ng_cn)
 
-    def test_2_add_data(self):
-        """
-        Add the data needed to do additional testing.
-        """
-        # Add a host
-        entry = api.Command['host_add'](**self.host_kw)['result']
-        assert_attr_equal(entry, 'description', self.host_description)
-        assert_attr_equal(entry, 'fqdn', self.host_fqdn)
+        dict(
+            desc='Try to delete non-existent %r' % netgroup1,
+            command=('netgroup_del', [netgroup1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
-        # Add a hostgroup
-        entry= api.Command['hostgroup_add'](**self.hg_kw)['result']
-        assert_attr_equal(entry, 'description', self.hg_description)
-        assert_attr_equal(entry, 'cn', self.hg_cn)
 
-        # Add a user
-        entry = api.Command['user_add'](**self.user_kw)['result']
-        assert_attr_equal(entry, 'givenname', self.user_givenname)
-        assert_attr_equal(entry, 'uid', self.user_uid)
+        dict(
+            desc='Create %r' % netgroup1,
+            command=('netgroup_add', [netgroup1],
+                dict(description=u'Test netgroup 1')
+            ),
+            expected=dict(
+                value=netgroup1,
+                summary=u'Added netgroup "%s"' % netgroup1,
+                result=dict(
+#                    dn=u'ipauniqueid=%s,cn=ng,cn=alt,%s' % (fuzzy_uuid, api.env.basedn),
+                    dn=fuzzy_netgroupdn,
+                    cn=[netgroup1],
+                    objectclass=objectclasses.netgroup,
+                    description=[u'Test netgroup 1'],
+                    nisdomainname=['%s' % api.env.domain],
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
 
-        # Add our second user
-        entry = api.Command['user_add'](**self.user2_kw)['result']
-        assert_attr_equal(entry, 'givenname', self.user2_givenname)
-        assert_attr_equal(entry, 'uid', self.user2_uid)
 
-        # Add a group
-        entry = api.Command['group_add'](**self.group_kw)['result']
-        assert_attr_equal(entry, 'description', self.group_description)
-        assert_attr_equal(entry, 'cn', self.group_cn)
+        dict(
+            desc='Create %r' % netgroup2,
+            command=('netgroup_add', [netgroup2],
+                dict(description=u'Test netgroup 2')
+            ),
+            expected=dict(
+                value=netgroup2,
+                summary=u'Added netgroup "%s"' % netgroup2,
+                result=dict(
+#                    dn=u'ipauniqueid=%s,cn=ng,cn=alt,%s' % (fuzzy_uuid, api.env.basedn),
+                    dn=fuzzy_netgroupdn,
+                    cn=[netgroup2],
+                    objectclass=objectclasses.netgroup,
+                    description=[u'Test netgroup 2'],
+                    nisdomainname=['%s' % api.env.domain],
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
 
-        # Add a user to the group
-        kw = {'raw': True}
-        kw['user'] = self.user2_uid
-        res = api.Command['group_add_member'](self.group_cn, **kw)
-        assert res['completed'] == 1
 
-    def test_3_netgroup_add_member(self):
-        """
-        Test the `xmlrpc.netgroup_add_member` method.
-        """
-        kw = {'raw': True}
-        kw['host'] = self.host_fqdn
-        entry = api.Command['netgroup_add_member'](self.ng_cn, **kw)['result']
-        assert_is_member(entry, 'fqdn=%s' % self.host_fqdn, 'memberhost')
+        dict(
+            desc='Try to create duplicate %r' % netgroup1,
+            command=('netgroup_add', [netgroup1],
+                dict(description=u'Test netgroup 1')
+            ),
+            expected=errors.DuplicateEntry(),
+        ),
 
-        kw = {'raw': True}
-        kw['hostgroup'] = self.hg_cn
-        ret = api.Command['netgroup_add_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 1
-        assert_is_member(ret['result'], 'cn=%s' % self.hg_cn, 'memberhost')
 
-        kw = {'raw': True}
-        kw['user'] = self.user_uid
-        ret = api.Command['netgroup_add_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 1
-        assert_is_member(ret['result'], 'uid=%s' % self.user_uid, 'memberuser')
+        dict(
+            desc='Create host %r' % host1,
+            command=('host_add', [host1],
+                dict(
+                    description=u'Test host 1',
+                    l=u'Undisclosed location 1',
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=host1,
+                summary=u'Added host "%s"' % host1,
+                result=dict(
+                    dn=host_dn1,
+                    fqdn=[host1],
+                    description=[u'Test host 1'],
+                    l=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (host1, api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
 
-        kw = {'raw': True}
-        kw['group'] = self.group_cn
-        ret = api.Command['netgroup_add_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 1
-        assert_is_member(ret['result'], 'cn=%s' % self.group_cn, 'memberuser')
 
-    def test_4_netgroup_add_member(self):
-        """
-        Test the `xmlrpc.netgroup_add_member` method again to test dupes.
-        """
-        kw = {'raw': True}
-        kw['host'] = self.host_fqdn
-        ret = api.Command['netgroup_add_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 0
-        failed = ret['failed']
-        assert 'memberhost' in failed
-        assert 'host' in failed['memberhost']
-        assert entry_in_failed(self.host_fqdn, failed['memberhost']['host'])
+        dict(
+            desc='Create %r' % hostgroup1,
+            command=('hostgroup_add', [hostgroup1],
+                dict(description=u'Test hostgroup 1')
+            ),
+            expected=dict(
+                value=hostgroup1,
+                summary=u'Added hostgroup "%s"' % hostgroup1,
+                result=dict(
+                    dn=hostgroup_dn1,
+                    cn=[hostgroup1],
+                    objectclass=objectclasses.hostgroup,
+                    description=[u'Test hostgroup 1'],
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
 
-        kw = {'raw': True}
-        kw['hostgroup'] = self.hg_cn
-        ret = api.Command['netgroup_add_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 0
-        failed = ret['failed']
-        assert 'memberhost' in failed
-        assert 'hostgroup' in failed['memberhost']
-        assert entry_in_failed(self.hg_cn, failed['memberhost']['hostgroup'])
 
-        kw = {'raw': True}
-        kw['user'] = self.user_uid
-        ret = api.Command['netgroup_add_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 0
-        failed = ret['failed']
-        assert 'memberuser' in failed
-        assert 'user' in failed['memberuser']
-        assert entry_in_failed(self.user_uid, failed['memberuser']['user'])
+        dict(
+            desc='Create %r' % user1,
+            command=(
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "%s"' % user1,
+                result=dict(
+                    gecos=[user1],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/%s' % user1],
+                    krbprincipalname=[u'%s@%s' % (user1, api.env.realm)],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=u'uid=%s,cn=users,cn=accounts,%s' % (user1, api.env.basedn),
+                ),
+            ),
+        ),
 
-        kw = {'raw': True}
-        kw['group'] = self.group_cn
-        ret = api.Command['netgroup_add_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 0
-        failed = ret['failed']
-        assert 'memberuser' in failed
-        assert 'group' in failed['memberuser']
-        assert entry_in_failed(self.group_cn, failed['memberuser']['group'])
+        dict(
+            desc='Create %r' % user2,
+            command=(
+                'user_add', [user2], dict(givenname=u'Test', sn=u'User2')
+            ),
+            expected=dict(
+                value=user2,
+                summary=u'Added user "%s"' % user2,
+                result=dict(
+                    gecos=[user2],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/%s' % user2],
+                    krbprincipalname=[u'%s@%s' % (user2, api.env.realm)],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User2'],
+                    uid=[user2],
+                    uidnumber=[fuzzy_digits],
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=u'uid=%s,cn=users,cn=accounts,%s' % (user2, api.env.basedn),
+                ),
+            ),
+        ),
 
-    def test_5_netgroup_add_member(self):
-        """
-        Test adding external hosts.
-        """
-        kw = {'raw': True}
-        kw['host'] = u'nosuchhost'
-        ret = api.Command['netgroup_add_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 1, ret
-        entry = api.Command['netgroup_show'](self.ng_cn, all=True, raw=True)['result']
-        assert_is_member(entry, 'nosuchhost', 'externalhost')
 
-    def test_6_netgroup_show(self):
-        """
-        Test the `xmlrpc.netgroup_show` method with --all.
-        """
-        entry = api.Command['netgroup_show'](self.ng_cn, all=True, raw=True)['result']
-        assert_attr_equal(entry, 'description', self.ng_description)
-        assert_attr_equal(entry, 'cn', self.ng_cn)
-        assert_is_member(entry, 'fqdn=%s' % self.host_fqdn, 'memberhost')
-        assert_is_member(entry, 'cn=%s' % self.hg_cn, 'memberhost')
-        assert_is_member(entry, 'uid=%s' % self.user_uid, 'memberuser')
-        assert_is_member(entry, 'cn=%s' % self.group_cn, 'memberuser')
-        assert_attr_equal(entry, 'objectclass', 'ipaobject')
-        assert_attr_equal(entry, 'objectclass', 'ipanisnetgroup')
-        assert_attr_equal(entry, 'objectclass', 'ipaassociation')
+        dict(
+            desc='Create %r' % group1,
+            command=(
+                'group_add', [group1], dict(description=u'Test desc 1')
+            ),
+            expected=dict(
+                value=group1,
+                summary=u'Added group "%s"' % group1,
+                result=dict(
+                    cn=[group1],
+                    description=[u'Test desc 1'],
+                    gidnumber=[fuzzy_digits],
+                    objectclass=objectclasses.group + [u'posixgroup'],
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
+                ),
+            ),
+        ),
 
-    def test_6a_netgroup_show(self):
-        """
-        Test the `xmlrpc.netgroup_show` method.
-        """
-        global netgroup_dn
-        entry = api.Command['netgroup_show'](self.ng_cn, all=False, raw=True)['result']
-        assert_attr_equal(entry, 'description', self.ng_description)
-        assert_attr_equal(entry, 'cn', self.ng_cn)
-        assert_is_member(entry, 'fqdn=%s' % self.host_fqdn, 'memberhost')
-        assert_is_member(entry, 'cn=%s' % self.hg_cn, 'memberhost')
-        assert_is_member(entry, 'uid=%s' % self.user_uid, 'memberuser')
-        assert_is_member(entry, 'cn=%s' % self.group_cn, 'memberuser')
-        netgroup_dn = entry['dn']
 
-    def test_6b_netgroup_show(self):
-        """
-        Confirm the underlying triples
-        """
-        # Do an LDAP query to the compat area and verify that the entry
-        # is correct
-        conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri, base_dn=api.env.basedn)
-        conn.connect(ccache=ccache)
-        try:
-            entries = conn.find_entries('cn=%s' % self.ng_cn,
-                      base_dn='cn=ng,cn=compat,%s' % api.env.basedn)
-        except errors.NotFound:
-            raise nose.SkipTest('compat and nis are not enabled, skipping test')
-        finally:
-            conn.disconnect()
-        triples = entries[0][0][1]['nisnetgrouptriple']
+        dict(
+            desc='Add user %r to group %r' % (user2, group1),
+            command=(
+                'group_add_member', [group1], dict(user=user2)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
+                        'member_user': (user2,),
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [group1],
+                        'description': [u'Test desc 1'],
+                },
+            ),
+        ),
 
-        # This may not prove to be reliable since order is not guaranteed
-        # and even which user gets into which triple can be random.
-        assert '(nosuchhost,jexample,example.com)' in triples
-        assert '(ipatesthost.%s,pexample,example.com)' % api.env.domain in triples
 
-    def test_7_netgroup_find(self):
-        """
-        Test the `xmlrpc.netgroup_find` method.
-        """
-        result = api.Command.netgroup_find(self.ng_cn, raw=True)
-        entries = result['result']
+        dict(
+            desc='Add host %r to netgroup %r' % (host1, netgroup1),
+            command=(
+                'netgroup_add_member', [netgroup1], dict(host=host1)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_host': (host1,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                },
+            ),
+        ),
 
-        assert(result['count'] == 1)
-        assert_attr_equal(entries[0], 'description', self.ng_description)
-        assert_attr_equal(entries[0], 'cn', self.ng_cn)
 
-    def test_8_netgroup_mod(self):
-        """
-        Test the `xmlrpc.netgroup_mod` method.
-        """
-        newdesc = u'Updated host group'
-        modkw = {'cn': self.ng_cn, 'description': newdesc, 'raw': True}
-        entry = api.Command['netgroup_mod'](**modkw)['result']
-        assert_attr_equal(entry, 'description', newdesc)
+        dict(
+            desc='Add hostgroup %r to netgroup %r' % (hostgroup1, netgroup1),
+            command=(
+                'netgroup_add_member', [netgroup1], dict(hostgroup=hostgroup1)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                },
+            ),
+        ),
 
-        # Ok, double-check that it was changed
-        entry = api.Command['netgroup_show'](self.ng_cn, raw=True)['result']
-        assert_attr_equal(entry, 'description', newdesc)
-        assert_attr_equal(entry, 'cn', self.ng_cn)
 
-    def test_9_netgroup_remove_member(self):
-        """
-        Test the `xmlrpc.netgroup_remove_member` method.
-        """
-        kw = {'raw': True}
-        kw['host'] = self.host_fqdn
-        ret = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 1
+        dict(
+            desc='Add user %r to netgroup %r' % (user1, netgroup1),
+            command=(
+                'netgroup_add_member', [netgroup1], dict(user=user1)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                },
+            ),
+        ),
 
-        kw = {'raw': True}
-        kw['hostgroup'] = self.hg_cn
-        ret = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 1
 
-        kw = {'raw': True}
-        kw['user'] = self.user_uid
-        ret = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 1
+        dict(
+            desc='Add group %r to netgroup %r' % (group1, netgroup1),
+            command=(
+                'netgroup_add_member', [netgroup1], dict(group=group1)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                },
+            ),
+        ),
 
-        kw = {'raw': True}
-        kw['group'] = self.group_cn
-        ret = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 1
 
-    def test_a_netgroup_remove_member(self):
-        """
-        Test the `xmlrpc.netgroup_remove_member` method again to test not found.
-        """
-        kw = {'raw': True}
-        kw['host'] = self.host_fqdn
-        ret = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 0
-        failed = ret['failed']
-        assert 'memberhost' in failed
-        assert 'host' in failed['memberhost']
-        assert entry_in_failed(self.host_fqdn, failed['memberhost']['host'])
+        dict(
+            desc='Add netgroup %r to netgroup %r' % (netgroup2, netgroup1),
+            command=(
+                'netgroup_add_member', [netgroup1], dict(netgroup=netgroup2)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                },
+            ),
+        ),
 
-        kw = {'raw': True}
-        kw['hostgroup'] = self.hg_cn
-        ret = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 0
-        failed = ret['failed']
-        assert 'memberhost' in failed
-        assert 'hostgroup' in failed['memberhost']
-        assert entry_in_failed(self.hg_cn, failed['memberhost']['hostgroup'])
 
-        kw = {'raw': True}
-        kw['user'] = self.user_uid
-        api.Command['netgroup_show'](self.ng_cn, all=True)
-        ret = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 0
-        failed = ret['failed']
-        assert 'memberuser' in failed
-        assert 'user' in failed['memberuser']
-        assert entry_in_failed(self.user_uid, failed['memberuser']['user'])
+        dict(
+            desc='Add non-existent netgroup to netgroup %r' % (netgroup1),
+            command=(
+                'netgroup_add_member', [netgroup1], dict(netgroup=u'notfound')
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        netgroup=[(u'notfound', u'no such entry')],
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                },
+            ),
+        ),
 
-        kw = {'raw': True}
-        kw['group'] = self.group_cn
-        ret = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
-        assert ret['completed'] == 0
-        failed = ret['failed']
-        assert 'memberuser' in failed
-        assert 'group' in failed['memberuser']
-        assert entry_in_failed(self.group_cn, failed['memberuser']['group'])
 
-    def test_b_netgroup_del(self):
-        """
-        Test the `xmlrpc.netgroup_del` method.
-        """
-        assert api.Command['netgroup_del'](self.ng_cn)['result'] is True
+        dict(
+            desc='Add duplicate user %r to netgroup %r' % (user1, netgroup1),
+            command=(
+                'netgroup_add_member', [netgroup1], dict(user=user1)
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=[('%s' % user1, u'This entry is already a member of the group')],
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                },
+            ),
+        ),
 
-        # Verify that it is gone
-        try:
-            api.Command['netgroup_show'](self.ng_cn)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
+        dict(
+            desc='Add duplicate group %r to netgroup %r' % (group1, netgroup1),
+            command=(
+                'netgroup_add_member', [netgroup1], dict(group=group1)
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=[('%s' % group1, u'This entry is already a member of the group')],
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                },
+            ),
+        ),
 
-    def test_c_del_data(self):
-        """
-        Remove the test data we added.
-        """
-        # Remove the host
-        assert api.Command['host_del'](self.host_fqdn)['result'] is True
 
-        # Verify that it is gone
-        try:
-            api.Command['host_show'](self.host_fqdn)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
+        dict(
+            desc='Add duplicatehost %r to netgroup %r' % (host1, netgroup1),
+            command=(
+                'netgroup_add_member', [netgroup1], dict(host=host1)
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=[('%s' % host1, u'This entry is already a member of the group')],
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                },
+            ),
+        ),
 
-        # Remove the hostgroup
-        assert api.Command['hostgroup_del'](self.hg_cn)['result'] is True
 
-        # Verify that it is gone
-        try:
-            api.Command['hostgroup_show'](self.hg_cn)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
+        dict(
+            desc='Add duplicate hostgroup %r to netgroup %r' % (hostgroup1, netgroup1),
+            command=(
+                'netgroup_add_member', [netgroup1], dict(hostgroup=hostgroup1)
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=[('%s' % hostgroup1, u'This entry is already a member of the group')],
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                },
+            ),
+        ),
 
-        # Remove the users
-        assert api.Command['user_del'](self.user_uid)['result'] is True
-        assert api.Command['user_del'](self.user2_uid)['result'] is True
 
-        # Verify that it is gone
-        try:
-            api.Command['user_show'](self.user_uid)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
+        dict(
+            desc='Add unknown host %r to netgroup %r' % (unknown_host, netgroup1),
+            command=(
+                'netgroup_add_member', [netgroup1], dict(host=unknown_host)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [u'unknown'],
+                },
+            ),
+        ),
 
-        # Remove the group
-        assert api.Command['group_del'](self.group_cn)['result'] is True
+        dict(
+            desc='Retrieve %r' % netgroup1,
+            command=('netgroup_show', [netgroup1], {}),
+            expected=dict(
+                value=netgroup1,
+                summary=None,
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [u'unknown'],
+                },
+            ),
+        ),
 
-        # Verify that it is gone
-        try:
-            api.Command['group_show'](self.group_cn)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
+        dict(
+            desc='Search for %r' % netgroup1,
+            command=('netgroup_find', [], dict(cn=netgroup1)),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 netgroup matched',
+                result=[
+                    {
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [u'unknown'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Update %r' % netgroup1,
+            command=('netgroup_mod', [netgroup1],
+                dict(description=u'Updated netgroup 1')
+            ),
+            expected=dict(
+                value=netgroup1,
+                summary=u'Modified netgroup "%s"' % netgroup1,
+                result={
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Updated netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [u'unknown'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Remove host %r from netgroup %r' % (host1, netgroup1),
+            command=(
+                'netgroup_remove_member', [netgroup1], dict(host=host1)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Updated netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [u'unknown'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Remove hostgroup %r from netgroup %r' % (hostgroup1, netgroup1),
+            command=(
+                'netgroup_remove_member', [netgroup1], dict(hostgroup=hostgroup1)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Updated netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [u'unknown'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Remove user %r from netgroup %r' % (user1, netgroup1),
+            command=(
+                'netgroup_remove_member', [netgroup1], dict(user=user1)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Updated netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [u'unknown'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Remove group %r from netgroup %r' % (group1, netgroup1),
+            command=(
+                'netgroup_remove_member', [netgroup1], dict(group=group1)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Updated netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [u'unknown'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Remove netgroup %r from netgroup %r' % (netgroup2, netgroup1),
+            command=(
+                'netgroup_remove_member', [netgroup1], dict(netgroup=netgroup2)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup1],
+                        'description': [u'Updated netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [u'unknown'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Remove host %r from netgroup %r again' % (host1, netgroup1),
+            command=(
+                'netgroup_remove_member', [netgroup1], dict(host=host1)
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=[('%s' % host1, u'This entry is not a member of the group')]
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup1],
+                        'description': [u'Updated netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [u'unknown'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Remove hostgroup %r from netgroup %r again' % (hostgroup1, netgroup1),
+            command=(
+                'netgroup_remove_member', [netgroup1], dict(hostgroup=hostgroup1)
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=[('%s' % hostgroup1, u'This entry is not a member of the group')],
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup1],
+                        'description': [u'Updated netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [u'unknown'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Remove user %r from netgroup %r again' % (user1, netgroup1),
+            command=(
+                'netgroup_remove_member', [netgroup1], dict(user=user1)
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=[('%s' % user1, u'This entry is not a member of the group')],
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup1],
+                        'description': [u'Updated netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [u'unknown'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Remove group %r from netgroup %r again' % (group1, netgroup1),
+            command=(
+                'netgroup_remove_member', [netgroup1], dict(group=group1)
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group= [('%s' % group1, u'This entry is not a member of the group')],
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup1],
+                        'description': [u'Updated netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [u'unknown'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Remove netgroup %r from netgroup %r again' % (netgroup2, netgroup1),
+            command=(
+                'netgroup_remove_member', [netgroup1], dict(netgroup=netgroup2)
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        netgroup=[('%s' % netgroup2, u'This entry is not a member of the group')],
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup1],
+                        'description': [u'Updated netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [u'unknown'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Delete %r' % netgroup1,
+            command=('netgroup_del', [netgroup1], {}),
+            expected=dict(
+                value=netgroup1,
+                summary=u'Deleted netgroup "%s"' % netgroup1,
+                result=True,
+            ),
+        ),
+
+    ]
+
+# No way to convert this test just yet.
+
+#    def test_6b_netgroup_show(self):
+#        """
+#        Confirm the underlying triples
+#        """
+#        # Do an LDAP query to the compat area and verify that the entry
+#        # is correct
+#        conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri, base_dn=api.env.basedn)
+#        conn.connect(ccache=ccache)
+#        try:
+#            entries = conn.find_entries('cn=%s' % self.ng_cn,
+#                      base_dn='cn=ng,cn=compat,%s' % api.env.basedn)
+#        except errors.NotFound:
+#            raise nose.SkipTest('compat and nis are not enabled, skipping test')
+#        finally:
+#            conn.disconnect()
+#        triples = entries[0][0][1]['nisnetgrouptriple']
+#
+#        # This may not prove to be reliable since order is not guaranteed
+#        # and even which user gets into which triple can be random.
+#        assert '(nosuchhost,jexample,example.com)' in triples
+#        assert '(ipatesthost.%s,pexample,example.com)' % api.env.domain in triples
