@@ -20,13 +20,24 @@
 Password migration script
 """
 
+import errno
 import ldap
-from mod_python import apache, util
-
+import cgi
+import wsgiref
 
 BASE_DN = ''
 LDAP_URI = 'ldap://localhost:389'
 
+def wsgi_redirect(start_response, loc):
+    start_response('302 Found', [('Location', loc)])
+    return []
+
+def get_ui_url(environ):
+    full_url = wsgiref.util.request_uri(environ)
+    index = full_url.rfind(environ.get('SCRIPT_NAME',''))
+    if index == -1:
+        raise ValueError('Cannot strip the script URL from full URL "%s"' % full_url)
+    return full_url[:index] + "/ipa/ui"
 
 def get_base_dn():
     """
@@ -48,20 +59,38 @@ def get_base_dn():
     except (IndexError, KeyError):
         return ''
 
-
-def bind(req, username, password):
+def bind(username, password):
     base_dn = get_base_dn()
     if not base_dn:
-        util.redirect(req, '/ipa/migration/error.html')
+        raise IOError(errno.EIO, 'Cannot get Base DN')
     bind_dn = 'uid=%s,cn=users,cn=accounts,%s' % (username, base_dn)
     try:
         conn = ldap.initialize(LDAP_URI)
         conn.simple_bind_s(bind_dn, password)
     except (ldap.INVALID_CREDENTIALS, ldap.UNWILLING_TO_PERFORM,
             ldap.NO_SUCH_OBJECT):
-        util.redirect(req, '/ipa/migration/invalid.html')
+        raise IOError(errno.EPERM, 'Invalid LDAP credentials for user %s' % username)
     except ldap.LDAPError:
-        util.redirect(req, '/ipa/migration/error.html')
+        raise IOError(errno.EIO, 'Bind error')
+
     conn.unbind_s()
-    util.redirect(req, '/ipa/ui')
+
+def application(environ, start_response):
+    if environ.get('REQUEST_METHOD', None) != 'POST':
+        return wsgi_redirect(start_response, 'index.html')
+
+    form_data = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
+    if not form_data.has_key('username') or not form_data.has_key('password'):
+        return wsgi_redirect(start_response, 'invalid.html')
+
+    try:
+        bind(form_data['username'].value, form_data['password'].value)
+    except IOError as err:
+        if err.errno == errno.EPERM:
+            return wsgi_redirect(start_response, 'invalid.html')
+        if err.errno == errno.EIO:
+            return wsgi_redirect(start_response, 'error.html')
+
+    ui_url = get_ui_url(environ)
+    return wsgi_redirect(start_response, ui_url)
 

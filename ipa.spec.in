@@ -74,7 +74,6 @@ Requires: krb5-server-ldap
 Requires: cyrus-sasl-gssapi
 Requires: ntp
 Requires: httpd
-Requires: mod_python
 Requires: mod_wsgi
 Requires: mod_auth_kerb
 %if 0%{?fedora} >= 12 || 0%{?rhel} >= 6
