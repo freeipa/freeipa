@@ -106,14 +106,20 @@ def parse_options():
                       default=False, help="uninstall an existing installation")
     parser.add_option("-N", "--no-ntp", dest="conf_ntp", action="store_false",
                       help="do not configure ntp", default=True)
+    parser.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
+                      default=True, help="disables pkinit setup steps")
     parser.add_option("--dirsrv_pkcs12", dest="dirsrv_pkcs12",
                       help="PKCS#12 file containing the Directory Server SSL certificate")
     parser.add_option("--http_pkcs12", dest="http_pkcs12",
                       help="PKCS#12 file containing the Apache Server SSL certificate")
+    parser.add_option("--pkinit_pkcs12", dest="pkinit_pkcs12",
+                      help="PKCS#12 file containing the Kerberos KDC SSL certificate")
     parser.add_option("--dirsrv_pin", dest="dirsrv_pin", sensitive=True,
                       help="The password of the Directory Server PKCS#12 file")
     parser.add_option("--http_pin", dest="http_pin", sensitive=True,
                       help="The password of the Apache Server PKCS#12 file")
+    parser.add_option("--pkinit_pin", dest="pkinit_pin",
+                      help="The password of the Kerberos KDC PKCS#12 file")
     parser.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
                       default=False,
                       help="Do not use DNS for hostname lookup during installation")
@@ -503,6 +509,8 @@ def main():
     print "  * Configure Apache (httpd)"
     if options.setup_dns:
         print "  * Configure DNS (bind)"
+    if options.setup_pkinit:
+        print "  * Configure the KDC to enable PKINIT"
     if not options.conf_ntp:
         print ""
         print "Excluded by options:"
@@ -526,6 +534,12 @@ def main():
     # check bind packages are installed
     if options.setup_dns:
         if not bindinstance.check_inst(options.unattended):
+            print "Aborting installation"
+            return 1
+
+    # check the pkinit plugin is installed
+    if options.setup_pkinit:
+        if not krbinstance.check_pkinit_plugin():
             print "Aborting installation"
             return 1
 
@@ -722,9 +736,29 @@ def main():
     else:
         ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, self_signed_ca=options.selfsign, uidstart=options.uidstart, gidstart=options.gidstart, subject_base=options.subject, hbac_allow=not options.hbac_allow)
 
+    if options.pkinit_pin:
+        [pw_fd, pw_name] = tempfile.mkstemp()
+        os.write(pw_fd, options.dirsrv_pin)
+        os.close(pw_fd)
+
     # Create a kerberos instance
     krb = krbinstance.KrbInstance(fstore)
-    krb.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, master_password)
+    if options.pkinit_pkcs12:
+        pkcs12_info = (options.pkinit_pkcs12, pw_name)
+        krb.create_instance(ds_user, realm_name, host_name, domain_name,
+                            dm_password, master_password,
+                            setup_pkinit=options.setup_pkinit,
+                            pkcs12_info=pkcs12_info,
+                            subject_base=options.subject)
+    else:
+        krb.create_instance(ds_user, realm_name, host_name, domain_name,
+                            dm_password, master_password,
+                            setup_pkinit=options.setup_pkinit,
+                            self_signed_ca=options.selfsign,
+                            subject_base=options.subject)
+
+    if options.pkinit_pin:
+        os.remove(pw_name)
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated

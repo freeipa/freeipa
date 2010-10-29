@@ -24,6 +24,8 @@ app_DATA =				\
 	bind.zone.db.template		\
 	certmap.conf.template		\
 	kdc.conf.template		\
+	kdc_extensions.template		\
+	kdc_req.conf.template		\
 	krb5.conf.template		\
 	krb5.ini.template		\
 	krb.con.template		\

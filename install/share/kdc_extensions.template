@@ -1,0 +1,32 @@
+[ kdc_cert ]
+basicConstraints=CA:FALSE
+
+# Here are some examples of the usage of nsCertType. If it is omitted
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment, keyAgreement
+
+#Pkinit EKU
+extendedKeyUsage = 1.3.6.1.5.2.3.5
+
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid,issuer
+
+# Copy subject details
+
+issuerAltName=issuer:copy
+
+# Add id-pkinit-san (pkinit subjectAlternativeName)
+# Also add the KDC fqdn, for good measure.
+subjectAltName=otherName:1.3.6.1.5.2.2;SEQUENCE:kdc_princ_name,DNS:${ENV::HOST_FQDN}
+
+[kdc_princ_name]
+realm = EXP:0, GeneralString:${ENV::REALM}
+principal_name = EXP:1, SEQUENCE:kdc_principal_seq
+
+[kdc_principal_seq]
+name_type = EXP:0, INTEGER:1
+name_string = EXP:1, SEQUENCE:kdc_principals
+
+[kdc_principals]
+princ1 = GeneralString:krbtgt
+princ2 = GeneralString:${ENV::REALM}
+

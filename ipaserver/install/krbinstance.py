@@ -44,7 +44,20 @@ import pyasn1.codec.ber.encoder
 import pyasn1.codec.ber.decoder
 import struct
 
+import certs
+import httpinstance
+
 KRBMKEY_DENY_ACI = '(targetattr = "krbMKey")(version 3.0; acl "No external access"; deny (read,write,search,compare) userdn != "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)'
+
+def check_pkinit_plugin():
+    LIB32 = '/usr/lib/krb5/plugins/preauth/pkinit.so'
+    LIB64 = '/usr/lib64/krb5/plugins/preauth/pkinit.so'
+    if not os.path.exists(LIB32) and not os.path.exists(LIB64):
+        print "The pkinit plugin is missing"
+        print "Please install the 'krb5-pkinit-openssl' package and start the installation again"
+        return False
+
+    return True
 
 def update_key_val_in_file(filename, key, val):
     if os.path.exists(filename):
@@ -83,6 +96,8 @@ class KrbInstance(service.Service):
         self.suffix = None
         self.kdc_password = None
         self.sub_dict = None
+        self.pkcs12_info = None
+        self.self_signed_ca = None
 
         if fstore:
             self.fstore = fstore
@@ -158,8 +173,11 @@ class KrbInstance(service.Service):
         self.step("starting the KDC", self.__start_instance)
         self.step("configuring KDC to start on boot", self.__enable)
 
-    def create_instance(self, ds_user, realm_name, host_name, domain_name, admin_password, master_password):
+    def create_instance(self, ds_user, realm_name, host_name, domain_name, admin_password, master_password, setup_pkinit=False, pkcs12_info=None, self_signed_ca=False, subject_base=None):
         self.master_password = master_password
+        self.pkcs12_info = pkcs12_info
+        self.self_signed_ca = self_signed_ca
+        self.subject_base = subject_base
 
         self.__common_setup(ds_user, realm_name, host_name, domain_name, admin_password)
 
@@ -175,6 +193,8 @@ class KrbInstance(service.Service):
         self.step("exporting the kadmin keytab", self.__export_kadmin_changepw_keytab)
         self.step("adding the password extension to the directory", self.__add_pwd_extop_module)
         self.step("adding the kerberos master key to the directory", self.__add_master_key)
+        if setup_pkinit:
+            self.step("creating X509 Certificate for PKINIT", self.__setup_pkinit)
 
         self.__common_post_setup()
 
@@ -476,6 +496,30 @@ class KrbInstance(service.Service):
 
         self.fstore.backup_file("/etc/sysconfig/ipa_kpasswd")
         update_key_val_in_file("/etc/sysconfig/ipa_kpasswd", "export KRB5_KTNAME", "/var/kerberos/krb5kdc/kpasswd.keytab")
+
+    def __setup_pkinit(self):
+        if self.self_signed_ca:
+            ca_db = certs.CertDB(httpinstance.NSS_DIR, self.realm,
+                                 subject_base=self.subject_base)
+        else:
+            ca_db = certs.CertDB(httpinstance.NSS_DIR, self.realm,
+                                 host_name=self.fqdn,
+                                 subject_base=self.subject_base)
+        if self.pkcs12_info:
+
+            raise RuntimeError("Using PKCS12 Certs not supported yet\n")
+
+        else:
+            if self.self_signed_ca:
+                ca_db.create_kdc_cert("KDC-Cert", self.fqdn,
+                                      "/var/kerberos/krb5kdc")
+            else:
+                raise RuntimeError("Using PKCS12 Certs not supported yet\n")
+
+        # Finally copy the cacert in the krb directory so we don't
+        # have any selinux issues with the file context
+        shutil.copyfile("/usr/share/ipa/html/ca.crt",
+                        "/var/kerberos/krb5kdc/cacert.pem")
 
     def uninstall(self):
         if self.is_configured():

@@ -12,4 +12,6 @@
   dict_file = /usr/share/dict/words
   default_principal_flags = +preauth
 ;  admin_keytab = /var/kerberos/krb5kdc/kadm5.keytab
+  pkinit_identity = FILE:/var/kerberos/krb5kdc/kdc.pem
+  pkinit_anchors = FILE:/var/kerberos/krb5kdc/cacert.pem
  }

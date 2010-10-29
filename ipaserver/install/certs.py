@@ -180,6 +180,7 @@ class CertDB(object):
         self.certreq_fname = None
         self.certder_fname = None
         self.host_name = host_name
+        self.subject_base = subject_base
         try:
             self.cwd = os.getcwd()
         except OSError, e:
@@ -187,10 +188,9 @@ class CertDB(object):
 
         self.self_signed_ca = ipa_self_signed()
 
-        if subject_base:
-            self.subject_format = "CN=%%s,%s" % subject_base
-        else:
-            self.subject_format = "CN=%s,O=IPA"
+        if not subject_base:
+            self.subject_base = "O=IPA"
+        self.subject_format = "CN=%%s,%s" % self.subject_base
 
         self.cacert_name = get_ca_nickname(self.realm)
         self.valid_months = "120"
@@ -936,6 +936,86 @@ class CertDB(object):
             os.remove(CA_SERIALNO)
         except:
             pass
+
+    def create_kdc_cert(self, nickname, hostname, destdir):
+        """Create a new certificate with the spcial othername encoding needed
+           by a KDC certificate.
+
+           nickname: the CN name set in the certificate
+           destdir: the location where cert and key are to be installed
+
+           destdir will contain kdc.pem if the operation is successful
+        """
+
+        reqcfg = "kdc_req.conf"
+        extcfg = ipautil.SHARE_DIR + "kdc_extensions.template"
+        key_fname = destdir + "/kdckey.pem"
+        cert_fname = destdir + "/kdccert.pem"
+        key_cert_fname = destdir + "/kdc.pem"
+
+        # Setup the temp dir
+        self.setup_cert_request()
+
+        # Copy the CA password file because openssl apparently can't use
+        # the same file twice within the same command and throws an error
+        ca_pwd_file = self.reqdir + "pwdfile.txt"
+        shutil.copyfile(self.passwd_fname, ca_pwd_file)
+
+        # Extract the cacert.pem file used by openssl to sign the certs
+        ipautil.run(["/usr/bin/openssl", "pkcs12",
+                     "-in", self.pk12_fname,
+                     "-passin", "file:" + self.passwd_fname,
+                     "-passout", "file:" + ca_pwd_file,
+                     "-out", "cacert.pem"])
+
+        # Create the kdc key
+        ipautil.run(["/usr/bin/openssl", "genrsa",
+                     "-out", key_fname, "2048"])
+
+        # Prepare a simple cert request
+        req_dict = dict(PASSWORD=self.gen_password(),
+                        SUBJBASE=self.subject_base,
+                        CERTNAME="CN="+nickname)
+        req_template = ipautil.SHARE_DIR + reqcfg + ".template"
+        conf = ipautil.template_file(req_template, req_dict)
+        fd = open(reqcfg, "w+")
+        fd.write(conf)
+        fd.close()
+
+        base = self.subject_base.replace(",", "/")
+        esc_subject = "CN=%s/%s" % (nickname, base)
+
+        ipautil.run(["/usr/bin/openssl", "req", "-new",
+                     "-config", reqcfg,
+                     "-subj", esc_subject,
+                     "-key", key_fname,
+                     "-out", "kdc.req"])
+
+        # Finally, sign the cert using the extensions file to set the
+        # special name
+        ipautil.run(["/usr/bin/openssl", "x509", "-req",
+                     "-CA", "cacert.pem",
+                     "-extfile", extcfg,
+                     "-extensions", "kdc_cert",
+                     "-passin", "file:" + ca_pwd_file,
+                     "-set_serial", next_serial(),
+                     "-in", "kdc.req",
+                     "-out", cert_fname],
+                    env = { 'REALM':self.realm, 'HOST_FQDN':hostname })
+
+        # Merge key and cert in a single file
+        fd = open(key_fname, "r")
+        key = fd.read()
+        fd.close()
+        fd = open(cert_fname, "r")
+        cert = fd.read()
+        fd.close()
+        fd = open(key_cert_fname, "w")
+        fd.write(key)
+        fd.write(cert)
+        fd.close()
+        os.unlink(key_fname)
+        os.unlink(cert_fname)
 
     def backup_files(self):
         self.fstore.backup_file(self.noise_fname)
