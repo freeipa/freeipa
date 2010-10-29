@@ -25,7 +25,7 @@
 
 import sys
 try:
-    from optparse import OptionParser
+    from ipapython.config import IPAOptionParser
     from ipapython import ipautil, config
     from ipaserver.install import installutils
     from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
@@ -44,7 +44,7 @@ error was:
 def parse_options():
     usage = "%prog [options] input_file(s)\n"
     usage += "%prog [options]\n"
-    parser = OptionParser(usage=usage, formatter=config.IPAFormatter())
+    parser = IPAOptionParser(usage=usage, formatter=config.IPAFormatter())
 
     parser.add_option("-d", "--debug", action="store_true", dest="debug",
                       help="Display debugging information about the update(s)")
@@ -59,10 +59,11 @@ def parse_options():
 
     config.add_standard_options(parser)
     options, args = parser.parse_args()
+    safe_options = parser.get_safe_opts(options)
 
     config.init_config(options)
 
-    return options, args
+    return safe_options, options, args
 
 def get_dirman_password():
     """Prompt the user for the Directory Manager password and verify its
@@ -75,7 +76,7 @@ def get_dirman_password():
 def main():
     loglevel = logging.INFO
 
-    options, args = parse_options()
+    safe_options, options, args = parse_options()
     if options.debug:
         loglevel = logging.DEBUG
 
@@ -95,6 +96,7 @@ def main():
         logging.basicConfig(level=loglevel,
                             format='%(levelname)s %(message)s',
                             filename='/var/log/ipaupgrade.log')
+        logging.debug('%s was invoked with arguments %s and options: %s' % (sys.argv[0], args, safe_options))
         realm = krbV.default_context().default_realm
         upgrade = IPAUpgrade(realm, files, live_run=not options.test)
         upgrade.create_instance()

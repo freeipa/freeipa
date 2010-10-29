@@ -19,7 +19,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from optparse import OptionParser
 import traceback
 
 from ipaserver.plugins.ldap2 import ldap2
@@ -28,11 +27,12 @@ from ipaserver.install.installutils import *
 from ipapython import version
 from ipapython import ipautil, sysrestore
 from ipalib import api, errors, util
+from ipapython.config import IPAOptionParser
 
 def parse_options():
-    parser = OptionParser(version=version.VERSION)
+    parser = IPAOptionParser(version=version.VERSION)
     parser.add_option("-p", "--ds-password", dest="dm_password",
-                      help="admin password")
+                      sensitive=True, help="admin password")
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="print debugging information")
     parser.add_option("--ip-address", dest="ip_address", help="Master Server IP Address")
@@ -46,6 +46,7 @@ def parse_options():
                       default=False, help="unattended installation never prompts the user")
 
     options, args = parser.parse_args()
+    safe_options = parser.get_safe_opts(options)
 
     if options.forwarders and options.no_forwarders:
         parser.error("You cannot specify a --forwarder option together with --no-forwarders")
@@ -56,7 +57,7 @@ def parse_options():
         if not options.forwarders and not options.no_forwarders:
             parser.error("You must specify at least one --forwarder option or --no-forwarders option")
 
-    return options
+    return safe_options, options
 
 def resolve_host(host_name):
     ip = None
@@ -76,7 +77,7 @@ def resolve_host(host_name):
     return ip
 
 def main():
-    options = parse_options()
+    safe_options, options = parse_options()
 
     if os.getegid() != 0:
         print "Must be root to setup server"
@@ -84,6 +85,8 @@ def main():
 
     standard_logging_setup("/var/log/ipaserver-install.log", options.debug, filemode='a')
     print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
+
+    logging.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
 
     global fstore
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')

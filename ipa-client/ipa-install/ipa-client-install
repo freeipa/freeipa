@@ -28,7 +28,6 @@ try:
     import logging
     import tempfile
     import getpass
-    from optparse import OptionParser
     import ipaclient.ipadiscovery
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
@@ -36,6 +35,7 @@ try:
     from ipapython import sysrestore
     from ipapython import version
     from ipapython import certmonger
+    from ipapython.config import IPAOptionParser
     import SSSDConfig
     from ConfigParser import RawConfigParser
 except ImportError:
@@ -50,7 +50,7 @@ error was:
 client_nss_nickname = 'IPA Machine Certificate - %s' % socket.getfqdn()
 
 def parse_options():
-    parser = OptionParser(version=version.VERSION)
+    parser = IPAOptionParser(version=version.VERSION)
     parser.add_option("--domain", dest="domain", help="domain name")
     parser.add_option("--server", dest="server", help="IPA server")
     parser.add_option("--realm", dest="realm_name", help="realm name")
@@ -66,7 +66,7 @@ def parse_options():
                       help="do not configure sssd", default=True, dest="sssd")
     parser.add_option("-N", "--no-ntp", action="store_false",
                       help="do not configure ntp", default=True, dest="conf_ntp")
-    parser.add_option("-w", "--password", dest="password",
+    parser.add_option("-w", "--password", dest="password", sensitive=True,
                       help="password to join the IPA realm (assumes bulk password unless principal is also set)"),
     parser.add_option("-W", dest="prompt_password", action="store_true",
                       default=False,
@@ -83,11 +83,12 @@ def parse_options():
                       default=False, help="uninstall an existing installation")
 
     options, args = parser.parse_args()
+    safe_opts = parser.get_safe_opts(options)
 
     if (options.server and not options.domain):
         parser.error("--server cannot be used without providing --domain")
 
-    return options
+    return safe_opts, options
 
 def logging_setup(options):
     # Always log everything (i.e., DEBUG) to the log
@@ -500,8 +501,9 @@ def configure_sssd_conf(fstore, cli_domain, cli_server, options):
     return 0
 
 def main():
-    options = parse_options()
+    safe_options, options = parse_options()
     logging_setup(options)
+    logging.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
     dnsok = False
     env={"PATH":"/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
 

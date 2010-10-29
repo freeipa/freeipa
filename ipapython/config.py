@@ -18,7 +18,7 @@
 #
 
 import ConfigParser
-from optparse import OptionParser, IndentedHelpFormatter
+from optparse import Option, Values, OptionParser, IndentedHelpFormatter
 
 import socket
 import ipapython.dnsclient
@@ -45,6 +45,46 @@ class IPAFormatter(IndentedHelpFormatter):
         for line in lines[1:]:
             ret += "%s %s\n" % (spacing, line)
         return ret
+
+class IPAOption(Option):
+    """
+    optparse.Option subclass with support of options labeled as
+    security-sensitive such as passwords.
+    """
+    ATTRS = Option.ATTRS + ["sensitive"]
+
+class IPAOptionParser(OptionParser):
+    """
+    optparse.OptionParser subclass that uses IPAOption by default
+    for storing options.
+    """
+    def __init__(self,
+                 usage=None,
+                 option_list=None,
+                 option_class=IPAOption,
+                 version=None,
+                 conflict_handler="error",
+                 description=None,
+                 formatter=None,
+                 add_help_option=True,
+                 prog=None):
+        OptionParser.__init__(self, usage, option_list, option_class,
+                              version, conflict_handler, description,
+                              formatter, add_help_option, prog)
+
+    def get_safe_opts(self, opts):
+        """
+        Returns all options except those with sensitive=True in the same
+        fashion as parse_args would
+        """
+        all_opts_dict = dict([ (o.dest, o) for o in self._get_all_options() if hasattr(o, 'sensitive') ])
+        safe_opts_dict = {}
+
+        for option, value in opts.__dict__.iteritems():
+            if all_opts_dict[option].sensitive != True:
+                safe_opts_dict[option] = value
+
+        return Values(safe_opts_dict)
 
 def verify_args(parser, args, needed_args = None):
     """Verify that we have all positional arguments we need, if not, exit."""
