@@ -25,7 +25,9 @@ from ipalib.compat import sha1
 import shutil
 import os
 
-CA_NICKNAME = "IPA CA"
+CA_NICKNAME_FMT = "%s IPA CA"
+def get_ca_nickname(realm, format=CA_NICKNAME_FMT):
+    return format % realm
 
 class CertDB(object):
     """

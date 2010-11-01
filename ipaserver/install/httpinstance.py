@@ -30,7 +30,7 @@ import dsinstance
 import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
-from ipalib import util
+from ipalib import util, api
 
 HTTPD_DIR = "/etc/httpd"
 SSL_CONF = HTTPD_DIR + "/conf.d/ssl.conf"
@@ -164,10 +164,10 @@ class HTTPInstance(service.Service):
 
     def __setup_ssl(self):
         if self.self_signed_ca:
-            ca_db = certs.CertDB(NSS_DIR, subject_base=self.subject_base)
+            ca_db = certs.CertDB(NSS_DIR, self.realm, subject_base=self.subject_base)
         else:
-            ca_db = certs.CertDB(NSS_DIR, host_name=self.fqdn, subject_base=self.subject_base)
-        db = certs.CertDB(NSS_DIR, subject_base=self.subject_base)
+            ca_db = certs.CertDB(NSS_DIR, self.realm, host_name=self.fqdn, subject_base=self.subject_base)
+        db = certs.CertDB(NSS_DIR, self.realm, subject_base=self.subject_base)
         if self.pkcs12_info:
             db.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1], passwd="")
             server_certs = db.find_server_certs()
@@ -223,7 +223,7 @@ class HTTPInstance(service.Service):
         prefs_fd.close()
 
         # The signing cert is generated in __setup_ssl
-        db = certs.CertDB(NSS_DIR, subject_base=self.subject_base)
+        db = certs.CertDB(NSS_DIR, self.realm, subject_base=self.subject_base)
 
         pwdfile = open(db.passwd_fname)
         pwd = pwdfile.read()
@@ -238,7 +238,7 @@ class HTTPInstance(service.Service):
         shutil.rmtree(tmpdir)
 
     def __publish_ca_cert(self):
-        ca_db = certs.CertDB(NSS_DIR)
+        ca_db = certs.CertDB(NSS_DIR, self.realm)
         shutil.copy(ca_db.cacert_fname, "/usr/share/ipa/html/ca.crt")
         os.chmod("/usr/share/ipa/html/ca.crt", 0444)
 
@@ -252,7 +252,7 @@ class HTTPInstance(service.Service):
         if not running is None:
             self.stop()
 
-        db = certs.CertDB(NSS_DIR)
+        db = certs.CertDB(NSS_DIR, api.env.realm)
         db.untrack_server_cert("Server-Cert")
         if not enabled is None and not enabled:
             self.chkconfig_off()

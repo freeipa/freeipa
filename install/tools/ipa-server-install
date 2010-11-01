@@ -122,8 +122,8 @@ def parse_options():
                       help="The starting uid value (default random)")
     parser.add_option("--gidstart", dest="gidstart", default=namespace, type=int,
                       help="The starting gid value (default random)")
-    parser.add_option("--subject", dest="subject", default="O=IPA",
-                      help="The certificate subject base (default O=IPA)")
+    parser.add_option("--subject", dest="subject",
+                      help="The certificate subject base (default O=<realm-name>)")
     parser.add_option("--no_hbac_allow", dest="hbac_allow", default=False,
                       action="store_true",
                       help="Don't install allow_all HBAC rule")
@@ -402,8 +402,8 @@ def uninstall():
     ntpinstance.NTPInstance(fstore).uninstall()
     if cainstance.CADSInstance().is_configured():
         cainstance.CADSInstance().uninstall()
-    if cainstance.CAInstance().is_configured():
-        cainstance.CAInstance().uninstall()
+    if cainstance.CAInstance(api.env.realm).is_configured():
+        cainstance.CAInstance(api.env.realm).uninstall()
     bindinstance.BindInstance(fstore).uninstall()
     httpinstance.HTTPInstance(fstore).uninstall()
     krbinstance.KrbInstance(fstore).uninstall()
@@ -464,7 +464,6 @@ def main():
 
     global fstore
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
-
 
     # Configuration for ipalib, we will bootstrap and finalize later, after
     # we are sure we have the configuration file ready.
@@ -610,6 +609,9 @@ def main():
     else:
         realm_name = options.realm_name.upper()
 
+    if not options.subject:
+        options.subject = "O=%s" % realm_name
+
     if not options.dm_password:
         dm_password = read_dm_password()
     else:
@@ -689,7 +691,7 @@ def main():
         if options.external_cert_file is None:
             cs = cainstance.CADSInstance()
             cs.create_instance("pkisrv", realm_name, host_name, domain_name, dm_password)
-        ca = cainstance.CAInstance()
+        ca = cainstance.CAInstance(realm_name)
         if external == 0:
             ca.configure_instance("pkiuser", host_name, dm_password, dm_password, subject_base=options.subject)
         elif external == 1:

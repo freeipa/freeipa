@@ -39,7 +39,7 @@ from ipalib import Backend
 from ipalib import errors
 from ipalib import x509
 from ipalib import pkcs10
-from ipapython.certdb import CA_NICKNAME
+from ipapython.certdb import get_ca_nickname
 import subprocess
 import os
 import re
@@ -47,6 +47,7 @@ from ipaserver.plugins import rabase
 from ipaserver.install import certs
 import tempfile
 from ipalib import  _
+from ipalib import  api
 from ipalib.plugins.cert import get_csr_hostname
 from nss.error import NSPRError
 
@@ -157,7 +158,7 @@ class ra(rabase.rabase):
                 "/usr/bin/certutil",
                 "-C",
                 "-d", self.sec_dir,
-                "-c", CA_NICKNAME,
+                "-c", get_ca_nickname(api.env.realm),
                 "-i", csr_name,
                 "-o", cert_name,
                 "-m", str(serialno),

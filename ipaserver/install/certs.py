@@ -33,7 +33,7 @@ from ipapython import dogtag
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import certmonger
-from ipapython.certdb import CA_NICKNAME
+from ipapython.certdb import get_ca_nickname
 from ipalib import pkcs10
 from ConfigParser import RawConfigParser, MissingSectionHeaderError
 import service
@@ -163,8 +163,9 @@ def next_replica(serial_file=CA_SERIALNO):
     return str(serial)
 
 class CertDB(object):
-    def __init__(self, nssdir, fstore=None, host_name=None, subject_base=None):
+    def __init__(self, nssdir, realm, fstore=None, host_name=None, subject_base=None):
         self.secdir = nssdir
+        self.realm = realm
 
         self.noise_fname = self.secdir + "/noise.txt"
         self.passwd_fname = self.secdir + "/pwdfile.txt"
@@ -191,7 +192,7 @@ class CertDB(object):
         else:
             self.subject_format = "CN=%s,O=IPA"
 
-        self.cacert_name = CA_NICKNAME
+        self.cacert_name = get_ca_nickname(self.realm)
         self.valid_months = "120"
         self.keysize = "1024"
 
@@ -345,10 +346,11 @@ class CertDB(object):
 
     def create_ca_cert(self):
         os.chdir(self.secdir)
+        subject = "cn=%s Certificate Authority" % self.realm
         p = subprocess.Popen(["/usr/bin/certutil",
                               "-d", self.secdir,
                               "-S", "-n", self.cacert_name,
-                              "-s", "cn=IPA Test Certificate Authority",
+                              "-s", subject,
                               "-x",
                               "-t", "CT,,C",
                               "-1",
@@ -853,7 +855,10 @@ class CertDB(object):
             else:
                 raise RuntimeError("unknown error import pkcs#12 file")
 
-    def export_pkcs12(self, pkcs12_fname, pkcs12_pwd_fname, nickname=CA_NICKNAME):
+    def export_pkcs12(self, pkcs12_fname, pkcs12_pwd_fname, nickname=None):
+        if nickname is None:
+            nickname = get_ca_nickname(api.env.realm)
+
         ipautil.run(["/usr/bin/pk12util", "-d", self.secdir,
                      "-o", pkcs12_fname,
                      "-n", nickname,

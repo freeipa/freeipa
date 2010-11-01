@@ -36,7 +36,7 @@ import urllib
 import xml.dom.minidom
 import stat
 from ipapython import dogtag
-from ipapython.certdb import CA_NICKNAME
+from ipapython.certdb import get_ca_nickname
 from ipalib import pkcs10
 import subprocess
 
@@ -365,8 +365,9 @@ class CAInstance(service.Service):
        2 = have signed cert, continue installation
     """
 
-    def __init__(self):
+    def __init__(self, realm):
         service.Service.__init__(self, "pki-cad")
+        self.realm = realm
         self.pki_user = "pkiuser"
         self.dm_password = None
         self.admin_password = None
@@ -382,7 +383,7 @@ class CAInstance(service.Service):
         # The same database is used for mod_nss because the NSS context
         # will already have been initialized by Apache by the time
         # mod_python wants to do things.
-        self.canickname = CA_NICKNAME
+        self.canickname = get_ca_nickname(realm)
         self.basedn = "o=ipaca"
         self.ca_agent_db = tempfile.mkdtemp(prefix = "tmp-")
         self.ra_agent_db = "/etc/httpd/alias"
@@ -400,7 +401,7 @@ class CAInstance(service.Service):
                            admin_password, ds_port=DEFAULT_DSPORT,
                            pkcs12_info=None, master_host=None, csr_file=None,
                            cert_file=None, cert_chain_file=None,
-                           subject_base="O=IPA"):
+                           subject_base=None):
         """Create a CA instance. This may involve creating the pki-ca instance
            dogtag instance.
 
@@ -420,7 +421,10 @@ class CAInstance(service.Service):
         if self.pkcs12_info is not None:
             self.clone = True
         self.master_host = master_host
-        self.subject_base = subject_base
+        if subject_base is None:
+            self.subject_base = "O=%s" % self.realm
+        else:
+            self.subject_base = subject_base
 
         # Determine if we are installing as an externally-signed CA and
         # what stage we're in.
@@ -1000,5 +1004,5 @@ if __name__ == "__main__":
     installutils.standard_logging_setup("install.log", False)
     cs = CADSInstance()
     cs.create_instance("dirsrv", "EXAMPLE.COM", "catest.example.com", "example.com", "password")
-    ca = CAInstance()
+    ca = CAInstance("EXAMPLE.COM")
     ca.configure_instance("pkiuser", "catest.example.com", "password", "password")

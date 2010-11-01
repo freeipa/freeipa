@@ -521,8 +521,7 @@ def main():
     cli_server = None
     cli_realm = None
     cli_basedn = None
-
-    subject_base = "O=IPA"
+    subject_base = None
 
     if options.unattended and (options.password is None and options.principal is None and options.prompt_password is False) and not options.on_master:
         print "One of password and principal are required."
@@ -597,6 +596,7 @@ def main():
 
     cli_realm = ds.getRealmName()
     cli_basedn = ds.getBaseDN()
+    subject_base = "O=%s" % ds.getRealmName()
 
     print "Realm: "+cli_realm
     print "DNS Domain: "+cli_domain

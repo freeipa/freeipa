@@ -48,7 +48,7 @@ class ReplicaConfig:
         self.host_name = ""
         self.repl_password = ""
         self.dir = ""
-        self.subject_base = "O=IPA"
+        self.subject_base = ""
 
 def parse_options():
     usage = "%prog [options] REPLICA_FILE"

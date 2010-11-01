@@ -103,14 +103,14 @@ def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, hostname, subjec
     try:
         self_signed = certs.ipa_self_signed()
 
-        db = certs.CertDB(dir, subject_base=subject_base)
+        db = certs.CertDB(dir, realm_name, subject_base=subject_base)
         db.create_passwd_file()
 #        if self_signed:
 #            ca_db = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name)))
 #            db.create_from_cacert(ca_db.cacert_fname)
 #        else:
 #            ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=api.env.host)
-        ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=api.env.host, subject_base=subject_base)
+        ca_db = certs.CertDB(httpinstance.NSS_DIR, realm_name, host_name=api.env.host, subject_base=subject_base)
         db.create_from_cacert(ca_db.cacert_fname)
         db.create_server_cert("Server-Cert", hostname, ca_db)
     except Exception, e:
@@ -148,7 +148,7 @@ def export_ra_pkcs12(dir, dm_password):
 
     try:
         try:
-            db = certs.CertDB(httpinstance.NSS_DIR, host_name=api.env.host)
+            db = certs.CertDB(httpinstance.NSS_DIR, api.env.realm, host_name=api.env.host)
 
             if db.has_nickname("ipaCert"):
                 pkcs12_fname = "%s/ra.p12" % dir
