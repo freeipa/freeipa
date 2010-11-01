@@ -131,22 +131,25 @@ function ipa_add_dialog(spec) {
                 state[that.entity_name + '-facet'] = 'details';
                 state[that.entity_name + '-pkey'] = pkey[0];
                 $.bbq.pushState(state);
+            }else{
+                dialog.find('input').each( function () {
+                    $(this).val('');
+                });
             }
         }
-
         for (var i = 0; i < that.fields.length; ++i) {
             var field = that.fields[i];
             if (field.setup) {
                 var value = field.setup(dialog, IPA_ADD_UPDATE);
                 if (value != null) {
-                    if (field.name == pkey_name)
+                    if (field.name == pkey_name){
                         pkey = [value];
-                    else
+                    } else {
                         options[field.name] = value;
+                    }
                 }
             }
         }
-
         dialog.find('input').each(function () {
             var jobj = $(this);
             var attr = jobj.attr('name');
