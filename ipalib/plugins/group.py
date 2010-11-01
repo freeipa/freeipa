@@ -291,23 +291,28 @@ class group_detach(LDAPRemoveMember):
         group_dn = self.obj.get_dn(*keys, **options)
         user_dn = self.api.Object['user'].get_dn(*keys)
 
+        (user_dn, user_attrs) = ldap.get_entry(user_dn)
+        is_managed = self.obj.has_objectclass(user_attrs['objectclass'], 'mepmanagedentry')
         if (not ldap.can_write(user_dn, "objectclass") or
-            not ldap.can_write(user_dn, "mepManagedEntry")):
+            not (ldap.can_write(user_dn, "mepManagedEntry")) and is_managed):
             raise errors.ACIError(info=_('not allowed to modify user entries'))
 
+        (group_dn, group_attrs) = ldap.get_entry(group_dn)
+        is_managed = self.obj.has_objectclass(group_attrs['objectclass'], 'mepmanagedby')
         if (not ldap.can_write(group_dn, "objectclass") or
-            not ldap.can_write(group_dn, "mepManagedBy")):
+            not (ldap.can_write(group_dn, "mepManagedBy")) and is_managed):
             raise errors.ACIError(info=_('not allowed to modify group entries'))
 
-        (user_dn, user_attrs) = ldap.get_entry(user_dn)
         objectclasses = user_attrs['objectclass']
         try:
             i = objectclasses.index('mepOriginEntry')
+            del objectclasses[i]
+            update_attrs = {'objectclass': objectclasses, 'mepManagedEntry': None}
+            ldap.update_entry(user_dn, update_attrs)
         except ValueError:
-            raise NotFound(reason=_('Not a managed group'))
-        del objectclasses[i]
-        update_attrs = {'objectclass': objectclasses, 'mepManagedEntry': None}
-        ldap.update_entry(user_dn, update_attrs)
+            # Somehow the user isn't managed, let it pass for now. We'll
+            # let the group throw "Not managed".
+            pass
 
         (group_dn, group_attrs) = ldap.get_entry(group_dn)
         objectclasses = group_attrs['objectclass']
@@ -315,8 +320,16 @@ class group_detach(LDAPRemoveMember):
             i = objectclasses.index('mepManagedEntry')
         except ValueError:
             # this should never happen
-            raise NotFound(reason=_('Not a managed group'))
+            raise errors.NotFound(reason=_('Not a managed group'))
         del objectclasses[i]
+
+        # Make sure the resulting group has the default group objectclasses
+        config = ldap.get_ipa_config()[1]
+        def_objectclass = config.get(
+            self.obj.object_class_config, objectclasses
+        )
+        objectclasses = list(set(def_objectclass + objectclasses))
+
         update_attrs = {'objectclass': objectclasses, 'mepManagedBy': None}
         ldap.update_entry(group_dn, update_attrs)
 

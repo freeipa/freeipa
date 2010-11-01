@@ -234,6 +234,10 @@ class LDAPObject(Object):
             if parent_obj.primary_key:
                 yield parent_obj.primary_key.clone(query=True)
 
+    def has_objectclass(self, classes, objectclass):
+        oc = map(lambda x:x.lower(),classes)
+        return objectclass.lower() in oc
+
     def convert_attribute_members(self, entry_attrs, *keys, **options):
         if options.get('raw', False):
             return
