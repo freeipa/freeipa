@@ -1,0 +1,98 @@
+# Authors:
+#   Simo Sorce <ssorce@redhat.com>
+#
+# Copyright (C) 2010  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+"""
+Kerberos pkinit options
+
+Right now it enables only to control whether Anonymous PKINIT is enabled
+or not based on whether the wellknown principal is active or not.
+
+EXAMPLES:
+
+ Enable Anonymous pkinit:
+  ipa pkinit-anonymous enable
+
+ Disable Anonymous pkinit:
+  ipa pkinit-anonymous disable
+"""
+
+from ipalib import api, errors
+from ipalib import Int, Str
+from ipalib import Object, Command
+from ipalib import _
+
+
+class pkinit(Object):
+    """
+    PKINIT Options
+    """
+    object_name = 'pkinit'
+
+    label=_('PKINIT')
+
+api.register(pkinit)
+
+def valid_arg(ugettext, action):
+    """
+    Accepts only Enable/Disable.
+    """
+    a = action.lower()
+    if a != 'enable' and a != 'disable':
+        raise errors.ValidationError(
+            name='action',
+            error='Unknown command %s' % action
+        )
+
+class pkinit_anonymous(Command):
+    """
+    Enable or Disable Anonymous PKINIT
+    """
+    princ_name = 'WELLKNOWN/ANONYMOUS@%s' % api.env.realm
+    default_dn = 'krbprincipalname=%s,cn=%s,cn=kerberos,%s' % (
+        princ_name, api.env.realm, api.env.basedn
+    )
+
+    takes_args = (
+        Str('action', valid_arg),
+    )
+
+    def execute(self, action, **options):
+        ldap = self.api.Backend.ldap2
+        set_lock = False
+        lock = None
+
+        (dn, entry_attrs) = ldap.get_entry(self.default_dn, ['nsaccountlock'])
+
+        if 'nsaccountlock' in entry_attrs:
+            lock = entry_attrs['nsaccountlock'][0].lower()
+
+        if action.lower() == 'enable':
+            if lock == 'true':
+                set_lock = True
+                lock = None
+        elif action.lower() == 'disable':
+            if lock != 'true':
+                set_lock = True
+                lock = 'TRUE'
+
+        if set_lock:
+            ldap.update_entry(dn, {'nsaccountlock':lock})
+
+        return dict(result=True)
+
+api.register(pkinit_anonymous)
