@@ -195,6 +195,7 @@ class KrbInstance(service.Service):
         self.step("adding the kerberos master key to the directory", self.__add_master_key)
         if setup_pkinit:
             self.step("creating X509 Certificate for PKINIT", self.__setup_pkinit)
+            self.step("creating principal for anonymous PKINIT", self.__add_anonymous_pkinit_principal)
 
         self.__common_post_setup()
 
@@ -520,6 +521,23 @@ class KrbInstance(service.Service):
         # have any selinux issues with the file context
         shutil.copyfile("/usr/share/ipa/html/ca.crt",
                         "/var/kerberos/krb5kdc/cacert.pem")
+
+    def __add_anonymous_pkinit_principal(self):
+        princ = "WELLKNOWN/ANONYMOUS"
+        princ_realm = "%s@%s" % (princ, self.realm)
+
+        # Create the special anonymous principal
+        installutils.kadmin_addprinc(princ_realm)
+        try:
+            conn = ipaldap.IPAdmin("127.0.0.1")
+            conn.simple_bind_s("cn=directory manager", self.admin_password)
+        except Exception, e:
+            logging.critical("Could not connect to the Directory Server on %s" % self.fqdn)
+            raise e
+
+        dn = "krbprincipalname=%s,cn=%s,cn=kerberos,%s" % (princ_realm, self.realm, self.suffix)
+        conn.inactivateEntry(dn, False)
+        conn.unbind()
 
     def uninstall(self):
         if self.is_configured():
