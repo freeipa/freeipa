@@ -51,20 +51,19 @@ class sudocmd(LDAPObject):
     object_class = ['ipaobject', 'ipasudocmd']
     # object_class_config = 'ipahostobjectclasses'
     search_attributes = [
-        'cn', 'description',
+        'sudocmd', 'description',
     ]
     default_attributes = [
-        'cn', 'description',
+        'sudocmd', 'description',
     ]
     uuid_attribute = 'ipauniqueid'
     label = _('SudoCmds')
 
     takes_params = (
-        Str('cn',
+        Str('sudocmd',
             cli_name='command',
             label=_('Sudo Command'),
             primary_key=True,
-            #normalizer=lambda value: value.lower(),
         ),
         Str('description?',
             cli_name='desc',
@@ -82,7 +81,7 @@ class sudocmd(LDAPObject):
         except errors.NotFound:
             try:
                 (dn, entry_attrs) = self.backend.find_entry_by_attr(
-                    'cn', keys[-1], self.object_class, [''],
+                    'sudocmd', keys[-1], self.object_class, [''],
                     self.container_dn
                 )
             except errors.NotFound:

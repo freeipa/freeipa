@@ -42,16 +42,16 @@ class test_sudocmdgroup(Declarative):
         dict(
             desc='Create %r' % sudocmd1,
             command=(
-                'sudocmd_add', [], dict(cn=sudocmd1,)
+                'sudocmd_add', [], dict(sudocmd=sudocmd1,)
             ),
             expected=dict(
                 value=sudocmd1,
                 summary=u'Added sudo command "%s"' % sudocmd1,
                 result=dict(
                     objectclass=objectclasses.sudocmd,
-                    cn=[u'/usr/bin/sudotestcmd1'],
+                    sudocmd=[u'/usr/bin/sudotestcmd1'],
                     ipauniqueid=[fuzzy_uuid],
-                    dn=u'cn=%s,cn=sudocmds,cn=accounts,%s' % (sudocmd1,
+                    dn=u'sudocmd=%s,cn=sudocmds,cn=accounts,%s' % (sudocmd1,
                         api.env.basedn),
                 ),
             ),
@@ -65,8 +65,8 @@ class test_sudocmdgroup(Declarative):
                 value=sudocmd1,
                 summary=None,
                 result=dict(
-                    cn=[sudocmd1],
-                    dn=u'cn=%s,cn=sudocmds,cn=accounts,%s' % (sudocmd1,
+                    sudocmd=[sudocmd1],
+                    dn=u'sudocmd=%s,cn=sudocmds,cn=accounts,%s' % (sudocmd1,
                         api.env.basedn),
                 ),
             ),
