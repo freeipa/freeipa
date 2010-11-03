@@ -62,7 +62,7 @@ add:schema-compat-entry-rdn: cn=%{cn}
 add:schema-compat-entry-attribute: objectclass=nisNetgroup
 add:schema-compat-entry-attribute: 'memberNisNetgroup=%deref_r("member","cn")'
 add:schema-compat-entry-attribute: 'memberNisNetgroup=%referred_r("cn=ng","memberOf","cn")'
-add:schema-compat-entry-attribute: 'nisNetgroupTriple=(%link("%collect(\"%{externalHost}\",\"%deref(\\\"memberHost\\\",\\\"fqdn\\\")\",\"%deref_r(\\\"member\\\",\\\"fqdn\\\")\",\"%deref_r(\\\"memberHost\\\",\\\"member\\\",\\\"fqdn\\\")\")","-",",","%collect(\"%deref(\\\"memberUser\\\",\\\"uid\\\")\",\"%deref_r(\\\"member\\\",\\\"uid\\\")\",\"%deref_r(\\\"memberUser\\\",\\\"member\\\",\\\"uid\\\")\")","-"),%{nisDomainName:-})'
+add:schema-compat-entry-attribute: nisNetgroupTriple=(%link("%ifeq(\"hostCategory\",\"all\",\"\",\"%collect(\\\"%{externalHost}\\\",\\\"%deref(\\\\\\\"memberHost\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberHost\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\")\")","-",",","%ifeq(\"userCategory\",\"all\",\"\",\"%collect(\\\"%deref(\\\\\\\"memberUser\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberUser\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\")\")","-"),%{nisDomainName:-})
 
 # Enable anonymous VLV browsing for Solaris
 dn: oid=2.16.840.1.113730.3.4.9,cn=features,cn=config
