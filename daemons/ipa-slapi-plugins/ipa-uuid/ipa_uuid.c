@@ -119,9 +119,9 @@ static int ipauuid_postop_init(Slapi_PBlock * pb);
  * Local operation functions
  *
  */
-static int ipauuid_load_plugin_config();
+static int ipauuid_load_plugin_config(void);
 static int ipauuid_parse_config_entry(Slapi_Entry * e, bool apply);
-static void ipauuid_delete_config();
+static void ipauuid_delete_config(void);
 static void ipauuid_free_config_entry(struct configEntry ** entry);
 
 /**
@@ -146,7 +146,7 @@ static int ipauuid_add_pre_op(Slapi_PBlock * pb);
 /**
  * debug functions - global, for the debugger
  */
-void ipauuid_dump_config();
+void ipauuid_dump_config(void);
 void ipauuid_dump_config_entry(struct configEntry *);
 
 /**
@@ -154,17 +154,17 @@ void ipauuid_dump_config_entry(struct configEntry *);
  * Deal with cache locking
  *
  */
-void ipauuid_read_lock()
+void ipauuid_read_lock(void)
 {
     PR_RWLock_Rlock(g_ipauuid_cache_lock);
 }
 
-void ipauuid_write_lock()
+void ipauuid_write_lock(void)
 {
     PR_RWLock_Wlock(g_ipauuid_cache_lock);
 }
 
-void ipauuid_unlock()
+void ipauuid_unlock(void)
 {
     PR_RWLock_Unlock(g_ipauuid_cache_lock);
 }
@@ -174,7 +174,7 @@ void ipauuid_unlock()
  * Get the plug-in version
  *
  */
-int ipauuid_version()
+int ipauuid_version(void)
 {
     return IPAUUID_PLUGIN_VERSION;
 }
@@ -187,7 +187,7 @@ void setPluginID(void *pluginID)
     _PluginID = pluginID;
 }
 
-void *getPluginID()
+void *getPluginID(void)
 {
     return _PluginID;
 }
@@ -197,7 +197,7 @@ void setPluginDN(char *pluginDN)
     _PluginDN = pluginDN;
 }
 
-char *getPluginDN()
+char *getPluginDN(void)
 {
     return _PluginDN;
 }
@@ -404,7 +404,6 @@ ipauuid_load_plugin_config()
     int status = EOK;
     int result;
     int i;
-    time_t now;
     Slapi_PBlock *search_pb;
     Slapi_Entry **entries = NULL;
 
@@ -468,7 +467,6 @@ ipauuid_parse_config_entry(Slapi_Entry * e, bool apply)
     struct configEntry *config_entry;
     PRCList *list;
     int entry_added = 0;
-    int i = 0;
     int ret = EOK;
 
     LOG_TRACE("--in-->\n");
@@ -571,7 +569,6 @@ ipauuid_parse_config_entry(Slapi_Entry * e, bool apply)
                 break;
             }
 
-          next:
             list = PR_NEXT_LINK(list);
 
             if (ipauuid_global_config == list) {

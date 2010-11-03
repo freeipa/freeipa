@@ -59,7 +59,7 @@
 #endif
 #include "ipa-winsync.h"
 
-#include <string.h>
+#include "plstr.h"
 
 #define IPA_WINSYNC_CONFIG_FILTER "(objectclass=*)"
 
@@ -542,7 +542,6 @@ ipa_winsync_apply_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore,
             PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
                         "Error: could not add value [%s] for attribute name "
                         "[%s] - ldap error [%d: %s]", val, attrsvals[ii],
-                        attrsvals[ii], IPA_WINSYNC_NEW_USER_ATTRS_VALS,
                         rc, ldap_err2string(rc));
             slapi_entry_free(theConfig.config_e);
             theConfig.config_e = NULL;

@@ -41,8 +41,10 @@
 #  include <config.h>
 #endif
 
+#define _XOPEN_SOURCE /* strptime needs this */
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -880,7 +882,6 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     Slapi_Value *value = NULL;
     Slapi_Attr *attr = NULL;
     struct tm expire_tm;
-    time_t expire_time;
     char *errMesg = "Internal operations error\n"; /* error message */
     char *expire = NULL; /* passwordExpirationTime attribute value */
     char *dn = NULL; /* bind DN */

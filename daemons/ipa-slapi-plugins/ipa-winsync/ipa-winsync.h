@@ -52,6 +52,9 @@
 #include <dirsrv/winsync-plugin.h>
 #endif /* WINSYNC_TEST_IPA */
 
+#include <string.h>
+#include <strings.h>
+
 #include "util.h"
 
 #define IPA_PLUGIN_NAME "ipa-winsync"
@@ -86,7 +89,7 @@ typedef struct ipa_winsync_domain_config {
 } IPA_WinSync_Domain_Config;
 
 void ipa_winsync_set_plugin_identity(void * identity);
-void * ipa_winsync_get_plugin_identity();
+void * ipa_winsync_get_plugin_identity(void);
 
 int ipa_winsync_config( Slapi_Entry *config_e );
 IPA_WinSync_Config *ipa_winsync_get_config( void );

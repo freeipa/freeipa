@@ -535,20 +535,6 @@ static Slapi_Value *ipapwd_strip_pw_date(Slapi_Value *pw)
     return slapi_value_new_string(&pwstr[GENERALIZED_TIME_LENGTH]);
 }
 
-/* ascii hex output of bytes in "in"
- * out len is 32 (preallocated)
- * in len is 16 */
-static const char hexchars[] = "0123456789ABCDEF";
-void hexbuf(char *out, const uint8_t *in)
-{
-    int i;
-
-    for (i = 0; i < 16; i++) {
-        out[i*2] = hexchars[in[i] >> 4];
-        out[i*2+1] = hexchars[in[i] & 0x0f];
-    }
-}
-
 /* searches the directory and finds the policy closest to the DN */
 /* return 0 on success, -1 on error or if no policy is found */
 static int ipapwd_sv_pw_cmp(const void *pv1, const void *pv2)
@@ -564,7 +550,7 @@ static int ipapwd_sv_pw_cmp(const void *pv1, const void *pv2)
 
 int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
                         int *is_root, int *is_krb, int *is_smb,
-                        char *attr, int access)
+                        char *attr, int acc)
 {
     Slapi_Value *sval;
     int rc;
@@ -574,7 +560,7 @@ int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
 
     if (!*is_root) {
         /* verify this user is allowed to write a user password */
-        rc = slapi_access_allowed(pb, e, attr, NULL, access);
+        rc = slapi_access_allowed(pb, e, attr, NULL, acc);
         if (rc != LDAP_SUCCESS) {
             /* we have no business here, the operation will be denied anyway */
             rc = LDAP_SUCCESS;
@@ -932,14 +918,14 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
     ret = slapi_entry_attr_find(data->target,
                                 "passwordHistory", &passwordHistory);
     if (ret == 0) {
-        int ret, hint, count, i, j;
+        int err, hint, count, i, j;
         const char *pwstr;
         Slapi_Value **pH;
         Slapi_Value *pw;
 
         hint = 0;
         count = 0;
-        ret = slapi_attr_get_numvalues(passwordHistory, &count);
+        err = slapi_attr_get_numvalues(passwordHistory, &count);
         /* check history only if we have one */
         if (count > 0 && data->pwHistoryLen > 0) {
             pH = calloc(count + 2, sizeof(Slapi_Value *));
@@ -982,7 +968,7 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
                 return LDAP_OPERATIONS_ERROR;
             }
 
-            ret = slapi_pw_find_sv(pH, pw);
+            err = slapi_pw_find_sv(pH, pw);
 
             for (j = 0; pH[j]; j++) {
                 slapi_value_free(&pH[j]);
@@ -990,7 +976,7 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
             slapi_value_free(&pw);
             free(pH);
 
-            if (ret == 0) {
+            if (err == 0) {
                 LOG_TRACE("Password in history\n");
                 slapi_entry_free(policy);
                 return IPAPWD_POLICY_ERROR | LDAP_PWPOLICY_PWDINHISTORY;
@@ -1111,8 +1097,6 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
     Slapi_Value **pwvals = NULL;
     struct tm utctime;
     char timestr[GENERALIZED_TIME_LENGTH+1];
-    krb5_context krbctx;
-    krb5_error_code krberr;
     char *lm = NULL;
     char *nt = NULL;
     int is_smb = 0;
@@ -1259,13 +1243,13 @@ Slapi_Value **ipapwd_setPasswordHistory(Slapi_Mods *smods,
     ret = slapi_entry_attr_find(data->target,
                                 "passwordHistory", &passwordHistory);
     if (ret == 0) {
-        int ret, hint, count, i, j;
+        int err, hint, count, i, j;
         const char *pwstr;
         Slapi_Value *pw;
 
         hint = 0;
         count = 0;
-        ret = slapi_attr_get_numvalues(passwordHistory, &count);
+        err = slapi_attr_get_numvalues(passwordHistory, &count);
         /* if we have one */
         if (count > 0 && data->pwHistoryLen > 0) {
             pH = calloc(count + 2, sizeof(Slapi_Value *));

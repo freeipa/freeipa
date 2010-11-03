@@ -111,9 +111,9 @@ static int ipamodrdn_close(Slapi_PBlock * pb);
  * Local operation functions
  *
  */
-static int ipamodrdn_load_plugin_config();
+static int ipamodrdn_load_plugin_config(void);
 static int ipamodrdn_parse_config_entry(Slapi_Entry * e, bool apply);
-static void ipamodrdn_delete_config();
+static void ipamodrdn_delete_config(void);
 static void ipamodrdn_free_config_entry(struct configEntry ** entry);
 
 /**
@@ -135,7 +135,7 @@ static int ipamodrdn_post_op(Slapi_PBlock * pb);
 /**
  * debug functions - global, for the debugger
  */
-void ipamodrdn_dump_config();
+void ipamodrdn_dump_config(void);
 void ipamodrdn_dump_config_entry(struct configEntry *);
 
 /**
@@ -143,17 +143,17 @@ void ipamodrdn_dump_config_entry(struct configEntry *);
  * Deal with cache locking
  *
  */
-void ipamodrdn_read_lock()
+void ipamodrdn_read_lock(void)
 {
     PR_RWLock_Rlock(g_ipamodrdn_cache_lock);
 }
 
-void ipamodrdn_write_lock()
+void ipamodrdn_write_lock(void)
 {
     PR_RWLock_Wlock(g_ipamodrdn_cache_lock);
 }
 
-void ipamodrdn_unlock()
+void ipamodrdn_unlock(void)
 {
     PR_RWLock_Unlock(g_ipamodrdn_cache_lock);
 }
@@ -163,7 +163,7 @@ void ipamodrdn_unlock()
  * Get the plug-in version
  *
  */
-int ipamodrdn_version()
+int ipamodrdn_version(void)
 {
     return IPAMODRDN_PLUGIN_VERSION;
 }
@@ -176,7 +176,7 @@ void setPluginID(void *pluginID)
     _PluginID = pluginID;
 }
 
-void *getPluginID()
+void *getPluginID(void)
 {
     return _PluginID;
 }
@@ -186,7 +186,7 @@ void setPluginDN(char *pluginDN)
     _PluginDN = pluginDN;
 }
 
-char *getPluginDN()
+char *getPluginDN(void)
 {
     return _PluginDN;
 }
@@ -330,12 +330,11 @@ ipamodrdn_close(Slapi_PBlock * pb)
  * ------ cn=etc etc
  */
 static int
-ipamodrdn_load_plugin_config()
+ipamodrdn_load_plugin_config(void)
 {
     int status = EOK;
     int result;
     int i;
-    time_t now;
     Slapi_PBlock *search_pb;
     Slapi_Entry **entries = NULL;
 
@@ -399,7 +398,6 @@ ipamodrdn_parse_config_entry(Slapi_Entry * e, bool apply)
     struct configEntry *config_entry;
     PRCList *list;
     int entry_added = 0;
-    int i = 0;
     int ret = EOK;
 
     LOG_TRACE("--in-->\n");
@@ -512,7 +510,6 @@ ipamodrdn_parse_config_entry(Slapi_Entry * e, bool apply)
                 break;
             }
 
-          next:
             list = PR_NEXT_LINK(list);
 
             if (ipamodrdn_global_config == list) {
@@ -594,7 +591,7 @@ ipamodrdn_delete_configEntry(PRCList *entry)
 }
 
 static void
-ipamodrdn_delete_config()
+ipamodrdn_delete_config(void)
 {
     PRCList *list;
 
@@ -710,8 +707,6 @@ static int ipamodrdn_post_op(Slapi_PBlock *pb)
     struct slapi_entry *e = NULL;
     Slapi_Attr *sattr = NULL;
     Slapi_Attr *tattr = NULL;
-    char *value = NULL;
-    char *errstr = NULL;
     int ret = LDAP_SUCCESS;
 
     LOG_TRACE("--in-->\n");

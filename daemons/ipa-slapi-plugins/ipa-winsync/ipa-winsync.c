@@ -59,6 +59,9 @@
 #endif
 #include "ipa-winsync.h"
 
+#include <string.h>
+#include "plstr.h"
+
 static void
 sync_acct_disable(
     void *cbdata, /* the usual domain config data */
@@ -224,7 +227,6 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
     Slapi_Attr *attr = NULL;
     Slapi_Attr *e_attr = NULL;
     char *type = NULL;
-    IPA_WinSync_Config *global_ipaconfig = ipa_winsync_get_config();
 
     LOG("--> ipa_winsync_pre_ds_add_user_cb -- begin\n");
 
@@ -544,7 +546,7 @@ void ipa_winsync_set_plugin_identity(void * identity)
 	ipa_winsync_plugin_id=identity;
 }
 
-void * ipa_winsync_get_plugin_identity()
+void * ipa_winsync_get_plugin_identity(void)
 {
 	return ipa_winsync_plugin_id;
 }

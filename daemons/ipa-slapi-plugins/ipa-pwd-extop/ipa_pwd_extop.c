@@ -916,7 +916,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 
 	if (ret != -1) {
 		struct berval *bvp;
-		LDAPControl new_ctrl = {0};
+		LDAPControl new_ctrl;
 
 		ret = ber_flatten(ber, &bvp);
 		if (ret == -1) {

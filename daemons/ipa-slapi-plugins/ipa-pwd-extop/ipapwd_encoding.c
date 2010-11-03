@@ -112,6 +112,20 @@ void krb5int_c_free_keyblock_contents(krb5_context context,
 
  */
 
+/* ascii hex output of bytes in "in"
+ * out len is 32 (preallocated)
+ * in len is 16 */
+static const char hexchars[] = "0123456789ABCDEF";
+static void hexbuf(char *out, const uint8_t *in)
+{
+    int i;
+
+    for (i = 0; i < 16; i++) {
+        out[i*2] = hexchars[in[i] >> 4];
+        out[i*2+1] = hexchars[in[i] & 0x0f];
+    }
+}
+
 struct berval *encode_keys(struct ipapwd_keyset *kset)
 {
     BerElement *be = NULL;
