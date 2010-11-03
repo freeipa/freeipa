@@ -59,8 +59,6 @@
 #endif
 #include "ipa-winsync.h"
 
-static char *ipa_winsync_plugin_name = IPA_WINSYNC_PLUGIN_NAME;
-
 static void
 sync_acct_disable(
     void *cbdata, /* the usual domain config data */
@@ -87,16 +85,14 @@ static void *
 ipa_winsync_agmt_init(const Slapi_DN *ds_subtree, const Slapi_DN *ad_subtree)
 {
     void *cbdata = NULL;
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_agmt_init [%s] [%s] -- begin\n",
-                    slapi_sdn_get_dn(ds_subtree),
-                    slapi_sdn_get_dn(ad_subtree));
+    LOG("--> ipa_winsync_agmt_init [%s] [%s] -- begin\n",
+        slapi_sdn_get_dn(ds_subtree),
+        slapi_sdn_get_dn(ad_subtree));
 
     /* do the domain specific configuration based on the ds subtree */
     cbdata = ipa_winsync_config_new_domain(ds_subtree, ad_subtree);
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_agmt_init -- end\n");
+    LOG("<-- ipa_winsync_agmt_init -- end\n");
 
     return cbdata;
 }
@@ -106,11 +102,9 @@ ipa_winsync_dirsync_search_params_cb(void *cbdata, const char *agmt_dn,
                                      char **base, int *scope, char **filter,
                                      char ***attrs, LDAPControl ***serverctrls)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_dirsync_search_params_cb -- begin\n");
+    LOG("--> ipa_winsync_dirsync_search_params_cb -- begin\n");
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_dirsync_search_params_cb -- end\n");
+    LOG("<-- ipa_winsync_dirsync_search_params_cb -- end\n");
 
     return;
 }
@@ -121,11 +115,9 @@ ipa_winsync_pre_ad_search_cb(void *cbdata, const char *agmt_dn,
                              char **base, int *scope, char **filter,
                              char ***attrs, LDAPControl ***serverctrls)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_pre_ad_search_cb -- begin\n");
+    LOG("--> ipa_winsync_pre_ad_search_cb -- begin\n");
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_pre_ad_search_cb -- end\n");
+    LOG("<-- ipa_winsync_pre_ad_search_cb -- end\n");
 
     return;
 }
@@ -136,16 +128,13 @@ ipa_winsync_pre_ds_search_entry_cb(void *cbdata, const char *agmt_dn,
                                    char **base, int *scope, char **filter,
                                    char ***attrs, LDAPControl ***serverctrls)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_pre_ds_search_cb -- begin\n");
+    LOG("--> ipa_winsync_pre_ds_search_cb -- begin\n");
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "-- ipa_winsync_pre_ds_search_cb - base [%s] "
-                    "scope [%d] filter [%s]\n",
-                    *base, *scope, *filter);
+    LOG("-- ipa_winsync_pre_ds_search_cb - base [%s] "
+        "scope [%d] filter [%s]\n",
+        *base, *scope, *filter);
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_pre_ds_search_cb -- end\n");
+    LOG("<-- ipa_winsync_pre_ds_search_cb -- end\n");
 
     return;
 }
@@ -156,9 +145,8 @@ ipa_winsync_pre_ds_search_all_cb(void *cbdata, const char *agmt_dn,
                                  char **base, int *scope, char **filter,
                                  char ***attrs, LDAPControl ***serverctrls)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_pre_ds_search_all_cb -- orig filter [%s] -- begin\n",
-                    ((filter && *filter) ? *filter : "NULL"));
+    LOG("--> ipa_winsync_pre_ds_search_all_cb -- orig filter [%s] -- begin\n",
+        ((filter && *filter) ? *filter : "NULL"));
 
     /* We only want to grab users from the ds side - no groups */
     slapi_ch_free_string(filter);
@@ -167,8 +155,7 @@ ipa_winsync_pre_ds_search_all_cb(void *cbdata, const char *agmt_dn,
        indexed for equality only - need to add presence? */
     *filter = slapi_ch_strdup("(&(objectclass=ntuser)(ntUserDomainId=*))");
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_pre_ds_search_all_cb -- end\n");
+    LOG("<-- ipa_winsync_pre_ds_search_all_cb -- end\n");
 
     return;
 }
@@ -178,14 +165,12 @@ ipa_winsync_pre_ad_mod_user_cb(void *cbdata, const Slapi_Entry *rawentry,
                                Slapi_Entry *ad_entry, Slapi_Entry *ds_entry,
                                Slapi_Mods *smods, int *do_modify)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_pre_ad_mod_user_cb -- begin\n");
+    LOG("--> ipa_winsync_pre_ad_mod_user_cb -- begin\n");
 
     sync_acct_disable(cbdata, rawentry, ds_entry, ACCT_DISABLE_TO_AD,
                       NULL, smods, do_modify);
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_pre_ad_mod_user_cb -- end\n");
+    LOG("<-- ipa_winsync_pre_ad_mod_user_cb -- end\n");
 
     return;
 }
@@ -195,11 +180,9 @@ ipa_winsync_pre_ad_mod_group_cb(void *cbdata, const Slapi_Entry *rawentry,
                                 Slapi_Entry *ad_entry, Slapi_Entry *ds_entry,
                                 Slapi_Mods *smods, int *do_modify)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_pre_ad_mod_group_cb -- begin\n");
+    LOG("--> ipa_winsync_pre_ad_mod_group_cb -- begin\n");
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_pre_ad_mod_group_cb -- end\n");
+    LOG("<-- ipa_winsync_pre_ad_mod_group_cb -- end\n");
 
     return;
 }
@@ -209,16 +192,14 @@ ipa_winsync_pre_ds_mod_user_cb(void *cbdata, const Slapi_Entry *rawentry,
                                Slapi_Entry *ad_entry, Slapi_Entry *ds_entry,
                                Slapi_Mods *smods, int *do_modify)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_pre_ds_mod_user_cb -- begin\n");
+    LOG("--> ipa_winsync_pre_ds_mod_user_cb -- begin\n");
 
     sync_acct_disable(cbdata, rawentry, ds_entry, ACCT_DISABLE_TO_DS,
                       NULL, smods, do_modify);
 
     do_force_sync(rawentry, ds_entry, smods, do_modify);
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_pre_ds_mod_user_cb -- end\n");
+    LOG("<-- ipa_winsync_pre_ds_mod_user_cb -- end\n");
 
     return;
 }
@@ -228,11 +209,9 @@ ipa_winsync_pre_ds_mod_group_cb(void *cbdata, const Slapi_Entry *rawentry,
                                 Slapi_Entry *ad_entry, Slapi_Entry *ds_entry,
                                 Slapi_Mods *smods, int *do_modify)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_pre_ds_mod_group_cb -- begin\n");
+    LOG("--> ipa_winsync_pre_ds_mod_group_cb -- begin\n");
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_pre_ds_mod_group_cb -- end\n");
+    LOG("<-- ipa_winsync_pre_ds_mod_group_cb -- end\n");
 
     return;
 }
@@ -247,16 +226,14 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
     char *type = NULL;
     IPA_WinSync_Config *global_ipaconfig = ipa_winsync_get_config();
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_pre_ds_add_user_cb -- begin\n");
+    LOG("--> ipa_winsync_pre_ds_add_user_cb -- begin\n");
 
     if (!ipaconfig || !ipaconfig->domain_e || !ipaconfig->realm_name ||
         !ipaconfig->homedir_prefix) {
-        slapi_log_error(SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
-                        "Error: configuration failure: cannot map Windows "
-                        "entry dn [%s], DS entry dn [%s]\n",
-                        slapi_entry_get_dn_const(ad_entry),
-                        slapi_entry_get_dn_const(ds_entry));
+        LOG_FATAL("Error: configuration failure: cannot map Windows "
+                  "entry dn [%s], DS entry dn [%s]\n",
+                  slapi_entry_get_dn_const(ad_entry),
+                  slapi_entry_get_dn_const(ds_entry));
         return;
     }
 
@@ -278,10 +255,9 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
             {
                 if (!slapi_entry_attr_has_syntax_value(ds_entry, type, sv)) {
                     /* attr-value sv not found in ds_entry; add it */
-                    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                                    "--> ipa_winsync_pre_ds_add_user_cb -- "
-                                    "adding val for [%s] to new entry [%s]\n",
-                                    type, slapi_entry_get_dn_const(ds_entry));
+                    LOG("--> ipa_winsync_pre_ds_add_user_cb -- "
+                        "adding val for [%s] to new entry [%s]\n",
+                        type, slapi_entry_get_dn_const(ds_entry));
 
                     slapi_entry_add_value(ds_entry, type, sv);
                 }
@@ -310,13 +286,12 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
             upn = slapi_ch_smprintf("%s@%s", samAccountName, ipaconfig->realm_name);
             slapi_ch_free_string(&samAccountName);
         } else { /* fatal error - nothing to use for krbPrincipalName */
-            slapi_log_error(SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
-                            "Error creating %s for realm [%s] for Windows "
-                            "entry dn [%s], DS entry dn [%s] - Windows entry "
-                            "has no samAccountName, and DS entry has no uid.\n",
-                            type, ipaconfig->realm_name,
-                            slapi_entry_get_dn_const(ad_entry),
-                            slapi_entry_get_dn_const(ds_entry));
+            LOG_FATAL("Error creating %s for realm [%s] for Windows "
+                      "entry dn [%s], DS entry dn [%s] - Windows entry "
+                      "has no samAccountName, and DS entry has no uid.\n",
+                      type, ipaconfig->realm_name,
+                      slapi_entry_get_dn_const(ad_entry),
+                      slapi_entry_get_dn_const(ds_entry));
         }
 
         if (upn) {
@@ -341,13 +316,12 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
                                         samAccountName);
             slapi_ch_free_string(&samAccountName);
         } else { /* fatal error - nothing to use for homeDirectory */
-            slapi_log_error(SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
-                            "Error creating %s for realm [%s] for Windows "
-                            "entry dn [%s], DS entry dn [%s] - Windows entry "
-                            "has no samAccountName, and DS entry has no uid.\n",
-                            type, ipaconfig->realm_name,
-                            slapi_entry_get_dn_const(ad_entry),
-                            slapi_entry_get_dn_const(ds_entry));
+            LOG_FATAL("Error creating %s for realm [%s] for Windows "
+                      "entry dn [%s], DS entry dn [%s] - Windows entry "
+                      "has no samAccountName, and DS entry has no uid.\n",
+                      type, ipaconfig->realm_name,
+                      slapi_entry_get_dn_const(ad_entry),
+                      slapi_entry_get_dn_const(ds_entry));
         }
 
         if (homeDir) {
@@ -375,8 +349,7 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
 
     sync_acct_disable(cbdata, rawentry, ds_entry, ACCT_DISABLE_TO_DS,
                       ds_entry, NULL, NULL);
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_pre_ds_add_user_cb -- end\n");
+    LOG("<-- ipa_winsync_pre_ds_add_user_cb -- end\n");
 
     return;
 }
@@ -385,11 +358,9 @@ static void
 ipa_winsync_pre_ds_add_group_cb(void *cbdata, const Slapi_Entry *rawentry,
                                 Slapi_Entry *ad_entry, Slapi_Entry *ds_entry)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_pre_ds_add_group_cb -- begin\n");
+    LOG("--> ipa_winsync_pre_ds_add_group_cb -- begin\n");
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_pre_ds_add_group_cb -- end\n");
+    LOG("<-- ipa_winsync_pre_ds_add_group_cb -- end\n");
 
     return;
 }
@@ -403,8 +374,7 @@ ipa_winsync_get_new_ds_user_dn_cb(void *cbdata, const Slapi_Entry *rawentry,
     PRBool flatten = PR_TRUE;
     IPA_WinSync_Config *ipaconfig = ipa_winsync_get_config();
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_get_new_ds_user_dn_cb -- old dn [%s] -- begin\n",
+    LOG("--> ipa_winsync_get_new_ds_user_dn_cb -- old dn [%s] -- begin\n",
                     *new_dn_string);
 
     slapi_lock_mutex(ipaconfig->lock);
@@ -425,8 +395,7 @@ ipa_winsync_get_new_ds_user_dn_cb(void *cbdata, const Slapi_Entry *rawentry,
     *new_dn_string = slapi_ch_smprintf("%s,%s", rdns[0], slapi_sdn_get_dn(ds_suffix));
     ldap_value_free(rdns);
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_get_new_ds_user_dn_cb -- new dn [%s] -- end\n",
+    LOG("<-- ipa_winsync_get_new_ds_user_dn_cb -- new dn [%s] -- end\n",
                     *new_dn_string);
 
     return;
@@ -437,11 +406,9 @@ ipa_winsync_get_new_ds_group_dn_cb(void *cbdata, const Slapi_Entry *rawentry,
                                    Slapi_Entry *ad_entry, char **new_dn_string,
                                    const Slapi_DN *ds_suffix, const Slapi_DN *ad_suffix)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_get_new_ds_group_dn_cb -- begin\n");
+    LOG("--> ipa_winsync_get_new_ds_group_dn_cb -- begin\n");
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_get_new_ds_group_dn_cb -- end\n");
+    LOG("<-- ipa_winsync_get_new_ds_group_dn_cb -- end\n");
 
     return;
 }
@@ -455,8 +422,7 @@ ipa_winsync_pre_ad_mod_user_mods_cb(void *cbdata, const Slapi_Entry *rawentry,
 {
     Slapi_Mods *smods;
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_pre_ad_mod_user_mods_cb -- begin\n");
+    LOG("--> ipa_winsync_pre_ad_mod_user_mods_cb -- begin\n");
 
     /* wrap the modstosend in a Slapi_Mods for convenience */
     smods = slapi_mods_new();
@@ -467,8 +433,7 @@ ipa_winsync_pre_ad_mod_user_mods_cb(void *cbdata, const Slapi_Entry *rawentry,
     /* convert back to LDAPMod ** and clean up */
     *modstosend = slapi_mods_get_ldapmods_passout(smods);
     slapi_mods_free(&smods);
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_pre_ad_mod_user_mods_cb -- end\n");
+    LOG("<-- ipa_winsync_pre_ad_mod_user_mods_cb -- end\n");
 
     return;
 }
@@ -480,11 +445,9 @@ ipa_winsync_pre_ad_mod_group_mods_cb(void *cbdata, const Slapi_Entry *rawentry,
                                      LDAPMod * const *origmods,
                                      Slapi_DN *remote_dn, LDAPMod ***modstosend)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_pre_ad_mod_group_mods_cb -- begin\n");
+    LOG("--> ipa_winsync_pre_ad_mod_group_mods_cb -- begin\n");
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_pre_ad_mod_group_mods_cb -- end\n");
+    LOG("<-- ipa_winsync_pre_ad_mod_group_mods_cb -- end\n");
 
     return;
 }
@@ -493,11 +456,9 @@ static int
 ipa_winsync_can_add_entry_to_ad_cb(void *cbdata, const Slapi_Entry *local_entry,
                                    const Slapi_DN *remote_dn)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_can_add_entry_to_ad_cb -- begin\n");
+    LOG("--> ipa_winsync_can_add_entry_to_ad_cb -- begin\n");
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_can_add_entry_to_ad_cb -- end\n");
+    LOG("<-- ipa_winsync_can_add_entry_to_ad_cb -- end\n");
 
     return 0; /* false - do not allow entries to be added to ad */
 }
@@ -506,13 +467,11 @@ static void
 ipa_winsync_begin_update_cb(void *cbdata, const Slapi_DN *ds_subtree,
                             const Slapi_DN *ad_subtree, int is_total)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_begin_update_cb -- begin\n");
+    LOG("--> ipa_winsync_begin_update_cb -- begin\n");
 
     ipa_winsync_config_refresh_domain(cbdata, ds_subtree, ad_subtree);
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_begin_update_cb -- end\n");
+    LOG("<-- ipa_winsync_begin_update_cb -- end\n");
 
     return;
 }
@@ -521,11 +480,9 @@ static void
 ipa_winsync_end_update_cb(void *cbdata, const Slapi_DN *ds_subtree,
                           const Slapi_DN *ad_subtree, int is_total)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_end_update_cb -- begin\n");
+    LOG("--> ipa_winsync_end_update_cb -- begin\n");
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_end_update_cb -- end\n");
+    LOG("<-- ipa_winsync_end_update_cb -- end\n");
 
     return;
 }
@@ -534,13 +491,11 @@ static void
 ipa_winsync_destroy_agmt_cb(void *cbdata, const Slapi_DN *ds_subtree,
                             const Slapi_DN *ad_subtree)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_destroy_agmt_cb -- begin\n");
+    LOG("--> ipa_winsync_destroy_agmt_cb -- begin\n");
 
     ipa_winsync_config_destroy_domain(cbdata, ds_subtree, ad_subtree);
     
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_destroy_agmt_cb -- end\n");
+    LOG("<-- ipa_winsync_destroy_agmt_cb -- end\n");
 
     return;
 }
@@ -600,42 +555,35 @@ ipa_winsync_plugin_start(Slapi_PBlock *pb)
 	int rc;
 	Slapi_Entry *config_e = NULL; /* entry containing plugin config */
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_plugin_start -- begin\n");
+    LOG("--> ipa_winsync_plugin_start -- begin\n");
 
 	if( slapi_apib_register(WINSYNC_v1_0_GUID, ipa_winsync_api) ) {
-        slapi_log_error( SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
-                         "<-- ipa_winsync_plugin_start -- failed to register winsync api -- end\n");
-        return -1;
+            LOG_FATAL("<-- ipa_winsync_plugin_start -- failed to register winsync api -- end\n");
+            return -1;
 	}
 	
     if ( slapi_pblock_get( pb, SLAPI_ADD_ENTRY, &config_e ) != 0 ) {
-		slapi_log_error( SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
-						 "missing config entry\n" );
-		return( -1 );
+        LOG_FATAL("missing config entry\n" );
+        return( -1 );
     }
 
     if (( rc = ipa_winsync_config( config_e )) != LDAP_SUCCESS ) {
-		slapi_log_error( SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
-						 "configuration failed (%s)\n", ldap_err2string( rc ));
-		return( -1 );
+        LOG_FATAL("configuration failed (%s)\n", ldap_err2string( rc ));
+        return( -1 );
     }
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_plugin_start -- end\n");
-	return 0;
+    LOG("<-- ipa_winsync_plugin_start -- end\n");
+    return 0;
 }
 
 static int
 ipa_winsync_plugin_close(Slapi_PBlock *pb)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_plugin_close -- begin\n");
+    LOG("--> ipa_winsync_plugin_close -- begin\n");
 
 	slapi_apib_unregister(WINSYNC_v1_0_GUID);
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- ipa_winsync_plugin_close -- end\n");
+    LOG("<-- ipa_winsync_plugin_close -- end\n");
 	return 0;
 }
 
@@ -646,8 +594,7 @@ int ipa_winsync_plugin_init(Slapi_PBlock *pb)
 {
     void *plugin_id = NULL;
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "--> ipa_winsync_plugin_init -- begin\n");
+    LOG("--> ipa_winsync_plugin_init -- begin\n");
 
     if ( slapi_pblock_set( pb, SLAPI_PLUGIN_VERSION,
                            SLAPI_PLUGIN_VERSION_01 ) != 0 ||
@@ -658,23 +605,20 @@ int ipa_winsync_plugin_init(Slapi_PBlock *pb)
          slapi_pblock_set( pb, SLAPI_PLUGIN_DESCRIPTION,
                            (void *)&ipa_winsync_pdesc ) != 0 )
     {
-        slapi_log_error( SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
-                         "<-- ipa_winsync_plugin_init -- failed to register plugin -- end\n");
+        LOG_FATAL("<-- ipa_winsync_plugin_init -- failed to register plugin -- end\n");
         return -1;
     }
 
     /* Retrieve and save the plugin identity to later pass to
        internal operations */
     if (slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY, &plugin_id) != 0) {
-        slapi_log_error(SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
-                         "<-- ipa_winsync_plugin_init -- failed to retrieve plugin identity -- end\n");
+        LOG_FATAL("<-- ipa_winsync_plugin_init -- failed to retrieve plugin identity -- end\n");
         return -1;
     }
 
     ipa_winsync_set_plugin_identity(plugin_id);
 
-    slapi_log_error( SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                     "<-- ipa_winsync_plugin_init -- end\n");
+    LOG("<-- ipa_winsync_plugin_init -- end\n");
     return 0;
 }
 
@@ -704,11 +648,10 @@ ipa_check_account_lock(Slapi_Entry *ds_entry, int *isvirt)
             rc = 0; /* account is disabled */
         }
         slapi_ch_free_string(&strval);
-        slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                        "<-- ipa_check_account_lock - entry [%s] has real "
-                        "attribute nsAccountLock and entry %s locked\n",
-                        slapi_entry_get_dn_const(ds_entry),
-                        rc ? "is not" : "is");
+        LOG("<-- ipa_check_account_lock - entry [%s] has real "
+            "attribute nsAccountLock and entry %s locked\n",
+            slapi_entry_get_dn_const(ds_entry),
+            rc ? "is not" : "is");
         return rc;
     }
 
@@ -734,18 +677,16 @@ ipa_check_account_lock(Slapi_Entry *ds_entry, int *isvirt)
         if (values != NULL) {
             slapi_vattr_values_free(&values, &actual_type_name, attr_free_flags);
         }
-        slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                        "<-- ipa_check_account_lock - entry [%s] has virtual "
-                        "attribute nsAccountLock and entry %s locked\n",
-                        slapi_entry_get_dn_const(ds_entry),
-                        rc ? "is not" : "is");
+        LOG("<-- ipa_check_account_lock - entry [%s] has virtual "
+            "attribute nsAccountLock and entry %s locked\n",
+            slapi_entry_get_dn_const(ds_entry),
+            rc ? "is not" : "is");
     } else {
         rc = 1; /* no attr == entry is enabled */
-        slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                        "<-- ipa_check_account_lock - entry [%s] does not "
-                        "have attribute nsAccountLock - entry %s locked\n",
-                        slapi_entry_get_dn_const(ds_entry),
-                        rc ? "is not" : "is");
+        LOG("<-- ipa_check_account_lock - entry [%s] does not "
+            "have attribute nsAccountLock - entry %s locked\n",
+            slapi_entry_get_dn_const(ds_entry),
+            rc ? "is not" : "is");
     }
 
     return rc;
@@ -784,12 +725,11 @@ do_group_modify(const char *dn, const char *modtype, int modop, const char *modv
 
     slapi_pblock_destroy(mod_pb);
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "<-- do_group_modify - %s value [%s] in attribute [%s] "
-                    "in entry [%s] - result (%d: %s)\n",
-                    (modop & LDAP_MOD_ADD) ? "added" : "deleted",
-                    modval, modtype, dn,
-                    rc, ldap_err2string(rc));
+    LOG("<-- do_group_modify - %s value [%s] in attribute [%s] "
+        "in entry [%s] - result (%d: %s)\n",
+        (modop & LDAP_MOD_ADD) ? "added" : "deleted",
+        modval, modtype, dn,
+        rc, ldap_err2string(rc));
 
     return rc;
 }
@@ -863,12 +803,11 @@ sync_acct_disable(
                 adval |= mask; /* set the 0x2 disable bit */
             }
             slapi_entry_attr_set_ulong(update_entry, "userAccountControl", adval);
-            slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                            "<-- sync_acct_disable - %s AD account [%s] - "
-                            "new value is [%ld]\n",
-                            (ds_is_enabled) ? "enabled" : "disabled",
-                            slapi_entry_get_dn_const(update_entry),
-                            adval);
+            LOG("<-- sync_acct_disable - %s AD account [%s] - "
+                "new value is [%ld]\n",
+                (ds_is_enabled) ? "enabled" : "disabled",
+                slapi_entry_get_dn_const(update_entry),
+                adval);
         } else {
             /* iterate through the mods - if there is already a mod
                for userAccountControl, change it - otherwise, add it */
@@ -924,12 +863,11 @@ sync_acct_disable(
                 mod_bval->bv_val = slapi_ch_strdup(acctvalstr);
                 mod_bval->bv_len = strlen(acctvalstr);
             }
-            slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                            "<-- sync_acct_disable - %s AD account [%s] - "
-                            "new value is [%ld]\n",
-                            (ds_is_enabled) ? "enabled" : "disabled",
-                            slapi_entry_get_dn_const(ad_entry),
-                            adval);
+            LOG("<-- sync_acct_disable - %s AD account [%s] - "
+                "new value is [%ld]\n",
+                (ds_is_enabled) ? "enabled" : "disabled",
+                slapi_entry_get_dn_const(ad_entry),
+                adval);
         }
     }
 
@@ -946,10 +884,9 @@ sync_acct_disable(
 
             if (update_entry) {
                 slapi_entry_attr_set_charptr(update_entry, attrtype, attrval);
-                slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                                "<-- sync_acct_disable - %s DS account [%s]\n",
-                                (ad_is_enabled) ? "enabled" : "disabled",
-                                slapi_entry_get_dn_const(ds_entry));
+                LOG("<-- sync_acct_disable - %s DS account [%s]\n",
+                    (ad_is_enabled) ? "enabled" : "disabled",
+                    slapi_entry_get_dn_const(ds_entry));
             } else { /* do mod */
                 struct berval tmpbval = {0, NULL};
                 Slapi_Mod *smod = slapi_mod_new();
@@ -964,10 +901,9 @@ sync_acct_disable(
                 slapi_mods_add_ldapmod(smods,
                                        slapi_mod_get_ldapmod_passout(smod));
                 slapi_mod_free(&smod);
-                slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                                "<-- sync_acct_disable - %s DS account [%s]\n",
-                                (ad_is_enabled) ? "enabled" : "disabled",
-                                slapi_entry_get_dn_const(ds_entry));
+                LOG("<-- sync_acct_disable - %s DS account [%s]\n",
+                    (ad_is_enabled) ? "enabled" : "disabled",
+                    slapi_entry_get_dn_const(ds_entry));
                 if (do_modify) {
                     *do_modify = 1; /* added mods */
                 }
@@ -993,27 +929,24 @@ sync_acct_disable(
             }
 
             dsdn = slapi_entry_get_dn_const(ds_entry);
-            slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                            "<-- sync_acct_disable - %s DS account [%s] - "
-                            "deldn [%s] adddn [%s]\n",
-                            (ad_is_enabled) ? "enabling" : "disabling",
-                            slapi_entry_get_dn_const(ds_entry),
-                            deldn, adddn);
+            LOG("<-- sync_acct_disable - %s DS account [%s] - "
+                "deldn [%s] adddn [%s]\n",
+                (ad_is_enabled) ? "enabling" : "disabling",
+                slapi_entry_get_dn_const(ds_entry),
+                deldn, adddn);
             /* first, delete the user from the deldn group - ignore (but log)
                value not found errors - means the user wasn't there yet */
             rc = do_group_modify(deldn, "member", LDAP_MOD_DELETE, dsdn);
             if (rc == LDAP_NO_SUCH_ATTRIBUTE) {
                 /* either the value of the attribute doesn't exist */
-                slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                                "Could not delete user [%s] from the [%s] group: "
-                                "either the user was not in the group already, "
-                                "or the group had no members\n",
-                                dsdn, deldn);
+                LOG("Could not delete user [%s] from the [%s] group: "
+                    "either the user was not in the group already, "
+                    "or the group had no members\n",
+                    dsdn, deldn);
             } else if (rc != LDAP_SUCCESS) {
-                slapi_log_error(SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
-                                "Error deleting user [%s] from the [%s] group: "
-                                "(%d - %s)\n", dsdn, deldn, rc,
-                                ldap_err2string(rc));
+                LOG_FATAL("Error deleting user [%s] from the [%s] group: "
+                          "(%d - %s)\n", dsdn, deldn, rc,
+                          ldap_err2string(rc));
             }
             /* next, add the user to the adddn group - ignore (but log)
                if the user is already in that group */
@@ -1024,15 +957,13 @@ sync_acct_disable(
             }
             if (rc == LDAP_TYPE_OR_VALUE_EXISTS) {
                 /* user already in that group */
-                slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                                "Could not add user [%s] to the [%s] group: "
-                                "user is already in that group\n",
-                                dsdn, adddn);
+                LOG("Could not add user [%s] to the [%s] group: "
+                    "user is already in that group\n",
+                    dsdn, adddn);
             } else if (rc != LDAP_SUCCESS) {
-                slapi_log_error(SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
-                                "Error adding user [%s] to the [%s] group: "
-                                "(%d - %s)\n", dsdn, adddn, rc,
-                                ldap_err2string(rc));
+                LOG_FATAL("Error adding user [%s] to the [%s] group: "
+                          "(%d - %s)\n", dsdn, adddn, rc,
+                          ldap_err2string(rc));
             }
 #ifndef MEMBEROF_WORKS_FOR_INTERNAL_OPS
             /* memberOf doesn't currently listen for internal operations
@@ -1074,10 +1005,9 @@ sync_acct_disable(
                 slapi_value_free(&sv);
             }
 #endif /* MEMBEROF_WORKS_FOR_INTERNAL_OPS */
-            slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                            "<-- sync_acct_disable - %s DS account [%s]\n",
-                            (ad_is_enabled) ? "enabled" : "disabled",
-                            slapi_entry_get_dn_const(ds_entry));
+            LOG("<-- sync_acct_disable - %s DS account [%s]\n",
+                (ad_is_enabled) ? "enabled" : "disabled",
+                slapi_entry_get_dn_const(ds_entry));
         }
     }
 
@@ -1125,10 +1055,9 @@ find_and_add_mod(Slapi_Entry *ent, Slapi_Mods *smods, const char *type,
         if (do_modify) {
             *do_modify = 1; /* added a mod */
         }
-        slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                        "<-- find_and_add_mod - added value [%s] "
-                        "to attribute [%s] in entry [%s]\n",
-                        val, type, slapi_entry_get_dn_const(ent));
+        LOG("<-- find_and_add_mod - added value [%s] "
+            "to attribute [%s] in entry [%s]\n",
+            val, type, slapi_entry_get_dn_const(ent));
     }
     slapi_value_free(&sv);
 
@@ -1165,11 +1094,10 @@ do_force_sync(
         return; /* not supported */
     }
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                    "do_force_sync - forcing sync of AD entry [%s] "
-                    "with DS entry [%s]\n",
-                    slapi_entry_get_dn_const(ad_entry),
-                    slapi_entry_get_dn_const(ds_entry));
+    LOG("do_force_sync - forcing sync of AD entry [%s] "
+        "with DS entry [%s]\n",
+        slapi_entry_get_dn_const(ad_entry),
+        slapi_entry_get_dn_const(ds_entry));
 
     find_and_add_mod(ds_entry, smods, "objectClass", "ntUser", (size_t)6, do_modify);
 

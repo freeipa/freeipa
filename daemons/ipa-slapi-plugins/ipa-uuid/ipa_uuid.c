@@ -45,41 +45,16 @@
 #include "prclist.h"
 #include "uuid/uuid.h"
 
+#include "util.h"
+
+#define IPAUUID_STR_SIZE 36
+
 #define IPAUUID_PLUGIN_NAME "ipa-uuid-plugin"
 #define IPAUUID_PLUGIN_VERSION 0x00010000
 
 #define IPAUUID_DN "cn=IPA UUID,cn=plugins,cn=config" /* temporary */
 
-#define IPAUUID_SUCCESS 0
-#define IPAUUID_FAILURE -1
-
-#define IPAUUID_STR_SIZE 36
-
-#ifndef discard_const
-#define discard_const(ptr) ((void *)((uintptr_t)(ptr)))
-#endif
-
-#define log_func discard_const(__func__)
-
-#define LOG(fmt, ...) \
-    slapi_log_error(SLAPI_LOG_PLUGIN, \
-                    IPAUUID_PLUGIN_NAME, \
-                    fmt, ##__VA_ARGS__)
-
-#define LOG_CONFIG(fmt, ...) \
-    slapi_log_error(SLAPI_LOG_CONFIG, \
-                    IPAUUID_PLUGIN_NAME, \
-                    fmt, ##__VA_ARGS__)
-
-#define LOG_FATAL(fmt, ...) \
-    slapi_log_error(SLAPI_LOG_FATAL, log_func, \
-                    "[file %s, line %d]: " fmt, \
-                    __FILE__, __LINE__, ##__VA_ARGS__)
-
-#define LOG_TRACE(fmt, ...) \
-    slapi_log_error(SLAPI_LOG_TRACE, log_func, fmt, ##__VA_ARGS__)
-
-#define LOG_OOM() LOG_FATAL("Out of Memory!\n")
+#define IPA_PLUGIN_NAME IPAUUID_PLUGIN_NAME
 
 /**
  * IPA UUID config types
@@ -235,7 +210,7 @@ char *getPluginDN()
 int
 ipauuid_init(Slapi_PBlock *pb)
 {
-    int status = IPAUUID_SUCCESS;
+    int status = EOK;
     char *plugin_identity = NULL;
 
     LOG_TRACE("--in-->\n");
@@ -281,7 +256,7 @@ ipauuid_init(Slapi_PBlock *pb)
         )
         ) {
         LOG_FATAL("failed to register plugin\n");
-        status = IPAUUID_FAILURE;
+        status = EFAIL;
     }
 
     LOG_TRACE("<--out--\n");
@@ -291,7 +266,7 @@ ipauuid_init(Slapi_PBlock *pb)
 static int
 ipauuid_internal_preop_init(Slapi_PBlock *pb)
 {
-    int status = IPAUUID_SUCCESS;
+    int status = EOK;
 
     if (slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION,
                          SLAPI_PLUGIN_VERSION_01) != 0 ||
@@ -301,7 +276,7 @@ ipauuid_internal_preop_init(Slapi_PBlock *pb)
                          (void *) ipauuid_mod_pre_op) != 0 ||
         slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_PRE_ADD_FN,
                          (void *) ipauuid_add_pre_op) != 0) {
-        status = IPAUUID_FAILURE;
+        status = EFAIL;
     }
  
     return status;
@@ -310,7 +285,7 @@ ipauuid_internal_preop_init(Slapi_PBlock *pb)
 static int
 ipauuid_postop_init(Slapi_PBlock *pb)
 {
-    int status = IPAUUID_SUCCESS;
+    int status = EOK;
 
     if (slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION,
                          SLAPI_PLUGIN_VERSION_01) != 0 ||
@@ -325,7 +300,7 @@ ipauuid_postop_init(Slapi_PBlock *pb)
         slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODIFY_FN,
                          (void *) ipauuid_config_check_post_op) != 0) {
         LOG_FATAL("failed to register plugin\n");
-        status = IPAUUID_FAILURE;
+        status = EFAIL;
     }
 
     return status;
@@ -355,7 +330,7 @@ ipauuid_start(Slapi_PBlock * pb)
     if (!g_ipauuid_cache_lock) {
         LOG_FATAL("lock creation failed\n");
 
-        return IPAUUID_FAILURE;
+        return EFAIL;
     }
 
     /**
@@ -381,9 +356,9 @@ ipauuid_start(Slapi_PBlock * pb)
         slapi_ch_calloc(1, sizeof(struct configEntry));
     PR_INIT_CLIST(ipauuid_global_config);
 
-    if (ipauuid_load_plugin_config() != IPAUUID_SUCCESS) {
+    if (ipauuid_load_plugin_config() != EOK) {
         LOG_FATAL("unable to load plug-in configuration\n");
-        return IPAUUID_FAILURE;
+        return EFAIL;
     }
 
     g_plugin_started = 1;
@@ -391,7 +366,7 @@ ipauuid_start(Slapi_PBlock * pb)
     LOG_TRACE("<--out--\n");
 
 done:
-    return IPAUUID_SUCCESS;
+    return EOK;
 }
 
 /*
@@ -410,7 +385,7 @@ ipauuid_close(Slapi_PBlock * pb)
 
     LOG_TRACE("<--out--\n");
 
-    return IPAUUID_SUCCESS;
+    return EOK;
 }
 
 /*
@@ -426,7 +401,7 @@ ipauuid_close(Slapi_PBlock * pb)
 static int
 ipauuid_load_plugin_config()
 {
-    int status = IPAUUID_SUCCESS;
+    int status = EOK;
     int result;
     int i;
     time_t now;
@@ -447,14 +422,14 @@ ipauuid_load_plugin_config()
     slapi_pblock_get(search_pb, SLAPI_PLUGIN_INTOP_RESULT, &result);
 
     if (LDAP_SUCCESS != result) {
-        status = IPAUUID_FAILURE;
+        status = EFAIL;
         goto cleanup;
     }
 
     slapi_pblock_get(search_pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES,
                      &entries);
     if (NULL == entries || NULL == entries[0]) {
-        status = IPAUUID_SUCCESS;
+        status = EOK;
         goto cleanup;
     }
 
@@ -482,7 +457,7 @@ ipauuid_load_plugin_config()
  * validate config without making any changes by setting apply
  * to 0.
  *
- * Returns IPAUUID_SUCCESS if the entry is valid and IPAUUID_FAILURE
+ * Returns EOK if the entry is valid and EFAIL
  * if it is invalid.
  */
 static int
@@ -494,20 +469,20 @@ ipauuid_parse_config_entry(Slapi_Entry * e, bool apply)
     PRCList *list;
     int entry_added = 0;
     int i = 0;
-    int ret = IPAUUID_SUCCESS;
+    int ret = EOK;
 
     LOG_TRACE("--in-->\n");
 
     /* If this is the main UUID plug-in config entry, just bail. */
     if (strcasecmp(getPluginDN(), slapi_entry_get_ndn(e)) == 0) {
-        ret = IPAUUID_FAILURE;
+        ret = EFAIL;
         goto bail;
     }
 
     entry = (struct configEntry *)
     slapi_ch_calloc(1, sizeof(struct configEntry));
     if (NULL == entry) {
-        ret = IPAUUID_FAILURE;
+        ret = EFAIL;
         goto bail;
     }
 
@@ -521,7 +496,7 @@ ipauuid_parse_config_entry(Slapi_Entry * e, bool apply)
     if (!entry->attr) {
         LOG_FATAL("The %s config setting is required for %s.\n",
                   IPAUUID_ATTR, entry->dn);
-        ret = IPAUUID_FAILURE;
+        ret = EFAIL;
         goto bail;
     }
     LOG_CONFIG("----------> %s [%s]\n", IPAUUID_ATTR, entry->attr);
@@ -544,13 +519,13 @@ ipauuid_parse_config_entry(Slapi_Entry * e, bool apply)
         if (NULL == (entry->slapi_filter = slapi_str2filter(value))) {
             LOG_FATAL("Error: Invalid search filter in entry [%s]: [%s]\n",
                       entry->dn, value);
-            ret = IPAUUID_FAILURE;
+            ret = EFAIL;
             goto bail;
         }
     } else {
         LOG_FATAL("The %s config setting is required for %s.\n",
                   IPAUUID_FILTER, entry->dn);
-        ret = IPAUUID_FAILURE;
+        ret = EFAIL;
         goto bail;
     }
     LOG_CONFIG("----------> %s [%s]\n", IPAUUID_FILTER, value);
@@ -561,7 +536,7 @@ ipauuid_parse_config_entry(Slapi_Entry * e, bool apply)
     } else {
         LOG_FATAL("The %s config config setting is required for %s.\n",
                   IPAUUID_SCOPE, entry->dn);
-        ret = IPAUUID_FAILURE;
+        ret = EFAIL;
         goto bail;
     }
     LOG_CONFIG("----------> %s [%s]\n", IPAUUID_SCOPE, entry->scope);
@@ -622,7 +597,7 @@ bail:
         }
         ipauuid_free_config_entry(&entry);
     } else {
-        ret = IPAUUID_SUCCESS;
+        ret = EOK;
     }
 
     LOG_TRACE("<--out--\n");
@@ -886,7 +861,7 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
             test_e = resulting_e;
         }
 
-        if (ipauuid_parse_config_entry(test_e, false) != IPAUUID_SUCCESS) {
+        if (ipauuid_parse_config_entry(test_e, false) != EOK) {
             /* Refuse the operation if config parsing failed. */
             ret = LDAP_UNWILLING_TO_PERFORM;
             if (LDAP_CHANGETYPE_ADD == modtype) {
@@ -1201,7 +1176,7 @@ done:
         LOG("operation failure [%d]\n", ret);
         slapi_send_ldap_result(pb, ret, NULL, errstr, 0, NULL);
         slapi_ch_free((void **)&errstr);
-        ret = IPAUUID_FAILURE;
+        ret = EFAIL;
     }
 
     LOG_TRACE("<--out--\n");

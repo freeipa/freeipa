@@ -49,11 +49,15 @@
 #include <dirsrv/slapi-plugin.h>
 #include <krb5.h>
 
+#include "util.h"
+
+#define IPA_PLUGIN_NAME "ipa-enrollment"
+
 /* OID of the extended operation handled by this plug-in */
 #define JOIN_OID    "2.16.840.1.113730.3.8.3.53"
 
 Slapi_PluginDesc pdesc = {
-    "ipa-enrollment",
+    IPA_PLUGIN_NAME,
     "IPA Project",
     "IPA/2.0",
     "IPA Enrollment Extended Operation plugin"
@@ -80,21 +84,19 @@ ipaenrollement_secure(Slapi_PBlock *pb, char **errMesg)
     int sasl_ssf, is_ssl;
     int rc = LDAP_SUCCESS;
 
-    slapi_log_error(SLAPI_LOG_TRACE, "ipa_enrollment", "=> ipaenrollment_secure\n");
+    LOG_TRACE("=> ipaenrollment_secure\n");
 
     /* Allow enrollment only for SSL/TLS established connections and
      * connections using SASL privacy layers */
     if (slapi_pblock_get(pb, SLAPI_CONN_SASL_SSF, &sasl_ssf) != 0) {
-        slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
-                        "Could not get SASL SSF from connection\n");
+        LOG_TRACE("Could not get SASL SSF from connection\n");
         *errMesg = "Operation requires a secure connection.\n";
         rc = LDAP_OPERATIONS_ERROR;
         goto done;
     }
 
     if (slapi_pblock_get(pb, SLAPI_CONN_IS_SSL_SESSION, &is_ssl) != 0) {
-        slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
-                        "Could not get IS SSL from connection\n");
+        LOG_TRACE("Could not get IS SSL from connection\n");
         *errMesg = "Operation requires a secure connection.\n";
         rc = LDAP_OPERATIONS_ERROR;
         goto done;
@@ -107,7 +109,7 @@ ipaenrollement_secure(Slapi_PBlock *pb, char **errMesg)
     }
 
 done:
-    slapi_log_error(SLAPI_LOG_TRACE, "ipa_enrollment", "<= ipaenrollment_secure\n");
+    LOG_TRACE("<= ipaenrollment_secure\n");
     return rc;
 
 }
@@ -175,9 +177,7 @@ ipa_join(Slapi_PBlock *pb)
     ret = slapi_search_internal_pb(pbte);
     slapi_pblock_get(pbte, SLAPI_PLUGIN_INTOP_RESULT, &res);
     if (ret == -1 || res != LDAP_SUCCESS) {
-        slapi_log_error(SLAPI_LOG_TRACE, "ipaenrollment_extop",
-                "Search for host failed, err (%d)\n",
-                res?res:ret);
+        LOG_TRACE("Search for host failed, err (%d)\n", res?res:ret);
         errMesg = "Host not found.\n";
         rc = LDAP_NO_SUCH_OBJECT;
         goto free_and_return;
@@ -186,7 +186,7 @@ ipa_join(Slapi_PBlock *pb)
     /* get entries */
     slapi_pblock_get(pbte, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES, &es);
     if (!es) {
-        slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "No entries ?!");
+        LOG_TRACE("No entries ?!");
         errMesg = "Host not found.\n";
         rc = LDAP_NO_SUCH_OBJECT;
         goto free_and_return;
@@ -197,8 +197,7 @@ ipa_join(Slapi_PBlock *pb)
 
     /* if there is none or more than one, freak out */
     if (i != 1) {
-        slapi_log_error(SLAPI_LOG_TRACE, "ipaenrollment_extop",
-                "Too many entries, or entry no found (%d)", i);
+        LOG_TRACE("Too many entries, or entry no found (%d)", i);
         errMesg = "Host not found.\n";
         rc = LDAP_NO_SUCH_OBJECT;
         goto free_and_return;
@@ -208,8 +207,7 @@ ipa_join(Slapi_PBlock *pb)
     /* Is this host already enrolled? */
     krbLastPwdChange = slapi_entry_attr_get_charptr(targetEntry, "krbLastPwdChange");
     if (NULL != krbLastPwdChange) {
-        slapi_log_error(SLAPI_LOG_TRACE, "ipaenrollment_extop",
-                "Host already enrolled");
+        LOG_TRACE("Host already enrolled");
         errMesg = "Host already enrolled.\n";
         rc = LDAP_OPERATIONS_ERROR;
         goto free_and_return;
@@ -266,19 +264,16 @@ ipa_join(Slapi_PBlock *pb)
 
     rc = slapi_modify_internal_pb (pbtm);
     if (rc) {
-        slapi_log_error(SLAPI_LOG_TRACE, "ipaenrollment_extop",
-            "WARNING: modify error %d on entry '%s'\n",
-            rc, slapi_entry_get_dn_const(targetEntry));
+        LOG_TRACE("WARNING: modify error %d on entry '%s'\n",
+                  rc, slapi_entry_get_dn_const(targetEntry));
     } else {
         slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &rc);
 
         if (rc != LDAP_SUCCESS){
-            slapi_log_error(SLAPI_LOG_TRACE, "ipaenrollment_extop",
-                "WARNING: modify error %d on entry '%s'\n",
-                rc, slapi_entry_get_dn_const(targetEntry));
+            LOG_TRACE("WARNING: modify error %d on entry '%s'\n",
+                      rc, slapi_entry_get_dn_const(targetEntry));
         } else {
-            slapi_log_error(SLAPI_LOG_TRACE, "ipaenrollment_extop",
-                "<= apply mods: Successful\n");
+            LOG_TRACE("<= apply mods: Successful\n");
         }
     }
 
@@ -291,8 +286,7 @@ done:
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_EXT_OP_RET_VALUE, &retbval);
     if (ret) {
         errMesg = "Could not set return values";
-        slapi_log_error(SLAPI_LOG_PLUGIN, "ipaenrollmenti_extop", "%s\n",
-                    errMesg);
+        LOG("%s\n", errMesg);
         rc = SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
     }
 
@@ -309,7 +303,7 @@ free_and_return:
 
     if (krbLastPwdChange) slapi_ch_free_string(&krbLastPwdChange);
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, "ipaenrollment_extop", errMesg ? errMesg : "success\n");
+    LOG(errMesg ? errMesg : "success\n");
     slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
 
     free(principal);
@@ -325,7 +319,7 @@ ipaenrollment_extop(Slapi_PBlock *pb)
     char *errMesg = NULL;
     int rc, ret;
 
-    slapi_log_error(SLAPI_LOG_TRACE, "ipa_enrollment", "=> ipaenrollment_extop\n");
+    LOG_TRACE("=> ipaenrollment_extop\n");
 
     rc = ipaenrollement_secure(pb, &errMesg);
     if (rc) {
@@ -336,7 +330,7 @@ ipaenrollment_extop(Slapi_PBlock *pb)
     if (slapi_pblock_get(pb, SLAPI_EXT_OP_REQ_OID, &oid ) != 0) {
         errMesg = "Could not get OID and value from request.\n";
         rc = LDAP_OPERATIONS_ERROR;
-        slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop", errMesg);
+        LOG(errMesg);
         goto free_and_return;
     }
 
@@ -349,7 +343,7 @@ ipaenrollment_extop(Slapi_PBlock *pb)
     rc = LDAP_OPERATIONS_ERROR;
 
 free_and_return:
-    slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_enrollment", errMesg);
+    LOG(errMesg);
     slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
 
     return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
@@ -369,35 +363,32 @@ ipaenrollment_start(Slapi_PBlock *pb)
 
     krberr = krb5_init_context(&krbctx);
     if (krberr) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipaenrollment_init",
-                        "krb5_init_context failed\n");
+        LOG_FATAL("krb5_init_context failed\n");
         return LDAP_OPERATIONS_ERROR;
     }
 
     ret = krb5_get_default_realm(krbctx, &realm);
     if (ret) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipaenrollment_init",
-                        "Failed to get default realm?!\n");
+        LOG_FATAL("Failed to get default realm?!\n");
         ret = LDAP_OPERATIONS_ERROR;
     }
 
     if (slapi_pblock_get(pb, SLAPI_TARGET_DN, &config_dn) != 0) {
-        slapi_log_error( SLAPI_LOG_FATAL, "ipaenrollment_start", "No config DN?\n");
+        LOG_FATAL("No config DN?\n");
         ret = LDAP_OPERATIONS_ERROR;
         goto done;
     }
     sdn = slapi_sdn_new_dn_byref(config_dn);
     if ((rc = slapi_search_internal_get_entry(sdn, NULL, &config_entry,
                                 ipaenrollment_plugin_id)) != LDAP_SUCCESS ){
-        slapi_log_error(SLAPI_LOG_TRACE, "ipaenrollment_extop",
-                        "ipaenrollment_start: No such entry-(%s), err (%d)\n",
-                        config_dn, rc);
+        LOG_TRACE("ipaenrollment_start: No such entry-(%s), err (%d)\n",
+                  config_dn, rc);
     }
     slapi_sdn_free(&sdn);
 
     partition_dn = slapi_entry_attr_get_charptr(config_entry, "nsslapd-realmtree");
     if (!partition_dn) {
-        slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Missing partition configuration entry (nsslapd-realmTree)!\n");
+        LOG_FATAL("Missing partition configuration entry (nsslapd-realmTree)!\n");
         ret = LDAP_OPERATIONS_ERROR;
         goto done;
     }
@@ -405,7 +396,7 @@ ipaenrollment_start(Slapi_PBlock *pb)
     ipa_realm_dn = slapi_ch_smprintf("cn=computers,cn=accounts,%s", partition_dn);
     slapi_ch_free_string(&partition_dn);
     if (!ipa_realm_dn) {
-        slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory ?\n");
+        LOG_FATAL("Out of memory ?\n");
         ret = LDAP_OPERATIONS_ERROR;
         goto done;
     }
@@ -430,13 +421,11 @@ ipaenrollment_init(Slapi_PBlock *pb)
 
     ret = slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY, &ipaenrollment_plugin_id);
     if ((ret != 0) || (NULL == ipaenrollment_plugin_id)) {
-        slapi_log_error(SLAPI_LOG_PLUGIN,
-            "ipaenrollment_init", "Could not get identity or identity was NULL\n");
+        LOG("Could not get identity or identity was NULL\n");
         return -1;
     }
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, "ipaenrollment_init",
-        "Registering plug-in for extended op.\n");
+    LOG("Registering plug-in for extended op.\n");
 
     /* Register the plug-in function as an extended operation
        plug-in function. */
@@ -448,8 +437,7 @@ ipaenrollment_init(Slapi_PBlock *pb)
     if (!ret) slapi_pblock_set(pb, SLAPI_PLUGIN_EXT_OP_FN, (void *)ipaenrollment_extop);
 
     if (ret) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, "ipaenrollment_init",
-            "Failed to set plug-in version, function, and OID.\n");
+        LOG("Failed to set plug-in version, function, and OID.\n");
         return -1;
     }
 

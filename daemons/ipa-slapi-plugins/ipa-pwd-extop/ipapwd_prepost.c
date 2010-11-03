@@ -53,6 +53,7 @@
 #include <time.h>
 
 #include "ipapwd.h"
+#include "util.h"
 
 #define IPAPWD_OP_NULL 0
 #define IPAPWD_OP_ADD 1

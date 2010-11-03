@@ -52,7 +52,9 @@
 #include <dirsrv/winsync-plugin.h>
 #endif /* WINSYNC_TEST_IPA */
 
-#define IPA_WINSYNC_PLUGIN_NAME "ipa-winsync"
+#include "util.h"
+
+#define IPA_PLUGIN_NAME "ipa-winsync"
 
 typedef struct ipa_winsync_config_struct {
     Slapi_Mutex *lock; /* for config access */

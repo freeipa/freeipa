@@ -38,6 +38,7 @@
  * END COPYRIGHT BLOCK **/
 
 #include "ipapwd.h"
+#include "util.h"
 
 /* Type of connection for this operation;*/
 #define LDAP_EXTOP_PASSMOD_CONN_SECURE

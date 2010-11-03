@@ -1,8 +1,11 @@
 NULL =
 
+PLUGIN_COMMON_DIR=../common
+
 INCLUDES =							\
 	-I.							\
 	-I$(srcdir)						\
+	-I$(PLUGIN_COMMON_DIR)					\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
 	-DLIBDIR=\""$(libdir)"\" 				\

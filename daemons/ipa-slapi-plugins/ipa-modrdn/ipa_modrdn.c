@@ -44,39 +44,12 @@
 #include "nspr.h"
 #include "prclist.h"
 
-#define IPAMODRDN_PLUGIN_NAME "ipa-modrdn-plugin"
+#include "util.h"
+
+#define IPA_PLUGIN_NAME "ipa-modrdn-plugin"
 #define IPAMODRDN_PLUGIN_VERSION 0x00010000
 
 #define IPAMODRDN_DN "cn=IPA MODRDN,cn=plugins,cn=config" /* temporary */
-
-#define EOK 0
-#define EFAIL -1
-
-#ifndef discard_const
-#define discard_const(ptr) ((void *)((uintptr_t)(ptr)))
-#endif
-
-#define log_func discard_const(__func__)
-
-#define LOG(fmt, ...) \
-    slapi_log_error(SLAPI_LOG_PLUGIN, \
-                    IPAMODRDN_PLUGIN_NAME, \
-                    fmt, ##__VA_ARGS__)
-
-#define LOG_CONFIG(fmt, ...) \
-    slapi_log_error(SLAPI_LOG_CONFIG, \
-                    IPAMODRDN_PLUGIN_NAME, \
-                    fmt, ##__VA_ARGS__)
-
-#define LOG_FATAL(fmt, ...) \
-    slapi_log_error(SLAPI_LOG_FATAL, log_func, \
-                    "[file %s, line %d]: " fmt, \
-                    __FILE__, __LINE__, ##__VA_ARGS__)
-
-#define LOG_TRACE(fmt, ...) \
-    slapi_log_error(SLAPI_LOG_TRACE, log_func, fmt, ##__VA_ARGS__)
-
-#define LOG_OOM() LOG_FATAL("Out of Memory!\n")
 
 /**
  * IPA MODRDN config types
@@ -701,7 +674,7 @@ ipamodrdn_change_attr(struct configEntry *cfgentry,
     mods[0] = &mod;
     mods[1] = 0;
 
-    LOG("Setting %s to %s in entry (%s)\n", cfgentry->tattr, targetdn);
+    LOG("Setting %s to %s in entry (%s)\n", cfgentry->tattr, value, targetdn);
 
     /* Perform the modify operation. */
     slapi_modify_internal_set_pb(mod_pb, targetdn, mods,
@@ -785,12 +758,12 @@ static int ipamodrdn_post_op(Slapi_PBlock *pb)
             }
 
             if (slapi_entry_attr_find(e, cfgentry->sattr, &sattr) != 0) {
-                LOG_TRACE("Source attr %s not found for %d\n",
+                LOG_TRACE("Source attr %s not found for %s\n",
                           cfgentry->sattr, dn);
                 continue;
             }
             if (slapi_entry_attr_find(e, cfgentry->tattr, &tattr) != 0) {
-                LOG_TRACE("Target attr %s not found for %d\n",
+                LOG_TRACE("Target attr %s not found for %s\n",
                           cfgentry->tattr, dn);
             } else {
                 Slapi_Value *val;
@@ -805,7 +778,7 @@ static int ipamodrdn_post_op(Slapi_PBlock *pb)
 
                 ret = ipamodrdn_change_attr(cfgentry, dn, strval);
                 if (ret != EOK) {
-                    LOG_FATAL("Failed to set target attr %s for %d\n",
+                    LOG_FATAL("Failed to set target attr %s for %s\n",
                               cfgentry->tattr, dn);
                 }
             }

@@ -1,9 +1,12 @@
 NULL =
 
+PLUGIN_COMMON_DIR=../common
+
 INCLUDES =							\
 	-I.							\
 	-I../../						\
 	-I$(srcdir)						\
+	-I$(PLUGIN_COMMON_DIR)					\
 	-I/usr/include/dirsrv					\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\

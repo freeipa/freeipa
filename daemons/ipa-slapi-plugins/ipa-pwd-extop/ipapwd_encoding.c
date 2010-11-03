@@ -53,6 +53,7 @@
 #include <time.h>
 
 #include "ipapwd.h"
+#include "util.h"
 
 /* krbTicketFlags */
 #define KTF_DISALLOW_POSTDATED        0x00000001

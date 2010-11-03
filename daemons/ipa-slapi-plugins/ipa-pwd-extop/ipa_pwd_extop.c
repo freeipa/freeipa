@@ -38,6 +38,7 @@
  * END COPYRIGHT BLOCK **/
 
 #include "ipapwd.h"
+#include "util.h"
 
 /*
  * Password Modify - LDAP Extended Operation.

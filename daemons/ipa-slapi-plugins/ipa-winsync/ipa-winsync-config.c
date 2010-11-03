@@ -109,10 +109,9 @@ ipa_winsync_config(Slapi_Entry *config_e)
     char returntext[SLAPI_DSE_RETURNTEXT_SIZE];
 
     if ( inited ) {
-        slapi_log_error( SLAPI_LOG_FATAL, IPA_WINSYNC_PLUGIN_NAME,
-                         "Error: IPA WinSync plug-in already configured.  "
-                         "Please remove the plugin config entry [%s]\n",
-                         slapi_entry_get_dn_const(config_e));
+        LOG_FATAL("Error: IPA WinSync plug-in already configured.  "
+                  "Please remove the plugin config entry [%s]\n",
+                  slapi_entry_get_dn_const(config_e));
         return( LDAP_PARAM_ERROR );
     }
 
@@ -150,8 +149,7 @@ ipa_winsync_config(Slapi_Entry *config_e)
     inited = 1;
 
     if (returncode != LDAP_SUCCESS) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPA_WINSYNC_PLUGIN_NAME,
-                        "Error %d: %s\n", returncode, returntext);
+        LOG_FATAL("Error %d: %s\n", returncode, returntext);
     }
 
     return returncode;
@@ -264,9 +262,8 @@ ipa_winsync_validate_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore, Slapi_E
     /* get new_user_oc_attr */
     if (!(attrsvals = slapi_entry_attr_get_charray(
               e, IPA_WINSYNC_NEW_USER_ATTRS_VALS))) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, IPA_WINSYNC_PLUGIN_NAME,
-                        "Info: no default attributes and values given in [%s]\n",
-                        IPA_WINSYNC_NEW_USER_ATTRS_VALS);
+        LOG("Info: no default attributes and values given in [%s]\n",
+            IPA_WINSYNC_NEW_USER_ATTRS_VALS);
     }
 
     /* format of *attrsvals is "attrname value" */
@@ -461,9 +458,8 @@ ipa_winsync_apply_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore,
     /* get new_user_oc_attr */
     if (!(attrsvals = slapi_entry_attr_get_charray(
               e, IPA_WINSYNC_NEW_USER_ATTRS_VALS))) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, IPA_WINSYNC_PLUGIN_NAME,
-                        "Info: no default attributes and values given in [%s]\n",
-                        IPA_WINSYNC_NEW_USER_ATTRS_VALS);
+        LOG("Info: no default attributes and values given in [%s]\n",
+            IPA_WINSYNC_NEW_USER_ATTRS_VALS);
     }
 
     /* get acct disable sync value */
@@ -688,20 +684,18 @@ internal_find_entry_get_attr_val(const Slapi_DN *basedn, int scope,
     */
     slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &ret);
     if (ret != LDAP_SUCCESS) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPA_WINSYNC_PLUGIN_NAME,
-                        "Error [%d:%s] searching for base [%s] filter [%s]"
-                        " attr [%s]\n", ret, ldap_err2string(ret),
-                        search_basedn, filter, attrs[0]);
+        LOG_FATAL("Error [%d:%s] searching for base [%s] filter [%s]"
+                  " attr [%s]\n", ret, ldap_err2string(ret),
+                  search_basedn, filter, attrs[0]);
         goto out1;
     }
 
     slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES, &entries);
     if (entries && entries[0] && entries[1]) {
         /* error - should never be more than one matching entry */
-        slapi_log_error(SLAPI_LOG_FATAL, IPA_WINSYNC_PLUGIN_NAME,
-                        "Error: more than one entry matches search for "
-                        "base [%s] filter [%s] attr [%s]\n",
-                        search_basedn, filter, attrs[0]);
+        LOG_FATAL("Error: more than one entry matches search for "
+                  "base [%s] filter [%s] attr [%s]\n",
+                  search_basedn, filter, attrs[0]);
         ret = LDAP_UNWILLING_TO_PERFORM;
         goto out1;
     }
@@ -724,10 +718,9 @@ internal_find_entry_get_attr_val(const Slapi_DN *basedn, int scope,
         }
     } else {
         ret = LDAP_NO_SUCH_OBJECT;
-        slapi_log_error(SLAPI_LOG_PLUGIN, IPA_WINSYNC_PLUGIN_NAME,
-                        "Did not find an entry for search "
-                        "base [%s] filter [%s] attr [%s]\n",
-                        search_basedn, filter, attrs[0]);
+        LOG("Did not find an entry for search "
+            "base [%s] filter [%s] attr [%s]\n",
+            search_basedn, filter, attrs[0]);
     }
 
 out1:
@@ -814,10 +807,9 @@ ipa_winsync_config_refresh_domain(
 
     if (!iwdc->realm_name) {
         /* error - could not find the IPA config entry with the realm name */
-        slapi_log_error(SLAPI_LOG_FATAL, IPA_WINSYNC_PLUGIN_NAME,
-                        "Error: could not find the entry containing the realm name for "
-                        "ds subtree [%s] filter [%s] attr [%s]\n",
-                        slapi_sdn_get_dn(ds_subtree), realm_filter, realm_attr);
+        LOG_FATAL("Error: could not find the entry containing the realm name for "
+                  "ds subtree [%s] filter [%s] attr [%s]\n",
+                  slapi_sdn_get_dn(ds_subtree), realm_filter, realm_attr);
         goto out;
     }
 
@@ -828,10 +820,9 @@ ipa_winsync_config_refresh_domain(
                                            &new_user_objclasses, NULL);
     if (!new_user_objclasses) {
         /* error - could not find the entry containing list of objectclasses */
-        slapi_log_error(SLAPI_LOG_FATAL, IPA_WINSYNC_PLUGIN_NAME,
-                        "Error: could not find the entry containing the new user objectclass list for "
-                        "ds subtree [%s] filter [%s] attr [%s]\n",
-                        slapi_sdn_get_dn(ds_subtree), new_entry_filter, new_user_oc_attr);
+        LOG_FATAL("Error: could not find the entry containing the new user objectclass list for "
+                  "ds subtree [%s] filter [%s] attr [%s]\n",
+                  slapi_sdn_get_dn(ds_subtree), new_entry_filter, new_user_oc_attr);
         goto out;
     }
 
@@ -844,10 +835,9 @@ ipa_winsync_config_refresh_domain(
                                            NULL, &iwdc->homedir_prefix);
     if (!iwdc->homedir_prefix) {
         /* error - could not find the home dir prefix */
-        slapi_log_error(SLAPI_LOG_FATAL, IPA_WINSYNC_PLUGIN_NAME,
-                        "Error: could not find the entry containing the home directory prefix for "
-                        "ds subtree [%s] filter [%s] attr [%s]\n",
-                        slapi_sdn_get_dn(ds_subtree), new_entry_filter, homedir_prefix_attr);
+        LOG_FATAL("Error: could not find the entry containing the home directory prefix for "
+                  "ds subtree [%s] filter [%s] attr [%s]\n",
+                  slapi_sdn_get_dn(ds_subtree), new_entry_filter, homedir_prefix_attr);
         goto out;
     }
 
@@ -860,10 +850,9 @@ ipa_winsync_config_refresh_domain(
                                            NULL, &default_group_name);
     if (!default_group_name) {
         /* error - could not find the default group name */
-        slapi_log_error(SLAPI_LOG_FATAL, IPA_WINSYNC_PLUGIN_NAME,
-                        "Error: could not find the entry containing the default group name for "
-                        "ds subtree [%s] filter [%s] attr [%s]\n",
-                        slapi_sdn_get_dn(ds_subtree), new_entry_filter, default_group_attr);
+        LOG_FATAL("Error: could not find the entry containing the default group name for "
+                  "ds subtree [%s] filter [%s] attr [%s]\n",
+                  slapi_sdn_get_dn(ds_subtree), new_entry_filter, default_group_attr);
         goto out;
     }
 
@@ -877,10 +866,9 @@ ipa_winsync_config_refresh_domain(
                                            NULL, &default_gid);
     if (!default_gid) {
         /* error - could not find the default gidNumber */
-        slapi_log_error(SLAPI_LOG_FATAL, IPA_WINSYNC_PLUGIN_NAME,
-                        "Error: could not find the entry containing the default gidNumber "
-                        "ds subtree [%s] filter [%s] attr [%s]\n",
-                        slapi_sdn_get_dn(ds_subtree), new_entry_filter, "gidNumber");
+        LOG_FATAL("Error: could not find the entry containing the default gidNumber "
+                  "ds subtree [%s] filter [%s] attr [%s]\n",
+                  slapi_sdn_get_dn(ds_subtree), new_entry_filter, "gidNumber");
         goto out;
     }
 
@@ -897,10 +885,9 @@ ipa_winsync_config_refresh_domain(
                                                NULL, &inactivated_group_dn);
         if (!inactivated_group_dn) {
             /* error - could not find the inactivated group dn */
-            slapi_log_error(SLAPI_LOG_FATAL, IPA_WINSYNC_PLUGIN_NAME,
-                            "Error: could not find the DN of the inactivated users group "
-                            "ds subtree [%s] filter [%s]\n",
-                            slapi_sdn_get_dn(ds_subtree), inactivated_filter);
+            LOG_FATAL("Error: could not find the DN of the inactivated users group "
+                      "ds subtree [%s] filter [%s]\n",
+                      slapi_sdn_get_dn(ds_subtree), inactivated_filter);
             goto out;
         }
         ret = internal_find_entry_get_attr_val(config_dn, search_scope,
@@ -908,10 +895,9 @@ ipa_winsync_config_refresh_domain(
                                                NULL, &activated_group_dn);
         if (!activated_group_dn) {
             /* error - could not find the activated group dn */
-            slapi_log_error(SLAPI_LOG_FATAL, IPA_WINSYNC_PLUGIN_NAME,
-                            "Error: could not find the DN of the activated users group "
-                            "ds subtree [%s] filter [%s]\n",
-                            slapi_sdn_get_dn(ds_subtree), activated_filter);
+            LOG_FATAL("Error: could not find the DN of the activated users group "
+                      "ds subtree [%s] filter [%s]\n",
+                      slapi_sdn_get_dn(ds_subtree), activated_filter);
             goto out;
         }
     }

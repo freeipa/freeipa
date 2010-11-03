@@ -38,12 +38,13 @@
 #include "slapi-plugin.h"
 #include "repl-session-plugin.h"
 #include "ipa-version.h"
+#include "util.h"
 #include <string.h>
 
 /* Identify the type of data we're sending, an unsigned int in this case */
 #define REPL_VERSION_DATA_GUID "2D562D8B-2F30-4447-AF76-2B721D1D5F6A"
 
-static char *repl_version_plugin_name = "ipa_replication_version";
+#define IPA_PLUGIN_NAME "ipa_replication_version"
 static char *data_version = NULL;
 
 /*
@@ -74,8 +75,7 @@ static int
 repl_version_plugin_pre_acquire_cb(void *cookie, const Slapi_DN *repl_subtree,
                                         int is_total, char **data_guid, struct berval **data)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, repl_version_plugin_name,
-        "repl_version_plugin_pre_acquire_cb() called for suffix \"%s\", "
+    LOG("repl_version_plugin_pre_acquire_cb() called for suffix \"%s\", "
         "is_total: \"%s\".\n", slapi_sdn_get_ndn(repl_subtree),
         is_total ? "TRUE" : "FALSE");
 
@@ -85,9 +85,8 @@ repl_version_plugin_pre_acquire_cb(void *cookie, const Slapi_DN *repl_subtree,
     (*data)->bv_val = slapi_ch_smprintf("%s", data_version);
     (*data)->bv_len = strlen((*data)->bv_val) + 1;
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, repl_version_plugin_name,
-        "repl_version_plugin_pre_acquire_cb() sending data: guid: \"%s\" data: \"%s\".\n",
-    *data_guid, (*data)->bv_val);
+    LOG("repl_version_plugin_pre_acquire_cb() sending data: guid: \"%s\" data: \"%s\".\n",
+        *data_guid, (*data)->bv_val);
 
     return 0;
 }
@@ -108,18 +107,17 @@ static int
 repl_version_plugin_recv_acquire_cb(const char *repl_subtree, int is_total,
                                          const char *data_guid, const struct berval *data)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, repl_version_plugin_name,
-        "test_repl_session_plugin_recv_acquire_cb() called for suffix \"%s\", is_total: \"%s\".\n",
+    LOG("test_repl_session_plugin_recv_acquire_cb() called for suffix \"%s\", is_total: \"%s\".\n",
         repl_subtree, is_total ? "TRUE" : "FALSE");
 
     /* compare our data version to the master data version */
     if (data_guid && data && (strcmp(data_guid, REPL_VERSION_DATA_GUID) == 0)) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, repl_version_plugin_name,
-            "repl_version_plugin_recv_acquire_cb() received data: guid: \"%s\" data: \"%s\".\n",
+        LOG("repl_version_plugin_recv_acquire_cb() received data: guid: \"%s\" data: \"%s\".\n",
             data_guid, data->bv_val);
         if (!(strcmp(data_version, data->bv_val) == 0)) {
-            slapi_log_error(SLAPI_LOG_FATAL, repl_version_plugin_name,
-                "Incompatible IPA versions, pausing replication. This server: \"%s\" remote server: \"%s\".\n", data_version, data->bv_val);
+            LOG_FATAL("Incompatible IPA versions, pausing replication. "
+                      "This server: \"%s\" remote server: \"%s\".\n",
+                      data_version, data->bv_val);
             return 1;
         }
     }
@@ -146,35 +144,30 @@ static void *repl_version_api[] = {
 static int
 repl_version_plugin_start(Slapi_PBlock *pb)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, repl_version_plugin_name,
-                    "--> repl_version_plugin_start -- begin\n");
+    LOG("--> repl_version_plugin_start -- begin\n");
 
-    data_version = slapi_ch_smprintf("%llu", DATA_VERSION);
+    data_version = slapi_ch_smprintf("%llu", (unsigned long long) DATA_VERSION);
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, repl_version_plugin_name,
-                    "<-- repl_version_plugin_start -- end\n");
+    LOG("<-- repl_version_plugin_start -- end\n");
     return 0;
 }
 
 static int
 repl_version_plugin_close(Slapi_PBlock *pb)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, repl_version_plugin_name,
-                    "--> repl_version_plugin_close -- begin\n");
+    LOG("--> repl_version_plugin_close -- begin\n");
 
     slapi_apib_unregister(REPL_SESSION_v1_0_GUID);
 
     slapi_ch_free_string(&data_version);
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, repl_version_plugin_name,
-                    "<-- repl_version_plugin_close -- end\n");
+    LOG("<-- repl_version_plugin_close -- end\n");
     return 0;
 }
 
 int repl_version_plugin_init(Slapi_PBlock *pb)
 {
-    slapi_log_error(SLAPI_LOG_PLUGIN, repl_version_plugin_name,
-                    "--> repl_version_plugin_init -- begin\n");
+    LOG("--> repl_version_plugin_init -- begin\n");
 
     if ( slapi_pblock_set( pb, SLAPI_PLUGIN_VERSION,
                            SLAPI_PLUGIN_VERSION_01 ) != 0 ||
@@ -185,14 +178,12 @@ int repl_version_plugin_init(Slapi_PBlock *pb)
          slapi_pblock_set( pb, SLAPI_PLUGIN_DESCRIPTION,
                            (void *)&repl_version_pdesc ) != 0 )
     {
-        slapi_log_error( SLAPI_LOG_FATAL, repl_version_plugin_name,
-                         "<-- repl_version_plugin_init -- failed to register plugin -- end\n");
+        LOG_FATAL("<-- repl_version_plugin_init -- failed to register plugin -- end\n");
         return -1;
     }
 
     if( slapi_apib_register(REPL_SESSION_v1_0_GUID, repl_version_api) ) {
-        slapi_log_error( SLAPI_LOG_FATAL, repl_version_plugin_name,
-                         "<-- repl_version_plugin_start -- failed to register repl_version api -- end\n");
+        LOG_FATAL("<-- repl_version_plugin_start -- failed to register repl_version api -- end\n");
         return -1;
     }
 
@@ -200,12 +191,10 @@ int repl_version_plugin_init(Slapi_PBlock *pb)
     /* Retrieve and save the plugin identity to later pass to
        internal operations */
     if (slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY, &repl_version_plugin_id) != 0) {
-        slapi_log_error(SLAPI_LOG_FATAL, repl_version_plugin_name,
-                         "<-- repl_version_plugin_init -- failed to retrieve plugin identity -- end\n");
+        LOG_FATAL("<-- repl_version_plugin_init -- failed to retrieve plugin identity -- end\n");
         return -1;
     }
 
-    slapi_log_error( SLAPI_LOG_PLUGIN, repl_version_plugin_name,
-                     "<-- repl_version_plugin_init -- end\n");
+    LOG("<-- repl_version_plugin_init -- end\n");
     return 0;
 }
