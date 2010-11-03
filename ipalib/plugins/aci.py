@@ -99,7 +99,10 @@ import logging
 _type_map = {
     'user': 'ldap:///uid=*,%s,%s' % (api.env.container_user, api.env.basedn),
     'group': 'ldap:///cn=*,%s,%s' % (api.env.container_group, api.env.basedn),
-    'host': 'ldap:///fqdn=*,%s,%s' % (api.env.container_host, api.env.basedn)
+    'host': 'ldap:///fqdn=*,%s,%s' % (api.env.container_host, api.env.basedn),
+    'hostgroup': 'ldap:///cn=*,%s,%s' % (api.env.container_hostgroup, api.env.basedn),
+    'service': 'ldap:///krbprincipalname=*,%s,%s' % (api.env.container_service, api.env.basedn),
+    'netgroup': 'ldap:///ipauniqueid=*,%s,%s' % (api.env.container_netgroup, api.env.basedn),
 }
 
 _valid_permissions_values = [
@@ -214,13 +217,16 @@ def _aci_to_kw(ldap, a):
     kw['aciname'] = a.name
     kw['permissions'] = tuple(a.permissions)
     if 'targetattr' in a.target:
-        kw['attrs'] = tuple(a.target['targetattr']['expression'])
+        kw['attrs'] = list(a.target['targetattr']['expression'])
+        for i in xrange(len(kw['attrs'])):
+            kw['attrs'][i] = unicode(kw['attrs'][i])
+        kw['attrs'] = tuple(kw['attrs'])
     if 'targetfilter' in a.target:
         target = a.target['targetfilter']['expression']
         if target.startswith('memberOf'):
-            kw['memberof'] = target
+            kw['memberof'] = unicode(target)
         else:
-            kw['filter'] = target
+            kw['filter'] = unicode(target)
     if 'target' in a.target:
         target = a.target['target']['expression']
         found = False
@@ -231,25 +237,28 @@ def _aci_to_kw(ldap, a):
                 break;
         if not found:
             if target.startswith('('):
-                kw['filter'] = target
+                kw['filter'] = unicode(target)
             else:
                 # See if the target is a group. If so we set the
                 # targetgroup attr, otherwise we consider it a subtree
                 if api.env.container_group in target:
-                    kw['targetgroup'] = target
+                    kw['targetgroup'] = unicode(target)
                 else:
-                    kw['subtree'] = target
+                    kw['subtree'] = unicode(target)
 
     groupdn = a.bindrule['expression']
     groupdn = groupdn.replace('ldap:///','')
     if groupdn == 'self':
         kw['selfaci'] = True
+    elif groupdn == 'anyone':
+        pass
     else:
-        (dn, entry_attrs) = ldap.get_entry(groupdn, ['cn'])
-        if api.env.container_taskgroup in dn:
-            kw['taskgroup'] = entry_attrs['cn'][0]
-        else:
-            kw['group'] = entry_attrs['cn'][0]
+        if groupdn.startswith('cn='):
+            (dn, entry_attrs) = ldap.get_entry(groupdn, ['cn'])
+            if api.env.container_taskgroup in dn:
+                kw['taskgroup'] = entry_attrs['cn'][0]
+            else:
+                kw['group'] = entry_attrs['cn'][0]
 
     return kw
 
@@ -268,12 +277,20 @@ def _find_aci_by_name(acis, aciname):
             return a
     raise errors.NotFound(reason=_('ACI with name "%s" not found') % aciname)
 
+def validate_permissions(ugettext, permissions):
+    valid_permissions = []
+    permissions = permissions.split(',')
+    for p in permissions:
+        p = p.strip().lower()
+        if not p in _valid_permissions_values:
+             return '"%s" is not a valid permission' % p
+
 def _normalize_permissions(permissions):
     valid_permissions = []
     permissions = permissions.split(',')
     for p in permissions:
         p = p.strip().lower()
-        if p in _valid_permissions_values and p not in valid_permissions:
+        if p not in valid_permissions:
             valid_permissions.append(p)
     return ','.join(valid_permissions)
 
@@ -301,7 +318,7 @@ class aci(Object):
             label=_('User group'),
             doc=_('User group ACI grants access to'),
         ),
-        List('permissions',
+        List('permissions', validate_permissions,
             cli_name='permissions',
             label=_('Permissions'),
             doc=_('comma-separated list of permissions to grant' \
@@ -316,8 +333,8 @@ class aci(Object):
         StrEnum('type?',
             cli_name='type',
             label=_('Type'),
-            doc=_('type of IPA object (user, group, host)'),
-            values=(u'user', u'group', u'host'),
+            doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
+            values=(u'user', u'group', u'host', u'service', u'hostgroup', u'netgroup'),
         ),
         Str('memberof?',
             cli_name='memberof',
@@ -353,7 +370,6 @@ class aci_add(crud.Create):
     """
     Create new ACI.
     """
-    has_output = aci_output
     msg_summary = _('Created ACI "%(value)s"')
 
     def execute(self, aciname, **kw):
@@ -382,19 +398,14 @@ class aci_add(crud.Create):
 
         ldap.update_entry(dn, entry_attrs)
 
+        if kw.get('raw', False):
+            result = dict(aci=unicode(newaci_str))
+        else:
+            result = _aci_to_kw(ldap, newaci)
         return dict(
-            result=newaci_str,
-            value=newaci.name
+            result=result,
+            value=aciname,
         )
-
-    def output_for_cli(self, textui, result, aciname, **options):
-        """
-        Display the newly created ACI and a success message.
-        """
-        result = result['result']
-        textui.print_name(self.name)
-        textui.print_plain(result)
-        textui.print_dashed('Created ACI "%s".' % aciname)
 
 api.register(aci_add)
 
@@ -443,7 +454,12 @@ class aci_mod(crud.Update):
     """
     Modify ACI.
     """
-    has_output = aci_output
+    has_output_params = (
+        Str('aci',
+            label=_('ACI'),
+        ),
+    )
+
     msg_summary = _('Modified ACI "%(value)s"')
 
     def execute(self, aciname, **kw):
@@ -474,19 +490,14 @@ class aci_mod(crud.Update):
 
         result = self.api.Command['aci_add'](aciname, **newkw)['result']
 
+        if kw.get('raw', False):
+            result = dict(aci=unicode(newaci))
+        else:
+            result = _aci_to_kw(ldap, newaci)
         return dict(
             result=result,
             value=aciname,
         )
-
-    def output_for_cli(self, textui, result, aciname, **options):
-        """
-        Display the updated ACI and a success message.
-        """
-        result = result['result']
-        textui.print_name(self.name)
-        textui.print_plain(result)
-        textui.print_dashed('Modified ACI "%s".' % aciname)
 
 api.register(aci_mod)
 
@@ -511,11 +522,6 @@ class aci_find(crud.Search):
     have ipausers as a memberof. There may be other ACIs that apply to
     members of that group indirectly.
     """
-    has_output = (
-        ListOfACI('result'),
-        output.Output('count', int, 'Number of entries returned'),
-        output.summary,
-    )
     msg_summary = ngettext('%(count)d ACI matched', '%(count)d ACIs matched', 0)
 
     def execute(self, term, **kw):
@@ -543,11 +549,14 @@ class aci_find(crud.Search):
 
         if 'attrs' in kw:
             for a in acis:
+                if not 'targetattr' in a.target:
+                    results.remove(a)
+                    continue
                 alist1 = sorted(
                     [t.lower() for t in a.target['targetattr']['expression']]
                 )
                 alist2 = sorted([t.lower() for t in kw['attrs']])
-                if alist1 != alist2:
+                if len(set(alist1) & set(alist2)) != len(alist2):
                     results.remove(a)
             acis = list(results)
 
@@ -568,9 +577,9 @@ class aci_find(crud.Search):
             for a in acis:
                 alist1 = sorted(a.permissions)
                 alist2 = sorted(kw['permissions'])
-                if alist1 != alist2:
+                if len(set(alist1) & set(alist2)) != len(alist2):
                     results.remove(a)
-                acis = list(results)
+            acis = list(results)
 
         if 'memberof' in kw:
             try:
@@ -593,21 +602,18 @@ class aci_find(crud.Search):
 
         # TODO: searching by: type, filter, subtree
 
-        return dict(
-            result=[unicode(aci) for aci in results],
-            count=len(results),
-        )
+        acis = []
+        for result in results:
+            if kw.get('raw', False):
+                aci = dict(aci=unicode(result))
+            else:
+                aci = _aci_to_kw(ldap, result)
+            acis.append(aci)
 
-    def output_for_cli(self, textui, result, term, **options):
-        """
-        Display the search results
-        """
-        textui.print_name(self.name)
-        for aci in result['result']:
-            textui.print_plain(aci)
-            textui.print_plain('')
-        textui.print_count(
-            result['count'], '%i ACI matched.', '%i ACIs matched.'
+        return dict(
+            result=acis,
+            count=len(acis),
+            truncated=False,
         )
 
 api.register(aci_find)
@@ -617,10 +623,11 @@ class aci_show(crud.Retrieve):
     """
     Display a single ACI given an ACI name.
     """
-    has_output = (
-        output.Output('result', unicode, 'A string representing the ACI'),
-        output.value,
-        output.summary,
+
+    has_output_params = (
+        Str('aci',
+            label=_('ACI'),
+        ),
     )
 
     def execute(self, aciname, **kw):
@@ -638,17 +645,14 @@ class aci_show(crud.Retrieve):
 
         acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
 
+        aci = _find_aci_by_name(acis, aciname)
+        if kw.get('raw', False):
+            result = dict(aci=unicode(aci))
+        else:
+            result = _aci_to_kw(ldap, aci)
         return dict(
-            result=unicode(_find_aci_by_name(acis, aciname)),
+            result=result,
             value=aciname,
         )
-
-    def output_for_cli(self, textui, result, aciname, **options):
-        """
-        Display the requested ACI
-        """
-        result = result['result']
-        textui.print_name(self.name)
-        textui.print_plain(result)
 
 api.register(aci_show)

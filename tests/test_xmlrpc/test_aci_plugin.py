@@ -69,9 +69,14 @@ class test_aci(Declarative):
             ),
             expected=dict(
                 value=aci1,
-                summary=u'Created ACI "test1"',
-                result=u'(target = "ldap:///uid=*,cn=users,cn=accounts,%s")(version 3.0;acl "test1";allow (add) groupdn = "ldap:///cn=testtaskgroup,cn=taskgroups,cn=accounts,%s";)' % (api.env.basedn, api.env.basedn),
+                summary=u'Created ACI "%s"' % aci1,
+                result=dict(
+                    aciname=u'%s' % aci1,
+                    type=u'user',
+                    taskgroup=u'%s' % taskgroup,
+                    permissions=[u'add'],
                 ),
+            ),
         ),
 
 
@@ -92,8 +97,13 @@ class test_aci(Declarative):
             expected=dict(
                 value=aci1,
                 summary=None,
-                result=u'(target = "ldap:///uid=*,cn=users,cn=accounts,%s")(version 3.0;acl "test1";allow (add) groupdn = "ldap:///cn=testtaskgroup,cn=taskgroups,cn=accounts,%s";)' % (api.env.basedn, api.env.basedn),
+                result=dict(
+                    aciname=u'%s' % aci1,
+                    type=u'user',
+                    taskgroup=u'%s' % taskgroup,
+                    permissions=[u'add'],
                 ),
+            ),
         ),
 
 
@@ -104,10 +114,16 @@ class test_aci(Declarative):
             ),
             expected=dict(
                 result=[
-                    u'(target = "ldap:///uid=*,cn=users,cn=accounts,%s")(version 3.0;acl "test1";allow (add) groupdn = "ldap:///cn=testtaskgroup,cn=taskgroups,cn=accounts,%s";)' % (api.env.basedn, api.env.basedn)
+                    dict(
+                        aciname=u'%s' % aci1,
+                        type=u'user',
+                        taskgroup=u'%s' % taskgroup,
+                        permissions=[u'add'],
+                    ),
                 ],
                 summary=u'1 ACI matched',
                 count=1,
+                truncated=False,
             ),
         ),
 
@@ -119,10 +135,16 @@ class test_aci(Declarative):
             ),
             expected=dict(
                 result=[
-                    u'(target = "ldap:///uid=*,cn=users,cn=accounts,%s")(version 3.0;acl "test1";allow (add) groupdn = "ldap:///cn=testtaskgroup,cn=taskgroups,cn=accounts,%s";)' % (api.env.basedn, api.env.basedn)
+                    dict(
+                        aciname=u'%s' % aci1,
+                        type=u'user',
+                        taskgroup=u'%s' % taskgroup,
+                        permissions=[u'add'],
+                    ),
                 ],
                 summary=u'1 ACI matched',
                 count=1,
+                truncated=False,
             ),
         ),
 
@@ -134,8 +156,13 @@ class test_aci(Declarative):
             ),
             expected=dict(
                 value=aci1,
-                summary=u'Modified ACI "test1"',
-                result=u'(target = "ldap:///uid=*,cn=users,cn=accounts,%s")(version 3.0;acl "test1";allow (add,write) groupdn = "ldap:///cn=testtaskgroup,cn=taskgroups,cn=accounts,%s";)' % (api.env.basedn, api.env.basedn),
+                summary=u'Modified ACI "%s"' % aci1,
+                result=dict(
+                    aciname=u'%s' % aci1,
+                    type=u'user',
+                    taskgroup=u'%s' % taskgroup,
+                    permissions=[u'add', u'write'],
+                ),
             ),
         ),
 
@@ -146,7 +173,12 @@ class test_aci(Declarative):
             expected=dict(
                 value=aci1,
                 summary=None,
-                result=u'(target = "ldap:///uid=*,cn=users,cn=accounts,%s")(version 3.0;acl "test1";allow (add,write) groupdn = "ldap:///cn=testtaskgroup,cn=taskgroups,cn=accounts,%s";)' % (api.env.basedn, api.env.basedn),
+                result=dict(
+                    aciname=u'%s' % aci1,
+                    type=u'user',
+                    taskgroup=u'%s' % taskgroup,
+                    permissions=[u'add', u'write'],
+                ),
             ),
 
         ),
@@ -158,8 +190,14 @@ class test_aci(Declarative):
             ),
             expected=dict(
                 value=aci1,
-                summary=u'Modified ACI "test1"',
-                result=u'(targetattr = "cn || sn || givenName")(target = "ldap:///uid=*,cn=users,cn=accounts,%s")(version 3.0;acl "test1";allow (add,write) groupdn = "ldap:///cn=testtaskgroup,cn=taskgroups,cn=accounts,%s";)' % (api.env.basedn, api.env.basedn),
+                summary=u'Modified ACI "%s"' % aci1,
+                result=dict(
+                    aciname=u'%s' % aci1,
+                    attrs=[u'cn', u'sn', u'givenName'],
+                    type=u'user',
+                    taskgroup=u'%s' % taskgroup,
+                    permissions=[u'add', u'write'],
+                ),
             ),
         ),
 
@@ -171,8 +209,14 @@ class test_aci(Declarative):
             ),
             expected=dict(
                 value=aci1,
-                summary=u'Modified ACI "test1"',
-                result=u'(targetattr = "cn || sn || givenName")(target = "ldap:///cn=*,cn=groups,cn=accounts,%s")(version 3.0;acl "test1";allow (add,write) groupdn = "ldap:///cn=testtaskgroup,cn=taskgroups,cn=accounts,%s";)' % (api.env.basedn, api.env.basedn),
+                summary=u'Modified ACI "%s"' % aci1,
+                result=dict(
+                    aciname=u'%s' % aci1,
+                    attrs=[u'cn', u'sn', u'givenName'],
+                    type=u'group',
+                    taskgroup=u'%s' % taskgroup,
+                    permissions=[u'add', u'write'],
+                ),
             ),
         ),
 
@@ -184,8 +228,15 @@ class test_aci(Declarative):
             ),
             expected=dict(
                 value=aci1,
-                summary=u'Modified ACI "test1"',
-                result=u'(targetattr = "cn || sn || givenName")(targetfilter = "(memberOf=cn=testtaskgroup,cn=taskgroups,cn=accounts,%s)")(target = "ldap:///cn=*,cn=groups,cn=accounts,%s")(version 3.0;acl "test1";allow (add,write) groupdn = "ldap:///cn=testtaskgroup,cn=taskgroups,cn=accounts,%s";)' % (api.env.basedn, api.env.basedn, api.env.basedn),
+                summary=u'Modified ACI "%s"' % aci1,
+                result=dict(
+                    aciname=u'%s' % aci1,
+                    taskgroup=u'%s' % taskgroup,
+                    filter=u'(memberOf=cn=%s,cn=taskgroups,cn=accounts,%s)' % (taskgroup, api.env.basedn),
+                    attrs=[u'cn', u'sn', u'givenName'],
+                    type=u'group',
+                    permissions=[u'add', u'write'],
+                ),
             ),
         ),
 
@@ -195,7 +246,7 @@ class test_aci(Declarative):
             command=('aci_del', [aci1], {}),
             expected=dict(
                 result=True,
-                summary=u'Deleted ACI "test1"',
+                summary=u'Deleted ACI "%s"' % aci1,
                 value=aci1,
             ),
         ),
@@ -230,7 +281,13 @@ class test_aci(Declarative):
             expected=dict(
                 value=aci2,
                 summary=u'Created ACI "%s"' % aci2,
-                result=u'(targetattr = "givenName || sn || cn")(version 3.0;acl "selftest1";allow (write) userdn = "ldap:///self";)'),
+                result=dict(
+                    selfaci=True,
+                    aciname=u'%s' % aci2,
+                    attrs=[u'givenName', u'sn', u'cn'],
+                    permissions=[u'write'],
+                ),
+            ),
         ),
 
 
@@ -242,7 +299,12 @@ class test_aci(Declarative):
             expected=dict(
                 value=aci2,
                 summary=u'Modified ACI "%s"' % aci2,
-                result=u'(targetattr = "givenName || sn || cn || uidNumber")(version 3.0;acl "selftest1";allow (write) userdn = "ldap:///self";)'
+                result=dict(
+                    selfaci=True,
+                    aciname=u'%s' % aci2,
+                    attrs=[u'givenName', u'sn', u'cn', u'uidNumber'],
+                    permissions=[u'write'],
+                ),
             ),
         ),
 

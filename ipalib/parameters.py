@@ -1387,7 +1387,16 @@ class List(Param):
         return value
 
     def _validate_scalar(self, value, index=None):
-        return
+        for rule in self.all_rules:
+            error = rule(ugettext, value)
+            if error is not None:
+                raise ValidationError(
+                    name=self.name,
+                    value=value,
+                    index=index,
+                    error=error,
+                    rule=rule,
+                )
 
 
 class File(Str):
