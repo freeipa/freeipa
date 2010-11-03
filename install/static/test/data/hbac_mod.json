@@ -1,0 +1,12 @@
+{
+    "error": {
+        "code": 4202,
+        "kw": {},
+        "message": "no modifications to be performed",
+        "name": {
+            "__base64__": "RW1wdHlNb2RsaXN0"
+        }
+    },
+    "id": 0,
+    "result": null
+}

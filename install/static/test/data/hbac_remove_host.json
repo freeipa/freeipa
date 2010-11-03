@@ -2,6 +2,13 @@
     "error": null,
     "id": 0,
     "result": {
+        "completed": 2,
+        "failed": {
+            "memberhost": {
+                "host": [],
+                "hostgroup": []
+            }
+        },
         "result": {
             "accessruletype": [
                 "allow"
@@ -16,12 +23,6 @@
             "dn": "ipauniqueid=e8aca082-e64a11df-9864f2e0-e0578392,cn=hbac,dc=dev,dc=example,dc=com",
             "ipaenabledflag": [
                 "TRUE"
-            ],
-            "memberhost_host": [
-                "dev.example.com"
-            ],
-            "memberhost_hostgroup": [
-                "production"
             ],
             "memberservice_hbacsvc": [
                 "ftp",
@@ -44,8 +45,6 @@
             "sourcehost_hostgroup": [
                 "staging"
             ]
-        },
-        "summary": null,
-        "value": "test"
+        }
     }
 }

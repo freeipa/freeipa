@@ -2,6 +2,13 @@
     "error": null,
     "id": 0,
     "result": {
+        "completed": 3,
+        "failed": {
+            "memberuser": {
+                "group": [],
+                "user": []
+            }
+        },
         "result": {
             "accessruletype": [
                 "allow"
@@ -30,22 +37,12 @@
             "memberservice_hbacsvcgroup": [
                 "sudo"
             ],
-            "memberuser_group": [
-                "admins",
-                "editors"
-            ],
-            "memberuser_user": [
-                "admin",
-                "test"
-            ],
             "sourcehost_host": [
                 "dev.example.com"
             ],
             "sourcehost_hostgroup": [
                 "staging"
             ]
-        },
-        "summary": null,
-        "value": "test"
+        }
     }
 }
