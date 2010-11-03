@@ -14,7 +14,6 @@ sbin_SCRIPTS =			\
 	ipactl			\
 	ipa-compat-manage	\
 	ipa-nis-manage		\
-	ipa-fix-CVE-2008-3274	\
 	ipa-ldap-updater	\
 	ipa-upgradeconfig	\
 	$(NULL)

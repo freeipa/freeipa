@@ -461,7 +461,6 @@ fi
 %doc LICENSE README Contributors.txt
 %defattr(-,root,root,-)
 %{_bindir}/ipa
-%{_sbindir}/ipa-fix-CVE-2008-3274
 %{_sbindir}/ipa-ldap-updater
 %{_sbindir}/ipa-compat-manage
 %{_sbindir}/ipa-nis-manage
@@ -503,6 +502,9 @@ fi
 %endif
 
 %changelog
+* Wed Nov  3 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-31
+- remove ipa-fix-CVE-2008-3274
+
 * Wed Oct  6 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-30
 - Remove duplicate %%files entries on share/ipa/static
 - Add python default encoding shared library
