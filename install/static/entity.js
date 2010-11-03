@@ -28,10 +28,18 @@ function ipa_facet(spec) {
     var that = {};
     that.name = spec.name;
     that.label = spec.label;
-    that.entity_name = spec.entity_name;
+    that._entity_name = spec.entity_name;
 
     that.init = spec.init;
     that.setup = spec.setup;
+
+    that.__defineGetter__("entity_name", function(){
+        return that._entity_name;
+    });
+
+    that.__defineSetter__("entity_name", function(entity_name){
+        that._entity_name = entity_name;
+    });
 
     that.setup_views = ipa_facet_setup_views;
 
@@ -55,6 +63,9 @@ function ipa_entity(spec) {
 
     this.facet_name = null;
 
+    that.associations = [];
+    that.associations_by_name = {};
+
     that.get_add_dialog = function() {
         return that.add_dialog;
     };
@@ -74,29 +85,47 @@ function ipa_entity(spec) {
     };
 
     that.add_facet = function(facet) {
+        facet.entity_name = that.name;
         that.facets.push(facet);
         that.facets_by_name[facet.name] = facet;
     };
 
     that.create_search_facet = function(spec) {
-        spec.entity_name = that.name;
         var facet = ipa_search_facet(spec);
         that.add_facet(facet);
         return facet;
     };
 
     that.create_details_facet = function(spec) {
-        spec.entity_name = that.name;
         var facet = ipa_details_facet(spec);
         that.add_facet(facet);
+        facet.init();
         return facet;
     };
 
     that.create_association_facet = function(spec) {
-        spec.entity_name = that.name;
         var facet = ipa_association_facet(spec);
         that.add_facet(facet);
         return facet;
+    };
+
+    that.get_associations = function() {
+        return that.associations;
+    };
+
+    that.get_association = function(name) {
+        return that.associations_by_name[name];
+    };
+
+    that.add_association = function(config) {
+        that.associations.push(config);
+        that.associations_by_name[config.name] = config;
+    };
+
+    that.create_association = function(spec) {
+        var config = ipa_association_config(spec);
+        that.add_association(config);
+        return config;
     };
 
     return that;
@@ -213,14 +242,17 @@ function ipa_entity_get_association_facet(entity_name) {
 
 function ipa_entity_set_association_definition(entity_name, data) {
 
-    var facet = ipa_entity_get_association_facet(entity_name);
+    var entity = ipa_get_entity(entity_name);
+
+    ipa_entity_get_association_facet(entity_name);
 
     for (var other_entity in data) {
         var config = data[other_entity];
-        facet.create_config({
+        entity.create_association({
             'name': other_entity,
             'associator': config.associator,
-            'method': config.method
+            'add_method': config.add_method,
+            'delete_method': config.delete_method
         });
     }
 }
@@ -231,7 +263,6 @@ function ipa_entity_set_facet_definition(entity_name, list) {
 
     for (var i=0; i<list.length; i++) {
         var facet = list[i];
-        facet.entity_name = entity_name;
         entity.add_facet(facet);
     }
 }
@@ -243,8 +274,6 @@ function ipa_details_only_setup(container){
 function ipa_entity_setup(container, unspecified) {
 
     var entity = this;
-
-    container.empty();
 
     var facet_name = $.bbq.getState(entity.name + '-facet', true) || unspecified || 'search';
 
@@ -262,6 +291,8 @@ function ipa_entity_setup(container, unspecified) {
         IPA.entity_name = entity.name;
     }
 
+    container.empty();
+
     if (facet.setup) {
         facet.setup(container, unspecified);
     }
@@ -271,7 +302,7 @@ function ipa_facet_setup_views(container) {
 
     var facet = this;
 
-    var ul = $('<ul/>', {'class': 'entity-views'});
+    var ul = $('<ul/>', {'class': 'entity-views'}).appendTo(container);
 
     var entity = IPA.get_entity(facet.entity_name);
     var facets = entity.get_facets();
@@ -289,7 +320,9 @@ function ipa_facet_setup_views(container) {
                 title: other_facet.name,
                 text: label,
                 click: function(entity_name, facet_name) {
-                    return function() { IPA.show_page(entity_name, facet_name); }
+                    return function() {
+                        IPA.show_page(entity_name, facet_name);
+                    };
                 }(facet.entity_name, facet_name)
             }));
 
@@ -308,20 +341,20 @@ function ipa_facet_setup_views(container) {
                         title: other_entity,
                         text: label,
                         click: function(entity_name, facet_name, other_entity) {
-                            return function() { IPA.show_page(entity_name, facet_name, other_entity); }
+                            return function() {
+                                IPA.show_page(entity_name, facet_name, other_entity);
+                            };
                         }(facet.entity_name, facet_name, other_entity)
                     }));
                 }
             }
         }
     }
-
-    container.append(ul);
 }
 
 function ipa_entity_quick_links(tr, attr, value, entry_attrs) {
 
-    var obj_name = tr.closest('.search-container').attr('title');
+    var obj_name = tr.closest('.entity-container').attr('title');
     var pkey = IPA.metadata[obj_name].primary_key;
     var pkey_value = entry_attrs[pkey][0];
 

@@ -259,7 +259,6 @@ function ipa_records_facet(spec){
         that.setup_views(container);
 
         container.attr('title', that.entity_name);
-        container.addClass('search-container');
 
         var h2 = $('<h2></h2>',{
             text: "Records for DNS Zone:" + that.pkey
@@ -291,15 +290,23 @@ function ipa_records_facet(spec){
         //}));
 
 
-        ipa_make_button('ui-icon-search', IPA.messages.button.find).
-            click(function(){load(container)}).appendTo(control_span);
+        ipa_button({
+            'label': IPA.messages.button.find,
+            'icon': 'ui-icon-search',
+            'click': function(){load(container)}
+        }).appendTo(control_span);
 
-        ipa_make_button('ui-icon-plus', IPA.messages.button.add).
-            click(add_click).appendTo(control_span);
+        ipa_button({
+            'label': IPA.messages.button.add,
+            'icon': 'ui-icon-plus',
+            'click': add_click
+        }).appendTo(control_span);
 
-        ipa_make_button('ui-icon-trash', IPA.messages.button.delete).
-            click(function(){delete_records(records_table);}).
-            appendTo(control_span);
+        ipa_button({
+            'label': IPA.messages.button.delete,
+            'icon': 'ui-icon-trash',
+            'click': function(){delete_records(records_table);}
+        }).appendTo(control_span);
 
 
         div.append('<span class="records-buttons"></span>');
@@ -416,7 +423,7 @@ function ipa_records_facet(spec){
 
     //TODO this is cut and pasted from search, we need to unify
     function display(obj_name, data){
-        var selector = '.search-container[title=' + obj_name + ']';
+        var selector = '.entity-container[title=' + obj_name + ']';
         var thead = $(selector + ' thead');
         var tbody = $(selector + ' tbody');
         var tfoot = $(selector + ' tfoot');

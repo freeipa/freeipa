@@ -51,8 +51,10 @@ function nav_create(nls, container, tabclass)
     var tabs = $('.' + tabclass);
     tabs.tabs({
         select: function(event, ui) {
+            var panel = $(ui.panel);
+            var parent = panel.parent();
+            var id = parent.attr('id');
             var state = {};
-            var id = $(ui.panel).parent().attr('id');
             state[id] = ui.index;
             nav_push_state(state);
             return true;
@@ -87,6 +89,8 @@ function nav_generate_tabs(nls, container, tabclass, depth)
         if (tab.children) {
             nav_generate_tabs(tab.children, div, tabclass, depth +1 );
         } else {
+            div.addClass('entity-container');
+
             var entity = ipa_get_entity(tab.name);
             entity.label = tab.label;
             entity.setup = tab.setup;

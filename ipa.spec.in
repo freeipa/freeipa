@@ -393,6 +393,9 @@ fi
 %{_usr}/share/ipa/static/*.png
 %{_usr}/share/ipa/static/*.css
 %{_usr}/share/ipa/static/*.js
+%dir %{_usr}/share/ipa/static/layouts
+%dir %{_usr}/share/ipa/static/layouts/default
+%{_usr}/share/ipa/static/layouts/default/*.html
 %dir %{_sysconfdir}/ipa
 %dir %{_sysconfdir}/ipa/html
 %config(noreplace) %{_sysconfdir}/ipa/html/ssbrowser.html
