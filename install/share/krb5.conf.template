@@ -15,6 +15,7 @@
   kdc = $FQDN:88
   admin_server = $FQDN:749
   default_domain = $DOMAIN
+  pkinit_anchors = FILE:/etc/ipa/ca.crt
 }
 
 [domain_realm]
