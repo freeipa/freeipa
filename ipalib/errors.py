@@ -913,12 +913,12 @@ class AlreadyActive(ExecutionError):
     >>> raise AlreadyActive()
     Traceback (most recent call last):
       ...
-    AlreadyActive: This entry is already unlocked
+    AlreadyActive: This entry is already enabled
 
     """
 
     errno = 4009
-    format = _('This entry is already unlocked')
+    format = _('This entry is already enabled')
 
 class AlreadyInactive(ExecutionError):
     """
@@ -929,12 +929,12 @@ class AlreadyInactive(ExecutionError):
     >>> raise AlreadyInactive()
     Traceback (most recent call last):
       ...
-    AlreadyInactive: This entry is already locked
+    AlreadyInactive: This entry is already disabled
 
     """
 
     errno = 4010
-    format = _('This entry is already locked')
+    format = _('This entry is already disabled')
 
 class HasNSAccountLock(ExecutionError):
     """
@@ -945,12 +945,12 @@ class HasNSAccountLock(ExecutionError):
     >>> raise HasNSAccountLock()
     Traceback (most recent call last):
       ...
-    HasNSAccountLock: This entry has nsAccountLock set, it cannot be locked or unlocked
+    HasNSAccountLock: This entry cannot be enableed or disabled
 
     """
 
     errno = 4011
-    format = _('This entry has nsAccountLock set, it cannot be locked or unlocked')
+    format = _('This entry cannot be enabled or disabled')
 
 class NotGroupMember(ExecutionError):
     """

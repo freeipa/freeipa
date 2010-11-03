@@ -48,7 +48,7 @@ EXAMPLES:
 """
 
 from ipalib import api, errors
-from ipalib import Flag, Int, Password, Str
+from ipalib import Flag, Int, Password, Str, Bool
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.request import context
@@ -66,7 +66,7 @@ class user(LDAPObject):
     search_attributes_config = 'ipausersearchfields'
     default_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell', 'ou',
-        'telephonenumber', 'title', 'memberof',
+        'telephonenumber', 'title', 'memberof', 'nsaccountlock',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -149,6 +149,10 @@ class user(LDAPObject):
         Str('facsimiletelephonenumber*',
             cli_name='fax',
             label=_('Fax Number') ),
+        Bool('nsaccountlock?',
+            label=_('Account disabled'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
     )
 
 api.register(user)
@@ -228,6 +232,11 @@ class user_mod(LDAPUpdate):
 
     msg_summary = _('Modified user "%(value)s"')
 
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if not 'nsaccountlock' in entry_attrs:
+            entry_attrs['nsaccountlock'] = [u'False']
+        return dn
+
 api.register(user_mod)
 
 
@@ -248,6 +257,12 @@ class user_find(LDAPSearch):
                 getattr(context, 'principal')
         return filter
 
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        for entry in entries:
+            (dn, attrs) = entry
+            if not 'nsaccountlock' in attrs:
+                attrs['nsaccountlock'] = [u'False']
+
     msg_summary = ngettext(
         '%(count)d user matched', '%(count)d users matched', 0
     )
@@ -259,6 +274,10 @@ class user_show(LDAPRetrieve):
     """
     Display information about a user.
     """
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if not 'nsaccountlock' in entry_attrs:
+            entry_attrs['nsaccountlock'] = [u'False']
+        return dn
 
 api.register(user_show)
 
@@ -276,10 +295,7 @@ class user_disable(LDAPQuery):
 
         dn = self.obj.get_dn(*keys, **options)
 
-        try:
-            ldap.deactivate_entry(dn)
-        except errors.AlreadyInactive:
-            pass
+        ldap.deactivate_entry(dn)
 
         return dict(
             result=True,
@@ -302,10 +318,7 @@ class user_enable(LDAPQuery):
 
         dn = self.obj.get_dn(*keys, **options)
 
-        try:
-            ldap.activate_entry(dn)
-        except errors.AlreadyActive:
-            pass
+        ldap.activate_entry(dn)
 
         return dict(
             result=True,

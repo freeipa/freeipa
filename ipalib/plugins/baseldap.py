@@ -400,7 +400,7 @@ class LDAPCreate(CallbackInterface, crud.Create):
             )
 
         if options.get('all', False):
-            attrs_list = ['*']
+            attrs_list = ['*'] + self.obj.default_attributes
         else:
             attrs_list = list(
                 set(self.obj.default_attributes + entry_attrs.keys())
@@ -538,7 +538,7 @@ class LDAPRetrieve(LDAPQuery):
         dn = self.obj.get_dn(*keys, **options)
 
         if options.get('all', False):
-            attrs_list = ['*']
+            attrs_list = ['*'] + self.obj.default_attributes
         else:
             attrs_list = list(self.obj.default_attributes)
 
@@ -643,7 +643,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                     entry_attrs[a] += old_entry[a]
 
         if options.get('all', False):
-            attrs_list = ['*']
+            attrs_list = ['*'] + self.obj.default_attributes
         else:
             attrs_list = list(
                 set(self.obj.default_attributes + entry_attrs.keys())
@@ -903,7 +903,7 @@ class LDAPAddMember(LDAPModMember):
                         completed += 1
 
         if options.get('all', False):
-            attrs_list = ['*']
+            attrs_list = ['*'] + self.obj.default_attributes
         else:
             attrs_list = list(
                 set(self.obj.default_attributes + member_dns.keys())
@@ -1005,7 +1005,7 @@ class LDAPRemoveMember(LDAPModMember):
                         completed += 1
 
         if options.get('all', False):
-            attrs_list = ['*']
+            attrs_list = ['*'] + self.obj.default_attributes
         else:
             attrs_list = list(
                 set(self.obj.default_attributes + member_dns.keys())
@@ -1100,7 +1100,7 @@ class LDAPSearch(CallbackInterface, crud.Search):
         search_kw = self.args_options_2_entry(**options)
 
         if options.get('all', False):
-            attrs_list = ['*']
+            attrs_list = ['*'] + self.obj.default_attributes
         else:
             attrs_list = list(
                 set(self.obj.default_attributes + search_kw.keys())
