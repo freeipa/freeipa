@@ -205,7 +205,14 @@ class KrbInstance(service.Service):
 
         self.kpasswd.create_instance()
 
-    def create_replica(self, ds_user, realm_name, host_name, domain_name, admin_password, ldap_passwd_filename, kpasswd_filename):
+    def create_replica(self, ds_user, realm_name, host_name,
+                       domain_name, admin_password,
+                       ldap_passwd_filename, kpasswd_filename,
+                       setup_pkinit=False, pkcs12_info=None,
+                       self_signed_ca=False, subject_base=None):
+        self.pkcs12_info = pkcs12_info
+        self.self_signed_ca = self_signed_ca
+        self.subject_base = subject_base
         self.__copy_ldap_passwd(ldap_passwd_filename)
         self.__copy_kpasswd_keytab(kpasswd_filename)
 
@@ -217,6 +224,8 @@ class KrbInstance(service.Service):
         self.step("creating a keytab for the directory", self.__create_ds_keytab)
         self.step("creating a keytab for the machine", self.__create_host_keytab)
         self.step("adding the password extension to the directory", self.__add_pwd_extop_module)
+        if setup_pkinit:
+            self.step("installing X509 Certificate for PKINIT", self.__setup_pkinit)
 
         self.__common_post_setup()
 
@@ -506,16 +515,17 @@ class KrbInstance(service.Service):
             ca_db = certs.CertDB(httpinstance.NSS_DIR, self.realm,
                                  host_name=self.fqdn,
                                  subject_base=self.subject_base)
+
         if self.pkcs12_info:
-
-            raise RuntimeError("Using PKCS12 Certs not supported yet\n")
-
+            ca_db.install_pem_from_p12(self.pkcs12_info[0],
+                                       self.pkcs12_info[1],
+                                       "/var/kerberos/krb5kdc/kdc.pem")
         else:
             if self.self_signed_ca:
                 ca_db.create_kdc_cert("KDC-Cert", self.fqdn,
                                       "/var/kerberos/krb5kdc")
             else:
-                raise RuntimeError("Using PKCS12 Certs not supported yet\n")
+                raise RuntimeError("PKI not supported yet\n")
 
         # Finally copy the cacert in the krb directory so we don't
         # have any selinux issues with the file context

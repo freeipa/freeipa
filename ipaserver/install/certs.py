@@ -865,6 +865,13 @@ class CertDB(object):
                      "-k", self.passwd_fname,
                      "-w", pkcs12_pwd_fname])
 
+    def export_pem_p12(self, pkcs12_fname, pkcs12_pwd_fname,
+                       nickname, pem_fname):
+        ipautil.run(["/usr/bin/openssl", "pkcs12",
+                     "-export", "-name", nickname,
+                     "-in", pem_fname, "-out", pkcs12_fname,
+                     "-passout", "file:" + pkcs12_pwd_fname])
+
     def create_self_signed(self, passwd=None):
         self.create_noise_file()
         self.create_passwd_file(passwd)
@@ -1016,6 +1023,11 @@ class CertDB(object):
         fd.close()
         os.unlink(key_fname)
         os.unlink(cert_fname)
+
+    def install_pem_from_p12(self, p12_fname, p12_pwd_fname, pem_fname):
+        ipautil.run(["/usr/bin/openssl", "pkcs12", "-nodes",
+                     "-in", p12_fname, "-out", pem_fname,
+                     "-passin", "file:" + p12_pwd_fname])
 
     def backup_files(self):
         self.fstore.backup_file(self.noise_fname)

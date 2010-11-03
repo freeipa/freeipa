@@ -68,6 +68,8 @@ def parse_options():
     parser.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
                       default=False,
                       help="Do not use DNS for hostname lookup during installation")
+    parser.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
+                      default=True, help="disables pkinit setup steps")
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -178,13 +180,21 @@ def install_ds(config):
 
     return ds
 
-def install_krb(config):
+def install_krb(config, setup_pkinit=False):
     krb = krbinstance.KrbInstance()
     ldappwd_filename = config.dir + "/ldappwd"
     kpasswd_filename = config.dir + "/kpasswd.keytab"
+
+    #pkinit files
+    pkcs12_info = None
+    if ipautil.file_exists(config.dir + "/pkinitcert.p12"):
+        pkcs12_info = (config.dir + "/pkinitcert.p12",
+                       config.dir + "/pkinit_pin.txt")
+
     krb.create_replica(config.ds_user, config.realm_name, config.host_name,
                        config.domain_name, config.dirman_password,
-                       ldappwd_filename, kpasswd_filename)
+                       ldappwd_filename, kpasswd_filename,
+                       setup_pkinit, pkcs12_info)
 
 def install_ca_cert(config):
     if ipautil.file_exists(config.dir + "/ca.crt"):
@@ -261,6 +271,11 @@ def check_bind():
         print "Aborting installation"
         sys.exit(1)
 
+def check_pkinit():
+    if not krbinstance.check_pkinit_plugin():
+        print "Aborting installation"
+        sys.exit(1)
+
 def main():
     safe_options, options, filename = parse_options()
     installutils.standard_logging_setup("/var/log/ipareplica-install.log", options.debug)
@@ -269,8 +284,14 @@ def main():
     if not ipautil.file_exists(filename):
         sys.exit("Replica file %s does not exist" % filename)
 
+    # check the bind is installed
     if options.setup_dns:
         check_bind()
+
+    # check the pkinit plugin is installed
+    if options.setup_pkinit:
+        check_pkinit()
+
     check_dirsrv()
 
     # get the directory manager password
@@ -367,7 +388,7 @@ def main():
     if ret != 0:
         raise RuntimeError("Failed to start replication")
 
-    install_krb(config)
+    install_krb(config, setup_pkinit=options.setup_pkinit)
     install_http(config)
     if CA:
         CA.import_ra_cert(dir + "/ra.p12")

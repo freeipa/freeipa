@@ -41,25 +41,39 @@ def parse_options():
                       help="install certificate for the directory server")
     parser.add_option("--http_pkcs12", dest="http_pkcs12",
                       help="install certificate for the http server")
+    parser.add_option("--pkinit_pkcs12", dest="pkinit_pkcs12",
+                      help="install certificate for the KDC")
     parser.add_option("--dirsrv_pin", dest="dirsrv_pin",
                       help="PIN for the Directory Server PKCS#12 file")
     parser.add_option("--http_pin", dest="http_pin",
                       help="PIN for the Apache Server PKCS#12 file")
+    parser.add_option("--pkinit_pin", dest="pkinit_pin",
+                      help="PIN for the KDC pkinit PKCS#12 file")
     parser.add_option("-p", "--password", dest="password", 
                       help="Directory Manager (existing master) password")
     parser.add_option("--ip-address", dest="ip_address",
                       help="Add A and PTR records of the future replica")
     parser.add_option("--ca", dest="ca_file", default="/root/cacert.p12",
                       help="Location of CA PKCS#12 file, default /root/cacert.p12")
+    parser.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
+                      default=True, help="disables pkinit setup steps")
 
     options, args = parser.parse_args()
 
     # If any of the PKCS#12 options are selected, all are required. Create a
     # list of the options and count it to enforce that all are required without
     # having a huge set of it blocks.
-    pkcs12 = [options.dirsrv_pkcs12, options.http_pkcs12, options.dirsrv_pin, options.http_pin]
+    if options.setup_pkinit:
+        pkcs12 = [options.dirsrv_pkcs12, options.dirsrv_pin,
+                  options.http_pkcs12, options.http_pin,
+                  options.pkinit_pkcs12, options.pkinit_pin]
+        num = 6
+    else:
+        pkcs12 = [options.dirsrv_pkcs12, options.dirsrv_pin,
+                  options.http_pkcs12, options.http_pin]
+        num = 4
     cnt = pkcs12.count(None)
-    if cnt > 0 and cnt < 4:
+    if cnt > 0 and cnt < num:
         parser.error("All PKCS#12 options are required if any are used.")
 
     if options.ip_address:
@@ -90,7 +104,7 @@ def check_ipa_configuration(realm_name):
         logging.error("could not find directory instance: %s" % config_dir)
         sys.exit(1)
 
-def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, hostname, subject_base=None):
+def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, hostname, subject_base=None, is_kdc=False):
     """realm is the kerberos realm for the IPA server.
        ds_dir is the location of the master DS we are creating a replica for.
        dir is the location of the files for the replica we are creating.
@@ -100,6 +114,12 @@ def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, hostname, subjec
 
        The subject is handled by certs.CertDB:create_server_cert()
     """
+
+    if is_kdc:
+        nickname = "KDC-Cert"
+    else:
+        nickname = "Server-Cert"
+
     try:
         self_signed = certs.ipa_self_signed()
 
@@ -111,15 +131,22 @@ def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, hostname, subjec
 #        else:
 #            ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=api.env.host)
         ca_db = certs.CertDB(httpinstance.NSS_DIR, realm_name, host_name=api.env.host, subject_base=subject_base)
-        db.create_from_cacert(ca_db.cacert_fname)
-        db.create_server_cert("Server-Cert", hostname, ca_db)
+        if is_kdc:
+            ca_db.create_kdc_cert("KDC-Cert", hostname, dir)
+        else:
+            db.create_from_cacert(ca_db.cacert_fname)
+            db.create_server_cert(nickname, hostname, ca_db)
     except Exception, e:
         raise e
 
     pkcs12_fname = dir + "/" + fname + ".p12"
 
     try:
-        db.export_pkcs12(pkcs12_fname, passwd_fname, "Server-Cert")
+        if is_kdc:
+            ca_db.export_pem_p12(pkcs12_fname, passwd_fname,
+                                 nickname, dir + "/kdc.pem")
+        else:
+            db.export_pkcs12(pkcs12_fname, passwd_fname, nickname)
     except ipautil.CalledProcessError, e:
         print "error exporting Server certificate: " + str(e)
         remove_file(pkcs12_fname)
@@ -129,6 +156,8 @@ def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, hostname, subjec
     remove_file(dir + "/key3.db")
     remove_file(dir + "/secmod.db")
     remove_file(dir + "/noise.txt")
+    if is_kdc:
+        remove_file(dir + "/kdc.pem")
     if ipautil.file_exists(passwd_fname + ".orig"):
         remove_file(passwd_fname + ".orig")
 
@@ -194,6 +223,8 @@ def copy_files(realm_name, dir):
         if ipautil.file_exists("/usr/share/ipa/html/preferences.html"):
             shutil.copy("/usr/share/ipa/html/preferences.html", dir + "/preferences.html")
             shutil.copy("/usr/share/ipa/html/configure.jar", dir + "/configure.jar")
+        if ipautil.file_exists("/var/kerberos/krb5kdc/cacert.pem"):
+            shutil.copy("/var/kerberos/krb5kdc/cacert.pem", dir + "/cacert.pem")
     except Exception, e:
         print "error copying files: " + str(e)
         sys.exit(1)
@@ -315,6 +346,35 @@ def main():
             sys.exit(1)
         print "Exporting RA certificate"
         export_ra_pkcs12(dir, dirman_password)
+
+    if options.setup_pkinit:
+        if options.pkinit_pin:
+            passwd = options.pkinit_pin
+        else:
+            passwd = ""
+
+        passwd_fname = dir + "/pkinit_pin.txt"
+        fd = open(passwd_fname, "w")
+        fd.write("%s\n" % passwd)
+        fd.close()
+
+        if options.pkinit_pkcs12:
+            print "Copying SSL certificate for the KDC from %s" % options.pkinit_pkcs12
+            try:
+                shutil.copy(options.pkinit_pkcs12, dir + "/pkinitcert.p12")
+            except IOError, e:
+                print "Copy failed %s" %  e
+                sys.exit(1)
+        else:
+            print "Creating SSL certificate for the KDC"
+            try:
+                export_certdb(api.env.realm, ds_dir, dir,
+                              passwd_fname, "pkinitcert",
+                              replica_fqdn, subject_base,
+                              is_kdc=True)
+            except errors.CertificateOperationError, e:
+                print "%s" % e
+                sys.exit(1)
 
     print "Copying additional files"
     copy_files(api.env.realm, dir)
