@@ -1,0 +1,74 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "count": 7,
+        "result": [
+            {
+                "cn": [
+                    "sshd"
+                ],
+                "description": [
+                    "sshd"
+                ],
+                "dn": "cn=sshd,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "ftp"
+                ],
+                "description": [
+                    "ftp"
+                ],
+                "dn": "cn=ftp,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "su"
+                ],
+                "description": [
+                    "su"
+                ],
+                "dn": "cn=su,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "login"
+                ],
+                "description": [
+                    "login"
+                ],
+                "dn": "cn=login,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "su-l"
+                ],
+                "description": [
+                    "su with login shell"
+                ],
+                "dn": "cn=su-l,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "sudo"
+                ],
+                "description": [
+                    "sudo"
+                ],
+                "dn": "cn=sudo,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "sudo-i"
+                ],
+                "description": [
+                    "sudo-i"
+                ],
+                "dn": "cn=sudo-i,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+            }
+        ],
+        "summary": null,
+        "truncated": false
+    }
+}

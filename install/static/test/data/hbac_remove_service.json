@@ -2,6 +2,13 @@
     "error": null,
     "id": 0,
     "result": {
+        "completed": 3,
+        "failed": {
+            "memberservice": {
+                "hbacsvc": [],
+                "hbacsvcgroup": []
+            }
+        },
         "result": {
             "accessruletype": [
                 "allow"
@@ -23,13 +30,6 @@
             "memberhost_hostgroup": [
                 "production"
             ],
-            "memberservice_hbacsvc": [
-                "ftp",
-                "sshd"
-            ],
-            "memberservice_hbacsvcgroup": [
-                "sudo"
-            ],
             "memberuser_group": [
                 "admins",
                 "editors"
@@ -44,8 +44,6 @@
             "sourcehost_hostgroup": [
                 "staging"
             ]
-        },
-        "summary": null,
-        "value": "test"
+        }
     }
 }

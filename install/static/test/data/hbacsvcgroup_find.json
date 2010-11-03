@@ -1,0 +1,24 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "count": 1,
+        "result": [
+            {
+                "cn": [
+                    "SUDO"
+                ],
+                "description": [
+                    "Default group of SUDO related services"
+                ],
+                "dn": "cn=sudo,cn=hbacservicegroups,cn=accounts,dc=dev,dc=example,dc=com",
+                "member_hbacsvc": [
+                    "sudo",
+                    "sudo-i"
+                ]
+            }
+        ],
+        "summary": "1 group matched",
+        "truncated": false
+    }
+}

@@ -1,8 +1,8 @@
 {
     "error": null, 
-    "id": 6, 
+    "id": 0,
     "result": {
-        "count": 1, 
+        "count": 2,
         "result": [
             {
                 "accessruletype": [
@@ -14,7 +14,7 @@
                 "description": [
                     "Allow all users to access any host from any host"
                 ], 
-                "dn": "ipauniqueid=c943a8cf-d05b-11df-b68f-525400674dcd,cn=hbac,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "dn": "ipauniqueid=b7567b5a-e39311df-bfde9b13-2b28c216,cn=hbac,dc=dev,dc=example,dc=com",
                 "hostcategory": [
                     "all"
                 ], 
@@ -29,6 +29,22 @@
                 ], 
                 "usercategory": [
                     "all"
+                ]
+            },
+            {
+                "accessruletype": [
+                    "allow"
+                ],
+                "accesstime": [
+                    "periodic daily 0800-1400",
+                    "absolute 201012161032 ~ 201012161033"
+                ],
+                "cn": [
+                    "test"
+                ],
+                "dn": "ipauniqueid=3b6d2a82-e3b511df-bfde9b13-2b28c216,cn=hbac,dc=dev,dc=example,dc=com",
+                "ipaenabledflag": [
+                    "TRUE"
                 ]
             }
         ], 

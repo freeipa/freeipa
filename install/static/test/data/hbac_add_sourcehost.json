@@ -2,6 +2,13 @@
     "error": null,
     "id": 0,
     "result": {
+        "completed": 2,
+        "failed": {
+            "sourcehost": {
+                "host": [],
+                "hostgroup": []
+            }
+        },
         "result": {
             "accessruletype": [
                 "allow"
@@ -44,8 +51,6 @@
             "sourcehost_hostgroup": [
                 "staging"
             ]
-        },
-        "summary": null,
-        "value": "test"
+        }
     }
 }
