@@ -47,6 +47,27 @@ default:cn: sudo-i
 default:description: sudo-i
 default:ipauniqueid:autogenerate
 
+dn: cn=gdm,cn=hbacservices,cn=accounts,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: gdm
+default:description: gdm
+default:ipauniqueid:autogenerate
+
+dn: cn=gdm-password,cn=hbacservices,cn=accounts,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: gdm-password
+default:description: gdm-password
+default:ipauniqueid:autogenerate
+
+dn: cn=kdm,cn=hbacservices,cn=accounts,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: kdm
+default:description: kdm
+default:ipauniqueid:autogenerate
+
 dn: cn=SUDO,cn=hbacservicegroups,cn=accounts,$SUFFIX
 default:objectClass: ipaobject
 default:objectClass: ipahbacservicegroup
