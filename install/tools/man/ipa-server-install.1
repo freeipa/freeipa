@@ -53,7 +53,7 @@ Configure a self\-signed CA instance for issuing server certificates instead of 
 The fully\-qualified DNS name of this server
 .TP
 \fB\-\-ip\-address\fR=\fIIP_ADDRESS\fR
-The IP address of this server
+The IP address of this server. If this address does not match the address the host resolves to and --setup-dns is not selected the installation will fail.
 .TP
 \fB\-U\fR, \fB\-\-unattended\fR
 An unattended installation that will never prompt for user input

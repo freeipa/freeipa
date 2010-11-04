@@ -598,6 +598,8 @@ def main():
 
     if options.ip_address and options.ip_address != ip:
         if options.setup_dns:
+            if not verify_ip_address(options.ip_address):
+                return 1
             ip = options.ip_address
         else:
             print >>sys.stderr, "Error: the hostname resolves to an IP address that is different"
