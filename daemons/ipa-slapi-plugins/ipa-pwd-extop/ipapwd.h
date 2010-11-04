@@ -52,7 +52,6 @@
 #include <prio.h>
 #include <ssl.h>
 #include <dirsrv/slapi-plugin.h>
-#define KRB5_PRIVATE 1
 #include <krb5.h>
 #include <lber.h>
 #include <time.h>

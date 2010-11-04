@@ -12,9 +12,13 @@ if HAVE_GCC
 endif
 export AM_CFLAGS
 
+KRB5_UTIL_DIR=../util
+KRB5_UTIL_SRCS=$(KRB5_UTIL_DIR)/ipa_krb5.c
+
 INCLUDES =							\
 	-I.							\
 	-I$(srcdir)						\
+	-I$(KRB5_UTIL_DIR)					\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
 	-DLIBDIR=\""$(libdir)"\" 				\
@@ -38,6 +42,7 @@ sbin_PROGRAMS =			\
 
 ipa_getkeytab_SOURCES =		\
 	ipa-getkeytab.c		\
+	$(KRB5_UTIL_SRCS)	\
 	$(NULL)
 
 ipa_getkeytab_LDADD = 		\

@@ -27,10 +27,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-#define KRB5_PRIVATE 1
 #include <krb5.h>
 #ifdef WITH_MOZLDAP
 #include <mozldap/ldap.h>
@@ -43,6 +43,8 @@
 #include "config.h"
 #include <libintl.h>
 #define _(STRING) gettext(STRING)
+
+#include "ipa_krb5.h"
 
 /* Salt types */
 #define NO_SALT                        -1
@@ -152,7 +154,7 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
             ksdata[i].salttype = KRB5_KDB_SALTTYPE_NORMAL;
         }
 
-        krb5_free_ktypes(krbctx, ktypes);
+        ipa_krb5_free_ktypes(krbctx, ktypes);
 
         nkeys = i;
 
@@ -322,7 +324,7 @@ static int create_keys(krb5_context krbctx,
             break;
 
         case KRB5_KDB_SALTTYPE_NOREALM:
-            krberr = krb5_principal2salt_norealm(krbctx, princ, &ksdata[i].salt);
+            krberr = ipa_krb5_principal2salt_norealm(krbctx, princ, &ksdata[i].salt);
             if (krberr) {
                 fprintf(stderr, _("Failed to create key!\n"));
                 return 0;
@@ -848,7 +850,7 @@ int main(int argc, char *argv[])
 			}
 			fprintf(stdout, "%s\n", enc);
 		}
-		krb5_free_ktypes(krbctx, ktypes);
+		ipa_krb5_free_ktypes(krbctx, ktypes);
 		exit (0);
 	}
 

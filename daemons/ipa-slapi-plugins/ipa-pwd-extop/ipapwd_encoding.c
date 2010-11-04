@@ -54,6 +54,7 @@
 
 #include "ipapwd.h"
 #include "util.h"
+#include "ipa_krb5.h"
 
 /* krbTicketFlags */
 #define KTF_DISALLOW_POSTDATED        0x00000001
@@ -341,7 +342,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
         case KRB5_KDB_SALTTYPE_NOREALM:
 
-            krberr = krb5_principal2salt_norealm(krbctx, princ, &salt);
+            krberr = ipa_krb5_principal2salt_norealm(krbctx, princ, &salt);
             if (krberr) {
                 LOG_FATAL("krb5_principal2salt failed [%s]\n",
                           krb5_get_error_message(krbctx, krberr));

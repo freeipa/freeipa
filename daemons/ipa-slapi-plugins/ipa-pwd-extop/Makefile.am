@@ -1,11 +1,14 @@
 NULL =
 
 PLUGIN_COMMON_DIR=../common
+KRB5_UTIL_DIR= ../../../util
+KRB5_UTIL_SRCS=$(KRB5_UTIL_DIR)/ipa_krb5.c
 
 INCLUDES =							\
 	-I.							\
 	-I$(srcdir)						\
 	-I$(PLUGIN_COMMON_DIR)					\
+	-I$(KRB5_UTIL_DIR)					\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
 	-DLIBDIR=\""$(libdir)"\" 				\
@@ -28,6 +31,7 @@ libipa_pwd_extop_la_SOURCES = 		\
 	ipapwd_encoding.c		\
 	ipapwd_prepost.c		\
 	ipa_pwd_extop.c			\
+	$(KRB5_UTIL_SRCS)		\
 	$(NULL)
 
 libipa_pwd_extop_la_LDFLAGS = -avoid-version
