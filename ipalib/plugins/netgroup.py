@@ -42,8 +42,10 @@ EXAMPLES:
 """
 
 from ipalib import api, errors
+from ipalib import Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
+from ipalib.plugins.hbac import is_all
 
 
 output_params = (
@@ -72,6 +74,7 @@ class netgroup(LDAPObject):
     default_attributes = [
         'cn', 'description', 'memberof', 'externalhost', 'nisdomainname',
         'memberuser', 'memberhost', 'member', 'memberindirect',
+        'usercategory', 'hostcategory',
     ]
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
@@ -107,6 +110,18 @@ class netgroup(LDAPObject):
             doc=_('IPA unique ID'),
             flags=['no_create', 'no_update'],
         ),
+        StrEnum('usercategory?',
+            cli_name='usercat',
+            label=_('User category'),
+            doc=_('User category the rule applies to'),
+            values=(u'all', ),
+        ),
+        StrEnum('hostcategory?',
+            cli_name='hostcat',
+            label=_('Host category'),
+            doc=_('Host category the rule applies to'),
+            values=(u'all', ),
+        ),
     )
 
 api.register(netgroup)
@@ -141,6 +156,14 @@ class netgroup_mod(LDAPUpdate):
     has_output_params = LDAPUpdate.has_output_params + output_params
     msg_summary = _('Modified netgroup "%(value)s"')
 
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        if is_all(options, 'usercategory') and 'memberuser' in entry_attrs:
+            raise errors.MutuallyExclusiveError(reason="user category cannot be set to 'all' while there are allowed users")
+        if is_all(options, 'hostcategory') and 'memberhost' in entry_attrs:
+            raise errors.MutuallyExclusiveError(reason="host category cannot be set to 'all' while there are allowed hosts")
+        return dn
+
 api.register(netgroup_mod)
 
 
@@ -160,6 +183,7 @@ class netgroup_show(LDAPRetrieve):
     """
     Display information about a netgroup.
     """
+    has_output_params = LDAPRetrieve.has_output_params + output_params
 
 api.register(netgroup_show)
 
