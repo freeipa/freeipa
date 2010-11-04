@@ -8,7 +8,7 @@ app_DATA =				\
 	60radius.ldif			\
 	60ipaconfig.ldif		\
 	60basev2.ldif			\
-	60sudo.ldif				\
+	60ipasudo.ldif			\
 	anonymous-vlv.ldif		\
 	bootstrap-template.ldif		\
 	caJarSigningCert.cfg.template	\
