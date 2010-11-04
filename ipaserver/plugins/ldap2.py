@@ -702,7 +702,7 @@ class ldap2(CrudBackend, Encoder):
 
     def _generate_modlist(self, dn, entry_attrs, normalize):
         # get original entry
-        (dn, entry_attrs_old) = self.get_entry(dn, entry_attrs.keys(), normalize)
+        (dn, entry_attrs_old) = self.get_entry(dn, entry_attrs.keys(), normalize=normalize)
         # get_entry returns a decoded entry, encode it back
         # we could call search_s directly, but this saves a lot of code at
         # the expense of a little bit of performace

@@ -37,7 +37,7 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-nis_config_dn = "cn=NIS Server, cn=plugins, cn=config"
+nis_config_dn = "cn=NIS Server,cn=plugins,cn=config"
 compat_dn = "cn=Schema Compatibility,cn=plugins,cn=config"
 
 def parse_options():
@@ -115,6 +115,8 @@ def main():
             conn.connect(
                 bind_dn='cn=directory manager', bind_pw=dirman_password
             )
+        except errors.ACIError:
+            sys.exit("Incorrect password")
         except errors.LDAPError, lde:
             print "An error occurred while connecting to the server."
             print lde
@@ -205,7 +207,7 @@ def main():
                 print "The %s service may need to be started." % servicemsg
 
     finally:
-        if conn:
+        if conn and conn.isconnected():
             conn.disconnect()
 
     return retval
