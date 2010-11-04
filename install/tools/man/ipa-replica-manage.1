@@ -1,21 +1,21 @@
 .\" A man page for ipa-replica-manage
 .\" Copyright (C) 2008 Red Hat, Inc.
-.\" 
+.\"
 .\" This is free software; you can redistribute it and/or modify it under
 .\" the terms of the GNU Library General Public License as published by
 .\" the Free Software Foundation; version 2 only
-.\" 
+.\"
 .\" This program is distributed in the hope that it will be useful, but
 .\" WITHOUT ANY WARRANTY; without even the implied warranty of
 .\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 .\" General Public License for more details.
-.\" 
+.\"
 .\" You should have received a copy of the GNU Library General Public
 .\" License along with this program; if not, write to the Free Software
 .\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-.\" 
+.\"
 .\" Author: Rob Crittenden <rcritten@redhat.com>
-.\" 
+.\"
 .TH "ipa-replica-manage" "1" "Mar 14 2008" "freeipa" ""
 .SH "NAME"
 ipa\-replica\-manage \- Manage an IPA replica
@@ -23,24 +23,24 @@ ipa\-replica\-manage \- Manage an IPA replica
 ipa\-replica\-manage [\fIOPTION\fR]... [add|del|list|init|synch] [SERVER]
 .SH "DESCRIPTION"
 Manages the replication agreements of an IPA server.
-.TP 
+.TP
 add \- Adds a new replication agreement between two existing IPA servers
-.TP 
+.TP
 del \- Removes a replication agreement
-.TP 
+.TP
 list \- Lists the hostnames that HOST IPA server has agreements with
-.TP 
+.TP
 init \- Forces a full initialization of the IPA server on SERVER from HOST
-.TP 
+.TP
 synch \- Immediately flush any data to be replicated to SERVER
 .SH "OPTIONS"
-.TP 
+.TP
 \fB\-H HOST\fR, \fB\-\-host\fR=\fIHOST\fR
 The IPA server to manage
-.TP 
+.TP
 \fB\-p DM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 The Directory Manager password to use for authentication
-.TP 
+.TP
 \fB\-v\fR, \fB\-\-verbose\fR
 Provide additional information
 .TP
@@ -51,19 +51,40 @@ Specifies to create/use a Windows Sync Agreement
 Port number of other server (default is 636, the LDAPS port)
 .TP
 \fB\-\-binddn\fR=\fIADMIN_DN\fR
-Bind DN to use with remote server (default is cn=Directory Manager) - Be careful to quote this value on the command line
+Bind DN to use with remote server (default is cn=Directory Manager) \- Be careful to quote this value on the command line
 .TP
-\fB--bindpw\fR=\fIADMIN_PWD\fR
+\fB\-\-bindpw\fR=\fIADMIN_PWD\fR
 Password for Bind DN to use with remote server (default is the DM_PASSWORD above)
 .TP
 \fB\-\-cacert\fR=\fI/path/to/cacertfile\fR
-Full path and filename of CA certificate to use with TLS/SSL to the remote server - this CA certificate will be installed in the directory server's certificate database
+Full path and filename of CA certificate to use with TLS/SSL to the remote server \- this CA certificate will be installed in the directory server's certificate database
 .TP
-\fB\-\-win-subtree\fR=\fIcn=Users,dc=example,dc=com\fR
-DN of Windows subtree containing the users you want to sync (default cn=Users,<domain suffix> - this is typically what Windows AD uses as the default value) - Be careful to quote this value on the command line
+\fB\-\-win\-subtree\fR=\fIcn=Users,dc=example,dc=com\fR
+DN of Windows subtree containing the users you want to sync (default cn=Users,<domain suffix> \- this is typically what Windows AD uses as the default value) \- Be careful to quote this value on the command line
 .TP
 \fB\-\-passsync\fR=\fIPASSSYNC_PWD\fR
 Password for the Windows PassSync user.
+.SH "EXAMPLES"
+List current agreements:
+
+# ipa\-replica\-manage list
+panther.example.com
+
+Initialize a replica:
+
+# ipa\-replica\-manage init panther.example.com
+
+This will re\-initialize the data on panther.example.com from the host you execute the command from.
+
+Add a new replication agreement:
+
+# ipa replica\-manage add tiger.example.com
+
+Remove an existing replication agreement:
+
+# ipa replica\-manage del tiger.example.com
+
+Using add/del you can manage the replication topology.
 .SH "EXIT STATUS"
 0 if the command was successful
 
