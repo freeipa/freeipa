@@ -8,6 +8,7 @@ INCLUDES =							\
 	-DLIBDIR=\""$(libdir)"\" 				\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
+	$(AM_CFLAGS)						\
 	$(OPENLDAP_CFLAGS)						\
 	$(KRB5_CFLAGS)						\
 	$(WARN_CFLAGS)						\

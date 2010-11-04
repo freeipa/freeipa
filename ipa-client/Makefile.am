@@ -4,6 +4,14 @@ AUTOMAKE_OPTIONS = 1.7
 
 NULL =
 
+AM_CFLAGS = $(NULL)
+if HAVE_GCC
+    AM_CFLAGS += -Wall -Wshadow -Wstrict-prototypes -Wpointer-arith \
+		-Wcast-align -Werror-implicit-function-declaration \
+		$(NULL)
+endif
+export AM_CFLAGS
+
 INCLUDES =							\
 	-I.							\
 	-I$(srcdir)						\
@@ -13,6 +21,7 @@ INCLUDES =							\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
 	-DLOCALEDIR=\""$(localedir)"\"				\
+	$(AM_CFLAGS)						\
 	$(KRB5_CFLAGS)						\
 	$(OPENLDAP_CFLAGS)					\
 	$(MOZLDAP_CFLAGS)					\

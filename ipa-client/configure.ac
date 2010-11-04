@@ -19,6 +19,8 @@ AC_DISABLE_STATIC
 
 AC_HEADER_STDC
 
+AM_CONDITIONAL([HAVE_GCC], [test "$ac_cv_prog_gcc" = yes])
+
 AC_SUBST(VERSION)
 
 dnl ---------------------------------------------------------------------------

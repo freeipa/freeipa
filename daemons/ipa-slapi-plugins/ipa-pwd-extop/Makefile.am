@@ -11,6 +11,7 @@ INCLUDES =							\
 	-DLIBDIR=\""$(libdir)"\" 				\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
+	$(AM_CFLAGS)						\
 	$(MOZLDAP_CFLAGS)					\
 	$(KRB5_CFLAGS)						\
 	$(SSL_CFLAGS)						\

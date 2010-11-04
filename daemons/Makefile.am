@@ -4,6 +4,14 @@ AUTOMAKE_OPTIONS = 1.7
 
 NULL =
 
+AM_CFLAGS = $(NULL)
+if HAVE_GCC
+    AM_CFLAGS += -Wall -Wshadow -Wstrict-prototypes -Wpointer-arith \
+		-Wcast-align -Werror-implicit-function-declaration \
+		$(NULL)
+endif
+export AM_CFLAGS
+
 SUBDIRS =			\
 	ipa-kpasswd		\
 	ipa-slapi-plugins	\
