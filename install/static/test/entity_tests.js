@@ -170,7 +170,7 @@ test('Testing ipa_entity_quick_links().', function() {
 
     var container = $('<div/>', {
         title: obj_name,
-        class: 'search-container'
+        class: 'entity-container'
     });
 
     var search_table = $('<table/>', {

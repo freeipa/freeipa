@@ -1,0 +1,75 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Via Service</title>
+
+    <link rel="stylesheet" type="text/css" href="jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" href="ipa.css" />
+</head>
+<body>
+<div id="contents">
+    Rule applies when access is requested via:
+    <input type="radio" name="servicecategory" value="all"/>Any Service
+    <input type="radio" name="servicecategory" value=""/>Specified Services and Groups
+    <br/>
+
+    <div id="hbac-memberservice_hbacsvc">
+    <table class="search-table">
+    <thead>
+        <tr>
+            <th style="width: 25px;">
+                <input type="checkbox" name="select"/>
+            </th>
+            <th>
+                <span style="float: left;">Service</span>
+                <span name="buttons" style="float: right;">
+                    <input type="button" name="remove" value="Remove Services"/>
+                    <input type="button" name="add" value="Add Services"/>
+                </span>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <input type="checkbox" name="select" value="service"/>
+            </td>
+            <td>
+                <span name="memberservice_hbacsvc">service</span>
+            </td>
+        </tr>
+    </tbody>
+    </table>
+    </div>
+
+    <div id="hbac-memberservice_hbacsvcgroup">
+    <table class="search-table">
+    <thead>
+        <tr>
+            <th style="width: 25px;">
+                <input type="checkbox" name="select"/>
+            </th>
+            <th>
+                <span style="float: left;">Service Group</span>
+                <span name="buttons" style="float: right;">
+                    <input type="button" name="remove" value="Remove Service Groups"/>
+                    <input type="button" name="add" value="Add Service Groups"/>
+                </span>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <input type="checkbox" name="select" value="services"/>
+            </td>
+            <td>
+                <span name="memberservice_hbacsvcgroup">services</span>
+            </td>
+        </tr>
+    </tbody>
+    </table>
+    </div>
+</div>
+</body>
+</html>

@@ -30,39 +30,44 @@ function ipa_details_field(spec) {
 
     spec = spec || {};
 
-    var that = {};
-    that.name = spec.name;
-    that.label = spec.label;
+    spec.create = spec.create || create;
+    spec.setup = spec.setup || setup;
+    spec.load = spec.load || load;
+    spec.save = spec.save || save;
 
-    that.setup = spec.setup || setup;
-    that.load = spec.load || load;
-    that.save = spec.save || save;
+    var that = ipa_widget(spec);
 
-    function setup(container, dl, section) {
+    function create(container) {
+    }
 
-        var obj_name = container.attr('title');
-        var title = this.name;
+    function setup(container) {
+
+        var dl = $('dl', container);
+
+        var title = that.name;
         var label = '';
-        var param_info = ipa_get_param_info(obj_name, this.name);
+        var param_info = ipa_get_param_info(that.entity_name, that.name);
         if (param_info)
             label = param_info['label'];
         if (!label)
-            label = this.label;
+            label = that.label;
         $('<dt></dt>', {
-            id: this.name,
+            id: that.name,
             title: title,
             html: label + ':'
         }).appendTo(dl);
     }
 
-    function load(container, dt, entry_attrs) {
+    function load(container, result) {
 
-        var obj_name = container.attr('id');
         var multivalue = false;
         var hint_span = null;
         var dd;
 
-        var param_info = ipa_get_param_info(obj_name, this.name);
+        var dt = $('dt[title='+that.name+']', container);
+        if (!dt.length) return;
+
+        var param_info = ipa_get_param_info(that.entity_name, that.name);
         if (param_info) {
             if (param_info['multivalue'] || param_info['class'] == 'List')
                 multivalue = true;
@@ -74,35 +79,35 @@ function ipa_details_field(spec) {
             }
         }
 
-        var value = entry_attrs[this.name];
+        var value = result[that.name];
         if (value) {
             dd = ipa_create_first_dd(
-                this.name, ipa_create_input(obj_name, this.name, value[0],hint_span)
+                that.name, ipa_create_input(that.entity_name, that.name, value[0],hint_span)
             );
             dt.after(dd);
             var last_dd = dd;
             for (var i = 1; i < value.length; ++i) {
                 dd = ipa_create_other_dd(
-                    this.name, ipa_create_input(obj_name, this.name, value[i],hint_span)
+                    that.name, ipa_create_input(that.entity_name, that.name, value[i],hint_span)
                 );
                 last_dd.after(dd);
                 last_dd = dd;
             }
             if (multivalue) {
                 dd = ipa_create_other_dd(
-                    this.name, _ipa_a_add_template.replace('A', this.name)
+                    that.name, _ipa_a_add_template.replace('A', that.name)
                 );
                 last_dd.after(dd);
             }
         } else {
             if (multivalue) {
                 dd = ipa_create_first_dd(
-                    this.name, _ipa_a_add_template.replace('A', this.name) /*.append(hint_span)*/
+                    that.name, _ipa_a_add_template.replace('A', that.name) /*.append(hint_span)*/
                 );
                 dt.after(dd);
             } else {
                 dd = ipa_create_first_dd(
-                    this.name, ipa_create_input(obj_name, this.name, '') /*.append(hint_span)*/
+                    that.name, ipa_create_input(that.entity_name, that.name, '') /*.append(hint_span)*/
                 );
                 dt.after(dd);
             }
@@ -139,9 +144,34 @@ function ipa_details_section(spec){
     var that = {};
     that.name = spec.name || '';
     that.label = spec.label || '';
+    that.template = spec.template;
+    that._entity_name = spec.entity_name;
+
+    that.setup = spec.setup || ipa_details_section_setup;
+    that.create = spec.create || ipa_details_section_create;
+    that.load = spec.load || ipa_details_section_load;
 
     that.fields = [];
     that.fields_by_name = {};
+
+    that.super = function(name) {
+        var method = that[name];
+        return function () {
+            return method.apply(that, arguments);
+        };
+    };
+
+    that.__defineGetter__("entity_name", function(){
+        return that._entity_name;
+    });
+
+    that.__defineSetter__("entity_name", function(entity_name){
+        that._entity_name = entity_name;
+
+        for (var i=0; i<that.fields.length; i++) {
+            that.fields[i].entity_name = entity_name;
+        }
+    });
 
     that.get_fields = function() {
         return that.fields;
@@ -152,12 +182,37 @@ function ipa_details_section(spec){
     };
 
     that.add_field = function(field) {
+        field.entity_name = that.entity_name;
         that.fields.push(field);
         that.fields_by_name[field.name] = field;
     };
 
     that.create_field = function(spec) {
         var field = ipa_details_field(spec);
+        that.add_field(field);
+        return field;
+    };
+
+    that.create_text = function(spec) {
+        var field = ipa_text_widget(spec);
+        that.add_field(field);
+        return field;
+    };
+
+    that.create_radio = function(spec) {
+        var field = ipa_radio_widget(spec);
+        that.add_field(field);
+        return field;
+    };
+
+    that.create_textarea = function(spec) {
+        var field = ipa_textarea_widget(spec);
+        that.add_field(field);
+        return field;
+    };
+
+    that.create_button = function(spec) {
+        var field = ipa_button_widget(spec);
         that.add_field(field);
         return field;
     };
@@ -184,11 +239,25 @@ function ipa_details_facet(spec) {
 
     var that = ipa_facet(spec);
 
-    that.init = spec.init;
-    that.setup = spec.setup || setup;
+    that.init = spec.init || init;
+    that.is_dirty = spec.is_dirty || ipa_details_is_dirty;
+    that.setup = spec.setup || ipa_details_setup;
+    that.create = spec.create || ipa_details_create;
 
     that.sections = [];
     that.sections_by_name = {};
+
+    that.__defineGetter__("entity_name", function(){
+        return that._entity_name;
+    });
+
+    that.__defineSetter__("entity_name", function(entity_name){
+        that._entity_name = entity_name;
+
+        for (var i=0; i<that.sections.length; i++) {
+            that.sections[i].entity_name = entity_name;
+        }
+    });
 
     that.get_sections = function() {
         return that.sections;
@@ -199,70 +268,87 @@ function ipa_details_facet(spec) {
     };
 
     that.add_section = function(section) {
+        section.entity_name = that.entity_name;
         that.sections.push(section);
         that.sections_by_name[section.name] = section;
     };
 
     that.create_section = function(spec) {
-        var section = ipa_stanza(spec);
+        var section = ipa_details_section(spec);
         that.add_section(section);
         return section;
     };
 
-    that.is_dirty = function() {
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        return pkey != that.pkey;
-    };
-
-    function setup(container, unspecified) {
-
-        that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-
-        that.setup_views(container);
-        ipa_details_create(container, that.sections);
-
-        container.find('.details-reset').click(function() {
-            ipa_details_reset(container);
-            return false;
-        });
-
-        container.find('.details-update').click(function() {
-            var pkey_name = IPA.metadata[that.entity_name].primary_key;
-            ipa_details_update(container, ipa_details_cache[that.entity_name][pkey_name][0]);
-            return false;
-        });
-
-        if (that.pkey||unspecified){
-            ipa_details_load(container, that.pkey, null, null);
-        }
+    function init() {
     }
-
-    if (that.init) that.init();
 
     return that;
 }
 
-function ipa_make_button(which,text,details_class){
+function ipa_button(spec) {
 
-    var button_class= details_class +
-        " ui-state-default ui-corner-all input_link ";
-    return $('<a ></a>',{
-        "class": button_class
-        }).
-        append('<span class="ui-icon ' + which +'" ></span> ').
-        append(text);
+    spec = spec || {};
+
+    var button = $('<a/>', {
+        'id': spec.id,
+        'html': spec.label,
+        'class': 'ui-state-default ui-corner-all input_link'
+    });
+
+    if (spec.click) button.click(spec.click);
+    if (spec.class) button.addClass(spec.class);
+    if (spec.icon) button.append('<span class="ui-icon '+spec.icon+'" ></span> ');
+
+    return button;
 }
 
-function ipa_details_create(container, sections)
+function ipa_details_is_dirty() {
+    var pkey = $.bbq.getState(this.entity_name + '-pkey', true) || '';
+    return pkey != this.pkey;
+}
+
+function ipa_details_setup(container, unspecified) {
+
+    var facet = this;
+
+    facet.setup_views(container);
+
+    facet.pkey = $.bbq.getState(facet.entity_name + '-pkey', true) || '';
+    if (!facet.pkey && !unspecified) return;
+
+    function on_success(data, text_status, xhr) {
+        var result = data.result.result;
+
+        ipa_details_cache[facet.entity_name] = $.extend(true, {}, result);
+        facet.create(container, result);
+    }
+
+    function on_failure(xhr, text_status, error_thrown) {
+        var details = $('.details', container).empty();
+        details.append('<p>Error: '+error_thrown.name+'</p>');
+        details.append('<p>'+error_thrown.title+'</p>');
+        details.append('<p>'+error_thrown.message+'</p>');
+    }
+
+    var params = [];
+    if (facet.pkey) params.push(facet.pkey);
+
+    ipa_cmd(
+        'show', params, {all: true}, on_success, on_failure, facet.entity_name
+    );
+}
+
+function ipa_details_create(container, result)
 {
+    var facet = this;
+
     if (!container) {
         alert('ERROR: ipa_details_create: Missing container argument!');
         return;
     }
 
-    var obj_name = container.attr('id');
-    container.attr('title', obj_name);
-    container.addClass('details-container');
+    var entity_name = container.attr('id');
+    container.attr('title', entity_name);
 
     var details = $('<div/>', {
         'class': 'details'
@@ -272,81 +358,97 @@ function ipa_details_create(container, sections)
         'class': 'details-buttons'
     }).appendTo(details);
 
-    buttons.append(ipa_make_button('ui-icon-refresh','Reset','details-reset'));
-    buttons.append(ipa_make_button('ui-icon-check','Update','details-update'));
+    buttons.append(ipa_button({
+        'label': 'Reset',
+        'icon': 'ui-icon-refresh',
+        'class': 'details-reset',
+        'click': function() {
+            ipa_details_reset(container);
+            return false;
+        }
+    }));
 
-    details.append('<hr />');
+    var pkey_name = IPA.metadata[facet.entity_name].primary_key;
 
-    for (var i = 0; i < sections.length; ++i) {
-        var section = sections[i];
-        ipa_details_section_setup(container, details, section);
+    buttons.append(ipa_button({
+        'label': 'Update',
+        'icon': 'ui-icon-check',
+        'class': 'details-update',
+        'click': function() {
+            ipa_details_update(container, ipa_details_cache[facet.entity_name][pkey_name][0]);
+            return false;
+        }
+    }));
+
+    details.append('<br/>');
+    details.append('<hr/>');
+
+    for (var i = 0; i < facet.sections.length; ++i) {
+        var section = facet.sections[i];
+
+        details.append($('<h2/>',{
+            click: function(){_h2_on_click(this)},
+            html:"&#8722; "+section.label
+        }));
+
+        var div = $('<div/>', {
+            'id': facet.entity_name+'-'+facet.name+'-'+section.name,
+            'class': 'details-section'
+        }).appendTo(details);
+
+        section.setup(div, result);
+
+        details.append('<hr/>');
     }
-
 }
 
 
-function ipa_details_section_setup(container, details, section)
-{
-    var id = section.name;
-    var name = section.label;
-    var fields = section.fields;
+function ipa_details_section_setup(container, result) {
+    var section = this;
+    var fields = section.get_fields();
 
-    if (!fields)
+    if (section.template) {
+        var template = IPA.get_template(section.template);
+        container.load(template, function(data, text_status, xhr) {
+            for (var i = 0; i < fields.length; ++i) {
+                var field = fields[i];
+                field.create(container);
+                field.setup(container);
+                field.load(container, result);
+            }
+        });
         return;
+    }
 
-    details.append($("<h2/>",{
-        click: function(){_h2_on_click(this)},
-        html:"&#8722; "+name
-    }));
-
-    var dl = $('<dl></dl>',{
-        id:id,
-        "class":"entryattrs"
-    }).appendTo(details);
+    section.create(container);
 
     for (var i = 0; i < fields.length; ++i) {
         var field = fields[i];
-
-            field.setup(container, dl, section);
+        field.create(container);
+        field.setup(container);
+        field.load(container, result);
     }
-
-    details.append('<hr/>');
 }
 
+function ipa_details_section_create(container, result) {
+    var section = this;
 
-function ipa_details_load(container, pkey, on_win, on_fail)
-{
-    var obj_name = container.attr('id');
-
-    function load_on_win(data, text_status, xhr) {
-        if (on_win)
-            on_win(data, text_status, xhr);
-        if (data.error)
-            return;
-
-        var result = data.result.result;
-        ipa_details_cache[obj_name] = $.extend(true, {}, result);
-        ipa_details_display(container, result);
-    }
-
-    function load_on_fail(xhr, text_status, error_thrown) {
-        if (on_fail)
-            on_fail(xhr, text_status, error_thrown);
-
-        var details = $('.details', container).empty();
-        details.append('<p>Error: '+error_thrown.name+'</p>');
-        details.append('<p>'+error_thrown.title+'</p>');
-        details.append('<p>'+error_thrown.message+'</p>');
-    }
-
-    var params = [pkey];
-    if (!pkey){
-        params = [];
-    }
-    ipa_cmd(
-        'show', params, {all: true}, load_on_win, load_on_fail, obj_name
-    );
+    var dl = $('<dl/>', {
+        'id': section.name,
+        'class': 'entryattrs'
+    }).appendTo(container);
 }
+
+function ipa_details_section_load(container, result) {
+    var section = this;
+    var fields = section.get_fields();
+
+    for (var j=0; j<fields.length; j++) {
+        var field = fields[j];
+        field.load(container, result);
+    }
+}
+
 function ipa_details_update(container, pkey, on_win, on_fail)
 {
     var obj_name = container.attr('id');
@@ -378,13 +480,14 @@ function ipa_details_update(container, pkey, on_win, on_fail)
     var sections = facet.get_sections();
     for (var i=0; i<sections.length; i++) {
         var section = sections[i];
-        var fields = section.fields;
-        if (!fields) continue;
+        var fields = section.get_fields();
+
+        var div = $('#'+facet.entity_name+'-'+facet.name+'-'+section.name, container);
 
         for (var j=0; j<fields.length; j++) {
             var field = fields[j];
 
-            values = field.save(container);
+            values = field.save(div);
 
             var param_info = ipa_get_param_info(obj_name, field.name);
             if (param_info) {
@@ -434,29 +537,24 @@ var _ipa_span_hint_template = '<span class="attrhint">Hint: D</span>';
  *   </dl>
  *
  * arguments:
- *   entry_attrs - 'result' field as returned by ipa *-show commnads
+ *   result - 'result' field as returned by ipa *-show commnads
  *                 (basically an associative array with attr:value pairs) */
-function ipa_details_display(container, entry_attrs)
+function ipa_details_display(container, result)
 {
-    var obj_name = container.attr('id');
+    var entity_name = container.attr('id');
 
     /* remove all <dd> tags i.e. all attribute values */
     $('dd', container).remove();
 
     /* go through all <dt> tags and pair them with newly created <dd>s */
-    var facet = ipa_entity_get_details_facet(obj_name);
+    var facet = ipa_entity_get_details_facet(entity_name);
     var sections = facet.get_sections();
     for (var i=0; i<sections.length; i++) {
         var section = sections[i];
-        var fields = section.fields;
-        if (!fields) continue;
 
-        for (var j=0; j<fields.length; j++) {
-            var field = fields[j];
-            var dt = $('dt[title='+field.name+']', container);
-            if (!dt.length) continue;
-            field.load(container, dt, entry_attrs);
-        }
+        var div = $('#'+facet.entity_name+'-'+facet.name+'-'+section.name, container);
+
+        section.load(div, result);
     }
 }
 
@@ -501,10 +599,10 @@ var _ipa_param_type_2_handler_map = {
  * arguments:
  *   attr - LDAP attribute name
  *   value - the attributes value */
-function ipa_create_input(obj_name, attr, value,hint)
+function ipa_create_input(entity_name, attr, value,hint)
 {
     var input = $("<label>",{html:value.toString()});
-    var param_info = ipa_get_param_info(obj_name, attr);
+    var param_info = ipa_get_param_info(entity_name, attr);
     if (!param_info) {
         /* no information about the param is available, default to text input */
         input = _ipa_create_text_input(attr, value, null);
@@ -606,7 +704,7 @@ function _ipa_create_text_input(attr, value, param_info)
         style:"display:none",
         click: function(){
             var key = this.previousElementSibling.name;
-            var entity_divs = $(this).parents('.details-container');
+            var entity_divs = $(this).parents('.entity-container');
             var entry_attrs = ipa_details_cache[entity_divs[0].id];
 
             index = calculate_dd_index($(this));
@@ -649,7 +747,7 @@ function _ipa_add_on_click(obj)
     var jobj = $(obj);
     var attr = jobj.attr('title');
     var par = jobj.parent();
-    var obj_name = jobj.closest('.details-container').attr('title');
+    var obj_name = jobj.closest('.entity-container').attr('title');
 
     var param_info = ipa_get_param_info(obj_name, '');
     var input = _ipa_create_text_input(attr, '', param_info);

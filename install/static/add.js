@@ -31,9 +31,18 @@ function ipa_add_field(spec) {
     var that = {};
     that.name = spec.name;
     that.label = spec.label;
+    that._entity_name = spec.entity_name;
 
     that.init = spec.init;
     that.setup = spec.setup;
+
+    that.__defineGetter__("entity_name", function(){
+        return that._entity_name;
+    });
+
+    that.__defineSetter__("entity_name", function(entity_name){
+        that._entity_name = entity_name;
+    });
 
     return that;
 }
@@ -45,7 +54,7 @@ function ipa_add_dialog(spec) {
     var that = {};
     that.name = spec.name;
     that.title = spec.title;
-    that.entity_name = spec.entity_name;
+    that._entity_name = spec.entity_name;
 
     that.init = spec.init;
 
@@ -53,6 +62,18 @@ function ipa_add_dialog(spec) {
     that.fields_by_name = {};
 
     var dialog = $('<div/>');
+
+    that.__defineGetter__("entity_name", function(){
+        return that._entity_name;
+    });
+
+    that.__defineSetter__("entity_name", function(entity_name){
+        that._entity_name = entity_name;
+
+        for (var i=0; i<that.fields.length; i++) {
+            that.fields[i].entity_name = entity_name;
+        }
+    });
 
     that.get_fields = function() {
         return that.fields;
@@ -85,6 +106,7 @@ function ipa_add_dialog(spec) {
             } else {
                 dialog.append('<label>' + field.label + '</label>');
                 dialog.append('<input type="text" name="' + field.name + '" />');
+                dialog.append('<br/>');
             }
         }
 

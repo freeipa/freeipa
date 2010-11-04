@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-test("Testing serial_associate().", function() {
+test("Testing serial_associator().", function() {
 
     expect(10);
 
@@ -26,25 +26,25 @@ test("Testing serial_associate().", function() {
 
     var counter = 0;
 
-    var form = {
+    var params = {
         method: "add_member",
         pkey: "test",
-        oneObj: "user",
-        manyObj: "group"
+        entity_name: "user",
+        other_entity: "group"
     };
 
-    var manyObjPkeys = ['user1', 'user2', 'user3'];
+    params.values = ['user1', 'user2', 'user3'];
 
     ipa_cmd = function(name, args, options, win_callback, fail_callback, objname) {
         counter++;
 
         equals(
-            name, form.method,
+            name, params.method,
             "Checking ipa_cmd() parameter: method"
         );
 
         equals(
-            objname, form.manyObj,
+            objname, params.other_entity,
             "Checking ipa_cmd() parameter: object name"
         );
 
@@ -58,17 +58,17 @@ test("Testing serial_associate().", function() {
         return 0;
     };
 
-    var on_success = function() {
+    params.on_success = function() {
         ok(true, "on_success() is invoked.");
     };
 
-    var associator = serial_associate(form, manyObjPkeys, on_success);
-    //associator.associateNext();
+    var associator = serial_associator(params);
+    associator.execute();
 
     ipa_cmd = orig_ipa_cmd;
 });
 
-test("Testing BulkAssociator().", function() {
+test("Testing bulk_associator().", function() {
 
     expect(5);
 
@@ -76,36 +76,36 @@ test("Testing BulkAssociator().", function() {
 
     var counter = 0;
 
-    var form = {
+    var params = {
         method: "add_member",
         pkey: "test",
-        oneObj: "user",
-        manyObj: "group"
+        entity_name: "user",
+        other_entity: "group"
     };
 
-    var manyObjPkeys = ['user1', 'user2', 'user3'];
+    params.values = ['user1', 'user2', 'user3'];
 
     ipa_cmd = function(name, args, options, win_callback, fail_callback, objname) {
         counter++;
 
         equals(
-            name, form.method,
+            name, params.method,
             "Checking ipa_cmd() parameter: method"
         );
 
         equals(
-            objname, form.oneObj,
+            objname, params.entity_name,
             "Checking ipa_cmd() parameter: object name"
         );
 
         equals(
-            args[0], form.pkey,
+            args[0], params.pkey,
             "Checking ipa_cmd() parameter: primary key"
         );
 
         equals(
-            options[form.manyObj], "user1,user2,user3",
-            "Checking ipa_cmd() parameter: options[\""+form.manyObj+"\"]"
+            options[params.other_entity], "user1,user2,user3",
+            "Checking ipa_cmd() parameter: options[\""+params.other_entity+"\"]"
         );
 
         var response = {};
@@ -113,12 +113,12 @@ test("Testing BulkAssociator().", function() {
         return 0;
     };
 
-    var on_success = function() {
+    params.on_success = function() {
         ok(true, "on_success() is invoked.");
     };
 
-    var associator = bulk_associate(form, manyObjPkeys, on_success);
-    //associator.associateNext();
+    var associator = bulk_associator(params);
+    associator.execute();
 
     ipa_cmd = orig_ipa_cmd;
 });

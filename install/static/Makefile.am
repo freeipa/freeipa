@@ -3,6 +3,7 @@ AUTOMAKE_OPTIONS = 1.7
 NULL =
 
 SUBDIRS =  				\
+	layouts 				\
 	$(NULL)
 
 appdir = $(IPA_DATA_DIR)/static
@@ -32,6 +33,7 @@ app_DATA =                              \
 	details.js 			\
 	entity.js 			\
 	webui.js 			\
+	widget.js 			\
 	user.js 			\
 	ipalogo.png			\
 	gray-fade-line.png		\

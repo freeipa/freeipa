@@ -51,6 +51,14 @@ var IPA = ( function () {
         id: 'error_dialog'
     });
 
+    that.layout = $.bbq.getState('layout');
+    that.layouts_dir = 'layouts';
+
+    that.get_template = function(path) {
+        if (!that.layout) return path;
+        return that.layouts_dir+'/'+that.layout+'/'+path;
+    };
+
     /* initialize the IPA JSON-RPC helper
      * arguments:
      *   url - JSON-RPC URL to use (optional) */
@@ -91,9 +99,6 @@ var IPA = ( function () {
     };
 
     that.show_page = function (entity_name, facet_name, other_entity) {
-
-        //var entity = IPA.get_entity(entity_name);
-        //var facet = entity.get_facet(facet_name);
 
         var state = {};
         state[entity_name + '-facet'] = facet_name;

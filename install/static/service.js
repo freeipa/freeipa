@@ -126,36 +126,45 @@ function service_add_krbprincipalname(add_dialog, mode) {
 }
 
 ipa_entity_set_association_definition('service', {
-    'host': { method: 'add_host' }
+    'host': { add_method: 'add_host', delete_host: 'remove_host' }
 });
 
-function service_krbprincipalname_setup(container, dl, section) {
+function service_krbprincipalname_setup(container) {
     // skip krbprincipalname
 }
 
-function service_krbprincipalname_load(container, dt, result) {
+function service_krbprincipalname_load(container, result) {
     // skip krbprincipalname
 }
 
-function service_service_load(container, dt, result) {
+function service_service_load(container, result) {
+    var dt = $('dt[title='+this.name+']', container);
+    if (!dt.length) return;
+
     var krbprincipalname = result['krbprincipalname'][0];
     var service = krbprincipalname.replace(/\/.*$/, '');
     var dd = ipa_create_first_dd(this.name, service);
     dt.after(dd);
 }
 
-function service_host_load(container, dt, result) {
+function service_host_load(container, result) {
+    var dt = $('dt[title='+this.name+']', container);
+    if (!dt.length) return;
+
     var krbprincipalname = result['krbprincipalname'][0];
     var host = krbprincipalname.replace(/^.*\//, '').replace(/@.*$/, '');
     var dd = ipa_create_first_dd(this.name, host);
     dt.after(dd);
 }
 
-function service_provisioning_status_load(container, dt, result) {
+function service_provisioning_status_load(container, result) {
     // skip provisioning_status
 }
 
-function service_usercertificate_load(container, dt, result) {
+function service_usercertificate_load(container, result) {
+
+    var dt = $('dt[title='+this.name+']', container);
+    if (!dt.length) return;
 
     var panel = certificate_status_panel({
         'entity_type': 'service',

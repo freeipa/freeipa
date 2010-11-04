@@ -52,11 +52,14 @@ ipa_entity_set_association_definition('host', {
     'rolegroup': { associator: 'serial' }
 });
 
-function host_enrollment_status_load(container, dt, result) {
+function host_enrollment_status_load(container, result) {
     // skip enrollment_status
 }
 
-function host_usercertificate_load(container, dt, result) {
+function host_usercertificate_load(container, result) {
+
+    var dt = $('dt[title='+this.name+']', container);
+    if (!dt.length) return;
 
     var panel = certificate_status_panel({
         'entity_type': 'host',

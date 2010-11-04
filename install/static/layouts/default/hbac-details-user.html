@@ -1,0 +1,75 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Who</title>
+
+    <link rel="stylesheet" type="text/css" href="jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" href="ipa.css" />
+</head>
+<body>
+<div id="contents">
+    Rule applies when access is requested by:
+    <input type="radio" name="usercategory" value="all"/>Anyone
+    <input type="radio" name="usercategory" value=""/>Specified Users and Groups
+    <br/>
+
+    <div id="hbac-memberuser_user">
+    <table class="search-table">
+    <thead>
+        <tr>
+            <th style="width: 25px;">
+                <input type="checkbox" name="select"/>
+            </th>
+            <th>
+                <span style="float: left;">User</span>
+                <span name="buttons" style="float: right;">
+                    <input type="button" name="remove" value="Remove Users"/>
+                    <input type="button" name="add" value="Add Users"/>
+                </span>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <input type="checkbox" name="select" value="user"/>
+            </td>
+            <td>
+                <span name="memberuser_user">user</span>
+            </td>
+        </tr>
+    </tbody>
+    </table>
+    </div>
+
+    <div id="hbac-memberuser_group">
+    <table class="search-table">
+    <thead>
+        <tr>
+            <th style="width: 25px;">
+                <input type="checkbox" name="select"/>
+            </th>
+            <th>
+                <span style="float: left;">User Group</span>
+                <span name="buttons" style="float: right;">
+                    <input type="button" name="remove" value="Remove User Groups"/>
+                    <input type="button" name="add" value="Add User Groups"/>
+                </span>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <input type="checkbox" name="select" value="users"/>
+            </td>
+            <td>
+                <span name="memberuser_group">users</span>
+            </td>
+        </tr>
+    </tbody>
+    </table>
+    </div>
+</div>
+</body>
+</html>

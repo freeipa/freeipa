@@ -1,0 +1,45 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>General</title>
+
+    <link rel="stylesheet" type="text/css" href="jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" href="ipa.css" />
+</head>
+<body>
+<div id="contents">
+    <table style="width: 100%; border: 0 solid black;">
+    <tr>
+        <td style="width: 100px; text-align: right;">
+            Name:
+        </td>
+        <td>
+            <input type="text" name="cn" size="30"/>
+        </td>
+        <td style="text-align: right;">
+            Rule type:
+            <input type="radio" name="accessruletype" value="allow"/>Allow
+            <input type="radio" name="accessruletype" value="deny"/>Deny
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: right; vertical-align: top;">
+            Description:
+        </td>
+        <td colspan="2">
+            <textarea name="description" rows="5" style="width: 100%;" cols="40"></textarea>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: right; vertical-align: top;">
+            Rule status:
+        </td>
+        <td colspan="2">
+            <input type="radio" name="ipaenabledflag" value="TRUE"/>Active
+            <input type="radio" name="ipaenabledflag" value="FALSE"/>Inactive
+        </td>
+    </tr>
+    </table>
+</div>
+</body>
+</html>

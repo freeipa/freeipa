@@ -151,8 +151,10 @@ function on_lock_win(data, textStatus, xhr)
 /* ATTRIBUTE CALLBACKS */
 
 var toggle_temp = 'S <a href="jslink" onclick="return (toggle_on_click(this))" title="S">Toggle</a>';
-function user_status_load(container, dt, result)
-{
+function user_status_load(container, result) {
+    var dt = $('dt[title='+this.name+']', container);
+    if (!dt.length) return;
+
     var memberof = result['memberof'];
     var dd;
 
@@ -223,8 +225,10 @@ function resetpwd_on_click(){
     return false;
 }
 
-function user_password_load(container, dt, result)
-{
+function user_password_load(container, result) {
+    var dt = $('dt[title='+this.name+']', container);
+    if (!dt.length) return;
+
     dt.after(ipa_create_first_dd(
         this.name,
         $('<a/>',{
@@ -245,8 +249,10 @@ var states = [
     'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VI', 'VA',
     'WA', 'WV', 'WI', 'WY', ''
 ];
-function user_state_load(container, dt, result)
-{
+function user_state_load(container, result) {
+    var dt = $('dt[title='+this.name+']', container);
+    if (!dt.length) return;
+
     var next = dt.next();
     next.css('clear', 'none');
     next.css('width', '70px');

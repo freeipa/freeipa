@@ -25,14 +25,10 @@ function ipa_search_column(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    spec.init = spec.init || init;
+    spec.setup = spec.setup || setup;
 
-    that.name = spec.name;
-    that.label = spec.label || that.name;
-    that.facet = spec.facet;
-
-    that.init = spec.init || init;
-    that.setup = spec.setup || setup;
+    var that = ipa_column_widget(spec);
 
     function init() {
     }
@@ -56,6 +52,18 @@ function ipa_search_facet(spec) {
     that.columns = [];
     that.columns_by_name = {};
 
+    that.__defineGetter__("entity_name", function(){
+        return that._entity_name;
+    });
+
+    that.__defineSetter__("entity_name", function(entity_name){
+        that._entity_name = entity_name;
+
+        for (var i=0; i<that.columns.length; i++) {
+            that.columns[i].entity_name = entity_name;
+        }
+    });
+
     that.get_columns = function() {
         return that.columns;
     };
@@ -65,12 +73,12 @@ function ipa_search_facet(spec) {
     };
 
     that.add_column = function(column) {
+        column.entity_name = that.entity_name;
         that.columns.push(column);
         that.columns_by_name[column.name] = column;
     };
 
     that.create_column = function(spec) {
-        spec.facet = that;
         var column = ipa_search_column(spec);
         that.add_column(column);
         return column;
@@ -90,8 +98,10 @@ function ipa_search_facet(spec) {
 
         search_create(that.entity_name, that.columns, container);
 
-        ipa_make_button('ui-icon-plus', IPA.messages.button.add).
-            click(function() {
+        ipa_button({
+            'label': IPA.messages.button.add,
+            'icon': 'ui-icon-plus',
+            'click': function() {
                 var entity = IPA.get_entity(that.entity_name);
                 if (entity) {
                     entity.add_dialog.open();
@@ -102,8 +112,8 @@ function ipa_search_facet(spec) {
                 dialog.open();
 
                 return false;
-            }).
-            appendTo($('.search-controls', container));
+            }
+        }).appendTo($('.search-controls', container));
 
         search_load(container, that.filter);
     }
@@ -183,7 +193,6 @@ function search_create(entity_name, columns, container) {
     }
 
     container.attr('title', entity_name);
-    container.addClass('search-container');
 
     var search_controls = $('<div/>', {
         'class': 'search-controls'
@@ -198,11 +207,17 @@ function search_create(entity_name, columns, container) {
         'name': 'search-' + entity_name + '-filter'
     }).appendTo(search_filter);
 
-    ipa_make_button('ui-icon-search', IPA.messages.button.find).
-        click(find_on_click).appendTo(search_filter);
+    ipa_button({
+        'label': IPA.messages.button.find,
+        'icon': 'ui-icon-search',
+        'click': find_on_click
+    }).appendTo(search_filter);
 
-    ipa_make_button('ui-icon-trash',IPA.messages.button.delete).
-        click(delete_on_click_outer).appendTo(search_filter);
+    ipa_button({
+        'label': IPA.messages.button.delete,
+        'icon': 'ui-icon-trash',
+        'click': delete_on_click_outer
+    }).appendTo(search_filter);
 
     search_controls.append('<span class="search-buttons"></span>');
 
@@ -231,20 +246,17 @@ function search_insert_checkbox_th(jobj)
     function select_all_on_click() {
         var jobj = $(this);
 
-        var checked = null;
-        if (jobj.attr('checked')) {
-            checked = true;
+        var checked = jobj.is(':checked');
+        if (checked) {
             jobj.attr('title', 'Unselect All');
         } else {
-            checked = false;
             jobj.attr('title', 'Select All');
         }
-        jobj.attr('checked', checked);
 
-        var chks = jobj.closest('.search-container').find('.search-selector');
+        var chks = jobj.closest('.entity-container').find('.search-selector').get();
         for (var i = 0; i < chks.length; ++i)
             chks[i].checked = checked;
-    };
+    }
 
     var checkbox = $('<input />', {
         type: 'checkbox',
@@ -307,7 +319,7 @@ function search_load(container, criteria, on_win, on_fail)
 
 function search_generate_tr(thead, tbody, entry_attrs)
 {
-    var obj_name = tbody.closest('.search-container').attr('title');
+    var obj_name = tbody.closest('.entity-container').attr('title');
     var pkey = IPA.metadata[obj_name].primary_key;
     var pkey_value = entry_attrs[pkey];
 
@@ -368,7 +380,7 @@ var _search_a_pkey_template = '<a href="jslink" class="search-a-pkey">V</a>';
 
 function search_generate_td(tr, attr, value, entry_attrs)
 {
-    var obj_name = tr.closest('.search-container').attr('title');
+    var obj_name = tr.closest('.entity-container').attr('title');
 
     var param_info = ipa_get_param_info(obj_name, attr);
     if (param_info && param_info['primary_key'])
@@ -379,7 +391,7 @@ function search_generate_td(tr, attr, value, entry_attrs)
 
 function search_display(obj_name, data)
 {
-    var selector = '.search-container[title=' + obj_name + ']';
+    var selector = '.entity-container[title=' + obj_name + ']';
     var thead = $(selector + ' thead');
     var tbody = $(selector + ' tbody');
     var tfoot = $(selector + ' tfoot');

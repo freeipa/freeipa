@@ -421,10 +421,9 @@ function certificate_status_panel(spec) {
         td.append('Valid Certificate Present:');
 
         td = $('<td/>').appendTo(tr);
-        $('<input/>', {
+        ipa_button({
             'id': 'get_button',
-            'type': 'button',
-            'value': 'Get',
+            'label': 'Get',
             'click': function() {
                 ipa_cmd(that.entity_type+'_show', [pkey], {},
                     function(data, text_status, xhr) {
@@ -434,10 +433,9 @@ function certificate_status_panel(spec) {
             }
         }).appendTo(td);
 
-        $('<input/>', {
+        ipa_button({
             'id': 'revoke_button',
-            'type': 'button',
-            'value': 'Revoke',
+            'label': 'Revoke',
             'click': function() {
                 ipa_cmd(that.entity_type+'_show', [pkey], {},
                     function(data, text_status, xhr) {
@@ -447,10 +445,9 @@ function certificate_status_panel(spec) {
             }
         }).appendTo(td);
 
-        $('<input/>', {
+        ipa_button({
             'id': 'view_button',
-            'type': 'button',
-            'value': 'View',
+            'label': 'View',
             'click': function() {
                 ipa_cmd(that.entity_type+'_show', [pkey], {},
                     function(data, text_status, xhr) {
@@ -476,10 +473,9 @@ function certificate_status_panel(spec) {
         }));
         td.append(' ');
 
-        $('<input/>', {
+        ipa_button({
             'id': 'restore_button',
-            'type': 'button',
-            'value': 'Restore',
+            'label': 'Restore',
             'click': function() {
                 ipa_cmd(that.entity_type+'_show', [pkey], {},
                     function(data, text_status, xhr) {
@@ -500,9 +496,9 @@ function certificate_status_panel(spec) {
         td.append('No Valid Certificate:');
 
         td = $('<td/>').appendTo(tr);
-        $('<input/>', {
-            'type': 'button',
-            'value': 'New Certificate',
+        ipa_button({
+            'id': 'create_button',
+            'label': 'New Certificate',
             'click': function() {
                 request_certificate(that.result);
             }
