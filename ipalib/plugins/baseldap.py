@@ -149,6 +149,20 @@ def get_attributes(attrs):
     return attrlist
 
 
+def get_effective_rights(ldap, dn, attrs=None):
+    if attrs is None:
+        attrs = ['*', 'nsaccountlock']
+    rights = ldap.get_effective_rights(dn, attrs)
+    rdict = {}
+    if 'attributelevelrights' in rights[1]:
+        rights = rights[1]['attributelevelrights']
+        rights = rights[0].split(', ')
+        for r in rights:
+            (k,v) = r.split(':')
+            rdict[k.strip().lower()] = v
+
+    return rdict
+
 class LDAPObject(Object):
     """
     Object representing a LDAP entry.
@@ -562,15 +576,7 @@ class LDAPRetrieve(LDAPQuery):
                 self.obj.handle_not_found(*keys)
 
         if options.get('rights', False) and options.get('all', False):
-            rights = ldap.get_effective_rights(dn, ['*', 'nsaccountlock'])
-            if 'attributelevelrights' in rights[1]:
-                rights = rights[1]['attributelevelrights']
-                rights = rights[0].split(', ')
-                rdict = {}
-                for r in rights:
-                    (k,v) = r.split(':')
-                    rdict[k] = v
-                entry_attrs['attributelevelrights'] = rdict
+            entry_attrs['attributelevelrights'] = get_effective_rights(ldap, dn)
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
@@ -599,7 +605,12 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     Update an LDAP entry.
     """
 
-    takes_options = _attr_options
+    takes_options = _attr_options + (
+        Flag('rights',
+            label=_('Rights'),
+            doc=_('Display the access rights to modify this entry (requires --all)'),
+        ),
+    )
 
     has_output_params = global_output_params
 
@@ -703,6 +714,9 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 raise errors.MidairCollision(
                     format=_('the entry was deleted while being modified')
                 )
+
+        if options.get('rights', False) and options.get('all', False):
+            entry_attrs['attributelevelrights'] = get_effective_rights(ldap, dn)
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
