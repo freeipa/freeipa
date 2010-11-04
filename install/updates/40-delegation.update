@@ -723,10 +723,10 @@ add:description: Modify Entitlements
 add:member:'cn=entitlementadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: $SUFFIX
-add: aci: '(target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,dc=greyoak,dc=com")(version 3.0;acl "Add entitlements";allow (add) groupdn = "ldap:///cn=addentitlements,cn=taskgroups,cn=accounts,dc=greyoak,dc=com";)'
+add: aci: '(target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Add entitlements";allow (add) groupdn = "ldap:///cn=addentitlements,cn=taskgroups,cn=accounts,$SUFFIX";)'
 
 dn: $SUFFIX
-add: aci: '(targetattr = "userCertificate")(target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,dc=greyoak,dc=com")(version 3.0;acl "Modify entitlements";allow (write) groupdn = "ldap:///cn=modifyentitlements,cn=taskgroups,cn=accounts,dc=greyoak,dc=com";)'
+add: aci: '(targetattr = "userCertificate")(target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Modify entitlements";allow (write) groupdn = "ldap:///cn=modifyentitlements,cn=taskgroups,cn=accounts,$SUFFIX";)'
 
 dn: $SUFFIX
-add: aci: '(target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,dc=greyoak,dc=com")(version 3.0;acl "Remove entitlement entries";allow (delete) groupdn = "ldap:///cn=removeentitlements,cn=taskgroups,cn=accounts,dc=greyoak,dc=com";)'
+add: aci: '(target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Remove entitlement entries";allow (delete) groupdn = "ldap:///cn=removeentitlements,cn=taskgroups,cn=accounts,$SUFFIX";)'
