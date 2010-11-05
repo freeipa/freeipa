@@ -87,6 +87,30 @@ output_params = (
     Str('managedby_host',
         label='Managed by',
     ),
+    Str('subject',
+        label=_('Subject'),
+    ),
+    Str('serial_number',
+        label=_('Serial Number'),
+    ),
+    Str('issuer',
+        label=_('Issuer'),
+    ),
+    Str('valid_not_before',
+        label=_('Not Before'),
+    ),
+    Str('valid_not_after',
+        label=_('Not After'),
+    ),
+    Str('md5_fingerprint',
+        label=_('Fingerprint (MD5)'),
+    ),
+    Str('sha1_fingerprint',
+        label=_('Fingerprint (SHA1)'),
+    ),
+    Str('revocation_reason?',
+        label=_('Revocation reason'),
+    )
 )
 
 def split_principal(principal):
@@ -170,6 +194,30 @@ def normalize_certificate(cert):
             raise errors.CertificateFormatError(error=str(nsprerr))
 
     return cert
+
+def set_certificate_attrs(entry_attrs):
+    """
+    Set individual attributes from some values from a certificate.
+
+    entry_attrs is a dict of an entry
+
+    returns nothing
+    """
+    if not 'usercertificate' in entry_attrs:
+        return
+    if type(entry_attrs['usercertificate']) in (list, tuple):
+        cert = entry_attrs['usercertificate'][0]
+    else:
+        cert = entry_attrs['usercertificate']
+    cert = normalize_certificate(cert)
+    cert = x509.load_certificate(cert, datatype=x509.DER)
+    entry_attrs['subject'] = unicode(cert.subject)
+    entry_attrs['serial_number'] = unicode(cert.serial_number)
+    entry_attrs['issuer'] = unicode(cert.issuer)
+    entry_attrs['valid_not_before'] = unicode(cert.valid_not_before_str)
+    entry_attrs['valid_not_after'] = unicode(cert.valid_not_after_str)
+    entry_attrs['md5_fingerprint'] = unicode(nss.data_to_hex(nss.md5_digest(cert.der_data), 64)[0])
+    entry_attrs['sha1_fingerprint'] = unicode(nss.data_to_hex(nss.sha1_digest(cert.der_data), 64)[0])
 
 
 class service(LDAPObject):
@@ -313,6 +361,9 @@ class service_mod(LDAPUpdate):
                 entry_attrs['usercertificate'] = None
         return dn
 
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        set_certificate_attrs(entry_attrs)
+
 api.register(service_mod)
 
 
@@ -348,6 +399,7 @@ class service_find(LDAPSearch):
                     del entry_attrs['krblastpwdchange']
             else:
                 entry_attrs['has_keytab'] = False
+            set_certificate_attrs(entry_attrs)
 
 api.register(service_find)
 
@@ -359,33 +411,6 @@ class service_show(LDAPRetrieve):
     member_attributes = ['managedby']
     takes_options = LDAPRetrieve.takes_options
 
-    has_output_params = LDAPRetrieve.has_output_params + output_params + (
-        Str('subject',
-            label=_('Subject'),
-        ),
-        Str('serial_number',
-            label=_('Serial Number'),
-        ),
-        Str('issuer',
-            label=_('Issuer'),
-        ),
-        Str('valid_not_before',
-            label=_('Not Before'),
-        ),
-        Str('valid_not_after',
-            label=_('Not After'),
-        ),
-        Str('md5_fingerprint',
-            label=_('Fingerprint (MD5)'),
-        ),
-        Str('sha1_fingerprint',
-            label=_('Fingerprint (SHA1)'),
-        ),
-        Str('revocation_reason?',
-            label=_('Revocation reason'),
-        )
-    )
-
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if 'krblastpwdchange' in entry_attrs:
             entry_attrs['has_keytab'] = True
@@ -394,15 +419,7 @@ class service_show(LDAPRetrieve):
         else:
             entry_attrs['has_keytab'] = False
 
-        if 'usercertificate' in entry_attrs:
-            cert = x509.load_certificate(entry_attrs['usercertificate'][0], datatype=x509.DER)
-            entry_attrs['subject'] = unicode(cert.subject)
-            entry_attrs['serial_number'] = unicode(cert.serial_number)
-            entry_attrs['issuer'] = unicode(cert.issuer)
-            entry_attrs['valid_not_before'] = unicode(cert.valid_not_before_str)
-            entry_attrs['valid_not_after'] = unicode(cert.valid_not_after_str)
-            entry_attrs['md5_fingerprint'] = unicode(nss.data_to_hex(nss.md5_digest(cert.der_data), 64)[0])
-            entry_attrs['sha1_fingerprint'] = unicode(nss.data_to_hex(nss.sha1_digest(cert.der_data), 64)[0])
+        set_certificate_attrs(entry_attrs)
 
         return dn
 
@@ -440,13 +457,44 @@ class service_disable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(*keys, **options)
-        (dn, entry_attrs) = ldap.get_entry(dn, ['krblastpwdchange'])
+        (dn, entry_attrs) = ldap.get_entry(dn, ['krblastpwdchange', 'usercertificate'])
 
-        if 'krblastpwdchange' not in entry_attrs:
-            error_msg = _('Service principal has no kerberos key')
-            raise errors.NotFound(reason=error_msg)
+        # See if we do any work at all here and if not raise an exception
+        done_work = False
 
-        ldap.remove_principal_key(dn)
+        if 'usercertificate' in entry_attrs:
+            cert = normalize_certificate(entry_attrs.get('usercertificate')[0])
+            try:
+                serial = unicode(x509.get_serial_number(cert, x509.DER))
+                try:
+                    result = api.Command['cert_show'](unicode(serial))['result']
+                    if 'revocation_reason' not in result:
+                        try:
+                            api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
+                        except errors.NotImplementedError:
+                            # some CA's might not implement revoke
+                            pass
+                except errors.NotImplementedError:
+                    # some CA's might not implement revoke
+                    pass
+            except NSPRError, nsprerr:
+                if nsprerr.errno == -8183:
+                    # If we can't decode the cert them proceed with
+                    # disabling the service
+                    self.log.info("Problem decoding certificate %s" % nsprerr.args[1])
+                else:
+                    raise nsprerr
+
+            # Remove the usercertificate altogether
+            ldap.update_entry(dn, {'usercertificate': None})
+            done_work = True
+
+        if 'krblastpwdchange' in entry_attrs:
+            ldap.remove_principal_key(dn)
+            done_work = True
+
+        if not done_work:
+            raise errors.AlreadyInactive()
 
         return dict(
             result=True,

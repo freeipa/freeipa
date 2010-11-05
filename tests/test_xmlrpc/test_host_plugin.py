@@ -25,6 +25,7 @@ Test the `ipalib.plugins.host` module.
 from ipalib import api, errors
 from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from tests.test_xmlrpc import objectclasses
+import base64
 
 
 fqdn1 = u'testhost1.%s' % api.env.domain
@@ -34,6 +35,8 @@ service1 = u'dns/%s@%s' % (fqdn1, api.env.realm)
 service1dn = u'krbprincipalname=%s,cn=services,cn=accounts,%s' % (service1.lower(), api.env.basedn)
 fqdn2 = u'shouldnotexist.%s' % api.env.domain
 dn2 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn2, api.env.basedn)
+
+servercert = 'MIICbzCCAdigAwIBAgICA/4wDQYJKoZIhvcNAQEFBQAwKTEnMCUGA1UEAxMeSVBBIFRlc3QgQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTEwMDgwOTE1MDIyN1oXDTIwMDgwOTE1MDIyN1owKTEMMAoGA1UEChMDSVBBMRkwFwYDVQQDExBwdW1hLmdyZXlvYWsuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwYbfEOQPgGenPn9vt1JFKvWm/Je3y2tawGWA3LXDuqfFJyYtZ8ib3TcBUOnLk9WK5g2qCwHaNlei7bj8ggIfr5hegAVe10cun+wYErjnYo7hsHYd+57VZezeipWrXu+7NoNd4+c4A5lk4A/xJay9j3bYx2oOM8BEox4xWYoWge1ljPrc5JK46f0X7AGW4F2VhnKPnf8rwSuzI1U8VGjutyM9TWNy3m9KMWeScjyG/ggIpOjUDMV7HkJL0Di61lznR9jXubpiEC7gWGbTp84eGl/Nn9bgK1AwHfJ2lHwfoY4uiL7ge1gyP6EvuUlHoBzdb7pekiX28iePjW3iEG9IawIDAQABoyIwIDARBglghkgBhvhCAQEEBAMCBkAwCwYDVR0PBAQDAgUgMA0GCSqGSIb3DQEBBQUAA4GBACRESLemRV9BPxfEgbALuxH5oE8jQm8WZ3pm2pALbpDlAd9wQc3yVf6RtkfVthyDnM18bg7IhxKpd77/p3H8eCnS8w5MLVRda6ktUC6tGhFTS4QKAf0WyDGTcIgkXbeDw0OPAoNHivoXbIXIIRxlw/XgaSaMzJQDBG8iROsN4kCv'
 
 
 class test_host(Declarative):
@@ -201,7 +204,8 @@ class test_host(Declarative):
 
         dict(
             desc='Update %r' % fqdn1,
-            command=('host_mod', [fqdn1], dict(description=u'Updated host 1')),
+            command=('host_mod', [fqdn1], dict(description=u'Updated host 1',
+                usercertificate=servercert)),
             expected=dict(
                 value=fqdn1,
                 summary=u'Modified host "%s"' % fqdn1,
@@ -210,6 +214,14 @@ class test_host(Declarative):
                     fqdn=[fqdn1],
                     l=[u'Undisclosed location 1'],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    usercertificate=[base64.b64decode(servercert)],
+                    valid_not_before=u'Mon Aug 09 15:02:27 2010 UTC',
+                    valid_not_after=u'Sun Aug 09 15:02:27 2020 UTC',
+                    subject=u'CN=puma.greyoak.com,O=IPA',
+                    serial_number=u'1022',
+                    md5_fingerprint=u'ef:63:31:e4:33:54:8d:fd:fe:c8:66:57:09:03:5f:09',
+                    sha1_fingerprint=u'e3:33:2c:d9:7c:e9:77:74:2a:ac:3b:b8:76:b0:86:29:98:43:58:11',
+                    issuer=u'CN=IPA Test Certificate Authority',
                 ),
             ),
         ),
@@ -227,7 +239,15 @@ class test_host(Declarative):
                     description=[u'Updated host 1'],
                     l=[u'Undisclosed location 1'],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    has_keytab=False
+                    has_keytab=False,
+                    usercertificate=[base64.b64decode(servercert)],
+                    valid_not_before=u'Mon Aug 09 15:02:27 2010 UTC',
+                    valid_not_after=u'Sun Aug 09 15:02:27 2020 UTC',
+                    subject=u'CN=puma.greyoak.com,O=IPA',
+                    serial_number=u'1022',
+                    md5_fingerprint=u'ef:63:31:e4:33:54:8d:fd:fe:c8:66:57:09:03:5f:09',
+                    sha1_fingerprint=u'e3:33:2c:d9:7c:e9:77:74:2a:ac:3b:b8:76:b0:86:29:98:43:58:11',
+                    issuer=u'CN=IPA Test Certificate Authority',
                 ),
             ),
         ),

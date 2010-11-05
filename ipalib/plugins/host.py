@@ -76,6 +76,8 @@ from ipalib import Str, Flag, Bytes
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.service import split_principal
 from ipalib.plugins.service import validate_certificate
+from ipalib.plugins.service import normalize_certificate
+from ipalib.plugins.service import set_certificate_attrs
 from ipalib import _, ngettext
 from ipalib import x509
 from ipapython.ipautil import ipa_generate_password
@@ -91,6 +93,36 @@ def validate_host(ugettext, fqdn):
     if fqdn.find('.') == -1:
         return _('Fully-qualified hostname required')
     return None
+
+host_output_params = (
+    Flag('has_keytab',
+        label=_('Keytab'),
+    ),
+    Str('subject',
+        label=_('Subject'),
+    ),
+    Str('serial_number',
+        label=_('Serial Number'),
+    ),
+    Str('issuer',
+        label=_('Issuer'),
+    ),
+    Str('valid_not_before',
+        label=_('Not Before'),
+    ),
+    Str('valid_not_after',
+        label=_('Not After'),
+    ),
+    Str('md5_fingerprint',
+        label=_('Fingerprint (MD5)'),
+    ),
+    Str('sha1_fingerprint',
+        label=_('Fingerprint (SHA1)'),
+    ),
+    Str('revocation_reason?',
+        label=_('Revocation reason'),
+    )
+)
 
 class host(LDAPObject):
     """
@@ -199,6 +231,7 @@ class host_add(LDAPCreate):
     Add a new host.
     """
 
+    has_output_params = LDAPCreate.has_output_params + host_output_params
     msg_summary = _('Added host "%(value)s"')
     takes_options = (
         Flag('force',
@@ -241,6 +274,7 @@ class host_add(LDAPCreate):
                 # On the off-chance some other extension deletes this from the
                 # context, don't crash.
                 pass
+        set_certificate_attrs(entry_attrs)
         return dn
 
 api.register(host_add)
@@ -275,6 +309,31 @@ class host_del(LDAPDelete):
                     (service, hostname, realm) = split_principal(principal)
                     if hostname.lower() == fqdn:
                         api.Command['service_del'](principal)
+        (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
+        if 'usercertificate' in entry_attrs:
+            cert = normalize_certificate(entry_attrs.get('usercertificate')[0])
+            try:
+                serial = unicode(x509.get_serial_number(cert, x509.DER))
+                try:
+                    result = api.Command['cert_show'](unicode(serial))['result'
+]
+                    if 'revocation_reason' not in result:
+                        try:
+                            api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
+                        except errors.NotImplementedError:
+                            # some CA's might not implement revoke
+                            pass
+                except errors.NotImplementedError:
+                    # some CA's might not implement revoke
+                    pass
+            except NSPRError, nsprerr:
+                if nsprerr.errno == -8183:
+                    # If we can't decode the cert them proceed with
+                    # removing the host.
+                    self.log.info("Problem decoding certificate %s" % nsprerr.args[1])
+                else:
+                    raise nsprerr
+
         return dn
 
 api.register(host_del)
@@ -285,6 +344,7 @@ class host_mod(LDAPUpdate):
     Modify information about a host.
     """
 
+    has_output_params = LDAPUpdate.has_output_params + host_output_params
     msg_summary = _('Modified host "%(value)s"')
 
     takes_options = LDAPUpdate.takes_options + (
@@ -312,17 +372,33 @@ class host_mod(LDAPUpdate):
             if 'krbprincipalaux' not in obj_classes:
                 obj_classes.append('krbprincipalaux')
                 entry_attrs['objectclass'] = obj_classes
-        cert = entry_attrs.get('usercertificate')
+        cert = normalize_certificate(entry_attrs.get('usercertificate'))
         if cert:
             (dn, entry_attrs_old) = ldap.get_entry(dn, ['usercertificate'])
             if 'usercertificate' in entry_attrs_old:
-                # FIXME: what to do here? do we revoke the old cert?
-                fmt = 'entry already has a certificate, serial number: %s' % (
-                    x509.get_serial_number(entry_attrs_old['usercertificate'][0], x509.DER)
-                )
-                raise errors.GenericError(format=fmt)
-            # FIXME: decoding should be in normalizer; see service_add
-            entry_attrs['usercertificate'] = base64.b64decode(cert)
+                oldcert = normalize_certificate(entry_attrs_old.get('usercertificate')[0])
+                try:
+                    serial = unicode(x509.get_serial_number(oldcert, x509.DER))
+                    try:
+                        result = api.Command['cert_show'](unicode(serial))['result']
+                        if 'revocation_reason' not in result:
+                            try:
+                                api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
+                            except errors.NotImplementedError:
+                                # some CA's might not implement revoke
+                                pass
+                    except errors.NotImplementedError:
+                        # some CA's might not implement revoke
+                        pass
+                except NSPRError, nsprerr:
+                    if nsprerr.errno == -8183:
+                        # If we can't decode the cert them proceed with
+                        # modifying the host.
+                        self.log.info("Problem decoding certificate %s" % nsprerr.args[1])
+                    else:
+                        raise nsprerr
+
+            entry_attrs['usercertificate'] = cert
         if 'random' in options:
             if options.get('random'):
                 entry_attrs['userpassword'] = ipa_generate_password()
@@ -335,6 +411,7 @@ class host_mod(LDAPUpdate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if options.get('random', False):
             entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
+        set_certificate_attrs(entry_attrs)
         return dn
 
 api.register(host_mod)
@@ -345,6 +422,7 @@ class host_find(LDAPSearch):
     Search for hosts.
     """
 
+    has_output_params = LDAPSearch.has_output_params + host_output_params
     msg_summary = ngettext(
         '%(count)d host matched', '%(count)d hosts matched'
     )
@@ -355,6 +433,11 @@ class host_find(LDAPSearch):
             attrs_list.append('l')
         return filter.replace('locality', 'l')
 
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        for entry in entries:
+            entry_attrs = entry[1]
+            set_certificate_attrs(entry_attrs)
+
 api.register(host_find)
 
 
@@ -362,35 +445,7 @@ class host_show(LDAPRetrieve):
     """
     Display information about a host.
     """
-    has_output_params = (
-        Flag('has_keytab',
-            label=_('Keytab'),
-        ),
-        Str('subject',
-            label=_('Subject'),
-        ),
-        Str('serial_number',
-            label=_('Serial Number'),
-        ),
-        Str('issuer',
-            label=_('Issuer'),
-        ),
-        Str('valid_not_before',
-            label=_('Not Before'),
-        ),
-        Str('valid_not_after',
-            label=_('Not After'),
-        ),
-        Str('md5_fingerprint',
-            label=_('Fingerprint (MD5)'),
-        ),
-        Str('sha1_fingerprint',
-            label=_('Fingerprint (SHA1)'),
-        ),
-        Str('revocation_reason?',
-            label=_('Revocation reason'),
-        )
-    )
+    has_output_params = LDAPRetrieve.has_output_params + host_output_params
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if 'krblastpwdchange' in entry_attrs:
@@ -400,15 +455,7 @@ class host_show(LDAPRetrieve):
         else:
             entry_attrs['has_keytab'] = False
 
-        if 'usercertificate' in entry_attrs:
-            cert = x509.load_certificate(entry_attrs['usercertificate'][0], datatype=x509.DER)
-            entry_attrs['subject'] = unicode(cert.subject)
-            entry_attrs['serial_number'] = unicode(cert.serial_number)
-            entry_attrs['issuer'] = unicode(cert.issuer)
-            entry_attrs['valid_not_before'] = unicode(cert.valid_not_before_str)
-            entry_attrs['valid_not_after'] = unicode(cert.valid_not_after_str)
-            entry_attrs['md5_fingerprint'] = unicode(nss.data_to_hex(nss.md5_digest(cert.der_data), 64)[0])
-            entry_attrs['sha1_fingerprint'] = unicode(nss.data_to_hex(nss.sha1_digest(cert.der_data), 64)[0])
+        set_certificate_attrs(entry_attrs)
 
         return dn
 
@@ -420,19 +467,77 @@ class host_disable(LDAPQuery):
     Disable the kerberos key of a host.
     """
     has_output = output.standard_value
-    msg_summary = _('Removed kerberos key from "%(value)s"')
+    msg_summary = _('Removed kerberos key and disabled all services for "%(value)s"')
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
+        # If we aren't given a fqdn, find it
+        if validate_host(None, keys[-1]) is not None:
+            hostentry = api.Command['host_show'](keys[-1])['result']
+            fqdn = hostentry['fqdn'][0]
+        else:
+            fqdn = keys[-1]
+
+        # See if we actually do anthing here, and if not raise an exception
+        done_work = False
+
         dn = self.obj.get_dn(*keys, **options)
-        (dn, entry_attrs) = ldap.get_entry(dn, ['krblastpwdchange'])
+        (dn, entry_attrs) = ldap.get_entry(dn, ['krblastpwdchange', 'usercertificate'])
 
-        if 'krblastpwdchange' not in entry_attrs:
-            error_msg = _('Host principal has no kerberos key')
-            raise errors.NotFound(reason=error_msg)
+        truncated = True
+        while truncated:
+            try:
+                ret = api.Command['service_find'](fqdn)
+                truncated = ret['truncated']
+                services = ret['result']
+            except errors.NotFound:
+                break
+            else:
+                for entry_attrs in services:
+                    principal = entry_attrs['krbprincipalname'][0]
+                    (service, hostname, realm) = split_principal(principal)
+                    if hostname.lower() == fqdn:
+                        try:
+                            api.Command['service_disable'](principal)
+                            done_work = True
+                        except errors.AlreadyInactive:
+                            pass
+        if 'usercertificate' in entry_attrs:
+            cert = normalize_certificate(entry_attrs.get('usercertificate')[0])
+            try:
+                serial = unicode(x509.get_serial_number(cert, x509.DER))
+                try:
+                    result = api.Command['cert_show'](unicode(serial))['result'
+]
+                    if 'revocation_reason' not in result:
+                        try:
+                            api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
+                        except errors.NotImplementedError:
+                            # some CA's might not implement revoke
+                            pass
+                except errors.NotImplementedError:
+                    # some CA's might not implement revoke
+                    pass
+            except NSPRError, nsprerr:
+                if nsprerr.errno == -8183:
+                    # If we can't decode the cert them proceed with
+                    # disabling the host.
+                    self.log.info("Problem decoding certificate %s" % nsprerr.args[1])
+                else:
+                    raise nsprerr
 
-        ldap.remove_principal_key(dn)
+            # Remove the usercertificate altogether
+            ldap.update_entry(dn, {'usercertificate': None})
+            done_work = True
+
+        if 'krblastpwdchange' in entry_attrs:
+            ldap.remove_principal_key(dn)
+            api.Command['host_mod'](fqdn=keys[-1], setattr=u'enrolledby=')
+            done_work = True
+
+        if not done_work:
+            raise errors.AlreadyInactive()
 
         return dict(
             result=True,
