@@ -945,7 +945,7 @@ class HasNSAccountLock(ExecutionError):
     >>> raise HasNSAccountLock()
     Traceback (most recent call last):
       ...
-    HasNSAccountLock: This entry cannot be enableed or disabled
+    HasNSAccountLock: This entry cannot be enabled or disabled
 
     """
 
