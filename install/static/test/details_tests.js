@@ -36,7 +36,7 @@ test("Testing ipa_details_section.setup().", function() {
 
     var result = {};
 
-    var section = ipa_stanza({name:'IDIDID', label:'NAMENAMENAME'}).
+    var section = ipa_details_section({name:'IDIDID', label:'NAMENAMENAME'}).
         input({name:'cn', label:'Entity Name'}).
         input({name:'description', label:'Description'}).
         input({name:'number', label:'Entity ID'});
@@ -221,7 +221,8 @@ test("Testing  _ipa_create_text_input().", function(){
 
     var name = "name";
     var value="value";
-    var input = _ipa_create_text_input(name, value);
+    var rights = 'rscwo'
+    var input = _ipa_create_text_input(name, value, null,rights);
     ok(input,"input not null");
 
     var text = input.find('input');
@@ -230,4 +231,57 @@ test("Testing  _ipa_create_text_input().", function(){
     same(text[0].name,name );
     same(text[0].value,value );
     same(text[0].type,"text" );
+});
+
+test("Testing  _ipa_create_text_input() read only .", function(){
+
+    var name = "name";
+    var value="value";
+    var rights = 'rsc'
+    var input = _ipa_create_text_input(name, value, null,rights);
+    ok(input,"input not null");
+
+    var text = input.find('input');
+    ok(text);
+
+    same(text[0].name,name );
+    same(text[0].value,value );
+    same(text[0].type,"text" );
+    ok(text[0].disabled);
+
+});
+
+
+
+
+test("Testing ipa_details_section_setup again()",function(){
+
+    var section = ipa_details_section({name: 'IDIDID', label: 'NAMENAMENAME'}).
+        input({name:'cn', label:'Entity Name'}).
+        input({name:'description', label:'Description'}).
+        input({name:'number', label:'Entity ID'});
+    var fields = section.fields;
+    var container = $("<div title='entity'/>");
+    var details = $("<div/>");
+    container.append(details);
+
+    section.setup(container, details, section);
+
+    ok(container.find('hr'),'hr');
+
+    //var h2= container.find('h2');
+    //ok(h2);
+    //ok(h2[0].innerHTML.indexOf(section.label) > 1,"find name in html");
+
+    var dl = container.find('dl');
+    ok(dl,'dl');
+    same(dl[0].children.length,6,'6 children');
+    same(dl[0].id, section.name);
+    same(dl[0].children[0].title, fields[0].name,'title matches name');
+    same(dl[0].children[0].innerHTML, fields[0].label+":",
+         'inner HTML matches label');
+    same(dl[0].children[5].title, fields[2].name,
+         'title matches fields[2] name');
+
+
 });

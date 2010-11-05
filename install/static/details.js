@@ -26,6 +26,13 @@
 
 var ipa_details_cache = {};
 
+IPA.is_field_writable = function(rights){
+    if (!rights){
+        alert('no right');
+    }
+    return rights.indexOf('w') > -1;
+}
+
 function ipa_details_field(spec) {
 
     spec = spec || {};
@@ -80,34 +87,41 @@ function ipa_details_field(spec) {
         }
 
         var value = result[that.name];
+        var rights = 'rsc';
+        if (result.attributelevelrights){
+            rights = result.attributelevelrights[this.name] || rights ;
+        }
         if (value) {
             dd = ipa_create_first_dd(
-                that.name, ipa_create_input(that.entity_name, that.name, value[0],hint_span)
+                that.name,ipa_create_input(
+                    that.entity_name, that.name, value[0],hint_span,rights)
             );
             dt.after(dd);
             var last_dd = dd;
             for (var i = 1; i < value.length; ++i) {
                 dd = ipa_create_other_dd(
-                    that.name, ipa_create_input(that.entity_name, that.name, value[i],hint_span)
+                    that.name, ipa_create_input(that.entity_name, that.name,
+                                                value[i],hint_span,rights)
                 );
                 last_dd.after(dd);
                 last_dd = dd;
             }
-            if (multivalue) {
+            if (multivalue && IPA.is_field_writable(rights) ) {
                 dd = ipa_create_other_dd(
                     that.name, _ipa_a_add_template.replace('A', that.name)
                 );
                 last_dd.after(dd);
             }
         } else {
-            if (multivalue) {
+            if (multivalue  && IPA.is_field_writable(rights)) { 
                 dd = ipa_create_first_dd(
-                    that.name, _ipa_a_add_template.replace('A', that.name) /*.append(hint_span)*/
+                    that.name, _ipa_a_add_template.replace('A', that.name)
                 );
                 dt.after(dd);
             } else {
                 dd = ipa_create_first_dd(
-                    that.name, ipa_create_input(that.entity_name, that.name, '') /*.append(hint_span)*/
+                    that.name, ipa_create_input(
+                        that.entity_name, that.name,'',hint_span,rights)
                 );
                 dt.after(dd);
             }
@@ -334,7 +348,7 @@ function ipa_details_setup(container, unspecified) {
     if (facet.pkey) params.push(facet.pkey);
 
     ipa_cmd(
-        'show', params, {all: true}, on_success, on_failure, facet.entity_name
+        'show', params, {all: true, rights: true}, on_success, on_failure, facet.entity_name
     );
 }
 
@@ -473,7 +487,7 @@ function ipa_details_update(container, pkey, on_win, on_fail)
         return;
 
     var values;
-    var modlist = {'all': true, 'setattr': [], 'addattr': []};
+    var modlist = {'all': true, 'setattr': [], 'addattr': [], 'rights': true};
     var attrs_wo_option = {};
 
     var facet = ipa_entity_get_details_facet(obj_name);
@@ -599,13 +613,13 @@ var _ipa_param_type_2_handler_map = {
  * arguments:
  *   attr - LDAP attribute name
  *   value - the attributes value */
-function ipa_create_input(entity_name, attr, value,hint)
+function ipa_create_input(entity_name, attr, value,hint,rights)
 {
     var input = $("<label>",{html:value.toString()});
     var param_info = ipa_get_param_info(entity_name, attr);
     if (!param_info) {
         /* no information about the param is available, default to text input */
-        input = _ipa_create_text_input(attr, value, null);
+        input = _ipa_create_text_input(attr, value, null,rights);
         if (hint){
             input.after(hint);
         }
@@ -618,8 +632,10 @@ function ipa_create_input(entity_name, attr, value,hint)
         /* call handler by param class */
         var handler = _ipa_param_type_2_handler_map[param_info['class']];
         if (handler) {
-            input = handler(attr, value, param_info);
-            if (param_info['multivalue'] || param_info['class'] == 'List') {
+            input = handler(attr, value, param_info,rights);
+            if ((param_info['multivalue'] ||
+                 param_info['class'] == 'List') &&
+                IPA.is_field_writable(rights)){
                 input.append( _ipa_create_remove_link(attr, param_info));
             }
             if (hint){
@@ -652,7 +668,7 @@ function _ipa_create_remove_link(attr, param_info)
 
 
 /* creates a input box for editing a string attribute */
-function _ipa_create_text_input(attr, value, param_info)
+function _ipa_create_text_input(attr, value, param_info, rights)
 {
 
     function calculate_dd_index(jobj){
@@ -683,8 +699,8 @@ function _ipa_create_text_input(attr, value, param_info)
         }
     }
 
-    var input = $("<Span />");
-    input.append($("<input/>",{
+    var span = $("<Span />");
+    var input = $("<input/>",{
         type:"text",
         name:attr,
         value:value.toString(),
@@ -696,9 +712,13 @@ function _ipa_create_text_input(attr, value, param_info)
             var text = $(this).val();
             validate_input(text, param_info,error_link);
         }
+    }).appendTo(span) ;
 
-    }));
-    input.append($("<a/>",{
+    if (!IPA.is_field_writable(rights)){
+        input.attr('disabled', 'disabled');
+    }
+
+    span.append($("<a/>",{
         html:"undo",
         "class":"ui-state-highlight ui-corner-all",
         style:"display:none",
@@ -722,12 +742,12 @@ function _ipa_create_text_input(attr, value, param_info)
             validate_input(previous_value, param_info,error_link);
         }
     }));
-    input.append($("<span/>",{
+    span.append($("<span/>",{
         html:"Does not match pattern",
         "class":"ui-state-error ui-corner-all",
         style:"display:none"
     }));
-    return input;
+    return span;
 }
 
 function ipa_details_reset(container)
@@ -750,7 +770,9 @@ function _ipa_add_on_click(obj)
     var obj_name = jobj.closest('.entity-container').attr('title');
 
     var param_info = ipa_get_param_info(obj_name, '');
-    var input = _ipa_create_text_input(attr, '', param_info);
+    //TODO rights need to be inherited
+    //And used to control  presnece of the add link 
+    var input = _ipa_create_text_input(attr, '', param_info, 'rswco');
 
     par.prepend(input);
     jobj.next('input').focus();

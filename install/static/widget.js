@@ -461,7 +461,7 @@ function ipa_table_widget(spec) {
         }
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        ipa_cmd('show', [pkey], {}, on_success, on_error, that.entity_name);
+        ipa_cmd('show', [pkey], {'rights': true}, on_success, on_error, that.entity_name);
     };
 
     if (spec.columns) {
