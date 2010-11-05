@@ -129,188 +129,81 @@ function bulk_associator(spec) {
 }
 
 /**
- *  Create a form for a one to many association.
- *
+ * This dialog is used for adding associations between two entities.
  */
-function ipa_adder_dialog(spec) {
+function ipa_association_adder_dialog(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = ipa_adder_dialog(spec);
 
-    that.name = spec.name;
-    that.title = spec.title;
     that.entity_name = spec.entity_name;
-
     that.pkey = spec.pkey;
     that.other_entity = spec.other_entity;
-
-    that.setup = spec.setup || ipa_adder_dialog_setup;
-    that.execute = spec.execute || execute;
-    that.on_success = spec.on_success;
-    that.on_error = spec.on_error;
 
     that.associator = spec.associator;
     that.method = spec.method || 'add_member';
 
-    that.dialog = $('<div/>', {
-        'title': that.title
-    });
-
-    that.open = function() {
-
-        that.setup();
-
-        var availableList = $('#availableList', that.dialog);
-        availableList.html('');
-
-        var enrollments = $('#enrollments', that.dialog);
-        enrollments.html('');
-
-        $('#addToList', that.dialog).click(function(){
-            $('#availableList :selected', that.dialog).each(function(i, selected){
-                enrollments.append(selected);
-            });
-            $('#availableList :selected', that.dialog).remove();
-        });
-        $('#removeFromList', that.dialog).click(function(){
-            $('#enrollments :selected', that.dialog).each(function(i, selected){
-                availableList.append(selected);
-            });
-            $('#enrollments :selected', that.dialog).remove();
-        });
-
-        $('#find', that.dialog).click(function(){
-            that.search();
-        });
-
-        that.dialog.dialog({
-            modal: true,
-            width: 600,
-            buttons: {
-                'Enroll': function() {
-                    var values = [];
-                    $('#enrollments', that.dialog).children().each(function (i, selected) {
-                        values.push(selected.value);
-                    });
-                    that.execute(values);
-                },
-                'Cancel': that.close
-            }
-        });
-    };
-
-    that.close = function() {
-        that.dialog.dialog('close');
-    };
+    that.on_success = spec.on_success;
+    that.on_error = spec.on_error;
 
     that.search = function() {
 
-        function search_on_win(data, text_status, xhr) {
+        function on_success(data, text_status, xhr) {
             var results = data.result;
-            var list = $('#availableList', that.dialog);
-            list.html('');
+            that.clear_available_values();
 
-            var searchColumn = IPA.metadata[that.other_entity].primary_key;
+            var pkey = IPA.metadata[that.other_entity].primary_key;
 
-            for (var i =0; i != results.count; i++){
+            for (var i=0; i<results.count; i++){
                 var result = results.result[i];
-                $('<option></option>',{
-                    value: result[searchColumn][0],
-                    html: result[searchColumn][0]
-                }).appendTo(list);
+                that.add_available_value(result[pkey][0]);
             }
         }
 
-        function search_on_fail(xhr, text_status, errow_thrown) {
-            alert('associationSearchFailure');
-        }
-
-        var queryFilter = $('#associateFilter', that.dialog).val();
-        ipa_cmd('find', [queryFilter], {}, search_on_win, null, that.other_entity);
+        var filter = that.get_filter();
+        ipa_cmd('find', [filter], {}, on_success, null, that.other_entity);
     };
 
-    that.get_values = function() {
-        var values = [];
-        $('#enrollments', that.dialog).children().each(function (i, selected) {
-            values.push(selected.value);
-        });
-        return values;
-    };
-
-    function execute(values) {
+    that.add = function() {
 
         var associator = that.associator({
             'entity_name': that.entity_name,
             'pkey': that.pkey,
             'other_entity': that.other_entity,
-            'values': that.get_values(),
+            'values': that.get_selected_values(),
             'method': that.method,
             'on_success': that.on_success,
             'on_error': that.on_error
         });
 
         associator.execute();
-    }
+    };
 
     return that;
 }
 
-function ipa_deleter_dialog(spec) {
+/**
+ * This dialog is used for removing associations between two entities.
+ */
+function ipa_association_deleter_dialog(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = ipa_deleter_dialog(spec);
 
-    that.name = spec.name;
-    that.title = spec.title || IPA.messages.button.deletes;
     that.entity_name = spec.entity_name;
-
     that.pkey = spec.pkey;
     that.other_entity = spec.other_entity;
-
-    that.setup = spec.setup || ipa_deleter_dialog_setup;
-    that.execute = spec.execute || execute;
-    that.on_success = spec.on_success;
-    that.on_error = spec.on_error;
+    that.values = spec.values;
 
     that.associator = spec.associator;
     that.method = spec.method || 'remove_member';
 
-    that.values = spec.values || [];
+    that.on_success = spec.on_success;
+    that.on_error = spec.on_error;
 
-    that.dialog = $('<div/>', {
-        'title': that.title,
-        'class': 'search-dialog-delete'
-    });
-
-    that.add_value = function(value) {
-        that.values.push(value);
-    };
-
-    that.set_values = function(values) {
-        that.values = that.values.concat(values);
-    };
-
-    that.get_values = function() {
-        return that.values;
-    };
-
-    that.open = function() {
-
-        that.setup();
-
-        that.dialog.dialog({
-            modal: true,
-            width: 400,
-            buttons: {
-                'Delete': that.execute,
-                'Cancel': that.close
-            }
-        });
-    };
-
-    function execute() {
+    that.remove = function() {
 
         var associator = that.associator({
             'entity_name': that.entity_name,
@@ -323,16 +216,13 @@ function ipa_deleter_dialog(spec) {
         });
 
         associator.execute();
-    }
-
-    that.close = function() {
-        that.dialog.dialog('close');
     };
 
     return that;
 }
 
 function ipa_association_config(spec) {
+
     spec = spec || {};
 
     var that = {};
@@ -348,9 +238,6 @@ function ipa_association_config(spec) {
 function ipa_association_widget(spec) {
 
     spec = spec || {};
-
-    spec.add = spec.add || add;
-    spec.remove = spec.remove || remove;
 
     var that = ipa_table_widget(spec);
 
@@ -402,17 +289,20 @@ function ipa_association_widget(spec) {
 
         that.add_method = association ? association.add_method : null;
         that.delete_method = association ? association.delete_method : null;
+
+        that.add_method = that.add_method || "add_member";
+        that.delete_method = that.delete_method || "remove_member";
     };
 
-    function add(container) {
+    that.add = function(container) {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         var label = IPA.metadata[that.other_entity].label;
         var title = 'Enroll '+that.entity_name+' '+pkey+' in '+label;
 
-        var dialog = ipa_adder_dialog({
-            'name': 'adder_dialog',
+        var dialog = ipa_association_adder_dialog({
             'title': title,
+            'parent': container,
             'entity_name': that.entity_name,
             'pkey': pkey,
             'other_entity': that.other_entity,
@@ -429,9 +319,9 @@ function ipa_association_widget(spec) {
         });
 
         dialog.open();
-    }
+    };
 
-    function remove(container) {
+    that.remove = function(container) {
 
         var values = that.get_selected_values();
 
@@ -444,9 +334,9 @@ function ipa_association_widget(spec) {
         var label = IPA.metadata[that.other_entity].label;
         var title = 'Remove '+label+' from '+that.entity_name+' '+pkey;
 
-        var dialog = ipa_deleter_dialog({
-            'name': 'deleter_dialog',
+        var dialog = ipa_association_deleter_dialog({
             'title': title,
+            'parent': container,
             'entity_name': that.entity_name,
             'pkey': pkey,
             'other_entity': that.other_entity,
@@ -464,7 +354,7 @@ function ipa_association_widget(spec) {
         });
 
         dialog.open();
-    }
+    };
 
     return that;
 }
@@ -513,78 +403,6 @@ function ipa_association_facet(spec) {
     return that;
 }
 
-
-function ipa_adder_dialog_setup() {
-
-    var that = this;
-
-    var div = $('<div id="associations"></div>');
-
-    var form = $('<form></form>');
-    var form_div = $('<div></div>');
-    form_div.css('border-width', '1px');
-    var sub_div = $('<div></div>');
-    sub_div.append($('<input />', {
-        id: 'associateFilter',
-        type: 'text'
-    }));
-    sub_div.append($('<input />', {
-        id: 'find',
-        type: 'button',
-        value: 'Find'
-    }));
-
-    form_div.append(sub_div);
-    form.append(form_div);
-    var form_div = $('<div id="results"></div>');
-    form_div.css('border', '2px solid rgb(0, 0, 0)');
-    form_div.css('position', 'relative');
-    form_div.css('height', '200px');
-    var sub_div = $('<div></div>');
-    sub_div.css('float', 'left');
-    sub_div.append($('<div></div>', {
-        text: 'Available'
-    }));
-    sub_div.append($('<select></select>', {
-        id: 'availableList',
-        width: '150px',
-        size: '10',
-        multiple: 'true'
-    }));
-    form_div.append(sub_div);
-    var sub_div = $('<div></div>');
-    sub_div.css('float', 'left');
-    var p = $('<p></p>');
-    p.append($('<input />', {
-        id: 'removeFromList',
-        type: 'button',
-        value: '<<'
-    }));
-    sub_div.append(p);
-    var p = $('<p></p>');
-    p.append($('<input />', {
-        id: 'addToList',
-        type: 'button',
-        value: '>>'
-    }));
-    sub_div.append(p);
-    form_div.append(sub_div);
-    var sub_div = $('<div></div>');
-    sub_div.css('float', 'left');
-    sub_div.append($('<div></div>', {
-        text: 'Prospective'
-    }));
-    sub_div.append($('<select></select>', {
-        id: 'enrollments',
-        width: '150px',
-        size: '10',
-        multiple: 'true'
-    }));
-    form_div.append(sub_div);
-    form.append(form_div);
-    div.append(form);
-    that.dialog.append(div);
-}
 
 function association_list_create(obj_name, jobj)
 {

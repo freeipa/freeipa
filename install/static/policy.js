@@ -179,8 +179,7 @@ function ipa_records_facet(spec){
 
 
         var delete_dialog = $('<div/>', {
-            title: IPA.messages.button.delete,
-            'class': 'search-dialog-delete'
+            title: IPA.messages.button.delete
         });
         var to_delete_table =
             $('<table class="search-table" >'+

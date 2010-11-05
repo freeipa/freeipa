@@ -144,8 +144,7 @@ function search_create(entity_name, columns, container) {
     function delete_on_click_outer() {
         var delete_list = [];
         var delete_dialog = $('<div></div>', {
-            title: IPA.messages.button.delete,
-            'class': 'search-dialog-delete'
+            title: IPA.messages.button.delete
         });
 
         function delete_on_click() {

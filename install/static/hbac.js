@@ -351,7 +351,7 @@ function ipa_hbac_details_init() {
             'name': 'accesstime',
             'label': 'When',
             'text': 'Rule applies when access is being requested at:',
-            'field_name': 'sourcehostcategory',
+            'field_name': 'accesstime',
             'options': [
                 { 'value': 'all', 'label': 'Any Time' },
                 { 'value': '', 'label': 'Specified Times' }
@@ -517,17 +517,9 @@ function ipa_hbac_details_tables_section(spec){
     return that;
 }
 
-/**
- * This widget adds & deletes the rows of the table in the UI, but does not
- * execute IPA command to apply the changes on the server.
- */
 function ipa_hbac_association_widget(spec) {
 
     spec = spec || {};
-
-    spec.add = spec.add || add;
-    spec.remove = spec.remove || remove;
-    spec.save = spec.save || save;
 
     var that = ipa_table_widget(spec);
 
@@ -588,15 +580,15 @@ function ipa_hbac_association_widget(spec) {
         }
     };
 
-    function add(container) {
+    that.add = function(container) {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         var label = IPA.metadata[that.other_entity].label;
         var title = 'Add '+label+' to '+that.entity_name+' '+pkey;
 
-        var dialog = ipa_adder_dialog({
-            'name': 'adder_dialog',
+        var dialog = ipa_association_adder_dialog({
             'title': title,
+            'parent': container,
             'entity_name': that.entity_name,
             'pkey': pkey,
             'other_entity': that.other_entity,
@@ -613,9 +605,9 @@ function ipa_hbac_association_widget(spec) {
         });
 
         dialog.open();
-    }
+    };
 
-    function remove(container) {
+    that.remove = function(container) {
 
         var values = that.get_selected_values();
 
@@ -628,9 +620,9 @@ function ipa_hbac_association_widget(spec) {
         var label = IPA.metadata[that.other_entity].label;
         var title = 'Remove '+label+' from '+that.entity_name+' '+pkey;
 
-        var dialog = ipa_deleter_dialog({
-            'name': 'deleter_dialog',
+        var dialog = ipa_association_deleter_dialog({
             'title': title,
+            'parent': container,
             'entity_name': that.entity_name,
             'pkey': pkey,
             'other_entity': that.other_entity,
@@ -648,11 +640,11 @@ function ipa_hbac_association_widget(spec) {
         });
 
         dialog.open();
-    }
+    };
 
-    function save(container) {
+    that.save = function(container) {
         return [];
-    }
+    };
 
     return that;
 }
@@ -660,9 +652,6 @@ function ipa_hbac_association_widget(spec) {
 function ipa_hbac_accesstime_widget(spec) {
 
     spec = spec || {};
-
-    spec.load = spec.load || load;
-    spec.save = spec.save || save;
 
     var that = ipa_table_widget(spec);
 
@@ -704,13 +693,12 @@ function ipa_hbac_accesstime_widget(spec) {
         }).appendTo(buttons);
     };
 
-    function load(container, result) {
+    that.load = function(container, result) {
         var values = result[that.name] || '';
-
-        if (values == '') {
-            $('input[name="'+that.name+'"][value="all"]', container).attr('checked', 'checked');
-        } else {
+        if (values) {
             $('input[name="'+that.name+'"][value=""]', container).attr('checked', 'checked');
+        } else {
+            $('input[name="'+that.name+'"][value="all"]', container).attr('checked', 'checked');
         }
 
         that.tbody.empty();
@@ -720,11 +708,145 @@ function ipa_hbac_accesstime_widget(spec) {
             $('span[name="'+that.name+'"]', tr).html(values[i]);
             tr.appendTo(that.tbody);
         }
-    }
+    };
 
-    function save(container) {
+    that.add = function(container) {
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var title = 'Add '+that.label+' to '+that.entity_name+' '+pkey;
+
+        var dialog = ipa_dialog({
+            'title': title,
+            'parent': container
+        });
+
+        dialog.add_field(ipa_text_widget({
+            'name': that.name,
+            'label': that.label
+        }));
+
+        dialog.create = function() {
+            var table = $('<table/>').appendTo(dialog.container);
+
+            var tr = $('<tr/>').appendTo(table);
+
+            var td = $('<td/>', {
+                'style': 'vertical-align: top;'
+            }).appendTo(tr);
+            td.append(that.label+': ');
+
+            td = $('<td/>').appendTo(tr);
+            $('<input/>', {
+                'type': 'text',
+                'name': that.name,
+                'size': 40
+            }).appendTo(td);
+
+            tr = $('<tr/>').appendTo(table);
+
+            td = $('<td/>', {
+                'style': 'vertical-align: top;'
+            }).appendTo(tr);
+            td.append('Example:');
+
+            td = $('<td/>').appendTo(tr);
+
+            td.append('<b>Every day between 0800 and 1400:</b><br/>');
+            td.append('periodic daily 0800-1400<br/><br/>');
+
+            td.append('<b>December 16, 2010 from 10:32 until 10:33:</b><br/>');
+            td.append('absolute 201012161032 ~ 201012161033<td/>');
+        };
+
+        function add(on_success, on_error) {
+
+            var field = dialog.get_field(that.name);
+            var value = field.save(dialog.container)[0];
+
+            var command = ipa_command({
+                'method': that.entity_name+'_add_'+that.name
+            });
+            command.add_arg(pkey);
+            command.set_option(that.name, value);
+
+            command.execute(
+                function() {
+                    that.refresh(container);
+                    if (on_success) on_success();
+                },
+                function() {
+                    that.refresh(container);
+                    if (on_error) on_error();
+                }
+            );
+        }
+
+        dialog.add_button('Add', function() {
+            add();
+        });
+
+        dialog.add_button('Add and Close', function() {
+            add(
+                function() { dialog.close(); },
+                function() { dialog.close(); }
+            );
+        });
+
+        dialog.add_button('Cancel', function() {
+            dialog.close();
+        });
+
+        dialog.open();
+    };
+
+    that.remove = function(container) {
+
+        var values = that.get_selected_values();
+
+        if (!values.length) {
+            alert('Select '+that.label+' to be removed.');
+            return;
+        }
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var title = 'Remove '+that.label+' from '+that.entity_name+' '+pkey;
+
+        var dialog = ipa_deleter_dialog({
+            'title': title,
+            'parent': container,
+            'values': values
+        });
+
+        that.remove = function() {
+            var batch = ipa_batch_command();
+
+            for (var i=0; i<values.length; i++) {
+                var command = ipa_command({
+                    'method': that.entity_name+'_remove_'+that.name
+                });
+                command.add_arg(pkey);
+                command.set_option(that.name, values[i]);
+                batch.add_command(command);
+            }
+
+            batch.execute(
+                function() {
+                    that.refresh(container);
+                    dialog.close();
+                },
+                function() {
+                    that.refresh(container);
+                    dialog.close();
+                }
+            );
+        };
+
+        dialog.open();
+    };
+
+    that.save = function(container) {
         return [];
-    }
+    };
 
     return that;
 }

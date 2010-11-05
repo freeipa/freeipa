@@ -108,6 +108,81 @@ var IPA = ( function () {
     return that;
 }());
 
+function ipa_command(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+    that.method = spec.method;
+
+    that.params = spec.params || [];
+    that.params[0] = spec.args || [];
+    that.params[1] = spec.options || {};
+
+    that.add_arg = function(arg) {
+        that.params[0].push(arg);
+    };
+
+    that.get_args = function() {
+        return that.params[0];
+    };
+
+    that.set_option = function(name, value) {
+        that.params[1][name] = value;
+    };
+
+    that.get_option = function(name) {
+        return that.params[1][name];
+    };
+
+    that.get_options = function() {
+        return that.params[1];
+    };
+
+    that.execute = function(on_success, on_error) {
+        ipa_cmd(
+            that.method,
+            that.get_args(),
+            that.get_options(),
+            on_success,
+            on_error
+        );
+    };
+
+    that.to_string = function() {
+        var string = that.method.replace(/_/g, '-');
+
+        var args = that.get_args();
+        for (var i=0; i<args.length; i++) {
+            string += ' '+args[i];
+        }
+
+        var options = that.get_options();
+        for (var name in options) {
+            string += ' --'+name+'=\''+options[name]+'\'';
+        }
+
+        return string;
+    };
+
+    return that;
+}
+
+function ipa_batch_command(spec) {
+
+    spec = spec || {};
+
+    spec.method = 'batch';
+
+    var that = ipa_command(spec);
+
+    that.add_command = function(command) {
+        that.add_arg(command);
+    };
+
+    return that;
+}
+
 /* call an IPA command over JSON-RPC
  * arguments:
  *   name - name of the command or method if objname is set
