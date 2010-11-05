@@ -58,7 +58,14 @@ class json_metadata(Command):
             "mailing":_("Mailing Address"),
             "employee":_("      Employee Information"),
             "misc":_("Misc. Information"),
-            "to_top":_("Back to Top")}
+            "to_top":_("Back to Top")},
+        "ajax":{
+            "401":_("Your kerberos ticket no longer valid."+
+                "Please run KInit and then click 'retry'"+
+                "If this is your first time running the IPA Web UI"+
+                "<a href='/ipa/errors/ssbrowser.html'> "+
+                "Follow these directions</a> to configure your browser.")
+            }
         }
 
     takes_args = (

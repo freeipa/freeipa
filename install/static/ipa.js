@@ -23,7 +23,6 @@
 
 /*Forward defined due to circular dependency with IPA.*/
 var ipa_cmd;
-var IPA_DEFAULT_JSON_URL = '/ipa/json';
 var IPA = ( function () {
 
     var that = {
@@ -119,6 +118,7 @@ var IPA = ( function () {
  *   objname - name of an IPA object (optional) */
 function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
 {
+    var default_json_url = '/ipa/json';
 
     function dialog_open(xhr, text_status, error_thrown) {
         var that = this;
@@ -150,6 +150,24 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
     }
 
     function error_handler(xhr, text_status, error_thrown) {
+        if (!error_thrown){
+            error_thrown = {name:'unknown'}
+        }
+
+        if (xhr.status === 401){
+            error_thrown.name  = 'Kerberos ticket no longer valid.';
+            if (IPA.messages && IPA.messages.ajax){
+                error_thrown.message =  IPA.messages.ajax["401"];
+            }else{
+                error_thrown.message =
+                    "Your kerberos ticket no longer valid."+
+                    "Please run KInit and then click 'retry'"+
+                    "If this is your first time running the IPA Web UI"+
+                    "<a href='/ipa/errors/ssbrowser.html'> "+
+                    "Follow these directions</a> to configure your browser."
+            }
+        }
+
         error_thrown.title = 'AJAX Error: '+error_thrown.name;
         ajax_error_handler.call(this, xhr, text_status, error_thrown);
     }
@@ -206,7 +224,7 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
     var url = IPA.json_url;
 
     if (!url){
-        url = IPA_DEFAULT_JSON_URL;
+        url = default_json_url;
     }
 
     if (IPA.use_static_files){
