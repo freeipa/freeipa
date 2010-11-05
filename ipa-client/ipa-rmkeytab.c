@@ -25,10 +25,8 @@
 #include <popt.h>
 #include <errno.h>
 
+#include "ipa-client-common.h"
 #include "config.h"
-#include <libintl.h>
-#define _(STRING) gettext(STRING)
-
 
 int
 remove_principal(krb5_context context, krb5_keytab ktid, const char *principal, int debug)
@@ -143,32 +141,8 @@ done:
     return rval;
 }
 
-int init_gettext(void)
-{
-    char *c;
-
-    c = setlocale(LC_ALL, "");
-    if (!c) {
-        return EIO;
-    }
-
-    errno = 0;
-    c = bindtextdomain(PACKAGE, LOCALEDIR);
-    if (c == NULL) {
-        return errno;
-    }
-
-    errno = 0;
-    c = textdomain(PACKAGE);
-    if (c == NULL) {
-        return errno;
-    }
-
-    return 0;
-}
-
 int
-main(int argc, char **argv)
+main(int argc, const char **argv)
 {
     krb5_context context;
     krb5_error_code krberr;
@@ -180,7 +154,7 @@ main(int argc, char **argv)
     static const char *principal = NULL;
     static const char *realm = NULL;
     int debug = 0;
-    int ret, rval;
+    int ret, rval = 0;
     struct poptOption options[] = {
         { "debug", 'd', POPT_ARG_NONE, &debug, 0,
           _("Print debugging information"), _("Debugging output") },

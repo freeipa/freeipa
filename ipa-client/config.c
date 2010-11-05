@@ -39,8 +39,8 @@
 
 #include <errno.h>
 #include "config.h"
-#include <libintl.h>
-#define _(STRING) gettext(STRING)
+
+#include "ipa-client-common.h"
 
 char *
 read_config_file(const char *filename)
@@ -88,7 +88,7 @@ read_config_file(const char *filename)
 char *
 get_config_entry(char * in_data, const char *section, const char *key)
 {
-    char *ptr, *p, *tmp;
+    char *ptr = NULL, *p, *tmp;
     char *line;
     int in_section = 0;
     char * data;
@@ -163,28 +163,4 @@ get_config_entry(char * in_data, const char *section, const char *key)
     }
     free(data);
     return NULL;
-}
-
-int init_gettext(void)
-{
-    char *c;
-
-    c = setlocale(LC_ALL, "");
-    if (!c) {
-        return EIO;
-    }
-
-    errno = 0;
-    c = bindtextdomain(PACKAGE, LOCALEDIR);
-    if (c == NULL) {
-        return errno;
-    }
-
-    errno = 0;
-    c = textdomain(PACKAGE);
-    if (c == NULL) {
-        return errno;
-    }
-
-    return 0;
 }

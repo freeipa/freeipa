@@ -41,10 +41,9 @@
 #include <popt.h>
 
 #include "config.h"
-#include <libintl.h>
-#define _(STRING) gettext(STRING)
 
 #include "ipa_krb5.h"
+#include "ipa-client-common.h"
 
 /* Salt types */
 #define NO_SALT                        -1
@@ -229,7 +228,7 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
      * MIT code do anyway */
 
     for (i = 0, n = 0; i < nkeys; i++ ) {
-        int similar = 0;
+        krb5_boolean similar = 0;
 
         for (j = 0; j < i; j++) {
             krberr = krb5_c_enctype_compare(krbctx,
@@ -275,7 +274,7 @@ static int create_keys(krb5_context krbctx,
     krb5_error_code krberr;
     krb5_data key_password;
     krb5_data *realm;
-    int i, j, nkeys;
+    int i, nkeys;
     int ret;
 
     ret = prep_ksdata(krbctx, enctypes_string, keys);
@@ -751,31 +750,7 @@ static char *ask_password(krb5_context krbctx)
     return password;
 }
 
-int init_gettext(void)
-{
-    char *c;
-
-    c = setlocale(LC_ALL, "");
-    if (!c) {
-        return EIO;
-    }
-
-    errno = 0;
-    c = bindtextdomain(PACKAGE, LOCALEDIR);
-    if (c == NULL) {
-        return errno;
-    }
-
-    errno = 0;
-    c = textdomain(PACKAGE);
-    if (c == NULL) {
-        return errno;
-    }
-
-    return 0;
-}
-
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
 	static const char *server = NULL;
 	static const char *principal = NULL;
@@ -805,7 +780,7 @@ int main(int argc, char *argv[])
               _("Show the list of permitted encryption types and exit"),
               _("Permitted Encryption Types") },
 	    { "password", 'P', POPT_ARG_NONE, &askpass, 0,
-              _("Asks for a non-random password to use for the principal") },
+              _("Asks for a non-random password to use for the principal"), NULL },
 	    { "binddn", 'D', POPT_ARG_STRING, &binddn, 0,
               _("LDAP DN"), _("DN to bind as if not using kerberos") },
 	    { "bindpw", 'w', POPT_ARG_STRING, &bindpw, 0,
@@ -821,7 +796,6 @@ int main(int argc, char *argv[])
 	krb5_principal uprinc;
 	krb5_principal sprinc;
 	krb5_error_code krberr;
-	ber_int_t *enctypes;
 	struct keys_container keys;
 	krb5_keytab kt;
 	int kvno;

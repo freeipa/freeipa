@@ -42,6 +42,7 @@ sbin_PROGRAMS =			\
 
 ipa_getkeytab_SOURCES =		\
 	ipa-getkeytab.c		\
+	ipa-client-common.c	\
 	$(KRB5_UTIL_SRCS)	\
 	$(NULL)
 
@@ -55,6 +56,7 @@ ipa_getkeytab_LDADD = 		\
 
 ipa_rmkeytab_SOURCES =		\
 	ipa-rmkeytab.c		\
+	ipa-client-common.c	\
 	$(NULL)
 
 ipa_rmkeytab_LDADD = 		\
@@ -64,6 +66,7 @@ ipa_rmkeytab_LDADD = 		\
 
 ipa_join_SOURCES =		\
 	config.c		\
+	ipa-client-common.c	\
 	ipa-join.c		\
 	$(NULL)
 

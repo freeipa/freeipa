@@ -38,8 +38,7 @@
 #include "xmlrpc-c/base.h"
 #include "xmlrpc-c/client.h"
 
-#include <libintl.h>
-#define _(STRING) gettext(STRING)
+#include "ipa-client-common.h"
 
 #define NAME "ipa-join"
 #define VERSION "1.0"
@@ -80,14 +79,6 @@ handle_fault(xmlrpc_env * const envP) {
 static char *
 getIPAserver(char * data) {
     return get_config_entry(data, "global", "server");
-}
-
-/* Get the IPA realm from the configuration file.
- * The caller is responsible for freeing this value
- */
-static char *
-getIPArealm(char * data) {
-    return get_config_entry(data, "global", "realm");
 }
 
 /* Make sure that the keytab is writable before doing anything */
@@ -951,7 +942,7 @@ cleanup:
  * unique (host already added).
  */
 int
-main(int argc, char **argv) {
+main(int argc, const char **argv) {
     static const char *hostname = NULL;
     static const char *server = NULL;
     static const char *keytab = NULL;
