@@ -3,27 +3,219 @@
     "id": 6,
     "result": {
         "result": {
+            "attributelevelrights": {
+                "aci": "rscwo",
+                "audio": "rscwo",
+                "businesscategory": "rscwo",
+                "carlicense": "rscwo",
+                "cn": "rscwo",
+                "departmentnumber": "rscwo",
+                "description": "rscwo",
+                "destinationindicator": "rscwo",
+                "dialupaccess": "rscwo",
+                "displayname": "rscwo",
+                "employeenumber": "rscwo",
+                "employeetype": "rscwo",
+                "facsimiletelephonenumber": "rscwo",
+                "gecos": "rscwo",
+                "gidnumber": "rscwo",
+                "givenname": "rscwo",
+                "homedirectory": "rscwo",
+                "homephone": "rscwo",
+                "homepostaladdress": "rscwo",
+                "inetuserhttpurl": "rscwo",
+                "inetuserstatus": "rscwo",
+                "initials": "rscwo",
+                "internationalisdnnumber": "rscwo",
+                "ipauniqueid": "rsc",
+                "jpegphoto": "rscwo",
+                "krbcanonicalname": "rscwo",
+                "krbextradata": "rscwo",
+                "krblastfailedauth": "rscwo",
+                "krblastpwdchange": "rscwo",
+                "krblastsuccessfulauth": "rscwo",
+                "krbloginfailedcount": "rscwo",
+                "krbmaxrenewableage": "rscwo",
+                "krbmaxticketlife": "rscwo",
+                "krbpasswordexpiration": "rscwo",
+                "krbprincipalaliases": "rscwo",
+                "krbprincipalexpiration": "rscwo",
+                "krbprincipalkey": "wo",
+                "krbprincipalname": "rscwo",
+                "krbprincipaltype": "rscwo",
+                "krbpwdhistory": "rscwo",
+                "krbpwdpolicyreference": "rscwo",
+                "krbticketflags": "rscwo",
+                "krbticketpolicyreference": "rscwo",
+                "krbupenabled": "rscwo",
+                "l": "rscwo",
+                "labeleduri": "rscwo",
+                "loginshell": "rscwo",
+                "mail": "rscwo",
+                "manager": "rscwo",
+                "memberof": "rsc",
+                "mepmanagedentry": "rscwo",
+                "mobile": "rscwo",
+                "nsaccountlock": "rscwo",
+                "o": "rscwo",
+                "objectclass": "rscwo",
+                "ou": "rscwo",
+                "pager": "rscwo",
+                "photo": "rscwo",
+                "physicaldeliveryofficename": "rscwo",
+                "postaladdress": "rscwo",
+                "postalcode": "rscwo",
+                "postofficebox": "rscwo",
+                "preferreddeliverymethod": "rscwo",
+                "preferredlanguage": "rscwo",
+                "radiusarapfeatures": "rscwo",
+                "radiusarapsecurity": "rscwo",
+                "radiusarapzoneaccess": "rscwo",
+                "radiusauthtype": "rscwo",
+                "radiuscallbackid": "rscwo",
+                "radiuscallbacknumber": "rscwo",
+                "radiuscalledstationid": "rscwo",
+                "radiuscallingstationid": "rscwo",
+                "radiuscheckitem": "rscwo",
+                "radiusclass": "rscwo",
+                "radiusclientipaddress": "rscwo",
+                "radiusexpiration": "rscwo",
+                "radiusfilterid": "rscwo",
+                "radiusframedappletalklink": "rscwo",
+                "radiusframedappletalknetwork": "rscwo",
+                "radiusframedappletalkzone": "rscwo",
+                "radiusframedcompression": "rscwo",
+                "radiusframedipaddress": "rscwo",
+                "radiusframedipnetmask": "rscwo",
+                "radiusframedipxnetwork": "rscwo",
+                "radiusframedmtu": "rscwo",
+                "radiusframedprotocol": "rscwo",
+                "radiusframedroute": "rscwo",
+                "radiusframedrouting": "rscwo",
+                "radiusgroupname": "rscwo",
+                "radiushint": "rscwo",
+                "radiushuntgroupname": "rscwo",
+                "radiusidletimeout": "rscwo",
+                "radiusloginiphost": "rscwo",
+                "radiusloginlatgroup": "rscwo",
+                "radiusloginlatnode": "rscwo",
+                "radiusloginlatport": "rscwo",
+                "radiusloginlatservice": "rscwo",
+                "radiusloginservice": "rscwo",
+                "radiuslogintcpport": "rscwo",
+                "radiuslogintime": "rscwo",
+                "radiusnasipaddress": "rscwo",
+                "radiuspasswordretry": "rscwo",
+                "radiusportlimit": "rscwo",
+                "radiusprofiledn": "rscwo",
+                "radiusprompt": "rscwo",
+                "radiusproxytorealm": "rscwo",
+                "radiusrealm": "rscwo",
+                "radiusreplicatetorealm": "rscwo",
+                "radiusreplyitem": "rscwo",
+                "radiusreplymessage": "rscwo",
+                "radiusservicetype": "rscwo",
+                "radiussessiontimeout": "rscwo",
+                "radiussimultaneoususe": "rscwo",
+                "radiusstripusername": "rscwo",
+                "radiusterminationaction": "rscwo",
+                "radiustunnelassignmentid": "rscwo",
+                "radiustunnelclientendpoint": "rscwo",
+                "radiustunnelmediumtype": "rscwo",
+                "radiustunnelpassword": "rscwo",
+                "radiustunnelpreference": "rscwo",
+                "radiustunnelprivategroupid": "rscwo",
+                "radiustunnelserverendpoint": "rscwo",
+                "radiustunneltype": "rscwo",
+                "radiususercategory": "rscwo",
+                "radiusvsa": "rscwo",
+                "registeredaddress": "rscwo",
+                "roomnumber": "rscwo",
+                "secretary": "rscwo",
+                "seealso": "rscwo",
+                "sn": "rscwo",
+                "st": "rscwo",
+                "street": "rscwo",
+                "telephonenumber": "rscwo",
+                "teletexterminalidentifier": "rscwo",
+                "telexnumber": "rscwo",
+                "title": "rscwo",
+                "uid": "rscwo",
+                "uidnumber": "rscwo",
+                "usercertificate": "rscwo",
+                "userpassword": "wo",
+                "userpkcs12": "rscwo",
+                "usersmimecertificate": "rscwo",
+                "x121address": "rscwo",
+                "x500uniqueidentifier": "rscwo"
+            },
+            "cn": [
+                "Kermit The Frog"
+            ],
+            "gecos": [
+                "kfrog"
+            ],
+            "gidnumber": [
+                "953553261"
+            ],
             "givenname": [
                 "Kermit"
             ],
             "homedirectory": [
                 "/home/kfrog"
             ],
+            "ipauniqueid": [
+                "a2854798-e7d811df-b69ad8ca-cb44a24c"
+            ],
+            "krblastpwdchange": [
+                "20101105172205Z"
+            ],
+            "krbpasswordexpiration": [
+                "20101105172205Z"
+            ],
+            "krbprincipalname": [
+                "kfrog@AYOUNG.BOSTON.DEVEL.REDHAT.COM"
+            ],
+            "krbpwdpolicyreference": [
+                "cn=global_policy,cn=AYOUNG.BOSTON.DEVEL.REDHAT.COM,cn=kerberos,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+            ],
             "loginshell": [
                 "/bin/sh"
+            ],
+            "mail": [
+                "kermit@muppets.com"
             ],
             "memberof_group": [
                 "ipausers",
                 "muppets"
             ],
+            "mepmanagedentry": [
+                "cn=kfrog,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+            ],
+            "nsaccountlock": [
+                "False"
+            ],
+            "objectclass": [
+                "top",
+                "person",
+                "organizationalperson",
+                "inetorgperson",
+                "inetuser",
+                "posixaccount",
+                "krbprincipalaux",
+                "krbticketpolicyaux",
+                "radiusprofile",
+                "ipaobject",
+                "mepOriginEntry"
+            ],
             "sn": [
                 "Frog"
             ],
-            "title": [
-                "reporter"
-            ],
             "uid": [
                 "kfrog"
+            ],
+            "uidnumber": [
+                "953553261"
             ]
         },
         "summary": "Modified user \"kfrog\"",
