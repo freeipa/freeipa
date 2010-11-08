@@ -22,4 +22,8 @@ else:
     api.log.info('*** PROCESS START ***')
 
     # This is the WSGI callable:
-    application = api.Backend.session
+    def application(environ, start_response):
+        if not environ['wsgi.multithread']:
+            return api.Backend.session(environ, start_response)
+        else:
+            api.log.error("IPA does not work with the threaded MPM, use the pre-fork MPM")
