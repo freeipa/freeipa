@@ -125,7 +125,7 @@ class RadiusInstance(service.Service):
         except os.error:
             logging.error("Failed to remove %s", radius_util.RADIUS_IPA_KEYTAB_FILEPATH)
 
-        (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
+        (kwrite, kread, kerr) = os.popen3("kadmin.local")
         kwrite.write("addprinc -randkey %s\n" % (self.principal))
         kwrite.flush()
         kwrite.write("ktadd -k %s %s\n" % (radius_util.RADIUS_IPA_KEYTAB_FILEPATH, self.principal))

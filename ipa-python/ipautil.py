@@ -82,12 +82,15 @@ def write_tmp_file(txt):
 
     return fd
 
-def run(args, stdin=None):
+def run(args, stdin=None, env=None):
+    if env is None:
+        env={"PATH": "/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
+
     if stdin:
-        p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, env=env)
         stdout,stderr = p.communicate(stdin)
     else:
-        p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, env=env)
         stdout,stderr = p.communicate()
 
     logging.info(stdout)

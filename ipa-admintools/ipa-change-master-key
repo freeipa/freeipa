@@ -223,7 +223,7 @@ def main():
     os.environ['KRB5_CONFIG'] = ourkrb5conf
 
     #Backup the kerberos key material for recovery if needed
-    args = ["/usr/kerberos/sbin/kdb5_util", "dump", "-verbose", backupfile]
+    args = ["kdb5_util", "dump", "-verbose", backupfile]
     print "Performing safety backup of the key material"
     try:
         output = ipa.ipautil.run(args)
@@ -239,7 +239,7 @@ def main():
         print ""
 
     #Convert the kerberos keys to the new master key
-    args = ["/usr/kerberos/sbin/kdb5_util", "dump", "-verbose", "-new_mkey_file", newstashfile, convertfile]
+    args = ["kdb5_util", "dump", "-verbose", "-new_mkey_file", newstashfile, convertfile]
     print "Converting key material to new master key"
     try:
         output = ipa.ipautil.run(args)
@@ -302,7 +302,7 @@ def main():
         print "A backup copy of the old stash file should be saved in "+bkpstashfile
 
     #Finally upload the converted principals
-    args = ["/usr/kerberos/sbin/kdb5_util", "load", "-verbose", "-update", convertfile]
+    args = ["kdb5_util", "load", "-verbose", "-update", convertfile]
     print "Uploading converted key material"
     try:
         output = ipa.ipautil.run(args)
