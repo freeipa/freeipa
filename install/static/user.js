@@ -48,7 +48,8 @@ ipa_entity_set_details_definition('user', [
         input({name:'displayname', label:'Dispaly Name'}).
         input({name:'initials', label:'Initials'}),
     ipa_stanza({name:'account', label:'Account Details'}).
-        input({name:'status', label:'Account Status', load:user_status_load}).
+        input({name:'nsaccountlock', label:'Account Status',
+               load:user_status_load}).
         input({name:'uid', label:'Login'}).
         input({name:'userpassword',
                label:'Password',
@@ -81,96 +82,61 @@ ipa_entity_set_association_definition('user', {
     'taskgroup': { associator: 'serial' }
 });
 
-/* Account status Toggle button */
 
-function toggle_on_click(obj)
-{
-    var jobj = $(obj);
-    var val = jobj.attr('title');
-    if (val == 'Active') {
-        ipa_cmd(
-            'lock', [qs['pkey']], {}, on_lock_win, on_fail,
-            IPA.metadata['user']['name']
-        );
-    } else {
-        ipa_cmd(
-            'unlock', [qs['pkey']], {}, on_lock_win, on_fail,
-            IPA.metadata['user']['name']
-        );
-    }
-    return (false);
-}
 
-function on_lock_win(data, textStatus, xhr)
-{
-    if (data['error']) {
-        alert(data['error']['message']);
-        return;
-    }
 
-    var jobj = $('a[title=Active]');
-    if (jobj.length) {
-        if (ipa_details_cache) {
-            var memberof = ipa_details_cache['memberof'];
-            if (memberof) {
-                memberof.push(
-                    'cn=inactivated,cn=account inactivation'
-                );
-            } else {
-                memberof = ['cn=inactivated,cn=account inactivation'];
-            }
-            ipa_details_cache['memberof'] = memberof;
-            a_status(jobj.parent().prev(), ipa_details_cache);
-            jobj.parent().remove()
-        }
-        return;
-    }
-
-    var jobj = $('a[title=Inactive]');
-    if (jobj.length) {
-        if (ipa_details_cache) {
-            var memberof = ipa_details_cache['memberof'];
-            if (memberof) {
-                for (var i = 0; i < memberof.length; ++i) {
-                    if (memberof[i].indexOf('cn=inactivated,cn=account inactivation') != -1) {
-                        memberof.splice(i, 1);
-                        break;
-                    }
-                }
-            } else {
-                memberof = [];
-            }
-            ipa_details_cache['memberof'] = memberof;
-            a_status(jobj.parent().prev(), ipa_details_cache);
-            jobj.parent().remove();
-        }
-        return;
-    }
-}
 
 /* ATTRIBUTE CALLBACKS */
 
-var toggle_temp = 'S <a href="jslink" onclick="return (toggle_on_click(this))" title="S">Toggle</a>';
+
 function user_status_load(container, result) {
+    var lock_field = 'nsaccountlock';
+
     var dt = $('dt[title='+this.name+']', container);
     if (!dt.length) return;
 
-    var memberof = result['memberof'];
-    var dd;
-
-    if (memberof) {
-        for (var i = 0; i < memberof.length; ++i) {
-            if (memberof[i].indexOf('cn=inactivated,cn=account inactivation') != -1) {
-                var t = toggle_temp.replace(/S/g, 'Inactive');
-                dd = ipa_create_first_dd(this.name, t);
-                dt.after(dd);
-                return;
-            }
-        }
+    var locked  = result[lock_field] &&
+        result[lock_field][0].toLowerCase() === 'true';
+    var title = "Active";
+    var text = "Active:  Click to Deactivate";
+    if (locked) {
+        title = "Inactive";
+        text = "Inactive:  Click to Activate";
     }
 
-    dd = ipa_create_first_dd(this.name, toggle_temp.replace(/S/g, 'Inactive'));
-    dt.after(dd);
+    function on_lock_win(data, textStatus, xhr){
+        alert(data.result.summary);
+        $.bbq.pushState('user-facet','search');
+        return false;
+    }
+
+    function on_lock_fail(data, textStatus, xhr){
+        $("#userstatuslink").text = "Error changing account status";
+        return false;
+    }
+
+    var status_field =
+        $('<a/>',
+          {
+              id: 'userstatuslink',
+              title: title,
+              href: "jslink",
+              text: text,
+              click: function() {
+                  var jobj = $(this);
+                  var val = jobj.attr('title');
+                  var pkey =  $.bbq.getState('user-pkey');
+                  var command = 'user_enable';
+                  if (val == 'Active') {
+                      command = 'user_disable';
+                  }
+                  ipa_cmd(command, [pkey], {}, on_lock_win,on_lock_fail);
+
+                  return (false);
+              }
+          });
+
+    dt.after(ipa_create_first_dd(this.name, status_field));
 }
 
 
