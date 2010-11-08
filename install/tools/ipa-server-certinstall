@@ -156,9 +156,8 @@ def main():
             os.chown(dirname + "/secmod.db", 0, pent.pw_gid )
 
     except Exception, e:
-        print "an unexpected error occurred: %s" % str(e)
-        traceback.print_exc()
-        return 1
+        traceback.print_exc(file=sys.stderr)
+        sys.exit("an unexpected error occurred: %s" % str(e))
 
     return 0
 

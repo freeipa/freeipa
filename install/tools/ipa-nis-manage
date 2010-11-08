@@ -88,11 +88,9 @@ def main():
         loglevel = logging.DEBUG
 
     if len(args) != 1:
-        print "You must specify one action, either enable or disable"
-        sys.exit(1)
+        sys.exit("You must specify one action, either enable or disable")
     elif args[0] != "enable" and args[0] != "disable":
-        print "Unrecognized action [" + args[0] + "]"
-        sys.exit(1)
+        sys.exit("Unrecognized action [" + args[0] + "]")
 
     logging.basicConfig(level=loglevel,
                         format='%(levelname)s %(message)s')
@@ -118,15 +116,12 @@ def main():
         except errors.ACIError:
             sys.exit("Incorrect password")
         except errors.LDAPError, lde:
-            print "An error occurred while connecting to the server."
-            print lde
-            return 1
+            sys.exit("An error occurred while connecting to the server: %s" % str(lde))
 
         if args[0] == "enable":
             compat = get_entry(compat_dn, conn)
             if compat is None:
-                print "The compat plugin needs to be enabled: ipa-compat-manage enable"
-                return 1
+                sys.exit("The compat plugin needs to be enabled: ipa-compat-manage enable")
             entry = None
             try:
                 entry = get_entry(nis_config_dn, conn)

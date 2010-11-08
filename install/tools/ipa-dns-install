@@ -80,8 +80,7 @@ def main():
     safe_options, options = parse_options()
 
     if os.getegid() != 0:
-        print "Must be root to setup server"
-        return 1
+        sys.exit("Must be root to setup server")
 
     standard_logging_setup("/var/log/ipaserver-install.log", options.debug, filemode='a')
     print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
@@ -103,8 +102,7 @@ def main():
 
     # Check bind packages are installed
     if not bindinstance.check_inst(options.unattended):
-        print "Aborting installation"
-        return 1
+        sys.exit("Aborting installation")
 
     # Initialize the ipalib api
     cfg = dict(
@@ -124,8 +122,7 @@ def main():
         ip_address = resolve_host(api.env.host)
     if not ip_address or not verify_ip_address(ip_address):
         if options.unattended:
-            print "Unable to resolve IP address for host name"
-            return 1
+            sys.exit("Unable to resolve IP address for host name")
         else:
             ip_address = read_ip_address(api.env.host, fstore)
     logging.debug("will use ip_address: %s\n", ip_address)

@@ -515,8 +515,7 @@ def main():
         return uninstall(options, env)
 
     if fstore.has_files() and not options.force:
-        print "IPA client is already configured on this system."
-        return 1
+        sys.exit("IPA client is already configured on this system.")
 
     cli_domain = None
     cli_server = None
@@ -525,8 +524,7 @@ def main():
     subject_base = None
 
     if options.unattended and (options.password is None and options.principal is None and options.prompt_password is False) and not options.on_master:
-        print "One of password and principal are required."
-        return 1
+        sys.exit("One of password and principal are required.")
 
     # Create the discovery instance
     ds = ipaclient.ipadiscovery.IPADiscovery()
@@ -536,8 +534,8 @@ def main():
     else:
         ret = ds.search()
     if ret == -10:
-        print "Can't get the fully qualified name of this host"
-        print "Please check that the client is properly configured"
+        print >>sys.stderr, "Can't get the fully qualified name of this host"
+        print >>sys.stderr, "Please check that the client is properly configured"
         return ret
     if ret == -1 or not ds.getDomainName():
         logging.debug("Domain not found")
@@ -577,9 +575,9 @@ def main():
             logging.debug("will use server: %s\n", cli_server)
 
     if ret != 0:
-        print "Failed to verify that "+cli_server+" is an IPA Server."
-        print "This may mean that the remote server is not up or is not reachable"
-        print "due to network or firewall settings."
+        print >>sys.stderr, "Failed to verify that "+cli_server+" is an IPA Server."
+        print >>sys.stderr, "This may mean that the remote server is not up or is not reachable"
+        print >>sys.stderr, "due to network or firewall settings."
         return ret
 
     if dnsok:
@@ -596,7 +594,7 @@ def main():
 
     if options.realm_name and options.realm_name != ds.getRealmName():
         if not options.unattended:
-            print "ERROR: The provided realm name: ["+options.realm_name+"] does not match with the discovered one: ["+ds.getRealmName()+"]\n"
+            print >>sys.stderr, "ERROR: The provided realm name: ["+options.realm_name+"] does not match with the discovered one: ["+ds.getRealmName()+"]\n"
         return -3
 
     cli_realm = ds.getRealmName()
@@ -634,8 +632,7 @@ def main():
             (krb_fd, krb_name) = tempfile.mkstemp()
             os.close(krb_fd)
             if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options, krb_name):
-                print "Test kerberos configuration failed"
-                return 1
+                sys.exit("Test kerberos configuration failed")
             env['KRB5_CONFIG'] = krb_name
             join_args = ["/usr/sbin/ipa-join", "-s", cli_server]
             if options.debug:
@@ -653,23 +650,20 @@ def main():
                         sys.stdout.flush()
                     else:
                         if sys.stdin.isatty():
-                            print "Password must be provided in non-interactive mode"
-                            return 1
+                            sys.exit("Password must be provided in non-interactive mode")
                         else:
                             stdin = sys.stdin.readline()
 
                 (stderr, stdout, returncode) = run(["kinit", principal], raiseonerr=False, stdin=stdin, env=env)
                 print ""
                 if returncode != 0:
-                    print stdout
-                    return 1
+                    sys.exit(stdout)
             elif options.password:
                 join_args.append("-w")
                 join_args.append(options.password)
             elif options.prompt_password:
                 if options.unattended:
-                    print "Password must be provided in non-interactive mode"
-                    return 1
+                    sys.exit("Password must be provided in non-interactive mode")
                 password = getpass.getpass("Password: ")
                 join_args.append("-w")
                 join_args.append(password)
@@ -678,7 +672,7 @@ def main():
             (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env)
 
             if returncode != 0:
-                print "Joining realm failed: %s" % stderr,
+                print >>sys.stderr, "Joining realm failed: %s" % stderr,
                 if not options.force:
                     return 1
                 print "  Use ipa-getkeytab to obtain a host principal for this server."
@@ -763,8 +757,7 @@ def main():
             try:
                 hardcode_ldap_server(cli_server)
             except Exception, e:
-                print "Adding hardcoded server name to /etc/ldap.conf failed: " + str(e)
-                return 1
+                sys.exit("Adding hardcoded server name to /etc/ldap.conf failed: " + str(e))
 
     #Modify pam to add pam_krb5
     run(["/usr/sbin/authconfig", "--enablekrb5", "--update", "--nostart"])
@@ -789,16 +782,16 @@ def main():
     try:
         service('nscd', nscd_action)
     except:
-        print "Failed to %s the NSCD daemon" % nscd_action
+        print >>sys.stderr, "Failed to %s the NSCD daemon" % nscd_action
         if not options.sssd:
-            print "Caching of users/groups will not be available"
+            print >>sys.stderr, "Caching of users/groups will not be available"
 
     try:
         chkconfig('nscd', nscd_status)
     except:
-        print "Failed to configure automatic startup of the NSCD daemon"
+        print >>sys.stderr, "Failed to configure automatic startup of the NSCD daemon"
         if not options.sssd:
-            print "Caching of users/groups will not be available after reboot"
+            print >>sys.stderr, "Caching of users/groups will not be available after reboot"
 
     print "Client configuration complete."
 

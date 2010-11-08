@@ -74,11 +74,9 @@ def main():
         loglevel = logging.DEBUG
 
     if len(args) != 1:
-        print "You must specify one action, either enable or disable"
-        sys.exit(1)
+        sys.exit("You must specify one action, either enable or disable")
     elif args[0] != "enable" and args[0] != "disable" and args[0] != "status":
-        print "Unrecognized action [" + args[0] + "]"
-        sys.exit(1)
+        sys.exit("Unrecognized action [" + args[0] + "]")
 
     logging.basicConfig(level=loglevel,
                         format='%(levelname)s %(message)s')
@@ -102,9 +100,7 @@ def main():
                 bind_dn='cn=directory manager', bind_pw=dirman_password
             )
         except errors.LDAPError, lde:
-            print "An error occurred while connecting to the server."
-            print lde
-            return 1
+            sys.exit("An error occurred while connecting to the server.\n%s\n" % str(lde))
 
         if args[0] == "status":
             try:
@@ -142,9 +138,9 @@ def main():
             # We can't disable schema compat if the NIS plugin is enabled
             try:
                 conn.get_entry(netgroup_compat_dn, normalize=False)
-                print "The NIS plugin is configured, cannot disable compatibility."
-                print "Run 'ipa-nis-manage disable' first."
-                return 2
+                print >>sys.stderr, "The NIS plugin is configured, cannot disable compatibility."
+                print >>sys.stderr, "Run 'ipa-nis-manage disable' first."
+                sys.exit(2)
             except errors.NotFound:
                 pass
             # Make a quick hack for now, directly delete the entries by name,

@@ -455,8 +455,7 @@ def main():
     safe_options, options = parse_options()
 
     if os.getegid() != 0:
-        print "Must be root to set up server"
-        return 1
+        sys.exit("Must be root to set up server")
 
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
@@ -539,14 +538,12 @@ def main():
     # check bind packages are installed
     if options.setup_dns:
         if not bindinstance.check_inst(options.unattended):
-            print "Aborting installation"
-            return 1
+            sys.exit("Aborting installation")
 
     # check the pkinit plugin is installed
     if options.setup_pkinit:
         if not krbinstance.check_pkinit_plugin():
-            print "Aborting installation"
-            return 1
+            sys.exit("Aborting installation")
 
     # check the hostname is correctly configured, it must be as the kldap
     # utilities just use the hostname as returned by gethostbyname to set
@@ -562,8 +559,7 @@ def main():
         try:
             verify_fqdn(host_default,options.no_host_dns)
         except RuntimeError, e:
-            logging.error(str(e) + "\n")
-            return 1
+            sys.exit(str(e) + "\n")
 
         host_name = host_default
     else:
@@ -586,27 +582,25 @@ def main():
         if options.ip_address:
             ip = options.ip_address
     if ip is None and options.unattended:
-        print "Unable to resolve IP address for host name"
-        return 1
+        sys.exit("Unable to resolve IP address for host name")
 
     if not verify_ip_address(ip):
         ip = ""
         if options.unattended:
-            return 1
+            sys.exit(1)
 
     if options.ip_address and options.ip_address != ip:
         if options.setup_dns:
             ip = options.ip_address
         else:
-            print "Error: the hostname resolves to an IP address that is different"
-            print "from the one provided on the command line.  Please fix your DNS"
-            print "or /etc/hosts file and restart the installation."
+            print >>sys.stderr, "Error: the hostname resolves to an IP address that is different"
+            print >>sys.stderr, "from the one provided on the command line.  Please fix your DNS"
+            print >>sys.stderr, "or /etc/hosts file and restart the installation."
             return 1
 
     if options.unattended:
         if not ip:
-            print "Unable to resolve IP address"
-            return 1
+            sys.exit("Unable to resolve IP address")
 
     if not ip:
         ip = read_ip_address(host_name, fstore)
@@ -622,7 +616,7 @@ def main():
     if not options.ds_user:
         ds_user = read_ds_user()
         if ds_user == "":
-            return 1
+            sys.exit(1)
         logging.debug("read ds_user: %s\n" % ds_user)
     else:
         ds_user = options.ds_user
@@ -830,9 +824,7 @@ def main():
     try:
         run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--domain", domain_name, "--server", host_name, "--realm", realm_name])
     except Exception, e:
-        print "Configuration of client side components failed!"
-        print "ipa-client-install returned: " + str(e)
-        return 1
+        sys.exit("Configuration of client side components failed!\nipa-client-install returned: " + str(e))
 
     print "=============================================================================="
     print "Setup complete"
