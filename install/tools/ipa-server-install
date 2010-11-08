@@ -383,6 +383,13 @@ def check_dirsrv(unattended):
 
 def uninstall():
 
+    print "Shutting down all IPA services"
+    try:
+        (stdout, stderr, rc) = run(["/usr/sbin/ipactl", "stop"], raiseonerr=False)
+    except Exception, e:
+        pass
+
+    print "Removing IPA client configuration"
     try:
         (stdout, stderr, rc) = run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--uninstall"], raiseonerr=False)
         if rc not in [0,2]:
@@ -681,7 +688,7 @@ def main():
 
         if options.external_cert_file is None:
             cs = cainstance.CADSInstance()
-            cs.create_instance(ds_user, realm_name, host_name, domain_name, dm_password)
+            cs.create_instance("pkisrv", realm_name, host_name, domain_name, dm_password)
         ca = cainstance.CAInstance()
         if external == 0:
             ca.configure_instance("pkiuser", host_name, dm_password, dm_password, subject_base=options.subject)
