@@ -232,7 +232,11 @@ class LDAPObject(Object):
             for key in parent_obj.get_ancestor_primary_keys():
                 yield key
             if parent_obj.primary_key:
-                yield parent_obj.primary_key.clone(query=True)
+                pkey = parent_obj.primary_key
+                yield pkey.__class__(
+                    parent_obj.name + pkey.name, required=True, query=True,
+                    cli_name=parent_obj.name, label=pkey.label
+                )
 
     def has_objectclass(self, classes, objectclass):
         oc = map(lambda x:x.lower(),classes)
