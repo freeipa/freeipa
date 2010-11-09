@@ -22,7 +22,7 @@ Users
 
 Manage user entries. All users are POSIX users.
 
-Locking a user account prevents that user from obtaining new Kerberos
+Disabling a user account prevents that user from obtaining new Kerberos
 credentials. It does not invalidate any credentials that have already
 been issued.
 
