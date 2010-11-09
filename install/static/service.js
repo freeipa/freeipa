@@ -26,115 +26,202 @@ function ipa_service() {
         'name': 'service'
     });
 
+    that.super_init = that.super('init');
+
     that.init = function() {
-        that.create_add_dialog({
+
+        var dialog = ipa_service_add_dialog({
             'name': 'add',
-            'title': 'Add New Service',
-            'init': ipa_service_add_init
+            'title': 'Add New Service'
         });
+        that.add_dialog(dialog);
+        dialog.init();
 
-        that.create_search_facet({
+        var facet = ipa_service_search_facet({
             'name': 'search',
-            'label': 'Search',
-            'init': ipa_service_search_init
+            'label': 'Search'
         });
+        that.add_facet(facet);
 
-        that.create_details_facet({
+        facet = ipa_service_details_facet({
             'name': 'details',
-            'label': 'Details',
-            'init': ipa_service_details_init
+            'label': 'Details'
         });
-    };
+        that.add_facet(facet);
 
-    that.init();
+        facet = ipa_association_facet({
+            'name': 'associate'
+        });
+        that.add_facet(facet);
+
+        that.create_association({
+            'name': 'host',
+            'add_method': 'add_host',
+            'delete_method': 'remove_host'
+        });
+
+        that.super_init();
+    };
 
     return that;
 }
 
 IPA.add_entity(ipa_service());
 
-function ipa_service_add_init() {
+function ipa_service_add_dialog(spec) {
 
-    this.create_field({
-        name: 'krbprincipalname',
-        label: 'Principal',
-        setup: service_add_krbprincipalname
-    });
+    spec = spec || {};
 
-    this.create_field({name:'service', label:'Service'});
-    this.create_field({name:'host', label:'Host Name'});
+    var that = ipa_add_dialog(spec);
+
+    that.super_init = that.super('init');
+
+    that.init = function() {
+
+        this.super_init();
+
+        this.add_field(ipa_widget({
+            name: 'krbprincipalname',
+            label: 'Principal'
+        }));
+
+        this.add_field(ipa_text_widget({name:'service', label:'Service'}));
+        this.add_field(ipa_text_widget({name:'host', label:'Host Name'}));
+    };
+
+    that.create = function() {
+
+        var table = $('<table/>').appendTo(that.container);
+
+        var field = that.get_field('service');
+
+        var tr = $('<tr/>').appendTo(table);
+
+        var td = $('<td/>', {
+            'style': 'vertical-align: top;'
+        }).appendTo(tr);
+        td.append(field.label+': ');
+
+        td = $('<td/>', {
+            'style': 'vertical-align: top;'
+        }).appendTo(tr);
+
+        $('<input/>', {
+            'type': 'text',
+            'name': 'service',
+            'size': 20
+        }).appendTo(td);
+
+        field = that.get_field('host');
+
+        tr = $('<tr/>').appendTo(table);
+
+        td = $('<td/>', {
+            'style': 'vertical-align: top;'
+        }).appendTo(tr);
+        td.append(field.label+': ');
+
+        td = $('<td/>', {
+            'style': 'vertical-align: top;'
+        }).appendTo(tr);
+
+        $('<input/>', {
+            'type': 'text',
+            'name': 'host',
+            'size': 40
+        }).appendTo(td);
+    };
+
+    that.get_record = function() {
+        var record = {};
+
+        var field = that.get_field('service');
+        var service = field.save(that.container)[0];
+
+        field = that.get_field('host');
+        var host = field.save(that.container)[0];
+
+        record['krbprincipalname'] = service+'/'+host;
+
+        return record;
+    };
+
+    return that;
 }
 
-function ipa_service_search_init() {
+function ipa_service_search_facet(spec) {
 
-    this.create_column({name:'krbprincipalname', label:'Principal'});
+    spec = spec || {};
 
-    this.create_column({
-        name: 'quick_links',
-        label: 'Quick Links',
-        setup: ipa_entity_quick_links
-    });
+    var that = ipa_search_facet(spec);
+
+    that.super_init = that.super('init');
+
+    that.init = function() {
+
+        this.create_column({name:'krbprincipalname', label:'Principal'});
+
+        this.create_column({
+            name: 'quick_links',
+            label: 'Quick Links',
+            setup: ipa_entity_quick_links
+        });
+
+        that.super_init();
+    };
+
+    return that;
 }
 
-function ipa_service_details_init() {
+function ipa_service_details_facet(spec) {
 
-    var section = this.create_section({name:'details', label:'Service Details'});
+    spec = spec || {};
 
-    section.create_field({
-        name: 'krbprincipalname',
-        label: 'Principal',
-        setup: service_krbprincipalname_setup,
-        load: service_krbprincipalname_load
-    });
+    var that = ipa_details_facet(spec);
 
-    section.create_field({
-        name: 'service',
-        label: 'Service',
-        load: service_service_load
-    });
+    that.super_init = that.super('init');
 
-    section.create_field({
-        name: 'host',
-        label: 'Host Name',
-        load: service_host_load
-    });
+    that.init = function() {
 
-    section = this.create_section({name:'provisioning', label:'Provisioning'});
+        var section = this.create_section({name:'details', label:'Service Details'});
 
-    section.create_field({
-        name: 'provisioning_status',
-        label: 'Status',
-        load: service_provisioning_status_load
-    });
+        section.create_field({
+            name: 'krbprincipalname',
+            label: 'Principal'
+        });
 
-    section = this.create_section({name:'certificate', label:'Service Certificate'});
+        section.create_field({
+            name: 'service',
+            label: 'Service',
+            load: service_service_load
+        });
 
-    section.create_field({
-        name: 'certificate_status',
-        label: 'Status',
-        load: service_usercertificate_load
-    });
-}
+        section.create_field({
+            name: 'host',
+            label: 'Host Name',
+            load: service_host_load
+        });
 
-function service_add_krbprincipalname(add_dialog, mode) {
-    if (mode == IPA_ADD_UPDATE) {
-        var service = add_dialog.find('input[name=service]').val();
-        var host = add_dialog.find('input[name=host]').val();
-        return service+'/'+host;
-    }
-    return null;
-}
+        section = this.create_section({name:'provisioning', label:'Provisioning'});
 
-ipa_entity_set_association_definition('service', {
-    'host': { add_method: 'add_host', delete_host: 'remove_host' }
-});
+        section.create_field({
+            name: 'provisioning_status',
+            label: 'Status',
+            load: service_provisioning_status_load
+        });
 
-function service_krbprincipalname_setup(container) {
-    // skip krbprincipalname
-}
+        section = this.create_section({name:'certificate', label:'Service Certificate'});
 
-function service_krbprincipalname_load(container, result) {
-    // skip krbprincipalname
+        section.create_field({
+            name: 'certificate_status',
+            label: 'Status',
+            load: service_usercertificate_load
+        });
+
+        that.super_init();
+    };
+
+    return that;
 }
 
 function service_service_load(container, result) {

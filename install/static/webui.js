@@ -68,6 +68,11 @@ $(function() {
         $('#loggedinas a').fragment(
             {'user-facet':'details', 'user-pkey':ipa_whoami_pkey},2);
 
+        for (var i=0; i<IPA.entities.length; i++) {
+            var entity = IPA.entities[i];
+            entity.init();
+        }
+
         var navigation = $('#navigation');
 
         if (whoami.hasOwnProperty('memberof_rolegroup') &&

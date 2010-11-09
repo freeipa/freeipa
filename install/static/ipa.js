@@ -22,7 +22,6 @@
 /*global $:true, location:true */
 
 /*Forward defined due to circular dependency with IPA.*/
-var ipa_cmd;
 var IPA = ( function () {
 
     var that = {

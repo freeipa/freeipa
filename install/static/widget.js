@@ -32,10 +32,12 @@ function ipa_widget(spec) {
     that.read_only = spec.read_only;
     that._entity_name = spec.entity_name;
 
+    that.init = spec.init || init;
     that.create = spec.create || create;
     that.setup = spec.setup || setup;
     that.load = spec.load || load;
     that.save = spec.save || save;
+    that.clear = spec.clear || clear;
 
     that.super = function(name) {
         var method = that[name];
@@ -52,6 +54,9 @@ function ipa_widget(spec) {
         that._entity_name = entity_name;
     });
 
+    function init() {
+    }
+
     function create(container) {
     }
 
@@ -65,6 +70,9 @@ function ipa_widget(spec) {
         return [];
     }
 
+    function clear(container) {
+    }
+
     return that;
 }
 
@@ -73,6 +81,16 @@ function ipa_text_widget(spec) {
     spec = spec || {};
 
     var that = ipa_widget(spec);
+
+    that.size = spec.size || 30;
+
+    that.create = function(container) {
+        $('<input/>', {
+            'type': 'text',
+            'name': that.name,
+            'size': that.size
+        }).appendTo(container);
+    };
 
     that.load = function(container, result) {
         that.value = result[that.name] || '';
@@ -101,6 +119,46 @@ function ipa_text_widget(spec) {
         return values;
     };
 
+    that.clear = function(container) {
+        var input = $('input[name="'+that.name+'"]', container);
+        input.val('');
+    };
+
+    return that;
+}
+
+function ipa_checkbox_widget(spec) {
+
+    spec = spec || {};
+
+    var that = ipa_widget(spec);
+
+    that.create = function(container) {
+        $('<input/>', {
+            'type': 'checkbox',
+            'name': that.name
+        }).appendTo(container);
+    };
+
+    that.load = function(container, result) {
+        var value = result[that.name] || '';
+        $('input[name="'+that.name+'"][value="'+value+'"]', container).attr('checked', 'checked');
+    };
+
+    that.save = function(container) {
+        var values = [];
+
+        var value = $('input[name="'+that.name+'"]', container).is(':checked');
+        values.push(value);
+
+        return values;
+    };
+
+    that.clear = function(container) {
+        var input = $('input[name="'+that.name+'"]', container).get(0);
+        input.checked = false;
+    };
+
     return that;
 }
 
@@ -108,28 +166,21 @@ function ipa_radio_widget(spec) {
 
     spec = spec || {};
 
-    spec.setup = spec.setup || setup;
-    spec.load = spec.load || load;
-    spec.save = spec.save || save;
-
     var that = ipa_widget(spec);
 
-    function setup(container) {
-    }
-
-    function load(container, result) {
+    that.load = function(container, result) {
         var value = result[that.name] || '';
         $('input[name="'+that.name+'"][value="'+value+'"]', container).attr('checked', 'checked');
-    }
+    };
 
-    function save(container) {
+    that.save = function(container) {
         var values = [];
 
         var value = $('input[name="'+that.name+'"]:checked', container).val();
         values.push(value);
 
         return values;
-    }
+    };
 
     return that;
 }
@@ -138,28 +189,37 @@ function ipa_textarea_widget(spec) {
 
     spec = spec || {};
 
-    spec.setup = spec.setup || setup;
-    spec.load = spec.load || load;
-    spec.save = spec.save || save;
-
     var that = ipa_widget(spec);
 
-    function setup(container) {
-    }
+    that.rows = spec.rows || 5;
+    that.cols = spec.cols || 40;
 
-    function load(container, result) {
+    that.create = function(container) {
+        $('<textarea/>', {
+            'rows': that.rows,
+            'cols': that.cols,
+            'name': that.name
+        }).appendTo(container);
+    };
+
+    that.load = function(container, result) {
         var value = result[that.name] || '';
         $('textarea[name="'+that.name+'"]', container).val(value);
-    }
+    };
 
-    function save(container) {
+    that.save = function(container) {
         var values = [];
 
         var value = $('textarea[name="'+that.name+'"]', container).val();
         values.push(value);
 
         return values;
-    }
+    };
+
+    that.clear = function(container) {
+        var input = $('input[name="'+that.name+'"]', container);
+        input.val('');
+    };
 
     return that;
 }
@@ -199,7 +259,41 @@ function ipa_column_widget(spec) {
     var that = ipa_widget(spec);
 
     that.primary_key = spec.primary_key;
+    that.setup = spec.setup || setup;
     that.link = spec.link;
+
+    function setup(container, name, value, record) {
+
+        var span = $('span[name="'+name+'"]', container);
+
+        var param_info = ipa_get_param_info(that.entity_name, name);
+        var primary_key = that.primary_key || param_info && param_info['primary_key'];
+
+        if (primary_key && that.link) {
+            var link = $('<a/>', {
+                'href': '#'+value,
+                'html': value,
+                'click': function (value) {
+                    return function() {
+                        var state = {};
+                        state[that.entity_name + '-facet'] = 'details';
+                        state[that.entity_name + '-pkey'] = value;
+                        //Before this will work, we need to set the tab one level up
+                        //for example:
+                        //state['identity'] = 0;
+                        //but we have no way of getting the index.
+
+                        $.bbq.pushState(state);
+                        return false;
+                    }
+                }(value)
+            });
+            span.html(link);
+
+        } else {
+            span.html(value);
+        }
+    }
 
     return that;
 }
@@ -244,12 +338,6 @@ function ipa_table_widget(spec) {
     function create(container) {
 
         var div = $('#'+that.id, container);
-        if (div.children().length) {
-            // widget loaded from template
-            return;
-        }
-
-        div.empty();
 
         var table = $('<table/>', {
             'class': 'search-table'
@@ -269,11 +357,17 @@ function ipa_table_widget(spec) {
         }).appendTo(th);
 
         for (var i=0; i<that.columns.length; i++) {
+            var column = that.columns[i];
             th = $('<th/>').appendTo(tr);
+
+            var label = column.label;
+
+            var param_info = ipa_get_param_info(that.entity_name, column.name);
+            if (param_info && param_info['label']) label = param_info['label'];
 
             $('<span/>', {
                 'style': 'float: left;',
-                'html': that.columns[i].label
+                'html': label
             }).appendTo(th);
 
             if (i == that.columns.length-1) {
@@ -303,6 +397,16 @@ function ipa_table_widget(spec) {
                 'name': that.columns[i].name
             }).appendTo(td);
         }
+
+        var tfoot = $('<tfoot/>').appendTo(table);
+
+        tr = $('<tr/>').appendTo(tfoot);
+
+        td = $('<td/>', { colspan: that.columns.length+1 }).appendTo(tr);
+
+        $('<span/>', {
+            'name': 'summary'
+        }).appendTo(td);
     }
 
     function setup(container) {
@@ -310,6 +414,7 @@ function ipa_table_widget(spec) {
         that.table = $('table', div);
         that.thead = $('thead', that.table);
         that.tbody = $('tbody', that.table);
+        that.tfoot = $('tfoot', that.table);
 
         var select_all_checkbox = $('input[name=select]', that.thead);
         select_all_checkbox.attr('title', 'Select All');
@@ -378,7 +483,9 @@ function ipa_table_widget(spec) {
         var record = {};
         for (var i=0; i<that.columns.length; i++){
             var name = that.columns[i].name;
-            record[name] = result[name][index];
+            var values = result[name];
+            if (!values) continue;
+            record[name] = values[index];
         }
         return record;
     };
@@ -394,35 +501,12 @@ function ipa_table_widget(spec) {
             var name = column.name;
             var value = record[name];
 
-            var span = $('span[name="'+name+'"]', tr);
-            span.html(value);
-
             if (column.primary_key) {
                 // set checkbox value
                 $('input[name="select"]', tr).val(value);
             }
 
-            if (column.primary_key && column.link) {
-                // wrap value with a link
-                var link = $('<a/>', {
-                    'click': function (value) {
-                        return function() {
-                            var state = {};
-                            state[that.other_entity + '-facet'] = 'details';
-                            state[that.other_entity + '-pkey'] = value;
-                            //Before this will work, we need to set the tab one level up
-                            //for example:
-                            //state['identity'] = 0;
-                            //but we have no way of getting the index.
-
-                            $.bbq.pushState(state);
-                            return false;
-                        }
-                    }(value)
-                });
-                span.before(link);
-                link.append(span);
-            }
+            column.setup(tr, name, value, record);
         }
     };
 
@@ -475,11 +559,10 @@ function ipa_dialog(spec) {
 
     var that = {};
 
+    that.name = spec.name;
     that.title = spec.title;
-    that.parent = spec.parent;
     that._entity_name = spec.entity_name;
 
-    that.container = $('<div/>').appendTo(that.parent);
     that.width = spec.width || 400;
 
     that.buttons = {};
@@ -520,10 +603,32 @@ function ipa_dialog(spec) {
         that.fields_by_name[field.name] = field;
     };
 
+    that.init = function() {
+    };
+
     /**
      * Create content layout
      */
     that.create = function() {
+
+        var table = $('<table/>').appendTo(that.container);
+
+        for (var i=0; i<that.fields.length; i++) {
+            var field = that.fields[i];
+
+            var tr = $('<tr/>').appendTo(table);
+
+            var td = $('<td/>', {
+                'style': 'vertical-align: top;'
+            }).appendTo(tr);
+            td.append(field.label+': ');
+
+            td = $('<td/>', {
+                'style': 'vertical-align: top;'
+            }).appendTo(tr);
+
+            field.create(td);
+        }
     };
 
     /**
@@ -535,7 +640,9 @@ function ipa_dialog(spec) {
     /**
      * Open dialog
      */
-    that.open = function() {
+    that.open = function(container) {
+
+        that.container = $('<div/>').appendTo(container);
 
         that.create();
         that.setup();
@@ -552,9 +659,26 @@ function ipa_dialog(spec) {
         that.container.dialog('option', name, value);
     };
 
+    that.get_record = function() {
+        var record = {};
+        for (var i=0; i<that.fields.length; i++) {
+            var field = that.fields[i];
+            var values = field.save(that.container);
+            record[field.name] = values[0];
+        }
+        return record;
+    };
+
     that.close = function() {
         that.container.dialog('destroy');
         that.container.remove();
+    };
+
+    that.clear = function() {
+        for (var i=0; i<that.fields.length; i++) {
+            var field = that.fields[i];
+            field.clear(that.container);
+        }
     };
 
     return that;
@@ -655,13 +779,13 @@ function ipa_adder_dialog(spec) {
         });
     };
 
-    that.open = function() {
+    that.open = function(container) {
         that.buttons = {
             'Enroll': that.add,
             'Cancel': that.close
         };
 
-        that.super_open();
+        that.super_open(container);
     };
 
     that.get_filter = function() {
@@ -744,13 +868,13 @@ function ipa_deleter_dialog(spec) {
         }).appendTo(that.container);
     };
 
-    that.open = function() {
+    that.open = function(container) {
         that.buttons = {
             'Delete': that.remove,
             'Cancel': that.close
         };
 
-        that.super_open();
+        that.super_open(container);
     };
 
     return that;

@@ -272,7 +272,7 @@ function ipa_association_widget(spec) {
             'name': 'add',
             'value': IPA.messages.button.enroll
         }).appendTo(buttons);
-    }
+    };
 
     that.setup = function(container) {
 
@@ -302,7 +302,6 @@ function ipa_association_widget(spec) {
 
         var dialog = ipa_association_adder_dialog({
             'title': title,
-            'parent': container,
             'entity_name': that.entity_name,
             'pkey': pkey,
             'other_entity': that.other_entity,
@@ -318,7 +317,9 @@ function ipa_association_widget(spec) {
             }
         });
 
-        dialog.open();
+        dialog.init();
+
+        dialog.open(container);
     };
 
     that.remove = function(container) {
@@ -336,7 +337,6 @@ function ipa_association_widget(spec) {
 
         var dialog = ipa_association_deleter_dialog({
             'title': title,
-            'parent': container,
             'entity_name': that.entity_name,
             'pkey': pkey,
             'other_entity': that.other_entity,
@@ -353,7 +353,40 @@ function ipa_association_widget(spec) {
             }
         });
 
-        dialog.open();
+        dialog.init();
+
+        dialog.open(container);
+    };
+
+    that.refresh = function(container) {
+
+        function on_success(data, text_status, xhr) {
+
+            that.tbody.empty();
+
+            var column_name = that.columns[0].name;
+            var values = data.result.result[column_name];
+            //TODO, this is masking an error where the wrong
+            //direction association is presented upon page reload.
+            //if the values is unset, it is because
+            //form.associationColumns[0] doesn't exist in the results
+            if (!values) return;
+
+            for (var i = 0; i<values.length; i++){
+                var record = that.get_record(data.result.result, i);
+                that.add_row(container, record);
+            }
+        }
+
+        function on_error(xhr, text_status, error_thrown) {
+            var div = $('#'+that.id, container).empty();
+            div.append('<p>Error: '+error_thrown.name+'</p>');
+            div.append('<p>'+error_thrown.title+'</p>');
+            div.append('<p>'+error_thrown.message+'</p>');
+        }
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        ipa_cmd('show', [pkey], {'rights': true}, on_success, on_error, that.entity_name);
     };
 
     return that;
@@ -373,12 +406,14 @@ function ipa_association_facet(spec) {
         return pkey != that.pkey || other_entity != that.other_entity;
     };
 
+    that.create = function(container) {
+        that.setup_views(container);
+    };
+
     that.setup = function(container, unspecified) {
 
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         that.other_entity = $.bbq.getState(that.entity_name + '-enroll', true) || '';
-
-        that.setup_views(container);
 
         //TODO I18N
         var header_message = that.other_entity + '(s) enrolled in '  +
@@ -401,12 +436,6 @@ function ipa_association_facet(spec) {
     };
 
     return that;
-}
-
-
-function association_list_create(obj_name, jobj)
-{
-    search_create(obj_name, [], jobj);
 }
 
 function ipa_deleter_dialog_setup() {

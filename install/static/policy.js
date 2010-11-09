@@ -249,13 +249,16 @@ function ipa_records_facet(spec){
         return pkey != that.pkey || record != that.record;
     };
 
+    function create(container) {
+        that.setup_views(container);
+    }
+
     function setup(container, unspecified){
 
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         that.record = $.bbq.getState(that.entity_name + '-record', true) || '';
 
         that.container = container;
-        that.setup_views(container);
 
         container.attr('title', that.entity_name);
 
@@ -445,6 +448,7 @@ function ipa_records_facet(spec){
 
     }
 
+    that.create = create;
     that.setup = setup;
     that.load = load;
 

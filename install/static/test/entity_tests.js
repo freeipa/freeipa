@@ -61,7 +61,7 @@ test('Testing ipa_entity_set_search_definition().', function() {
     );
 });
 
-test('Testing ipa_entity_generate_views().', function() {
+test('Testing ipa_facet_setup_views().', function() {
 
     var orig_show_page = IPA.show_page;
     IPA.ajax_options.async = false;
@@ -83,9 +83,10 @@ test('Testing ipa_entity_generate_views().', function() {
 
     IPA.add_entity(entity);
 
-    var facet = entity.create_association_facet({
+    var facet = ipa_association_facet({
         'name': 'associate'
     });
+    entity.add_facet(facet);
 
     var container = $('<div/>');
 
@@ -179,11 +180,12 @@ test('Testing ipa_entity_quick_links().', function() {
 
     var tbody = $('<tbody/>').appendTo(search_table);
     var tr = $('<tr/>').appendTo(tbody);
+    var td = $('<td/>').appendTo(tr);
+    var span = $('<span/>', {name:'quick_links'}).appendTo(td);
 
-    ipa_entity_quick_links(tr, null, null, entry_attrs);
+    ipa_entity_quick_links(tr, 'quick_links', null, entry_attrs);
 
-    var td = tr.children().first();
-    var link = td.children().first();
+    var link = span.children().first();
 
     equals(
         link.attr('href'), '#details',

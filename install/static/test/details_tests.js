@@ -19,7 +19,7 @@
  */
 
 
-test("Testing ipa_details_section.setup().", function() {
+test("Testing ipa_details_section.create().", function() {
 
     IPA.ajax_options.async = false;
 
@@ -34,8 +34,6 @@ test("Testing ipa_details_section.setup().", function() {
         }
     );
 
-    var result = {};
-
     var section = ipa_details_section({name:'IDIDID', label:'NAMENAMENAME'}).
         input({name:'cn', label:'Entity Name'}).
         input({name:'description', label:'Description'}).
@@ -44,7 +42,7 @@ test("Testing ipa_details_section.setup().", function() {
 
     var fields = section.fields;
     var container = $("<div/>");
-    section.setup(container, result);
+    section.create(container);
 
     var dl = container.find('dl');
 
@@ -80,7 +78,7 @@ test("Testing ipa_details_section.setup().", function() {
 
 
 
-test("Testing details lifecycle: create, save ().", function(){
+test("Testing details lifecycle: create, setup, load.", function(){
 
     IPA.ajax_options.async = false;
 
@@ -168,7 +166,9 @@ test("Testing details lifecycle: create, save ().", function(){
 
     var entity = ipa_get_entity(obj_name);
     var facet = entity.get_facet('details');
-    facet.create(container, result);
+    facet.create(container);
+    facet.setup(container);
+    facet.load(container, result);
 
     var contact = container.find('dl#contact.entryattrs');
 
@@ -192,7 +192,7 @@ test("Testing details lifecycle: create, save ().", function(){
     );
 
     same(
-        dts[5].title, facet.get_sections()[0].get_fields()[5].name,
+        dts[5].title, facet.sections[0].fields[5].name,
         'Checking dt title'
     );
 
@@ -205,7 +205,7 @@ test("Testing details lifecycle: create, save ().", function(){
 
     ok (load_manager_called, 'load manager called');
 
-    ipa_details_update(container,
+    facet.update(container,
                      'kfrog',
                      function(){update_success_called = true},
                      function(){update_failure_called = true});
@@ -265,7 +265,11 @@ test("Testing ipa_details_section_setup again()",function(){
     var details = $("<div/>");
     container.append(details);
 
-    section.setup(container, details, section);
+    var result = {};
+
+    section.create(container);
+    section.setup(container);
+    section.load(container, result);
 
     ok(container.find('hr'),'hr');
 

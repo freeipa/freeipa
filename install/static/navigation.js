@@ -134,7 +134,12 @@ function _nav_update_tabs(nls, container)
         _nav_update_tabs(tab.children, container2);
 
     } else if (tab.setup) {
-        var entity = IPA.get_entity(tab.name);
+        var entity_name = tab.name;
+
+        // TODO: do not hard-code
+        if (entity_name == 'hbac' && nav_get_state('entity')) entity_name = nav_get_state('entity');
+
+        var entity = IPA.get_entity(entity_name);
         entity.setup(container2);
     }
 }

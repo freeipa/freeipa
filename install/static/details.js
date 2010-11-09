@@ -31,23 +31,20 @@ IPA.is_field_writable = function(rights){
         alert('no right');
     }
     return rights.indexOf('w') > -1;
-}
+};
 
 function ipa_details_field(spec) {
 
     spec = spec || {};
 
-    spec.create = spec.create || create;
-    spec.setup = spec.setup || setup;
-    spec.load = spec.load || load;
-    spec.save = spec.save || save;
-
     var that = ipa_widget(spec);
 
-    function create(container) {
-    }
+    that.create = spec.create || create;
+    that.setup = spec.setup || setup;
+    that.load = spec.load || load;
+    that.save = spec.save || save;
 
-    function setup(container) {
+    function create(container) {
 
         var dl = $('dl', container);
 
@@ -63,6 +60,9 @@ function ipa_details_field(spec) {
             title: title,
             html: label + ':'
         }).appendTo(dl);
+    }
+
+    function setup(container) {
     }
 
     function load(container, result) {
@@ -187,10 +187,6 @@ function ipa_details_section(spec){
         }
     });
 
-    that.get_fields = function() {
-        return that.fields;
-    };
-
     that.get_field = function(name) {
         return that.fields_by_name[name];
     };
@@ -231,6 +227,13 @@ function ipa_details_section(spec){
         return field;
     };
 
+    that.init = function() {
+        for (var i=0; i<that.fields.length; i++) {
+            var field = that.fields[i];
+            field.init();
+        }
+    };
+
     // Deprecated: Used for backward compatibility only.
     function input(spec){
         that.create_field(spec);
@@ -253,10 +256,13 @@ function ipa_details_facet(spec) {
 
     var that = ipa_facet(spec);
 
-    that.init = spec.init || init;
     that.is_dirty = spec.is_dirty || ipa_details_is_dirty;
-    that.setup = spec.setup || ipa_details_setup;
     that.create = spec.create || ipa_details_create;
+    that.setup = spec.setup || ipa_details_setup;
+    that.load = spec.load || ipa_details_load;
+    that.update = spec.update || ipa_details_update;
+    that.reset = spec.reset || ipa_details_reset;
+    that.display = spec.display || ipa_details_display;
 
     that.sections = [];
     that.sections_by_name = {};
@@ -272,10 +278,6 @@ function ipa_details_facet(spec) {
             that.sections[i].entity_name = entity_name;
         }
     });
-
-    that.get_sections = function() {
-        return that.sections;
-    };
 
     that.get_section = function(name) {
         return that.sections_by_name[name];
@@ -293,8 +295,12 @@ function ipa_details_facet(spec) {
         return section;
     };
 
-    function init() {
-    }
+    that.init = function() {
+        for (var i=0; i<that.sections.length; i++) {
+            var section = that.sections[i];
+            section.init();
+        }
+    };
 
     return that;
 }
@@ -321,38 +327,7 @@ function ipa_details_is_dirty() {
     return pkey != this.pkey;
 }
 
-function ipa_details_setup(container, unspecified) {
-
-    var facet = this;
-
-    facet.setup_views(container);
-
-    facet.pkey = $.bbq.getState(facet.entity_name + '-pkey', true) || '';
-    if (!facet.pkey && !unspecified) return;
-
-    function on_success(data, text_status, xhr) {
-        var result = data.result.result;
-
-        ipa_details_cache[facet.entity_name] = $.extend(true, {}, result);
-        facet.create(container, result);
-    }
-
-    function on_failure(xhr, text_status, error_thrown) {
-        var details = $('.details', container).empty();
-        details.append('<p>Error: '+error_thrown.name+'</p>');
-        details.append('<p>'+error_thrown.title+'</p>');
-        details.append('<p>'+error_thrown.message+'</p>');
-    }
-
-    var params = [];
-    if (facet.pkey) params.push(facet.pkey);
-
-    ipa_cmd(
-        'show', params, {all: true, rights: true}, on_success, on_failure, facet.entity_name
-    );
-}
-
-function ipa_details_create(container, result)
+function ipa_details_create(container)
 {
     var facet = this;
 
@@ -363,6 +338,8 @@ function ipa_details_create(container, result)
 
     var entity_name = container.attr('id');
     container.attr('title', entity_name);
+
+    facet.setup_views(container);
 
     var details = $('<div/>', {
         'class': 'details'
@@ -377,7 +354,7 @@ function ipa_details_create(container, result)
         'icon': 'ui-icon-refresh',
         'class': 'details-reset',
         'click': function() {
-            ipa_details_reset(container);
+            facet.reset(container);
             return false;
         }
     }));
@@ -389,7 +366,7 @@ function ipa_details_create(container, result)
         'icon': 'ui-icon-check',
         'class': 'details-update',
         'click': function() {
-            ipa_details_update(container, ipa_details_cache[facet.entity_name][pkey_name][0]);
+            facet.update(container, ipa_details_cache[facet.entity_name][pkey_name][0]);
             return false;
         }
     }));
@@ -410,52 +387,111 @@ function ipa_details_create(container, result)
             'class': 'details-section'
         }).appendTo(details);
 
-        section.setup(div, result);
+        section.create(div);
 
         details.append('<hr/>');
     }
 }
 
+function ipa_details_setup(container, unspecified) {
+    var that = this;
 
-function ipa_details_section_setup(container, result) {
-    var section = this;
-    var fields = section.get_fields();
+    for (var i = 0; i < that.sections.length; ++i) {
+        var section = that.sections[i];
 
-    if (section.template) {
-        var template = IPA.get_template(section.template);
-        container.load(template, function(data, text_status, xhr) {
-            for (var i = 0; i < fields.length; ++i) {
-                var field = fields[i];
-                field.create(container);
-                field.setup(container);
-                field.load(container, result);
-            }
-        });
-        return;
+        var div = $(
+            '#'+that.entity_name+'-'+that.name+'-'+section.name,
+            container
+        );
+
+        section.setup(div, unspecified);
+    }
+}
+
+function ipa_details_load(container, unspecified) {
+
+    var that = this;
+
+    that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+    if (!that.pkey && !unspecified) return;
+
+    function on_success(data, text_status, xhr) {
+        var result = data.result.result;
+
+        ipa_details_cache[that.entity_name] = $.extend(true, {}, result);
+        for (var i = 0; i < that.sections.length; ++i) {
+            var section = that.sections[i];
+
+            var div = $(
+                '#'+that.entity_name+'-'+that.name+'-'+section.name,
+                container
+            );
+
+            section.load(div, result);
+        }
     }
 
-    section.create(container);
+    function on_failure(xhr, text_status, error_thrown) {
+        var details = $('.details', container).empty();
+        details.append('<p>Error: '+error_thrown.name+'</p>');
+        details.append('<p>'+error_thrown.title+'</p>');
+        details.append('<p>'+error_thrown.message+'</p>');
+    }
 
+    var params = [];
+    if (that.pkey) params.push(that.pkey);
+
+    ipa_cmd(
+        'show', params, {all: true, rights: true}, on_success, on_failure, that.entity_name
+    );
+}
+
+function ipa_details_section_create(container) {
+
+    var that = this;
+    if (that.template) return;
+
+    var dl = $('<dl/>', {
+        'id': that.name,
+        'class': 'entryattrs'
+    }).appendTo(container);
+
+    var fields = that.fields;
     for (var i = 0; i < fields.length; ++i) {
         var field = fields[i];
         field.create(container);
-        field.setup(container);
-        field.load(container, result);
     }
 }
 
-function ipa_details_section_create(container, result) {
-    var section = this;
+function ipa_details_section_setup(container, unspecified) {
+    var that = this;
+    if (that.template) return;
 
-    var dl = $('<dl/>', {
-        'id': section.name,
-        'class': 'entryattrs'
-    }).appendTo(container);
+    var fields = that.fields;
+    for (var i = 0; i < fields.length; ++i) {
+        var field = fields[i];
+        field.setup(container);
+    }
 }
 
 function ipa_details_section_load(container, result) {
-    var section = this;
-    var fields = section.get_fields();
+    var that = this;
+    var fields = that.fields;
+
+    if (that.template) {
+        var template = IPA.get_template(that.template);
+        container.load(
+            template,
+            function(data, text_status, xhr) {
+                for (var i = 0; i < fields.length; ++i) {
+                    var field = fields[i];
+                    field.setup(container);
+                    field.load(container, result);
+                }
+            }
+        );
+        return;
+    }
 
     for (var j=0; j<fields.length; j++) {
         var field = fields[j];
@@ -465,7 +501,8 @@ function ipa_details_section_load(container, result) {
 
 function ipa_details_update(container, pkey, on_win, on_fail)
 {
-    var obj_name = container.attr('id');
+    var facet = this;
+    var entity_name = facet.entity_name;
 
     function update_on_win(data, text_status, xhr) {
         if (on_win)
@@ -474,8 +511,8 @@ function ipa_details_update(container, pkey, on_win, on_fail)
             return;
 
         var result = data.result.result;
-        ipa_details_cache[obj_name] = $.extend(true, {}, result);
-        ipa_details_display(container, result);
+        ipa_details_cache[entity_name] = $.extend(true, {}, result);
+        facet.display(container, result);
     }
 
     function update_on_fail(xhr, text_status, error_thrown) {
@@ -490,20 +527,17 @@ function ipa_details_update(container, pkey, on_win, on_fail)
     var modlist = {'all': true, 'setattr': [], 'addattr': [], 'rights': true};
     var attrs_wo_option = {};
 
-    var facet = ipa_entity_get_details_facet(obj_name);
-    var sections = facet.get_sections();
-    for (var i=0; i<sections.length; i++) {
-        var section = sections[i];
-        var fields = section.get_fields();
+    for (var i=0; i<facet.sections.length; i++) {
+        var section = facet.sections[i];
 
         var div = $('#'+facet.entity_name+'-'+facet.name+'-'+section.name, container);
 
-        for (var j=0; j<fields.length; j++) {
-            var field = fields[j];
+        for (var j=0; j<section.fields.length; j++) {
+            var field = section.fields[j];
 
             values = field.save(div);
 
-            var param_info = ipa_get_param_info(obj_name, field.name);
+            var param_info = ipa_get_param_info(entity_name, field.name);
             if (param_info) {
                 if (param_info['primary_key']) continue;
                 if (values.length === 1) {
@@ -526,7 +560,7 @@ function ipa_details_update(container, pkey, on_win, on_fail)
             modlist['addattr'].push(attr + '=' + values[i]);
     }
 
-    ipa_cmd('mod', [pkey], modlist, update_on_win, update_on_fail, obj_name);
+    ipa_cmd('mod', [pkey], modlist, update_on_win, update_on_fail, entity_name);
 }
 
 
@@ -555,16 +589,14 @@ var _ipa_span_hint_template = '<span class="attrhint">Hint: D</span>';
  *                 (basically an associative array with attr:value pairs) */
 function ipa_details_display(container, result)
 {
-    var entity_name = container.attr('id');
+    var facet = this;
 
     /* remove all <dd> tags i.e. all attribute values */
     $('dd', container).remove();
 
     /* go through all <dt> tags and pair them with newly created <dd>s */
-    var facet = ipa_entity_get_details_facet(entity_name);
-    var sections = facet.get_sections();
-    for (var i=0; i<sections.length; i++) {
-        var section = sections[i];
+    for (var i=0; i<facet.sections.length; i++) {
+        var section = facet.sections[i];
 
         var div = $('#'+facet.entity_name+'-'+facet.name+'-'+section.name, container);
 
@@ -752,10 +784,11 @@ function _ipa_create_text_input(attr, value, param_info, rights)
 
 function ipa_details_reset(container)
 {
-    var obj_name = container.attr('id');
+    var facet = this;
+    var entity_name = facet.entity_name;
 
-    if (ipa_details_cache[obj_name]){
-        ipa_details_display(container, ipa_details_cache[obj_name]);
+    if (ipa_details_cache[entity_name]){
+        facet.display(container, ipa_details_cache[entity_name]);
     }
 
 }

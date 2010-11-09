@@ -21,160 +21,80 @@
 
 /* REQUIRES: ipa.js */
 
-var IPA_ADD_POPULATE = 1;
-var IPA_ADD_UPDATE = 2;
-
-function ipa_add_field(spec) {
-
-    spec = spec || {};
-
-    var that = {};
-    that.name = spec.name;
-    that.label = spec.label;
-    that._entity_name = spec.entity_name;
-
-    that.init = spec.init;
-    that.setup = spec.setup;
-
-    that.__defineGetter__("entity_name", function(){
-        return that._entity_name;
-    });
-
-    that.__defineSetter__("entity_name", function(entity_name){
-        that._entity_name = entity_name;
-    });
-
-    return that;
-}
-
 function ipa_add_dialog(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = ipa_dialog(spec);
+
     that.name = spec.name;
     that.title = spec.title;
     that._entity_name = spec.entity_name;
 
-    that.init = spec.init;
+    that.init = function() {
 
-    that.fields = [];
-    that.fields_by_name = {};
+        that.add_button('Add', function() {
+            var record = that.get_record();
+            that.add(
+                record,
+                function() {
+                    var entity = IPA.get_entity(that.entity_name);
+                    var facet = entity.get_facet('search');
+                    var table = facet.table;
+                    table.refresh(that.container);
+                    that.clear(that.container);
+                }
+            );
+        });
 
-    var dialog = $('<div/>');
+        that.add_button('Add and Edit', function() {
+            var record = that.get_record();
+            that.add(
+                record,
+                function() {
+                    that.close();
 
-    that.__defineGetter__("entity_name", function(){
-        return that._entity_name;
-    });
+                    var pkey_name = IPA.metadata[that.entity_name].primary_key;
+                    var pkey = record[pkey_name];
 
-    that.__defineSetter__("entity_name", function(entity_name){
-        that._entity_name = entity_name;
+                    var state = {};
+                    state[that.entity_name + '-facet'] = 'details';
+                    state[that.entity_name + '-pkey'] = pkey;
+                    $.bbq.pushState(state);
+                },
+                function() { that.close(); }
+            );
+        });
 
-        for (var i=0; i<that.fields.length; i++) {
-            that.fields[i].entity_name = entity_name;
-        }
-    });
-
-    that.get_fields = function() {
-        return that.fields;
-    };
-
-    that.get_field = function(name) {
-        return that.fields_by_name[name];
-    };
-
-    that.add_field = function(field) {
-        that.fields.push(field);
-        that.fields_by_name[field.name] = field;
-    };
-
-    that.create_field = function(spec) {
-        var field = ipa_add_field(spec);
-        that.add_field(field);
-        return field;
-    };
-
-    that.open = function() {
-        dialog.empty();
-        dialog.attr('id', that.name);
-        dialog.attr('title', that.title);
-
-        for (var i = 0; i < that.fields.length; ++i) {
-            var field = that.fields[i];
-            if (field.setup) {
-                field.setup(dialog, IPA_ADD_POPULATE);
-            } else {
-                dialog.append('<label>' + field.label + '</label>');
-                dialog.append('<input type="text" name="' + field.name + '" />');
-                dialog.append('<br/>');
-            }
-        }
-
-        dialog.dialog({
-            modal: true,
-            buttons: {
-                'Add': that.add,
-                'Add and edit': that.add_and_edit,
-                'Cancel': that.cancel
-            }
+        that.add_button('Cancel', function() {
+            that.close();
         });
     };
 
-    that.add = function(evt, called_from_add_and_edit) {
-        var pkey = [];
-        var options = {};
+    that.add = function(record, on_success, on_error) {
+
         var pkey_name = IPA.metadata[that.entity_name].primary_key;
 
-        function add_win(data, text_status, xhr) {
-            if (called_from_add_and_edit) {
-                var state = {};
-                state[that.entity_name + '-facet'] = 'details';
-                state[that.entity_name + '-pkey'] = pkey[0];
-                $.bbq.pushState(state);
-            }else{
-                dialog.find('input').each( function () {
-                    $(this).val('');
-                });
-            }
-        }
-        for (var i = 0; i < that.fields.length; ++i) {
+        var args = [];
+        var options = {};
+
+        for (var i=0; i<that.fields.length; i++) {
             var field = that.fields[i];
-            if (field.setup) {
-                var value = field.setup(dialog, IPA_ADD_UPDATE);
-                if (value != null) {
-                    if (field.name == pkey_name){
-                        pkey = [value];
-                    } else {
-                        options[field.name] = value;
-                    }
-                }
+
+            var value = record[field.name];
+            if (!value) continue;
+
+            if (field.name == pkey_name) {
+                args.push(value);
+            } else {
+                options[field.name] = value;
             }
         }
-        dialog.find('input').each(function () {
-            var jobj = $(this);
-            var attr = jobj.attr('name');
-            var value = jobj.val();
-            if (value) {
-                if (pkey.length == 0 && attr == pkey_name)
-                    pkey = [jobj.val()];
-                else if (options[attr] == null)
-                    options[attr] = jobj.val();
-            }
-        });
 
-        ipa_cmd('add', pkey, options, add_win, null, that.entity_name);
+        ipa_cmd('add', args, options, on_success, on_error, that.entity_name);
     };
 
-    that.add_and_edit = function(evt) {
-        that.add(evt, true);
-        dialog.dialog('close');
-    };
-
-    that.cancel = function() {
-        dialog.dialog('close');
-    };
-
-    if (that.init) that.init();
+    that.super_init = that.super('init');
 
     return that;
 }
