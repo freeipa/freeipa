@@ -5,7 +5,7 @@
         "messages": {
             "button": {
                 "add": "Add",
-                "delete": "Delete",
+                "remove": "Delete",
                 "enroll": "Enroll",
                 "find": "Find",
                 "reset": "Reset",
