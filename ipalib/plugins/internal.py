@@ -43,7 +43,7 @@ class json_metadata(Command):
             "reset":_("Reset"),
             "update":_("Update"),
             "enroll":_("Enroll"),
-            "delete":_("Delete"),
+            "remove":_("Delete"),
             },
         "search":{
             "quick_links":_("Quick Links"),

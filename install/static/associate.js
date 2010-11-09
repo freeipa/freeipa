@@ -264,7 +264,7 @@ function ipa_association_widget(spec) {
         $('<input/>', {
             'type': 'button',
             'name': 'remove',
-            'value': IPA.messages.button.delete
+            'value': IPA.messages.button.remove
         }).appendTo(buttons);
 
         $('<input/>', {

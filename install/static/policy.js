@@ -179,7 +179,7 @@ function ipa_records_facet(spec){
 
 
         var delete_dialog = $('<div/>', {
-            title: IPA.messages.button.delete
+            title: IPA.messages.button.remove
         });
         var to_delete_table =
             $('<table class="search-table" >'+
@@ -302,7 +302,7 @@ function ipa_records_facet(spec){
         }).appendTo(control_span);
 
         ipa_button({
-            'label': IPA.messages.button.delete,
+            'label': IPA.messages.button.remove,
             'icon': 'ui-icon-trash',
             'click': function(){delete_records(records_table);}
         }).appendTo(control_span);
