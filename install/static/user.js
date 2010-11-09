@@ -42,29 +42,29 @@ ipa_entity_set_add_definition('user', [
 ipa_entity_set_details_definition('user', [
     ipa_stanza({name:'identity', label:'Identity Details'}).
         input({name:'title', label: 'Title'}).
-        input({name:'givenname', label:'First Name'}).
-        input({name:'sn', label:'Last Name'}).
+        input({name:'givenname'}).
+        input({name:'sn'}).
         input({name:'cn', label:'Full Name'}).
-        input({name:'displayname', label:'Dispaly Name'}).
+        input({name:'displayname', label:'Display Name'}).
         input({name:'initials', label:'Initials'}),
     ipa_stanza({name:'account', label:'Account Details'}).
         input({name:'nsaccountlock', label:'Account Status',
                load:user_status_load}).
-        input({name:'uid', label:'Login'}).
+        input({name:'uid'}).
         input({name:'userpassword',
-               label:'Password',
                load: user_password_load}).
-        input({name:'uidnumber', label:'UID'}).
+        input({name:'uidnumber'}).
         input({name:'gidnumber', label:'GID'}).
-        input({name:'homedirectory', label:'homedirectory'}),
+        input({name:'loginshell'}).
+        input({name:'homedirectory'}),
     ipa_stanza({name:'contact', label:'Contact Details'}).
-        input({name:'mail', label:'E-mail Address'}).
-        input({name:'telephonenumber', label:'Phone Numbers'}).
-        input({name:'pager', label:'Pager Numbers'}).
-        input({name:'mobile', label:'Mobile Phone Numbers'}).
-        input({name:'facsimiletelephonenumber', label:'Fax Numbers'}),
+        input({name:'mail'}).
+        input({name:'telephonenumber'}).
+        input({name:'pager'}).
+        input({name:'mobile'}).
+        input({name:'facsimiletelephonenumber'}),
     ipa_stanza({name:'address', label:'Mailing Address'}).
-        input({name:'street', label:'Address'}).
+        input({name:'street'}).
         input({name:'location', label:'City'}).
         input({name:'state', label:'State', load:user_state_load}).
         input({name:'postalcode', label:'ZIP'}),
