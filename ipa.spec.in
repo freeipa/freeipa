@@ -178,6 +178,7 @@ Requires: gnupg
 Requires: pyOpenSSL
 Requires: python-nss >= 0.9-8
 Requires: python-lxml
+Requires: python-netaddr
 
 %description python
 IPA is an integrated solution to provide centrally managed Identity (machine,
