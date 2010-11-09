@@ -401,7 +401,7 @@ class pwpolicy_show(LDAPRetrieve):
     """
     Display information about password policy.
     """
-    takes_options = (
+    takes_options = LDAPRetrieve.takes_options + (
         Str('user?',
             label=_('User'),
             doc=_('Display effective policy for a specific user'),
@@ -428,6 +428,10 @@ class pwpolicy_show(LDAPRetrieve):
                         entry_attrs['cospriority'] = cos_entry['cospriority']
                 except errors.NotFound:
                     pass
+        if options.get('rights', False) and options.get('all', False) and \
+            keys[-1] is not None:
+            cos_entry = self.api.Command.cosentry_show(keys[-1], rights=True, all=True)['result']
+            entry_attrs['attributelevelrights']['cospriority'] = cos_entry['attributelevelrights']['cospriority']
         self.obj.convert_time_for_output(entry_attrs, **options)
         return dn
 

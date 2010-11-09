@@ -151,7 +151,7 @@ def get_attributes(attrs):
 
 def get_effective_rights(ldap, dn, attrs=None):
     if attrs is None:
-        attrs = ['*', 'nsaccountlock']
+        attrs = ['*', 'nsaccountlock', 'cospriority']
     rights = ldap.get_effective_rights(dn, attrs)
     rdict = {}
     if 'attributelevelrights' in rights[1]:
