@@ -714,7 +714,7 @@ function ipa_deleter_dialog(spec) {
 
     var that = ipa_dialog(spec);
 
-    that.title = spec.title || IPA.messages.button.deletes;
+    that.title = spec.title || IPA.messages.button.remove;
     that.remove = spec.remove;
 
     that.super_open = that.super('open');
