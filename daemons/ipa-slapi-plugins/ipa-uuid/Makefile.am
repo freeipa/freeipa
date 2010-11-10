@@ -26,6 +26,7 @@ libipa_uuid_la_LDFLAGS = -avoid-version
 
 libipa_uuid_la_LIBADD = 	\
 	$(MOZLDAP_LIBS)		\
+	$(UUID_LIBS)		\
 	$(NULL)
 
 appdir = $(IPA_DATA_DIR)

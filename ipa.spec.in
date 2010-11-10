@@ -47,6 +47,7 @@ BuildRequires:  xmlrpc-c-devel
 BuildRequires:  libcurl-devel
 BuildRequires:  gettext
 BuildRequires:  authconfig
+BuildRequires:  libuuid-devel
 %endif
 
 %description

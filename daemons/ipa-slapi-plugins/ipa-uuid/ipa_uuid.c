@@ -43,10 +43,7 @@
 #include "slapi-plugin.h"
 #include "nspr.h"
 #include "prclist.h"
-
-#ifndef TEMP_TEMP_GET_A_DEFINE_FROM_389DS_TEAM
-int slapi_uniqueIDGenerateString(char **uId);
-#endif
+#include "uuid/uuid.h"
 
 #define IPAUUID_PLUGIN_NAME "ipa-uuid-plugin"
 #define IPAUUID_PLUGIN_VERSION 0x00010000
@@ -55,6 +52,8 @@ int slapi_uniqueIDGenerateString(char **uId);
 
 #define IPAUUID_SUCCESS 0
 #define IPAUUID_FAILURE -1
+
+#define IPAUUID_STR_SIZE 36
 
 #ifndef discard_const
 #define discard_const(ptr) ((void *)((uintptr_t)(ptr)))
@@ -760,6 +759,16 @@ ipauuid_list_contains_attr(char **list, char *attr)
     return ret;
 }
 
+/* this function must be passed a preallocated buffer of 37 characters in the
+ * out parameter */
+static void ipauuid_generate_uuid(char *out)
+{
+    uuid_t uu;
+
+    uuid_generate_time(uu);
+    uuid_unparse_lower(uu, out);
+}
+
 /* for mods and adds:
 	where dn's are supplied, the closest in scope
 	is used as long as the type filter matches
@@ -1063,13 +1072,13 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
             char *new_value;
 
             /* create the value to add */
-            ret = slapi_uniqueIDGenerateString(&value);
-            if (ret != 0) {
-                errstr = slapi_ch_smprintf("Allocation of a new value for"
-                                           " attr %s failed! Unable to "
-                                           "proceed.", cfgentry->attr);
-                break;
+            value = slapi_ch_calloc(1, IPAUUID_STR_SIZE + 1);
+            if (!value) {
+                LOG_OOM();
+                ret = LDAP_OPERATIONS_ERROR;
+                goto done;
             }
+            ipauuid_generate_uuid(value);
 
             if (cfgentry->prefix) {
                 new_value = slapi_ch_smprintf("%s%s",
@@ -1178,6 +1187,7 @@ done:
     }
 
     slapi_ch_array_free(generated_attrs);
+    slapi_ch_free_string(&value);
 
     if (free_entry && e) {
         slapi_entry_free(e);

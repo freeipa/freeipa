@@ -202,6 +202,14 @@ AC_CHECK_LIB(crypto, DES_set_key_unchecked, [SSL_LIBS="-lcrypto"])
 AC_SUBST(SSL_LIBS)
 
 dnl ---------------------------------------------------------------------------
+dnl - Check for UUID library
+dnl ---------------------------------------------------------------------------
+AC_CHECK_HEADERS(uuid/uuid.h,,[AC_MSG_ERROR([uuid/uuid.h not found])])
+
+AC_CHECK_LIB(uuid, uuid_generate_time, [UUID_LIBS="-luuid"])
+AC_SUBST(UUID_LIBS)
+
+dnl ---------------------------------------------------------------------------
 dnl - Check for Python
 dnl ---------------------------------------------------------------------------
 
