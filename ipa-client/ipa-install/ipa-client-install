@@ -550,7 +550,7 @@ def main():
             cli_domain = user_input("Please provide the domain name of your IPA server (ex: example.com)", allow_empty = False)
             logging.debug("will use domain: %s\n", cli_domain)
         if options.on_master:
-            ret = ds.search(domain=options.domain, server=options.server)
+            ret = ds.search(domain=cli_domain, server=options.server)
         else:
             ret = ds.search(domain=cli_domain)
     if not cli_domain:
