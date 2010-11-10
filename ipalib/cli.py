@@ -658,6 +658,8 @@ class help(frontend.Local):
             mcl = max(len(s) for s in (self.Command))
             for cname in self.Command:
                 cmd = self.Command[cname]
+                if cmd.INTERNAL:
+                    continue
                 print '%s  %s' % (to_cli(cmd.name).ljust(mcl), cmd.summary)
         else:
             raise HelpError(topic=name)
