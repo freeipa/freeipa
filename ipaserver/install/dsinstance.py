@@ -497,7 +497,9 @@ class DsInstance(service.Service):
                     "-y", dmpwdfile, "-T", admpwdfile,
                     "uid=admin,cn=users,cn=accounts,"+self.suffix]
             try:
-                ipautil.run(args, env = { 'LDAPTLS_CACERT':CACERT })
+                env = { 'LDAPTLS_CACERTDIR':os.path.dirname(CACERT),
+                        'LDAPTLS_CACERT':CACERT }
+                ipautil.run(args, env=env)
                 logging.debug("ldappasswd done")
             except ipautil.CalledProcessError, e:
                 print "Unable to set admin password", e
