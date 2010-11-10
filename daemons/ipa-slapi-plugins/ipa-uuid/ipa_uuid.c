@@ -785,6 +785,8 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
     int ret = LDAP_SUCCESS;
     bool locked = false;
     bool set_attr;
+    int is_repl_op;
+    int is_config_dn;
 
     LOG_TRACE("--in-->\n");
 
@@ -796,6 +798,20 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
     dn = ipauuid_get_dn(pb);
     if (!dn) {
         goto done;
+    }
+
+    is_config_dn = ipauuid_dn_is_config(dn);
+
+    ret = slapi_pblock_get(pb, SLAPI_IS_REPLICATED_OPERATION, &is_repl_op);
+    if (ret != 0) {
+        LOG_FATAL("slapi_pblock_get failed!?\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    /* pass through if this is a replicated operation */
+    if (is_repl_op && !is_config_dn) {
+        return 0;
     }
 
     if (modtype != LDAP_CHANGETYPE_ADD &&
@@ -847,7 +863,7 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
         goto done;
     }
 
-    if (ipauuid_dn_is_config(dn)) {
+    if (is_config_dn) {
         /* Validate config changes, but don't apply them.
          * This allows us to reject invalid config changes
          * here at the pre-op stage.  Applying the config
