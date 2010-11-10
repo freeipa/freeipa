@@ -97,7 +97,8 @@ test('Testing ipa_facet_setup_views().', function() {
 
     facet.setup_views(container);
 
-    var list = container.children();
+    //Container now has two divs, one for the action panel one for content
+    var list = container.children().last().children();
     var views = list.children();
 
     equals(

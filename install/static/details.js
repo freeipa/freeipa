@@ -339,10 +339,9 @@ function ipa_details_create(container)
     var entity_name = container.attr('id');
     container.attr('title', entity_name);
 
-    facet.setup_views(container);
 
     var details = $('<div/>', {
-        'class': 'details'
+        'class': 'content'
     }).appendTo(container);
 
     var buttons = $('<div/>', {

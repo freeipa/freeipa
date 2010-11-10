@@ -67,8 +67,8 @@ h1 {
     margin-top: 18px;
 }
 
-div#details {
-    float: left;
+div#content {
+    position: relative;
     width: 100%;
 }
 
@@ -94,12 +94,12 @@ ul#viewtype li a {
     font-weight: normal;
 }
 
-div.details div.details-buttons {
+div.content div.content-buttons {
     float: right;
     margin-right: 15px;
 }
 
-div.details div.details-buttons img {
+div.content div.content-buttons img {
     border: 0;
 }
 
@@ -180,19 +180,29 @@ span.attrhint {
 
 /*Navigation */
 .tabs1 .ui-tabs-nav{
-    padding: 0.1em;
+    margin: 0; padding: 2.9em .2em 0;
+    background-image: url(Mainnav-background.png);
+
 }
 
-.tabs1 .ui-tabs-nav {
-    background-image: url(Mainnav-background.png);
+
+.ui-tabs .ui-tabs-nav li { height: 30px;  margin: 0 0 1px 0;}
+
+
+.tabs1 .ui-tabs-nav li a{
+    height: 30px;
+    background-image: url(Mainnav-offtab.png);
+    color: black;
 }
+
 
 .tabs1 .ui-tabs-nav li > a:link, span.main-nav-off >  a:visited{
-    color:white;
+    color:black;
 }
 
-.tabs1 .ui-tabs-nav li.ui-tabs-selected {
+.tabs1 .ui-tabs-nav li.ui-tabs-selected a{
     background-image: url(Mainnav-ontab.png);
+    color: lightgreen;
 }
 
 .tabs1 .ui-tabs-panel { display: block; border-width: 0; padding: 0.1em 0.4em; background: none; }
@@ -200,16 +210,34 @@ span.attrhint {
 
 .tabs2 .ui-tabs-nav {
     background-image: url(Subnav-background.png);
+    margin: 0; padding: .1em .2em 0;
+
 }
 
+
 .tabs2 .ui-tabs-nav li a{
-    background-image: url(Subnav-offbutton.png);
+    height: 10%;
+    background-image: url(Subnav-background.png);
+    color: white;
+}
+
+.tabs2 .ui-tabs-nav li > a:link, span.main-nav-off >  a:visited{
+    color:white;
+}
+
+
+.tabs2 .ui-tabs-nav li{
+    height: 10%;
+    background-image: url(Subnav-background.png);
+    color: white;
 }
 
 .tabs2 .ui-tabs-nav li.ui-tabs-selected a{
+    -moz-border-radius: 15px;
+    border-radius: 15px;
     background-image: url(Subnav-onbutton.png);
+    color: white;
 }
-
 
 span.sub-nav-off > a:link, span.sub-nav-off >  a:visited{
     color:white;
@@ -229,12 +257,39 @@ span.main-separator{
 /* Entity */
 
 .entity-container{
-    float: left;
+    position: relative;
     width: 80%;
+    height: 1000px;
     margin: 10px;
     padding: 10px;
     background: #e8e8e8;
 }
+
+.action-panel {
+    position:relative;
+    top:50px;
+    border-width: thin;
+    border-style: solid;
+    border-color: black;
+    float: left;
+}
+
+.action-panel h3{
+   border-width: thin;
+    border-style: solid;
+    border-color: black;
+    background: #e8e8e8;
+}
+
+.action-panel li {
+#    float: left;
+#    list-style-type: none;
+}
+
+.client {
+    float: left;
+}
+
 
 /* Search */
 

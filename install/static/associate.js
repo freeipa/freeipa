@@ -407,32 +407,33 @@ function ipa_association_facet(spec) {
     };
 
     that.create = function(container) {
-        that.setup_views(container);
-    };
-
-    that.setup = function(container, unspecified) {
-
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        that.other_entity = $.bbq.getState(that.entity_name + '-enroll', true) || '';
+        that.other_entity =
+            $.bbq.getState(that.entity_name + '-enroll', true) || '';
 
         //TODO I18N
         var header_message = that.other_entity + '(s) enrolled in '  +
             that.entity_name + ' ' + that.pkey;
-        container.append( $('<h2/>',{ html:  header_message }) );
 
         $('<div/>', {
-            'id': that.entity_name+'-'+that.other_entity
-        }).appendTo(container);
-
-        var table = ipa_association_widget({
             'id': that.entity_name+'-'+that.other_entity,
-            'name': that.other_entity, 'label': IPA.metadata[that.other_entity].label,
-            'entity_name': that.entity_name, 'other_entity': that.other_entity
+            html: $('<h2/>',{ html:  header_message })
+        }).appendTo(container);
+        that.table = ipa_association_widget({
+            'id': that.entity_name+'-'+that.other_entity,
+            'name': that.other_entity,
+            'label': IPA.metadata[that.other_entity].label,
+            'entity_name': that.entity_name,
+            'other_entity': that.other_entity
         });
 
-        table.create(container);
-        table.setup(container);
-        table.refresh(container);
+        that.table.create(container);
+
+    };
+
+    that.setup = function(container, unspecified) {
+        that.table.setup(container);
+        that.table.refresh(container);
     };
 
     return that;

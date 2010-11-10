@@ -34,7 +34,6 @@ function ipa_search_widget(spec) {
     that.create = function(container) {
 
         var div = $('#'+that.id);
-
         var search_controls = $('<div/>', {
             'class': 'search-controls'
         }).appendTo(div);

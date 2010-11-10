@@ -311,7 +311,9 @@ function ipa_entity_setup(container, unspecified) {
 
     container.empty();
 
+    facet.setup_views(container);
     facet.create(container);
+    container.children().last().addClass('client');
     facet.setup(container, unspecified);
     facet.load(container, unspecified);
 }
@@ -320,7 +322,12 @@ function ipa_facet_setup_views(container) {
 
     var facet = this;
 
-    var ul = $('<ul/>', {'class': 'entity-views'}).appendTo(container);
+    var div = $('<div/>',
+                {
+                    "class":"action-panel",
+                    html: $('<h3>Actions</h3>'),
+                }).appendTo(container);
+    var ul = $('<ul/>', {'class': 'action'}).appendTo(div);
 
     var entity = IPA.get_entity(facet.entity_name);
 
@@ -331,7 +338,6 @@ function ipa_facet_setup_views(container) {
         if (other_facet.label) {
 
             var label = other_facet.label;
-            if (i > 0) label = '| '+label;
 
             ul.append($('<li/>', {
                 title: other_facet.name,
@@ -351,8 +357,6 @@ function ipa_facet_setup_views(container) {
                 for (var j = 0; j < other_entities.length; j++) {
                     var other_entity = other_entities[j];
                     var label = IPA.metadata[other_entity].label;
-
-                    if (i > 0 || j > 0) label = '| ' + label;
 
                     ul.append($('<li/>', {
                         title: other_entity,

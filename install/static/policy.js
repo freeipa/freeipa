@@ -250,7 +250,7 @@ function ipa_records_facet(spec){
     };
 
     function create(container) {
-        that.setup_views(container);
+//        that.setup_views(container);
     }
 
     function setup(container, unspecified){
