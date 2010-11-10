@@ -191,7 +191,7 @@ ipaSearchRecordsLimit: 100
 ipaHomesRootDir: /home
 ipaDefaultLoginShell: /bin/sh
 ipaDefaultPrimaryGroup: ipausers
-ipaMaxUsernameLength: 8
+ipaMaxUsernameLength: 32
 ipaPwdExpAdvNotify: 4
 ipaGroupObjectClasses: top
 ipaGroupObjectClasses: groupofnames
