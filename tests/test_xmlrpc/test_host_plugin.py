@@ -35,6 +35,9 @@ service1 = u'dns/%s@%s' % (fqdn1, api.env.realm)
 service1dn = u'krbprincipalname=%s,cn=services,cn=accounts,%s' % (service1.lower(), api.env.basedn)
 fqdn2 = u'shouldnotexist.%s' % api.env.domain
 dn2 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn2, api.env.basedn)
+fqdn3 = u'testhost2.%s' % api.env.domain
+short3 = u'testhost2'
+dn3 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn3, api.env.basedn)
 
 servercert = 'MIICbzCCAdigAwIBAgICA/4wDQYJKoZIhvcNAQEFBQAwKTEnMCUGA1UEAxMeSVBBIFRlc3QgQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTEwMDgwOTE1MDIyN1oXDTIwMDgwOTE1MDIyN1owKTEMMAoGA1UEChMDSVBBMRkwFwYDVQQDExBwdW1hLmdyZXlvYWsuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwYbfEOQPgGenPn9vt1JFKvWm/Je3y2tawGWA3LXDuqfFJyYtZ8ib3TcBUOnLk9WK5g2qCwHaNlei7bj8ggIfr5hegAVe10cun+wYErjnYo7hsHYd+57VZezeipWrXu+7NoNd4+c4A5lk4A/xJay9j3bYx2oOM8BEox4xWYoWge1ljPrc5JK46f0X7AGW4F2VhnKPnf8rwSuzI1U8VGjutyM9TWNy3m9KMWeScjyG/ggIpOjUDMV7HkJL0Di61lznR9jXubpiEC7gWGbTp84eGl/Nn9bgK1AwHfJ2lHwfoY4uiL7ge1gyP6EvuUlHoBzdb7pekiX28iePjW3iEG9IawIDAQABoyIwIDARBglghkgBhvhCAQEEBAMCBkAwCwYDVR0PBAQDAgUgMA0GCSqGSIb3DQEBBQUAA4GBACRESLemRV9BPxfEgbALuxH5oE8jQm8WZ3pm2pALbpDlAd9wQc3yVf6RtkfVthyDnM18bg7IhxKpd77/p3H8eCnS8w5MLVRda6ktUC6tGhFTS4QKAf0WyDGTcIgkXbeDw0OPAoNHivoXbIXIIRxlw/XgaSaMzJQDBG8iROsN4kCv'
 
@@ -44,6 +47,7 @@ class test_host(Declarative):
     cleanup_commands = [
         ('host_del', [fqdn1], {}),
         ('host_del', [fqdn2], {}),
+        ('host_del', [fqdn3], {}),
         ('service_del', [service1], {}),
     ]
 
@@ -90,6 +94,7 @@ class test_host(Declarative):
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[fqdn1],
                 ),
             ),
         ),
@@ -120,7 +125,8 @@ class test_host(Declarative):
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    has_keytab=False
+                    has_keytab=False,
+                    managedby_host=[fqdn1],
                 ),
             ),
         ),
@@ -145,7 +151,7 @@ class test_host(Declarative):
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     serverhostname=[u'testhost1'],
                     objectclass=objectclasses.host,
-                    managedby=[dn1],
+                    managedby_host=[fqdn1],
                     ipauniqueid=[fuzzy_uuid],
                     has_keytab=False
                 ),
@@ -167,6 +173,7 @@ class test_host(Declarative):
                         description=[u'Test host 1'],
                         l=[u'Undisclosed location 1'],
                         krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                        managedby_host=[u'%s' % fqdn1],
                     ),
                 ],
             ),
@@ -194,8 +201,8 @@ class test_host(Declarative):
                         krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                         serverhostname=[u'testhost1'],
                         objectclass=objectclasses.host,
-                        managedby=[dn1],
                         ipauniqueid=[fuzzy_uuid],
+                        managedby_host=[u'%s' % fqdn1],
                     ),
                 ],
             ),
@@ -214,6 +221,7 @@ class test_host(Declarative):
                     fqdn=[fqdn1],
                     l=[u'Undisclosed location 1'],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[u'%s' % fqdn1],
                     usercertificate=[base64.b64decode(servercert)],
                     valid_not_before=u'Mon Aug 09 15:02:27 2010 UTC',
                     valid_not_after=u'Sun Aug 09 15:02:27 2020 UTC',
@@ -240,6 +248,7 @@ class test_host(Declarative):
                     l=[u'Undisclosed location 1'],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     has_keytab=False,
+                    managedby_host=[u'%s' % fqdn1],
                     usercertificate=[base64.b64decode(servercert)],
                     valid_not_before=u'Mon Aug 09 15:02:27 2010 UTC',
                     valid_not_after=u'Sun Aug 09 15:02:27 2020 UTC',
@@ -251,6 +260,101 @@ class test_host(Declarative):
                 ),
             ),
         ),
+
+        dict(
+            desc='Create %r' % fqdn3,
+            command=('host_add', [fqdn3],
+                dict(
+                    description=u'Test host 2',
+                    l=u'Undisclosed location 2',
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=fqdn3,
+                summary=u'Added host "%s"' % fqdn3,
+                result=dict(
+                    dn=dn3,
+                    fqdn=[fqdn3],
+                    description=[u'Test host 2'],
+                    l=[u'Undisclosed location 2'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[u'%s' % fqdn3],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Add managedby_host %r to %r' % (fqdn1, fqdn3),
+            command=('host_add_managedby', [fqdn3],
+                dict(
+                    host=u'%s' % fqdn1,
+                ),
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    managedby = dict(
+                        host=tuple(),
+                    ),
+                ),
+                result=dict(
+                    dn=dn3,
+                    fqdn=[fqdn3],
+                    description=[u'Test host 2'],
+                    l=[u'Undisclosed location 2'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                    managedby_host=[u'%s' % fqdn3, u'%s' % fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Retrieve %r' % fqdn3,
+            command=('host_show', [fqdn3], {}),
+            expected=dict(
+                value=fqdn3,
+                summary=None,
+                result=dict(
+                    dn=dn3,
+                    fqdn=[fqdn3],
+                    description=[u'Test host 2'],
+                    l=[u'Undisclosed location 2'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                    has_keytab=False,
+                    managedby_host=[u'%s' % fqdn3, u'%s' % fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Remove managedby_host %r from %r' % (fqdn1, fqdn3),
+            command=('host_remove_managedby', [fqdn3],
+                dict(
+                    host=u'%s' % fqdn1,
+                ),
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    managedby = dict(
+                        host=tuple(),
+                    ),
+                ),
+                result=dict(
+                    dn=dn3,
+                    fqdn=[fqdn3],
+                    description=[u'Test host 2'],
+                    l=[u'Undisclosed location 2'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                    managedby_host=[u'%s' % fqdn3],
+                ),
+            ),
+        ),
+
 
 
         dict(
@@ -313,6 +417,7 @@ class test_host(Declarative):
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[u'%s' % fqdn1],
                 ),
             ),
         ),
@@ -383,6 +488,7 @@ class test_host(Declarative):
                     krbprincipalname=[u'host/%s@%s' % (fqdn2, api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[u'%s' % fqdn2],
                 ),
             ),
         ),

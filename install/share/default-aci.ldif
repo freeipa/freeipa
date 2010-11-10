@@ -51,3 +51,11 @@ changetype: modify
 add: aci
 aci: (targetattr="userCertificate || krbLastPwdChange")(version 3.0; acl "Hosts can modify service userCertificate"; allow(write) userdn = "ldap:///self";)
 
+# Define which hosts can edit other hosts
+# The managedby attribute stores the DN of hosts that are allowed to manage
+# another host.
+dn: cn=computers,cn=accounts,$SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr="userCertificate || krbPrincipalKey")(version 3.0; acl "Hosts can manage other host Certificates and kerberos keys"; allow(write) userattr = "parent[0,1].managedby#USERDN";)
+

@@ -113,6 +113,7 @@ class test_hostgroup(Declarative):
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[fqdn1],
                 ),
             ),
         ),

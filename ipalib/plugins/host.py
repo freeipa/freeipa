@@ -65,6 +65,9 @@ EXAMPLES:
 
  Disable the host kerberos key:
    ipa host-disable test.example.com
+
+ Add a host that can manage this host's keytab and certificate:
+   ipa host-add-managedby --hosts=test2 test
 """
 
 import platform
@@ -97,6 +100,9 @@ def validate_host(ugettext, fqdn):
 host_output_params = (
     Flag('has_keytab',
         label=_('Keytab'),
+    ),
+    Str('managedby_host',
+        label='Managed by',
     ),
     Str('subject',
         label=_('Subject'),
@@ -135,17 +141,18 @@ class host(LDAPObject):
     # object_class_config = 'ipahostobjectclasses'
     search_attributes = [
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
-        'nshardwareplatform', 'nsosversion',
+        'nshardwareplatform', 'nsosversion', 'managedby'
     ]
     default_attributes = [
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
-        'krblastpwdchange',
+        'krblastpwdchange', 'managedby'
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'enrolledby': ['user'],
         'memberof': ['hostgroup', 'netgroup', 'rolegroup'],
+        'managedby': ['host'],
     }
 
     label = _('Hosts')
@@ -233,6 +240,7 @@ class host_add(LDAPCreate):
 
     has_output_params = LDAPCreate.has_output_params + host_output_params
     msg_summary = _('Added host "%(value)s"')
+    member_attributes = ['managedby']
     takes_options = (
         Flag('force',
             doc=_('force host name even if not in DNS'),
@@ -286,6 +294,7 @@ class host_del(LDAPDelete):
     """
 
     msg_summary = _('Deleted host "%(value)s"')
+    member_attributes = ['managedby']
 
     def pre_callback(self, ldap, dn, *keys, **options):
         # If we aren't given a fqdn, find it
@@ -346,6 +355,7 @@ class host_mod(LDAPUpdate):
 
     has_output_params = LDAPUpdate.has_output_params + host_output_params
     msg_summary = _('Modified host "%(value)s"')
+    member_attributes = ['managedby']
 
     takes_options = LDAPUpdate.takes_options + (
         Str('krbprincipalname?',
@@ -404,7 +414,6 @@ class host_mod(LDAPUpdate):
                 entry_attrs['userpassword'] = ipa_generate_password()
                 setattr(context, 'randompassword', entry_attrs['userpassword'])
             del entry_attrs['random']
-        entry_attrs['managedby'] = dn
 
         return dn
 
@@ -426,6 +435,7 @@ class host_find(LDAPSearch):
     msg_summary = ngettext(
         '%(count)d host matched', '%(count)d hosts matched'
     )
+    member_attributes = ['managedby']
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, *args, **options):
         if 'locality' in attrs_list:
@@ -446,6 +456,7 @@ class host_show(LDAPRetrieve):
     Display information about a host.
     """
     has_output_params = LDAPRetrieve.has_output_params + host_output_params
+    member_attributes = ['managedby']
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if 'krblastpwdchange' in entry_attrs:
@@ -545,3 +556,22 @@ class host_disable(LDAPQuery):
         )
 
 api.register(host_disable)
+
+class host_add_managedby(LDAPAddMember):
+    """
+    Add hosts that can manage this host.
+    """
+    member_attributes = ['managedby']
+    has_output_params = LDAPAddMember.has_output_params + host_output_params
+
+api.register(host_add_managedby)
+
+
+class host_remove_managedby(LDAPRemoveMember):
+    """
+    Remove hosts that can manage this host.
+    """
+    member_attributes = ['managedby']
+    has_output_params = LDAPRemoveMember.has_output_params + host_output_params
+
+api.register(host_remove_managedby)
