@@ -1,0 +1,17 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "result": {
+            "cn": [
+                "sudo"
+            ],
+            "description": [
+                "sudo"
+            ],
+            "dn": "cn=sudo,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+        },
+        "summary": null,
+        "value": "sudo"
+    }
+}

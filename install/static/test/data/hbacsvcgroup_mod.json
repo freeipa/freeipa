@@ -1,0 +1,16 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "result": {
+            "cn": [
+                "test"
+            ],
+            "description": [
+                "Test"
+            ]
+        },
+        "summary": "Modified HBAC Service group \"test\"",
+        "value": "test"
+    }
+}
