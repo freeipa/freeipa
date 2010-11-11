@@ -87,6 +87,7 @@ def main():
     print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
 
     logging.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
+    logging.debug("missing options might be asked for interactively later\n")
 
     global fstore
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
@@ -127,6 +128,7 @@ def main():
             return 1
         else:
             ip_address = read_ip_address(api.env.host, fstore)
+    logging.debug("will use ip_address: %s\n", ip_address)
 
     if options.no_forwarders:
         dns_forwarders = ()
@@ -134,6 +136,7 @@ def main():
         dns_forwarders = options.forwarders
     else:
         dns_forwarders = read_dns_forwarders()
+    logging.debug("will use dns_forwarders: %s\n", str(dns_forwarders))
 
     if not options.dm_password:
         dm_password = read_password("Directory Manager", confirm=False, validate=False)

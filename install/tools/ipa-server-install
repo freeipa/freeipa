@@ -467,6 +467,7 @@ def main():
             sys.exit("IPA server is already configured on this system.")
 
     logging.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
+    logging.debug("missing options might be asked for interactively later\n")
 
     global fstore
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
@@ -565,9 +566,11 @@ def main():
         host_name = read_host_name(host_default,options.no_host_dns)
 
     host_name = host_name.lower()
+    logging.debug("will use host_name: %s\n" % host_name)
 
     if not options.domain_name:
         domain_name = read_domain_name(host_name[host_name.find(".")+1:], options.unattended)
+        logging.debug("read domain_name: %s\n" % domain_name)
     else:
         domain_name = options.domain_name
 
@@ -603,6 +606,7 @@ def main():
 
     if not ip:
         ip = read_ip_address(host_name, fstore)
+        logging.debug("read ip_address: %s\n" % ip)
     ip_address = ip
 
     print "The IPA Master Server will be configured with"
@@ -615,11 +619,13 @@ def main():
         ds_user = read_ds_user()
         if ds_user == "":
             return 1
+        logging.debug("read ds_user: %s\n" % ds_user)
     else:
         ds_user = options.ds_user
 
     if not options.realm_name:
         realm_name = read_realm_name(domain_name, options.unattended)
+        logging.debug("read realm_name: %s\n" % realm_name)
     else:
         realm_name = options.realm_name.upper()
 
@@ -650,6 +656,7 @@ def main():
             dns_forwarders = read_dns_forwarders()
     else:
         dns_forwarders = ()
+    logging.debug("will use dns_forwarders: %s\n" % str(dns_forwarders))
 
     # Create the management framework config file and finalize api
     fd = open("/etc/ipa/default.conf", "w")
