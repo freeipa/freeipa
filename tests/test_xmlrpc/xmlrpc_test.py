@@ -36,12 +36,12 @@ fuzzy_digits = Fuzzy('^\d+$', type=basestring)
 
 # Matches an ipauniqueid like u'784d85fd-eae7-11de-9d01-54520012478b'
 fuzzy_uuid = Fuzzy(
-    '^[0-9a-f]{8}-[0-9a-f]{8}-[0-9a-f]{8}-[0-9a-f]{8}$'
+    '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
 )
 
 # Matches netgroup dn
 fuzzy_netgroupdn = Fuzzy(
-    'ipauniqueid=[0-9a-f]{8}-[0-9a-f]{8}-[0-9a-f]{8}-[0-9a-f]{8},cn=ng,cn=alt,%s' % api.env.basedn
+    'ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},cn=ng,cn=alt,%s' % api.env.basedn
 )
 
 try:
