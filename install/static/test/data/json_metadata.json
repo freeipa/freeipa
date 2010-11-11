@@ -1748,19 +1748,14 @@
             "hbacsvcgroup": {
                 "attribute_members": {
                     "member": [
-                        "hbacsvc",
-                        "hbacsvcgroup"
-                    ],
-                    "memberof": [
-                        "hbacsvcgroup"
+                        "hbacsvc"
                     ]
                 },
                 "container_dn": "cn=hbacservicegroups,cn=accounts",
                 "default_attributes": [
                     "cn",
                     "description",
-                    "member",
-                    "memberof"
+                    "member"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -1782,8 +1777,8 @@
                     "ipahbacservicegroup"
                 ],
                 "object_class_config": null,
-                "object_name": "servicegroup",
-                "object_name_plural": "servicegroups",
+                "object_name": "hbacsvcgroup",
+                "object_name_plural": "hbacsvcgroups",
                 "parent_object": "",
                 "primary_key": "cn",
                 "takes_params": [
@@ -1835,93 +1830,6 @@
                         "primary_key": false,
                         "query": false,
                         "required": true,
-                        "type": "unicode"
-                    },
-                    {
-                        "attribute": false,
-                        "autofill": false,
-                        "class": "Str",
-                        "cli_name": "member_service",
-                        "cli_short_name": null,
-                        "default": null,
-                        "doc": "Member services",
-                        "exclude": null,
-                        "flags": [
-                            "no_update",
-                            "no_create",
-                            "no_search"
-                        ],
-                        "hint": null,
-                        "include": null,
-                        "label": "Member services",
-                        "length": null,
-                        "maxlength": null,
-                        "minlength": null,
-                        "multivalue": false,
-                        "name": "member_service",
-                        "pattern": null,
-                        "pattern_errmsg": null,
-                        "primary_key": false,
-                        "query": false,
-                        "required": false,
-                        "type": "unicode"
-                    },
-                    {
-                        "attribute": false,
-                        "autofill": false,
-                        "class": "Str",
-                        "cli_name": "member_servicegroup",
-                        "cli_short_name": null,
-                        "default": null,
-                        "doc": "Member service groups",
-                        "exclude": null,
-                        "flags": [
-                            "no_update",
-                            "no_create",
-                            "no_search"
-                        ],
-                        "hint": null,
-                        "include": null,
-                        "label": "Member service groups",
-                        "length": null,
-                        "maxlength": null,
-                        "minlength": null,
-                        "multivalue": false,
-                        "name": "member_servicegroup",
-                        "pattern": null,
-                        "pattern_errmsg": null,
-                        "primary_key": false,
-                        "query": false,
-                        "required": false,
-                        "type": "unicode"
-                    },
-                    {
-                        "attribute": false,
-                        "autofill": false,
-                        "class": "Str",
-                        "cli_name": "memberof_servicegroup",
-                        "cli_short_name": null,
-                        "default": null,
-                        "doc": "Member of service groups",
-                        "exclude": null,
-                        "flags": [
-                            "no_update",
-                            "no_create",
-                            "no_search"
-                        ],
-                        "hint": null,
-                        "include": null,
-                        "label": "Member of service groups",
-                        "length": null,
-                        "maxlength": null,
-                        "minlength": null,
-                        "multivalue": false,
-                        "name": "memberof_servicegroup",
-                        "pattern": null,
-                        "pattern_errmsg": null,
-                        "primary_key": false,
-                        "query": false,
-                        "required": false,
                         "type": "unicode"
                     }
                 ],

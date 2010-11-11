@@ -114,6 +114,10 @@ function ipa_hbac_search_facet(spec) {
     that.create = function(container) {
 
         var that = this;
+
+        // TODO: replace with IPA.metadata[that.entity_name].label
+        $('<h2/>', { 'html': 'HBAC Rules' }).appendTo(container);
+
 /*
         // Not yet implemented
 
@@ -142,11 +146,17 @@ function ipa_hbac_search_facet(spec) {
                 return false;
             }
         }));
-/*
+
         right_buttons.append(ipa_button({
-            'label': 'Login Svc Groups'
+            'label': 'HBAC Service Groups',
+            'click': function() {
+                var state = {};
+                state['entity'] = 'hbacsvcgroup';
+                nav_push_state(state);
+                return false;
+            }
         }));
-*/
+
         container.append('<br/><br/>');
 
         that.super_create(container);

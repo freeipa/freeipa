@@ -20,32 +20,43 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-function ipa_hbacsvc() {
+function ipa_hbacsvcgroup() {
 
     var that = ipa_entity({
-        'name': 'hbacsvc'
+        'name': 'hbacsvcgroup'
     });
 
     that.super_init = that.super('init');
 
     that.init = function() {
 
-        var dialog = ipa_hbacsvc_add_dialog({
+        that.create_association({
+            'name': 'hbacsvc',
+            'add_method': 'add_member',
+            'delete_method': 'remove_member'
+        });
+
+        var dialog = ipa_hbacsvcgroup_add_dialog({
             'name': 'add',
-            'title': 'Add New HBAC Service'
+            'title': 'Add New HBAC Service Group'
         });
         that.add_dialog(dialog);
         dialog.init();
 
-        var facet = ipa_hbacsvc_search_facet({
+        var facet = ipa_hbacsvcgroup_search_facet({
             'name': 'search',
             'label': 'Search'
         });
         that.add_facet(facet);
 
-        facet = ipa_hbacsvc_details_facet({
+        facet = ipa_hbacsvcgroup_details_facet({
             'name': 'details',
             'label': 'Details'
+        });
+        that.add_facet(facet);
+
+        facet = ipa_association_facet({
+            'name': 'associate'
         });
         that.add_facet(facet);
 
@@ -55,9 +66,9 @@ function ipa_hbacsvc() {
     return that;
 }
 
-IPA.add_entity(ipa_hbacsvc());
+IPA.add_entity(ipa_hbacsvcgroup());
 
-function ipa_hbacsvc_add_dialog(spec) {
+function ipa_hbacsvcgroup_add_dialog(spec) {
 
     spec = spec || {};
 
@@ -76,7 +87,7 @@ function ipa_hbacsvc_add_dialog(spec) {
     return that;
 }
 
-function ipa_hbacsvc_search_facet(spec) {
+function ipa_hbacsvcgroup_search_facet(spec) {
 
     spec = spec || {};
 
@@ -88,13 +99,13 @@ function ipa_hbacsvc_search_facet(spec) {
 
     that.init = function() {
 
-        that.create_column({name:'cn', label:'Service', primary_key: true});
+        that.create_column({name:'cn', label:'Group', primary_key: true});
         that.create_column({name:'description', label:'Description'});
 
         that.create_column({
             name: 'quick_links',
             label: 'Quick Links',
-            setup: ipa_hbacsvc_quick_links
+            setup: ipa_hbacsvcgroup_quick_links
         });
 
         that.super_init();
@@ -105,7 +116,7 @@ function ipa_hbacsvc_search_facet(spec) {
         var that = this;
 
         // TODO: replace with IPA.metadata[that.entity_name].label
-        $('<h2/>', { 'html': 'HBAC Services' }).appendTo(container);
+        $('<h2/>', { 'html': 'HBAC Service Groups' }).appendTo(container);
 
         var right_buttons = $('<span/>', {
             'style': 'float: right;'
@@ -122,10 +133,10 @@ function ipa_hbacsvc_search_facet(spec) {
         }));
 
         right_buttons.append(ipa_button({
-            'label': 'HBAC Service Groups',
+            'label': 'HBAC Services',
             'click': function() {
                 var state = {};
-                state['entity'] = 'hbacsvcgroup';
+                state['entity'] = 'hbacsvc';
                 nav_push_state(state);
                 return false;
             }
@@ -140,7 +151,7 @@ function ipa_hbacsvc_search_facet(spec) {
 }
 
 
-function ipa_hbacsvc_quick_links(container, name, value, record) {
+function ipa_hbacsvcgroup_quick_links(container, name, value, record) {
 
     var that = this;
 
@@ -164,7 +175,7 @@ function ipa_hbacsvc_quick_links(container, name, value, record) {
     span.html(link);
 }
 
-function ipa_hbacsvc_details_facet(spec) {
+function ipa_hbacsvcgroup_details_facet(spec) {
 
     spec = spec || {};
 

@@ -1,0 +1,21 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "completed": 1,
+        "failed": {
+            "member": {
+                "hbacsvc": []
+            }
+        },
+        "result": {
+            "cn": [
+                "test"
+            ],
+            "description": [
+                "Test Service Group"
+            ],
+            "dn": "cn=test,cn=hbacservicegroups,cn=accounts,dc=dev,dc=example,dc=com"
+        }
+    }
+}
