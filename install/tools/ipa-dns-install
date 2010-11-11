@@ -161,7 +161,8 @@ def main():
 
     # Create a BIND instance
     bind = bindinstance.BindInstance(fstore, dm_password)
-    bind.setup(api.env.host, ip_address, api.env.realm, api.env.domain, dns_forwarders, conf_ntp, zonemgr=options.zonemgr)
+    create_reverse = bindinstance.create_reverse(options.unattended)
+    bind.setup(api.env.host, ip_address, api.env.realm, api.env.domain, dns_forwarders, conf_ntp, create_reverse, zonemgr=options.zonemgr)
     api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
     bind.create_instance()
 

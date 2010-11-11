@@ -58,6 +58,11 @@ def check_inst(unattended):
 
     return True
 
+def create_reverse(unattended):
+    if unattended:
+        return False
+    return ipautil.user_input("Do you want to configure the reverse zone?", False)
+
 def dns_container_exists(fqdn, realm):
     """
     Test whether the dns container exists.
@@ -200,13 +205,14 @@ class BindInstance(service.Service):
         self.realm = None
         self.forwarders = None
         self.sub_dict = None
+        self.create_reverse = False
 
         if fstore:
             self.fstore = fstore
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp, named_user="named", zonemgr=None):
+    def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp, create_reverse, named_user="named", zonemgr=None):
         self.named_user = named_user
         self.fqdn = fqdn
         self.ip_address = ip_address
@@ -216,6 +222,7 @@ class BindInstance(service.Service):
         self.host = fqdn.split(".")[0]
         self.suffix = util.realm_to_suffix(self.realm)
         self.ntp = ntp
+        self.create_reverse = create_reverse
 
         if zonemgr:
             self.zonemgr = zonemgr.replace('@','.')
@@ -247,7 +254,8 @@ class BindInstance(service.Service):
         if not dns_container_exists(self.fqdn, self.suffix):
             self.step("adding DNS container", self.__setup_dns_container)
         self.step("setting up our zone", self.__setup_zone)
-        self.step("setting up reverse zone", self.__setup_reverse_zone)
+        if self.create_reverse:
+            self.step("setting up reverse zone", self.__setup_reverse_zone)
 
         self.step("setting up kerberos principal", self.__setup_principal)
         self.step("setting up named.conf", self.__setup_named_conf)
