@@ -3,6 +3,21 @@
     "id": 0,
     "result": {
         "result": {
+            "attributelevelrights": {
+                "aci": "rscwo",
+                "businesscategory": "rscwo",
+                "cn": "rscwo",
+                "description": "rscwo",
+                "ipauniqueid": "rsc",
+                "member": "rscwo",
+                "memberof": "rsc",
+                "nsaccountlock": "rscwo",
+                "o": "rscwo",
+                "objectclass": "rscwo",
+                "ou": "rscwo",
+                "owner": "rscwo",
+                "seealso": "rscwo"
+            },
             "cn": [
                 "SUDO"
             ],
@@ -10,9 +25,19 @@
                 "Default group of SUDO related services"
             ],
             "dn": "cn=sudo,cn=hbacservicegroups,cn=accounts,dc=dev,dc=example,dc=com",
+            "ipauniqueid": [
+                "676e92ab-ec7611df-b3f78f4b-11cc007b"
+            ],
             "member_hbacsvc": [
                 "sudo",
                 "sudo-i"
+            ],
+            "objectclass": [
+                "ipaobject",
+                "ipahbacservicegroup",
+                "nestedGroup",
+                "groupOfNames",
+                "top"
             ]
         },
         "summary": null,
