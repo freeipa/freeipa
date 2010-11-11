@@ -124,10 +124,10 @@ def parse_options():
                       default=False,
                       help="Do not use DNS for hostname lookup during installation")
 
-    parser.add_option("--uidstart", dest="uidstart", default=namespace, type=int,
-                      help="The starting uid value (default random)")
-    parser.add_option("--gidstart", dest="gidstart", default=namespace, type=int,
-                      help="The starting gid value (default random)")
+    parser.add_option("--idstart", dest="idstart", default=namespace, type=int,
+                      help="The starting value for the IDs range (default random)")
+    parser.add_option("--idmax", dest="idmax", default=0, type=int,
+                      help="The max value value for the IDs range (default random)")
     parser.add_option("--subject", dest="subject",
                       help="The certificate subject base (default O=<realm-name>)")
     parser.add_option("--no_hbac_allow", dest="hbac_allow", default=False,
@@ -175,6 +175,13 @@ def parse_options():
         parser.error("--external-ca-file must use an absolute path")
     if (options.external_cert_file and not os.path.isabs(options.external_cert_file)):
         parser.error("--external-cert-file must use an absolute path")
+
+    if options.idmax == 0:
+        options.idmax = int(options.idstart) + 1000000 - 1
+
+    if options.idmax < options.idstart:
+        parse.error("idmax (%u) cannot be smaller than idstart (%u)" %
+                    (options.idmax, options.idstart))
 
     #Automatically disable pkinit w/ dogtag until that is supported
     if not options.pkinit_pkcs12 and not options.selfsign:
@@ -739,7 +746,11 @@ def main():
         finally:
             os.remove(pw_name)
     else:
-        ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, self_signed_ca=options.selfsign, uidstart=options.uidstart, gidstart=options.gidstart, subject_base=options.subject, hbac_allow=not options.hbac_allow)
+        ds.create_instance(ds_user, realm_name, host_name, domain_name,
+                           dm_password, self_signed_ca=options.selfsign,
+                           idstart=options.idstart, idmax=options.idmax,
+                           subject_base=options.subject,
+                           hbac_allow=not options.hbac_allow)
 
     if options.pkinit_pin:
         [pw_fd, pw_name] = tempfile.mkstemp()

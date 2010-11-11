@@ -100,6 +100,18 @@ objectClass: nsContainer
 objectClass: top
 cn: masters
 
+dn: cn=dna,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: dna
+
+dn: cn=posix-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: posix-ids
+
 dn: uid=admin,cn=users,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
@@ -113,8 +125,8 @@ uid: admin
 krbPrincipalName: admin@$REALM
 cn: Administrator
 sn: Administrator
-uidNumber: $UIDSTART
-gidNumber: $GIDSTART
+uidNumber: $IDSTART
+gidNumber: $IDSTART
 homeDirectory: /home/admin
 loginShell: /bin/bash
 gecos: Administrator
@@ -153,7 +165,7 @@ objectClass: posixgroup
 objectClass: ipausergroup
 cn: admins
 description: Account administrators group
-gidNumber: $GIDSTART
+gidNumber: $IDSTART
 member: uid=admin,cn=users,cn=accounts,$SUFFIX
 nsAccountLock: False
 
@@ -164,7 +176,7 @@ objectClass: groupofnames
 objectClass: nestedgroup
 objectClass: ipausergroup
 objectClass: posixgroup
-gidNumber: eval($GIDSTART+1)
+gidNumber: eval($IDSTART+1)
 description: Default group for all users
 cn: ipausers
 
@@ -174,7 +186,7 @@ objectClass: top
 objectClass: groupofnames
 objectClass: posixgroup
 objectClass: ipausergroup
-gidNumber: eval($GIDSTART+2)
+gidNumber: eval($IDSTART+2)
 description: Limited admins who can edit other users
 cn: editors
 

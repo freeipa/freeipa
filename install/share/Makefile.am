@@ -32,8 +32,7 @@ app_DATA =				\
 	krbrealm.con.template		\
 	preferences.html.template 	\
 	referint-conf.ldif		\
-	dna-posix.ldif			\
-	dna-upg.ldif			\
+	dna.ldif			\
 	master-entry.ldif		\
 	memberof-task.ldif		\
 	memberof-conf.ldif		\

@@ -3,5 +3,3 @@ changetype: add
 objectclass: top
 objectclass: extensibleObject
 cn: $FQHN
-dnabase: 1100
-dnainterval: 4

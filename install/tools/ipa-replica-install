@@ -176,7 +176,13 @@ def install_ds(config):
                        config.dir + "/dirsrv_pin.txt")
 
     ds = dsinstance.DsInstance()
-    ds.create_instance(config.ds_user, config.realm_name, config.host_name, config.domain_name, config.dirman_password, pkcs12_info)
+    # idstart and idmax are configured so that the range is seen as depleted
+    # by the DNA plugin and the replica will go and get a new range from the
+    # master.
+    # This way all servers use the initially defined range by default.
+    ds.create_instance(config.ds_user, config.realm_name, config.host_name,
+                       config.domain_name, config.dirman_password,
+                       pkcs12_info, idstart=1101, idmax=1100)
 
     return ds
 

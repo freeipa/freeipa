@@ -176,15 +176,18 @@ class DsInstance(service.Service):
         self.pkcs12_info = None
         self.ds_user = None
         self.dercert = None
-        self.uidstart = 1100
-        self.gidstart = 1100
+        self.idstart = None
+        self.idmax = None
         if realm_name:
             self.suffix = util.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()
         else:
             self.suffix = None
 
-    def create_instance(self, ds_user, realm_name, fqdn, domain_name, dm_password, pkcs12_info=None, self_signed_ca=False, uidstart=1100, gidstart=1100, subject_base=None, hbac_allow=True):
+    def create_instance(self, ds_user, realm_name, fqdn, domain_name,
+                        dm_password, pkcs12_info=None, self_signed_ca=False,
+                        idstart=1100, idmax=999999, subject_base=None,
+                        hbac_allow=True):
         self.ds_user = ds_user
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
@@ -194,8 +197,8 @@ class DsInstance(service.Service):
         self.domain = domain_name
         self.pkcs12_info = pkcs12_info
         self.self_signed_ca = self_signed_ca
-        self.uidstart = uidstart
-        self.gidstart = gidstart
+        self.idstart = idstart
+        self.idmax = idmax
         self.principal = "ldap/%s@%s" % (self.fqdn, self.realm_name)
         self.subject_base = subject_base
         self.__setup_sub_dict()
@@ -206,8 +209,7 @@ class DsInstance(service.Service):
         self.step("enabling memberof plugin", self.__add_memberof_module)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
         self.step("enabling winsync plugin", self.__add_winsync_module)
-        if self.uidstart == self.gidstart:
-            self.step("configuring user private groups", self.__user_private_groups)
+        self.step("configuring user private groups", self.__user_private_groups)
         self.step("configuring replication version plugin", self.__config_version_module)
         self.step("enabling IPA enrollment plugin", self.__add_enrollment_module)
         self.step("enabling ldapi", self.__enable_ldapi)
@@ -242,11 +244,12 @@ class DsInstance(service.Service):
     def __setup_sub_dict(self):
         server_root = find_server_root()
         self.sub_dict = dict(FQHN=self.fqdn, SERVERID=self.serverid,
-                             PASSWORD=self.dm_password, SUFFIX=self.suffix.lower(),
+                             PASSWORD=self.dm_password,
+                             SUFFIX=self.suffix.lower(),
                              REALM=self.realm_name, USER=self.ds_user,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
-                             TIME=int(time.time()), UIDSTART=self.uidstart,
-                             GIDSTART=self.gidstart, HOST=self.fqdn,
+                             TIME=int(time.time()), IDSTART=self.idstart,
+                             IDMAX=self.idmax, HOST=self.fqdn,
                              ESCAPED_SUFFIX= escape_dn_chars(self.suffix.lower()),
                          )
 
@@ -366,11 +369,9 @@ class DsInstance(service.Service):
         self._ldap_mod("unique-attributes.ldif", self.sub_dict)
 
     def __config_uidgid_gen_first_master(self):
-        if (self.uidstart == self.gidstart and
-            has_managed_entries(self.fqdn, self.dm_password)):
-            self._ldap_mod("dna-upg.ldif", self.sub_dict)
-        else:
-            self._ldap_mod("dna-posix.ldif", self.sub_dict)
+        if not has_managed_entries(self.fqdn, self.dm_password):
+            raise errors.NotFound(reason='Missing Managed Entries Plugin')
+        self._ldap_mod("dna.ldif", self.sub_dict)
 
     def __add_master_entry_first_master(self):
         self._ldap_mod("master-entry.ldif", self.sub_dict)
@@ -396,8 +397,9 @@ class DsInstance(service.Service):
         self._ldap_mod("modrdn-krbprinc.ldif", self.sub_dict)
 
     def __user_private_groups(self):
-        if has_managed_entries(self.fqdn, self.dm_password):
-            self._ldap_mod("user_private_groups.ldif", self.sub_dict)
+        if not has_managed_entries(self.fqdn, self.dm_password):
+            raise errors.NotFound(reason='Missing Managed Entries Plugin')
+        self._ldap_mod("user_private_groups.ldif", self.sub_dict)
 
     def __add_enrollment_module(self):
         self._ldap_mod("enrollment-conf.ldif", self.sub_dict)
