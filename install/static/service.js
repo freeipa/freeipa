@@ -160,13 +160,6 @@ function ipa_service_search_facet(spec) {
     that.init = function() {
 
         this.create_column({name:'krbprincipalname', label:'Principal'});
-
-        this.create_column({
-            name: 'quick_links',
-            label: 'Quick Links',
-            setup: ipa_entity_quick_links
-        });
-
         that.super_init();
     };
 

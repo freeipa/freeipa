@@ -69,8 +69,7 @@ function ipa_group_add_dialog(spec) {
 ipa_entity_set_search_definition('group', [
     ['cn', 'Name', null],
     ['gidnumber', 'GID', null],
-    ['description', 'Description', null],
-    ['quick_links', 'Quick Links', ipa_entity_quick_links]
+    ['description', 'Description', null]
 ]);
 
 ipa_entity_set_details_definition('group',[

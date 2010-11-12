@@ -22,8 +22,7 @@
 
 ipa_entity_set_search_definition('netgroup', [
     ['cn', 'Name', null],
-    ['description', 'Description', null],
-    ['quick_links', 'Quick Links', ipa_entity_quick_links]
+    ['description', 'Description', null]
 ]);
 
 ipa_entity_set_add_definition('netgroup', [

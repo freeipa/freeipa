@@ -22,8 +22,7 @@
 
 /* DNS */
 ipa_entity_set_search_definition('dns', [
-    ['idnsname', 'Zone Name', null],
-    ['quick_links', 'Quick Links', ipa_entity_quick_links]
+    ['idnsname', 'Zone Name', null]
 ]);
 
 
@@ -459,9 +458,7 @@ function ipa_records_facet(spec){
 /**Automount*/
 
 ipa_entity_set_search_definition('automountlocation', [
-    ['cn', 'Name', null],
-    ['quick_links', 'Quick Links', ipa_entity_quick_links]
-
+    ['cn', 'Name', null]
 ]);
 
 ipa_entity_set_add_definition('automountlocation', [
@@ -482,8 +479,7 @@ ipa_entity_set_association_definition('automountlocation', {
 /**pwpolicy*/
 
 ipa_entity_set_search_definition('pwpolicy', [
-    ['cn', 'Name', null],
-    ['quick_links', 'Quick Links', ipa_entity_quick_links]
+    ['cn', 'Name', null]
 
 ]);
 

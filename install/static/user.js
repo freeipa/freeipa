@@ -27,7 +27,6 @@ ipa_entity_set_search_definition('user', [
     ['mail', 'EMAIL', null],
     ['telephonenumber', 'Phone', null],
     ['title', 'Job Title', null],
-    ['quick_links', 'Quick Links', ipa_entity_quick_links]
 ]);
 
 ipa_entity_set_add_definition('user', [

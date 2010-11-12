@@ -25,8 +25,7 @@
 
 /* ACI */
 ipa_entity_set_search_definition('aci', [
-    ['cn', 'ACI name', null],
-    ['quick_links', 'Quick Links', ipa_entity_quick_links]
+    ['cn', 'ACI name', null]
 ]);
 
 ipa_entity_set_add_definition('aci', [
@@ -48,8 +47,7 @@ ipa_entity_set_details_definition('aci', [
 
 ipa_entity_set_search_definition('taskgroup', [
     ['cn', 'Role-group name', null],
-    ['description', 'Description', null],
-    ['quick_links', 'Quick Links', ipa_entity_quick_links]
+    ['description', 'Description', null]
 ]);
 
 ipa_entity_set_add_definition('taskgroup', [
@@ -80,8 +78,7 @@ ipa_entity_set_association_definition('rolegroup', {
 
 ipa_entity_set_search_definition('rolegroup', [
     ['cn', 'Role-group name', null],
-    ['description', 'Description', null],
-    ['quick_links', 'Quick Links', ipa_entity_quick_links]
+    ['description', 'Description', null]
 ]);
 
 ipa_entity_set_add_definition('rolegroup', [

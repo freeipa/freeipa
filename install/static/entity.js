@@ -318,18 +318,15 @@ function ipa_entity_setup(container, unspecified) {
     facet.load(container, unspecified);
 }
 
-function ipa_facet_setup_views(container) {
 
-    var facet = this;
-
-    var div = $('<div/>',
-                {
-                    "class":"action-panel",
-                    html: $('<h3>Actions</h3>'),
-                }).appendTo(container);
+function action_panel(entity_name){
+    var div = $('<div/>', {
+        "class":"action-panel",
+        html: $('<h3>Actions</h3>'),
+    });
     var ul = $('<ul/>', {'class': 'action'}).appendTo(div);
 
-    var entity = IPA.get_entity(facet.entity_name);
+    var entity = IPA.get_entity(entity_name);
 
     for (var i=0; i<entity.facets.length; i++) {
         var other_facet = entity.facets[i];
@@ -346,12 +343,12 @@ function ipa_facet_setup_views(container) {
                     return function() {
                         IPA.show_page(entity_name, facet_name);
                     };
-                }(facet.entity_name, facet_name)
+                }(entity_name, facet_name)
             }));
 
         } else { // For now empty label indicates an association facet
 
-            var attribute_members = IPA.metadata[facet.entity_name].attribute_members;
+            var attribute_members = IPA.metadata[entity_name].attribute_members;
             for (var attribute_member in attribute_members) {
                 var other_entities = attribute_members[attribute_member];
                 for (var j = 0; j < other_entities.length; j++) {
@@ -365,60 +362,20 @@ function ipa_facet_setup_views(container) {
                             return function() {
                                 IPA.show_page(entity_name, facet_name, other_entity);
                             };
-                        }(facet.entity_name, facet_name, other_entity)
+                        }(entity_name, facet_name, other_entity)
                     }));
                 }
             }
         }
     }
+    return div;
 }
 
-function ipa_entity_quick_links(container, name, value, entry_attrs) {
 
-    var obj_name = container.closest('.entity-container').attr('title');
-    var pkey = IPA.metadata[obj_name].primary_key;
-    var pkey_value = entry_attrs[pkey];
+function ipa_facet_setup_views(container) {
 
-    var span = $('span[name="'+name+'"]', container);
-    span.empty();
-
-    $("<a/>", {
-        href: '#details',
-        title: 'Details',
-        text: 'Details',
-        click: function() {
-            var state = {};
-            state[obj_name+'-facet'] = 'details';
-            state[obj_name+'-pkey'] = pkey_value;
-            nav_push_state(state);
-            return false;
-        }
-    }).appendTo(span);
-
-    var attribute_members = IPA.metadata[obj_name].attribute_members;
-    for (attr_name in attribute_members) {
-        var objs = attribute_members[attr_name];
-        for (var i = 0; i < objs.length; ++i) {
-            var m = objs[i];
-            var label = IPA.metadata[m].label;
-
-            span.append(' | ');
-
-            $("<a/>", {
-                href: '#'+m,
-                title: label,
-                text: label,
-                click: function(m) {
-                    return function() {
-                        var state = {};
-                        state[obj_name+'-facet'] = 'associate';
-                        state[obj_name+'-enroll'] = m;
-                        state[obj_name+'-pkey'] = pkey_value;
-                        nav_push_state(state);
-                        return false;
-                    }
-                }(m)
-            }).appendTo(span);
-        }
-    }
+    var facet = this;
+    var entity_name = facet.entity_name;
+    action_panel(entity_name).appendTo(container);
 }
+

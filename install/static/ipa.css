@@ -6,7 +6,10 @@
 */
 
 
-body{ font: 62.5% "Trebuchet MS", sans-serif; margin: 50px;}
+body{
+    font: 62.5% "Trebuchet MS", sans-serif; margin: 5px;
+}
+
 .demoHeaders { margin-top: 2em; }
 
 
@@ -20,7 +23,8 @@ div.header {
     background-image: url(header_background.png);
     background: -moz-linear-gradient(top, #65646e, #1f1f1f);
     background-color: #1f1f1f;
-    height: 70px;
+    height: 25px;
+    width: 100%;
 }
 
 div.header a {
@@ -37,13 +41,14 @@ div.header a:visited {
     color: white;
 }
 
-div.header div.header-logo {
-    float: left;
-    padding: 10px 10px 0 10px;
+div.header span.header-logo {
+#    float: left;
+    padding-left: 100px;
 }
 
-div.header div.header-logo img {
+div.header span.header-logo a img {
     border: 0;
+    height: 25px;
 }
 
 div.header span.header-loggedinas {
@@ -56,6 +61,8 @@ div.header span.header-loggedinas {
 /* ---- Navigation ---- */
 div.tabs {
     overflow: auto;
+    width: 100%;
+    height: 100%;
 }
 
 
@@ -178,15 +185,23 @@ span.attrhint {
     position: absolute;
 }
 
+.ui-tabs-nav{
+}
+
 /*Navigation */
 .tabs1 .ui-tabs-nav{
-    margin: 0; padding: 2.9em .2em 0;
+    padding-left: 50px;
+    margin: 0;
     background-image: url(Mainnav-background.png);
-
 }
 
 
-.ui-tabs .ui-tabs-nav li { height: 30px;  margin: 0 0 1px 0;}
+.ui-tabs .ui-tabs-nav li {
+    height: 30px;
+    margin: 0 0 0 0;
+    padding: 0 0 0 0;
+    border-width: 0;
+ }
 
 
 .tabs1 .ui-tabs-nav li a{
@@ -205,13 +220,17 @@ span.attrhint {
     color: lightgreen;
 }
 
-.tabs1 .ui-tabs-panel { display: block; border-width: 0; padding: 0.1em 0.4em; background: none; }
+.tabs1 .ui-tabs-panel {
+    display: block; border-width: 0;
+    padding: 0 0;
+    background: none;
+}
+
 
 
 .tabs2 .ui-tabs-nav {
     background-image: url(Subnav-background.png);
-    margin: 0; padding: .1em .2em 0;
-
+    margin: 0;
 }
 
 
@@ -259,7 +278,8 @@ span.main-separator{
 .entity-container{
     position: relative;
     width: 80%;
-    height: 1000px;
+    height: 100%;
+    min-height: 200 px;
     margin: 10px;
     padding: 10px;
     background: #e8e8e8;
@@ -267,15 +287,18 @@ span.main-separator{
 
 .action-panel {
     position:relative;
-    top:50px;
+    top:30px;
+    left: -20px;
     border-width: thin;
     border-style: solid;
     border-color: black;
     float: left;
+    margin: 10px;
 }
 
 .action-panel h3{
-   border-width: thin;
+    margin: 0;
+    border-width: thin;
     border-style: solid;
     border-color: black;
     background: #e8e8e8;
