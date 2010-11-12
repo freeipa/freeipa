@@ -182,6 +182,7 @@ test_lang:
 	rm -rf test.po test_locale
 	$(MSGINIT) --no-translator -i $(DOMAIN).pot -l en_US -o test.po
 	$(SED) -i -r -e 's/^msgstr[ \t]+"(.*)"[ \t]*$$/msgstr "\xe2\x86\x92\1\xe2\x86\x90"/' test.po
+	$(SED) -i -r -e 's/^msgstr[ \t]+"(.*)(\\n)(.)"[ \t]*$$/msgstr "\1\xe2\x86\x90\2"/' test.po
 	$(MKDIR_P) test_locale/en_US/LC_MESSAGES
 	$(MSGFMT) -o test_locale/en_US/LC_MESSAGES/ipa.mo test.po
 
