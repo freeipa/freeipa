@@ -26,7 +26,7 @@ function ipa_hbacsvc() {
         'name': 'hbacsvc'
     });
 
-    that.super_init = that.super('init');
+    that.superior_init = that.superior('init');
 
     that.init = function() {
 
@@ -49,7 +49,7 @@ function ipa_hbacsvc() {
         });
         that.add_facet(facet);
 
-        that.super_init();
+        that.superior_init();
     };
 
     return that;
@@ -63,11 +63,11 @@ function ipa_hbacsvc_add_dialog(spec) {
 
     var that = ipa_add_dialog(spec);
 
-    that.super_init = that.super('init');
+    that.superior_init = that.superior('init');
 
     that.init = function() {
 
-        this.super_init();
+        this.superior_init();
 
         this.add_field(ipa_text_widget({name:'cn', label:'Name'}));
         this.add_field(ipa_text_widget({name:'description', label:'Description'}));
@@ -82,9 +82,9 @@ function ipa_hbacsvc_search_facet(spec) {
 
     var that = ipa_search_facet(spec);
 
-    that.super_init = that.super('init');
-    that.super_create = that.super('create');
-    that.super_setup = that.super('setup');
+    that.superior_init = that.superior('init');
+    that.superior_create = that.superior('create');
+    that.superior_setup = that.superior('setup');
 
     that.init = function() {
 
@@ -97,7 +97,7 @@ function ipa_hbacsvc_search_facet(spec) {
             setup: ipa_hbacsvc_quick_links
         });
 
-        that.super_init();
+        that.superior_init();
     };
 
     that.create = function(container) {
@@ -133,7 +133,7 @@ function ipa_hbacsvc_search_facet(spec) {
 
         container.append('<br/><br/>');
 
-        that.super_create(container);
+        that.superior_create(container);
     };
 
     return that;
@@ -170,9 +170,9 @@ function ipa_hbacsvc_details_facet(spec) {
 
     var that = ipa_details_facet(spec);
 
-    that.super_init = that.super('init');
-    that.super_create = that.super('create');
-    that.super_setup = that.super('setup');
+    that.superior_init = that.superior('init');
+    that.superior_create = that.superior('create');
+    that.superior_setup = that.superior('setup');
 
     that.init = function() {
 
@@ -184,7 +184,7 @@ function ipa_hbacsvc_details_facet(spec) {
         section.create_field({ 'name': 'cn', 'label': 'Name' });
         section.create_field({ 'name': 'description', 'label': 'Description' });
 
-        that.super_init();
+        that.superior_init();
     };
 
     return that;

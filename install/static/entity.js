@@ -45,7 +45,7 @@ function ipa_facet(spec) {
 
     that.setup_views = ipa_facet_setup_views;
 
-    that.super = function(name) {
+    that.superior = function(name) {
         var method = that[name];
         return function () {
             return method.apply(that, arguments);
@@ -88,7 +88,7 @@ function ipa_entity(spec) {
     that.associations = [];
     that.associations_by_name = {};
 
-    that.super = function(name) {
+    that.superior = function(name) {
         var method = that[name];
         return function () {
             return method.apply(that, arguments);

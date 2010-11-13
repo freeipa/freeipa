@@ -26,7 +26,7 @@ function ipa_hbac() {
         'name': 'hbac'
     });
 
-    that.super_init = that.super('init');
+    that.superior_init = that.superior('init');
 
     that.init = function() {
 
@@ -49,7 +49,7 @@ function ipa_hbac() {
         });
         that.add_facet(facet);
 
-        that.super_init();
+        that.superior_init();
     };
 
     return that;
@@ -63,11 +63,11 @@ function ipa_hbac_add_dialog(spec) {
 
     var that = ipa_add_dialog(spec);
 
-    that.super_init = that.super('init');
+    that.superior_init = that.superior('init');
 
     that.init = function() {
 
-        that.super_init();
+        that.superior_init();
 
         that.add_field(ipa_text_widget({
             'name': 'cn',
@@ -89,9 +89,9 @@ function ipa_hbac_search_facet(spec) {
 
     var that = ipa_search_facet(spec);
 
-    that.super_init = that.super('init');
-    that.super_create = that.super('create');
-    that.super_setup = that.super('setup');
+    that.superior_init = that.superior('init');
+    that.superior_create = that.superior('create');
+    that.superior_setup = that.superior('setup');
 
     that.init = function() {
 
@@ -108,7 +108,7 @@ function ipa_hbac_search_facet(spec) {
             setup: ipa_hbac_quick_links
         });
 
-        that.super_init();
+        that.superior_init();
     };
 
     that.create = function(container) {
@@ -159,7 +159,7 @@ function ipa_hbac_search_facet(spec) {
 
         container.append('<br/><br/>');
 
-        that.super_create(container);
+        that.superior_create(container);
     };
 
     return that;
@@ -210,9 +210,9 @@ function ipa_hbac_details_facet(spec) {
 
     var that = ipa_details_facet(spec);
 
-    that.super_init = that.super('init');
-    that.super_create = that.super('create');
-    that.super_setup = that.super('setup');
+    that.superior_init = that.superior('init');
+    that.superior_create = that.superior('create');
+    that.superior_setup = that.superior('setup');
 
     that.init = function() {
 
@@ -415,7 +415,7 @@ function ipa_hbac_details_facet(spec) {
             'name': 'accesstime', 'label': 'Access Time'
         }));
 
-        that.super_init();
+        that.superior_init();
     };
 
     return that;
@@ -533,7 +533,7 @@ function ipa_hbac_details_tables_section(spec){
     that.tables = spec.tables;
     that.columns = spec.columns;
 
-    that.super_setup = that.super('setup');
+    that.superior_setup = that.superior('setup');
 
     that.create = function(container) {
 
@@ -584,9 +584,9 @@ function ipa_hbac_association_widget(spec) {
     that.add_method = spec.add_method;
     that.delete_method = spec.delete_method;
 
-    that.super_init = that.super('init');
-    that.super_create = that.super('create');
-    that.super_setup = that.super('setup');
+    that.superior_init = that.superior('init');
+    that.superior_create = that.superior('create');
+    that.superior_setup = that.superior('setup');
 
     that.init = function() {
         // create a column if none defined
@@ -598,12 +598,12 @@ function ipa_hbac_association_widget(spec) {
             });
         }
 
-        that.super_init();
+        that.superior_init();
     };
 
     that.create = function(container) {
 
-        that.super_create(container);
+        that.superior_create(container);
 
         var div = $('#'+that.id, container);
 
@@ -624,7 +624,7 @@ function ipa_hbac_association_widget(spec) {
 
     that.setup = function(container) {
 
-        that.super_setup(container);
+        that.superior_setup(container);
 
         var entity = IPA.get_entity(that.entity_name);
         var association = entity.get_association(that.other_entity);
@@ -744,9 +744,9 @@ function ipa_hbac_accesstime_widget(spec) {
 
     var that = ipa_table_widget(spec);
 
-    that.super_init = that.super('init');
-    that.super_create = that.super('create');
-    that.super_setup = that.super('setup');
+    that.superior_init = that.superior('init');
+    that.superior_create = that.superior('create');
+    that.superior_setup = that.superior('setup');
 
     that.init = function() {
         // create a column if none defined
@@ -758,12 +758,12 @@ function ipa_hbac_accesstime_widget(spec) {
             });
         }
 
-        that.super_init();
+        that.superior_init();
     };
 
     that.create = function(container) {
 
-        that.super_create(container);
+        that.superior_create(container);
 
         var div = $('#'+that.id);
 

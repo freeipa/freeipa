@@ -168,7 +168,7 @@ function ipa_details_section(spec){
     that.fields = [];
     that.fields_by_name = {};
 
-    that.super = function(name) {
+    that.superior = function(name) {
         var method = that[name];
         return function () {
             return method.apply(that, arguments);

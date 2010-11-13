@@ -94,7 +94,7 @@ function ipa_add_dialog(spec) {
         ipa_cmd('add', args, options, on_success, on_error, that.entity_name);
     };
 
-    that.super_init = that.super('init');
+    that.superior_init = that.superior('init');
 
     return that;
 }

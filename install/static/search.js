@@ -28,8 +28,8 @@ function ipa_search_widget(spec) {
 
     var that = ipa_table_widget(spec);
 
-    that.super_create = that.super('create');
-    that.super_setup = that.super('setup');
+    that.superior_create = that.superior('create');
+    that.superior_setup = that.superior('setup');
 
     that.create = function(container) {
 
@@ -71,12 +71,12 @@ function ipa_search_widget(spec) {
             'class': 'search-results'
         }).appendTo(div);
 
-        that.super_create(container);
+        that.superior_create(container);
     };
 
     that.setup = function(container) {
 
-        that.super_setup(container);
+        that.superior_setup(container);
 
         var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
         this.filter.val(filter);

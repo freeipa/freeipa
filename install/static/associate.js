@@ -243,8 +243,8 @@ function ipa_association_widget(spec) {
 
     that.other_entity = spec.other_entity;
 
-    that.super_create = that.super('create');
-    that.super_setup = that.super('setup');
+    that.superior_create = that.superior('create');
+    that.superior_setup = that.superior('setup');
 
     that.create = function(container) {
 
@@ -256,7 +256,7 @@ function ipa_association_widget(spec) {
             'primary_key': true
         });
 
-        that.super_create(container);
+        that.superior_create(container);
 
         var div = $('#'+that.id, container);
         var buttons = $('span[name=buttons]', div);
@@ -276,7 +276,7 @@ function ipa_association_widget(spec) {
 
     that.setup = function(container) {
 
-        that.super_setup(container);
+        that.superior_setup(container);
 
         var entity = IPA.get_entity(that.entity_name);
         var association = entity.get_association(that.other_entity);

@@ -39,7 +39,7 @@ function ipa_widget(spec) {
     that.save = spec.save || save;
     that.clear = spec.clear || clear;
 
-    that.super = function(name) {
+    that.superior = function(name) {
         var method = that[name];
         return function () {
             return method.apply(that, arguments);
@@ -570,7 +570,7 @@ function ipa_dialog(spec) {
     that.fields = [];
     that.fields_by_name = {};
 
-    that.super = function(name) {
+    that.superior = function(name) {
         var method = that[name];
         return function () {
             return method.apply(that, arguments);
@@ -696,7 +696,7 @@ function ipa_adder_dialog(spec) {
 
     that.width = spec.width || 600;
 
-    that.super_open = that.super('open');
+    that.superior_open = that.superior('open');
 
     that.create = function() {
 
@@ -785,7 +785,7 @@ function ipa_adder_dialog(spec) {
             'Cancel': that.close
         };
 
-        that.super_open(container);
+        that.superior_open(container);
     };
 
     that.get_filter = function() {
@@ -841,7 +841,7 @@ function ipa_deleter_dialog(spec) {
     that.title = spec.title || IPA.messages.button.remove;
     that.remove = spec.remove;
 
-    that.super_open = that.super('open');
+    that.superior_open = that.superior('open');
 
     that.values = spec.values || [];
 
@@ -874,7 +874,7 @@ function ipa_deleter_dialog(spec) {
             'Cancel': that.close
         };
 
-        that.super_open(container);
+        that.superior_open(container);
     };
 
     return that;

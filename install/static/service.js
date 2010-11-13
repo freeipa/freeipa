@@ -26,7 +26,7 @@ function ipa_service() {
         'name': 'service'
     });
 
-    that.super_init = that.super('init');
+    that.superior_init = that.superior('init');
 
     that.init = function() {
 
@@ -60,7 +60,7 @@ function ipa_service() {
         });
         that.add_facet(facet);
 
-        that.super_init();
+        that.superior_init();
     };
 
     return that;
@@ -74,11 +74,11 @@ function ipa_service_add_dialog(spec) {
 
     var that = ipa_add_dialog(spec);
 
-    that.super_init = that.super('init');
+    that.superior_init = that.superior('init');
 
     that.init = function() {
 
-        this.super_init();
+        this.superior_init();
 
         this.add_field(ipa_widget({
             name: 'krbprincipalname',
@@ -155,12 +155,12 @@ function ipa_service_search_facet(spec) {
 
     var that = ipa_search_facet(spec);
 
-    that.super_init = that.super('init');
+    that.superior_init = that.superior('init');
 
     that.init = function() {
 
         this.create_column({name:'krbprincipalname', label:'Principal'});
-        that.super_init();
+        that.superior_init();
     };
 
     return that;
@@ -172,7 +172,7 @@ function ipa_service_details_facet(spec) {
 
     var that = ipa_details_facet(spec);
 
-    that.super_init = that.super('init');
+    that.superior_init = that.superior('init');
 
     that.init = function() {
 
@@ -211,7 +211,7 @@ function ipa_service_details_facet(spec) {
             load: service_usercertificate_load
         });
 
-        that.super_init();
+        that.superior_init();
     };
 
     return that;

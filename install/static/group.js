@@ -26,7 +26,7 @@ function ipa_group() {
         'name': 'group'
     });
 
-    that.super_init = that.super('init');
+    that.superior_init = that.superior('init');
 
     that.init = function() {
 
@@ -37,7 +37,7 @@ function ipa_group() {
         that.add_dialog(dialog);
         dialog.init();
 
-        that.super_init();
+        that.superior_init();
     };
 
     return that;
@@ -51,11 +51,11 @@ function ipa_group_add_dialog(spec) {
 
     var that = ipa_add_dialog(spec);
 
-    that.super_init = that.super('init');
+    that.superior_init = that.superior('init');
 
     that.init = function() {
 
-        this.super_init();
+        this.superior_init();
 
         this.add_field(ipa_text_widget({name:'cn', label:'Name'}));
         this.add_field(ipa_text_widget({name:'description', label:'Description'}));
