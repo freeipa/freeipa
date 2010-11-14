@@ -63,6 +63,7 @@ div.tabs {
     overflow: auto;
     width: 100%;
     height: 100%;
+    min-height: 400px;
 }
 
 
@@ -185,12 +186,11 @@ span.attrhint {
     position: absolute;
 }
 
-.ui-tabs-nav{
-}
 
 /*Navigation */
 .tabs1 .ui-tabs-nav{
     padding-left: 50px;
+    padding-top: 50px;
     margin: 0;
     background-image: url(Mainnav-background.png);
 }
@@ -230,6 +230,7 @@ span.attrhint {
 
 .tabs2 .ui-tabs-nav {
     background-image: url(Subnav-background.png);
+    padding-top: 0px;
     margin: 0;
 }
 
@@ -278,8 +279,6 @@ span.main-separator{
 .entity-container{
     position: relative;
     width: 80%;
-    height: 100%;
-    min-height: 200 px;
     margin: 10px;
     padding: 10px;
     background: #e8e8e8;
@@ -287,13 +286,14 @@ span.main-separator{
 
 .action-panel {
     position:relative;
-    top:30px;
+
     left: -20px;
     border-width: thin;
     border-style: solid;
     border-color: black;
     float: left;
-    margin: 10px;
+    margin-top:75px;
+    margin-left: 40px;
 }
 
 .action-panel h3{
@@ -305,8 +305,8 @@ span.main-separator{
 }
 
 .action-panel li {
-#    float: left;
-#    list-style-type: none;
+    height: 25px;
+
 }
 
 .client {
@@ -317,7 +317,10 @@ span.main-separator{
 /* Search */
 
 .search-controls {
-     background:#a5a5a5;
+    height: 25px;
+    background:#a5a5a5;
+    position: relative;
+    padding: 10px;
 }
 
 .search-table > a:link,a:visted{

@@ -53,17 +53,20 @@ function ipa_search_widget(spec) {
             'click': function() { that.find(container); }
         }).appendTo(search_filter);
 
-        ipa_button({
-            'label': IPA.messages.button.remove,
-            'icon': 'ui-icon-trash',
-            'click': function() { that.remove(container); }
-        }).appendTo(search_filter);
-
-        ipa_button({
-            'label': IPA.messages.button.add,
-            'icon': 'ui-icon-plus',
-            'click': function() { that.add(container); }
-        }).appendTo(search_filter);
+        var li =         $('<li />', {
+            html: ipa_button({
+                'label': IPA.messages.button.remove,
+                'icon': 'ui-icon-trash',
+                'click': function() { that.remove(container); }
+            })});
+        li.append(
+            ipa_button({
+                'label': IPA.messages.button.add,
+                'icon': 'ui-icon-plus',
+                'click': function() { that.add(container); }
+            })
+        );
+        li.appendTo($('.action-panel ul'));
 
         search_controls.append('<span class="search-buttons"></span>');
 

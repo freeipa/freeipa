@@ -133,9 +133,9 @@ function ipa_hbac_search_facet(spec) {
             'label': 'Cull Disabled Rules'
         }));
 */
-        var right_buttons = $('<span/>', {
+        var right_buttons = $('<li/>', {
             'style': 'float: right;'
-        }).appendTo(container);
+        }).appendTo($('.action-panel ul'));
 
         right_buttons.append(ipa_button({
             'label': 'HBAC Services',

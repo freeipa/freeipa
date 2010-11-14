@@ -118,9 +118,9 @@ function ipa_hbacsvcgroup_search_facet(spec) {
         // TODO: replace with IPA.metadata[that.entity_name].label
         $('<h2/>', { 'html': 'HBAC Service Groups' }).appendTo(container);
 
-        var right_buttons = $('<span/>', {
+        var right_buttons = $('<li/>', {
             'style': 'float: right;'
-        }).appendTo(container);
+        }).appendTo($('.action-panel ul'));
 
         right_buttons.append(ipa_button({
             'label': 'HBAC Rules',
