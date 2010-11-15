@@ -28,8 +28,13 @@ var IPA = ( function () {
         jsonrpc_id: 0
     };
 
-    that.json_url = null;
     that.use_static_files = false;
+    that.json_url = '/ipa/json';
+    if (that.use_static_files){
+        that.json_url = 'test/data'
+    }
+
+
 
     that.ajax_options = {
         type: 'POST',
@@ -352,10 +357,6 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
     }
 
     var url = IPA.json_url;
-
-    if (!url){
-        url = default_json_url;
-    }
 
     if (IPA.use_static_files){
         url += '/' + method_name + '.json';
