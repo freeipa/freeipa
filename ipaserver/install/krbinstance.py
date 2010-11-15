@@ -46,6 +46,7 @@ import struct
 
 import certs
 import httpinstance
+from distutils import version
 
 KRBMKEY_DENY_ACI = '(targetattr = "krbMKey")(version 3.0; acl "No external access"; deny (read,write,search,compare) userdn != "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)'
 
@@ -362,6 +363,39 @@ class KrbInstance(service.Service):
                 ipautil.run(args)
             except ipautil.CalledProcessError, e:
                 print "Failed to populate the realm structure in kerberos", e
+
+        MIN_KRB5KDC_WITH_WORKERS = "1.9"
+        cpus = os.sysconf('SC_NPROCESSORS_ONLN')
+        workers = False
+        (stdout, stderr, rc) = ipautil.run(['/usr/bin/klist', '-V'], raiseonerr=False)
+        if rc == 0:
+            verstr = stdout.split()[-1]
+            ver = version.LooseVersion(verstr)
+            min = version.LooseVersion(MIN_KRB5KDC_WITH_WORKERS)
+            if ver >= min:
+                workers = True
+        if workers and cpus > 1:
+            #read in memory, find KRB5KDC_ARGS, check/change it, then overwrite file
+            self.fstore.backup_file("/etc/sysconfig/krb5kdc")
+
+            need_w = True
+            fd = open("/etc/sysconfig/krb5kdc", "r")
+            lines = fd.readlines()
+            fd.close()
+            for line in lines:
+                sline = line.strip()
+                if not sline.startswith('KRB5KDC_ARGS'):
+                    continue
+                sline = sline.replace('"', '')
+                if sline.find("-w") != -1:
+                    need_w = False
+
+            if need_w:
+                fd = open("/etc/sysconfig/krb5kdc", "w")
+                for line in lines:
+                    fd.write(line)
+                fd.write('KRB5KDC_ARGS="${KRB5KDC_ARGS} -w %s"\n' % str(cpus))
+                fd.close()
 
     def __write_stash_from_ds(self):
         try:
