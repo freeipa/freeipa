@@ -283,12 +283,13 @@ class LDAPObject(Object):
 _attr_options = (
     Str('addattr*', validate_add_attribute,
         cli_name='addattr',
-        doc=_('Add an attribute/value pair. Format is attr=value'),
+        doc=_('Add an attribute/value pair. Format is attr=value. The attribute must be part of the schema.'),
         exclude='webui',
     ),
     Str('setattr*', validate_set_attribute,
         cli_name='setattr',
-        doc=_('Set an attribute to an name/value pair. Format is attr=value'),
+        doc=_("""Set an attribute to an name/value pair. Format is attr=value.
+For multivalued attributes, the command replaces the values already present."""),
         exclude='webui',
     ),
 )
