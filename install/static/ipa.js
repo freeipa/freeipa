@@ -101,11 +101,25 @@ var IPA = ( function () {
         that.entities_by_name[entity.name] = entity;
     };
 
+
     that.show_page = function (entity_name, facet_name, other_entity) {
 
         var state = {};
         state[entity_name + '-facet'] = facet_name;
         state[entity_name + '-enroll'] = other_entity ? other_entity : '';
+        $.bbq.pushState(state);
+    };
+
+    that.switch_and_show_page = function (
+        this_entity,  facet_name, pkey, other_entity) {
+        if (!pkey){
+            that.show_page(this_entity,  facet_name,  other_entity);
+            return;
+        }
+        var state = {};
+        state[this_entity+'-pkey'] = pkey;
+        state[this_entity + '-facet'] = facet_name;
+        state[this_entity + '-enroll'] = other_entity ? other_entity : '';
         $.bbq.pushState(state);
     };
 

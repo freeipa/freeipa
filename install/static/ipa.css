@@ -289,7 +289,6 @@ span.main-separator{
 
 .action-panel {
     position:relative;
-
     left: -1.2em;
     border-width: thin;
     border-style: solid;
@@ -312,6 +311,26 @@ span.main-separator{
     height: 2em;
     padding: 0.2em;
 }
+
+.action-panel li.search-facet {
+    color: black;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.action-panel li.entity-facet {
+    color: black;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.action-panel li.entity-facet-disabled {
+    color: gray;
+    cursor: default;
+    text-decoration: none;
+}
+
+
 
 .client {
     margin-top: 0.4em;

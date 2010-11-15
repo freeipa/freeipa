@@ -63,7 +63,7 @@ test('Testing ipa_entity_set_search_definition().', function() {
 
 test('Testing ipa_facet_setup_views().', function() {
 
-    var orig_show_page = IPA.show_page;
+    var orig_switch_and_show_page = IPA.switch_and_show_page;
     IPA.ajax_options.async = false;
 
     IPA.init(
@@ -83,6 +83,12 @@ test('Testing ipa_facet_setup_views().', function() {
 
     IPA.add_entity(entity);
 
+    entity.add_facet(ipa_search_facet({
+        'name': 'search',
+        'label': 'Search'
+    }));
+
+
     var facet = ipa_association_facet({
         'name': 'associate'
     });
@@ -91,7 +97,7 @@ test('Testing ipa_facet_setup_views().', function() {
     var container = $('<div/>');
 
     var counter = 0;
-    IPA.show_page = function(entity_name, facet_name, other_entity) {
+    IPA.switch_and_show_page = function(entity_name, facet_name, other_entity) {
         counter++;
     };
 
@@ -102,33 +108,49 @@ test('Testing ipa_facet_setup_views().', function() {
     var views = list.children();
 
     equals(
-        views.length, 4,
+        views.length, 5,
         'Checking number of views'
     );
 
     facet = views.first();
+    ok(  facet.hasClass('entity-search',
+        'Checking the search facet'
+    );
+
+    facet = facet.next();
+
     var attribute_members = IPA.metadata['user'].attribute_members;
     for (attribute_member in attribute_members) {
         var objects = attribute_members[attribute_member];
         for (var i = 0; i < objects.length; i++) {
             var object = objects[i];
-
             equals(
                 facet.attr('title'), object,
                 'Checking the '+object+' facet'
             );
-
-            facet.click();
-
             facet = facet.next();
         }
     }
 
-    equals(
-        counter, 4,
-        'Checking callback invocations'
-    );
+    var action_panel = $('.action-panel', container);
+    ok(action_panel.length, 'action panel exists');
+    var pkey_input =  $('input[name=pkey]', action_panel);
+    ok(pkey_input.length,'pkey input exists');
+    var search_facets = $('li.search-facet', action_panel);
+    equals(search_facets.length,1,'one search facet in action panel');
+    var entity_facets = $('li.entity-facet', action_panel);
+    equals(entity_facets.length,4,'4 entity facets in action panel');
 
-    IPA.show_page = orig_show_page;
+
+    for ( var entity_facet = entity_facets.first();
+          entity_facet.length;
+          entity_facet = entity_facet.next()){
+        entity_facet.click();
+    }
+
+//    equals(4, counter,'four clicks');
+
+    IPA.switch_and_show_page = orig_switch_and_show_page;
 });
+
 

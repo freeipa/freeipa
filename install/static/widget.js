@@ -544,6 +544,11 @@ function ipa_table_widget(spec) {
         }).appendTo(td);
     };
 
+
+    that.select_changed = function(){
+    }
+
+
     that.setup = function(container) {
 
         that.widget_setup(container);
@@ -563,6 +568,8 @@ function ipa_table_widget(spec) {
             for (var i=0; i<checkboxes.length; i++) {
                 checkboxes[i].checked = checked;
             }
+            that.select_changed();
+            return false;
         });
 
         that.row = that.tbody.children().first();
@@ -627,6 +634,11 @@ function ipa_table_widget(spec) {
             if (column.primary_key) {
                 // set checkbox value
                 $('input[name="select"]', tr).val(value);
+
+                $('input[name="select"]', tr).click(function(){
+                    that.select_changed();
+                });
+
             }
 
             column.setup(tr, name, value, record);

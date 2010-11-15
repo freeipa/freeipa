@@ -26,6 +26,7 @@ function ipa_facet(spec) {
     spec = spec || {};
 
     var that = {};
+    that.display_class = spec.display_class || 'entity-facet';
     that.name = spec.name;
     that.label = spec.label;
     that._entity_name = spec.entity_name;
@@ -290,11 +291,16 @@ function ipa_details_only_setup(container){
     ipa_entity_setup.call(this, container, 'details');
 }
 
+function ipa_current_facet(entity){
+    return $.bbq.getState(entity.name + '-facet', true) || entity.default_facet || 'search';
+}
+
 function ipa_entity_setup(container) {
 
     var entity = this;
 
-    var facet_name = $.bbq.getState(entity.name + '-facet', true) || entity.default_facet || 'search';
+    var facet_name = ipa_current_facet(entity);
+
 
     var facet = entity.get_facet(facet_name);
     if (!facet) return;
@@ -321,53 +327,68 @@ function ipa_entity_setup(container) {
 
 
 function action_panel(entity_name){
+
+    function build_link(other_facet,label,other_entity){
+        var li = $('<li/>', {
+            "class" : other_facet.display_class,
+            title: other_entity,
+            text: label,
+            click: function(entity_name, other_facet_name) {
+                    return function() {
+                        if($(this).hasClass('entity-facet-disabled')){
+                            return false;
+                        }
+                        var this_pkey = $('.action-panel input[id=pkey]').val();
+                        IPA.switch_and_show_page(
+                            entity_name, other_facet_name,
+                            this_pkey, other_entity);
+
+                        return false;
+                    };
+                }(entity_name, other_facet_name)
+            });
+        return li;
+    }
+
     var div = $('<div/>', {
         "class":"action-panel",
         html: $('<h3>Actions</h3>')
     });
+
+    /*Note, for debugging purposes, it is useful to set var pkey_type = 'text';*/
+    var pkey_type = 'hidden';
+    $('<input/>',
+      {'type': pkey_type,
+       id:'pkey',
+       name:'pkey'}).appendTo(div);
+
     var ul = $('<ul/>', {'class': 'action'}).appendTo(div);
 
     var entity = IPA.get_entity(entity_name);
+    var facet_name =  ipa_current_facet(entity);
 
     for (var i=0; i<entity.facets.length; i++) {
         var other_facet = entity.facets[i];
-        var facet_name = other_facet.name;
+        var other_facet_name = other_facet.name;
 
         if (other_facet.label) {
-
-            var label = other_facet.label;
-
-            ul.append($('<li/>', {
-                title: other_facet.name,
-                text: label,
-                click: function(entity_name, facet_name) {
-                    return function() {
-                        IPA.show_page(entity_name, facet_name);
-                    };
-                }(entity_name, facet_name)
-            }));
-
+            ul.append(build_link(other_facet,other_facet.label));
         } else { // For now empty label indicates an association facet
-
             var attribute_members = IPA.metadata[entity_name].attribute_members;
             for (var attribute_member in attribute_members) {
                 var other_entities = attribute_members[attribute_member];
                 for (var j = 0; j < other_entities.length; j++) {
                     var other_entity = other_entities[j];
                     var label = IPA.metadata[other_entity].label;
-
-                    ul.append($('<li/>', {
-                        title: other_entity,
-                        text: label,
-                        click: function(entity_name, facet_name, other_entity) {
-                            return function() {
-                                IPA.show_page(entity_name, facet_name, other_entity);
-                            };
-                        }(entity_name, facet_name, other_entity)
-                    }));
+                    ul.append(build_link(other_facet,label,other_entity));
                 }
             }
         }
+    }
+    /*When we land on the search page, disable all facets
+      that require a pkey until one is selected*/
+    if (facet_name === 'search'){
+        $('.entity-facet', div).addClass('entity-facet-disabled');
     }
     return div;
 }

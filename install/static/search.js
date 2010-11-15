@@ -100,6 +100,28 @@ function ipa_search_widget(spec) {
         return false;
     };
 
+    that.select_changed = function(){
+        var count = 0;
+        var pkey;
+        $('input[name=select]:checked', that.tbody).each(function(input){
+            count += 1;
+            pkey = $(this).val();
+        });
+        if(count == 1){
+            $('.action-panel li.entity-facet').
+                removeClass('entity-facet-disabled');
+            var state = {};
+             $('.action-panel input[id=pkey]').val(pkey);
+        }else{
+            $('.action-panel li.entity-facet').
+                addClass('entity-facet-disabled');
+            $('.action-panel input').val(null);
+
+        }
+        return false;
+    }
+
+
     that.remove = function(container) {
 
         var values = that.get_selected_values();
@@ -198,6 +220,8 @@ function ipa_search_column(spec) {
 function ipa_search_facet(spec) {
 
     spec = spec || {};
+
+    spec.display_class = 'search-facet';
 
     var that = ipa_facet(spec);
 
