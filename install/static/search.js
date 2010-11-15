@@ -29,14 +29,12 @@ function ipa_search_widget(spec) {
     var that = ipa_table_widget(spec);
 
     that.superior_create = that.superior('create');
-    that.superior_setup = that.superior('setup');
 
     that.create = function(container) {
 
-        var div = $('#'+that.id);
         var search_controls = $('<div/>', {
             'class': 'search-controls'
-        }).appendTo(div);
+        }).appendTo(container);
 
         var search_filter = $('<span/>', {
             'class': 'search-filter'
@@ -70,16 +68,16 @@ function ipa_search_widget(spec) {
 
         search_controls.append('<span class="search-buttons"></span>');
 
-        var search_results = $('<div/>', {
+        $('<div/>', {
             'class': 'search-results'
-        }).appendTo(div);
+        }).appendTo(container);
 
         that.superior_create(container);
     };
 
     that.setup = function(container) {
 
-        that.superior_setup(container);
+        that.table_setup(container);
 
         var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
         this.filter.val(filter);
@@ -97,7 +95,7 @@ function ipa_search_widget(spec) {
         var entity = IPA.get_entity(that.entity_name);
 
         var dialog = entity.get_dialog('add');
-        dialog.open(container);
+        dialog.open(that.container);
 
         return false;
     };
@@ -115,12 +113,22 @@ function ipa_search_widget(spec) {
 
         var dialog = ipa_deleter_dialog({
             'title': title,
-            'parent': container,
+            'parent': that.container,
             'values': values
         });
 
         dialog.remove = function() {
-            var batch = ipa_batch_command();
+
+            var batch = ipa_batch_command({
+                'on_success': function() {
+                    that.refresh(that.container);
+                    dialog.close();
+                },
+                'on_error': function() {
+                    that.refresh(that.container);
+                    dialog.close();
+                }
+            });
 
             for (var i=0; i<values.length; i++) {
                 var command = ipa_command({
@@ -130,21 +138,12 @@ function ipa_search_widget(spec) {
                 batch.add_command(command);
             }
 
-            batch.execute(
-                function() {
-                    that.refresh(container);
-                    dialog.close();
-                },
-                function() {
-                    that.refresh(container);
-                    dialog.close();
-                }
-            );
+            batch.execute();
         };
 
         dialog.init();
 
-        dialog.open(container);
+        dialog.open(that.container);
     };
 
     that.refresh = function(container) {
@@ -156,7 +155,7 @@ function ipa_search_widget(spec) {
             var result = data.result.result;
             for (var i = 0; i<result.length; i++) {
                 var record = that.get_record(result[i], 0);
-                that.add_row(container, record);
+                that.add_row(that.container, record);
             }
 
             var summary = $('span[name=summary]', that.tfoot);
@@ -172,10 +171,10 @@ function ipa_search_widget(spec) {
         }
 
         function on_error(xhr, text_status, error_thrown) {
-            var search_results = $('.search-results', container);
-            search_results.append('<p>Error: '+error_thrown.name+'</p>');
-            search_results.append('<p>'+error_thrown.title+'</p>');
-            search_results.append('<p>'+error_thrown.message+'</p>');
+            var summary = $('span[name=summary]', that.tfoot).empty();
+            summary.append('<p>Error: '+error_thrown.name+'</p>');
+            summary.append('<p>'+error_thrown.title+'</p>');
+            summary.append('<p>'+error_thrown.message+'</p>');
         }
 
         var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
@@ -246,7 +245,7 @@ function ipa_search_facet(spec) {
 
         that.table = ipa_search_widget({
             'id': that.entity_name+'-search',
-            'name': that.entity_name, 'label': IPA.metadata[that.entity_name].label,
+            'name': 'search', 'label': IPA.metadata[that.entity_name].label,
             'entity_name': that.entity_name
         });
 
@@ -272,20 +271,20 @@ function ipa_search_facet(spec) {
 
         container.attr('title', that.entity_name);
 
-        $('<div/>', {
-            'id': that.entity_name+'-search'
-        }).appendTo(container);
+        var span = $('<span/>', { 'name': 'search' }).appendTo(container);
 
-        that.table.create(container);
+        that.table.create(span);
     }
 
-    function setup(container, unspecified) {
-        that.table.setup(container);
+    function setup(container) {
+        var span = $('span[name=search]', container);
+        that.table.setup(span);
     }
 
-    function load(container, unspecified) {
+    function load(container) {
         that.filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
-        that.table.refresh(container);
+        var span = $('span[name=search]', container);
+        that.table.refresh(span);
     }
 
     if (spec.columns) {

@@ -9,11 +9,14 @@
 <body>
 <div id="contents">
     Rule applies when access is requested to:
-    <input type="radio" name="hostcategory" value="all"/>Any Host
-    <input type="radio" name="hostcategory" value=""/>Specified Hosts and Groups
+    <span name="hostcategory">
+        <input type="radio" name="hostcategory" value="all"/>Any Host
+        <input type="radio" name="hostcategory" value=""/>Specified Hosts and Groups
+        <span name="undo" class="ui-state-highlight ui-corner-all" style="display: none;">undo</span>
+    </span>
     <br/>
 
-    <div id="hbac-memberhost_host">
+    <span name="memberhost_host">
     <table class="search-table">
     <thead>
         <tr>
@@ -40,9 +43,9 @@
         </tr>
     </tbody>
     </table>
-    </div>
+    </span>
 
-    <div id="hbac-memberhost_hostgroup">
+    <span name="memberhost_hostgroup">
     <table class="search-table">
     <thead>
         <tr>
@@ -69,7 +72,7 @@
         </tr>
     </tbody>
     </table>
-    </div>
+    </span>
 </div>
 </body>
 </html>

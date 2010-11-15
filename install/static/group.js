@@ -57,10 +57,10 @@ function ipa_group_add_dialog(spec) {
 
         this.superior_init();
 
-        this.add_field(ipa_text_widget({name:'cn', label:'Name'}));
-        this.add_field(ipa_text_widget({name:'description', label:'Description'}));
-        this.add_field(ipa_checkbox_widget({name:'posix', label:'Is this a POSIX group?'}));
-        this.add_field(ipa_text_widget({name:'gidnumber', label:'GID'}));
+        this.add_field(ipa_text_widget({name:'cn', label:'Name', undo: false}));
+        this.add_field(ipa_text_widget({name:'description', label:'Description', undo: false}));
+        this.add_field(ipa_checkbox_widget({name:'posix', label:'Is this a POSIX group?', undo: false}));
+        this.add_field(ipa_text_widget({name:'gidnumber', label:'GID', undo: false}));
     };
 
     return that;

@@ -244,7 +244,6 @@ function ipa_association_widget(spec) {
     that.other_entity = spec.other_entity;
 
     that.superior_create = that.superior('create');
-    that.superior_setup = that.superior('setup');
 
     that.create = function(container) {
 
@@ -258,25 +257,42 @@ function ipa_association_widget(spec) {
 
         that.superior_create(container);
 
-        var div = $('#'+that.id, container);
-        var buttons = $('<span />').appendTo($('.action-panel'));  //TODO replace with ipa_button
+        var ul = $('.action-panel ul');
+        var li = $('<li/>').appendTo(ul);
 
+        // creating generic buttons for layout
         $('<input/>', {
             'type': 'button',
             'name': 'remove',
             'value': IPA.messages.button.remove
-        }).appendTo(buttons);
+        }).appendTo(li);
 
         $('<input/>', {
             'type': 'button',
             'name': 'add',
             'value': IPA.messages.button.enroll
-        }).appendTo(buttons);
+        }).appendTo(li);
     };
 
     that.setup = function(container) {
 
-        that.superior_setup(container);
+        that.table_setup(container);
+
+        // replacing generic buttons with ipa_button and setting click handler
+        var action_panel = $('.action-panel');
+        var button = $('input[name=remove]', action_panel);
+        button.replaceWith(ipa_button({
+            'label': button.val(),
+            'icon': 'ui-icon-trash',
+            'click': function() { that.remove(that.container); }
+        }));
+
+        button = $('input[name=add]', action_panel);
+        button.replaceWith(ipa_button({
+            'label': button.val(),
+            'icon': 'ui-icon-plus',
+            'click': function() { that.add(that.container) }
+        }));
 
         var entity = IPA.get_entity(that.entity_name);
         var association = entity.get_association(that.other_entity);
@@ -308,18 +324,18 @@ function ipa_association_widget(spec) {
             'associator': that.associator,
             'method': that.add_method,
             'on_success': function() {
-                that.refresh(container);
+                that.refresh(that.container);
                 dialog.close();
             },
             'on_error': function() {
-                that.refresh(container);
+                that.refresh(that.container);
                 dialog.close();
             }
         });
 
         dialog.init();
 
-        dialog.open(container);
+        dialog.open(that.container);
     };
 
     that.remove = function(container) {
@@ -344,18 +360,18 @@ function ipa_association_widget(spec) {
             'associator': that.associator,
             'method': that.delete_method,
             'on_success': function() {
-                that.refresh(container);
+                that.refresh(that.container);
                 dialog.close();
             },
             'on_error': function() {
-                that.refresh(container);
+                that.refresh(that.container);
                 dialog.close();
             }
         });
 
         dialog.init();
 
-        dialog.open(container);
+        dialog.open(that.container);
     };
 
     that.refresh = function(container) {
@@ -374,15 +390,15 @@ function ipa_association_widget(spec) {
 
             for (var i = 0; i<values.length; i++){
                 var record = that.get_record(data.result.result, i);
-                that.add_row(container, record);
+                that.add_row(that.container, record);
             }
         }
 
         function on_error(xhr, text_status, error_thrown) {
-            var div = $('#'+that.id, container).empty();
-            div.append('<p>Error: '+error_thrown.name+'</p>');
-            div.append('<p>'+error_thrown.title+'</p>');
-            div.append('<p>'+error_thrown.message+'</p>');
+            var summary = $('span[name=summary]', that.tfoot).empty();
+            summary.append('<p>Error: '+error_thrown.name+'</p>');
+            summary.append('<p>'+error_thrown.title+'</p>');
+            summary.append('<p>'+error_thrown.message+'</p>');
         }
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
@@ -407,9 +423,20 @@ function ipa_association_facet(spec) {
     };
 
     that.create = function(container) {
+
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         that.other_entity =
             $.bbq.getState(that.entity_name + '-enroll', true) || '';
+
+        var label = IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity;
+
+        that.table = ipa_association_widget({
+            'id': that.entity_name+'-'+that.other_entity,
+            'name': 'association',
+            'label': label,
+            'entity_name': that.entity_name,
+            'other_entity': that.other_entity
+        });
 
         //TODO I18N
         var header_message = that.other_entity + '(s) enrolled in '  +
@@ -427,13 +454,17 @@ function ipa_association_facet(spec) {
             'other_entity': that.other_entity
         });
 
-        that.table.create(container);
+        var span = $('<span/>', { 'name': 'association' }).appendTo(container);
 
+        that.table.create(span);
     };
 
-    that.setup = function(container, unspecified) {
-        that.table.setup(container);
-        that.table.refresh(container);
+    that.setup = function(container) {
+
+        var span = $('span[name=association]', container);
+
+        that.table.setup(span);
+        that.table.refresh();
     };
 
     return that;

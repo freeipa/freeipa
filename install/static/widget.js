@@ -32,6 +32,8 @@ function ipa_widget(spec) {
     that.read_only = spec.read_only;
     that._entity_name = spec.entity_name;
 
+    that.undo = typeof spec.undo == 'undefined' ? true : spec.undo;
+
     that.init = spec.init || init;
     that.create = spec.create || create;
     that.setup = spec.setup || setup;
@@ -61,6 +63,7 @@ function ipa_widget(spec) {
     }
 
     function setup(container) {
+        this.container = container;
     }
 
     function load(container, result) {
@@ -72,6 +75,41 @@ function ipa_widget(spec) {
 
     function clear(container) {
     }
+
+    that.is_dirty = function(container) {
+        if (!that.values) return true;
+        var values = that.save(that.container);
+        if (values.length != that.values.length) return true;
+        for (var i=0; i<values.length; i++) {
+            if (values[i] != that.values[i]) return true;
+        }
+        return false;
+    };
+
+    that.set_values = function(container, values) {
+    };
+
+    that.reset = function(container) {
+        that.hide_undo(that.container);
+        that.set_values(that.container, that.values);
+    };
+
+    that.get_undo = function(container) {
+        return $('span[name="undo"]', that.container);
+    };
+
+    that.show_undo = function(container) {
+        var undo = that.get_undo(that.container);
+        undo.css('display', 'inline');
+    };
+
+    that.hide_undo = function(container) {
+        var undo = that.get_undo(that.container);
+        undo.css('display', 'none');
+    };
+
+    // methods that should be invoked by subclasses
+    that.widget_setup = that.setup;
 
     return that;
 }
@@ -85,43 +123,74 @@ function ipa_text_widget(spec) {
     that.size = spec.size || 30;
 
     that.create = function(container) {
+
         $('<input/>', {
             'type': 'text',
             'name': that.name,
             'size': that.size
         }).appendTo(container);
+
+        if (that.undo) {
+            $('<span/>', {
+                'name': 'undo',
+                'style': 'display: none;',
+                'html': 'undo'
+            }).appendTo(container);
+        }
+    };
+
+    that.setup = function(container) {
+
+        this.widget_setup(container);
+
+        var input = $('input[name="'+that.name+'"]', that.container);
+        input.keyup(function() {
+            that.show_undo(that.container);
+        });
+
+        var undo = that.get_undo(that.container);
+        undo.click(function() {
+            that.reset(that.container);
+        });
     };
 
     that.load = function(container, result) {
-        that.value = result[that.name] || '';
-        var input = $('input[name="'+that.name+'"]', container);
 
-        var param_info = ipa_get_param_info(that.entity_name, that.name);
-        if (param_info.primary_key) {
-            input.replaceWith($('<label/>', { 'html': that.value.toString() }));
+        that.values = result[that.name] || [''];
+
+        if (that.read_only) {
+            var input = $('input[name="'+that.name+'"]', that.container);
+            var label = $('<label/>', {
+                'name': that.name,
+                'html': that.values[0]
+            });
+            input.replaceWith(label);
 
         } else {
-            input.val(that.value);
+            that.set_values(that.container, that.values);
+            that.hide_undo(that.container);
         }
     };
 
     that.save = function(container) {
-        var values = [];
-
-        if (that.value) {
-            values.push(that.value);
-
+        if (that.read_only) {
+            return that.values;
         } else {
-            var input = $('input[name="'+that.name+'"]', container);
-            values.push(input.val());
+            var value = $('input[name="'+that.name+'"]', that.container).val();
+            return [value];
         }
+    };
 
-        return values;
+    that.set_values = function(container, values) {
+        if (that.read_only) {
+            $('label[name="'+that.name+'"]', that.container).val(values[0]);
+        } else {
+            $('input[name="'+that.name+'"]', that.container).val(values[0]);
+        }
     };
 
     that.clear = function(container) {
-        var input = $('input[name="'+that.name+'"]', container);
-        input.val('');
+        that.set_values(that.container, ['']);
     };
 
     return that;
@@ -134,29 +203,54 @@ function ipa_checkbox_widget(spec) {
     var that = ipa_widget(spec);
 
     that.create = function(container) {
+
         $('<input/>', {
             'type': 'checkbox',
             'name': that.name
         }).appendTo(container);
+
+        if (that.undo) {
+            $('<span/>', {
+                'name': 'undo',
+                'style': 'display: none;',
+                'html': 'undo'
+            }).appendTo(container);
+        }
+    };
+
+    that.setup = function(container) {
+
+        that.widget_setup(container);
+
+        var input = $('input[name="'+that.name+'"]', that.container);
+        input.change(function() {
+            that.show_undo(that.container);
+        });
+
+        var undo = that.get_undo(that.container);
+        undo.click(function() {
+            that.reset(that.container);
+        });
     };
 
     that.load = function(container, result) {
-        var value = result[that.name] || '';
-        $('input[name="'+that.name+'"][value="'+value+'"]', container).attr('checked', 'checked');
+        that.values = result[that.name] || [false];
+        that.set_values(that.container, that.values);
+        that.hide_undo(that.container);
     };
 
     that.save = function(container) {
-        var values = [];
+        var value = $('input[name="'+that.name+'"]', that.container).is(':checked');
+        return [value];
+    };
 
-        var value = $('input[name="'+that.name+'"]', container).is(':checked');
-        values.push(value);
-
-        return values;
+    that.set_values = function(container, values) {
+        var value = values && values.length ? values[0] : false;
+        $('input[name="'+that.name+'"]', that.container).get(0).checked = value;
     };
 
     that.clear = function(container) {
-        var input = $('input[name="'+that.name+'"]', container).get(0);
-        input.checked = false;
+        $('input[name="'+that.name+'"]', that.container).get(0).checked = false;
     };
 
     return that;
@@ -168,18 +262,38 @@ function ipa_radio_widget(spec) {
 
     var that = ipa_widget(spec);
 
+    that.setup = function(container) {
+
+        that.widget_setup(container);
+
+        var input = $('input[name="'+that.name+'"]', that.container);
+        input.change(function() {
+            that.show_undo(that.container);
+        });
+
+        var undo = that.get_undo(that.container);
+        undo.click(function() {
+            that.reset(that.container);
+        });
+    };
+
     that.load = function(container, result) {
-        var value = result[that.name] || '';
-        $('input[name="'+that.name+'"][value="'+value+'"]', container).attr('checked', 'checked');
+        that.values = result[that.name] || [''];
+        that.set_values(that.container, that.values);
+        that.hide_undo(that.container);
     };
 
     that.save = function(container) {
-        var values = [];
+        var value = $('input[name="'+that.name+'"]:checked', that.container).val();
+        return [value];
+    };
 
-        var value = $('input[name="'+that.name+'"]:checked', container).val();
-        values.push(value);
+    that.set_values = function(container, values) {
+        $('input[name="'+that.name+'"][value="'+values[0]+'"]', that.container).get(0).checked = true;
+    };
 
-        return values;
+    that.clear = function(container) {
+        $('input[name="'+that.name+'"]', that.container).get().checked = false;
     };
 
     return that;
@@ -195,30 +309,54 @@ function ipa_textarea_widget(spec) {
     that.cols = spec.cols || 40;
 
     that.create = function(container) {
+
         $('<textarea/>', {
             'rows': that.rows,
             'cols': that.cols,
             'name': that.name
         }).appendTo(container);
+
+        if (that.undo) {
+            $('<span/>', {
+                'name': 'undo',
+                'style': 'display: none;',
+                'html': 'undo'
+            }).appendTo(container);
+        }
+    };
+
+    that.setup = function(container) {
+
+        that.widget_setup(container);
+
+        var input = $('textarea[name="'+that.name+'"]', that.container);
+        input.keyup(function() {
+            undo.css('display', 'inline');
+        });
+
+        var undo = that.get_undo(that.container);
+        undo.click(function() {
+            that.reset(that.container);
+        });
     };
 
     that.load = function(container, result) {
-        var value = result[that.name] || '';
-        $('textarea[name="'+that.name+'"]', container).val(value);
+        that.values = result[that.name] || [''];
+        that.set_values(that.container, that.values);
+        that.hide_undo(that.container);
     };
 
     that.save = function(container) {
-        var values = [];
+        var value = $('textarea[name="'+that.name+'"]', that.container).val();
+        return [value];
+    };
 
-        var value = $('textarea[name="'+that.name+'"]', container).val();
-        values.push(value);
-
-        return values;
+    that.set_values = function(container, values) {
+        $('textarea[name="'+that.name+'"]', that.container).val(values[0]);
     };
 
     that.clear = function(container) {
-        var input = $('input[name="'+that.name+'"]', container);
-        input.val('');
+        that.set_values(that.container, ['']);
     };
 
     return that;
@@ -237,7 +375,10 @@ function ipa_button_widget(spec) {
     that.click = spec.click;
 
     function setup(container) {
-        var input = $('[name="'+that.name+'"]', container);
+
+        that.widget_setup(container);
+
+        var input = $('[name="'+that.name+'"]', that.container);
         input.replaceWith(ipa_button({ 'label': that.label, 'click': that.click }));
     }
 
@@ -256,6 +397,7 @@ function ipa_column_widget(spec) {
 
     spec = spec || {};
 
+    // TODO: should not inherit from widget
     var that = ipa_widget(spec);
 
     that.primary_key = spec.primary_key;
@@ -302,11 +444,6 @@ function ipa_table_widget(spec) {
 
     spec = spec || {};
 
-    spec.create = spec.create || create;
-    spec.setup = spec.setup || setup;
-    spec.load = spec.load || load;
-    spec.save = spec.save || save;
-
     var that = ipa_widget(spec);
 
     that.add = spec.add;
@@ -335,13 +472,11 @@ function ipa_table_widget(spec) {
         return column;
     };
 
-    function create(container) {
-
-        var div = $('#'+that.id, container);
+    that.create = function(container) {
 
         var table = $('<table/>', {
             'class': 'search-table'
-        }).appendTo(div);
+        }).appendTo(container);
 
         var thead = $('<thead/>').appendTo(table);
 
@@ -407,11 +542,13 @@ function ipa_table_widget(spec) {
         $('<span/>', {
             'name': 'summary'
         }).appendTo(td);
-    }
+    };
 
-    function setup(container) {
-        var div = $('#'+that.id, container);
-        that.table = $('table', div);
+    that.setup = function(container) {
+
+        that.widget_setup(container);
+
+        that.table = $('table', that.container);
         that.thead = $('thead', that.table);
         that.tbody = $('tbody', that.table);
         that.tfoot = $('tfoot', that.table);
@@ -428,25 +565,11 @@ function ipa_table_widget(spec) {
             }
         });
 
-        var button = $('input[name=remove]', that.table);
-        button.replaceWith(ipa_button({
-            'label': button.val(),
-            'icon': 'ui-icon-trash',
-            'click': function() { that.remove(container); }
-        }));
-
-        button = $('input[name=add]', that.table);
-        button.replaceWith(ipa_button({
-            'label': button.val(),
-            'icon': 'ui-icon-plus',
-            'click': function() { that.add(container) }
-        }));
-
         that.row = that.tbody.children().first();
         that.row.detach();
-    }
+    };
 
-    function load(container, result) {
+    that.load = function(container, result) {
 
         that.tbody.empty();
 
@@ -455,11 +578,11 @@ function ipa_table_widget(spec) {
 
         for (var i=0; i<values.length; i++) {
             var record = that.get_record(result, i);
-            that.add_row(container, record);
+            that.add_row(that.container, record);
         }
-    }
+    };
 
-    function save(container) {
+    that.save = function(container) {
         var values = [];
 
         $('input[name="select"]', that.tbody).each(function() {
@@ -467,7 +590,7 @@ function ipa_table_widget(spec) {
         });
 
         return values;
-    }
+    };
 
     that.get_selected_values = function(container) {
         var values = [];
@@ -513,28 +636,14 @@ function ipa_table_widget(spec) {
     that.refresh = function(container) {
 
         function on_success(data, text_status, xhr) {
-
-            that.tbody.empty();
-
-            var column_name = that.columns[0].name;
-            var values = data.result.result[column_name];
-            //TODO, this is masking an error where the wrong
-            //direction association is presented upon page reload.
-            //if the values is unset, it is because
-            //form.associationColumns[0] doesn't exist in the results
-            if (!values) return;
-
-            for (var i = 0; i<values.length; i++){
-                var record = that.get_record(data.result.result, i);
-                that.add_row(container, record);
-            }
+            that.load(that.container, data.result.result);
         }
 
         function on_error(xhr, text_status, error_thrown) {
-            var div = $('#'+that.id, container).empty();
-            div.append('<p>Error: '+error_thrown.name+'</p>');
-            div.append('<p>'+error_thrown.title+'</p>');
-            div.append('<p>'+error_thrown.message+'</p>');
+            that.container.empty();
+            that.container.append('<p>Error: '+error_thrown.name+'</p>');
+            that.container.append('<p>'+error_thrown.title+'</p>');
+            that.container.append('<p>'+error_thrown.message+'</p>');
         }
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
@@ -546,6 +655,9 @@ function ipa_table_widget(spec) {
             that.create_column(spec.columns[i]);
         }
     }
+
+    // methods that should be invoked by subclasses
+    that.table_setup = that.setup;
 
     return that;
 }
@@ -627,7 +739,8 @@ function ipa_dialog(spec) {
                 'style': 'vertical-align: top;'
             }).appendTo(tr);
 
-            field.create(td);
+            var span = $('<span/>', { 'name': field.name }).appendTo(td);
+            field.create(span);
         }
     };
 
@@ -635,6 +748,12 @@ function ipa_dialog(spec) {
      * Setup behavior
      */
     that.setup = function() {
+        for (var i=0; i<that.fields.length; i++) {
+            var field = that.fields[i];
+
+            var span = $('span[name="'+field.name+'"]', that.container);
+            field.setup(span);
+        }
     };
 
     /**

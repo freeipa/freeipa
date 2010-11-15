@@ -34,7 +34,7 @@ test("Testing ipa_details_section.create().", function() {
         }
     );
 
-    var section = ipa_details_section({name:'IDIDID', label:'NAMENAMENAME'}).
+    var section = ipa_details_list_section({name:'IDIDID', label:'NAMENAMENAME'}).
         input({name:'cn', label:'Entity Name'}).
         input({name:'description', label:'Description'}).
         input({name:'number', label:'Entity ID'});
@@ -168,7 +168,7 @@ test("Testing details lifecycle: create, setup, load.", function(){
     var facet = entity.get_facet('details');
     facet.create(container);
     facet.setup(container);
-    facet.load(container, result);
+    facet.display(result);
 
     var contact = container.find('dl#contact.entryattrs');
 
@@ -256,7 +256,7 @@ test("Testing  _ipa_create_text_input() read only .", function(){
 
 test("Testing ipa_details_section_setup again()",function(){
 
-    var section = ipa_details_section({name: 'IDIDID', label: 'NAMENAMENAME'}).
+    var section = ipa_details_list_section({name: 'IDIDID', label: 'NAMENAMENAME'}).
         input({name:'cn', label:'Entity Name'}).
         input({name:'description', label:'Description'}).
         input({name:'number', label:'Entity ID'});
@@ -269,7 +269,7 @@ test("Testing ipa_details_section_setup again()",function(){
 
     section.create(container);
     section.setup(container);
-    section.load(container, result);
+    section.load(result);
 
     ok(container.find('hr'),'hr');
 
@@ -278,14 +278,33 @@ test("Testing ipa_details_section_setup again()",function(){
     //ok(h2[0].innerHTML.indexOf(section.label) > 1,"find name in html");
 
     var dl = container.find('dl');
-    ok(dl,'dl');
-    same(dl[0].children.length,6,'6 children');
-    same(dl[0].id, section.name);
-    same(dl[0].children[0].title, fields[0].name,'title matches name');
-    same(dl[0].children[0].innerHTML, fields[0].label+":",
-         'inner HTML matches label');
-    same(dl[0].children[5].title, fields[2].name,
-         'title matches fields[2] name');
 
+    ok(
+        dl.length,
+        'dl is created'
+    );
 
+    same(
+        dl[0].children.length, 3,
+        '3 spans'
+    );
+
+    same(
+        dl[0].id, section.name,
+        'checking section name'
+    );
+
+    same(
+        dl[0].children[0].children[0].title, fields[0].name,
+        'title matches name'
+    );
+
+    same(
+        dl[0].children[0].children[0].innerHTML, fields[0].label+":",
+        'inner HTML matches label'
+    );
+    same(
+        dl[0].children[2].children[0].title, fields[2].name,
+        'title matches fields[2] name'
+    );
 });

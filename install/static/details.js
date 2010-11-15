@@ -40,29 +40,26 @@ function ipa_details_field(spec) {
     var that = ipa_widget(spec);
 
     that.create = spec.create || create;
-    that.setup = spec.setup || setup;
     that.load = spec.load || load;
     that.save = spec.save || save;
 
     function create(container) {
 
-        var dl = $('dl', container);
-
         var title = that.name;
         var label = '';
+
         var param_info = ipa_get_param_info(that.entity_name, that.name);
         if (param_info)
             label = param_info['label'];
+
         if (!label)
             label = that.label;
+
         $('<dt></dt>', {
             id: that.name,
             title: title,
             html: label + ':'
-        }).appendTo(dl);
-    }
-
-    function setup(container) {
+        }).appendTo(container);
     }
 
     function load(container, result) {
@@ -129,10 +126,9 @@ function ipa_details_field(spec) {
     }
 
     function save(container) {
-        var field = this;
         var values = [];
 
-        var dd = $('dd[title='+field.name+']', container);
+        var dd = $('dd[title='+that.name+']', container);
         dd.each(function () {
             var input = $('input', $(this));
             if (!input.length) return;
@@ -156,14 +152,11 @@ function ipa_details_section(spec){
     spec = spec || {};
 
     var that = {};
+
     that.name = spec.name || '';
     that.label = spec.label || '';
     that.template = spec.template;
     that._entity_name = spec.entity_name;
-
-    that.setup = spec.setup || ipa_details_section_setup;
-    that.create = spec.create || ipa_details_section_create;
-    that.load = spec.load || ipa_details_section_load;
 
     that.fields = [];
     that.fields_by_name = {};
@@ -234,6 +227,126 @@ function ipa_details_section(spec){
         }
     };
 
+    that.create = function(container) {
+
+        if (that.template) return;
+
+        var fields = that.fields;
+        for (var i = 0; i < fields.length; ++i) {
+            var field = fields[i];
+
+            var span = $('<span/>', { 'name': field.name }).appendTo(container);
+            field.create(span);
+        }
+    };
+
+    that.setup = function(container) {
+
+        this.container = container;
+
+        if (that.template) return;
+
+        var fields = that.fields;
+        for (var i = 0; i < fields.length; ++i) {
+            var field = fields[i];
+
+            var span = $('span[name='+field.name+']', this.container).first();
+            field.setup(span);
+        }
+    };
+
+    that.load = function(result) {
+
+        var fields = that.fields;
+
+        if (that.template) {
+            var template = IPA.get_template(that.template);
+            this.container.load(
+                template,
+                function(data, text_status, xhr) {
+                    for (var i = 0; i < fields.length; ++i) {
+                        var field = fields[i];
+                        var span = $('span[name='+field.name+']', this.container).first();
+                        field.setup(span);
+                        field.load(span, result);
+                    }
+                }
+            );
+            return;
+        }
+
+        for (var j=0; j<fields.length; j++) {
+            var field = fields[j];
+            var span = $('span[name='+field.name+']', this.container).first();
+            field.load(span, result);
+        }
+    };
+
+    that.reset = function() {
+        for (var i=0; i<that.fields.length; i++) {
+            var field = that.fields[i];
+            var span = $('span[name='+field.name+']', this.container).first();
+            field.reset(span);
+        }
+    };
+
+    // methods that should be invoked by subclasses
+    that.section_create = that.create;
+    that.section_setup = that.setup;
+    that.section_load = that.load;
+
+    return that;
+}
+
+function ipa_details_list_section(spec){
+
+    spec = spec || {};
+
+    var that = ipa_details_section(spec);
+
+    that.create = function(container) {
+
+        // do not call section_create() here
+
+        if (that.template) return;
+
+        var dl = $('<dl/>', {
+            'id': that.name,
+            'class': 'entryattrs'
+        }).appendTo(container);
+
+        var fields = that.fields;
+        for (var i = 0; i < fields.length; ++i) {
+            var field = fields[i];
+
+            var span = $('<span/>', { 'name': field.name }).appendTo(dl);
+            field.create(span);
+        }
+    };
+
+    /* populate definition lists with the class 'entryattrs' with entry attributes
+     *
+     * The list has to be specially crafted for this function to work properly:
+     * <dt> tags should have the 'title' attribute set to an LDAP attribute name
+     * OR to a javascript function name prefixed with 'call_', which will be given
+     * the <dt> object and entry_attrs as arguments.
+     * Example:
+     *   <dl class="entryattrs">
+     *     <dt title="givenname">First Name:</dt>
+     *     <dt title="call_some_callback">Some Attribute:</dt>
+     *   </dl>
+     *
+     * arguments:
+     *   result - 'result' field as returned by ipa *-show commnads
+     *                 (basically an associative array with attr:value pairs) */
+    that.load = function(result) {
+        /* remove all <dd> tags i.e. all attribute values */
+        $('dd', that.container).remove();
+
+        /* go through all <dt> tags and pair them with newly created <dd>s */
+        that.section_load(result);
+    };
+
     // Deprecated: Used for backward compatibility only.
     function input(spec){
         that.create_field(spec);
@@ -247,7 +360,7 @@ function ipa_details_section(spec){
 
 // Deprecated: Used for backward compatibility only.
 function ipa_stanza(spec) {
-    return ipa_details_section(spec);
+    return ipa_details_list_section(spec);
 }
 
 function ipa_details_facet(spec) {
@@ -392,7 +505,8 @@ function ipa_details_create(container)
     }
 }
 
-function ipa_details_setup(container, unspecified) {
+function ipa_details_setup(container) {
+
     var that = this;
 
     for (var i = 0; i < that.sections.length; ++i) {
@@ -403,16 +517,17 @@ function ipa_details_setup(container, unspecified) {
             container
         );
 
-        section.setup(div, unspecified);
+        section.setup(div);
     }
 }
 
-function ipa_details_load(container, unspecified) {
+function ipa_details_load(container) {
 
     var that = this;
+    var entity = IPA.get_entity(that.entity_name);
 
     that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-    if (!that.pkey && !unspecified) return;
+    if (!that.pkey && !entity.default_facet) return;
 
     function on_success(data, text_status, xhr) {
         var result = data.result.result;
@@ -420,13 +535,7 @@ function ipa_details_load(container, unspecified) {
         ipa_details_cache[that.entity_name] = $.extend(true, {}, result);
         for (var i = 0; i < that.sections.length; ++i) {
             var section = that.sections[i];
-
-            var div = $(
-                '#'+that.entity_name+'-'+that.name+'-'+section.name,
-                container
-            );
-
-            section.load(div, result);
+            section.load(result);
         }
     }
 
@@ -445,59 +554,6 @@ function ipa_details_load(container, unspecified) {
     );
 }
 
-function ipa_details_section_create(container) {
-
-    var that = this;
-    if (that.template) return;
-
-    var dl = $('<dl/>', {
-        'id': that.name,
-        'class': 'entryattrs'
-    }).appendTo(container);
-
-    var fields = that.fields;
-    for (var i = 0; i < fields.length; ++i) {
-        var field = fields[i];
-        field.create(container);
-    }
-}
-
-function ipa_details_section_setup(container, unspecified) {
-    var that = this;
-    if (that.template) return;
-
-    var fields = that.fields;
-    for (var i = 0; i < fields.length; ++i) {
-        var field = fields[i];
-        field.setup(container);
-    }
-}
-
-function ipa_details_section_load(container, result) {
-    var that = this;
-    var fields = that.fields;
-
-    if (that.template) {
-        var template = IPA.get_template(that.template);
-        container.load(
-            template,
-            function(data, text_status, xhr) {
-                for (var i = 0; i < fields.length; ++i) {
-                    var field = fields[i];
-                    field.setup(container);
-                    field.load(container, result);
-                }
-            }
-        );
-        return;
-    }
-
-    for (var j=0; j<fields.length; j++) {
-        var field = fields[j];
-        field.load(container, result);
-    }
-}
-
 function ipa_details_update(container, pkey, on_win, on_fail)
 {
     var facet = this;
@@ -511,7 +567,7 @@ function ipa_details_update(container, pkey, on_win, on_fail)
 
         var result = data.result.result;
         ipa_details_cache[entity_name] = $.extend(true, {}, result);
-        facet.display(container, result);
+        facet.display(result);
     }
 
     function update_on_fail(xhr, text_status, error_thrown) {
@@ -534,7 +590,8 @@ function ipa_details_update(container, pkey, on_win, on_fail)
         for (var j=0; j<section.fields.length; j++) {
             var field = section.fields[j];
 
-            values = field.save(div);
+            var span = $('span[name='+field.name+']', div).first();
+            values = field.save(span);
 
             var param_info = ipa_get_param_info(entity_name, field.name);
             if (param_info) {
@@ -559,7 +616,7 @@ function ipa_details_update(container, pkey, on_win, on_fail)
             modlist['addattr'].push(attr + '=' + values[i]);
     }
 
-    ipa_cmd('mod', [pkey], modlist, update_on_win, update_on_fail, entity_name);
+    ipa_cmd('mod', [pkey], modlist, update_on_win, null, entity_name);
 }
 
 
@@ -571,35 +628,13 @@ var _ipa_span_hint_template = '<span class="attrhint">Hint: D</span>';
 
 
 
-/* populate definition lists with the class 'entryattrs' with entry attributes
- *
- * The list has to be specially crafted for this function to work properly:
- * <dt> tags should have the 'title' attribute set to an LDAP attribute name
- * OR to a javascript function name prefixed with 'call_', which will be given
- * the <dt> object and entry_attrs as arguments.
- * Example:
- *   <dl class="entryattrs">
- *     <dt title="givenname">First Name:</dt>
- *     <dt title="call_some_callback">Some Attribute:</dt>
- *   </dl>
- *
- * arguments:
- *   result - 'result' field as returned by ipa *-show commnads
- *                 (basically an associative array with attr:value pairs) */
-function ipa_details_display(container, result)
+function ipa_details_display(result)
 {
     var facet = this;
 
-    /* remove all <dd> tags i.e. all attribute values */
-    $('dd', container).remove();
-
-    /* go through all <dt> tags and pair them with newly created <dd>s */
     for (var i=0; i<facet.sections.length; i++) {
         var section = facet.sections[i];
-
-        var div = $('#'+facet.entity_name+'-'+facet.name+'-'+section.name, container);
-
-        section.load(div, result);
+        section.load(result);
     }
 }
 
@@ -607,7 +642,6 @@ function ipa_details_display(container, result)
 
 function ipa_create_first_dd(field_name, content){
     return $('<dd/>', {
-
         'class': 'first',
         'title': field_name
     }).append(content);
@@ -783,13 +817,17 @@ function _ipa_create_text_input(attr, value, param_info, rights)
 
 function ipa_details_reset(container)
 {
-    var facet = this;
-    var entity_name = facet.entity_name;
+    var that = this;
+    var entity_name = that.entity_name;
 
     if (ipa_details_cache[entity_name]){
-        facet.display(container, ipa_details_cache[entity_name]);
+        that.display(ipa_details_cache[entity_name]);
     }
 
+    for (var i=0; i<that.sections.length; i++) {
+        var section = that.sections[i];
+        section.reset();
+    }
 }
 
 /* Event handlers */

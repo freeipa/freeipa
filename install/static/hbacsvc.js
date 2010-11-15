@@ -69,8 +69,8 @@ function ipa_hbacsvc_add_dialog(spec) {
 
         this.superior_init();
 
-        this.add_field(ipa_text_widget({name:'cn', label:'Name'}));
-        this.add_field(ipa_text_widget({name:'description', label:'Description'}));
+        this.add_field(ipa_text_widget({name:'cn', label:'Name', undo: false}));
+        this.add_field(ipa_text_widget({name:'description', label:'Description', undo: false}));
     };
 
     return that;
@@ -91,12 +91,6 @@ function ipa_hbacsvc_search_facet(spec) {
         that.create_column({name:'cn', label:'Service', primary_key: true});
         that.create_column({name:'description', label:'Description'});
 
-        that.create_column({
-            name: 'quick_links',
-            label: 'Quick Links',
-            setup: ipa_hbacsvc_quick_links
-        });
-
         that.superior_init();
     };
 
@@ -107,31 +101,29 @@ function ipa_hbacsvc_search_facet(spec) {
         // TODO: replace with IPA.metadata[that.entity_name].label
         $('<h2/>', { 'html': 'HBAC Services' }).appendTo(container);
 
-        var right_buttons = $('<li/>', {
-            'style': 'float: right;'
-        }).appendTo($('.action-panel ul'));
+        var ul = $('.action-panel ul');
 
-        right_buttons.append(ipa_button({
-            'label': 'HBAC Rules',
+        $('<li/>', {
+            title: 'hbac',
+            text: 'HBAC Rules',
             'click': function() {
                 var state = {};
                 state['entity'] = 'hbac';
                 nav_push_state(state);
                 return false;
             }
-        }));
+        }).appendTo(ul);
 
-        right_buttons.append(ipa_button({
-            'label': 'HBAC Service Groups',
+        $('<li/>', {
+            title: 'hbacsvcgroup',
+            text: 'HBAC Service Groups',
             'click': function() {
                 var state = {};
                 state['entity'] = 'hbacsvcgroup';
                 nav_push_state(state);
                 return false;
             }
-        }));
-
-        container.append('<br/><br/>');
+        }).appendTo(ul);
 
         that.superior_create(container);
     };
@@ -139,30 +131,6 @@ function ipa_hbacsvc_search_facet(spec) {
     return that;
 }
 
-
-function ipa_hbacsvc_quick_links(container, name, value, record) {
-
-    var that = this;
-
-    var pkey = IPA.metadata[that.entity_name].primary_key;
-    var pkey_value = record[pkey];
-
-    var link = $('<a/>', {
-        'href': '#details',
-        'title': 'Details',
-        'text': 'Details',
-        'click': function() {
-            var state = {};
-            state[that.entity_name+'-facet'] = 'details';
-            state[that.entity_name+'-pkey'] = pkey_value;
-            nav_push_state(state);
-            return false;
-        }
-    });
-
-    var span = $('span[name="'+name+'"]', container);
-    span.html(link);
-}
 
 function ipa_hbacsvc_details_facet(spec) {
 
@@ -176,10 +144,11 @@ function ipa_hbacsvc_details_facet(spec) {
 
     that.init = function() {
 
-        var section = that.create_section({
+        var section = ipa_details_list_section({
             'name': 'general',
             'label': 'General'
         });
+        that.add_section(section);
 
         section.create_field({ 'name': 'cn', 'label': 'Name' });
         section.create_field({ 'name': 'description', 'label': 'Description' });

@@ -252,7 +252,7 @@ function ipa_records_facet(spec){
 //        that.setup_views(container);
     }
 
-    function setup(container, unspecified){
+    function setup(container){
 
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         that.record = $.bbq.getState(that.entity_name + '-record', true) || '';
@@ -514,6 +514,8 @@ ipa_entity_set_details_definition('krbtpolicy', [
         input({name:'krbmaxrenewableage', label:'Max Renewable Age'}).
         input({name:'krbmaxticketlife', label:'Max Ticket Life'})
 ]);
+
+IPA.get_entity('krbtpolicy').default_facet = 'details';
 
 ipa_entity_set_association_definition('krbtpolicy', {
 });

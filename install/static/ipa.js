@@ -112,53 +112,58 @@ function ipa_command(spec) {
     spec = spec || {};
 
     var that = {};
+
     that.method = spec.method;
 
-    that.params = spec.params || [];
-    that.params[0] = spec.args || [];
-    that.params[1] = spec.options || {};
+    that.args = $.merge([], spec.args || []);
+    that.options = $.extend({}, spec.options || {});
+
+    that.on_success = spec.on_success;
+    that.on_error = spec.on_error;
 
     that.add_arg = function(arg) {
-        that.params[0].push(arg);
-    };
-
-    that.get_args = function() {
-        return that.params[0];
+        that.args.push(arg);
     };
 
     that.set_option = function(name, value) {
-        that.params[1][name] = value;
+        that.options[name] = value;
     };
 
     that.get_option = function(name) {
-        return that.params[1][name];
+        return that.options[name];
     };
 
-    that.get_options = function() {
-        return that.params[1];
-    };
-
-    that.execute = function(on_success, on_error) {
+    that.execute = function() {
         ipa_cmd(
             that.method,
-            that.get_args(),
-            that.get_options(),
-            on_success,
-            on_error
+            that.args,
+            that.options,
+            that.on_success,
+            that.on_error
         );
+    };
+
+    that.to_json = function() {
+        var json = {};
+
+        json.method = that.method;
+
+        json.params = [];
+        json.params[0] = that.args || [];
+        json.params[1] = that.options || {};
+
+        return json;
     };
 
     that.to_string = function() {
         var string = that.method.replace(/_/g, '-');
 
-        var args = that.get_args();
-        for (var i=0; i<args.length; i++) {
-            string += ' '+args[i];
+        for (var i=0; i<that.args.length; i++) {
+            string += ' '+that.args[i];
         }
 
-        var options = that.get_options();
-        for (var name in options) {
-            string += ' --'+name+'=\''+options[name]+'\'';
+        for (var name in that.options) {
+            string += ' --'+name+'=\''+that.options[name]+'\'';
         }
 
         return string;
@@ -175,8 +180,59 @@ function ipa_batch_command(spec) {
 
     var that = ipa_command(spec);
 
+    that.commands = [];
+
     that.add_command = function(command) {
-        that.add_arg(command);
+        that.commands.push(command);
+        that.add_arg(command.to_json());
+    };
+
+    that.add_commands = function(commands) {
+        for (var i=0; i<commands.length; i++) {
+            that.add_command(commands[i]);
+        }
+    };
+
+    that.execute = function() {
+        ipa_cmd(
+            that.method,
+            that.args,
+            that.options,
+            function(data, text_status, xhr) {
+                for (var i=0; i<that.commands.length; i++) {
+                    var command = that.commands[i];
+                    var result = data.result.results[i];
+
+                    if (!result) {
+                        if (command.on_error) command.on_error(
+                            xhr, text_status,
+                            {
+                                title: 'Internal Error '+xhr.status,
+                                message: result ? xhr.statusText : "Internal error"
+                            }
+                        );
+
+                    } else if (result.error) {
+                        if (command.on_error) command.on_error(
+                            xhr,
+                            text_status,
+                            {
+                                title: 'IPA Error '+result.error.code,
+                                message: result.error.message
+                            }
+                        );
+
+                    } else {
+                        if (command.on_success) command.on_success(result, text_status, xhr);
+                    }
+                }
+                if (that.on_success) that.on_success(data, text_status, xhr);
+            },
+            function(xhr, text_status, error_thrown) {
+                // TODO: undefined behavior
+                if (that.on_error) that.on_error(xhr, text_status, error_thrown)
+            }
+        );
     };
 
     return that;
@@ -207,7 +263,7 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
                 },
                 'Cancel': function () {
                     IPA.error_dialog.dialog('close');
-                    fail_callback.call(that, xhr, text_status, error_thrown);
+                    if (fail_callback) fail_callback.call(that, xhr, text_status, error_thrown);
                 }
             }
         });

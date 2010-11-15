@@ -85,8 +85,18 @@ function ipa_service_add_dialog(spec) {
             label: 'Principal'
         }));
 
-        this.add_field(ipa_text_widget({name:'service', label:'Service'}));
-        this.add_field(ipa_text_widget({name:'host', label:'Host Name'}));
+        this.add_field(ipa_text_widget({
+            'name': 'service', 'label': 'Service',
+            'size': 20,
+            'undo': false
+        }));
+
+        this.add_field(ipa_text_widget({
+            'name': 'host',
+            'label': 'Host Name',
+            'size': 40,
+            'undo': false
+        }));
     };
 
     that.create = function() {
@@ -106,11 +116,8 @@ function ipa_service_add_dialog(spec) {
             'style': 'vertical-align: top;'
         }).appendTo(tr);
 
-        $('<input/>', {
-            'type': 'text',
-            'name': 'service',
-            'size': 20
-        }).appendTo(td);
+        var span = $('<span/>', { 'name': 'service' }).appendTo(td);
+        field.create(span);
 
         field = that.get_field('host');
 
@@ -125,11 +132,8 @@ function ipa_service_add_dialog(spec) {
             'style': 'vertical-align: top;'
         }).appendTo(tr);
 
-        $('<input/>', {
-            'type': 'text',
-            'name': 'host',
-            'size': 40
-        }).appendTo(td);
+        span = $('<span/>', { 'name': 'host' }).appendTo(td);
+        field.create(span);
     };
 
     that.get_record = function() {
@@ -176,7 +180,11 @@ function ipa_service_details_facet(spec) {
 
     that.init = function() {
 
-        var section = this.create_section({name:'details', label:'Service Details'});
+        var section = ipa_details_list_section({
+            name:'details',
+            label:'Service Details'
+        });
+        that.add_section(section);
 
         section.create_field({
             name: 'krbprincipalname',
@@ -195,7 +203,11 @@ function ipa_service_details_facet(spec) {
             load: service_host_load
         });
 
-        section = this.create_section({name:'provisioning', label:'Provisioning'});
+        section = ipa_details_list_section({
+            name:'provisioning',
+            label:'Provisioning'
+        });
+        that.add_section(section);
 
         section.create_field({
             name: 'provisioning_status',
@@ -203,7 +215,11 @@ function ipa_service_details_facet(spec) {
             load: service_provisioning_status_load
         });
 
-        section = this.create_section({name:'certificate', label:'Service Certificate'});
+        section = ipa_details_list_section({
+            name:'certificate',
+            label:'Service Certificate'
+        });
+        that.add_section(section);
 
         section.create_field({
             name: 'certificate_status',

@@ -115,3 +115,5 @@ ipa_entity_set_details_definition('config',[
         input({name:'ipasearchtimelimit', label:'Search Time Limit'}).
         input({name:'ipausersearchfields', label:'User Search Fields'})
 ]);
+
+IPA.get_entity('config').default_facet = 'details';

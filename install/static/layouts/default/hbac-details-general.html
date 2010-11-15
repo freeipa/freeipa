@@ -14,12 +14,18 @@
             Name:
         </td>
         <td>
-            <input type="text" name="cn" size="30"/>
+            <span name="cn">
+                <input type="text" name="cn" size="30"/>
+                <span name="undo" class="ui-state-highlight ui-corner-all" style="display: none;">undo</span>
+            </span>
         </td>
         <td style="text-align: right;">
             Rule type:
-            <input type="radio" name="accessruletype" value="allow"/>Allow
-            <input type="radio" name="accessruletype" value="deny"/>Deny
+            <span name="accessruletype">
+                <input type="radio" name="accessruletype" value="allow"/>Allow
+                <input type="radio" name="accessruletype" value="deny"/>Deny
+                <span name="undo" class="ui-state-highlight ui-corner-all" style="display: none;">undo</span>
+            </span>
         </td>
     </tr>
     <tr>
@@ -27,7 +33,10 @@
             Description:
         </td>
         <td colspan="2">
-            <textarea name="description" rows="5" style="width: 100%;" cols="40"></textarea>
+            <span name="description">
+                <textarea name="description" rows="5" style="width: 100%;" cols="40"></textarea>
+                <span name="undo" class="ui-state-highlight ui-corner-all" style="display: none;">undo</span>
+            </span>
         </td>
     </tr>
     <tr>
@@ -35,8 +44,11 @@
             Rule status:
         </td>
         <td colspan="2">
-            <input type="radio" name="ipaenabledflag" value="TRUE"/>Active
-            <input type="radio" name="ipaenabledflag" value="FALSE"/>Inactive
+            <span name="ipaenabledflag">
+                <input type="radio" name="ipaenabledflag" value="TRUE"/>Active
+                <input type="radio" name="ipaenabledflag" value="FALSE"/>Inactive
+                <span name="undo" class="ui-state-highlight ui-corner-all" style="display: none;">undo</span>
+            </span>
         </td>
     </tr>
     </table>

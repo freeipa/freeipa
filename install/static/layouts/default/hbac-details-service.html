@@ -9,11 +9,14 @@
 <body>
 <div id="contents">
     Rule applies when access is requested via:
-    <input type="radio" name="servicecategory" value="all"/>Any Service
-    <input type="radio" name="servicecategory" value=""/>Specified Services and Groups
+    <span name="servicecategory">
+        <input type="radio" name="servicecategory" value="all"/>Any Service
+        <input type="radio" name="servicecategory" value=""/>Specified Services and Groups
+        <span name="undo" class="ui-state-highlight ui-corner-all" style="display: none;">undo</span>
+    </span>
     <br/>
 
-    <div id="hbac-memberservice_hbacsvc">
+    <span name="memberservice_hbacsvc">
     <table class="search-table">
     <thead>
         <tr>
@@ -40,9 +43,9 @@
         </tr>
     </tbody>
     </table>
-    </div>
+    </span>
 
-    <div id="hbac-memberservice_hbacsvcgroup">
+    <span name="memberservice_hbacsvcgroup">
     <table class="search-table">
     <thead>
         <tr>
@@ -69,7 +72,7 @@
         </tr>
     </tbody>
     </table>
-    </div>
+    </span>
 </div>
 </body>
 </html>

@@ -206,7 +206,8 @@ function ipa_entity_set_add_definition(entity_name, data) {
         dialog.add_field(ipa_text_widget({
             name: field[0],
             label: field[1],
-            setup: field[2]
+            setup: field[2],
+            undo: false
         }));
     }
 }
@@ -289,11 +290,11 @@ function ipa_details_only_setup(container){
     ipa_entity_setup.call(this, container, 'details');
 }
 
-function ipa_entity_setup(container, unspecified) {
+function ipa_entity_setup(container) {
 
     var entity = this;
 
-    var facet_name = $.bbq.getState(entity.name + '-facet', true) || unspecified || 'search';
+    var facet_name = $.bbq.getState(entity.name + '-facet', true) || entity.default_facet || 'search';
 
     var facet = entity.get_facet(facet_name);
     if (!facet) return;
@@ -314,15 +315,15 @@ function ipa_entity_setup(container, unspecified) {
     facet.setup_views(container);
     facet.create(container);
     container.children().last().addClass('client');
-    facet.setup(container, unspecified);
-    facet.load(container, unspecified);
+    facet.setup(container);
+    facet.load(container);
 }
 
 
 function action_panel(entity_name){
     var div = $('<div/>', {
         "class":"action-panel",
-        html: $('<h3>Actions</h3>'),
+        html: $('<h3>Actions</h3>')
     });
     var ul = $('<ul/>', {'class': 'action'}).appendTo(div);
 
