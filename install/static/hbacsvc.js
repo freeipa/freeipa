@@ -98,9 +98,6 @@ function ipa_hbacsvc_search_facet(spec) {
 
         var that = this;
 
-        // TODO: replace with IPA.metadata[that.entity_name].label
-        $('<h2/>', { 'html': 'HBAC Services' }).appendTo(container);
-
         var ul = $('.action-panel ul');
 
         $('<li/>', {
@@ -126,6 +123,15 @@ function ipa_hbacsvc_search_facet(spec) {
         }).appendTo(ul);
 
         that.superior_create(container);
+
+        // TODO: replace with IPA.metadata[that.entity_name].label
+        container.children().last().prepend(
+            $('<h2/>', { 'html': 'HBAC Services' }));
+        container.children().last().prepend('<br/><br/>');
+
+
+
+
     };
 
     return that;

@@ -109,8 +109,6 @@ function ipa_hbacsvcgroup_search_facet(spec) {
 
         var that = this;
 
-        // TODO: replace with IPA.metadata[that.entity_name].label
-        $('<h2/>', { 'html': 'HBAC Service Groups' }).appendTo(container);
 
         var ul = $('.action-panel ul');
 
@@ -137,6 +135,11 @@ function ipa_hbacsvcgroup_search_facet(spec) {
         }).appendTo(ul);
 
         that.superior_create(container);
+        // TODO: replace with IPA.metadata[that.entity_name].label
+        container.children().last().prepend(
+            $('<h2/>', { 'html': 'HBAC Service Groups' }));
+        container.children().last().prepend('<br/><br/>');
+
     };
 
     return that;

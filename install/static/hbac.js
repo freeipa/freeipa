@@ -111,10 +111,9 @@ function ipa_hbac_search_facet(spec) {
 
         var that = this;
 
-        // TODO: replace with IPA.metadata[that.entity_name].label
-        $('<h2/>', { 'html': 'HBAC Rules' }).appendTo(container);
 
 /*
+
         // Not yet implemented
 
         var left_buttons = $('<span/>', {
@@ -128,6 +127,7 @@ function ipa_hbac_search_facet(spec) {
         left_buttons.append(ipa_button({
             'label': 'Cull Disabled Rules'
         }));
+
 */
         var ul = $('.action-panel ul');
 
@@ -154,6 +154,12 @@ function ipa_hbac_search_facet(spec) {
         }).appendTo(ul);
 
         that.superior_create(container);
+
+        // TODO: replace with IPA.metadata[that.entity_name].label
+        container.children().last().prepend(
+            $('<h2/>', { 'html': 'HBAC Rules' }));
+        container.children().last().prepend('<br/><br/>');
+
     };
 
     return that;
