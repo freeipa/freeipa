@@ -259,7 +259,7 @@ function ipa_association_widget(spec) {
         that.superior_create(container);
 
         var div = $('#'+that.id, container);
-        var buttons = $('span[name=buttons]', div);
+        var buttons = $('<span />').appendTo($('.action-panel'));  //TODO replace with ipa_button
 
         $('<input/>', {
             'type': 'button',
