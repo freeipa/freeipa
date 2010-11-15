@@ -64,6 +64,7 @@ from ipalib import Int, Str
 from ipalib.plugins.baseldap import *
 from ipalib import _
 from ipapython.ipautil import run
+from distutils import version
 
 class cosentry(LDAPObject):
     """
@@ -171,12 +172,17 @@ class pwpolicy(LDAPObject):
         'krbpwdmaxfailure', 'krbpwdfailurecountinterval',
         'krbpwdlockoutduration',
     ]
+    MIN_KRB5KDC_WITH_LOCKOUT = "1.8"
     has_lockout = False
     lockout_params = ()
+
     (stdout, stderr, rc) = run(['klist', '-V'], raiseonerr=False)
     if rc == 0:
-        if stdout.find('version 1.8') > -1:
-            has_lockout = True
+        verstr = stdout.split()[-1]
+        ver = version.LooseVersion(verstr)
+        min = version.LooseVersion(MIN_KRB5KDC_WITH_LOCKOUT)
+        if ver >= min:
+                has_lockout = True
 
     if has_lockout:
         lockout_params = (
