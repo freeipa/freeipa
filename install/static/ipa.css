@@ -7,14 +7,15 @@
 
 
 body{
-    font: 62.5% "Trebuchet MS", sans-serif; margin: 5px;
+    font: 1em "Trebuchet MS", sans-serif; 
+    margin: .2em;
 }
 
 .demoHeaders { margin-top: 2em; }
 
 
-.input_link {padding: .4em 1em .4em 20px;text-decoration: none;position: relative;  cursor: pointer; }
-.input_link span.ui-icon {margin: 0 5px 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
+.input_link {padding: .4em 1em .4em 1.5em;text-decoration: none;position: relative;  cursor: pointer; }
+.input_link span.ui-icon {margin: 0 0.4em 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
 
 
 
@@ -23,7 +24,7 @@ div.header {
     background-image: url(header_background.png);
     background: -moz-linear-gradient(top, #65646e, #1f1f1f);
     background-color: #1f1f1f;
-    height: 25px;
+    height: 2em;
     width: 100%;
 }
 
@@ -42,13 +43,12 @@ div.header a:visited {
 }
 
 div.header span.header-logo {
-#    float: left;
-    padding-left: 100px;
+    padding-left: 6em;
 }
 
 div.header span.header-logo a img {
     border: 0;
-    height: 25px;
+    height: 1.8em;
 }
 
 div.header span.header-loggedinas {
@@ -76,6 +76,7 @@ h1 {
 }
 
 div#content {
+    margin-top: 0.4em;
     position: relative;
     width: 100%;
 }
@@ -197,7 +198,7 @@ span.attrhint {
 
 
 .ui-tabs .ui-tabs-nav li {
-    height: 30px;
+    height: 2em;
     margin: 0 0 0 0;
     padding: 0 0 0 0;
     border-width: 0;
@@ -230,13 +231,14 @@ span.attrhint {
 
 .tabs2 .ui-tabs-nav {
     background-image: url(Subnav-background.png);
-    padding-top: 0px;
+    padding-top: 0;
     margin: 0;
+    height:  1.8em;
 }
 
 
 .tabs2 .ui-tabs-nav li a{
-    height: 10%;
+    height: 9%;
     background-image: url(Subnav-background.png);
     color: white;
 }
@@ -247,16 +249,17 @@ span.attrhint {
 
 
 .tabs2 .ui-tabs-nav li{
-    height: 10%;
+    height: 20%;
     background-image: url(Subnav-background.png);
     color: white;
 }
 
 .tabs2 .ui-tabs-nav li.ui-tabs-selected a{
-    -moz-border-radius: 15px;
-    border-radius: 15px;
+    -moz-border-radius: 2em;
+    border-radius: 2em;
     background-image: url(Subnav-onbutton.png);
     color: white;
+    height: 0.8em;
 }
 
 span.sub-nav-off > a:link, span.sub-nav-off >  a:visited{
@@ -269,7 +272,7 @@ span.main-nav-off > a:link, span.main-nav-off >  a:visited{
 
 span.main-separator{
     background: #333339;
-    padding:1px;
+    padding:0.1em;
 }
 
 
@@ -278,21 +281,23 @@ span.main-separator{
 
 .entity-container{
     position: relative;
-    margin: 10px;
-    padding: 10px;
+    width: 80%;
+    margin: 0.06em;
+    padding: 0.06em;
     background: #e8e8e8;
 }
 
 .action-panel {
     position:relative;
 
-    left: -20px;
+    left: -1.2em;
     border-width: thin;
     border-style: solid;
     border-color: black;
     float: left;
-    margin-top:75px;
-    margin-left: 40px;
+    margin-top: 5em;
+    margin-left: 2.5em;
+    padding-bottom: 1em;
 }
 
 .action-panel h3{
@@ -304,11 +309,12 @@ span.main-separator{
 }
 
 .action-panel li {
-    height: 25px;
-
+    height: 2em;
+    padding: 0.2em;
 }
 
 .client {
+    margin-top: 0.4em;
     float: left;
 }
 
@@ -319,7 +325,7 @@ span.main-separator{
     height: 25px;
     background:#a5a5a5;
     position: relative;
-    padding: 10px;
+    padding: 0.7em;
 }
 
 .search-table > a:link,a:visted{
@@ -327,7 +333,7 @@ span.main-separator{
 }
 
 .search-table{
-    padding: 0px;
+    padding: 0;
     width:100%;
     border-width: thin;
     border-style: solid;
@@ -356,7 +362,7 @@ span.main-separator{
 .entity-views li {
     display:inline;
     cursor: pointer;
-    padding: 3px;
+    padding: 0.4em;
 }
 
 .strikethrough { text-decoration: line-through; }
@@ -383,22 +389,22 @@ span.main-separator{
 
 dl.modal {
     clear: both;
-    margin-left: 15px;
-    margin-top: 18px;
+    margin-left: 1em;
+    margin-top: 1em;
     white-space: nowrap;
 }
 
 dl.modal dt {
     clear: left;
     float: left;
-    padding-bottom: 0px;
-    padding-right: 0px;
+    padding-bottom: 0;
+    padding-right: 0;
     text-align: right;
-    width: 150px;
+    width: 10em;
 }
 
 dl.modal dd {
     float: left;
-    padding-bottom: 0px;
-    margin-left: 10px;
+    padding-bottom: 0;
+    margin-left: 0.8em;
 }
