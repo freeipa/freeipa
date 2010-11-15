@@ -457,9 +457,9 @@ function ipa_details_create(container)
         'class': 'content'
     }).appendTo(container);
 
-    var buttons = $('<div/>', {
+    var buttons = $('<li/>', {
         'class': 'details-buttons'
-    }).appendTo(details);
+    }).prependTo($('.action-panel ul'));
 
     buttons.append(ipa_button({
         'label': 'Reset',

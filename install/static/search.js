@@ -64,7 +64,7 @@ function ipa_search_widget(spec) {
                 'click': function() { that.add(container); }
             })
         );
-        li.appendTo($('.action-panel ul'));
+        li.prependTo($('.action-panel ul'));
 
         search_controls.append('<span class="search-buttons"></span>');
 
