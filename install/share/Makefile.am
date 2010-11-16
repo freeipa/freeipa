@@ -17,6 +17,7 @@ app_DATA =				\
 	default-keytypes.ldif		\
 	default-pwpolicy.ldif		\
 	delegation.ldif			\
+	ds-nfiles.ldif			\
 	dns.ldif			\
 	kerberos.ldif			\
 	indices.ldif			\

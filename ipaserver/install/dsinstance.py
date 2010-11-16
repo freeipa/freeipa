@@ -185,10 +185,7 @@ class DsInstance(service.Service):
         else:
             self.suffix = None
 
-        if fstore:
-            self.fstore = fstore
-        else:
-            self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+        self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
 
     def create_instance(self, ds_user, realm_name, fqdn, domain_name,
@@ -239,6 +236,7 @@ class DsInstance(service.Service):
             self.step("creating default HBAC rule allow_all", self.add_hbac)
         self.step("enabling compatibility plugin",
                   self.__enable_compat_plugin)
+        self.step("tuning directory server", self.__tuning)
 
         self.step("configuring directory to start on boot", self.__enable)
 
@@ -532,6 +530,7 @@ class DsInstance(service.Service):
             self.stop()
 
         try:
+            self.fstore.restore_file("/etc/security/limits.conf")
             self.fstore.restore_file("/etc/sysconfig/dirsrv")
         except ValueError, error:
             logging.debug(error)
@@ -603,3 +602,66 @@ class DsInstance(service.Service):
         self.start()
 
         return status
+
+    def tune_nofile(self, num=8192):
+        """
+        Increase the number of files descriptors available to directory server
+        from the default 1024 to 8192. This will allow to support a greater
+        number of clients out of the box.
+        """
+
+        # check limits.conf
+        need_limits = True
+        fd = open("/etc/security/limits.conf", "r")
+        lines = fd.readlines()
+        fd.close()
+        for line in lines:
+            sline = line.strip()
+            if not sline.startswith(self.ds_user):
+                continue
+            if sline.find('nofile') == -1:
+                continue
+            # ok we already have an explicit entry for user/nofile
+            need_limits = False
+
+        # check sysconfig/dirsrv
+        need_sysconf = True
+        fd = open("/etc/sysconfig/dirsrv", "r")
+        lines = fd.readlines()
+        fd.close()
+        for line in lines:
+            sline = line.strip()
+            if not sline.startswith('ulimit'):
+                continue
+            if sline.find('-n') == -1:
+                continue
+            # ok we already have an explicit entry for file limits
+            need_sysconf = False
+
+        #if sysconf or limits are set avoid messing up and defer to the admin
+        if need_sysconf and need_limits:
+            self.fstore.backup_file("/etc/security/limits.conf")
+            fd = open("/etc/security/limits.conf", "a+")
+            fd.write('%s\t\t-\tnofile\t\t%s\n' % (self.ds_user, str(num)))
+            fd.close()
+
+            fd = open("/etc/sysconfig/dirsrv", "a+")
+            fd.write('ulimit -n %s\n' % str(num))
+            fd.close()
+
+        else:
+            logging.info("Custom file limits are already set! Skipping\n")
+            print "Custom file limits are already set! Skipping\n"
+            return
+
+        # finally change also DS configuration
+        # NOTE: dirsrv will not allow you to set max file descriptors unless
+        # the user limits allow it, so we have to restart dirsrv before
+        # attempting to change them in cn=config
+        self.__restart_instance()
+
+        nf_sub_dict = dict(NOFILES=str(num))
+        self._ldap_mod("ds-nfiles.ldif", nf_sub_dict)
+
+    def __tuning(self):
+        self.tune_nofile(8192)
