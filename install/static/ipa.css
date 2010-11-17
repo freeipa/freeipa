@@ -411,6 +411,20 @@ span.main-separator{
 .strikethrough { text-decoration: line-through; }
 
 
+.key-status-valid {
+    list-style-type: circle;
+    color: #008000;
+}
+
+.key-status-missing {
+    list-style-type: circle;
+    color: #daa520;
+}
+
+.key-status-active {
+    list-style-type: disc;
+}
+
 .certificate-status-valid {
     list-style-type: circle;
     color: #008000;

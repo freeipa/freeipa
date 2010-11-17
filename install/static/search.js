@@ -319,6 +319,8 @@ function ipa_search_facet(spec) {
         }
     }
 
+    that.search_facet_init = that.init;
+
     return that;
 }
 

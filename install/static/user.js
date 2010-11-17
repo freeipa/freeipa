@@ -26,7 +26,7 @@ ipa_entity_set_search_definition('user', [
     ['uidnumber', 'UID', null],
     ['mail', 'EMAIL', null],
     ['telephonenumber', 'Phone', null],
-    ['title', 'Job Title', null],
+    ['title', 'Job Title', null]
 ]);
 
 ipa_entity_set_add_definition('user', [
@@ -89,10 +89,13 @@ ipa_entity_set_association_definition('user', {
 
 
 function user_status_load(container, result) {
-    var lock_field = 'nsaccountlock';
 
-    var dt = $('dt[title='+this.name+']', container);
-    if (!dt.length) return;
+    $('dd', container).remove();
+
+    var dd = ipa_create_first_dd(this.name);
+    dd.appendTo(container);
+
+    var lock_field = 'nsaccountlock';
 
     var locked  = result[lock_field] &&
         result[lock_field][0].toLowerCase() === 'true';
@@ -134,8 +137,7 @@ function user_status_load(container, result) {
                   return (false);
               }
           });
-
-    dt.after(ipa_create_first_dd(this.name, status_field));
+    status_field.appendTo(dd);
 }
 
 
@@ -191,17 +193,20 @@ function resetpwd_on_click(){
 }
 
 function user_password_load(container, result) {
-    var dt = $('dt[title='+this.name+']', container);
-    if (!dt.length) return;
 
-    dt.after(ipa_create_first_dd(
-        this.name,
-        $('<a/>',{
-            href:"jslink",
-            click:resetpwd_on_click,
-            title:'userpassword',
-            text: 'reset password'
-        })));
+    $('dd', container).remove();
+
+    var dd = ipa_create_first_dd(this.name);
+    dd.appendTo(container);
+
+    var link = $('<a/>',{
+        href:"jslink",
+        click:resetpwd_on_click,
+        title:'userpassword',
+        text: 'reset password'
+    });
+    link.appendTo(dd);
+
 }
 
 var select_temp = '<select title="st"></select>';
@@ -215,17 +220,18 @@ var states = [
     'WA', 'WV', 'WI', 'WY', ''
 ];
 function user_state_load(container, result) {
-    var dt = $('dt[title='+this.name+']', container);
-    if (!dt.length) return;
 
-    var next = dt.next();
-    next.css('clear', 'none');
-    next.css('width', '70px');
+    $('dd', container).remove();
 
-    var dd = ipa_create_first_dd(this.name, select_temp);
-    dt.after(dd);
+    //var next = dt.next();
+    //next.css('clear', 'none');
+    //next.css('width', '70px');
 
-    var sel = dt.next().children().first();
+    var dd = ipa_create_first_dd(this.name);
+    dd.append(select_temp);
+    dd.appendTo(container);
+
+    var sel = dd.children().first();
     for (var i = 0; i < states.length; ++i)
         sel.append(option_temp.replace(/V/g, states[i]));
 

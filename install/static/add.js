@@ -95,6 +95,7 @@ function ipa_add_dialog(spec) {
     };
 
     that.superior_init = that.superior('init');
+    that.add_dialog_init = that.init;
 
     return that;
 }

@@ -39,37 +39,19 @@ function ipa_details_field(spec) {
 
     var that = ipa_widget(spec);
 
-    that.create = spec.create || create;
     that.load = spec.load || load;
     that.save = spec.save || save;
 
-    function create(container) {
-
-        var title = that.name;
-        var label = '';
-
-        var param_info = ipa_get_param_info(that.entity_name, that.name);
-        if (param_info)
-            label = param_info['label'];
-
-        if (!label)
-            label = that.label;
-
-        $('<dt></dt>', {
-            id: that.name,
-            title: title,
-            html: label + ':'
-        }).appendTo(container);
-    }
-
     function load(container, result) {
+
+        that.values = result[that.name];
+
+        /* remove all <dd> tags i.e. all attribute values */
+        $('dd', that.container).remove();
 
         var multivalue = false;
         var hint_span = null;
         var dd;
-
-        var dt = $('dt[title='+that.name+']', container);
-        if (!dt.length) return;
 
         var param_info = ipa_get_param_info(that.entity_name, that.name);
         if (param_info) {
@@ -83,44 +65,39 @@ function ipa_details_field(spec) {
             }
         }
 
-        var value = result[that.name];
         var rights = 'rsc';
+
         if (result.attributelevelrights){
             rights = result.attributelevelrights[this.name] || rights ;
         }
-        if (value) {
-            dd = ipa_create_first_dd(
-                that.name,ipa_create_input(
-                    that.entity_name, that.name, value[0],hint_span,rights)
-            );
-            dt.after(dd);
-            var last_dd = dd;
-            for (var i = 1; i < value.length; ++i) {
-                dd = ipa_create_other_dd(
-                    that.name, ipa_create_input(that.entity_name, that.name,
-                                                value[i],hint_span,rights)
-                );
-                last_dd.after(dd);
-                last_dd = dd;
+
+        if (that.values) {
+            dd = ipa_create_first_dd(that.name);
+            dd.append(ipa_details_field_create_input.call(that, that.values[0], hint_span, rights, 0));
+            dd.appendTo(that.container);
+
+            for (var i = 1; i < that.values.length; ++i) {
+                dd = ipa_create_other_dd(that.name);
+                dd.append(ipa_details_field_create_input.call(that, that.values[i], hint_span, rights, i));
+                dd.appendTo(that.container);
             }
+
             if (multivalue && IPA.is_field_writable(rights) ) {
-                dd = ipa_create_other_dd(
-                    that.name, _ipa_a_add_template.replace('A', that.name)
-                );
-                last_dd.after(dd);
+                dd = ipa_create_other_dd(that.name);
+                dd.append(ipa_details_field_create_add_link.call(that, that.name, rights, that.values.length));
+                dd.appendTo(that.container);
             }
+
         } else {
             if (multivalue  && IPA.is_field_writable(rights)) { 
-                dd = ipa_create_first_dd(
-                    that.name, _ipa_a_add_template.replace('A', that.name)
-                );
-                dt.after(dd);
+                dd = ipa_create_first_dd(that.name);
+                dd.append(ipa_details_field_create_add_link.call(that, that.name, rights, 0));
+                dd.appendTo(that.container);
+
             } else {
-                dd = ipa_create_first_dd(
-                    that.name, ipa_create_input(
-                        that.entity_name, that.name,'',hint_span,rights)
-                );
-                dt.after(dd);
+                dd = ipa_create_first_dd(that.name);
+                dd.append(ipa_details_field_create_input.call(that, '', hint_span, rights, 0));
+                dd.appendTo(that.container);
             }
         }
     }
@@ -128,8 +105,8 @@ function ipa_details_field(spec) {
     function save(container) {
         var values = [];
 
-        var dd = $('dd[title='+that.name+']', container);
-        dd.each(function () {
+        $('dd', that.container).each(function () {
+
             var input = $('input', $(this));
             if (!input.length) return;
 
@@ -298,6 +275,30 @@ function ipa_details_section(spec){
     return that;
 }
 
+/**
+ * This class creates a details section formatted as a list of
+ * attributes names and values. The list is defined using <dl> tag.
+ * The attribute name is defined inside a <dt> tag. The attribute
+ * value is defined using a <dd> tag inside a <span> tag. If the
+ * attribute has multiple values the content inside <span> will
+ * be duplicated to display each value.
+ *
+ * Example:
+ *   <dl class="entryattrs">
+ *
+ *     <dt title="givenname">First Name:</dt>
+ *     <span name="givenname">
+ *       <dd><input type="text" size="20"/></dd>
+ *     </span>
+ *
+ *     <dt title="telephonenumber">Telephone Number:</dt>
+ *     <span name="telephonenumber">
+ *       <dd><input type="text" size="20"/></dd>
+ *       <dd><input type="text" size="20"/></dd>
+ *     </span>
+ *
+ *   </dl>
+ */
 function ipa_details_list_section(spec){
 
     spec = spec || {};
@@ -319,32 +320,18 @@ function ipa_details_list_section(spec){
         for (var i = 0; i < fields.length; ++i) {
             var field = fields[i];
 
+            var label = field.label;
+
+            var param_info = ipa_get_param_info(that.entity_name, field.name);
+            if (param_info && param_info['label']) label = param_info['label'];
+
+            $('<dt/>', {
+                html: label + ':'
+            }).appendTo(dl);
+
             var span = $('<span/>', { 'name': field.name }).appendTo(dl);
             field.create(span);
         }
-    };
-
-    /* populate definition lists with the class 'entryattrs' with entry attributes
-     *
-     * The list has to be specially crafted for this function to work properly:
-     * <dt> tags should have the 'title' attribute set to an LDAP attribute name
-     * OR to a javascript function name prefixed with 'call_', which will be given
-     * the <dt> object and entry_attrs as arguments.
-     * Example:
-     *   <dl class="entryattrs">
-     *     <dt title="givenname">First Name:</dt>
-     *     <dt title="call_some_callback">Some Attribute:</dt>
-     *   </dl>
-     *
-     * arguments:
-     *   result - 'result' field as returned by ipa *-show commnads
-     *                 (basically an associative array with attr:value pairs) */
-    that.load = function(result) {
-        /* remove all <dd> tags i.e. all attribute values */
-        $('dd', that.container).remove();
-
-        /* go through all <dt> tags and pair them with newly created <dd>s */
-        that.section_load(result);
     };
 
     // Deprecated: Used for backward compatibility only.
@@ -414,6 +401,8 @@ function ipa_details_facet(spec) {
             section.init();
         }
     };
+
+    that.details_facet_init = that.init;
 
     return that;
 }
@@ -621,8 +610,6 @@ function ipa_details_update(container, pkey, on_win, on_fail)
 
 
 /* HTML templates for ipa_details_display() */
-var _ipa_a_add_template =
-    '<a href="jslink" onclick="return (_ipa_add_on_click(this))" title="A">Add</a>';
 var _ipa_span_doc_template = '<span class="attrhint">Hint: D</span>';
 var _ipa_span_hint_template = '<span class="attrhint">Hint: D</span>';
 
@@ -641,10 +628,12 @@ function ipa_details_display(result)
 
 
 function ipa_create_first_dd(field_name, content){
-    return $('<dd/>', {
+    var dd = $('<dd/>', {
         'class': 'first',
         'title': field_name
-    }).append(content);
+    });
+    if (content) dd.append(content);
+    return dd;
 }
 
 function ipa_create_other_dd(field_name, content){
@@ -678,13 +667,15 @@ var _ipa_param_type_2_handler_map = {
  * arguments:
  *   attr - LDAP attribute name
  *   value - the attributes value */
-function ipa_create_input(entity_name, attr, value,hint,rights)
+function ipa_details_field_create_input(value,hint,rights, index)
 {
+    var that = this;
+
     var input = $("<label>",{html:value.toString()});
-    var param_info = ipa_get_param_info(entity_name, attr);
+    var param_info = ipa_get_param_info(that.entity_name, that.name);
     if (!param_info) {
         /* no information about the param is available, default to text input */
-        input = _ipa_create_text_input(attr, value, null,rights);
+        input = _ipa_create_text_input.call(that, value, null, rights, index);
         if (hint){
             input.after(hint);
         }
@@ -697,11 +688,11 @@ function ipa_create_input(entity_name, attr, value,hint,rights)
         /* call handler by param class */
         var handler = _ipa_param_type_2_handler_map[param_info['class']];
         if (handler) {
-            input = handler(attr, value, param_info,rights);
+            input = handler.call(that, value, param_info, rights, index);
             if ((param_info['multivalue'] ||
                  param_info['class'] == 'List') &&
                 IPA.is_field_writable(rights)){
-                input.append( _ipa_create_remove_link(attr, param_info));
+                input.append( _ipa_create_remove_link(that.name, param_info));
             }
             if (hint){
                 input.after(hint);
@@ -733,22 +724,10 @@ function _ipa_create_remove_link(attr, param_info)
 
 
 /* creates a input box for editing a string attribute */
-function _ipa_create_text_input(attr, value, param_info, rights)
+function _ipa_create_text_input(value, param_info, rights, index)
 {
-
-    function calculate_dd_index(jobj){
-        var index = 0;
-        var dd = jobj.parents('dd').slice(0, 1)[0];
-        dd = dd.previousElementSibling;
-
-        while(dd.nodeName.toUpperCase() === 'DD'){
-            dd = dd.previousElementSibling;
-            index += 1;
-            if (index > 100 )
-                break;
-        }
-        return index;
-    }
+    var that = this;
+    index = index || 0;
 
     function validate_input(text, param_info,error_link){
         if(param_info && param_info.pattern){
@@ -766,9 +745,9 @@ function _ipa_create_text_input(attr, value, param_info, rights)
 
     var span = $("<Span />");
     var input = $("<input/>",{
-        type:"text",
-        name:attr,
-        value:value.toString(),
+        type: "text",
+        name: that.name,
+        value: value.toString(),
         keyup: function(){
             var undo_link=this.nextElementSibling;
             undo_link.style.display ="inline";
@@ -788,13 +767,7 @@ function _ipa_create_text_input(attr, value, param_info, rights)
         "class":"ui-state-highlight ui-corner-all",
         style:"display:none",
         click: function(){
-            var key = this.previousElementSibling.name;
-            var entity_divs = $(this).parents('.entity-container');
-            var entry_attrs = ipa_details_cache[entity_divs[0].id];
-
-            index = calculate_dd_index($(this));
-
-            var previous_value = entry_attrs[key] || "";
+            var previous_value = that.values || '';
             if (index >= previous_value.length){
                 previous_value = '';
             }else{
@@ -830,28 +803,32 @@ function ipa_details_reset(container)
     }
 }
 
-/* Event handlers */
+function ipa_details_field_create_add_link(title, rights, index) {
 
-function _ipa_add_on_click(obj)
-{
-    var jobj = $(obj);
-    var attr = jobj.attr('title');
-    var par = jobj.parent();
-    var obj_name = jobj.closest('.entity-container').attr('title');
+    var that = this;
 
-    var param_info = ipa_get_param_info(obj_name, '');
-    //TODO rights need to be inherited
-    //And used to control  presnece of the add link 
-    var input = _ipa_create_text_input(attr, '', param_info, 'rswco');
+    var link = $('<a/>', {
+        'href': 'jslink',
+        'title': title,
+        'html': 'Add',
+        'click': function () {
 
-    par.prepend(input);
-    jobj.next('input').focus();
-    jobj.remove();
-    par.after( ipa_create_other_dd(attr,_ipa_a_add_template.replace('A', attr)));
+            var param_info = ipa_get_param_info(that.entity_name, '');
+            var input = _ipa_create_text_input.call(that, '', param_info, rights, index);
 
-    return (false);
+            link.replaceWith(input);
+            input.focus();
+
+            var dd = ipa_create_other_dd(that.name);
+            dd.append(ipa_details_field_create_add_link.call(that, that.name, rights, index+1));
+            dd.appendTo(that.container);
+
+            return false;
+        }
+    });
+
+    return link;
 }
-
 
 
 

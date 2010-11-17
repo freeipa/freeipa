@@ -389,12 +389,13 @@ function certificate_request_dialog(spec) {
     return that;
 }
 
-function certificate_status_panel(spec) {
-    var that = $('<div/>');
+function certificate_status_widget(spec) {
+
     spec = spec || {};
 
-    that.entity_type = spec.entity_type;
-    that.entity_label = spec.entity_label || that.entity_type;
+    var that = ipa_widget(spec);
+
+    that.entity_label = spec.entity_label || that.entity_name;
 
     that.result = spec.result;
 
@@ -403,17 +404,16 @@ function certificate_status_panel(spec) {
     that.get_entity_principal = spec.get_entity_principal;
     that.get_entity_certificate = spec.get_entity_certificate;
 
-    var li1, li2, li3;
+    that.create = function(container) {
 
-    function init() {
-        var pkey = that.get_entity_pkey(that.result);
+        that.widget_create(container);
 
-        var table = $('<table/>').appendTo(that);
+        var table = $('<table/>').appendTo(container);
 
         var tr = $('<tr/>').appendTo(table);
 
         var td = $('<td/>').appendTo(tr);
-        li1 = $('<li/>', {
+        $('<li/>', {
             'class': 'certificate-status-valid'
         }).appendTo(td);
 
@@ -421,46 +421,29 @@ function certificate_status_panel(spec) {
         td.append('Valid Certificate Present:');
 
         td = $('<td/>').appendTo(tr);
-        ipa_button({
-            'id': 'get_button',
-            'label': 'Get',
-            'click': function() {
-                ipa_cmd(that.entity_type+'_show', [pkey], {},
-                    function(data, text_status, xhr) {
-                        get_certificate(data.result.result);
-                    }
-                );
-            }
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'get',
+            'value': 'Get'
         }).appendTo(td);
 
-        ipa_button({
-            'id': 'revoke_button',
-            'label': 'Revoke',
-            'click': function() {
-                ipa_cmd(that.entity_type+'_show', [pkey], {},
-                    function(data, text_status, xhr) {
-                        revoke_certificate(data.result.result);
-                    }
-                );
-            }
+        $('<input/>', {
+            'type': 'button',
+            'name': 'revoke',
+            'value': 'Revoke'
         }).appendTo(td);
 
-        ipa_button({
-            'id': 'view_button',
-            'label': 'View',
-            'click': function() {
-                ipa_cmd(that.entity_type+'_show', [pkey], {},
-                    function(data, text_status, xhr) {
-                        view_certificate(data.result.result);
-                    }
-                );
-            }
+        $('<input/>', {
+            'type': 'button',
+            'name': 'view',
+            'value': 'View'
         }).appendTo(td);
 
         tr = $('<tr/>').appendTo(table);
 
         td = $('<td/>').appendTo(tr);
-        li2 = $('<li/>', {
+        $('<li/>', {
             'class': 'certificate-status-revoked'
         }).appendTo(td);
 
@@ -469,26 +452,20 @@ function certificate_status_panel(spec) {
 
         td = $('<td/>').appendTo(tr);
         td.append($('<span/>', {
-            'id': 'revocation_reason'
+            'name': 'revocation_reason'
         }));
         td.append(' ');
 
-        ipa_button({
-            'id': 'restore_button',
-            'label': 'Restore',
-            'click': function() {
-                ipa_cmd(that.entity_type+'_show', [pkey], {},
-                    function(data, text_status, xhr) {
-                        restore_certificate(data.result.result);
-                    }
-                );
-            }
+        $('<input/>', {
+            'type': 'button',
+            'name': 'restore',
+            'value': 'Restore'
         }).appendTo(td);
 
         tr = $('<tr/>').appendTo(table);
 
         td = $('<td/>').appendTo(tr);
-        li3 = $('<li/>', {
+        $('<li/>', {
             'class': 'certificate-status-missing'
         }).appendTo(td);
 
@@ -496,13 +473,89 @@ function certificate_status_panel(spec) {
         td.append('No Valid Certificate:');
 
         td = $('<td/>').appendTo(tr);
-        ipa_button({
-            'id': 'create_button',
+        $('<input/>', {
+            'type': 'button',
+            'name': 'create',
+            'value': 'New Certificate'
+        }).appendTo(td);
+    };
+
+    that.setup = function(container) {
+
+        that.container = container;
+
+        that.valid = $('li.certificate-status-valid', that.container);
+        that.revoked = $('li.certificate-status-revoked', that.container);
+        that.missing = $('li.certificate-status-missing', that.container);
+
+        var button = $('input[name=get]', that.container);
+        that.get_button = ipa_button({
+            'label': 'Get',
+            'click': function() {
+                ipa_cmd(that.entity_name+'_show', [that.pkey], {},
+                    function(data, text_status, xhr) {
+                        get_certificate(data.result.result);
+                    }
+                );
+            }
+        });
+        button.replaceWith(that.get_button);
+
+        button = $('input[name=revoke]', that.container);
+        that.revoke_button = ipa_button({
+            'label': 'Revoke',
+            'click': function() {
+                ipa_cmd(that.entity_name+'_show', [that.pkey], {},
+                    function(data, text_status, xhr) {
+                        revoke_certificate(data.result.result);
+                    }
+                );
+            }
+        });
+        button.replaceWith(that.revoke_button);
+
+        button = $('input[name=view]', that.container);
+        that.view_button = ipa_button({
+            'label': 'View',
+            'click': function() {
+                ipa_cmd(that.entity_name+'_show', [that.pkey], {},
+                    function(data, text_status, xhr) {
+                        view_certificate(data.result.result);
+                    }
+                );
+            }
+        });
+        button.replaceWith(that.view_button);
+
+        that.revocation_reason = $('span[name=revocation_reason]', that.container);
+
+        button = $('input[name=restore]', that.container);
+        that.restore_button = ipa_button({
+            'label': 'Restore',
+            'click': function() {
+                ipa_cmd(that.entity_name+'_show', [that.pkey], {},
+                    function(data, text_status, xhr) {
+                        restore_certificate(data.result.result);
+                    }
+                );
+            }
+        });
+        button.replaceWith(that.restore_button);
+
+        button = $('input[name=create]', that.container);
+        that.create_button = ipa_button({
             'label': 'New Certificate',
             'click': function() {
                 request_certificate(that.result);
             }
-        }).appendTo(td);
+        });
+        button.replaceWith(that.create_button);
+    };
+
+    that.load = function(container, result) {
+
+        that.result = result;
+        that.pkey = that.get_entity_pkey(that.result);
 
         var entity_certificate = that.get_entity_certificate(that.result);
         if (entity_certificate) {
@@ -510,18 +563,18 @@ function certificate_status_panel(spec) {
         } else {
             set_status(CERTIFICATE_STATUS_MISSING);
         }
-    }
+    };
 
     function set_status(status, revocation_reason) {
-        li1.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_VALID);
-        li2.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_REVOKED);
-        li3.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_MISSING);
+        that.valid.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_VALID);
+        that.revoked.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_REVOKED);
+        that.missing.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_MISSING);
 
-        $('#get_button', that).css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
-        $('#revoke_button', that).css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
-        $('#view_button', that).css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
-        $('#revocation_reason', that).html(revocation_reason == undefined ? '' : CRL_REASON[revocation_reason]);
-        $('#restore_button', that).css('visibility', revocation_reason == 6 ? 'visible' : 'hidden');
+        that.get_button.css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
+        that.revoke_button.css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
+        that.view_button.css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
+        that.revocation_reason.html(revocation_reason == undefined ? '' : CRL_REASON[revocation_reason]);
+        that.restore_button.css('visibility', revocation_reason == 6 ? 'visible' : 'hidden');
     }
 
     function check_status(serial_number) {
@@ -667,8 +720,6 @@ function certificate_status_panel(spec) {
 
         dialog.open();
     }
-
-    init();
 
     return that;
 }

@@ -44,7 +44,7 @@ test("Testing ipa_details_section.create().", function() {
     var container = $("<div/>");
     section.create(container);
 
-    var dl = container.find('dl');
+    var dl = $('dl', container);
 
     same(
         dl.length, 1,
@@ -63,15 +63,26 @@ test("Testing ipa_details_section.create().", function() {
     );
 
     for (var i=0; i<fields.length; i++) {
+        var field = fields[i];
+
         var dt = dts.get(i);
         same(
-            dt.title, fields[i].name,
-            'Checking field '+i+'\'s title'
+            dt.innerHTML, field.label+':',
+            'Checking field '+field.name+'\'s label'
         );
 
-        same(
-            dt.innerHTML, fields[i].label+':',
-            'Checking field '+i+'\'s label'
+        var span = $('span[name='+field.name+']', dl);
+
+        ok(
+            span.length,
+            'Checking span tag for field '+field.name
+        );
+
+        var dd = $('dd', span);
+
+        ok(
+            dd.length == 0,
+            'Checking dd tag for field '+field.name
         );
     }
 });
@@ -184,16 +195,11 @@ test("Testing details lifecycle: create, setup, load.", function(){
         'dl tag for identity is created'
     );
 
-    var dts= identity.find('dt');
+    var dts = identity.find('dt');
 
     same(
         dts.length, 6,
         'Checking dt tags for identity'
-    );
-
-    same(
-        dts[5].title, facet.sections[0].fields[5].name,
-        'Checking dt title'
     );
 
     container.attr('id','user');
@@ -219,10 +225,14 @@ test("Testing details lifecycle: create, setup, load.", function(){
 
 test("Testing  _ipa_create_text_input().", function(){
 
+    var field = ipa_details_field({
+        'name': "name"
+    });
+
     var name = "name";
     var value="value";
     var rights = 'rscwo'
-    var input = _ipa_create_text_input(name, value, null,rights);
+    var input = _ipa_create_text_input.call(field, value, null,rights);
     ok(input,"input not null");
 
     var text = input.find('input');
@@ -235,10 +245,14 @@ test("Testing  _ipa_create_text_input().", function(){
 
 test("Testing  _ipa_create_text_input() read only .", function(){
 
+    var field = ipa_details_field({
+        'name': "name"
+    });
+
     var name = "name";
     var value="value";
     var rights = 'rsc'
-    var input = _ipa_create_text_input(name, value, null,rights);
+    var input = _ipa_create_text_input.call(field, value, null,rights);
     ok(input,"input not null");
 
     var text = input.find('input');
@@ -271,22 +285,26 @@ test("Testing ipa_details_section_setup again()",function(){
     section.setup(container);
     section.load(result);
 
-    ok(container.find('hr'),'hr');
-
     //var h2= container.find('h2');
     //ok(h2);
     //ok(h2[0].innerHTML.indexOf(section.label) > 1,"find name in html");
 
-    var dl = container.find('dl');
-
+    var dl = $('dl', container);
     ok(
         dl.length,
         'dl is created'
     );
 
+    var dt = $('dt', dl);
     same(
-        dl[0].children.length, 3,
-        '3 spans'
+        dt.length, 3,
+        '3 dt'
+    );
+
+    var span = dt.next();
+    same(
+        span.length, 3,
+        '3 span'
     );
 
     same(
@@ -295,16 +313,13 @@ test("Testing ipa_details_section_setup again()",function(){
     );
 
     same(
-        dl[0].children[0].children[0].title, fields[0].name,
-        'title matches name'
-    );
-
-    same(
-        dl[0].children[0].children[0].innerHTML, fields[0].label+":",
+        dt[0].innerHTML, fields[0].label+":",
         'inner HTML matches label'
     );
+
+    var dd = $('dd', span[0]);
     same(
-        dl[0].children[2].children[0].title, fields[2].name,
-        'title matches fields[2] name'
+        dd.length, 1,
+        '1 dd'
     );
 });

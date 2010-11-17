@@ -109,6 +109,7 @@ function ipa_widget(spec) {
     };
 
     // methods that should be invoked by subclasses
+    that.widget_create = that.create;
     that.widget_setup = that.setup;
 
     return that;

@@ -142,6 +142,8 @@ function ipa_entity(spec) {
         }
     };
 
+    that.entity_init = that.init;
+
     return that;
 }
 

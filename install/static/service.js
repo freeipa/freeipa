@@ -26,8 +26,6 @@ function ipa_service() {
         'name': 'service'
     });
 
-    that.superior_init = that.superior('init');
-
     that.init = function() {
 
         that.create_association({
@@ -60,7 +58,7 @@ function ipa_service() {
         });
         that.add_facet(facet);
 
-        that.superior_init();
+        that.entity_init();
     };
 
     return that;
@@ -74,24 +72,22 @@ function ipa_service_add_dialog(spec) {
 
     var that = ipa_add_dialog(spec);
 
-    that.superior_init = that.superior('init');
-
     that.init = function() {
 
-        this.superior_init();
+        that.add_dialog_init();
 
-        this.add_field(ipa_widget({
+        that.add_field(ipa_widget({
             name: 'krbprincipalname',
             label: 'Principal'
         }));
 
-        this.add_field(ipa_text_widget({
+        that.add_field(ipa_text_widget({
             'name': 'service', 'label': 'Service',
             'size': 20,
             'undo': false
         }));
 
-        this.add_field(ipa_text_widget({
+        that.add_field(ipa_text_widget({
             'name': 'host',
             'label': 'Host Name',
             'size': 40,
@@ -159,12 +155,10 @@ function ipa_service_search_facet(spec) {
 
     var that = ipa_search_facet(spec);
 
-    that.superior_init = that.superior('init');
-
     that.init = function() {
 
         this.create_column({name:'krbprincipalname', label:'Principal'});
-        that.superior_init();
+        that.search_facet_init();
     };
 
     return that;
@@ -176,13 +170,11 @@ function ipa_service_details_facet(spec) {
 
     var that = ipa_details_facet(spec);
 
-    that.superior_init = that.superior('init');
-
     that.init = function() {
 
         var section = ipa_details_list_section({
-            name:'details',
-            label:'Service Details'
+            name: 'details',
+            label: 'Service Details'
         });
         that.add_section(section);
 
@@ -204,85 +196,195 @@ function ipa_service_details_facet(spec) {
         });
 
         section = ipa_details_list_section({
-            name:'provisioning',
-            label:'Provisioning'
+            name: 'provisioning',
+            label: 'Provisioning'
         });
         that.add_section(section);
 
-        section.create_field({
+        section.add_field(service_provisioning_status_widget({
             name: 'provisioning_status',
-            label: 'Status',
-            load: service_provisioning_status_load
-        });
+            label: 'Status'
+        }));
 
         section = ipa_details_list_section({
-            name:'certificate',
-            label:'Service Certificate'
+            name: 'certificate',
+            label: 'Service Certificate'
         });
         that.add_section(section);
 
-        section.create_field({
+        section.add_field(service_certificate_status_widget({
             name: 'certificate_status',
-            label: 'Status',
-            load: service_usercertificate_load
-        });
+            label: 'Status'
+        }));
 
-        that.superior_init();
+        that.details_facet_init();
     };
 
     return that;
 }
 
 function service_service_load(container, result) {
-    var dt = $('dt[title='+this.name+']', container);
-    if (!dt.length) return;
+
+    $('dd', container).remove();
+
+    var dd = ipa_create_first_dd(this.name);
+    dd.appendTo(container);
 
     var krbprincipalname = result['krbprincipalname'][0];
     var service = krbprincipalname.replace(/\/.*$/, '');
-    var dd = ipa_create_first_dd(this.name, service);
-    dt.after(dd);
+    dd.append(service);
 }
 
 function service_host_load(container, result) {
-    var dt = $('dt[title='+this.name+']', container);
-    if (!dt.length) return;
+
+    $('dd', container).remove();
+
+    var dd = ipa_create_first_dd(this.name);
+    dd.appendTo(container);
 
     var krbprincipalname = result['krbprincipalname'][0];
     var host = krbprincipalname.replace(/^.*\//, '').replace(/@.*$/, '');
-    var dd = ipa_create_first_dd(this.name, host);
-    dt.after(dd);
+    dd.append(host);
 }
 
-function service_provisioning_status_load(container, result) {
-    // skip provisioning_status
+function service_provisioning_status_widget(spec) {
+
+    spec = spec || {};
+
+    var that = ipa_widget(spec);
+
+    that.create = function(container) {
+
+        that.widget_create(container);
+
+        var table = $('<table/>').appendTo(container);
+
+        var tr = $('<tr/>').appendTo(table);
+
+        var td = $('<td/>').appendTo(tr);
+        var li = $('<li/>', {
+            'class': 'key-status-valid'
+        }).appendTo(td);
+
+        td = $('<td/>').appendTo(tr);
+        td.append('Kerberos Key Present, Service Provisioned:');
+
+        td = $('<td/>').appendTo(tr);
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'unprovision',
+            'value': 'Delete Key, Unprovision'
+        }).appendTo(td);
+
+        tr = $('<tr/>').appendTo(table);
+
+        td = $('<td/>').appendTo(tr);
+        li = $('<li/>', {
+            'class': 'key-status-missing'
+        }).appendTo(td);
+
+        td = $('<td/>').appendTo(tr);
+        td.append('Kerberos Key Not Present');
+    };
+
+    that.setup = function(container) {
+
+        that.container = container;
+
+        that.valid = $('li.key-status-valid', that.container);
+        that.missing = $('li.key-status-missing', that.container);
+
+        var button = $('input[name=unprovision]', that.container);
+        that.unprovision_button = ipa_button({
+            'label': 'Delete Key, Unprovision',
+            'click': that.unprovision
+        });
+        button.replaceWith(that.unprovision_button);
+    };
+
+    that.unprovision = function() {
+
+        var label = IPA.metadata[that.entity_name].label;
+        var dialog = ipa_dialog({
+            'title': 'Unprovisioning '+label
+        });
+
+        dialog.create = function() {
+            dialog.container.append(
+                'To confirm your intention to unprovision this service, '+
+                'click the "Unprovision" button.');
+        };
+
+        dialog.add_button('Unprovision', function() {
+            var pkey = that.result['krbprincipalname'][0];
+            ipa_cmd(that.entity_name+'_disable', [pkey], {},
+                function(data, text_status, xhr) {
+                    set_status('missing');
+                    dialog.close();
+                },
+                function(xhr, text_status, error_thrown) {
+                    dialog.close();
+                }
+            );
+        });
+
+        dialog.add_button('Cancel', function() {
+            dialog.close();
+        });
+
+        dialog.init();
+
+        dialog.open(that.container);
+
+        return false;
+    };
+
+    that.load = function(container, result) {
+        that.result = result;
+        var krblastpwdchange = result['krblastpwdchange'];
+        set_status(krblastpwdchange ? 'valid' : 'missing');
+    };
+
+    function set_status(status) {
+        that.valid.toggleClass('key-status-active', status == 'valid');
+        that.missing.toggleClass('key-status-active', status == 'missing');
+
+        that.unprovision_button.css('visibility', status == 'valid' ? 'visible' : 'hidden');
+    }
+
+    return that;
 }
 
-function service_usercertificate_load(container, result) {
+function service_certificate_status_widget(spec) {
 
-    var dt = $('dt[title='+this.name+']', container);
-    if (!dt.length) return;
+    spec = spec || {};
 
-    var panel = certificate_status_panel({
-        'entity_type': 'service',
-        'entity_label': 'Service',
-        'result': result,
-        'get_entity_pkey': function(result) {
+    var that = certificate_status_widget(spec);
+
+    that.init = function() {
+
+        that.entity_label = IPA.metadata[that.entity_name].label;
+
+        that.get_entity_pkey = function(result) {
             var values = result['krbprincipalname'];
             return values ? values[0] : null;
-        },
-        'get_entity_name': function(result) {
-            var value = this.get_entity_pkey(result);
+        };
+
+        that.get_entity_name = function(result) {
+            var value = that.get_entity_pkey(result);
             return value ? value.replace(/@.*$/, '') : null;
-        },
-        'get_entity_principal': function(result) {
-            return this.get_entity_pkey(result);
-        },
-        'get_entity_certificate': function(result) {
+        };
+
+        that.get_entity_principal = function(result) {
+            return that.get_entity_pkey(result);
+        };
+
+        that.get_entity_certificate = function(result) {
             var values = result['usercertificate'];
             return values ? values[0].__base64__ : null;
-        }
-    });
+        };
+    };
 
-    var dd = ipa_create_first_dd(this.name, panel);
-    dt.after(dd);
+    return that;
 }
