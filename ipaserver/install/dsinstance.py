@@ -30,6 +30,7 @@ import time
 import tempfile
 
 from ipapython import ipautil
+from ipapython import sysrestore
 
 import service
 import installutils
@@ -184,6 +185,12 @@ class DsInstance(service.Service):
         else:
             self.suffix = None
 
+        if fstore:
+            self.fstore = fstore
+        else:
+            self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+
+
     def create_instance(self, ds_user, realm_name, fqdn, domain_name,
                         dm_password, pkcs12_info=None, self_signed_ca=False,
                         idstart=1100, idmax=999999, subject_base=None,
@@ -282,6 +289,7 @@ class DsInstance(service.Service):
     def __create_instance(self):
         self.backup_state("running", is_ds_running())
         self.backup_state("serverid", self.serverid)
+        self.fstore.backup_file("/etc/sysconfig/dirsrv")
 
         self.sub_dict['BASEDC'] = self.realm_name.split('.')[0].lower()
         base_txt = ipautil.template_str(BASE_TEMPLATE, self.sub_dict)
@@ -522,6 +530,12 @@ class DsInstance(service.Service):
 
         if not running is None:
             self.stop()
+
+        try:
+            self.fstore.restore_file("/etc/sysconfig/dirsrv")
+        except ValueError, error:
+            logging.debug(error)
+            pass
 
         if not enabled is None and not enabled:
             self.chkconfig_off()

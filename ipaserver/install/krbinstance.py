@@ -514,7 +514,6 @@ class KrbInstance(service.Service):
         self.fstore.backup_file("/etc/dirsrv/ds.keytab")
         installutils.create_keytab("/etc/dirsrv/ds.keytab", ldap_principal)
 
-        self.fstore.backup_file("/etc/sysconfig/dirsrv")
         update_key_val_in_file("/etc/sysconfig/dirsrv", "export KRB5_KTNAME", "/etc/dirsrv/ds.keytab")
         pent = pwd.getpwnam(self.ds_user)
         os.chown("/etc/dirsrv/ds.keytab", pent.pw_uid, pent.pw_gid)
