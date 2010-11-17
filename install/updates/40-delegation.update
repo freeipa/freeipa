@@ -241,7 +241,7 @@ add:aci: '(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version
 add:aci: '(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version
   3.0;acl "Remove Hosts";allow (delete) groupdn = "ldap:///cn=removehosts,cn=
  taskgroups,cn=accounts,$SUFFIX";)'
-add:aci: '(targetattr = "cn || description || l || nshostlocation ||
+add:aci: '(targetattr = "description || l || nshostlocation ||
  nshardwareplatform || nsosversion")
  (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;
  acl "Modify Hosts";allow (write) groupdn = "ldap:///cn=modifyhosts,
@@ -501,7 +501,7 @@ add:member:'cn=enrollhost,cn=rolegroups,cn=accounts,$SUFFIX'
 # set the krbPrincipalName, add krbPrincipalAux to objectClass and
 # set enrolledBy to whoever ran join.
 dn: $SUFFIX
-add:aci: '(targetattr = "krbPrincipalName || enrolledBy || objectClass")
+add:aci: '(targetattr = "enrolledBy || objectClass")
   (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")
   (version 3.0;acl "Enroll a host";
   allow (write) groupdn = "ldap:///cn=enroll_host,cn=taskgroups,

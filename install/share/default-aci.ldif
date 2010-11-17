@@ -4,7 +4,7 @@ dn: $SUFFIX
 changetype: modify
 add: aci
 aci: (targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey")(version 3.0; acl "Enable Anonymous access"; allow (read, search, compare) userdn = "ldap:///anyone";)
-aci: (targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || memberOf || serverHostName || enrolledBy")(version 3.0; acl "Admin can manage any entry"; allow (all) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+aci: (targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || krbPrincipalName || krbCanonicalName || krbUPEnabled || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount || krbTicketFlags || ipaUniqueId || memberOf || serverHostName || enrolledBy")(version 3.0; acl "Admin can manage any entry"; allow (all) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 aci: (targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword")(version 3.0; acl "Self can write own password"; allow (write) userdn="ldap:///self";)
 aci: (targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Admins can write passwords"; allow (add,delete,write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 aci: (targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Password change service can read/write passwords"; allow (read, write) userdn="ldap:///krbprincipalname=kadmin/changepw@$REALM,cn=$REALM,cn=kerberos,$SUFFIX";)
@@ -12,6 +12,10 @@ aci: (targetattr = "userPassword || krbPrincipalKey || krbPasswordExpiration || 
 aci: (targetattr = "krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount")(version 3.0; acl "KDC System Account can update some fields"; allow (write) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
 aci: (targetattr = "krbPrincipalName || krbCanonicalName || krbUPEnabled || krbMKey || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount")(version 3.0; acl "Only the KDC System Account has access to kerberos material"; allow (read, search, compare) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
 aci: (targetfilter = "(objectClass=krbPwdPolicy)")(targetattr = "krbMaxPwdLife || krbMinPwdLife || krbPwdMinDiffChars || krbPwdMinLength || krbPwdHistoryLength")(version 3.0;acl "Admins can write password policies"; allow (read, search, compare, write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+
+dn: cn=users,cn=accounts,$SUFFIX
+changetype: modify
+add: aci
 aci: (targetattr = "givenName || sn || cn || displayName || title || initials || loginShell || gecos || homePhone || mobile || pager || facsimileTelephoneNumber || telephoneNumber || street || roomNumber || l || st || postalCode || manager || secretary || description || carLicense || labeledURI || inetUserHTTPURL || seeAlso || employeeType  || businessCategory || ou")(version 3.0;acl "Self service";allow (write) userdn = "ldap:///self";)
 
 dn: cn=ipaConfig,cn=etc,$SUFFIX
@@ -49,7 +53,7 @@ aci: (targetattr="userCertificate || krbPrincipalKey")(version 3.0; acl "Hosts c
 dn: cn=computers,cn=accounts,$SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr="userCertificate || krbLastPwdChange")(version 3.0; acl "Hosts can modify service userCertificate"; allow(write) userdn = "ldap:///self";)
+aci: (targetattr="userCertificate || krbLastPwdChange || description || l || nshostlocation || nshardwareplatform || nsosversion")(version 3.0; acl "Hosts can modify their own certs and keytabs"; allow(write) userdn = "ldap:///self";)
 
 # Define which hosts can edit other hosts
 # The managedby attribute stores the DN of hosts that are allowed to manage
