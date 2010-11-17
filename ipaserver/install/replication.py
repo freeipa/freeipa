@@ -340,6 +340,12 @@ class ReplicationManager:
         repl_man_passwd = kargs.get("bindpw", self.repl_man_passwd)
         port = kargs.get("port", PORT)
 
+        # List of attributes that need to be excluded from replication.
+        excludes = ('memberof',
+                    'krblastsuccessfulauth',
+                    'krblastfailedauth',
+                    'krbloginfailedcount')
+
         entry = ipaldap.Entry(dn)
         entry.setValues('objectclass', "nsds5replicationagreement")
         entry.setValues('cn', cn)
@@ -352,7 +358,8 @@ class ReplicationManager:
         entry.setValues('nsds5replicaroot', self.suffix)
         entry.setValues('nsds5replicaupdateschedule', '0000-2359 0123456')
         entry.setValues('nsds5replicatransportinfo', 'SSL')
-        entry.setValues('nsDS5ReplicatedAttributeList', '(objectclass=*) $ EXCLUDE memberOf')
+        entry.setValues('nsDS5ReplicatedAttributeList',
+                        '(objectclass=*) $ EXCLUDE %s' % " ".join(excludes))
         entry.setValues('description', "me to %s%d" % (b.host, port))
         if iswinsync:
             self.setup_winsync_agmt(entry, **kargs)
