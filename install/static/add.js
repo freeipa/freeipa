@@ -42,6 +42,21 @@ function ipa_add_dialog(spec) {
                     var facet = entity.get_facet('search');
                     var table = facet.table;
                     table.refresh(that.container);
+                    that.close();
+                }
+            );
+        });
+
+
+        that.add_button('Add and Add Another', function() {
+            var record = that.get_record();
+            that.add(
+                record,
+                function() {
+                    var entity = IPA.get_entity(that.entity_name);
+                    var facet = entity.get_facet('search');
+                    var table = facet.table;
+                    table.refresh(that.container);
                     that.clear(that.container);
                 }
             );
