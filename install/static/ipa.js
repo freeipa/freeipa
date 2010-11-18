@@ -21,7 +21,6 @@
 
 /*global $:true, location:true */
 
-/*Forward defined due to circular dependency with IPA.*/
 var IPA = ( function () {
 
     var that = {
@@ -34,8 +33,6 @@ var IPA = ( function () {
         that.json_url = 'test/data'
     }
 
-
-
     that.ajax_options = {
         type: 'POST',
         contentType: 'application/json',
@@ -46,6 +43,8 @@ var IPA = ( function () {
 
     that.messages = {};
     that.metadata = {};
+    that.whoami = {};
+
 
     that.entities = [];
     that.entities_by_name = {};
@@ -76,10 +75,21 @@ var IPA = ( function () {
 
         $.ajaxSetup(that.ajax_options);
 
-        ipa_cmd('json_metadata', [], {},
+
+        var startup_batch = 
+            [
+                {"method":"json_metadata","params":[[],{}]},
+                {"method":"i18n_messages","params":[[],{}]},
+                {"method":"user_find","params":[[],{
+                    "whoami":"true","all":"true"}]}
+            ];
+
+
+        ipa_cmd('batch', startup_batch, {},
             function (data, text_status, xhr) {
-                that.metadata = data.result.metadata;
-                that.messages = data.result.messages;
+                that.metadata = data.result.results[0].metadata;
+                that.messages = data.result.results[1].messages;
+                that.whoami  = data.result.results[2].result[0];
                 if (on_success) {
                     on_success(data, text_status, xhr);
                 }

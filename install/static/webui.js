@@ -53,20 +53,20 @@ var self_serv_tab_set =
             {name:'user', label:'Users', setup:ipa_entity_setup}]}];
 
 
-var ipa_whoami_pkey;
 
 
 /* main (document onready event handler) */
 $(function() {
 
-    function whoami_on_win(data, text_status, xhr) {
+
+    function init_on_win(data, text_status, xhr) {
         $(window).bind('hashchange', window_hashchange);
 
-        var whoami = data.result.result[0];
-        ipa_whoami_pkey=whoami.uid[0];
+        var whoami = IPA.whoami;
+        IPA.whoami_pkey=whoami.uid[0];
         $('#loggedinas').find('strong').text(whoami.krbprincipalname[0]);
         $('#loggedinas a').fragment(
-            {'user-facet':'details', 'user-pkey':ipa_whoami_pkey},2);
+            {'user-facet':'details', 'user-pkey':IPA.whoami_pkey},2);
 
         for (var i=0; i<IPA.entities.length; i++) {
             var entity = IPA.entities[i];
@@ -82,7 +82,7 @@ $(function() {
         } else {
             nav_create(self_serv_tab_set, navigation, 'tabs');
 
-            var state = {'user-pkey':ipa_whoami_pkey ,
+            var state = {'user-pkey':IPA.whoami_pkey ,
                          'user-facet': jQuery.bbq.getState('user-facet') ||
                          'details'};
             $.bbq.pushState(state);
@@ -92,9 +92,6 @@ $(function() {
         $('#login_header').html(IPA.messages.login.header);
     }
 
-    function init_on_win(data, text_status, xhr) {
-        ipa_cmd('user_find', [], {"whoami":"true","all":"true"}, whoami_on_win, init_on_error, null);
-    }
 
     function init_on_error(xhr, text_status, error_thrown) {
         var navigation = $('#navigation').empty();

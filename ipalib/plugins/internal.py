@@ -1,5 +1,6 @@
 # Authors:
 #   Pavel Zuna <pzuna@redhat.com>
+#   Adam YOung <ayoung@redhat.com>
 #
 # Copyright (c) 2010  Red Hat
 # See file 'copying' for use and warranty information
@@ -35,6 +36,43 @@ class json_metadata(Command):
     """
     INTERNAL = False
 
+
+    takes_args = (
+        Str('objname?',
+            doc=_('Name of object to export'),
+        ),
+    )
+
+    has_output = (
+        Output('metadata', dict, doc=_('Dict of JSON encoded IPA Objects')),
+    )
+
+    def execute(self, objname):
+
+        if objname and objname in self.api.Object:
+
+            meta = dict(
+                result=dict(
+                    ((objname, json_serialize(self.api.Object[objname])), )
+                )
+            )
+            retval= dict([("metadata",meta), ("messages",dict())])
+
+        else:
+            meta=dict(
+                (o.name, json_serialize(o)) for o in self.api.Object()
+                )
+
+            retval= dict([("metadata",meta)])
+
+        return retval
+
+    def output_for_cli(self, textui, result, *args, **options):
+        print json.dumps(result, default=json_serialize)
+
+api.register(json_metadata)
+
+class i18n_messages(Command):
     messages={
         "login": {"header" :_("Logged In As")},
         "button":{
@@ -67,41 +105,14 @@ class json_metadata(Command):
                 "Follow these directions</a> to configure your browser.")
             }
         }
-
-    takes_args = (
-        Str('objname?',
-            doc=_('Name of object to export'),
-        ),
-    )
-
     has_output = (
-        Output('metadata', dict, doc=_('Dict of JSON encoded IPA Objects')),
         Output('messages', dict, doc=_('Dict of I18N messages')),
     )
-
-    def execute(self, objname):
-
-        if objname and objname in self.api.Object:
-
-            meta = dict(
-                result=dict(
-                    ((objname, json_serialize(self.api.Object[objname])), )
-                )
-            )
-            retval= dict([("metadata",meta), ("messages",dict())])
-
-        else:
-            meta=dict(
-                (o.name, json_serialize(o)) for o in self.api.Object()
-                )
-
-            retval= dict([("metadata",meta),
-                          ("messages",json_serialize(self.messages))])
-
-        return retval
+    def execute(self):
+        return dict([("messages",json_serialize(self.messages))])
 
     def output_for_cli(self, textui, result, *args, **options):
         print json.dumps(result, default=json_serialize)
 
-api.register(json_metadata)
 
+api.register(i18n_messages)
