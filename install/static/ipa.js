@@ -76,12 +76,13 @@ var IPA = ( function () {
         $.ajaxSetup(that.ajax_options);
 
 
-        var startup_batch = 
+        var startup_batch =
             [
                 {"method":"json_metadata","params":[[],{}]},
                 {"method":"i18n_messages","params":[[],{}]},
                 {"method":"user_find","params":[[],{
-                    "whoami":"true","all":"true"}]}
+                    "whoami":"true","all":"true"}]},
+                {"method":"env","params":[[],{}]}
             ];
 
 
@@ -90,6 +91,7 @@ var IPA = ( function () {
                 that.metadata = data.result.results[0].metadata;
                 that.messages = data.result.results[1].messages;
                 that.whoami  = data.result.results[2].result[0];
+                that.env = data.result.results[3].result;
                 if (on_success) {
                     on_success(data, text_status, xhr);
                 }

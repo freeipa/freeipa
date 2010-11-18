@@ -2,10 +2,41 @@
     "error": null,
     "id": 1,
     "result": {
-        "count": 3,
+        "count": 4,
         "results": [
             {
                 "error": null,
+                "messages": {
+                    "ajax": {
+                        "401": "Your kerberos ticket no longer valid.Please run KInit and then click 'retry'If this is your first time running the IPA Web UI<a href='/ipa/errors/ssbrowser.html'> Follow these directions</a> to configure your browser."
+                    },
+                    "button": {
+                        "add": "Add",
+                        "enroll": "Enroll",
+                        "find": "Find",
+                        "remove": "Delete",
+                        "reset": "Reset",
+                        "update": "Update"
+                    },
+                    "details": {
+                        "account": "Account Details",
+                        "contact": "Contact Details",
+                        "employee": "      Employee Information",
+                        "identity": "Identity Details",
+                        "mailing": "Mailing Address",
+                        "misc": "Misc. Information",
+                        "to_top": "Back to Top"
+                    },
+                    "login": {
+                        "header": "Logged In As"
+                    },
+                    "search": {
+                        "delete_confirm": "Do you really want to delete the selected entries?",
+                        "quick_links": "Quick Links",
+                        "select_all": "Select All",
+                        "unselect_all": "Unselect All"
+                    }
+                },
                 "metadata": {
                     "aci": {
                         "__base64__": ""
@@ -1059,11 +1090,11 @@
                                 "include": null,
                                 "label": "Group name",
                                 "length": null,
-                                "maxlength": 255,
+                                "maxlength": 33,
                                 "minlength": null,
                                 "multivalue": false,
                                 "name": "cn",
-                                "pattern": "^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$",
+                                "pattern": "^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,30}[a-zA-Z0-9_.$-]?$",
                                 "pattern_errmsg": "may only include letters, numbers, _, -, . and $",
                                 "primary_key": true,
                                 "query": false,
@@ -3668,11 +3699,11 @@
                                 "include": null,
                                 "label": "User login",
                                 "length": null,
-                                "maxlength": 255,
+                                "maxlength": 33,
                                 "minlength": null,
                                 "multivalue": false,
                                 "name": "uid",
-                                "pattern": "^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$",
+                                "pattern": "^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,30}[a-zA-Z0-9_.$-]?$",
                                 "pattern_errmsg": "may only include letters, numbers, _, -, . and $",
                                 "primary_key": true,
                                 "query": false,
@@ -4068,38 +4099,7 @@
                 }
             },
             {
-                "error": null,
-                "messages": {
-                    "ajax": {
-                        "401": "Your kerberos ticket no longer valid.Please run KInit and then click 'retry'If this is your first time running the IPA Web UI<a href='/ipa/errors/ssbrowser.html'> Follow these directions</a> to configure your browser."
-                    },
-                    "button": {
-                        "add": "Add",
-                        "enroll": "Enroll",
-                        "find": "Find",
-                        "remove": "Delete",
-                        "reset": "Reset",
-                        "update": "Update"
-                    },
-                    "details": {
-                        "account": "Account Details",
-                        "contact": "Contact Details",
-                        "employee": "      Employee Information",
-                        "identity": "Identity Details",
-                        "mailing": "Mailing Address",
-                        "misc": "Misc. Information",
-                        "to_top": "Back to Top"
-                    },
-                    "login": {
-                        "header": "Logged In As"
-                    },
-                    "search": {
-                        "delete_confirm": "Do you really want to delete the selected entries?",
-                        "quick_links": "Quick Links",
-                        "select_all": "Select All",
-                        "unselect_all": "Unselect All"
-                    }
-                }
+                "error": "i18n_messages"
             },
             {
                 "count": 1,
@@ -4114,19 +4114,19 @@
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "2002517652"
+                            "1010626268"
                         ],
                         "homedirectory": [
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "30e47399-ee4011df-92b88382-0dfb6bc8"
+                            "73321718-f35011df-8e89dc8d-0b6df103"
                         ],
                         "krblastpwdchange": [
-                            "20101112093732Z"
+                            "20101118201738Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20110210093732Z"
+                            "20110216201738Z"
                         ],
                         "krbprincipalname": [
                             "admin@AYOUNG.BOSTON.DEVEL.REDHAT.COM"
@@ -4167,12 +4167,84 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "2002517652"
+                            "1010626268"
                         ]
                     }
                 ],
                 "summary": "1 user matched",
                 "truncated": false
+            },
+            {
+                "count": 64,
+                "error": null,
+                "result": {
+                    "basedn": "dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                    "bin": "/var/www",
+                    "ca_agent_port": 9443,
+                    "ca_ee_port": 9444,
+                    "ca_host": "ipa.ayoung.boston.devel.redhat.com",
+                    "ca_port": 9180,
+                    "conf": "/etc/ipa/server.conf",
+                    "conf_default": "/etc/ipa/default.conf",
+                    "confdir": "/etc/ipa",
+                    "config_loaded": true,
+                    "container_accounts": "cn=accounts",
+                    "container_applications": "cn=applications,cn=configs,cn=policies",
+                    "container_automount": "cn=automount",
+                    "container_configs": "cn=configs,cn=policies",
+                    "container_dns": "cn=dns",
+                    "container_group": "cn=groups,cn=accounts",
+                    "container_hbac": "cn=hbac",
+                    "container_hbacservice": "cn=hbacservices,cn=accounts",
+                    "container_hbacservicegroup": "cn=hbacservicegroups,cn=accounts",
+                    "container_host": "cn=computers,cn=accounts",
+                    "container_hostgroup": "cn=hostgroups,cn=accounts",
+                    "container_netgroup": "cn=ng,cn=alt",
+                    "container_policies": "cn=policies",
+                    "container_policygroups": "cn=policygroups,cn=configs,cn=policies",
+                    "container_policylinks": "cn=policylinks,cn=configs,cn=policies",
+                    "container_rolegroup": "cn=rolegroups,cn=accounts",
+                    "container_roles": "cn=roles,cn=policies",
+                    "container_service": "cn=services,cn=accounts",
+                    "container_sudocmd": "cn=sudocmds,cn=accounts",
+                    "container_sudocmdgroup": "cn=sudocmdgroups,cn=accounts",
+                    "container_sudorule": "cn=sudorules",
+                    "container_taskgroup": "cn=taskgroups,cn=accounts",
+                    "container_user": "cn=users,cn=accounts",
+                    "container_virtual": "cn=virtual operations",
+                    "context": "server",
+                    "debug": false,
+                    "domain": "ayoung.boston.devel.redhat.com",
+                    "dot_ipa": "/var/www/.ipa",
+                    "enable_ra": true,
+                    "fallback": true,
+                    "home": "/var/www",
+                    "host": "ipa.ayoung.boston.devel.redhat.com",
+                    "in_server": true,
+                    "in_tree": false,
+                    "interactive": true,
+                    "ipalib": "/usr/lib/python2.6/site-packages/ipalib",
+                    "ldap_uri": "ldapi://%2fvar%2frun%2fslapd-AYOUNG-BOSTON-DEVEL-REDHAT-COM.socket",
+                    "log": null,
+                    "logdir": "/var/log/ipa",
+                    "mode": "production",
+                    "mount_ipa": "/ipa/",
+                    "mount_jsonserver": "json",
+                    "mount_xmlserver": "xml",
+                    "prompt_all": false,
+                    "ra_plugin": "dogtag",
+                    "realm": "AYOUNG.BOSTON.DEVEL.REDHAT.COM",
+                    "rpc_json_uri": "http://localhost:8888/ipa/json",
+                    "script": "/var/www/mod_wsgi",
+                    "site_packages": "/usr/lib/python2.6/site-packages",
+                    "startup_traceback": false,
+                    "verbose": 0,
+                    "webui_assets_dir": null,
+                    "webui_prod": true,
+                    "xmlrpc_uri": "https://ipa.ayoung.boston.devel.redhat.com/ipa/xml"
+                },
+                "summary": "64 variables",
+                "total": 64
             }
         ]
     }
