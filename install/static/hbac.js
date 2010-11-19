@@ -120,31 +120,18 @@ function ipa_hbac_search_facet(spec) {
             'label': 'Cull Disabled Rules'
         }));
 */
-        var entity_container = $('#' + that.entity_name);
-        var action_panel = $('.action-panel', entity_container);
+        var action_panel = that.get_action_panel();
 
         var ul = $('ul', action_panel);
 
         $('<li/>', {
             title: 'hbacsvc',
-            text: 'HBAC Services',
-            'click': function() {
-                var state = {};
-                state['entity'] = 'hbacsvc';
-                nav_push_state(state);
-                return false;
-            }
+            text: 'HBAC Services'
         }).appendTo(ul);
 
         $('<li/>', {
             title: 'hbacsvcgroup',
-            text: 'HBAC Service Groups',
-            'click': function() {
-                var state = {};
-                state['entity'] = 'hbacsvcgroup';
-                nav_push_state(state);
-                return false;
-            }
+            text: 'HBAC Service Groups'
         }).appendTo(ul);
 
         that.search_facet_create(container);
@@ -154,6 +141,29 @@ function ipa_hbac_search_facet(spec) {
             $('<h2/>', { 'html': 'HBAC Rules' }));
         container.children().last().prepend('<br/><br/>');
 
+    };
+
+    that.setup = function(container) {
+
+        that.search_facet_setup(container);
+
+        var action_panel = that.get_action_panel();
+
+        var li = $('li[title=hbacsvc]', action_panel);
+        li.click(function() {
+            var state = {};
+            state['entity'] = 'hbacsvc';
+            nav_push_state(state);
+            return false;
+        });
+
+        li = $('li[title=hbacsvcgroup]', action_panel);
+        li.click(function() {
+            var state = {};
+            state['entity'] = 'hbacsvcgroup';
+            nav_push_state(state);
+            return false;
+        });
     };
 
     return that;

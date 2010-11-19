@@ -26,8 +26,6 @@ function ipa_hbacsvc() {
         'name': 'hbacsvc'
     });
 
-    that.superior_init = that.superior('init');
-
     that.init = function() {
 
         var dialog = ipa_hbacsvc_add_dialog({
@@ -49,7 +47,7 @@ function ipa_hbacsvc() {
         });
         that.add_facet(facet);
 
-        that.superior_init();
+        that.entity_init();
     };
 
     return that;
@@ -82,22 +80,21 @@ function ipa_hbacsvc_search_facet(spec) {
 
     var that = ipa_search_facet(spec);
 
-    that.superior_init = that.superior('init');
-    that.superior_create = that.superior('create');
-    that.superior_setup = that.superior('setup');
+    that.get_action_panel = function() {
+        return $('#hbac .action-panel');
+    };
 
     that.init = function() {
 
         that.create_column({name:'cn', label:'Service', primary_key: true});
         that.create_column({name:'description', label:'Description'});
 
-        that.superior_init();
+        that.search_facet_init();
     };
 
     that.create = function(container) {
 
-        var entity_container = $('#' + that.entity_name);
-        var action_panel = $('.action-panel', entity_container);
+        var action_panel = that.get_action_panel();
 
         var ul = $('ul', action_panel);
 
@@ -123,7 +120,7 @@ function ipa_hbacsvc_search_facet(spec) {
             }
         }).appendTo(ul);
 
-        that.superior_create(container);
+        that.search_facet_create(container);
 
         // TODO: replace with IPA.metadata[that.entity_name].label
         container.children().last().prepend(
@@ -148,6 +145,10 @@ function ipa_hbacsvc_details_facet(spec) {
     that.superior_init = that.superior('init');
     that.superior_create = that.superior('create');
     that.superior_setup = that.superior('setup');
+
+    that.get_action_panel = function() {
+        return $('#hbac .action-panel');
+    };
 
     that.init = function() {
 

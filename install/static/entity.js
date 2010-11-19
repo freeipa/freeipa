@@ -44,7 +44,7 @@ function ipa_facet(spec) {
         that._entity_name = entity_name;
     });
 
-    that.setup_views = ipa_facet_setup_views;
+    that.create_action_panel = ipa_facet_create_action_panel;
 
     that.superior = function(name) {
         var method = that[name];
@@ -65,6 +65,14 @@ function ipa_facet(spec) {
 
     function load() {
     }
+
+    that.get_client_area = function() {
+        return $('#' + that.entity_name+' .client');
+    };
+
+    that.get_action_panel = function() {
+        return $('#' + that.entity_name+' .action-panel');
+    };
 
     that.facet_init = that.init;
     that.facet_create = that.create;
@@ -325,7 +333,7 @@ function ipa_entity_setup(container) {
 
     container.empty();
 
-    facet.setup_views(container);
+    facet.create_action_panel(container);
     facet.create(container);
     container.children().last().addClass('client');
     facet.setup(container);
@@ -333,7 +341,16 @@ function ipa_entity_setup(container) {
 }
 
 
-function action_panel(entity_name){
+
+function ipa_facet_create_action_panel(container) {
+
+    var that = this;
+    var entity_name = that.entity_name;
+
+    var action_panel = $('<div/>', {
+        "class": "action-panel",
+        html: $('<h3>Actions</h3>')
+    }).appendTo(container);
 
     function build_link(other_facet,label,other_entity){
         var li = $('<li/>', {
@@ -345,7 +362,7 @@ function action_panel(entity_name){
                         if($(this).hasClass('entity-facet-disabled')){
                             return false;
                         }
-                        var this_pkey = $('.action-panel input[id=pkey]').val();
+                        var this_pkey = $('input[id=pkey]', action_panel).val();
                         IPA.switch_and_show_page(
                             entity_name, other_facet_name,
                             this_pkey, other_entity);
@@ -357,19 +374,15 @@ function action_panel(entity_name){
         return li;
     }
 
-    var div = $('<div/>', {
-        "class":"action-panel",
-        html: $('<h3>Actions</h3>')
-    });
-
     /*Note, for debugging purposes, it is useful to set var pkey_type = 'text';*/
     var pkey_type = 'hidden';
-    $('<input/>',
-      {'type': pkey_type,
-       id:'pkey',
-       name:'pkey'}).appendTo(div);
+    $('<input/>', {
+        'type': pkey_type,
+        id:'pkey',
+        name:'pkey'
+    }).appendTo(action_panel);
 
-    var ul = $('<ul/>', {'class': 'action'}).appendTo(div);
+    var ul = $('<ul/>', {'class': 'action'}).appendTo(action_panel);
 
     var entity = IPA.get_entity(entity_name);
     var facet_name =  ipa_current_facet(entity);
@@ -380,6 +393,7 @@ function action_panel(entity_name){
 
         if (other_facet.label) {
             ul.append(build_link(other_facet,other_facet.label));
+
         } else { // For now empty label indicates an association facet
             var attribute_members = IPA.metadata[entity_name].attribute_members;
             for (var attribute_member in attribute_members) {
@@ -392,19 +406,12 @@ function action_panel(entity_name){
             }
         }
     }
+
     /*When we land on the search page, disable all facets
       that require a pkey until one is selected*/
     if (facet_name === 'search'){
-        $('.entity-facet', div).addClass('entity-facet-disabled');
+        $('.entity-facet', action_panel).addClass('entity-facet-disabled');
     }
-    return div;
+
+    return action_panel;
 }
-
-
-function ipa_facet_setup_views(container) {
-
-    var facet = this;
-    var entity_name = facet.entity_name;
-    action_panel(entity_name).appendTo(container);
-}
-

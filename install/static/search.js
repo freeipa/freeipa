@@ -28,7 +28,7 @@ function ipa_search_widget(spec) {
 
     var that = ipa_table_widget(spec);
 
-    that.superior_create = that.superior('create');
+    that.facet = spec.facet;
 
     that.create = function(container) {
 
@@ -52,8 +52,7 @@ function ipa_search_widget(spec) {
             'value': 'Find'
         }).appendTo(search_filter);
 
-        var entity_container = $('#' + that.entity_name);
-        var action_panel = $('.action-panel', entity_container);
+        var action_panel = that.facet.get_action_panel();
 
         var ul = $('ul', action_panel);
         var li = $('<li/>').prependTo(ul);
@@ -78,7 +77,7 @@ function ipa_search_widget(spec) {
             'class': 'search-results'
         }).appendTo(container);
 
-        that.superior_create(container);
+        that.table_create(container);
     };
 
     that.setup = function(container) {
@@ -95,8 +94,7 @@ function ipa_search_widget(spec) {
         });
         button.replaceWith(that.find_button);
 
-        var entity_container = $('#' + that.entity_name);
-        var action_panel = $('.action-panel', entity_container);
+        var action_panel = that.facet.get_action_panel();
         var search_buttons = $('.search-buttons', action_panel);
 
         button = $('input[name=remove]', search_buttons);
@@ -143,19 +141,21 @@ function ipa_search_widget(spec) {
             count += 1;
             pkey = $(this).val();
         });
+
+        var action_panel = that.facet.get_action_panel();
         if(count == 1){
-            $('.action-panel li.entity-facet').
+            $('li.entity-facet', action_panel).
                 removeClass('entity-facet-disabled');
             var state = {};
-             $('.action-panel input[id=pkey]').val(pkey);
+             $('input[id=pkey]', action_panel).val(pkey);
         }else{
-            $('.action-panel li.entity-facet').
+            $('li.entity-facet', action_panel).
                 addClass('entity-facet-disabled');
-            $('.action-panel input').val(null);
+            $('input', action_panel).val(null);
 
         }
         return false;
-    }
+    };
 
 
     that.remove = function(container) {
@@ -262,7 +262,7 @@ function ipa_search_facet(spec) {
     var that = ipa_facet(spec);
 
     that.init = spec.init || init;
-    that.create = spec.create || ipa_search_facet_create;
+    that.create = spec.create || create;
     that.setup = spec.setup || setup;
     that.refresh = spec.refresh || refresh;
 
@@ -306,7 +306,8 @@ function ipa_search_facet(spec) {
         that.table = ipa_search_widget({
             'id': that.entity_name+'-search',
             'name': 'search', 'label': IPA.metadata[that.entity_name].label,
-            'entity_name': that.entity_name
+            'entity_name': that.entity_name,
+            'facet': that
         });
 
         for (var i=0; i<that.columns.length; i++) {
@@ -327,7 +328,7 @@ function ipa_search_facet(spec) {
         return filter != that.filter;
     };
 
-    function ipa_search_facet_create(container) {
+    function create(container) {
 
         container.attr('title', that.entity_name);
 
@@ -357,6 +358,7 @@ function ipa_search_facet(spec) {
 
     that.search_facet_init = that.init;
     that.search_facet_create = that.create;
+    that.search_facet_setup = that.setup;
 
     return that;
 }

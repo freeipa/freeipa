@@ -26,8 +26,6 @@ function ipa_hbacsvcgroup() {
         'name': 'hbacsvcgroup'
     });
 
-    that.superior_init = that.superior('init');
-
     that.init = function() {
 
         that.create_association({
@@ -55,12 +53,12 @@ function ipa_hbacsvcgroup() {
         });
         that.add_facet(facet);
 
-        facet = ipa_association_facet({
+        facet = ipa_hbacsvcgroup_association_facet({
             'name': 'associate'
         });
         that.add_facet(facet);
 
-        that.superior_init();
+        that.entity_init();
     };
 
     return that;
@@ -93,22 +91,21 @@ function ipa_hbacsvcgroup_search_facet(spec) {
 
     var that = ipa_search_facet(spec);
 
-    that.superior_init = that.superior('init');
-    that.superior_create = that.superior('create');
-    that.superior_setup = that.superior('setup');
+    that.get_action_panel = function() {
+        return $('#hbac .action-panel');
+    };
 
     that.init = function() {
 
         that.create_column({name:'cn', label:'Group', primary_key: true});
         that.create_column({name:'description', label:'Description'});
 
-        that.superior_init();
+        that.search_facet_init();
     };
 
     that.create = function(container) {
 
-        var entity_container = $('#' + that.entity_name);
-        var action_panel = $('.action-panel', entity_container);
+        var action_panel = that.get_action_panel();
 
         var ul = $('ul', action_panel);
 
@@ -134,7 +131,8 @@ function ipa_hbacsvcgroup_search_facet(spec) {
             }
         }).appendTo(ul);
 
-        that.superior_create(container);
+        that.search_facet_create(container);
+
         // TODO: replace with IPA.metadata[that.entity_name].label
         container.children().last().prepend(
             $('<h2/>', { 'html': 'HBAC Service Groups' }));
@@ -152,9 +150,9 @@ function ipa_hbacsvcgroup_details_facet(spec) {
 
     var that = ipa_details_facet(spec);
 
-    that.superior_init = that.superior('init');
-    that.superior_create = that.superior('create');
-    that.superior_setup = that.superior('setup');
+    that.get_action_panel = function() {
+        return $('#hbac .action-panel');
+    };
 
     that.init = function() {
 
@@ -167,7 +165,20 @@ function ipa_hbacsvcgroup_details_facet(spec) {
         section.create_field({ 'name': 'cn', 'label': 'Name' });
         section.create_field({ 'name': 'description', 'label': 'Description' });
 
-        that.superior_init();
+        that.details_facet_init();
+    };
+
+    return that;
+}
+
+function ipa_hbacsvcgroup_association_facet(spec) {
+
+    spec = spec || {};
+
+    var that = ipa_association_facet(spec);
+
+    that.get_action_panel = function() {
+        return $('#hbac .action-panel');
     };
 
     return that;

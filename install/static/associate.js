@@ -241,6 +241,7 @@ function ipa_association_widget(spec) {
 
     var that = ipa_table_widget(spec);
 
+    that.facet = spec.facet;
     that.other_entity = spec.other_entity;
 
     that.superior_create = that.superior('create');
@@ -257,11 +258,10 @@ function ipa_association_widget(spec) {
 
         that.superior_create(container);
 
-        var entity_container = $('#' + that.entity_name);
-        var action_panel = $('.action-panel', entity_container);
+        var action_panel = that.facet.get_action_panel();
 
         var ul = $('ul', action_panel);
-        var li = $('<li/>').appendTo(ul);
+        var li = $('<li/>').prependTo(ul);
 
         // creating generic buttons for layout
         $('<input/>', {
@@ -282,7 +282,8 @@ function ipa_association_widget(spec) {
         that.table_setup(container);
 
         // replacing generic buttons with ipa_button and setting click handler
-        var action_panel = $('.action-panel');
+        var action_panel = that.facet.get_action_panel();
+
         var button = $('input[name=remove]', action_panel);
         button.replaceWith(ipa_button({
             'label': button.val(),
@@ -428,18 +429,9 @@ function ipa_association_facet(spec) {
     that.create = function(container) {
 
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        that.other_entity =
-            $.bbq.getState(that.entity_name + '-enroll', true) || '';
+        that.other_entity = $.bbq.getState(that.entity_name + '-enroll', true) || '';
 
         var label = IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity;
-
-        that.table = ipa_association_widget({
-            'id': that.entity_name+'-'+that.other_entity,
-            'name': 'association',
-            'label': label,
-            'entity_name': that.entity_name,
-            'other_entity': that.other_entity
-        });
 
         //TODO I18N
         var header_message = that.other_entity + '(s) enrolled in '  +
@@ -449,12 +441,14 @@ function ipa_association_facet(spec) {
             'id': that.entity_name+'-'+that.other_entity,
             html: $('<h2/>',{ html:  header_message })
         }).appendTo(container);
+
         that.table = ipa_association_widget({
             'id': that.entity_name+'-'+that.other_entity,
             'name': that.other_entity,
-            'label': IPA.metadata[that.other_entity].label,
+            'label': label,
             'entity_name': that.entity_name,
-            'other_entity': that.other_entity
+            'other_entity': that.other_entity,
+            'facet': that
         });
 
         var span = $('<span/>', { 'name': 'association' }).appendTo(container);

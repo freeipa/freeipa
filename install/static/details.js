@@ -454,8 +454,7 @@ function ipa_details_create(container)
         'class': 'content'
     }).appendTo(container);
 
-    var entity_container = $('#' + that.entity_name);
-    var action_panel = $('.action-panel', entity_container);
+    var action_panel = that.get_action_panel();
 
     var ul = $('ul', action_panel);
     var buttons = $('<li/>', {
