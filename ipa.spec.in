@@ -23,7 +23,7 @@ Source0:        freeipa-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %if ! %{ONLY_CLIENT}
-BuildRequires:  389-ds-base-devel >= 1.2.6
+BuildRequires:  389-ds-base-devel >= 1.2.7
 BuildRequires:  mozldap-devel
 BuildRequires:  svrcore-devel
 BuildRequires:  nspr-devel
@@ -64,7 +64,7 @@ Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
 Requires(post): %{name}-server-selinux = %{version}-%{release}
-Requires: 389-ds-base >= 1.2.6
+Requires: 389-ds-base >= 1.2.7
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
@@ -502,6 +502,9 @@ fi
 %endif
 
 %changelog
+* Fri Nov 19 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-32
+- Set minimum level of 389-ds-base to 1.2.7 for enhanced memberof plugin
+
 * Wed Nov  3 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-31
 - remove ipa-fix-CVE-2008-3274
 

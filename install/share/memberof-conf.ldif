@@ -2,4 +2,10 @@ dn: cn=MemberOf Plugin,cn=plugins,cn=config
 changetype: modify
 replace: nsslapd-pluginenabled
 nsslapd-pluginenabled: on
+-
+add: memberofgroupattr
+memberofgroupattr: memberUser
+-
+add: memberofgroupattr
+memberofgroupattr: memberHost
 
