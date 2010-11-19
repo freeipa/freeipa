@@ -71,9 +71,13 @@ function ipa_hbac_add_dialog(spec) {
             'undo': false
         }));
 
-        that.add_field(ipa_text_widget({
+        that.add_field(ipa_radio_widget({
             'name': 'accessruletype',
-            'label': 'Rule type (allow/deny)',
+            'label': 'Rule type',
+            'options': [
+                { 'value': 'allow', 'label': 'Allow' },
+                { 'value': 'deny', 'label': 'Deny' }
+            ],
             'undo': false
         }));
     };

@@ -265,6 +265,31 @@ function ipa_radio_widget(spec) {
 
     var that = ipa_widget(spec);
 
+    that.options = spec.options;
+
+    that.create = function(container) {
+
+        for (var i=0; i<that.options.length; i++) {
+            var option = that.options[i];
+
+            $('<input/>', {
+                'type': 'radio',
+                'name': that.name,
+                'value': option.value
+            }).appendTo(container);
+
+            container.append(option.label);
+        }
+
+        if (that.undo) {
+            $('<span/>', {
+                'name': 'undo',
+                'style': 'display: none;',
+                'html': 'undo'
+            }).appendTo(container);
+        }
+    };
+
     that.setup = function(container) {
 
         that.widget_setup(container);
@@ -295,7 +320,10 @@ function ipa_radio_widget(spec) {
     };
 
     that.clear = function() {
-        $('input[name="'+that.name+'"]', that.container).get().checked = false;
+        $('input[name="'+that.name+'"]', that.container).each(function() {
+            var input = this;
+            input.checked = false;
+        });
     };
 
     return that;
