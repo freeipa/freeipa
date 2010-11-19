@@ -5,37 +5,83 @@
         "count": 2,
         "result": [
             {
-                "dn": "fqdn=vm-121.idm.lab.bos.redhat.com,cn=computers,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
-                "enrolledby": [],
+                "cn": [
+                    "dev.example.com"
+                ],
+                "dn": "fqdn=dev.example.com,cn=computers,cn=accounts,dc=dev,dc=example,dc=com",
                 "fqdn": [
-                    "vm-121.idm.lab.bos.redhat.com"
+                    "dev.example.com"
+                ],
+                "ipauniqueid": [
+                    "fc6a6d5a-f388-11df-9c01-00163e72f2d9"
+                ],
+                "krbextradata": [
+                    {
+                        "__base64__": "AAL+5+VMYWRtaW4vYWRtaW5AREVWLkVYQU1QTEUuQ09NAA=="
+                    },
+                    {
+                        "__base64__": "AAgBAA=="
+                    }
+                ],
+                "krblastpwdchange": [
+                    "20101119025910Z"
+                ],
+                "krbpasswordexpiration": [
+                    "19700101000000Z"
                 ],
                 "krbprincipalname": [
-                    "host/vm-121.idm.lab.bos.redhat.com@IDM.LAB.BOS.REDHAT.COM"
+                    "host/dev.example.com@DEV.EXAMPLE.COM"
                 ],
-                "memberof": []
+                "krbticketflags": [
+                    "0"
+                ],
+                "managedby": [
+                    "fqdn=dev.example.com,cn=computers,cn=accounts,dc=dev,dc=example,dc=com"
+                ],
+                "objectclass": [
+                    "top",
+                    "ipaobject",
+                    "nshost",
+                    "ipahost",
+                    "ipaservice",
+                    "pkiuser",
+                    "krbprincipalaux",
+                    "krbprincipal",
+                    "krbticketpolicyaux"
+                ],
+                "serverhostname": [
+                    "dev"
+                ]
             },
             {
-                "description": [
-                    "sample host"
+                "cn": [
+                    "test.example.com"
                 ],
-                "dn": "fqdn=ayounghost1.idm.lab.bos.redhat.com,cn=computers,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
-                "enrolledby": [],
+                "dn": "fqdn=test.example.com,cn=computers,cn=accounts,dc=dev,dc=example,dc=com",
                 "fqdn": [
-                    "ayounghost1.idm.lab.bos.redhat.com"
+                    "test.example.com"
                 ],
-                "l": [
-                    "VM-lab"
+                "ipauniqueid": [
+                    "ac28dca0-f3b5-11df-879f-00163e72f2d9"
                 ],
-                "memberof": [],
-                "nshardwareplatform": [
-                    "kvm"
+                "krbprincipalname": [
+                    "host/test.example.com@DEV.EXAMPLE.COM"
                 ],
-                "nshostlocation": [
-                    "VM-lab"
+                "managedby": [
+                    "fqdn=test.example.com,cn=computers,cn=accounts,dc=dev,dc=example,dc=com"
                 ],
-                "nsosversion": [
-                    "F13"
+                "objectclass": [
+                    "ipaobject",
+                    "nshost",
+                    "ipahost",
+                    "pkiuser",
+                    "ipaservice",
+                    "krbprincipalaux",
+                    "krbprincipal",
+                    "top"
+                ],
+                "serverhostname": [
+                    "test"
                 ]
             }
         ],

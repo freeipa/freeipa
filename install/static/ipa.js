@@ -96,7 +96,9 @@ var IPA = ( function () {
                     on_success(data, text_status, xhr);
                 }
             },
-            on_error
+            on_error,
+            null,
+            'ipa_init'
         );
     };
 
@@ -144,6 +146,7 @@ function ipa_command(spec) {
 
     var that = {};
 
+    that.name = spec.name;
     that.method = spec.method;
 
     that.args = $.merge([], spec.args || []);
@@ -170,7 +173,9 @@ function ipa_command(spec) {
             that.args,
             that.options,
             that.on_success,
-            that.on_error
+            that.on_error,
+            null,
+            that.name
         );
     };
 
@@ -277,7 +282,7 @@ function ipa_batch_command(spec) {
  *   win_callback - function to call if the JSON request succeeds
  *   fail_callback - function to call if the JSON request fails
  *   objname - name of an IPA object (optional) */
-function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
+function ipa_cmd(name, args, options, win_callback, fail_callback, objname, command_name)
 {
     var default_json_url = '/ipa/json';
 
@@ -385,7 +390,11 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
     var url = IPA.json_url;
 
     if (IPA.use_static_files){
-        url += '/' + method_name + '.json';
+        if (command_name) {
+            url += '/' + command_name + '.json';
+        } else {
+            url += '/' + method_name + '.json';
+        }
     }
     var data = {
         method: method_name,

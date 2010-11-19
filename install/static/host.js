@@ -1,5 +1,6 @@
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
+ *    Endi S. Dewata <edewata@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -119,49 +120,75 @@ function ipa_host_details_facet(spec) {
     that.init = function() {
 
         var section = ipa_details_list_section({
-            name: 'details',
-            label: 'Host Details'
+            'name': 'details',
+            'label': 'Host Details'
         });
         that.add_section(section);
 
         section.create_field({
-            name: 'fqdn',
-            label: 'Fully Qualified Domain Name'
+            'name': 'fqdn',
+            'label': 'Fully Qualified Domain Name'
         });
 
         section.create_field({
-            name: 'krbprincipalname',
-            label: 'Kerberos Principal'
+            'name': 'krbprincipalname',
+            'label': 'Kerberos Principal'
         });
 
         section.create_field({
-            name: 'serverhostname',
-            label: 'Server Host Name'
+            'name': 'serverhostname',
+            'label': 'Server Host Name'
         });
 
         section = ipa_details_list_section({
-            name: 'enrollment',
-            label: 'Enrollment'
+            'name': 'enrollment',
+            'label': 'Enrollment'
         });
         that.add_section(section);
 
         section.add_field(host_provisioning_status_widget({
-            name: 'provisioning_status',
-            label: 'Status'
+            'name': 'provisioning_status',
+            'label': 'Status',
+            'facet': that
         }));
 
         section = ipa_details_list_section({
-            name:'certificate',
-            label:'Host Certificate'
+            'name': 'certificate',
+            'label': 'Host Certificate'
         });
         that.add_section(section);
 
         section.add_field(host_certificate_status_widget({
-            name: 'certificate_status',
-            label: 'Status'
+            'name': 'certificate_status',
+            'label': 'Status'
         }));
 
         that.details_facet_init();
+    };
+
+    that.refresh = function() {
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+
+        var command = ipa_command({
+            'name': that.entity_name+'_show_'+pkey,
+            'method': that.entity_name+'_show',
+            'args': [pkey],
+            'options': { 'all': true, 'rights': true }
+        });
+
+        command.on_success = function(data, text_status, xhr) {
+            that.load(data.result.result);
+        };
+
+        command.on_error = function(xhr, text_status, error_thrown) {
+            var details = $('.details', that.container).empty();
+            details.append('<p>Error: '+error_thrown.name+'</p>');
+            details.append('<p>'+error_thrown.title+'</p>');
+            details.append('<p>'+error_thrown.message+'</p>');
+        };
+
+        command.execute();
     };
 
     return that;
@@ -172,6 +199,8 @@ function host_provisioning_status_widget(spec) {
     spec = spec || {};
 
     var that = ipa_widget(spec);
+
+    that.facet = spec.facet;
 
     that.create = function(container) {
 
@@ -241,7 +270,7 @@ function host_provisioning_status_widget(spec) {
         var button = $('input[name=unprovision]', that.container);
         that.unprovision_button = ipa_button({
             'label': 'Delete Key, Unprovision',
-            'click': that.unprovision
+            'click': that.show_unprovision_dialog
         });
         button.replaceWith(that.unprovision_button);
 
@@ -257,7 +286,7 @@ function host_provisioning_status_widget(spec) {
         that.enroll_button = button;
     };
 
-    that.unprovision = function() {
+    that.show_unprovision_dialog = function() {
 
         var label = IPA.metadata[that.entity_name].label;
         var dialog = ipa_dialog({
@@ -271,8 +300,7 @@ function host_provisioning_status_widget(spec) {
         };
 
         dialog.add_button('Unprovision', function() {
-            var pkey = that.result['fqdn'][0];
-            ipa_cmd(that.entity_name+'_disable', [pkey], {},
+            that.unprovision(
                 function(data, text_status, xhr) {
                     set_status('missing');
                     dialog.close();
@@ -294,9 +322,42 @@ function host_provisioning_status_widget(spec) {
         return false;
     };
 
+    that.unprovision = function(on_success, on_error) {
+
+        var pkey = that.facet.get_primary_key();
+
+        var command = ipa_command({
+            'name': that.entity_name+'_disable_'+pkey,
+            'method': that.entity_name+'_disable',
+            'args': [pkey],
+            'options': { 'all': true, 'rights': true },
+            'on_success': on_success,
+            'on_error': on_error
+        });
+
+        command.execute();
+    };
+
     that.set_otp = function() {
-        // TODO: enroll via OTP
-        alert(that.otp.val());
+
+        var pkey = that.facet.get_primary_key();
+        var otp = that.otp_input.val();
+        that.otp_input.val('');
+
+        var command = ipa_command({
+            'method': that.entity_name+'_mod',
+            'args': [pkey],
+            'options': {
+                'all': true,
+                'rights': true,
+                'userpassword': otp
+            },
+            'on_success': function(data, text_status, xhr) {
+                alert('One-Time-Password has been set.');
+            }
+        });
+
+        command.execute();
     };
 
     that.load = function(result) {
