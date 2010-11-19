@@ -176,6 +176,10 @@ def parse_options():
     if (options.external_cert_file and not os.path.isabs(options.external_cert_file)):
         parser.error("--external-cert-file must use an absolute path")
 
+    #Automatically disable pkinit w/ dogtag until that is supported
+    if not options.pkinit_pkcs12 and not options.selfsign:
+        options.setup_pkinit = False
+
     return safe_options, options
 
 def signal_handler(signum, frame):
