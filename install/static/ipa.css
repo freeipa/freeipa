@@ -204,7 +204,6 @@ span.attrhint {
 
 .tabs1 .ui-tabs-nav li {
     padding: 0.5em 0;
-    width:144px;
     background-image: url(Mainnav-offtab.png);
     margin: 0;
     border-width: 0;
@@ -220,9 +219,10 @@ span.attrhint {
 }
 
 .tabs1 .ui-tabs-nav li a{
+    width:10em;
     color: #7E7E7E;
     margin: 0 auto;
-    text-align:left;
+    text-align:center;
 }
 
 
@@ -249,9 +249,11 @@ span.attrhint {
 }
 
 .tabs2 .ui-tabs-nav li {
+    width:auto;
     padding: 0;
     margin: 0px 0;
-    height: 3em;
+    background-image: url(Subnav-background.png);
+    color: white;
 }
 
 .tabs2 .ui-tabs-nav li.ui-tabs-selected  {
@@ -272,11 +274,6 @@ span.attrhint {
     color:white;
 }
 
-.tabs2 .ui-tabs-nav li{
-    height: 30%;
-    background-image: url(Subnav-background.png);
-    color: white;
-}
 
 .tabs2 .ui-tabs-nav li a:hover{
     background: none repeat scroll 0 0 #254718;
