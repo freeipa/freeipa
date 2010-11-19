@@ -1,0 +1,29 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "result": {
+            "attributelevelrights": {
+                "aci": "rscwo",
+                "description": "rscwo",
+                "ipauniqueid": "rsc",
+                "memberof": "rsc",
+                "nsaccountlock": "rscwo",
+                "sudocmd": "rscwo"
+            },
+            "dn": "sudocmd=/usr/bin/less,cn=sudocmds,cn=accounts,dc=dev,dc=example,dc=com",
+            "ipauniqueid": [
+                "06708d0e-f454-11df-9273-00163e72f2d9"
+            ],
+            "objectclass": [
+                "ipaobject",
+                "ipasudocmd"
+            ],
+            "sudocmd": [
+                "/usr/bin/less"
+            ]
+        },
+        "summary": null,
+        "value": "/usr/bin/less"
+    }
+}

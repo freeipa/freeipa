@@ -152,7 +152,7 @@ function ipa_hbac_search_facet(spec) {
         var li = $('li[title=hbacsvc]', action_panel);
         li.click(function() {
             var state = {};
-            state['entity'] = 'hbacsvc';
+            state['hbac-entity'] = 'hbacsvc';
             nav_push_state(state);
             return false;
         });
@@ -160,7 +160,7 @@ function ipa_hbac_search_facet(spec) {
         li = $('li[title=hbacsvcgroup]', action_panel);
         li.click(function() {
             var state = {};
-            state['entity'] = 'hbacsvcgroup';
+            state['hbac-entity'] = 'hbacsvcgroup';
             nav_push_state(state);
             return false;
         });

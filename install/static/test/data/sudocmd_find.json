@@ -1,0 +1,23 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "count": 2,
+        "result": [
+            {
+                "dn": "sudocmd=/usr/bin/more,cn=sudocmds,cn=accounts,dc=dev,dc=example,dc=com",
+                "sudocmd": [
+                    "/usr/bin/more"
+                ]
+            },
+            {
+                "dn": "sudocmd=/usr/bin/less,cn=sudocmds,cn=accounts,dc=dev,dc=example,dc=com",
+                "sudocmd": [
+                    "/usr/bin/less"
+                ]
+            }
+        ],
+        "summary": "2 sudo command matched",
+        "truncated": false
+    }
+}

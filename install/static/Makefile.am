@@ -20,6 +20,8 @@ app_DATA =                              \
 	certificate.js 			\
 	group.js 			\
 	hbac.js 			\
+	hbacsvc.js 			\
+	hbacsvcgroup.js 		\
 	host.js 			\
 	hostgroup.js 			\
 	index.html 			\
@@ -29,6 +31,8 @@ app_DATA =                              \
 	service.js 			\
 	serverconfig.js			\
 	sudorule.js			\
+	sudocmd.js			\
+	sudocmdgroup.js			\
 	policy.js			\
 	search.js 			\
 	rule.js 			\

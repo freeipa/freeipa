@@ -137,7 +137,8 @@ function _nav_update_tabs(nls, container)
         var entity_name = tab.name;
 
         // TODO: do not hard-code
-        if (entity_name == 'hbac' && nav_get_state('entity')) entity_name = nav_get_state('entity');
+        if (entity_name == 'hbac' && nav_get_state('hbac-entity')) entity_name = nav_get_state('hbac-entity');
+        if (entity_name == 'sudorule' && nav_get_state('sudo-entity')) entity_name = nav_get_state('sudo-entity');
 
         var entity = IPA.get_entity(entity_name);
         entity.setup(container2);

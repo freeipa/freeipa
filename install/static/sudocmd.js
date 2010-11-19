@@ -20,41 +20,30 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-function ipa_hbacsvcgroup() {
+function ipa_sudocmd() {
 
     var that = ipa_entity({
-        'name': 'hbacsvcgroup'
+        'name': 'sudocmd'
     });
 
     that.init = function() {
 
-        that.create_association({
-            'name': 'hbacsvc',
-            'add_method': 'add_member',
-            'delete_method': 'remove_member'
-        });
-
-        var dialog = ipa_hbacsvcgroup_add_dialog({
+        var dialog = ipa_sudocmd_add_dialog({
             'name': 'add',
-            'title': 'Add New HBAC Service Group'
+            'title': 'Add New SUDO Command'
         });
         that.add_dialog(dialog);
         dialog.init();
 
-        var facet = ipa_hbacsvcgroup_search_facet({
+        var facet = ipa_sudocmd_search_facet({
             'name': 'search',
             'label': 'Search'
         });
         that.add_facet(facet);
 
-        facet = ipa_hbacsvcgroup_details_facet({
+        facet = ipa_sudocmd_details_facet({
             'name': 'details',
             'label': 'Details'
-        });
-        that.add_facet(facet);
-
-        facet = ipa_hbacsvcgroup_association_facet({
-            'name': 'associate'
         });
         that.add_facet(facet);
 
@@ -64,9 +53,9 @@ function ipa_hbacsvcgroup() {
     return that;
 }
 
-IPA.add_entity(ipa_hbacsvcgroup());
+IPA.add_entity(ipa_sudocmd());
 
-function ipa_hbacsvcgroup_add_dialog(spec) {
+function ipa_sudocmd_add_dialog(spec) {
 
     spec = spec || {};
 
@@ -78,26 +67,26 @@ function ipa_hbacsvcgroup_add_dialog(spec) {
 
         this.superior_init();
 
-        this.add_field(ipa_text_widget({name:'cn', label:'Name', undo: false}));
+        this.add_field(ipa_text_widget({name:'sudocmd', label:'Command', undo: false}));
         this.add_field(ipa_text_widget({name:'description', label:'Description', undo: false}));
     };
 
     return that;
 }
 
-function ipa_hbacsvcgroup_search_facet(spec) {
+function ipa_sudocmd_search_facet(spec) {
 
     spec = spec || {};
 
     var that = ipa_search_facet(spec);
 
     that.get_action_panel = function() {
-        return $('#hbac .action-panel');
+        return $('#sudorule .action-panel');
     };
 
     that.init = function() {
 
-        that.create_column({name:'cn', label:'Group', primary_key: true});
+        that.create_column({name:'sudocmd', label:'Command', primary_key: true});
         that.create_column({name:'description', label:'Description'});
 
         that.search_facet_init();
@@ -110,22 +99,21 @@ function ipa_hbacsvcgroup_search_facet(spec) {
         var ul = $('ul', action_panel);
 
         $('<li/>', {
-            title: 'hbac',
-            text: 'HBAC Rules'
+            title: 'sudorule',
+            text: 'SUDO Rules'
         }).appendTo(ul);
 
         $('<li/>', {
-            title: 'hbacsvc',
-            text: 'HBAC Services'
+            title: 'sudocmdgroup',
+            text: 'SUDO Command Groups'
         }).appendTo(ul);
 
         that.search_facet_create(container);
 
         // TODO: replace with IPA.metadata[that.entity_name].label
         container.children().last().prepend(
-            $('<h2/>', { 'html': 'HBAC Service Groups' }));
+            $('<h2/>', { 'html': 'SUDO Commands' }));
         container.children().last().prepend('<br/><br/>');
-
     };
 
     that.setup = function(container) {
@@ -134,18 +122,18 @@ function ipa_hbacsvcgroup_search_facet(spec) {
 
         var action_panel = that.get_action_panel();
 
-        var li = $('li[title=hbac]', action_panel);
+        var li = $('li[title=sudorule]', action_panel);
         li.click(function() {
             var state = {};
-            state['hbac-entity'] = 'hbac';
+            state['sudo-entity'] = 'sudorule';
             nav_push_state(state);
             return false;
         });
 
-        li = $('li[title=hbacsvc]', action_panel);
+        li = $('li[title=sudocmdgroup]', action_panel);
         li.click(function() {
             var state = {};
-            state['hbac-entity'] = 'hbacsvc';
+            state['sudo-entity'] = 'sudocmdgroup';
             nav_push_state(state);
             return false;
         });
@@ -155,14 +143,18 @@ function ipa_hbacsvcgroup_search_facet(spec) {
 }
 
 
-function ipa_hbacsvcgroup_details_facet(spec) {
+function ipa_sudocmd_details_facet(spec) {
 
     spec = spec || {};
 
     var that = ipa_details_facet(spec);
 
+    that.superior_init = that.superior('init');
+    that.superior_create = that.superior('create');
+    that.superior_setup = that.superior('setup');
+
     that.get_action_panel = function() {
-        return $('#hbac .action-panel');
+        return $('#sudorule .action-panel');
     };
 
     that.init = function() {
@@ -173,23 +165,10 @@ function ipa_hbacsvcgroup_details_facet(spec) {
         });
         that.add_section(section);
 
-        section.create_field({ 'name': 'cn', 'label': 'Name' });
+        section.create_field({ 'name': 'sudocmd', 'label': 'Command' });
         section.create_field({ 'name': 'description', 'label': 'Description' });
 
-        that.details_facet_init();
-    };
-
-    return that;
-}
-
-function ipa_hbacsvcgroup_association_facet(spec) {
-
-    spec = spec || {};
-
-    var that = ipa_association_facet(spec);
-
-    that.get_action_panel = function() {
-        return $('#hbac .action-panel');
+        that.superior_init();
     };
 
     return that;
