@@ -22,7 +22,7 @@ app_DATA =                              \
 	hbac.js 			\
 	host.js 			\
 	hostgroup.js 			\
-	index.xhtml 			\
+	index.html 			\
 	jquery.cookie.js 		\
 	navigation.js			\
 	netgroup.js 			\
