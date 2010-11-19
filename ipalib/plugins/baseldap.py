@@ -864,7 +864,10 @@ class LDAPModMember(LDAPQuery):
             for ldap_obj_name in self.obj.attribute_members[attr]:
                 dns[attr][ldap_obj_name] = []
                 failed[attr][ldap_obj_name] = []
-                for name in options.get(to_cli(ldap_obj_name), []):
+                names = options.get(to_cli(ldap_obj_name), [])
+                if not names:
+                    continue
+                for name in names:
                     if not name:
                         continue
                     ldap_obj = self.api.Object[ldap_obj_name]
