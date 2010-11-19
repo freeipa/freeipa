@@ -86,7 +86,7 @@ function nav_generate_tabs(nls, container, tabclass, depth)
         var div = nav_create_tab_div(tab.name);
         container.append(div);
 
-        if (tab.children) {
+        if (tab.children && depth === 1) {
             nav_generate_tabs(tab.children, div, tabclass, depth +1 );
         } else {
             div.addClass('entity-container');
@@ -116,10 +116,10 @@ function nav_create_tab_div(id)
 
 function nav_update_tabs()
 {
-    _nav_update_tabs(nav_tabs_lists, nav_container);
+    _nav_update_tabs(nav_tabs_lists, nav_container,1);
 }
 
-function _nav_update_tabs(nls, container)
+function _nav_update_tabs(nls, container,depth)
 {
     var id = container.attr('id');
     var index = nav_get_state(id);
@@ -130,8 +130,8 @@ function _nav_update_tabs(nls, container)
     var tab = nls[index];
     var container2 = $('#' + tab.name);
 
-    if (tab.children) {
-        _nav_update_tabs(tab.children, container2);
+    if (tab.children   && depth === 1 ) {
+        _nav_update_tabs(tab.children, container2,depth+1);
 
     } else if (tab.setup) {
         var entity_name = tab.name;

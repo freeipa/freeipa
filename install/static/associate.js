@@ -248,12 +248,15 @@ function ipa_association_widget(spec) {
 
     that.create = function(container) {
 
-        that.member_attribute = ipa_get_member_attribute(that.entity_name, that.other_entity);
+        that.member_attribute = ipa_get_member_attribute(
+            that.entity_name, that.other_entity);
 
         that.create_column({
-            'name': that.member_attribute + '_' + that.other_entity,
-            'label': IPA.metadata[that.other_entity].label,
-            'primary_key': true
+            name: that.member_attribute + '_' + that.other_entity,
+            other_entity :  that.other_entity,
+            label: IPA.metadata[that.other_entity].label,
+            primary_key: true,
+            link: true
         });
 
         that.superior_create(container);
@@ -465,6 +468,10 @@ function ipa_association_facet(spec) {
         that.table.setup(span);
         that.table.refresh();
     };
+
+    //TODO find out why this is needed
+    that.refresh = function(){
+    }
 
     return that;
 }

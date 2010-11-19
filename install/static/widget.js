@@ -421,6 +421,7 @@ function ipa_button_widget(spec) {
     return that;
 }
 
+
 function ipa_column_widget(spec) {
 
     spec = spec || {};
@@ -431,6 +432,7 @@ function ipa_column_widget(spec) {
     that.primary_key = spec.primary_key;
     that.setup = spec.setup || setup;
     that.link = spec.link;
+    that.other_entity = spec.other_entity;
 
     function setup(container, name, value, record) {
 
@@ -445,13 +447,11 @@ function ipa_column_widget(spec) {
                 'html': value,
                 'click': function (value) {
                     return function() {
-                        var state = {};
-                        state[that.entity_name + '-facet'] = 'details';
-                        state[that.entity_name + '-pkey'] = value;
-                        //Before this will work, we need to set the tab one level up
-                        //for example:
-                        //state['identity'] = 0;
-                        //but we have no way of getting the index.
+                        var target_entity = that.other_entity ||
+                            that.entity_name;
+                        var state = IPA.tab_state(target_entity);
+                        state[target_entity + '-facet'] = 'details';
+                        state[target_entity + '-pkey'] = value;
 
                         $.bbq.pushState(state);
                         return false;

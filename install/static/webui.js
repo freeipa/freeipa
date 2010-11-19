@@ -33,15 +33,20 @@ var admin_tab_set = [
         {name:'service', label:'Services', setup: ipa_entity_setup}
     ]},
     {name:'policy', children:[
-        {name:'hbac', setup: ipa_entity_setup},
-        {name:'sudorule', setup: ipa_entity_setup},
         {name:'dns', setup: ipa_entity_setup},
+        {name:'hbac', setup: ipa_entity_setup, children:[
+            {name:'hbacsvc', setup: ipa_entity_setup},
+            {name:'hbacsvcgroup', setup: ipa_entity_setup}
+        ]},
+        {name:'sudorule', setup: ipa_entity_setup,children:[
+            {name:'sudocmd', setup: ipa_entity_setup},
+            {name:'sudocmdgroup', setup: ipa_entity_setup}
+        ]},
         {name:'automountlocation',  setup: ipa_entity_setup},
         {name:'pwpolicy', setup: ipa_entity_setup},
         {name:'krbtpolicy', setup:ipa_details_only_setup}
     ]},
     {name:'ipaserver', children: [
-//        {name:'aci', setup: ipa_entity_setup},
         {name:'taskgroup', setup: ipa_entity_setup},
         {name:'rolegroup', label:'Rolegroups', setup: ipa_entity_setup},
         {name:'config', setup: ipa_details_only_setup}
@@ -54,7 +59,39 @@ var self_serv_tab_set =
             {name:'user', label:'Users', setup:ipa_entity_setup}]}];
 
 
+IPA.tab_state = function(entity_name){
 
+    var state = {};
+
+    for (var top_tab_index = 0;
+         top_tab_index < IPA.tab_set.length;
+         top_tab_index += 1){
+        var top_tab =  IPA.tab_set[top_tab_index];
+        for (var subtab_index = 0;
+             subtab_index < top_tab.children.length;
+             subtab_index += 1){
+            if(top_tab.children[subtab_index].name){
+                if (top_tab.children[subtab_index].name === entity_name){
+                    state.navigation =  top_tab_index;
+                    state[top_tab.name] =  subtab_index;
+                    return state;
+                }else if (top_tab.children[subtab_index].children){
+                    var  nested_entities = top_tab.children[subtab_index].children;
+                    for (var nested_index = 0;
+                         nested_index < nested_entities.length;
+                         nested_index += 1){
+                        if (nested_entities[nested_index].name === entity_name){
+                            state.navigation =  top_tab_index;
+                             state[top_tab.name] =  subtab_index;
+                             state[ top_tab.children[subtab_index].name+'_entity'] =  entity_name;
+                             return state;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 /* main (document onready event handler) */
 $(function() {
@@ -78,9 +115,10 @@ $(function() {
 
         if (whoami.hasOwnProperty('memberof_rolegroup') &&
             whoami.memberof_rolegroup.length > 0){
+            IPA.tab_set = admin_tab_set;
             nav_create(admin_tab_set, navigation, 'tabs');
-
         } else {
+            IPA.tab_set = self_serv_tab_set;
             nav_create(self_serv_tab_set, navigation, 'tabs');
 
             var state = {'user-pkey':IPA.whoami_pkey ,
