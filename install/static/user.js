@@ -88,12 +88,14 @@ ipa_entity_set_association_definition('user', {
 /* ATTRIBUTE CALLBACKS */
 
 
-function user_status_load(container, result) {
+function user_status_load(result) {
 
-    $('dd', container).remove();
+    var that = this;
+
+    $('dd', that.container).remove();
 
     var dd = ipa_create_first_dd(this.name);
-    dd.appendTo(container);
+    dd.appendTo(that.container);
 
     var lock_field = 'nsaccountlock';
 
@@ -192,12 +194,14 @@ function resetpwd_on_click(){
     return false;
 }
 
-function user_password_load(container, result) {
+function user_password_load(result) {
 
-    $('dd', container).remove();
+    var that = this;
+
+    $('dd', that.container).remove();
 
     var dd = ipa_create_first_dd(this.name);
-    dd.appendTo(container);
+    dd.appendTo(that.container);
 
     var link = $('<a/>',{
         href:"jslink",
@@ -219,9 +223,11 @@ var states = [
     'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VI', 'VA',
     'WA', 'WV', 'WI', 'WY', ''
 ];
-function user_state_load(container, result) {
+function user_state_load(result) {
 
-    $('dd', container).remove();
+    var that = this;
+
+    $('dd', that.container).remove();
 
     //var next = dt.next();
     //next.css('clear', 'none');
@@ -229,7 +235,7 @@ function user_state_load(container, result) {
 
     var dd = ipa_create_first_dd(this.name);
     dd.append(select_temp);
-    dd.appendTo(container);
+    dd.appendTo(that.container);
 
     var sel = dd.children().first();
     for (var i = 0; i < states.length; ++i)

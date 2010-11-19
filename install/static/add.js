@@ -41,7 +41,7 @@ function ipa_add_dialog(spec) {
                     var entity = IPA.get_entity(that.entity_name);
                     var facet = entity.get_facet('search');
                     var table = facet.table;
-                    table.refresh(that.container);
+                    table.refresh();
                     that.close();
                 }
             );
@@ -56,8 +56,8 @@ function ipa_add_dialog(spec) {
                     var entity = IPA.get_entity(that.entity_name);
                     var facet = entity.get_facet('search');
                     var table = facet.table;
-                    table.refresh(that.container);
-                    that.clear(that.container);
+                    table.refresh();
+                    that.clear();
                 }
             );
         });

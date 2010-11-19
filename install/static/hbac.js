@@ -26,8 +26,6 @@ function ipa_hbac() {
         'name': 'hbac'
     });
 
-    that.superior_init = that.superior('init');
-
     that.init = function() {
 
         var dialog = ipa_hbac_add_dialog({
@@ -49,7 +47,7 @@ function ipa_hbac() {
         });
         that.add_facet(facet);
 
-        that.superior_init();
+        that.entity_init();
     };
 
     return that;
@@ -63,11 +61,9 @@ function ipa_hbac_add_dialog(spec) {
 
     var that = ipa_add_dialog(spec);
 
-    that.superior_init = that.superior('init');
-
     that.init = function() {
 
-        that.superior_init();
+        that.add_dialog_init();
 
         that.add_field(ipa_text_widget({
             'name': 'cn',
@@ -91,10 +87,6 @@ function ipa_hbac_search_facet(spec) {
 
     var that = ipa_search_facet(spec);
 
-    that.superior_init = that.superior('init');
-    that.superior_create = that.superior('create');
-    that.superior_setup = that.superior('setup');
-
     that.init = function() {
 
         that.create_column({name:'cn', label:'Rule Name'});
@@ -104,16 +96,12 @@ function ipa_hbac_search_facet(spec) {
         that.create_column({name:'servicecategory', label:'Via Service'});
         that.create_column({name:'sourcehostcategory', label:'From'});
 
-        that.superior_init();
+        that.search_facet_init();
     };
 
     that.create = function(container) {
 
-        var that = this;
-
-
 /*
-
         // Not yet implemented
 
         var left_buttons = $('<span/>', {
@@ -127,9 +115,11 @@ function ipa_hbac_search_facet(spec) {
         left_buttons.append(ipa_button({
             'label': 'Cull Disabled Rules'
         }));
-
 */
-        var ul = $('.action-panel ul');
+        var entity_container = $('#' + that.entity_name);
+        var action_panel = $('.action-panel', entity_container);
+
+        var ul = $('ul', action_panel);
 
         $('<li/>', {
             title: 'hbacsvc',
@@ -153,7 +143,7 @@ function ipa_hbac_search_facet(spec) {
             }
         }).appendTo(ul);
 
-        that.superior_create(container);
+        that.search_facet_create(container);
 
         // TODO: replace with IPA.metadata[that.entity_name].label
         container.children().last().prepend(
@@ -170,10 +160,6 @@ function ipa_hbac_details_facet(spec) {
     spec = spec || {};
 
     var that = ipa_details_facet(spec);
-
-    that.superior_init = that.superior('init');
-    that.superior_create = that.superior('create');
-    that.superior_setup = that.superior('setup');
 
     that.init = function() {
 
@@ -207,7 +193,7 @@ function ipa_hbac_details_facet(spec) {
             });
 
         } else {
-            section = ipa_hbac_details_tables_section({
+            section = ipa_rule_details_section({
                 'name': 'user',
                 'label': 'Who',
                 'text': 'Rule applies when access is requested by:',
@@ -228,12 +214,12 @@ function ipa_hbac_details_facet(spec) {
         section.add_field(ipa_hbac_association_widget({
             'id': that.entity_name+'-memberuser_user',
             'name': 'memberuser_user', 'label': 'Users', 'category': category,
-            'other_entity': 'user', 'add_method': 'add_user', 'delete_method': 'remove_user'
+            'other_entity': 'user', 'add_method': 'add_user', 'remove_method': 'remove_user'
         }));
         section.add_field(ipa_hbac_association_widget({
             'id': that.entity_name+'-memberuser_group',
             'name': 'memberuser_group', 'label': 'Groups', 'category': category,
-            'other_entity': 'group', 'add_method': 'add_user', 'delete_method': 'remove_user'
+            'other_entity': 'group', 'add_method': 'add_user', 'remove_method': 'remove_user'
         }));
 
         if (IPA.layout) {
@@ -244,7 +230,7 @@ function ipa_hbac_details_facet(spec) {
             });
 
         } else {
-            section = ipa_hbac_details_tables_section({
+            section = ipa_rule_details_section({
                 'name': 'host',
                 'label': 'Accessing',
                 'text': 'Rule applies when access is requested to:',
@@ -265,12 +251,12 @@ function ipa_hbac_details_facet(spec) {
         section.add_field(ipa_hbac_association_widget({
             'id': that.entity_name+'-memberhost_host',
             'name': 'memberhost_host', 'label': 'Hosts', 'category': category,
-            'other_entity': 'host', 'add_method': 'add_host', 'delete_method': 'remove_host'
+            'other_entity': 'host', 'add_method': 'add_host', 'remove_method': 'remove_host'
         }));
         section.add_field(ipa_hbac_association_widget({
             'id': that.entity_name+'-memberhost_hostgroup',
             'name': 'memberhost_hostgroup', 'label': 'Host Groups', 'category': category,
-            'other_entity': 'hostgroup', 'add_method': 'add_host', 'delete_method': 'remove_host'
+            'other_entity': 'hostgroup', 'add_method': 'add_host', 'remove_method': 'remove_host'
         }));
 
         if (IPA.layout) {
@@ -281,7 +267,7 @@ function ipa_hbac_details_facet(spec) {
             });
 
         } else {
-            section = ipa_hbac_details_tables_section({
+            section = ipa_rule_details_section({
                 'name': 'service',
                 'label': 'Via Service',
                 'text': 'Rule applies when access is requested via:',
@@ -302,12 +288,12 @@ function ipa_hbac_details_facet(spec) {
         section.add_field(ipa_hbac_association_widget({
             'id': that.entity_name+'-memberservice_hbacsvc',
             'name': 'memberservice_hbacsvc', 'label': 'Services', 'category': category,
-            'other_entity': 'hbacsvc', 'add_method': 'add_service', 'delete_method': 'remove_service'
+            'other_entity': 'hbacsvc', 'add_method': 'add_service', 'remove_method': 'remove_service'
         }));
         section.add_field(ipa_hbac_association_widget({
             'id': that.entity_name+'-memberservice_hbacsvcgroup',
             'name': 'memberservice_hbacsvcgroup', 'label': 'Service Groups', 'category': category,
-            'other_entity': 'hbacsvcgroup', 'add_method': 'add_service', 'delete_method': 'remove_service'
+            'other_entity': 'hbacsvcgroup', 'add_method': 'add_service', 'remove_method': 'remove_service'
         }));
 
         if (IPA.layout) {
@@ -318,7 +304,7 @@ function ipa_hbac_details_facet(spec) {
             });
 
         } else {
-            section = ipa_hbac_details_tables_section({
+            section = ipa_rule_details_section({
                 'name': 'sourcehost',
                 'label': 'From',
                 'text': 'Rule applies when access is being initiated from:',
@@ -339,12 +325,12 @@ function ipa_hbac_details_facet(spec) {
         section.add_field(ipa_hbac_association_widget({
             'id': that.entity_name+'-sourcehost_host',
             'name': 'sourcehost_host', 'label': 'Host', 'category': category,
-            'other_entity': 'host', 'add_method': 'add_sourcehost', 'delete_method': 'remove_sourcehost'
+            'other_entity': 'host', 'add_method': 'add_sourcehost', 'remove_method': 'remove_sourcehost'
         }));
         section.add_field(ipa_hbac_association_widget({
             'id': that.entity_name+'-sourcehost_hostgroup',
             'name': 'sourcehost_hostgroup', 'label': 'Host Groups', 'category': category,
-            'other_entity': 'hostgroup', 'add_method': 'add_sourcehost', 'delete_method': 'remove_sourcehost'
+            'other_entity': 'hostgroup', 'add_method': 'add_sourcehost', 'remove_method': 'remove_sourcehost'
         }));
 
         if (IPA.layout) {
@@ -360,7 +346,7 @@ function ipa_hbac_details_facet(spec) {
                 'label': 'When'
             });
 /*
-            section = ipa_hbac_details_tables_section({
+            section = ipa_rule_details_section({
                 'name': 'accesstime',
                 'label': 'When',
                 'text': 'Rule applies when access is being requested at:',
@@ -383,10 +369,10 @@ function ipa_hbac_details_facet(spec) {
             ]
         }));
 
-        that.superior_init();
+        that.details_facet_init();
     };
 
-    that.update = function(container) {
+    that.update = function() {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 
@@ -466,13 +452,13 @@ function ipa_hbac_details_facet(spec) {
         for (var i=0; i<that.sections.length; i++) {
             var section = that.sections[i];
 
-            var div = $('#'+that.entity_name+'-'+that.name+'-'+section.name, container);
+            var div = $('#'+that.entity_name+'-'+that.name+'-'+section.name, that.container);
 
             for (var j=0; j<section.fields.length; j++) {
                 var field = section.fields[j];
 
                 var span = $('span[name='+field.name+']', div).first();
-                var values = field.save(span);
+                var values = field.save();
 
                 var param_info = ipa_get_param_info(that.entity_name, field.name);
 
@@ -546,10 +532,10 @@ function ipa_hbac_details_facet(spec) {
 
         var batch = ipa_batch_command({
             'on_success': function success_handler(data, text_status, xhr) {
-                that.load(container);
+                that.refresh();
             },
             'on_error': function(xhr, text_status, error_thrown) {
-                that.load(container);
+                that.refresh();
             }
         });
 
@@ -566,7 +552,7 @@ function ipa_hbac_details_facet(spec) {
         if (enable_operation.execute) batch.add_command(enable_operation.command);
 
         if (!batch.args.length) {
-            that.load(container);
+            that.refresh();
             return;
         }
 
@@ -729,271 +715,58 @@ function ipa_hbac_details_general_section(spec){
     return that;
 }
 
-function ipa_hbac_details_tables_section(spec){
-
-    spec = spec || {};
-
-    var that = ipa_details_section(spec);
-
-    that.text = spec.text;
-    that.field_name = spec.field_name;
-    that.options = spec.options || [];
-    that.tables = spec.tables || [];
-    that.columns = spec.columns;
-
-    that.superior_setup = that.superior('setup');
-
-    that.create = function(container) {
-
-        if (that.template) return;
-
-        container.append(that.text);
-
-        var span = $('<span/>', { 'name': that.field_name }).appendTo(container);
-
-        for (var i=0; i<that.options.length; i++) {
-            var option = that.options[i];
-
-            $('<input/>', {
-                'type': 'radio',
-                'name': that.field_name,
-                'value': option.value
-            }).appendTo(span);
-
-            span.append(option.label);
-        }
-
-        span.append(' ');
-
-        $('<span/>', {
-            'name': 'undo',
-            'class': 'ui-state-highlight ui-corner-all',
-            'style': 'display: none;',
-            'html': 'undo'
-        }).appendTo(span);
-
-        span.append('<br/>');
-
-        for (var i=0; i<that.tables.length; i++) {
-            var table = that.tables[i];
-
-            var table_span = $('<span/>', { 'name': table.field_name }).appendTo(span);
-
-            var field = that.get_field(table.field_name);
-            field.create(table_span);
-        }
-    };
-
-    return that;
-}
-
 function ipa_hbac_association_widget(spec) {
 
     spec = spec || {};
 
-    var that = ipa_table_widget(spec);
+    var that = ipa_rule_association_widget(spec);
 
-    that.other_entity = spec.other_entity;
     that.category = spec.category;
 
-    that.add_method = spec.add_method;
-    that.delete_method = spec.delete_method;
-
-    that.superior_init = that.superior('init');
-    that.superior_create = that.superior('create');
-
-    that.init = function() {
-        // create a column if none defined
-        if (!that.columns.length) {
-            that.create_column({
-                'name': that.name,
-                'label': IPA.metadata[that.other_entity].label,
-                'primary_key': true
-            });
-        }
-
-        that.superior_init();
-    };
-
-    that.create = function(container) {
-
-        that.superior_create(container);
-
-        var buttons = $('span[name=buttons]', container);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'remove',
-            'value': 'Remove '+that.label
-        }).appendTo(buttons);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'add',
-            'value': 'Add '+that.label
-        }).appendTo(buttons);
-    };
-
-    that.setup = function(container) {
-
-        that.table_setup(container);
-
-        var button = $('input[name=remove]', that.table);
-        button.replaceWith(ipa_button({
-            'label': button.val(),
-            'icon': 'ui-icon-trash',
-            'click': function() { that.remove(that.container); }
-        }));
-
-        button = $('input[name=add]', that.table);
-        button.replaceWith(ipa_button({
-            'label': button.val(),
-            'icon': 'ui-icon-plus',
-            'click': function() { that.add(that.container) }
-        }));
-
-        var entity = IPA.get_entity(that.entity_name);
-        var association = entity.get_association(that.other_entity);
-
-        if (association && association.associator == 'serial') {
-            that.associator = serial_associator;
-        } else {
-            that.associator = bulk_associator;
-        }
-    };
-
-    that.load = function(container, result) {
-
-        that.values = result[that.name] || [];
-        that.hide_undo(that.container);
-        that.set_values(that.container, that.values);
-    };
-
-    that.set_values = function(container, values) {
-
-        that.tbody.empty();
-        for (var i=0; values && i<values.length; i++) {
-            var record = {};
-            record[that.name] = values[i];
-            that.add_row(that.container, record);
-        }
-    };
-
-    that.add = function(container) {
+    that.add = function(values, on_success, on_error) {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        var label = IPA.metadata[that.other_entity].label;
-        var title = 'Add '+label+' to '+that.entity_name+' '+pkey;
 
-        var dialog = ipa_association_adder_dialog({
-            'title': title,
-            'entity_name': that.entity_name,
-            'pkey': pkey,
-            'other_entity': that.other_entity
+        var batch = ipa_batch_command({
+            'on_success': on_success,
+            'on_error': on_error
         });
 
-        dialog.add = function() {
+        var command = ipa_command({
+            'method': that.entity_name+'_mod',
+            'args': [pkey],
+            'options': {'all': true, 'rights': true},
+            'on_success': function() {
+                that.category.load(['']);
+            }
+        });
+        command.set_option(that.category.name, '');
+        batch.add_command(command);
 
-            var values = dialog.get_selected_values();
+        command = ipa_command({
+            'method': that.entity_name+'_'+that.add_method,
+            'args': [pkey]
+        });
+        command.set_option(that.other_entity, values.join(','));
+        batch.add_command(command);
 
-            var batch = ipa_batch_command({
-                'on_success': function() {
-                    that.refresh(that.container);
-                    dialog.close();
-                },
-                'on_error': function() {
-                    that.refresh(that.container);
-                    dialog.close();
-                }
-            });
-
-            var command = ipa_command({
-                'method': that.entity_name+'_mod',
-                'args': [pkey],
-                'options': {'all': true, 'rights': true},
-                'on_success': function() {
-                    that.category.load(container, ['']);
-                }
-            });
-            command.set_option(that.category.name, '');
-            batch.add_command(command);
-
-            command = ipa_command({
-                'method': that.entity_name+'_'+that.add_method,
-                'args': [pkey]
-            });
-            command.set_option(that.other_entity, values.join(','));
-            batch.add_command(command);
-
-            batch.execute();
-        };
-
-        dialog.init();
-
-        dialog.open(that.container);
+        batch.execute();
     };
 
-    that.remove = function(container) {
-
-        var selected_values = that.get_selected_values();
-
-        if (!selected_values.length) {
-            alert('Select '+that.label+' to be removed.');
-            return;
-        }
+    that.remove = function(values, on_success, on_error) {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        var label = IPA.metadata[that.other_entity].label;
-        var title = 'Remove '+label+' from '+that.entity_name+' '+pkey;
 
-        var dialog = ipa_association_deleter_dialog({
-            'title': title,
-            'entity_name': that.entity_name,
-            'pkey': pkey,
-            'other_entity': that.other_entity,
-            'values': selected_values
+        var command = ipa_command({
+            'method': that.entity_name+'_'+that.remove_method,
+            'args': [pkey],
+            'on_success': on_success,
+            'on_error': on_error
         });
 
-        dialog.remove = function() {
+        command.set_option(that.other_entity, values.join(','));
 
-            var command = ipa_command({
-                'method': that.entity_name+'_'+that.delete_method,
-                'args': [pkey],
-                'on_success': function() {
-                    that.refresh(that.container);
-                    dialog.close();
-                },
-                'on_error': function() {
-                    that.refresh(that.container);
-                    dialog.close();
-                }
-            });
-
-            command.set_option(that.other_entity, selected_values.join(','));
-
-            command.execute();
-        };
-
-        dialog.init();
-
-        dialog.open(that.container);
-    };
-
-    that.refresh = function(container) {
-
-        function on_success(data, text_status, xhr) {
-            that.load(that.container, data.result.result);
-        }
-
-        function on_error(xhr, text_status, error_thrown) {
-            var summary = $('span[name=summary]', that.tfoot).empty();
-            summary.append('<p>Error: '+error_thrown.name+'</p>');
-            summary.append('<p>'+error_thrown.title+'</p>');
-            summary.append('<p>'+error_thrown.message+'</p>');
-        }
-
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        ipa_cmd('show', [pkey], {'rights': true}, on_success, on_error, that.entity_name);
+        command.execute();
     };
 
     return that;
@@ -1008,10 +781,6 @@ function ipa_hbac_accesstime_widget(spec) {
     that.text = spec.text;
     that.options = spec.options || [];
 
-    that.superior_init = that.superior('init');
-    that.superior_create = that.superior('create');
-    that.superior_setup = that.superior('setup');
-
     that.init = function() {
 
         that.table = ipa_table_widget({
@@ -1025,12 +794,12 @@ function ipa_hbac_accesstime_widget(spec) {
             'primary_key': true
         });
 
-        that.superior_init();
+        that.widget_init();
     };
 
     that.create = function(container) {
 
-        that.superior_create(container);
+        that.widget_create(container);
 
         var span = $('<span/>', { 'name': 'text' }).appendTo(container);
 
@@ -1101,32 +870,31 @@ function ipa_hbac_accesstime_widget(spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
-            that.show_undo(that.container);
+            that.show_undo();
         });
 
-        var undo = that.get_undo(that.container);
+        var undo = that.get_undo();
         undo.click(function() {
-            that.reset(that.container);
+            that.reset();
         });
     };
 
-    that.save = function(container) {
+    that.save = function() {
         var value = $('input[name="'+that.name+'"]:checked', that.container).val();
         if (value == '') {
-            return that.table.save(that.container);
+            return that.table.save();
         } else {
             return [];
         }
     };
 
-    that.load = function(container, result) {
+    that.load = function(result) {
 
         that.values = result[that.name] || [];
-        that.set_values(that.container, that.values);
-        that.hide_undo(that.container);
+        that.reset();
     };
 
-    that.set_values = function(container, values) {
+    that.set_values = function(values) {
 
         that.set_radio_value(that.container, values && values.length ? '' : 'all');
 
@@ -1134,7 +902,7 @@ function ipa_hbac_accesstime_widget(spec) {
         for (var i=0; values && i<values.length; i++) {
             var record = {};
             record[that.name] = values[i];
-            that.table.add_row(that.container, record);
+            that.table.add_row(record);
         }
     };
 
@@ -1142,7 +910,7 @@ function ipa_hbac_accesstime_widget(spec) {
         $('input[name="'+that.name+'"][value="'+value+'"]', that.container).get(0).checked = true;
     };
 
-    that.add = function(container) {
+    that.add = function() {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         var title = 'Add '+that.label+' to '+that.entity_name+' '+pkey;
@@ -1195,17 +963,17 @@ function ipa_hbac_accesstime_widget(spec) {
         function add(on_success, on_error) {
 
             var field = dialog.get_field(that.name);
-            var value = field.save(dialog.container)[0];
+            var value = field.save()[0];
 
             var command = ipa_command({
                 'method': that.entity_name+'_add_'+that.name,
                 'args': [pkey],
                 'on_success': function() {
-                    that.refresh(that.container);
+                    that.refresh();
                     if (on_success) on_success();
                 },
                 'on_error': function() {
-                    that.refresh(that.container);
+                    that.refresh();
                     if (on_error) on_error();
                 }
             });
@@ -1217,7 +985,7 @@ function ipa_hbac_accesstime_widget(spec) {
 
         dialog.add_button('Add', function() {
             add(
-                function() { dialog.clear(dialog.container); }
+                function() { dialog.clear(); }
             );
         });
 
@@ -1237,7 +1005,7 @@ function ipa_hbac_accesstime_widget(spec) {
         dialog.open(that.container);
     };
 
-    that.remove = function(container) {
+    that.remove = function() {
 
         var values = that.table.get_selected_values();
 
@@ -1258,11 +1026,11 @@ function ipa_hbac_accesstime_widget(spec) {
 
             var batch = ipa_batch_command({
                 'on_success': function() {
-                    that.refresh(that.container);
+                    that.refresh();
                     dialog.close();
                 },
                 'on_error': function() {
-                    that.refresh(that.container);
+                    that.refresh();
                     dialog.close();
                 }
             });
@@ -1286,10 +1054,10 @@ function ipa_hbac_accesstime_widget(spec) {
         dialog.open(that.container);
     };
 
-    that.refresh = function(container) {
+    that.refresh = function() {
 
         function on_success(data, text_status, xhr) {
-            that.load(that.container, data.result.result);
+            that.load(data.result.result);
         }
 
         function on_error(xhr, text_status, error_thrown) {

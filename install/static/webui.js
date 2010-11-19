@@ -34,6 +34,7 @@ var admin_tab_set = [
     ]},
     {name:'policy', children:[
         {name:'hbac', setup: ipa_entity_setup},
+        {name:'sudorule', setup: ipa_entity_setup},
         {name:'dns', setup: ipa_entity_setup},
         {name:'automountlocation',  setup: ipa_entity_setup},
         {name:'pwpolicy', setup: ipa_entity_setup},

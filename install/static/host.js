@@ -233,7 +233,7 @@ function host_provisioning_status_widget(spec) {
 
     that.setup = function(container) {
 
-        that.container = container;
+        that.widget_setup(container);
 
         that.valid = $('li.key-status-valid', that.container);
         that.missing = $('li.key-status-missing', that.container);
@@ -299,7 +299,7 @@ function host_provisioning_status_widget(spec) {
         alert(that.otp.val());
     };
 
-    that.load = function(container, result) {
+    that.load = function(result) {
         that.result = result;
         var krblastpwdchange = result['krblastpwdchange'];
         set_status(krblastpwdchange ? 'valid' : 'missing');

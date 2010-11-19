@@ -56,14 +56,19 @@ function ipa_facet(spec) {
     function init() {
     }
 
-    function create() {
+    function create(container) {
     }
 
-    function setup() {
+    function setup(container) {
+        that.container = container;
     }
 
     function load() {
     }
+
+    that.facet_init = that.init;
+    that.facet_create = that.create;
+    that.facet_setup = that.setup;
 
     return that;
 }
@@ -324,7 +329,7 @@ function ipa_entity_setup(container) {
     facet.create(container);
     container.children().last().addClass('client');
     facet.setup(container);
-    facet.load(container);
+    facet.refresh();
 }
 
 

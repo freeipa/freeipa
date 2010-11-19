@@ -107,10 +107,10 @@ function ipa_hbacsvcgroup_search_facet(spec) {
 
     that.create = function(container) {
 
-        var that = this;
+        var entity_container = $('#' + that.entity_name);
+        var action_panel = $('.action-panel', entity_container);
 
-
-        var ul = $('.action-panel ul');
+        var ul = $('ul', action_panel);
 
         $('<li/>', {
             title: 'hbac',

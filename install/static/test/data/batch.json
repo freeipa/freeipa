@@ -4099,7 +4099,38 @@
                 }
             },
             {
-                "error": "i18n_messages"
+                "error": null,
+                "messages": {
+                    "ajax": {
+                        "401": "Your kerberos ticket no longer valid.Please run KInit and then click 'retry'If this is your first time running the IPA Web UI<a href='/ipa/errors/ssbrowser.html'> Follow these directions</a> to configure your browser."
+                    },
+                    "button": {
+                        "add": "Add",
+                        "enroll": "Enroll",
+                        "find": "Find",
+                        "remove": "Delete",
+                        "reset": "Reset",
+                        "update": "Update"
+                    },
+                    "details": {
+                        "account": "Account Details",
+                        "contact": "Contact Details",
+                        "employee": "      Employee Information",
+                        "identity": "Identity Details",
+                        "mailing": "Mailing Address",
+                        "misc": "Misc. Information",
+                        "to_top": "Back to Top"
+                    },
+                    "login": {
+                        "header": "Logged In As"
+                    },
+                    "search": {
+                        "delete_confirm": "Do you really want to delete the selected entries?",
+                        "quick_links": "Quick Links",
+                        "select_all": "Select All",
+                        "unselect_all": "Unselect All"
+                    }
+                }
             },
             {
                 "count": 1,

@@ -482,7 +482,7 @@ function certificate_status_widget(spec) {
 
     that.setup = function(container) {
 
-        that.container = container;
+        that.widget_setup(container);
 
         that.valid = $('li.certificate-status-valid', that.container);
         that.revoked = $('li.certificate-status-revoked', that.container);
@@ -552,7 +552,7 @@ function certificate_status_widget(spec) {
         button.replaceWith(that.create_button);
     };
 
-    that.load = function(container, result) {
+    that.load = function(result) {
 
         that.result = result;
         that.pkey = that.get_entity_pkey(that.result);

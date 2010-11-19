@@ -257,7 +257,10 @@ function ipa_association_widget(spec) {
 
         that.superior_create(container);
 
-        var ul = $('.action-panel ul');
+        var entity_container = $('#' + that.entity_name);
+        var action_panel = $('.action-panel', entity_container);
+
+        var ul = $('ul', action_panel);
         var li = $('<li/>').appendTo(ul);
 
         // creating generic buttons for layout
@@ -324,11 +327,11 @@ function ipa_association_widget(spec) {
             'associator': that.associator,
             'method': that.add_method,
             'on_success': function() {
-                that.refresh(that.container);
+                that.refresh();
                 dialog.close();
             },
             'on_error': function() {
-                that.refresh(that.container);
+                that.refresh();
                 dialog.close();
             }
         });
@@ -360,11 +363,11 @@ function ipa_association_widget(spec) {
             'associator': that.associator,
             'method': that.delete_method,
             'on_success': function() {
-                that.refresh(that.container);
+                that.refresh();
                 dialog.close();
             },
             'on_error': function() {
-                that.refresh(that.container);
+                that.refresh();
                 dialog.close();
             }
         });
@@ -374,7 +377,7 @@ function ipa_association_widget(spec) {
         dialog.open(that.container);
     };
 
-    that.refresh = function(container) {
+    that.refresh = function() {
 
         function on_success(data, text_status, xhr) {
 
@@ -390,7 +393,7 @@ function ipa_association_widget(spec) {
 
             for (var i = 0; i<values.length; i++){
                 var record = that.get_record(data.result.result, i);
-                that.add_row(that.container, record);
+                that.add_row(record);
             }
         }
 
@@ -461,7 +464,9 @@ function ipa_association_facet(spec) {
 
     that.setup = function(container) {
 
-        var span = $('span[name=association]', container);
+        that.facet_setup(container);
+
+        var span = $('span[name=association]', that.container);
 
         that.table.setup(span);
         that.table.refresh();

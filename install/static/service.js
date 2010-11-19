@@ -136,10 +136,10 @@ function ipa_service_add_dialog(spec) {
         var record = {};
 
         var field = that.get_field('service');
-        var service = field.save(that.container)[0];
+        var service = field.save()[0];
 
         field = that.get_field('host');
-        var host = field.save(that.container)[0];
+        var host = field.save()[0];
 
         record['krbprincipalname'] = service+'/'+host;
 
@@ -223,24 +223,28 @@ function ipa_service_details_facet(spec) {
     return that;
 }
 
-function service_service_load(container, result) {
+function service_service_load(result) {
 
-    $('dd', container).remove();
+    var that = this;
+
+    $('dd', that.container).remove();
 
     var dd = ipa_create_first_dd(this.name);
-    dd.appendTo(container);
+    dd.appendTo(that.container);
 
     var krbprincipalname = result['krbprincipalname'][0];
     var service = krbprincipalname.replace(/\/.*$/, '');
     dd.append(service);
 }
 
-function service_host_load(container, result) {
+function service_host_load(result) {
 
-    $('dd', container).remove();
+    var that = this;
+
+    $('dd', that.container).remove();
 
     var dd = ipa_create_first_dd(this.name);
-    dd.appendTo(container);
+    dd.appendTo(that.container);
 
     var krbprincipalname = result['krbprincipalname'][0];
     var host = krbprincipalname.replace(/^.*\//, '').replace(/@.*$/, '');
@@ -290,7 +294,7 @@ function service_provisioning_status_widget(spec) {
 
     that.setup = function(container) {
 
-        that.container = container;
+        that.widget_setup(container);
 
         that.valid = $('li.key-status-valid', that.container);
         that.missing = $('li.key-status-missing', that.container);
@@ -340,7 +344,7 @@ function service_provisioning_status_widget(spec) {
         return false;
     };
 
-    that.load = function(container, result) {
+    that.load = function(result) {
         that.result = result;
         var krblastpwdchange = result['krblastpwdchange'];
         set_status(krblastpwdchange ? 'valid' : 'missing');

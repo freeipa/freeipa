@@ -28,8 +28,10 @@ app_DATA =                              \
 	netgroup.js 			\
 	service.js 			\
 	serverconfig.js			\
+	sudorule.js			\
 	policy.js			\
 	search.js 			\
+	rule.js 			\
 	details.js 			\
 	entity.js 			\
 	webui.js 			\

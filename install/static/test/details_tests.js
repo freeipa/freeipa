@@ -179,7 +179,7 @@ test("Testing details lifecycle: create, setup, load.", function(){
     var facet = entity.get_facet('details');
     facet.create(container);
     facet.setup(container);
-    facet.display(result);
+    facet.load(result);
 
     var contact = container.find('dl#contact.entryattrs');
 
@@ -211,10 +211,10 @@ test("Testing details lifecycle: create, setup, load.", function(){
 
     ok (load_manager_called, 'load manager called');
 
-    facet.update(container,
-                     'kfrog',
-                     function(){update_success_called = true},
-                     function(){update_failure_called = true});
+    facet.update(
+        function(){update_success_called = true},
+        function(){update_failure_called = true}
+    );
 
     ok (update_success_called,'update success called');
     ok (!update_failure_called,'update failure not called');

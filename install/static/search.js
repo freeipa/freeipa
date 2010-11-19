@@ -37,7 +37,8 @@ function ipa_search_widget(spec) {
         }).appendTo(container);
 
         var search_filter = $('<span/>', {
-            'class': 'search-filter'
+            'class': 'search-filter',
+            'name': 'search-filter'
         }).appendTo(search_controls);
 
         this.filter = $('<input/>', {
@@ -45,28 +46,33 @@ function ipa_search_widget(spec) {
             'name': 'search-' + that.entity_name + '-filter'
         }).appendTo(search_filter);
 
-        ipa_button({
-            'label': IPA.messages.button.find,
-            'icon': 'ui-icon-search',
-            'click': function() { that.find(container); }
+        $('<input/>', {
+            'type': 'button',
+            'name': 'find',
+            'value': 'Find'
         }).appendTo(search_filter);
 
-        var li =         $('<li />', {
-            html: ipa_button({
-                'label': IPA.messages.button.remove,
-                'icon': 'ui-icon-trash',
-                'click': function() { that.remove(container); }
-            })});
-        li.append(
-            ipa_button({
-                'label': IPA.messages.button.add,
-                'icon': 'ui-icon-plus',
-                'click': function() { that.add(container); }
-            })
-        );
-        li.prependTo($('.action-panel ul'));
+        var entity_container = $('#' + that.entity_name);
+        var action_panel = $('.action-panel', entity_container);
 
-        search_controls.append('<span class="search-buttons"></span>');
+        var ul = $('ul', action_panel);
+        var li = $('<li/>').prependTo(ul);
+
+        var search_buttons = $('<span/>', {
+            'class': 'search-buttons'
+        }).appendTo(li);
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'remove',
+            'value': 'Remove'
+        }).appendTo(search_buttons);
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'add',
+            'value': 'Add'
+        }).appendTo(search_buttons);
 
         $('<div/>', {
             'class': 'search-results'
@@ -78,6 +84,36 @@ function ipa_search_widget(spec) {
     that.setup = function(container) {
 
         that.table_setup(container);
+
+        var search_filter = $('span[name=search-filter]', that.container);
+
+        var button = $('input[name=find]', search_filter);
+        that.find_button = ipa_button({
+            'label': IPA.messages.button.find,
+            'icon': 'ui-icon-search',
+            'click': function() { that.find(that.container); }
+        });
+        button.replaceWith(that.find_button);
+
+        var entity_container = $('#' + that.entity_name);
+        var action_panel = $('.action-panel', entity_container);
+        var search_buttons = $('.search-buttons', action_panel);
+
+        button = $('input[name=remove]', search_buttons);
+        that.remove_button = ipa_button({
+            'label': IPA.messages.button.remove,
+            'icon': 'ui-icon-trash',
+            'click': function() { that.remove(that.container); }
+        });
+        button.replaceWith(that.remove_button);
+
+        button = $('input[name=add]', search_buttons);
+        that.add_button = ipa_button({
+            'label': IPA.messages.button.add,
+            'icon': 'ui-icon-plus',
+            'click': function() { that.add(that.container); }
+        });
+        button.replaceWith(that.add_button);
 
         var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
         this.filter.val(filter);
@@ -143,11 +179,11 @@ function ipa_search_widget(spec) {
 
             var batch = ipa_batch_command({
                 'on_success': function() {
-                    that.refresh(that.container);
+                    that.refresh();
                     dialog.close();
                 },
                 'on_error': function() {
-                    that.refresh(that.container);
+                    that.refresh();
                     dialog.close();
                 }
             });
@@ -168,7 +204,7 @@ function ipa_search_widget(spec) {
         dialog.open(that.container);
     };
 
-    that.refresh = function(container) {
+    that.refresh = function() {
 
         function on_success(data, text_status, xhr) {
 
@@ -177,7 +213,7 @@ function ipa_search_widget(spec) {
             var result = data.result.result;
             for (var i = 0; i<result.length; i++) {
                 var record = that.get_record(result[i], 0);
-                that.add_row(that.container, record);
+                that.add_row(record);
             }
 
             var summary = $('span[name=summary]', that.tfoot);
@@ -228,7 +264,7 @@ function ipa_search_facet(spec) {
     that.init = spec.init || init;
     that.create = spec.create || ipa_search_facet_create;
     that.setup = spec.setup || setup;
-    that.load = spec.load || load;
+    that.refresh = spec.refresh || refresh;
 
     that.columns = [];
     that.columns_by_name = {};
@@ -301,14 +337,14 @@ function ipa_search_facet(spec) {
     }
 
     function setup(container) {
-        var span = $('span[name=search]', container);
+        that.facet_setup(container);
+        var span = $('span[name=search]', that.container);
         that.table.setup(span);
     }
 
-    function load(container) {
+    function refresh() {
         that.filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
-        var span = $('span[name=search]', container);
-        that.table.refresh(span);
+        that.table.refresh();
     }
 
     if (spec.columns) {
@@ -320,6 +356,7 @@ function ipa_search_facet(spec) {
     }
 
     that.search_facet_init = that.init;
+    that.search_facet_create = that.create;
 
     return that;
 }

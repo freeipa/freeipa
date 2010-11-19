@@ -24,8 +24,6 @@
 
 /* REQUIRES: ipa.js */
 
-var ipa_details_cache = {};
-
 IPA.is_field_writable = function(rights){
     if (!rights){
         alert('no right');
@@ -42,9 +40,15 @@ function ipa_details_field(spec) {
     that.load = spec.load || load;
     that.save = spec.save || save;
 
-    function load(container, result) {
-
+    function load(result) {
+        that.record = result;
         that.values = result[that.name];
+        that.reset();
+    }
+
+    that.set_values = function(values) {
+
+        if (!that.record) return;
 
         /* remove all <dd> tags i.e. all attribute values */
         $('dd', that.container).remove();
@@ -67,8 +71,8 @@ function ipa_details_field(spec) {
 
         var rights = 'rsc';
 
-        if (result.attributelevelrights){
-            rights = result.attributelevelrights[this.name] || rights ;
+        if (that.record.attributelevelrights){
+            rights = that.record.attributelevelrights[this.name] || rights ;
         }
 
         if (that.values) {
@@ -100,9 +104,9 @@ function ipa_details_field(spec) {
                 dd.appendTo(that.container);
             }
         }
-    }
+    };
 
-    function save(container) {
+    function save() {
         var values = [];
 
         $('dd', that.container).each(function () {
@@ -219,7 +223,7 @@ function ipa_details_section(spec){
 
     that.setup = function(container) {
 
-        this.container = container;
+        that.container = container;
 
         if (that.template) return;
 
@@ -245,7 +249,7 @@ function ipa_details_section(spec){
                         var field = fields[i];
                         var span = $('span[name='+field.name+']', this.container).first();
                         field.setup(span);
-                        field.load(span, result);
+                        field.load(result);
                     }
                 }
             );
@@ -255,7 +259,7 @@ function ipa_details_section(spec){
         for (var j=0; j<fields.length; j++) {
             var field = fields[j];
             var span = $('span[name='+field.name+']', this.container).first();
-            field.load(span, result);
+            field.load(result);
         }
     };
 
@@ -263,7 +267,7 @@ function ipa_details_section(spec){
         for (var i=0; i<that.fields.length; i++) {
             var field = that.fields[i];
             var span = $('span[name='+field.name+']', this.container).first();
-            field.reset(span);
+            field.reset();
         }
     };
 
@@ -362,7 +366,7 @@ function ipa_details_facet(spec) {
     that.load = spec.load || ipa_details_load;
     that.update = spec.update || ipa_details_update;
     that.reset = spec.reset || ipa_details_reset;
-    that.display = spec.display || ipa_details_display;
+    that.refresh = spec.refresh || ipa_details_refresh;
 
     that.sections = [];
     that.sections_by_name = {};
@@ -402,7 +406,13 @@ function ipa_details_facet(spec) {
         }
     };
 
+    that.get_primary_key = function() {
+        var pkey_name = IPA.metadata[that.entity_name].primary_key;
+        return that.record[pkey_name][0];
+    };
+
     that.details_facet_init = that.init;
+    that.details_facet_create = that.create;
 
     return that;
 }
@@ -431,60 +441,50 @@ function ipa_details_is_dirty() {
 
 function ipa_details_create(container)
 {
-    var facet = this;
+    var that = this;
 
     if (!container) {
         alert('ERROR: ipa_details_create: Missing container argument!');
         return;
     }
 
-    var entity_name = container.attr('id');
-    container.attr('title', entity_name);
-
+    container.attr('title', that.entity_name);
 
     var details = $('<div/>', {
         'class': 'content'
     }).appendTo(container);
 
+    var entity_container = $('#' + that.entity_name);
+    var action_panel = $('.action-panel', entity_container);
+
+    var ul = $('ul', action_panel);
     var buttons = $('<li/>', {
         'class': 'details-buttons'
-    }).prependTo($('.action-panel ul'));
+    }).prependTo(ul);
 
-    buttons.append(ipa_button({
-        'label': 'Reset',
-        'icon': 'ui-icon-refresh',
-        'class': 'details-reset',
-        'click': function() {
-            facet.reset(container);
-            return false;
-        }
-    }));
+    $('<input/>', {
+        'type': 'text',
+        'name': 'reset'
+    }).appendTo(buttons);
 
-    var pkey_name = IPA.metadata[facet.entity_name].primary_key;
-
-    buttons.append(ipa_button({
-        'label': 'Update',
-        'icon': 'ui-icon-check',
-        'class': 'details-update',
-        'click': function() {
-            facet.update(container, ipa_details_cache[facet.entity_name][pkey_name][0]);
-            return false;
-        }
-    }));
+    $('<input/>', {
+        'type': 'text',
+        'name': 'update'
+    }).appendTo(buttons);
 
     details.append('<br/>');
     details.append('<hr/>');
 
-    for (var i = 0; i < facet.sections.length; ++i) {
-        var section = facet.sections[i];
+    for (var i = 0; i < that.sections.length; ++i) {
+        var section = that.sections[i];
 
-        details.append($('<h2/>',{
-            click: function(){_h2_on_click(this)},
-            html:"&#8722; "+section.label
-        }));
+        $('<h2/>', {
+            'name': section.name,
+            'html':"&#8722; "+section.label
+        }).appendTo(details);
 
         var div = $('<div/>', {
-            'id': facet.entity_name+'-'+facet.name+'-'+section.name,
+            'id': that.entity_name+'-'+that.name+'-'+section.name,
             'class': 'details-section'
         }).appendTo(details);
 
@@ -498,19 +498,48 @@ function ipa_details_setup(container) {
 
     var that = this;
 
+    that.facet_setup(container);
+
+    var button = $('input[name=reset]', that.container);
+    that.reset_button = ipa_button({
+        'label': 'Reset',
+        'icon': 'ui-icon-refresh',
+        'class': 'details-reset',
+        'click': function() {
+            that.reset();
+            return false;
+        }
+    });
+    button.replaceWith(that.reset_button);
+
+    button = $('input[name=update]', that.container);
+    that.update_button = ipa_button({
+        'label': 'Update',
+        'icon': 'ui-icon-check',
+        'class': 'details-update',
+        'click': function() {
+            that.update();
+            return false;
+        }
+    });
+    button.replaceWith(that.update_button);
+
     for (var i = 0; i < that.sections.length; ++i) {
         var section = that.sections[i];
 
+        var header = $('h2[name='+section.name+']', that.container);
+        header.click(function(){ _h2_on_click(this) });
+
         var div = $(
             '#'+that.entity_name+'-'+that.name+'-'+section.name,
-            container
+            that.container
         );
 
         section.setup(div);
     }
 }
 
-function ipa_details_load(container) {
+function ipa_details_refresh() {
 
     var that = this;
     var entity = IPA.get_entity(that.entity_name);
@@ -519,17 +548,11 @@ function ipa_details_load(container) {
     if (!that.pkey && !entity.default_facet) return;
 
     function on_success(data, text_status, xhr) {
-        var result = data.result.result;
-
-        ipa_details_cache[that.entity_name] = $.extend(true, {}, result);
-        for (var i = 0; i < that.sections.length; ++i) {
-            var section = that.sections[i];
-            section.load(result);
-        }
+        that.load(data.result.result);
     }
 
     function on_failure(xhr, text_status, error_thrown) {
-        var details = $('.details', container).empty();
+        var details = $('.details', that.container).empty();
         details.append('<p>Error: '+error_thrown.name+'</p>');
         details.append('<p>'+error_thrown.title+'</p>');
         details.append('<p>'+error_thrown.message+'</p>');
@@ -543,10 +566,12 @@ function ipa_details_load(container) {
     );
 }
 
-function ipa_details_update(container, pkey, on_win, on_fail)
+function ipa_details_update(on_win, on_fail)
 {
-    var facet = this;
-    var entity_name = facet.entity_name;
+    var that = this;
+    var entity_name = that.entity_name;
+
+    var pkey = that.get_primary_key();
 
     function update_on_win(data, text_status, xhr) {
         if (on_win)
@@ -555,8 +580,7 @@ function ipa_details_update(container, pkey, on_win, on_fail)
             return;
 
         var result = data.result.result;
-        ipa_details_cache[entity_name] = $.extend(true, {}, result);
-        facet.display(result);
+        that.load(result);
     }
 
     function update_on_fail(xhr, text_status, error_thrown) {
@@ -571,16 +595,17 @@ function ipa_details_update(container, pkey, on_win, on_fail)
     var modlist = {'all': true, 'setattr': [], 'addattr': [], 'rights': true};
     var attrs_wo_option = {};
 
-    for (var i=0; i<facet.sections.length; i++) {
-        var section = facet.sections[i];
+    for (var i=0; i<that.sections.length; i++) {
+        var section = that.sections[i];
 
-        var div = $('#'+facet.entity_name+'-'+facet.name+'-'+section.name, container);
+        var div = $('#'+that.entity_name+'-'+that.name+'-'+section.name, that.container);
 
         for (var j=0; j<section.fields.length; j++) {
             var field = section.fields[j];
 
             var span = $('span[name='+field.name+']', div).first();
-            values = field.save(span);
+            values = field.save();
+            if (!values) continue;
 
             var param_info = ipa_get_param_info(entity_name, field.name);
             if (param_info) {
@@ -590,7 +615,7 @@ function ipa_details_update(container, pkey, on_win, on_fail)
                 }else if (values.length > 1){
                     modlist[field.name] = values;
                 } else if (param_info['multivalue']){
-                        modlist[field.name] = [];
+                    modlist[field.name] = [];
                 }
             } else {
                 if (values.length) attrs_wo_option[field.name] = values;
@@ -615,13 +640,14 @@ var _ipa_span_hint_template = '<span class="attrhint">Hint: D</span>';
 
 
 
-function ipa_details_display(result)
+function ipa_details_load(record)
 {
-    var facet = this;
+    var that = this;
+    that.record = record;
 
-    for (var i=0; i<facet.sections.length; i++) {
-        var section = facet.sections[i];
-        section.load(result);
+    for (var i=0; i<that.sections.length; i++) {
+        var section = that.sections[i];
+        section.load(record);
     }
 }
 
@@ -788,14 +814,9 @@ function _ipa_create_text_input(value, param_info, rights, index)
     return span;
 }
 
-function ipa_details_reset(container)
+function ipa_details_reset()
 {
     var that = this;
-    var entity_name = that.entity_name;
-
-    if (ipa_details_cache[entity_name]){
-        that.display(ipa_details_cache[entity_name]);
-    }
 
     for (var i=0; i<that.sections.length; i++) {
         var section = that.sections[i];

@@ -63,22 +63,22 @@ function ipa_widget(spec) {
     }
 
     function setup(container) {
-        this.container = container;
+        that.container = container;
     }
 
-    function load(container, result) {
+    function load(result) {
     }
 
-    function save(container) {
+    function save() {
         return [];
     }
 
-    function clear(container) {
+    function clear() {
     }
 
     that.is_dirty = function(container) {
         if (!that.values) return true;
-        var values = that.save(that.container);
+        var values = that.save();
         if (values.length != that.values.length) return true;
         for (var i=0; i<values.length; i++) {
             if (values[i] != that.values[i]) return true;
@@ -86,29 +86,33 @@ function ipa_widget(spec) {
         return false;
     };
 
-    that.set_values = function(container, values) {
+    that.set_values = function(values) {
     };
 
     that.reset = function(container) {
-        that.hide_undo(that.container);
-        that.set_values(that.container, that.values);
+        that.hide_undo();
+        that.set_values(that.values);
     };
 
-    that.get_undo = function(container) {
+    that.get_undo = function() {
         return $('span[name="undo"]', that.container);
     };
 
-    that.show_undo = function(container) {
-        var undo = that.get_undo(that.container);
+    that.show_undo = function() {
+        var undo = that.get_undo();
         undo.css('display', 'inline');
     };
 
-    that.hide_undo = function(container) {
-        var undo = that.get_undo(that.container);
+    that.hide_undo = function() {
+        var undo = that.get_undo();
         undo.css('display', 'none');
     };
 
+    that.refresh = function() {
+    };
+
     // methods that should be invoked by subclasses
+    that.widget_init = that.init;
     that.widget_create = that.create;
     that.widget_setup = that.setup;
 
@@ -146,16 +150,16 @@ function ipa_text_widget(spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.keyup(function() {
-            that.show_undo(that.container);
+            that.show_undo();
         });
 
-        var undo = that.get_undo(that.container);
+        var undo = that.get_undo();
         undo.click(function() {
-            that.reset(that.container);
+            that.reset();
         });
     };
 
-    that.load = function(container, result) {
+    that.load = function(result) {
 
         that.values = result[that.name] || [''];
 
@@ -168,12 +172,11 @@ function ipa_text_widget(spec) {
             input.replaceWith(label);
 
         } else {
-            that.set_values(that.container, that.values);
-            that.hide_undo(that.container);
+            that.reset();
         }
     };
 
-    that.save = function(container) {
+    that.save = function() {
         if (that.read_only) {
             return that.values;
         } else {
@@ -182,7 +185,7 @@ function ipa_text_widget(spec) {
         }
     };
 
-    that.set_values = function(container, values) {
+    that.set_values = function(values) {
         if (that.read_only) {
             $('label[name="'+that.name+'"]', that.container).val(values[0]);
         } else {
@@ -190,8 +193,8 @@ function ipa_text_widget(spec) {
         }
     };
 
-    that.clear = function(container) {
-        that.set_values(that.container, ['']);
+    that.clear = function() {
+        that.set_values(['']);
     };
 
     return that;
@@ -225,32 +228,31 @@ function ipa_checkbox_widget(spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
-            that.show_undo(that.container);
+            that.show_undo();
         });
 
-        var undo = that.get_undo(that.container);
+        var undo = that.get_undo();
         undo.click(function() {
-            that.reset(that.container);
+            that.reset();
         });
     };
 
-    that.load = function(container, result) {
+    that.load = function(result) {
         that.values = result[that.name] || [false];
-        that.set_values(that.container, that.values);
-        that.hide_undo(that.container);
+        that.reset();
     };
 
-    that.save = function(container) {
+    that.save = function() {
         var value = $('input[name="'+that.name+'"]', that.container).is(':checked');
         return [value];
     };
 
-    that.set_values = function(container, values) {
+    that.set_values = function(values) {
         var value = values && values.length ? values[0] : false;
         $('input[name="'+that.name+'"]', that.container).get(0).checked = value;
     };
 
-    that.clear = function(container) {
+    that.clear = function() {
         $('input[name="'+that.name+'"]', that.container).get(0).checked = false;
     };
 
@@ -269,31 +271,30 @@ function ipa_radio_widget(spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
-            that.show_undo(that.container);
+            that.show_undo();
         });
 
-        var undo = that.get_undo(that.container);
+        var undo = that.get_undo();
         undo.click(function() {
-            that.reset(that.container);
+            that.reset();
         });
     };
 
-    that.load = function(container, result) {
+    that.load = function(result) {
         that.values = result[that.name] || [''];
-        that.set_values(that.container, that.values);
-        that.hide_undo(that.container);
+        that.reset();
     };
 
-    that.save = function(container) {
+    that.save = function() {
         var value = $('input[name="'+that.name+'"]:checked', that.container).val();
         return [value];
     };
 
-    that.set_values = function(container, values) {
+    that.set_values = function(values) {
         $('input[name="'+that.name+'"][value="'+values[0]+'"]', that.container).get(0).checked = true;
     };
 
-    that.clear = function(container) {
+    that.clear = function() {
         $('input[name="'+that.name+'"]', that.container).get().checked = false;
     };
 
@@ -335,29 +336,28 @@ function ipa_textarea_widget(spec) {
             undo.css('display', 'inline');
         });
 
-        var undo = that.get_undo(that.container);
+        var undo = that.get_undo();
         undo.click(function() {
-            that.reset(that.container);
+            that.reset();
         });
     };
 
-    that.load = function(container, result) {
+    that.load = function(result) {
         that.values = result[that.name] || [''];
-        that.set_values(that.container, that.values);
-        that.hide_undo(that.container);
+        that.reset();
     };
 
-    that.save = function(container) {
+    that.save = function() {
         var value = $('textarea[name="'+that.name+'"]', that.container).val();
         return [value];
     };
 
-    that.set_values = function(container, values) {
+    that.set_values = function(values) {
         $('textarea[name="'+that.name+'"]', that.container).val(values[0]);
     };
 
-    that.clear = function(container) {
-        that.set_values(that.container, ['']);
+    that.clear = function() {
+        that.set_values(['']);
     };
 
     return that;
@@ -383,12 +383,11 @@ function ipa_button_widget(spec) {
         input.replaceWith(ipa_button({ 'label': that.label, 'click': that.click }));
     }
 
-    function load(container, result) {
+    function load(result) {
     }
 
-    function save(container) {
-        var values = [];
-        return values;
+    function save() {
+        return [];
     }
 
     return that;
@@ -547,7 +546,7 @@ function ipa_table_widget(spec) {
 
 
     that.select_changed = function(){
-    }
+    };
 
 
     that.setup = function(container) {
@@ -562,7 +561,7 @@ function ipa_table_widget(spec) {
         var select_all_checkbox = $('input[name=select]', that.thead);
         select_all_checkbox.attr('title', 'Select All');
 
-        select_all_checkbox.click(function() {
+        select_all_checkbox.change(function() {
             var checked = select_all_checkbox.is(':checked');
             select_all_checkbox.attr('title', checked ? 'Unselect All' : 'Select All');
             var checkboxes = $('input[name=select]', that.tbody).get();
@@ -577,7 +576,7 @@ function ipa_table_widget(spec) {
         that.row.detach();
     };
 
-    that.load = function(container, result) {
+    that.load = function(result) {
 
         that.tbody.empty();
 
@@ -586,11 +585,11 @@ function ipa_table_widget(spec) {
 
         for (var i=0; i<values.length; i++) {
             var record = that.get_record(result, i);
-            that.add_row(that.container, record);
+            that.add_row(record);
         }
     };
 
-    that.save = function(container) {
+    that.save = function() {
         var values = [];
 
         $('input[name="select"]', that.tbody).each(function() {
@@ -621,7 +620,7 @@ function ipa_table_widget(spec) {
         return record;
     };
 
-    that.add_row = function(container, record) {
+    that.add_row = function(record) {
 
         var tr = that.row.clone();
         tr.appendTo(that.tbody);
@@ -646,21 +645,21 @@ function ipa_table_widget(spec) {
         }
     };
 
-    that.refresh = function(container) {
+    that.refresh = function() {
 
         function on_success(data, text_status, xhr) {
-            that.load(that.container, data.result.result);
+            that.load(data.result.result);
         }
 
         function on_error(xhr, text_status, error_thrown) {
-            that.container.empty();
-            that.container.append('<p>Error: '+error_thrown.name+'</p>');
-            that.container.append('<p>'+error_thrown.title+'</p>');
-            that.container.append('<p>'+error_thrown.message+'</p>');
+            var summary = $('span[name=summary]', that.tfoot).empty();
+            summary.append('<p>Error: '+error_thrown.name+'</p>');
+            summary.append('<p>'+error_thrown.title+'</p>');
+            summary.append('<p>'+error_thrown.message+'</p>');
         }
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        ipa_cmd('show', [pkey], {'rights': true}, on_success, on_error, that.entity_name);
+        ipa_cmd('show', [pkey], {'all': true, 'rights': true}, on_success, on_error, that.entity_name);
     };
 
     if (spec.columns) {
@@ -670,6 +669,8 @@ function ipa_table_widget(spec) {
     }
 
     // methods that should be invoked by subclasses
+    that.table_init = that.init;
+    that.table_create = that.create;
     that.table_setup = that.setup;
 
     return that;
@@ -795,7 +796,7 @@ function ipa_dialog(spec) {
         var record = {};
         for (var i=0; i<that.fields.length; i++) {
             var field = that.fields[i];
-            var values = field.save(that.container);
+            var values = field.save();
             record[field.name] = values[0];
         }
         return record;
@@ -809,7 +810,7 @@ function ipa_dialog(spec) {
     that.clear = function() {
         for (var i=0; i<that.fields.length; i++) {
             var field = that.fields[i];
-            field.clear(that.container);
+            field.clear();
         }
     };
 

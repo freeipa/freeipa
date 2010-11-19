@@ -51,7 +51,7 @@ class KRBCheater(object):
 
 
 class WebUIApp(object):
-    INDEX_FILE = 'index.xhtml'
+    INDEX_FILE = 'index.html'
     EXTENSION_TO_MIME_MAP = {
         'xhtml': 'text/html',
         'html': 'text/html',

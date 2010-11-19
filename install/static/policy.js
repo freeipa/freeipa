@@ -254,20 +254,20 @@ function ipa_records_facet(spec){
 
     function setup(container){
 
+        that.facet_setup(container);
+
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         that.record = $.bbq.getState(that.entity_name + '-record', true) || '';
 
-        that.container = container;
-
-        container.attr('title', that.entity_name);
+        that.container.attr('title', that.entity_name);
 
         var h2 = $('<h2></h2>',{
             text: "Records for DNS Zone:" + that.pkey
-        }).appendTo(container);
+        }).appendTo(that.container);
 
 
         var div = $('<div class="search-controls"></div>')
-            .appendTo(container);
+            .appendTo(that.container);
 
         var control_span =$('<span class="record-filter"></span>').appendTo(div);
 
@@ -294,7 +294,7 @@ function ipa_records_facet(spec){
         ipa_button({
             'label': IPA.messages.button.find,
             'icon': 'ui-icon-search',
-            'click': function(){load(container)}
+            'click': function(){refresh()}
         }).appendTo(control_span);
 
         ipa_button({
@@ -314,7 +314,7 @@ function ipa_records_facet(spec){
 
         var records_results = $('<div/>', {
             'class': 'records-results'
-        }).appendTo(container);
+        }).appendTo(that.container);
 
         var records_table = $('<table/>', {
             'class': 'search-table'
@@ -338,7 +338,7 @@ function ipa_records_facet(spec){
         tr.append($('<th>Record Type</th>'));
         tr.append($('<th>Data</th>'));
 
-        load(container);
+        refresh();
     }
 
 
@@ -351,26 +351,26 @@ function ipa_records_facet(spec){
     }
 
     function  reload(){
-        load(that.container);
+        refresh();
     }
 
 
-    function  load(container){
+    function  refresh(){
 
         var options = {};
 
-        var resource_filter = container.find("#dns-record-resource-filter")
+        var resource_filter = that.container.find("#dns-record-resource-filter")
             .val();
         if (resource_filter){
             options.idnsname = resource_filter;
         }
 
-        var type_filter = container.find("#dns-record-type-filter").val();
+        var type_filter = that.container.find("#dns-record-type-filter").val();
         if (type_filter){
             options.type = type_filter;
         }
 
-        var data_filter = container.find("#dns-record-data-filter").val();
+        var data_filter = that.container.find("#dns-record-data-filter").val();
         if (data_filter){
             options.data = data_filter;
         }
@@ -449,7 +449,7 @@ function ipa_records_facet(spec){
 
     that.create = create;
     that.setup = setup;
-    that.load = load;
+    that.refresh = refresh;
 
     return that;
 }
