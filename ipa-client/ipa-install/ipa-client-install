@@ -624,7 +624,11 @@ def main():
         os.remove("/etc/ipa/ca.crt")
     except:
         pass
-    run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % cli_server])
+
+    try:
+        run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % cli_server])
+    except CalledProcessError, e:
+        sys.exit('Retrieving CA from %s failed.\n%s' % (cli_server, str(e)))
 
     if not options.on_master:
         # First test out the kerberos configuration
