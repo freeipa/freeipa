@@ -3876,7 +3876,7 @@
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
-                                "multivalue": false,
+                                "multivalue": true,
                                 "name": "mail",
                                 "pattern": null,
                                 "pattern_errmsg": null,

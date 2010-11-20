@@ -116,7 +116,7 @@ class user(LDAPObject):
             default_from=lambda uid: '%s@%s' % (uid, api.env.realm),
             autofill=True,
         ),
-        Str('mail?',
+        Str('mail*',
             cli_name='email',
             label=_('Email address'),
         ),
