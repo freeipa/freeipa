@@ -422,47 +422,25 @@ function ipa_button_widget(spec) {
 }
 
 
-function ipa_column_widget(spec) {
+function ipa_column(spec) {
 
     spec = spec || {};
 
-    // TODO: should not inherit from widget
-    var that = ipa_widget(spec);
+    var that = {};
 
+    that.name = spec.name;
+    that.label = spec.label;
     that.primary_key = spec.primary_key;
     that.setup = spec.setup || setup;
-    that.link = spec.link;
-    that.other_entity = spec.other_entity;
 
-    function setup(container, name, value, record) {
+    function setup(container, record) {
 
-        var span = $('span[name="'+name+'"]', container);
+        container.empty();
 
-        var param_info = ipa_get_param_info(that.entity_name, name);
-        var primary_key = that.primary_key || param_info && param_info['primary_key'];
+        var value = record[that.name];
+        value = value ? value.toString() : '';
 
-        if (primary_key && that.link) {
-            var link = $('<a/>', {
-                'href': '#'+value,
-                'html': value,
-                'click': function (value) {
-                    return function() {
-                        var target_entity = that.other_entity ||
-                            that.entity_name;
-                        var state = IPA.tab_state(target_entity);
-                        state[target_entity + '-facet'] = 'details';
-                        state[target_entity + '-pkey'] = value;
-
-                        $.bbq.pushState(state);
-                        return false;
-                    }
-                }(value)
-            });
-            span.html(link);
-
-        } else {
-            span.html(value);
-        }
+        container.append(value);
     }
 
     return that;
@@ -494,8 +472,20 @@ function ipa_table_widget(spec) {
         that.columns_by_name[column.name] = column;
     };
 
+    that.set_columns = function(columns) {
+        that.clear_columns();
+        for (var i=0; i<columns.length; i++) {
+            that.add_column(columns[i]);
+        }
+    };
+
+    that.clear_columns = function() {
+        that.columns = [];
+        that.columns_by_name = {};
+    };
+
     that.create_column = function(spec) {
-        var column = ipa_column_widget(spec);
+        var column = ipa_column(spec);
         that.add_column(column);
         return column;
     };
@@ -524,9 +514,6 @@ function ipa_table_widget(spec) {
             th = $('<th/>').appendTo(tr);
 
             var label = column.label;
-
-            var param_info = ipa_get_param_info(that.entity_name, column.name);
-            if (param_info && param_info['label']) label = param_info['label'];
 
             $('<span/>', {
                 'style': 'float: left;',
@@ -656,8 +643,8 @@ function ipa_table_widget(spec) {
         for (var i=0; i<that.columns.length; i++){
             var column = that.columns[i];
 
-            var name = column.name;
-            var value = record[name];
+            var value = record[column.name];
+            value = value ? value.toString() : '';
 
             if (column.primary_key) {
                 // set checkbox value
@@ -669,7 +656,9 @@ function ipa_table_widget(spec) {
 
             }
 
-            column.setup(tr, name, value, record);
+            var span = $('span[name="'+column.name+'"]', tr);
+
+            column.setup(span, record);
         }
     };
 
@@ -842,6 +831,11 @@ function ipa_dialog(spec) {
         }
     };
 
+    that.dialog_init = that.init;
+    that.dialog_create = that.create;
+    that.dialog_setup = that.setup;
+    that.dialog_open = that.open;
+
     return that;
 }
 
@@ -857,9 +851,28 @@ function ipa_adder_dialog(spec) {
 
     that.width = spec.width || 600;
 
-    that.superior_open = that.superior('open');
+    that.columns = [];
+    that.columns_by_name = {};
+
+    that.get_column = function(name) {
+        return that.columns_by_name[name];
+    };
+
+    that.add_column = function(column) {
+        column.entity_name = that.entity_name;
+        that.columns.push(column);
+        that.columns_by_name[column.name] = column;
+    };
+
+    that.create_column = function(spec) {
+        var column = ipa_column(spec);
+        that.add_column(column);
+        return column;
+    };
 
     that.create = function() {
+
+        // do not call that.dialog_create();
 
         var search_panel = $('<div/>').appendTo(that.container);
 
@@ -921,6 +934,8 @@ function ipa_adder_dialog(spec) {
 
     that.setup = function() {
 
+        // do not call that.dialog_setup();
+
         that.add_button.click(function(){
             var values = $(':selected', that.available_list).detach();
             values.each(function(i, selected){
@@ -946,7 +961,7 @@ function ipa_adder_dialog(spec) {
             'Cancel': that.close
         };
 
-        that.superior_open(container);
+        that.dialog_open(container);
     };
 
     that.get_filter = function() {
@@ -961,7 +976,12 @@ function ipa_adder_dialog(spec) {
         that.selected_list.html('');
     };
 
-    that.add_available_value = function(value) {
+    that.add_available_value = function(record) {
+
+        var name = that.columns[0].name;
+        var value = record[name];
+        value = value ? value.toString() : '';
+
         $('<option></option>',{
             'value': value,
             'html': value
@@ -987,6 +1007,9 @@ function ipa_adder_dialog(spec) {
         that.container.dialog('close');
     };
 
+    that.adder_dialog_create = that.create;
+    that.adder_dialog_setup = that.setup;
+
     return that;
 }
 
@@ -1001,8 +1024,6 @@ function ipa_deleter_dialog(spec) {
 
     that.title = spec.title || IPA.messages.button.remove;
     that.remove = spec.remove;
-
-    that.superior_open = that.superior('open');
 
     that.values = spec.values || [];
 
@@ -1035,7 +1056,7 @@ function ipa_deleter_dialog(spec) {
             'Cancel': that.close
         };
 
-        that.superior_open(container);
+        that.dialog_open(container);
     };
 
     return that;

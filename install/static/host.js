@@ -58,10 +58,7 @@ function ipa_host() {
         });
         that.add_facet(facet);
 
-        facet = ipa_association_facet({
-            'name': 'associate'
-        });
-        that.add_facet(facet);
+        that.create_association_facets();
 
         that.entity_init();
     };
@@ -100,10 +97,10 @@ function ipa_host_search_facet(spec) {
 
     that.init = function() {
 
-        this.create_column({name:'fqdn', label:'Name'});
-        this.create_column({name:'description', label:'Description'});
-        this.create_column({name:'enrolled', label:'Enrolled?'});
-        this.create_column({name:'manages', label:'Manages?'});
+        that.create_column({name:'fqdn', label:'Name'});
+        that.create_column({name:'description', label:'Description'});
+        that.create_column({name:'enrolled', label:'Enrolled?'});
+        that.create_column({name:'manages', label:'Manages?'});
 
         that.search_facet_init();
     };
@@ -138,6 +135,11 @@ function ipa_host_details_facet(spec) {
         section.create_field({
             'name': 'serverhostname',
             'label': 'Server Host Name'
+        });
+
+        section.create_field({
+            'name': 'description',
+            'label': 'Description'
         });
 
         section = ipa_details_list_section({

@@ -26,9 +26,22 @@ function ipa_group() {
         'name': 'group'
     });
 
-    that.superior_init = that.superior('init');
-
     that.init = function() {
+
+        that.create_association({
+            name: 'netgroup',
+            associator: 'serial'
+        });
+
+        that.create_association({
+            name: 'rolegroup',
+            associator: 'serial'
+        });
+
+        that.create_association({
+            name: 'taskgroup',
+            associator: 'serial'
+        });
 
         var dialog = ipa_group_add_dialog({
             'name': 'add',
@@ -37,7 +50,28 @@ function ipa_group() {
         that.add_dialog(dialog);
         dialog.init();
 
-        that.superior_init();
+        var facet = ipa_group_search_facet({
+            'name': 'search',
+            'label': 'Search'
+        });
+        that.add_facet(facet);
+
+        facet = ipa_group_details_facet({
+            'name': 'details',
+            'label': 'Details'
+        });
+        that.add_facet(facet);
+
+        facet = ipa_group_member_user_facet({
+            'name': 'member_user',
+            'label': 'Users',
+            'other_entity': 'user'
+        });
+        that.add_facet(facet);
+
+        that.create_association_facets();
+
+        that.entity_init();
     };
 
     return that;
@@ -51,36 +85,116 @@ function ipa_group_add_dialog(spec) {
 
     var that = ipa_add_dialog(spec);
 
-    that.superior_init = that.superior('init');
-
     that.init = function() {
 
-        this.superior_init();
+        that.add_dialog_init();
 
-        this.add_field(ipa_text_widget({name:'cn', label:'Name', undo: false}));
-        this.add_field(ipa_text_widget({name:'description', label:'Description', undo: false}));
-        this.add_field(ipa_checkbox_widget({name:'posix', label:'Is this a POSIX group?', undo: false}));
-        this.add_field(ipa_text_widget({name:'gidnumber', label:'GID', undo: false}));
+        that.add_field(ipa_text_widget({name:'cn', label:'Name', undo: false}));
+        that.add_field(ipa_text_widget({name:'description', label:'Description', undo: false}));
+        that.add_field(ipa_checkbox_widget({name:'posix', label:'Is this a POSIX group?', undo: false}));
+        that.add_field(ipa_text_widget({name:'gidnumber', label:'GID', undo: false}));
     };
 
     return that;
 }
 
-ipa_entity_set_search_definition('group', [
-    ['cn', 'Name', null],
-    ['gidnumber', 'GID', null],
-    ['description', 'Description', null]
-]);
+function ipa_group_search_facet(spec) {
 
-ipa_entity_set_details_definition('group',[
-    ipa_stanza({name:'identity', label:'Group Details'}).
-        input({name:'cn', label:'Group Name'}).
-        input({name:'description', label:'Description'}).
-        input({name:'gidnumber', label:'Group ID'})
-]);
+    spec = spec || {};
 
-ipa_entity_set_association_definition('group', {
-    'netgroup': { associator: 'serial' },
-    'rolegroup': { associator: 'serial' },
-    'taskgroup': { associator: 'serial' }
-});
+    var that = ipa_search_facet(spec);
+
+    that.init = function() {
+
+        that.create_column({name:'cn', label:'Name'});
+        that.create_column({name:'gidnumber', label:'GID'});
+        that.create_column({name:'description', label:'Description'});
+
+        that.search_facet_init();
+    };
+
+    return that;
+}
+
+function ipa_group_details_facet(spec) {
+
+    spec = spec || {};
+
+    var that = ipa_details_facet(spec);
+
+    that.init = function() {
+
+        var section = ipa_details_list_section({
+            name: 'details',
+            label: 'Group Details'
+        });
+        that.add_section(section);
+
+        section.create_field({
+            name: 'cn',
+            label: 'Group Name'
+        });
+
+        section.create_field({
+            name: 'description',
+            label: 'Description'
+        });
+
+        section.create_field({
+            name: 'gidnumber',
+            label: 'Group ID'
+        });
+
+        that.details_facet_init();
+    };
+
+    return that;
+}
+
+function ipa_group_member_user_facet(spec) {
+
+    spec = spec || {};
+
+    var that = ipa_association_facet(spec);
+
+    that.init = function() {
+
+        that.create_column({name: 'cn', label: 'Name'});
+
+        var column = that.create_column({
+            name: 'uid',
+            label: 'Login',
+            primary_key: true
+        });
+
+        column.setup = function(container, record) {
+            container.empty();
+
+            var value = record[column.name];
+            value = value ? value.toString() : '';
+
+            $('<a/>', {
+                'href': '#'+value,
+                'html': value,
+                'click': function (value) {
+                    return function() {
+                        var state = IPA.tab_state(that.other_entity);
+                        state[that.other_entity + '-facet'] = 'details';
+                        state[that.other_entity + '-pkey'] = value;
+                        $.bbq.pushState(state);
+                        return false;
+                    }
+                }(value)
+            }).appendTo(container);
+        };
+
+        that.create_column({name: 'uidnumber', label: 'UID'});
+        that.create_column({name: 'mail', label: 'EMAIL'});
+        that.create_column({name: 'telephonenumber', label: 'Phone'});
+        that.create_column({name: 'title', label: 'Job Title'});
+
+        that.association_facet_init();
+    };
+
+    return that;
+}

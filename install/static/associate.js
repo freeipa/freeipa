@@ -147,17 +147,25 @@ function ipa_association_adder_dialog(spec) {
     that.on_success = spec.on_success;
     that.on_error = spec.on_error;
 
+    that.init = function() {
+        if (!that.columns.length) {
+            var pkey_name = IPA.metadata[that.other_entity].primary_key;
+            that.create_column({
+                name: pkey_name,
+                primary_key: true
+            });
+        }
+    };
+
     that.search = function() {
 
         function on_success(data, text_status, xhr) {
             var results = data.result;
             that.clear_available_values();
 
-            var pkey = IPA.metadata[that.other_entity].primary_key;
-
             for (var i=0; i<results.count; i++){
                 var result = results.result[i];
-                that.add_available_value(result[pkey][0]);
+                that.add_available_value(result);
             }
         }
 
@@ -235,7 +243,7 @@ function ipa_association_config(spec) {
     return that;
 }
 
-function ipa_association_widget(spec) {
+function ipa_association_table_widget(spec) {
 
     spec = spec || {};
 
@@ -251,20 +259,41 @@ function ipa_association_widget(spec) {
         that.member_attribute = ipa_get_member_attribute(
             that.entity_name, that.other_entity);
 
-        that.create_column({
-            name: that.member_attribute + '_' + that.other_entity,
-            other_entity :  that.other_entity,
-            label: IPA.metadata[that.other_entity].label,
-            primary_key: true,
-            link: true
-        });
+        if (!that.columns.length) {
+            var pkey_name = IPA.metadata[that.other_entity].primary_key;
+
+            var column = that.create_column({
+                name: pkey_name,
+                label: IPA.metadata[that.other_entity].label,
+                primary_key: true
+            });
+
+            column.setup = function(container, record) {
+                container.empty();
+
+                var value = record[column.name];
+                value = value ? value.toString() : '';
+
+                $('<a/>', {
+                    'href': '#'+value,
+                    'html': value,
+                    'click': function (value) {
+                        return function() {
+                            var state = IPA.tab_state(that.other_entity);
+                            state[that.other_entity + '-facet'] = 'details';
+                            state[that.other_entity + '-pkey'] = value;
+                            $.bbq.pushState(state);
+                            return false;
+                        }
+                    }(value)
+                }).appendTo(container);
+            };
+        }
 
         that.superior_create(container);
 
         var action_panel = that.facet.get_action_panel();
-
-        var ul = $('ul', action_panel);
-        var li = $('<li/>').prependTo(ul);
+        var li = $('.action-controls', action_panel);
 
         // creating generic buttons for layout
         $('<input/>', {
@@ -381,23 +410,59 @@ function ipa_association_widget(spec) {
         dialog.open(that.container);
     };
 
+    that.get_records = function(pkeys, on_success, on_error) {
+
+        var batch = ipa_batch_command({
+            'name': that.entity_name+'_'+that.name,
+            'on_success': on_success,
+            'on_error': on_error
+        });
+
+        for (var i=0; i<pkeys.length; i++) {
+            var pkey = pkeys[i];
+
+            var command = ipa_command({
+                'method': that.other_entity+'_show',
+                'args': [pkey],
+                'options': {
+                    'all': true,
+                    'rights': true
+                }
+            });
+
+            batch.add_command(command);
+        }
+
+        batch.execute();
+    };
+
     that.refresh = function() {
 
         function on_success(data, text_status, xhr) {
 
             that.tbody.empty();
 
-            var column_name = that.columns[0].name;
-            var values = data.result.result[column_name];
-            //TODO, this is masking an error where the wrong
-            //direction association is presented upon page reload.
-            //if the values is unset, it is because
-            //form.associationColumns[0] doesn't exist in the results
-            if (!values) return;
+            var pkeys = data.result.result[that.name];
 
-            for (var i = 0; i<values.length; i++){
-                var record = that.get_record(data.result.result, i);
-                that.add_row(record);
+            if (that.columns.length == 1) { // show pkey only
+                var name = that.columns[0].name;
+                for (var i=0; i<pkeys.length; i++) {
+                    var record = {};
+                    record[name] = pkeys[i];
+                    that.add_row(record);
+                }
+
+            } else { // get and show additional fields
+                that.get_records(
+                    pkeys,
+                    function(data, text_status, xhr) {
+                        var results = data.result.results;
+                        for (var i=0; i<results.length; i++) {
+                            var record = results[i].result;
+                            that.add_row(record);
+                        }
+                    }
+                );
             }
         }
 
@@ -421,18 +486,35 @@ function ipa_association_facet(spec) {
 
     var that = ipa_facet(spec);
 
-    that.other_entity = null;
+    that.other_entity = spec.other_entity;
+
+    that.columns = [];
+    that.columns_by_name = {};
+
+    that.get_column = function(name) {
+        return that.columns_by_name[name];
+    };
+
+    that.add_column = function(column) {
+        column.entity_name = that.entity_name;
+        that.columns.push(column);
+        that.columns_by_name[column.name] = column;
+    };
+
+    that.create_column = function(spec) {
+        var column = ipa_column(spec);
+        that.add_column(column);
+        return column;
+    };
 
     that.is_dirty = function() {
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        var other_entity = $.bbq.getState(that.entity_name + '-enroll', true) || '';
         return pkey != that.pkey || other_entity != that.other_entity;
     };
 
     that.create = function(container) {
 
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        that.other_entity = $.bbq.getState(that.entity_name + '-enroll', true) || '';
 
         var label = IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity;
 
@@ -445,14 +527,18 @@ function ipa_association_facet(spec) {
             html: $('<h2/>',{ html:  header_message })
         }).appendTo(container);
 
-        that.table = ipa_association_widget({
+        that.table = ipa_association_table_widget({
             'id': that.entity_name+'-'+that.other_entity,
-            'name': that.other_entity,
+            'name': that.name,
             'label': label,
             'entity_name': that.entity_name,
             'other_entity': that.other_entity,
             'facet': that
         });
+
+        if (that.columns.length) {
+            that.table.set_columns(that.columns);
+        }
 
         var span = $('<span/>', { 'name': 'association' }).appendTo(container);
 
@@ -466,12 +552,13 @@ function ipa_association_facet(spec) {
         var span = $('span[name=association]', that.container);
 
         that.table.setup(span);
+    };
+
+    that.refresh = function(){
         that.table.refresh();
     };
 
-    //TODO find out why this is needed
-    that.refresh = function(){
-    }
+    that.association_facet_init = that.init;
 
     return that;
 }

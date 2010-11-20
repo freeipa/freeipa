@@ -116,24 +116,21 @@ var IPA = ( function () {
     };
 
 
-    that.show_page = function (entity_name, facet_name, other_entity) {
+    that.show_page = function (entity_name, facet_name) {
 
         var state = {};
         state[entity_name + '-facet'] = facet_name;
-        state[entity_name + '-enroll'] = other_entity ? other_entity : '';
         $.bbq.pushState(state);
     };
 
-    that.switch_and_show_page = function (
-        this_entity,  facet_name, pkey, other_entity) {
+    that.switch_and_show_page = function (this_entity,  facet_name, pkey) {
         if (!pkey){
-            that.show_page(this_entity,  facet_name,  other_entity);
+            that.show_page(this_entity,  facet_name);
             return;
         }
         var state = {};
         state[this_entity+'-pkey'] = pkey;
         state[this_entity + '-facet'] = facet_name;
-        state[this_entity + '-enroll'] = other_entity ? other_entity : '';
         $.bbq.pushState(state);
     };
 
@@ -267,7 +264,9 @@ function ipa_batch_command(spec) {
             function(xhr, text_status, error_thrown) {
                 // TODO: undefined behavior
                 if (that.on_error) that.on_error(xhr, text_status, error_thrown)
-            }
+            },
+            null,
+            that.name
         );
     };
 
@@ -295,7 +294,7 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname, comm
             buttons: {
                 'Retry': function () {
                     IPA.error_dialog.dialog('close');
-                    ipa_cmd(name, args, options, win_callback, fail_callback, objname);
+                    ipa_cmd(name, args, options, win_callback, fail_callback, objname, command_name);
                 },
                 'Cancel': function () {
                     IPA.error_dialog.dialog('close');

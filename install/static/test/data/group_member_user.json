@@ -1,0 +1,150 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "count": 2,
+        "results": [
+            {
+                "error": null,
+                "result": {
+                    "cn": [
+                        "Administrator"
+                    ],
+                    "dn": "uid=admin,cn=users,cn=accounts,dc=dev,dc=example,dc=com",
+                    "gecos": [
+                        "Administrator"
+                    ],
+                    "gidnumber": [
+                        "1662072955"
+                    ],
+                    "homedirectory": [
+                        "/home/admin"
+                    ],
+                    "ipauniqueid": [
+                        "ffb8d002-f46c-11df-8cc1-00163e72f2d9"
+                    ],
+                    "krblastpwdchange": [
+                        "20101120061333Z"
+                    ],
+                    "krbpasswordexpiration": [
+                        "20110218061333Z"
+                    ],
+                    "krbprincipalname": [
+                        "admin@DEV.EXAMPLE.COM"
+                    ],
+                    "loginshell": [
+                        "/bin/bash"
+                    ],
+                    "memberof_group": [
+                        "admins",
+                        "ipausers"
+                    ],
+                    "memberof_rolegroup": [
+                        "replicaadmin"
+                    ],
+                    "memberof_taskgroup": [
+                        "managereplica",
+                        "deletereplica"
+                    ],
+                    "mepmanagedentry": [
+                        "cn=admin,cn=groups,cn=accounts,dc=dev,dc=example,dc=com"
+                    ],
+                    "nsaccountlock": [
+                        "False"
+                    ],
+                    "objectclass": [
+                        "top",
+                        "person",
+                        "posixaccount",
+                        "krbprincipalaux",
+                        "krbticketpolicyaux",
+                        "inetuser",
+                        "ipaobject",
+                        "mepOriginEntry"
+                    ],
+                    "sn": [
+                        "Administrator"
+                    ],
+                    "uid": [
+                        "admin"
+                    ],
+                    "uidnumber": [
+                        "1662072955"
+                    ]
+                },
+                "summary": null,
+                "value": "admin"
+            },
+            {
+                "error": null,
+                "result": {
+                    "cn": [
+                        "Test User"
+                    ],
+                    "dn": "uid=test,cn=users,cn=accounts,dc=dev,dc=example,dc=com",
+                    "gecos": [
+                        "test"
+                    ],
+                    "gidnumber": [
+                        "1662072958"
+                    ],
+                    "givenname": [
+                        "Test"
+                    ],
+                    "homedirectory": [
+                        "/home/test"
+                    ],
+                    "ipauniqueid": [
+                        "c0724e5e-f472-11df-8186-00163e72f2d9"
+                    ],
+                    "krbprincipalname": [
+                        "test@DEV.EXAMPLE.COM"
+                    ],
+                    "krbpwdpolicyreference": [
+                        "cn=global_policy,cn=DEV.EXAMPLE.COM,cn=kerberos,dc=dev,dc=example,dc=com"
+                    ],
+                    "loginshell": [
+                        "/bin/sh"
+                    ],
+                    "mail": [
+                        "test"
+                    ],
+                    "memberof_group": [
+                        "ipausers",
+                        "editors"
+                    ],
+                    "mepmanagedentry": [
+                        "cn=test,cn=groups,cn=accounts,dc=dev,dc=example,dc=com"
+                    ],
+                    "nsaccountlock": [
+                        "False"
+                    ],
+                    "objectclass": [
+                        "top",
+                        "person",
+                        "organizationalperson",
+                        "inetorgperson",
+                        "inetuser",
+                        "posixaccount",
+                        "krbprincipalaux",
+                        "krbticketpolicyaux",
+                        "radiusprofile",
+                        "ipaobject",
+                        "mepOriginEntry"
+                    ],
+                    "sn": [
+                        "User"
+                    ],
+                    "uid": [
+                        "test"
+                    ],
+                    "uidnumber": [
+                        "1662072958"
+                    ]
+                },
+                "summary": null,
+                "value": "test"
+            }
+        ]
+    }
+}

@@ -65,10 +65,10 @@ function ipa_sudocmd_add_dialog(spec) {
 
     that.init = function() {
 
-        this.superior_init();
+        that.superior_init();
 
-        this.add_field(ipa_text_widget({name:'sudocmd', label:'Command', undo: false}));
-        this.add_field(ipa_text_widget({name:'description', label:'Description', undo: false}));
+        that.add_field(ipa_text_widget({name:'sudocmd', label:'Command', undo: false}));
+        that.add_field(ipa_text_widget({name:'description', label:'Description', undo: false}));
     };
 
     return that;
@@ -79,10 +79,6 @@ function ipa_sudocmd_search_facet(spec) {
     spec = spec || {};
 
     var that = ipa_search_facet(spec);
-
-    that.get_action_panel = function() {
-        return $('#sudorule .action-panel');
-    };
 
     that.init = function() {
 
@@ -152,10 +148,6 @@ function ipa_sudocmd_details_facet(spec) {
     that.superior_init = that.superior('init');
     that.superior_create = that.superior('create');
     that.superior_setup = that.superior('setup');
-
-    that.get_action_panel = function() {
-        return $('#sudorule .action-panel');
-    };
 
     that.init = function() {
 

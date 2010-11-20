@@ -53,8 +53,10 @@ function ipa_hbacsvcgroup() {
         });
         that.add_facet(facet);
 
-        facet = ipa_hbacsvcgroup_association_facet({
-            'name': 'associate'
+        facet = ipa_hbacsvcgroup_member_hbacsvc_facet({
+            'name': 'member_hbacsvc',
+            'label': 'Services',
+            'other_entity': 'hbacsvc'
         });
         that.add_facet(facet);
 
@@ -76,10 +78,10 @@ function ipa_hbacsvcgroup_add_dialog(spec) {
 
     that.init = function() {
 
-        this.superior_init();
+        that.superior_init();
 
-        this.add_field(ipa_text_widget({name:'cn', label:'Name', undo: false}));
-        this.add_field(ipa_text_widget({name:'description', label:'Description', undo: false}));
+        that.add_field(ipa_text_widget({name:'cn', label:'Name', undo: false}));
+        that.add_field(ipa_text_widget({name:'description', label:'Description', undo: false}));
     };
 
     return that;
@@ -90,10 +92,6 @@ function ipa_hbacsvcgroup_search_facet(spec) {
     spec = spec || {};
 
     var that = ipa_search_facet(spec);
-
-    that.get_action_panel = function() {
-        return $('#hbac .action-panel');
-    };
 
     that.init = function() {
 
@@ -164,10 +162,6 @@ function ipa_hbacsvcgroup_details_facet(spec) {
 
     var that = ipa_details_facet(spec);
 
-    that.get_action_panel = function() {
-        return $('#hbac .action-panel');
-    };
-
     that.init = function() {
 
         var section = ipa_details_list_section({
@@ -185,14 +179,44 @@ function ipa_hbacsvcgroup_details_facet(spec) {
     return that;
 }
 
-function ipa_hbacsvcgroup_association_facet(spec) {
+function ipa_hbacsvcgroup_member_hbacsvc_facet(spec) {
 
     spec = spec || {};
 
     var that = ipa_association_facet(spec);
 
-    that.get_action_panel = function() {
-        return $('#hbac .action-panel');
+    that.init = function() {
+
+        var column = that.create_column({
+            name: 'cn',
+            label: 'Service',
+            primary_key: true
+        });
+
+        column.setup = function(container, record) {
+            container.empty();
+
+            var value = record[column.name];
+            value = value ? value.toString() : '';
+
+            $('<a/>', {
+                'href': '#'+value,
+                'html': value,
+                'click': function (value) {
+                    return function() {
+                        var state = IPA.tab_state(that.other_entity);
+                        state[that.other_entity + '-facet'] = 'details';
+                        state[that.other_entity + '-pkey'] = value;
+                        $.bbq.pushState(state);
+                        return false;
+                    }
+                }(value)
+            }).appendTo(container);
+        };
+
+        that.create_column({name: 'description', label: 'Description'});
+
+        that.association_facet_init();
     };
 
     return that;

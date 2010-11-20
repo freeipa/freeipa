@@ -53,8 +53,7 @@ function ipa_search_widget(spec) {
         }).appendTo(search_filter);
 
         var action_panel = that.facet.get_action_panel();
-
-        var li = $('.action-controls',action_panel);
+        var li = $('.action-controls', action_panel);
 
         var search_buttons = $('<span/>', {
             'class': 'search-buttons'
@@ -243,15 +242,6 @@ function ipa_search_widget(spec) {
     return that;
 }
 
-function ipa_search_column(spec) {
-
-    spec = spec || {};
-
-    var that = ipa_column_widget(spec);
-
-    return that;
-}
-
 function ipa_search_facet(spec) {
 
     spec = spec || {};
@@ -295,9 +285,32 @@ function ipa_search_facet(spec) {
     };
 
     that.create_column = function(spec) {
-        var column = ipa_search_column(spec);
+        var column = ipa_column(spec);
         that.add_column(column);
         return column;
+    };
+
+    that.setup_column = function(column) {
+        column.setup = function(container, record) {
+            container.empty();
+
+            var value = record[column.name];
+            value = value ? value.toString() : '';
+
+            $('<a/>', {
+                'href': '#'+value,
+                'html': value,
+                'click': function (value) {
+                    return function() {
+                        var state = IPA.tab_state(that.entity_name);
+                        state[that.entity_name + '-facet'] = 'details';
+                        state[that.entity_name + '-pkey'] = value;
+                        $.bbq.pushState(state);
+                        return false;
+                    }
+                }(value)
+            }).appendTo(container);
+        };
     };
 
     function init() {
@@ -313,10 +326,11 @@ function ipa_search_facet(spec) {
             var column = that.columns[i];
 
             var param_info = ipa_get_param_info(that.entity_name, column.name);
-            var primary_key = param_info && param_info['primary_key'];
+            column.primary_key = param_info && param_info['primary_key'];
 
-            column.primary_key = primary_key;
-            column.link = primary_key;
+            if (column.primary_key) {
+                that.setup_column(column);
+            }
 
             that.table.add_column(column);
         }

@@ -53,8 +53,10 @@ function ipa_service() {
         });
         that.add_facet(facet);
 
-        facet = ipa_association_facet({
-            'name': 'associate'
+        facet = ipa_service_managedby_host_facet({
+            'name': 'managedby_host',
+            'label': 'Hosts',
+            'other_entity': 'host'
         });
         that.add_facet(facet);
 
@@ -157,7 +159,7 @@ function ipa_service_search_facet(spec) {
 
     that.init = function() {
 
-        this.create_column({name:'krbprincipalname', label:'Principal'});
+        that.create_column({name:'krbprincipalname', label:'Principal'});
         that.search_facet_init();
     };
 
@@ -388,6 +390,49 @@ function service_certificate_status_widget(spec) {
             var values = result['usercertificate'];
             return values ? values[0].__base64__ : null;
         };
+    };
+
+    return that;
+}
+
+function ipa_service_managedby_host_facet(spec) {
+
+    spec = spec || {};
+
+    var that = ipa_association_facet(spec);
+
+    that.init = function() {
+
+        var column = that.create_column({
+            name: 'fqdn',
+            label: 'Name',
+            primary_key: true
+        });
+
+        column.setup = function(container, record) {
+            container.empty();
+
+            var value = record[column.name];
+            value = value ? value.toString() : '';
+
+            $('<a/>', {
+                'href': '#'+value,
+                'html': value,
+                'click': function (value) {
+                    return function() {
+                        var state = IPA.tab_state(that.other_entity);
+                        state[that.other_entity + '-facet'] = 'details';
+                        state[that.other_entity + '-pkey'] = value;
+                        $.bbq.pushState(state);
+                        return false;
+                    }
+                }(value)
+            }).appendTo(container);
+        };
+
+        that.create_column({name: 'description', label: 'Description'});
+
+        that.association_facet_init();
     };
 
     return that;

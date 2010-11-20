@@ -68,11 +68,11 @@ function ipa_facet(spec) {
     }
 
     that.get_client_area = function() {
-        return $('#' + that.entity_name+' .client');
+        return $('.client', that.container);
     };
 
     that.get_action_panel = function() {
-        return $('#' + that.entity_name+' .action-panel');
+        return $('.action-panel', that.container);
     };
 
     that.facet_init = that.init;
@@ -99,6 +99,8 @@ function ipa_entity(spec) {
     that.facets_by_name = {};
 
     that.facet_name = null;
+
+    that.autogenerate_associations = false;
 
     that.associations = [];
     that.associations_by_name = {};
@@ -149,7 +151,46 @@ function ipa_entity(spec) {
         return config;
     };
 
+    that.create_association_facet = function(other_entity, attribute_member) {
+
+        var label = IPA.metadata[other_entity].label;
+
+        if (!attribute_member) {
+            attribute_member = ipa_get_member_attribute(
+                that.entity_name, other_entity
+            );
+        }
+
+        return ipa_association_facet({
+            'name': attribute_member+'_'+other_entity,
+            'label': label,
+            'other_entity': other_entity
+        });
+    };
+
+    that.create_association_facets = function() {
+
+        var attribute_members = IPA.metadata[that.name].attribute_members;
+
+        for (var attribute_member in attribute_members) {
+            var other_entities = attribute_members[attribute_member];
+
+            for (var j = 0; j < other_entities.length; j++) {
+                var other_entity = other_entities[j];
+
+                var facet = that.create_association_facet(other_entity, attribute_member);
+                if (that.get_facet(facet.name)) continue;
+                that.add_facet(facet);
+            }
+        }
+    };
+
     that.init = function() {
+
+        if (that.autogenerate_associations) {
+            that.create_association_facets();
+        }
+
         for (var i=0; i<that.facets.length; i++) {
             var facet = that.facets[i];
             facet.init();
@@ -261,26 +302,11 @@ function ipa_entity_set_details_definition(entity_name, sections) {
     }
 }
 
-function ipa_entity_get_association_facet(entity_name) {
-
-    var entity = ipa_get_entity(entity_name);
-
-    var facet = entity.get_facet('associate');
-    if (facet) return facet;
-
-    facet = ipa_association_facet({
-        'name': 'associate'
-    });
-    entity.add_facet(facet);
-
-    return facet;
-}
-
 function ipa_entity_set_association_definition(entity_name, data) {
 
     var entity = ipa_get_entity(entity_name);
 
-    ipa_entity_get_association_facet(entity_name);
+    entity.autogenerate_associations = true;
 
     for (var other_entity in data) {
         var config = data[other_entity];
@@ -353,10 +379,10 @@ function ipa_facet_create_action_panel(container) {
         })
     }).appendTo(container);
 
-    function build_link(other_facet,label,other_entity){
+    function build_link(other_facet,label){
         var li = $('<li/>', {
             "class" : other_facet.display_class,
-            title: other_entity,
+            title: other_facet.name,
             text: label,
             click: function(entity_name, other_facet_name) {
                     return function() {
@@ -366,7 +392,7 @@ function ipa_facet_create_action_panel(container) {
                         var this_pkey = $('input[id=pkey]', action_panel).val();
                         IPA.switch_and_show_page(
                             entity_name, other_facet_name,
-                            this_pkey, other_entity);
+                            this_pkey);
 
                         return false;
                     };
@@ -390,7 +416,7 @@ function ipa_facet_create_action_panel(container) {
 
     var other_facet = entity.facets[0];
     var other_facet_name = other_facet.name;
-    var main_facet = build_link(other_facet,other_facet.label)
+    var main_facet = build_link(other_facet,other_facet.label);
 
     /*assumeing for now that entities with only a single facet 
       do not have search*/
@@ -404,20 +430,7 @@ function ipa_facet_create_action_panel(container) {
         other_facet = entity.facets[i];
         other_facet_name = other_facet.name;
 
-        if (other_facet.label) {
-            ul.append(build_link(other_facet,other_facet.label));
-
-        } else { // For now empty label indicates an association facet
-            var attribute_members = IPA.metadata[entity_name].attribute_members;
-            for (var attribute_member in attribute_members) {
-                var other_entities = attribute_members[attribute_member];
-                for (var j = 0; j < other_entities.length; j++) {
-                    var other_entity = other_entities[j];
-                    var label = IPA.metadata[other_entity].label;
-                    ul.append(build_link(other_facet,label,other_entity));
-                }
-            }
-        }
+        ul.append(build_link(other_facet,other_facet.label));
     }
 
     /*When we land on the search page, disable all facets

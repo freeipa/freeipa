@@ -83,57 +83,60 @@ test('Testing ipa_facet_setup_views().', function() {
 
     IPA.add_entity(entity);
 
-    entity.add_facet(ipa_search_facet({
+    var facet = ipa_search_facet({
         'name': 'search',
         'label': 'Search'
-    }));
-
-
-    var facet = ipa_association_facet({
-        'name': 'associate'
     });
     entity.add_facet(facet);
 
+    entity.create_association_facets();
+
     var container = $('<div/>');
 
+    entity.init();
+    entity.setup(container);
+
     var counter = 0;
-    IPA.switch_and_show_page = function(entity_name, facet_name, other_entity) {
+    IPA.switch_and_show_page = function(entity_name, facet_name, pkey) {
         counter++;
     };
 
-    facet.create_action_panel(container);
-
     //Container now has two divs, one for the action panel one for content
-    var list = container.children().last().children();
-    var views = list.children();
+    var action_panel = facet.get_action_panel();
+    ok(action_panel.length, 'action panel exists');
+
+    var ul = $('ul', action_panel);
+
+    var views = ul.children();
 
     equals(
-        views.length, 5,
+        views.length, 6,
         'Checking number of views'
     );
 
-    facet = views.first();
-    ok(  facet.hasClass('entity-search',
+    var li = views.first();
+    ok(  li.hasClass('search-facet'),
         'Checking the search facet'
     );
 
-    facet = facet.next();
+    li = li.next(); // skip action controls
 
     var attribute_members = IPA.metadata['user'].attribute_members;
-    for (attribute_member in attribute_members) {
+    for (var attribute_member in attribute_members) {
         var objects = attribute_members[attribute_member];
         for (var i = 0; i < objects.length; i++) {
             var object = objects[i];
+            var title = attribute_member+'_'+object;
+
+            li = li.next();
+            var value = li.attr('title');
             equals(
-                facet.attr('title'), object,
-                'Checking the '+object+' facet'
+                value, title,
+                'Checking the '+title+' facet'
             );
-            facet = facet.next();
         }
     }
 
-    var action_panel = $('.action-panel', container);
-    ok(action_panel.length, 'action panel exists');
     var pkey_input =  $('input[name=pkey]', action_panel);
     ok(pkey_input.length,'pkey input exists');
     var search_facets = $('li.search-facet', action_panel);
@@ -148,7 +151,7 @@ test('Testing ipa_facet_setup_views().', function() {
         entity_facet.click();
     }
 
-//    equals(4, counter,'four clicks');
+    equals(counter, 0, 'links are disabled');
 
     IPA.switch_and_show_page = orig_switch_and_show_page;
 });
