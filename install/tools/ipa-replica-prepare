@@ -242,6 +242,11 @@ def main():
     api.bootstrap(in_server=True)
     api.finalize()
 
+    #Automatically disable pkinit w/ dogtag until that is supported
+    #[certs.ipa_self_signed() must be called only after api.finalize()]
+    if not options.pkinit_pkcs12 and not certs.ipa_self_signed():
+        options.setup_pkinit = False
+
     if options.ip_address:
         if not bindinstance.dns_container_exists(api.env.host, api.env.realm):
             print "You can't add a DNS record because DNS is not set up."
