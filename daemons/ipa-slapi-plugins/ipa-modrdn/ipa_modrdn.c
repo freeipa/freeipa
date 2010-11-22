@@ -444,7 +444,7 @@ ipamodrdn_parse_config_entry(Slapi_Entry * e, bool apply)
     if (value && value[0]) {
         entry->prefix = value;
     } else {
-        entry->prefix = "";
+        entry->prefix = slapi_ch_strdup("");
     }
     LOG_CONFIG("----------> %s [%s]\n", IPAMODRDN_PREFIX, entry->prefix);
 
@@ -452,7 +452,7 @@ ipamodrdn_parse_config_entry(Slapi_Entry * e, bool apply)
     if (value && value[0]) {
         entry->suffix = value;
     } else {
-        entry->suffix = "";
+        entry->suffix = slapi_ch_strdup("");
     }
     LOG_CONFIG("----------> %s [%s]\n", IPAMODRDN_SUFFIX, entry->suffix);
 
@@ -556,30 +556,15 @@ ipamodrdn_free_config_entry(struct configEntry **entry)
 
     if (e->dn) {
         LOG_CONFIG("freeing config entry [%s]\n", e->dn);
-        slapi_ch_free_string(&e->dn);
     }
-    if (e->sattr) {
-        slapi_ch_free_string(&e->sattr);
-    }
-    if (e->tattr) {
-        slapi_ch_free_string(&e->tattr);
-    }
-    if (e->prefix) {
-        slapi_ch_free_string(&e->prefix);
-    }
-    if (e->suffix) {
-        slapi_ch_free_string(&e->prefix);
-    }
-    if (e->filter) {
-        slapi_ch_free_string(&e->filter);
-    }
-    if (e->slapi_filter) {
-        slapi_filter_free(e->slapi_filter, 1);
-    }
-    if (e->scope) {
-        slapi_ch_free_string(&e->scope);
-    }
-
+    slapi_ch_free_string(&e->dn);
+    slapi_ch_free_string(&e->sattr);
+    slapi_ch_free_string(&e->tattr);
+    slapi_ch_free_string(&e->prefix);
+    slapi_ch_free_string(&e->suffix);
+    slapi_ch_free_string(&e->filter);
+    slapi_filter_free(e->slapi_filter, 1);
+    slapi_ch_free_string(&e->scope);
     slapi_ch_free((void **)entry);
 }
 
