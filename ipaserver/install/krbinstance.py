@@ -367,7 +367,7 @@ class KrbInstance(service.Service):
         MIN_KRB5KDC_WITH_WORKERS = "1.9"
         cpus = os.sysconf('SC_NPROCESSORS_ONLN')
         workers = False
-        (stdout, stderr, rc) = ipautil.run(['/usr/bin/klist', '-V'], raiseonerr=False)
+        (stdout, stderr, rc) = ipautil.run(['klist', '-V'], raiseonerr=False)
         if rc == 0:
             verstr = stdout.split()[-1]
             ver = version.LooseVersion(verstr)
