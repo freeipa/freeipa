@@ -37,6 +37,7 @@ def get_ca_certchain(ca_host=None):
     conn = httplib.HTTPConnection(ca_host, api.env.ca_port)
     conn.request("GET", "/ca/ee/ca/getCertChain")
     res = conn.getresponse()
+    doc = None
     if res.status == 200:
         data = res.read()
         conn.close()
@@ -53,7 +54,10 @@ def get_ca_certchain(ca_host=None):
                 except Exception, e:
                     raise errors.RemoteRetrieveError(reason="Retrieving CA cert chain failed: %s" % str(e))
         finally:
-            doc.unlink()
+            if doc:
+                doc.unlink()
+    else:
+        raise errors.RemoteRetrieveError(reason="request failed with HTTP status %d" % res.status)
 
     return chain
 
