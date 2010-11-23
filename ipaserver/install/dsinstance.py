@@ -219,6 +219,7 @@ class DsInstance(service.Service):
         self.step("configuring uniqueness plugin", self.__set_unique_attrs)
         self.step("configuring uuid plugin", self.__config_uuid_module)
         self.step("configuring modrdn plugin", self.__config_modrdn_module)
+        self.step("enabling entryUSN plugin", self.__enable_entryusn)
         self.step("creating indices", self.__create_indices)
         self.step("configuring ssl for ds instance", self.__enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
@@ -356,6 +357,9 @@ class DsInstance(service.Service):
         except Exception, e:
             # TODO: roll back here?
             logging.critical("Failed to restart the directory server. See the installation log for details.")
+
+    def __enable_entryusn(self):
+        self._ldap_mod("entryusn.ldif")
 
     def __add_memberof_module(self):
         self._ldap_mod("memberof-conf.ldif")

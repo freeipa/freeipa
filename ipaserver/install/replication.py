@@ -341,7 +341,7 @@ class ReplicationManager:
         port = kargs.get("port", PORT)
 
         # List of attributes that need to be excluded from replication.
-        excludes = ('memberof',
+        excludes = ('memberof', 'entryusn',
                     'krblastsuccessfulauth',
                     'krblastfailedauth',
                     'krbloginfailedcount')

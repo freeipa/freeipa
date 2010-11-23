@@ -45,6 +45,7 @@ app_DATA =				\
 	user_private_groups.ldif	\
 	uuid-ipauniqueid.ldif		\
 	modrdn-krbprinc.ldif		\
+	entryusn.ldif			\
 	$(NULL)
 
 EXTRA_DIST =				\
