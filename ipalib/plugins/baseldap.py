@@ -262,6 +262,16 @@ class LDAPObject(Object):
             }
         )
 
+    def handle_duplicate_entry(self, *keys):
+        pkey = ''
+        if self.primary_key:
+            pkey = keys[-1]
+        raise errors.DuplicateEntry(
+            message=self.already_exists_msg % {
+                'pkey': pkey, 'oname': self.object_name,
+            }
+        )
+
     # list of attributes we want exported to JSON
     json_friendly_attributes = (
         'parent_object', 'container_dn', 'object_name', 'object_name_plural',
@@ -408,12 +418,7 @@ class LDAPCreate(CallbackInterface, crud.Create):
         dn = self.obj.get_dn(*keys, **options)
         if self.obj.rdn_attribute:
             if not dn.startswith('%s=' % self.obj.primary_key.name):
-                raise errors.DuplicateEntry(
-                    message=self.obj.already_exists_msg % {
-                        'oname': self.obj.object_name,
-                        'pkey': keys[-1],
-                    }
-                )
+                self.obj.handle_duplicate_entry(*keys)
             dn = ldap.make_dn(
                 entry_attrs, self.obj.rdn_attribute, self.obj.container_dn
             )
@@ -459,6 +464,8 @@ class LDAPCreate(CallbackInterface, crud.Create):
                         'container': self.obj.container_dn,
                     }
                 )
+            except errors.DuplicateEntry:
+                self.obj.handle_duplicate_entry(*keys)
 
         try:
             if self.obj.rdn_attribute:
