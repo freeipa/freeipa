@@ -90,6 +90,18 @@ _record_types = (
     u'SRV', u'TXT',
 )
 
+# mapping from attribute to resource record type
+_attribute_types = dict(
+    arecord=u'A', aaaarecord=u'AAAA', a6record=u'A6',
+    afsdbrecord=u'AFSDB', certrecord=u'CERT', cnamerecord=u'CNAME',
+    dnamerecord=u'DNAME', dsrecord=u'DS', hinforecord=u'HINFO',
+    keyrecord=u'KEY', kxrecord=u'KX', locrecord='LOC',
+    mdrecord=u'MD', minforecord=u'MINFO', mxrecord=u'MX',
+    naptrrecord=u'NAPTR', nsrecord=u'NS', nsecrecord=u'NSEC',
+    ntxtrecord=u'NTXT', ptrrecord=u'PTR', rrsigrecord=u'RRSIG',
+    sshfprecord=u'SSHFP', srvrecord=u'SRV', txtrecord=u'TXT',
+)
+
 # supported DNS classes, IN = internet, rest is almost never used
 _record_classes = (u'IN', u'CS', u'CH', u'HS')
 
@@ -137,6 +149,7 @@ def dns_container_exists(ldap):
     except errors.NotFound:
         raise errors.NotFound(reason=_('DNS is not configured'))
 
+    return True
 
 class dns(Object):
     """DNS zone/SOA record object."""

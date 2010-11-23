@@ -1310,6 +1310,23 @@ class MutuallyExclusiveError(ExecutionError):
     format = _('%(reason)s')
 
 
+class NonFatalError(ExecutionError):
+    """
+    **4303** Raised when part of an operation succeeds and the part that failed isn't critical.
+
+    For example:
+
+    >>> raise NonFatalError(reason=u'The host was added but the DNS update failed')
+    Traceback (most recent call last):
+      ...
+    NonFatalError: The host was added but the DNS update failed
+
+    """
+
+    errno = 4303
+    format = _('%(reason)s')
+
+
 ##############################################################################
 # 5000 - 5999: Generic errors
 

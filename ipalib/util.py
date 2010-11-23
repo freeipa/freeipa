@@ -170,3 +170,18 @@ def isvalid_base64(data):
         return False
     else:
         return True
+
+def validate_ipaddr(ipaddr):
+    """
+    Check to see if the given IP address is a valid IPv4 or IPv6 address.
+
+    Returns True or False
+    """
+    try:
+        socket.inet_pton(socket.AF_INET, ipaddr)
+    except socket.error:
+        try:
+            socket.inet_pton(socket.AF_INET6, ipaddr)
+        except socket.error:
+            return False
+    return True
