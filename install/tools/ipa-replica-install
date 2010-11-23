@@ -367,10 +367,10 @@ def main():
                      tls_cacertfile=CACERT)
         try:
             entry = conn.find_entries(u'fqdn=%s' % host, ['dn', 'fqdn'], u'%s,%s' % (api.env.container_host, api.env.basedn))
-            print "The host %s already exists.\n" % host
+            print "The host %s already exists on the master server. Depending on your configuration, you may perform the following:\n" % host
             print "Remove the replication agreement, if any:"
             print "    %% ipa-replica-manage del %s" % host
-            print "Remove the host continue:"
+            print "Remove the host entry:"
             print "    %% ipa host-del %s" % host
             sys.exit(3)
         except errors.NotFound:
