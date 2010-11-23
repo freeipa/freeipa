@@ -223,7 +223,7 @@ class group_find(LDAPSearch):
         ),
     )
 
-    def pre_callback(self, ldap, filter, attrs_list, base_dn, *args, **options):
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
         # if looking for private groups, we need to create a new search filter,
         # because private groups have different object classes
         if options['private']:
@@ -243,7 +243,7 @@ class group_find(LDAPSearch):
             cflt = ldap.make_filter(search_kw, exact=False)
 
             filter = ldap.combine_filters((oflt, cflt), rules=ldap.MATCH_ALL)
-        return filter
+        return (filter, base_dn, scope)
 
 api.register(group_find)
 

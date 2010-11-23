@@ -377,7 +377,7 @@ class service_find(LDAPSearch):
     member_attributes = ['managedby']
     takes_options = LDAPSearch.takes_options
     has_output_params = LDAPSearch.has_output_params + output_params
-    def pre_callback(self, ldap, filter, attrs_list, base_dn, *args, **options):
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
         # lisp style!
         custom_filter = '(&(objectclass=ipaService)' \
                           '(!(objectClass=posixAccount))' \
@@ -386,8 +386,9 @@ class service_find(LDAPSearch):
                               '(krbprincipalname=krbtgt/*))' \
                           ')' \
                         ')'
-        return ldap.combine_filters(
-            (custom_filter, filter), rules=ldap.MATCH_ALL
+        return (
+            ldap.combine_filters((custom_filter, filter), rules=ldap.MATCH_ALL),
+            base_dn, scope
         )
 
     def post_callback(self, ldap, entries, truncated, *args, **options):

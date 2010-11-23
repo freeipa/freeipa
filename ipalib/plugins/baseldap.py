@@ -1149,19 +1149,20 @@ class LDAPSearch(CallbackInterface, crud.Search):
             (term_filter, attr_filter), rules=ldap.MATCH_ALL
         )
 
+        scope = ldap.SCOPE_ONELEVEL
         for callback in self.PRE_CALLBACKS:
             if hasattr(callback, 'im_self'):
-                filter = callback(
-                    ldap, filter, attrs_list, base_dn, *args, **options
-                )
+                    (filter, base_dn, scope) = callback(
+                        ldap, filter, attrs_list, base_dn, scope, *args, **options
+                    )
             else:
-                filter = callback(
-                    self, ldap, filter, attrs_list, base_dn, *args, **options
+                (filter, base_dn, scope) = callback(
+                    self, ldap, filter, attrs_list, base_dn, scope, *args, **options
                 )
 
         try:
             (entries, truncated) = ldap.find_entries(
-                filter, attrs_list, base_dn, scope=ldap.SCOPE_ONELEVEL,
+                filter, attrs_list, base_dn, scope,
                 time_limit=options.get('timelimit', None),
                 size_limit=options.get('sizelimit', None)
             )
@@ -1169,7 +1170,7 @@ class LDAPSearch(CallbackInterface, crud.Search):
             try:
                 (entries, truncated) = self._call_exc_callbacks(
                     args, options, e, ldap.find_entries, filter, attrs_list,
-                    base_dn, scoope=ldap.SCOPE_ONELEVEL,
+                    base_dn, scope=ldap.SCOPE_ONELEVEL,
                     normalize=self.obj.normalize_dn
                 )
             except errors.NotFound:
@@ -1195,8 +1196,8 @@ class LDAPSearch(CallbackInterface, crud.Search):
             truncated=truncated,
         )
 
-    def pre_callback(self, ldap, filter, attrs_list, base_dn, *args, **options):
-        return filter
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
+        return (filter, base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         pass

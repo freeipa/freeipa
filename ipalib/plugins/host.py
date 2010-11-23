@@ -556,11 +556,11 @@ class host_find(LDAPSearch):
     )
     member_attributes = ['managedby']
 
-    def pre_callback(self, ldap, filter, attrs_list, base_dn, *args, **options):
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
         if 'locality' in attrs_list:
             attrs_list.remove('locality')
             attrs_list.append('l')
-        return filter.replace('locality', 'l')
+        return (filter.replace('locality', 'l'), base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         for entry in entries:

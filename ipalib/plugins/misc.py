@@ -109,6 +109,16 @@ class plugins(LocalOrRemote):
         '%(count)d plugin loaded', '%(count)d plugins loaded'
     )
 
+    takes_options = LocalOrRemote.takes_options + (
+        Flag('all',
+            cli_name='all',
+            doc=_('retrieve and print all attributes from the server. Affects command output.'),
+            exclude='webui',
+            flags=['no_output'],
+            default=True,
+        ),
+    )
+
     has_output = (
         Output('result', dict, 'Dictionary mapping plugin names to bases'),
         Output('count',

@@ -251,11 +251,11 @@ class user_find(LDAPSearch):
             doc=_('Display user record for current Kerberos principal'),
         ),
     )
-    def pre_callback(self, ldap, filter, entry_attrs, attrs_list, *keys, **options):
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *keys, **options):
         if options.get('whoami'):
             return "(&(objectclass=posixaccount)(krbprincipalname=%s))"%\
                 getattr(context, 'principal')
-        return filter
+        return (filter, base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         for entry in entries:
