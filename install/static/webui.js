@@ -65,7 +65,7 @@ $(function() {
 
         var whoami = IPA.whoami;
         IPA.whoami_pkey=whoami.uid[0];
-        $('#loggedinas').find('strong').text(whoami.krbprincipalname[0]);
+        $('#loggedinas').find('strong').text(whoami.cn[0]);
         $('#loggedinas a').fragment(
             {'user-facet':'details', 'user-pkey':IPA.whoami_pkey},2);
 

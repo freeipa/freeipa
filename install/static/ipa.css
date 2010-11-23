@@ -13,15 +13,12 @@ body{
     margin: 0;
 }
 
-
-
 .input_link {padding: .4em 1em .4em 1.5em;text-decoration: none;position: relative;  cursor: pointer; }
 .input_link span.ui-icon {margin: 0 0.4em 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
 
 /*  ----  Header  ----  */
 div.header {
-    background-image: url(header_background.png);
-    height: 3.5em;
+    background-color:#0C3B00;
     width: 100%;
 }
 
@@ -45,15 +42,17 @@ div.header span.header-logo {
 
 div.header span.header-logo a img {
     border: 0;
-    height: 3em;
 }
 
 div.header span.header-loggedinas {
+    width: 960px;
     color: #fff;
-    float: right;
-    line-height: 35px;
-    padding-right: 10px;
+    align: right;
+    padding-left: 600px;
+    padding-bottom: 0;
 }
+
+
 
 /* ---- Navigation ---- */
 div.tabs {
@@ -186,7 +185,7 @@ span.attrhint {
 
 /*Navigation */
 .tabs1 .ui-tabs-nav{
-    padding-left: 3em;
+    padding-left: 5.5em;
     padding-top: 2em;
     margin: 0;
     border: none;
@@ -203,7 +202,7 @@ span.attrhint {
 }
 
 .tabs1 .ui-tabs-nav li {
-    padding: 0.5em 0;
+ #   padding: 0.5em 0;
     background-image: url(Mainnav-offtab.png);
     margin: 0;
     border-width: 0;
@@ -212,17 +211,19 @@ span.attrhint {
  }
 
 .tabs1 .ui-tabs-nav li.ui-tabs-selected {
-#    padding: 0.5em 0;
+    padding: 0 0;
     background-image: url(Mainnav-ontab.png);
     text-align: center;
     margin: 0;
 }
 
 .tabs1 .ui-tabs-nav li a{
-    width:10em;
+    width:5em;
+    padding: 0.2em 0;
     color: #7E7E7E;
     margin: 0 auto;
     text-align:center;
+    font-size:2em;
 }
 
 
@@ -242,7 +243,7 @@ span.attrhint {
 }
 
 .tabs2 .ui-tabs-nav {
-    padding:  0.3em 6em 0  6em;
+    padding:  0.3em 6em 0  9em;
     margin: 0px;
     height:  2.5em;
     background-image: url(Subnav-background.png);
@@ -264,10 +265,12 @@ span.attrhint {
 
 
 .tabs2 .ui-tabs-nav li a{
+    width:auto;
+    padding: 0.2em 0.4em ;
     -moz-border-radius: 2em;
     border-radius: 2em;
-    background-image: url(Subnav-background.png);
     color: white;
+    font-size: 1em;
 }
 
 .tabs2 .ui-tabs-nav li > a:link, span.main-nav-off >  a:visited{
