@@ -253,8 +253,9 @@ class user_find(LDAPSearch):
     )
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *keys, **options):
         if options.get('whoami'):
-            return "(&(objectclass=posixaccount)(krbprincipalname=%s))"%\
-                getattr(context, 'principal')
+            return ("(&(objectclass=posixaccount)(krbprincipalname=%s))"%\
+                        getattr(context, 'principal'), base_dn, scope)
+
         return (filter, base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
