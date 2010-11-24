@@ -515,7 +515,7 @@ class textui(backend.Backend):
         try:
             if sys.stdin.isatty():
                 while True:
-                    pw1 = getpass.getpass('%s: ' % label)
+                    pw1 = getpass.getpass(u'%s: ' % unicode(label))
                     pw2 = getpass.getpass(
                         unicode(_('Enter %(label)s again to verify: ') % dict(label=label))
                     )
@@ -887,16 +887,15 @@ class cli(backend.Executioner):
         ``self.env.prompt_all`` is ``True``, this method will prompt for any
         params that have a missing values, even if the param is optional.
         """
-        for param in cmd.params():
-            if param.password and (
-                kw.get(param.name, False) is True or param.name in cmd.args
-            ):
-                kw[param.name] = \
-                    self.Backend.textui.prompt_password(param.cli_name)
-            elif param.name not in kw:
-                if param.autofill:
+        for param in cmd.params(): 
+            if (param.required and param.name not in kw) or self.env.prompt_all:
+                if param.password:
+                    kw[param.name] = self.Backend.textui.prompt_password(
+                        param.label
+                    )
+                elif param.autofill:
                     kw[param.name] = param.get_default(**kw)
-                elif param.required or self.env.prompt_all:
+                else:
                     default = param.get_default(**kw)
                     error = None
                     while True:
@@ -910,6 +909,10 @@ class cli(backend.Executioner):
                             break
                         except ValidationError, e:
                             error = e.error
+            elif param.password and kw.get(param.name, False) is True:
+                kw[param.name] = self.Backend.textui.prompt_password(
+                    param.label
+                )
 
     def load_files(self, cmd, kw):
         """
