@@ -3,7 +3,7 @@ AC_INIT([ipa-client],
         [0.99.0],
         [http://www.freeipa.org/])
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 
 AC_SUBST(VERSION)
 

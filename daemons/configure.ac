@@ -6,7 +6,7 @@ AC_INIT([ipa-server],
 
 AC_CONFIG_HEADERS([config.h])
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 
 AM_MAINTAINER_MODE
 AC_PROG_CC
