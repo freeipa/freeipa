@@ -101,7 +101,7 @@ function ipa_sudocmd_search_facet(spec) {
         $('<li/>', {
             title: 'sudorule',
             text: 'SUDO Rules'
-        }).appendTo(ul);
+        }).prependTo(ul);
 
         $('<li/>', {
             title: 'sudocmdgroup',

@@ -322,8 +322,15 @@ span.main-separator{
     float: left;
     margin-top: 5em;
     margin-left: 2.5em;
+    padding-left: 0.5em;
     padding-bottom: 1em;
     width: 17.5em;
+}
+
+
+.action-panel ul {
+    list-style-type:none;
+    padding: 0;
 }
 
 .action-panel h3{
@@ -332,7 +339,7 @@ span.main-separator{
 }
 
 .action-panel li {
-    height: 2em;
+    height: auto;
     padding: 0.2em;
 }
 
@@ -346,6 +353,7 @@ span.main-separator{
     color: black;
     text-decoration: underline;
     cursor: pointer;
+    margin-left:2em;
 }
 
 .action-panel li.entity-facet-disabled {

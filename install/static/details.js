@@ -457,9 +457,7 @@ function ipa_details_create(container)
     var action_panel = that.get_action_panel();
 
     var ul = $('ul', action_panel);
-    var buttons = $('<li/>', {
-        'class': 'details-buttons'
-    }).prependTo(ul);
+    var buttons = $('.action-controls',action_panel);
 
     $('<input/>', {
         'type': 'text',

@@ -109,15 +109,18 @@ function ipa_sudocmdgroup_search_facet(spec) {
 
         var ul = $('ul', action_panel);
 
-        $('<li/>', {
-            title: 'sudorule',
-            text: 'SUDO Rules'
-        }).appendTo(ul);
-
+        /*Make sure that these go at the top of the action panel
+          and in the same order as on the other SUDO entity pages */
         $('<li/>', {
             title: 'sudocmd',
             text: 'SUDO Command'
-        }).appendTo(ul);
+        }).prependTo(ul);
+
+        $('<li/>', {
+            title: 'sudorule',
+            text: 'SUDO Rules'
+        }).prependTo(ul);
+
 
         that.search_facet_create(container);
 

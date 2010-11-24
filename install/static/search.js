@@ -54,8 +54,7 @@ function ipa_search_widget(spec) {
 
         var action_panel = that.facet.get_action_panel();
 
-        var ul = $('ul', action_panel);
-        var li = $('<li/>').prependTo(ul);
+        var li = $('.action-controls',action_panel);
 
         var search_buttons = $('<span/>', {
             'class': 'search-buttons'

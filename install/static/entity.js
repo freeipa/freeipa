@@ -1,6 +1,7 @@
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Endi S. Dewata <edewata@redhat.com>
+ *    Adam Young <ayoung@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -340,8 +341,6 @@ function ipa_entity_setup(container) {
     facet.refresh();
 }
 
-
-
 function ipa_facet_create_action_panel(container) {
 
     var that = this;
@@ -349,7 +348,9 @@ function ipa_facet_create_action_panel(container) {
 
     var action_panel = $('<div/>', {
         "class": "action-panel",
-        html: $('<h3>Actions</h3>')
+        html: $('<h3>',{
+            text: IPA.metadata[entity_name].label
+        })
     }).appendTo(container);
 
     function build_link(other_facet,label,other_entity){
@@ -387,9 +388,21 @@ function ipa_facet_create_action_panel(container) {
     var entity = IPA.get_entity(entity_name);
     var facet_name =  ipa_current_facet(entity);
 
-    for (var i=0; i<entity.facets.length; i++) {
-        var other_facet = entity.facets[i];
-        var other_facet_name = other_facet.name;
+    var other_facet = entity.facets[0];
+    var other_facet_name = other_facet.name;
+    var main_facet = build_link(other_facet,other_facet.label)
+
+    /*assumeing for now that entities with only a single facet 
+      do not have search*/
+    if (entity.facets.length > 0 ){
+        main_facet.text( 'List ' +  IPA.metadata[entity_name].label);
+    }
+    main_facet.appendTo(ul);
+
+    ul.append($('<li><span class="action-controls"/></li>'));
+    for (var i=1; i<entity.facets.length; i++) {
+        other_facet = entity.facets[i];
+        other_facet_name = other_facet.name;
 
         if (other_facet.label) {
             ul.append(build_link(other_facet,other_facet.label));

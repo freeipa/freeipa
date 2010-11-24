@@ -98,10 +98,13 @@ function ipa_hbacsvc_search_facet(spec) {
 
         var ul = $('ul', action_panel);
 
+        /*Note that we add the rules at the top of the action panel
+          so that the HBAC entities always show in the same order.*/
+
         $('<li/>', {
             title: 'hbac',
             text: 'HBAC Rules'
-        }).appendTo(ul);
+        }).prependTo(ul);
 
         $('<li/>', {
             title: 'hbacsvcgroup',
