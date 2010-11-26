@@ -1092,7 +1092,7 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
                        struct ipapwd_data *data, int is_krb)
 {
     int ret = 0;
-    Slapi_Mods *smods;
+    Slapi_Mods *smods = NULL;
     Slapi_Value **svals = NULL;
     Slapi_Value **pwvals = NULL;
     struct tm utctime;
