@@ -64,7 +64,7 @@ class sudocmdgroup(LDAPObject):
         'memberindirect': ['sudocmd', 'sudocmdgroup'],
     }
 
-    label = _('Sudo Command Groups')
+    label = _('SUDO Command Groups')
 
     takes_params = (
         Str('cn',

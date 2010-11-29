@@ -103,28 +103,10 @@ function ipa_sudocmdgroup_search_facet(spec) {
 
     that.create = function(container) {
 
-        var action_panel = that.get_action_panel();
-
-        var ul = $('ul', action_panel);
-
-        /*Make sure that these go at the top of the action panel
-          and in the same order as on the other SUDO entity pages */
-        $('<li/>', {
-            title: 'sudocmd',
-            text: 'SUDO Command'
-        }).prependTo(ul);
-
-        $('<li/>', {
-            title: 'sudorule',
-            text: 'SUDO Rules'
-        }).prependTo(ul);
-
-
         that.search_facet_create(container);
 
-        // TODO: replace with IPA.metadata[that.entity_name].label
         container.children().last().prepend(
-            $('<h2/>', { 'html': 'SUDO Command Groups' }));
+            $('<h2/>', { 'html': IPA.metadata.sudocmdgroup.label }));
         container.children().last().prepend('<br/><br/>');
 
     };

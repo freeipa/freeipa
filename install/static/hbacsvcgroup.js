@@ -102,31 +102,10 @@ function ipa_hbacsvcgroup_search_facet(spec) {
     };
 
     that.create = function(container) {
-
-        var action_panel = that.get_action_panel();
-
-        var ul = $('ul', action_panel);
-
-        /*Note that we add these at the top of the action panel
-          so that the HBAC entities always show in the same order.*/
-        $('<li/>', {
-            title: 'hbacsvc',
-            text: 'HBAC Services'
-        }).prependTo(ul);
-
-        $('<li/>', {
-            title: 'hbac',
-            text: 'HBAC Rules'
-        }).prependTo(ul);
-
-
         that.search_facet_create(container);
-
-        // TODO: replace with IPA.metadata[that.entity_name].label
         container.children().last().prepend(
-            $('<h2/>', { 'html': 'HBAC Service Groups' }));
+            $('<h2/>', { 'html':IPA.metadata.hbacsvcgroup.label }));
         container.children().last().prepend('<br/><br/>');
-
     };
 
     that.setup = function(container) {

@@ -38,7 +38,7 @@ var admin_tab_set = [
             {name:'hbacsvc', setup: ipa_entity_setup},
             {name:'hbacsvcgroup', setup: ipa_entity_setup}
         ]},
-        {name:'sudorule', setup: ipa_entity_setup,children:[
+        {name:'sudorule', label:'SUDO', setup: ipa_entity_setup,children:[
             {name:'sudocmd', setup: ipa_entity_setup},
             {name:'sudocmdgroup', setup: ipa_entity_setup}
         ]},

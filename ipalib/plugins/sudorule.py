@@ -46,7 +46,7 @@ class sudorule(LDAPObject):
         'memberdenycmd': ['sudocmd', 'sudocmdgroup'],
     }
 
-    label = _('SudoRule')
+    label = _('SUDO')
 
     takes_params = (
         Str('cn',

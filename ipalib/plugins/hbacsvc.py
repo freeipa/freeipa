@@ -57,7 +57,7 @@ class hbacsvc(LDAPObject):
     default_attributes = ['cn', 'description', 'memberindirect',]
     uuid_attribute = 'ipauniqueid'
 
-    label = _('Services')
+    label = _('HBAC Services')
 
     takes_params = (
         Str('cn',

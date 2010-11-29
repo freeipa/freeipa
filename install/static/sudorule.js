@@ -91,51 +91,16 @@ function ipa_sudorule_search_facet(spec) {
     };
 
     that.create = function(container) {
-
-        var action_panel = that.get_action_panel();
-
-        var ul = $('ul', action_panel);
-
-        $('<li/>', {
-            title: 'sudocmd',
-            text: 'SUDO Commands'
-        }).appendTo(ul);
-
-        $('<li/>', {
-            title: 'sudocmdgroup',
-            text: 'SUDO Command Groups'
-        }).appendTo(ul);
-
         that.search_facet_create(container);
 
-        // TODO: replace with IPA.metadata[that.entity_name].label
         container.children().last().prepend(
-            $('<h2/>', { 'html': 'SUDO Rules' }));
+            $('<h2/>', { 'html': IPA.metadata.sudorule.label }));
         container.children().last().prepend('<br/><br/>');
 
     };
 
     that.setup = function(container) {
-
         that.search_facet_setup(container);
-
-        var action_panel = that.get_action_panel();
-
-        var li = $('li[title=sudocmd]', action_panel);
-        li.click(function() {
-            var state = {};
-            state['sudorule-entity'] = 'sudocmd';
-            nav_push_state(state);
-            return false;
-        });
-
-        li = $('li[title=sudocmdgroup]', action_panel);
-        li.click(function() {
-            var state = {};
-            state['sudorule-entity'] = 'sudocmdgroup';
-            nav_push_state(state);
-            return false;
-        });
     };
 
     return that;
