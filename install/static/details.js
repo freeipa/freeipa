@@ -428,7 +428,7 @@ function ipa_button(spec) {
     });
 
     if (spec.click) button.click(spec.click);
-    if (spec.class) button.addClass(spec.class);
+    if (spec['class']) button.addClass(spec['class']);
     if (spec.icon) button.append('<span class="ui-icon '+spec.icon+'" ></span> ');
 
     return button;
