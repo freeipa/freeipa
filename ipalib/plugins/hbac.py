@@ -266,6 +266,8 @@ class hbac_enable(LDAPQuery):
             ldap.update_entry(dn, entry_attrs)
         except errors.EmptyModlist:
             pass
+        except errors.NotFound:
+            self.obj.handle_not_found(cn)
 
         return dict(result=True)
 
@@ -290,6 +292,8 @@ class hbac_disable(LDAPQuery):
             ldap.update_entry(dn, entry_attrs)
         except errors.EmptyModlist:
             pass
+        except errors.NotFound:
+            self.obj.handle_not_found(cn)
 
         return dict(result=True)
 
@@ -325,6 +329,8 @@ class hbac_add_accesstime(LDAPQuery):
             ldap.update_entry(dn, entry_attrs)
         except errors.EmptyModlist:
             pass
+        except errors.NotFound:
+            self.obj.handle_not_found(cn)
 
         return dict(result=True)
 
@@ -363,6 +369,8 @@ class hbac_remove_accesstime(LDAPQuery):
             ldap.update_entry(dn, entry_attrs)
         except (ValueError, errors.EmptyModlist):
             pass
+        except errors.NotFound:
+            self.obj.handle_not_found(cn)
 
         return dict(result=True)
 
