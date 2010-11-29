@@ -83,7 +83,7 @@ IPA.tab_state = function(entity_name){
                         if (nested_entities[nested_index].name === entity_name){
                             state.navigation =  top_tab_index;
                              state[top_tab.name] =  subtab_index;
-                             state[ top_tab.children[subtab_index].name+'_entity'] =  entity_name;
+                             state[ top_tab.children[subtab_index].name+'-entity'] =  entity_name;
                              return state;
                         }
                     }

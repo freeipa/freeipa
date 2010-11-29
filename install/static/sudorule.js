@@ -124,7 +124,7 @@ function ipa_sudorule_search_facet(spec) {
         var li = $('li[title=sudocmd]', action_panel);
         li.click(function() {
             var state = {};
-            state['sudo-entity'] = 'sudocmd';
+            state['sudorule-entity'] = 'sudocmd';
             nav_push_state(state);
             return false;
         });
@@ -132,7 +132,7 @@ function ipa_sudorule_search_facet(spec) {
         li = $('li[title=sudocmdgroup]', action_panel);
         li.click(function() {
             var state = {};
-            state['sudo-entity'] = 'sudocmdgroup';
+            state['sudorule-entity'] = 'sudocmdgroup';
             nav_push_state(state);
             return false;
         });
