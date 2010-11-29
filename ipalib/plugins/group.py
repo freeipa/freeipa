@@ -272,7 +272,7 @@ class group_remove_member(LDAPRemoveMember):
 api.register(group_remove_member)
 
 
-class group_detach(LDAPRemoveMember):
+class group_detach(LDAPQuery):
     """
     Detach a managed group from a user
     """

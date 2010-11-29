@@ -3,7 +3,9 @@ changetype: add
 objectclass: mepTemplateEntry
 cn: UPG Template
 mepRDNAttr: cn
-mepStaticAttr: objectclass: posixGroup
+mepStaticAttr: objectclass: posixgroup
+mepStaticAttr: objectclass: ipaobject
+mepStaticAttr: ipaUniqueId: autogenerate
 mepMappedAttr: cn: $$uid
 mepMappedAttr: gidNumber: $$uidNumber
 mepMappedAttr: description: User private group for $$uid

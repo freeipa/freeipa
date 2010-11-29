@@ -213,7 +213,6 @@ class DsInstance(service.Service):
         self.step("enabling memberof plugin", self.__add_memberof_module)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
         self.step("enabling winsync plugin", self.__add_winsync_module)
-        self.step("configuring user private groups", self.__user_private_groups)
         self.step("configuring replication version plugin", self.__config_version_module)
         self.step("enabling IPA enrollment plugin", self.__add_enrollment_module)
         self.step("enabling ldapi", self.__enable_ldapi)
@@ -224,6 +223,7 @@ class DsInstance(service.Service):
         self.step("configuring ssl for ds instance", self.__enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("restarting directory server", self.__restart_instance)
+        self.step("configuring user private groups", self.__user_private_groups)
         self.step("adding default layout", self.__add_default_layout)
         self.step("adding delegation layout", self.__add_delegation_layout)
         self.step("configuring Posix uid/gid generation as first master",
