@@ -47,7 +47,6 @@ default:schema-compat-entry-attribute: objectclass=posixGroup
 default:schema-compat-entry-attribute: gidNumber=%{gidNumber}
 default:schema-compat-entry-attribute: memberUid=%{memberUid}
 default:schema-compat-entry-attribute: memberUid=%deref("member","uid")
-default:schema-compat-entry-attribute: memberUid=%referred("cn=users","memberOf","uid")
 
 dn: cn=ng,cn=Schema Compatibility,cn=plugins,cn=config
 add:objectClass: top
@@ -56,14 +55,42 @@ add:cn: ng
 add:schema-compat-container-group: 'cn=compat, $SUFFIX'
 add:schema-compat-container-rdn: cn=ng
 add:schema-compat-check-access: yes
-add:schema-compat-search-base: 'cn=ng,cn=alt,$SUFFIX'
-add:schema-compat-search-filter: !(cn=ng)
+add:schema-compat-search-base: 'cn=ng, cn=alt, $SUFFIX'
+add:schema-compat-search-filter: (objectclass=ipaNisNetgroup)
 add:schema-compat-entry-rdn: cn=%{cn}
 add:schema-compat-entry-attribute: objectclass=nisNetgroup
 add:schema-compat-entry-attribute: 'memberNisNetgroup=%deref_r("member","cn")'
-add:schema-compat-entry-attribute: 'memberNisNetgroup=%referred_r("cn=ng","memberOf","cn")'
-add:schema-compat-entry-attribute: nisNetgroupTriple=(%link("%ifeq(\"hostCategory\",\"all\",\"\",\"%collect(\\\"%{externalHost}\\\",\\\"%deref(\\\\\\\"memberHost\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberHost\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\")\")","-",",","%ifeq(\"userCategory\",\"all\",\"\",\"%collect(\\\"%deref(\\\\\\\"memberUser\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberUser\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\")\")","-"),%{nisDomainName:-})
+add:schema-compat-entry-attribute: 'nisNetgroupTriple=(%link("%ifeq(\"hostCategory\",\"all\",\"\",\"%collect(\\\"%{externalHost}\\\",\\\"%deref(\\\\\\\"memberHost\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberHost\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\")\")","-",",","%ifeq(\"userCategory\",\"all\",\"\",\"%collect(\\\"%deref(\\\\\\\"memberUser\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberUser\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\")\")","-"),%{nisDomainName:-})'
+
+dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
+add:objectClass: top
+add:objectClass: extensibleObject
+add:cn: sudoers
+add:schema-compat-container-group: 'ou=SUDOers, $SUFFIX'
+add:schema-compat-search-base: 'cn=sudorules, $SUFFIX'
+add:schema-compat-search-filter: (&(objectclass=ipaSudoRule)(!(compatVisible=FALSE))(!(ipaEnabledFlag=FALSE)))
+add:schema-compat-entry-rdn: cn=%{cn}
+add:schema-compat-entry-attribute: objectclass=sudoRole
+add:schema-compat-entry-attribute: 'sudoUser=%ifeq("userCategory","all","ALL","%{externalUser}")'
+add:schema-compat-entry-attribute: 'sudoUser=%ifeq("userCategory","all","ALL","%deref_f(\"memberUser\",\"(objectclass=posixAccount)\",\"uid\")")'
+add:schema-compat-entry-attribute: 'sudoUser=%ifeq("userCategory","all","ALL","%deref_rf(\"memberUser\",\"(&(objectclass=ipaUserGroup)(!(objectclass=posixGroup)))\",\"member\",\"(|(objectclass=ipaUserGroup)(objectclass=posixAccount))\",\"uid\")")'
+add:schema-compat-entry-attribute: 'sudoUser=%ifeq("userCategory","all","ALL","%%%deref_f(\"memberUser\",\"(objectclass=posixGroup)\",\"cn\")")'
+add:schema-compat-entry-attribute: 'sudoUser=%ifeq("userCategory","all","ALL","+%deref_f(\"memberUser\",\"(objectclass=ipaNisNetgroup)\",\"cn\")")'
+add:schema-compat-entry-attribute: 'sudoHost=%ifeq("hostCategory","all","ALL","%{externalHost}")'
+add:schema-compat-entry-attribute: 'sudoHost=%ifeq("hostCategory","all","ALL","%deref_f(\"memberHost\",\"(objectclass=ipaHost)\",\"fqdn\")")'
+add:schema-compat-entry-attribute: 'sudoHost=%ifeq("hostCategory","all","ALL","%deref_rf(\"memberHost\",\"(objectclass=ipaHostGroup)\",\"member\",\"(|(objectclass=ipaHostGroup)(objectclass=ipaHost))\",\"fqdn\")")'
+add:schema-compat-entry-attribute: 'sudoHost=%ifeq("hostCategory","all","ALL","+%deref_f(\"memberHost\",\"(objectclass=ipaNisNetgroup)\",\"cn\")")'
+add:schema-compat-entry-attribute: 'sudoCommand=%ifeq("cmdCategory","all","ALL","%deref(\"memberAllowCmd\",\"sudoCmd\")")'
+add:schema-compat-entry-attribute: 'sudoCommand=%ifeq("cmdCategory","all","ALL","%deref_r(\"memberAllowCmd\",\"member\",\"sudoCmd\")")'
+add:schema-compat-entry-attribute: 'sudoCommand=%ifeq("cmdCategory","all","ALL","!%deref(\"memberDenyCmd\",\"sudoCmd\")")'
+add:schema-compat-entry-attribute: 'sudoCommand=%ifeq("cmdCategory","all","ALL","!%deref_r(\"memberDenyCmd\",\"member\",\"sudoCmd\")")'
+add:schema-compat-entry-attribute: 'sudoRunAsUser=%{ipaSudoRunAsExtUser}'
+add:schema-compat-entry-attribute: 'sudoRunAsUser=%deref("ipaSudoRunAs","uid")'
+add:schema-compat-entry-attribute: 'sudoRunAsGroup=%{ipaSudoRunAsExtGroup}'
+add:schema-compat-entry-attribute: 'sudoRunAsGroup=%deref("ipaSudoRunAs","cn")'
+add:schema-compat-entry-attribute: 'sudoOption=%{ipaSudoOpt}'
 
 # Enable anonymous VLV browsing for Solaris
 dn: oid=2.16.840.1.113730.3.4.9,cn=features,cn=config
 only:aci: '(targetattr !="aci")(version 3.0; acl "VLV Request Control"; allow (read, search, compare, proxy) userdn = "ldap:///anyone"; )'
+

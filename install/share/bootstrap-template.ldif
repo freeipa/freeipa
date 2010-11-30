@@ -106,12 +106,6 @@ objectClass: top
 objectClass: nsContainer
 cn: sudorules
 
-dn: cn=SUDOers,$SUFFIX
-changetype: add
-objectClass: nsContainer
-objectClass: top
-cn: SUDOers
-
 dn: cn=etc,$SUFFIX
 changetype: add
 objectClass: nsContainer

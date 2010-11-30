@@ -92,7 +92,7 @@ Requires: libcap
 Requires: selinux-policy
 %endif
 Requires(post): selinux-policy-base
-Requires: slapi-nis >= 0.15
+Requires: slapi-nis >= 0.21
 Requires: pki-ca >= 1.3.6
 Requires: pki-silent >= 1.3.4
 Requires(preun):  python initscripts chkconfig
