@@ -28,6 +28,7 @@ import random
 import os, sys, traceback, readline
 import stat
 import shutil
+import urllib2
 
 from ipapython import ipavalidate
 from types import *
@@ -129,6 +130,10 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None):
         args = args.replace(value, 'XXXXXXXX')
         stdout = stdout.replace(value, 'XXXXXXXX')
         stderr = stderr.replace(value, 'XXXXXXXX')
+        quoted = urllib2.quote(value)
+        args = args.replace(quoted, 'XXXXXXXX')
+        stdout = stdout.replace(quoted, 'XXXXXXXX')
+        stderr = stderr.replace(quoted, 'XXXXXXXX')
     logging.info('args=%s' % args)
     logging.info('stdout=%s' % stdout)
     logging.info('stderr=%s' % stderr)
