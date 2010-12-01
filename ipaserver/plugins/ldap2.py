@@ -452,6 +452,12 @@ class ldap2(CrudBackend, Encoder):
         """
         if isinstance(value, (list, tuple)):
             flts = []
+            if rules == self.MATCH_NONE:
+                for v in value:
+                    flts.append(
+                        self.make_filter_from_attr(attr, v, exact=exact)
+                    )
+                return '(!%s)' % self.combine_filters(flts)
             for v in value:
                 flts.append(self.make_filter_from_attr(attr, v, rules, exact))
             return self.combine_filters(flts, rules)
