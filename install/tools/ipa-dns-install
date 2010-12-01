@@ -62,16 +62,19 @@ def parse_options():
 def resolve_host(host_name):
     ip = None
     try:
-        ip = socket.gethostbyname(host_name)
+        addrinfos = socket.getaddrinfo(host_name, None,
+                                       socket.AF_UNSPEC, socket.SOCK_DGRAM)
+        for ai in addrinfos:
+            ip = ai[4][0]
+            if ip == "127.0.0.1" or ip == "::1":
+                print "The hostname resolves to the localhost address (127.0.0.1/::1)"
+                print "Please change your /etc/hosts file so that the hostname"
+                print "resolves to the ip address of your network interface."
+                print ""
+                print "Please fix your /etc/hosts file and restart the setup program"
+                return None
 
-        if ip == "127.0.0.1" or ip == "::1":
-            print "The hostname resolves to the localhost address (127.0.0.1/::1)"
-            print "Please change your /etc/hosts file so that the hostname"
-            print "resolves to the ip address of your network interface."
-            print ""
-            print "Please fix your /etc/hosts file and restart the setup program"
-            return None
-
+        ip = addrinfos[0][4][0]
     except:
         print "Unable to lookup the IP address of the provided host"
     return ip

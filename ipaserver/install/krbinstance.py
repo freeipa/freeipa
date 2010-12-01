@@ -135,7 +135,7 @@ class KrbInstance(service.Service):
         self.fqdn = host_name
         self.realm = realm_name.upper()
         self.host = host_name.split(".")[0]
-        self.ip = socket.gethostbyname(host_name)
+        self.ip = socket.getaddrinfo(host_name, None, socket.AF_UNSPEC, socket.SOCK_STREAM)[0][4][0]
         self.domain = domain_name
         self.suffix = util.realm_to_suffix(self.realm)
         self.kdc_password = ipautil.ipa_generate_password()

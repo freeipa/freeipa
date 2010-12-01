@@ -279,19 +279,22 @@ def read_host_name(host_default,no_host_dns=False):
     return host_name
 
 def resolve_host(host_name):
-    ip = ""
+    ip = None
     try:
-        ip = socket.gethostbyname(host_name)
+        addrinfos = socket.getaddrinfo(host_name, None,
+                                       socket.AF_UNSPEC, socket.SOCK_DGRAM)
+        for ai in addrinfos:
+            ip = ai[4][0]
+            if ip == "127.0.0.1" or ip == "::1":
+                print "The hostname resolves to the localhost address (127.0.0.1/::1)"
+                print "Please change your /etc/hosts file so that the hostname"
+                print "resolves to the ip address of your network interface."
+                print "The KDC service does not listen on localhost"
+                print ""
+                print "Please fix your /etc/hosts file and restart the setup program"
+                return None
 
-        if ip == "127.0.0.1" or ip == "::1":
-            print "The hostname resolves to the localhost address (127.0.0.1/::1)"
-            print "Please change your /etc/hosts file so that the hostname"
-            print "resolves to the ip address of your network interface."
-            print "The KDC service does not listen on localhost"
-            print ""
-            print "Please fix your /etc/hosts file and restart the setup program"
-            return None
-
+        ip = addrinfos[0][4][0]
     except:
         print "Unable to lookup the IP address of the provided host"
     return ip
@@ -549,7 +552,7 @@ def main():
             sys.exit("Aborting installation")
 
     # check the hostname is correctly configured, it must be as the kldap
-    # utilities just use the hostname as returned by gethostbyname to set
+    # utilities just use the hostname as returned by getaddrinfo to set
     # up some of the standard entries
 
     host_default = ""

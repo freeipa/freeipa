@@ -37,6 +37,7 @@ DNS_T_PTR = 12
 DNS_T_HINFO = 13
 DNS_T_MX = 15
 DNS_T_TXT = 16
+DNS_T_AAAA = 28
 DNS_T_SRV = 33
 DNS_T_ANY = 255
 
@@ -126,6 +127,10 @@ class DNSRData:
 #typedef struct dns_rr_a {
 #	u_int32_t address;
 #} dns_rr_a_t;
+#
+#typedef struct dns_rr_aaaa {
+#       unsigned char address[16];
+#} dns_rr_aaaa_t;
 #
 #typedef struct dns_rr_cname {
 #	const char *cname;
@@ -238,6 +243,18 @@ def dnsParseA(data, base):
 	if DEBUG_DNSCLIENT:
 		print "A = %d.%d.%d.%d." % (ord(data[0]), ord(data[1]), ord(data[2]), ord(data[3]))
 	return rdata
+
+def dnsParseAAAA(data, base):
+	rdata = DNSRData()
+	if len(data) < 16:
+		rdata.address = 0
+		return None
+
+        rdata.address = list(struct.unpack('!16B', data))
+        if DEBUG_DNSCLIENT:
+            print socket.inet_ntop(socket.AF_INET6,
+                                   struct.pack('!16B', *rdata.address))
+        return rdata
 
 def dnsParseText(data):	
 	if len(data) < 1:
@@ -413,7 +430,7 @@ def dnsParseResults(results):
 			DNS_T_NULL: dnsParseNULL, DNS_T_WKS: dnsParseWKS,
 			DNS_T_PTR: dnsParsePTR, DNS_T_HINFO: dnsParseHINFO,
 			DNS_T_MX: dnsParseMX, DNS_T_TXT: dnsParseTXT,
-			DNS_T_SRV: dnsParseSRV}
+			DNS_T_AAAA : dnsParseAAAA, DNS_T_SRV: dnsParseSRV}
 
 		if not rr.dns_type in fmap:
 			if DEBUG_DNSCLIENT:

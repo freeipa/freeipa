@@ -127,12 +127,17 @@ def get_host_name(no_host_dns):
     return hostname
 
 def resolve_host(host_name):
-    ip = socket.gethostbyname(host_name)
+    try:
+        addrinfos = socket.getaddrinfo(host_name, None,
+                                       socket.AF_UNSPEC, socket.SOCK_STREAM)
+        for ai in addrinfos:
+            ip = ai[4][0]
+            if ip == "127.0.0.1" or ip == "::1":
+                raise HostnameLocalhost
 
-    if ip == "127.0.0.1" or ip == "::1":
-        raise HostnameLocalhost
-
-    return ip
+        return addrinfos[0][4][0]
+    except:
+        return None
 
 def set_owner(config, dir):
     pw = pwd.getpwnam(config.ds_user)
@@ -240,6 +245,8 @@ def install_bind(config, options):
         forwarders = ()
     bind = bindinstance.BindInstance(dm_password=config.dirman_password)
     ip_address = resolve_host(config.host_name)
+    if not ip_address:
+        sys.exit("Unable to resolve IP address for host name")
     create_reverse = bindinstance.create_reverse(options.unattended)
     bind.setup(config.host_name, ip_address, config.realm_name,
                config.domain_name, forwarders, options.conf_ntp, create_reverse)
