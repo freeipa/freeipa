@@ -42,17 +42,29 @@ global_output_params = (
     Str('member_group?',
         label=_('Member groups'),
     ),
+    Str('memberof_group?',
+        label=_('Member of groups'),
+    ),
     Str('member_host?',
         label=_('Member hosts'),
     ),
     Str('memberof_hostgroup?',
         label=_('Member of host-groups'),
     ),
-    Str('memberof_taskgroup?',
-        label=_('Member of task-groups'),
+    Str('memberof_permission?',
+        label=_('Permissions'),
     ),
-    Str('member_rolegroup?',
-        label=_('Member role-groups'),
+    Str('memberof_privilege?',
+        label='Privileges',
+    ),
+    Str('memberof_role?',
+        label=_('Roles'),
+    ),
+    Str('member_privilege?',
+        label='Granted to Privilege',
+    ),
+    Str('member_role?',
+        label=_('Granting privilege to roles'),
     ),
     Str('member_netgroup?',
         label=_('Member netgroups'),
@@ -93,11 +105,11 @@ global_output_params = (
     Str('memberindirect_hostgroup?',
         label=_('Indirect Member host-groups'),
     ),
-    Str('memberindirect_rolegroup?',
-        label=_('Indirect Member role-groups'),
+    Str('memberindirect_role?',
+        label=_('Indirect Member of roles'),
     ),
-    Str('memberindirect_taskgroup?',
-        label=_('Indirect Member role-groups'),
+    Str('memberindirect_permission?',
+        label=_('Indirect Member permissions'),
     ),
     Str('memberindirect_hbacsvc?',
         label=_('Indirect Member HBAC service'),
@@ -1192,9 +1204,11 @@ class LDAPSearch(CallbackInterface, crud.Search):
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
-                callback(ldap, entries, truncated, *args, **options)
+                more = callback(ldap, entries, truncated, *args, **options)
             else:
-                callback(self, ldap, entries, truncated, *args, **options)
+                more = callback(self, ldap, entries, truncated, *args, **options)
+            if more:
+                entries = entries + more
 
         if not options.get('raw', False):
             for e in entries:
@@ -1214,8 +1228,236 @@ class LDAPSearch(CallbackInterface, crud.Search):
         return (filter, base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
-        pass
+        return []
 
     def exc_callback(self, args, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
 
+
+class LDAPModReverseMember(LDAPQuery):
+    """
+    Base class for reverse member manipulation.
+    """
+    reverse_attributes = ['member']
+    reverse_param_doc = 'comma-separated list of %s'
+    reverse_count_out = ('%i member processed.', '%i members processed.')
+
+    has_output_params = global_output_params
+
+    def get_options(self):
+        for option in super(LDAPModReverseMember, self).get_options():
+            yield option
+        for attr in self.reverse_attributes:
+            for ldap_obj_name in self.obj.reverse_members[attr]:
+                ldap_obj = self.api.Object[ldap_obj_name]
+                name = to_cli(ldap_obj_name)
+                doc = self.reverse_param_doc % ldap_obj.object_name_plural
+                yield List('%s?' % name, cli_name='%ss' % name, doc=doc,
+                           label=ldap_obj.object_name)
+
+
+class LDAPAddReverseMember(LDAPModReverseMember):
+    """
+    Add other LDAP entries to members in reverse.
+
+    The call looks like "add A to B" but in fact executes
+    add B to A to handle reverse membership.
+    """
+    member_param_doc = 'comma-separated list of %s to add'
+    member_count_out = ('%i member added.', '%i members added.')
+
+    show_command = None
+    member_command = None
+    reverse_attr = None
+    member_attr = None
+
+    has_output = (
+        output.Entry('result'),
+        output.Output('failed',
+            type=dict,
+            doc=_('Members that could not be added'),
+        ),
+        output.Output('completed',
+            type=int,
+            doc=_('Number of members added'),
+        ),
+    )
+
+    has_output_params = global_output_params
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+
+        # Ensure our target exists
+        result = self.api.Command[self.show_command](keys[-1])['result']
+        dn = result['dn']
+
+        for callback in self.PRE_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                dn = callback(ldap, dn, *keys, **options)
+            else:
+                dn = callback(
+                    self, ldap, dn, *keys, **options
+                )
+
+        if options.get('all', False):
+            attrs_list = ['*'] + self.obj.default_attributes
+        else:
+            attrs_list = self.obj.default_attributes
+
+        completed = 0
+        failed = {'member': {self.reverse_attr: []}}
+        for attr in options.get(self.reverse_attr, []):
+            try:
+                options = {'%s' % self.member_attr: keys[-1]}
+                try:
+                    result = self.api.Command[self.member_command](attr, **options)
+                    if result['completed'] == 1:
+                        completed = completed + 1
+                    else:
+                        failed['member'][self.reverse_attr].append((attr, result['failed']['member'][self.member_attr][0][1]))
+                except errors.ExecutionError, e:
+                    try:
+                        (dn, entry_attrs) = self._call_exc_callbacks(
+                            keys, options, e, self.member_command, dn, attrs_list,
+                            normalize=self.obj.normalize_dn
+                        )
+                    except errors.NotFound, e:
+                        msg = str(e)
+                        (attr, msg) = msg.split(':', 1)
+                        failed['member'][self.reverse_attr].append((attr, unicode(msg.strip())))
+
+            except errors.PublicError, e:
+                failed['member'][self.reverse_attr].append((attr, unicode(msg)))
+
+        entry_attrs = self.api.Command[self.show_command](keys[-1])['result']
+
+        for callback in self.POST_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                (completed, dn) = callback(
+                    ldap, completed, failed, dn, entry_attrs, *keys, **options
+                )
+            else:
+                (completed, dn) = callback(
+                    self, ldap, completed, failed, dn, entry_attrs, *keys,
+                    **options
+                )
+
+        entry_attrs['dn'] = dn
+        return dict(
+            completed=completed,
+            failed=failed,
+            result=entry_attrs,
+        )
+
+    def pre_callback(self, ldap, dn, *keys, **options):
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        return (completed, dn)
+
+    def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
+        raise exc
+
+class LDAPRemoveReverseMember(LDAPModReverseMember):
+    """
+    Remove other LDAP entries from members in reverse.
+
+    The call looks like "remove A from B" but in fact executes
+    remove B from A to handle reverse membership.
+    """
+    member_param_doc = 'comma-separated list of %s to remove'
+    member_count_out = ('%i member removed.', '%i members removed.')
+
+    show_command = None
+    member_command = None
+    reverse_attr = None
+    member_attr = None
+
+    has_output = (
+        output.Entry('result'),
+        output.Output('failed',
+            type=dict,
+            doc=_('Members that could not be removed'),
+        ),
+        output.Output('completed',
+            type=int,
+            doc=_('Number of members removed'),
+        ),
+    )
+
+    has_output_params = global_output_params
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+
+        # Ensure our target exists
+        result = self.api.Command[self.show_command](keys[-1])['result']
+        dn = result['dn']
+
+        for callback in self.PRE_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                dn = callback(ldap, dn, *keys, **options)
+            else:
+                dn = callback(
+                    self, ldap, dn, *keys, **options
+                )
+
+        if options.get('all', False):
+            attrs_list = ['*'] + self.obj.default_attributes
+        else:
+            attrs_list = self.obj.default_attributes
+
+        completed = 0
+        failed = {'member': {self.reverse_attr: []}}
+        for attr in options.get(self.reverse_attr, []):
+            try:
+                options = {'%s' % self.member_attr: keys[-1]}
+                try:
+                    result = self.api.Command[self.member_command](attr, **options)
+                    if result['completed'] == 1:
+                        completed = completed + 1
+                    else:
+                        failed['member'][self.reverse_attr].append((attr, result['failed']['member'][self.member_attr][0][1]))
+                except errors.ExecutionError, e:
+                    try:
+                        (dn, entry_attrs) = self._call_exc_callbacks(
+                            keys, options, e, self.member_command, dn, attrs_list,
+                            normalize=self.obj.normalize_dn
+                        )
+                    except errors.NotFound, e:
+                        msg = str(e)
+                        (attr, msg) = msg.split(':', 1)
+                        failed['member'][self.reverse_attr].append((attr, unicode(msg.strip())))
+
+            except errors.PublicError, e:
+                failed['member'][self.reverse_attr].append((attr, unicode(msg)))
+
+        entry_attrs = self.api.Command[self.show_command](keys[-1])['result']
+
+        for callback in self.POST_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                (completed, dn) = callback(
+                    ldap, completed, failed, dn, entry_attrs, *keys, **options
+                )
+            else:
+                (completed, dn) = callback(
+                    self, ldap, completed, failed, dn, entry_attrs, *keys,
+                    **options
+                )
+
+        entry_attrs['dn'] = dn
+        return dict(
+            completed=completed,
+            failed=failed,
+            result=entry_attrs,
+        )
+
+    def pre_callback(self, ldap, dn, *keys, **options):
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        return (completed, dn)
+
+    def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
+        raise exc

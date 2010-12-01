@@ -1,5 +1,0 @@
-# Add the taskgroup container
-
-dn: cn=taskgroups,cn=accounts,$SUFFIX
-add:objectClass: nsContainer
-add:cn: taskgroups

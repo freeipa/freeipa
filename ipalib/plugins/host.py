@@ -31,10 +31,10 @@ ENROLLMENT:
 There are three enrollment scenarios when enrolling a new client:
 
 1. You are enrolling as a full administrator. The host entry may exist
-   or not. A full administrator is a member of the hostadmin rolegroup
+   or not. A full administrator is a member of the hostadmin role
    or the admins group.
 2. You are enrolling as a limited administrator. The host must already
-   exist. A limited administrator is a member of the enrollhost rolegroup.
+   exist. A limited administrator is a member of the enrollhost role.
 3. The host has been created with a one-time password.
 
 A host can only be enrolled once. If a client has enrolled and needs to
@@ -162,7 +162,7 @@ class host(LDAPObject):
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'enrolledby': ['user'],
-        'memberof': ['hostgroup', 'netgroup', 'rolegroup'],
+        'memberof': ['hostgroup', 'netgroup', 'role'],
         'managedby': ['host'],
     }
 

@@ -357,7 +357,7 @@ class BindInstance(service.Service):
             logging.critical("Could not connect to the Directory Server on %s" % self.fqdn)
             raise e
 
-        dns_group = "cn=dnsserver,cn=rolegroups,cn=accounts,%s" % self.suffix
+        dns_group = "cn=dnsserver,cn=privileges,cn=accounts,%s" % self.suffix
         if isinstance(dns_principal, unicode):
             dns_principal = dns_principal.encode('utf-8')
         mod = [(ldap.MOD_ADD, 'member', dns_principal)]

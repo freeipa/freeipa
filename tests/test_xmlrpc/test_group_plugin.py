@@ -31,7 +31,6 @@ renamedgroup1 = u'testgroup'
 user1 = u'tuser1'
 
 invalidgroup1=u'+tgroup1'
-invalidgroup2=u'tgroup1234567890123456789012345678901234567890'
 
 
 class test_group(Declarative):
@@ -335,8 +334,6 @@ class test_group(Declarative):
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'admins'],
                         'description': [u'Account administrators group'],
-                        'memberof_rolegroup': [u'hostadmin', u'replicaadmin'],
-                        'memberof_taskgroup': [u'addhosts', u'removehosts', u'modifyhosts', u'manage_host_keytab', u'enroll_host', u'managereplica', u'deletereplica'],
                     },
                     {
                         'dn': u'cn=ipausers,cn=groups,cn=accounts,%s' % api.env.basedn,
@@ -449,7 +446,7 @@ class test_group(Declarative):
                 completed=0,
                 failed=dict(
                     member=dict(
-                        group=[(u'notfound', u'This entry is not a member of the group')],
+                        group=[(u'notfound', u'This entry is not a member')],
                         user=tuple(),
                     ),
                 ),
@@ -568,12 +565,6 @@ class test_group(Declarative):
             expected=errors.ValidationError(name='cn', error='may only include letters, numbers, _, -, . and $'),
         ),
 
-
-        dict(
-            desc='Test a group name that is too long %r' % invalidgroup2,
-            command=('group_add', [invalidgroup2], dict(description=u'Test')),
-            expected=errors.ValidationError(name='cn', error='can be at most 33 characters'),
-        ),
 
         ##### managed entry tests
         dict(

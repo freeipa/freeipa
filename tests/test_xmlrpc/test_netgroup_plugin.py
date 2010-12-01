@@ -495,7 +495,7 @@ class test_netgroup(Declarative):
                     ),
                     memberuser=dict(
                         group=tuple(),
-                        user=[('%s' % user1, u'This entry is already a member of the group')],
+                        user=[('%s' % user1, u'This entry is already a member')],
                     ),
                     memberhost=dict(
                         hostgroup=tuple(),
@@ -528,7 +528,7 @@ class test_netgroup(Declarative):
                         netgroup=tuple(),
                     ),
                     memberuser=dict(
-                        group=[('%s' % group1, u'This entry is already a member of the group')],
+                        group=[('%s' % group1, u'This entry is already a member')],
                         user=tuple(),
                     ),
                     memberhost=dict(
@@ -568,7 +568,7 @@ class test_netgroup(Declarative):
                     ),
                     memberhost=dict(
                         hostgroup=tuple(),
-                        host=[('%s' % host1, u'This entry is already a member of the group')],
+                        host=[('%s' % host1, u'This entry is already a member')],
                     ),
                 ),
                 result={
@@ -602,7 +602,7 @@ class test_netgroup(Declarative):
                         user=tuple(),
                     ),
                     memberhost=dict(
-                        hostgroup=[('%s' % hostgroup1, u'This entry is already a member of the group')],
+                        hostgroup=[('%s' % hostgroup1, u'This entry is already a member')],
                         host=tuple(),
                     ),
                 ),
@@ -907,7 +907,7 @@ class test_netgroup(Declarative):
                     ),
                     memberhost=dict(
                         hostgroup=tuple(),
-                        host=[('%s' % host1, u'This entry is not a member of the group')]
+                        host=[('%s' % host1, u'This entry is not a member')]
                     ),
                 ),
                 result={
@@ -937,7 +937,7 @@ class test_netgroup(Declarative):
                         user=tuple(),
                     ),
                     memberhost=dict(
-                        hostgroup=[('%s' % hostgroup1, u'This entry is not a member of the group')],
+                        hostgroup=[('%s' % hostgroup1, u'This entry is not a member')],
                         host=tuple(),
                     ),
                 ),
@@ -965,7 +965,7 @@ class test_netgroup(Declarative):
                     ),
                     memberuser=dict(
                         group=tuple(),
-                        user=[('%s' % user1, u'This entry is not a member of the group')],
+                        user=[('%s' % user1, u'This entry is not a member')],
                     ),
                     memberhost=dict(
                         hostgroup=tuple(),
@@ -995,7 +995,7 @@ class test_netgroup(Declarative):
                         netgroup=tuple(),
                     ),
                     memberuser=dict(
-                        group= [('%s' % group1, u'This entry is not a member of the group')],
+                        group= [('%s' % group1, u'This entry is not a member')],
                         user=tuple(),
                     ),
                     memberhost=dict(
@@ -1023,7 +1023,7 @@ class test_netgroup(Declarative):
                 completed=0,
                 failed=dict(
                     member=dict(
-                        netgroup=[('%s' % netgroup2, u'This entry is not a member of the group')],
+                        netgroup=[('%s' % netgroup2, u'This entry is not a member')],
                     ),
                     memberuser=dict(
                         group=tuple(),

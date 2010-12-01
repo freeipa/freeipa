@@ -28,11 +28,11 @@ existing entries or adding or deleting new ones. The goal of the ACIs
 that ship with IPA is to provide a set of low-level permissions that
 grant access to special groups called taskgroups. These low-level
 permissions can be combined into roles that grant broader access. These
-roles are another type of group, rolegroups.
+roles are another type of group, roles.
 
 For example, if you have taskgroups that allow adding and modifying users you
-could create a rolegroup, useradmin. You would assign users to the useradmin
-rolegroup to allow them to do the operations defined by the taskgroups.
+could create a role, useradmin. You would assign users to the useradmin
+role to allow them to do the operations defined by the taskgroups.
 
 You can create ACIs that delegate permission so users in group A can write
 attributes on group B.
@@ -64,7 +64,7 @@ be editabe.
 
 The bind rule defines who this ACI grants permissions to. The LDAP server
 allows this to be any valid LDAP entry but we encourage the use of
-taskgroups so that the rights can be easily shared through rolegroups.
+taskgroups so that the rights can be easily shared through roles.
 
 For a more thorough description of access controls see
 http://www.redhat.com/docs/manuals/dir-server/ag/8.0/Managing_Access_Control.html
@@ -79,6 +79,9 @@ EXAMPLES:
 
  Add an ACI that allows members of the "addusers" taskgroup to add new users:
    ipa aci-add --type=user --taskgroup=addusers --permissions=add "Add new users"
+
+ Add an ACI that lets members of the edotors manage members of the admins group:
+   ipa aci-add --permissions=write --attrs=member --targetgroup=admins --group=editors "Editors manage admins"
 
 The show command shows the raw 389-ds ACI.
 
@@ -148,25 +151,25 @@ def _make_aci(current, aciname, kw):
         raise errors.ValidationError(name='target', error=_('at least one of: type, filter, subtree, targetgroup, attrs or memberof are required'))
 
     group = 'group' in kw
-    taskgroup = 'taskgroup' in kw
+    permission = 'permission' in kw
     selfaci = 'selfaci' in kw and kw['selfaci'] == True
-    if group + taskgroup + selfaci > 1:
-        raise errors.ValidationError(name='target', error=_('group, taskgroup and self are mutually exclusive'))
-    elif group + taskgroup + selfaci == 0:
-        raise errors.ValidationError(name='target', error=_('One of group, taskgroup or self is required'))
+    if group + permission + selfaci > 1:
+        raise errors.ValidationError(name='target', error=_('group, permission and self are mutually exclusive'))
+    elif group + permission + selfaci == 0:
+        raise errors.ValidationError(name='target', error=_('One of group, permission or self is required'))
 
     # Grab the dn of the group we're granting access to. This group may be a
-    # taskgroup or a user group.
+    # permission or a user group.
     entry_attrs = []
-    if taskgroup:
+    if permission:
+        # This will raise NotFound if the permission doesn't exist
         try:
-            entry_attrs = api.Command['taskgroup_show'](kw['taskgroup'])['result']
-        except errors.NotFound:
-            # The task group doesn't exist, let's be helpful and add it
-            tgkw = {'description': aciname}
-            entry_attrs = api.Command['taskgroup_add'](
-                kw['taskgroup'], **tgkw
-            )['result']
+            entry_attrs = api.Command['permission_show'](kw['permission'])['result']
+        except errors.NotFound, e:
+            if 'test' in kw and not kw.get('test'):
+                raise e
+            else:
+                entry_attrs = {'dn': 'cn=%s,%s' % (kw['permission'], api.env.container_permission)}
     elif group:
         # Not so friendly with groups. This will raise
         try:
@@ -186,7 +189,7 @@ def _make_aci(current, aciname, kw):
         a.set_target_attr(kw['attrs'])
     if 'memberof' in kw:
         entry_attrs = api.Command['group_show'](kw['memberof'])['result']
-        a.set_target_filter('memberOf=%s' % dn)
+        a.set_target_filter('memberOf=%s' % entry_attrs['dn'])
     if 'filter' in kw:
         a.set_target_filter(kw['filter'])
     if 'type' in kw:
@@ -195,7 +198,7 @@ def _make_aci(current, aciname, kw):
     if 'targetgroup' in kw:
         # Purposely no try here so we'll raise a NotFound
         entry_attrs = api.Command['group_show'](kw['targetgroup'])['result']
-        target = 'ldap:///%s' % dn
+        target = 'ldap:///%s' % entry_attrs['dn']
         a.set_target(target)
     if 'subtree' in kw:
         # See if the subtree is a full URI
@@ -206,7 +209,7 @@ def _make_aci(current, aciname, kw):
 
     return a
 
-def _aci_to_kw(ldap, a):
+def _aci_to_kw(ldap, a, test=False):
     """Convert an ACI into its equivalent keywords.
 
        This is used for the modify operation so we can merge the
@@ -254,11 +257,20 @@ def _aci_to_kw(ldap, a):
         pass
     else:
         if groupdn.startswith('cn='):
-            (dn, entry_attrs) = ldap.get_entry(groupdn, ['cn'])
-            if api.env.container_taskgroup in dn:
-                kw['taskgroup'] = entry_attrs['cn'][0]
+            dn = ''
+            entry_attrs = {}
+            try:
+                (dn, entry_attrs) = ldap.get_entry(groupdn, ['cn'])
+            except errors.NotFound, e:
+                # FIXME, use real name here
+                if test:
+                    dn = 'cn=%s,%s' % ('test', api.env.container_permission)
+                    entry_attrs = {'cn': [u'test']}
+            if api.env.container_permission in dn:
+                kw['permission'] = entry_attrs['cn'][0]
             else:
-                kw['group'] = entry_attrs['cn'][0]
+                if 'cn' in entry_attrs:
+                    kw['group'] = entry_attrs['cn'][0]
 
     return kw
 
@@ -299,6 +311,7 @@ class aci(Object):
     """
     ACI object.
     """
+    INTERNAL = True
 
     label = _('ACIs')
 
@@ -308,10 +321,10 @@ class aci(Object):
             label=_('ACI name'),
             primary_key=True,
         ),
-        Str('taskgroup?',
-            cli_name='taskgroup',
-            label=_('Taskgroup'),
-            doc=_('Taskgroup ACI grants access to'),
+        Str('permission?',
+            cli_name='permission',
+            label=_('Permission'),
+            doc=_('Permission ACI grants access to'),
         ),
         Str('group?',
             cli_name='group',
@@ -370,7 +383,15 @@ class aci_add(crud.Create):
     """
     Create new ACI.
     """
+    INTERNAL = True
     msg_summary = _('Created ACI "%(value)s"')
+
+    takes_options = (
+        Flag('test?',
+             doc=_('Test the ACI syntax but don\'t write anything'),
+             default=False,
+        ),
+    )
 
     def execute(self, aciname, **kw):
         """
@@ -390,18 +411,20 @@ class aci_add(crud.Create):
 
         acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
         for a in acis:
-            if a.isequal(newaci):
+            # FIXME: add check for permission_group = permission_group
+            if a.isequal(newaci) or newaci.name == a.name:
                 raise errors.DuplicateEntry()
 
         newaci_str = unicode(newaci)
         entry_attrs['aci'].append(newaci_str)
 
-        ldap.update_entry(dn, entry_attrs)
+        if not kw.get('test', False):
+            ldap.update_entry(dn, entry_attrs)
 
         if kw.get('raw', False):
             result = dict(aci=unicode(newaci_str))
         else:
-            result = _aci_to_kw(ldap, newaci)
+            result = _aci_to_kw(ldap, newaci, kw.get('test', False))
         return dict(
             result=result,
             value=aciname,
@@ -414,6 +437,7 @@ class aci_del(crud.Delete):
     """
     Delete ACI.
     """
+    INTERNAL = True
     has_output = output.standard_delete
     msg_summary = _('Deleted ACI "%(value)s"')
 
@@ -454,6 +478,7 @@ class aci_mod(crud.Update):
     """
     Modify ACI.
     """
+    INTERNAL = True
     has_output_params = (
         Str('aci',
             label=_('ACI'),
@@ -485,6 +510,8 @@ class aci_mod(crud.Update):
         # _make_aci is what is run in aci_add and validates the input.
         # Do this before we delete the existing ACI.
         newaci = _make_aci(None, aciname, newkw)
+        if aci.isequal(newaci):
+            raise errors.EmptyModlist()
 
         self.api.Command['aci_del'](aciname)
 
@@ -522,6 +549,7 @@ class aci_find(crud.Search):
     have ipausers as a memberof. There may be other ACIs that apply to
     members of that group indirectly.
     """
+    INTERNAL = True
     msg_summary = ngettext('%(count)d ACI matched', '%(count)d ACIs matched', 0)
 
     def execute(self, term, **kw):
@@ -560,10 +588,10 @@ class aci_find(crud.Search):
                     results.remove(a)
             acis = list(results)
 
-        if 'taskgroup' in kw:
+        if 'permission' in kw:
             try:
-                self.api.Command['taskgroup_show'](
-                    kw['taskgroup']
+                self.api.Command['permission_show'](
+                    kw['permission']
                 )
             except errors.NotFound:
                 pass
@@ -600,7 +628,24 @@ class aci_find(crud.Search):
                 # uncomment next line if you add more search criteria
                 # acis = list(results)
 
-        # TODO: searching by: type, filter, subtree
+        for a in acis:
+            if 'target' in a.target:
+                target = a.target['target']['expression']
+            else:
+                results.remove(a)
+                continue
+            found = False
+            for k in _type_map.keys():
+                if _type_map[k] == target and 'type' in kw and kw['type'] == k:
+                    found = True
+                    break;
+            if not found:
+                try:
+                    results.remove(a)
+                except ValueError:
+                    pass
+
+        # TODO: searching by: filter, subtree
 
         acis = []
         for result in results:
@@ -623,6 +668,7 @@ class aci_show(crud.Retrieve):
     """
     Display a single ACI given an ACI name.
     """
+    INTERNAL = True
 
     has_output_params = (
         Str('aci',
@@ -656,3 +702,64 @@ class aci_show(crud.Retrieve):
         )
 
 api.register(aci_show)
+
+
+class aci_rename(crud.Update):
+    """
+    Rename an ACI.
+    """
+    INTERNAL = True
+    has_output_params = (
+        Str('aci',
+            label=_('ACI'),
+        ),
+    )
+
+    takes_options = (
+        Str('newname',
+             doc=_('New ACI name'),
+        ),
+    )
+
+    msg_summary = _('Renameed ACI to "%(value)s"')
+
+    def execute(self, aciname, **kw):
+        ldap = self.api.Backend.ldap2
+
+        (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
+
+        acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
+        aci = _find_aci_by_name(acis, aciname)
+
+        for a in acis:
+            if kw['newname'] == a.name:
+                raise errors.DuplicateEntry()
+
+        # The strategy here is to convert the ACI we're updating back into
+        # a series of keywords. Then we replace any keywords that have been
+        # updated and convert that back into an ACI and write it out.
+        newkw =  _aci_to_kw(ldap, aci)
+        if 'selfaci' in newkw and newkw['selfaci'] == True:
+            # selfaci is set in aci_to_kw to True only if the target is self
+            kw['selfaci'] = True
+        if 'aciname' in newkw:
+            del newkw['aciname']
+
+        # _make_aci is what is run in aci_add and validates the input.
+        # Do this before we delete the existing ACI.
+        newaci = _make_aci(None, kw['newname'], newkw)
+
+        self.api.Command['aci_del'](aciname)
+
+        result = self.api.Command['aci_add'](kw['newname'], **newkw)['result']
+
+        if kw.get('raw', False):
+            result = dict(aci=unicode(newaci))
+        else:
+            result = _aci_to_kw(ldap, newaci)
+        return dict(
+            result=result,
+            value=kw['newname'],
+        )
+
+api.register(aci_rename)

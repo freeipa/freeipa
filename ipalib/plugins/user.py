@@ -70,7 +70,7 @@ class user(LDAPObject):
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
-        'memberof': ['group', 'netgroup', 'rolegroup', 'taskgroup'],
+        'memberof': ['group', 'netgroup', 'role'],
     }
     rdnattr = 'uid'
 

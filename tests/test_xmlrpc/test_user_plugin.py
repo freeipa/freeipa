@@ -201,8 +201,6 @@ class test_user(Declarative):
                         sn=[u'Administrator'],
                         uid=[u'admin'],
                         memberof_group=[u'admins'],
-                        memberof_rolegroup=[u'hostadmin', u'replicaadmin'],
-                        memberof_taskgroup=[u'addhosts', u'removehosts', u'modifyhosts', u'manage_host_keytab', u'enroll_host', u'managereplica', u'deletereplica'],
                         nsaccountlock=[u'False'],
                     ),
                     dict(
@@ -237,8 +235,6 @@ class test_user(Declarative):
                         sn=[u'Administrator'],
                         uid=[u'admin'],
                         memberof_group=[u'admins'],
-                        memberof_rolegroup=[u'hostadmin', u'replicaadmin'],
-                        memberof_taskgroup=[u'addhosts', u'removehosts', u'modifyhosts', u'manage_host_keytab', u'enroll_host', u'managereplica', u'deletereplica'],
                         nsaccountlock=[u'False'],
                     ),
                 ],

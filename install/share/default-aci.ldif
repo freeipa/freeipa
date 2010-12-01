@@ -39,6 +39,7 @@ dn: cn=services,cn=accounts,$SUFFIX
 changetype: modify
 add: aci
 aci: (targetattr="krbPrincipalName || krbCanonicalName || krbUPEnabled || krbPrincipalKey || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData")(version 3.0; acl "KDC System Account"; allow (read, search, compare, write) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
+aci: (targetattr = "krbPrincipalKey || krbLastPwdChange")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Admins can manage service keytab";allow (write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 
 # Define which hosts can edit services
 # The managedby attribute stores the DN of hosts that are allowed to manage
@@ -63,3 +64,7 @@ changetype: modify
 add: aci
 aci: (targetattr="userCertificate || krbPrincipalKey")(version 3.0; acl "Hosts can manage other host Certificates and kerberos keys"; allow(write) userattr = "parent[0,1].managedby#USERDN";)
 
+dn: cn=computers,cn=accounts,$SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr = "krbPrincipalKey || krbLastPwdChange")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Admins can manage host keytab";allow (write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)

@@ -47,7 +47,7 @@ EXAMPLES:
 
  Allow a host to manage an IPA service certificate:
   ipa service-add-host --hosts=web.example.com HTTP/web.example.com
-  ipa rolegroup-add-member --hosts=web.example.com certadmin
+  ipa role-add-member --hosts=web.example.com certadmin
 
  Delete an IPA service:
    ipa service-del HTTP/web.example.com

@@ -961,12 +961,12 @@ class NotGroupMember(ExecutionError):
     >>> raise NotGroupMember()
     Traceback (most recent call last):
       ...
-    NotGroupMember: This entry is not a member of the group
+    NotGroupMember: This entry is not a member
 
     """
 
     errno = 4012
-    format = _('This entry is not a member of the group')
+    format = _('This entry is not a member')
 
 class RecursiveGroup(ExecutionError):
     """
@@ -993,12 +993,12 @@ class AlreadyGroupMember(ExecutionError):
     >>> raise AlreadyGroupMember()
     Traceback (most recent call last):
       ...
-    AlreadyGroupMember: This entry is already a member of the group
+    AlreadyGroupMember: This entry is already a member
 
     """
 
     errno = 4014
-    format = _('This entry is already a member of the group')
+    format = _('This entry is already a member')
 
 class Base64DecodeError(ExecutionError):
     """

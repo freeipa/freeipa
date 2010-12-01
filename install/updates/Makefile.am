@@ -13,9 +13,6 @@ app_DATA =				\
 	30-hbacsvc.update		\
 	30-groupofhosts.update		\
 	30-netgroups.update		\
-	30-rolegroup.update		\
-	30-taskgroup.update		\
-	40-delegation.update		\
 	$(NULL)
 
 EXTRA_DIST =				\

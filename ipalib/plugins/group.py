@@ -89,8 +89,8 @@ class group(LDAPObject):
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'member': ['user', 'group'],
-        'memberof': ['group', 'netgroup', 'rolegroup', 'taskgroup'],
-        'memberindirect': ['user', 'group', 'netgroup', 'rolegroup', 'taskgroup'],
+        'memberof': ['group', 'netgroup', 'role',],
+        'memberindirect': ['user', 'group', 'netgroup', 'role'],
     }
     rdnattr = 'cn'
 

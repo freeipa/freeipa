@@ -3,4 +3,29 @@ changetype: add
 objectClass: nsContainer
 objectClass: top
 cn: dns
-aci: (targetfilter = "(objectClass=idnsRecord)")(targetattr != "aci")(version 3.0; acl "DNS Servers Updates"; allow (add,write,delete) groupdn = "ldap:///cn=update_dns,cn=taskgroups,cn=accounts,$SUFFIX";)
+aci: (targetfilter = "(objectClass=idnsRecord)")(targetattr != "aci")(version 3.0; acl "DNS Servers Updates"; allow (add,write,delete) groupdn = "ldap:///cn=update_dns,cn=permissions,cn=accounts,$SUFFIX";)
+
+dn: cn=update_dns,cn=permissions,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: update_dns
+description: DNS Servers Updates
+member: cn=dnsadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=dnsserver,cn=privileges,cn=accounts,$SUFFIX
+
+dn: cn=dnsadmin,cn=privileges,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: dnsadmin
+description: DNS Administrators
+
+dn: cn=dnsserver,cn=privileges,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: dnsserver
+description: DNS Servers

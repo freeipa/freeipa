@@ -61,13 +61,19 @@ hostgroup = [
     u'top',
 ]
 
-rolegroup = [
+role = [
     u'groupofnames',
     u'nestedgroup',
     u'top',
 ]
 
-taskgroup = [
+permission = [
+    u'groupofnames',
+    u'top'
+]
+
+privilege = [
+    u'nestedgroup',
     u'groupofnames',
     u'top'
 ]
