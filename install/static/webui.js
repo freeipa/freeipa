@@ -93,8 +93,20 @@ IPA.tab_state = function(entity_name){
     }
 }
 
+
+
 /* main (document onready event handler) */
 $(function() {
+
+    function should_show_all_ui(){
+        var whoami = IPA.whoami;
+
+        if (whoami.hasOwnProperty('memberof_group') &&
+            whoami.memberof_group.indexOf('admins')  !== -1) return true;
+
+        return whoami.hasOwnProperty('memberof_rolegroup') &&
+            whoami.memberof_rolegroup.length > 0;
+    }
 
 
     function init_on_win(data, text_status, xhr) {
@@ -113,8 +125,7 @@ $(function() {
 
         var navigation = $('#navigation');
 
-        if (whoami.hasOwnProperty('memberof_rolegroup') &&
-            whoami.memberof_rolegroup.length > 0){
+        if (should_show_all_ui()){
             IPA.tab_set = admin_tab_set;
             nav_create(admin_tab_set, navigation, 'tabs');
         } else {
