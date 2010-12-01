@@ -884,7 +884,7 @@ function ipa_hbac_accesstime_widget(spec) {
         for (var i=0; values && i<values.length; i++) {
             var record = {};
             record[that.name] = values[i];
-            that.table.add_row(record);
+            that.table.add_record(record);
         }
     };
 

@@ -2,7 +2,7 @@
     "error": null,
     "id": 0,
     "result": {
-        "count": 7,
+        "count": 10,
         "result": [
             {
                 "cn": [
@@ -66,6 +66,33 @@
                     "sudo-i"
                 ],
                 "dn": "cn=sudo-i,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "gdm"
+                ],
+                "description": [
+                    "gdm"
+                ],
+                "dn": "cn=gdm,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "gdm-password"
+                ],
+                "description": [
+                    "gdm-password"
+                ],
+                "dn": "cn=gdm-password,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "kdm"
+                ],
+                "description": [
+                    "kdm"
+                ],
+                "dn": "cn=kdm,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
             }
         ],
         "summary": null,

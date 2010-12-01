@@ -377,6 +377,11 @@ IPA.nested_tabs = function(entity_name){
 
     var siblings = [];
 
+    if (!IPA.tab_set) {
+        siblings.push(entity_name);
+        return siblings;
+    }
+
     for (var top_tab_index = 0;
          top_tab_index < IPA.tab_set.length;
          top_tab_index += 1){
@@ -479,20 +484,7 @@ function ipa_facet_create_action_panel(container) {
             for (var i=1; i<entity.facets.length; i++) {
                 other_facet = entity.facets[i];
                 other_facet_name = other_facet.name;
-
-                if (other_facet.label) {
-                    ul.append(build_link(other_facet,other_facet.label));
-                } else { // For now empty label indicates an association facet
-                    var attribute_members = IPA.metadata[entity_name].attribute_members;
-                    for (var attribute_member in attribute_members) {
-                        var other_entities = attribute_members[attribute_member];
-                        for (var j = 0; j < other_entities.length; j++) {
-                            var other_entity = other_entities[j];
-                            var label = IPA.metadata[other_entity].label;
-                            ul.append(build_link(other_facet,label,other_entity));
-                        }
-                    }
-                }
+                ul.append(build_link(other_facet,other_facet.label));
             }
         }else{
             $('<li/>', {
@@ -507,7 +499,7 @@ function ipa_facet_create_action_panel(container) {
                     return false;
                 }
             }).appendTo(ul);
-         }
+        }
     }
     /*When we land on the search page, disable all facets
           that require a pkey until one is selected*/

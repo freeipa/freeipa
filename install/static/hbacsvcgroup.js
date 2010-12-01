@@ -169,7 +169,8 @@ function ipa_hbacsvcgroup_member_hbacsvc_facet(spec) {
         var column = that.create_column({
             name: 'cn',
             label: 'Service',
-            primary_key: true
+            primary_key: true,
+            width: '150px'
         });
 
         column.setup = function(container, record) {
@@ -193,7 +194,24 @@ function ipa_hbacsvcgroup_member_hbacsvc_facet(spec) {
             }).appendTo(container);
         };
 
-        that.create_column({name: 'description', label: 'Description'});
+        that.create_column({
+            name: 'description',
+            label: 'Description',
+            width: '150px'
+        });
+
+        that.create_adder_column({
+            name: 'cn',
+            label: 'Service',
+            primary_key: true,
+            width: '100px'
+        });
+
+        that.create_adder_column({
+            name: 'description',
+            label: 'Description',
+            width: '100px'
+        });
 
         that.association_facet_init();
     };

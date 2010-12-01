@@ -152,9 +152,13 @@ function ipa_association_adder_dialog(spec) {
             var pkey_name = IPA.metadata[that.other_entity].primary_key;
             that.create_column({
                 name: pkey_name,
-                primary_key: true
+                label: IPA.metadata[that.other_entity].label,
+                primary_key: true,
+                width: '200px'
             });
         }
+
+        that.adder_dialog_init();
     };
 
     that.search = function() {
@@ -170,7 +174,7 @@ function ipa_association_adder_dialog(spec) {
         }
 
         var filter = that.get_filter();
-        ipa_cmd('find', [filter], {}, on_success, null, that.other_entity);
+        ipa_cmd('find', [filter], {'all': true}, on_success, null, that.other_entity);
     };
 
     that.add = function() {
@@ -252,12 +256,10 @@ function ipa_association_table_widget(spec) {
     that.facet = spec.facet;
     that.other_entity = spec.other_entity;
 
-    that.superior_create = that.superior('create');
+    that.add = spec.add;
+    that.remove = spec.remove;
 
     that.create = function(container) {
-
-        that.member_attribute = ipa_get_member_attribute(
-            that.entity_name, that.other_entity);
 
         if (!that.columns.length) {
             var pkey_name = IPA.metadata[that.other_entity].primary_key;
@@ -290,7 +292,7 @@ function ipa_association_table_widget(spec) {
             };
         }
 
-        that.superior_create(container);
+        that.table_create(container);
 
         var action_panel = that.facet.get_action_panel();
         var li = $('.action-controls', action_panel);
@@ -320,94 +322,15 @@ function ipa_association_table_widget(spec) {
         button.replaceWith(ipa_button({
             'label': button.val(),
             'icon': 'ui-icon-trash',
-            'click': function() { that.remove(that.container); }
+            'click': function() { that.remove(); }
         }));
 
         button = $('input[name=add]', action_panel);
         button.replaceWith(ipa_button({
             'label': button.val(),
             'icon': 'ui-icon-plus',
-            'click': function() { that.add(that.container) }
+            'click': function() { that.add() }
         }));
-
-        var entity = IPA.get_entity(that.entity_name);
-        var association = entity.get_association(that.other_entity);
-
-        if (association && association.associator == 'serial') {
-            that.associator = serial_associator;
-        } else {
-            that.associator = bulk_associator;
-        }
-
-        that.add_method = association ? association.add_method : null;
-        that.delete_method = association ? association.delete_method : null;
-
-        that.add_method = that.add_method || "add_member";
-        that.delete_method = that.delete_method || "remove_member";
-    };
-
-    that.add = function(container) {
-
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        var label = IPA.metadata[that.other_entity].label;
-        var title = 'Enroll '+that.entity_name+' '+pkey+' in '+label;
-
-        var dialog = ipa_association_adder_dialog({
-            'title': title,
-            'entity_name': that.entity_name,
-            'pkey': pkey,
-            'other_entity': that.other_entity,
-            'associator': that.associator,
-            'method': that.add_method,
-            'on_success': function() {
-                that.refresh();
-                dialog.close();
-            },
-            'on_error': function() {
-                that.refresh();
-                dialog.close();
-            }
-        });
-
-        dialog.init();
-
-        dialog.open(that.container);
-    };
-
-    that.remove = function(container) {
-
-        var values = that.get_selected_values();
-
-        if (!values.length) {
-            alert('Select '+that.label+' to be removed.');
-            return;
-        }
-
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        var label = IPA.metadata[that.other_entity].label;
-        var title = 'Remove '+label+' from '+that.entity_name+' '+pkey;
-
-        var dialog = ipa_association_deleter_dialog({
-            'title': title,
-            'entity_name': that.entity_name,
-            'pkey': pkey,
-            'other_entity': that.other_entity,
-            'values': values,
-            'associator': that.associator,
-            'method': that.delete_method,
-            'on_success': function() {
-                that.refresh();
-                dialog.close();
-            },
-            'on_error': function() {
-                that.refresh();
-                dialog.close();
-            }
-        });
-
-        dialog.init();
-
-        dialog.open(that.container);
     };
 
     that.get_records = function(pkeys, on_success, on_error) {
@@ -443,13 +366,14 @@ function ipa_association_table_widget(spec) {
             that.tbody.empty();
 
             var pkeys = data.result.result[that.name];
+            if (!pkeys) return;
 
             if (that.columns.length == 1) { // show pkey only
                 var name = that.columns[0].name;
                 for (var i=0; i<pkeys.length; i++) {
                     var record = {};
                     record[name] = pkeys[i];
-                    that.add_row(record);
+                    that.add_record(record);
                 }
 
             } else { // get and show additional fields
@@ -459,7 +383,7 @@ function ipa_association_table_widget(spec) {
                         var results = data.result.results;
                         for (var i=0; i<results.length; i++) {
                             var record = results[i].result;
-                            that.add_row(record);
+                            that.add_record(record);
                         }
                     }
                 );
@@ -488,8 +412,15 @@ function ipa_association_facet(spec) {
 
     that.other_entity = spec.other_entity;
 
+    that.associator = spec.associator || bulk_associator;
+    that.add_method = spec.add_method || 'add_member';
+    that.delete_method = spec.delete_method || 'remove_member';
+
     that.columns = [];
     that.columns_by_name = {};
+
+    that.adder_columns = [];
+    that.adder_columns_by_name = {};
 
     that.get_column = function(name) {
         return that.columns_by_name[name];
@@ -507,25 +438,42 @@ function ipa_association_facet(spec) {
         return column;
     };
 
+    that.get_adder_column = function(name) {
+        return that.adder_columns_by_name[name];
+    };
+
+    that.add_adder_column = function(column) {
+        column.entity_name = that.entity_name;
+        that.adder_columns.push(column);
+        that.adder_columns_by_name[column.name] = column;
+    };
+
+    that.create_adder_column = function(spec) {
+        var column = ipa_column(spec);
+        that.add_adder_column(column);
+        return column;
+    };
+
     that.is_dirty = function() {
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         return pkey != that.pkey || other_entity != that.other_entity;
     };
 
-    that.create = function(container) {
+    that.init = function() {
 
-        that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var entity = IPA.get_entity(that.entity_name);
+        var association = entity.get_association(that.other_entity);
+
+        if (association) {
+            if (association.associator) {
+                that.associator = association.associator == 'serial' ? serial_associator : bulk_associator;
+            }
+
+            if (association.add_method) that.add_method = association.add_method;
+            if (association.delete_method) that.delete_method = association.delete_method;
+        }
 
         var label = IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity;
-
-        //TODO I18N
-        var header_message = that.other_entity + '(s) enrolled in '  +
-            that.entity_name + ' ' + that.pkey;
-
-        $('<div/>', {
-            'id': that.entity_name+'-'+that.other_entity,
-            html: $('<h2/>',{ html:  header_message })
-        }).appendTo(container);
 
         that.table = ipa_association_table_widget({
             'id': that.entity_name+'-'+that.other_entity,
@@ -540,6 +488,25 @@ function ipa_association_facet(spec) {
             that.table.set_columns(that.columns);
         }
 
+        that.table.add = function() { that.add(); };
+        that.table.remove = function() { that.remove() };
+
+        that.facet_init();
+    };
+
+    that.create = function(container) {
+
+        that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+
+        //TODO I18N
+        var header_message = that.other_entity + '(s) enrolled in '  +
+            that.entity_name + ' ' + that.pkey;
+
+        $('<div/>', {
+            'id': that.entity_name+'-'+that.other_entity,
+            html: $('<h2/>',{ html:  header_message })
+        }).appendTo(container);
+
         var span = $('<span/>', { 'name': 'association' }).appendTo(container);
 
         that.table.create(span);
@@ -552,6 +519,74 @@ function ipa_association_facet(spec) {
         var span = $('span[name=association]', that.container);
 
         that.table.setup(span);
+    };
+
+    that.add = function() {
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var label = IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity;
+        var title = 'Enroll '+that.entity_name+' '+pkey+' in '+label;
+
+        var dialog = ipa_association_adder_dialog({
+            'title': title,
+            'entity_name': that.entity_name,
+            'pkey': pkey,
+            'other_entity': that.other_entity,
+            'associator': that.associator,
+            'method': that.add_method,
+            'on_success': function() {
+                that.refresh();
+                dialog.close();
+            },
+            'on_error': function() {
+                that.refresh();
+                dialog.close();
+            }
+        });
+
+        if (that.adder_columns.length) {
+            dialog.set_columns(that.adder_columns);
+        }
+
+        dialog.init();
+
+        dialog.open(that.container);
+    };
+
+    that.remove = function() {
+
+        var label = IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity;
+        var values = that.table.get_selected_values();
+
+        if (!values.length) {
+            alert('Select '+label+' to be removed.');
+            return;
+        }
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var title = 'Remove '+label+' from '+that.entity_name+' '+pkey;
+
+        var dialog = ipa_association_deleter_dialog({
+            'title': title,
+            'entity_name': that.entity_name,
+            'pkey': pkey,
+            'other_entity': that.other_entity,
+            'values': values,
+            'associator': that.associator,
+            'method': that.delete_method,
+            'on_success': function() {
+                that.refresh();
+                dialog.close();
+            },
+            'on_error': function() {
+                that.refresh();
+                dialog.close();
+            }
+        });
+
+        dialog.init();
+
+        dialog.open(that.container);
     };
 
     that.refresh = function(){

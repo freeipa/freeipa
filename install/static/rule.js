@@ -160,7 +160,7 @@ function ipa_rule_association_widget(spec) {
         for (var i=0; values && i<values.length; i++) {
             var record = {};
             record[that.name] = values[i];
-            that.add_row(record);
+            that.add_record(record);
         }
     };
 

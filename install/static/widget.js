@@ -32,6 +32,9 @@ function ipa_widget(spec) {
     that.read_only = spec.read_only;
     that._entity_name = spec.entity_name;
 
+    that.width = spec.width;
+    that.height = spec.height;
+
     that.undo = typeof spec.undo == 'undefined' ? true : spec.undo;
 
     that.init = spec.init || init;
@@ -433,6 +436,8 @@ function ipa_column(spec) {
     that.primary_key = spec.primary_key;
     that.setup = spec.setup || setup;
 
+    that.width = spec.width;
+
     function setup(container, record) {
 
         container.empty();
@@ -452,8 +457,7 @@ function ipa_table_widget(spec) {
 
     var that = ipa_widget(spec);
 
-    that.add = spec.add;
-    that.remove = spec.remove;
+    that.scrollable = spec.scrollable;
 
     that.columns = [];
     that.columns_by_name = {};
@@ -498,10 +502,14 @@ function ipa_table_widget(spec) {
 
         var thead = $('<thead/>').appendTo(table);
 
+        if (that.scrollable) {
+            thead.css('display', 'block');
+        }
+
         var tr = $('<tr/>').appendTo(thead);
 
         var th = $('<th/>', {
-            'style': 'width: 25px;'
+            'style': 'width: 22px;'
         }).appendTo(tr);
 
         $('<input/>', {
@@ -511,7 +519,20 @@ function ipa_table_widget(spec) {
 
         for (var i=0; i<that.columns.length; i++) {
             var column = that.columns[i];
+
             th = $('<th/>').appendTo(tr);
+
+            if (that.scrollable && (i == that.columns.length-1)) {
+                if (column.width) {
+                    var width = parseInt(column.width.substring(0, column.width.length-2));
+                    width += 16;
+                    th.css('width', width+'px');
+                }
+            } else {
+                if (column.width) {
+                    th.css('width', column.width);
+                }
+            }
 
             var label = column.label;
 
@@ -530,9 +551,20 @@ function ipa_table_widget(spec) {
 
         var tbody = $('<tbody/>').appendTo(table);
 
+        if (that.scrollable) {
+            tbody.css('display', 'block');
+            tbody.css('overflow', 'auto');
+        }
+
+        if (that.height) {
+            tbody.css('height', that.height);
+        }
+
         tr = $('<tr/>').appendTo(tbody);
 
-        var td = $('<td/>').appendTo(tr);
+        var td = $('<td/>', {
+            'style': 'width: 22px;'
+        }).appendTo(tr);
 
         $('<input/>', {
             'type': 'checkbox',
@@ -541,10 +573,15 @@ function ipa_table_widget(spec) {
         }).appendTo(td);
 
         for (var i=0; i<that.columns.length; i++) {
+            var column = that.columns[i];
+
             td = $('<td/>').appendTo(tr);
+            if (column.width) {
+                td.css('width', column.width);
+            }
 
             $('<span/>', {
-                'name': that.columns[i].name
+                'name': column.name
             }).appendTo(td);
         }
 
@@ -591,16 +628,20 @@ function ipa_table_widget(spec) {
         that.row.detach();
     };
 
+    that.empty = function() {
+        that.tbody.empty();
+    };
+
     that.load = function(result) {
 
-        that.tbody.empty();
+        that.empty();
 
         var values = result[that.name];
         if (!values) return;
 
         for (var i=0; i<values.length; i++) {
             var record = that.get_record(result, i);
-            that.add_row(record);
+            that.add_record(record);
         }
     };
 
@@ -614,7 +655,7 @@ function ipa_table_widget(spec) {
         return values;
     };
 
-    that.get_selected_values = function(container) {
+    that.get_selected_values = function() {
         var values = [];
 
         $('input[name="select"]:checked', that.tbody).each(function() {
@@ -635,7 +676,7 @@ function ipa_table_widget(spec) {
         return record;
     };
 
-    that.add_row = function(record) {
+    that.add_record = function(record) {
 
         var tr = that.row.clone();
         tr.appendTo(that.tbody);
@@ -660,6 +701,23 @@ function ipa_table_widget(spec) {
 
             column.setup(span, record);
         }
+    };
+
+    that.add_rows = function(rows) {
+        for (var i=0; i<rows.length; i++) {
+            that.tbody.append(rows[i]);
+        }
+    };
+
+    that.remove_selected_rows = function() {
+        var rows = [];
+        that.tbody.children().each(function() {
+            var tr = $(this);
+            if (!$('input[name="select"]', tr).get(0).checked) return;
+            tr.detach();
+            rows.push(tr);
+        });
+        return rows;
     };
 
     that.refresh = function() {
@@ -849,7 +907,7 @@ function ipa_adder_dialog(spec) {
 
     var that = ipa_dialog(spec);
 
-    that.width = spec.width || 600;
+    that.width = spec.width || '600px';
 
     that.columns = [];
     that.columns_by_name = {};
@@ -864,10 +922,40 @@ function ipa_adder_dialog(spec) {
         that.columns_by_name[column.name] = column;
     };
 
+    that.set_columns = function(columns) {
+        that.clear_columns();
+        for (var i=0; i<columns.length; i++) {
+            that.add_column(columns[i]);
+        }
+    };
+
+    that.clear_columns = function() {
+        that.columns = [];
+        that.columns_by_name = {};
+    };
+
     that.create_column = function(spec) {
         var column = ipa_column(spec);
         that.add_column(column);
         return column;
+    };
+
+    that.init = function() {
+        that.available_table = ipa_table_widget({
+            name: 'available',
+            scrollable: true,
+            height: 150
+        });
+
+        that.available_table.set_columns(that.columns);
+
+        that.selected_table = ipa_table_widget({
+            name: 'selected',
+            scrollable: true,
+            height: 150
+        });
+
+        that.selected_table.set_columns(that.columns);
     };
 
     that.create = function() {
@@ -888,23 +976,35 @@ function ipa_adder_dialog(spec) {
         var results_panel = $('<div/>').appendTo(that.container);
         results_panel.css('border', '2px solid rgb(0, 0, 0)');
         results_panel.css('position', 'relative');
+        results_panel.css('width', '100%');
         results_panel.css('height', '200px');
 
-        var available_panel = $('<div/>').appendTo(results_panel);
-        available_panel.css('float', 'left');
+        var available_title = $('<div/>', {
+            html: 'Available',
+            style: 'float: left; width: 250px;'
+        }).appendTo(results_panel);
 
-        $('<div/>', {
-            text: 'Available'
-        }).appendTo(available_panel);
+        var buttons_title = $('<div/>', {
+            html: '&nbsp;',
+            style: 'float: left; width: 50px;'
+        }).appendTo(results_panel);
 
-        that.available_list = $('<select/>', {
-            width: '150px',
-            size: '10',
-            multiple: 'true'
-        }).appendTo(available_panel);
+        var selected_title = $('<div/>', {
+            html: 'Prospective',
+            style: 'float: left; width: 250px;'
+        }).appendTo(results_panel);
 
-        var buttons_panel = $('<div/>').appendTo(results_panel);
-        buttons_panel.css('float', 'left');
+        var available_panel = $('<div/>', {
+            name: 'available',
+            style: 'clear:both; float: left; width: 250px; height: 150px;'
+        }).appendTo(results_panel);
+
+        that.available_table.create(available_panel);
+
+        var buttons_panel = $('<div/>', {
+            name: 'buttons',
+            style: 'float: left; width: 50px; height: 150px; text-align: center;'
+        }).appendTo(results_panel);
 
         var p = $('<p/>').appendTo(buttons_panel);
         that.remove_button = $('<input />', {
@@ -918,36 +1018,32 @@ function ipa_adder_dialog(spec) {
             value: '>>'
         }).appendTo(p);
 
-        var selected_panel = $('<div/>').appendTo(results_panel);
-        selected_panel.css('float', 'left');
+        var selected_panel = $('<div/>', {
+            name: 'selected',
+            style: 'float: left; width: 250px; height: 150px;'
+        }).appendTo(results_panel);
 
-        $('<div/>', {
-            text: 'Prospective'
-        }).appendTo(selected_panel);
-
-        that.selected_list = $('<select/>', {
-            width: '150px',
-            size: '10',
-            multiple: 'true'
-        }).appendTo(selected_panel);
+        that.selected_table.create(selected_panel);
     };
 
     that.setup = function() {
 
         // do not call that.dialog_setup();
 
+        var available_panel = $('div[name=available]', that.container);
+        that.available_table.setup(available_panel);
+
+        var selected_panel = $('div[name=selected]', that.container);
+        that.selected_table.setup(selected_panel);
+
         that.add_button.click(function(){
-            var values = $(':selected', that.available_list).detach();
-            values.each(function(i, selected){
-                that.selected_list.append(selected);
-            });
+            var rows = that.available_table.remove_selected_rows();
+            that.selected_table.add_rows(rows);
         });
 
         that.remove_button.click(function(){
-            var values = $(':selected', that.selected_list).detach();
-            values.each(function(i, selected){
-                that.available_list.append(selected);
-            });
+            var rows = that.selected_table.remove_selected_rows();
+            that.available_table.add_rows(rows);
         });
 
         that.find_button.click(function(){
@@ -969,44 +1065,26 @@ function ipa_adder_dialog(spec) {
     };
 
     that.clear_available_values = function() {
-        that.available_list.html('');
+        that.available_table.empty();
     };
 
     that.clear_selected_values = function() {
-        that.selected_list.html('');
+        that.selected_table.empty();
     };
 
     that.add_available_value = function(record) {
-
-        var name = that.columns[0].name;
-        var value = record[name];
-        value = value ? value.toString() : '';
-
-        $('<option></option>',{
-            'value': value,
-            'html': value
-        }).appendTo(that.available_list);
-    };
-
-    that.add_selected_value = function(value) {
-        $('<option></option>',{
-            'value': value,
-            'html': value
-        }).appendTo(that.available_list);
+        that.available_table.add_record(record);
     };
 
     that.get_selected_values = function() {
-        var values = [];
-        that.selected_list.children().each(function (i, selected) {
-            values.push(selected.value);
-        });
-        return values;
+        return that.selected_table.save();
     };
 
     that.close = function() {
         that.container.dialog('close');
     };
 
+    that.adder_dialog_init = that.init;
     that.adder_dialog_create = that.create;
     that.adder_dialog_setup = that.setup;
 

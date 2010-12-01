@@ -193,6 +193,19 @@ function ipa_group_member_user_facet(spec) {
         that.create_column({name: 'telephonenumber', label: 'Phone'});
         that.create_column({name: 'title', label: 'Job Title'});
 
+        that.create_adder_column({
+            name: 'cn',
+            label: 'Name',
+            width: '100px'
+        });
+
+        that.create_adder_column({
+            name: 'uid',
+            label: 'Login',
+            primary_key: true,
+            width: '100px'
+        });
+
         that.association_facet_init();
     };
 

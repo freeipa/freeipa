@@ -211,7 +211,7 @@ function ipa_search_widget(spec) {
             var result = data.result.result;
             for (var i = 0; i<result.length; i++) {
                 var record = that.get_record(result[i], 0);
-                that.add_row(record);
+                that.add_record(record);
             }
 
             var summary = $('span[name=summary]', that.tfoot);
