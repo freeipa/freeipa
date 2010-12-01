@@ -18,7 +18,7 @@ changetype: modify
 add: aci
 aci: (targetattr = "givenName || sn || cn || displayName || title || initials || loginShell || gecos || homePhone || mobile || pager || facsimileTelephoneNumber || telephoneNumber || street || roomNumber || l || st || postalCode || manager || secretary || description || carLicense || labeledURI || inetUserHTTPURL || seeAlso || employeeType  || businessCategory || ou")(version 3.0;acl "Self service";allow (write) userdn = "ldap:///self";)
 
-dn: cn=ipaConfig,cn=etc,$SUFFIX
+dn: cn=etc,$SUFFIX
 changetype: modify
 add: aci
 aci: (targetfilter = "(objectClass=ipaGuiConfig)")(targetattr != "aci")(version 3.0;acl "Admins can change GUI config"; allow (read, search, compare, write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)

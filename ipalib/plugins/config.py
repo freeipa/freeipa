@@ -49,8 +49,19 @@ how many records may be returned on a given search.
 Server Configuration.
 
   --enable-migration=BOOL Enable migration mode
-  --subject=STR           Base for certificate subjects (OU=Test,O=Example)
+  --pwdexpnotify=INT      Password Expiration Notification (days)
 
+The password notification value is stored here so it will be replicated.
+It is not currently used to notify users in advance of an expiring
+password.
+
+Some attributes are read-only, provided for information purposes. These
+include:
+
+Certificate Subject base: the configured certificate subject base,
+  e.g. O=EXAMPLE.COM.  This is configurable only at install time.
+Password plugin features: currently defines additional hashes that the
+  password will generate (there may be other conditions).
 """
 
 from ipalib import api
@@ -130,6 +141,29 @@ class config(LDAPObject):
             cli_name='subject',
             label=_('Certificate Subject base'),
             doc=_('Base for certificate subjects (OU=Test,O=Example)'),
+            flags=['no_update'],
+        ),
+        List('ipagroupobjectclasses?',
+            cli_name='groupobjectclasses',
+            label=_('Default group objectclasses'),
+            doc=_('Default group objectclassses (comma-separated list)'),
+        ),
+        List('ipauserobjectclasses?',
+            cli_name='userobjectclasses',
+            label=_('Default user objectclasses'),
+            doc=_('Default user objectclassses (comma-separated list)'),
+        ),
+        Int('ipapwdexpadvnotify?',
+            cli_name='pwdexpnotify',
+            label=_('Password Expiration Notification'),
+            doc=_('Password Expiration Notification (days)'),
+            minvalue=0,
+        ),
+        Str('ipaconfigstring?',
+            cli_name='ipaconfigstring',
+            label=_('Password plugin features'),
+            doc=_('Extra hashes to generate in password plugin'),
+            flags=['no_update'],
         ),
     )
 
