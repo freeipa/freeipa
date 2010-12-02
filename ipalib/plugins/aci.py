@@ -47,11 +47,23 @@ An ACI consists of three parts:
 3. bind rules
 
 The target is a set of rules that define which LDAP objects are being
-targetted. This can include a list of attributes, an area of that LDAP
+targeted. This can include a list of attributes, an area of that LDAP
 tree or an LDAP filter.
 
-The permissions define what the ACI is allowed to do, they are one or more
-of:
+The targets include:
+- attrs: list of attributes affected
+- type: an object type (user, group, host, service, etc)
+- memberof: members of a group
+- targetgroup: grant access to modify a specific group. This is primarily
+  designed to enable users to add or remove members of a specific group.
+- filter: A legal LDAP filter used to narrow the scope of the target.
+- subtree: Used to apply a rule across an entire set of objects. For example,
+  to allow adding users you need to grant "add" permission to the subtree
+  ldap://uid=*,cn=users,cn=accounts,dc=example,dc=com. The subtree option
+  is a fail-safe for objects that may not be covered by the type option.
+
+The permissions define what the the ACI is allowed to do, and are one or
+more of:
 1. write - write one or more attributes
 2. read - read one or more attributes
 3. add - add a new entry to the tree
@@ -71,17 +83,32 @@ http://www.redhat.com/docs/manuals/dir-server/ag/8.0/Managing_Access_Control.htm
 
 EXAMPLES:
 
+NOTE: ACIs are now added via the permision plugin. These examples are to
+demonstrate how the various options work but this is done via the permission
+command-line now (see last example).
+
  Add an ACI so that the group "secretaries" can update the address on any user:
+   ipa group-add --desc="Office secretaries" secretaries
    ipa aci-add --attrs=streetAddress --memberof=ipausers --group=secretaries --permissions=write "Secretaries write addresses"
 
  Show the new ACI:
    ipa aci-show "Secretaries write addresses"
 
- Add an ACI that allows members of the "addusers" taskgroup to add new users:
-   ipa aci-add --type=user --taskgroup=addusers --permissions=add "Add new users"
+ Add an ACI that allows members of the "addusers" permission to add new users:
+   ipa aci-add --type=user --permission=addusers --permissions=add "Add new users"
 
- Add an ACI that lets members of the edotors manage members of the admins group:
+ Add an ACI that allows members of the editors manage members of the admins group:
    ipa aci-add --permissions=write --attrs=member --targetgroup=admins --group=editors "Editors manage admins"
+
+ Add an ACI that allows members of the admin group to manage the street and zip code of those in the editors group:
+   ipa aci-add --permissions=write --memberof=editors --group=admins --attrs=street,postalcode "admins edit the address of editors"
+
+ Add an ACI that allows the admins group manage the street and zipcode of those who work for the boss:
+   ipa aci-add --permissions=write --group=admins --attrs=street,postalcode --filter="(manager=uid=boss,cn=users,cn=accounts,dc=example,dc=com)" "Edit the address of those who work for the boss"
+
+ Add an entirely new kind of record to IPA that isn't covered by any of the --type options, creating a permission:
+   ipa permission-add  --permissions=add --subtree="cn=*,cn=orange,cn=accounts,dc=example,dc=com" --desc="Add Orange Entries" add_orange
+
 
 The show command shows the raw 389-ds ACI.
 
