@@ -55,7 +55,7 @@ function ipa_hbacsvcgroup() {
 
         facet = ipa_hbacsvcgroup_member_hbacsvc_facet({
             'name': 'member_hbacsvc',
-            'label': 'Services',
+            'label': IPA.metadata['hbacsvc'].label+' '+IPA.messages.association.members,
             'other_entity': 'hbacsvc'
         });
         that.add_facet(facet);

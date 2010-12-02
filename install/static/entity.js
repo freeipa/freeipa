@@ -151,9 +151,7 @@ function ipa_entity(spec) {
         return config;
     };
 
-    that.create_association_facet = function(other_entity, attribute_member) {
-
-        var label = IPA.metadata[other_entity].label;
+    that.create_association_facet = function(attribute_member, other_entity, label) {
 
         if (!attribute_member) {
             attribute_member = ipa_get_member_attribute(
@@ -173,12 +171,30 @@ function ipa_entity(spec) {
         var attribute_members = IPA.metadata[that.name].attribute_members;
 
         for (var attribute_member in attribute_members) {
+
+            // skip non-assignable associations
+            if (attribute_member === 'memberindirect') continue;
+            if (attribute_member === 'enrolledby') continue;
+
             var other_entities = attribute_members[attribute_member];
 
             for (var j = 0; j < other_entities.length; j++) {
                 var other_entity = other_entities[j];
+                var other_entity_name = IPA.metadata[other_entity].label;
 
-                var facet = that.create_association_facet(other_entity, attribute_member);
+                var label = other_entity_name;
+
+                if (attribute_member.match(/^memberof$/)) {
+                    label = IPA.messages.association.membershipin+' '+other_entity_name;
+
+                } else if (attribute_member.match(/^member/)) {
+                    label = other_entity_name+' '+IPA.messages.association.members;
+
+                } else if (attribute_member.match(/^managedby$/)) {
+                    label = IPA.messages.association.managedby+' '+other_entity_name;
+                }
+
+                var facet = that.create_association_facet(attribute_member, other_entity, label);
                 if (that.get_facet(facet.name)) continue;
                 that.add_facet(facet);
             }

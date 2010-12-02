@@ -4846,6 +4846,11 @@
                     "ajax": {
                         "401": "Your kerberos ticket no longer valid.Please run KInit and then click 'retry'If this is your first time running the IPA Web UI<a href='/ipa/errors/ssbrowser.html'> Follow these directions</a> to configure your browser."
                     },
+                    "association": {
+                        "managedby": "Managed by",
+                        "members": "Members",
+                        "membershipin": "Membership in"
+                    },
                     "button": {
                         "add": "Add",
                         "enroll": "Enroll",

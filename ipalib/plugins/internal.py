@@ -97,6 +97,10 @@ class i18n_messages(Command):
             "employee":_("      Employee Information"),
             "misc":_("Misc. Information"),
             "to_top":_("Back to Top")},
+        "association":{
+            "managedby":_("Managed by"),
+            "members":_("Members"),
+            "membershipin":_("Membership in")},
         "ajax":{
             "401":_("Your kerberos ticket no longer valid."+
                 "Please run KInit and then click 'retry'"+

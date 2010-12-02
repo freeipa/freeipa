@@ -55,7 +55,7 @@ function ipa_service() {
 
         facet = ipa_service_managedby_host_facet({
             'name': 'managedby_host',
-            'label': 'Hosts',
+            'label': IPA.messages.association.managedby+' '+IPA.metadata['host'].label,
             'other_entity': 'host'
         });
         that.add_facet(facet);

@@ -64,7 +64,7 @@ function ipa_group() {
 
         facet = ipa_group_member_user_facet({
             'name': 'member_user',
-            'label': 'Users',
+            'label': IPA.metadata['user'].label+' '+IPA.messages.association.members,
             'other_entity': 'user'
         });
         that.add_facet(facet);

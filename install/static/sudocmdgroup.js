@@ -55,7 +55,7 @@ function ipa_sudocmdgroup() {
 
         facet = ipa_sudocmdgroup_member_sudocmd_facet({
             'name': 'member_sudocmd',
-            'label': 'Commands',
+            'label': IPA.metadata['sudocmd'].label+' '+IPA.messages.association.members,
             'other_entity': 'sudocmd'
         });
         that.add_facet(facet);
