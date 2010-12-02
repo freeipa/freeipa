@@ -58,6 +58,13 @@ function ipa_host() {
         });
         that.add_facet(facet);
 
+        facet = ipa_host_managedby_host_facet({
+            'name': 'managedby_host',
+            'label': 'Managed by Hosts',
+            'other_entity': 'host'
+        });
+        that.add_facet(facet);
+
         that.create_association_facets();
 
         that.entity_init();
@@ -408,6 +415,65 @@ function host_certificate_status_widget(spec) {
             var values = result['usercertificate'];
             return values ? values[0].__base64__ : null;
         }
+    };
+
+    return that;
+}
+
+function ipa_host_managedby_host_facet(spec) {
+
+    spec = spec || {};
+
+    var that = ipa_association_facet(spec);
+
+    that.add_method = 'add_managedby';
+    that.delete_method = 'remove_managedby';
+
+    that.init = function() {
+
+        var column = that.create_column({
+            name: 'fqdn',
+            label: 'Name',
+            primary_key: true
+        });
+
+        column.setup = function(container, record) {
+            container.empty();
+
+            var value = record[column.name];
+            value = value ? value.toString() : '';
+
+            $('<a/>', {
+                'href': '#'+value,
+                'html': value,
+                'click': function (value) {
+                    return function() {
+                        var state = IPA.tab_state(that.other_entity);
+                        state[that.other_entity + '-facet'] = 'details';
+                        state[that.other_entity + '-pkey'] = value;
+                        $.bbq.pushState(state);
+                        return false;
+                    }
+                }(value)
+            }).appendTo(container);
+        };
+
+        that.create_column({name: 'description', label: 'Description'});
+
+        that.create_adder_column({
+            name: 'fqdn',
+            label: 'Name',
+            primary_key: true,
+            width: '100px'
+        });
+
+        that.create_adder_column({
+            name: 'description',
+            label: 'Description',
+            width: '100px'
+        });
+
+        that.association_facet_init();
     };
 
     return that;
