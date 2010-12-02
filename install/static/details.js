@@ -61,7 +61,7 @@ function ipa_details_field(spec) {
         if (param_info) {
             if (param_info['multivalue'] || param_info['class'] == 'List')
                 multivalue = true;
-            var hint = param_info['hint'];
+            var hint = param_info['doc'];
             if (hint){
                 hint_span = $('<span />',{
                     'class': 'attrhint',
@@ -766,11 +766,16 @@ function _ipa_create_text_input(value, param_info, rights, index)
         }
     }
 
+    var doc = that.name;
+    if (param_info && param_info.doc){
+        doc =  param_info.doc;
+    }
     var span = $("<Span />");
     var input = $("<input/>",{
         type: "text",
         name: that.name,
         value: value.toString(),
+        title: doc,
         keyup: function(){
             var undo_link=this.nextElementSibling;
             undo_link.style.display ="inline";
