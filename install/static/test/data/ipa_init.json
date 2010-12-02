@@ -990,6 +990,513 @@
                             }
                         ]
                     },
+                    "dnsrecord": {
+                        "attribute_members": {},
+                        "container_dn": "cn=dns",
+                        "default_attributes": [
+                            "arecord",
+                            "aaaarecord",
+                            "a6record",
+                            "afsdbrecord",
+                            "aplrecord",
+                            "certrecord",
+                            "cnamerecord",
+                            "dhcidrecord",
+                            "dlvrecord",
+                            "dnamerecord",
+                            "dnskeyrecord",
+                            "dsrecord",
+                            "hinforecord",
+                            "hiprecord",
+                            "ipseckeyrecord",
+                            "keyrecord",
+                            "kxrecord",
+                            "locrecord",
+                            "mdrecord",
+                            "minforecord",
+                            "mxrecord",
+                            "naptrrecord",
+                            "nsrecord",
+                            "nsecrecord",
+                            "nsec3record",
+                            "nsec3paramrecord",
+                            "nxtrecord",
+                            "ptrrecord",
+                            "rrsigrecord",
+                            "rprecord",
+                            "sigrecord",
+                            "spfrecord",
+                            "srvrecord",
+                            "sshfprecord",
+                            "tarecord",
+                            "tkeyrecord",
+                            "tsigrecord",
+                            "txtrecord",
+                            "idnsname"
+                        ],
+                        "hidden_attributes": [
+                            "objectclass",
+                            "aci"
+                        ],
+                        "label": "DNS resource record",
+                        "methods": [
+                            "add",
+                            "add_record",
+                            "del",
+                            "delentry",
+                            "find",
+                            "show"
+                        ],
+                        "name": "dnsrecord",
+                        "object_class": [
+                            "top",
+                            "idnsrecord"
+                        ],
+                        "object_class_config": null,
+                        "object_name": "DNS resource record",
+                        "object_name_plural": "DNS resource records",
+                        "parent_object": "dnszone",
+                        "primary_key": "idnsname",
+                        "rdn_attribute": "",
+                        "takes_params": [
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "name",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Record name",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Record name",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "idnsname",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": true,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Int",
+                                "cli_name": "ttl",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Time to live",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Time to live",
+                                "maxvalue": null,
+                                "minvalue": null,
+                                "multivalue": false,
+                                "name": "dnsttl",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "int"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "StrEnum",
+                                "cli_name": "class",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "DNS class",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Class",
+                                "multivalue": false,
+                                "name": "dnsclass",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode",
+                                "values": [
+                                    "IN",
+                                    "CS",
+                                    "CH",
+                                    "HS"
+                                ]
+                            }
+                        ],
+                        "uuid_attribute": ""
+                    },
+                    "dnszone": {
+                        "attribute_members": {},
+                        "container_dn": "cn=dns",
+                        "default_attributes": [
+                            "idnsname",
+                            "idnszoneactive",
+                            "idnssoamname",
+                            "idnssoarname",
+                            "idnssoaserial",
+                            "idnssoarefresh",
+                            "idnssoaretry",
+                            "idnssoaexpire",
+                            "idnssoaminimum",
+                            "arecord",
+                            "aaaarecord",
+                            "a6record",
+                            "afsdbrecord",
+                            "aplrecord",
+                            "certrecord",
+                            "cnamerecord",
+                            "dhcidrecord",
+                            "dlvrecord",
+                            "dnamerecord",
+                            "dnskeyrecord",
+                            "dsrecord",
+                            "hinforecord",
+                            "hiprecord",
+                            "ipseckeyrecord",
+                            "keyrecord",
+                            "kxrecord",
+                            "locrecord",
+                            "mdrecord",
+                            "minforecord",
+                            "mxrecord",
+                            "naptrrecord",
+                            "nsrecord",
+                            "nsecrecord",
+                            "nsec3record",
+                            "nsec3paramrecord",
+                            "nxtrecord",
+                            "ptrrecord",
+                            "rrsigrecord",
+                            "rprecord",
+                            "sigrecord",
+                            "spfrecord",
+                            "srvrecord",
+                            "sshfprecord",
+                            "tarecord",
+                            "tkeyrecord",
+                            "tsigrecord",
+                            "txtrecord"
+                        ],
+                        "hidden_attributes": [
+                            "objectclass",
+                            "aci"
+                        ],
+                        "label": "DNS zone",
+                        "methods": [
+                            "add",
+                            "del",
+                            "disable",
+                            "enable",
+                            "find",
+                            "mod",
+                            "show"
+                        ],
+                        "name": "dnszone",
+                        "object_class": [
+                            "top",
+                            "idnsrecord",
+                            "idnszone"
+                        ],
+                        "object_class_config": null,
+                        "object_name": "DNS zone",
+                        "object_name_plural": "DNS zones",
+                        "parent_object": "",
+                        "primary_key": "idnsname",
+                        "rdn_attribute": "",
+                        "takes_params": [
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "name",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Zone name (FQDN)",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Zone name",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "idnsname",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": true,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "name_server",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Authoritative name server",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Authoritative name server",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "idnssoamname",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "admin_email",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Administrator e-mail address",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Administrator e-mail address",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "idnssoarname",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": true,
+                                "class": "Int",
+                                "cli_name": "serial",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "SOA record serial number",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "SOA serial",
+                                "maxvalue": null,
+                                "minvalue": null,
+                                "multivalue": false,
+                                "name": "idnssoaserial",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "int"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": true,
+                                "class": "Int",
+                                "cli_name": "refresh",
+                                "cli_short_name": null,
+                                "default": 3600,
+                                "doc": "SOA record refresh time",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "SOA refresh",
+                                "maxvalue": null,
+                                "minvalue": null,
+                                "multivalue": false,
+                                "name": "idnssoarefresh",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "int"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": true,
+                                "class": "Int",
+                                "cli_name": "retry",
+                                "cli_short_name": null,
+                                "default": 900,
+                                "doc": "SOA record retry time",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "SOA retry",
+                                "maxvalue": null,
+                                "minvalue": null,
+                                "multivalue": false,
+                                "name": "idnssoaretry",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "int"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": true,
+                                "class": "Int",
+                                "cli_name": "expire",
+                                "cli_short_name": null,
+                                "default": 1209600,
+                                "doc": "SOA record expire time",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "SOA expire",
+                                "maxvalue": null,
+                                "minvalue": null,
+                                "multivalue": false,
+                                "name": "idnssoaexpire",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "int"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": true,
+                                "class": "Int",
+                                "cli_name": "minimum",
+                                "cli_short_name": null,
+                                "default": 3600,
+                                "doc": "SOA record minimum value",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "SOA minimum",
+                                "maxvalue": null,
+                                "minvalue": null,
+                                "multivalue": false,
+                                "name": "idnssoaminimum",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "int"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Int",
+                                "cli_name": "maximum",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "SOA record maximum value",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "SOA maximum",
+                                "maxvalue": null,
+                                "minvalue": null,
+                                "multivalue": false,
+                                "name": "idnssoamaximum",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "int"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Int",
+                                "cli_name": "ttl",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "SOA record time to live",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "SOA time to live",
+                                "maxvalue": null,
+                                "minvalue": null,
+                                "multivalue": false,
+                                "name": "dnsttl",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "int"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "StrEnum",
+                                "cli_name": "class",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "SOA record class",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "SOA class",
+                                "multivalue": false,
+                                "name": "dnsclass",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode",
+                                "values": [
+                                    "IN",
+                                    "CS",
+                                    "CH",
+                                    "HS"
+                                ]
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "update_policy",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "BIND update policy",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "BIND update policy",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "idnsupdatepolicy",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            }
+                        ],
+                        "uuid_attribute": ""
+                    },
                     "group": {
                         "attribute_members": {
                             "member": [
@@ -1000,14 +1507,12 @@
                                 "user",
                                 "group",
                                 "netgroup",
-                                "rolegroup",
-                                "taskgroup"
+                                "role"
                             ],
                             "memberof": [
                                 "group",
                                 "netgroup",
-                                "rolegroup",
-                                "taskgroup"
+                                "role"
                             ]
                         },
                         "container_dn": "cn=groups,cn=accounts",
@@ -1782,7 +2287,7 @@
                             "memberof": [
                                 "hostgroup",
                                 "netgroup",
-                                "rolegroup"
+                                "role"
                             ]
                         },
                         "container_dn": "cn=computers,cn=accounts",
@@ -2534,8 +3039,371 @@
                         ],
                         "uuid_attribute": "ipauniqueid"
                     },
+                    "permission": {
+                        "attribute_members": {
+                            "member": [
+                                "privilege"
+                            ]
+                        },
+                        "container_dn": "cn=permissions,cn=accounts",
+                        "default_attributes": [
+                            "cn",
+                            "description",
+                            "member",
+                            "memberof",
+                            "memberindirect"
+                        ],
+                        "hidden_attributes": [
+                            "objectclass",
+                            "aci"
+                        ],
+                        "label": "Permissions",
+                        "methods": [
+                            "add",
+                            "add_member",
+                            "del",
+                            "find",
+                            "mod",
+                            "remove_member",
+                            "show"
+                        ],
+                        "name": "permission",
+                        "object_class": [
+                            "groupofnames"
+                        ],
+                        "object_class_config": null,
+                        "object_name": "permission",
+                        "object_name_plural": "permissions",
+                        "parent_object": "",
+                        "primary_key": "cn",
+                        "rdn_attribute": "",
+                        "takes_params": [
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "name",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Permission name",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Permission name",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "cn",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": true,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "desc",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Permission description",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Description",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "description",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "List",
+                                "cli_name": "permissions",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Comma-separated list of permissions to grant (read, write, add, delete, all)",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Permissions",
+                                "multivalue": true,
+                                "name": "permissions",
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "separator": ",",
+                                "skipspace": true,
+                                "type": "tuple"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "List",
+                                "cli_name": "attrs",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Comma-separated list of attributes",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Attributes",
+                                "multivalue": true,
+                                "name": "attrs",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "separator": ",",
+                                "skipspace": true,
+                                "type": "tuple"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "StrEnum",
+                                "cli_name": "type",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Type of IPA object (user, group, host, hostgroup, service, netgroup)",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Type",
+                                "multivalue": false,
+                                "name": "type",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode",
+                                "values": [
+                                    "user",
+                                    "group",
+                                    "host",
+                                    "service",
+                                    "hostgroup",
+                                    "netgroup"
+                                ]
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "memberof",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Target members of a group",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Member of group",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "memberof",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "filter",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Legal LDAP filter (e.g. ou=Engineering)",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Filter",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "filter",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "subtree",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Subtree to apply permissions to",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Subtree",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "subtree",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "targetgroup",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "User group to apply permissions to",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Target group",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "targetgroup",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            }
+                        ],
+                        "uuid_attribute": ""
+                    },
                     "pkinit": {
                         "__base64__": ""
+                    },
+                    "privilege": {
+                        "attribute_members": {
+                            "member": [
+                                "permission",
+                                "role"
+                            ],
+                            "memberof": [
+                                "permission"
+                            ]
+                        },
+                        "container_dn": "cn=privileges,cn=accounts",
+                        "default_attributes": [
+                            "cn",
+                            "description",
+                            "member",
+                            "memberof",
+                            "memberindirect"
+                        ],
+                        "hidden_attributes": [
+                            "objectclass",
+                            "aci"
+                        ],
+                        "label": "Privileges",
+                        "methods": [
+                            "add",
+                            "add_member",
+                            "add_permission",
+                            "del",
+                            "find",
+                            "mod",
+                            "remove_member",
+                            "remove_permission",
+                            "show"
+                        ],
+                        "name": "privilege",
+                        "object_class": [
+                            "nestedgroup",
+                            "groupofnames"
+                        ],
+                        "object_class_config": null,
+                        "object_name": "privilege",
+                        "object_name_plural": "privileges",
+                        "parent_object": "",
+                        "primary_key": "cn",
+                        "rdn_attribute": "",
+                        "takes_params": [
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "name",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Privilege name",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Privilege name",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "cn",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": true,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            },
+                            {
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "desc",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Privilege description",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Description",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "description",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            }
+                        ],
+                        "uuid_attribute": ""
                     },
                     "pwpolicy": {
                         "attribute_members": {},
@@ -2737,7 +3605,7 @@
                         ],
                         "uuid_attribute": ""
                     },
-                    "rolegroup": {
+                    "role": {
                         "attribute_members": {
                             "member": [
                                 "user",
@@ -2745,17 +3613,11 @@
                                 "host",
                                 "hostgroup"
                             ],
-                            "memberindirect": [
-                                "user",
-                                "group",
-                                "host",
-                                "hostgroup"
-                            ],
                             "memberof": [
-                                "taskgroup"
+                                "privilege"
                             ]
                         },
-                        "container_dn": "cn=rolegroups,cn=accounts",
+                        "container_dn": "cn=roles,cn=accounts",
                         "default_attributes": [
                             "cn",
                             "description",
@@ -2771,20 +3633,22 @@
                         "methods": [
                             "add",
                             "add_member",
+                            "add_privilege",
                             "del",
                             "find",
                             "mod",
                             "remove_member",
+                            "remove_privilege",
                             "show"
                         ],
-                        "name": "rolegroup",
+                        "name": "role",
                         "object_class": [
                             "groupofnames",
                             "nestedgroup"
                         ],
                         "object_class_config": null,
-                        "object_name": "rolegroup",
-                        "object_name_plural": "rolegroups",
+                        "object_name": "role",
+                        "object_name_plural": "roles",
                         "parent_object": "",
                         "primary_key": "cn",
                         "rdn_attribute": "",
@@ -2796,12 +3660,12 @@
                                 "cli_name": "name",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Role-group name",
+                                "doc": "Role name",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
                                 "include": null,
-                                "label": "Role-group name",
+                                "label": "Role name",
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
@@ -3517,112 +4381,12 @@
                         ],
                         "uuid_attribute": "ipauniqueid"
                     },
-                    "taskgroup": {
-                        "attribute_members": {
-                            "member": [
-                                "user",
-                                "group",
-                                "rolegroup"
-                            ],
-                            "memberindirect": [
-                                "user",
-                                "group",
-                                "rolegroup"
-                            ]
-                        },
-                        "container_dn": "cn=taskgroups,cn=accounts",
-                        "default_attributes": [
-                            "cn",
-                            "description",
-                            "member",
-                            "memberof",
-                            "memberindirect"
-                        ],
-                        "hidden_attributes": [
-                            "objectclass",
-                            "aci"
-                        ],
-                        "label": "Task Groups",
-                        "methods": [
-                            "add",
-                            "add_member",
-                            "del",
-                            "find",
-                            "mod",
-                            "remove_member",
-                            "show"
-                        ],
-                        "name": "taskgroup",
-                        "object_class": [
-                            "groupofnames"
-                        ],
-                        "object_class_config": null,
-                        "object_name": "taskgroup",
-                        "object_name_plural": "taskgroups",
-                        "parent_object": "",
-                        "primary_key": "cn",
-                        "rdn_attribute": "",
-                        "takes_params": [
-                            {
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "Str",
-                                "cli_name": "name",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "Task-group name",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "Task-group name",
-                                "length": null,
-                                "maxlength": null,
-                                "minlength": null,
-                                "multivalue": false,
-                                "name": "cn",
-                                "pattern": null,
-                                "pattern_errmsg": null,
-                                "primary_key": true,
-                                "query": false,
-                                "required": true,
-                                "type": "unicode"
-                            },
-                            {
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "Str",
-                                "cli_name": "desc",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "Task-group description",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "Description",
-                                "length": null,
-                                "maxlength": null,
-                                "minlength": null,
-                                "multivalue": false,
-                                "name": "description",
-                                "pattern": null,
-                                "pattern_errmsg": null,
-                                "primary_key": false,
-                                "query": false,
-                                "required": true,
-                                "type": "unicode"
-                            }
-                        ],
-                        "uuid_attribute": ""
-                    },
                     "user": {
                         "attribute_members": {
                             "memberof": [
                                 "group",
                                 "netgroup",
-                                "rolegroup",
-                                "taskgroup"
+                                "role"
                             ]
                         },
                         "container_dn": "cn=users,cn=accounts",
@@ -4123,19 +4887,19 @@
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "757995011"
+                            "496082529"
                         ],
                         "homedirectory": [
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "297bbe44-f810-11df-8f59-525400674dcd"
+                            "a752ed4a-fde4-11df-902d-525400674dcd"
                         ],
                         "krblastpwdchange": [
-                            "20101124211850Z"
+                            "20101202072313Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20110222211850Z"
+                            "20110302072313Z"
                         ],
                         "krbprincipalname": [
                             "admin@AYOUNG.BOSTON.DEVEL.REDHAT.COM"
@@ -4145,13 +4909,6 @@
                         ],
                         "memberof_group": [
                             "admins"
-                        ],
-                        "memberof_rolegroup": [
-                            "replicaadmin"
-                        ],
-                        "memberof_taskgroup": [
-                            "managereplica",
-                            "deletereplica"
                         ],
                         "mepmanagedentry": [
                             "cn=admin,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
@@ -4176,7 +4933,7 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "757995011"
+                            "496082529"
                         ]
                     }
                 ],
@@ -4184,7 +4941,7 @@
                 "truncated": false
             },
             {
-                "count": 67,
+                "count": 68,
                 "error": null,
                 "result": {
                     "basedn": "dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
@@ -4209,16 +4966,17 @@
                     "container_host": "cn=computers,cn=accounts",
                     "container_hostgroup": "cn=hostgroups,cn=accounts",
                     "container_netgroup": "cn=ng,cn=alt",
+                    "container_permission": "cn=permissions,cn=accounts",
                     "container_policies": "cn=policies",
                     "container_policygroups": "cn=policygroups,cn=configs,cn=policies",
                     "container_policylinks": "cn=policylinks,cn=configs,cn=policies",
-                    "container_rolegroup": "cn=rolegroups,cn=accounts",
+                    "container_privilege": "cn=privileges,cn=accounts",
+                    "container_rolegroup": "cn=roles,cn=accounts",
                     "container_roles": "cn=roles,cn=policies",
                     "container_service": "cn=services,cn=accounts",
                     "container_sudocmd": "cn=sudocmds,cn=accounts",
                     "container_sudocmdgroup": "cn=sudocmdgroups,cn=accounts",
                     "container_sudorule": "cn=sudorules",
-                    "container_taskgroup": "cn=taskgroups,cn=accounts",
                     "container_user": "cn=users,cn=accounts",
                     "container_virtual": "cn=virtual operations",
                     "context": "lite",
@@ -4255,8 +5013,8 @@
                     "webui_prod": true,
                     "xmlrpc_uri": "http://localhost:8888/ipa/xml"
                 },
-                "summary": "67 variables",
-                "total": 67
+                "summary": "68 variables",
+                "total": 68
             }
         ]
     }

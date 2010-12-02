@@ -1,0 +1,137 @@
+{
+    "error": null,
+    "id": 6,
+    "result": {
+        "count": 3,
+        "result": [
+            {
+                "dn": "idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "idnsallowdynupdate": [
+                    "TRUE"
+                ],
+                "idnsname": [
+                    "ayoung.boston.devel.redhat.com"
+                ],
+                "idnssoaexpire": [
+                    "1209600"
+                ],
+                "idnssoaminimum": [
+                    "3600"
+                ],
+                "idnssoamname": [
+                    "ipa.ayoung.boston.devel.redhat.com."
+                ],
+                "idnssoarefresh": [
+                    "3600"
+                ],
+                "idnssoaretry": [
+                    "900"
+                ],
+                "idnssoarname": [
+                    "root.ipa.ayoung.boston.devel.redhat.com."
+                ],
+                "idnssoaserial": [
+                    "2010021201"
+                ],
+                "idnsupdatepolicy": [
+                    "grant AYOUNG.BOSTON.DEVEL.REDHAT.COM krb5-self * A;"
+                ],
+                "idnszoneactive": [
+                    "TRUE"
+                ],
+                "nsrecord": [
+                    "ipa.ayoung.boston.devel.redhat.com."
+                ],
+                "objectclass": [
+                    "top",
+                    "idnsrecord",
+                    "idnszone"
+                ]
+            },
+            {
+                "dn": "idnsname=122.168.192.in-addr.arpa,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "idnsallowdynupdate": [
+                    "TRUE"
+                ],
+                "idnsname": [
+                    "122.168.192.in-addr.arpa"
+                ],
+                "idnssoaexpire": [
+                    "1209600"
+                ],
+                "idnssoaminimum": [
+                    "3600"
+                ],
+                "idnssoamname": [
+                    "ipa.ayoung.boston.devel.redhat.com."
+                ],
+                "idnssoarefresh": [
+                    "3600"
+                ],
+                "idnssoaretry": [
+                    "900"
+                ],
+                "idnssoarname": [
+                    "root.122.168.192.in-addr.arpa."
+                ],
+                "idnssoaserial": [
+                    "2010021201"
+                ],
+                "idnsupdatepolicy": [
+                    "grant AYOUNG.BOSTON.DEVEL.REDHAT.COM krb5-subdomain 122.168.192.in-addr.arpa. PTR;"
+                ],
+                "idnszoneactive": [
+                    "TRUE"
+                ],
+                "nsrecord": [
+                    "ipa.ayoung.boston.devel.redhat.com."
+                ],
+                "objectclass": [
+                    "top",
+                    "idnsrecord",
+                    "idnszone"
+                ]
+            },
+            {
+                "dn": "idnsname=henson.ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "idnsallowdynupdate": [
+                    "FALSE"
+                ],
+                "idnsname": [
+                    "henson.ayoung.boston.devel.redhat.com"
+                ],
+                "idnssoaexpire": [
+                    "1209600"
+                ],
+                "idnssoaminimum": [
+                    "3600"
+                ],
+                "idnssoamname": [
+                    "ayoung.boston.devel.redhat.com"
+                ],
+                "idnssoarefresh": [
+                    "3600"
+                ],
+                "idnssoaretry": [
+                    "900"
+                ],
+                "idnssoarname": [
+                    "root.henson.ayoung.boston.devel.redhat.com."
+                ],
+                "idnssoaserial": [
+                    "2010021201"
+                ],
+                "idnszoneactive": [
+                    "TRUE"
+                ],
+                "objectclass": [
+                    "top",
+                    "idnsrecord",
+                    "idnszone"
+                ]
+            }
+        ],
+        "summary": null,
+        "truncated": false
+    }
+}

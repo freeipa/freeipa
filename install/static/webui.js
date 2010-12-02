@@ -33,7 +33,7 @@ var admin_tab_set = [
         {name:'service', label:'Services', setup: ipa_entity_setup}
     ]},
     {name:'policy', children:[
-        {name:'dns', setup: ipa_entity_setup},
+        {name:'dnszone', setup: ipa_entity_setup},
         {name:'hbac', setup: ipa_entity_setup, children:[
             {name:'hbacsvc', setup: ipa_entity_setup},
             {name:'hbacsvcgroup', setup: ipa_entity_setup}

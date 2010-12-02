@@ -21,12 +21,12 @@
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
 /* DNS */
-ipa_entity_set_search_definition('dns', [
+ipa_entity_set_search_definition('dnszone', [
     ['idnsname', 'Zone Name', null]
 ]);
 
 
-ipa_entity_set_add_definition('dns', [
+ipa_entity_set_add_definition('dnszone', [
     'dialog-add-dns', 'Add New Zone', [
         ['idnsname', 'Name', null],
         ['idnssoamname', 'Authoritative name server'],
@@ -34,7 +34,7 @@ ipa_entity_set_add_definition('dns', [
     ]
 ]);
 
-ipa_entity_set_details_definition('dns', [
+ipa_entity_set_details_definition('dnszone', [
     ipa_stanza({name:'identity', label:'DNS Zone Details'}).
         input({name:'idnsname', label:'DNS Name'}).
         input({name:'idnszoneactive', label:'Zone Active'}).
@@ -51,11 +51,11 @@ ipa_entity_set_details_definition('dns', [
         input({name:'idnsupdatepolicy', label:'BIND update policy'})
 ]);
 
-ipa_entity_set_association_definition('dns', {
+ipa_entity_set_association_definition('dnszone', {
 });
 
 
-ipa_entity_set_facet_definition('dns', [
+ipa_entity_set_facet_definition('dnszone', [
     ipa_records_facet({
         'name': 'records',
         'label': 'Records'
@@ -133,12 +133,16 @@ function ipa_records_facet(spec){
             function add_fail(data, text_status, xhr) {
             }
 
-            params.push(  $.bbq.getState('dns-pkey', true));
+            params.push(  $.bbq.getState(that.entity_name+'-pkey', true));
             params.push(add_dialog.find('#dns-record-resource').val());
-            params.push(add_dialog.find('#dns-record-type').val());
-            params.push(add_dialog.find('#dns-record-data').val());
 
-            ipa_cmd('dns_add_rr', params, options, add_win, add_fail);
+            var key =  add_dialog.find('#dns-record-type').val().toLowerCase()+
+                "record";
+            var value = add_dialog.find('#dns-record-data').val();
+            options[key] = value;
+
+
+            ipa_cmd('dnsrecord_add', params, options, add_win, add_fail);
             //add_dialog.dialog('close');
         }
 
@@ -166,7 +170,7 @@ function ipa_records_facet(spec){
 
     function delete_records(records_table){
 
-        var zone = $.bbq.getState('dns-pkey', true);
+        var zone = $.bbq.getState('dnszone-pkey', true);
 
         var thead = records_table.find('thead');
         thead.find("INPUT[type='checkbox']").
@@ -193,10 +197,17 @@ function ipa_records_facet(spec){
                     var tr = $(box).parents('tr');
                     var resource = $(tr).find('[title="idnsname"]').text();
                     var type = $(tr).find('[title="type"]').
-                        text().toUpperCase();
+                        text().toLowerCase();
                     var data = $(tr).find('[title="data"]').text();
-                    var params = [zone, resource, type, data];
-                    delete_list.push(params);
+                    var rectype=type+"record"
+
+                    var options = {};
+                    options[rectype]=data;
+
+                    var command = {
+                        "method":"dnsrecord_del",
+                        "params":[[zone,resource], options]};
+                    delete_list.push(command);
                     to_delete_body.append(
                         $('<tr></tr>').
                             append($('<td></td>',{html:resource}).
@@ -208,16 +219,12 @@ function ipa_records_facet(spec){
         function delete_on_click() {
             var delete_count = delete_list.length;
             function delete_complete(){
-                delete_count -= 1;
-                if (delete_count === 0 ){
                     reload();
                     delete_dialog.dialog('close');
-                }
             }
-            for (var i = 0; i < delete_list.length; i += 1){
-                ipa_cmd('dns_del_rr',delete_list[i],{},
-                        delete_complete,delete_complete);
-            }
+
+            ipa_cmd('batch', delete_list, {},
+                    delete_complete,delete_complete);
         }
 
         function cancel_on_click() {
@@ -297,17 +304,25 @@ function ipa_records_facet(spec){
             'click': function(){refresh()}
         }).appendTo(control_span);
 
+        var action_panel_ul = $('.action-panel ul', that.container);
+
+        var action_controls =  $('<li/>',{
+            "class":"action-controls"}).appendTo(action_panel_ul);
+
+
         ipa_button({
             'label': IPA.messages.button.add,
             'icon': 'ui-icon-plus',
             'click': add_click
-        }).appendTo(control_span);
+        }).appendTo(action_controls);
 
         ipa_button({
             'label': IPA.messages.button.remove,
             'icon': 'ui-icon-trash',
             'click': function(){delete_records(records_table);}
-        }).appendTo(control_span);
+        }).appendTo(action_controls);
+
+
 
 
         div.append('<span class="records-buttons"></span>');
@@ -343,11 +358,11 @@ function ipa_records_facet(spec){
 
 
     function load_on_win(data){
-        display('dns',data);
+        display(that.entity_name,data);
     }
 
     function load_on_fail(data){
-        display('dns',data);
+        display(that.entity_name,data);
     }
 
     function  reload(){
@@ -376,8 +391,8 @@ function ipa_records_facet(spec){
         }
 
 
-        var pkey = $.bbq.getState('dns' + '-pkey', true);
-        ipa_cmd('dns_find_rr',[pkey],options,load_on_win, load_on_fail);
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true);
+        ipa_cmd('dnsrecord_find',[pkey],options,load_on_win, load_on_fail);
 
     }
 

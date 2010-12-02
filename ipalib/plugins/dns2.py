@@ -134,7 +134,7 @@ class dnszone(LDAPObject):
         'idnssoaserial', 'idnssoarefresh', 'idnssoaretry', 'idnssoaexpire',
         'idnssoaminimum'
     ] + _record_attributes
-    label = _('DNS zone')
+    label = _('DNS')
 
     takes_params = (
         Str('idnsname',

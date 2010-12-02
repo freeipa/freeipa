@@ -1,0 +1,21 @@
+{
+    "error": null,
+    "id": 12,
+    "result": {
+        "result": {
+            "arecord": [
+                "1.2.3.4"
+            ],
+            "dn": "idnsname=a4,idnsname=henson.ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "idnsname": [
+                "a4"
+            ],
+            "objectclass": [
+                "top",
+                "idnsrecord"
+            ]
+        },
+        "summary": null,
+        "value": "a4"
+    }
+}
