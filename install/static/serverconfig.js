@@ -43,60 +43,9 @@ ipa_entity_set_details_definition('aci', [
 
 
 
-/* Taskgroup*/
-
-ipa_entity_set_search_definition('taskgroup', [
-    ['cn', 'Role-group name', null],
-    ['description', 'Description', null]
-]);
-
-ipa_entity_set_add_definition('taskgroup', [
-    'dialog-add-taskgroup', 'Add New Taskgroup', [
-        ['cn', 'Name', null],
-        ['description', 'Description', null],
-    ]
-]);
-
-
-ipa_entity_set_details_definition('taskgroup', [
-    ipa_stanza({name:'ipaserver', label:'Taskgroup Details'}).
-        input({name:'cn', label:'Name'}).
-        input({name:'description', label:'Description'})
-]);
-
-ipa_entity_set_association_definition('taskgroup', {
-});
-
-ipa_entity_set_association_definition('rolegroup', {
-    'rolegroup': { }
-});
 
 
 
-
-/* Rolegroup*/
-
-ipa_entity_set_search_definition('rolegroup', [
-    ['cn', 'Role-group name', null],
-    ['description', 'Description', null]
-]);
-
-ipa_entity_set_add_definition('rolegroup', [
-    'dialog-add-rolegroup', 'Add New Rolegroup', [
-        ['cn', 'Name', null],
-        ['description', 'Description', null],
-    ]
-]);
-
-ipa_entity_set_details_definition('rolegroup', [
-    ipa_stanza({name:'ipaserver', label:'Rolegroup Details'}).
-        input({name:'cn', label:'Name'}).
-        input({name:'description', label:'Description'})
-]);
-
-ipa_entity_set_association_definition('rolegroup', {
-    'taskgroup': { associator: 'serial' }
-});
 
 /* Configuration */
 ipa_entity_set_details_definition('config',[

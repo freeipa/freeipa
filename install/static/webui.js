@@ -47,8 +47,6 @@ var admin_tab_set = [
         {name:'krbtpolicy', setup:ipa_details_only_setup}
     ]},
     {name:'ipaserver', children: [
-        {name:'taskgroup', setup: ipa_entity_setup},
-        {name:'rolegroup', label:'Rolegroups', setup: ipa_entity_setup},
         {name:'config', setup: ipa_details_only_setup}
     ]}
 ];
