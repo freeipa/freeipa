@@ -404,6 +404,10 @@ function certificate_status_widget(spec) {
     that.get_entity_principal = spec.get_entity_principal;
     that.get_entity_certificate = spec.get_entity_certificate;
 
+    that.is_selfsign = function() {
+        return IPA.env.ra_plugin == 'selfsign';
+    };
+
     that.create = function(container) {
 
         that.widget_create(container);
@@ -428,11 +432,13 @@ function certificate_status_widget(spec) {
             'value': 'Get'
         }).appendTo(td);
 
-        $('<input/>', {
-            'type': 'button',
-            'name': 'revoke',
-            'value': 'Revoke'
-        }).appendTo(td);
+        if (!that.is_selfsign()) {
+            $('<input/>', {
+                'type': 'button',
+                'name': 'revoke',
+                'value': 'Revoke'
+            }).appendTo(td);
+        }
 
         $('<input/>', {
             'type': 'button',
@@ -440,27 +446,29 @@ function certificate_status_widget(spec) {
             'value': 'View'
         }).appendTo(td);
 
-        tr = $('<tr/>').appendTo(table);
+        if (!that.is_selfsign()) {
+            tr = $('<tr/>').appendTo(table);
 
-        td = $('<td/>').appendTo(tr);
-        $('<li/>', {
-            'class': 'certificate-status-revoked'
-        }).appendTo(td);
+            td = $('<td/>').appendTo(tr);
+            $('<li/>', {
+                'class': 'certificate-status-revoked'
+            }).appendTo(td);
 
-        td = $('<td/>').appendTo(tr);
-        td.append('Certificate Revoked:');
+            td = $('<td/>').appendTo(tr);
+            td.append('Certificate Revoked:');
 
-        td = $('<td/>').appendTo(tr);
-        td.append($('<span/>', {
-            'name': 'revocation_reason'
-        }));
-        td.append(' ');
+            td = $('<td/>').appendTo(tr);
+            td.append($('<span/>', {
+                'name': 'revocation_reason'
+            }));
+            td.append(' ');
 
-        $('<input/>', {
-            'type': 'button',
-            'name': 'restore',
-            'value': 'Restore'
-        }).appendTo(td);
+            $('<input/>', {
+                'type': 'button',
+                'name': 'restore',
+                'value': 'Restore'
+            }).appendTo(td);
+        }
 
         tr = $('<tr/>').appendTo(table);
 
@@ -567,17 +575,26 @@ function certificate_status_widget(spec) {
 
     function set_status(status, revocation_reason) {
         that.valid.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_VALID);
-        that.revoked.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_REVOKED);
         that.missing.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_MISSING);
 
         that.get_button.css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
-        that.revoke_button.css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
         that.view_button.css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
-        that.revocation_reason.html(revocation_reason == undefined ? '' : CRL_REASON[revocation_reason]);
-        that.restore_button.css('visibility', revocation_reason == 6 ? 'visible' : 'hidden');
+
+        if (!that.is_selfsign()) {
+            that.revoked.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_REVOKED);
+            that.revoke_button.css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
+            that.revocation_reason.html(revocation_reason == undefined ? '' : CRL_REASON[revocation_reason]);
+            that.restore_button.css('visibility', revocation_reason == 6 ? 'visible' : 'hidden');
+        }
     }
 
     function check_status(serial_number) {
+
+        if (that.is_selfsign()) {
+            set_status(CERTIFICATE_STATUS_VALID);
+            return;
+        }
+
         ipa_cmd(
             'cert_show',
             [serial_number],
