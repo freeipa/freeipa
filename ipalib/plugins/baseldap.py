@@ -197,6 +197,8 @@ class LDAPObject(Object):
     uuid_attribute = ''
     attribute_members = {}
     rdnattr = None
+    # Can bind as this entry (has userPassword or krbPrincipalKey)
+    bindable = False
 
     container_not_found_msg = _('container entry (%(container)s) not found')
     parent_not_found_msg = _('%(parent)s: %(oname)s not found')
@@ -293,14 +295,33 @@ class LDAPObject(Object):
         'parent_object', 'container_dn', 'object_name', 'object_name_plural',
         'object_class', 'object_class_config', 'default_attributes', 'label',
         'hidden_attributes', 'uuid_attribute', 'attribute_members', 'name',
-        'takes_params', 'rdn_attribute',
+        'takes_params', 'rdn_attribute', 'bindable',
     )
+
     def __json__(self):
+        ldap = self.backend
         json_dict = dict(
             (a, getattr(self, a)) for a in self.json_friendly_attributes
         )
         if self.primary_key:
             json_dict['primary_key'] = self.primary_key.name
+        objectclasses = self.object_class
+        if self.object_class_config:
+            config = ldap.get_ipa_config()[1]
+            objectclasses = config.get(
+                self.object_class_config, objectclasses
+            )
+        # Get list of available attributes for this object for use
+        # in the ACI UI.
+        attrs = self.api.Backend.ldap2.schema.attribute_types(objectclasses)
+        attrlist = []
+        # Go through the MUST first
+        for (oid, attr) in attrs[0].iteritems():
+            attrlist.append(attr.names[0])
+        # And now the MAY
+        for (oid, attr) in attrs[1].iteritems():
+            attrlist.append(attr.names[0])
+        json_dict['aciattrs'] = attrlist
         json_dict['methods'] = [m for m in self.methods]
         return json_dict
 

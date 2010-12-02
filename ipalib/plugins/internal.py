@@ -56,7 +56,7 @@ class json_metadata(Command):
                     ((objname, json_serialize(self.api.Object[objname])), )
                 )
             )
-            retval= dict([("metadata",meta), ("messages",dict())])
+            retval= dict([("metadata",meta)])
 
         else:
             meta=dict(

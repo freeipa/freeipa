@@ -237,6 +237,7 @@ class service(LDAPObject):
     attribute_members = {
         'managedby': ['host'],
     }
+    bindable = True
 
     label = _('Services')
 

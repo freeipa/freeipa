@@ -165,6 +165,7 @@ class host(LDAPObject):
         'memberof': ['hostgroup', 'netgroup', 'role'],
         'managedby': ['host'],
     }
+    bindable = True
 
     label = _('Hosts')
 

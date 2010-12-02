@@ -73,6 +73,7 @@ class user(LDAPObject):
         'memberof': ['group', 'netgroup', 'role'],
     }
     rdnattr = 'uid'
+    bindable = True
 
     label = _('Users')
 

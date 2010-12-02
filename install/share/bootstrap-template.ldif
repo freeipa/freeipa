@@ -218,7 +218,6 @@ ipaUserObjectClasses: inetuser
 ipaUserObjectClasses: posixaccount
 ipaUserObjectClasses: krbprincipalaux
 ipaUserObjectClasses: krbticketpolicyaux
-ipaUserObjectClasses: radiusprofile
 ipaUserObjectClasses: ipaobject
 ipaDefaultEmailDomain: $DOMAIN
 ipaMigrationEnabled: FALSE
