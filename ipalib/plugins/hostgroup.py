@@ -73,7 +73,7 @@ class hostgroup(LDAPObject):
 
     takes_params = (
         Str('cn',
-            cli_name='name',
+            cli_name='hostgroup_name',
             label=_('Host-group'),
             doc=_('Name of host-group'),
             primary_key=True,

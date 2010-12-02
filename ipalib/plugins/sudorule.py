@@ -50,7 +50,7 @@ class sudorule(LDAPObject):
 
     takes_params = (
         Str('cn',
-            cli_name='name',
+            cli_name='sudorule_name',
             label=_('Rule name'),
             primary_key=True,
         ),

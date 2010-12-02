@@ -101,7 +101,7 @@ class group(LDAPObject):
             pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$',
             pattern_errmsg='may only include letters, numbers, _, -, . and $',
             maxlength=255,
-            cli_name='name',
+            cli_name='group_name',
             label=_('Group name'),
             primary_key=True,
             normalizer=lambda value: value.lower(),
