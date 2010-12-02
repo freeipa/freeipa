@@ -124,7 +124,7 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx):
 def validate_ldapuri(ugettext, ldapuri):
     m = re.match('^ldaps?://[-\w\.]+(:\d+)?$', ldapuri)
     if not m:
-        err_msg = 'Invalid LDAP URI.'
+        err_msg = _('Invalid LDAP URI.')
         raise errors.ValidationError(name='ldap_uri', error=err_msg)
 
 
@@ -171,6 +171,7 @@ class migrate_ds(Command):
         ),
         Password('bindpw',
             cli_name='password',
+            label=_('Password'),
             doc=_('bind password'),
         ),
     )

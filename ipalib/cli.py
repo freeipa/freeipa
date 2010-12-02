@@ -903,7 +903,7 @@ class cli(backend.Executioner):
                     error = None
                     while True:
                         if error is not None:
-                            print '>>> %s: %s' % (param.label, error)
+                            print '>>> %s: %s' % (unicode(param.label), unicode(error))
                         raw = self.Backend.textui.prompt(param.label, default)
                         try:
                             value = param(raw, **kw)

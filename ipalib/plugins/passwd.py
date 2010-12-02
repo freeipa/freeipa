@@ -39,6 +39,7 @@ from ipalib import api, errors, util
 from ipalib import Command
 from ipalib import Str, Password
 from ipalib import _
+from ipalib import output
 
 
 class passwd(Command):
@@ -54,8 +55,13 @@ class passwd(Command):
             autofill=True,
             create_default=lambda **kw: util.get_current_principal(),
         ),
-        Password('password'),
+        Password('password',
+                 label=_('Password'),
+        ),
     )
+
+    has_output = output.standard_value
+    msg_summary = _('Changed password for "%(value)s"')
 
     def execute(self, principal, password):
         """
@@ -84,11 +90,9 @@ class passwd(Command):
 
         ldap.modify_password(dn, password)
 
-        return dict(result=True)
-
-    def output_for_cli(self, textui, result, principal, password):
-        assert password is None
-        textui.print_name(self.name)
-        textui.print_dashed('Changed password for "%s."' % principal)
+        return dict(
+            result=True,
+            value=principal,
+        )
 
 api.register(passwd)
