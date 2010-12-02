@@ -503,9 +503,11 @@ class textui(backend.Backend):
             prompt = u'%s: ' % label
         else:
             prompt = u'%s [%s]: ' % (label, default)
-        return self.decode(
-            raw_input(self.encode(prompt))
-        )
+        try:
+            data = raw_input(self.encode(prompt))
+        except EOFError:
+            return None
+        return self.decode(data)
 
     def prompt_password(self, label):
         """
@@ -887,8 +889,9 @@ class cli(backend.Executioner):
         ``self.env.prompt_all`` is ``True``, this method will prompt for any
         params that have a missing values, even if the param is optional.
         """
-        for param in cmd.params(): 
-            if (param.required and param.name not in kw) or self.env.prompt_all:
+        for param in cmd.params():
+            if (param.required and param.name not in kw) or \
+                param.alwaysask or self.env.prompt_all:
                 if param.password:
                     kw[param.name] = self.Backend.textui.prompt_password(
                         param.label
