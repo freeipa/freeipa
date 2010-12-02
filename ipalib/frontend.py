@@ -406,9 +406,9 @@ class Command(HasParam):
         self.debug(
             'raw: %s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
+        params.update(self.get_default(**params))
         params = self.normalize(**params)
         params = self.convert(**params)
-        params.update(self.get_default(**params))
         self.info(
             '%s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
