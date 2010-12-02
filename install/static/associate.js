@@ -159,10 +159,15 @@ function ipa_association_adder_dialog(spec) {
         }
 
         that.adder_dialog_init();
+        execute_search('');
+
     };
 
     that.search = function() {
+        execute_search(that.get_filter());
+    }
 
+    function execute_search(filter){
         function on_success(data, text_status, xhr) {
             var results = data.result;
             that.clear_available_values();
@@ -173,7 +178,6 @@ function ipa_association_adder_dialog(spec) {
             }
         }
 
-        var filter = that.get_filter();
         ipa_cmd('find', [filter], {'all': true}, on_success, null, that.other_entity);
     };
 
