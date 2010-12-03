@@ -419,7 +419,7 @@ class pwpolicy_show(LDAPRetrieve):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if not options.get('raw', False):
-            if keys[-1] is not None:
+            if keys[-1] is not None and keys[-1] != 'global_policy':
                 try:
                     cos_entry = self.api.Command.cosentry_show(
                         keys[-1]
@@ -429,7 +429,7 @@ class pwpolicy_show(LDAPRetrieve):
                 except errors.NotFound:
                     pass
         if options.get('rights', False) and options.get('all', False) and \
-            keys[-1] is not None:
+            (keys[-1] is not None and keys[-1] != 'global_policy'):
             cos_entry = self.api.Command.cosentry_show(keys[-1], rights=True, all=True)['result']
             entry_attrs['attributelevelrights']['cospriority'] = cos_entry['attributelevelrights']['cospriority']
         self.obj.convert_time_for_output(entry_attrs, **options)
