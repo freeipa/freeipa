@@ -41,6 +41,8 @@
 #  include <config.h>
 #endif
 
+#define LDAP_DEPRECATED 1
+
 /*
  * Windows Synchronization Plug-in for IPA
  * This plugin allows IPA to intercept operations sent from
@@ -60,6 +62,7 @@
 #include "ipa-winsync.h"
 
 #include <string.h>
+#include <stdlib.h>
 #include "plstr.h"
 
 static void

@@ -137,11 +137,9 @@ fi
 AC_SUBST(KRB5_LIBS)
 
 dnl ---------------------------------------------------------------------------
-dnl - Check for Mozilla LDAP *and* OpenLDAP SDK
+dnl - Check for Mozilla LDAP and OpenLDAP SDK
 dnl ---------------------------------------------------------------------------
 
-dnl The mozldap libraries are always needed because ipa-slapi-plugins/dna/ 
-dnl will not build against OpenLDAP.
 SAVE_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="$NSPR4 $NSS3"
 AC_CHECK_HEADER(svrcore.h)
@@ -192,6 +190,21 @@ AC_SUBST(OPENLDAP_LIBS)
 
 OPENLDAP_CFLAGS="${OPENLDAP_CFLAGS} -DWITH_OPENLDAP"
 AC_SUBST(OPENLDAP_CFLAGS)
+
+AC_ARG_WITH([openldap],
+            [AS_HELP_STRING([--with-openldap],
+                            [compile plugins with openldap instead of mozldap])],
+            [], [])
+
+if test "x$with_openldap" == xyes; then
+    LDAP_CFLAGS="${OPENLDAP_CFLAGS} $NSPR4 $NSS3 -DUSE_OPENLDAP"
+    LDAP_LIBS="${OPENLDAP_LIBS}"
+else
+    LDAP_CFLAGS="${MOZLDAP_CFLAGS}"
+    LDAP_LIBS="${MOZLDAP_LIBS}"
+fi
+AC_SUBST(LDAP_CFLAGS)
+AC_SUBST(LDAP_LIBS)
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for OpenSSL Crypto library
@@ -312,7 +325,7 @@ echo "
 	source code location:	  ${srcdir}
 	compiler:		  ${CC}
 	cflags:		          ${CFLAGS}
-        LDAP libs:                ${OPENLDAP_LIBS}
+        LDAP libs:                ${LDAP_LIBS}
         KRB5 libs:                ${KRB5_LIBS}
         OpenSSL libs:             ${SSL_LIBS}
         Maintainer mode:          ${USE_MAINTAINER_MODE}

@@ -13,7 +13,7 @@ INCLUDES =							\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
 	$(AM_CFLAGS)						\
-	$(MOZLDAP_CFLAGS)					\
+	$(LDAP_CFLAGS)					\
 	$(WARN_CFLAGS)						\
 	$(NULL)
 
@@ -29,7 +29,7 @@ libipa_uuid_la_SOURCES = 	\
 libipa_uuid_la_LDFLAGS = -avoid-version
 
 libipa_uuid_la_LIBADD = 	\
-	$(MOZLDAP_LIBS)		\
+	$(LDAP_LIBS)		\
 	$(UUID_LIBS)		\
 	$(NULL)
 

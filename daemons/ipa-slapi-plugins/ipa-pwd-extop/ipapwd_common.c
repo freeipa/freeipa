@@ -206,8 +206,8 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
         goto free_and_error;
     }
 
-    be = ber_init(bval);
-    if (!bval) {
+    be = ber_init(discard_const(bval));
+    if (!be) {
         LOG_FATAL("ber_init() failed!\n");
         goto free_and_error;
     }
