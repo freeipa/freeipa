@@ -853,7 +853,7 @@ class LDAPDelete(LDAPMultiQuery):
                 if not delete_entry(pkey):
                     result = False
             except errors.ExecutionError:
-                if not options.get('continuous', False):
+                if not options.get('continue', False):
                     raise
                 failed.append(pkey)
             else:
