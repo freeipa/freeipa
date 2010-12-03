@@ -314,7 +314,7 @@ function ipa_hbac_details_facet(spec) {
             'name': 'sourcehost_hostgroup', 'label': 'Host Groups', 'category': category,
             'other_entity': 'hostgroup', 'add_method': 'add_sourcehost', 'remove_method': 'remove_sourcehost'
         }));
-
+/*
         if (IPA.layout) {
             section = that.create_section({
                 'name': 'accesstime',
@@ -327,18 +327,6 @@ function ipa_hbac_details_facet(spec) {
                 'name': 'accesstime',
                 'label': 'When'
             });
-/*
-            section = ipa_rule_details_section({
-                'name': 'accesstime',
-                'label': 'When',
-                'text': 'Rule applies when access is being requested at:',
-                'field_name': 'accesstimecategory',
-                'tables': [
-                    { 'field_name': 'accesstime' }
-                ]
-            });
-            that.add_section(section);
-*/
         }
 
         section.add_field(ipa_hbac_accesstime_widget({
@@ -350,7 +338,7 @@ function ipa_hbac_details_facet(spec) {
                 { 'value': '', 'label': 'Specified Times' }
             ]
         }));
-
+*/
         that.details_facet_init();
     };
 
