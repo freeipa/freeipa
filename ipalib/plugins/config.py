@@ -35,7 +35,8 @@ User management options:
   --maxusername=INT     Max username length when creating/modifing a user
   --homedirectory=STR   Default location of home directories (default /home)
   --defaultshell=STR    Default shell for new users (default /bin/sh)
-  --defaultgroup=STR    Default group for new users (default ipausers)
+  --defaultgroup=STR    Default group for new users (default ipausers). The
+                        group must exist. Otherwise adding new users will fail.
   --emaildomain=STR     Default e-mail domain new users
 
 Search tuning options. These impact how much data is searched through and
