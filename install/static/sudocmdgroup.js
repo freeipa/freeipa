@@ -31,7 +31,7 @@ function ipa_sudocmdgroup() {
         that.create_association({
             'name': 'sudocmd',
             'add_method': 'add_member',
-            'delete_method': 'remove_member'
+            'remove_method': 'remove_member'
         });
 
         var dialog = ipa_sudocmdgroup_add_dialog({

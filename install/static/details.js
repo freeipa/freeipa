@@ -272,6 +272,7 @@ function ipa_details_section(spec){
     };
 
     // methods that should be invoked by subclasses
+    that.section_init = that.init;
     that.section_create = that.create;
     that.section_setup = that.setup;
     that.section_load = that.load;

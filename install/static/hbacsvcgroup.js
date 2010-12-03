@@ -31,7 +31,7 @@ function ipa_hbacsvcgroup() {
         that.create_association({
             'name': 'hbacsvc',
             'add_method': 'add_member',
-            'delete_method': 'remove_member'
+            'remove_method': 'remove_member'
         });
 
         var dialog = ipa_hbacsvcgroup_add_dialog({
@@ -50,13 +50,6 @@ function ipa_hbacsvcgroup() {
         facet = ipa_hbacsvcgroup_details_facet({
             'name': 'details',
             'label': 'Details'
-        });
-        that.add_facet(facet);
-
-        facet = ipa_hbacsvcgroup_member_hbacsvc_facet({
-            'name': 'member_hbacsvc',
-            'label': IPA.metadata['hbacsvc'].label+' '+IPA.messages.association.members,
-            'other_entity': 'hbacsvc'
         });
         that.add_facet(facet);
 
@@ -152,17 +145,30 @@ function ipa_hbacsvcgroup_details_facet(spec) {
         section.create_field({ 'name': 'cn', 'label': 'Name' });
         section.create_field({ 'name': 'description', 'label': 'Description' });
 
+        section = ipa_details_section({
+            'name': 'services',
+            'label': 'Services'
+        });
+        that.add_section(section);
+
+        var field = ipa_hbacsvcgroup_member_hbacsvc_table_widget({
+            'name': 'member_hbacsvc',
+            'label': 'Services',
+            'other_entity': 'hbacsvc'
+        });
+        section.add_field(field);
+
         that.details_facet_init();
     };
 
     return that;
 }
 
-function ipa_hbacsvcgroup_member_hbacsvc_facet(spec) {
+function ipa_hbacsvcgroup_member_hbacsvc_table_widget(spec) {
 
     spec = spec || {};
 
-    var that = ipa_association_facet(spec);
+    var that = ipa_association_table_widget(spec);
 
     that.init = function() {
 
@@ -197,7 +203,7 @@ function ipa_hbacsvcgroup_member_hbacsvc_facet(spec) {
         that.create_column({
             name: 'description',
             label: 'Description',
-            width: '150px'
+            width: '350px'
         });
 
         that.create_adder_column({
@@ -213,7 +219,7 @@ function ipa_hbacsvcgroup_member_hbacsvc_facet(spec) {
             width: '100px'
         });
 
-        that.association_facet_init();
+        that.association_table_widget_init();
     };
 
     return that;

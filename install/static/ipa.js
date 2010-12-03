@@ -57,8 +57,8 @@ var IPA = ( function () {
     that.layouts_dir = 'layouts';
 
     that.get_template = function(path) {
-        if (!that.layout) return path;
-        return that.layouts_dir+'/'+that.layout+'/'+path;
+        var layout = that.layout || 'default';
+        return that.layouts_dir+'/'+layout+'/'+path;
     };
 
     /* initialize the IPA JSON-RPC helper

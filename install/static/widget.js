@@ -87,7 +87,7 @@ function ipa_widget(spec) {
     function clear() {
     }
 
-    that.is_dirty = function(container) {
+    that.is_dirty = function() {
         if (!that.values) return true;
         var values = that.save();
         if (values.length != that.values.length) return true;
@@ -100,7 +100,7 @@ function ipa_widget(spec) {
     that.set_values = function(values) {
     };
 
-    that.reset = function(container) {
+    that.reset = function() {
         that.hide_undo();
         that.set_values(that.values);
     };
@@ -327,7 +327,9 @@ function ipa_radio_widget(spec) {
     };
 
     that.set_values = function(values) {
-        $('input[name="'+that.name+'"][value="'+values[0]+'"]', that.container).get(0).checked = true;
+        var input = $('input[name="'+that.name+'"][value="'+values[0]+'"]', that.container);
+        if (!input.length) return;
+        input.get(0).checked = true;
     };
 
     that.clear = function() {

@@ -420,7 +420,7 @@ function ipa_host_managedby_host_facet(spec) {
     var that = ipa_association_facet(spec);
 
     that.add_method = 'add_managedby';
-    that.delete_method = 'remove_managedby';
+    that.remove_method = 'remove_managedby';
 
     that.init = function() {
 

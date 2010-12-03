@@ -553,8 +553,7 @@ function ipa_hbac_details_general_section(spec){
             'style': 'width: 100%;'
         }).appendTo(container);
 
-        var tr = $('<tr/>', {
-        }).appendTo(table);
+        var tr = $('<tr/>').appendTo(table);
 
         var td = $('<td/>', {
             'style': 'width: 100px; text-align: right;',
@@ -613,8 +612,7 @@ function ipa_hbac_details_general_section(spec){
             'html': 'undo'
         }).appendTo(span);
 
-        tr = $('<tr/>', {
-        }).appendTo(table);
+        tr = $('<tr/>').appendTo(table);
 
         td = $('<td/>', {
             'style': 'text-align: right; vertical-align: top;',
@@ -642,8 +640,7 @@ function ipa_hbac_details_general_section(spec){
             'html': 'undo'
         }).appendTo(span);
 
-        tr = $('<tr/>', {
-        }).appendTo(table);
+        tr = $('<tr/>').appendTo(table);
 
         td = $('<td/>', {
             'style': 'text-align: right; vertical-align: top;',
@@ -689,7 +686,7 @@ function ipa_hbac_association_widget(spec) {
 
     spec = spec || {};
 
-    var that = ipa_rule_association_widget(spec);
+    var that = ipa_association_table_widget(spec);
 
     that.category = spec.category;
 

@@ -141,12 +141,6 @@ function ipa_association_adder_dialog(spec) {
     that.pkey = spec.pkey;
     that.other_entity = spec.other_entity;
 
-    that.associator = spec.associator;
-    that.method = spec.method || 'add_member';
-
-    that.on_success = spec.on_success;
-    that.on_error = spec.on_error;
-
     that.init = function() {
         if (!that.columns.length) {
             var pkey_name = IPA.metadata[that.other_entity].primary_key;
@@ -165,7 +159,7 @@ function ipa_association_adder_dialog(spec) {
 
     that.search = function() {
         execute_search(that.get_filter());
-    }
+    };
 
     function execute_search(filter){
         function on_success(data, text_status, xhr) {
@@ -179,22 +173,7 @@ function ipa_association_adder_dialog(spec) {
         }
 
         ipa_cmd('find', [filter], {'all': true}, on_success, null, that.other_entity);
-    };
-
-    that.add = function() {
-
-        var associator = that.associator({
-            'entity_name': that.entity_name,
-            'pkey': that.pkey,
-            'other_entity': that.other_entity,
-            'values': that.get_selected_values(),
-            'method': that.method,
-            'on_success': that.on_success,
-            'on_error': that.on_error
-        });
-
-        associator.execute();
-    };
+    }
 
     return that;
 }
@@ -246,7 +225,7 @@ function ipa_association_config(spec) {
     that.name = spec.name;
     that.associator = spec.associator;
     that.add_method = spec.add_method;
-    that.delete_method = spec.delete_method;
+    that.remove_method = spec.remove_method;
 
     return that;
 }
@@ -257,87 +236,98 @@ function ipa_association_table_widget(spec) {
 
     var that = ipa_table_widget(spec);
 
-    that.facet = spec.facet;
     that.other_entity = spec.other_entity;
 
-    that.add = spec.add;
-    that.remove = spec.remove;
+    that.associator = spec.associator || bulk_associator;
+    that.add_method = spec.add_method || 'add_member';
+    that.remove_method = spec.remove_method || 'remove_member';
+
+    that.adder_columns = [];
+    that.adder_columns_by_name = {};
+
+    that.get_adder_column = function(name) {
+        return that.adder_columns_by_name[name];
+    };
+
+    that.add_adder_column = function(column) {
+        column.entity_name = that.entity_name;
+        that.adder_columns.push(column);
+        that.adder_columns_by_name[column.name] = column;
+    };
+
+    that.create_adder_column = function(spec) {
+        var column = ipa_column(spec);
+        that.add_adder_column(column);
+        return column;
+    };
+
+    that.init = function() {
+
+        var entity = IPA.get_entity(that.entity_name);
+        var association = entity.get_association(that.other_entity);
+
+        if (association) {
+            if (association.associator) {
+                that.associator = association.associator == 'serial' ? serial_associator : bulk_associator;
+            }
+
+            if (association.add_method) that.add_method = association.add_method;
+            if (association.remove_method) that.remove_method = association.remove_method;
+        }
+
+        // create a column if none defined
+        if (!that.columns.length) {
+            that.create_column({
+                'name': that.name,
+                'label': IPA.metadata[that.other_entity].label,
+                'primary_key': true
+            });
+        }
+
+        that.table_init();
+    };
 
     that.create = function(container) {
 
-        if (!that.columns.length) {
-            var pkey_name = IPA.metadata[that.other_entity].primary_key;
-
-            var column = that.create_column({
-                name: pkey_name,
-                label: IPA.metadata[that.other_entity].label,
-                primary_key: true
-            });
-
-            column.setup = function(container, record) {
-                container.empty();
-
-                var value = record[column.name];
-                value = value ? value.toString() : '';
-
-                $('<a/>', {
-                    'href': '#'+value,
-                    'html': value,
-                    'click': function (value) {
-                        return function() {
-                            var state = IPA.tab_state(that.other_entity);
-                            state[that.other_entity + '-facet'] = 'details';
-                            state[that.other_entity + '-pkey'] = value;
-                            $.bbq.pushState(state);
-                            return false;
-                        }
-                    }(value)
-                }).appendTo(container);
-            };
-        }
-
         that.table_create(container);
 
-        var action_panel = that.facet.get_action_panel();
-        var li = $('.action-controls', action_panel);
+        var buttons = $('span[name=buttons]', container);
 
-        // creating generic buttons for layout
         $('<input/>', {
             'type': 'button',
             'name': 'remove',
-            'value': IPA.messages.button.remove
-        }).appendTo(li);
+            'value': 'Remove '+that.label
+        }).appendTo(buttons);
 
         $('<input/>', {
             'type': 'button',
             'name': 'add',
-            'value': IPA.messages.button.enroll
-        }).appendTo(li);
+            'value': 'Add '+that.label
+        }).appendTo(buttons);
     };
 
     that.setup = function(container) {
 
         that.table_setup(container);
 
-        // replacing generic buttons with ipa_button and setting click handler
-        var action_panel = that.facet.get_action_panel();
-
-        var button = $('input[name=remove]', action_panel);
+        var button = $('input[name=remove]', container);
         button.replaceWith(ipa_button({
             'label': button.val(),
             'icon': 'ui-icon-trash',
-            'click': function() { that.remove(); }
+            'click': function() { that.show_remove_dialog(); }
         }));
 
-        button = $('input[name=add]', action_panel);
+        button = $('input[name=add]', container);
         button.replaceWith(ipa_button({
             'label': button.val(),
             'icon': 'ui-icon-plus',
-            'click': function() { that.add() }
+            'click': function() { that.show_add_dialog() }
         }));
     };
 
-    that.get_records = function(pkeys, on_success, on_error) {
+    that.get_records = function(on_success, on_error) {
+
+        if (!that.values.length) return;
 
         var batch = ipa_batch_command({
             'name': that.entity_name+'_'+that.name,
@@ -345,12 +335,12 @@ function ipa_association_table_widget(spec) {
             'on_error': on_error
         });
 
-        for (var i=0; i<pkeys.length; i++) {
-            var pkey = pkeys[i];
+        for (var i=0; i<that.values.length; i++) {
+            var value = that.values[i];
 
             var command = ipa_command({
                 'method': that.other_entity+'_show',
-                'args': [pkey],
+                'args': [value],
                 'options': {
                     'all': true,
                     'rights': true
@@ -363,47 +353,149 @@ function ipa_association_table_widget(spec) {
         batch.execute();
     };
 
-    that.refresh = function() {
+    that.load = function(result) {
+        that.values = result[that.name] || [];
+        that.reset();
+    };
 
-        function on_success(data, text_status, xhr) {
+    that.set_values = function(values) {
 
-            that.tbody.empty();
+        that.empty();
 
-            var pkeys = data.result.result[that.name];
-            if (!pkeys) return;
-
-            if (that.columns.length == 1) { // show pkey only
-                var name = that.columns[0].name;
-                for (var i=0; i<pkeys.length; i++) {
-                    var record = {};
-                    record[name] = pkeys[i];
-                    that.add_record(record);
-                }
-
-            } else { // get and show additional fields
-                that.get_records(
-                    pkeys,
-                    function(data, text_status, xhr) {
-                        var results = data.result.results;
-                        for (var i=0; i<results.length; i++) {
-                            var record = results[i].result;
-                            that.add_record(record);
-                        }
-                    }
-                );
+        if (that.columns.length == 1) { // show pkey only
+            var name = that.columns[0].name;
+            for (var i=0; i<that.values.length; i++) {
+                var record = {};
+                record[name] = that.values[i];
+                that.add_record(record);
             }
+
+        } else { // get and show additional fields
+            that.get_records(
+                function(data, text_status, xhr) {
+                    var results = data.result.results;
+                    for (var i=0; i<results.length; i++) {
+                        var record = results[i].result;
+                        that.add_record(record);
+                    }
+                }
+            );
+        }
+    };
+
+    that.show_add_dialog = function() {
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var label = IPA.metadata[that.other_entity].label;
+        var title = 'Add '+label+' to '+that.entity_name+' '+pkey;
+
+        var dialog = ipa_association_adder_dialog({
+            'title': title,
+            'entity_name': that.entity_name,
+            'pkey': pkey,
+            'other_entity': that.other_entity
+        });
+
+        if (that.adder_columns.length) {
+            dialog.set_columns(that.adder_columns);
         }
 
-        function on_error(xhr, text_status, error_thrown) {
-            var summary = $('span[name=summary]', that.tfoot).empty();
-            summary.append('<p>Error: '+error_thrown.name+'</p>');
-            summary.append('<p>'+error_thrown.title+'</p>');
-            summary.append('<p>'+error_thrown.message+'</p>');
+        dialog.add = function() {
+            that.add(
+                dialog.get_selected_values(),
+                function() {
+                    that.refresh();
+                    dialog.close();
+                },
+                function() {
+                    that.refresh();
+                    dialog.close();
+                }
+            );
+        };
+
+        dialog.init();
+
+        dialog.open(that.container);
+    };
+
+    that.add = function(values, on_success, on_error) {
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+
+        var command = ipa_command({
+            'method': that.entity_name+'_'+that.add_method,
+            'args': [pkey],
+            'on_success': on_success,
+            'on_error': on_error
+        });
+        command.set_option(that.other_entity, values.join(','));
+
+        command.execute();
+    };
+
+    that.show_remove_dialog = function() {
+
+        var selected_values = that.get_selected_values();
+
+        if (!selected_values.length) {
+            alert('Select '+that.label+' to be removed.');
+            return;
         }
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        ipa_cmd('show', [pkey], {'rights': true}, on_success, on_error, that.entity_name);
+        var label = IPA.metadata[that.other_entity].label;
+        var title = 'Remove '+label+' from '+that.entity_name+' '+pkey;
+
+        var dialog = ipa_association_deleter_dialog({
+            'title': title,
+            'entity_name': that.entity_name,
+            'pkey': pkey,
+            'other_entity': that.other_entity,
+            'values': selected_values
+        });
+
+        dialog.remove = function() {
+            that.remove(
+                selected_values,
+                function() {
+                    that.refresh();
+                    dialog.close();
+                },
+                function() {
+                    that.refresh();
+                    dialog.close();
+                }
+            );
+        };
+
+        dialog.init();
+
+        dialog.open(that.container);
     };
+
+    that.remove = function(values, on_success, on_error) {
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+
+        var command = ipa_command({
+            'method': that.entity_name+'_'+that.remove_method,
+            'args': [pkey],
+            'on_success': on_success,
+            'on_error': on_error
+        });
+
+        command.set_option(that.other_entity, values.join(','));
+
+        command.execute();
+    };
+
+    that.save = function() {
+        return null;
+    };
+
+    // methods that should be invoked by subclasses
+    that.association_table_widget_init = that.init;
 
     return that;
 }
@@ -418,7 +510,7 @@ function ipa_association_facet(spec) {
 
     that.associator = spec.associator || bulk_associator;
     that.add_method = spec.add_method || 'add_member';
-    that.delete_method = spec.delete_method || 'remove_member';
+    that.remove_method = spec.remove_method || 'remove_member';
 
     that.columns = [];
     that.columns_by_name = {};
@@ -458,11 +550,6 @@ function ipa_association_facet(spec) {
         return column;
     };
 
-    that.is_dirty = function() {
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        return pkey != that.pkey || other_entity != that.other_entity;
-    };
-
     that.init = function() {
 
         var entity = IPA.get_entity(that.entity_name);
@@ -474,28 +561,59 @@ function ipa_association_facet(spec) {
             }
 
             if (association.add_method) that.add_method = association.add_method;
-            if (association.delete_method) that.delete_method = association.delete_method;
+            if (association.remove_method) that.remove_method = association.remove_method;
         }
 
         var label = IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity;
+        var pkey_name = IPA.metadata[that.other_entity].primary_key;
 
-        that.table = ipa_association_table_widget({
+        that.table = ipa_table_widget({
             'id': that.entity_name+'-'+that.other_entity,
-            'name': that.name,
+            'name': pkey_name,
             'label': label,
             'entity_name': that.entity_name,
-            'other_entity': that.other_entity,
-            'facet': that
+            'other_entity': that.other_entity
         });
 
         if (that.columns.length) {
             that.table.set_columns(that.columns);
+
+        } else {
+
+            var column = that.table.create_column({
+                name: that.table.name,
+                label: IPA.metadata[that.other_entity].label,
+                primary_key: true
+            });
+
+            column.setup = function(container, record) {
+                container.empty();
+
+                var value = record[column.name];
+                value = value ? value.toString() : '';
+
+                $('<a/>', {
+                    'href': '#'+value,
+                    'html': value,
+                    'click': function (value) {
+                        return function() {
+                            var state = IPA.tab_state(that.other_entity);
+                            state[that.other_entity + '-facet'] = 'details';
+                            state[that.other_entity + '-pkey'] = value;
+                            $.bbq.pushState(state);
+                            return false;
+                        }
+                    }(value)
+                }).appendTo(container);
+            };
         }
 
-        that.table.add = function() { that.add(); };
-        that.table.remove = function() { that.remove() };
-
         that.facet_init();
+    };
+
+    that.is_dirty = function() {
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        return pkey != that.pkey;
     };
 
     that.create = function(container) {
@@ -514,6 +632,23 @@ function ipa_association_facet(spec) {
         var span = $('<span/>', { 'name': 'association' }).appendTo(container);
 
         that.table.create(span);
+
+        var action_panel = that.get_action_panel();
+        var li = $('.action-controls', action_panel);
+
+        // creating generic buttons for layout
+        $('<input/>', {
+            'type': 'button',
+            'name': 'remove',
+            'value': IPA.messages.button.remove
+        }).appendTo(li);
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'add',
+            'value': IPA.messages.button.enroll
+        }).appendTo(li);
+
     };
 
     that.setup = function(container) {
@@ -523,9 +658,26 @@ function ipa_association_facet(spec) {
         var span = $('span[name=association]', that.container);
 
         that.table.setup(span);
+
+        // replacing generic buttons with ipa_button and setting click handler
+        var action_panel = that.get_action_panel();
+
+        var button = $('input[name=remove]', action_panel);
+        button.replaceWith(ipa_button({
+            'label': button.val(),
+            'icon': 'ui-icon-trash',
+            'click': function() { that.show_remove_dialog(); }
+        }));
+
+        button = $('input[name=add]', action_panel);
+        button.replaceWith(ipa_button({
+            'label': button.val(),
+            'icon': 'ui-icon-plus',
+            'click': function() { that.show_add_dialog() }
+        }));
     };
 
-    that.add = function() {
+    that.show_add_dialog = function() {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         var label = IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity;
@@ -535,29 +687,42 @@ function ipa_association_facet(spec) {
             'title': title,
             'entity_name': that.entity_name,
             'pkey': pkey,
-            'other_entity': that.other_entity,
-            'associator': that.associator,
-            'method': that.add_method,
-            'on_success': function() {
-                that.refresh();
-                dialog.close();
-            },
-            'on_error': function() {
-                that.refresh();
-                dialog.close();
-            }
+            'other_entity': that.other_entity
         });
 
         if (that.adder_columns.length) {
             dialog.set_columns(that.adder_columns);
         }
 
+        dialog.add = function() {
+
+            var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+
+            var associator = that.associator({
+                'entity_name': that.entity_name,
+                'pkey': pkey,
+                'other_entity': that.other_entity,
+                'values': dialog.get_selected_values(),
+                'method': that.add_method,
+                'on_success': function() {
+                    that.refresh();
+                    dialog.close();
+                },
+                'on_error': function() {
+                    that.refresh();
+                    dialog.close();
+                }
+            });
+
+            associator.execute();
+        };
+
         dialog.init();
 
         dialog.open(that.container);
     };
 
-    that.remove = function() {
+    that.show_remove_dialog = function() {
 
         var label = IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity;
         var values = that.table.get_selected_values();
@@ -577,7 +742,7 @@ function ipa_association_facet(spec) {
             'other_entity': that.other_entity,
             'values': values,
             'associator': that.associator,
-            'method': that.delete_method,
+            'method': that.remove_method,
             'on_success': function() {
                 that.refresh();
                 dialog.close();
@@ -593,8 +758,74 @@ function ipa_association_facet(spec) {
         dialog.open(that.container);
     };
 
-    that.refresh = function(){
-        that.table.refresh();
+    that.get_records = function(pkeys, on_success, on_error) {
+
+        if (!pkeys.length) return;
+
+        var batch = ipa_batch_command({
+            'name': that.entity_name+'_'+that.name,
+            'on_success': on_success,
+            'on_error': on_error
+        });
+
+        for (var i=0; i<pkeys.length; i++) {
+            var pkey = pkeys[i];
+
+            var command = ipa_command({
+                'method': that.other_entity+'_show',
+                'args': [pkey],
+                'options': {
+                    'all': true,
+                    'rights': true
+                }
+            });
+
+            batch.add_command(command);
+        }
+
+        batch.execute();
+    };
+
+    that.refresh = function() {
+
+        function on_success(data, text_status, xhr) {
+
+            that.table.empty();
+
+            var pkeys = data.result.result[that.name];
+            if (!pkeys) return;
+
+            if (that.table.columns.length == 1) { // show pkey only
+                var name = that.table.columns[0].name;
+                for (var i=0; i<pkeys.length; i++) {
+                    var record = {};
+                    record[name] = pkeys[i];
+                    that.table.add_record(record);
+                }
+
+            } else { // get and show additional fields
+                that.get_records(
+                    pkeys,
+                    function(data, text_status, xhr) {
+                        var results = data.result.results;
+                        for (var i=0; i<results.length; i++) {
+                            var record = results[i].result;
+                            that.table.add_record(record);
+                        }
+                    }
+                );
+            }
+        }
+
+        function on_error(xhr, text_status, error_thrown) {
+            var summary = $('span[name=summary]', that.table.tfoot).empty();
+            summary.append('<p>Error: '+error_thrown.name+'</p>');
+            summary.append('<p>'+error_thrown.title+'</p>');
+            summary.append('<p>'+error_thrown.message+'</p>');
+        }
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        ipa_cmd('show', [pkey], {'rights': true}, on_success, on_error, that.entity_name);
     };
 
     that.association_facet_init = that.init;

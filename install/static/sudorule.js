@@ -135,12 +135,12 @@ function ipa_sudorule_details_facet(spec) {
         });
         that.add_section(section);
 
-        section.add_field(ipa_sudorule_association_widget({
+        section.add_field(ipa_association_table_widget({
             'id': that.entity_name+'-memberuser_user',
             'name': 'memberuser_user', 'label': 'Users',
             'other_entity': 'user', 'add_method': 'add_user', 'remove_method': 'remove_user'
         }));
-        section.add_field(ipa_sudorule_association_widget({
+        section.add_field(ipa_association_table_widget({
             'id': that.entity_name+'-memberuser_group',
             'name': 'memberuser_group', 'label': 'Groups',
             'other_entity': 'group', 'add_method': 'add_user', 'remove_method': 'remove_user'
@@ -157,12 +157,12 @@ function ipa_sudorule_details_facet(spec) {
         });
         that.add_section(section);
 
-        section.add_field(ipa_sudorule_association_widget({
+        section.add_field(ipa_association_table_widget({
             'id': that.entity_name+'-memberhost_host',
             'name': 'memberhost_host', 'label': 'Host',
             'other_entity': 'host', 'add_method': 'add_host', 'remove_method': 'remove_host'
         }));
-        section.add_field(ipa_sudorule_association_widget({
+        section.add_field(ipa_association_table_widget({
             'id': that.entity_name+'-memberhost_hostgroup',
             'name': 'memberhost_hostgroup', 'label': 'Groups',
             'other_entity': 'hostgroup', 'add_method': 'add_host', 'remove_method': 'remove_host'
@@ -179,12 +179,12 @@ function ipa_sudorule_details_facet(spec) {
         });
         that.add_section(section);
 
-        section.add_field(ipa_sudorule_association_widget({
+        section.add_field(ipa_association_table_widget({
             'id': that.entity_name+'-memberallowcmd_sudocmd',
             'name': 'memberallowcmd_sudocmd', 'label': 'Command',
             'other_entity': 'sudocmd', 'add_method': 'add_allow_command', 'remove_method': 'remove_allow_command'
         }));
-        section.add_field(ipa_sudorule_association_widget({
+        section.add_field(ipa_association_table_widget({
             'id': that.entity_name+'-memberallowcmd_sudocmdgroup',
             'name': 'memberallowcmd_sudocmdgroup', 'label': 'Groups',
             'other_entity': 'sudocmdgroup', 'add_method': 'add_allow_command', 'remove_method': 'remove_allow_command'
@@ -201,62 +201,18 @@ function ipa_sudorule_details_facet(spec) {
         });
         that.add_section(section);
 
-        section.add_field(ipa_sudorule_association_widget({
+        section.add_field(ipa_association_table_widget({
             'id': that.entity_name+'-memberdenycmd_sudocmd',
             'name': 'memberdenycmd_sudocmd', 'label': 'Command',
             'other_entity': 'sudocmd', 'add_method': 'add_deny_command', 'remove_method': 'remove_deny_command'
         }));
-        section.add_field(ipa_sudorule_association_widget({
+        section.add_field(ipa_association_table_widget({
             'id': that.entity_name+'-memberdenycmd_sudocmdgroup',
             'name': 'memberdenycmd_sudocmdgroup', 'label': 'Groups',
             'other_entity': 'sudocmdgroup', 'add_method': 'add_deny_command', 'remove_method': 'remove_deny_command'
         }));
 
         that.details_facet_init();
-    };
-
-    return that;
-}
-
-function ipa_sudorule_association_widget(spec) {
-
-    spec = spec || {};
-
-    var that = ipa_rule_association_widget(spec);
-
-    that.add = function(values, on_success, on_error) {
-
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-
-        var command = ipa_command({
-            'method': that.entity_name+'_'+that.add_method,
-            'args': [pkey],
-            'on_success': on_success,
-            'on_error': on_error
-        });
-        command.set_option(that.other_entity, values.join(','));
-
-        command.execute();
-    };
-
-    that.remove = function(values, on_success, on_error) {
-
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-
-        var command = ipa_command({
-            'method': that.entity_name+'_'+that.remove_method,
-            'args': [pkey],
-            'on_success': on_success,
-            'on_error': on_error
-        });
-
-        command.set_option(that.other_entity, values.join(','));
-
-        command.execute();
-    };
-
-    that.save = function() {
-        return null;
     };
 
     return that;

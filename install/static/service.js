@@ -31,7 +31,7 @@ function ipa_service() {
         that.create_association({
             'name': 'host',
             'add_method': 'add_host',
-            'delete_method': 'remove_host'
+            'remove_method': 'remove_host'
         });
 
         var dialog = ipa_service_add_dialog({

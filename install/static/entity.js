@@ -330,7 +330,7 @@ function ipa_entity_set_association_definition(entity_name, data) {
             'name': other_entity,
             'associator': config.associator,
             'add_method': config.add_method,
-            'delete_method': config.delete_method
+            'remove_method': config.remove_method
         });
     }
 }
