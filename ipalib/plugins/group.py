@@ -212,6 +212,8 @@ class group_find(LDAPSearch):
     """
     Search for groups.
     """
+    member_attributes = ['member']
+
     msg_summary = ngettext(
         '%(count)d group matched', '%(count)d groups matched', 0
     )

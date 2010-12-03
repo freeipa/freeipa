@@ -1186,6 +1186,9 @@ class LDAPSearch(CallbackInterface, crud.Search):
     """
     Retrieve all LDAP entries matching the given criteria.
     """
+    member_attributes = []
+    member_param_doc = 'exclude %s with member %s (comma-separated list)'
+
     takes_options = (
         Int('timelimit?',
             label=_('Time Limit'),
@@ -1213,6 +1216,33 @@ class LDAPSearch(CallbackInterface, crud.Search):
     def get_options(self):
         for option in super(LDAPSearch, self).get_options():
             yield option
+        for attr in self.member_attributes:
+            for ldap_obj_name in self.obj.attribute_members[attr]:
+                ldap_obj = self.api.Object[ldap_obj_name]
+                name = to_cli(ldap_obj_name)
+                doc = self.member_param_doc % (
+                    self.obj.object_name_plural, ldap_obj.object_name_plural
+                )
+                yield List('no_%s?' % name, cli_name='no_%ss' % name, doc=doc,
+                           label=ldap_obj.object_name)
+
+    def get_member_filter(self, ldap, **options):
+        filter = ''
+        for attr in self.member_attributes:
+            for ldap_obj_name in self.obj.attribute_members[attr]:
+                param_name = 'no_%s' % to_cli(ldap_obj_name)
+                if param_name in options:
+                    dns = []
+                    ldap_obj = self.api.Object[ldap_obj_name]
+                    for pkey in options[param_name]:
+                        dns.append(ldap_obj.get_dn(pkey))
+                    flt = ldap.make_filter_from_attr(
+                        attr, dns, ldap.MATCH_NONE
+                    )
+                    filter = ldap.combine_filters(
+                        (filter, flt), ldap.MATCH_ALL
+                    )
+        return filter
 
     has_output_params = global_output_params
 
@@ -1254,8 +1284,10 @@ class LDAPSearch(CallbackInterface, crud.Search):
             search_kw[a] = term
         term_filter = ldap.make_filter(search_kw, exact=False)
 
+        member_filter = self.get_member_filter(ldap, **options)
+
         filter = ldap.combine_filters(
-            (term_filter, attr_filter), rules=ldap.MATCH_ALL
+            (term_filter, attr_filter, member_filter), rules=ldap.MATCH_ALL
         )
 
         scope = ldap.SCOPE_ONELEVEL

@@ -171,6 +171,7 @@ class netgroup_find(LDAPSearch):
     """
     Search for a netgroup.
     """
+    member_attributes = ['member', 'memberuser', 'memberhost']
     has_output_params = LDAPSearch.has_output_params + output_params
     msg_summary = ngettext(
         '%(count)d netgroup matched', '%(count)d netgroups matched'

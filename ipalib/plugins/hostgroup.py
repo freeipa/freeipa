@@ -123,7 +123,7 @@ class hostgroup_find(LDAPSearch):
     """
     Search for hostgroups.
     """
-
+    member_attributes = ['member']
     msg_summary = ngettext(
         '%(count)d hostgroup matched', '%(count)d hostgroups matched'
     )
