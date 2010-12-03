@@ -21,15 +21,11 @@ Host-based access control
 
 Control who can access what services on what hosts and from where. You
 can use HBAC to control which users or groups on a source host can
-access a service, or group of services, on a target host. You can also
-control the times that the rule is active.
+access a service, or group of services, on a target host.
 
 You can also specify a category of users, target hosts, and source
 hosts. This is currently limited to "all", but might be expanded in the
 future.
-
-The access time(s) of a host are cumulative and are not guaranteed to be
-applied in the order displayed.
 
 Target hosts and source hosts in HBAC rules must be hosts managed by IPA.
 
@@ -45,13 +41,6 @@ EXAMPLES:
 
  Display the properties of a named HBAC rule:
    ipa hbac-show test1
-
- Specify that the rule "test1" be active every day between 0800 and 1400:
-   ipa hbac-add-accesstime --time='periodic daily 0800-1400' test1
-
-  Specify that the rule "test1" be active once, from 10:32 until 10:33 on
-  December 16, 2010:
-   ipa hbac-add-accesstime --time='absolute 201012161032 ~ 201012161033' test1
 
  Create a rule for a specific service. This lets the user john access
  the sshd service on any machine from any machine:
@@ -74,6 +63,22 @@ EXAMPLES:
  Remove a named HBAC rule:
    ipa hbac-del allow_server
 """
+
+
+# AccessTime support is being removed for now.
+#
+# You can also control the times that the rule is active.
+#
+# The access time(s) of a host are cumulative and are not guaranteed to be
+# applied in the order displayed.
+#
+# Specify that the rule "test1" be active every day between 0800 and 1400:
+#   ipa hbac-add-accesstime --time='periodic daily 0800-1400' test1
+#
+# Specify that the rule "test1" be active once, from 10:32 until 10:33 on
+# December 16, 2010:
+#   ipa hbac-add-accesstime --time='absolute 201012161032 ~ 201012161033' test1
+
 
 from ipalib import api, errors
 from ipalib import AccessTime, Password, Str, StrEnum
@@ -102,7 +107,7 @@ class hbac(LDAPObject):
     object_class = ['ipaassociation', 'ipahbacrule']
     default_attributes = [
         'cn', 'accessruletype', 'ipaenabledflag',
-        'accesstime', 'description', 'usercategory', 'hostcategory',
+        'description', 'usercategory', 'hostcategory',
         'sourcehostcategory', 'servicecategory', 'ipaenabledflag',
         'memberuser', 'sourcehost', 'memberhost', 'memberservice',
         'memberhostgroup',
@@ -155,10 +160,10 @@ class hbac(LDAPObject):
             doc=_('Service category the rule applies to'),
             values=(u'all', ),
         ),
-        AccessTime('accesstime?',
-            cli_name='time',
-            label=_('Access time'),
-        ),
+#        AccessTime('accesstime?',
+#            cli_name='time',
+#            label=_('Access time'),
+#        ),
         Str('description?',
             cli_name='desc',
             label=_('Description'),
@@ -346,7 +351,7 @@ class hbac_add_accesstime(LDAPQuery):
             )
         )
 
-api.register(hbac_add_accesstime)
+#api.register(hbac_add_accesstime)
 
 
 class hbac_remove_accesstime(LDAPQuery):
@@ -386,7 +391,7 @@ class hbac_remove_accesstime(LDAPQuery):
             )
         )
 
-api.register(hbac_remove_accesstime)
+#api.register(hbac_remove_accesstime)
 
 
 class hbac_add_user(LDAPAddMember):

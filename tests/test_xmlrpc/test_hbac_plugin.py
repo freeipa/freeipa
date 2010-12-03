@@ -55,13 +55,11 @@ class test_hbac(XMLRPC_test):
         ret = self.failsafe_add(api.Object.hbac,
             self.rule_name,
             accessruletype=self.rule_type,
-            accesstime=self.rule_time,
             description=self.rule_desc,
         )
         entry = ret['result']
         assert_attr_equal(entry, 'cn', self.rule_name)
         assert_attr_equal(entry, 'accessruletype', self.rule_type)
-        assert_attr_equal(entry, 'accesstime', self.rule_time)
         assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
         assert_attr_equal(entry, 'description', self.rule_desc)
 
@@ -85,7 +83,6 @@ class test_hbac(XMLRPC_test):
         entry = api.Command['hbac_show'](self.rule_name)['result']
         assert_attr_equal(entry, 'cn', self.rule_name)
         assert_attr_equal(entry, 'accessruletype', self.rule_type)
-        assert_attr_equal(entry, 'accesstime', self.rule_time)
         assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
         assert_attr_equal(entry, 'description', self.rule_desc)
 
@@ -99,30 +96,30 @@ class test_hbac(XMLRPC_test):
         entry = ret['result']
         assert_attr_equal(entry, 'description', self.rule_desc_mod)
 
-    def test_4_hbac_add_accesstime(self):
-        """
-        Test adding access time to HBAC rule using `xmlrpc.hbac_add_accesstime`.
-        """
-        return
-        ret = api.Command['hbac_add_accesstime'](
-            self.rule_name, accesstime=self.rule_time2
-        )
-        entry = ret['result']
-        assert_attr_equal(entry, 'accesstime', self.rule_time);
-        assert_attr_equal(entry, 'accesstime', self.rule_time2);
+#    def test_4_hbac_add_accesstime(self):
+#        """
+#        Test adding access time to HBAC rule using `xmlrpc.hbac_add_accesstime`.
+#        """
+#        return
+#        ret = api.Command['hbac_add_accesstime'](
+#            self.rule_name, accesstime=self.rule_time2
+#        )
+#        entry = ret['result']
+#        assert_attr_equal(entry, 'accesstime', self.rule_time);
+#        assert_attr_equal(entry, 'accesstime', self.rule_time2);
 
-    def test_5_hbac_add_accesstime(self):
-        """
-        Test adding invalid access time to HBAC rule using `xmlrpc.hbac_add_accesstime`.
-        """
-        try:
-            api.Command['hbac_add_accesstime'](
-                self.rule_name, accesstime=self.rule_time_fail
-            )
-        except errors.ValidationError:
-            pass
-        else:
-            assert False
+#    def test_5_hbac_add_accesstime(self):
+#        """
+#        Test adding invalid access time to HBAC rule using `xmlrpc.hbac_add_accesstime`.
+#        """
+#        try:
+#            api.Command['hbac_add_accesstime'](
+#                self.rule_name, accesstime=self.rule_time_fail
+#            )
+#        except errors.ValidationError:
+#            pass
+#        else:
+#            assert False
 
     def test_6_hbac_find(self):
         """
