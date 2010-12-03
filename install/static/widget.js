@@ -964,12 +964,14 @@ function ipa_adder_dialog(spec) {
 
         var search_panel = $('<div/>').appendTo(that.container);
 
-        that.filter_field = $('<input/>', {
-            type: 'text'
+        $('<input/>', {
+            type: 'text',
+            name: 'filter'
         }).appendTo(search_panel);
 
-        that.find_button = $('<input/>', {
+        $('<input/>', {
             type: 'button',
+            name: 'find',
             value: 'Find'
         }).appendTo(search_panel);
 
@@ -1007,14 +1009,16 @@ function ipa_adder_dialog(spec) {
         }).appendTo(results_panel);
 
         var p = $('<p/>').appendTo(buttons_panel);
-        that.remove_button = $('<input />', {
+        $('<input />', {
             type: 'button',
+            name: 'remove',
             value: '<<'
         }).appendTo(p);
 
         p = $('<p/>').appendTo(buttons_panel);
-        that.add_button = $('<input />', {
+        $('<input />', {
             type: 'button',
+            name: 'add',
             value: '>>'
         }).appendTo(p);
 
@@ -1036,19 +1040,37 @@ function ipa_adder_dialog(spec) {
         var selected_panel = $('div[name=selected]', that.container);
         that.selected_table.setup(selected_panel);
 
-        that.add_button.click(function(){
-            var rows = that.available_table.remove_selected_rows();
-            that.selected_table.add_rows(rows);
-        });
+        that.filter_field = $('input[name=filter]', that.container);
 
-        that.remove_button.click(function(){
-            var rows = that.selected_table.remove_selected_rows();
-            that.available_table.add_rows(rows);
+        var button = $('input[name=find]', that.container);
+        that.find_button = ipa_button({
+            'label': button.val(),
+            'icon': 'ui-icon-search',
+            'click': function() { that.search(); }
         });
+        button.replaceWith(that.find_button);
 
-        that.find_button.click(function(){
-            that.search();
+        button = $('input[name=remove]', that.container);
+        that.remove_button = ipa_button({
+            'label': button.val(),
+            'icon': 'ui-icon-trash',
+            'click': function() {
+                var rows = that.selected_table.remove_selected_rows();
+                that.available_table.add_rows(rows);
+            }
         });
+        button.replaceWith(that.remove_button);
+
+        button = $('input[name=add]', that.container);
+        that.add_button = ipa_button({
+            'label': button.val(),
+            'icon': 'ui-icon-plus',
+            'click': function() {
+                var rows = that.available_table.remove_selected_rows();
+                that.selected_table.add_rows(rows);
+            }
+        });
+        button.replaceWith(that.add_button);
     };
 
     that.open = function(container) {
