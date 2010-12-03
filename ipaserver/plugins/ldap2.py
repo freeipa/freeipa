@@ -528,6 +528,9 @@ class ldap2(CrudBackend, Encoder):
         if not isinstance(time_limit, float):
             time_limit = float(time_limit)
 
+        if attrs_list:
+            attrs_list = list(set(attrs_list))
+
         # pass arguments to python-ldap
         try:
             id = self.conn.search_ext(
@@ -850,12 +853,14 @@ class ldap2(CrudBackend, Encoder):
         # accounts container.
         try:
             (results, truncated) = self.find_entries(searchfilter, attr_list,
-                api.env.container_accounts, time_limit=time_limit, size_limit = size_limit, normalize=normalize)
+                api.env.container_accounts, time_limit=time_limit,
+                size_limit=size_limit, normalize=normalize)
         except errors.NotFound:
             results = []
         try:
             (netresults, truncated) = self.find_entries(searchfilter, attr_list,
-                api.env.container_netgroup, time_limit=time_limit, size_limit = size_limit, normalize=normalize)
+                api.env.container_netgroup, time_limit=time_limit,
+                size_limit=size_limit, normalize=normalize)
         except errors.NotFound:
             netresults = []
         results = results + netresults
@@ -867,7 +872,8 @@ class ldap2(CrudBackend, Encoder):
 
             return entries
 
-        (dn, group) = self.get_entry(group_dn, ['dn', 'member'])
+        (dn, group) = self.get_entry(group_dn, ['dn', 'member'],
+            size_limit=size_limit, time_limit=time_limit)
         real_members = group.get('member')
         if isinstance(real_members, basestring):
             real_members = [real_members]
