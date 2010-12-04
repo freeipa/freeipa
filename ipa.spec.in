@@ -94,6 +94,8 @@ Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.15
 Requires: pki-ca >= 1.3.6
 Requires: pki-silent >= 1.3.4
+Requires(preun):  python initscripts chkconfig
+Requires(postun): python initscripts chkconfig
 
 %description server
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -280,7 +282,9 @@ ln -s ../../../..%{_sysconfdir}/ipa/html/unauthorized.html \
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/
 /bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/ipa.conf
 /bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
+install -m755 ipa.init $RPM_BUILD_ROOT%{_initrddir}/ipa
 %endif
+
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ipa/
 /bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/ipa/default.conf
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
@@ -296,6 +300,7 @@ rm -rf %{buildroot}
 %if ! %{ONLY_CLIENT}
 %post server
 if [ $1 = 1 ]; then
+    /sbin/chkconfig --add ipa
     /sbin/chkconfig --add ipa_kpasswd
 fi
 if [ -e /usr/share/ipa/serial ]; then
@@ -305,15 +310,14 @@ fi
 
 %preun server
 if [ $1 = 0 ]; then
+    /sbin/chkconfig --del ipa
     /sbin/chkconfig --del ipa_kpasswd
-    /sbin/service ipa_kpasswd stop >/dev/null 2>&1 || :
+    /sbin/service ipa stop >/dev/null 2>&1 || :
 fi
 
 %postun server
 if [ "$1" -ge "1" ]; then
-    /sbin/service ipa_kpasswd condrestart >/dev/null 2>&1 || :
-    /sbin/service httpd condrestart >/dev/null 2>&1 || :
-    /sbin/service dirsrv condrestart >/dev/null 2>&1 || :
+    /sbin/service ipa condrestart >/dev/null 2>&1 || :
 fi
 
 %pre server-selinux
@@ -373,6 +377,7 @@ fi
 %{_sbindir}/ipa_kpasswd
 %{_sbindir}/ipactl
 %{_sbindir}/ipa-upgradeconfig
+%attr(755,root,root) %{_initrddir}/ipa
 %attr(755,root,root) %{_initrddir}/ipa_kpasswd
 %{python_sitelib}/ipaserver/*
 %dir %{_usr}/share/ipa
@@ -503,6 +508,9 @@ fi
 %endif
 
 %changelog
+* Tue Dec  7 2010 Simo Sorce <ssorce@redhat.com> - 1.99-33
+- Add ipa init script
+
 * Fri Nov 19 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-32
 - Set minimum level of 389-ds-base to 1.2.7 for enhanced memberof plugin
 

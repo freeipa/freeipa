@@ -1,6 +1,7 @@
-#!/bin/sh
+#!/usr/bin/env python
+# Authors: Simo Sorce <ssorce@redhat.com>
 #
-# Copyright (C) 2008  Red Hat
+# Copyright (C) 2008-2010  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or
@@ -16,108 +17,207 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-#
-# IPA control to start/stop the various services required for IPA in the
-# proper order
-# 
 
-# Set IFS so we can do space-embedded lists of services
-IFS=";"
+import sys
+try:
+    from ipaserver.install import service
+    from ipapython import config
+    from ipalib import api, errors
+    import logging
+    import ldap
+    import socket
+    import syslog
+except ImportError:
+    print >> sys.stderr, """\
+There was a problem importing one of the required Python modules. The
+error was:
 
-# start and stop are basically a reverse of each other
-services_stop="ipa_kpasswd;httpd;krb5kdc;dirsrv;ntpd;named;pki-cad pki-ca"
-services_start="dirsrv;ntpd;krb5kdc;named;ipa_kpasswd;httpd;pki-cad pki-ca"
+    %s
+""" % sys.exc_value
+    sys.exit(1)
 
-function is_running() {
-    # $1 = service to check on
-    # $2 = optional instance to check on, for dirsrv and pki-cad
+def parse_options():
+    usage = "%prog start|stop|restart|status\n"
+    parser = config.IPAOptionParser(usage=usage,
+                                    formatter=config.IPAFormatter())
 
-    # Returns
-    #  0 - running
-    #  1 - pid but dead service
-    #  2 - dead but locked subsys
-    #  3 - stopped
-    #  4 - no such service
-    if [ "$#" = 2 ] ; then
-        /sbin/service $1 status $2 > /dev/null 2>&1
-    else
-        out=`/sbin/service $1 status 2>&1`
-    fi
-    case "$?" in
-        0)
-            return 0;;
-        1)
-            x=`echo $out | grep -c exists`
-            if [ $x -eq 1 ] ; then
-                return 1
-            else
-                return 4
-            fi
-            ;;
-        2)
-            return 2;;
-        3)
-            return 3;;
-    esac
-}
+    parser.add_option("-d", "--debug", action="store_true", dest="debug",
+                      help="Display debugging information")
 
-function start() {
-    for service in $services_start ; do
-        is_running $service
-        case "$?" in
-            0)  # running
-                ;;
-            4)  # no such service
-                ;;
-            *)  # otherwise not running
-                /sbin/service $service start
-                ;;
-        esac
-    done
-}
+    options, args = parser.parse_args()
+    safe_options = parser.get_safe_opts(options)
 
-function stop() {
-    for service in $services_stop ; do
-        is_running $service
-        case "$?" in
-            0)  # running
-                /sbin/service $service stop
-                ;;
-            *)  # otherwise not running or doesn't exist
-                ;;
-        esac
-    done
-}
+    return safe_options, options, args
 
-function status() {
-    for service in $services_start ; do
-        is_running $service
-        case "$?" in
-            4)
-                ;;
-            *)
-                /sbin/service $service status
-                ;;
-        esac
-    done
-}
+def emit_err(err):
+    syslog.syslog(syslog.LOG_ERR, err)
+    print err
 
-case "$1" in
-restart)
-    stop
-    start
-    ;;
-start)
-    start
-    ;;
-stop)
-    stop
-    ;;
-status)
-    status
-    ;;
-*)
-    echo "Usage: ipactl {start|stop|restart|status}"
-    exit 1
-    ;;
-esac
+def get_config():
+    base = "cn=%s,cn=masters,cn=ipa,cn=etc,%s" % (socket.gethostname(),
+                                                  api.env.basedn)
+    srcfilter = '(ipaConfigString=enabledService)'
+    attrs = ['cn', 'ipaConfigString']
+
+    try:
+        con = ldap.initialize(api.env.ldap_uri)
+        con.simple_bind()
+        res = con.search_st(base,
+                            ldap.SCOPE_SUBTREE,
+                            filterstr=srcfilter,
+                            attrlist=attrs,
+                            timeout=10)
+    except e:
+        print "Error retrieving list of services %s" % e
+        print "Is IPA installed ?"
+        return
+
+    svc_list = []
+
+    for entry in res:
+        name = entry[1]['cn'][0]
+        for p in entry[1]['ipaConfigString']:
+            if p.startswith('startOrder '):
+                order = p.split()[1]
+        svc_list.append((order, name))
+
+    return svc_list
+
+def ipa_start():
+
+    try:
+        print "Starting Directory Service"
+        service.start('dirsrv')
+    except:
+        emit_err("Failed to start Directory Service")
+        return
+
+    svc_list = get_config()
+
+    for (order, svc) in sorted(svc_list):
+        svc_name = service.SERVICE_LIST[svc][0]
+        try:
+            print "Starting %s Service" % svc
+            service.start(svc_name)
+        except:
+            emit_err("Failed to start %s Service" % svc)
+            emit_err("Shutting down")
+            for (order, svc) in sorted(svc_list):
+                svc_name = service.SERVICE_LIST[svc][0]
+                try:
+                    service.stop(svc_name)
+                except:
+                    pass
+            try:
+                service.stop('dirsrv')
+            except:
+                pass
+            return
+
+def ipa_stop():
+
+    svc_list = get_config()
+
+    for (order, svc) in sorted(svc_list, reverse=True):
+        svc_name = service.SERVICE_LIST[svc][0]
+        try:
+            print "Stopping %s Service" % svc
+            service.stop(svc_name)
+        except:
+            emit_err("Failed to stop %s Service" % svc)
+
+    try:
+        print "Stopping Directory Service"
+        service.stop('dirsrv')
+    except:
+        emit_err("Failed to stop Directory Service")
+        return
+
+
+def ipa_restart():
+    try:
+        print "Restarting Directory Service"
+        service.restart('dirsrv')
+    except:
+        emit_err("Failed to restart Directory Service")
+        return
+
+    svc_list = get_config()
+
+    for (order, svc) in sorted(svc_list):
+        svc_name = service.SERVICE_LIST[svc][0]
+        try:
+            print "Restarting %s Service" % svc
+            service.restart(svc_name)
+        except:
+            emit_err("Failed to restart %s Service" % svc)
+            emit_err("Shutting down")
+            for (order, svc) in sorted(svc_list):
+                svc_name = service.SERVICE_LIST[svc][0]
+                try:
+                    service.stop(svc_name)
+                except:
+                    pass
+            try:
+                service.stop('dirsrv')
+            except:
+                pass
+            return
+
+def ipa_status():
+    try:
+        if service.is_running('dirsrv'):
+            print "Directory Service: RUNNING"
+        else:
+            print "Directory Service: STOPPED"
+    except:
+        print "Failed to get Directory Service status"
+        return
+
+    svc_list = get_config()
+
+    for (order, svc) in sorted(svc_list):
+        svc_name = service.SERVICE_LIST[svc][0]
+        try:
+            if service.is_running(svc_name):
+                print "%s Service: RUNNING" % svc
+            else:
+                print "%s Service: STOPPED" % svc
+        except:
+            print "Failed to get %s Service status" % svc
+
+def main():
+
+    safe_options, options, args = parse_options()
+
+    if len(args) != 1:
+        sys.exit("You must specify one action")
+    elif args[0] != "start" and args[0] != "stop" and args[0] != "restart" and args[0] != "status":
+        sys.exit("Unrecognized action [" + args[0] + "]")
+
+    api.bootstrap(context='cli', debug=options.debug)
+    api.finalize()
+
+    syslog.openlog('ipa', syslog.LOG_NDELAY, syslog.LOG_DAEMON)
+
+    if args[0].lower() == "start":
+        ipa_start()
+    elif args[0].lower() == "stop":
+        ipa_stop()
+    elif args[0].lower() == "restart":
+        ipa_restart()
+    elif args[0].lower() == "status":
+        ipa_status()
+
+    syslog.closelog()
+
+try:
+    if __name__ == "__main__":
+        sys.exit(main())
+except RuntimeError, e:
+    print "%s" % e
+    sys.exit(1)
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt, e:
+    sys.exit(1)

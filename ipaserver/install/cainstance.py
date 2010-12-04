@@ -242,7 +242,6 @@ class CADSInstance(service.Service):
 
         self.step("creating directory server user", self.__create_ds_user)
         self.step("creating directory server instance", self.__create_instance)
-        self.step("configuring directory to start on boot", self.__enable)
         self.step("restarting directory server", self.__restart_instance)
 
         self.start_creation("Configuring directory server for the CA", 30)
@@ -254,13 +253,6 @@ class CADSInstance(service.Service):
                              REALM=self.realm_name, USER=self.ds_user,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
                              TIME=int(time.time()), DSPORT=self.ds_port)
-
-    def __enable(self):
-        name = self.service_name
-        self.service_name="dirsrv"
-        self.backup_state("enabled", self.is_enabled())
-        self.chkconfig_on()
-        self.service_name = name
 
     def __create_ds_user(self):
         user_exists = True
@@ -483,7 +475,11 @@ class CAInstance(service.Service):
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
-        self.chkconfig_on()
+        # We do not let the system start IPA components on its own,
+        # Instead we reply on the IPA init script to start only enabled
+        # components as found in our LDAP configuration tree
+        suffix = util.realm_to_suffix(self.realm)
+        self.ldap_enable('CA', self.fqdn, self.dm_password, suffix)
 
     def __create_ca_user(self):
         user_exists = True

@@ -842,6 +842,10 @@ def main():
     except Exception, e:
         sys.exit("Configuration of client side components failed!\nipa-client-install returned: " + str(e))
 
+
+    #Everything installed properly, activate ipa service.
+    service.chkconfig_on('ipa')
+
     print "=============================================================================="
     print "Setup complete"
     print ""

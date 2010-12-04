@@ -29,6 +29,13 @@ import base64
 import time
 import datetime
 
+SERVICE_LIST = {
+    'KDC':('krb5kdc', 10),
+    'KPASSWD':('ipa_kpasswd', 20),
+    'DNS':('named', 30),
+    'HTTP':('httpd', 40),
+    'CA':('pki_cad', 50)
+}
 
 def stop(service_name, instance_name=""):
     ipautil.run(["/sbin/service", service_name, "stop", instance_name])
@@ -263,8 +270,44 @@ class Service:
 
         self.steps = []
 
+    def __get_conn(self, dm_password):
+        try:
+            conn = ipaldap.IPAdmin("127.0.0.1")
+            conn.simple_bind_s("cn=directory manager", dm_password)
+        except Exception, e:
+            logging.critical("Could not connect to the Directory Server on %s: %s" % (self.fqdn, str(e)))
+            raise e
+
+        return conn
+
+    def ldap_enable(self, name, fqdn, dm_password, ldap_suffix):
+        self.chkconfig_off()
+        conn = self.__get_conn(dm_password)
+
+        entry_name = "cn=%s,cn=%s,%s,%s" % (name, fqdn,
+                                            "cn=masters,cn=ipa,cn=etc",
+                                            ldap_suffix)
+        order = SERVICE_LIST[name][1]
+        entry = ipaldap.Entry(entry_name)
+        entry.setValues("objectclass",
+                        "nsContainer", "ipaConfigObject")
+        entry.setValues("cn", name)
+        entry.setValues("ipaconfigstring",
+                        "enabledService", "startOrder " + str(order))
+
+        try:
+            conn.add_s(entry)
+        except ldap.ALREADY_EXISTS:
+            logging.critical("failed to add %s Service startup entry" % name)
+            raise e
+
 class SimpleServiceInstance(Service):
-    def create_instance(self):
+    def create_instance(self, gensvc_name=None, fqdn=None, dm_password=None, ldap_suffix=None):
+        self.gensvc_name = gensvc_name
+        self.fqdn = fqdn
+        self.dm_password = dm_password
+        self.suffix = ldap_suffix
+
         self.step("starting %s " % self.service_name, self.__start)
         self.step("configuring %s to start on boot" % self.service_name, self.__enable)
         self.start_creation("Configuring %s" % self.service_name)
@@ -276,7 +319,11 @@ class SimpleServiceInstance(Service):
     def __enable(self):
         self.chkconfig_add()
         self.backup_state("enabled", self.is_enabled())
-        self.chkconfig_on()
+        if self.gensvc_name == None:
+            self.chkconfig_on()
+        else:
+            self.ldap_enable(self.gensvc_name, self.fqdn,
+                             self.dm_password, self.suffix)
 
     def uninstall(self):
         if self.is_configured():

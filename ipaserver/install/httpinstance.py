@@ -91,7 +91,10 @@ class HTTPInstance(service.Service):
 
     def __enable(self):
         self.backup_state("enabled", self.is_running())
-        self.chkconfig_on()
+        # We do not let the system start IPA components on its own,
+        # Instead we reply on the IPA init script to start only enabled
+        # components as found in our LDAP configuration tree
+        self.ldap_enable('HTTP', self.fqdn, self.dm_password, self.suffix)
 
     def __selinux_config(self):
         selinux=0

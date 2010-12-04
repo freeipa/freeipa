@@ -203,8 +203,7 @@ class KrbInstance(service.Service):
         self.start_creation("Configuring Kerberos KDC", 30)
 
         self.kpasswd = KpasswdInstance()
-
-        self.kpasswd.create_instance()
+        self.kpasswd.create_instance('KPASSWD', self.fqdn, self.admin_password, self.suffix)
 
     def create_replica(self, ds_user, realm_name, host_name,
                        domain_name, admin_password,
@@ -233,7 +232,7 @@ class KrbInstance(service.Service):
         self.start_creation("Configuring Kerberos KDC", 30)
 
         self.kpasswd = KpasswdInstance()
-        self.kpasswd.create_instance()
+        self.kpasswd.create_instance('KPASSWD', self.fqdn, self.admin_password, self.suffix)
 
     def __copy_ldap_passwd(self, filename):
         self.fstore.backup_file("/var/kerberos/krb5kdc/ldappwd")
@@ -258,7 +257,10 @@ class KrbInstance(service.Service):
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
-        self.chkconfig_on()
+        # We do not let the system start IPA components on its own,
+        # Instead we reply on the IPA init script to start only enabled
+        # components as found in our LDAP configuration tree
+        self.ldap_enable('KDC', self.fqdn, self.admin_password, self.suffix)
 
     def __start_instance(self):
         try:

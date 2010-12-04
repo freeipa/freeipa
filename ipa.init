@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+# ipa    This starts and stops ipa
+#
+# chkconfig:   - 21 79
+# description: IPA Server
+# processname: /usr/sbin/ns-slapd
+# configdir:   /etc/ipa/
+# piddir:      /var/run/dirsrv
+#
+
+# Source function library.
+if [ -f /etc/rc.d/init.d/functions ] ; then
+. /etc/rc.d/init.d/functions
+fi
+# Source networking configuration.
+if [ -f /etc/sysconfig/network ] ; then
+. /etc/sysconfig/network
+fi
+
+# Check that networking is up.
+if [ "${NETWORKING}" = "no" ]
+then
+    echo "Networking is down"
+    exit 0
+fi
+
+# Lockfile
+if [ -d "/var/lock/subsys" ] ; then
+    lockfile="/var/lock/subsys/dirsrv"
+else
+    lockfile="/var/lock/dirsrv/lock"
+fi
+
+case "$1" in
+    start|stop|restart|status)
+        /usr/sbin/ipactl $1
+        ;;
+    condrestart)
+        [ ! -f $lockfile ] || /usr/sbin/ipactl restart
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|restart|condrestart}"
+        exit 2
+esac

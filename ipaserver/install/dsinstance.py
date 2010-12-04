@@ -295,7 +295,10 @@ class DsInstance(service.Service):
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
-        self.chkconfig_on()
+        # At the end of the installation ipa-server-install will enable the
+        # 'ipa' service wich takes care of starting/stopping dirsrv
+        # self.chkconfig_on()
+        self.chkconfig_off()
 
     def __setup_sub_dict(self):
         server_root = find_server_root()
