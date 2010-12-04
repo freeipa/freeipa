@@ -80,7 +80,6 @@ function ipa_service_add_dialog(spec) {
 
         that.add_field(ipa_widget({
             name: 'krbprincipalname',
-            label: 'Principal'
         }));
 
         that.add_field(ipa_text_widget({
@@ -159,7 +158,7 @@ function ipa_service_search_facet(spec) {
 
     that.init = function() {
 
-        that.create_column({name:'krbprincipalname', label:'Principal'});
+        that.create_column({name:'krbprincipalname'});
         that.search_facet_init();
     };
 
@@ -181,8 +180,7 @@ function ipa_service_details_facet(spec) {
         that.add_section(section);
 
         section.create_field({
-            name: 'krbprincipalname',
-            label: 'Principal'
+            name: 'krbprincipalname'
         });
 
         section.create_field({

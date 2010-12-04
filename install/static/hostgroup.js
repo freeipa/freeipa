@@ -20,23 +20,48 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-ipa_entity_set_search_definition('hostgroup', [
-    ['cn', 'Name', null],
-    ['description', 'Description', null]
-]);
 
-ipa_entity_set_add_definition('hostgroup', [
-    'dialog-add-hostgroup', 'Add New Hostgroup', [
-        ['cn', 'Name', null],
-        ['description', 'Description', null]
-    ]
-]);
+IPA.add_entity( function() {
+    var that = ipa_entity({
+        'name': 'hostgroup'
+    });
+    that.init = function() {
+        var search_facet = ipa_search_facet({
+            name: 'search',
+            label: 'Search',
+            entity_name: that.name
+        });
+        search_facet.create_column({name:'cn'});
+        search_facet.create_column({name:'description'});
+        that.add_facet(search_facet);
 
-ipa_entity_set_details_definition('hostgroup', [
-    ipa_stanza({name:'identity', label:'Hostgroup Details'}).
-        input({name:'cn', label:'Name'}).
-        input({name: 'description', label:'Description'})
-]);
+        that.add_facet(function() {
+            var that = ipa_details_facet({name:'details',label:'Details'});
+            that.add_section(
+                ipa_stanza({name:'identity', label:'Hostgroup Details'}).
+                    input({name:'cn'}).
+                    input({name: 'description'}));
+            return that;
+        }());
 
-ipa_entity_set_association_definition('hostgroup', {
-});
+
+        var dialog = ipa_add_dialog({
+            name: 'add',
+            title: 'Add Hostgroup',
+            entity_name:'hostgroup'
+        });
+
+        that.add_dialog(dialog);
+        dialog.init();
+        dialog.add_field(ipa_text_widget({ name: 'cn',
+                                           entity_name:'hostgroup'}));
+        dialog.add_field(ipa_text_widget({ name: 'description',
+                                           entity_name:'hostgroup' }));
+        that.create_association_facets();
+        that.entity_init();
+    }
+    return that;
+}());
+
+
+

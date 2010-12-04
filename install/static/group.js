@@ -89,10 +89,14 @@ function ipa_group_add_dialog(spec) {
 
         that.add_dialog_init();
 
-        that.add_field(ipa_text_widget({name:'cn', label:'Name', undo: false}));
-        that.add_field(ipa_text_widget({name:'description', label:'Description', undo: false}));
-        that.add_field(ipa_checkbox_widget({name:'posix', label:'Is this a POSIX group?', undo: false}));
-        that.add_field(ipa_text_widget({name:'gidnumber', label:'GID', undo: false}));
+        that.add_field(ipa_text_widget({name:'cn', entity_name:'group',
+                                        undo: false}));
+        that.add_field(ipa_text_widget({name:'description',
+                                        entity_name:'group', undo: false}));
+        that.add_field(ipa_checkbox_widget({name:'posix', entity_name:'group',
+                                            undo: false}));
+        that.add_field(ipa_text_widget({name:'gidnumber', entity_name:'group',
+                                        undo: false}));
     };
 
     return that;
@@ -105,11 +109,9 @@ function ipa_group_search_facet(spec) {
     var that = ipa_search_facet(spec);
 
     that.init = function() {
-
-        that.create_column({name:'cn', label:'Name'});
-        that.create_column({name:'gidnumber', label:'GID'});
-        that.create_column({name:'description', label:'Description'});
-
+        that.create_column({name:'cn'});
+        that.create_column({name:'gidnumber'});
+        that.create_column({name:'description'});
         that.search_facet_init();
     };
 
@@ -130,20 +132,9 @@ function ipa_group_details_facet(spec) {
         });
         that.add_section(section);
 
-        section.create_field({
-            name: 'cn',
-            label: 'Group Name'
-        });
-
-        section.create_field({
-            name: 'description',
-            label: 'Description'
-        });
-
-        section.create_field({
-            name: 'gidnumber',
-            label: 'Group ID'
-        });
+        section.create_field({name: 'cn' });
+        section.create_field({name: 'description'});
+        section.create_field({name: 'gidnumber' });
 
         that.details_facet_init();
     };

@@ -20,70 +20,98 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-ipa_entity_set_search_definition('user', [
-    ['cn', 'Name', null],
-    ['uid', 'Login', null],
-    ['uidnumber', 'UID', null],
-    ['mail', 'EMAIL', null],
-    ['telephonenumber', 'Phone', null],
-    ['title', 'Job Title', null]
-]);
+function ipa_user(){
+    var that = ipa_entity({
+        name: 'user'
+    });
+    that.init = function() {
+        var search_facet = ipa_search_facet({
+            'name': 'search',
+            'label': 'Search',
+            entity_name: that.name
+        });
+        search_facet.create_column({name:'cn'});
+        search_facet.create_column({name:'uid'});
+        search_facet.create_column({name:'uidnumber'});
+        search_facet.create_column({name:'mail'});
+        search_facet.create_column({name:'telephonenumber'});
+        search_facet.create_column({name:'title'});
+        that.add_facet(search_facet);
 
-ipa_entity_set_add_definition('user', [
-    'dialog-add-user', 'Add New User', [
-        ['uid', 'Login', null],
-        ['givenname', 'First Name', null],
-        ['sn', 'Last Name', null]
-    ]
-]);
+
+        that.add_facet(details_facet({name:'details',label:'Details'}));
+
+        var dialog = ipa_add_dialog({
+            'name': 'add',
+            'title': 'Add User'
+        });
+
+        that.add_dialog(dialog);
+        dialog.init();
+        dialog.add_field(ipa_text_widget({ name: 'uid',entity_name:'user' }));
+        dialog.add_field(ipa_text_widget({ name: 'givenname',
+                                           entity_name:'user' }));
+        dialog.add_field(ipa_text_widget({ name: 'sn',entity_name:'user' }));
+        
+        /*eventually,  we need to call
+          entity.create_association_facets();
+          but we are currently defining the associator using the global
+          function after the registration of the entity */
 
 
-ipa_entity_set_details_definition('user', [
-    ipa_stanza({name:'identity', label:'Identity Details'}).
-        input({name:'title', label: 'Title'}).
-        input({name:'givenname'}).
-        input({name:'sn'}).
-        input({name:'cn', label:'Full Name'}).
-        input({name:'displayname', label:'Display Name'}).
-        input({name:'initials', label:'Initials'}),
-    ipa_stanza({name:'account', label:'Account Details'}).
-        input({name:'nsaccountlock', label:'Account Status',
-               load:user_status_load}).
-        input({name:'uid'}).
-        input({name:'userpassword',
-               load: user_password_load}).
-        input({name:'uidnumber'}).
-        input({name:'gidnumber', label:'GID'}).
-        input({name:'loginshell'}).
-        input({name:'homedirectory'}),
-    ipa_stanza({name:'contact', label:'Contact Details'}).
-        input({name:'mail'}).
-        input({name:'telephonenumber'}).
-        input({name:'pager'}).
-        input({name:'mobile'}).
-        input({name:'facsimiletelephonenumber'}),
-    ipa_stanza({name:'address', label:'Mailing Address'}).
-        input({name:'street'}).
-        input({name:'location', label:'City'}).
-        input({name:'state', label:'State', load:user_state_load}).
-        input({name:'postalcode', label:'ZIP'}),
-    ipa_stanza({name:'employee', label:'Employee Information'}).
-        input({name:'ou', label:'Org. Unit'}).
-        input({name:'manager', label:'Manager'}),
-    ipa_stanza({name:'misc', label:'Misc. Information'}).
-        input({name:'carlicense', label:'Car License'})
-]);
+        that.entity_init();
+    }
+
+    function details_facet(spec) {
+        spec = spec || {};
+        var that = ipa_details_facet(spec);
+
+        var sections =[
+            ipa_stanza({name:'identity', label:'Identity Details'}).
+                input({name:'title'}).
+                input({name:'givenname'}).
+                input({name:'sn'}).
+                input({name:'cn'}).
+                input({name:'displayname'}).
+                input({name:'initials'}),
+            ipa_stanza({name:'account', label:'Account Details'}).
+                input({name:'nsaccountlock', load:user_status_load}).
+                input({name:'uid'}).
+                input({name:'userpassword', load: user_password_load}).
+                input({name:'uidnumber'}).
+                input({name:'gidnumber'}).
+                input({name:'loginshell'}).
+                input({name:'homedirectory'}),
+            ipa_stanza({name:'contact', label:'Contact Details'}).
+                input({name:'mail'}).
+                input({name:'telephonenumber'}).
+                input({name:'pager'}).
+                input({name:'mobile'}).
+                input({name:'facsimiletelephonenumber'}),
+            ipa_stanza({name:'address', label:'Mailing Address'}).
+                input({name:'street'}).
+                input({name:'location'}).
+                input({name:'state', load:user_state_load}).
+                input({name:'postalcode'}),
+            ipa_stanza({name:'employee', label:'Employee Information'}).
+                input({name:'ou', label:'Org. Unit'}).
+                input({name:'manager'}),
+            ipa_stanza({name:'misc', label:'Misc. Information'}).
+                input({name:'carlicense'})
+        ];
+        for (var i = 0; i < sections.length; i += 1){
+            that.add_section(sections[i]);
+        }
+        return that;
+    }
+    return that;
+}
+IPA.add_entity(ipa_user());
 
 ipa_entity_set_association_definition('user', {
     'group': { associator: 'serial' },
     'netgroup': { associator: 'serial' },
-    'rolegroup': { associator: 'serial' },
-    'taskgroup': { associator: 'serial' }
 });
-
-
-
-
 
 /* ATTRIBUTE CALLBACKS */
 

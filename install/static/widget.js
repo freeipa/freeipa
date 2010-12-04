@@ -28,9 +28,17 @@ function ipa_widget(spec) {
 
     that.id = spec.id;
     that.name = spec.name;
-    that.label = spec.label;
+    that.label = spec.label ;
     that.read_only = spec.read_only;
     that._entity_name = spec.entity_name;
+
+    if (spec.entity_name && ! spec.label){
+        var param_info = ipa_get_param_info(spec.entity_name, spec.name);
+        if (param_info){
+            that.label = param_info.label;
+        }
+    }
+
 
     that.width = spec.width;
     that.height = spec.height;

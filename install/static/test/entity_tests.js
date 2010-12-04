@@ -109,8 +109,12 @@ test('Testing ipa_facet_setup_views().', function() {
 
     var views = ul.children();
 
+    /*5 Views:
+      one for each of 3 associations
+      one for search
+      a blank one for the action controls*/
     equals(
-        views.length, 6,
+        views.length, 5,
         'Checking number of views'
     );
 
@@ -142,7 +146,8 @@ test('Testing ipa_facet_setup_views().', function() {
     var search_facets = $('li.search-facet', action_panel);
     equals(search_facets.length,1,'one search facet in action panel');
     var entity_facets = $('li.entity-facet', action_panel);
-    equals(entity_facets.length,4,'4 entity facets in action panel');
+    /*No longer automatically adding details, so ony the assoc. facets */
+    equals(entity_facets.length,3,'3 entity facets in action panel');
 
 
     for ( var entity_facet = entity_facets.first();

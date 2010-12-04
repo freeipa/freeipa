@@ -87,7 +87,7 @@ function ipa_host_add_dialog(spec) {
 
         that.add_field(ipa_text_widget({
             'name': 'fqdn',
-            'label': 'Name',
+            entity_name:'host',
             'size': 40,
             'undo': false
         }));
@@ -104,10 +104,11 @@ function ipa_host_search_facet(spec) {
 
     that.init = function() {
 
-        that.create_column({name:'fqdn', label:'Name'});
-        that.create_column({name:'description', label:'Description'});
-        that.create_column({name:'enrolled', label:'Enrolled?'});
-        that.create_column({name:'manages', label:'Manages?'});
+        that.create_column({name:'fqdn'});
+        that.create_column({name:'description'});
+        //TODO use the value of this field to set enrollment status
+        that.create_column({name:'krblastpwdchange', label:'Enrolled?'});
+        that.create_column({name:'nshostlocation'});
 
         that.search_facet_init();
     };
@@ -129,25 +130,16 @@ function ipa_host_details_facet(spec) {
         });
         that.add_section(section);
 
-        section.create_field({
-            'name': 'fqdn',
-            'label': 'Fully Qualified Domain Name'
-        });
+        section.create_field({'name': 'fqdn'});
+        section.create_field({'name': 'krbprincipalname'});
 
-        section.create_field({
-            'name': 'krbprincipalname',
-            'label': 'Kerberos Principal'
-        });
-
+        //TODO add this to the host plugin
         section.create_field({
             'name': 'serverhostname',
             'label': 'Server Host Name'
         });
 
-        section.create_field({
-            'name': 'description',
-            'label': 'Description'
-        });
+        section.create_field({'name': 'description'});
 
         section = ipa_details_list_section({
             'name': 'enrollment',
@@ -155,6 +147,7 @@ function ipa_host_details_facet(spec) {
         });
         that.add_section(section);
 
+        //TODO add label to messages
         section.add_field(host_provisioning_status_widget({
             'name': 'provisioning_status',
             'label': 'Status',

@@ -21,46 +21,72 @@
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
 /* DNS */
-ipa_entity_set_search_definition('dnszone', [
-    ['idnsname', 'Zone Name', null]
-]);
+
+IPA.add_entity(function (){
+    var that = ipa_entity({
+        name: 'dnszone'
+    });
+
+    that.init = function() {
+        var search_facet = ipa_search_facet({
+            name: 'search',
+            label: 'Search',
+            entity_name: that.name
+        });
+        search_facet.create_column({name:'idnsname'});
+        that.add_facet(search_facet);
+
+        that.add_facet(function() {
+            var that = ipa_details_facet({name:'details',label:'Details'});
+            that.add_section(
+                ipa_stanza({name:'identity', label:'DNS Zone Details'}).
+                    input({name:'idnsname'}).
+                    input({name:'idnszoneactive'}).
+                    input({name:'idnssoamname'}).
+                    input({name:'idnssoarname'}).
+                    input({name:'idnssoaserial'}).
+                    input({name:'idnssoarefresh'}).
+                    input({name:'idnssoaretry'}).
+                    input({name:'idnssoaexpire'}).
+                    input({name:'idnssoaminimum'}).
+                    input({name:'dnsttl'}).
+                    input({name:'dnsclass'}).
+                    input({name:'idnsallowdynupdate'}).
+                    input({name:'idnsupdatepolicy'}));
+
+            return that;
+        }());
+
+        that.add_facet(  ipa_records_facet({
+            'name': 'records',
+            'label': IPA.metadata.dnsrecord.label
+        }));
+
+        var dialog = ipa_add_dialog({
+            name: 'add',
+            title: 'Add DNS Zone',
+            entity_name:'dnszone'
+        });
+
+        that.add_dialog(dialog);
+        dialog.init();
+
+        dialog.add_field(ipa_text_widget({ name: 'idnsname',
+                                           entity_name:'dnszone'}));
+        dialog.add_field(ipa_text_widget({ name: 'idnssoamname',
+                                           entity_name:'dnszone'}));
+        dialog.add_field(ipa_text_widget({ name: 'idnssoarname',
+                                           entity_name:'dnszone'}));
+
+        that.create_association_facets();
+        that.entity_init();
+    }
 
 
-ipa_entity_set_add_definition('dnszone', [
-    'dialog-add-dns', 'Add New Zone', [
-        ['idnsname', 'Name', null],
-        ['idnssoamname', 'Authoritative name server'],
-        ['idnssoarname','administrator e-mail address']
-    ]
-]);
-
-ipa_entity_set_details_definition('dnszone', [
-    ipa_stanza({name:'identity', label:'DNS Zone Details'}).
-        input({name:'idnsname', label:'DNS Name'}).
-        input({name:'idnszoneactive', label:'Zone Active'}).
-        input({name:'idnssoamname', label:'Authoritative name server'}).
-        input({name:'idnssoarname', label:'administrator e-mail address'}).
-        input({name:'idnssoaserial', label:'SOA serial'}).
-        input({name:'idnssoarefresh', label:'SOA refresh'}).
-        input({name:'idnssoaretry', label:'SOA retry'}).
-        input({name:'idnssoaexpire', label:'SOA expire'}).
-        input({name:'idnssoaminimum', label:'SOA minimum'}).
-        input({name:'dnsttl', label:'SOA time to live'}).
-        input({name:'dnsclass', label:'SOA class'}).
-        input({name:'idnsallowdynupdate', label:'allow dynamic update?'}).
-        input({name:'idnsupdatepolicy', label:'BIND update policy'})
-]);
-
-ipa_entity_set_association_definition('dnszone', {
-});
+    return that;
+}());
 
 
-ipa_entity_set_facet_definition('dnszone', [
-    ipa_records_facet({
-        'name': 'records',
-        'label': 'Records'
-    })]
-);
 
 function ipa_records_facet(spec){
 
@@ -256,7 +282,6 @@ function ipa_records_facet(spec){
     };
 
     function create(container) {
-//        that.setup_views(container);
     }
 
     function setup(container){
@@ -322,9 +347,6 @@ function ipa_records_facet(spec){
             'click': function(){delete_records(records_table);}
         }).appendTo(action_controls);
 
-
-
-
         div.append('<span class="records-buttons"></span>');
 
         var records_results = $('<div/>', {
@@ -349,8 +371,9 @@ function ipa_records_facet(spec){
                 }
             })
         ));
-        tr.append($('<th>Resource</th>'));
-        tr.append($('<th>Record Type</th>'));
+        tr.append($('<th/>',{
+            text: ipa_get_param_info("dnsrecord", "idnsname").label  }));
+         tr.append($('<th>Record Type</th>'));
         tr.append($('<th>Data</th>'));
 
         refresh();
@@ -472,50 +495,97 @@ function ipa_records_facet(spec){
 
 /**Automount*/
 
-ipa_entity_set_search_definition('automountlocation', [
-    ['cn', 'Name', null]
-]);
+IPA.add_entity(function (){
+    var that = ipa_entity({
+        name: 'automountlocation'
+    });
 
-ipa_entity_set_add_definition('automountlocation', [
-    'dialog-add-location', 'Add New Location', [
-        ['cn', 'Name', null]
-    ]
-]);
 
-ipa_entity_set_details_definition('automountlocation', [
-    ipa_stanza({name:'identity', label:'Automount Location Details'}).
-        input({name:'cn', label:'Automount Location'})
-]);
+   var search_facet = ipa_search_facet({
+            name: 'search',
+            label: 'Search',
+            entity_name: that.name
+        });
+    that.init = function() {
+        search_facet.create_column({name:'cn'});
+        that.add_facet(search_facet);
 
-ipa_entity_set_association_definition('automountlocation', {
-});
+
+        that.add_facet(function() {
+            var that = ipa_details_facet({name:'details',label:'Details'});
+            that.add_section(
+                ipa_stanza({name:'identity', label:'Automount Location Details'}).
+                    input({name:'cn'}));
+            return that;
+        }());
+
+        var dialog = ipa_add_dialog({
+            name: 'add',
+            title: 'Add Automount Location',
+            entity_name:'automountlocation'
+        });
+
+        that.add_dialog(dialog);
+        dialog.init();
+        dialog.add_field(ipa_text_widget({ name: 'cn',
+                                           entity_name:'automountlocation'}));
+        that.create_association_facets();
+        that.entity_init();
+
+    }
+    return that;
+}());
 
 
 /**pwpolicy*/
 
-ipa_entity_set_search_definition('pwpolicy', [
-    ['cn', 'Name', null]
 
-]);
+IPA.add_entity(function (){
+    var that = ipa_entity({
+        name: 'pwpolicy'
+    });
 
-ipa_entity_set_add_definition('pwpolicy', [
-    'dialog-add-dns', 'Add New Location', [
-        ['cn', 'Name', null]
-    ]
-]);
 
-ipa_entity_set_details_definition('pwpolicy', [
-    ipa_stanza({name:'identity', label:'Password Policy'}).
-        input({name:'krbmaxpwdlife',label:'Max Password Life'}).
-        input({name:'krbminpwdlife',label:'Min Password Life'}).
-        input({name:'krbpwdhistorylength',label:'Password History Length'}).
-        input({name:'krbpwdmindiffchars',
-                   label:'Min Different Characters'}).
-        input({name:'krbpwdminlength', label:'Password Minimum Length'})
-]);
+   var search_facet = ipa_search_facet({
+            name: 'search',
+            label: 'Search',
+            entity_name: that.name
+        });
+    that.init = function() {
+        search_facet.create_column({name:'cn'});
+        that.add_facet(search_facet);
 
-ipa_entity_set_association_definition('pwpolicy', {
-});
+
+        that.add_facet(function() {
+            var that = ipa_details_facet({name:'details',label:'Details'});
+            that.add_section(
+
+                ipa_stanza({name:'identity', label:'Password Policy'}).
+                    input({name:'krbmaxpwdlife'}).
+                    input({name:'krbminpwdlife'}).
+                    input({name:'krbpwdhistorylength'}).
+                    input({name:'krbpwdmindiffchars'}).
+                    input({name:'krbpwdminlength'}));
+            return that;
+        }());
+
+        var dialog = ipa_add_dialog({
+            name: 'add',
+            title: 'Add Password Policy',
+            entity_name:'pwpolicy'
+        });
+
+        that.add_dialog(dialog);
+        dialog.init();
+        dialog.add_field(ipa_text_widget({ name: 'cn',
+                                           entity_name:'pwpolicy'}));
+        that.create_association_facets();
+        that.entity_init();
+
+    }
+    return that;
+}());
+
 
 
 /**
@@ -525,9 +595,9 @@ ipa_entity_set_association_definition('pwpolicy', {
 
 ipa_entity_set_details_definition('krbtpolicy', [
     ipa_stanza({name:'identity', label:'Krbtpolicy Location Details'}).
-        input({name:'cn', label:'Krbtpolicy Location'}).
-        input({name:'krbmaxrenewableage', label:'Max Renewable Age'}).
-        input({name:'krbmaxticketlife', label:'Max Ticket Life'})
+        input({name:'cn'}).
+        input({name:'krbmaxrenewableage'}).
+        input({name:'krbmaxticketlife'})
 ]);
 
 IPA.get_entity('krbtpolicy').default_facet = 'details';

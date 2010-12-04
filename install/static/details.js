@@ -338,7 +338,7 @@ function ipa_details_list_section(spec){
         }
     };
 
-    // Deprecated: Used for backward compatibility only.
+    // This is to allow declarative style programming for details
     function input(spec){
         that.create_field(spec);
         return that;
@@ -349,7 +349,7 @@ function ipa_details_list_section(spec){
     return that;
 }
 
-// Deprecated: Used for backward compatibility only.
+// shorthand notation used for declarative definitions of details pages
 function ipa_stanza(spec) {
     return ipa_details_list_section(spec);
 }
