@@ -66,7 +66,7 @@ class config(LDAPObject):
     object_name = 'configuration options'
     default_attributes = [
         'ipamaxusernamelength', 'ipahomesrootdir', 'ipadefaultloginshell',
-        'ipadefaultprimarygroup', 'ipadefaultdomain', 'ipasearchtimelimit',
+        'ipadefaultprimarygroup', 'ipadefaultemaildomain', 'ipasearchtimelimit',
         'ipasearchrecordslimit', 'ipausersearchfields', 'ipagroupsearchfields',
         'ipamigrationenabled', 'ipacertificatesubjectbase',
     ]
