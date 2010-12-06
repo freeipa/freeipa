@@ -1,7 +1,9 @@
 #! /usr/bin/python -E
 # Authors: Karl MacMillan <kmacmillan@mentalrootkit.com>
+#          Simo Sorce <ssorce@redhat.com>
+#          Rob Crittenden <rcritten@redhat.com>
 #
-# Copyright (C) 2007  Red Hat
+# Copyright (C) 2007-2010  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or
@@ -60,11 +62,10 @@ from ipapython.config import IPAOptionParser
 pw_name = None
 uninstalling = False
 
-# Used to determine the the highest possible uid/gid
-MAXINT_32BIT = 2147483648
 
 def parse_options():
-    namespace = random.randint(1000000, (MAXINT_32BIT - 1000000))
+    # Guaranteed to give a random 200k range below the 2G mark (uint32_t limit)
+    namespace = random.randint(1, 10000) * 200000
     parser = IPAOptionParser(version=version.VERSION)
     parser.add_option("-u", "--user", dest="ds_user",
                       help="ds user")
@@ -177,7 +178,7 @@ def parse_options():
         parser.error("--external-cert-file must use an absolute path")
 
     if options.idmax == 0:
-        options.idmax = int(options.idstart) + 1000000 - 1
+        options.idmax = int(options.idstart) + 200000 - 1
 
     if options.idmax < options.idstart:
         parse.error("idmax (%u) cannot be smaller than idstart (%u)" %
