@@ -285,13 +285,6 @@ function ipa_search_facet(spec) {
     };
 
     that.create_column = function(spec) {
-        if (!spec.label){
-            var param_info = ipa_get_param_info(this.entity_name, spec.name);
-            if (param_info){
-                spec.label = param_info.label;
-            }
-        }
-
         var column = ipa_column(spec);
         that.add_column(column);
         return column;
@@ -322,6 +315,8 @@ function ipa_search_facet(spec) {
 
     function init() {
 
+        that.facet_init();
+
         that.table = ipa_search_widget({
             'id': that.entity_name+'-search',
             'name': 'search', 'label': IPA.metadata[that.entity_name].label,
@@ -341,6 +336,8 @@ function ipa_search_facet(spec) {
 
             that.table.add_column(column);
         }
+
+        that.table.init();
     }
 
     that.is_dirty = function() {

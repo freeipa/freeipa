@@ -426,7 +426,6 @@ function ipa_host_managedby_host_facet(spec) {
 
         var column = that.create_column({
             name: 'fqdn',
-            label: 'Name',
             primary_key: true
         });
 
@@ -451,18 +450,16 @@ function ipa_host_managedby_host_facet(spec) {
             }).appendTo(container);
         };
 
-        that.create_column({name: 'description', label: 'Description'});
+        that.create_column({name: 'description'});
 
         that.create_adder_column({
             name: 'fqdn',
-            label: 'Name',
             primary_key: true,
             width: '100px'
         });
 
         that.create_adder_column({
             name: 'description',
-            label: 'Description',
             width: '100px'
         });
 

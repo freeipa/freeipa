@@ -82,8 +82,8 @@ function ipa_hbacsvc_search_facet(spec) {
 
     that.init = function() {
 
-        that.create_column({name:'cn', label:'Service', primary_key: true});
-        that.create_column({name:'description', label:'Description'});
+        that.create_column({name:'cn', primary_key: true});
+        that.create_column({name:'description'});
 
         that.search_facet_init();
     };
@@ -140,8 +140,8 @@ function ipa_hbacsvc_details_facet(spec) {
         });
         that.add_section(section);
 
-        section.create_field({ 'name': 'cn', 'label': 'Name' });
-        section.create_field({ 'name': 'description', 'label': 'Description' });
+        section.create_field({'name': 'cn'});
+        section.create_field({'name': 'description'});
 
         that.superior_init();
     };

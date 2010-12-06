@@ -153,15 +153,9 @@ function ipa_association_adder_dialog(spec) {
         }
 
         that.adder_dialog_init();
-        execute_search('');
-
     };
 
     that.search = function() {
-        execute_search(that.get_filter());
-    };
-
-    function execute_search(filter){
         function on_success(data, text_status, xhr) {
             var results = data.result;
             that.clear_available_values();
@@ -172,8 +166,8 @@ function ipa_association_adder_dialog(spec) {
             }
         }
 
-        ipa_cmd('find', [filter], {'all': true}, on_success, null, that.other_entity);
-    }
+        ipa_cmd('find', [that.get_filter()], {'all': true}, on_success, null, that.other_entity);
+    };
 
     return that;
 }
@@ -250,7 +244,6 @@ function ipa_association_table_widget(spec) {
     };
 
     that.add_adder_column = function(column) {
-        column.entity_name = that.entity_name;
         that.adder_columns.push(column);
         that.adder_columns_by_name[column.name] = column;
     };
@@ -282,6 +275,16 @@ function ipa_association_table_widget(spec) {
                 'label': IPA.metadata[that.other_entity].label,
                 'primary_key': true
             });
+        }
+
+        for (var i=0; i<that.columns.length; i++) {
+            var column = that.columns[i];
+            column.entity_name = that.other_entity;
+        }
+
+        for (var i=0; i<that.adder_columns.length; i++) {
+            var column = that.adder_columns[i];
+            column.entity_name = that.other_entity;
         }
 
         that.table_init();
@@ -523,7 +526,6 @@ function ipa_association_facet(spec) {
     };
 
     that.add_column = function(column) {
-        column.entity_name = that.entity_name;
         that.columns.push(column);
         that.columns_by_name[column.name] = column;
     };
@@ -539,7 +541,6 @@ function ipa_association_facet(spec) {
     };
 
     that.add_adder_column = function(column) {
-        column.entity_name = that.entity_name;
         that.adder_columns.push(column);
         that.adder_columns_by_name[column.name] = column;
     };
@@ -551,6 +552,8 @@ function ipa_association_facet(spec) {
     };
 
     that.init = function() {
+
+        that.facet_init();
 
         var entity = IPA.get_entity(that.entity_name);
         var association = entity.get_association(that.other_entity);
@@ -608,7 +611,17 @@ function ipa_association_facet(spec) {
             };
         }
 
-        that.facet_init();
+        for (var i=0; i<that.columns.length; i++) {
+            var column = that.columns[i];
+            column.entity_name = that.other_entity;
+        }
+
+        for (var i=0; i<that.adder_columns.length; i++) {
+            var column = that.adder_columns[i];
+            column.entity_name = that.other_entity;
+        }
+
+        that.table.init();
     };
 
     that.is_dirty = function() {

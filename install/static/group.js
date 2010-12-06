@@ -150,11 +150,10 @@ function ipa_group_member_user_facet(spec) {
 
     that.init = function() {
 
-        that.create_column({name: 'cn', label: 'Name'});
+        that.create_column({name: 'cn'});
 
         var column = that.create_column({
             name: 'uid',
-            label: 'Login',
             primary_key: true
         });
 
@@ -179,20 +178,18 @@ function ipa_group_member_user_facet(spec) {
             }).appendTo(container);
         };
 
-        that.create_column({name: 'uidnumber', label: 'UID'});
-        that.create_column({name: 'mail', label: 'EMAIL'});
-        that.create_column({name: 'telephonenumber', label: 'Phone'});
-        that.create_column({name: 'title', label: 'Job Title'});
+        that.create_column({name: 'uidnumber'});
+        that.create_column({name: 'mail'});
+        that.create_column({name: 'telephonenumber'});
+        that.create_column({name: 'title'});
 
         that.create_adder_column({
             name: 'cn',
-            label: 'Name',
             width: '100px'
         });
 
         that.create_adder_column({
             name: 'uid',
-            label: 'Login',
             primary_key: true,
             width: '100px'
         });

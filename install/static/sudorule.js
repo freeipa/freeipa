@@ -83,9 +83,9 @@ function ipa_sudorule_search_facet(spec) {
 
     that.init = function() {
 
-        that.create_column({name:'cn', label:'Rule Name'});
-        that.create_column({name:'description', label:'Description'});
-        that.create_column({name:'cmdcategory', label:'Command category'});
+        that.create_column({name:'cn'});
+        that.create_column({name:'description'});
+        that.create_column({name:'cmdcategory'});
 
         that.search_facet_init();
     };
@@ -120,9 +120,9 @@ function ipa_sudorule_details_facet(spec) {
         });
         that.add_section(section);
 
-        section.create_field({ 'name': 'cn', 'label': 'Name', 'read_only': true });
-        section.create_field({ 'name': 'description', 'label': 'Description' });
-        section.create_field({ 'name': 'cmdcategory', 'label': 'Command Category' });
+        section.create_field({'name': 'cn', 'read_only': true});
+        section.create_field({'name': 'description'});
+        section.create_field({'name': 'cmdcategory'});
 
         section = ipa_rule_details_section({
             'name': 'user',

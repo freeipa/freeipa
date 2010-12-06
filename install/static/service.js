@@ -79,7 +79,7 @@ function ipa_service_add_dialog(spec) {
         that.add_dialog_init();
 
         that.add_field(ipa_widget({
-            name: 'krbprincipalname',
+            name: 'krbprincipalname'
         }));
 
         that.add_field(ipa_text_widget({
@@ -183,12 +183,14 @@ function ipa_service_details_facet(spec) {
             name: 'krbprincipalname'
         });
 
+        // TODO: Replace with i18n label
         section.create_field({
             name: 'service',
             label: 'Service',
             load: service_service_load
         });
 
+        // TODO: Replace with i18n label
         section.create_field({
             name: 'host',
             label: 'Host Name',
@@ -403,7 +405,6 @@ function ipa_service_managedby_host_facet(spec) {
 
         var column = that.create_column({
             name: 'fqdn',
-            label: 'Name',
             primary_key: true
         });
 
@@ -428,18 +429,16 @@ function ipa_service_managedby_host_facet(spec) {
             }).appendTo(container);
         };
 
-        that.create_column({name: 'description', label: 'Description'});
+        that.create_column({name: 'description'});
 
         that.create_adder_column({
             name: 'fqdn',
-            label: 'Name',
             primary_key: true,
             width: '100px'
         });
 
         that.create_adder_column({
             name: 'description',
-            label: 'Description',
             width: '100px'
         });
 

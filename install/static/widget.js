@@ -28,17 +28,9 @@ function ipa_widget(spec) {
 
     that.id = spec.id;
     that.name = spec.name;
-    that.label = spec.label ;
+    that.label = spec.label;
     that.read_only = spec.read_only;
     that._entity_name = spec.entity_name;
-
-    if (spec.entity_name && ! spec.label){
-        var param_info = ipa_get_param_info(spec.entity_name, spec.name);
-        if (param_info){
-            that.label = param_info.label;
-        }
-    }
-
 
     that.width = spec.width;
     that.height = spec.height;
@@ -68,6 +60,10 @@ function ipa_widget(spec) {
     });
 
     function init() {
+        if (that.entity_name && !that.label){
+            var param_info = ipa_get_param_info(that.entity_name, spec.name);
+            if (param_info) that.label = param_info.label;
+        }
     }
 
     function create(container) {
@@ -444,9 +440,17 @@ function ipa_column(spec) {
     that.name = spec.name;
     that.label = spec.label;
     that.primary_key = spec.primary_key;
+    that.width = spec.width;
+    that.entity_name = spec.entity_name;
+
     that.setup = spec.setup || setup;
 
-    that.width = spec.width;
+    that.init = function() {
+        if (that.entity_name && !that.label) {
+            var param_info = ipa_get_param_info(that.entity_name, that.name);
+            if (param_info) that.label = param_info.label;
+        }
+    };
 
     function setup(container, record) {
 
@@ -481,7 +485,6 @@ function ipa_table_widget(spec) {
     };
 
     that.add_column = function(column) {
-        column.entity_name = that.entity_name;
         that.columns.push(column);
         that.columns_by_name[column.name] = column;
     };
@@ -502,6 +505,15 @@ function ipa_table_widget(spec) {
         var column = ipa_column(spec);
         that.add_column(column);
         return column;
+    };
+
+    that.init = function() {
+        that.widget_init();
+
+        for (var i=0; i<that.columns.length; i++) {
+            var column = that.columns[i];
+            column.init();
+        }
     };
 
     that.create = function(container) {
@@ -927,7 +939,6 @@ function ipa_adder_dialog(spec) {
     };
 
     that.add_column = function(column) {
-        column.entity_name = that.entity_name;
         that.columns.push(column);
         that.columns_by_name[column.name] = column;
     };
@@ -959,6 +970,8 @@ function ipa_adder_dialog(spec) {
 
         that.available_table.set_columns(that.columns);
 
+        that.available_table.init();
+
         that.selected_table = ipa_table_widget({
             name: 'selected',
             scrollable: true,
@@ -966,6 +979,8 @@ function ipa_adder_dialog(spec) {
         });
 
         that.selected_table.set_columns(that.columns);
+
+        that.selected_table.init();
     };
 
     that.create = function() {
@@ -1081,6 +1096,8 @@ function ipa_adder_dialog(spec) {
             }
         });
         button.replaceWith(that.add_button);
+
+        that.search();
     };
 
     that.open = function(container) {

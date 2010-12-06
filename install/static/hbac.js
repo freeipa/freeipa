@@ -93,12 +93,12 @@ function ipa_hbac_search_facet(spec) {
 
     that.init = function() {
 
-        that.create_column({name:'cn', label:'Rule Name'});
-        that.create_column({name:'usercategory', label:'Who'});
-        that.create_column({name:'hostcategory', label:'Accessing'});
-        that.create_column({name:'ipaenabledflag', label:'Active'});
-        that.create_column({name:'servicecategory', label:'Via Service'});
-        that.create_column({name:'sourcehostcategory', label:'From'});
+        that.create_column({name:'cn'});
+        that.create_column({name:'usercategory'});
+        that.create_column({name:'hostcategory'});
+        that.create_column({name:'ipaenabledflag'});
+        that.create_column({name:'servicecategory'});
+        that.create_column({name:'sourcehostcategory'});
 
         that.search_facet_init();
     };
@@ -750,6 +750,8 @@ function ipa_hbac_accesstime_widget(spec) {
 
     that.init = function() {
 
+        that.widget_init();
+
         that.table = ipa_table_widget({
             'id': 'accesstime-table',
             'name': 'table', 'label': that.label
@@ -761,7 +763,7 @@ function ipa_hbac_accesstime_widget(spec) {
             'primary_key': true
         });
 
-        that.widget_init();
+        that.table.init();
     };
 
     that.create = function(container) {

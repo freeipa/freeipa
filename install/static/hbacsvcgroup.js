@@ -88,8 +88,8 @@ function ipa_hbacsvcgroup_search_facet(spec) {
 
     that.init = function() {
 
-        that.create_column({name:'cn', label:'Group', primary_key: true});
-        that.create_column({name:'description', label:'Description'});
+        that.create_column({name:'cn', primary_key: true});
+        that.create_column({name:'description'});
 
         that.search_facet_init();
     };
@@ -142,8 +142,8 @@ function ipa_hbacsvcgroup_details_facet(spec) {
         });
         that.add_section(section);
 
-        section.create_field({ 'name': 'cn', 'label': 'Name' });
-        section.create_field({ 'name': 'description', 'label': 'Description' });
+        section.create_field({'name': 'cn'});
+        section.create_field({'name': 'description'});
 
         section = ipa_details_section({
             'name': 'services',
@@ -174,7 +174,6 @@ function ipa_hbacsvcgroup_member_hbacsvc_table_widget(spec) {
 
         var column = that.create_column({
             name: 'cn',
-            label: 'Service',
             primary_key: true,
             width: '150px'
         });
@@ -202,20 +201,17 @@ function ipa_hbacsvcgroup_member_hbacsvc_table_widget(spec) {
 
         that.create_column({
             name: 'description',
-            label: 'Description',
             width: '350px'
         });
 
         that.create_adder_column({
             name: 'cn',
-            label: 'Service',
             primary_key: true,
             width: '100px'
         });
 
         that.create_adder_column({
             name: 'description',
-            label: 'Description',
             width: '100px'
         });
 

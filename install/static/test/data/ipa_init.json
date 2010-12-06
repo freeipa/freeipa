@@ -11,7 +11,14 @@
                         "__base64__": ""
                     },
                     "automountkey": {
+                        "aciattrs": [
+                            "automountInformation",
+                            "automountKey",
+                            "objectClass",
+                            "description"
+                        ],
                         "attribute_members": {},
+                        "bindable": false,
                         "container_dn": "cn=automount",
                         "default_attributes": [
                             "automountkey",
@@ -42,6 +49,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -67,6 +75,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -92,6 +101,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -120,7 +130,12 @@
                         "uuid_attribute": ""
                     },
                     "automountlocation": {
+                        "aciattrs": [
+                            "cn",
+                            "objectClass"
+                        ],
                         "attribute_members": {},
+                        "bindable": false,
                         "container_dn": "cn=automount",
                         "default_attributes": [
                             "cn"
@@ -150,6 +165,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -178,7 +194,13 @@
                         "uuid_attribute": ""
                     },
                     "automountmap": {
+                        "aciattrs": [
+                            "automountMapName",
+                            "objectClass",
+                            "description"
+                        ],
                         "attribute_members": {},
+                        "bindable": false,
                         "container_dn": "cn=automount",
                         "default_attributes": [
                             "automountmapname",
@@ -209,6 +231,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -234,6 +257,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -262,7 +286,9 @@
                         "uuid_attribute": ""
                     },
                     "config": {
+                        "aciattrs": [],
                         "attribute_members": {},
+                        "bindable": false,
                         "container_dn": "",
                         "default_attributes": [
                             "ipamaxusernamelength",
@@ -295,6 +321,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -317,6 +344,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -342,6 +370,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -367,6 +396,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -392,6 +422,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -417,6 +448,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -439,6 +471,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -461,6 +494,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -486,6 +520,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -511,6 +546,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Bool",
@@ -541,6 +577,7 @@
                                 "type": "bool"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -569,7 +606,904 @@
                         "uuid_attribute": ""
                     },
                     "cosentry": {
+                        "aciattrs": [
+                            "cn",
+                            "objectClass",
+                            "replicaUpdateSchedule",
+                            "javaClassName",
+                            "printer-compression-supported",
+                            "printer-color-supported",
+                            "radiusSimultaneousUse",
+                            "printer-number-up-supported",
+                            "printer-finishings-supported",
+                            "printer-pages-per-minute-color",
+                            "printer-pages-per-minute",
+                            "printer-print-quality-supported",
+                            "printer-resolution-supported",
+                            "printer-media-supported",
+                            "printer-sides-supported",
+                            "nisPublickey",
+                            "radiusReplicateToRealm",
+                            "replicaRoot",
+                            "nsDefaultObjectClass",
+                            "memberOf",
+                            "radiusLoginTime",
+                            "audio",
+                            "aci",
+                            "sambaDomainName",
+                            "sambaNextRid",
+                            "sambaLogonTime",
+                            "sambaLogoffTime",
+                            "sambaKickoffTime",
+                            "sambaHomeDrive",
+                            "sambaLogonScript",
+                            "sambaProfilePath",
+                            "sambaUserWorkstations",
+                            "sambaHomePath",
+                            "nsBuildNumber",
+                            "netscapeReversiblePassword",
+                            "krbLastPwdChange",
+                            "krbPwdMinLength",
+                            "javaFactory",
+                            "krbMinPwdLife",
+                            "mInfoRecord",
+                            "roomNumber",
+                            "nsBindPassword",
+                            "pTRRecord",
+                            "hInfoRecord",
+                            "krbSubTrees",
+                            "aFSDBRecord",
+                            "vendorVersion",
+                            "vendorName",
+                            "krbPrincipalAliases",
+                            "nsAdminSIEDN",
+                            "krbPrincContainerRef",
+                            "memberService",
+                            "ipaCertificateSubjectBase",
+                            "ipaMigrationEnabled",
+                            "krbLastSuccessfulAuth",
+                            "nsSSLClientAuth",
+                            "sudoOption",
+                            "krbPrincipalName",
+                            "ipaGroupObjectClasses",
+                            "managedBy",
+                            "ipaPwdExpAdvNotify",
+                            "ipaUserObjectClasses",
+                            "radiusPortLimit",
+                            "sudoUser",
+                            "calCalURI",
+                            "calFBURL",
+                            "userClass",
+                            "krbExtraData",
+                            "krbSupportedEncSaltTypes",
+                            "nsAdminAccessAddresses",
+                            "ipServiceProtocol",
+                            "ntUserCodePage",
+                            "krbLdapServers",
+                            "krbKdcServers",
+                            "nsDS5ReplicaName",
+                            "nsPreference",
+                            "krbPrincipalType",
+                            "nsDS5ReplicaReferral",
+                            "FTPQuotaMBytes",
+                            "passwordMustChange",
+                            "matchingRuleUse",
+                            "structuralObjectClass",
+                            "mailQuota",
+                            "mailProgramDeliveryInfo",
+                            "mgrpErrorsTo",
+                            "mgrpDeliverTo",
+                            "mailRoutingAddress",
+                            "enhancedSearchGuide",
+                            "dITStructureRules",
+                            "x500UniqueIdentifier",
+                            "mgrpMsgRejectAction",
+                            "krbMaxTicketLife",
+                            "attributeTypes",
+                            "objectClasses",
+                            "crossCertificatePair",
+                            "nisNetIdHost",
+                            "nsslapd-changelogsuffix",
+                            "mepRDNAttr",
+                            "nsslapd-suffix",
+                            "nsslapd-parent-suffix",
+                            "nisNetIdGroup",
+                            "replicaCFUpdated",
+                            "userPKCS12",
+                            "oid",
+                            "passwordAllowChangeTime",
+                            "memberURL",
+                            "memberCertificateDescription",
+                            "vlvSort",
+                            "replicaHost",
+                            "vlvUses",
+                            "replicaAbandonedChanges",
+                            "passwordCheckSyntax",
+                            "passwordChange",
+                            "passwordInHistory",
+                            "passwordKeepHistory",
+                            "passwordResetDuration",
+                            "passwordMaxFailure",
+                            "passwordExp",
+                            "passwordMinLength",
+                            "c",
+                            "l",
+                            "retryCountResetTime",
+                            "passwordUnlock",
+                            "passwordExpWarned",
+                            "passwordRetryCount",
+                            "aliasedObjectName",
+                            "inetUserHttpURL",
+                            "inetUserStatus",
+                            "inetDomainStatus",
+                            "inetDomainBaseDN",
+                            "inetSubscriberResponse",
+                            "inetSubscriberChallenge",
+                            "inetSubscriberAccountId",
+                            "printer-stacking-order-supported",
+                            "printer-delivery-orientation-supported",
+                            "printer-media-local-supported",
+                            "printer-output-features-supported",
+                            "nSRecord",
+                            "printer-job-priority-supported",
+                            "printer-service-person",
+                            "serviceAuthenticationMethod",
+                            "dc",
+                            "lastModifiedBy",
+                            "mDRecord",
+                            "aRecord",
+                            "secretary",
+                            "homePhone",
+                            "lastModifiedTime",
+                            "nsHelpRef",
+                            "krbLastFailedAuth",
+                            "pwdpolicysubentry",
+                            "nsAdminEnableEnduser",
+                            "nsDS5ReplicaUpdateSchedule",
+                            "credentialLevel",
+                            "passwordGraceUserTime",
+                            "passwordGraceLimit",
+                            "objectclassMap",
+                            "nsDS5Task",
+                            "nsds5BeginReplicaRefresh",
+                            "parentid",
+                            "entryid",
+                            "entryusn",
+                            "nsDS5Flags",
+                            "adminRole",
+                            "entrydn",
+                            "dncomp",
+                            "sambaShareName",
+                            "sambaAlgorithmicRidBase",
+                            "sambaBoolOption",
+                            "sambaOptionName",
+                            "sambaStringOption",
+                            "sambaIntegerOption",
+                            "sambaMungedDial",
+                            "sambaStringListOption",
+                            "sambaBadPasswordTime",
+                            "sambaBadPasswordCount",
+                            "radiusPrompt",
+                            "ipaDefaultPrimaryGroup",
+                            "ipaMaxUsernameLength",
+                            "ipaUserSearchFields",
+                            "ipaGroupSearchFields",
+                            "ipaSearchTimeLimit",
+                            "ipaSearchRecordsLimit",
+                            "ipaCustomFields",
+                            "ipaHomesRootDir",
+                            "ipaDefaultLoginShell",
+                            "radiusTerminationAction",
+                            "radiusTunnelAssignmentId",
+                            "radiusTunnelMediumType",
+                            "radiusTunnelPassword",
+                            "changes",
+                            "newRdn",
+                            "radiusServiceType",
+                            "radiusSessionTimeout",
+                            "employeeType",
+                            "changeNumber",
+                            "targetDn",
+                            "changeType",
+                            "radiusTunnelPreference",
+                            "carLicense",
+                            "departmentNumber",
+                            "employeeNumber",
+                            "accessTo",
+                            "dSRecord",
+                            "nsSuiteSpotUser",
+                            "nSECRecord",
+                            "rRSIGRecord",
+                            "sSHFPRecord",
+                            "authenticationMethod",
+                            "profileTTL",
+                            "bindTimeLimit",
+                            "followReferrals",
+                            "preferredServerList",
+                            "searchTimeLimit",
+                            "defaultServerList",
+                            "defaultSearchBase",
+                            "radiusTunnelPrivateGroupId",
+                            "nsClassname",
+                            "attributeMap",
+                            "userCertificate",
+                            "radiusTunnelServerEndpoint",
+                            "seeAlso",
+                            "radiusVSA",
+                            "radiusClientIPAddress",
+                            "radiusAuthType",
+                            "subtreeACI",
+                            "radiusGroupName",
+                            "radiusProfileDn",
+                            "radiusHuntgroupName",
+                            "ntUserLogonServer",
+                            "ntUserNumLogons",
+                            "ntUserUnitsPerWeek",
+                            "ntUserParms",
+                            "authorityRevocationList",
+                            "ntUserAuthFlags",
+                            "nsDS5ReplicaCredentials",
+                            "mgrpBroadcasterPolicy",
+                            "nsds7DirsyncCookie",
+                            "nsSerialNumber",
+                            "nsds5ReplConflict",
+                            "idnsSOAexpire",
+                            "idnsSOAminimum",
+                            "idnsSOArName",
+                            "idnsSOAserial",
+                            "idnsSOArefresh",
+                            "idnsSOAretry",
+                            "idnsName",
+                            "idnsAllowDynUpdate",
+                            "idnsZoneActive",
+                            "idnsSOAmName",
+                            "ipaSudoRunAsUserCategory",
+                            "ipaSudoRunAsGroup",
+                            "ipaSudoRunAs",
+                            "ipaSudoRunAsExtUser",
+                            "externalUser",
+                            "ipaSudoOpt",
+                            "memberDenyCmd",
+                            "cmdCategory",
+                            "memberAllowCmd",
+                            "nsAdminUsers",
+                            "eduPersonPrimaryOrgUnitDN",
+                            "eduPersonScopedAffiliation",
+                            "eduPersonPrincipalName",
+                            "eduPersonEntitlement",
+                            "eduPersonOrgUnitDN",
+                            "eduPersonPrimaryAffiliation",
+                            "eduPersonNickName",
+                            "eduPersonOrgDN",
+                            "eduPersonAffiliation",
+                            "hostCategory",
+                            "ipaEnabledFlag",
+                            "cosAttribute",
+                            "cosspecifier",
+                            "costargettree",
+                            "costemplatedn",
+                            "ipaClientVersion",
+                            "enrolledBy",
+                            "ipaUniqueID",
+                            "userCategory",
+                            "memberHost",
+                            "fqdn",
+                            "memberUser",
+                            "nsProductName",
+                            "tXTRecord",
+                            "nsIndexType",
+                            "mozillaCustom3",
+                            "nsSSL2",
+                            "cNAMERecord",
+                            "nsAdminCgiWaitPid",
+                            "nsValueSyntax",
+                            "nswmExtendedUserPrefs",
+                            "nsValueFlags",
+                            "ntUserComment",
+                            "ntUserWorkstations",
+                            "ntUserScriptPath",
+                            "ntUserLastLogoff",
+                            "nsValueHelpURL",
+                            "ntUserMaxStorage",
+                            "ntUserAcctExpires",
+                            "replicaPort",
+                            "nsds5ReplicaLegacyConsumer",
+                            "radiusTunnelType",
+                            "mgrpRemoveHeader",
+                            "nsds5replicaLastInitStart",
+                            "nsSchemaCSN",
+                            "nsds5replicaTimeout",
+                            "nsds5replicaLastInitEnd",
+                            "nsds5replicaLastInitStatus",
+                            "radiusTunnelClientEndpoint",
+                            "homePostalAddress",
+                            "userPassword",
+                            "mgrpApprovePassword",
+                            "owner",
+                            "roleOccupant",
+                            "radiusHint",
+                            "jpegPhoto",
+                            "ntUserPasswordExpired",
+                            "nsAdminEnableDSGW",
+                            "ditRedirect",
+                            "ntUserProfile",
+                            "documentPublisher",
+                            "trustModel",
+                            "printer-uri",
+                            "krbCanonicalName",
+                            "replicaLastRelevantChange",
+                            "nisDomain",
+                            "serviceCategory",
+                            "accessTime",
+                            "nisDomainName",
+                            "ipaConfigString",
+                            "hostCApolicy",
+                            "sourceHost",
+                            "externalHost",
+                            "sourceHostCategory",
+                            "accessRuleType",
+                            "nsSynchUserIDFormat",
+                            "nsSNMPMasterHost",
+                            "ntUserUsrComment",
+                            "telephoneNumber",
+                            "certificateRevocationList",
+                            "nsServerID",
+                            "copiedFrom",
+                            "nsDeleteclassname",
+                            "generation",
+                            "nsTaskLabel",
+                            "nsExpirationDate",
+                            "sabayonProfileURL",
+                            "sabayonProfileName",
+                            "idnsUpdatePolicy",
+                            "ntUserHomeDir",
+                            "nsAIMid",
+                            "nsKeyfile",
+                            "nsSSL3",
+                            "nsmsgDisallowAccess",
+                            "mailDeliveryOption",
+                            "mailForwardingAddress",
+                            "mailAutoReplyMode",
+                            "mailAutoReplyText",
+                            "mailAccessDomain",
+                            "mailAlternateAddress",
+                            "deleteOldRdn",
+                            "newSuperior",
+                            "mailHost",
+                            "mailMessageStore",
+                            "passwordMaxRepeats",
+                            "passwordMin8bit",
+                            "passwordMinTokenLength",
+                            "passwordMinCategories",
+                            "isReplicated",
+                            "nsSymmetricKey",
+                            "mepManagedEntry",
+                            "mepManagedBy",
+                            "mepMappedAttr",
+                            "mepStaticAttr",
+                            "krbPwdPolicyReference",
+                            "sambaGroupType",
+                            "KeyRecord",
+                            "ldapSchemas",
+                            "changeTime",
+                            "dNSClass",
+                            "dNSTTL",
+                            "cirPort",
+                            "cirHost",
+                            "cirUsePersistentSearch",
+                            "cirBindDn",
+                            "ntGroupId",
+                            "cirUseSsl",
+                            "cirUpdateSchedule",
+                            "cirLastUpdateApplied",
+                            "cirSyncInterval",
+                            "cirUpdateFailedat",
+                            "nsSSLPersonalitySSL",
+                            "nsSNMPOrganization",
+                            "nsds5ReplicaChangeCount",
+                            "nsds5replicaLastUpdateStart",
+                            "nsds5replicaLastUpdateEnd",
+                            "nsds5replicaChangesSentSinceStartup",
+                            "cosPriority",
+                            "nsds5ReplicaPurgeDelay",
+                            "nsds5ReplicaTombstonePurgeInterval",
+                            "nsSNMPContact",
+                            "nsds5replicaLastUpdateStatus",
+                            "nsds5replicaUpdateInProgress",
+                            "manager",
+                            "documentIdentifier",
+                            "documentTitle",
+                            "documentVersion",
+                            "documentAuthor",
+                            "documentLocation",
+                            "nsDS5ReplicaId",
+                            "parentOrganization",
+                            "printer-aliases",
+                            "printer-charset-configured",
+                            "passwordStorageScheme",
+                            "vacationstartdate",
+                            "nsInstalledLocation",
+                            "ipaDefaultEmailDomain",
+                            "oneWaySync",
+                            "accountInactivityLimit",
+                            "acctPolicySubentry",
+                            "vlvScope",
+                            "vlvFilter",
+                            "nsCertConfig",
+                            "mozillaWorkStreet2",
+                            "mozillaWorkUrl",
+                            "mozillaHomeCountryName",
+                            "mozillaHomeUrl",
+                            "mozillaHomeState",
+                            "replicaEntryFilter",
+                            "replicaNickName",
+                            "mozillaHomeLocalityName",
+                            "filterInfo",
+                            "mozillaHomeStreet",
+                            "sambaMinPwdLength",
+                            "sambaPwdHistoryLength",
+                            "ipaSudoRunAsExtGroup",
+                            "nsTimeLimit",
+                            "hostMask",
+                            "sambaLogonHours",
+                            "sambaTrustFlags",
+                            "sambaSIDList",
+                            "ntUserCountryCode",
+                            "nsServerPort",
+                            "krbPwdMinDiffChars",
+                            "krbMaxRenewableAge",
+                            "ntUserLogonHours",
+                            "ref",
+                            "serviceCredentialLevel",
+                            "ntUserBadPwCount",
+                            "krbMaxPwdLife",
+                            "nsSSLActivation",
+                            "replicatedattributelist",
+                            "radiusCallbackId",
+                            "radiusCallbackNumber",
+                            "radiusCalledStationId",
+                            "radiusCallingStationId",
+                            "radiusArapFeatures",
+                            "radiusArapSecurity",
+                            "radiusArapZoneAccess",
+                            "sambaPwdLastSet",
+                            "ntUserHomeDirDrive",
+                            "radiusClass",
+                            "radiusFilterId",
+                            "preferredTimeZone",
+                            "preferredLocale",
+                            "modifyTimestamp",
+                            "sn",
+                            "krbPwdHistoryLength",
+                            "krbMKey",
+                            "radiusRealm",
+                            "replicaBindMethod",
+                            "replicaBeginOrc",
+                            "replicaUpdateReplayed",
+                            "radiusStripUserName",
+                            "krbObjectReferences",
+                            "replicaUseSSL",
+                            "radiusUserCategory",
+                            "nsUniqueAttribute",
+                            "radiusCheckItem",
+                            "krbHostServer",
+                            "ipHostNumber",
+                            "photo",
+                            "info",
+                            "drink",
+                            "mail",
+                            "uid",
+                            "shadowFlag",
+                            "shadowExpire",
+                            "memberNisNetgroup",
+                            "memberUid",
+                            "ipServicePort",
+                            "nisNetgroupTriple",
+                            "ipProtocolNumber",
+                            "host",
+                            "nsSecureServerPort",
+                            "nsOsVersion",
+                            "nsAdminEndUserHTMLIndex",
+                            "nsLdapSchemaVersion",
+                            "krbLoginFailedCount",
+                            "nsJarfilename",
+                            "krbRealmReferences",
+                            "nsServerCreationClassname",
+                            "initials",
+                            "cirBindCredentials",
+                            "nsExecRef",
+                            "ntUniqueId",
+                            "nsDirectoryFailoverList",
+                            "nsNYR",
+                            "preferredDeliveryMethod",
+                            "krbPrincNamingAttr",
+                            "nsSSL3Ciphers",
+                            "telexNumber",
+                            "nsSynchUniqueAttribute",
+                            "facsimileTelephoneNumber",
+                            "teletexTerminalIdentifier",
+                            "internationalISDNNumber",
+                            "x121Address",
+                            "destinationIndicator",
+                            "registeredAddress",
+                            "passwordMinLowers",
+                            "passwordMinSpecials",
+                            "pamIDMapMethod",
+                            "pamIDAttr",
+                            "pamFallback",
+                            "pamSecure",
+                            "pamService",
+                            "passwordMinDigits",
+                            "passwordMinAlphas",
+                            "passwordMinUppers",
+                            "nsslapd-pluginEnabled",
+                            "nsslapd-pluginDescription",
+                            "replicaBindDn",
+                            "nsSNMPEnabled",
+                            "nsCertfile",
+                            "nsSNMPLocation",
+                            "nsDS5ReplicaType",
+                            "nsSNMPDescription",
+                            "nsds50ruv",
+                            "nsSNMPMasterPort",
+                            "nsDS5ReplicatedAttributeList",
+                            "nsDS5ReplicaRoot",
+                            "nsDS5ReplicaBindMethod",
+                            "nsmsgNumMsgQuota",
+                            "nsDS5ReplicaBindDN",
+                            "nsDS5ReplicaTransportInfo",
+                            "nsValueCES",
+                            "nsValueTel",
+                            "nsValueInt",
+                            "nsValueBin",
+                            "ntGroupAttributes",
+                            "displayName",
+                            "ntUserPrimaryGroupId",
+                            "nsValueCIS",
+                            "nsValueDN",
+                            "nsValueType",
+                            "ntUserPriv",
+                            "krbPwdHistory",
+                            "dITContentRules",
+                            "krbPrincipalReferences",
+                            "nsAdminDomainName",
+                            "krbTicketFlags",
+                            "buildingName",
+                            "co",
+                            "pager",
+                            "mobile",
+                            "personalTitle",
+                            "labeledURI",
+                            "organizationalStatus",
+                            "uniqueIdentifier",
+                            "supportedFeatures",
+                            "nsServerAddress",
+                            "krbTicketPolicyReference",
+                            "sambaRefuseMachinePwdChange",
+                            "sambaForceLogoff",
+                            "a6Record",
+                            "sambaLockoutObservationWindow",
+                            "sambaLockoutDuration",
+                            "sambaMinPwdAge",
+                            "sambaMaxPwdAge",
+                            "sambaLogonToChgPwd",
+                            "sRVRecord",
+                            "nXTRecord",
+                            "kXRecord",
+                            "certRecord",
+                            "nsRevisionNumber",
+                            "nAPTRRecord",
+                            "st",
+                            "printer-xri-supported",
+                            "nsSSLToken",
+                            "krbPrincipalExpiration",
+                            "krbUPEnabled",
+                            "hasSubordinates",
+                            "radiusFramedProtocol",
+                            "radiusFramedRoute",
+                            "modifiersName",
+                            "radiusFramedMTU",
+                            "radiusFramedIPAddress",
+                            "radiusFramedIPNetmask",
+                            "radiusFramedAppleTalkZone",
+                            "radiusFramedCompression",
+                            "radiusFramedAppleTalkLink",
+                            "radiusFramedAppleTalkNetwork",
+                            "street",
+                            "radiusProxyToRealm",
+                            "nsUserRDNComponent",
+                            "nsDirectoryInfoRef",
+                            "nsHostLocation",
+                            "cACertificate",
+                            "nsSSLSessionTimeout",
+                            "governingStructureRule",
+                            "krbDefaultEncSaltTypes",
+                            "passwordHistory",
+                            "o",
+                            "ou",
+                            "title",
+                            "description",
+                            "searchGuide",
+                            "businessCategory",
+                            "postalAddress",
+                            "postalCode",
+                            "postOfficeBox",
+                            "physicalDeliveryOfficeName",
+                            "nsAdminOneACLDir",
+                            "ipNetworkNumber",
+                            "ipNetmaskNumber",
+                            "macAddress",
+                            "bootParameter",
+                            "bootFile",
+                            "nisMapName",
+                            "nisMapEntry",
+                            "nsVendor",
+                            "nisSecretkey",
+                            "installationTimeStamp",
+                            "nsSystemIndex",
+                            "nsAccessLog",
+                            "automountMapName",
+                            "FTPuid",
+                            "FTPgid",
+                            "FTPDownloadBandwidth",
+                            "FTPStatus",
+                            "FTPDownloadRatio",
+                            "FTPUploadBandwidth",
+                            "dialupAccess",
+                            "FTPUploadRatio",
+                            "FTPQuotaFiles",
+                            "javaCodebase",
+                            "nsProductVersion",
+                            "radiusClientShortName",
+                            "ntUserDeleteAccount",
+                            "ntGroupType",
+                            "javaSerializedData",
+                            "nsAdminGroupName",
+                            "radiusClientSecret",
+                            "nsAdminAccountInfo",
+                            "accountUnlockTime",
+                            "nsUserIDFormat",
+                            "userSMIMECertificate",
+                            "mgrpAllowedDomain",
+                            "radiusNASIpAddress",
+                            "mgrpAllowedBroadcaster",
+                            "radiusReplyItem",
+                            "sambaLockoutThreshold",
+                            "vacationenddate",
+                            "dNameRecord",
+                            "nsDS5ReplicaHost",
+                            "nsDS5ReplicaPort",
+                            "nsRoleFilter",
+                            "cosIndirectSpecifier",
+                            "nsRole",
+                            "nsRoleDN",
+                            "nsConfigRoot",
+                            "nsIdleTimeout",
+                            "nsLookThroughLimit",
+                            "nsSizeLimit",
+                            "printer-info",
+                            "printer-make-and-model",
+                            "nsHardwarePlatform",
+                            "printer-ipp-versions-supported",
+                            "printer-multiple-document-jobs-supported",
+                            "printer-charset-supported",
+                            "printer-document-format-supported",
+                            "printer-generated-natural-language-supported",
+                            "printer-location",
+                            "printer-name",
+                            "printer-more-info",
+                            "shadowInactive",
+                            "shadowWarning",
+                            "dnQualifier",
+                            "shadowLastChange",
+                            "loginShell",
+                            "shadowMax",
+                            "shadowMin",
+                            "gidNumber",
+                            "uidNumber",
+                            "homeDirectory",
+                            "gecos",
+                            "nsServerSecurity",
+                            "generationQualifier",
+                            "member",
+                            "matchingRules",
+                            "authorizedService",
+                            "givenName",
+                            "changeLogMaximumAge",
+                            "sambaPwdMustChange",
+                            "sambaPwdCanChange",
+                            "mgrpNoDuplicateChecks",
+                            "name",
+                            "nsWellKnownJarfiles",
+                            "changeLogMaximumSize",
+                            "sambaPrimaryGroupSID",
+                            "sambaNextGroupRid",
+                            "sambaNextUserRid",
+                            "nameForms",
+                            "mgrpAddHeader",
+                            "sambaAcctFlags",
+                            "sambaNTPassword",
+                            "sambaLMPassword",
+                            "nsds7WindowsDomain",
+                            "nsslapd-ldapiautodnsuffix",
+                            "mozillaHomePostalCode",
+                            "nsds7WindowsReplicaSubtree",
+                            "nsds7DirectoryReplicaSubtree",
+                            "nsds7NewWinUserSyncEnabled",
+                            "nsds7NewWinGroupSyncEnabled",
+                            "mozillaHomeStreet2",
+                            "changeLogMaximumConcurrentWrites",
+                            "radiusExpiration",
+                            "nsSSL2Ciphers",
+                            "vlvBase",
+                            "nisNetIdUser",
+                            "connection",
+                            "nsDisplayName",
+                            "nsMatchingRule",
+                            "lastLoginTime",
+                            "ntGroupCreateNewGroup",
+                            "ntGroupDomainId",
+                            "radiusClientNASType",
+                            "ntGroupDeleteGroup",
+                            "ntUserDomainId",
+                            "radiusReplyMessage",
+                            "subschemaSubentry",
+                            "ntUserCreateNewAccount",
+                            "replicaUpdateFailedAt",
+                            "ntUserFlags",
+                            "nsNickName",
+                            "nsValueDefault",
+                            "ipaSudoRunAsGroupCategory",
+                            "mgrpMsgRejectText",
+                            "nsds5debugreplicatimeout",
+                            "sambaPasswordHistory",
+                            "sudoCmd",
+                            "nsGroupRDNComponent",
+                            "nsViewConfiguration",
+                            "nsds5replicaBusyWaitTime",
+                            "vlvEnabled",
+                            "winSyncInterval",
+                            "nsds5replicaSessionPauseTime",
+                            "radiusFramedIPXNetwork",
+                            "distinguishedName",
+                            "sambaSID",
+                            "nsAdminCacheLifetime",
+                            "createTimestamp",
+                            "mgrpRFC822MailMember",
+                            "mailEnhancedUniqueMember",
+                            "mgrpMsgMaxSize",
+                            "mgrpModerator",
+                            "javaClassNames",
+                            "changeLog",
+                            "nsLicensedFor",
+                            "nsLicenseStartTime",
+                            "nsLicenseEndTime",
+                            "preferredLanguage",
+                            "creatorsName",
+                            "nsAdminAccessHosts",
+                            "houseIdentifier",
+                            "supportedAlgorithms",
+                            "deltaRevocationList",
+                            "sudoRunAs",
+                            "uniqueMember",
+                            "sudoHost",
+                            "sudoCommand",
+                            "pamMissingSuffix",
+                            "pamExcludeSuffix",
+                            "pamIncludeSuffix",
+                            "nsSaslMapFilterTemplate",
+                            "nsSaslMapBaseDNTemplate",
+                            "nsSaslMapRegexString",
+                            "nsEncryptionAlgorithm",
+                            "passwordMinAge",
+                            "passwordResetFailureCount",
+                            "nsDS5ReplicaAutoReferral",
+                            "nsSNMPName",
+                            "nsslapd-pluginType",
+                            "nsslapd-pluginId",
+                            "nsslapd-pluginPath",
+                            "nsslapd-pluginInitfunc",
+                            "nsslapd-pluginVersion",
+                            "nsslapd-pluginVendor",
+                            "nsServerMigrationClassname",
+                            "serviceSearchDescriptor",
+                            "mozillaCustom4",
+                            "dereferenceAliases",
+                            "mozillaCustom1",
+                            "passwordLockout",
+                            "defaultSearchScope",
+                            "mozillaCustom2",
+                            "passwordWarning",
+                            "javaDoc",
+                            "krbPwdServers",
+                            "passwordMaxAge",
+                            "javaReferenceAddress",
+                            "passwordLockoutDuration",
+                            "serialNumber",
+                            "nsDirectoryURL",
+                            "associatedName",
+                            "nsBackendSuffix",
+                            "associatedDomain",
+                            "cirBeginORC",
+                            "ttl",
+                            "passwordExpirationTime",
+                            "nsDefaultAcceptLanguage",
+                            "oncRpcNumber",
+                            "mozillaUseHtmlMail",
+                            "mozillaSecondEmail",
+                            "mozillaNickname",
+                            "nsAccountLock",
+                            "copyingFrom",
+                            "nsBaseDN",
+                            "LocRecord",
+                            "aAAARecord",
+                            "nsValueDescription",
+                            "ldapSyntaxes",
+                            "SigRecord",
+                            "supportedSASLMechanisms",
+                            "supportedLDAPVersion",
+                            "supportedControl",
+                            "nsBuildSecurity",
+                            "radiusLoginLATGroup",
+                            "radiusLoginIPHost",
+                            "radiusIdleTimeout",
+                            "radiusFramedRouting",
+                            "radiusLoginService",
+                            "radiusLoginLATService",
+                            "radiusLoginLATPort",
+                            "radiusLoginLATNode",
+                            "radiusPasswordRetry",
+                            "radiusLoginTCPPort",
+                            "krbPwdMaxFailure",
+                            "krbPwdFailureCountInterval",
+                            "krbPwdLockoutDuration",
+                            "calOtherCalAdrURIs",
+                            "calOtherCAPURIs",
+                            "calCalAdrURI",
+                            "calCAPURI",
+                            "calOtherFBURLs",
+                            "calOtherCalURIs",
+                            "multiLineDescription",
+                            "nsPidLog",
+                            "cirReplicaRoot",
+                            "administratorContactInfo",
+                            "adminUrl",
+                            "serverHostName",
+                            "krbSearchScope",
+                            "serverRoot",
+                            "serverProductName",
+                            "serverVersionNumber",
+                            "replicaCredentials",
+                            "automountInformation",
+                            "automountKey",
+                            "numSubordinates",
+                            "printer-job-k-octets-supported",
+                            "nsBindDN",
+                            "mXRecord",
+                            "nsSSL3SessionTimeout",
+                            "printer-current-operator",
+                            "nsruvReplicaLastModified",
+                            "krbAdmServers",
+                            "nsErrorLog",
+                            "nscpEntryDN",
+                            "printer-natural-language-configured",
+                            "nsViewFilter",
+                            "krbPasswordExpiration",
+                            "printer-copies-supported",
+                            "nsSSLSupportedCiphers",
+                            "namingContexts",
+                            "altServer",
+                            "supportedExtension",
+                            "krbPrincipalKey",
+                            "nsLogSuppress",
+                            "nsState",
+                            "nsUniqueId",
+                            "ntUserUniqueId",
+                            "ntUserLastLogon",
+                            "nsParentUniqueId"
+                        ],
                         "attribute_members": {},
+                        "bindable": false,
                         "container_dn": "cn=costemplates,cn=accounts",
                         "default_attributes": [
                             "cn",
@@ -603,6 +1537,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -628,6 +1563,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -653,6 +1589,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -701,6 +1638,7 @@
                         "primary_key": "idnsname",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -726,6 +1664,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -751,6 +1690,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -776,6 +1716,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -798,6 +1739,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -820,6 +1762,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -842,6 +1785,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -864,6 +1808,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -886,6 +1831,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -908,6 +1854,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "StrEnum",
@@ -934,6 +1881,7 @@
                                 ]
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": true,
                                 "class": "Flag",
@@ -964,6 +1912,7 @@
                                 "type": "bool"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -991,7 +1940,41 @@
                         ]
                     },
                     "dnsrecord": {
+                        "aciattrs": [
+                            "idnsName",
+                            "objectClass",
+                            "idnsAllowDynUpdate",
+                            "cNAMERecord",
+                            "rRSIGRecord",
+                            "dSRecord",
+                            "nSECRecord",
+                            "cn",
+                            "sSHFPRecord",
+                            "LocRecord",
+                            "aAAARecord",
+                            "KeyRecord",
+                            "SigRecord",
+                            "nSRecord",
+                            "mXRecord",
+                            "mDRecord",
+                            "aRecord",
+                            "dNSClass",
+                            "dNSTTL",
+                            "mInfoRecord",
+                            "tXTRecord",
+                            "pTRRecord",
+                            "hInfoRecord",
+                            "aFSDBRecord",
+                            "a6Record",
+                            "dNameRecord",
+                            "sRVRecord",
+                            "nXTRecord",
+                            "kXRecord",
+                            "certRecord",
+                            "nAPTRRecord"
+                        ],
                         "attribute_members": {},
+                        "bindable": false,
                         "container_dn": "cn=dns",
                         "default_attributes": [
                             "arecord",
@@ -1060,6 +2043,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -1085,6 +2069,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -1107,6 +2092,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "StrEnum",
@@ -1136,7 +2122,50 @@
                         "uuid_attribute": ""
                     },
                     "dnszone": {
+                        "aciattrs": [
+                            "idnsSOAexpire",
+                            "idnsSOAminimum",
+                            "idnsSOArName",
+                            "idnsSOAserial",
+                            "idnsSOArefresh",
+                            "idnsSOAretry",
+                            "idnsName",
+                            "idnsZoneActive",
+                            "idnsSOAmName",
+                            "objectClass",
+                            "idnsAllowDynUpdate",
+                            "cNAMERecord",
+                            "idnsUpdatePolicy",
+                            "rRSIGRecord",
+                            "dSRecord",
+                            "nSECRecord",
+                            "cn",
+                            "sSHFPRecord",
+                            "LocRecord",
+                            "aAAARecord",
+                            "KeyRecord",
+                            "SigRecord",
+                            "nSRecord",
+                            "mXRecord",
+                            "mDRecord",
+                            "aRecord",
+                            "dNSClass",
+                            "dNSTTL",
+                            "mInfoRecord",
+                            "tXTRecord",
+                            "pTRRecord",
+                            "hInfoRecord",
+                            "aFSDBRecord",
+                            "a6Record",
+                            "dNameRecord",
+                            "sRVRecord",
+                            "nXTRecord",
+                            "kXRecord",
+                            "certRecord",
+                            "nAPTRRecord"
+                        ],
                         "attribute_members": {},
+                        "bindable": false,
                         "container_dn": "cn=dns",
                         "default_attributes": [
                             "idnsname",
@@ -1191,7 +2220,7 @@
                             "objectclass",
                             "aci"
                         ],
-                        "label": "DNS zone",
+                        "label": "DNS",
                         "methods": [
                             "add",
                             "del",
@@ -1215,6 +2244,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -1240,6 +2270,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -1265,6 +2296,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -1290,6 +2322,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": true,
                                 "class": "Int",
@@ -1312,6 +2345,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": true,
                                 "class": "Int",
@@ -1334,6 +2368,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": true,
                                 "class": "Int",
@@ -1356,6 +2391,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": true,
                                 "class": "Int",
@@ -1378,6 +2414,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": true,
                                 "class": "Int",
@@ -1400,6 +2437,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -1422,6 +2460,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -1444,6 +2483,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "StrEnum",
@@ -1470,6 +2510,7 @@
                                 ]
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -1498,6 +2539,19 @@
                         "uuid_attribute": ""
                     },
                     "group": {
+                        "aciattrs": [
+                            "ipaUniqueID",
+                            "cn",
+                            "objectClass",
+                            "o",
+                            "ou",
+                            "seeAlso",
+                            "description",
+                            "owner",
+                            "businessCategory",
+                            "member",
+                            "memberOf"
+                        ],
                         "attribute_members": {
                             "member": [
                                 "user",
@@ -1515,6 +2569,7 @@
                                 "role"
                             ]
                         },
+                        "bindable": false,
                         "container_dn": "cn=groups,cn=accounts",
                         "default_attributes": [
                             "cn",
@@ -1551,10 +2606,11 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
-                                "cli_name": "name",
+                                "cli_name": "group_name",
                                 "cli_short_name": null,
                                 "default": null,
                                 "doc": "Group name",
@@ -1576,6 +2632,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -1601,6 +2658,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -1626,6 +2684,23 @@
                         "uuid_attribute": "ipauniqueid"
                     },
                     "hbac": {
+                        "aciattrs": [
+                            "ipaUniqueID",
+                            "cn",
+                            "accessRuleType",
+                            "description",
+                            "serviceCategory",
+                            "accessTime",
+                            "memberService",
+                            "sourceHost",
+                            "externalHost",
+                            "sourceHostCategory",
+                            "hostCategory",
+                            "ipaEnabledFlag",
+                            "userCategory",
+                            "memberHost",
+                            "memberUser"
+                        ],
                         "attribute_members": {
                             "memberhost": [
                                 "host",
@@ -1644,12 +2719,12 @@
                                 "hostgroup"
                             ]
                         },
+                        "bindable": false,
                         "container_dn": "cn=hbac",
                         "default_attributes": [
                             "cn",
                             "accessruletype",
                             "ipaenabledflag",
-                            "accesstime",
                             "description",
                             "usercategory",
                             "hostcategory",
@@ -1669,7 +2744,6 @@
                         "label": "HBAC",
                         "methods": [
                             "add",
-                            "add_accesstime",
                             "add_host",
                             "add_service",
                             "add_sourcehost",
@@ -1679,7 +2753,6 @@
                             "enable",
                             "find",
                             "mod",
-                            "remove_accesstime",
                             "remove_host",
                             "remove_service",
                             "remove_sourcehost",
@@ -1699,6 +2772,7 @@
                         "rdn_attribute": "ipauniqueid",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -1724,6 +2798,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "StrEnum",
@@ -1748,6 +2823,7 @@
                                 ]
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "StrEnum",
@@ -1771,6 +2847,7 @@
                                 ]
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "StrEnum",
@@ -1794,6 +2871,7 @@
                                 ]
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "StrEnum",
@@ -1817,6 +2895,7 @@
                                 ]
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "StrEnum",
@@ -1840,31 +2919,7 @@
                                 ]
                             },
                             {
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "AccessTime",
-                                "cli_name": "time",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "Access time",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "Access time",
-                                "length": null,
-                                "maxlength": null,
-                                "minlength": null,
-                                "multivalue": false,
-                                "name": "accesstime",
-                                "pattern": null,
-                                "pattern_errmsg": null,
-                                "primary_key": false,
-                                "query": false,
-                                "required": false,
-                                "type": "unicode"
-                            },
-                            {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -1890,6 +2945,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": true,
                                 "class": "Flag",
@@ -1924,6 +2980,7 @@
                                 "type": "bool"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -1953,6 +3010,37 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "memberuser_group",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Groups",
+                                "exclude": null,
+                                "flags": [
+                                    "no_update",
+                                    "no_create",
+                                    "no_search"
+                                ],
+                                "hint": null,
+                                "include": null,
+                                "label": "Groups",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "memberuser_group",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -1982,6 +3070,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2011,6 +3100,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2040,10 +3130,11 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
-                                "cli_name": "memberservice_service",
+                                "cli_name": "memberservice_hbacsvc",
                                 "cli_short_name": null,
                                 "default": null,
                                 "doc": "Services",
@@ -2060,7 +3151,7 @@
                                 "maxlength": null,
                                 "minlength": null,
                                 "multivalue": false,
-                                "name": "memberservice_service",
+                                "name": "memberservice_hbacsvc",
                                 "pattern": null,
                                 "pattern_errmsg": null,
                                 "primary_key": false,
@@ -2069,10 +3160,11 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
-                                "cli_name": "memberservice_servicegroup",
+                                "cli_name": "memberservice_hbacsvcgroup",
                                 "cli_short_name": null,
                                 "default": null,
                                 "doc": "Service Groups",
@@ -2089,7 +3181,7 @@
                                 "maxlength": null,
                                 "minlength": null,
                                 "multivalue": false,
-                                "name": "memberservice_servicegroup",
+                                "name": "memberservice_hbacsvcgroup",
                                 "pattern": null,
                                 "pattern_errmsg": null,
                                 "primary_key": false,
@@ -2101,7 +3193,15 @@
                         "uuid_attribute": "ipauniqueid"
                     },
                     "hbacsvc": {
+                        "aciattrs": [
+                            "ipaUniqueID",
+                            "cn",
+                            "objectClass",
+                            "description",
+                            "memberOf"
+                        ],
                         "attribute_members": {},
+                        "bindable": false,
                         "container_dn": "cn=hbacservices,cn=accounts",
                         "default_attributes": [
                             "cn",
@@ -2133,6 +3233,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2158,6 +3259,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2186,11 +3288,24 @@
                         "uuid_attribute": "ipauniqueid"
                     },
                     "hbacsvcgroup": {
+                        "aciattrs": [
+                            "ipaUniqueID",
+                            "cn",
+                            "objectClass",
+                            "o",
+                            "ou",
+                            "seeAlso",
+                            "description",
+                            "owner",
+                            "businessCategory",
+                            "member"
+                        ],
                         "attribute_members": {
                             "member": [
                                 "hbacsvc"
                             ]
                         },
+                        "bindable": false,
                         "container_dn": "cn=hbacservicegroups,cn=accounts",
                         "default_attributes": [
                             "cn",
@@ -2224,6 +3339,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2249,6 +3365,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2277,6 +3394,24 @@
                         "uuid_attribute": "ipauniqueid"
                     },
                     "host": {
+                        "aciattrs": [
+                            "ipaUniqueID",
+                            "objectClass",
+                            "cn",
+                            "fqdn",
+                            "userCertificate",
+                            "description",
+                            "managedBy",
+                            "nsHardwarePlatform",
+                            "l",
+                            "serverHostName",
+                            "memberOf",
+                            "nsHostLocation",
+                            "userPassword",
+                            "ipaClientVersion",
+                            "enrolledBy",
+                            "nsOsVersion"
+                        ],
                         "attribute_members": {
                             "enrolledby": [
                                 "user"
@@ -2290,6 +3425,7 @@
                                 "role"
                             ]
                         },
+                        "bindable": true,
                         "container_dn": "cn=computers,cn=accounts",
                         "default_attributes": [
                             "fqdn",
@@ -2335,6 +3471,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2360,6 +3497,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2385,6 +3523,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2410,6 +3549,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2435,6 +3575,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2460,6 +3601,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2485,6 +3627,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2510,6 +3653,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": true,
                                 "class": "Flag",
@@ -2542,6 +3686,7 @@
                                 "type": "bool"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2571,6 +3716,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Bytes",
@@ -2596,6 +3742,7 @@
                                 "type": "str"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2628,6 +3775,19 @@
                         "uuid_attribute": "ipauniqueid"
                     },
                     "hostgroup": {
+                        "aciattrs": [
+                            "ipaUniqueID",
+                            "cn",
+                            "objectClass",
+                            "o",
+                            "ou",
+                            "seeAlso",
+                            "description",
+                            "owner",
+                            "businessCategory",
+                            "member",
+                            "memberOf"
+                        ],
                         "attribute_members": {
                             "member": [
                                 "host",
@@ -2641,6 +3801,7 @@
                                 "hostgroup"
                             ]
                         },
+                        "bindable": false,
                         "container_dn": "cn=hostgroups,cn=accounts",
                         "default_attributes": [
                             "cn",
@@ -2676,10 +3837,11 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
-                                "cli_name": "name",
+                                "cli_name": "hostgroup_name",
                                 "cli_short_name": null,
                                 "default": null,
                                 "doc": "Name of host-group",
@@ -2701,6 +3863,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2729,7 +3892,9 @@
                         "uuid_attribute": "ipauniqueid"
                     },
                     "krbtpolicy": {
+                        "aciattrs": [],
                         "attribute_members": {},
+                        "bindable": false,
                         "container_dn": "cn=AYOUNG.BOSTON.DEVEL.REDHAT.COM,cn=kerberos",
                         "default_attributes": [
                             "krbmaxticketlife",
@@ -2755,6 +3920,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2780,6 +3946,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -2802,6 +3969,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -2827,6 +3995,20 @@
                         "uuid_attribute": ""
                     },
                     "netgroup": {
+                        "aciattrs": [
+                            "ipaUniqueID",
+                            "cn",
+                            "description",
+                            "member",
+                            "nisDomainName",
+                            "memberOf",
+                            "externalHost",
+                            "hostCategory",
+                            "ipaEnabledFlag",
+                            "userCategory",
+                            "memberHost",
+                            "memberUser"
+                        ],
                         "attribute_members": {
                             "member": [
                                 "netgroup"
@@ -2846,6 +4028,7 @@
                                 "group"
                             ]
                         },
+                        "bindable": false,
                         "container_dn": "cn=ng,cn=alt",
                         "default_attributes": [
                             "cn",
@@ -2888,6 +4071,7 @@
                         "rdn_attribute": "ipauniqueid",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2913,6 +4097,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2938,6 +4123,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2963,6 +4149,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -2991,6 +4178,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "StrEnum",
@@ -3014,6 +4202,7 @@
                                 ]
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "StrEnum",
@@ -3040,11 +4229,23 @@
                         "uuid_attribute": "ipauniqueid"
                     },
                     "permission": {
+                        "aciattrs": [
+                            "cn",
+                            "objectClass",
+                            "o",
+                            "ou",
+                            "seeAlso",
+                            "description",
+                            "owner",
+                            "businessCategory",
+                            "member"
+                        ],
                         "attribute_members": {
                             "member": [
                                 "privilege"
                             ]
                         },
+                        "bindable": false,
                         "container_dn": "cn=permissions,cn=accounts",
                         "default_attributes": [
                             "cn",
@@ -3079,6 +4280,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3104,6 +4306,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3129,6 +4332,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "List",
@@ -3151,6 +4355,7 @@
                                 "type": "tuple"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "List",
@@ -3173,6 +4378,7 @@
                                 "type": "tuple"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "StrEnum",
@@ -3201,6 +4407,7 @@
                                 ]
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3226,6 +4433,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3251,6 +4459,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3276,6 +4485,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3307,6 +4517,18 @@
                         "__base64__": ""
                     },
                     "privilege": {
+                        "aciattrs": [
+                            "cn",
+                            "objectClass",
+                            "o",
+                            "ou",
+                            "seeAlso",
+                            "description",
+                            "owner",
+                            "businessCategory",
+                            "member",
+                            "memberOf"
+                        ],
                         "attribute_members": {
                             "member": [
                                 "permission",
@@ -3316,6 +4538,7 @@
                                 "permission"
                             ]
                         },
+                        "bindable": false,
                         "container_dn": "cn=privileges,cn=accounts",
                         "default_attributes": [
                             "cn",
@@ -3353,6 +4576,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3378,6 +4602,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3406,7 +4631,20 @@
                         "uuid_attribute": ""
                     },
                     "pwpolicy": {
+                        "aciattrs": [
+                            "cn",
+                            "objectClass",
+                            "krbPwdMaxFailure",
+                            "krbPwdFailureCountInterval",
+                            "krbPwdLockoutDuration",
+                            "krbPwdMinDiffChars",
+                            "krbPwdMinLength",
+                            "krbMaxPwdLife",
+                            "krbMinPwdLife",
+                            "krbPwdHistoryLength"
+                        ],
                         "attribute_members": {},
+                        "bindable": false,
                         "container_dn": "cn=AYOUNG.BOSTON.DEVEL.REDHAT.COM,cn=kerberos",
                         "default_attributes": [
                             "cn",
@@ -3446,6 +4684,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3471,6 +4710,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -3493,6 +4733,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -3515,6 +4756,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -3537,6 +4779,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -3559,6 +4802,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -3581,6 +4825,7 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Int",
@@ -3606,6 +4851,18 @@
                         "uuid_attribute": ""
                     },
                     "role": {
+                        "aciattrs": [
+                            "cn",
+                            "objectClass",
+                            "o",
+                            "ou",
+                            "seeAlso",
+                            "description",
+                            "owner",
+                            "businessCategory",
+                            "member",
+                            "memberOf"
+                        ],
                         "attribute_members": {
                             "member": [
                                 "user",
@@ -3617,6 +4874,7 @@
                                 "privilege"
                             ]
                         },
+                        "bindable": false,
                         "container_dn": "cn=roles,cn=accounts",
                         "default_attributes": [
                             "cn",
@@ -3654,6 +4912,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3679,6 +4938,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3707,11 +4967,39 @@
                         "uuid_attribute": ""
                     },
                     "service": {
+                        "aciattrs": [
+                            "ipaUniqueID",
+                            "krbPrincipalName",
+                            "objectClass",
+                            "krbObjectReferences",
+                            "krbPrincipalExpiration",
+                            "krbLoginFailedCount",
+                            "krbExtraData",
+                            "krbCanonicalName",
+                            "userCertificate",
+                            "krbTicketFlags",
+                            "krbPwdPolicyReference",
+                            "managedBy",
+                            "krbLastPwdChange",
+                            "krbPwdHistory",
+                            "krbMaxRenewableAge",
+                            "memberOf",
+                            "krbPasswordExpiration",
+                            "krbLastFailedAuth",
+                            "krbLastSuccessfulAuth",
+                            "krbUPEnabled",
+                            "krbPrincipalKey",
+                            "krbPrincipalType",
+                            "krbTicketPolicyReference",
+                            "krbPrincipalAliases",
+                            "krbMaxTicketLife"
+                        ],
                         "attribute_members": {
                             "managedby": [
                                 "host"
                             ]
                         },
+                        "bindable": true,
                         "container_dn": "cn=services,cn=accounts",
                         "default_attributes": [
                             "krbprincipalname",
@@ -3751,6 +5039,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3776,6 +5065,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Bytes",
@@ -3804,7 +5094,15 @@
                         "uuid_attribute": "ipauniqueid"
                     },
                     "sudocmd": {
+                        "aciattrs": [
+                            "ipaUniqueID",
+                            "sudoCmd",
+                            "objectClass",
+                            "description",
+                            "memberOf"
+                        ],
                         "attribute_members": {},
+                        "bindable": false,
                         "container_dn": "cn=sudocmds,cn=accounts",
                         "default_attributes": [
                             "sudocmd",
@@ -3835,6 +5133,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3860,6 +5159,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3888,6 +5188,18 @@
                         "uuid_attribute": "ipauniqueid"
                     },
                     "sudocmdgroup": {
+                        "aciattrs": [
+                            "ipaUniqueID",
+                            "cn",
+                            "objectClass",
+                            "o",
+                            "ou",
+                            "seeAlso",
+                            "description",
+                            "owner",
+                            "businessCategory",
+                            "member"
+                        ],
                         "attribute_members": {
                             "member": [
                                 "sudocmd",
@@ -3901,6 +5213,7 @@
                                 "sudocmdgroup"
                             ]
                         },
+                        "bindable": false,
                         "container_dn": "cn=sudocmdgroups,cn=accounts",
                         "default_attributes": [
                             "cn",
@@ -3936,10 +5249,11 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
-                                "cli_name": "name",
+                                "cli_name": "sudocmdgroup_name",
                                 "cli_short_name": null,
                                 "default": null,
                                 "doc": "Sudo Command Group name",
@@ -3961,6 +5275,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -3986,6 +5301,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4015,6 +5331,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4047,6 +5364,29 @@
                         "uuid_attribute": "ipauniqueid"
                     },
                     "sudorule": {
+                        "aciattrs": [
+                            "ipaUniqueID",
+                            "cn",
+                            "ipaSudoOpt",
+                            "description",
+                            "cmdCategory",
+                            "ipaSudoRunAsGroupCategory",
+                            "memberDenyCmd",
+                            "externalHost",
+                            "hostMask",
+                            "ipaSudoRunAsExtGroup",
+                            "hostCategory",
+                            "ipaEnabledFlag",
+                            "ipaSudoRunAsUserCategory",
+                            "ipaSudoRunAsGroup",
+                            "ipaSudoRunAs",
+                            "ipaSudoRunAsExtUser",
+                            "externalUser",
+                            "memberAllowCmd",
+                            "userCategory",
+                            "memberHost",
+                            "memberUser"
+                        ],
                         "attribute_members": {
                             "memberallowcmd": [
                                 "sudocmd",
@@ -4065,6 +5405,7 @@
                                 "group"
                             ]
                         },
+                        "bindable": false,
                         "container_dn": "cn=sudorules",
                         "default_attributes": [
                             "cn",
@@ -4103,10 +5444,11 @@
                         "rdn_attribute": "ipauniqueid",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
-                                "cli_name": "name",
+                                "cli_name": "sudorule_name",
                                 "cli_short_name": null,
                                 "default": null,
                                 "doc": "Rule name",
@@ -4128,6 +5470,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4153,6 +5496,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "StrEnum",
@@ -4176,6 +5520,7 @@
                                 ]
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4205,6 +5550,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4234,6 +5580,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4263,6 +5610,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4292,6 +5640,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4321,6 +5670,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4350,6 +5700,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4382,6 +5733,149 @@
                         "uuid_attribute": "ipauniqueid"
                     },
                     "user": {
+                        "aciattrs": [
+                            "sn",
+                            "cn",
+                            "objectClass",
+                            "uid",
+                            "ipaUniqueID",
+                            "gidNumber",
+                            "uidNumber",
+                            "homeDirectory",
+                            "radiusRealm",
+                            "radiusSimultaneousUse",
+                            "radiusProxyToRealm",
+                            "radiusReplicateToRealm",
+                            "radiusStripUserName",
+                            "dialupAccess",
+                            "radiusLoginTime",
+                            "radiusUserCategory",
+                            "radiusExpiration",
+                            "radiusCheckItem",
+                            "roomNumber",
+                            "photo",
+                            "mail",
+                            "krbLastPwdChange",
+                            "krbLoginFailedCount",
+                            "userSMIMECertificate",
+                            "radiusNASIpAddress",
+                            "radiusReplyItem",
+                            "jpegPhoto",
+                            "krbPrincipalAliases",
+                            "telexNumber",
+                            "telephoneNumber",
+                            "facsimileTelephoneNumber",
+                            "teletexTerminalIdentifier",
+                            "internationalISDNNumber",
+                            "x121Address",
+                            "destinationIndicator",
+                            "registeredAddress",
+                            "radiusTunnelType",
+                            "krbPrincipalKey",
+                            "radiusTunnelClientEndpoint",
+                            "radiusVSA",
+                            "krbPrincipalName",
+                            "displayName",
+                            "preferredDeliveryMethod",
+                            "audio",
+                            "preferredLanguage",
+                            "krbExtraData",
+                            "krbCanonicalName",
+                            "radiusLoginIPHost",
+                            "krbTicketFlags",
+                            "krbPwdHistory",
+                            "pager",
+                            "mobile",
+                            "memberOf",
+                            "krbUPEnabled",
+                            "krbPrincipalType",
+                            "krbTicketPolicyReference",
+                            "x500UniqueIdentifier",
+                            "krbMaxTicketLife",
+                            "givenName",
+                            "homePostalAddress",
+                            "radiusReplyMessage",
+                            "krbPrincipalExpiration",
+                            "userPKCS12",
+                            "radiusFramedProtocol",
+                            "radiusFramedRoute",
+                            "radiusFramedIPXNetwork",
+                            "radiusFramedMTU",
+                            "radiusFramedIPAddress",
+                            "radiusFramedIPNetmask",
+                            "radiusFramedAppleTalkZone",
+                            "radiusFramedCompression",
+                            "radiusFramedAppleTalkLink",
+                            "radiusFramedAppleTalkNetwork",
+                            "st",
+                            "street",
+                            "l",
+                            "inetUserHttpURL",
+                            "inetUserStatus",
+                            "o",
+                            "ou",
+                            "title",
+                            "description",
+                            "businessCategory",
+                            "postalAddress",
+                            "postalCode",
+                            "postOfficeBox",
+                            "physicalDeliveryOfficeName",
+                            "krbPwdPolicyReference",
+                            "secretary",
+                            "homePhone",
+                            "radiusLoginLATGroup",
+                            "krbLastFailedAuth",
+                            "radiusIdleTimeout",
+                            "radiusFramedRouting",
+                            "radiusLoginService",
+                            "radiusLoginLATService",
+                            "radiusLoginLATPort",
+                            "radiusLoginLATNode",
+                            "radiusPasswordRetry",
+                            "radiusLoginTCPPort",
+                            "radiusPortLimit",
+                            "manager",
+                            "radiusTerminationAction",
+                            "radiusTunnelAssignmentId",
+                            "radiusTunnelMediumType",
+                            "radiusTunnelPassword",
+                            "labeledURI",
+                            "radiusPrompt",
+                            "radiusServiceType",
+                            "radiusSessionTimeout",
+                            "employeeType",
+                            "radiusTunnelPreference",
+                            "carLicense",
+                            "departmentNumber",
+                            "employeeNumber",
+                            "radiusTunnelPrivateGroupId",
+                            "userCertificate",
+                            "radiusTunnelServerEndpoint",
+                            "seeAlso",
+                            "userPassword",
+                            "radiusClientIPAddress",
+                            "radiusAuthType",
+                            "radiusHint",
+                            "radiusGroupName",
+                            "radiusProfileDn",
+                            "radiusHuntgroupName",
+                            "krbMaxRenewableAge",
+                            "krbPasswordExpiration",
+                            "krbLastSuccessfulAuth",
+                            "loginShell",
+                            "gecos",
+                            "radiusCallbackId",
+                            "radiusCallbackNumber",
+                            "radiusCalledStationId",
+                            "radiusCallingStationId",
+                            "radiusArapFeatures",
+                            "radiusArapSecurity",
+                            "radiusArapZoneAccess",
+                            "initials",
+                            "radiusClass",
+                            "radiusFilterId"
+                        ],
                         "attribute_members": {
                             "memberof": [
                                 "group",
@@ -4389,6 +5883,7 @@
                                 "role"
                             ]
                         },
+                        "bindable": true,
                         "container_dn": "cn=users,cn=accounts",
                         "default_attributes": [
                             "uid",
@@ -4428,6 +5923,7 @@
                         "rdn_attribute": "",
                         "takes_params": [
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4453,6 +5949,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4478,6 +5975,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4503,6 +6001,85 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": true,
+                                "class": "Str",
+                                "cli_name": "cn",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Full name",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Full name",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "cn",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": true,
+                                "class": "Str",
+                                "cli_name": "displayname",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Display name",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Display name",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "displayname",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": true,
+                                "class": "Str",
+                                "cli_name": "initials",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Initials",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Initials",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "initials",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4528,6 +6105,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": true,
                                 "class": "Str",
@@ -4553,6 +6131,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4578,6 +6157,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": true,
                                 "class": "Str",
@@ -4603,6 +6183,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4628,6 +6209,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Password",
@@ -4655,6 +6237,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": true,
                                 "class": "Int",
@@ -4677,6 +6260,30 @@
                                 "type": "int"
                             },
                             {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Int",
+                                "cli_name": "gidnumber",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Group ID Number",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "GID",
+                                "maxvalue": null,
+                                "minvalue": null,
+                                "multivalue": false,
+                                "name": "gidnumber",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "int"
+                            },
+                            {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4702,6 +6309,82 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "city",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "City",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "City",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "location",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "state",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "State",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "State",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "state",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Int",
+                                "cli_name": "postalcode",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "ZIP",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "ZIP",
+                                "maxvalue": null,
+                                "minvalue": null,
+                                "multivalue": false,
+                                "name": "postalcode",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "int"
+                            },
+                            {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4727,6 +6410,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4752,6 +6436,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4777,6 +6462,7 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4802,6 +6488,111 @@
                                 "type": "unicode"
                             },
                             {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "orgunit",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Org. Unit",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Org. Unit",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "ou",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "title",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Job Title",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Job Title",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "title",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "manager",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Manager",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Manager",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "manager",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "carlicense",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Car License",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Car License",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "carlicense",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Bool",
@@ -4892,19 +6683,19 @@
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "496082529"
+                            "2120898932"
                         ],
                         "homedirectory": [
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "a752ed4a-fde4-11df-902d-525400674dcd"
+                            "cc2d5b64-fe52-11df-a795-525400674dcd"
                         ],
                         "krblastpwdchange": [
-                            "20101202072313Z"
+                            "20101202203134Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20110302072313Z"
+                            "20110302203134Z"
                         ],
                         "krbprincipalname": [
                             "admin@AYOUNG.BOSTON.DEVEL.REDHAT.COM"
@@ -4938,7 +6729,7 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "496082529"
+                            "2120898932"
                         ]
                     }
                 ],

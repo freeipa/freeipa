@@ -82,8 +82,8 @@ function ipa_sudocmd_search_facet(spec) {
 
     that.init = function() {
 
-        that.create_column({name:'sudocmd', label:'Command', primary_key: true});
-        that.create_column({name:'description', label:'Description'});
+        that.create_column({name:'sudocmd', primary_key: true});
+        that.create_column({name:'description'});
 
         that.search_facet_init();
     };
@@ -142,8 +142,8 @@ function ipa_sudocmd_details_facet(spec) {
         });
         that.add_section(section);
 
-        section.create_field({ 'name': 'sudocmd', 'label': 'Command' });
-        section.create_field({ 'name': 'description', 'label': 'Description' });
+        section.create_field({'name': 'sudocmd'});
+        section.create_field({'name': 'description'});
 
         that.superior_init();
     };
