@@ -63,13 +63,9 @@ function ipa_sudorule_add_dialog(spec) {
 
     that.init = function() {
 
-        that.add_dialog_init();
+        that.add_field(ipa_text_widget({name: 'cn', undo: false}));
 
-        that.add_field(ipa_text_widget({
-            'name': 'cn',
-            'label': 'Rule Name',
-            'undo': false
-        }));
+        that.add_dialog_init();
     };
 
     return that;

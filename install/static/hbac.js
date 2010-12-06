@@ -63,23 +63,21 @@ function ipa_hbac_add_dialog(spec) {
 
     that.init = function() {
 
-        that.add_dialog_init();
-
         that.add_field(ipa_text_widget({
             'name': 'cn',
-            'label': 'Rule Name',
             'undo': false
         }));
 
         that.add_field(ipa_radio_widget({
             'name': 'accessruletype',
-            'label': 'Rule type',
             'options': [
                 { 'value': 'allow', 'label': 'Allow' },
                 { 'value': 'deny', 'label': 'Deny' }
             ],
             'undo': false
         }));
+
+        that.add_dialog_init();
     };
 
     return that;

@@ -44,13 +44,6 @@ function ipa_widget(spec) {
     that.save = spec.save || save;
     that.clear = spec.clear || clear;
 
-    that.superior = function(name) {
-        var method = that[name];
-        return function () {
-            return method.apply(that, arguments);
-        };
-    };
-
     that.__defineGetter__("entity_name", function(){
         return that._entity_name;
     });
@@ -793,13 +786,6 @@ function ipa_dialog(spec) {
     that.fields = [];
     that.fields_by_name = {};
 
-    that.superior = function(name) {
-        var method = that[name];
-        return function () {
-            return method.apply(that, arguments);
-        };
-    };
-
     that.__defineGetter__("entity_name", function(){
         return that._entity_name;
     });
@@ -821,12 +807,16 @@ function ipa_dialog(spec) {
     };
 
     that.add_field = function(field) {
-        field.entity_name = that.entity_name;
         that.fields.push(field);
         that.fields_by_name[field.name] = field;
     };
 
     that.init = function() {
+        for (var i=0; i<that.fields.length; i++) {
+            var field = that.fields[i];
+            field.entity_name = that.entity_name;
+            field.init();
+        }
     };
 
     /**

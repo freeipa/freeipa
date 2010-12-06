@@ -47,13 +47,6 @@ function ipa_facet(spec) {
 
     that.create_action_panel = ipa_facet_create_action_panel;
 
-    that.superior = function(name) {
-        var method = that[name];
-        return function () {
-            return method.apply(that, arguments);
-        };
-    };
-
     function init() {
     }
 
@@ -104,13 +97,6 @@ function ipa_entity(spec) {
 
     that.associations = [];
     that.associations_by_name = {};
-
-    that.superior = function(name) {
-        var method = that[name];
-        return function () {
-            return method.apply(that, arguments);
-        };
-    };
 
     that.get_dialog = function(name) {
         return that.dialogs_by_name[name];
@@ -273,7 +259,6 @@ function ipa_entity_set_add_definition(entity_name, data) {
         'title': data[1]
     });
     entity.add_dialog(dialog);
-    dialog.init();
 
     for (var i=0; i<data[2].length; i++) {
         var field = data[2][i];
@@ -284,6 +269,8 @@ function ipa_entity_set_add_definition(entity_name, data) {
             undo: false
         }));
     }
+
+    dialog.init();
 }
 
 function ipa_entity_get_add_dialog(entity_name) {

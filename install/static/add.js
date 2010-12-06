@@ -84,6 +84,8 @@ function ipa_add_dialog(spec) {
         that.add_button('Cancel', function() {
             that.close();
         });
+
+        that.dialog_init();
     };
 
     that.add = function(record, on_success, on_error) {
@@ -109,7 +111,6 @@ function ipa_add_dialog(spec) {
         ipa_cmd('add', args, options, on_success, on_error, that.entity_name);
     };
 
-    that.superior_init = that.superior('init');
     that.add_dialog_init = that.init;
 
     return that;

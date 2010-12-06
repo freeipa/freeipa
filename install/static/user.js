@@ -45,14 +45,13 @@ function ipa_user(){
             'name': 'add',
             'title': 'Add User'
         });
-
         that.add_dialog(dialog);
+
+        dialog.add_field(ipa_text_widget({ name: 'uid', undo: false }));
+        dialog.add_field(ipa_text_widget({ name: 'givenname', undo: false }));
+        dialog.add_field(ipa_text_widget({ name: 'sn', undo: false }));
         dialog.init();
-        dialog.add_field(ipa_text_widget({ name: 'uid',entity_name:'user' }));
-        dialog.add_field(ipa_text_widget({ name: 'givenname',
-                                           entity_name:'user' }));
-        dialog.add_field(ipa_text_widget({ name: 'sn',entity_name:'user' }));
-        
+
         /*eventually,  we need to call
           entity.create_association_facets();
           but we are currently defining the associator using the global
@@ -60,7 +59,7 @@ function ipa_user(){
 
 
         that.entity_init();
-    }
+    };
 
     function details_facet(spec) {
         spec = spec || {};
@@ -110,7 +109,7 @@ IPA.add_entity(ipa_user());
 
 ipa_entity_set_association_definition('user', {
     'group': { associator: 'serial' },
-    'netgroup': { associator: 'serial' },
+    'netgroup': { associator: 'serial' }
 });
 
 /* ATTRIBUTE CALLBACKS */

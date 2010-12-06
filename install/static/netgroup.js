@@ -47,19 +47,17 @@ IPA.add_entity( function() {
 
         var dialog = ipa_add_dialog({
             name: 'add',
-            title: 'Add Netgroup',
-            entity_name:'netgroup'
+            title: 'Add Netgroup'
         });
-
         that.add_dialog(dialog);
+
+        dialog.add_field(ipa_text_widget({ name: 'cn', undo: false}));
+        dialog.add_field(ipa_text_widget({ name: 'description', undo: false}));
         dialog.init();
-        dialog.add_field(ipa_text_widget({ name: 'cn',
-                                           entity_name:'netgroup'}));
-        dialog.add_field(ipa_text_widget({ name: 'description',
-                                           entity_name:'netgroup' }));
+
         that.create_association_facets();
         that.entity_init();
-    }
+    };
     return that;
 }());
 

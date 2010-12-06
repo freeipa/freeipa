@@ -76,24 +76,27 @@ function ipa_service_add_dialog(spec) {
 
     that.init = function() {
 
-        that.add_dialog_init();
-
         that.add_field(ipa_widget({
             name: 'krbprincipalname'
         }));
 
+        // TODO: Replace with i18n label
         that.add_field(ipa_text_widget({
-            'name': 'service', 'label': 'Service',
+            'name': 'service',
+            'label': 'Service',
             'size': 20,
             'undo': false
         }));
 
+        // TODO: Replace with i18n label
         that.add_field(ipa_text_widget({
             'name': 'host',
             'label': 'Host Name',
             'size': 40,
             'undo': false
         }));
+
+        that.add_dialog_init();
     };
 
     that.create = function() {

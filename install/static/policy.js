@@ -64,23 +64,18 @@ IPA.add_entity(function (){
 
         var dialog = ipa_add_dialog({
             name: 'add',
-            title: 'Add DNS Zone',
-            entity_name:'dnszone'
+            title: 'Add DNS Zone'
         });
-
         that.add_dialog(dialog);
-        dialog.init();
 
-        dialog.add_field(ipa_text_widget({ name: 'idnsname',
-                                           entity_name:'dnszone'}));
-        dialog.add_field(ipa_text_widget({ name: 'idnssoamname',
-                                           entity_name:'dnszone'}));
-        dialog.add_field(ipa_text_widget({ name: 'idnssoarname',
-                                           entity_name:'dnszone'}));
+        dialog.add_field(ipa_text_widget({ name: 'idnsname', undo: false}));
+        dialog.add_field(ipa_text_widget({ name: 'idnssoamname', undo: false}));
+        dialog.add_field(ipa_text_widget({ name: 'idnssoarname', undo: false}));
+        dialog.init();
 
         that.create_association_facets();
         that.entity_init();
-    }
+    };
 
 
     return that;
@@ -521,14 +516,13 @@ IPA.add_entity(function (){
 
         var dialog = ipa_add_dialog({
             name: 'add',
-            title: 'Add Automount Location',
-            entity_name:'automountlocation'
+            title: 'Add Automount Location'
         });
-
         that.add_dialog(dialog);
+
+        dialog.add_field(ipa_text_widget({ name: 'cn', undo: false}));
         dialog.init();
-        dialog.add_field(ipa_text_widget({ name: 'cn',
-                                           entity_name:'automountlocation'}));
+
         that.create_association_facets();
         that.entity_init();
 
@@ -574,15 +568,15 @@ IPA.add_entity(function (){
             title: 'Add Password Policy',
             entity_name:'pwpolicy'
         });
-
         that.add_dialog(dialog);
+
+        dialog.add_field(ipa_text_widget({ name: 'cn', undo: false}));
         dialog.init();
-        dialog.add_field(ipa_text_widget({ name: 'cn',
-                                           entity_name:'pwpolicy'}));
+
         that.create_association_facets();
         that.entity_init();
 
-    }
+    };
     return that;
 }());
 

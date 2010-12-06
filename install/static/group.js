@@ -87,16 +87,13 @@ function ipa_group_add_dialog(spec) {
 
     that.init = function() {
 
-        that.add_dialog_init();
+        that.add_field(ipa_text_widget({name:'cn', undo: false}));
+        that.add_field(ipa_text_widget({name:'description', undo: false}));
+        // TODO: Replace with i18n label
+        that.add_field(ipa_checkbox_widget({name:'posix', label:'Is this a POSIX group?', undo: false}));
+        that.add_field(ipa_text_widget({name:'gidnumber', undo: false}));
 
-        that.add_field(ipa_text_widget({name:'cn', entity_name:'group',
-                                        undo: false}));
-        that.add_field(ipa_text_widget({name:'description',
-                                        entity_name:'group', undo: false}));
-        that.add_field(ipa_checkbox_widget({name:'posix', entity_name:'group',
-                                            undo: false}));
-        that.add_field(ipa_text_widget({name:'gidnumber', entity_name:'group',
-                                        undo: false}));
+        that.add_dialog_init();
     };
 
     return that;

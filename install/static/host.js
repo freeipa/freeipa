@@ -83,14 +83,13 @@ function ipa_host_add_dialog(spec) {
 
     that.init = function() {
 
-        that.add_dialog_init();
-
         that.add_field(ipa_text_widget({
             'name': 'fqdn',
-            entity_name:'host',
             'size': 40,
             'undo': false
         }));
+
+        that.add_dialog_init();
     };
 
     return that;

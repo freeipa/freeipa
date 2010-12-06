@@ -61,14 +61,12 @@ function ipa_hbacsvc_add_dialog(spec) {
 
     var that = ipa_add_dialog(spec);
 
-    that.superior_init = that.superior('init');
-
     that.init = function() {
 
-        that.superior_init();
+        that.add_field(ipa_text_widget({name:'cn', undo: false}));
+        that.add_field(ipa_text_widget({name:'description', undo: false}));
 
-        that.add_field(ipa_text_widget({name:'cn', label:'Name', undo: false}));
-        that.add_field(ipa_text_widget({name:'description', label:'Description', undo: false}));
+        that.add_dialog_init();
     };
 
     return that;
@@ -128,10 +126,6 @@ function ipa_hbacsvc_details_facet(spec) {
 
     var that = ipa_details_facet(spec);
 
-    that.superior_init = that.superior('init');
-    that.superior_create = that.superior('create');
-    that.superior_setup = that.superior('setup');
-
     that.init = function() {
 
         var section = ipa_details_list_section({
@@ -143,7 +137,7 @@ function ipa_hbacsvc_details_facet(spec) {
         section.create_field({'name': 'cn'});
         section.create_field({'name': 'description'});
 
-        that.superior_init();
+        that.details_facet_init();
     };
 
     return that;

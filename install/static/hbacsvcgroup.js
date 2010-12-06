@@ -67,14 +67,12 @@ function ipa_hbacsvcgroup_add_dialog(spec) {
 
     var that = ipa_add_dialog(spec);
 
-    that.superior_init = that.superior('init');
-
     that.init = function() {
 
-        that.superior_init();
+        that.add_field(ipa_text_widget({name:'cn', undo: false}));
+        that.add_field(ipa_text_widget({name:'description', undo: false}));
 
-        that.add_field(ipa_text_widget({name:'cn', label:'Name', undo: false}));
-        that.add_field(ipa_text_widget({name:'description', label:'Description', undo: false}));
+        that.add_dialog_init();
     };
 
     return that;

@@ -47,19 +47,17 @@ IPA.add_entity( function() {
 
         var dialog = ipa_add_dialog({
             name: 'add',
-            title: 'Add Hostgroup',
-            entity_name:'hostgroup'
+            title: 'Add Hostgroup'
         });
-
         that.add_dialog(dialog);
+
+        dialog.add_field(ipa_text_widget({name: 'cn', undo: false}));
+        dialog.add_field(ipa_text_widget({name: 'description', undo: false}));
         dialog.init();
-        dialog.add_field(ipa_text_widget({ name: 'cn',
-                                           entity_name:'hostgroup'}));
-        dialog.add_field(ipa_text_widget({ name: 'description',
-                                           entity_name:'hostgroup' }));
+
         that.create_association_facets();
         that.entity_init();
-    }
+    };
     return that;
 }());
 
