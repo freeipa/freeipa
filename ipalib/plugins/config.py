@@ -149,6 +149,12 @@ class config_mod(LDAPUpdate):
                 entry_attrs['ipamigrationenabled'] = 'TRUE'
             else:
                 entry_attrs['ipamigrationenabled'] = 'FALSE'
+        if 'ipadefaultprimarygroup' in entry_attrs:
+            group=entry_attrs['ipadefaultprimarygroup']
+            try:
+                api.Command['group_show'](group)
+            except errors.NotFound:
+                raise errors.NotFound(message=unicode("The group doesn't exist"))
         return dn
 
 api.register(config_mod)
