@@ -1252,6 +1252,22 @@ class OnlyOneValueAllowed(ExecutionError):
     format = _('%(attr)s: Only one value allowed.')
 
 
+class InvalidSyntax(ExecutionError):
+    """
+    **4208** Raised when trying to set more than one value to single-value attributes
+
+    For example:
+
+    >> raise OnlyOneValueAllowed(attr='ipahomesrootdir')
+    Traceback (most recent call last):
+      ...
+    InvalidSyntax: ipahomesrootdir: Invalid syntax
+    """
+
+    errno = 4208
+    format = _('%(attr)s: Invalid syntax.')
+
+
 class CertificateError(ExecutionError):
     """
     **4300** Base class for Certificate execution errors (*4300 - 4399*).

@@ -96,6 +96,8 @@ def _handle_errors(e, **kw):
         # it indicates the previous attribute was removed by another
         # update, making the oldentry stale.
         raise errors.MidairCollision()
+    except _ldap.INVALID_SYNTAX:
+        raise errors.InvalidSyntax(attr=info)
     except _ldap.OBJECT_CLASS_VIOLATION:
         raise errors.ObjectclassViolation(info=info)
     except _ldap.ADMINLIMIT_EXCEEDED:

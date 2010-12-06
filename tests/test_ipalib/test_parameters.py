@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Authors:
 #   Jason Gerard DeRose <jderose@redhat.com>
 #
@@ -1437,3 +1438,25 @@ def test_messages():
             continue
         assert type(attr.type_error) is str
         assert attr.type_error in parameters.__messages
+
+
+class test_IA5Str(ClassChecker):
+    """
+    Test the `ipalib.parameters.IA5Str` class.
+    """
+    _cls = parameters.IA5Str
+
+    def test_convert_scalar(self):
+        """
+        Test the `ipalib.parameters.IA5Str._convert_scalar` method.
+        """
+        o = self.cls('my_str')
+        mthd = o._convert_scalar
+        for value in (u'Hello', 42, 1.2):
+            assert mthd(value) == unicode(value)
+        bad = ['Helloá']
+        for value in bad:
+            e = raises(errors.ConversionError, mthd, value)
+            assert e.name == 'my_str'
+            assert e.index is None
+            assert_equal(e.error, "The character \''\\xc3'\' is not allowed.")

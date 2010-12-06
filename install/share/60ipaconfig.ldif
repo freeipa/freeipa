@@ -22,7 +22,7 @@ attributetypes: ( 2.16.840.1.113730.3.8.1.4 NAME 'ipaSearchRecordsLimit' EQUALIT
 ## ipaCustomFields - custom fields to show in the UI in addition to pre-defined ones
 attributetypes: ( 2.16.840.1.113730.3.8.1.5 NAME 'ipaCustomFields' EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)
 ## ipaHomesRootDir - default posix home directory root dir to use when creating new accounts
-attributetypes: ( 2.16.840.1.113730.3.8.1.6 NAME 'ipaHomesRootDir' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE)
+attributetypes: ( 2.16.840.1.113730.3.8.1.6 NAME 'ipaHomesRootDir' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE)
 ## ipaDefaultLoginShell - default posix login shell to use when creating new accounts
 attributetypes: ( 2.16.840.1.113730.3.8.1.7 NAME 'ipaDefaultLoginShell' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE)
 ## ipaDefaultPrimaryGroup - default posix primary group to assign when creating new accounts

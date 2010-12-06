@@ -1278,6 +1278,25 @@ class Str(Data):
             )
 
 
+class IA5Str(Str):
+    """
+    An IA5String per RFC 4517
+    """
+
+    def __init__(self, name, *rules, **kw):
+        super(IA5Str, self).__init__(name, *rules, **kw)
+
+    def _convert_scalar(self, value, index=None):
+        if isinstance(value, basestring):
+            for i in xrange(len(value)):
+                if ord(value[i]) > 127:
+                    raise ConversionError(name=self.name, index=index,
+                        error=_('The character \'%(char)r\' is not allowed.') %
+                            dict(char=value[i],)
+                    )
+        return super(IA5Str, self)._convert_scalar(value, index)
+
+
 class Password(Str):
     """
     A parameter for passwords (stored in the ``unicode`` type).

@@ -54,7 +54,7 @@ Server Configuration.
 """
 
 from ipalib import api
-from ipalib import Bool, Int, Str
+from ipalib import Bool, Int, Str, IA5Str
 from ipalib.plugins.baseldap import *
 from ipalib import _
 
@@ -79,7 +79,7 @@ class config(LDAPObject):
             label=_('Max username length'),
             minvalue=1,
         ),
-        Str('ipahomesrootdir?',
+        IA5Str('ipahomesrootdir?',
             cli_name='homedirectory',
             label=_('Home directory base'),
             doc=_('Default location of home directories'),
@@ -111,12 +111,12 @@ class config(LDAPObject):
             doc=_('Max. number of records to search (-1 is unlimited)'),
             minvalue=-1,
         ),
-        Str('ipausersearchfields?',
+        IA5Str('ipausersearchfields?',
             cli_name='usersearch',
             label=_('User search fields'),
             doc=_('A comma-separated list of fields to search when searching for users'),
         ),
-        Str('ipagroupsearchfields?',
+        IA5Str('ipagroupsearchfields?',
             cli_name='groupsearch',
             label='Group search fields',
             doc=_('A comma-separated list of fields to search when searching for groups'),

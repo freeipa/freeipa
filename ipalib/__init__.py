@@ -878,7 +878,7 @@ from backend import Backend
 from frontend import Command, LocalOrRemote
 from frontend import Object, Method, Property
 from crud import Create, Retrieve, Update, Delete, Search
-from parameters import DefaultFrom, Bool, Flag, Int, Float, Bytes, Str, Password,List
+from parameters import DefaultFrom, Bool, Flag, Int, Float, Bytes, Str, IA5Str, Password,List
 from parameters import BytesEnum, StrEnum, AccessTime, File
 from errors import SkipPluginModule
 from text import _, ngettext, GettextFactory, NGettextFactory

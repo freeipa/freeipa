@@ -168,7 +168,7 @@ automountInformation: -ro,soft,rsize=8192,wsize=8192 nfs.example.com:/vol/arch
 """
 from ipalib import api, errors
 from ipalib import Object, Command
-from ipalib import Flag, Str
+from ipalib import Flag, Str, IA5Str
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 import os
@@ -486,11 +486,11 @@ class automountmap(LDAPObject):
     default_attributes = ['automountmapname', 'description']
 
     takes_params = (
-        Str('automountmapname',
-            cli_name='map',
-            label=_('Map'),
-            doc=_('Automount map name'),
-            primary_key=True,
+        IA5Str('automountmapname',
+               cli_name='map',
+               label=_('Map'),
+               doc=_('Automount map name'),
+               primary_key=True,
         ),
         Str('description?',
             cli_name='desc',
@@ -568,15 +568,15 @@ class automountkey(LDAPObject):
     ]
 
     takes_params = (
-        Str('automountkey',
-            cli_name='key',
-            label=_('Key'),
-            doc=_('Automount key name'),
-            primary_key=True,
+        IA5Str('automountkey',
+               cli_name='key',
+               label=_('Key'),
+               doc=_('Automount key name'),
+               primary_key=True,
         ),
-        Str('automountinformation',
-            cli_name='info',
-            label=_('Mount information'),
+        IA5Str('automountinformation',
+               cli_name='info',
+               label=_('Mount information'),
         ),
         Str('description?',
             cli_name='desc',
