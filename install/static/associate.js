@@ -299,13 +299,13 @@ function ipa_association_table_widget(spec) {
         $('<input/>', {
             'type': 'button',
             'name': 'remove',
-            'value': 'Remove '+that.label
+            'value': 'Remove'
         }).appendTo(buttons);
 
         $('<input/>', {
             'type': 'button',
             'name': 'add',
-            'value': 'Add '+that.label
+            'value': 'Add'
         }).appendTo(buttons);
     };
 

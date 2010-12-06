@@ -53,13 +53,6 @@ function ipa_sudocmdgroup() {
         });
         that.add_facet(facet);
 
-        facet = ipa_sudocmdgroup_member_sudocmd_facet({
-            'name': 'member_sudocmd',
-            'label': IPA.metadata['sudocmd'].label+' '+IPA.messages.association.members,
-            'other_entity': 'sudocmd'
-        });
-        that.add_facet(facet);
-
         that.entity_init();
     };
 
@@ -155,17 +148,30 @@ function ipa_sudocmdgroup_details_facet(spec) {
         section.create_field({'name': 'cn'});
         section.create_field({'name': 'description'});
 
+        section = ipa_details_section({
+            'name': 'commands',
+            'label': 'Commands'
+        });
+        that.add_section(section);
+
+        var field = ipa_sudocmdgroup_member_sudocmd_table_widget({
+            'name': 'member_sudocmd',
+            'label': 'Commands',
+            'other_entity': 'sudocmd'
+        });
+        section.add_field(field);
+
         that.details_facet_init();
     };
 
     return that;
 }
 
-function ipa_sudocmdgroup_member_sudocmd_facet(spec) {
+function ipa_sudocmdgroup_member_sudocmd_table_widget(spec) {
 
     spec = spec || {};
 
-    var that = ipa_association_facet(spec);
+    var that = ipa_association_table_widget(spec);
 
     that.init = function() {
 
@@ -212,7 +218,7 @@ function ipa_sudocmdgroup_member_sudocmd_facet(spec) {
             width: '100px'
         });
 
-        that.association_facet_init();
+        that.association_table_widget_init();
     };
 
     return that;
