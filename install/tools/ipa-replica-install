@@ -26,14 +26,14 @@ from ConfigParser import SafeConfigParser
 
 from ipapython import ipautil
 
-from ipaserver.install import dsinstance, replication, installutils, krbinstance, service
+from ipaserver.install import dsinstance, installutils, krbinstance, service
 from ipaserver.install import bindinstance, httpinstance, ntpinstance, certs
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
 from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
 
-CACERT="/usr/share/ipa/html/ca.crt"
+CACERT="/etc/ipa/ca.crt"
 
 class HostnameLocalhost(Exception):
     pass
@@ -163,7 +163,7 @@ def install_ca(config):
 
     return ca
 
-def install_ds(config):
+def install_replica_ds(config):
     dsinstance.check_existing_installation()
     dsinstance.check_ports()
 
@@ -176,13 +176,10 @@ def install_ds(config):
                        config.dir + "/dirsrv_pin.txt")
 
     ds = dsinstance.DsInstance()
-    # idstart and idmax are configured so that the range is seen as depleted
-    # by the DNA plugin and the replica will go and get a new range from the
-    # master.
-    # This way all servers use the initially defined range by default.
-    ds.create_instance(config.ds_user, config.realm_name, config.host_name,
-                       config.domain_name, config.dirman_password,
-                       pkcs12_info, idstart=1101, idmax=1100)
+    ds.create_replica(config.ds_user, config.realm_name,
+                      config.master_host_name, config.host_name,
+                      config.domain_name, config.dirman_password,
+                      pkcs12_info)
 
     return ds
 
@@ -203,13 +200,16 @@ def install_krb(config, setup_pkinit=False):
                        setup_pkinit, pkcs12_info)
 
 def install_ca_cert(config):
-    if ipautil.file_exists(config.dir + "/ca.crt"):
-        try:
-            shutil.copy(config.dir + "/ca.crt", CACERT)
-            os.chmod(CACERT, 0444)
-        except Exception, e:
-            print "error copying files: " + str(e)
-            sys.exit(1)
+    cafile = config.dir + "/ca.crt"
+    if not ipautil.file_exists(cafile):
+        raise RuntimeError("Ca cert file is not available")
+
+    try:
+        shutil.copy(cafile, CACERT)
+        os.chmod(CACERT, 0444)
+    except Exception, e:
+        print "error copying files: " + str(e)
+        sys.exit(1)
 
 def install_http(config):
     # if we have a pkcs12 file, create the cert db from
@@ -354,13 +354,16 @@ def main():
     if options.setup_pkinit:
         check_pkinit()
 
+    # Install CA cert so that we can do SSL connections with ldap
+    install_ca_cert(config)
+
     # Try out the password
-    ldapuri = 'ldap://%s' % config.master_host_name
+    ldapuri = 'ldaps://%s' % config.master_host_name
     try:
         conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
-        conn.connect(
-            bind_dn='cn=directory manager', bind_pw=config.dirman_password
-        )
+        conn.connect(bind_dn='cn=directory manager',
+                     bind_pw=config.dirman_password,
+                     tls_cacertfile=CACERT)
         try:
             entry = conn.find_entries(u'fqdn=%s' % host, ['dn', 'fqdn'], u'%s,%s' % (api.env.container_host, api.env.basedn))
             print "The host %s already exists.\n" % host
@@ -377,9 +380,6 @@ def main():
     except errors.LDAPError:
         sys.exit("\nUnable to connect to LDAP server %s" % config.master_host_name)
 
-    # Install CA cert so that we can do SSL connections with ldap
-    install_ca_cert(config)
-
     # Configure ntpd
     if options.conf_ntp:
         ntp = ntpinstance.NTPInstance()
@@ -389,16 +389,7 @@ def main():
     CA = install_ca(config)
 
     # Configure dirsrv
-    ds = install_ds(config)
-
-    try:
-        repl = replication.ReplicationManager(config.host_name, config.dirman_password)
-        ret = repl.setup_replication(config.master_host_name, config.realm_name)
-    except Exception, e:
-        logging.debug("Connection error: %s" % e)
-        raise RuntimeError("Unable to connect to LDAP server %s." % config.host_name)
-    if ret != 0:
-        raise RuntimeError("Failed to start replication")
+    ds = install_replica_ds(config)
 
     install_krb(config, setup_pkinit=options.setup_pkinit)
     install_http(config)

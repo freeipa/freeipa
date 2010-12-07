@@ -20,14 +20,13 @@
 import time, logging
 
 import ldap
-from ipaserver.install import dsinstance
 from ipaserver import ipaldap
 from ldap import modlist
 from ipalib import util
 from ipalib import errors
 
 DIRMAN_CN = "cn=directory manager"
-CACERT = "/usr/share/ipa/html/ca.crt"
+CACERT = "/etc/ipa/ca.crt"
 # the default container used by AD for user entries
 WIN_USER_CONTAINER = "cn=Users"
 # the default container used by IPA for user entries

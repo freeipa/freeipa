@@ -40,12 +40,13 @@ from ldap.dn import escape_dn_chars
 from ipaserver import ipaldap
 from ipaserver.install import ldapupdate
 from ipaserver.install import httpinstance
+from ipaserver.install import replication
 from ipalib import util, errors
 from ipaserver.plugins.ldap2 import ldap2
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
-CACERT="/usr/share/ipa/html/ca.crt"
+CACERT="/erc/ipa/ca.crt"
 
 def find_server_root():
     if ipautil.dir_exists(SERVER_ROOT_64):
@@ -188,24 +189,7 @@ class DsInstance(service.Service):
         self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
 
-    def create_instance(self, ds_user, realm_name, fqdn, domain_name,
-                        dm_password, pkcs12_info=None, self_signed_ca=False,
-                        idstart=1100, idmax=999999, subject_base=None,
-                        hbac_allow=True):
-        self.ds_user = ds_user
-        self.realm_name = realm_name.upper()
-        self.serverid = realm_to_serverid(self.realm_name)
-        self.suffix = util.realm_to_suffix(self.realm_name)
-        self.fqdn = fqdn
-        self.dm_password = dm_password
-        self.domain = domain_name
-        self.pkcs12_info = pkcs12_info
-        self.self_signed_ca = self_signed_ca
-        self.idstart = idstart
-        self.idmax = idmax
-        self.principal = "ldap/%s@%s" % (self.fqdn, self.realm_name)
-        self.subject_base = subject_base
-        self.__setup_sub_dict()
+    def __common_setup(self):
 
         self.step("creating directory server user", self.__create_ds_user)
         self.step("creating directory server instance", self.__create_instance)
@@ -225,23 +209,89 @@ class DsInstance(service.Service):
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("restarting directory server", self.__restart_instance)
         self.step("configuring user private groups", self.__user_private_groups)
-        self.step("adding default layout", self.__add_default_layout)
-        self.step("adding delegation layout", self.__add_delegation_layout)
-        self.step("configuring Posix uid/gid generation as first master",
-                  self.__config_uidgid_gen_first_master)
-        self.step("adding master entry as first master",
-                  self.__add_master_entry_first_master)
-        self.step("initializing group membership",
-                  self.init_memberof)
-        if hbac_allow:
-            self.step("creating default HBAC rule allow_all", self.add_hbac)
+
+    def __common_post_setup(self):
+        self.step("initializing group membership", self.init_memberof)
+        self.step("adding master entry", self.__add_master_entry)
+        self.step("configuring Posix uid/gid generation",
+                  self.__config_uidgid_gen)
         self.step("enabling compatibility plugin",
                   self.__enable_compat_plugin)
         self.step("tuning directory server", self.__tuning)
 
         self.step("configuring directory to start on boot", self.__enable)
 
+    def create_instance(self, ds_user, realm_name, fqdn, domain_name,
+                        dm_password, pkcs12_info=None, self_signed_ca=False,
+                        idstart=1100, idmax=999999, subject_base=None,
+                        hbac_allow=True):
+        self.ds_user = ds_user
+        self.realm_name = realm_name.upper()
+        self.serverid = realm_to_serverid(self.realm_name)
+        self.suffix = util.realm_to_suffix(self.realm_name)
+        self.fqdn = fqdn
+        self.dm_password = dm_password
+        self.domain = domain_name
+        self.pkcs12_info = pkcs12_info
+        self.self_signed_ca = self_signed_ca
+        self.idstart = idstart
+        self.idmax = idmax
+        self.principal = "ldap/%s@%s" % (self.fqdn, self.realm_name)
+        self.subject_base = subject_base
+
+        self.__setup_sub_dict()
+        self.__common_setup()
+
+        self.step("adding default layout", self.__add_default_layout)
+        self.step("adding delegation layout", self.__add_delegation_layout)
+        if hbac_allow:
+            self.step("creating default HBAC rule allow_all", self.add_hbac)
+
+        self.__common_post_setup()
+
         self.start_creation("Configuring directory server", 60)
+
+    def create_replica(self, ds_user, realm_name, master_fqdn, fqdn,
+                       domain_name, dm_password, pkcs12_info=None):
+        self.ds_user = ds_user
+        self.realm_name = realm_name.upper()
+        self.serverid = realm_to_serverid(self.realm_name)
+        self.suffix = util.realm_to_suffix(self.realm_name)
+        self.master_fqdn = master_fqdn
+        self.fqdn = fqdn
+        self.dm_password = dm_password
+        self.domain = domain_name
+        self.pkcs12_info = pkcs12_info
+        self.principal = "ldap/%s@%s" % (self.fqdn, self.realm_name)
+
+        self.self_signed_ca = False
+        self.subject_base = None
+        # idstart and idmax are configured so that the range is seen as
+        # depleted by the DNA plugin and the replica will go and get a
+        # new range from the master.
+        # This way all servers use the initially defined range by default.
+        self.idstart = 1101
+        self.idmax = 1100
+
+        self.__setup_sub_dict()
+        self.__common_setup()
+
+        self.step("Setting up initial replication", self.__setup_replica)
+
+        self.__common_post_setup()
+
+        self.start_creation("Configuring directory server", 60)
+
+
+    def __setup_replica(self):
+        try:
+            repl = replication.ReplicationManager(self.fqdn, self.dm_password)
+            ret = repl.setup_replication(self.master_fqdn, self.realm_name)
+        except Exception, e:
+            logging.debug("Connection error: %s" % e)
+            raise RuntimeError("Unable to connect to LDAP server %s." % self.fqdn)
+        if ret != 0:
+            raise RuntimeError("Failed to start replication")
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
@@ -378,12 +428,12 @@ class DsInstance(service.Service):
     def __set_unique_attrs(self):
         self._ldap_mod("unique-attributes.ldif", self.sub_dict)
 
-    def __config_uidgid_gen_first_master(self):
+    def __config_uidgid_gen(self):
         if not has_managed_entries(self.fqdn, self.dm_password):
             raise errors.NotFound(reason='Missing Managed Entries Plugin')
         self._ldap_mod("dna.ldif", self.sub_dict)
 
-    def __add_master_entry_first_master(self):
+    def __add_master_entry(self):
         self._ldap_mod("master-entry.ldif", self.sub_dict)
 
     def __add_winsync_module(self):
