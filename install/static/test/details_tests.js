@@ -35,9 +35,9 @@ test("Testing ipa_details_section.create().", function() {
     );
 
     var section = ipa_details_list_section({name:'IDIDID', label:'NAMENAMENAME'}).
-        input({name:'cn', label:'Entity Name'}).
-        input({name:'description', label:'Description'}).
-        input({name:'number', label:'Entity ID'});
+        input({name:'cn'}).
+        input({name:'description'}).
+        input({name:'number'});
 
 
     var fields = section.fields;
@@ -147,32 +147,32 @@ test("Testing details lifecycle: create, setup, load.", function(){
     var obj_name = 'user';
     ipa_entity_set_details_definition(obj_name, [
         ipa_stanza({name:'identity', label:'Identity Details'}).
-            input({name:'title', label: 'Title'}).
-            input({name:'givenname', label:'First Name'}).
-            input({name:'sn', label:'Last Name'}).
-            input({name:'cn', label:'Full Name'}).
-            input({name:'displayname', label:'Dispaly Name'}).
-            input({name:'initials', label:'Initials'}),
+            input({name:'title'}).
+            input({name:'givenname'}).
+            input({name:'sn'}).
+            input({name:'cn'}).
+            input({name:'displayname'}).
+            input({name:'initials'}),
         ipa_stanza({name:'account', label:'Account Details'}).
-            input({name:'status', label:'Account Status', setup: setup_status}).
-            input({name:'uid', label:'Login'}).
-            input({name:'userpassword', label:'Password', save: save_password}).
-            input({name:'uidnumber', label:'UID'}).
-            input({name:'gidnumber', label:'GID'}).
-            input({name:'homedirectory', label:'homedirectory'}),
+            input({name:'status', setup: setup_status}).
+            input({name:'uid'}).
+            input({name:'userpassword', save: save_password}).
+            input({name:'uidnumber'}).
+            input({name:'gidnumber'}).
+            input({name:'homedirectory'}),
         ipa_stanza({name:'contact', label:'Contact Details'}).
-            input({name:'mail', label:'E-mail Address'}).
-            input({name:'telephonenumber', label:'Numbers'}),
-        ipa_stanza({name:'address', label:'Mailing Address'}).
-            input({name:'street', label:'Address'}).
-            input({name:'location', label:'City'}).
-            input({name:'state', label:'State', setup: setup_st}).
-            input({name:'postalcode', label:'ZIP'}),
+            input({name:'mail'}).
+            input({name:'telephonenumber'}),
+        ipa_stanza({name:'address'}).
+            input({name:'street'}).
+            input({name:'location'}).
+            input({name:'state', setup: setup_st}).
+            input({name:'postalcode'}),
         ipa_stanza({name:'employee', label:'Employee Information'}).
-            input({name:'ou', label:'Org. Unit'}).
-            input({name:'manager', label:'Manager', load: load_manager}),
+            input({name:'ou'}).
+            input({name:'manager', load: load_manager}),
         ipa_stanza({name:'misc', label:'Misc. Information'}).
-            input({name:'carlicense', label:'Car License'})
+            input({name:'carlicense'})
     ]);
 
     var entity = ipa_get_entity(obj_name);

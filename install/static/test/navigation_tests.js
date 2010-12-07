@@ -26,20 +26,26 @@ test("Testing nav_create().", function() {
     var mock_tabs_lists =
         [
             { name:'identity', label:'IDENTITY', children: [
-                {name:'user', label:'Users', setup:mock_setup_user},
-                {name:'group', label:'Users', setup:mock_setup_group}
+                {name:'user', entity:'user'},
+                {name:'group', entity:'group'}
             ]}];
-    function  mock_setup_user (jobj){
-        user_mock_called = true;
-        same(jobj[0].id,'user','user id');
-        same(jobj[0].nodeName,'DIV','user div');
-    }
-    function  mock_setup_group (jobj){
-        group_mock_called = true;
-        same(jobj[0].id,'group','group id');
-        same(jobj[0].nodeName,'DIV','group Div');
 
-    }
+    var entity = ipa_entity({name: 'user'});
+    entity.setup = function(container){
+        user_mock_called = true;
+        same(container[0].id,'user','user id');
+        same(container[0].nodeName,'DIV','user div');
+    };
+    IPA.add_entity(entity);
+
+    entity = ipa_entity({name: 'group'});
+    entity.setup = function(container){
+        group_mock_called = true;
+        same(container[0].id,'group','group id');
+        same(container[0].nodeName,'DIV','group Div');
+    };
+    IPA.add_entity(entity);
+
     IPA.metadata = {};
     var navigation = $('<div id="navigation"/>').appendTo(document.body);
     var user_mock_called = false;

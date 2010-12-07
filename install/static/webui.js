@@ -25,36 +25,36 @@
 
 var admin_tab_set = [
     {name:'identity', children:[
-        {name:'user', label:'Users', setup: ipa_entity_setup},
-        {name:'group', label:'Groups', setup: ipa_entity_setup},
-        {name:'host', label:'Hosts', setup: ipa_entity_setup},
-        {name:'hostgroup', label:'Hostgroups', setup: ipa_entity_setup},
-        {name:'netgroup', label:'Netgroups', setup: ipa_entity_setup},
-        {name:'service', label:'Services', setup: ipa_entity_setup}
+        {name:'user', entity:'user'},
+        {name:'group', entity:'group'},
+        {name:'host', entity:'host'},
+        {name:'hostgroup', entity:'hostgroup'},
+        {name:'netgroup', entity:'netgroup'},
+        {name:'service', entity:'service'}
     ]},
     {name:'policy', children:[
-        {name:'dnszone', setup: ipa_entity_setup},
-        {name:'hbac', setup: ipa_entity_setup, children:[
-            {name:'hbacsvc', setup: ipa_entity_setup},
-            {name:'hbacsvcgroup', setup: ipa_entity_setup}
+        {name:'dnszone', entity:'dnszone'},
+        {name:'hbac', entity:'hbac', children:[
+            {name:'hbacsvc', entity:'hbacsvc'},
+            {name:'hbacsvcgroup', entity:'hbacsvcgroup'}
         ]},
-        {name:'sudorule', label:'SUDO', setup: ipa_entity_setup,children:[
-            {name:'sudocmd', setup: ipa_entity_setup},
-            {name:'sudocmdgroup', setup: ipa_entity_setup}
+        {name:'sudorule', entity:'sudorule',children:[
+            {name:'sudocmd', entity:'sudocmd'},
+            {name:'sudocmdgroup', entity:'sudocmdgroup'}
         ]},
-        {name:'automountlocation',  setup: ipa_entity_setup},
-        {name:'pwpolicy', setup: ipa_entity_setup},
-        {name:'krbtpolicy', setup:ipa_details_only_setup}
+        {name:'automountlocation', entity:'automountlocation'},
+        {name:'pwpolicy', entity:'pwpolicy'},
+        {name:'krbtpolicy', entity:'krbtpolicy'}
     ]},
     {name:'ipaserver', children: [
-        {name:'config', setup: ipa_details_only_setup}
+        {name:'config', entity:'config'}
     ]}
 ];
 
 var self_serv_tab_set =
     [
-        { name:'identity', label:'IDENTITY', children: [
-            {name:'user', label:'Users', setup:ipa_entity_setup}]}];
+        { name:'identity', children: [
+            {name:'user', entity:'user'}]}];
 
 
 IPA.tab_state = function(entity_name){

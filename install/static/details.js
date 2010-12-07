@@ -533,10 +533,8 @@ function ipa_details_setup(container) {
 function ipa_details_refresh() {
 
     var that = this;
-    var entity = IPA.get_entity(that.entity_name);
 
     that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-    if (!that.pkey && !entity.default_facet) return;
 
     function on_success(data, text_status, xhr) {
         that.load(data.result.result);

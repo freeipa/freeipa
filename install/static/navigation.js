@@ -76,8 +76,9 @@ function nav_generate_tabs(nls, container, tabclass, depth)
         var tab = nls[i];
 
         var label = tab.name;
-        if ((IPA.metadata[tab.name]) && (IPA.metadata[tab.name].label)){
-            label = IPA.metadata[tab.name].label;
+        if (tab.entity) {
+            var entity = IPA.get_entity(tab.entity);
+            label = entity.label;
         }
 
         var li = nav_create_tab_li(tab.name, label);
@@ -86,14 +87,12 @@ function nav_generate_tabs(nls, container, tabclass, depth)
         var div = nav_create_tab_div(tab.name);
         container.append(div);
 
+        if (tab.entity) {
+            div.addClass('entity-container');
+        }
+
         if (tab.children && depth === 1) {
             nav_generate_tabs(tab.children, div, tabclass, depth +1 );
-        } else {
-            div.addClass('entity-container');
-
-            var entity = ipa_get_entity(tab.name);
-            entity.label = tab.label;
-            entity.setup = tab.setup;
         }
     }
 }
@@ -133,8 +132,8 @@ function _nav_update_tabs(nls, container,depth)
     if (tab.children   && depth === 1 ) {
         _nav_update_tabs(tab.children, container2,depth+1);
 
-    } else if (tab.setup) {
-        var entity_name = tab.name;
+    } else if (tab.entity) {
+        var entity_name = tab.entity;
 
         var nested_entity = nav_get_state(entity_name+'-entity');
 

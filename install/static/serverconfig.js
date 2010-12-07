@@ -50,19 +50,17 @@ ipa_entity_set_details_definition('aci', [
 /* Configuration */
 ipa_entity_set_details_definition('config',[
 
-    ipa_stanza({name:'ipaserver', lable:'Configuration'}).
+    ipa_stanza({name:'ipaserver', label:'Configuration'}).
         input({name:'cn', label:'Name'}).
         input({name:'description', label:'Description'}).
-        input({name:'ipacertificatesubjectbase', label:'Certificat Subject Base'}).
-        input({name: 'ipadefaultloginshell', label:'Default Login Shell'}).
-        input({name:'ipadefaultprimarygroup', label:'Default Primary Group'}).
-        input({name:'ipagroupsearchfields', label:'Group Search Fields'}).
-        input({name:'ipahomesrootdir', label:'Home Root Dir'}).
-        input({name:'ipamaxusernamelength', label:'Max Username Length'}).
-        input({name:'ipamigrationenabled', label:'Migration enabled?'}).
-        input({name:'ipasearchrecordslimit', label:'Search Record Limit'}).
-        input({name:'ipasearchtimelimit', label:'Search Time Limit'}).
-        input({name:'ipausersearchfields', label:'User Search Fields'})
+        input({name:'ipacertificatesubjectbase'}).
+        input({name:'ipadefaultloginshell'}).
+        input({name:'ipadefaultprimarygroup'}).
+        input({name:'ipagroupsearchfields'}).
+        input({name:'ipahomesrootdir'}).
+        input({name:'ipamaxusernamelength'}).
+        input({name:'ipamigrationenabled'}).
+        input({name:'ipasearchrecordslimit'}).
+        input({name:'ipasearchtimelimit'}).
+        input({name:'ipausersearchfields'})
 ]);
-
-IPA.get_entity('config').default_facet = 'details';

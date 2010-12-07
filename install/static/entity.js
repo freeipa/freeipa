@@ -189,6 +189,10 @@ function ipa_entity(spec) {
 
     that.init = function() {
 
+        if (!that.label) {
+            that.label = IPA.metadata[that.name].label;
+        }
+
         if (that.autogenerate_associations) {
             that.create_association_facets();
         }
@@ -332,12 +336,12 @@ function ipa_entity_set_facet_definition(entity_name, list) {
     }
 }
 
-function ipa_details_only_setup(container){
-    ipa_entity_setup.call(this, container, 'details');
-}
-
 function ipa_current_facet(entity){
-    return $.bbq.getState(entity.name + '-facet', true) || entity.default_facet || 'search';
+    var facet_name = $.bbq.getState(entity.name + '-facet', true);
+    if (!facet_name && entity.facets.length) {
+        facet_name = entity.facets[0].name;
+    }
+    return facet_name;
 }
 
 function ipa_entity_setup(container) {

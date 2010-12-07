@@ -594,7 +594,5 @@ ipa_entity_set_details_definition('krbtpolicy', [
         input({name:'krbmaxticketlife'})
 ]);
 
-IPA.get_entity('krbtpolicy').default_facet = 'details';
-
 ipa_entity_set_association_definition('krbtpolicy', {
 });
