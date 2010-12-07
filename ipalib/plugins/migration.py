@@ -19,9 +19,41 @@
 """
 Migration to IPA
 
-Example: Migrate users and groups from DS to IPA
+Migrate users and groups from an LDAP server to IPA.
 
-  ipa migrate-ds ldap://example.com:389
+This performs an LDAP query against the remote server searching for
+users and groups in a container. In order to migrate passwords you need
+to bind as a user that can read the userPassword attribute on the remote
+server. This is generally restricted to high-level admins such as
+cn=Directory Manager in 389-ds (this is the default bind user).
+
+The default user container is ou=People.
+
+The default group container is ou=Groups.
+
+Users and groups that already exist on the IPA server are skipped.
+
+Two LDAP schemas define how group members are stored: RFC2307 and
+RFC2307bis. RFC2307bis uses member and uniquemember to specify group
+members, RFC2307 uses memberUid. The default schema is RFC2307bis.
+
+Migrated users do not have Kerberos credentials, they have only their
+LDAP password. To complete the migration process users need to go
+to http://ipa.example.com/ipa/migration and authenticate using their
+LDAP password in order to generate their Kerberos credentials.
+
+Migration is disabled by default. To configure it use config-mod:
+
+ ipa config-mod --enable-migration=TRUE
+
+EXAMPLES:
+
+ The simplest migration, acceptinging all defaults:
+   ipa migrate-ds ldap://ds.example.com:389
+
+ Specify the user and group container. This can be used to migrate user and
+ group data from an IPA v1 server:
+   ipa migrate-ds --user-container='cn=users,cn=accounts' --group-container='cn=groups,cn=accounts' ldap://ds.example.com:389
 """
 
 import logging
