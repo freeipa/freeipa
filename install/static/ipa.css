@@ -1,6 +1,7 @@
 /* Authors:
  *   Pavel Zuna <pzuna@redhat.com>
  *   Adam Young <ayoung@redhat.com>
+ *   Endi Sukma Dewata <edewata@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
 */
@@ -478,4 +479,71 @@ dl.modal dd {
 
 .ui-widget-content {
 border:0;
+}
+
+table.scrollable thead {
+    display: block;
+}
+
+table.scrollable tbody {
+    display: block;
+    overflow: auto;
+}
+
+.adder-dialog-filter {
+    height: 25px;
+}
+
+.adder-dialog-filter {
+    height: 25px;
+}
+
+.adder-dialog-results {
+    position: relative;
+    height: 200px;
+}
+
+.adder-dialog-available {
+    border: 1px solid black;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    bottom: 0px;
+    width: 250px;
+}
+
+.adder-dialog-buttons {
+    position: absolute;
+    top: 15px;
+    left: 250px;
+    right: 250px;
+    bottom: 0px;
+    text-align: center;
+}
+
+.adder-dialog-selected {
+    border: 1px solid black;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    width: 250px;
+}
+
+.adder-dialog-internal {
+    border: 1px solid black;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    bottom: 45px;
+    width: 250px;
+}
+
+.adder-dialog-external {
+    border: 1px solid black;
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    width: 250px;
+    height: 40px;
 }

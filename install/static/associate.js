@@ -169,6 +169,9 @@ function ipa_association_adder_dialog(spec) {
         ipa_cmd('find', [that.get_filter()], {'all': true}, on_success, null, that.other_entity);
     };
 
+    that.association_adder_dialog_init = that.init;
+    that.association_adder_dialog_setup = that.setup;
+
     return that;
 }
 
@@ -386,24 +389,28 @@ function ipa_association_table_widget(spec) {
         }
     };
 
-    that.show_add_dialog = function() {
-
+    that.create_add_dialog = function() {
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         var label = IPA.metadata[that.other_entity].label;
         var title = 'Add '+label+' to '+that.entity_name+' '+pkey;
 
-        var dialog = ipa_association_adder_dialog({
+        return ipa_association_adder_dialog({
             'title': title,
             'entity_name': that.entity_name,
             'pkey': pkey,
             'other_entity': that.other_entity
         });
+    };
+
+    that.show_add_dialog = function() {
+
+        var dialog = that.create_add_dialog();
 
         if (that.adder_columns.length) {
             dialog.set_columns(that.adder_columns);
         }
 
-        dialog.add = function() {
+        dialog.execute = function() {
             that.add(
                 dialog.get_selected_values(),
                 function() {
@@ -491,10 +498,6 @@ function ipa_association_table_widget(spec) {
         command.set_option(that.other_entity, values.join(','));
 
         command.execute();
-    };
-
-    that.save = function() {
-        return null;
     };
 
     // methods that should be invoked by subclasses
@@ -707,7 +710,7 @@ function ipa_association_facet(spec) {
             dialog.set_columns(that.adder_columns);
         }
 
-        dialog.add = function() {
+        dialog.execute = function() {
 
             var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 

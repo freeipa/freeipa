@@ -229,7 +229,7 @@ function ipa_details_section(spec){
         }
     };
 
-    that.load = function(result) {
+    that.load = function(record) {
 
         var fields = that.fields;
 
@@ -242,7 +242,7 @@ function ipa_details_section(spec){
                         var field = fields[i];
                         var span = $('span[name='+field.name+']', this.container).first();
                         field.setup(span);
-                        field.load(result);
+                        field.load(record);
                     }
                 }
             );
@@ -252,7 +252,7 @@ function ipa_details_section(spec){
         for (var j=0; j<fields.length; j++) {
             var field = fields[j];
             var span = $('span[name='+field.name+']', this.container).first();
-            field.load(result);
+            field.load(record);
         }
     };
 
@@ -354,12 +354,12 @@ function ipa_details_facet(spec) {
 
     var that = ipa_facet(spec);
 
-    that.is_dirty = spec.is_dirty || ipa_details_is_dirty;
+    that.is_dirty = spec.is_dirty || is_dirty;
     that.create = spec.create || ipa_details_create;
     that.setup = spec.setup || ipa_details_setup;
-    that.load = spec.load || ipa_details_load;
+    that.load = spec.load || load;
     that.update = spec.update || ipa_details_update;
-    that.reset = spec.reset || ipa_details_reset;
+    that.reset = spec.reset || reset;
     that.refresh = spec.refresh || ipa_details_refresh;
 
     that.sections = [];
@@ -405,8 +405,30 @@ function ipa_details_facet(spec) {
         return that.record[pkey_name][0];
     };
 
+    function is_dirty() {
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        return pkey != that.pkey;
+    }
+
+    function load(record) {
+        that.record = record;
+
+        for (var i=0; i<that.sections.length; i++) {
+            var section = that.sections[i];
+            section.load(record);
+        }
+    }
+
+    function reset() {
+        for (var i=0; i<that.sections.length; i++) {
+            var section = that.sections[i];
+            section.reset();
+        }
+    }
+
     that.details_facet_init = that.init;
     that.details_facet_create = that.create;
+    that.details_facet_load = that.load;
 
     return that;
 }
@@ -426,11 +448,6 @@ function ipa_button(spec) {
     if (spec.icon) button.append('<span class="ui-icon '+spec.icon+'" ></span> ');
 
     return button;
-}
-
-function ipa_details_is_dirty() {
-    var pkey = $.bbq.getState(this.entity_name + '-pkey', true) || '';
-    return pkey != this.pkey;
 }
 
 function ipa_details_create(container)
@@ -629,19 +646,6 @@ var _ipa_span_hint_template = '<span class="attrhint">Hint: D</span>';
 
 
 
-function ipa_details_load(record)
-{
-    var that = this;
-    that.record = record;
-
-    for (var i=0; i<that.sections.length; i++) {
-        var section = that.sections[i];
-        section.load(record);
-    }
-}
-
-
-
 function ipa_create_first_dd(field_name, content){
     var dd = $('<dd/>', {
         'class': 'first',
@@ -806,16 +810,6 @@ function _ipa_create_text_input(value, param_info, rights, index)
         style:"display:none"
     }));
     return span;
-}
-
-function ipa_details_reset()
-{
-    var that = this;
-
-    for (var i=0; i<that.sections.length; i++) {
-        var section = that.sections[i];
-        section.reset();
-    }
 }
 
 function ipa_details_field_create_add_link(title, rights, index) {

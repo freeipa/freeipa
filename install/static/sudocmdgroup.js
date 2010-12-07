@@ -155,7 +155,8 @@ function ipa_sudocmdgroup_details_facet(spec) {
         var field = ipa_sudocmdgroup_member_sudocmd_table_widget({
             'name': 'member_sudocmd',
             'label': 'Commands',
-            'other_entity': 'sudocmd'
+            'other_entity': 'sudocmd',
+            'save_values': false
         });
         section.add_field(field);
 

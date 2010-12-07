@@ -77,3 +77,50 @@ function ipa_rule_details_section(spec){
 
     return that;
 }
+
+function ipa_rule_association_table_widget(spec) {
+
+    spec = spec || {};
+
+    var that = ipa_association_table_widget(spec);
+
+    that.category = spec.category;
+
+    that.add = function(values, on_success, on_error) {
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+
+        var batch = ipa_batch_command({
+            'on_success': on_success,
+            'on_error': on_error
+        });
+
+        var command;
+
+        if (that.category.save() != '') {
+            command = ipa_command({
+                'method': that.entity_name+'_mod',
+                'args': [pkey],
+                'options': {'all': true, 'rights': true},
+                'on_success': function() {
+                    var record = {};
+                    record[that.category.name] = [''];
+                    that.category.load(['']);
+                }
+            });
+            command.set_option(that.category.name, '');
+            batch.add_command(command);
+        }
+
+        command = ipa_command({
+            'method': that.entity_name+'_'+that.add_method,
+            'args': [pkey]
+        });
+        command.set_option(that.other_entity, values.join(','));
+        batch.add_command(command);
+
+        batch.execute();
+    };
+
+    return that;
+}

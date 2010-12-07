@@ -1,0 +1,110 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Adder Dialog</title>
+
+    <link rel="stylesheet" type="text/css" href="../../jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" href="../../ipa.css" />
+</head>
+<body>
+<div id="contents">
+
+    <div class="adder-dialog-filter">
+        <input type="text" name="filter" style="width: 244px">
+        <input type="button" name="find" value="Find">
+    </div>
+
+    <div class="adder-dialog-results">
+
+        <div name="available" class="adder-dialog-internal">
+
+            <div class="ui-widget-header">
+                Available
+            </div>
+
+            <table class="search-table scrollable">
+                <thead>
+                    <tr>
+                        <th style="width: 22px;">
+                            <input type="checkbox" name="select">
+                        </th>
+                        <th style="width: 216px;">
+                            Host Groups
+                        </th>
+                    </tr>
+                </thead>
+                <tbody style="height: 106px;">
+                    <tr>
+                        <td style="width: 22px;">
+                            <input type="checkbox" name="select">
+                        </td>
+                        <td style="width: 200px;">
+                            <span name="cn"></span>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2">
+                            <span name="summary"></span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div name="buttons" class="adder-dialog-buttons">
+            <p><input type="button" name="remove" value="<<"></p>
+            <p><input type="button" name="add" value=">>"></p>
+        </div>
+
+        <div name="selected" class="adder-dialog-selected">
+
+            <div class="ui-widget-header">
+                Prospective
+            </div>
+
+            <table class="search-table scrollable">
+                <thead>
+                    <tr>
+                        <th style="width: 22px;">
+                            <input type="checkbox" name="select">
+                        </th>
+                        <th style="width: 216px;">
+                            Host Groups
+                        </th>
+                    </tr>
+                </thead>
+                <tbody style="height: 151px;">
+                    <tr>
+                        <td style="width: 22px;">
+                            <input type="checkbox" name="select">
+                        </td>
+                        <td style="width: 200px;">
+                            <span name="cn"></span>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2">
+                            <span name="summary"></span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div name="external" class="adder-dialog-external">
+
+            <div class="ui-widget-header">
+                External
+            </div>
+
+            <input type="text" name="external" style="width: 244px">
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

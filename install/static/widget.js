@@ -66,7 +66,7 @@ function ipa_widget(spec) {
         that.container = container;
     }
 
-    function load(result) {
+    function load(record) {
     }
 
     function save() {
@@ -77,12 +77,16 @@ function ipa_widget(spec) {
     }
 
     that.is_dirty = function() {
-        if (!that.values) return true;
+
         var values = that.save();
+        if (!values && !that.values) return false;
+        if (!values || !that.values) return true;
+
         if (values.length != that.values.length) return true;
         for (var i=0; i<values.length; i++) {
             if (values[i] != that.values[i]) return true;
         }
+
         return false;
     };
 
@@ -159,9 +163,9 @@ function ipa_text_widget(spec) {
         });
     };
 
-    that.load = function(result) {
+    that.load = function(record) {
 
-        that.values = result[that.name] || [''];
+        that.values = record[that.name] || [''];
 
         if (that.read_only) {
             var input = $('input[name="'+that.name+'"]', that.container);
@@ -237,8 +241,8 @@ function ipa_checkbox_widget(spec) {
         });
     };
 
-    that.load = function(result) {
-        that.values = result[that.name] || [false];
+    that.load = function(record) {
+        that.values = record[that.name] || [false];
         that.reset();
     };
 
@@ -305,20 +309,28 @@ function ipa_radio_widget(spec) {
         });
     };
 
-    that.load = function(result) {
-        that.values = result[that.name] || [''];
+    that.load = function(record) {
+        that.values = record[that.name] || [''];
         that.reset();
     };
 
     that.save = function() {
-        var value = $('input[name="'+that.name+'"]:checked', that.container).val();
-        return [value];
+        var input = $('input[name="'+that.name+'"]:checked', that.container);
+        if (!input.length) return [];
+        return [input.val()];
     };
 
     that.set_values = function(values) {
-        var input = $('input[name="'+that.name+'"][value="'+values[0]+'"]', that.container);
-        if (!input.length) return;
-        input.get(0).checked = true;
+        if (values.length) {
+            var input = $('input[name="'+that.name+'"][value="'+values[0]+'"]', that.container);
+            if (input.length) {
+                input.get(0).checked = true;
+            } else {
+                that.clear();
+            }
+        } else {
+            that.clear();
+        }
     };
 
     that.clear = function() {
@@ -327,6 +339,9 @@ function ipa_radio_widget(spec) {
             input.checked = false;
         });
     };
+
+    // methods that should be invoked by subclasses
+    that.radio_save = that.save;
 
     return that;
 }
@@ -372,8 +387,8 @@ function ipa_textarea_widget(spec) {
         });
     };
 
-    that.load = function(result) {
-        that.values = result[that.name] || [''];
+    that.load = function(record) {
+        that.values = record[that.name] || [''];
         that.reset();
     };
 
@@ -413,7 +428,7 @@ function ipa_button_widget(spec) {
         input.replaceWith(ipa_button({ 'label': that.label, 'click': that.click }));
     }
 
-    function load(result) {
+    function load(record) {
     }
 
     function save() {
@@ -465,6 +480,7 @@ function ipa_table_widget(spec) {
     var that = ipa_widget(spec);
 
     that.scrollable = spec.scrollable;
+    that.save_values = typeof spec.save_values == 'undefined' ? true : spec.save_values;
 
     that.columns = [];
     that.columns_by_name = {};
@@ -515,11 +531,11 @@ function ipa_table_widget(spec) {
             'class': 'search-table'
         }).appendTo(container);
 
-        var thead = $('<thead/>').appendTo(table);
-
         if (that.scrollable) {
-            thead.css('display', 'block');
+            table.addClass('scrollable');
         }
+
+        var thead = $('<thead/>').appendTo(table);
 
         var tr = $('<tr/>').appendTo(thead);
 
@@ -565,11 +581,6 @@ function ipa_table_widget(spec) {
         }
 
         var tbody = $('<tbody/>').appendTo(table);
-
-        if (that.scrollable) {
-            tbody.css('display', 'block');
-            tbody.css('overflow', 'auto');
-        }
 
         if (that.height) {
             tbody.css('height', that.height);
@@ -651,23 +662,28 @@ function ipa_table_widget(spec) {
 
         that.empty();
 
-        var values = result[that.name];
-        if (!values) return;
+        that.values = result[that.name];
+        if (!that.values) return;
 
-        for (var i=0; i<values.length; i++) {
+        for (var i=0; i<that.values.length; i++) {
             var record = that.get_record(result, i);
             that.add_record(record);
         }
     };
 
     that.save = function() {
-        var values = [];
+        if (that.save_values) {
+            var values = [];
 
-        $('input[name="select"]', that.tbody).each(function() {
-            values.push($(this).val());
-        });
+            $('input[name="select"]', that.tbody).each(function() {
+                values.push($(this).val());
+            });
 
-        return values;
+            return values;
+
+        } else {
+            return null;
+        }
     };
 
     that.get_selected_values = function() {
@@ -777,6 +793,7 @@ function ipa_dialog(spec) {
 
     that.name = spec.name;
     that.title = spec.title;
+    that.template = spec.template;
     that._entity_name = spec.entity_name;
 
     that.width = spec.width || 400;
@@ -864,15 +881,34 @@ function ipa_dialog(spec) {
 
         that.container = $('<div/>').appendTo(container);
 
-        that.create();
-        that.setup();
+        if (that.template) {
+            var template = IPA.get_template(that.template);
+            that.container.load(
+                template,
+                function(data, text_status, xhr) {
+                    that.setup();
+                    that.container.dialog({
+                        'title': that.title,
+                        'modal': true,
+                        'width': that.width,
+                        'height': that.height,
+                        'buttons': that.buttons
+                    });
+                }
+            );
 
-        that.container.dialog({
-            'title': that.title,
-            'modal': true,
-            'width': that.width,
-            'buttons': that.buttons
-        });
+        } else {
+            that.create();
+            that.setup();
+
+            that.container.dialog({
+                'title': that.title,
+                'modal': true,
+                'width': that.width,
+                'height': that.height,
+                'buttons': that.buttons
+            });
+        }
     };
 
     that.option = function(name, value) {
@@ -955,7 +991,7 @@ function ipa_adder_dialog(spec) {
         that.available_table = ipa_table_widget({
             name: 'available',
             scrollable: true,
-            height: 150
+            height: '151px'
         });
 
         that.available_table.set_columns(that.columns);
@@ -965,24 +1001,31 @@ function ipa_adder_dialog(spec) {
         that.selected_table = ipa_table_widget({
             name: 'selected',
             scrollable: true,
-            height: 150
+            height: '151px'
         });
 
         that.selected_table.set_columns(that.columns);
 
         that.selected_table.init();
+
+        that.dialog_init();
     };
 
     that.create = function() {
 
         // do not call that.dialog_create();
 
-        var search_panel = $('<div/>').appendTo(that.container);
+        var search_panel = $('<div/>', {
+            'class': 'adder-dialog-filter'
+        }).appendTo(that.container);
 
         $('<input/>', {
             type: 'text',
-            name: 'filter'
+            name: 'filter',
+            style: 'width: 244px'
         }).appendTo(search_panel);
+
+        search_panel.append(' ');
 
         $('<input/>', {
             type: 'button',
@@ -990,37 +1033,25 @@ function ipa_adder_dialog(spec) {
             value: 'Find'
         }).appendTo(search_panel);
 
-        var results_panel = $('<div/>').appendTo(that.container);
-        results_panel.css('border', '2px solid rgb(0, 0, 0)');
-        results_panel.css('position', 'relative');
-        results_panel.css('width', '100%');
-        results_panel.css('height', '200px');
-
-        var available_title = $('<div/>', {
-            html: 'Available',
-            style: 'float: left; width: 250px;'
-        }).appendTo(results_panel);
-
-        var buttons_title = $('<div/>', {
-            html: '&nbsp;',
-            style: 'float: left; width: 50px;'
-        }).appendTo(results_panel);
-
-        var selected_title = $('<div/>', {
-            html: 'Prospective',
-            style: 'float: left; width: 250px;'
-        }).appendTo(results_panel);
+        var results_panel = $('<div/>', {
+            'class': 'adder-dialog-results'
+        }).appendTo(that.container);
 
         var available_panel = $('<div/>', {
             name: 'available',
-            style: 'clear:both; float: left; width: 250px; height: 150px;'
+            'class': 'adder-dialog-available'
         }).appendTo(results_panel);
+
+        $('<div/>', {
+            html: 'Available',
+            'class': 'ui-widget-header'
+        }).appendTo(available_panel);
 
         that.available_table.create(available_panel);
 
         var buttons_panel = $('<div/>', {
             name: 'buttons',
-            style: 'float: left; width: 50px; height: 150px; text-align: center;'
+            'class': 'adder-dialog-buttons'
         }).appendTo(results_panel);
 
         var p = $('<p/>').appendTo(buttons_panel);
@@ -1039,8 +1070,13 @@ function ipa_adder_dialog(spec) {
 
         var selected_panel = $('<div/>', {
             name: 'selected',
-            style: 'float: left; width: 250px; height: 150px;'
+            'class': 'adder-dialog-selected'
         }).appendTo(results_panel);
+
+        $('<div/>', {
+            html: 'Prospective',
+            'class': 'ui-widget-header'
+        }).appendTo(selected_panel);
 
         that.selected_table.create(selected_panel);
     };
@@ -1070,8 +1106,7 @@ function ipa_adder_dialog(spec) {
             'label': button.val(),
             'icon': 'ui-icon-trash',
             'click': function() {
-                var rows = that.selected_table.remove_selected_rows();
-                that.available_table.add_rows(rows);
+                that.remove();
             }
         });
         button.replaceWith(that.remove_button);
@@ -1081,8 +1116,7 @@ function ipa_adder_dialog(spec) {
             'label': button.val(),
             'icon': 'ui-icon-plus',
             'click': function() {
-                var rows = that.available_table.remove_selected_rows();
-                that.selected_table.add_rows(rows);
+                that.add();
             }
         });
         button.replaceWith(that.add_button);
@@ -1092,11 +1126,25 @@ function ipa_adder_dialog(spec) {
 
     that.open = function(container) {
         that.buttons = {
-            'Enroll': that.add,
-            'Cancel': that.close
+            'Enroll': function() {
+                that.execute();
+            },
+            'Cancel': function() {
+                that.close();
+            }
         };
 
         that.dialog_open(container);
+    };
+
+    that.add = function() {
+        var rows = that.available_table.remove_selected_rows();
+        that.selected_table.add_rows(rows);
+    };
+
+    that.remove = function() {
+        var rows = that.selected_table.remove_selected_rows();
+        that.available_table.add_rows(rows);
     };
 
     that.get_filter = function() {

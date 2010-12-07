@@ -191,12 +191,12 @@ function ipa_hbac_details_facet(spec) {
         }
 
         var category = section.create_radio({ name: 'usercategory', label: 'User category' });
-        section.add_field(ipa_hbac_association_widget({
+        section.add_field(ipa_rule_association_table_widget({
             'id': that.entity_name+'-memberuser_user',
             'name': 'memberuser_user', 'label': 'Users', 'category': category,
             'other_entity': 'user', 'add_method': 'add_user', 'remove_method': 'remove_user'
         }));
-        section.add_field(ipa_hbac_association_widget({
+        section.add_field(ipa_rule_association_table_widget({
             'id': that.entity_name+'-memberuser_group',
             'name': 'memberuser_group', 'label': 'Groups', 'category': category,
             'other_entity': 'group', 'add_method': 'add_user', 'remove_method': 'remove_user'
@@ -228,12 +228,12 @@ function ipa_hbac_details_facet(spec) {
         }
 
         category = section.create_radio({ 'name': 'hostcategory', 'label': 'Host category' });
-        section.add_field(ipa_hbac_association_widget({
+        section.add_field(ipa_rule_association_table_widget({
             'id': that.entity_name+'-memberhost_host',
             'name': 'memberhost_host', 'label': 'Hosts', 'category': category,
             'other_entity': 'host', 'add_method': 'add_host', 'remove_method': 'remove_host'
         }));
-        section.add_field(ipa_hbac_association_widget({
+        section.add_field(ipa_rule_association_table_widget({
             'id': that.entity_name+'-memberhost_hostgroup',
             'name': 'memberhost_hostgroup', 'label': 'Host Groups', 'category': category,
             'other_entity': 'hostgroup', 'add_method': 'add_host', 'remove_method': 'remove_host'
@@ -265,12 +265,12 @@ function ipa_hbac_details_facet(spec) {
         }
 
         category = section.create_radio({ 'name': 'servicecategory', 'label': 'Service category' });
-        section.add_field(ipa_hbac_association_widget({
+        section.add_field(ipa_rule_association_table_widget({
             'id': that.entity_name+'-memberservice_hbacsvc',
             'name': 'memberservice_hbacsvc', 'label': 'Services', 'category': category,
             'other_entity': 'hbacsvc', 'add_method': 'add_service', 'remove_method': 'remove_service'
         }));
-        section.add_field(ipa_hbac_association_widget({
+        section.add_field(ipa_rule_association_table_widget({
             'id': that.entity_name+'-memberservice_hbacsvcgroup',
             'name': 'memberservice_hbacsvcgroup', 'label': 'Service Groups', 'category': category,
             'other_entity': 'hbacsvcgroup', 'add_method': 'add_service', 'remove_method': 'remove_service'
@@ -302,12 +302,12 @@ function ipa_hbac_details_facet(spec) {
         }
 
         category = section.create_radio({ 'name': 'sourcehostcategory', 'label': 'Source host category' });
-        section.add_field(ipa_hbac_association_widget({
+        section.add_field(ipa_rule_association_table_widget({
             'id': that.entity_name+'-sourcehost_host',
             'name': 'sourcehost_host', 'label': 'Host', 'category': category,
             'other_entity': 'host', 'add_method': 'add_sourcehost', 'remove_method': 'remove_sourcehost'
         }));
-        section.add_field(ipa_hbac_association_widget({
+        section.add_field(ipa_rule_association_table_widget({
             'id': that.entity_name+'-sourcehost_hostgroup',
             'name': 'sourcehost_hostgroup', 'label': 'Host Groups', 'category': category,
             'other_entity': 'hostgroup', 'add_method': 'add_sourcehost', 'remove_method': 'remove_sourcehost'
@@ -362,16 +362,24 @@ function ipa_hbac_details_facet(spec) {
             'commands': []
         };
 
-        var member_category = {
-            'usercategory': 'memberuser',
-            'hostcategory': 'memberhost',
-            'servicecategory': 'memberservice',
-            'sourcehostcategory': 'sourcehost'
+        var categories = {
+            'usercategory': {
+                'remove_values': false
+            },
+            'hostcategory': {
+                'remove_values': false
+            },
+            'servicecategory': {
+                'remove_values': false
+            },
+            'sourcehostcategory': {
+                'remove_values': false
+            }
         };
 
-        var remove_members = {
+        var member_operations = {
             'memberuser': {
-                'category_changed': false,
+                'category': 'usercategory',
                 'has_values': false,
                 'command': ipa_command({
                     'method': that.entity_name+'_remove_user',
@@ -380,7 +388,7 @@ function ipa_hbac_details_facet(spec) {
                 })
             },
             'memberhost': {
-                'category_changed': false,
+                'category': 'hostcategory',
                 'has_values': false,
                 'command': ipa_command({
                     'method': that.entity_name+'_remove_host',
@@ -389,7 +397,7 @@ function ipa_hbac_details_facet(spec) {
                 })
             },
             'memberservice': {
-                'category_changed': false,
+                'category': 'servicecategory',
                 'has_values': false,
                 'command': ipa_command({
                     'method': that.entity_name+'_remove_service',
@@ -398,7 +406,7 @@ function ipa_hbac_details_facet(spec) {
                 })
             },
             'sourcehost': {
-                'category_changed': false,
+                'category': 'sourcehostcategory',
                 'has_values': false,
                 'command': ipa_command({
                     'method': that.entity_name+'_remove_sourcehost',
@@ -427,6 +435,7 @@ function ipa_hbac_details_facet(spec) {
 
                 var span = $('span[name='+field.name+']', div).first();
                 var values = field.save();
+                if (!values) continue;
 
                 var param_info = ipa_get_param_info(that.entity_name, field.name);
 
@@ -440,8 +449,8 @@ function ipa_hbac_details_facet(spec) {
                     var other_entity = field.name.substring(p+1);
 
                     if (values.length) {
-                        remove_members[attribute].command.set_option(other_entity, values.join(','));
-                        remove_members[attribute].has_values = true;
+                        member_operations[attribute].command.set_option(other_entity, values.join(','));
+                        member_operations[attribute].has_values = true;
                     }
                     continue;
                 }
@@ -467,25 +476,22 @@ function ipa_hbac_details_facet(spec) {
                     continue;
                 }
 
+                if (categories[field.name]) {
+                    if (values[0] == 'all') {
+                        categories[field.name].remove_values = true;
+                    }
+                }
+
                 // use setattr/addattr if param_info not available
                 if (!param_info) {
                     for (var k=0; k<values.length; k++) {
-                        modify_operation.set_option(
+                        modify_operation.command.set_option(
                             k == 0 ? 'setattr' : 'addattr',
                             field.name+'='+values[k]
                         );
                         modify_operation.execute = true;
                     }
                     continue;
-                }
-
-                var attribute = member_category[field.name];
-                if (attribute) {
-                    // if category is dirty, it means 'Any *' is selected,
-                    // so existing values have to be removed
-                    remove_members[attribute].category_changed = true;
-
-                    // fall through to trigger modify operation
                 }
 
                 // set modify options
@@ -499,7 +505,8 @@ function ipa_hbac_details_facet(spec) {
         }
 
         var batch = ipa_batch_command({
-            'on_success': function success_handler(data, text_status, xhr) {
+            'name': 'hbac_details_update',
+            'on_success': function(data, text_status, xhr) {
                 that.refresh();
             },
             'on_error': function(xhr, text_status, error_thrown) {
@@ -507,10 +514,11 @@ function ipa_hbac_details_facet(spec) {
             }
         });
 
-        for (var attribute in remove_members) {
-            if (remove_members[attribute].has_values &&
-                remove_members[attribute].category_changed) {
-                batch.add_command(remove_members[attribute].command);
+        for (var member_attribute in member_operations) {
+            var member_operation = member_operations[member_attribute];
+            if (member_operation.has_values &&
+                categories[member_operation.category].remove_values) {
+                batch.add_command(member_operations[member_attribute].command);
             }
         }
 
@@ -519,7 +527,7 @@ function ipa_hbac_details_facet(spec) {
         if (modify_operation.execute) batch.add_command(modify_operation.command);
         if (enable_operation.execute) batch.add_command(enable_operation.command);
 
-        if (!batch.args.length) {
+        if (!batch.commands.length) {
             that.refresh();
             return;
         }
@@ -675,63 +683,6 @@ function ipa_hbac_details_general_section(spec){
             'style': 'display: none;',
             'html': 'undo'
         }).appendTo(span);
-    };
-
-    return that;
-}
-
-function ipa_hbac_association_widget(spec) {
-
-    spec = spec || {};
-
-    var that = ipa_association_table_widget(spec);
-
-    that.category = spec.category;
-
-    that.add = function(values, on_success, on_error) {
-
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-
-        var batch = ipa_batch_command({
-            'on_success': on_success,
-            'on_error': on_error
-        });
-
-        var command = ipa_command({
-            'method': that.entity_name+'_mod',
-            'args': [pkey],
-            'options': {'all': true, 'rights': true},
-            'on_success': function() {
-                that.category.load(['']);
-            }
-        });
-        command.set_option(that.category.name, '');
-        batch.add_command(command);
-
-        command = ipa_command({
-            'method': that.entity_name+'_'+that.add_method,
-            'args': [pkey]
-        });
-        command.set_option(that.other_entity, values.join(','));
-        batch.add_command(command);
-
-        batch.execute();
-    };
-
-    that.remove = function(values, on_success, on_error) {
-
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-
-        var command = ipa_command({
-            'method': that.entity_name+'_'+that.remove_method,
-            'args': [pkey],
-            'on_success': on_success,
-            'on_error': on_error
-        });
-
-        command.set_option(that.other_entity, values.join(','));
-
-        command.execute();
     };
 
     return that;

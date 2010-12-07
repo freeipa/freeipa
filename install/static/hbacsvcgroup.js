@@ -152,7 +152,8 @@ function ipa_hbacsvcgroup_details_facet(spec) {
         var field = ipa_hbacsvcgroup_member_hbacsvc_table_widget({
             'name': 'member_hbacsvc',
             'label': 'Services',
-            'other_entity': 'hbacsvc'
+            'other_entity': 'hbacsvc',
+            'save_values': false
         });
         section.add_field(field);
 
