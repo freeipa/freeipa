@@ -247,9 +247,7 @@ class automountlocation_tofiles(LDAPQuery):
         location = self.api.Command['automountlocation_show'](args[0])
 
         maps = []
-        result = self.api.Command['automountkey_find'](
-            cn=args[0], automountmapname=u'auto.master'
-        )
+        result = self.api.Command['automountkey_find'](args[0], u'auto.master')
         truncated = result['truncated']
         maps = result['result']
 
@@ -261,9 +259,7 @@ class automountlocation_tofiles(LDAPQuery):
         for m in maps:
             info = m['automountinformation'][0]
             key = info.split(None)
-            result = self.api.Command['automountkey_find'](
-                cn=args[0], automountmapname=key[0]
-            )
+            result = self.api.Command['automountkey_find'](args[0], key[0])
             truncated = result['truncated']
             keys[info] = result['result']
             # TODO: handle truncated results, same as above
@@ -363,7 +359,7 @@ class automountlocation_import(LDAPQuery):
 
             # Add a new key to the auto.master map for the new map file
             try:
-                api.Command['automountkey_add'](cn=args[0], automountmapname=u'auto.master', automountkey=unicode(am[0]), automountinformation=unicode(' '.join(am[1:])))
+                api.Command['automountkey_add'](args[0], u'auto.master', unicode(am[0]), automountinformation=unicode(' '.join(am[1:])))
                 result['keys'].append([am[0], u'auto.master'])
             except errors.DuplicateEntry, e:
                 if options.get('continue', False):
@@ -374,7 +370,7 @@ class automountlocation_import(LDAPQuery):
             # Add the new map
             if not am[1].startswith('-'):
                 try:
-                    api.Command['automountmap_add'](cn=args[0], automountmapname=unicode(am[1]))
+                    api.Command['automountmap_add'](args[0], unicode(am[1]))
                     result['maps'].append(am[1])
                 except errors.DuplicateEntry, e:
                     if options.get('continue', False):
@@ -411,7 +407,7 @@ class automountlocation_import(LDAPQuery):
                 am = x.split(None)
                 key = unicode(am[0].replace('"',''))
                 try:
-                    api.Command['automountkey_add'](cn=args[0], automountmapname=unicode(m), automountkey=key, automountinformation=unicode(' '.join(am[1:])))
+                    api.Command['automountkey_add'](args[0], unicode(m), key, automountinformation=unicode(' '.join(am[1:])))
                     result['keys'].append([key,m])
                 except errors.DuplicateEntry, e:
                     if options.get('continue', False):
@@ -445,13 +441,14 @@ class automountlocation_import(LDAPQuery):
             )
         textui.print_plain('')
 
-        textui.print_plain('Ignored keys:')
-        for k in keys:
-            textui.print_plain(
-                'Ignored %s to %s' % (
-                    k[0], k[1]
+        if len(skipped) > 0:
+            textui.print_plain('Ignored keys:')
+            for k in skipped:
+                textui.print_plain(
+                    'Ignored %s to %s' % (
+                        k[0], k[1]
+                    )
                 )
-            )
 
 
         if options.get('continue', False) and len(duplicatemaps) > 0:
