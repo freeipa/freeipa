@@ -37,10 +37,9 @@ class test_automount(XMLRPC_test):
     keyname2 = u'testkey2'
     description = u'description of map'
     info = u'ro'
-    loc_kw = {'cn': locname}
-    map_kw = {'cn': locname, 'automountmapname': mapname, 'description': description, 'raw': True}
-    key_kw = {'cn': locname, 'automountmapname': mapname, 'automountkey': keyname, 'automountinformation': info, 'raw': True}
-    key_kw2 = {'cn': locname, 'automountmapname': mapname, 'automountkey': keyname2, 'automountinformation': info, 'raw': True}
+    map_kw = {'automountmapname': mapname, 'description': description, 'raw': True}
+    key_kw = {'automountkey': keyname, 'automountinformation': info, 'raw': True}
+    key_kw2 = {'automountkey': keyname2, 'automountinformation': info, 'raw': True}
 
     def test_0_automountlocation_add(self):
         """
@@ -56,7 +55,7 @@ class test_automount(XMLRPC_test):
         """
         Test adding a map `xmlrpc.automountmap_add` method.
         """
-        res = api.Command['automountmap_add'](**self.map_kw)['result']
+        res = api.Command['automountmap_add'](self.locname, **self.map_kw)['result']
         assert res
         assert_attr_equal(res, 'automountmapname', self.mapname)
 
@@ -64,7 +63,7 @@ class test_automount(XMLRPC_test):
         """
         Test adding a key using `xmlrpc.automountkey_add` method.
         """
-        res = api.Command['automountkey_add'](**self.key_kw2)['result']
+        res = api.Command['automountkey_add'](self.locname, self.mapname, **self.key_kw2)['result']
         assert res
         assert_attr_equal(res, 'automountkey', self.keyname2)
 
@@ -72,7 +71,7 @@ class test_automount(XMLRPC_test):
         """
         Test adding a key using `xmlrpc.automountkey_add` method.
         """
-        res = api.Command['automountkey_add'](**self.key_kw)['result']
+        res = api.Command['automountkey_add'](self.locname, self.mapname, **self.key_kw)['result']
         assert res
         assert_attr_equal(res, 'automountkey', self.keyname)
 
@@ -81,7 +80,7 @@ class test_automount(XMLRPC_test):
         Test adding a duplicate key using `xmlrpc.automountkey_add` method.
         """
         try:
-            api.Command['automountkey_add'](**self.key_kw)
+            api.Command['automountkey_add'](self.locname, self.mapname, **self.key_kw)
         except errors.DuplicateEntry:
             pass
         else:
@@ -106,8 +105,8 @@ class test_automount(XMLRPC_test):
         """
         Test the `xmlrpc.automountkey_show` method.
         """
-        showkey_kw={'cn': self.locname, 'automountmapname': self.mapname, 'automountkey': self.keyname, 'raw': True}
-        res = api.Command['automountkey_show'](**showkey_kw)['result']
+        showkey_kw={'automountkey': self.keyname, 'raw': True}
+        res = api.Command['automountkey_show'](self.locname, self.mapname, **showkey_kw)['result']
         assert res
         assert_attr_equal(res, 'automountkey', self.keyname)
         assert_attr_equal(res, 'automountinformation', self.info)
@@ -128,7 +127,7 @@ class test_automount(XMLRPC_test):
         """
         self.key_kw['automountinformation'] = u'rw'
         self.key_kw['description'] = u'new description'
-        res = api.Command['automountkey_mod'](**self.key_kw)['result']
+        res = api.Command['automountkey_mod'](self.locname, self.mapname, **self.key_kw)['result']
         assert res
         assert_attr_equal(res, 'automountinformation', 'rw')
         assert_attr_equal(res, 'description', 'new description')
@@ -137,8 +136,8 @@ class test_automount(XMLRPC_test):
         """
         Test the `xmlrpc.automountmap_mod` method.
         """
-        self.map_kw['description'] = u'new description'
-        res = api.Command['automountmap_mod'](**self.map_kw)['result']
+        mod_kw = {'description': u'new description'}
+        res = api.Command['automountmap_mod'](self.locname, self.mapname, **mod_kw)['result']
         assert res
         assert_attr_equal(res, 'description', 'new description')
 
@@ -146,13 +145,13 @@ class test_automount(XMLRPC_test):
         """
         Test the `xmlrpc.automountkey_del` method.
         """
-        delkey_kw={'cn': self.locname, 'automountmapname': self.mapname, 'automountkey': self.keyname, 'raw': True}
-        res = api.Command['automountkey_del'](**delkey_kw)['result']
+        delkey_kw={'automountkey': self.keyname, 'raw': True}
+        res = api.Command['automountkey_del'](self.locname, self.mapname, **delkey_kw)['result']
         assert res == True
 
         # Verify that it is gone
         try:
-            api.Command['automountkey_show'](**delkey_kw)
+            api.Command['automountkey_show'](self.locname, self.mapname, **delkey_kw)
         except errors.NotFound:
             pass
         else:
@@ -178,9 +177,9 @@ class test_automount(XMLRPC_test):
         Test that the `xmlrpc.automountlocation_del` method removes all maps and keys
         """
         # Verify that the second key we added is gone
-        key_kw = {'cn': self.locname, 'automountmapname': self.mapname, 'automountkey': self.keyname2, 'raw': True}
+        key_kw = {'automountkey': self.keyname2, 'raw': True}
         try:
-            api.Command['automountkey_show'](**key_kw)
+            api.Command['automountkey_show'](self.locname, self.mapname, **key_kw)
         except errors.NotFound:
             pass
         else:
@@ -226,13 +225,13 @@ class test_automount_indirect(XMLRPC_test):
         """
         Remove the indirect key /home.
         """
-        delkey_kw = {'cn': self.locname, 'automountmapname': self.parentmap, 'automountkey': self.keyname}
-        res = api.Command['automountkey_del'](**delkey_kw)['result']
+        delkey_kw = {'automountkey': self.keyname}
+        res = api.Command['automountkey_del'](self.locname, self.parentmap, **delkey_kw)['result']
         assert res == True
 
         # Verify that it is gone
         try:
-            api.Command['automountkey_show'](**delkey_kw)
+            api.Command['automountkey_show'](self.locname, self.parentmap, **delkey_kw)
         except errors.NotFound:
             pass
         else:
@@ -300,8 +299,8 @@ class test_automount_indirect_no_parent(XMLRPC_test):
         """
         Test the `xmlrpc.automountkey_show` method with default parent.
         """
-        showkey_kw = {'cn': self.locname, 'automountmapname': self.parentmap, 'automountkey': self.keyname, 'raw': True}
-        res = api.Command['automountkey_show'](**showkey_kw)['result']
+        showkey_kw = {'automountkey': self.keyname, 'raw': True}
+        res = api.Command['automountkey_show'](self.locname, self.parentmap, **showkey_kw)['result']
         assert res
         assert_attr_equal(res, 'automountkey', self.keyname)
 
@@ -309,13 +308,13 @@ class test_automount_indirect_no_parent(XMLRPC_test):
         """
         Remove the indirect key /home.
         """
-        delkey_kw={'cn': self.locname, 'automountmapname': self.parentmap, 'automountkey': self.keyname}
-        res = api.Command['automountkey_del'](**delkey_kw)['result']
+        delkey_kw={'automountkey': self.keyname}
+        res = api.Command['automountkey_del'](self.locname, self.parentmap, **delkey_kw)['result']
         assert res == True
 
         # Verify that it is gone
         try:
-            api.Command['automountkey_show'](**delkey_kw)
+            api.Command['automountkey_show'](self.locname, self.parentmap, **delkey_kw)
         except errors.NotFound:
             pass
         else:
