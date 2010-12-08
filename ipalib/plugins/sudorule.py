@@ -34,8 +34,10 @@ class sudorule(LDAPObject):
     object_name_plural = 'Sudo Rules'
     object_class = ['ipaassociation', 'ipasudorule']
     default_attributes = [
-        'cn', 'description',
-
+        'cn', 'ipaenabledflag',
+        'description', 'usercategory', 'hostcategory',
+        'cmdcategory', 'memberuser', 'memberhost',
+        'memberallowcmd', 'memberdenycmd',
     ]
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
@@ -118,6 +120,10 @@ class sudorule_add(LDAPCreate):
     """
     Create new Sudo Rule.
     """
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        # Sudo rules are enabled by default
+        entry_attrs['ipaenabledflag'] = 'TRUE'
+        return dn
 
     msg_summary = _('Added sudo rule "%(value)s"')
 
@@ -154,6 +160,58 @@ class sudorule_show(LDAPRetrieve):
     """
 
 api.register(sudorule_show)
+
+
+class sudorule_enable(LDAPQuery):
+    """
+    Enable a Sudo rule.
+    """
+    def execute(self, cn):
+        ldap = self.obj.backend
+
+        dn = self.obj.get_dn(cn)
+        entry_attrs = {'ipaenabledflag': 'TRUE'}
+
+        try:
+            ldap.update_entry(dn, entry_attrs)
+        except errors.EmptyModlist:
+            pass
+        except errors.NotFound:
+            self.obj.handle_not_found(cn)
+
+        return dict(result=True)
+
+    def output_for_cli(self, textui, result, cn):
+        textui.print_name(self.name)
+        textui.print_dashed('Enabled Sudo rule "%s".' % cn)
+
+api.register(sudorule_enable)
+
+
+class sudorule_disable(LDAPQuery):
+    """
+    Disable a Sudo rule.
+    """
+    def execute(self, cn):
+        ldap = self.obj.backend
+
+        dn = self.obj.get_dn(cn)
+        entry_attrs = {'ipaenabledflag': 'FALSE'}
+
+        try:
+            ldap.update_entry(dn, entry_attrs)
+        except errors.EmptyModlist:
+            pass
+        except errors.NotFound:
+            self.obj.handle_not_found(cn)
+
+        return dict(result=True)
+
+    def output_for_cli(self, textui, result, cn):
+        textui.print_name(self.name)
+        textui.print_dashed('Disabled Sudo rule "%s".' % cn)
+
+api.register(sudorule_disable)
 
 
 class sudorule_add_allow_command(LDAPAddMember):
