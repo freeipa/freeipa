@@ -538,9 +538,15 @@ class Command(HasParam):
             if attr in self.params:
                 value = self.params[attr](value)
             if append and attr in newdict:
-                newdict[attr].append(value)
+                if type(value) in (tuple,):
+                    newdict[attr] += list(value)
+                else:
+                    newdict[attr].append(value)
             else:
-                newdict[attr] = [value]
+                if type(value) in (tuple,):
+                    newdict[attr] = list(value)
+                else:
+                    newdict[attr] = [value]
         return newdict
 
     def __attributes_2_entry(self, kw):

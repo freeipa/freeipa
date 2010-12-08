@@ -700,7 +700,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 for a in old_entry:
                     if not isinstance(entry_attrs[a], (list, tuple)):
                         entry_attrs[a] = [entry_attrs[a]]
-                    entry_attrs[a] += old_entry[a]
+                    entry_attrs[a] = list(entry_attrs[a]) + old_entry[a]
 
         if options.get('all', False):
             attrs_list = ['*'] + self.obj.default_attributes

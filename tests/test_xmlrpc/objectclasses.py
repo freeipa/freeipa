@@ -30,7 +30,6 @@ user = [
     u'posixaccount',
     u'krbprincipalaux',
     u'krbticketpolicyaux',
-    u'radiusprofile',
     u'ipaobject',
 ]
 
