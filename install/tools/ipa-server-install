@@ -688,10 +688,10 @@ def main():
         print "Please wait until the prompt is returned."
         print ""
 
-    if options.dirsrv_pin:
-        [pw_fd, pw_name] = tempfile.mkstemp()
-        os.write(pw_fd, options.dirsrv_pin)
-        os.close(pw_fd)
+    # Configure ntpd
+    if options.conf_ntp:
+        ntp = ntpinstance.NTPInstance(fstore)
+        ntp.create_instance()
 
     if not options.selfsign:
         # Clean up any previous self-signed CA that may exist
@@ -735,13 +735,14 @@ def main():
         else:
             ca.configure_instance("pkiuser", host_name, dm_password, dm_password, cert_file=options.external_cert_file, cert_chain_file=options.external_ca_file, subject_base=options.subject)
 
-    # Configure ntpd
-    if options.conf_ntp:
-        ntp = ntpinstance.NTPInstance(fstore)
-        ntp.create_instance()
-
     # Create a directory server instance
     ds = dsinstance.DsInstance()
+
+    if options.dirsrv_pin:
+        [pw_fd, pw_name] = tempfile.mkstemp()
+        os.write(pw_fd, options.dirsrv_pin)
+        os.close(pw_fd)
+
     if options.dirsrv_pkcs12:
         pkcs12_info = (options.dirsrv_pkcs12, pw_name)
         try:
