@@ -154,7 +154,7 @@ def main():
                 retval = 2
             except errors.DatabaseError, dbe:
                 print "An error occurred while talking to the server."
-                print lde
+                print dbe
                 retval = 1
             except errors.LDAPError, lde:
                 print "An error occurred while talking to the server."
