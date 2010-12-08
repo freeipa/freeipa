@@ -25,6 +25,7 @@ from ipalib import Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
+topic = ('sudo', 'commands for controlling sudo configuration')
 
 class sudorule(LDAPObject):
     """

@@ -85,6 +85,8 @@ from ipalib import AccessTime, Password, Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
+topic = ('hbac', 'Host based access control commands')
+
 def is_all(options, attribute):
     """
     See if options[attribute] is lower-case 'all' in a safe way.

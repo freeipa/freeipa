@@ -45,6 +45,7 @@ from ipalib.plugins.baseldap import LDAPUpdate, LDAPSearch, LDAPRetrieve
 
 from ipalib import _, ngettext
 
+topic = ('hbac', 'Host based access control commands')
 
 class hbacsvc(LDAPObject):
     """
