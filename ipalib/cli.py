@@ -889,9 +889,14 @@ class cli(backend.Executioner):
         ``self.env.prompt_all`` is ``True``, this method will prompt for any
         params that have a missing values, even if the param is optional.
         """
+        honor_alwaysask = True
+        for param in cmd.params():
+            if param.alwaysask and param.name in kw:
+                honor_alwaysask = False
+                break
         for param in cmd.params():
             if (param.required and param.name not in kw) or \
-                param.alwaysask or self.env.prompt_all:
+                (param.alwaysask and honor_alwaysask) or self.env.prompt_all:
                 if param.password:
                     kw[param.name] = self.Backend.textui.prompt_password(
                         param.label
