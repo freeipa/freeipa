@@ -656,21 +656,30 @@ class aci_find(crud.Search):
                 # acis = list(results)
 
         for a in acis:
-            if 'target' in a.target:
-                target = a.target['target']['expression']
-            else:
-                results.remove(a)
-                continue
-            found = False
-            for k in _type_map.keys():
-                if _type_map[k] == target and 'type' in kw and kw['type'] == k:
-                    found = True
-                    break;
-            if not found:
-                try:
+            if 'type' in kw:
+                if 'target' in a.target:
+                    target = a.target['target']['expression']
+                else:
                     results.remove(a)
-                except ValueError:
-                    pass
+                    continue
+                found = False
+                for k in _type_map.keys():
+                    if _type_map[k] == target and kw['type'] == k:
+                        found = True
+                        break;
+                if not found:
+                    try:
+                        results.remove(a)
+                    except ValueError:
+                        pass
+
+        if 'selfaci' in kw and kw['selfaci'] == True:
+            for a in acis:
+                if a.bindrule['expression'] != u'ldap:///self':
+                    try:
+                        results.remove(a)
+                    except ValueError:
+                        pass
 
         # TODO: searching by: filter, subtree
 

@@ -310,7 +310,8 @@ class permission_find(LDAPSearch):
             found = False
             if 'permission' in aci:
                 for entry in entries:
-                    if aci['permission'] == entry['cn']:
+                    (dn, attrs) = entry
+                    if aci['permission'] == attrs['cn']:
                         found = True
                         break
                 if not found in aci:
