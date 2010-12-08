@@ -45,7 +45,6 @@ import pyasn1.codec.ber.decoder
 import struct
 
 import certs
-import httpinstance
 from distutils import version
 
 KRBMKEY_DENY_ACI = '(targetattr = "krbMKey")(version 3.0; acl "No external access"; deny (read,write,search,compare) userdn != "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)'
@@ -544,11 +543,10 @@ class KrbInstance(service.Service):
 
     def __setup_pkinit(self):
         if self.self_signed_ca:
-            ca_db = certs.CertDB(httpinstance.NSS_DIR, self.realm,
+            ca_db = certs.CertDB(self.realm,
                                  subject_base=self.subject_base)
         else:
-            ca_db = certs.CertDB(httpinstance.NSS_DIR, self.realm,
-                                 host_name=self.fqdn,
+            ca_db = certs.CertDB(self.realm, host_name=self.fqdn,
                                  subject_base=self.subject_base)
 
         if self.pkcs12_info:
@@ -564,8 +562,7 @@ class KrbInstance(service.Service):
 
         # Finally copy the cacert in the krb directory so we don't
         # have any selinux issues with the file context
-        shutil.copyfile("/usr/share/ipa/html/ca.crt",
-                        "/var/kerberos/krb5kdc/cacert.pem")
+        shutil.copyfile("/etc/ipa/ca.crt", "/var/kerberos/krb5kdc/cacert.pem")
 
     def __add_anonymous_pkinit_principal(self):
         princ = "WELLKNOWN/ANONYMOUS"

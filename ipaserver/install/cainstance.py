@@ -341,8 +341,8 @@ class CADSInstance(service.Service):
 
 class CAInstance(service.Service):
     """
-    In the self-signed case (all done in certs.py) the CA exists in the DS
-    database. When using a dogtag CA the DS database contains just the
+    In the self-signed case the CA exists in the NSS_DB database.
+    When using a dogtag CA the DS database contains just the
     server cert for DS. The mod_nss database will contain the RA agent
     cert that will be used to do authenticated requests against dogtag.
 
@@ -357,7 +357,7 @@ class CAInstance(service.Service):
        2 = have signed cert, continue installation
     """
 
-    def __init__(self, realm):
+    def __init__(self, realm, ra_db):
         service.Service.__init__(self, "pki-cad")
         self.realm = realm
         self.pki_user = "pkiuser"
@@ -378,7 +378,7 @@ class CAInstance(service.Service):
         self.canickname = get_ca_nickname(realm)
         self.basedn = "o=ipaca"
         self.ca_agent_db = tempfile.mkdtemp(prefix = "tmp-")
-        self.ra_agent_db = "/etc/httpd/alias"
+        self.ra_agent_db = ra_db
         self.ra_agent_pwd = self.ra_agent_db + "/pwdfile.txt"
         self.ds_port = DEFAULT_DSPORT
         self.domain_name = "IPA"
@@ -1000,5 +1000,5 @@ if __name__ == "__main__":
     installutils.standard_logging_setup("install.log", False)
     cs = CADSInstance()
     cs.create_instance("dirsrv", "EXAMPLE.COM", "catest.example.com", "example.com", "password")
-    ca = CAInstance("EXAMPLE.COM")
+    ca = CAInstance("EXAMPLE.COM", "/etc/httpd/alias")
     ca.configure_instance("pkiuser", "catest.example.com", "password", "password")

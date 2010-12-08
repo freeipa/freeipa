@@ -47,6 +47,10 @@ from ipalib import api
 
 from ipalib.compat import sha1
 
+# Apache needs access to this database so we need to create it
+# where apache can reach
+NSS_DIR = "/etc/httpd/alias"
+
 CA_SERIALNO="/var/lib/ipa/ca_serialno"
 
 def ipa_self_signed():
@@ -163,7 +167,7 @@ def next_replica(serial_file=CA_SERIALNO):
     return str(serial)
 
 class CertDB(object):
-    def __init__(self, nssdir, realm, fstore=None, host_name=None, subject_base=None):
+    def __init__(self, realm, nssdir=NSS_DIR, fstore=None, host_name=None, subject_base=None):
         self.secdir = nssdir
         self.realm = realm
 
@@ -1040,3 +1044,7 @@ class CertDB(object):
         self.fstore.backup_file(self.pin_fname)
         self.fstore.backup_file(self.certreq_fname)
         self.fstore.backup_file(self.certder_fname)
+
+    def publish_ca_cert(self, location):
+        shutil.copy(self.cacert_fname, location)
+        os.chmod(location, 0444)

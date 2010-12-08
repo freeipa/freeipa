@@ -158,7 +158,7 @@ def install_ca(config):
 
     cs = cainstance.CADSInstance()
     cs.create_instance(config.ds_user, config.realm_name, config.host_name, config.domain_name, config.dirman_password)
-    ca = cainstance.CAInstance(config.realm_name)
+    ca = cainstance.CAInstance(config.realm_name, certs.NSS_DIR)
     ca.configure_instance("pkiuser", config.host_name, config.dirman_password, config.dirman_password, pkcs12_info=(cafile,), master_host=config.master_host_name, subject_base=config.subject_base)
 
     return ca

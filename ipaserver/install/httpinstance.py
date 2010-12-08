@@ -35,7 +35,6 @@ from ipalib import util, api
 HTTPD_DIR = "/etc/httpd"
 SSL_CONF = HTTPD_DIR + "/conf.d/ssl.conf"
 NSS_CONF = HTTPD_DIR + "/conf.d/nss.conf"
-NSS_DIR  = HTTPD_DIR + "/alias"
 
 selinux_warning = """WARNING: could not set selinux boolean httpd_can_network_connect to true.
 The web interface may not function correctly until this boolean is
@@ -166,11 +165,13 @@ class HTTPInstance(service.Service):
             print "Adding Include conf.d/ipa-rewrite to %s failed." % NSS_CONF
 
     def __setup_ssl(self):
-        if self.self_signed_ca:
-            ca_db = certs.CertDB(NSS_DIR, self.realm, subject_base=self.subject_base)
-        else:
-            ca_db = certs.CertDB(NSS_DIR, self.realm, host_name=self.fqdn, subject_base=self.subject_base)
-        db = certs.CertDB(NSS_DIR, self.realm, subject_base=self.subject_base)
+        fqdn = None
+        if not self.self_signed_ca:
+            fqdn = self.fqdn
+
+        ca_db = certs.CertDB(self.realm, host_name=fqdn, subject_base=self.subject_base)
+
+        db = certs.CertDB(self.realm, subject_base=self.subject_base)
         if self.pkcs12_info:
             db.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1], passwd="")
             server_certs = db.find_server_certs()
@@ -186,31 +187,27 @@ class HTTPInstance(service.Service):
         else:
             if self.self_signed_ca:
                 db.create_from_cacert(ca_db.cacert_fname)
-                db.create_password_conf()
-                self.dercert = db.create_server_cert("Server-Cert", self.fqdn, ca_db)
-                db.track_server_cert("Server-Cert", self.principal, db.passwd_fname)
-                db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
-            else:
-                self.dercert = db.create_server_cert("Server-Cert", self.fqdn, ca_db)
-                db.track_server_cert("Server-Cert", self.principal, db.passwd_fname)
-                db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
-                db.create_password_conf()
+
+            db.create_password_conf()
+            self.dercert = db.create_server_cert("Server-Cert", self.fqdn, ca_db)
+            db.track_server_cert("Server-Cert", self.principal, db.passwd_fname)
+            db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
 
         # Fix the database permissions
-        os.chmod(NSS_DIR + "/cert8.db", 0660)
-        os.chmod(NSS_DIR + "/key3.db", 0660)
-        os.chmod(NSS_DIR + "/secmod.db", 0660)
-        os.chmod(NSS_DIR + "/pwdfile.txt", 0660)
+        os.chmod(certs.NSS_DIR + "/cert8.db", 0660)
+        os.chmod(certs.NSS_DIR + "/key3.db", 0660)
+        os.chmod(certs.NSS_DIR + "/secmod.db", 0660)
+        os.chmod(certs.NSS_DIR + "/pwdfile.txt", 0660)
 
         pent = pwd.getpwnam("apache")
-        os.chown(NSS_DIR + "/cert8.db", 0, pent.pw_gid )
-        os.chown(NSS_DIR + "/key3.db", 0, pent.pw_gid )
-        os.chown(NSS_DIR + "/secmod.db", 0, pent.pw_gid )
-        os.chown(NSS_DIR + "/pwdfile.txt", 0, pent.pw_gid )
+        os.chown(certs.NSS_DIR + "/cert8.db", 0, pent.pw_gid )
+        os.chown(certs.NSS_DIR + "/key3.db", 0, pent.pw_gid )
+        os.chown(certs.NSS_DIR + "/secmod.db", 0, pent.pw_gid )
+        os.chown(certs.NSS_DIR + "/pwdfile.txt", 0, pent.pw_gid )
 
         # Fix SELinux permissions on the database
-        ipautil.run(["/sbin/restorecon", NSS_DIR + "/cert8.db"])
-        ipautil.run(["/sbin/restorecon", NSS_DIR + "/key3.db"])
+        ipautil.run(["/sbin/restorecon", certs.NSS_DIR + "/cert8.db"])
+        ipautil.run(["/sbin/restorecon", certs.NSS_DIR + "/key3.db"])
 
         # In case this got generated as part of the install, reset the
         # context
@@ -226,7 +223,7 @@ class HTTPInstance(service.Service):
         prefs_fd.close()
 
         # The signing cert is generated in __setup_ssl
-        db = certs.CertDB(NSS_DIR, self.realm, subject_base=self.subject_base)
+        db = certs.CertDB(self.realm, subject_base=self.subject_base)
 
         pwdfile = open(db.passwd_fname)
         pwd = pwdfile.read()
@@ -241,9 +238,8 @@ class HTTPInstance(service.Service):
         shutil.rmtree(tmpdir)
 
     def __publish_ca_cert(self):
-        ca_db = certs.CertDB(NSS_DIR, self.realm)
-        shutil.copy(ca_db.cacert_fname, "/usr/share/ipa/html/ca.crt")
-        os.chmod("/usr/share/ipa/html/ca.crt", 0444)
+        ca_db = certs.CertDB(self.realm)
+        ca_db.publish_ca_cert("/usr/share/ipa/html/ca.crt")
 
     def uninstall(self):
         if self.is_configured():
@@ -255,7 +251,7 @@ class HTTPInstance(service.Service):
         if not running is None:
             self.stop()
 
-        db = certs.CertDB(NSS_DIR, api.env.realm)
+        db = certs.CertDB(api.env.realm)
         db.untrack_server_cert("Server-Cert")
         if not enabled is None and not enabled:
             self.chkconfig_off()

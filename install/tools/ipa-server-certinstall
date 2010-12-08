@@ -89,7 +89,7 @@ def choose_server_cert(server_certs):
     return server_certs[num - 1]
 
 def import_cert(dirname, pkcs12_fname, pkcs12_passwd, db_password):
-    cdb = certs.CertDB(dirname, api.env.realm)
+    cdb = certs.CertDB(api.env.realm, nssdir=dirname)
     cdb.create_passwd_file(db_password)
     cdb.create_certdbs()
     [pw_fd, pw_name] = tempfile.mkstemp()

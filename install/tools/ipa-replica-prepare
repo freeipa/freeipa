@@ -27,7 +27,7 @@ import krbV
 from optparse import OptionParser
 
 from ipapython import ipautil
-from ipaserver.install import bindinstance, dsinstance, installutils, certs, httpinstance
+from ipaserver.install import bindinstance, dsinstance, installutils, certs
 from ipaserver.install.bindinstance import add_zone, add_reverze_zone, add_rr, add_ptr_rr
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
@@ -123,14 +123,9 @@ def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, hostname, subjec
     try:
         self_signed = certs.ipa_self_signed()
 
-        db = certs.CertDB(dir, realm_name, subject_base=subject_base)
+        db = certs.CertDB(realm_name, nssdir=dir, subject_base=subject_base)
         db.create_passwd_file()
-#        if self_signed:
-#            ca_db = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name)))
-#            db.create_from_cacert(ca_db.cacert_fname)
-#        else:
-#            ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=api.env.host)
-        ca_db = certs.CertDB(httpinstance.NSS_DIR, realm_name, host_name=api.env.host, subject_base=subject_base)
+        ca_db = certs.CertDB(realm_name, host_name=api.env.host, subject_base=subject_base)
         if is_kdc:
             ca_db.create_kdc_cert("KDC-Cert", hostname, dir)
         else:
@@ -177,7 +172,7 @@ def export_ra_pkcs12(dir, dm_password):
 
     try:
         try:
-            db = certs.CertDB(httpinstance.NSS_DIR, api.env.realm, host_name=api.env.host)
+            db = certs.CertDB(api.env.realm, host_name=api.env.host)
 
             if db.has_nickname("ipaCert"):
                 pkcs12_fname = "%s/ra.p12" % dir

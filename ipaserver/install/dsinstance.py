@@ -469,7 +469,7 @@ class DsInstance(service.Service):
 
     def __enable_ssl(self):
         dirname = config_dirname(self.serverid)
-        dsdb = certs.CertDB(dirname, self.realm_name, subject_base=self.subject_base)
+        dsdb = certs.CertDB(self.realm_name, nssdir=dirname, subject_base=self.subject_base)
         if self.pkcs12_info:
             dsdb.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1])
             server_certs = dsdb.find_server_certs()
@@ -481,9 +481,8 @@ class DsInstance(service.Service):
             self.dercert = dsdb.get_cert_from_db(nickname)
         else:
             nickname = "Server-Cert"
-            cadb = certs.CertDB(httpinstance.NSS_DIR, self.realm_name, host_name=self.fqdn, subject_base=self.subject_base)
+            cadb = certs.CertDB(self.realm_name, host_name=self.fqdn, subject_base=self.subject_base)
             if self.self_signed_ca:
-                cadb.create_self_signed()
                 dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
                 self.dercert = dsdb.create_server_cert("Server-Cert", self.fqdn, cadb)
                 dsdb.track_server_cert("Server-Cert", self.principal, dsdb.passwd_fname)
@@ -601,7 +600,7 @@ class DsInstance(service.Service):
             # drop the trailing / off the config_dirname so the directory
             # will match what is in certmonger
             dirname = config_dirname(serverid)[:-1]
-            dsdb = certs.CertDB(dirname, self.realm_name)
+            dsdb = certs.CertDB(self.realm_name, nssdir=dirname)
             dsdb.untrack_server_cert("Server-Cert")
             erase_ds_instance_data(serverid)
 
@@ -643,7 +642,7 @@ class DsInstance(service.Service):
         self.stop()
 
         dirname = config_dirname(realm_to_serverid(self.realm_name))
-        certdb = certs.CertDB(dirname, self.realm_name, subject_base=self.subject_base)
+        certdb = certs.CertDB(self.realm_name, nssdir=dirname, subject_base=self.subject_base)
         if not cacert_name or len(cacert_name) == 0:
             cacert_name = "Imported CA"
         # we can't pass in the nickname, so we set the instance variable

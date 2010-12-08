@@ -420,8 +420,8 @@ def uninstall():
     ntpinstance.NTPInstance(fstore).uninstall()
     if cainstance.CADSInstance().is_configured():
         cainstance.CADSInstance().uninstall()
-    if cainstance.CAInstance(api.env.realm).is_configured():
-        cainstance.CAInstance(api.env.realm).uninstall()
+    if cainstance.CAInstance(api.env.realm, certs.NSS_DIR).is_configured():
+        cainstance.CAInstance(api.env.realm, certs.NSS_DIR).uninstall()
     bindinstance.BindInstance(fstore).uninstall()
     httpinstance.HTTPInstance(fstore).uninstall()
     krbinstance.KrbInstance(fstore).uninstall()
@@ -693,7 +693,12 @@ def main():
         ntp = ntpinstance.NTPInstance(fstore)
         ntp.create_instance()
 
-    if not options.selfsign:
+    if options.selfsign:
+        ca = certs.CertDB(realm_name, host_name=host_name,
+                          subject_base=options.subject)
+        ca.create_self_signed()
+        ca.publish_ca_cert("/etc/ipa/ca.crt")
+    else:
         # Clean up any previous self-signed CA that may exist
         try:
             os.remove(certs.CA_SERIALNO)
@@ -720,7 +725,7 @@ def main():
         if options.external_cert_file is None:
             cs = cainstance.CADSInstance()
             cs.create_instance("pkisrv", realm_name, host_name, domain_name, dm_password)
-        ca = cainstance.CAInstance(realm_name)
+        ca = cainstance.CAInstance(realm_name, certs.NSS_DIR)
         if external == 0:
             ca.configure_instance("pkiuser", host_name, dm_password, dm_password, subject_base=options.subject)
         elif external == 1:
