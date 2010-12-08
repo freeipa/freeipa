@@ -308,7 +308,6 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname, comm
         IPA.error_dialog.empty();
         IPA.error_dialog.attr('title', error_thrown.title);
 
-        IPA.error_dialog.append('<p>URL: '+this.url+'</p>');
         IPA.error_dialog.append('<p>'+error_thrown.message+'</p>');
 
         dialog_open.call(this, xhr, text_status, error_thrown);
