@@ -351,6 +351,9 @@ class automountlocation_import(LDAPQuery):
             if len(m) == 0:
                 continue
             am = m.split(None)
+            if len(am) < 2:
+                continue
+
             if am[1].startswith('/'):
                 mapfile = am[1].replace('"','')
                 am[1] = os.path.basename(am[1])
