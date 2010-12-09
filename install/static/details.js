@@ -355,8 +355,8 @@ function ipa_details_facet(spec) {
     var that = ipa_facet(spec);
 
     that.is_dirty = spec.is_dirty || is_dirty;
-    that.create = spec.create || ipa_details_create;
-    that.setup = spec.setup || ipa_details_setup;
+    that.create = spec.create || create;
+    that.setup = spec.setup || setup;
     that.load = spec.load || load;
     that.update = spec.update || ipa_details_update;
     that.reset = spec.reset || reset;
@@ -405,6 +405,109 @@ function ipa_details_facet(spec) {
         return that.record[pkey_name][0];
     };
 
+    that.get_section_header_prefix = function(visible) {
+        if (visible) {
+            return '[&#8722;]';
+        } else {
+            return '[+]';
+        }
+    };
+
+    function create(container) {
+
+        container.attr('title', that.entity_name);
+
+        var details = $('<div/>', {
+            'class': 'content'
+        }).appendTo(container);
+
+        var action_panel = that.get_action_panel();
+
+        var ul = $('ul', action_panel);
+        var buttons = $('.action-controls',action_panel);
+
+        $('<input/>', {
+            'type': 'text',
+            'name': 'reset'
+        }).appendTo(buttons);
+
+        $('<input/>', {
+            'type': 'text',
+            'name': 'update'
+        }).appendTo(buttons);
+
+        details.append('<br/>');
+        details.append('<hr/>');
+
+        for (var i = 0; i < that.sections.length; ++i) {
+            var section = that.sections[i];
+
+            $('<h2/>', {
+                'name': section.name,
+                'html': that.get_section_header_prefix(true) + ' ' + section.label
+            }).appendTo(details);
+
+            var div = $('<div/>', {
+                'id': that.entity_name+'-'+that.name+'-'+section.name,
+                'class': 'details-section'
+            }).appendTo(details);
+
+            section.create(div);
+
+            details.append('<hr/>');
+        }
+    }
+
+    function setup(container) {
+
+        that.facet_setup(container);
+
+        var button = $('input[name=reset]', that.container);
+        that.reset_button = ipa_button({
+            'label': 'Reset',
+            'icon': 'ui-icon-refresh',
+            'class': 'details-reset',
+            'click': function() {
+                that.reset();
+                return false;
+            }
+        });
+        button.replaceWith(that.reset_button);
+
+        button = $('input[name=update]', that.container);
+        that.update_button = ipa_button({
+            'label': 'Update',
+            'icon': 'ui-icon-check',
+            'class': 'details-update',
+            'click': function() {
+                that.update();
+                return false;
+            }
+        });
+        button.replaceWith(that.update_button);
+
+        for (var i = 0; i < that.sections.length; ++i) {
+            var section = that.sections[i];
+
+            var header = $('h2[name='+section.name+']', that.container);
+
+            var div = $(
+                '#'+that.entity_name+'-'+that.name+'-'+section.name,
+                that.container
+            );
+
+            header.click(function(section, header, div) {
+                return function() {
+                    var visible = div.is(":visible");
+                    header.html(that.get_section_header_prefix(!visible) + ' ' + section.label);
+                    div.slideToggle();
+                }
+            }(section, header, div));
+
+            section.setup(div);
+        }
+    }
+
     function is_dirty() {
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         return pkey != that.pkey;
@@ -448,103 +551,6 @@ function ipa_button(spec) {
     if (spec.icon) button.append('<span class="ui-icon '+spec.icon+'" ></span> ');
 
     return button;
-}
-
-function ipa_details_create(container)
-{
-    var that = this;
-
-    if (!container) {
-        alert('ERROR: ipa_details_create: Missing container argument!');
-        return;
-    }
-
-    container.attr('title', that.entity_name);
-
-    var details = $('<div/>', {
-        'class': 'content'
-    }).appendTo(container);
-
-    var action_panel = that.get_action_panel();
-
-    var ul = $('ul', action_panel);
-    var buttons = $('.action-controls',action_panel);
-
-    $('<input/>', {
-        'type': 'text',
-        'name': 'reset'
-    }).appendTo(buttons);
-
-    $('<input/>', {
-        'type': 'text',
-        'name': 'update'
-    }).appendTo(buttons);
-
-    details.append('<br/>');
-    details.append('<hr/>');
-
-    for (var i = 0; i < that.sections.length; ++i) {
-        var section = that.sections[i];
-
-        $('<h2/>', {
-            'name': section.name,
-            'html':"&#8722; "+section.label
-        }).appendTo(details);
-
-        var div = $('<div/>', {
-            'id': that.entity_name+'-'+that.name+'-'+section.name,
-            'class': 'details-section'
-        }).appendTo(details);
-
-        section.create(div);
-
-        details.append('<hr/>');
-    }
-}
-
-function ipa_details_setup(container) {
-
-    var that = this;
-
-    that.facet_setup(container);
-
-    var button = $('input[name=reset]', that.container);
-    that.reset_button = ipa_button({
-        'label': 'Reset',
-        'icon': 'ui-icon-refresh',
-        'class': 'details-reset',
-        'click': function() {
-            that.reset();
-            return false;
-        }
-    });
-    button.replaceWith(that.reset_button);
-
-    button = $('input[name=update]', that.container);
-    that.update_button = ipa_button({
-        'label': 'Update',
-        'icon': 'ui-icon-check',
-        'class': 'details-update',
-        'click': function() {
-            that.update();
-            return false;
-        }
-    });
-    button.replaceWith(that.update_button);
-
-    for (var i = 0; i < that.sections.length; ++i) {
-        var section = that.sections[i];
-
-        var header = $('h2[name='+section.name+']', that.container);
-        header.click(function(){ _h2_on_click(this) });
-
-        var div = $(
-            '#'+that.entity_name+'-'+that.name+'-'+section.name,
-            that.container
-        );
-
-        section.setup(div);
-    }
 }
 
 function ipa_details_refresh() {
@@ -857,21 +863,5 @@ function _ipa_remove_on_click(obj)
         jobj.text("Undo");
     }
     return (false);
-}
-
-function _h2_on_click(obj)
-{
-    var jobj = $(obj);
-    var txt = jobj.text().replace(/^\s*/, '');
-    if (txt.charCodeAt(0) == 8722) {
-        obj.dl = jobj.next().detach();
-        jobj.text('+' + txt.substr(1));
-    } else {
-        if (obj.dl)
-            obj.dl.insertAfter(obj);
-        jobj.text(
-            String.fromCharCode(8722) + txt.substr(1)
-        );
-    }
 }
 
