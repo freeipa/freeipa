@@ -317,14 +317,14 @@ function ipa_association_table_widget(spec) {
         that.table_setup(container);
 
         var button = $('input[name=remove]', container);
-        button.replaceWith(ipa_button({
+        button.replaceWith(IPA.action_button({
             'label': button.val(),
             'icon': 'ui-icon-trash',
             'click': function() { that.show_remove_dialog(); }
         }));
 
         button = $('input[name=add]', container);
-        button.replaceWith(ipa_button({
+        button.replaceWith(IPA.action_button({
             'label': button.val(),
             'icon': 'ui-icon-plus',
             'click': function() { that.show_add_dialog() }
@@ -679,14 +679,14 @@ function ipa_association_facet(spec) {
         var action_panel = that.get_action_panel();
 
         var button = $('input[name=remove]', action_panel);
-        button.replaceWith(ipa_button({
+        button.replaceWith(IPA.action_button({
             'label': button.val(),
             'icon': 'ui-icon-trash',
             'click': function() { that.show_remove_dialog(); }
         }));
 
         button = $('input[name=add]', action_panel);
-        button.replaceWith(ipa_button({
+        button.replaceWith(IPA.action_button({
             'label': button.val(),
             'icon': 'ui-icon-plus',
             'click': function() { that.show_add_dialog() }

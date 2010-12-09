@@ -2,6 +2,7 @@
  *   Pavel Zuna <pzuna@redhat.com>
  *   Adam Young <ayoung@redhat.com>
  *   Endi Sukma Dewata <edewata@redhat.com>
+ *   Kyle Baker <kybaker@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
 */
@@ -14,13 +15,31 @@ body{
     margin: 0;
 }
 
-.input_link {padding: .4em 1em .4em 1.5em;text-decoration: none;position: relative;  cursor: pointer; }
-.input_link span.ui-icon {margin: 0 0.4em 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
+@font-face {font-family: "FreeWay"; src:url("fonts/FreeWay.otf");}
+@font-face {font-family: "FreeWayBold"; src:url("fonts/FreeWay-Bold.otf");}
+
+.input_link {
+    padding: .4em 1em .4em 2em;
+    text-decoration: none;
+    position: relative;
+    cursor: pointer;
+}
+
+.input_link span.ui-icon {
+    -moz-border-radius: 0.3em;
+    border: 1px solid #B8B8B8;
+    margin: -9px 0.4em 0em -0.3em;
+    position: absolute;
+    left: .2em;
+    top: 50%;
+
+}
 
 /*  ----  Header  ----  */
 div.header {
     background-color:#0C3B00;
     width: 100%;
+    height: 40px;
 }
 
 div.header a {
@@ -48,9 +67,12 @@ div.header span.header-logo a img {
 div.header span.header-loggedinas {
     width: 960px;
     color: #fff;
-    align: right;
-    padding-left: 600px;
-    padding-bottom: 0;
+    display: block;
+    padding-left: none;
+    margin-top: -26px;
+    margin-left: auto;
+    margin-right: 276px;
+    width: 200px;
 }
 
 
@@ -109,18 +131,30 @@ div.content div.content-buttons img {
 }
 
 h2 {
-    font-size: 18pt;
-    font-weight: bold;
+    font-family: "FreeWayBold","Liberation Sans", Arial, sans-serif;
+    font-size: 1.5em;
+    font-weight: normal;
+    color: #333333;
+    text-transform: uppercase;
     margin-left: 15px;
-    margin-top: 0;
     margin-bottom: 0px;
     text-align: left;
 }
 
+.section-expand{
+    float:left;
+    -moz-border-radius: 0.3em;
+    background-color: -moz-linear-gradient(top,  #959595,  #5e5e5e);
+    border: 1px solid #b8b8b8;
+    color: #fff;
+    margin-right: 0.5em;
+    margin-top: 0.1em;
+}
+
 hr {
-    background-color: #b2b2b2;
+    background-color: #EEEEEE;
     clear: both;
-    color: #b2b2b2;
+    color: #FFFFFF;
     height: 1px;
     margin-left: 15px;
     margin-right: 15px;
@@ -150,6 +184,7 @@ dl.entryattrs dt {
     padding-right: 18px;
     text-align: right;
     width: 160px;
+    margin: 0.5em -0.5em 0 -6em;
 }
 
 dl.entryattrs dd {
@@ -159,15 +194,18 @@ dl.entryattrs dd {
 
 dl.entryattrs dd.first {
     margin-left: 0px;
+    margin-top: 7px;
 }
 
 dl.entryattrs dd.other {
     clear: both;
-    margin-left: 178px;
+    margin-left: 107px;
 }
 
 dl.entryattrs input {
     margin-right: 5px;
+    margin-top: -12px;
+    min-width: 275px;
 }
 
 div#backtotop {
@@ -181,6 +219,7 @@ span.attrhint {
     left: 40em;
     margin-left: 100px;
     position: absolute;
+    overflow-x: hidden;
 }
 
 
@@ -191,6 +230,7 @@ span.attrhint {
     margin: 0;
     border: none;
     background-image: url(Mainnav-background.png);
+    -moz-border-radius: 0;
 
 }
 
@@ -198,12 +238,63 @@ span.attrhint {
     padding:0;
 }
 
+.ui-icon-plus {
+    background-position: -16px -129px;
+}
+
+.ui-icon-minus {
+    background-position: -48px -129px;
+}
+
+.ui-icon-trash {
+    background-position: -176px -97px;
+}
+
+.ui-widget-content .ui-icon {
+    background-image: url("ui-icons_222222_256x240.png");
+    background-color: #e2e2e2;
+}
+
+.ui-widget-content {
+    background: -moz-linear-gradient(top,  #F9F9F9,  #fff);
+}
+
+
+.ui-widget-content a {
+    text-decoration: none;
+    color: #1d85d5;
+    font-weight: normal;
+}
+
+.ui-widget-header {
+    background: url("modal-background.png")
+    repeat scroll 50% 50% #1f9123;
+    border: 1px solid #244c16;
+    color: #EEEEEE;
+    font-weight: bold;
+}
+
 .tabs1 .ui-tabs-nav {
     height: 3em;
 }
 
+.ui-widget input, .ui-widget select,
+.ui-widget textarea, .ui-widget button {
+    font-family: "Liberation Sans", Arial, sans-serif;
+    font-size: 1.3em;
+    margin-right: .1em;
+}
+
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default {
+    -moz-border-radius: .3em;
+     background: -moz-linear-gradient(top,  #959595,  #5e5e5e);
+     border: 1px solid #777777;
+     color: #fff;
+     font-weight: normal;
+}
+
 .tabs1 .ui-tabs-nav li {
- #   padding: 0.5em 0;
+    -moz-border-radius: 0 !important;
     background-image: url(Mainnav-offtab.png);
     margin: 0;
     border-width: 0;
@@ -219,12 +310,14 @@ span.attrhint {
 }
 
 .tabs1 .ui-tabs-nav li a{
-    width:5em;
-    padding: 0.2em 0;
+    -moz-border-radius: 0 !important;
+    font-family: "FreeWayBold", "Liberation Sans", Arial, Sans;
+    width:5.5em;
+    padding: none;
     color: #7E7E7E;
     margin: 0 auto;
     text-align:center;
-    font-size:2em;
+    font-size:1.5em;
 }
 
 
@@ -241,10 +334,11 @@ span.attrhint {
     border-width: 0;
     padding: 0 0 0 0;
     background: none;
+    overflow-x: hidden;
 }
 
 .tabs2 .ui-tabs-nav {
-    padding:  0.3em 6em 0  9em;
+    padding:  0.3em 6em 0  7em;
     margin: 0px;
     height:  2.5em;
     background-image: url(Subnav-background.png);
@@ -252,26 +346,27 @@ span.attrhint {
 
 .tabs2 .ui-tabs-nav li {
     width:auto;
-    padding: 0;
+    padding-left: 1em;
     margin: 0px 0;
-    background-image: url(Subnav-background.png);
+    background: #326122 !important;
     color: white;
 }
 
 .tabs2 .ui-tabs-nav li.ui-tabs-selected  {
-    padding: 0;
+    padding-left: 1em;
     height: 1em;
-    background-image: url(Subnav-background.png);
+    background: #326122 !important;
 }
 
 
 .tabs2 .ui-tabs-nav li a{
     width:auto;
-    padding: 0.2em 0.4em ;
-    -moz-border-radius: 2em;
-    border-radius: 2em;
+    padding: 0.4em 0.6em ;
+    -moz-border-radius: 2em !important;
+    border-radius: 2em !important;
     color: white;
     font-size: 1em;
+    font-family: "Liberation Sans", Arial, Sans;
 }
 
 .tabs2 .ui-tabs-nav li > a:link, span.main-nav-off >  a:visited{
@@ -280,16 +375,13 @@ span.attrhint {
 
 
 .tabs2 .ui-tabs-nav li a:hover{
-    background: none repeat scroll 0 0 #254718;
+    background: none repeat scroll 0 0 #1C3612;
 }
 
 .tabs2 .ui-tabs-nav li.ui-tabs-selected a{
-    -moz-border-radius: 2em;
-    border-radius: 2em;
-    border:1px solid #1C3612;
-    background: none repeat scroll 0 0 #254718;
+  # border:1px solid #1C3612;
+    background: none repeat scroll 0 0 #1C3612;
     color: white;
-    height: 1em;
 
 }
 
@@ -321,20 +413,34 @@ span.main-separator{
 
 .action-panel {
     position: fixed;
+    height: 330px;
     left: 3em;
     border: none;
     float: left;
-    margin-top: 5em;
+    margin-top: 6.3em;
     margin-left: 2.5em;
     padding-left: 0.5em;
     padding-bottom: 1em;
-    width: 16.5em;
+    width: 15.5em;
+    background-image:url('panel-background.png');
+    background-repeat:no-repeat;
+    background-position:right;
 }
 
+.action-panel h3{
+    font-family: "FreeWayBold", "Liberation Sans", Arial, sans-serif;
+    color: #333333;
+    margin: 0;
+    background: #EEEEEE;
+    padding: .5em;
+    border-right: 1px solid #dfdfdf;
+    text-transform: uppercase;
+    font-size: 1.2em;
+}
 
 .action-panel ul {
     list-style-type:none;
-    padding: 0;
+    padding-left: .5em;
 }
 
 .action-panel h3{
@@ -343,44 +449,62 @@ span.main-separator{
 }
 
 .action-panel li {
-    height: auto;
-    padding: 0.2em;
+    font-family: "FreeWayBold", "Liberation Sans", Arial, sans-serif;
+    font-size: 1.1em;
+    color: #1d85d5;
+    list-style-type: none;
+    height: 2.1em;
+    padding: none;
 }
 
 .action-panel li.search-facet {
-    color: black;
-    text-decoration: underline;
+    font-family: "FreeWayBold", "Liberation Sans", Arial, Sans;
+    color: #333333;
     cursor: pointer;
+    text-transform: uppercase;
+    font-size: 1.2em;
 }
 
 .action-panel li.entity-facet {
-    color: black;
-    text-decoration: underline;
+    font-family: "Liberation Sans",Arial,sans-serif;
+    color: #1d85d5;
     cursor: pointer;
-    margin-left:2em;
+    margin-left:1.8em;
+    text-transform: none;
 }
 
 .action-panel li.entity-facet-disabled {
+    font-family: "Liberation Sans",Arial,sans-serif;
     color: gray;
     cursor: default;
     text-decoration: none;
+    text-transform: none;
 }
 
+.action-button {
+    background: none;
+    background-image:none;
+    font-family: "Liberation Sans", Arial, sans-serif;
+    font-size: 0.9em;
+}
 
 
 .client {
     margin-top: 0.4em;
     float: left;
+    min-width: 700px;
 }
 
 
 /* Search */
 
 .search-controls {
+    -moz-border-radius: .7em .7em 0 0;
     height: 25px;
-    background:  white; ##a5a5a5;
+    background: -moz-linear-gradient(top,  #eeeeee,  #dfdfdf);
     position: relative;
-    padding: 0.7em;
+    padding: 1em 1.5em;
+    margin-top: 15px;
 }
 
 .search-table > a:link,a:visted{
@@ -393,10 +517,23 @@ span.main-separator{
     border: none;
 }
 
+.search-table td{
+    padding-left: 0.5em;
+}
+
 .search-table th{
-    background-color:gray;
-    color:white;
+    padding-left: 0.5em;
+    background-color:#f6f6f6;
+    color:#333333;
     text-align: left;
+    border: 1px solid #dfdfdf;
+}
+
+.search-table tfoot tr td span{
+    border-top: 1px solid #dfdfdf;
+    padding: 0.9em 0 0 1em;
+    display: block;
+    margin-top: 2em;
 }
 
 .search-table tr:nth-child(even){

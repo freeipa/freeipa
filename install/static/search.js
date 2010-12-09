@@ -96,7 +96,7 @@ function ipa_search_widget(spec) {
         var search_buttons = $('.search-buttons', action_panel);
 
         button = $('input[name=remove]', search_buttons);
-        that.remove_button = ipa_button({
+        that.remove_button = IPA.action_button({
             'label': IPA.messages.button.remove,
             'icon': 'ui-icon-trash',
             'click': function() { that.remove(that.container); }
@@ -104,7 +104,7 @@ function ipa_search_widget(spec) {
         button.replaceWith(that.remove_button);
 
         button = $('input[name=add]', search_buttons);
-        that.add_button = ipa_button({
+        that.add_button = IPA.action_button({
             'label': IPA.messages.button.add,
             'icon': 'ui-icon-plus',
             'click': function() { that.add(that.container); }

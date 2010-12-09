@@ -24,6 +24,9 @@
 
 /* REQUIRES: ipa.js */
 
+IPA.expand_icon = 'ui-icon-minus';
+IPA.collapse_icon = 'ui-icon-plus';
+
 IPA.is_field_writable = function(rights){
     if (!rights){
         alert('no right');
@@ -93,7 +96,7 @@ function ipa_details_field(spec) {
             }
 
         } else {
-            if (multivalue  && IPA.is_field_writable(rights)) { 
+            if (multivalue  && IPA.is_field_writable(rights)) {
                 dd = ipa_create_first_dd(that.name);
                 dd.append(ipa_details_field_create_add_link.call(that, that.name, rights, 0));
                 dd.appendTo(that.container);
@@ -407,9 +410,13 @@ function ipa_details_facet(spec) {
 
     that.get_section_header_prefix = function(visible) {
         if (visible) {
-            return '[&#8722;]';
+            return '<span class="ui-icon '+
+                IPA.collapse_icon +
+                ' section-expand" ></span>';
         } else {
-            return '[+]';
+            return '<span class="ui-icon '+
+                IPA.expand_icon +
+                ' section-expand" />';
         }
     };
 
@@ -463,7 +470,7 @@ function ipa_details_facet(spec) {
         that.facet_setup(container);
 
         var button = $('input[name=reset]', that.container);
-        that.reset_button = ipa_button({
+        that.reset_button = IPA.action_button({
             'label': 'Reset',
             'icon': 'ui-icon-refresh',
             'class': 'details-reset',
@@ -475,7 +482,7 @@ function ipa_details_facet(spec) {
         button.replaceWith(that.reset_button);
 
         button = $('input[name=update]', that.container);
-        that.update_button = ipa_button({
+        that.update_button = IPA.action_button({
             'label': 'Update',
             'icon': 'ui-icon-check',
             'class': 'details-update',
@@ -534,6 +541,12 @@ function ipa_details_facet(spec) {
     that.details_facet_load = that.load;
 
     return that;
+}
+
+IPA.action_button = function(spec) {
+    var button = ipa_button(spec);
+    button.removeClass("ui-state-default").addClass("action-button");
+    return button;
 }
 
 function ipa_button(spec) {
@@ -864,4 +877,3 @@ function _ipa_remove_on_click(obj)
     }
     return (false);
 }
-
