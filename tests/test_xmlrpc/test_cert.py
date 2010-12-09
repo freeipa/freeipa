@@ -92,7 +92,7 @@ class test_cert(XMLRPC_test):
     """
     host_fqdn = u'ipatestcert.%s' % api.env.domain
     service_princ = u'test/%s@%s' % (host_fqdn, api.env.realm)
-    subject = 'CN=%s,O=IPA' % host_fqdn
+    subject = 'CN=%s,O=%s' % (host_fqdn, api.env.realm)
 
     def test_1_cert_add(self):
         """

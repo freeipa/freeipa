@@ -125,6 +125,9 @@ class test_group(Declarative):
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
+                    displayname=[u'Test User1'],
+                    cn=[u'Test User1'],
+                    initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
                     dn=u'uid=%s,cn=users,cn=accounts,%s' % (user1, api.env.basedn)
                 ),
@@ -150,6 +153,9 @@ class test_group(Declarative):
                     sn=[u'User2'],
                     uid=[user2],
                     uidnumber=[fuzzy_digits],
+                    displayname=[u'Test User2'],
+                    cn=[u'Test User2'],
+                    initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
                     dn=u'uid=%s,cn=users,cn=accounts,%s' % (user2, api.env.basedn)
                 ),

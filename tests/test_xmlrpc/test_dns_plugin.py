@@ -20,6 +20,7 @@
 Test the `ipalib/plugins/dns.py` module.
 """
 
+import nose
 from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
@@ -28,6 +29,19 @@ dnszone1 = u'dnszone.test'
 dnsres1 = u'testdnsres'
 
 class test_dns(Declarative):
+
+    def setUp(self):
+        super(test_dns, self).setUp()
+        try:
+           api.Command['dnszone_add'](dnszone1,
+               idnssoamname = u'ns1.%s' % dnszone1,
+               idnssoarname = u'root.%s' % dnszone1,
+           )
+           api.Command['dnszone_del'](dnszone1)
+        except errors.NotFound:
+            raise nose.SkipTest('DNS is not configured')
+        except errors.DuplicateEntry:
+            pass
 
     cleanup_commands = [
         ('dnszone_del', [dnszone1], {}),
