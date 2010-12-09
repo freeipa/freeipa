@@ -806,25 +806,25 @@ function ipa_hbac_accesstime_widget(spec) {
         }
     };
 
-    that.load = function(result) {
+    that.load = function(record) {
 
-        that.values = result[that.name] || [];
+        that.values = record[that.name] || [];
         that.reset();
     };
 
-    that.set_values = function(values) {
+    that.update = function() {
 
-        that.set_radio_value(that.container, values && values.length ? '' : 'all');
+        that.set_category(that.container, that.values && that.values.length ? '' : 'all');
 
         that.table.tbody.empty();
-        for (var i=0; values && i<values.length; i++) {
+        for (var i=0; that.values && i<that.values.length; i++) {
             var record = {};
-            record[that.name] = values[i];
+            record[that.name] = that.values[i];
             that.table.add_record(record);
         }
     };
 
-    that.set_radio_value = function(container, value) {
+    that.set_category = function(container, value) {
         $('input[name="'+that.name+'"][value="'+value+'"]', that.container).get(0).checked = true;
     };
 
@@ -903,7 +903,7 @@ function ipa_hbac_accesstime_widget(spec) {
 
         dialog.add_button('Add', function() {
             add(
-                function() { dialog.clear(); }
+                function() { dialog.reset(); }
             );
         });
 

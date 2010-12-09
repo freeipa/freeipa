@@ -42,7 +42,7 @@ function ipa_widget(spec) {
     that.setup = spec.setup || setup;
     that.load = spec.load || load;
     that.save = spec.save || save;
-    that.clear = spec.clear || clear;
+    that.update = spec.update || update;
 
     that.__defineGetter__("entity_name", function(){
         return that._entity_name;
@@ -67,13 +67,20 @@ function ipa_widget(spec) {
     }
 
     function load(record) {
+        that.record = record;
+        that.reset();
+    }
+
+    that.reset = function() {
+        that.hide_undo();
+        that.update();
+    };
+
+    function update() {
     }
 
     function save() {
         return [];
-    }
-
-    function clear() {
     }
 
     that.is_dirty = function() {
@@ -88,14 +95,6 @@ function ipa_widget(spec) {
         }
 
         return false;
-    };
-
-    that.set_values = function(values) {
-    };
-
-    that.reset = function() {
-        that.hide_undo();
-        that.set_values(that.values);
     };
 
     that.get_undo = function() {
@@ -189,16 +188,13 @@ function ipa_text_widget(spec) {
         }
     };
 
-    that.set_values = function(values) {
+    that.update = function() {
+        var value = that.values && that.values.length ? that.values[0] : '';
         if (that.read_only) {
-            $('label[name="'+that.name+'"]', that.container).val(values[0]);
+            $('label[name="'+that.name+'"]', that.container).val(value);
         } else {
-            $('input[name="'+that.name+'"]', that.container).val(values[0]);
+            $('input[name="'+that.name+'"]', that.container).val(value);
         }
-    };
-
-    that.clear = function() {
-        that.set_values(['']);
     };
 
     return that;
@@ -251,13 +247,9 @@ function ipa_checkbox_widget(spec) {
         return [value];
     };
 
-    that.set_values = function(values) {
-        var value = values && values.length ? values[0] : false;
+    that.update = function() {
+        var value = that.values && that.values.length ? that.values[0] : false;
         $('input[name="'+that.name+'"]', that.container).get(0).checked = value;
-    };
-
-    that.clear = function() {
-        $('input[name="'+that.name+'"]', that.container).get(0).checked = false;
     };
 
     return that;
@@ -320,20 +312,15 @@ function ipa_radio_widget(spec) {
         return [input.val()];
     };
 
-    that.set_values = function(values) {
-        if (values.length) {
-            var input = $('input[name="'+that.name+'"][value="'+values[0]+'"]', that.container);
+    that.update = function() {
+        if (that.values && that.values.length) {
+            var input = $('input[name="'+that.name+'"][value="'+that.values[0]+'"]', that.container);
             if (input.length) {
                 input.get(0).checked = true;
-            } else {
-                that.clear();
+                return;
             }
-        } else {
-            that.clear();
         }
-    };
 
-    that.clear = function() {
         $('input[name="'+that.name+'"]', that.container).each(function() {
             var input = this;
             input.checked = false;
@@ -397,12 +384,9 @@ function ipa_textarea_widget(spec) {
         return [value];
     };
 
-    that.set_values = function(values) {
-        $('textarea[name="'+that.name+'"]', that.container).val(values[0]);
-    };
-
-    that.clear = function() {
-        that.set_values(['']);
+    that.update = function() {
+        var value = that.values && that.values.length ? that.values[0] : '';
+        $('textarea[name="'+that.name+'"]', that.container).val(value);
     };
 
     return that;
@@ -930,10 +914,10 @@ function ipa_dialog(spec) {
         that.container.remove();
     };
 
-    that.clear = function() {
+    that.reset = function() {
         for (var i=0; i<that.fields.length; i++) {
             var field = that.fields[i];
-            field.clear();
+            field.reset();
         }
     };
 

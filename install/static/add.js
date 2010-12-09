@@ -57,7 +57,7 @@ function ipa_add_dialog(spec) {
                     var facet = entity.get_facet('search');
                     var table = facet.table;
                     table.refresh();
-                    that.clear();
+                    that.reset();
                 }
             );
         });

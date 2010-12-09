@@ -364,7 +364,7 @@ function ipa_association_table_widget(spec) {
         that.reset();
     };
 
-    that.set_values = function(values) {
+    that.update = function() {
 
         that.empty();
 

@@ -43,13 +43,13 @@ function ipa_details_field(spec) {
     that.load = spec.load || load;
     that.save = spec.save || save;
 
-    function load(result) {
-        that.record = result;
-        that.values = result[that.name];
+    function load(record) {
+        that.record = record;
+        that.values = record[that.name];
         that.reset();
     }
 
-    that.set_values = function(values) {
+    that.update = function() {
 
         if (!that.record) return;
 
@@ -335,20 +335,28 @@ function ipa_details_list_section(spec){
         }
     };
 
-    // This is to allow declarative style programming for details
-    function input(spec){
-        that.create_field(spec);
-        return that;
-    }
-
-    that.input = input;
-
     return that;
 }
 
 // shorthand notation used for declarative definitions of details pages
 function ipa_stanza(spec) {
-    return ipa_details_list_section(spec);
+
+    spec = spec || {};
+
+    var that = ipa_details_list_section(spec);
+
+    // This is to allow declarative style programming for details
+    that.input = function(spec) {
+        that.create_field(spec);
+        return that;
+    };
+
+    that.custom_input = function(input) {
+        that.add_field(input);
+        return that;
+    };
+
+    return that;
 }
 
 function ipa_details_facet(spec) {

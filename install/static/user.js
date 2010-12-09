@@ -21,23 +21,36 @@
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
 function ipa_user(){
+
     var that = ipa_entity({
         name: 'user'
     });
+
     that.init = function() {
+
+        that.create_association({
+            'name': 'group',
+            'associator': 'serial'
+        });
+
+        that.create_association({
+            'name': 'netgroup',
+            'associator': 'serial'
+        });
+
         var search_facet = ipa_search_facet({
             'name': 'search',
             'label': 'Search',
             entity_name: that.name
         });
+        that.add_facet(search_facet);
+
         search_facet.create_column({name:'cn'});
         search_facet.create_column({name:'uid'});
         search_facet.create_column({name:'uidnumber'});
         search_facet.create_column({name:'mail'});
         search_facet.create_column({name:'telephonenumber'});
         search_facet.create_column({name:'title'});
-        that.add_facet(search_facet);
-
 
         that.add_facet(details_facet({name:'details',label:'Details'}));
 
@@ -74,7 +87,7 @@ function ipa_user(){
                 input({name:'displayname'}).
                 input({name:'initials'}),
             ipa_stanza({name:'account', label:'Account Details'}).
-                input({name:'nsaccountlock', load:user_status_load}).
+                custom_input(user_status_widget({name:'nsaccountlock'})).
                 input({name:'uid'}).
                 input({name:'userpassword', load: user_password_load}).
                 input({name:'uidnumber'}).
@@ -107,69 +120,72 @@ function ipa_user(){
 }
 IPA.add_entity(ipa_user());
 
-ipa_entity_set_association_definition('user', {
-    'group': { associator: 'serial' },
-    'netgroup': { associator: 'serial' }
-});
-
 /* ATTRIBUTE CALLBACKS */
 
 
-function user_status_load(result) {
+function user_status_widget(spec) {
 
-    var that = this;
+    spec = spec || {};
 
-    $('dd', that.container).remove();
+    var that = ipa_widget(spec);
 
-    var dd = ipa_create_first_dd(this.name);
-    dd.appendTo(that.container);
+    that.update = function() {
 
-    var lock_field = 'nsaccountlock';
+        if (!that.record) return;
 
-    var locked  = result[lock_field] &&
-        result[lock_field][0].toLowerCase() === 'true';
-    var title = "Active";
-    var text = "Active:  Click to Deactivate";
-    if (locked) {
-        title = "Inactive";
-        text = "Inactive:  Click to Activate";
-    }
+        $('dd', that.container).remove();
 
-    function on_lock_win(data, textStatus, xhr){
-        alert(data.result.summary);
-        $.bbq.pushState('user-facet','search');
-        return false;
-    }
+        var dd = ipa_create_first_dd(this.name);
+        dd.appendTo(that.container);
 
-    function on_lock_fail(data, textStatus, xhr){
-        $("#userstatuslink").text = "Error changing account status";
-        return false;
-    }
+        var lock_field = 'nsaccountlock';
 
-    var status_field =
-        $('<a/>',
-          {
-              id: 'userstatuslink',
-              title: title,
-              href: "jslink",
-              text: text,
-              click: function() {
-                  var jobj = $(this);
-                  var val = jobj.attr('title');
-                  var pkey =  $.bbq.getState('user-pkey');
-                  var command = 'user_enable';
-                  if (val == 'Active') {
-                      command = 'user_disable';
+        var locked  = that.record[lock_field] &&
+            that.record[lock_field][0].toLowerCase() === 'true';
+        var title = "Active";
+        var text = "Active:  Click to Deactivate";
+        if (locked) {
+            title = "Inactive";
+            text = "Inactive:  Click to Activate";
+        }
+
+        function on_lock_win(data, textStatus, xhr){
+            var entity = IPA.get_entity(that.entity_name);
+            var facet = entity.get_facet('details');
+            facet.refresh();
+            return false;
+        }
+
+        function on_lock_fail(data, textStatus, xhr){
+            $("#userstatuslink").text = "Error changing account status";
+            return false;
+        }
+
+        var status_field =
+            $('<a/>',
+              {
+                  id: 'userstatuslink',
+                  title: title,
+                  href: "jslink",
+                  text: text,
+                  click: function() {
+                      var jobj = $(this);
+                      var val = jobj.attr('title');
+                      var pkey =  $.bbq.getState('user-pkey');
+                      var command = 'user_enable';
+                      if (val == 'Active') {
+                          command = 'user_disable';
+                      }
+                      ipa_cmd(command, [pkey], {}, on_lock_win,on_lock_fail);
+
+                      return (false);
                   }
-                  ipa_cmd(command, [pkey], {}, on_lock_win,on_lock_fail);
+              });
+        status_field.appendTo(dd);
+    };
 
-                  return (false);
-              }
-          });
-    status_field.appendTo(dd);
+    return that;
 }
-
-
 
 function resetpwd_on_click(){
 

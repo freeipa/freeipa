@@ -34,7 +34,7 @@ test("Testing ipa_details_section.create().", function() {
         }
     );
 
-    var section = ipa_details_list_section({name:'IDIDID', label:'NAMENAMENAME'}).
+    var section = ipa_stanza({name:'IDIDID', label:'NAMENAMENAME'}).
         input({name:'cn'}).
         input({name:'description'}).
         input({name:'number'});
@@ -270,7 +270,7 @@ test("Testing  _ipa_create_text_input() read only .", function(){
 
 test("Testing ipa_details_section_setup again()",function(){
 
-    var section = ipa_details_list_section({name: 'IDIDID', label: 'NAMENAMENAME'}).
+    var section = ipa_stanza({name: 'IDIDID', label: 'NAMENAMENAME'}).
         input({name:'cn', label:'Entity Name'}).
         input({name:'description', label:'Description'}).
         input({name:'number', label:'Entity ID'});
