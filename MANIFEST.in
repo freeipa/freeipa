@@ -1,2 +1,2 @@
-include LICENSE TODO lite-server.py
+include COPYING TODO lite-server.py
 include tests/*/*.py
