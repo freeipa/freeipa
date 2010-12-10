@@ -231,7 +231,11 @@ class hbac_mod(LDAPUpdate):
     """
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        try:
+            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
         if is_all(options, 'usercategory') and 'memberuser' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason="user category cannot be set to 'all' while there are allowed users")
         if is_all(options, 'hostcategory') and 'memberhost' in entry_attrs:
