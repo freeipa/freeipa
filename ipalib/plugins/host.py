@@ -81,6 +81,8 @@ from ipalib.plugins.service import split_principal
 from ipalib.plugins.service import validate_certificate
 from ipalib.plugins.service import normalize_certificate
 from ipalib.plugins.service import set_certificate_attrs
+from ipalib.plugins.service import make_pem, check_writable_file
+from ipalib.plugins.service import write_certificate
 from ipalib.plugins.dns import dns_container_exists, _attribute_types
 from ipalib import _, ngettext
 from ipalib import x509
@@ -577,6 +579,12 @@ class host_show(LDAPRetrieve):
     Display information about a host.
     """
     has_output_params = LDAPRetrieve.has_output_params + host_output_params
+    takes_options = LDAPRetrieve.takes_options + (
+        Str('out?',
+            doc=_('file to store certificate in'),
+        ),
+    )
+
     member_attributes = ['managedby']
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -590,6 +598,19 @@ class host_show(LDAPRetrieve):
         set_certificate_attrs(entry_attrs)
 
         return dn
+
+    def forward(self, *keys, **options):
+        if 'out' in options:
+            check_writable_file(options['out'])
+            result = super(host_show, self).forward(*keys, **options)
+            if 'usercertificate' in result['result']:
+                write_certificate(result['result']['usercertificate'][0], options['out'])
+                result['summary'] = _('Certificate stored in file \'%(file)s\'') % dict(file=options['out'])
+                return result
+            else:
+                raise errors.NoCertificateError(entry=keys[-1])
+        else:
+            return super(host_show, self).forward(*keys, **options)
 
 api.register(host_show)
 

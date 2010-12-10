@@ -71,6 +71,8 @@ from ipalib import pkcs10
 from ipalib import x509
 from ipalib.plugins.virtual import *
 from ipalib.plugins.service import split_principal
+from ipalib.plugins.service import make_pem, check_writable_file
+from ipalib.plugins.service import write_certificate
 import base64
 import logging
 import traceback
@@ -414,6 +416,12 @@ class cert_show(VirtualCommand):
         ),
     )
 
+    takes_options = (
+        Str('out?',
+            doc=_('file to store certificate in'),
+        ),
+    )
+
     operation="retrieve certificate"
 
     def execute(self, serial_number):
@@ -442,6 +450,20 @@ class cert_show(VirtualCommand):
                 raise acierr
 
         return dict(result=result)
+
+    def forward(self, *keys, **options):
+        if 'out' in options:
+            check_writable_file(options['out'])
+            result = super(cert_show, self).forward(*keys, **options)
+            if 'usercertificate' in result['result']:
+                write_certificate(result['result']['usercertificate'][0], options['out'])
+                result['summary'] = _('Certificate stored in file \'%(file)s\'') % dict(file=options['out'])
+                return result
+            else:
+                raise errors.NoCertificateError(entry=keys[-1])
+        else:
+            return super(cert_show, self).forward(*keys, **options)
+
 
 api.register(cert_show)
 

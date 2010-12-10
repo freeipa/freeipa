@@ -69,6 +69,7 @@ EXAMPLES:
 
 """
 import base64
+import os
 
 from ipalib import api, errors, util
 from ipalib import Str, Flag, Bytes
@@ -78,6 +79,7 @@ from ipalib import _, ngettext
 from ipalib import util
 import nss.nss as nss
 from nss.error import NSPRError
+from ipapython.ipautil import file_exists
 
 
 output_params = (
@@ -219,6 +221,41 @@ def set_certificate_attrs(entry_attrs):
     entry_attrs['md5_fingerprint'] = unicode(nss.data_to_hex(nss.md5_digest(cert.der_data), 64)[0])
     entry_attrs['sha1_fingerprint'] = unicode(nss.data_to_hex(nss.sha1_digest(cert.der_data), 64)[0])
 
+def check_writable_file(filename):
+    """
+    Determine if the file is writable. If the file doesn't exist then
+    open the file to test writability.
+    """
+    try:
+        if file_exists(filename):
+            if not os.access(filename, os.W_OK):
+                raise errors.FileError(reason=_('Permission denied: %(file)s') % dict(file=filename))
+        else:
+            fp = open(filename, 'w')
+            fp.close()
+    except (IOError, OSError), e:
+        raise errors.FileError(reason=str(e))
+
+def make_pem(data):
+    """
+    Convert a raw base64-encoded blob into something that looks like a PE
+    file with lines split to 64 characters and proper headers.
+    """
+    cert = '\n'.join([data[x:x+64] for x in range(0, len(data), 64)])
+    return '-----BEGIN CERTIFICATE-----\n' + \
+    cert + \
+    '\n-----END CERTIFICATE-----'
+
+def write_certificate(cert, filename):
+    """
+    Check to see if the certificate should be written to a file and do so.
+    """
+    try:
+        fp = open(filename, 'w')
+        fp.write(make_pem(base64.b64encode(cert)))
+        fp.close()
+    except (IOError, OSError), e:
+        raise errors.FileError(reason=str(e))
 
 class service(LDAPObject):
     """
@@ -411,7 +448,11 @@ class service_show(LDAPRetrieve):
     Display information about an IPA service.
     """
     member_attributes = ['managedby']
-    takes_options = LDAPRetrieve.takes_options
+    takes_options = LDAPRetrieve.takes_options + (
+        Str('out?',
+            doc=_('file to store certificate in'),
+        ),
+    )
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if 'krblastpwdchange' in entry_attrs:
@@ -424,6 +465,19 @@ class service_show(LDAPRetrieve):
         set_certificate_attrs(entry_attrs)
 
         return dn
+
+    def forward(self, *keys, **options):
+        if 'out' in options:
+            check_writable_file(options['out'])
+            result = super(service_show, self).forward(*keys, **options)
+            if 'usercertificate' in result['result']:
+                write_certificate(result['result']['usercertificate'][0], options['out'])
+                result['summary'] = _('Certificate stored in file \'%(file)s\'') % dict(file=options['out'])
+                return result
+            else:
+                raise errors.NoCertificateError(entry=keys[-1])
+        else:
+            return super(service_show, self).forward(*keys, **options)
 
 api.register(service_show)
 

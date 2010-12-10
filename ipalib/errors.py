@@ -1110,6 +1110,39 @@ class ManagedPolicyError(ExecutionError):
     errno = 4021
     format = _('A managed group cannot have a password policy.')
 
+
+class FileError(ExecutionError):
+    """
+    **4022** Errors when dealing with files
+
+    For example:
+
+    >>> raise FileError('cannot write file \'test\'')
+    Traceback (most recent call last):
+      ...
+    FileError: cannot write file 'test'
+    """
+
+    errno = 4022
+    format = _('%(reason)s')
+
+
+class NoCertificateError(ExecutionError):
+    """
+    **4023** Raised when trying to retrieve a certificate that doesn't exist.
+
+    For example:
+
+    >>> raise NoCertificateError('\'ipa.example.com\' doesn't have a certificate.')
+    Traceback (most recent call last):
+      ...
+    NoCertificateError: 'ipa.example.com' doesn't have a certificate
+    """
+
+    errno = 4023
+    format = _('\'%(entry)s\' doesn\'t have a certificate.')
+
+
 class ManagedGroupExistsError(ExecutionError):
     """
     **4024** Raised when adding a user and its managed group exists
