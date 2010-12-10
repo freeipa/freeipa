@@ -391,6 +391,11 @@ def main():
     # Configure dirsrv
     ds = install_replica_ds(config)
 
+    # We ned to ldap_enable the CA now that DS is up and running
+    if CA:
+        CA.ldap_enable('CA', host_name, dm_password,
+                       util.realm_to_suffix(self.realm_name))
+
     install_krb(config, setup_pkinit=options.setup_pkinit)
     install_http(config)
     if CA:

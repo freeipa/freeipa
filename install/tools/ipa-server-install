@@ -697,7 +697,6 @@ def main():
         ca = certs.CertDB(realm_name, host_name=host_name,
                           subject_base=options.subject)
         ca.create_self_signed()
-        ca.publish_ca_cert("/etc/ipa/ca.crt")
     else:
         # Clean up any previous self-signed CA that may exist
         try:
@@ -740,6 +739,9 @@ def main():
         else:
             ca.configure_instance("pkiuser", host_name, dm_password, dm_password, cert_file=options.external_cert_file, cert_chain_file=options.external_ca_file, subject_base=options.subject)
 
+    # Now put the CA cert where other instances exepct it
+    ca.publish_ca_cert("/etc/ipa/ca.crt")
+
     # Create a directory server instance
     ds = dsinstance.DsInstance()
 
@@ -761,12 +763,17 @@ def main():
                            subject_base=options.subject,
                            hbac_allow=not options.hbac_allow)
 
+    # We ned to ldap_enable the CA now that DS is up and running
+    if not options.selfsign:
+        ca.ldap_enable('CA', host_name, dm_password,
+                       util.realm_to_suffix(realm_name))
+
+    # Create a kerberos instance
     if options.pkinit_pin:
         [pw_fd, pw_name] = tempfile.mkstemp()
         os.write(pw_fd, options.dirsrv_pin)
         os.close(pw_fd)
 
-    # Create a kerberos instance
     krb = krbinstance.KrbInstance(fstore)
     if options.pkinit_pkcs12:
         pkcs12_info = (options.pkinit_pkcs12, pw_name)

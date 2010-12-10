@@ -34,7 +34,7 @@ SERVICE_LIST = {
     'KPASSWD':('ipa_kpasswd', 20),
     'DNS':('named', 30),
     'HTTP':('httpd', 40),
-    'CA':('pki_cad', 50)
+    'CA':('pki-cad', 50)
 }
 
 def stop(service_name, instance_name=""):
@@ -270,19 +270,19 @@ class Service:
 
         self.steps = []
 
-    def __get_conn(self, dm_password):
+    def __get_conn(self, fqdn, dm_password):
         try:
             conn = ipaldap.IPAdmin("127.0.0.1")
             conn.simple_bind_s("cn=directory manager", dm_password)
         except Exception, e:
-            logging.critical("Could not connect to the Directory Server on %s: %s" % (self.fqdn, str(e)))
+            logging.critical("Could not connect to the Directory Server on %s: %s" % (fqdn, str(e)))
             raise e
 
         return conn
 
     def ldap_enable(self, name, fqdn, dm_password, ldap_suffix):
         self.chkconfig_off()
-        conn = self.__get_conn(dm_password)
+        conn = self.__get_conn(fqdn, dm_password)
 
         entry_name = "cn=%s,cn=%s,%s,%s" % (name, fqdn,
                                             "cn=masters,cn=ipa,cn=etc",

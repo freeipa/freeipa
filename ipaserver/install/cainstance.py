@@ -478,8 +478,8 @@ class CAInstance(service.Service):
         # We do not let the system start IPA components on its own,
         # Instead we reply on the IPA init script to start only enabled
         # components as found in our LDAP configuration tree
-        suffix = util.realm_to_suffix(self.realm)
-        self.ldap_enable('CA', self.fqdn, self.dm_password, suffix)
+        # We need to install DS before we can actually ldap_enable a service.
+        # so actual enablement is delayed.
 
     def __create_ca_user(self):
         user_exists = True
@@ -995,6 +995,14 @@ class CAInstance(service.Service):
                 ipautil.run(["/usr/sbin/userdel", pki_user])
             except ipautil.CalledProcessError, e:
                 logging.critical("failed to delete user %s" % e)
+
+    def publish_ca_cert(self, location):
+        args = ["-L", "-n", self.canickname, "-a"]
+        (cert, err, returncode) = self.__run_certutil(args)
+        fd = open(location, "w+")
+        fd.write(cert)
+        fd.close()
+        os.chmod(location, 0444)
 
 if __name__ == "__main__":
     installutils.standard_logging_setup("install.log", False)

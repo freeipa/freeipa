@@ -46,7 +46,7 @@ from ipaserver.plugins.ldap2 import ldap2
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
-CACERT="/erc/ipa/ca.crt"
+CACERT="/etc/ipa/ca.crt"
 
 def find_server_root():
     if ipautil.dir_exists(SERVER_ROOT_64):
