@@ -86,7 +86,8 @@ from ipalib import _, ngettext
 from ipalib import x509
 from ipapython.ipautil import ipa_generate_password
 from ipalib.request import context
-from ipaserver.install.bindinstance import get_reverse_zone
+if api.env.context in ['lite', 'server']:
+    from ipaserver.install.bindinstance import get_reverse_zone
 import base64
 import nss.nss as nss
 
