@@ -124,6 +124,8 @@ from ipalib import Flag, Int, List, Str, StrEnum
 from ipalib.aci import ACI
 from ipalib import output
 from ipalib import _, ngettext
+if api.env.in_server and api.env.context in ['lite', 'server']:
+    from ldap import explode_dn
 import logging
 
 _type_map = {
@@ -272,7 +274,9 @@ def _aci_to_kw(ldap, a, test=False):
                 # See if the target is a group. If so we set the
                 # targetgroup attr, otherwise we consider it a subtree
                 if api.env.container_group in target:
-                    kw['targetgroup'] = unicode(target)
+                    targetdn = unicode(target.replace('ldap:///',''))
+                    (dn, entry_attrs) = ldap.get_entry(targetdn, ['cn'])
+                    kw['targetgroup'] = entry_attrs['cn'][0]
                 else:
                     kw['subtree'] = unicode(target)
 
@@ -638,9 +642,10 @@ class aci_find(crud.Search):
 
         if 'memberof' in kw:
             try:
-                self.api.Command['group_show'](
+                result = self.api.Command['group_show'](
                     kw['memberof']
-                )
+                )['result']
+                dn = result['dn']
             except errors.NotFound:
                 pass
             else:
@@ -652,11 +657,9 @@ class aci_find(crud.Search):
                             results.remove(a)
                     else:
                         results.remove(a)
-                # uncomment next line if you add more search criteria
-                # acis = list(results)
 
-        for a in acis:
-            if 'type' in kw:
+        if 'type' in kw:
+            for a in acis:
                 if 'target' in a.target:
                     target = a.target['target']['expression']
                 else:
@@ -676,6 +679,37 @@ class aci_find(crud.Search):
         if 'selfaci' in kw and kw['selfaci'] == True:
             for a in acis:
                 if a.bindrule['expression'] != u'ldap:///self':
+                    try:
+                        results.remove(a)
+                    except ValueError:
+                        pass
+
+        if 'group' in kw:
+            for a in acis:
+                groupdn = a.bindrule['expression']
+                groupdn = groupdn.replace('ldap:///','')
+                cn = None
+                if groupdn.startswith('cn='):
+                    cn = explode_dn(groupdn)[0]
+                    cn = cn.replace('cn=','')
+                if cn is None or cn != kw['group']:
+                    try:
+                        results.remove(a)
+                    except ValueError:
+                        pass
+
+        if 'targetgroup' in kw:
+            for a in acis:
+                found = False
+                if 'target' in a.target:
+                    target = a.target['target']['expression']
+                    if api.env.container_group in target:
+                        targetdn = unicode(target.replace('ldap:///',''))
+                        cn = explode_dn(targetdn)[0]
+                        cn = cn.replace('cn=','')
+                        if cn == kw['targetgroup']:
+                            found = True
+                if not found:
                     try:
                         results.remove(a)
                     except ValueError:
