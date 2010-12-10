@@ -640,6 +640,35 @@ class IPAdmin(SimpleLDAPObject):
         return ",".join(ary)
     normalizeDN = staticmethod(normalizeDN)
 
+    def get_dns_sorted_by_length(self, entries, reverse=False):
+        """
+        Sorts a list of entries [(dn, entry_attrs)] based on their DN.
+        Entries within the same node are not sorted in any meaningful way.
+        If Reverse is set to True, leaf entries are returned first. This is
+        useful to perform recursive deletes where you need to delete entries
+        starting from the leafs and go up to delete nodes only when all its
+        leafs are removed.
+
+        Returns a "sorted" dict keyed by dn lengths and corresponding list
+        of DNs.
+        {'1': [dn1, dn2, dn3], '2': [dn4, dn5], ..}
+        """
+
+        res = dict()
+
+        for e in entries:
+            sdn = ldap.dn.str2dn(e.dn)
+            l = len(sdn)
+            if not l in res:
+                res[l] = []
+            res[l].append(e.dn)
+
+        keys = res.keys()
+        keys.sort(reverse=reverse)
+
+        return map(res.get, keys)
+
+
 def notfound(args):
     """Return a string suitable for displaying as an error when a
        search returns no results.

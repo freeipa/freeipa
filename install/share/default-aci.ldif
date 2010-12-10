@@ -23,6 +23,11 @@ changetype: modify
 add: aci
 aci: (targetfilter = "(objectClass=ipaGuiConfig)")(targetattr != "aci")(version 3.0;acl "Admins can change GUI config"; allow (read, search, compare, write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 
+dn: cn=ipa,cn=etc,$SUFFIX
+changetype: modify
+add: aci
+aci: (targetfilter = "(|(objectClass=ipaConfigObject)(dnahostname=*))")(version 3.0;acl "Admins can change GUI config"; allow (delete) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+
 dn: cn=accounts,$SUFFIX
 changetype: modify
 add: aci

@@ -76,16 +76,6 @@ def get_suffix():
     suffix = l.normalize_dn(util.realm_to_suffix(get_realm_name()))
     return suffix
 
-def get_host_name():
-    hostname = installutils.get_fqdn()
-    try:
-        installutils.verify_fqdn(hostname)
-    except RuntimeError, e:
-        logging.error(str(e))
-        sys.exit(1)
-
-    return hostname
-
 def test_connection(host):
     """
     Make a GSSAPI connection to the remote LDAP server to test out credentials.
@@ -114,41 +104,55 @@ def list_masters(replman, verbose):
             print "  last init ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastinitend))
             print "  last update status: %s" % entry.nsds5replicalastupdatestatus
             print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastupdateend))
-    
+
 def del_master(replman, hostname, force=False):
+    has_repl_agreement = True
     try:
         t = replman.get_agreement_type(hostname)
     except ldap.NO_SUCH_OBJECT:
         print "No replication agreement found for '%s'" % hostname
-        return
+        if force:
+            has_repl_agreement = False
+        else:
+            return
     except errors.NotFound:
         print "No replication agreement found for '%s'" % hostname
-        return
+        if force:
+            has_repl_agreement = False
+        else:
+            return
 
-    # Delete the remote agreement first
-    if t == replication.IPA_REPLICA:
-        failed = False
-        try:
-            other_replman = replication.ReplicationManager(hostname, replman.dirman_passwd)
-            other_replman.suffix = get_suffix()
-            other_replman.delete_agreement(replman.conn.host)
-        except ldap.LDAPError, e:
-            desc = e.args[0]['desc'].strip()
-            info = e.args[0].get('info', '').strip()
-            print "Unable to remove agreement on %s: %s: %s" % (hostname, desc, info)
-            failed = True
-        except Exception, e:
-            print "Unable to remove agreement on %s: %s" % (hostname, str(e))
-            failed = True
+    if has_repl_agreement:
+        # Delete the remote agreement first
+        if t == replication.IPA_REPLICA:
+            failed = False
+            try:
+                other_replman = replication.ReplicationManager(hostname, replman.dirman_passwd)
+                other_replman.suffix = get_suffix()
+                other_replman.delete_agreement(replman.conn.host)
+            except ldap.LDAPError, e:
+                desc = e.args[0]['desc'].strip()
+                info = e.args[0].get('info', '').strip()
+                print "Unable to remove agreement on %s: %s: %s" % (hostname, desc, info)
+                failed = True
+            except Exception, e:
+                print "Unable to remove agreement on %s: %s" % (hostname, str(e))
+                failed = True
 
-        if failed:
-            if force:
-                print "Forcing removal on local server"
-            else:
-                return
+            if failed:
+                if force:
+                    print "Forcing removal on local server"
+                else:
+                    return
 
-    # Delete the local agreement
-    replman.delete_agreement(hostname)
+        # Delete the local agreement
+        replman.delete_agreement(hostname)
+
+    try:
+        replman.replica_cleanup(hostname, get_realm_name(), force=True)
+    except Exception, e:
+        print "Failed to cleanup %s entries: %s" % (hostname, str(e))
+        print "You may need to manually remove them from the tree"
 
 def add_master(replman, hostname, options):
     other_args = {}
@@ -210,13 +214,13 @@ def synch_master(replman, hostname):
 
 def main():
     options, args = parse_options()
-    
+
     dirman_passwd = None
 
     if options.host:
         host = options.host
     else:
-        host = get_host_name()
+        host = installutils.get_fqdn()
 
     if options.dirman_passwd:
         dirman_passwd = options.dirman_passwd

@@ -573,3 +573,76 @@ class ReplicationManager:
                 return WINSYNC
 
         return IPA_REPLICA
+
+    def replica_cleanup(self, replica, realm, force=False):
+
+        err = None
+
+        if replica == self.hostname:
+            raise RuntimeError("Can't cleanup self")
+
+        if not self.suffix or self.suffix == "":
+            self.suffix = util.realm_to_suffix(realm)
+            self.suffix = ipaldap.IPAdmin.normalizeDN(self.suffix)
+
+        # delete master kerberos key and all its svc principals
+        try:
+            filter='(krbprincipalname=*/%s@%s)' % (replica, realm)
+            entries = self.conn.search_s(self.suffix, ldap.SCOPE_SUBTREE,
+                                         filterstr=filter)
+            if len(entries) != 0:
+                dnset = self.conn.get_dns_sorted_by_length(entries,
+                                                           reverse=True)
+                for dns in dnset:
+                    for dn in dns:
+                        self.conn.deleteEntry(dn)
+        except ldap.NO_SUCH_OBJECT:
+            pass
+        except errors.NotFound:
+            pass
+        except Exception, e:
+            if not force:
+                raise e
+            else:
+                err = e
+
+        # delete master entry with all active services
+        try:
+            dn = 'cn=%s,cn=masters,cn=ipa,cn=etc,%s' % (replica, self.suffix)
+            entries = self.conn.search_s(dn, ldap.SCOPE_SUBTREE)
+            if len(entries) != 0:
+                dnset = self.conn.get_dns_sorted_by_length(entries,
+                                                           reverse=True)
+                for dns in dnset:
+                    for dn in dns:
+                        self.conn.deleteEntry(dn)
+        except ldap.NO_SUCH_OBJECT:
+            pass
+        except errors.NotFound:
+            pass
+        except Exception, e:
+            if not force:
+                raise e
+            elif not err:
+                err = e
+
+        try:
+            basedn = 'cn=etc,%s' % self.suffix
+            filter = '(dnaHostname=%s)' % replica
+            entries = self.conn.search_s(basedn, ldap.SCOPE_SUBTREE,
+                                         filterstr=filter)
+            if len(entries) != 0:
+                for e in entries:
+                    self.conn.deleteEntry(e.dn)
+        except ldap.NO_SUCH_OBJECT:
+            pass
+        except errors.NotFound:
+            pass
+        except Exception, e:
+            if force and err:
+                raise err
+            else:
+                raise e
+
+        if err:
+            raise err

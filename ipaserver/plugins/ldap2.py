@@ -506,9 +506,10 @@ class ldap2(CrudBackend, Encoder):
             scope=_ldap.SCOPE_SUBTREE, time_limit=None, size_limit=None,
             normalize=True):
         """
-        Return a list of entries [(dn, entry_attrs)] matching specified
-        search parameters followed by truncated flag. If the truncated flag is
-        True, search hit a server limit and its results are incomplete.
+        Return a list of entries and indication of whteher the results where
+        truncated ([(dn, entry_attrs)], truncated) matching specified search
+        parameters followed by truncated flag. If the truncated flag is True,
+        search hit a server limit and its results are incomplete.
 
         Keyword arguments:
         attrs_list -- list of attributes to return, all if None (default None)
