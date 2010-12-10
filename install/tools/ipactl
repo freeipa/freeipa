@@ -21,6 +21,7 @@
 import sys
 try:
     from ipaserver.install import service
+    from ipaserver.install import dsinstance
     from ipapython import config
     from ipalib import api, errors
     import logging
@@ -67,10 +68,10 @@ def get_config():
                             filterstr=srcfilter,
                             attrlist=attrs,
                             timeout=10)
-    except e:
+    except Exception, e:
         print "Error retrieving list of services %s" % e
         print "Is IPA installed ?"
-        return
+        raise
 
     svc_list = []
 
@@ -83,16 +84,25 @@ def get_config():
 
     return svc_list
 
-def ipa_start():
+def ipa_start(serverid):
 
     try:
         print "Starting Directory Service"
-        service.start('dirsrv')
+        service.start('dirsrv', instance_name=serverid)
     except:
         emit_err("Failed to start Directory Service")
         return
 
-    svc_list = get_config()
+    svc_list = []
+    try:
+        svc_list = get_config()
+    except:
+        emit_err("Failed to read data from Directory Service")
+        emit_err("Shutting down")
+        service.stop('dirsrv', instance_name=serverid)
+
+    if len(svc_list) == 0:
+        return
 
     for (order, svc) in sorted(svc_list):
         svc_name = service.SERVICE_LIST[svc][0]
@@ -109,14 +119,30 @@ def ipa_start():
                 except:
                     pass
             try:
-                service.stop('dirsrv')
+                service.stop('dirsrv', instance_name=serverid)
             except:
                 pass
             return
 
-def ipa_stop():
+def ipa_stop(serverid):
 
-    svc_list = get_config()
+    svc_list = []
+    try:
+        svc_list = get_config()
+    except:
+        # ok if dirsrv died this may fail, so let's try to quickly restart it
+        # and see if we can get anything. If not throw our hands up and just
+        # exit
+        try:
+            service.start('dirsrv', instance_name=serverid)
+            svc_list = get_config()
+        except:
+            emit_err("Failed to read data from Directory Service")
+            emit_err("Shutting down")
+            service.stop('dirsrv', instance_name=serverid)
+
+    if len(svc_list) == 0:
+        return
 
     for (order, svc) in sorted(svc_list, reverse=True):
         svc_name = service.SERVICE_LIST[svc][0]
@@ -128,21 +154,30 @@ def ipa_stop():
 
     try:
         print "Stopping Directory Service"
-        service.stop('dirsrv')
+        service.stop('dirsrv', instance_name=serverid)
     except:
         emit_err("Failed to stop Directory Service")
         return
 
 
-def ipa_restart():
+def ipa_restart(serverid):
     try:
         print "Restarting Directory Service"
-        service.restart('dirsrv')
+        service.restart('dirsrv', instance_name=serverid)
     except:
         emit_err("Failed to restart Directory Service")
         return
 
-    svc_list = get_config()
+    svc_list = []
+    try:
+        svc_list = get_config()
+    except:
+        emit_err("Failed to read data from Directory Service")
+        emit_err("Shutting down")
+        service.stop('dirsrv', instance_name=serverid)
+
+    if len(svc_list) == 0:
+        return
 
     for (order, svc) in sorted(svc_list):
         svc_name = service.SERVICE_LIST[svc][0]
@@ -159,14 +194,14 @@ def ipa_restart():
                 except:
                     pass
             try:
-                service.stop('dirsrv')
+                service.stop('dirsrv', instance_name=serverid)
             except:
                 pass
             return
 
-def ipa_status():
+def ipa_status(serverid):
     try:
-        if service.is_running('dirsrv'):
+        if service.is_running('dirsrv', instance_name=serverid):
             print "Directory Service: RUNNING"
         else:
             print "Directory Service: STOPPED"
@@ -174,7 +209,14 @@ def ipa_status():
         print "Failed to get Directory Service status"
         return
 
-    svc_list = get_config()
+    svc_list = []
+    try:
+        svc_list = get_config()
+    except:
+        print "Failed to get list of services to probe status"
+
+    if len(svc_list) == 0:
+        return
 
     for (order, svc) in sorted(svc_list):
         svc_name = service.SERVICE_LIST[svc][0]
@@ -200,14 +242,16 @@ def main():
 
     syslog.openlog('ipa', syslog.LOG_NDELAY, syslog.LOG_DAEMON)
 
+    serverid = dsinstance.realm_to_serverid(api.env.realm)
+
     if args[0].lower() == "start":
-        ipa_start()
+        ipa_start(serverid)
     elif args[0].lower() == "stop":
-        ipa_stop()
+        ipa_stop(serverid)
     elif args[0].lower() == "restart":
-        ipa_restart()
+        ipa_restart(serverid)
     elif args[0].lower() == "status":
-        ipa_status()
+        ipa_status(serverid)
 
     syslog.closelog()
 
