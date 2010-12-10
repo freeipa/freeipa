@@ -1,0 +1,219 @@
+#!/usr/bin/env python
+# Authors: Jr Aquino <jr.aquino@citrix.com>
+# Authors: Rob Crittenden <rcritten@redhat.com>
+# Authors: Simo Sorce <ssorce@redhat.com>
+#
+# Copyright (C) 2010  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+import sys
+try:
+    from optparse import OptionParser
+    from ipapython import ipautil, config
+    from ipaserver.install import installutils
+    from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax
+    from ipaserver.plugins.ldap2 import ldap2
+    from ipalib import api, errors
+    import logging
+    import StringIO
+    import ldif
+except ImportError:
+    print >> sys.stderr, """\
+There was a problem importing one of the required Python modules. The
+error was:
+
+    %s
+""" % sys.exc_value
+    sys.exit(1)
+
+def parse_options():
+    usage = "%prog [options] <enable|disable>\n"
+    usage += "%prog [options]\n"
+    parser = OptionParser(usage=usage, formatter=config.IPAFormatter())
+
+    parser.add_option("-d", "--debug", action="store_true", dest="debug",
+                      help="Display debugging information about the update(s)")
+    parser.add_option("-y", dest="password",
+                      help="File containing the Directory Manager password")
+
+    config.add_standard_options(parser)
+    options, args = parser.parse_args()
+
+    config.init_config(options)
+
+    return options, args
+
+def get_dirman_password():
+    """Prompt the user for the Directory Manager password and verify its
+       correctness.
+    """
+    password = installutils.read_password("Directory Manager", confirm=False,
+        validate=False)
+
+    return password
+
+def main():
+    retval = 0
+    loglevel = logging.ERROR
+    files = ['/usr/share/ipa/host_nis_groups.ldif']
+    def_dn = 'cn=NGP Definition,cn=Managed Entries,cn=plugins,cn=config'
+
+    options, args = parse_options()
+    if options.debug:
+        loglevel = logging.DEBUG
+
+    if len(args) != 1:
+        sys.exit("You must specify one action, either enable or disable")
+    elif args[0] != "enable" and args[0] != "disable" and args[0] != "status":
+        sys.exit("Unrecognized action [" + args[0] + "]")
+
+    logging.basicConfig(level=loglevel,
+                        format='%(levelname)s %(message)s')
+
+    dirman_password = ""
+    if options.password:
+        pw = ipautil.template_file(options.password, [])
+        dirman_password = pw.strip()
+    else:
+        dirman_password = get_dirman_password()
+
+    api.bootstrap(context='cli', debug=options.debug)
+    api.finalize()
+
+    conn = None
+    try:
+        ldapuri = 'ldap://%s' % installutils.get_fqdn()
+        try:
+            conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
+            conn.connect(
+                bind_dn='cn=directory manager', bind_pw=dirman_password
+            )
+        except errors.LDAPError, lde:
+            sys.exit("An error occurred while connecting to the server.\n%s\n" %
+                str(lde))
+
+        if args[0] == "status":
+            try:
+                dn, current_attr = conn.get_entry(def_dn, ['originfilter'],
+                    normalize=False)
+                if current_attr['originfilter'] == [u'objectclass=ipahostgroup']:
+                    print "Plugin Enabled"
+                else:
+                    print "Plugin Disabled"
+            except errors.NotFound:
+                print "Plugin Disabled"
+            except errors.LDAPError, lde:
+                print "An error occurred while talking to the server."
+                print lde
+            return 0
+
+        if args[0] == "enable":
+            try:
+                enable_attr = {'originfilter': 'objectclass=ipahostgroup'}
+                dn, current_attr = conn.get_entry(def_dn, ['originfilter'],
+                    normalize=False)
+                if current_attr['originfilter'] == [u'objectclass=ipahostgroup']:
+                    print "Plugin already Enabled"
+                else:
+                    conn.update_entry(dn, enable_attr)
+                    print "Enabling Plugin"
+                retval = 2
+            except errors.NotFound:
+                print "Enabling Plugin"
+            except errors.LDAPError, lde:
+                print "An error occurred while talking to the server."
+                print lde
+                retval = 1
+
+            if retval == 0:
+                ldap_data = StringIO.StringIO()
+                ldapfile = open(files[0], 'r').readlines()
+                for line in ldapfile:
+                    if line == 'changetype: add\n':
+                        pass
+                    else:
+                        line = line.replace(
+                            '$SUFFIX', api.env.basedn).replace('$$', '$')
+                        ldap_data.write(line,)
+                parsing_data = ldif.LDIFRecordList(ldap_data)
+                print "Enabling Plugin"
+                print "This setting will not take effect until you restart \
+                    Directory Server."
+                for dn, entry_attr in parsing_data.all_records:
+                    try:
+                        conn.update_entry(dn, entry_attr)
+                        retval = 1
+                    except errors.LDAPError, lde:
+                        print "An error occurred while talking to the server."
+                        print lde
+                        retval = 1
+
+        elif args[0] == "disable":
+            # Make a quick hack for now, directly delete the entries by name,
+            # In future we should consider an alternative means for enabling/
+            # disabling.
+            try:
+                disable_attr = {'originfilter': 'objectclass=disabled'}
+                dn, current_attr = conn.get_entry(def_dn, ['originfilter'],
+                    normalize=False)
+                if current_attr['originfilter'] == [u'objectclass=disabled']:
+                    print "Plugin already disabled"
+                else:
+                    conn.update_entry(dn, disable_attr)
+                    print "Disabling Plugin"
+            except errors.NotFound:
+                print "Plugin is already disabled"
+                retval = 2
+            except errors.DatabaseError, dbe:
+                print "An error occurred while talking to the server."
+                print dbe
+                retval = 1
+            except errors.LDAPError, lde:
+                print "An error occurred while talking to the server."
+                print lde
+                retval = 1
+
+        else:
+            retval = 1
+
+    finally:
+        if conn:
+            conn.disconnect()
+
+    return retval
+
+try:
+    if __name__ == "__main__":
+        sys.exit(main())
+except BadSyntax, e:
+    print "There is a syntax error in this update file:"
+    print "  %s" % e
+    sys.exit(1)
+except RuntimeError, e:
+    print "%s" % e
+    sys.exit(1)
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt, e:
+    sys.exit(1)
+except config.IPAConfigError, e:
+    print "An IPA server to update cannot be found. Has one been configured yet?"
+    print "The error was: %s" % e
+    sys.exit(1)
+except errors.LDAPError, e:
+    print "An error occurred while performing operations: %s" % e
+    sys.exit(1)

@@ -43,6 +43,7 @@ app_DATA =				\
 	ldapi.ldif			\
 	wsgi.py				\
 	user_private_groups.ldif	\
+	host_nis_groups.ldif		\
 	uuid-ipauniqueid.ldif		\
 	modrdn-krbprinc.ldif		\
 	entryusn.ldif			\

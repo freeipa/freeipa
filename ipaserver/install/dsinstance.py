@@ -209,6 +209,7 @@ class DsInstance(service.Service):
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("restarting directory server", self.__restart_instance)
         self.step("configuring user private groups", self.__user_private_groups)
+        self.step("configuring netgroups from hostgroups", self.__host_nis_groups)
 
     def __common_post_setup(self):
         self.step("initializing group membership", self.init_memberof)
@@ -463,6 +464,11 @@ class DsInstance(service.Service):
         if not has_managed_entries(self.fqdn, self.dm_password):
             raise errors.NotFound(reason='Missing Managed Entries Plugin')
         self._ldap_mod("user_private_groups.ldif", self.sub_dict)
+
+    def __host_nis_groups(self):
+        if not has_managed_entries(self.fqdn, self.dm_password):
+            raise errors.NotFound(reason='Missing Managed Entries Plugin')
+        self._ldap_mod("host_nis_groups.ldif", self.sub_dict)
 
     def __add_enrollment_module(self):
         self._ldap_mod("enrollment-conf.ldif", self.sub_dict)

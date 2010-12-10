@@ -1,0 +1,47 @@
+.\" A man page for ipa-host-net-manage
+.\" Copyright (C) 2010 Red Hat, Inc.
+.\"
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; version 2 only
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\"
+.\" Author: Jr Aquino <jr.aquino@citrix.com>
+.\"
+.TH "ipa-host-net-manage" "1" "Dec 2 2010" "freeipa" ""
+.SH "NAME"
+ipa\-host\-net\-manage \- Enables or disables the schema Managed Entry Hostgroup -to- Netgroup plugin
+.SH "SYNOPSIS"
+ipa\-host\-net\-manage [options] <enable|disable|status>
+.SH "DESCRIPTION"
+Run the command with the \fBenable\fR option to enable the Managed Entry Hostgroup -to- Netgroup plugin.
+
+Run the command with the \fBdisable\fR option to disable the Managed Entry Hostgroup -to- Netgroup plugin.
+
+Run the command with the \fBstatus\fR to determine the current status of the Managed Entry Hostgroup -to- Netgroup plugin.
+
+In all cases the user will be prompted to provide the Directory Manager's password unless option \fB\-y\fR is used.
+
+Directory Server will need to be restarted after the schema compatibility plugin has been enabled.
+
+.SH "OPTIONS"
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Enable debug logging when more verbose output is needed
+.TP
+\fB\-y\fR \fIfile\fR
+File containing the Directory Manager password
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred
+
+2 if the plugin is already in the required status (enabled or disabled)

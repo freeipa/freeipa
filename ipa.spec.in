@@ -23,7 +23,7 @@ Source0:        freeipa-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %if ! %{ONLY_CLIENT}
-BuildRequires:  389-ds-base-devel >= 1.2.7
+BuildRequires:  389-ds-base-devel >= 1.2.7.4
 BuildRequires:  mozldap-devel
 BuildRequires:  svrcore-devel
 BuildRequires:  nspr-devel
@@ -64,7 +64,7 @@ Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
 Requires(post): %{name}-server-selinux = %{version}-%{release}
-Requires: 389-ds-base >= 1.2.7
+Requires: 389-ds-base >= 1.2.7.4
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
@@ -435,6 +435,7 @@ fi
 %{_mandir}/man8/ipactl.8.gz
 %{_mandir}/man1/ipa-compat-manage.1.gz
 %{_mandir}/man1/ipa-nis-manage.1.gz
+%{_mandir}/man1/ipa-host-net-manage.1.gz
 %{_mandir}/man1/ipa-ldap-updater.1.gz
 
 %files server-selinux
@@ -470,6 +471,7 @@ fi
 %{_sbindir}/ipa-ldap-updater
 %{_sbindir}/ipa-compat-manage
 %{_sbindir}/ipa-nis-manage
+%{_sbindir}/ipa-host-net-manage
 %{_sysconfdir}/bash_completion.d
 %{_mandir}/man1/ipa.1.gz
 %endif
@@ -508,6 +510,9 @@ fi
 %endif
 
 %changelog
+* Fri Dec 10 2010 Jr Aquino <jr.aquino@citrix.com> - 1.99-34
+- Add ipa-host-net-manage script
+
 * Tue Dec  7 2010 Simo Sorce <ssorce@redhat.com> - 1.99-33
 - Add ipa init script
 

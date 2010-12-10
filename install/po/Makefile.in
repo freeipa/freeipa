@@ -45,6 +45,7 @@ PY_EXPLICIT_FILES = \
      install/tools/ipa-upgradeconfig \
      install/tools/ipa-replica-prepare \
      install/tools/ipa-compat-manage \
+     install/tools/ipa-host-net-manage \
      install/tools/ipa-server-install \
      install/tools/ipa-ldap-updater \
      ipa-client/ipa-install/ipa-client-install

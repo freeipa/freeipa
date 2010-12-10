@@ -12,7 +12,8 @@ man1_MANS = 				\
 	ipa-server-install.1		\
 	ipa-ldap-updater.1		\
 	ipa-compat-manage.1		\
-	ipa-nis-manage.1
+	ipa-nis-manage.1		\
+	ipa-host-net-manage.1
 
 man8_MANS =				\
 	ipactl.8			\

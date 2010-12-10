@@ -1,0 +1,19 @@
+dn: cn=NGP HGP Template,$SUFFIX
+changetype: add
+objectclass: mepTemplateEntry
+cn: NGP HGP Template
+mepRDNAttr: cn
+mepStaticAttr: ipaUniqueId: autogenerate
+mepStaticAttr: objectclass: ipanisnetgroup
+mepMappedAttr: cn: $$cn
+mepMappedAttr: memberHost: $$dn
+mepMappedAttr: description: ipaNetgroup $$cn
+
+dn: cn=NGP Definition,cn=Managed Entries,cn=plugins,cn=config
+changetype: add
+objectclass: extensibleObject
+cn: HGP Definition
+originScope: cn=hostgroups,cn=accounts,$SUFFIX
+originFilter: objectclass=ipahostgroup
+managedBase: cn=ng,cn=alt,$SUFFIX
+managedTemplate: cn=NGP HGP Template,$SUFFIX
