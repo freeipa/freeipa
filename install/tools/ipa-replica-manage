@@ -129,7 +129,7 @@ def del_master(replman, hostname, force=False):
     if t == replication.IPA_REPLICA:
         failed = False
         try:
-            other_replman = replication.ReplicationManager(hostname, dirman_passwd=None)
+            other_replman = replication.ReplicationManager(hostname, replman.dirman_passwd)
             other_replman.suffix = get_suffix()
             other_replman.delete_agreement(replman.conn.host)
         except ldap.LDAPError, e:
