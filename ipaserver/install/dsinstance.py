@@ -245,6 +245,7 @@ class DsInstance(service.Service):
 
         self.step("adding default layout", self.__add_default_layout)
         self.step("adding delegation layout", self.__add_delegation_layout)
+        self.step("adding replication acis", self.__add_replication_acis)
         if hbac_allow:
             self.step("creating default HBAC rule allow_all", self.add_hbac)
 
@@ -278,6 +279,7 @@ class DsInstance(service.Service):
         self.__common_setup()
 
         self.step("Setting up initial replication", self.__setup_replica)
+        self.step("adding replication acis", self.__add_replication_acis)
 
         self.__common_post_setup()
 
@@ -533,6 +535,9 @@ class DsInstance(service.Service):
 
     def __add_delegation_layout(self):
         self._ldap_mod("delegation.ldif", self.sub_dict)
+
+    def __add_replication_acis(self):
+        self._ldap_mod("replica-acis.ldif", self.sub_dict)
 
     def __create_indices(self):
         self._ldap_mod("indices.ldif")

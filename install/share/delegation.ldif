@@ -592,18 +592,6 @@ changetype: modify
 add: aci
 aci: (targetattr = "enrolledby || objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Enroll a host";allow (write) groupdn = "ldap:///cn=enroll_host,cn=permissions,cn=accounts,$SUFFIX";)
 
-# Replica administration
-
-dn: cn="$SUFFIX",cn=mapping tree,cn=config
-changetype: modify
-add: aci
-aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5Replica)(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement))")(version 3.0; acl "Manage Replication Agreements"; allow (read, write, search) groupdn = "ldap:///cn=managereplica,cn=permissions,cn=accounts,$SUFFIX";)
-
-dn: cn="$SUFFIX",cn=mapping tree,cn=config
-changetype: modify
-add: aci
-aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement))")(version 3.0;acl "Delete Replication Agreements";allow (delete) groupdn = "ldap:///cn=deletereplica,cn=permissions,cn=accounts,$SUFFIX";)
-
 # Entitlement administration
 
 dn: $SUFFIX
