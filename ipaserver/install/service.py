@@ -297,7 +297,7 @@ class Service:
 
         try:
             conn.add_s(entry)
-        except ldap.ALREADY_EXISTS:
+        except ldap.ALREADY_EXISTS, e:
             logging.critical("failed to add %s Service startup entry" % name)
             raise e
 
