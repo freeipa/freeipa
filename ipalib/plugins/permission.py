@@ -220,13 +220,16 @@ class permission_mod(LDAPUpdate):
     msg_summary = _('Modified permission "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        (dn, attrs) = ldap.get_entry(
-            dn, attrs_list, normalize=self.obj.normalize_dn
-        )
+        try:
+            (dn, attrs) = ldap.get_entry(
+                dn, attrs_list, normalize=self.obj.normalize_dn
+            )
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
         opts = copy.copy(options)
         if 'description' in opts:
             del opts['description']
-        for o in self.obj.aci_attributes + ['all', 'raw', 'rights']:
+        for o in ['all', 'raw', 'rights', 'description']:
             if o in opts:
                 del opts[o]
         setattr(context, 'aciupdate', False)
@@ -249,8 +252,8 @@ class permission_mod(LDAPUpdate):
                 pass
 
         if 'description' in options:
-            (dn, attrs) = ldap.get_entry(dn, ['description'])
-            self.api.Command.aci_rename(attrs['description'][0], newname=options['description'])
+            if attrs['description'][0] != options['description']:
+                self.api.Command.aci_rename(attrs['description'][0], newname=options['description'])
 
         return dn
 
@@ -265,7 +268,7 @@ class permission_mod(LDAPUpdate):
                 except:
                     pass
 
-            if len(opts) > 0:
+            if len(opts) > 0 and not aciupdate:
                 raise exc
         else:
             raise exc
