@@ -131,6 +131,7 @@ class user(LDAPObject):
             label=_('Kerberos principal'),
             default_from=lambda uid: '%s@%s' % (uid, api.env.realm),
             autofill=True,
+            flags=['no_update'],
         ),
         Str('mail*',
             cli_name='email',
