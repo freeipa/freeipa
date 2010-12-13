@@ -1110,6 +1110,21 @@ class ManagedPolicyError(ExecutionError):
     errno = 4021
     format = _('A managed group cannot have a password policy.')
 
+class ManagedGroupExistsError(ExecutionError):
+    """
+    **4024** Raised when adding a user and its managed group exists
+
+    For example:
+
+    >>> raise ManagedGroupExistsError(group=u'engineering')
+    Traceback (most recent call last):
+      ...
+    ManagedGroupExistsError: Unable to create private group. A group 'engineering' already exists.'
+    """
+
+    errno = 4024
+    format = _('Unable to create private group. Group \'%(group)s\' already exists.')
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).

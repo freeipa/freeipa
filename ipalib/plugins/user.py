@@ -211,6 +211,18 @@ class user_add(LDAPCreate):
     msg_summary = _('Added user "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        try:
+            # The Managed Entries plugin will allow a user to be created
+            # even if a group has a duplicate name. This would leave a user
+            # without a private group. Check for both the group and the user.
+            self.api.Command['group_show'](keys[-1])
+            try:
+                self.api.Command['user_show'](keys[-1])
+                raise errors.DuplicateEntry()
+            except errors.NotFound:
+                raise errors.ManagedGroupExistsError(group=keys[-1])
+        except errors.NotFound:
+            pass
         config = ldap.get_ipa_config()[1]
         if 'ipamaxusernamelength' in config:
             if len(keys[-1]) > int(config.get('ipamaxusernamelength')[0]):

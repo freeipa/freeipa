@@ -32,6 +32,7 @@ user_memberof = (u'cn=ipausers,cn=groups,cn=accounts,%s' % api.env.basedn,)
 user1=u'tuser1'
 user2=u'tuser2'
 renameduser1=u'tuser'
+group1=u'group1'
 
 invaliduser1=u'+tuser1'
 invaliduser2=u'tuser1234567890123456789012345678901234567890'
@@ -41,6 +42,7 @@ class test_user(Declarative):
 
     cleanup_commands = [
         ('user_del', [user1, user2], {}),
+        ('group_del', [group1], {}),
     ]
 
     tests = [
@@ -460,5 +462,34 @@ class test_user(Declarative):
             command=('user_add', [invaliduser2], dict(givenname=u'Test', sn=u'User1')),
             expected=errors.ValidationError(name='uid', error='can be at most 33 characters'),
         ),
+
+        dict(
+            desc='Create %r' % group1,
+            command=(
+                'group_add', [group1], dict(description=u'Test desc')
+            ),
+            expected=dict(
+                value=group1,
+                summary=u'Added group "%s"' % group1,
+                result=dict(
+                    cn=[group1],
+                    description=[u'Test desc'],
+                    gidnumber=[fuzzy_digits],
+                    objectclass=objectclasses.group + [u'posixgroup'],
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Try to user %r where the managed group exists' % group1,
+            command=(
+                'user_add', [group1], dict(givenname=u'Test', sn=u'User1')
+            ),
+            expected=errors.ManagedGroupExistsError(group=group1)
+        ),
+
 
     ]
