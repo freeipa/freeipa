@@ -48,7 +48,7 @@ Migration is disabled by default. To configure it use config-mod:
 
 EXAMPLES:
 
- The simplest migration, acceptinging all defaults:
+ The simplest migration, accepting all defaults:
    ipa migrate-ds ldap://ds.example.com:389
 
  Specify the user and group container. This can be used to migrate user and
