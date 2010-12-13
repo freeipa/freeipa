@@ -46,6 +46,8 @@ class sudorule(LDAPObject):
         'memberhost': ['host', 'hostgroup'],
         'memberallowcmd': ['sudocmd', 'sudocmdgroup'],
         'memberdenycmd': ['sudocmd', 'sudocmdgroup'],
+        'ipasudorunas': ['user'],
+        'ipasudorunasgroup': ['group'],
     }
 
     label = _('SUDO')
@@ -82,6 +84,18 @@ class sudorule(LDAPObject):
             doc=_('Command category the rule applies to'),
             values=(u'all', ),
         ),
+        StrEnum('ipasudorunasusercategory?',
+            cli_name='runasusercat',
+            label=_('Run As User category'),
+            doc=_('Run As User category the rule applies to'),
+            values=(u'all', ),
+        ),
+        StrEnum('ipasudorunasgroupcategory?',
+            cli_name='runasgroupcat',
+            label=_('Run As Group category'),
+            doc=_('Run As Group category the rule applies to'),
+            values=(u'all', ),
+        ),
             Str('memberuser_user?',
             label=_('Users'),
             flags=['no_create', 'no_update', 'no_search'],
@@ -108,6 +122,14 @@ class sudorule(LDAPObject):
         ),
         Str('memberdenycmd_sudocmdgroup?',
             label=_('Sudo Command Groups'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+            Str('ipasudorunas_user?',
+            label=_('Run As User'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+            Str('ipasudorunasgroup_group?',
+            label=_('Run As Group'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
 
@@ -292,3 +314,43 @@ class sudorule_remove_host(LDAPRemoveMember):
     member_count_out = ('%i object removed.', '%i objects removed.')
 
 api.register(sudorule_remove_host)
+
+
+class sudorule_add_runasuser(LDAPAddMember):
+    """
+    Add user for Sudo to execute as.
+    """
+    member_attributes = ['ipasudorunas']
+    member_count_out = ('%i object added.', '%i objects added.')
+
+api.register(sudorule_add_runasuser)
+
+
+class sudorule_remove_runasuser(LDAPRemoveMember):
+    """
+    Remove user for Sudo to execute as.
+    """
+    member_attributes = ['ipasudorunas']
+    member_count_out = ('%i object removed.', '%i objects removed.')
+
+api.register(sudorule_remove_runasuser)
+
+
+class sudorule_add_runasgroup(LDAPAddMember):
+    """
+    Add group for Sudo to execute as.
+    """
+    member_attributes = ['ipasudorunasgroup']
+    member_count_out = ('%i object added.', '%i objects added.')
+
+api.register(sudorule_add_runasgroup)
+
+
+class sudorule_remove_runasgroup(LDAPRemoveMember):
+    """
+    Remove group for Sudo to execute as.
+    """
+    member_attributes = ['ipasudorunasgroup']
+    member_count_out = ('%i object removed.', '%i objects removed.')
+
+api.register(sudorule_remove_runasgroup)
