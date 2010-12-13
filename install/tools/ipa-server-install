@@ -548,11 +548,6 @@ def main():
         if not bindinstance.check_inst(options.unattended):
             sys.exit("Aborting installation")
 
-    # check the pkinit plugin is installed
-    if options.setup_pkinit:
-        if not krbinstance.check_pkinit_plugin():
-            sys.exit("Aborting installation")
-
     # check the hostname is correctly configured, it must be as the kldap
     # utilities just use the hostname as returned by gethostbyname to set
     # up some of the standard entries

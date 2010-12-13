@@ -72,6 +72,7 @@ Requires: nss-tools
 Requires: krb5-server
 %endif
 Requires: krb5-server-ldap
+Requires: krb5-pkinit-openssl
 Requires: cyrus-sasl-gssapi
 Requires: ntp
 Requires: httpd
@@ -510,6 +511,9 @@ fi
 %endif
 
 %changelog
+* Mon Dec 13 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-35
+- Add Requires on krb5-pkinit-openssl
+
 * Fri Dec 10 2010 Jr Aquino <jr.aquino@citrix.com> - 1.99-34
 - Add ipa-host-net-manage script
 

@@ -49,16 +49,6 @@ from distutils import version
 
 KRBMKEY_DENY_ACI = '(targetattr = "krbMKey")(version 3.0; acl "No external access"; deny (read,write,search,compare) userdn != "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)'
 
-def check_pkinit_plugin():
-    LIB32 = '/usr/lib/krb5/plugins/preauth/pkinit.so'
-    LIB64 = '/usr/lib64/krb5/plugins/preauth/pkinit.so'
-    if not os.path.exists(LIB32) and not os.path.exists(LIB64):
-        print "The pkinit plugin is missing"
-        print "Please install the 'krb5-pkinit-openssl' package and start the installation again"
-        return False
-
-    return True
-
 def update_key_val_in_file(filename, key, val):
     if os.path.exists(filename):
         pattern = "^[\s#]*%s\s*=\s*%s\s*" % (re.escape(key), re.escape(val))

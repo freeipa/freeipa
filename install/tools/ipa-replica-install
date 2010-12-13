@@ -278,11 +278,6 @@ def check_bind():
         print "Aborting installation"
         sys.exit(1)
 
-def check_pkinit():
-    if not krbinstance.check_pkinit_plugin():
-        print "Aborting installation"
-        sys.exit(1)
-
 def main():
     safe_options, options, filename = parse_options()
     installutils.standard_logging_setup("/var/log/ipareplica-install.log", options.debug)
@@ -349,10 +344,6 @@ def main():
     #[certs.ipa_self_signed() must be called only after api.finalize()]
     if not ipautil.file_exists(config.dir + "/pkinitcert.p12") and not certs.ipa_self_signed():
         options.setup_pkinit = False
-
-    # check the pkinit plugin is installed
-    if options.setup_pkinit:
-        check_pkinit()
 
     # Install CA cert so that we can do SSL connections with ldap
     install_ca_cert(config)
