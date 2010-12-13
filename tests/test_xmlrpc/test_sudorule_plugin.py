@@ -43,6 +43,9 @@ class test_sudorule(XMLRPC_test):
     test_sudodenycmdgroup = u'sudorule_test_denycmdgroup'
     test_command = u'/usr/bin/testsudocmd1'
     test_denycommand = u'/usr/bin/testdenysudocmd1'
+    test_runasuser = u'manager'
+    test_runasgroup = u'manager'
+    test_catagory = u'all'
 
     def test_0_sudorule_add(self):
         """
@@ -107,6 +110,9 @@ class test_sudorule(XMLRPC_test):
         self.failsafe_add(api.Object.user,
             self.test_user, givenname=u'first', sn=u'last'
         )
+        self.failsafe_add(api.Object.user,
+            self.test_runasuser, givenname=u'first', sn=u'last'
+        )
         self.failsafe_add(api.Object.group,
             self.test_group, description=u'description'
         )
@@ -163,6 +169,71 @@ class test_sudorule(XMLRPC_test):
         entry = ret['result']
         assert 'memberuser_user' not in entry
         assert 'memberuser_group' not in entry
+
+    def test_a_sudorule_add_runasuser(self):
+        """
+        Test adding run as user to Sudo rule using
+        `xmlrpc.sudorule_add_runasuser`.
+        """
+        ret = api.Command['sudorule_add_runasuser'](
+            self.rule_name, user=self.test_runasuser
+        )
+        assert ret['completed'] == 1
+        failed = ret['failed']
+        assert 'ipasudorunas' in failed
+        assert 'user' in failed['ipasudorunas']
+        assert not failed['ipasudorunas']['user']
+        entry = ret['result']
+        assert_attr_equal(entry, 'ipasudorunas_user', self.test_runasuser)
+
+    def test_b_sudorule_remove_runasuser(self):
+        """
+        Test removing run as user to Sudo rule using
+        `xmlrpc.sudorule_remove_runasuser'.
+        """
+        ret = api.Command['sudorule_remove_runasuser'](
+            self.rule_name, user=self.test_runasuser
+        )
+        assert ret['completed'] == 1
+        failed = ret['failed']
+        assert 'ipasudorunas' in failed
+        assert 'user' in failed['ipasudorunas']
+        assert not failed['ipasudorunas']['user']
+        entry = ret['result']
+        assert 'ipasudorunas_user' not in entry
+
+    def test_a_sudorule_add_runasgroup(self):
+        """
+        Test adding run as group to Sudo rule using
+        `xmlrpc.sudorule_add_runasgroup`.
+        """
+        ret = api.Command['sudorule_add_runasgroup'](
+            self.rule_name, group=self.test_runasgroup
+        )
+        print ret
+        assert ret['completed'] == 1
+        failed = ret['failed']
+        assert 'ipasudorunasgroup' in failed
+        assert 'group' in failed['ipasudorunasgroup']
+        assert not failed['ipasudorunasgroup']['group']
+        entry = ret['result']
+        assert_attr_equal(entry, 'ipasudorunasgroup_group', self.test_runasgroup)
+
+    def test_b_sudorule_remove_runasgroup(self):
+        """
+        Test removing run as group to Sudo rule using
+        `xmlrpc.sudorule_remove_runasgroup'.
+        """
+        ret = api.Command['sudorule_remove_runasgroup'](
+            self.rule_name, group=self.test_runasgroup
+        )
+        assert ret['completed'] == 1
+        failed = ret['failed']
+        assert 'ipasudorunasgroup' in failed
+        assert 'group' in failed['ipasudorunasgroup']
+        assert not failed['ipasudorunasgroup']['group']
+        entry = ret['result']
+        assert 'ipasudorunasgroup_group' not in entry
 
     def test_a_sudorule_add_host(self):
         """
@@ -289,6 +360,7 @@ class test_sudorule(XMLRPC_test):
         Clear data for Sudo rule plugin testing.
         """
         api.Command['user_del'](self.test_user)
+        api.Command['user_del'](self.test_runasuser)
         api.Command['group_del'](self.test_group)
         api.Command['host_del'](self.test_host)
         api.Command['hostgroup_del'](self.test_hostgroup)
