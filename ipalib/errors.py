@@ -1158,6 +1158,23 @@ class ManagedGroupExistsError(ExecutionError):
     errno = 4024
     format = _('Unable to create private group. Group \'%(group)s\' already exists.')
 
+
+class ReverseMemberError(ExecutionError):
+    """
+    **4025** Raised when verifying that all reverse members have been added or removed.
+
+    For example:
+
+    >>> raise ReverseMemberError(verb=u'added', exc=u'Group \'foo\' not found.')
+    Traceback (most recent call last):
+      ...
+    A problem was encounted when verifying that all members were added: Group 'foo' not found.
+    """
+
+    errno = 4025
+    format = _('A problem was encounted when verifying that all members were %(verb)s: %(exc)s')
+
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).
