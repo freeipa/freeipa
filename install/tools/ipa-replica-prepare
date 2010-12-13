@@ -29,6 +29,7 @@ from optparse import OptionParser
 from ipapython import ipautil
 from ipaserver.install import bindinstance, dsinstance, installutils, certs
 from ipaserver.install.bindinstance import add_zone, add_reverze_zone, add_rr, add_ptr_rr
+from ipaserver.install.replication import check_replication_plugin
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
 from ipalib import api, errors, util
@@ -228,6 +229,8 @@ def get_dirman_password():
     return installutils.read_password("Directory Manager (existing master)", confirm=False, validate=False)
 
 def main():
+    if not check_replication_plugin():
+        sys.exit(1)
     options, args = parse_options()
 
     replica_fqdn = args[0]

@@ -19,6 +19,7 @@
 
 import time, logging
 
+import os
 import ldap
 from ipaserver import ipaldap
 from ldap import modlist
@@ -38,6 +39,19 @@ IPA_REPLICA = 1
 WINSYNC = 2
 
 SASL_AUTH = ldap.sasl.sasl({}, 'GSSAPI')
+
+def check_replication_plugin():
+    """
+    Confirm that the 389-ds replication is installed.
+
+    Emit a message and return True/False
+    """
+    if not os.path.exists('/usr/lib/dirsrv/plugins/libreplication-plugin.so') and \
+       not os.path.exists('/usr/lib64/dirsrv/plugins/libreplication-plugin.so'):
+        print "The 389-ds replication plug-in was not found on this system"
+        return False
+
+    return True
 
 class ReplicationManager:
     """Manage replication agreements between DS servers, and sync

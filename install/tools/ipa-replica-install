@@ -28,6 +28,7 @@ from ipapython import ipautil
 
 from ipaserver.install import dsinstance, installutils, krbinstance, service
 from ipaserver.install import bindinstance, httpinstance, ntpinstance, certs
+from ipaserver.install.replication import check_replication_plugin
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
 from ipalib import api, errors, util
@@ -279,6 +280,8 @@ def check_bind():
         sys.exit(1)
 
 def main():
+    if not check_replication_plugin():
+        sys.exit(1)
     safe_options, options, filename = parse_options()
     installutils.standard_logging_setup("/var/log/ipareplica-install.log", options.debug)
     logging.debug('%s was invoked with argument "%s" and options: %s' % (sys.argv[0], filename, safe_options))
