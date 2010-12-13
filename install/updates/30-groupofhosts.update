@@ -1,5 +1,0 @@
-dn: cn=hostgroups,cn=accounts,$SUFFIX
-add:objectClass: top
-add:objectClass: nsContainer
-add:cn: hostgroups
-

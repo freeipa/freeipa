@@ -28,6 +28,48 @@ objectClass: top
 objectClass: nsContainer
 cn: computers
 
+dn: cn=hostgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: hostgroups
+
+dn: cn=alt,$SUFFIX
+changetype: add
+objectClass: nsContainer
+cn: alt
+
+dn: cn=ng,cn=alt,$SUFFIX
+changetype: add
+objectClass: nsContainer
+cn: ng
+
+dn: cn=automount,$SUFFIX
+changetype: add
+objectClass: nsContainer
+cn: automount
+
+dn: cn=default,cn=automount,$SUFFIX
+changetype: add
+objectClass: nsContainer
+cn: default
+
+dn: automountmapname=auto.master,cn=default,cn=automount,$SUFFIX
+changetype: add
+objectClass: automountMap
+automountMapName: auto.master
+
+dn: automountmapname=auto.direct,cn=default,cn=automount,$SUFFIX
+changetype: add
+objectClass: automountMap
+automountMapName: auto.direct
+
+dn: automountkey=/-,automountmapname=auto.master,cn=default,cn=automount,$SUFFIX
+changetype: add
+objectClass: automount
+automountKey: /-
+automountInformation: auto.direct
+
 dn: cn=hbacservices,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
@@ -189,6 +231,99 @@ objectClass: ipausergroup
 gidNumber: eval($IDSTART+2)
 description: Limited admins who can edit other users
 cn: editors
+
+dn: cn=sshd,cn=hbacservices,cn=accounts,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: sshd
+description: sshd
+ipauniqueid:autogenerate
+
+dn: cn=ftp,cn=hbacservices,cn=accounts,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: ftp
+description: ftp
+ipauniqueid:autogenerate
+
+dn: cn=su,cn=hbacservices,cn=accounts,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: su
+description: su
+ipauniqueid:autogenerate
+
+dn: cn=login,cn=hbacservices,cn=accounts,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: login
+description: login
+ipauniqueid:autogenerate
+
+dn: cn=su-l,cn=hbacservices,cn=accounts,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: su-l
+description: su with login shell
+ipauniqueid:autogenerate
+
+dn: cn=sudo,cn=hbacservices,cn=accounts,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: sudo
+description: sudo
+ipauniqueid:autogenerate
+
+dn: cn=sudo-i,cn=hbacservices,cn=accounts,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: sudo-i
+description: sudo-i
+ipauniqueid:autogenerate
+
+dn: cn=gdm,cn=hbacservices,cn=accounts,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: gdm
+description: gdm
+ipauniqueid:autogenerate
+
+dn: cn=gdm-password,cn=hbacservices,cn=accounts,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: gdm-password
+description: gdm-password
+ipauniqueid:autogenerate
+
+dn: cn=kdm,cn=hbacservices,cn=accounts,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: kdm
+description: kdm
+ipauniqueid:autogenerate
+
+dn: cn=SUDO,cn=hbacservicegroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: ipaobject
+objectClass: ipahbacservicegroup
+objectClass: nestedGroup
+objectClass: groupOfNames
+objectClass: top
+cn: SUDO
+ipauniqueid:autogenerate
+description: Default group of SUDO related services
+member: cn=sudo,cn=hbacservices,cn=accounts,$SUFFIX
+member: cn=sudo-i,cn=hbacservices,cn=accounts,$SUFFIX
 
 dn: cn=ipaConfig,cn=etc,$SUFFIX
 changetype: add

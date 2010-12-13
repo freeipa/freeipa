@@ -1,9 +1,0 @@
-# Add the default netgroup entries
-
-dn: cn=alt,$SUFFIX
-add:objectClass: nsContainer
-add:cn: alt
-
-dn: cn=ng,cn=alt,$SUFFIX
-add:objectClass: nsContainer
-add:cn: ng

@@ -9,10 +9,6 @@ app_DATA =				\
 	20-nss_ldap.update		\
 	20-replication.update		\
 	20-winsync_index.update		\
-	30-automount.update		\
-	30-hbacsvc.update		\
-	30-groupofhosts.update		\
-	30-netgroups.update		\
 	$(NULL)
 
 EXTRA_DIST =				\
