@@ -359,6 +359,34 @@ class test_Param(ClassChecker):
         assert clone.param_spec == 'my_param'
         assert clone.name == 'my_param'
 
+    def test_clone_rename(self):
+        """
+        Test the `ipalib.parameters.Param.clone` method.
+        """
+        new_name = 'my_new_param'
+
+        # Test with the defaults
+        orig = self.cls('my_param')
+        clone = orig.clone_rename(new_name)
+        assert clone is not orig
+        assert type(clone) is self.cls
+        assert clone.name == new_name
+        for (key, kind, default) in self.cls.kwargs:
+            assert getattr(clone, key) is getattr(orig, key)
+
+        # Test with overrides:
+        orig = self.cls('my_param*')
+        assert orig.required is False
+        assert orig.multivalue is True
+        clone = orig.clone_rename(new_name, required=True)
+        assert clone is not orig
+        assert type(clone) is self.cls
+        assert clone.required is True
+        assert clone.multivalue is True
+        assert clone.param_spec == new_name
+        assert clone.name == new_name
+
+
     def test_convert(self):
         """
         Test the `ipalib.parameters.Param.convert` method.

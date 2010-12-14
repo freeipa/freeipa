@@ -708,6 +708,17 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
     has_output_params = global_output_params
 
+    def _get_rename_option(self):
+        rdnparam = getattr(self.obj.params, self.obj.rdnattr)
+        return rdnparam.clone_rename('rename', cli_name='rename',
+                        doc=_('Rename the %s object' % self.obj.object_name))
+
+    def get_options(self):
+        for option in super(LDAPUpdate, self).get_options():
+            yield option
+        if self.obj.rdnattr:
+            yield self._get_rename_option()
+
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
@@ -768,6 +779,9 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         rdnupdate = False
         try:
+            if self.obj.rdnattr and 'rename' in options:
+                entry_attrs[self.obj.rdnattr] = options['rename']
+
             if self.obj.rdnattr and self.obj.rdnattr in entry_attrs:
                 # RDN change
                 ldap.update_entry_rdn(dn, unicode('%s=%s' % (self.obj.rdnattr,
