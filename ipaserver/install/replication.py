@@ -135,6 +135,28 @@ class ReplicationManager:
             return []
         return [ent.dn for ent in ents]
 
+    def find_ipa_replication_agreements(self):
+        """
+        The replication agreements are stored in
+        cn="$SUFFIX",cn=mapping tree,cn=config
+
+        Return the list of hosts we have replication agreements.
+        """
+
+        res = []
+
+        filt = "(objectclass=nsds5ReplicationAgreement)"
+        try:
+            ents = self.conn.search_s("cn=mapping tree,cn=config",
+                                      ldap.SCOPE_SUBTREE, filt)
+        except ldap.NO_SUCH_OBJECT:
+            return res
+
+        for ent in ents:
+            res.append(ent.nsds5replicahost)
+
+        return res
+
     def add_replication_manager(self, conn, passwd=None):
         """
         Create a pseudo user to use for replication. If no password

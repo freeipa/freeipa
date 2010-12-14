@@ -55,8 +55,8 @@ def parse_options():
 
     options, args = parser.parse_args()
 
-    if not len(args) or not ("list" in args[0] or "add" in args[0] or "del" in args[0] or "init" in args[0] or "synch" in args[0]):
-        parser.error("must provide a command [list | add | del | init | synch]")
+    if not len(args) or not ("list" in args[0] or "add" in args[0] or "del" in args[0] or "init" in args[0] or "synch" in args[0] or "disconnect" in args[0]):
+        parser.error("must provide a command [list | add | del | init | synch | disconnect]")
 
     # set log level
     if options.verbose:
@@ -104,6 +104,80 @@ def list_masters(replman, verbose):
             print "  last init ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastinitend))
             print "  last update status: %s" % entry.nsds5replicalastupdatestatus
             print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastupdateend))
+
+def del_link(replica1, replica2, dirman_passwd, force=False):
+
+    repl2 = None
+
+    try:
+        repl1 = replication.ReplicationManager(replica1, dirman_passwd)
+        repl1.suffix = get_suffix()
+
+        type1 = repl1.get_agreement_type(replica2)
+
+        repl_list = repl1.find_ipa_replication_agreements()
+        if not force and len(repl_list) <= 1 and type1 == replication.IPA_REPLICA:
+            print "Cannot remove the last replication link of '%s'" % replica1
+            print "Please use the 'del' command to remove it from the domain"
+            return
+
+    except ldap.NO_SUCH_OBJECT:
+        print "'%s' has no replication agreement for '%s'" % (replica1, replica2)
+        return
+    except errors.NotFound:
+        print "'%s' has no replication agreement for '%s'" % (replica1, replica2)
+        return
+    except Exception, e:
+        print "Failed to get data from '%s': %s" % (replica1, str(e))
+        return
+
+    if type1 == replication.IPA_REPLICA:
+        try:
+            repl2 = replication.ReplicationManager(replica2, dirman_passwd)
+            repl2.suffix = get_suffix()
+
+            repl_list = repl1.find_ipa_replication_agreements()
+            if not force and len(repl_list) <= 1:
+                print "Cannot remove the last replication link of '%s'" % replica2
+                print "Please use the 'del' command to remove it from the domain"
+                return
+
+        except ldap.NO_SUCH_OBJECT:
+            print "'%s' has no replication agreement for '%s'" % (replica2, replica1)
+            if not force:
+                return
+        except errors.NotFound:
+            print "'%s' has no replication agreement for '%s'" % (replica2, replica1)
+            if not force:
+                return
+        except Exception, e:
+            print "Failed to get data from '%s': %s" % (replica2, str(e))
+            if not force:
+                return
+
+    if repl2 and type1 == replication.IPA_REPLICA:
+        failed = False
+        try:
+            repl2.delete_agreement(replica1)
+        except ldap.LDAPError, e:
+            desc = e.args[0]['desc'].strip()
+            info = e.args[0].get('info', '').strip()
+            print "Unable to remove agreement on %s: %s: %s" % (replica2, desc, info)
+            failed = True
+        except Exception, e:
+            print "Unable to remove agreement on %s: %s" % (replica2, str(e))
+            failed = True
+
+        if failed:
+            if force:
+                print "Forcing removal on '%s'" % replica1
+            else:
+                return
+
+    if not repl2 and force:
+        print "Forcing removal on '%s'" % replica1
+
+    repl1.delete_agreement(replica2)
 
 def del_master(replman, hostname, force=False):
     has_repl_agreement = True
@@ -253,6 +327,17 @@ def main():
             print "must provide hostname of supplier to synchronize with"
             sys.exit(1)
         synch_master(r, args[1])
+    elif args[0] == "disconnect":
+        if len(args) == 3:
+            replica1 = args[1]
+            replica2 = args[2]
+        elif len(args) == 2:
+            replica1 = host
+            replica2 = args[1]
+        else:
+            print "must provide the name of the server you want to disconnect"
+            sys.exit(1)
+        del_link(replica1, replica2, dirman_passwd)
     else:
         print "unknown command: %s" % args[0]
         sys.exit(1)
