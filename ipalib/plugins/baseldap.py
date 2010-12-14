@@ -888,12 +888,14 @@ class LDAPDelete(LDAPMultiQuery):
             return result
 
         if not self.obj.primary_key or not isinstance(keys[-1], (list, tuple)):
-            keys = keys[:-1] + (keys[-1], )
+            pkeyiter = (keys[-1], )
+        else:
+            pkeyiter = keys[-1]
 
         deleted = []
         failed = []
         result = True
-        for pkey in keys[-1]:
+        for pkey in pkeyiter:
             try:
                 if not delete_entry(pkey):
                     result = False
@@ -904,7 +906,7 @@ class LDAPDelete(LDAPMultiQuery):
             else:
                 deleted.append(pkey)
 
-        if self.obj.primary_key and keys[-1] is not None:
+        if self.obj.primary_key and pkeyiter[0] is not None:
             return dict(result=result, value=u','.join(deleted))
         return dict(result=result, value=u'')
 
