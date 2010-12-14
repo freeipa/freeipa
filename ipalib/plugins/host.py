@@ -260,6 +260,9 @@ class host_add(LDAPCreate):
         Flag('force',
             doc=_('force host name even if not in DNS'),
         ),
+        Flag('no_reverse',
+            doc=_('skip reverse DNS detection'),
+        ),
         Str('ipaddr?', validate_ipaddr,
             doc=_('Add the host to DNS with this IP address'),
         ),
@@ -277,21 +280,27 @@ class host_add(LDAPCreate):
                     break
             if not match:
                 raise errors.NotFound(reason=_('DNS zone %(zone)s not found' % dict(zone=domain)))
-            revzone, revname = get_reverse_zone(options['ipaddr'])
-            # Verify that our reverse zone exists
-            match = False
-            for zone in result:
-                if revzone == zone['idnsname'][0]:
-                    match = True
-                    break
-            if not match:
-                raise errors.NotFound(reason=_('Reverse DNS zone %(zone)s not found' % dict(zone=revzone)))
-            try:
-                reverse = api.Command['dns_find_rr'](revzone, revname)
-                if reverse['count'] > 0:
+            if not options.get('no_reverse',False):
+                # we prefer lookup of the IP through the reverse zone
+                revzone, revname = get_reverse_zone(options['ipaddr'])
+                # Verify that our reverse zone exists
+                match = False
+                for zone in result:
+                    if revzone == zone['idnsname'][0]:
+                        match = True
+                        break
+                if not match:
+                    raise errors.NotFound(reason=_('Reverse DNS zone %(zone)s not found' % dict(zone=revzone)))
+                try:
+                    reverse = api.Command['dns_find_rr'](revzone, revname)
+                    if reverse['count'] > 0:
+                        raise errors.DuplicateEntry(message=u'This IP address is already assigned.')
+                except errors.NotFound:
+                    pass
+            else:
+                result = api.Command['dnsrecord_find'](domain, arecord=options['ipaddr'])
+                if result['count'] > 0:
                     raise errors.DuplicateEntry(message=u'This IP address is already assigned.')
-            except errors.NotFound:
-                pass
         if not options.get('force', False) and not 'ipaddr' in options:
             util.validate_host_dns(self.log, keys[-1])
         if 'locality' in entry_attrs:
