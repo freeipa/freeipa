@@ -67,6 +67,9 @@ class selfservice(Object):
     Selfservice object.
     """
 
+    bindable = False
+    object_name = 'selfservice',
+    object_name_plural = 'selfservice',
     label = _('Permissions')
 
     takes_params = (
@@ -88,6 +91,17 @@ class selfservice(Object):
             doc=_('Comma-separated list of attributes'),
         ),
     )
+
+    def __json__(self):
+        json_friendly_attributes = (
+            'label', 'takes_params', 'bindable', 'name',
+            'object_name', 'object_name_plural',
+        )
+        json_dict = dict(
+            (a, getattr(self, a)) for a in json_friendly_attributes
+        )
+        json_dict['methods'] = [m for m in self.methods]
+        return json_dict
 
 api.register(selfservice)
 

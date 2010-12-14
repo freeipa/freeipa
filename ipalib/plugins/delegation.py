@@ -86,6 +86,9 @@ class delegation(Object):
     Delegation object.
     """
 
+    bindable = False
+    object_name = 'delegation',
+    object_name_plural = 'delegation',
     label = _('Delegation')
 
     takes_params = (
@@ -117,6 +120,17 @@ class delegation(Object):
             doc=_('User group ACI grants access to'),
         ),
     )
+
+    def __json__(self):
+        json_friendly_attributes = (
+            'label', 'takes_params', 'bindable', 'name',
+            'object_name', 'object_name_plural',
+        )
+        json_dict = dict(
+            (a, getattr(self, a)) for a in json_friendly_attributes
+        )
+        json_dict['methods'] = [m for m in self.methods]
+        return json_dict
 
 api.register(delegation)
 
