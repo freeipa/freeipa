@@ -28,6 +28,21 @@ from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
 from ipalib import errors, util
 
+# dict of command name and tuples of min/max num of args needed
+commands = {
+    "list":(0, 0, "", ""),
+    "connect":(1, 2, "<master fqdn> [other master fqdn]",
+                    "must provide the name of the servers to connect"),
+    "disconnect":(1, 2, "<master fqdn> [other master fqdn]",
+                    "must provide the name of the server to disconnect"),
+    "del":(1, 1, "<master fqdn>",
+                    "must provide hostname of master to delete"),
+    "init":(1, 1, "<master fqdn>",
+                    "hostname of master to initialize is required"),
+    "synch":(1, 1, "master fqdn>",
+                    "must provide hostname of supplier to synchronize with")
+}
+
 def parse_options():
     from optparse import OptionParser
 
@@ -55,8 +70,27 @@ def parse_options():
 
     options, args = parser.parse_args()
 
-    if not len(args) or not ("list" in args[0] or "add" in args[0] or "del" in args[0] or "init" in args[0] or "synch" in args[0] or "disconnect" in args[0]):
-        parser.error("must provide a command [list | add | del | init | synch | disconnect]")
+    valid_syntax = False
+
+    if len(args):
+        n = len(args) - 1
+        k = commands.keys()
+        for cmd in k:
+            if cmd == args[0]:
+                v = commands[cmd]
+                err = None
+                if n < v[0]:
+                    err = v[3]
+                elif n > v[1]:
+                    err = "too many arguments"
+                else:
+                    valid_syntax = True
+                if err:
+                    parser.error("Invalid syntax: %s\nUsage: %s [options] %s" % (err, cmd, v[2]))
+
+    if not valid_syntax:
+        cmdstr = " | ".join(commands.keys())
+        parser.error("must provide a command [%s]" % cmdstr)
 
     # set log level
     if options.verbose:
@@ -228,7 +262,8 @@ def del_master(replman, hostname, force=False):
         print "Failed to cleanup %s entries: %s" % (hostname, str(e))
         print "You may need to manually remove them from the tree"
 
-def add_master(replman, hostname, options):
+def add_link(replica1, replica2, dirman_passwd, options):
+
     other_args = {}
     if options.port:
         other_args['port'] = options.port
@@ -247,22 +282,35 @@ def add_master(replman, hostname, options):
         if not options.binddn or not options.bindpw or not options.cacert or not options.passsync:
             logging.error("The arguments --binddn, --bindpw, --passsync and --cacert are required to create a winsync agreement")
             sys.exit(1)
+
     if options.cacert:
         # have to install the given CA cert before doing anything else
         ds = dsinstance.DsInstance(realm_name = get_realm_name(),
-                                   dm_password = replman.dirman_passwd)
+                                   dm_password = dirman_passwd)
         if not ds.add_ca_cert(options.cacert):
-            logging.error("Could not load the required CA certificate file [%s]" %
-                          options.cacert)
-            sys.exit(1)
+            print "Could not load the required CA certificate file [%s]" % options.cacert
+            return
         else:
-            logging.info("Added CA certificate %s to certificate database for %s" %
-                         (options.cacert, replman.hostname))
-        # have to reconnect replman connection since the directory server was restarted
-        replman = replication.ReplicationManager(replman.hostname, replman.dirman_passwd)
-        logging.info("Restarted directory server " + replman.hostname)
-    replman.setup_replication(hostname, get_realm_name(), **other_args)
-    logging.info("Added agreement for other host " + hostname)
+            print "Added CA certificate %s to certificate database for %s" % (options.cacert, replica1)
+
+    # need to wait until cacert is installed as that command may restart
+    # the directory server and kill the connection
+    try:
+        repl1 = replication.ReplicationManager(replica1, dirman_passwd)
+        repl1.suffix = get_suffix()
+
+    except ldap.NO_SUCH_OBJECT:
+        print "Cannot find replica '%s'" % replica1
+        return
+    except errors.NotFound:
+        print "Cannot find replica '%s'" % replica1
+        return
+    except Exception, e:
+        print "Failed to get data from '%s': %s" % (replica1, str(e))
+        return
+
+    repl1.setup_replication(replica2, get_realm_name(), **other_args)
+    print "Connected '%s' to '%s'" % (replica1, replica2)
 
 def init_master(replman, dirman_passwd, hostname):
     filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % hostname
@@ -299,7 +347,7 @@ def main():
     if options.dirman_passwd:
         dirman_passwd = options.dirman_passwd
     else:
-        if (not test_connection(host)) or args[0] in ["add", "init"]:
+        if (not test_connection(host)) or args[0] in ["connect", "init"]:
             dirman_passwd = getpass.getpass("Directory Manager password: ")
 
     r = replication.ReplicationManager(host, dirman_passwd)
@@ -308,25 +356,19 @@ def main():
     if args[0] == "list":
         list_masters(r, options.verbose)
     elif args[0] == "del":
-        if len(args) != 2:
-            print "must provide hostname of master to delete"
-            sys.exit(1)
         del_master(r, args[1], options.force)
-    elif args[0] == "add":
-        if len(args) != 2:
-            print "must provide hostname of master to add"
-            sys.exit(1)
-        add_master(r, args[1], options)
     elif args[0] == "init":
-        if len(args) != 2:
-            print "hostname of master to initialize is required."
-            sys.exit(1)
         init_master(r, dirman_passwd, args[1])
     elif args[0] == "synch":
-        if len(args) != 2:
-            print "must provide hostname of supplier to synchronize with"
-            sys.exit(1)
         synch_master(r, args[1])
+    elif args[0] == "connect":
+        if len(args) == 3:
+            replica1 = args[1]
+            replica2 = args[2]
+        elif len(args) == 2:
+            replica1 = host
+            replica2 = args[1]
+        add_link(replica1, replica2, dirman_passwd, options)
     elif args[0] == "disconnect":
         if len(args) == 3:
             replica1 = args[1]
@@ -334,13 +376,7 @@ def main():
         elif len(args) == 2:
             replica1 = host
             replica2 = args[1]
-        else:
-            print "must provide the name of the server you want to disconnect"
-            sys.exit(1)
         del_link(replica1, replica2, dirman_passwd)
-    else:
-        print "unknown command: %s" % args[0]
-        sys.exit(1)
 
 try:
     main()
