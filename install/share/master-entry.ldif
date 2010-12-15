@@ -1,5 +1,5 @@
 dn: cn=$FQHN,cn=masters,cn=ipa,cn=etc,$SUFFIX
 changetype: add
 objectclass: top
-objectclass: extensibleObject
+objectclass: nsContainer
 cn: $FQHN
