@@ -772,7 +772,8 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 # RDN change
                 ldap.update_entry_rdn(dn, unicode('%s=%s' % (self.obj.rdnattr,
                     entry_attrs[self.obj.rdnattr])))
-                dn = self.obj.get_dn(entry_attrs[self.obj.rdnattr])
+                rdnkeys = keys[:-1] + (entry_attrs[self.obj.rdnattr], )
+                dn = self.obj.get_dn(*rdnkeys)
                 del entry_attrs[self.obj.rdnattr]
                 options['rdnupdate'] = True
                 rdnupdate = True
