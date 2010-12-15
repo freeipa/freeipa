@@ -346,7 +346,7 @@ class GeneralizedTimeZone(datetime.tzinfo):
         if self.houroffset < 0:
             self.minoffset *= -1
 
-    def utcoffset(self):
+    def utcoffset(self, dt):
         return datetime.timedelta(hours=self.houroffset, minutes=self.minoffset)
 
     def dst(self):

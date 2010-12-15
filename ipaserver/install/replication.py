@@ -117,7 +117,7 @@ class ReplicationManager:
 
         return retval
 
-    def find_replication_dns(self, conn):
+    def find_replication_agreements(self):
         """
         The replication agreements are stored in
         cn="$SUFFIX",cn=mapping tree,cn=config
@@ -130,10 +130,10 @@ class ReplicationManager:
         """
         filt = "(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement))"
         try:
-            ents = conn.search_s("cn=mapping tree,cn=config", ldap.SCOPE_SUBTREE, filt)
+            ents = self.conn.search_s("cn=mapping tree,cn=config", ldap.SCOPE_SUBTREE, filt)
         except ldap.NO_SUCH_OBJECT:
-            return []
-        return [ent.dn for ent in ents]
+            ents = []
+        return ents
 
     def find_ipa_replication_agreements(self):
         """

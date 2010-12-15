@@ -24,13 +24,15 @@ import traceback, logging
 
 from ipapython import ipautil
 from ipaserver.install import replication, dsinstance, installutils
-from ipaserver.plugins.ldap2 import ldap2
+from ipaserver import ipaldap
 from ipapython import version
 from ipalib import errors, util
 
+CACERT = "/etc/ipa/ca.crt"
+
 # dict of command name and tuples of min/max num of args needed
 commands = {
-    "list":(0, 0, "", ""),
+    "list":(0, 1, "[master fqdn]", ""),
     "connect":(1, 2, "<master fqdn> [other master fqdn]",
                     "must provide the name of the servers to connect"),
     "disconnect":(1, 2, "<master fqdn> [other master fqdn]",
@@ -106,9 +108,8 @@ def get_realm_name():
     return c.default_realm
 
 def get_suffix():
-    l = ldap2(shared_instance=False, base_dn='')
-    suffix = l.normalize_dn(util.realm_to_suffix(get_realm_name()))
-    return suffix
+    suffix = util.realm_to_suffix(get_realm_name())
+    return ipaldap.IPAdmin.normalizeDN(suffix)
 
 def test_connection(host):
     """
@@ -120,24 +121,49 @@ def test_connection(host):
     """
     try:
         replman = replication.ReplicationManager(host, None)
-        dns = replman.find_replication_dns(replman.conn)
+        ents = replman.find_replication_agreements()
         del replman
         return True
     except ldap.LOCAL_ERROR:
         return False
 
-def list_masters(replman, verbose):
-    dns = replman.find_replication_dns(replman.conn)
+def list_masters(host, replica, dirman_passwd, verbose):
 
-    for dn in dns:
-        entry = replman.conn.search_s(dn, ldap.SCOPE_SUBTREE)[0]
-        print entry.getValue('nsds5replicahost')
+    if replica:
+        try:
+            repl = replication.ReplicationManager(replica, dirman_passwd)
+            repl.suffix = get_suffix()
+        except Exception, e:
+            print "Failed to get data from '%s': %s" % (replica, str(e))
+            return
 
-        if verbose:
-            print "  last init status: %s" % entry.nsds5replicalastinitstatus
-            print "  last init ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastinitend))
-            print "  last update status: %s" % entry.nsds5replicalastupdatestatus
-            print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastupdateend))
+        entries = repl.find_replication_agreements()
+
+        for entry in entries:
+            print entry.nsds5replicahost
+
+            if verbose:
+                print "  last init status: %s" % entry.nsds5replicalastinitstatus
+                print "  last init ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastinitend))
+                print "  last update status: %s" % entry.nsds5replicalastupdatestatus
+                print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastupdateend))
+    else:
+        try:
+            conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
+            if dirman_passwd:
+                conn.do_simple_bind(bindpw=dirman_passwd)
+            else:
+                conn.sasl_interactive_bind_s('', ipaldap.sasl_auth)
+
+            dn = 'cn=masters,cn=ipa,cn=etc,%s' % get_suffix()
+            entries = conn.search_s(dn, ldap.SCOPE_ONELEVEL)
+
+            for ent in entries:
+                print ent.cn
+
+        except Exception, e:
+            print "Failed to get data from '%s': %s" % (host, str(e))
+            return
 
 def del_link(replica1, replica2, dirman_passwd, force=False):
 
@@ -354,7 +380,10 @@ def main():
     r.suffix = get_suffix()
 
     if args[0] == "list":
-        list_masters(r, options.verbose)
+        replica = None
+        if len(args) == 2:
+            replica = args[1]
+        list_masters(host, replica, dirman_passwd, options.verbose)
     elif args[0] == "del":
         del_master(r, args[1], options.force)
     elif args[0] == "init":
