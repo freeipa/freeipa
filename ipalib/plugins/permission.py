@@ -115,6 +115,7 @@ class permission(LDAPObject):
             cli_name='attrs',
             label=_('Attributes'),
             doc=_('Comma-separated list of attributes'),
+            normalizer=lambda value: value.lower(),
         ),
         StrEnum('type?',
             cli_name='type',

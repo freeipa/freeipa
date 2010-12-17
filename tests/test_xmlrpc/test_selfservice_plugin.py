@@ -68,6 +68,8 @@ class test_selfservice(Declarative):
         ),
 
 
+        # Note that we add postalCode but expect postalcode. This tests
+        # the attrs normalizer.
         dict(
             desc='Create %r' % selfservice1,
             command=(
@@ -80,7 +82,7 @@ class test_selfservice(Declarative):
                 value=selfservice1,
                 summary=u'Added selfservice "%s"' % selfservice1,
                 result=dict(
-                    attrs=[u'street', u'c', u'l', u'st', u'postalCode'],
+                    attrs=[u'street', u'c', u'l', u'st', u'postalcode'],
                     permissions=[u'write'],
                     selfaci=True,
                     aciname=selfservice1,
@@ -108,7 +110,7 @@ class test_selfservice(Declarative):
                 value=selfservice1,
                 summary=None,
                 result={
-                    'attrs': [u'street', u'c', u'l', u'st', u'postalCode'],
+                    'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
                     'permissions': [u'write'],
                     'selfaci': True,
                     'aciname': selfservice1,
@@ -126,7 +128,7 @@ class test_selfservice(Declarative):
                 summary=u'1 selfservice matched',
                 result=[
                     {
-                        'attrs': [u'street', u'c', u'l', u'st', u'postalCode'],
+                        'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
                         'permissions': [u'write'],
                         'selfaci': True,
                         'aciname': selfservice1,
@@ -145,7 +147,7 @@ class test_selfservice(Declarative):
                 value=selfservice1,
                 summary=u'Modified selfservice "%s"' % selfservice1,
                 result=dict(
-                    attrs=[u'street', u'c', u'l', u'st', u'postalCode'],
+                    attrs=[u'street', u'c', u'l', u'st', u'postalcode'],
                     permissions=[u'read'],
                     selfaci=True,
                     aciname=selfservice1,
@@ -161,7 +163,7 @@ class test_selfservice(Declarative):
                 value=selfservice1,
                 summary=None,
                 result={
-                        'attrs': [u'street', u'c', u'l', u'st', u'postalCode'],
+                        'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
                         'permissions': [u'read'],
                         'selfaci': True,
                         'aciname': selfservice1,

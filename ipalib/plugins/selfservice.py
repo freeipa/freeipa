@@ -89,6 +89,7 @@ class selfservice(Object):
             cli_name='attrs',
             label=_('Attributes'),
             doc=_('Comma-separated list of attributes'),
+            normalizer=lambda value: value.lower(),
         ),
     )
 

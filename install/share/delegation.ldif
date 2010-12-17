@@ -493,10 +493,10 @@ dn: $SUFFIX
 changetype: modify
 add: aci
 aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Add Users";allow (add) groupdn = "ldap:///cn=addusers,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0;acl "Change a user password";allow (write) groupdn = "ldap:///cn=change_password,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "Change a user password";allow (write) groupdn = "ldap:///cn=change_password,cn=permissions,cn=accounts,$SUFFIX";)
 aci: (targetattr = "member")(target = "ldap:///cn=ipausers,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Add user to default group";allow (write) groupdn = "ldap:///cn=add_user_to_default_group,cn=permissions,cn=accounts,$SUFFIX";)
 aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Users";allow (delete) groupdn = "ldap:///cn=removeusers,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "givenName || sn || cn || displayName || title || initials || loginShell || gecos || homePhone || mobile || pager || facsimileTelephoneNumber || telephoneNumber || street || roomNumber || l || st || postalCode || manager || secretary || description || carLicense || labeledURI || inetUserHTTPURL || seeAlso || employeeType || businessCategory || ou || mepManagedEntry || objectclass")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Users";allow (write) groupdn = "ldap:///cn=modifyusers,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype || businesscategory || ou || mepmanagedEntry || objectclass")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Users";allow (write) groupdn = "ldap:///cn=modifyusers,cn=permissions,cn=accounts,$SUFFIX";)
 
 # Group administration
 
@@ -508,7 +508,7 @@ aci: (targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFI
 aci: (target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Groups";allow (delete) groupdn = "ldap:///cn=removegroups,cn=permissions,cn=accounts,$SUFFIX";)
 # We need objectclass and gidnumber in modify so a non-posix group can be
 # promoted. We need mqpManagedBy and ipaUniqueId so a group can be detached.
-aci: (targetattr = "cn || description || gidnumber || objectclass || mepManagedBy || ipaUniqueId")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Groups";allow (write) groupdn = "ldap:///cn=modifygroups,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "cn || description || gidnumber || objectclass || mepmanagedby || ipaUniqueId")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Groups";allow (write) groupdn = "ldap:///cn=modifygroups,cn=permissions,cn=accounts,$SUFFIX";)
 
 # Host administration
 
@@ -536,7 +536,7 @@ changetype: modify
 add: aci
 aci: (target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Add Services";allow (add) groupdn = "ldap:///cn=addservices,cn=permissions,cn=accounts,$SUFFIX";)
 aci: (target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Services";allow (delete) groupdn = "ldap:///cn=removeservices,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "userCertificate")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Services";allow (write) groupdn = "ldap:///cn=modifyservices,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "usercertificate")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Services";allow (write) groupdn = "ldap:///cn=modifyservices,cn=permissions,cn=accounts,$SUFFIX";)
 
 # Delegation administration
 
@@ -574,21 +574,14 @@ aci: (targetattr = "memberhost || externalhost || memberuser || member")(target 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "krbPrincipalKey || krbLastPwdChange")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Manage host keytab";allow (write) groupdn = "ldap:///cn=manage_host_keytab,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Manage host keytab";allow (write) groupdn = "ldap:///cn=manage_host_keytab,cn=permissions,cn=accounts,$SUFFIX";)
 
 # Service keytab admin
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "krbPrincipalKey || krbLastPwdChange")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Manage service keytab";allow (write) groupdn = "ldap:///cn=manage_service_keytab,cn=permissions,cn=accounts,$SUFFIX";)
-
-# Allow enrolledBy to be removed when a host is not enrolled
-
-dn: $SUFFIX
-changetype: modify
-add: aci
-aci: (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(targetattr = "enrolledBy")(targetfilter="(!(krblastpwdchange=*))")(targattrfilters="del=enrolledby:(enrolledBy=*)")(version 3.0;acl "Allow enrolledBy to be removed when a host is not enrolled"; allow (write) groupdn = "ldap:///cn=manage_host_keytab,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "krblrincipalkey || krblastpwdchange")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Manage service keytab";allow (write) groupdn = "ldap:///cn=manage_service_keytab,cn=permissions,cn=accounts,$SUFFIX";)
 
 # Add the ACI needed to do host enrollment. When this occurs we
 # set the krbPrincipalName, add krbPrincipalAux to objectClass and
@@ -597,7 +590,7 @@ aci: (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(targetattr = "
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "enrolledBy || objectClass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Enroll a host";allow (write) groupdn = "ldap:///cn=enroll_host,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "enrolledby || objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Enroll a host";allow (write) groupdn = "ldap:///cn=enroll_host,cn=permissions,cn=accounts,$SUFFIX";)
 
 # Replica administration
 
@@ -621,7 +614,7 @@ aci: (target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "userCertificate")(target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Modify Entitlements";allow (write) groupdn = "ldap:///cn=modifyentitlements,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "usercertificate")(target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Modify Entitlements";allow (write) groupdn = "ldap:///cn=modifyentitlements,cn=permissions,cn=accounts,$SUFFIX";)
 
 dn: $SUFFIX
 changetype: modify
@@ -654,7 +647,7 @@ member: cn=certadmin,cn=privileges,cn=accounts,$SUFFIX
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectClass")(target = "ldap:///cn=retrieve certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Retrieve Certificates from the CA" ; allow (write) groupdn = "ldap:///cn=retrieve_certs,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=retrieve certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Retrieve Certificates from the CA" ; allow (write) groupdn = "ldap:///cn=retrieve_certs,cn=permissions,cn=accounts,$SUFFIX";)
 
 # Request Certificate virtual op
 dn: cn=request certificate,cn=virtual operations,$SUFFIX
@@ -674,7 +667,7 @@ member: cn=certadmin,cn=privileges,cn=accounts,$SUFFIX
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectClass")(target = "ldap:///cn=request certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Request Certificates from the CA" ; allow (write) groupdn = "ldap:///cn=request_certs,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=request certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Request Certificates from the CA" ; allow (write) groupdn = "ldap:///cn=request_certs,cn=permissions,cn=accounts,$SUFFIX";)
 
 # Request Certificate from different host virtual op
 dn: cn=request certificate different host,cn=virtual operations,$SUFFIX
@@ -694,7 +687,7 @@ member: cn=certadmin,cn=privileges,cn=accounts,$SUFFIX
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectClass")(target = "ldap:///cn=request certificate different host,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Request Certificates from a different host" ; allow (write) groupdn = "ldap:///cn=request_cert_different_host,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=request certificate different host,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Request Certificates from a different host" ; allow (write) groupdn = "ldap:///cn=request_cert_different_host,cn=permissions,cn=accounts,$SUFFIX";)
 
 # Certificate Status virtual op
 dn: cn=certificate status,cn=virtual operations,$SUFFIX
@@ -714,7 +707,7 @@ member: cn=certadmin,cn=privileges,cn=accounts,$SUFFIX
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectClass")(target = "ldap:///cn=certificate status,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Get Certificates status from the CA" ; allow (write) groupdn = "ldap:///cn=certificate_status,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=certificate status,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Get Certificates status from the CA" ; allow (write) groupdn = "ldap:///cn=certificate_status,cn=permissions,cn=accounts,$SUFFIX";)
 
 # Revoke Certificate virtual op
 dn: cn=revoke certificate,cn=virtual operations,$SUFFIX
@@ -734,7 +727,7 @@ member: cn=certadmin,cn=privileges,cn=accounts,$SUFFIX
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectClass")(target = "ldap:///cn=revoke certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Revoke Certificate"; allow (write) groupdn = "ldap:///cn=revoke_certificate,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=revoke certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Revoke Certificate"; allow (write) groupdn = "ldap:///cn=revoke_certificate,cn=permissions,cn=accounts,$SUFFIX";)
 
 # Certificate Remove Hold virtual op
 dn: cn=certificate remove hold,cn=virtual operations,$SUFFIX
@@ -754,4 +747,4 @@ member: cn=certadmin,cn=privileges,cn=accounts,$SUFFIX
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectClass")(target = "ldap:///cn=certificate remove hold,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Certificate Remove Hold"; allow (write) groupdn = "ldap:///cn=certificate_remove_hold,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=certificate remove hold,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Certificate Remove Hold"; allow (write) groupdn = "ldap:///cn=certificate_remove_hold,cn=permissions,cn=accounts,$SUFFIX";)

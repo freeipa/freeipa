@@ -108,6 +108,7 @@ class delegation(Object):
             cli_name='attrs',
             label=_('Attributes'),
             doc=_('Comma-separated list of attributes'),
+            normalizer=lambda value: value.lower(),
         ),
         Str('memberof',
             cli_name='membergroup',

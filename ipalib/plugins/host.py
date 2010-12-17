@@ -686,7 +686,6 @@ class host_disable(LDAPQuery):
 
         if 'krblastpwdchange' in entry_attrs:
             ldap.remove_principal_key(dn)
-            api.Command['host_mod'](fqdn=keys[-1], setattr=u'enrolledby=')
             done_work = True
 
         if not done_work:

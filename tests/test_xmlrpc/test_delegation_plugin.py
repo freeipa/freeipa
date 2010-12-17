@@ -69,6 +69,8 @@ class test_delegation(Declarative):
         ),
 
 
+        # Note that we add postalCode but expect postalcode. This tests
+        # the attrs normalizer.
         dict(
             desc='Create %r' % delegation1,
             command=(
@@ -83,7 +85,7 @@ class test_delegation(Declarative):
                 value=delegation1,
                 summary=u'Added delegation "%s"' % delegation1,
                 result=dict(
-                    attrs=[u'street', u'c', u'l', u'st', u'postalCode'],
+                    attrs=[u'street', u'c', u'l', u'st', u'postalcode'],
                     permissions=[u'write'],
                     aciname=delegation1,
                     group=u'editors',
@@ -115,7 +117,7 @@ class test_delegation(Declarative):
                 value=delegation1,
                 summary=None,
                 result={
-                    'attrs': [u'street', u'c', u'l', u'st', u'postalCode'],
+                    'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
                     'permissions': [u'write'],
                     'aciname': delegation1,
                     'group': u'editors',
@@ -135,7 +137,7 @@ class test_delegation(Declarative):
                 summary=u'1 delegation matched',
                 result=[
                     {
-                    'attrs': [u'street', u'c', u'l', u'st', u'postalCode'],
+                    'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
                     'permissions': [u'write'],
                     'aciname': delegation1,
                     'group': u'editors',
@@ -156,7 +158,7 @@ class test_delegation(Declarative):
                 value=delegation1,
                 summary=u'Modified delegation "%s"' % delegation1,
                 result=dict(
-                    attrs=[u'street', u'c', u'l', u'st', u'postalCode'],
+                    attrs=[u'street', u'c', u'l', u'st', u'postalcode'],
                     permissions=[u'read'],
                     aciname=delegation1,
                     group=u'editors',
@@ -174,7 +176,7 @@ class test_delegation(Declarative):
                 value=delegation1,
                 summary=None,
                 result={
-                    'attrs': [u'street', u'c', u'l', u'st', u'postalCode'],
+                    'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
                     'permissions': [u'read'],
                     'aciname': delegation1,
                     'group': u'editors',
