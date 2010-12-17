@@ -325,9 +325,9 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname, comm
             }else{
                 error_thrown.message =
                     "Your kerberos ticket no longer valid."+
-                    "Please run KInit and then click 'retry'"+
+                    "Please run Init and then click 'retry'"+
                     "If this is your first time running the IPA Web UI"+
-                    "<a href='/ipa/errors/ssbrowser.html'> "+
+                    "<a href='/ipa//config/unauthorized.html'> "+
                     "Follow these directions</a> to configure your browser."
             }
         }
