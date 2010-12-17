@@ -135,6 +135,7 @@ _type_map = {
     'hostgroup': 'ldap:///cn=*,%s,%s' % (api.env.container_hostgroup, api.env.basedn),
     'service': 'ldap:///krbprincipalname=*,%s,%s' % (api.env.container_service, api.env.basedn),
     'netgroup': 'ldap:///ipauniqueid=*,%s,%s' % (api.env.container_netgroup, api.env.basedn),
+    'dns': 'ldap:///idnsname=*,%s,%s' % (api.env.container_dns, api.env.basedn),
 }
 
 _valid_permissions_values = [
@@ -378,7 +379,7 @@ class aci(Object):
             cli_name='type',
             label=_('Type'),
             doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
-            values=(u'user', u'group', u'host', u'service', u'hostgroup', u'netgroup'),
+            values=(u'user', u'group', u'host', u'service', u'hostgroup', u'netgroup', u'dns',),
         ),
         Str('memberof?',
             cli_name='memberof',

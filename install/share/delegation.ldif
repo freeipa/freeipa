@@ -493,7 +493,7 @@ dn: $SUFFIX
 changetype: modify
 add: aci
 aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Add Users";allow (add) groupdn = "ldap:///cn=addusers,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0;acl "Change a user password";allow (write) groupdn = "ldap:///cn=change_password,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0;acl "Change a user password";allow (write) groupdn = "ldap:///cn=change_password,cn=permissions,cn=accounts,$SUFFIX";)
 aci: (targetattr = "member")(target = "ldap:///cn=ipausers,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Add user to default group";allow (write) groupdn = "ldap:///cn=add_user_to_default_group,cn=permissions,cn=accounts,$SUFFIX";)
 aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Users";allow (delete) groupdn = "ldap:///cn=removeusers,cn=permissions,cn=accounts,$SUFFIX";)
 aci: (targetattr = "givenName || sn || cn || displayName || title || initials || loginShell || gecos || homePhone || mobile || pager || facsimileTelephoneNumber || telephoneNumber || street || roomNumber || l || st || postalCode || manager || secretary || description || carLicense || labeledURI || inetUserHTTPURL || seeAlso || employeeType || businessCategory || ou || mepManagedEntry || objectclass")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Users";allow (write) groupdn = "ldap:///cn=modifyusers,cn=permissions,cn=accounts,$SUFFIX";)
