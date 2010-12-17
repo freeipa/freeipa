@@ -1,5 +1,5 @@
 /*  Authors:
- *    Endi Sukma Dewata <edewata@redhat.com>
+ *    Adam Young <ayoung@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
