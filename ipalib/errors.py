@@ -1117,7 +1117,7 @@ class FileError(ExecutionError):
 
     For example:
 
-    >>> raise FileError('cannot write file \'test\'')
+    >>> raise FileError(reason="cannot write file \'test\'")
     Traceback (most recent call last):
       ...
     FileError: cannot write file 'test'
@@ -1133,10 +1133,10 @@ class NoCertificateError(ExecutionError):
 
     For example:
 
-    >>> raise NoCertificateError('\'ipa.example.com\' doesn't have a certificate.')
+    >>> raise NoCertificateError(entry='ipa.example.com')
     Traceback (most recent call last):
       ...
-    NoCertificateError: 'ipa.example.com' doesn't have a certificate
+    NoCertificateError: 'ipa.example.com' doesn't have a certificate.
     """
 
     errno = 4023
@@ -1152,11 +1152,11 @@ class ManagedGroupExistsError(ExecutionError):
     >>> raise ManagedGroupExistsError(group=u'engineering')
     Traceback (most recent call last):
       ...
-    ManagedGroupExistsError: Unable to create private group. A group 'engineering' already exists.'
+    ManagedGroupExistsError: Unable to create private group. A group 'engineering' already exists.
     """
 
     errno = 4024
-    format = _('Unable to create private group. Group \'%(group)s\' already exists.')
+    format = _('Unable to create private group. A group \'%(group)s\' already exists.')
 
 
 class ReverseMemberError(ExecutionError):
@@ -1165,14 +1165,14 @@ class ReverseMemberError(ExecutionError):
 
     For example:
 
-    >>> raise ReverseMemberError(verb=u'added', exc=u'Group \'foo\' not found.')
+    >>> raise ReverseMemberError(verb='added', exc="Group 'foo' not found.")
     Traceback (most recent call last):
       ...
-    A problem was encounted when verifying that all members were added: Group 'foo' not found.
+    ReverseMemberError: A problem was encountered when verifying that all members were added: Group 'foo' not found.
     """
 
     errno = 4025
-    format = _('A problem was encounted when verifying that all members were %(verb)s: %(exc)s')
+    format = _('A problem was encountered when verifying that all members were %(verb)s: %(exc)s')
 
 
 class BuiltinError(ExecutionError):
