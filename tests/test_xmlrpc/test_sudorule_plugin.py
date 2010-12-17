@@ -36,8 +36,10 @@ class test_sudorule(XMLRPC_test):
     rule_desc_mod = u'description modified'
 
     test_user = u'sudorule_test_user'
+    test_external_user = u'external_test_user'
     test_group = u'sudorule_test_group'
     test_host = u'sudorule._test_host'
+    test_external_host = u'external._test_host'
     test_hostgroup = u'sudorule_test_hostgroup'
     test_sudoallowcmdgroup = u'sudorule_test_allowcmdgroup'
     test_sudodenycmdgroup = u'sudorule_test_denycmdgroup'
@@ -46,6 +48,7 @@ class test_sudorule(XMLRPC_test):
     test_runasuser = u'manager'
     test_runasgroup = u'manager'
     test_catagory = u'all'
+    test_option = u'authenticate'
 
     def test_0_sudorule_add(self):
         """
@@ -210,14 +213,14 @@ class test_sudorule(XMLRPC_test):
         ret = api.Command['sudorule_add_runasgroup'](
             self.rule_name, group=self.test_runasgroup
         )
-        print ret
         assert ret['completed'] == 1
         failed = ret['failed']
         assert 'ipasudorunasgroup' in failed
         assert 'group' in failed['ipasudorunasgroup']
         assert not failed['ipasudorunasgroup']['group']
         entry = ret['result']
-        assert_attr_equal(entry, 'ipasudorunasgroup_group', self.test_runasgroup)
+        assert_attr_equal(entry, 'ipasudorunasgroup_group',
+            self.test_runasgroup)
 
     def test_b_sudorule_remove_runasgroup(self):
         """
@@ -234,6 +237,53 @@ class test_sudorule(XMLRPC_test):
         assert not failed['ipasudorunasgroup']['group']
         entry = ret['result']
         assert 'ipasudorunasgroup_group' not in entry
+
+    def test_a_sudorule_add_externaluser(self):
+        """
+        Test adding an external user to Sudo rule using
+        `xmlrpc.sudorule_add_user`.
+        """
+        ret = api.Command['sudorule_add_user'](
+            self.rule_name, user=self.test_external_user
+        )
+        assert ret['completed'] == 1
+        failed = ret['failed']
+        entry = ret['result']
+        assert_attr_equal(entry, 'externaluser', self.test_external_user)
+
+    def test_b_sudorule_remove_externaluser(self):
+        """
+        Test removing an external user from Sudo rule using
+        `xmlrpc.sudorule_remove_user'.
+        """
+        ret = api.Command['sudorule_remove_user'](
+            self.rule_name, user=self.test_external_user
+        )
+        assert ret['completed'] == 1
+        failed = ret['failed']
+        entry = ret['result']
+        assert 'externaluser' not in entry
+
+    def test_a_sudorule_add_option(self):
+        """
+        Test adding an option to Sudo rule using
+        `xmlrpc.sudorule_add_option`.
+        """
+        ret = api.Command['sudorule_add_option'](
+            self.rule_name, ipasudoopt=self.test_option
+        )
+        entry = ret['result']
+        assert_attr_equal(entry, 'ipasudoopt', self.test_option)
+
+    def test_b_sudorule_remove_option(self):
+        """
+        Test removing an option from Sudo rule using
+        `xmlrpc.sudorule_remove_option'.
+        """
+        ret = api.Command['sudorule_remove_option'](
+            self.rule_name, ipasudoopt=self.test_option
+        )
+        assert ret['result'] is True
 
     def test_a_sudorule_add_host(self):
         """
@@ -272,6 +322,32 @@ class test_sudorule(XMLRPC_test):
         entry = ret['result']
         assert 'memberhost_host' not in entry
         assert 'memberhost_hostgroup' not in entry
+
+    def test_a_sudorule_add_externalhost(self):
+        """
+        Test adding an external host to Sudo rule using
+        `xmlrpc.sudorule_add_host`.
+        """
+        ret = api.Command['sudorule_add_host'](
+            self.rule_name, host=self.test_external_host
+        )
+        assert ret['completed'] == 1
+        failed = ret['failed']
+        entry = ret['result']
+        assert_attr_equal(entry, 'externalhost', self.test_external_host)
+
+    def test_b_sudorule_remove_externalhost(self):
+        """
+        Test removing an external host from Sudo rule using
+        `xmlrpc.sudorule_remove_host`.
+        """
+        ret = api.Command['sudorule_remove_host'](
+            self.rule_name, host=self.test_external_host
+        )
+        assert ret['completed'] == 1
+        failed = ret['failed']
+        entry = ret['result']
+        assert 'externalhost' not in entry
 
     def test_a_sudorule_add_allow_command(self):
         """
