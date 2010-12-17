@@ -25,7 +25,7 @@ Testing:
 	Michael Gregg
 	Suzanne Hillman
 	Chandrasekar Kannan
-	Gowrishankar Rayaiyan
+	Gowrishankar Rajaiyan
 	Yi Zhang
 
 Translators:
