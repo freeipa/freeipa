@@ -47,7 +47,7 @@ example above).
 \fBWARNING:\fR retrieving the keytab resets the secret for the Kerberos principal.
 This renders all other keytabs for that principal invalid.
 
-This is used during IPA client enrollement to retrieve a host service principal and store it in /etc/krb5.conf. It is possible to retrieve the keytab without Kerberos credentials if the host was pre\-created with a one\-time password. The keytab can be retrieved by binding as the host and authenticating with this one\-time password. The \fB\-D|\-\-binddn\fR and \fB\-w|\-\-binddn\fR options are used for this authentication.
+This is used during IPA client enrollement to retrieve a host service principal and store it in /etc/krb5.keytab. It is possible to retrieve the keytab without Kerberos credentials if the host was pre\-created with a one\-time password. The keytab can be retrieved by binding as the host and authenticating with this one\-time password. The \fB\-D|\-\-binddn\fR and \fB\-w|\-\-bindpw\fR options are used for this authentication.
 .SH "OPTIONS"
 .TP
 \fB\-s ipaserver\fR
@@ -94,7 +94,7 @@ Use this password for the key instead of one randomly generated.
 The LDAP DN to bind as when retrieving a keytab without Kerberos credentials. Generally used with the \fB\-w\fR option.
 .TP
 \fB\-w, \-\-bindpw\fR
-The LDAP password to use when not when not binding with Kerberos.
+The LDAP password to use when not binding with Kerberos.
 .SH "EXAMPLES"
 Add and retrieve a keytab for the NFS service principal on
 the host foo.example.com and save it in the file /tmp/nfs.keytab and retrieve just the des\-cbc\-crc key.
