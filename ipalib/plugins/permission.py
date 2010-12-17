@@ -185,8 +185,21 @@ class permission_add(LDAPCreate):
             for attr in self.obj.aci_attributes:
                 if attr in result:
                     entry_attrs[attr] = result[attr]
+        except errors.InvalidSyntax, e:
+            # A syntax error slipped past our attempt at validation, clean up
+            self.api.Command.permission_del(keys[-1])
+            raise e
         except Exception, e:
-            self.api.Command.aci_del(keys[-1])
+            # Something bad happened, clean up as much as we can and return
+            # that error
+            try:
+                self.api.Command.permission_del(keys[-1])
+            except Exception, ignore:
+                pass
+            try:
+                self.api.Command.aci_del(keys[-1])
+            except Exception, ignore:
+                pass
             raise e
         return dn
 
@@ -317,7 +330,7 @@ class permission_find(LDAPSearch):
                     if aci['permission'] == attrs['cn']:
                         found = True
                         break
-                if not found in aci:
+                if not found:
                     permission = self.api.Command.permission_show(aci['permission'])
                     attrs = permission['result']
                     for attr in self.obj.aci_attributes:
@@ -325,7 +338,8 @@ class permission_find(LDAPSearch):
                             attrs[attr] = aci[attr]
                     dn = attrs['dn']
                     del attrs['dn']
-                    newentries.append((dn, attrs))
+                    if (dn, attrs) not in entries:
+                        newentries.append((dn, attrs))
 
         return newentries
 
