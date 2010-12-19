@@ -73,6 +73,7 @@ EXAMPLES:
 import platform
 import os
 import sys
+from nss.error import NSPRError
 
 from ipalib import api, errors, util
 from ipalib import Str, Flag, Bytes
