@@ -88,16 +88,19 @@ Keys:
 
   Create a new key for the auto.share map in location baltimore. This ties
   the map we previously created to auto.master:
-  ipa automountkey-add baltimore auto.master /share --info=auto.share
+    ipa automountkey-add baltimore auto.master --key=/share --info=auto.share
 
   Create a new key for our auto.share map, an NFS mount for man pages:
-    ipa automountkey-add baltimore auto.share man --info="-ro,soft,rsize=8192,wsize=8192 ipa.example.com:/shared/man"
+    ipa automountkey-add baltimore auto.share --key=man --info="-ro,soft,rsize=8192,wsize=8192 ipa.example.com:/shared/man"
 
   Find all keys for the auto.share map:
     ipa automountkey-find baltimore auto.share
 
+  Find all direct automount keys:
+    ipa automountkey-find baltimore --key=/-
+
   Remove the man key from the auto.share map:
-    ipa automountkey-del baltimore auto.share man
+    ipa automountkey-del baltimore auto.share --key=man
 """
 
 """
@@ -362,7 +365,11 @@ class automountlocation_import(LDAPQuery):
 
             # Add a new key to the auto.master map for the new map file
             try:
-                api.Command['automountkey_add'](args[0], u'auto.master', unicode(am[0]), automountinformation=unicode(' '.join(am[1:])))
+                api.Command['automountkey_add'](
+                            args[0],
+                            u'auto.master',
+                            automountkey=unicode(am[0]),
+                            automountinformation=unicode(' '.join(am[1:])))
                 result['keys'].append([am[0], u'auto.master'])
             except errors.DuplicateEntry, e:
                 if options.get('continue', False):
@@ -410,7 +417,11 @@ class automountlocation_import(LDAPQuery):
                 am = x.split(None)
                 key = unicode(am[0].replace('"',''))
                 try:
-                    api.Command['automountkey_add'](args[0], unicode(m), key, automountinformation=unicode(' '.join(am[1:])))
+                    api.Command['automountkey_add'](
+                            args[0],
+                            unicode(m),
+                            automountkey=key,
+                            automountinformation=unicode(' '.join(am[1:])))
                     result['keys'].append([key,m])
                 except errors.DuplicateEntry, e:
                     if options.get('continue', False):
@@ -566,25 +577,86 @@ class automountkey(LDAPObject):
     default_attributes = [
         'automountkey', 'automountinformation', 'description'
     ]
+    rdnattr = 'description'
+    rdn_separator = ' '
 
     takes_params = (
         IA5Str('automountkey',
                cli_name='key',
                label=_('Key'),
                doc=_('Automount key name'),
-               primary_key=True,
         ),
         IA5Str('automountinformation',
                cli_name='info',
                label=_('Mount information'),
         ),
-        Str('description?',
-            cli_name='desc',
+        Str('description',
             label=_('description'),
+            primary_key=True,
+            required=False,
+            flags=['no_create', 'no_update', 'no_search', 'no_output'],
+            exclude='webui',
         ),
     )
 
+    num_parents = 2
     label = _('Automount Keys')
+    already_exists_msg = _('The key,info pair must be unique. A key named %(key)s with info %(info)s already exists')
+    object_not_found_msg = _('The automount key %(key)s with info %(info)s does not exist')
+
+    def get_dn(self, *keys, **kwargs):
+        # all commands except for create send pk in keys, too
+        # create cannot due to validation in frontend.py
+        if len(keys) == self.num_parents:
+            try:
+                pkey = kwargs[self.primary_key.name]
+            except KeyError:
+                raise ValueError('Not enough keys and pkey not in kwargs')
+            parent_keys = keys
+        else:
+            pkey = keys[-1]
+            parent_keys = keys[:-1]
+
+        parent_dn = self.api.Object[self.parent_object].get_dn(*parent_keys)
+        dn = self.backend.make_dn_from_attr(
+            self.primary_key.name,
+            pkey,
+            parent_dn
+        )
+        return dn
+
+    def handle_not_found(self, *keys):
+        pkey = keys[-1]
+        key = pkey.split(self.rdn_separator)[0]
+        info = self.rdn_separator.join(pkey.split(self.rdn_separator)[1:])
+        raise errors.NotFound(
+            reason=self.object_not_found_msg % {
+                'key': key, 'info': info,
+            }
+        )
+
+    def handle_duplicate_entry(self, *keys):
+        pkey = keys[-1]
+        key = pkey.split(self.rdn_separator)[0]
+        info = self.rdn_separator.join(pkey.split(self.rdn_separator)[1:])
+        raise errors.DuplicateEntry(
+            message=self.already_exists_msg % {
+                'key': key, 'info': info,
+            }
+        )
+
+    def get_pk(self, key, info):
+        return self.rdn_separator.join((key,info))
+
+    def check_key_uniqueness(self, location, map, **keykw):
+        key = keykw.get('automountkey')
+        info = keykw.get('automountinformation')
+        if key is None or info is None:
+            return
+
+        entries = self.methods.find(location, map, **keykw)['result']
+        if len(entries) > 0:
+            self.handle_duplicate_entry(location, map, self.get_pk(key, info))
 
 api.register(automountkey)
 
@@ -593,6 +665,19 @@ class automountkey_add(LDAPCreate):
     """
     Create new automount key.
     """
+    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.check_key_uniqueness(keys[-2], keys[-1], **options)
+        return dn
+
+    def get_args(self):
+        for key in self.obj.get_ancestor_primary_keys():
+            yield key
+
+    def execute(self, *keys, **options):
+        options[self.obj.primary_key.name] = self.obj.get_pk(
+                                            options['automountkey'],
+                                            options['automountinformation'])
+        return super(automountkey_add, self).execute(*keys, **options)
 
 api.register(automountkey_add)
 
@@ -619,7 +704,8 @@ class automountmap_add_indirect(LDAPCreate):
         result = self.api.Command['automountmap_add'](*keys, **options)
         options['automountinformation'] = keys[1]
         self.api.Command['automountkey_add'](
-            keys[0], options['parentmap'], options['key'], **options
+            keys[0], options['parentmap'],
+            automountkey=options['key'], **options
         )
         return result
 
@@ -630,6 +716,29 @@ class automountkey_del(LDAPDelete):
     """
     Delete automount key.
     """
+    takes_options = LDAPDelete.takes_options + (
+        IA5Str('automountkey',
+               cli_name='key',
+               label=_('Key'),
+               doc=_('Automount key name'),
+        ),
+        IA5Str('automountinformation',
+               cli_name='info',
+               label=_('Mount information'),
+        ),
+    )
+
+    def get_args(self):
+        for key in self.obj.get_ancestor_primary_keys():
+            yield key
+
+    def execute(self, *keys, **options):
+        keys += (self.obj.get_pk(options['automountkey'],
+                                 options['automountinformation']), )
+        options[self.obj.primary_key.name] = self.obj.get_pk(
+                                            options['automountkey'],
+                                            options['automountinformation'])
+        return super(automountkey_del, self).execute(*keys, **options)
 
 api.register(automountkey_del)
 
@@ -638,6 +747,31 @@ class automountkey_mod(LDAPUpdate):
     """
     Modify automount key.
     """
+    takes_options = LDAPUpdate.takes_options + (
+        IA5Str('newautomountinformation',
+               cli_name='newinfo',
+               label=_('New mount information'),
+        ),
+    )
+
+    def get_args(self):
+        for key in self.obj.get_ancestor_primary_keys():
+            yield key
+
+    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        entry_attrs['automountinformation'] = options['newautomountinformation']
+        entry_attrs['description'] = self.obj.get_pk(
+                                            options['automountkey'],
+                                            options['newautomountinformation'])
+        return dn
+
+    def execute(self, *keys, **options):
+        keys += (self.obj.get_pk(options['automountkey'],
+                                 options['automountinformation']), )
+        options[self.obj.primary_key.name] = self.obj.get_pk(
+                                            options['automountkey'],
+                                            options['automountinformation'])
+        return super(automountkey_mod, self).execute(*keys, **options)
 
 api.register(automountkey_mod)
 
@@ -654,5 +788,28 @@ class automountkey_show(LDAPRetrieve):
     """
     Display automount key.
     """
+    takes_options = LDAPRetrieve.takes_options + (
+        IA5Str('automountkey',
+               cli_name='key',
+               label=_('Key'),
+               doc=_('Automount key name'),
+        ),
+        IA5Str('automountinformation',
+               cli_name='info',
+               label=_('Mount information'),
+        ),
+    )
+
+    def get_args(self):
+        for key in self.obj.get_ancestor_primary_keys():
+            yield key
+
+    def execute(self, *keys, **options):
+        keys += (self.obj.get_pk(options['automountkey'],
+                                 options['automountinformation']), )
+        options[self.obj.primary_key.name] = self.obj.get_pk(
+                                            options['automountkey'],
+                                            options['automountinformation'])
+        return super(automountkey_show, self).execute(*keys, **options)
 
 api.register(automountkey_show)

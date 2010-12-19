@@ -94,12 +94,11 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: automountkey_add
-args: 3,7,3
+args: 2,7,3
 arg: Str('automountlocationcn', cli_name='automountlocation', label=Gettext('Location', domain='ipa', localedir=None), query=True, required=True)
 arg: IA5Str('automountmapautomountmapname', cli_name='automountmap', label=Gettext('Map', domain='ipa', localedir=None), query=True, required=True)
-arg: IA5Str('automountkey', attribute=True, cli_name='key', label=Gettext('Key', domain='ipa', localedir=None), multivalue=False, primary_key=True, required=True)
+option: IA5Str('automountkey', attribute=True, cli_name='key', label=Gettext('Key', domain='ipa', localedir=None), multivalue=False, required=True)
 option: IA5Str('automountinformation', attribute=True, cli_name='info', label=Gettext('Mount information', domain='ipa', localedir=None), multivalue=False, required=True)
-option: Str('description', attribute=True, cli_name='desc', label=Gettext('description', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
 option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
@@ -109,22 +108,22 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: automountkey_del
-args: 3,1,3
+args: 2,3,3
 arg: Str('automountlocationcn', cli_name='automountlocation', label=Gettext('Location', domain='ipa', localedir=None), query=True, required=True)
 arg: IA5Str('automountmapautomountmapname', cli_name='automountmap', label=Gettext('Map', domain='ipa', localedir=None), query=True, required=True)
-arg: IA5Str('automountkey', attribute=True, cli_name='key', label=Gettext('Key', domain='ipa', localedir=None), multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False,lag('continue', autofill=True, cli_name='continue', default=False, doc=Gettext("Continuous mode: Don't stop on errors.", domain='ipa', localedir=None))
+option: IA5Str('automountkey', cli_name='key', label=Gettext('Key', domain='ipa', localedir=None))
+option: IA5Str('automountinformation', cli_name='info', label=Gettext('Mount information', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: automountkey_find
-args: 3,8,4
+args: 3,7,4
 arg: Str('automountlocationcn', cli_name='automountlocation', label=Gettext('Location', domain='ipa', localedir=None), query=True, required=True)
 arg: IA5Str('automountmapautomountmapname', cli_name='automountmap', label=Gettext('Map', domain='ipa', localedir=None), query=True, required=True)
 arg: Str('criteria?')
-option: IA5Str('automountkey', attribute=True, autofill=False, cli_name='key', label=Gettext('Key', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
+option: IA5Str('automountkey', attribute=True, autofill=False, cli_name='key', label=Gettext('Key', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: IA5Str('automountinformation', attribute=True, autofill=False, cli_name='info', label=Gettext('Mount information', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
-option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
 option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('Size Limit', domain='ipa', localedir=None), minvalue=0)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
@@ -135,27 +134,29 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, 'Number of entries returned')
 output: Output('truncated', <type 'bool'>, 'True if not all results were returned')
 command: automountkey_mod
-args: 3,8,3
+args: 2,10,3
 arg: Str('automountlocationcn', cli_name='automountlocation', label=Gettext('Location', domain='ipa', localedir=None), query=True, required=True)
 arg: IA5Str('automountmapautomountmapname', cli_name='automountmap', label=Gettext('Map', domain='ipa', localedir=None), query=True, required=True)
-arg: IA5Str('automountkey', attribute=True, cli_name='key', label=Gettext('Key', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
+option: IA5Str('automountkey', attribute=True, autofill=False, cli_name='key', label=Gettext('Key', domain='ipa', localedir=None), multivalue=False, required=False)
 option: IA5Str('automountinformation', attribute=True, autofill=False, cli_name='info', label=Gettext('Mount information', domain='ipa', localedir=None), multivalue=False, required=False)
-option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('description', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
 option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False, label=Gettext('Rights', domain='ipa', localedir=None))
+option: IA5Str('newautomountinformation', cli_name='newinfo', label=Gettext('New mount information', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Str('rename', cli_name='rename', exclude='webui', flags=['no_create', 'no_update', 'no_search', 'no_output'], label=Gettext('Rename', domain='ipa', localedir=None), multivalue=False, primary_key=True, required=False)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: automountkey_show
-args: 3,4,3
+args: 2,6,3
 arg: Str('automountlocationcn', cli_name='automountlocation', label=Gettext('Location', domain='ipa', localedir=None), query=True, required=True)
 arg: IA5Str('automountmapautomountmapname', cli_name='automountmap', label=Gettext('Map', domain='ipa', localedir=None), query=True, required=True)
-arg: IA5Str('automountkey', attribute=True, cli_name='key', label=Gettext('Key', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('rights', autofill=True, default=False, label=Gettext('Rights', domain='ipa', localedir=None))
+option: IA5Str('automountkey', cli_name='key', label=Gettext('Key', domain='ipa', localedir=None))
+option: IA5Str('automountinformation', cli_name='info', label=Gettext('Mount information', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])

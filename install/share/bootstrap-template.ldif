@@ -64,11 +64,12 @@ changetype: add
 objectClass: automountMap
 automountMapName: auto.direct
 
-dn: automountkey=/-,automountmapname=auto.master,cn=default,cn=automount,$SUFFIX
+dn: description=/- auto.direct,automountmapname=auto.master,cn=default,cn=automount,$SUFFIX
 changetype: add
 objectClass: automount
 automountKey: /-
 automountInformation: auto.direct
+description: /- auto.direct
 
 dn: cn=hbac,$SUFFIX
 changetype: add
