@@ -219,6 +219,7 @@ def del_link(replica1, replica2, dirman_passwd, force=False):
         failed = False
         try:
             repl2.delete_agreement(replica1)
+            repl2.delete_referral(replica1)
         except ldap.LDAPError, e:
             desc = e.args[0]['desc'].strip()
             info = e.args[0].get('info', '').strip()
@@ -238,6 +239,7 @@ def del_link(replica1, replica2, dirman_passwd, force=False):
         print "Forcing removal on '%s'" % replica1
 
     repl1.delete_agreement(replica2)
+    repl1.delete_referral(replica2)
 
 def del_master(replman, hostname, force=False):
     has_repl_agreement = True

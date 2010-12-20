@@ -441,20 +441,28 @@ member: cn=enrollhost,cn=privileges,cn=accounts,$SUFFIX
 
 # Replica administration
 
-dn: cn=managereplica,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=addreplica,cn=permissions,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
-cn: managereplica
-description: Manage Replication Agreements
+cn: addreplica
+description: Add Replication Agreements
 member: cn=replicaadmin,cn=privileges,cn=accounts,$SUFFIX
 
-dn: cn=deletereplica,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifyreplica,cn=permissions,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
-cn: deletereplica
-description: Delete Replication Agreements
+cn: modifyreplica
+description: Modify Replication Agreements
+member: cn=replicaadmin,cn=privileges,cn=accounts,$SUFFIX
+
+dn: cn=removereplica,cn=permissions,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: removereplica
+description: Remove Replication Agreements
 member: cn=replicaadmin,cn=privileges,cn=accounts,$SUFFIX
 
 # Entitlement management

@@ -407,6 +407,19 @@ class ReplicationManager:
         cn, dn = self.agreement_dn(hostname)
         return self.conn.deleteEntry(dn)
 
+    def delete_referral(self, hostname):
+        esc1_suffix = self.suffix.replace('=', '\\3D').replace(',', '\\2C')
+        esc2_suffix = self.suffix.replace('=', '%3D').replace(',', '%2C')
+        dn = 'cn=%s,cn=mapping tree,cn=config' % esc1_suffix
+        # TODO: should we detect proto/port somehow ?
+        mod = [(ldap.MOD_DELETE, 'nsslapd-referral',
+                'ldap://%s:389/%s' % (hostname, esc2_suffix))]
+
+        try:
+            self.conn.modify_s(dn, mod)
+        except Exception, e:
+            logging.debug("Failed to remove referral value: %s" % str(e))
+
     def check_repl_init(self, conn, agmtdn):
         done = False
         hasError = 0
