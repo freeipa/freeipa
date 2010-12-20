@@ -619,8 +619,26 @@ class help(frontend.Local):
         end = r.find('.', start)
         return r[start:end]
 
+    def _get_module_topic(self, module_name):
+        if not sys.modules[module_name]:
+            __import__(module_name)
+        module = sys.modules[module_name]
+
+        dir_list = dir(module)
+        if 'topic' in dir_list:
+            topic = module.topic
+        else:
+            topic = (self._get_command_module(module_name), None)
+
+        return topic
+
+    def _count_topic_mcl(self, topic_name, mod_name):
+        mcl = max((self._topics[topic_name][1], len(mod_name)))
+        self._topics[topic_name][1] = mcl
+
     def finalize(self):
-        # {plugin_module: [mcl, commands]}
+        # {topic: ["description", mcl, {"subtopic": ["description", mcl, [commands]]}]}
+        # {topic: ["description", mcl, [commands]]}
         self._topics = {}
         # [builtin_commands]
         self._builtins = []
@@ -629,12 +647,35 @@ class help(frontend.Local):
         for c in self.Command():
             if c.INTERNAL:
                 continue
-            topic = self._get_command_module(c.module)
-            if topic:
-                self._topics.setdefault(topic, [0]).append(c)
-                # compute maximum length of command in topic
-                mcl = max((self._topics[topic][0], len(c.name)))
-                self._topics[topic][0] = mcl
+
+            topic = self._get_module_topic(c.module)
+            topic_name = topic[0]
+
+            if topic_name:
+                if topic[1] is None: # a module without grouping
+                    if topic_name in self._topics:
+                        self._topics[topic_name][2].append(c)
+                    else:
+                        m = '%s.%s' % (self._PLUGIN_BASE_MODULE, topic_name)
+                        doc = (sys.modules[m].__doc__ or '').strip().split('\n', 1)[0]
+                        self._topics[topic_name] = [doc, 0, [c]]
+                    mcl = max((self._topics[topic_name][1], len(c.name)))
+                    self._topics[topic_name][1] = mcl
+                else: # a module grouped in a topic
+                    doc = (sys.modules[c.module].__doc__ or '').strip().split('\n', 1)[0]
+                    mod_name = c.module.rsplit('.',1)[1]
+                    if topic_name in self._topics:
+                        if mod_name in self._topics[topic_name][2]:
+                            self._topics[topic_name][2][mod_name][2].append(c)
+                        else:
+                            self._topics[topic_name][2][mod_name] = [doc, 0, [c]]
+                            self._count_topic_mcl(topic_name, mod_name)
+                        # count mcl for for the subtopic
+                        mcl = max((self._topics[topic_name][2][mod_name][1], len(c.name)))
+                        self._topics[topic_name][2][mod_name][1] = mcl
+                    else:
+                        self._topics[topic_name] = [topic[1], 0, {mod_name: [doc, 0, [c]]}]
+                        self._count_topic_mcl(topic_name, mod_name)
             else:
                 self._builtins.append(c)
 
@@ -647,6 +688,7 @@ class help(frontend.Local):
 
     def run(self, key):
         name = from_cli(key)
+        mod_name = '%s.%s' % (self._PLUGIN_BASE_MODULE, name)
         if key is None or name == "topics":
             self.print_topics()
             return
@@ -656,6 +698,8 @@ class help(frontend.Local):
             cmd = self.Command[name]
             print 'Purpose: %s' % cmd.doc
             self.Backend.cli.build_parser(cmd).print_help()
+        elif mod_name in sys.modules:
+            self.print_commands(name)
         elif name == "commands":
             mcl = max(len(s) for s in (self.Command))
             for cname in self.Command:
@@ -673,28 +717,61 @@ class help(frontend.Local):
         print ''
         print 'Built-in commands:'
         for c in self._builtins:
+            print 'Help subtopics:'
             print '  %s  %s' % (to_cli(c.name).ljust(self._mtl), c.summary)
         print ''
         print 'Help topics:'
         for t in topics:
-            m = '%s.%s' % (self._PLUGIN_BASE_MODULE, t)
-            doc = (sys.modules[m].__doc__ or '').strip().split('\n', 1)[0]
-            print '  %s  %s' % (to_cli(t).ljust(self._mtl), doc)
+            topic = self._topics[t]
+            print '  %s  %s' % (to_cli(t).ljust(self._mtl), topic[0])
+
+            if False:
+                topic_commands = self._topics[t][2]
+                mod_list = [self._get_command_module(c.module) for c in topic_commands]
+                mod_list = list(set(mod_list))
+
+                for mod in mod_list:
+                    m = '%s.%s' % (self._PLUGIN_BASE_MODULE, mod)
+                    if 'topic' in dir(sys.modules[m]):
+                        doc = sys.modules[m].topic[1]
+                    else:
+                        doc = (sys.modules[m].__doc__ or '').strip().split('\n', 1)[0]
+                    print '  %s  %s' % (to_cli(t).ljust(self._mtl), doc)
         print ''
         print 'Try `ipa --help` for a list of global options.'
 
     def print_commands(self, topic):
-        mcl = self._topics[topic][0]
-        commands = self._topics[topic][1:]
-        m = '%s.%s' % (self._PLUGIN_BASE_MODULE, topic)
-        doc = (sys.modules[m].__doc__ or '').strip()
+        if topic in self._topics and type(self._topics[topic][2]) is dict:
+            # we want to display topic which has subtopics
+            for subtopic in self._topics[topic][2]:
+                doc = self._topics[topic][2][subtopic][0]
+                mcl = self._topics[topic][1]
+                print '  %s  %s' % (to_cli(subtopic).ljust(mcl), doc)
+        else:
+            # we want to display subtopic or a topic which has no subtopics
+            if topic in self._topics:
+                mcl = self._topics[topic][1]
+                commands = self._topics[topic][2]
+            else:
+                for t in self._topics:
+                    if type(self._topics[t][2]) is not dict:
+                        continue
+                    if topic not in self._topics[t][2]:
+                        continue
+                    mcl = self._topics[t][2][topic][1]
+                    commands = self._topics[t][2][topic][2]
+                    break
+            
+            m = '%s.%s' % (self._PLUGIN_BASE_MODULE, topic)
+            doc = (sys.modules[m].__doc__ or '').strip()
 
-        print doc
-        print ''
-        if len(commands) > 1:
-            print 'Topic commands:'
-            for c in commands:
-                print '  %s  %s' % (to_cli(c.name).ljust(mcl), c.summary)
+            print doc
+            print ''
+            if len(commands) > 1:
+                print 'Topic commands:'
+                for c in commands:
+                    print '  %s  %s' % (to_cli(c.name).ljust(mcl), c.summary)
+            print "\n"
 
 
 class console(frontend.Command):
