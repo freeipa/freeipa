@@ -26,7 +26,7 @@ from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
 delegation1 = u'testdelegation'
-memberdn1 = u'cn=admins,cn=groups,cn=accounts,%s' % api.env.basedn
+member1 = u'admins'
 
 class test_delegation(Declarative):
 
@@ -89,8 +89,7 @@ class test_delegation(Declarative):
                     permissions=[u'write'],
                     aciname=delegation1,
                     group=u'editors',
-                    membergroup=u'%s' % memberdn1,
-                    filter = u'(memberOf=%s)' % memberdn1
+                    membergroup=[member1],
                 ),
             ),
         ),
@@ -121,8 +120,7 @@ class test_delegation(Declarative):
                     'permissions': [u'write'],
                     'aciname': delegation1,
                     'group': u'editors',
-                    'filter': u'(memberOf=%s)' % memberdn1,
-                    'membergroup': u'%s' % memberdn1
+                    'membergroup': [member1],
                 },
             ),
         ),
@@ -141,8 +139,7 @@ class test_delegation(Declarative):
                     'permissions': [u'write'],
                     'aciname': delegation1,
                     'group': u'editors',
-                    'membergroup': u'%s' % memberdn1,
-                    'filter': u'(memberOf=%s)' % memberdn1
+                    'membergroup': [member1],
                     },
                 ],
             ),
@@ -162,8 +159,7 @@ class test_delegation(Declarative):
                     permissions=[u'read'],
                     aciname=delegation1,
                     group=u'editors',
-                    membergroup=u'%s' % memberdn1,
-                    filter=u'(memberOf=%s)' % memberdn1
+                    membergroup=[member1],
                 ),
             ),
         ),
@@ -180,8 +176,7 @@ class test_delegation(Declarative):
                     'permissions': [u'read'],
                     'aciname': delegation1,
                     'group': u'editors',
-                    'membergroup': u'%s' % memberdn1,
-                    'filter': u'(memberOf=%s)' % memberdn1
+                    'membergroup': [member1],
                 },
             ),
         ),
