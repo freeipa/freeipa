@@ -815,7 +815,7 @@ function _ipa_create_text_input(value, param_info, rights, index)
 
     span.append($("<a/>",{
         html:"undo",
-        "class":"ui-state-highlight ui-corner-all",
+        "class":"ui-state-highlight ui-corner-all undo",
         style:"display:none",
         click: function(){
             var previous_value = that.values || '';
