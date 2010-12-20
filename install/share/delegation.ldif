@@ -581,7 +581,7 @@ aci: (targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///fqdn
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "krblrincipalkey || krblastpwdchange")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Manage service keytab";allow (write) groupdn = "ldap:///cn=manage_service_keytab,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Manage service keytab";allow (write) groupdn = "ldap:///cn=manage_service_keytab,cn=permissions,cn=accounts,$SUFFIX";)
 
 # Add the ACI needed to do host enrollment. When this occurs we
 # set the krbPrincipalName, add krbPrincipalAux to objectClass and
