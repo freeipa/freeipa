@@ -45,7 +45,7 @@ from ipalib import api, errors
 from ipalib import Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
-from ipalib.plugins.hbac import is_all
+from ipalib.plugins.hbacrule import is_all
 
 
 output_params = (

@@ -36,32 +36,32 @@ EXAMPLES:
 
  Create a rule, "test1", that grants all users access to the host "server" from
  anywhere:
-   ipa hbac-add --type=allow --usercat=all --srchostcat=all test1
-   ipa hbac-add-host --hosts=server.example.com test1
+   ipa hbacrule-add --type=allow --usercat=all --srchostcat=all test1
+   ipa hbacrule-add-host --hosts=server.example.com test1
 
  Display the properties of a named HBAC rule:
-   ipa hbac-show test1
+   ipa hbacrule-show test1
 
  Create a rule for a specific service. This lets the user john access
  the sshd service on any machine from any machine:
-   ipa hbac-add --type=allow --hostcat=all --srchostcat=all john_sshd
-   ipa hbac-add-user --users=john john_sshd
-   ipa hbac-add-service --hbacsvcs=sshd john_sshd
+   ipa hbacrule-add --type=allow --hostcat=all --srchostcat=all john_sshd
+   ipa hbacrule-add-user --users=john john_sshd
+   ipa hbacrule-add-service --hbacsvcs=sshd john_sshd
 
  Create a rule for a new service group. This lets the user john access
  the any FTP service on any machine from any machine:
    ipa hbacsvcgroup-add ftpers
    ipa hbacsvc-add sftp
    ipa hbacsvcgroup-add-member --hbacsvcs=ftp,sftp ftpers
-   ipa hbac-add --type=allow --hostcat=all --srchostcat=all john_ftp
-   ipa hbac-add-user --users=john john_ftp
-   ipa hbac-add-service --hbacsvcgroups=ftpers john_ftp
+   ipa hbacrule-add --type=allow --hostcat=all --srchostcat=all john_ftp
+   ipa hbacrule-add-user --users=john john_ftp
+   ipa hbacrule-add-service --hbacsvcgroups=ftpers john_ftp
 
  Disable a named HBAC rule:
-   ipa hbac-disable test1
+   ipa hbacrule-disable test1
 
  Remove a named HBAC rule:
-   ipa hbac-del allow_server
+   ipa hbacrule-del allow_server
 """
 
 
@@ -73,11 +73,11 @@ EXAMPLES:
 # applied in the order displayed.
 #
 # Specify that the rule "test1" be active every day between 0800 and 1400:
-#   ipa hbac-add-accesstime --time='periodic daily 0800-1400' test1
+#   ipa hbacrule-add-accesstime --time='periodic daily 0800-1400' test1
 #
 # Specify that the rule "test1" be active once, from 10:32 until 10:33 on
 # December 16, 2010:
-#   ipa hbac-add-accesstime --time='absolute 201012161032 ~ 201012161033' test1
+#   ipa hbacrule-add-accesstime --time='absolute 201012161032 ~ 201012161033' test1
 
 
 from ipalib import api, errors
@@ -97,7 +97,7 @@ def is_all(options, attribute):
         return False
 
 
-class hbac(LDAPObject):
+class hbacrule(LDAPObject):
     """
     HBAC object.
     """
@@ -202,10 +202,10 @@ class hbac(LDAPObject):
         ),
     )
 
-api.register(hbac)
+api.register(hbacrule)
 
 
-class hbac_add(LDAPCreate):
+class hbacrule_add(LDAPCreate):
     """
     Create a new HBAC rule.
     """
@@ -214,18 +214,18 @@ class hbac_add(LDAPCreate):
         entry_attrs['ipaenabledflag'] = 'TRUE'
         return dn
 
-api.register(hbac_add)
+api.register(hbacrule_add)
 
 
-class hbac_del(LDAPDelete):
+class hbacrule_del(LDAPDelete):
     """
     Delete an HBAC rule.
     """
 
-api.register(hbac_del)
+api.register(hbacrule_del)
 
 
-class hbac_mod(LDAPUpdate):
+class hbacrule_mod(LDAPUpdate):
     """
     Modify an HBAC rule.
     """
@@ -246,26 +246,26 @@ class hbac_mod(LDAPUpdate):
             raise errors.MutuallyExclusiveError(reason="service category cannot be set to 'all' while there are allowed services")
         return dn
 
-api.register(hbac_mod)
+api.register(hbacrule_mod)
 
 
-class hbac_find(LDAPSearch):
+class hbacrule_find(LDAPSearch):
     """
     Search for HBAC rules.
     """
 
-api.register(hbac_find)
+api.register(hbacrule_find)
 
 
-class hbac_show(LDAPRetrieve):
+class hbacrule_show(LDAPRetrieve):
     """
     Display the properties of an HBAC rule.
     """
 
-api.register(hbac_show)
+api.register(hbacrule_show)
 
 
-class hbac_enable(LDAPQuery):
+class hbacrule_enable(LDAPQuery):
     """
     Enable an HBAC rule.
     """
@@ -288,10 +288,10 @@ class hbac_enable(LDAPQuery):
         textui.print_name(self.name)
         textui.print_dashed('Enabled HBAC rule "%s".' % cn)
 
-api.register(hbac_enable)
+api.register(hbacrule_enable)
 
 
-class hbac_disable(LDAPQuery):
+class hbacrule_disable(LDAPQuery):
     """
     Disable an HBAC rule.
     """
@@ -314,10 +314,10 @@ class hbac_disable(LDAPQuery):
         textui.print_name(self.name)
         textui.print_dashed('Disabled HBAC rule "%s".' % cn)
 
-api.register(hbac_disable)
+api.register(hbacrule_disable)
 
 
-class hbac_add_accesstime(LDAPQuery):
+class hbacrule_add_accesstime(LDAPQuery):
     """
     Add an access time to an HBAC rule.
     """
@@ -355,10 +355,10 @@ class hbac_add_accesstime(LDAPQuery):
             )
         )
 
-#api.register(hbac_add_accesstime)
+#api.register(hbacrule_add_accesstime)
 
 
-class hbac_remove_accesstime(LDAPQuery):
+class hbacrule_remove_accesstime(LDAPQuery):
     """
     Remove access time to HBAC rule.
     """
@@ -395,10 +395,10 @@ class hbac_remove_accesstime(LDAPQuery):
             )
         )
 
-#api.register(hbac_remove_accesstime)
+#api.register(hbacrule_remove_accesstime)
 
 
-class hbac_add_user(LDAPAddMember):
+class hbacrule_add_user(LDAPAddMember):
     """
     Add users and groups to an HBAC rule.
     """
@@ -412,20 +412,20 @@ class hbac_add_user(LDAPAddMember):
             raise errors.MutuallyExclusiveError(reason="users cannot be added when user category='all'")
         return dn
 
-api.register(hbac_add_user)
+api.register(hbacrule_add_user)
 
 
-class hbac_remove_user(LDAPRemoveMember):
+class hbacrule_remove_user(LDAPRemoveMember):
     """
     Remove users and groups from an HBAC rule.
     """
     member_attributes = ['memberuser']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-api.register(hbac_remove_user)
+api.register(hbacrule_remove_user)
 
 
-class hbac_add_host(LDAPAddMember):
+class hbacrule_add_host(LDAPAddMember):
     """
     Add target hosts and hostgroups to an HBAC rule
     """
@@ -439,20 +439,20 @@ class hbac_add_host(LDAPAddMember):
             raise errors.MutuallyExclusiveError(reason="hosts cannot be added when host category='all'")
         return dn
 
-api.register(hbac_add_host)
+api.register(hbacrule_add_host)
 
 
-class hbac_remove_host(LDAPRemoveMember):
+class hbacrule_remove_host(LDAPRemoveMember):
     """
     Remove target hosts and hostgroups from a HBAC rule.
     """
     member_attributes = ['memberhost']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-api.register(hbac_remove_host)
+api.register(hbacrule_remove_host)
 
 
-class hbac_add_sourcehost(LDAPAddMember):
+class hbacrule_add_sourcehost(LDAPAddMember):
     """
     Add source hosts and hostgroups from a HBAC rule.
     """
@@ -466,20 +466,20 @@ class hbac_add_sourcehost(LDAPAddMember):
             raise errors.MutuallyExclusiveError(reason="source hosts cannot be added when sourcehost category='all'")
         return dn
 
-api.register(hbac_add_sourcehost)
+api.register(hbacrule_add_sourcehost)
 
 
-class hbac_remove_sourcehost(LDAPRemoveMember):
+class hbacrule_remove_sourcehost(LDAPRemoveMember):
     """
     Remove source hosts and hostgroups from an HBAC rule.
     """
     member_attributes = ['sourcehost']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-api.register(hbac_remove_sourcehost)
+api.register(hbacrule_remove_sourcehost)
 
 
-class hbac_add_service(LDAPAddMember):
+class hbacrule_add_service(LDAPAddMember):
     """
     Add services to an HBAC rule.
     """
@@ -493,14 +493,14 @@ class hbac_add_service(LDAPAddMember):
             raise errors.MutuallyExclusiveError(reason="services cannot be added when service category='all'")
         return dn
 
-api.register(hbac_add_service)
+api.register(hbacrule_add_service)
 
 
-class hbac_remove_service(LDAPRemoveMember):
+class hbacrule_remove_service(LDAPRemoveMember):
     """
     Remove source hosts and hostgroups from an HBAC rule.
     """
     member_attributes = ['memberservice']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-api.register(hbac_remove_service)
+api.register(hbacrule_remove_service)
