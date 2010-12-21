@@ -58,10 +58,6 @@ def verify_dns_records(host_name, responses, resaddr, family):
     if family not in familykw.keys():
         raise RuntimeError("Unknown faimily %s\n" % family)
 
-    if len(responses) == 0:
-        raise IOError(errno.ENOENT,
-                      "Warning: Hostname (%s) not found with NSS calls" % host_name)
-
     rec = None
     for rsn in responses:
         if rsn.dns_type == familykw[family]['dns_type']:
@@ -137,13 +133,16 @@ def verify_fqdn(host_name,no_host_dns=False):
 
     # Verify that it is a DNS A or AAAA record
     rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
-    try:
+    if len(rs) > 0:
         verify_dns_records(host_name, rs, resaddr, 'ipv4')
-    except IOError, e:
-        if e.errno == errno.ENOENT: # retry IPv6
-            rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_AAAA)
-            verify_dns_records(host_name, rs, resaddr, 'ipv6')
+        return
 
+    rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_AAAA)
+    if len(rs) > 0:
+        verify_dns_records(host_name, rs, resaddr, 'ipv6')
+        return
+    else:
+        print "Warning: Hostname (%s) not found in DNS" % host_name
 
 def verify_ip_address(ip):
     is_ok = True
