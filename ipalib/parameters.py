@@ -748,8 +748,11 @@ class Param(ReadOnly):
         for rule in self.all_rules:
             error = rule(ugettext, value)
             if error is not None:
+                name = self.cli_name
+                if not name:
+                    name = self.name
                 raise ValidationError(
-                    name=self.name,
+                    name=name,
                     value=value,
                     index=index,
                     error=error,
