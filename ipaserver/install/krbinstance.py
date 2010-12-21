@@ -268,28 +268,21 @@ class KrbInstance(service.Service):
 
     def __configure_sasl_mappings(self):
         # we need to remove any existing SASL mappings in the directory as otherwise they
-        # they may conflict. There is no way to define the order they are used in atm.
+        # they may conflict.
 
-        # FIXME: for some reason IPAdmin dies here, so we switch
-        # it out for a regular ldapobject.
-        conn = self.conn
-        self.conn = ldapobject.SimpleLDAPObject("ldap://127.0.0.1/")
-        self.conn.bind("cn=directory manager", self.admin_password)
         try:
-            msgid = self.conn.search("cn=mapping,cn=sasl,cn=config", ldap.SCOPE_ONELEVEL, "(objectclass=nsSaslMapping)")
-            res = self.conn.result(msgid)
-            for r in res[1]:
-                self.conn.delete_s(r[0])
-        #except LDAPError, e:
-        #    logging.critical("Error during SASL mapping removal: %s" % str(e))
-        except Exception, e:
-            logging.critical("Could not connect to the Directory Server on %s" % self.fqdn)
+            res = self.conn.search_s("cn=mapping,cn=sasl,cn=config",
+                                     ldap.SCOPE_ONELEVEL,
+                                     "(objectclass=nsSaslMapping)")
+            for r in res:
+                try:
+                    self.conn.delete_s(r.dn)
+                except LDAPError, e:
+                    logging.critical("Error during SASL mapping removal: %s" % str(e))
+                    raise e
+        except LDAPError, e:
+            logging.critical("Error while enumerating SASL mappings %s" % str(e))
             raise e
-            print type(e)
-            print dir(e)
-            raise e
-
-        self.conn = conn
 
         entry = ipaldap.Entry("cn=Full Principal,cn=mapping,cn=sasl,cn=config")
         entry.setValues("objectclass", "top", "nsSaslMapping")
