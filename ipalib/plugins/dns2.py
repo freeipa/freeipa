@@ -212,6 +212,19 @@ class dnszone(LDAPObject):
             label=_('BIND update policy'),
             doc=_('BIND update policy'),
         ),
+        Flag('idnszoneactive?',
+            cli_name='zone_active',
+            label=_('Active zone'),
+            doc=_('Is zone active?'),
+            flags=['no_create', 'no_update'],
+            attribute=True,
+        ),
+        Flag('idnsallowdynupdate',
+            cli_name='allow_dynupdate',
+            label=_('Dynamic update'),
+            doc=_('Allow dynamic update?'),
+            attribute=True,
+        ),
     )
 
     def check_container_exists(self):
@@ -227,15 +240,6 @@ class dnszone_add(LDAPCreate):
     """
     Create new DNS zone (SOA record).
     """
-    takes_options = (
-        Flag('idnsallowdynupdate',
-            cli_name='allow_dynupdate',
-            label=_('Dynamic update'),
-            doc=_('allow dynamic update?'),
-            attribute=True,
-        ),
-    )
-
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         self.obj.check_container_exists()
         entry_attrs['idnszoneactive'] = 'TRUE'
@@ -259,15 +263,6 @@ class dnszone_mod(LDAPUpdate):
     """
     Modify DNS zone (SOA record).
     """
-    takes_options = (
-        Flag('idnsallowdynupdate',
-            cli_name='allow_dynupdate',
-            label=_('Dynamic update'),
-            doc=_('allow dynamic update?'),
-            attribute=True,
-        ),
-    )
-
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         entry_attrs['idnsallowdynupdate'] = str(
             entry_attrs.get('idnsallowdynupdate', False)
