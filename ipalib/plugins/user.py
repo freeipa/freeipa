@@ -63,6 +63,7 @@ class user(LDAPObject):
     object_name_plural = 'users'
     object_class = ['posixaccount']
     object_class_config = 'ipauserobjectclasses'
+    possible_objectclasses = ['meporiginentry']
     search_attributes_config = 'ipausersearchfields'
     default_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell', 'ou',

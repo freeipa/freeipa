@@ -233,6 +233,9 @@ class LDAPObject(Object):
     object_name_plural = 'entries'
     object_class = []
     object_class_config = None
+    # If an objectclass is possible but not default in an entry. Needed for
+    # collecting attributes for ACI UI.
+    possible_objectclasses = []
     search_attributes = []
     search_attributes_config = None
     default_attributes = []
@@ -356,17 +359,19 @@ class LDAPObject(Object):
             objectclasses = config.get(
                 self.object_class_config, objectclasses
             )
+        objectclasses += self.possible_objectclasses
         # Get list of available attributes for this object for use
         # in the ACI UI.
         attrs = self.api.Backend.ldap2.schema.attribute_types(objectclasses)
         attrlist = []
         # Go through the MUST first
         for (oid, attr) in attrs[0].iteritems():
-            attrlist.append(attr.names[0])
+            attrlist.append(attr.names[0].lower())
         # And now the MAY
         for (oid, attr) in attrs[1].iteritems():
-            attrlist.append(attr.names[0])
+            attrlist.append(attr.names[0].lower())
         json_dict['aciattrs'] = attrlist
+        attrlist.sort()
         json_dict['methods'] = [m for m in self.methods]
         return json_dict
 

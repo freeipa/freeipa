@@ -496,7 +496,7 @@ aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Ad
 aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "Change a user password";allow (write) groupdn = "ldap:///cn=change_password,cn=permissions,cn=accounts,$SUFFIX";)
 aci: (targetattr = "member")(target = "ldap:///cn=ipausers,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Add user to default group";allow (write) groupdn = "ldap:///cn=add_user_to_default_group,cn=permissions,cn=accounts,$SUFFIX";)
 aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Users";allow (delete) groupdn = "ldap:///cn=removeusers,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype || businesscategory || ou || mepmanagedEntry || objectclass")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Users";allow (write) groupdn = "ldap:///cn=modifyusers,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype || businesscategory || ou || mepmanagedentry || objectclass")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Users";allow (write) groupdn = "ldap:///cn=modifyusers,cn=permissions,cn=accounts,$SUFFIX";)
 
 # Group administration
 
@@ -508,7 +508,7 @@ aci: (targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFI
 aci: (target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Groups";allow (delete) groupdn = "ldap:///cn=removegroups,cn=permissions,cn=accounts,$SUFFIX";)
 # We need objectclass and gidnumber in modify so a non-posix group can be
 # promoted. We need mqpManagedBy and ipaUniqueId so a group can be detached.
-aci: (targetattr = "cn || description || gidnumber || objectclass || mepmanagedby || ipaUniqueId")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Groups";allow (write) groupdn = "ldap:///cn=modifygroups,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "cn || description || gidnumber || objectclass || mepmanagedby || ipauniqueid")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Groups";allow (write) groupdn = "ldap:///cn=modifygroups,cn=permissions,cn=accounts,$SUFFIX";)
 
 # Host administration
 
