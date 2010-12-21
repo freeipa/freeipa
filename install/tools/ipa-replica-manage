@@ -392,7 +392,7 @@ def main():
     if options.dirman_passwd:
         dirman_passwd = options.dirman_passwd
     else:
-        if not test_connection(host):
+        if not test_connection(host) or args[0] == "connect":
             dirman_passwd = getpass.getpass("Directory Manager password: ")
 
     options.dirman_passwd = dirman_passwd
