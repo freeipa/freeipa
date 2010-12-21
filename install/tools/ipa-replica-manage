@@ -39,10 +39,8 @@ commands = {
                     "must provide the name of the server to disconnect"),
     "del":(1, 1, "<master fqdn>",
                     "must provide hostname of master to delete"),
-    "init":(1, 1, "<master fqdn>",
-                    "hostname of master to initialize is required"),
-    "synch":(1, 1, "master fqdn>",
-                    "must provide hostname of supplier to synchronize with")
+    "re-initialize":(0, 0, "", ""),
+    "force-sync":(0, 0, "", "")
 }
 
 def parse_options():
@@ -69,6 +67,7 @@ def parse_options():
                       help="DN of Windows subtree containing the users you want to sync (default cn=Users,<domain suffix)")
     parser.add_option("--passsync", dest="passsync",
                       help="Password for the Windows PassSync user")
+    parser.add_option("--from", dest="fromhost", help="Host to get data from")
 
     options, args = parser.parse_args()
 
@@ -340,27 +339,50 @@ def add_link(replica1, replica2, dirman_passwd, options):
     repl1.setup_replication(replica2, get_realm_name(), **other_args)
     print "Connected '%s' to '%s'" % (replica1, replica2)
 
-def init_master(replman, dirman_passwd, hostname):
-    filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % hostname
-    entry = replman.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
+def re_initialize(options):
+
+    if not options.fromhost:
+        print "re-initialize requires the option --from <host name>"
+        sys.exit(1)
+
+    repl = replication.ReplicationManager(options.fromhost, options.dirman_passwd)
+    repl.suffix = get_suffix()
+
+    thishost = installutils.get_fqdn()
+
+    filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % thishost
+    entry = repl.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
     if len(entry) == 0:
-        logging.error("Unable to find replication agreement for %s" % hostname)
+        logging.error("Unable to find %s -> %s replication agreement" % (options.fromhost, thishost))
         sys.exit(1)
     if len(entry) > 1:
-        logging.error("Found multiple agreements for %s. Only initializing the first one returned: %s" % (hostname, entry[0].dn))
-    replman.initialize_replication(entry[0].dn, replman.conn)
-    ds = dsinstance.DsInstance(realm_name = get_realm_name(), dm_password = dirman_passwd)
+        logging.error("Found multiple agreements for %s. Only initializing the first one returned: %s" % (thishost, entry[0].dn))
+
+    repl.initialize_replication(entry[0].dn, repl.conn)
+    repl.wait_for_repl_init(repl.conn, entry[0].dn)
+
+    ds = dsinstance.DsInstance(realm_name = get_realm_name(), dm_password = options.dirman_passwd)
     ds.init_memberof()
 
-def synch_master(replman, hostname):
-    filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % hostname
-    entry = replman.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
+def force_sync(options):
+
+    if not options.fromhost:
+        print "force-sync requires the option --from <host name>"
+        sys.exit(1)
+
+    repl = replication.ReplicationManager(options.fromhost, options.dirman_passwd)
+    repl.suffix = get_suffix()
+
+    thishost = installutils.get_fqdn()
+
+    filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % thishost
+    entry = repl.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
     if len(entry) == 0:
-        logging.error("Unable to find replication agreement for %s" % hostname)
+        logging.error("Unable to find %s -> %s replication agreement" % (options.fromhost, thishost))
         sys.exit(1)
     if len(entry) > 1:
-        logging.error("Found multiple agreements for %s. Only initializing the first one returned: %s" % (hostname, entry[0].dn))
-    replman.force_synch(entry[0].dn, entry[0].nsds5replicaupdateschedule, replman.conn)
+        logging.error("Found multiple agreements for %s. Only initializing the first one returned: %s" % (thishost, entry[0].dn))
+    repl.force_synch(entry[0].dn, entry[0].nsds5replicaupdateschedule, repl.conn)
 
 def main():
     options, args = parse_options()
@@ -375,8 +397,10 @@ def main():
     if options.dirman_passwd:
         dirman_passwd = options.dirman_passwd
     else:
-        if (not test_connection(host)) or args[0] in ["connect", "init"]:
+        if not test_connection(host):
             dirman_passwd = getpass.getpass("Directory Manager password: ")
+
+    options.dirman_passwd = dirman_passwd
 
     r = replication.ReplicationManager(host, dirman_passwd)
     r.suffix = get_suffix()
@@ -388,10 +412,10 @@ def main():
         list_masters(host, replica, dirman_passwd, options.verbose)
     elif args[0] == "del":
         del_master(r, args[1], options.force)
-    elif args[0] == "init":
-        init_master(r, dirman_passwd, args[1])
-    elif args[0] == "synch":
-        synch_master(r, args[1])
+    elif args[0] == "re-initialize":
+        re_initialize(options)
+    elif args[0] == "force-sync":
+        force_sync(options)
     elif args[0] == "connect":
         if len(args) == 3:
             replica1 = args[1]
@@ -412,7 +436,7 @@ def main():
 try:
     main()
 except KeyboardInterrupt:
-    sys.exit(1)   
+    sys.exit(1)
 except SystemExit, e:
     sys.exit(e)
 except ldap.INVALID_CREDENTIALS:

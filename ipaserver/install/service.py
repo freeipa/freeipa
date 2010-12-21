@@ -28,6 +28,7 @@ from ipaserver import ipaldap
 import base64
 import time
 import datetime
+from ipaserver.install import installutils
 
 SERVICE_LIST = {
     'KDC':('krb5kdc', 10),
@@ -105,22 +106,27 @@ class Service:
             self.sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
 
     def _ldap_mod(self, ldif, sub_dict = None):
-        assert self.dm_password is not None
 
+        pw_name = None
         fd = None
         path = ipautil.SHARE_DIR + ldif
+        hostname = installutils.get_fqdn()
 
         if sub_dict is not None:
             txt = ipautil.template_file(path, sub_dict)
             fd = ipautil.write_tmp_file(txt)
             path = fd.name
 
-        [pw_fd, pw_name] = tempfile.mkstemp()
-        os.write(pw_fd, self.dm_password)
-        os.close(pw_fd)
+        if self.dm_password:
+            [pw_fd, pw_name] = tempfile.mkstemp()
+            os.write(pw_fd, self.dm_password)
+            os.close(pw_fd)
+            auth_parms = ["-x", "-D", "cn=Directory Manager", "-y", pw_name]
+        else:
+            auth_parms = ["-Y", "GSSAPI"]
 
-        args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv",
-                "-D", "cn=Directory Manager", "-y", pw_name, "-f", path]
+        args = ["/usr/bin/ldapmodify", "-h", hostname, "-v", "-f", path]
+        args += auth_parms
 
         try:
             try:
@@ -128,7 +134,8 @@ class Service:
             except ipautil.CalledProcessError, e:
                 logging.critical("Failed to load %s: %s" % (ldif, str(e)))
         finally:
-            os.remove(pw_name)
+            if pw_name:
+                os.remove(pw_name)
 
         if fd is not None:
             fd.close()
