@@ -332,12 +332,14 @@ function ipa_details_list_section(spec){
             var field = fields[i];
 
             var label = field.label;
-
+            if (label !== ''){
+                label += ':';
+            }
             var param_info = ipa_get_param_info(that.entity_name, field.name);
             if (param_info && param_info['label']) label = param_info['label'];
 
             $('<dt/>', {
-                html: label + ':'
+                html: label
             }).appendTo(dl);
 
             var span = $('<span/>', { 'name': field.name }).appendTo(dl);

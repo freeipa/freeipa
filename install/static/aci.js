@@ -260,6 +260,28 @@ IPA.rights_widget = function(spec){
     return that;
 }
 
+IPA.hidden_widget = function(spec){
+    spec.label = '';
+    var that = ipa_widget(spec);
+    that.id = spec.id;
+    var value = spec.value || '';
+    that.create = function(container){
+        $('<input/>',{
+            type:'hidden',
+            'id':that.id,
+            value: value
+        }).
+            appendTo(container);
+    }
+
+    that.save = function(){
+        return [value];
+    }
+    that.reset = function(){
+
+    }
+    return that;
+}
 
 
 
@@ -600,9 +622,8 @@ function ipa_permission_add_dialog(spec) {
         }));
 
         that.add_field(IPA.rights_widget({name:'permissions'}));
-        that.add_field(ipa_text_widget({name:'filter'}));
+        that.add_field(IPA.hidden_widget({name:'filter','value':'objectClass=changethisvalue'}));
         that.add_dialog_init();
-
     };
 
 

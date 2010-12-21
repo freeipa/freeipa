@@ -55,7 +55,9 @@ function ipa_widget(spec) {
     function init() {
         if (that.entity_name && !that.label){
             var param_info = ipa_get_param_info(that.entity_name, spec.name);
-            if (param_info) that.label = param_info.label;
+            if ((param_info) && (that.label === undefined)){
+                that.label = param_info.label;
+            }
         }
     }
 
