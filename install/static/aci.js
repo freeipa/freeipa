@@ -179,7 +179,7 @@ IPA.entity_select_widget = function(spec){
                 return false;
             }
         }).appendTo(dd);
-
+        populate_select();
     }
     var value = '';
     that.reset = function(){
