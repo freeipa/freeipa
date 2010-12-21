@@ -537,8 +537,10 @@ class ReplicationManager:
         # allow connections using two different CA certs
         other_conn = ipaldap.IPAdmin(other_hostname, port=oth_port, cacert=oth_cacert)
         try:
-            # For now we always require a password to set up new replica
-            other_conn.do_simple_bind(binddn=oth_binddn, bindpw=oth_bindpw)
+            if oth_bindpw:
+                other_conn.do_simple_bind(binddn=oth_binddn, bindpw=oth_bindpw)
+            else:
+                other_conn.sasl_interactive_bind_s('', SASL_AUTH)
         except Exception, e:
             if iswinsync:
                 logging.info("Could not validate connection to remote server %s:%d - continuing" %

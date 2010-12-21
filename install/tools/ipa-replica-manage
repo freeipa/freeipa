@@ -240,51 +240,50 @@ def del_link(replica1, replica2, dirman_passwd, force=False):
     repl1.delete_agreement(replica2)
     repl1.delete_referral(replica2)
 
-def del_master(replman, hostname, force=False):
-    has_repl_agreement = True
+def del_master(hostname, options):
+
+    force_del = False
+
+    # 1. Connect to the master to be removed.
     try:
-        t = replman.get_agreement_type(hostname)
-    except ldap.NO_SUCH_OBJECT:
-        print "No replication agreement found for '%s'" % hostname
-        if force:
-            has_repl_agreement = False
+        delrepl = replication.ReplicationManager(hostname, options.dirman_passwd)
+        delrepl.suffix = get_suffix()
+    except Exception, e:
+        if not options.force:
+            print "Unable to delete replica %s: %s" % (hostname, str(e))
+            sys.exit(1)
         else:
-            return
-    except errors.NotFound:
-        print "No replication agreement found for '%s'" % hostname
-        if force:
-            has_repl_agreement = False
-        else:
-            return
+            print "Unable to connect to replica %s, forcing removal" % hostname
+            force_del = True
 
-    if has_repl_agreement:
-        # Delete the remote agreement first
-        if t == replication.IPA_REPLICA:
-            failed = False
-            try:
-                other_replman = replication.ReplicationManager(hostname, replman.dirman_passwd)
-                other_replman.suffix = get_suffix()
-                other_replman.delete_agreement(replman.conn.host)
-            except ldap.LDAPError, e:
-                desc = e.args[0]['desc'].strip()
-                info = e.args[0].get('info', '').strip()
-                print "Unable to remove agreement on %s: %s: %s" % (hostname, desc, info)
-                failed = True
-            except Exception, e:
-                print "Unable to remove agreement on %s: %s" % (hostname, str(e))
-                failed = True
-
-            if failed:
-                if force:
-                    print "Forcing removal on local server"
-                else:
-                    return
-
-        # Delete the local agreement
-        replman.delete_agreement(hostname)
-
+    # 2. Connect to the local server
     try:
-        replman.replica_cleanup(hostname, get_realm_name(), force=True)
+        thisrepl = replication.ReplicationManager(options.host,
+                                                  options.dirman_passwd)
+    except Exception, e:
+        print "Failed to connect to server %s: %s" % (options.host, str(e))
+        sys.exit(1)
+
+    if force_del:
+        dn = 'cn=masters,cn=ipa,cn=etc,%s' % get_suffix()
+        res = thisrepl.conn.search_s(dn, ldap.SCOPE_ONELEVEL)
+        replica_names = []
+        for entry in res:
+            replica_names.append(entry.cn)
+    else:
+        # 2. Get list of agreements.
+        replica_names = delrepl.find_ipa_replication_agreements()
+
+    # 3. Remove each agreement
+    for r in replica_names:
+        try:
+            del_link(r, hostname, options.dirman_passwd, force=True)
+        except Exception, e:
+            print "There were issues removing a connection: %s" % str(e)
+
+    # 4. Finally clean up the removed replica common entries.
+    try:
+        thisrepl.replica_cleanup(hostname, get_realm_name(), force=True)
     except Exception, e:
         print "Failed to cleanup %s entries: %s" % (hostname, str(e))
         print "You may need to manually remove them from the tree"
@@ -364,21 +363,15 @@ def re_initialize(options):
     ds = dsinstance.DsInstance(realm_name = get_realm_name(), dm_password = options.dirman_passwd)
     ds.init_memberof()
 
-def force_sync(options):
+def force_sync(thishost, fromhost, dirman_passwd):
 
-    if not options.fromhost:
-        print "force-sync requires the option --from <host name>"
-        sys.exit(1)
-
-    repl = replication.ReplicationManager(options.fromhost, options.dirman_passwd)
+    repl = replication.ReplicationManager(fromhost, dirman_passwd)
     repl.suffix = get_suffix()
-
-    thishost = installutils.get_fqdn()
 
     filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % thishost
     entry = repl.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
     if len(entry) == 0:
-        logging.error("Unable to find %s -> %s replication agreement" % (options.fromhost, thishost))
+        logging.error("Unable to find %s -> %s replication agreement" % (fromhost, thishost))
         sys.exit(1)
     if len(entry) > 1:
         logging.error("Found multiple agreements for %s. Only initializing the first one returned: %s" % (thishost, entry[0].dn))
@@ -394,6 +387,8 @@ def main():
     else:
         host = installutils.get_fqdn()
 
+    options.host = host
+
     if options.dirman_passwd:
         dirman_passwd = options.dirman_passwd
     else:
@@ -402,20 +397,20 @@ def main():
 
     options.dirman_passwd = dirman_passwd
 
-    r = replication.ReplicationManager(host, dirman_passwd)
-    r.suffix = get_suffix()
-
     if args[0] == "list":
         replica = None
         if len(args) == 2:
             replica = args[1]
         list_masters(host, replica, dirman_passwd, options.verbose)
     elif args[0] == "del":
-        del_master(r, args[1], options.force)
+        del_master(args[1], options)
     elif args[0] == "re-initialize":
         re_initialize(options)
     elif args[0] == "force-sync":
-        force_sync(options)
+        if not options.fromhost:
+            print "force-sync requires the option --from <host name>"
+            sys.exit(1)
+        force_sync(host, options.fromhost, options.dirman_passwd)
     elif args[0] == "connect":
         if len(args) == 3:
             replica1 = args[1]
