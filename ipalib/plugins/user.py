@@ -22,6 +22,12 @@ Users
 
 Manage user entries. All users are POSIX users.
 
+IPA supports a wide range of username formats, but you need to be aware of any
+restrictions that may apply to your particular environment. For example,
+usernames that starts with a digit or usernames that exceed a certain length
+may cause problems for some UNIX systems.
+Use 'ipa config-mod' to change the username format allowed by IPA tools.
+
 Disabling a user account prevents that user from obtaining new Kerberos
 credentials. It does not invalidate any credentials that have already
 been issued.
