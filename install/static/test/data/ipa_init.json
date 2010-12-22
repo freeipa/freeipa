@@ -4490,7 +4490,7 @@
                             ]
                         },
                         "bindable": false,
-                        "container_dn": "cn=permissions,cn=accounts",
+                        "container_dn": "cn=permissions,cn=pbac",
                         "default_attributes": [
                             "cn",
                             "description",
@@ -4783,7 +4783,7 @@
                             ]
                         },
                         "bindable": false,
-                        "container_dn": "cn=privileges,cn=accounts",
+                        "container_dn": "cn=privileges,cn=pbac",
                         "default_attributes": [
                             "cn",
                             "description",
@@ -7248,11 +7248,11 @@
                     "container_host": "cn=computers,cn=accounts",
                     "container_hostgroup": "cn=hostgroups,cn=accounts",
                     "container_netgroup": "cn=ng,cn=alt",
-                    "container_permission": "cn=permissions,cn=accounts",
+                    "container_permission": "cn=permissions,cn=pbac",
                     "container_policies": "cn=policies",
                     "container_policygroups": "cn=policygroups,cn=configs,cn=policies",
                     "container_policylinks": "cn=policylinks,cn=configs,cn=policies",
-                    "container_privilege": "cn=privileges,cn=accounts",
+                    "container_privilege": "cn=privileges,cn=pbac",
                     "container_rolegroup": "cn=roles,cn=accounts",
                     "container_roles": "cn=roles,cn=policies",
                     "container_service": "cn=services,cn=accounts",

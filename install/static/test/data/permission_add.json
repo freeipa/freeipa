@@ -9,7 +9,7 @@
             "description": [
                 "description"
             ],
-            "dn": "cn=testperm,cn=permissions,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "cn=testperm,cn=permissions,cn=pbac,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
             "objectclass": [
                 "groupofnames",
                 "top"

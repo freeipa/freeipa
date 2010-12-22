@@ -4,41 +4,41 @@ objectClass: nsContainer
 objectClass: top
 cn: dns
 
-dn: cn=add dns entries,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=add dns entries,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: groupofnames
 objectClass: top
 cn: add dns entries
 description: Add DNS entries
-member: cn=dnsadmin,cn=privileges,cn=accounts,$SUFFIX
-member: cn=dnsserver,cn=privileges,cn=accounts,$SUFFIX
+member: cn=dnsadmin,cn=privileges,cn=pbac,$SUFFIX
+member: cn=dnsserver,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=remove dns entries,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=remove dns entries,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: groupofnames
 objectClass: top
 cn: remove dns entries
 description: Remove DNS entries
-member: cn=dnsadmin,cn=privileges,cn=accounts,$SUFFIX
-member: cn=dnsserver,cn=privileges,cn=accounts,$SUFFIX
+member: cn=dnsadmin,cn=privileges,cn=pbac,$SUFFIX
+member: cn=dnsserver,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=update dns entries,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: groupofnames
 objectClass: top
 cn: update dns entries
 description: Update DNS entries
-member: cn=dnsadmin,cn=privileges,cn=accounts,$SUFFIX
-member: cn=dnsserver,cn=privileges,cn=accounts,$SUFFIX
+member: cn=dnsadmin,cn=privileges,cn=pbac,$SUFFIX
+member: cn=dnsserver,cn=privileges,cn=pbac,$SUFFIX
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Add DNS entries";allow (add) groupdn = "ldap:///cn=add dns entries,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Remove DNS entries";allow (delete) groupdn = "ldap:///cn=remove dns entries,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Update DNS entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Add DNS entries";allow (add) groupdn = "ldap:///cn=add dns entries,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Remove DNS entries";allow (delete) groupdn = "ldap:///cn=remove dns entries,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Update DNS entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX";)
 
-dn: cn=dnsadmin,cn=privileges,cn=accounts,$SUFFIX
+dn: cn=dnsadmin,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
@@ -46,7 +46,7 @@ objectClass: nestedgroup
 cn: dnsadmin
 description: DNS Administrators
 
-dn: cn=dnsserver,cn=privileges,cn=accounts,$SUFFIX
+dn: cn=dnsserver,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames

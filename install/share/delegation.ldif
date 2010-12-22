@@ -7,13 +7,20 @@ objectClass: top
 objectClass: nsContainer
 cn: roles
 
-dn: cn=privileges,cn=accounts,$SUFFIX
+# Permissions-based Access Control
+dn: cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: pbac
+
+dn: cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
 cn: privileges
 
-dn: cn=permissions,cn=accounts,$SUFFIX
+dn: cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
@@ -33,7 +40,7 @@ description: Helpdesk
 ############################################
 # Add the default privileges
 ############################################
-dn: cn=useradmin,cn=privileges,cn=accounts,$SUFFIX
+dn: cn=useradmin,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
@@ -41,7 +48,7 @@ objectClass: nestedgroup
 cn: useradmin
 description: User Administrators
 
-dn: cn=groupadmin,cn=privileges,cn=accounts,$SUFFIX
+dn: cn=groupadmin,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
@@ -49,7 +56,7 @@ objectClass: nestedgroup
 cn: groupadmin
 description: Group Administrators
 
-dn: cn=hostadmin,cn=privileges,cn=accounts,$SUFFIX
+dn: cn=hostadmin,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
@@ -57,7 +64,7 @@ objectClass: nestedgroup
 cn: hostadmin
 description: Host Administrators
 
-dn: cn=hostgroupadmin,cn=privileges,cn=accounts,$SUFFIX
+dn: cn=hostgroupadmin,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
@@ -65,7 +72,7 @@ objectClass: nestedgroup
 cn: hostgroupadmin
 description: Host Group Administrators
 
-dn: cn=delegationadmin,cn=privileges,cn=accounts,$SUFFIX
+dn: cn=delegationadmin,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
@@ -73,7 +80,7 @@ objectClass: nestedgroup
 cn: delegationadmin
 description: Role administration
 
-dn: cn=serviceadmin,cn=privileges,cn=accounts,$SUFFIX
+dn: cn=serviceadmin,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
@@ -81,7 +88,7 @@ objectClass: nestedgroup
 cn: serviceadmin
 description: Service Administrators
 
-dn: cn=automountadmin,cn=privileges,cn=accounts,$SUFFIX
+dn: cn=automountadmin,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
@@ -89,7 +96,7 @@ objectClass: nestedgroup
 cn: automountadmin
 description: Automount Administrators
 
-dn: cn=netgroupadmin,cn=privileges,cn=accounts,$SUFFIX
+dn: cn=netgroupadmin,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
@@ -97,7 +104,7 @@ objectClass: nestedgroup
 cn: netgroupadmin
 description: Netgroups Administrators
 
-dn: cn=certadmin,cn=privileges,cn=accounts,$SUFFIX
+dn: cn=certadmin,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
@@ -105,7 +112,7 @@ objectClass: nestedgroup
 cn: certadmin
 description: Certificate Administrators
 
-dn: cn=replicaadmin,cn=privileges,cn=accounts,$SUFFIX
+dn: cn=replicaadmin,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
@@ -114,7 +121,7 @@ cn: replicaadmin
 description: Replication Administrators
 member: cn=admins,cn=groups,cn=accounts,$SUFFIX
 
-dn: cn=enrollhost,cn=privileges,cn=accounts,$SUFFIX
+dn: cn=enrollhost,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
@@ -122,7 +129,7 @@ objectClass: nestedgroup
 cn: enrollhost
 description: Host Enrollment
 
-dn: cn=entitlementadmin,cn=privileges,cn=accounts,$SUFFIX
+dn: cn=entitlementadmin,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
@@ -136,360 +143,360 @@ description: Entitlement Administrators
 
 # User administration
 
-dn: cn=addusers,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=addusers,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: addusers
 description: Add Users
-member: cn=useradmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=useradmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=change_password,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=change_password,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: change_password
 description: Change a user password
-member: cn=useradmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=useradmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=add_user_to_default_group,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=add_user_to_default_group,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: add_user_to_default_group
 description: Add user to default group
-member: cn=useradmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=useradmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=removeusers,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=removeusers,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: removeusers
 description: Remove Users
-member: cn=useradmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=useradmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifyusers,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifyusers,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: modifyusers
 description: Modify Users
-member: cn=useradmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=useradmin,cn=privileges,cn=pbac,$SUFFIX
 
 # Group administration
 
-dn: cn=addgroups,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=addgroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: addgroups
 description: Add Groups
-member: cn=groupadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=groupadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=removegroups,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=removegroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: removegroups
 description: Remove Groups
-member: cn=groupadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=groupadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifygroups,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifygroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: modifygroups
 description: Modify Groups
-member: cn=groupadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=groupadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifygroupmembership,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifygroupmembership,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: modifygroupmembership
 description: Modify Group membership
-member: cn=groupadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=groupadmin,cn=privileges,cn=pbac,$SUFFIX
 
 # Host administration
 
-dn: cn=addhosts,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=addhosts,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: addhosts
 description: Add Hosts
-member: cn=hostadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=hostadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=removehosts,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=removehosts,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: removehosts
 description: Remove Hosts
-member: cn=hostadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=hostadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifyhosts,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifyhosts,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: modifyhosts
 description: Modify Hosts
-member: cn=hostadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=hostadmin,cn=privileges,cn=pbac,$SUFFIX
 
 # Hostgroup administration
 
-dn: cn=addhostgroups,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=addhostgroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: addhostgroups
 description: Add Hostgroups
-member: cn=hostgroupadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=hostgroupadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=removehostgroups,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=removehostgroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: removehostgroups
 description: Remove Hostgroups
-member: cn=hostgroupadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=hostgroupadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifyhostgroups,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifyhostgroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: modifyhostgroups
 description: Modify Hostgroups
-member: cn=hostgroupadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=hostgroupadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifyhostgroupmembership,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifyhostgroupmembership,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: modifyhostgroupmembership
 description: Modify Hostgroup membership
-member: cn=hostgroupadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=hostgroupadmin,cn=privileges,cn=pbac,$SUFFIX
 
 # Service administration
 
-dn: cn=addservices,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=addservices,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: addservices
 description: Add Services
-member: cn=serviceadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=serviceadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=removeservices,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=removeservices,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: removeservices
 description: Remove Services
-member: cn=serviceadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=serviceadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifyservices,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifyservices,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: modifyservices
 description: Modify Services
-member: cn=serviceadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=serviceadmin,cn=privileges,cn=pbac,$SUFFIX
 
 # Delegation administration
 
-dn: cn=addroles,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=addroles,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: addroles
 description: Add Roles
-member: cn=delegationadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=delegationadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=removeroles,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=removeroles,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: removeroles
 description: Remove Roles
-member: cn=delegationadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=delegationadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifyroles,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifyroles,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: modifyroles
 description: Modify Roles
-member: cn=delegationadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=delegationadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifyrolemembership,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifyrolemembership,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: modifyrolemembership
 description: Modify Role Group membership
-member: cn=delegationadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=delegationadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifyprivilegemembership,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifyprivilegemembership,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nestedgroup
 cn: modifyprivilegemembership
 description: Modify privilege membership
-member: cn=delegationadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=delegationadmin,cn=privileges,cn=pbac,$SUFFIX
 
 # Automount administration
 
-dn: cn=addautomountmaps,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=addautomountmaps,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: addautomountmaps
 description: Add Automount maps
-member: cn=automountadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=automountadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=removeautomountmaps,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=removeautomountmaps,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: removeautomountmaps
 description: Remove Automount maps
-member: cn=automountadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=automountadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=addautomountkeys,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=addautomountkeys,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: addautomountkeys
 description: Add Automount keys
-member: cn=automountadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=automountadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=removeautomountkeys,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=removeautomountkeys,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: removeautomountkeys
 description: Remove Automount keys
-member: cn=automountadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=automountadmin,cn=privileges,cn=pbac,$SUFFIX
 
 # Netgroup administration
 
-dn: cn=addnetgroups,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=addnetgroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: addnetgroups
 description: Add netgroups
-member: cn=netgroupadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=netgroupadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=removenetgroups,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=removenetgroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: removenetgroups
 description: Remove netgroups
-member: cn=netgroupadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=netgroupadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifynetgroups,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifynetgroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: modifynetgroups
 description: Modify netgroups
-member: cn=netgroupadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=netgroupadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifynetgroupmembership,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifynetgroupmembership,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: modifynetgroupmembership
 description: Modify netgroup membership
-member: cn=netgroupadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=netgroupadmin,cn=privileges,cn=pbac,$SUFFIX
 
 # Keytab access
 
-dn: cn=manage_host_keytab,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=manage_host_keytab,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: manage_host_keytab
 description: Manage host keytab
-member: cn=hostadmin,cn=privileges,cn=accounts,$SUFFIX
-member: cn=enrollhost,cn=privileges,cn=accounts,$SUFFIX
+member: cn=hostadmin,cn=privileges,cn=pbac,$SUFFIX
+member: cn=enrollhost,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=manage_service_keytab,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=manage_service_keytab,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: manage_service_keytab
 description: Manage service keytab
-member: cn=serviceadmin,cn=privileges,cn=accounts,$SUFFIX
-member: cn=admins,cn=privileges,cn=accounts,$SUFFIX
+member: cn=serviceadmin,cn=privileges,cn=pbac,$SUFFIX
+member: cn=admins,cn=privileges,cn=pbac,$SUFFIX
 
 # DNS administration
 
 # The permission and aci for this is in install/updates/dns.ldif
 
-dn: cn=enroll_host,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=enroll_host,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: enroll_host
 description: Enroll a host
-member: cn=hostadmin,cn=privileges,cn=accounts,$SUFFIX
-member: cn=enrollhost,cn=privileges,cn=accounts,$SUFFIX
+member: cn=hostadmin,cn=privileges,cn=pbac,$SUFFIX
+member: cn=enrollhost,cn=privileges,cn=pbac,$SUFFIX
 
 # Replica administration
 
-dn: cn=addreplica,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=addreplica,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: addreplica
 description: Add Replication Agreements
-member: cn=replicaadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=replicaadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifyreplica,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifyreplica,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: modifyreplica
 description: Modify Replication Agreements
-member: cn=replicaadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=replicaadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=removereplica,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=removereplica,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: removereplica
 description: Remove Replication Agreements
-member: cn=replicaadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=replicaadmin,cn=privileges,cn=pbac,$SUFFIX
 
 # Entitlement management
 
-dn: cn=addentitlements,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=addentitlements,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: addentitlements
 description: Add Entitlements
-member: cn=entitlementadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=entitlementadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=removeentitlements,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=removeentitlements,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: removeentitlements
 description: Remove Entitlements
-member: cn=entitlementadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=entitlementadmin,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifyentitlements,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=modifyentitlements,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: modifyentitlements
 description: Modify Entitlements
-member: cn=entitlementadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=entitlementadmin,cn=privileges,cn=pbac,$SUFFIX
 
 ############################################
 # Default permissions (ACIs)
@@ -500,96 +507,96 @@ member: cn=entitlementadmin,cn=privileges,cn=accounts,$SUFFIX
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Add Users";allow (add) groupdn = "ldap:///cn=addusers,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "Change a user password";allow (write) groupdn = "ldap:///cn=change_password,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "member")(target = "ldap:///cn=ipausers,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Add user to default group";allow (write) groupdn = "ldap:///cn=add_user_to_default_group,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Users";allow (delete) groupdn = "ldap:///cn=removeusers,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype || businesscategory || ou || mepmanagedentry || objectclass")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Users";allow (write) groupdn = "ldap:///cn=modifyusers,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Add Users";allow (add) groupdn = "ldap:///cn=addusers,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "Change a user password";allow (write) groupdn = "ldap:///cn=change_password,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "member")(target = "ldap:///cn=ipausers,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Add user to default group";allow (write) groupdn = "ldap:///cn=add_user_to_default_group,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Users";allow (delete) groupdn = "ldap:///cn=removeusers,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype || businesscategory || ou || mepmanagedentry || objectclass")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Users";allow (write) groupdn = "ldap:///cn=modifyusers,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Group administration
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Add Groups";allow (add) groupdn = "ldap:///cn=addgroups,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Modify group membership";allow (write) groupdn = "ldap:///cn=modifygroupmembership,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Groups";allow (delete) groupdn = "ldap:///cn=removegroups,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Add Groups";allow (add) groupdn = "ldap:///cn=addgroups,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Modify group membership";allow (write) groupdn = "ldap:///cn=modifygroupmembership,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Groups";allow (delete) groupdn = "ldap:///cn=removegroups,cn=permissions,cn=pbac,$SUFFIX";)
 # We need objectclass and gidnumber in modify so a non-posix group can be
 # promoted. We need mqpManagedBy and ipaUniqueId so a group can be detached.
-aci: (targetattr = "cn || description || gidnumber || objectclass || mepmanagedby || ipauniqueid")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Groups";allow (write) groupdn = "ldap:///cn=modifygroups,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "cn || description || gidnumber || objectclass || mepmanagedby || ipauniqueid")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Groups";allow (write) groupdn = "ldap:///cn=modifygroups,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Host administration
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Add Hosts";allow (add) groupdn = "ldap:///cn=addhosts,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Hosts";allow (delete) groupdn = "ldap:///cn=removehosts,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "description || l || nshostlocation || nshardwareplatform || nsosversion")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Hosts";allow (write) groupdn = "ldap:///cn=modifyhosts,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Add Hosts";allow (add) groupdn = "ldap:///cn=addhosts,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Hosts";allow (delete) groupdn = "ldap:///cn=removehosts,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "description || l || nshostlocation || nshardwareplatform || nsosversion")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Hosts";allow (write) groupdn = "ldap:///cn=modifyhosts,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Hostgroup administration
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0;acl "Add Hostgroups";allow (add) groupdn = "ldap:///cn=addhostgroups,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Hostgroups";allow (delete) groupdn = "ldap:///cn=removehostgroups,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "cn || description")(target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0; acl "Modify Hostgroups";allow (write) groupdn = "ldap:///cn=modifyhostgroups,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "member")(target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Hostgroup membership";allow (write) groupdn = "ldap:///cn=modifyhostgroupmembership,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0;acl "Add Hostgroups";allow (add) groupdn = "ldap:///cn=addhostgroups,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Hostgroups";allow (delete) groupdn = "ldap:///cn=removehostgroups,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "cn || description")(target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0; acl "Modify Hostgroups";allow (write) groupdn = "ldap:///cn=modifyhostgroups,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "member")(target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Hostgroup membership";allow (write) groupdn = "ldap:///cn=modifyhostgroupmembership,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Service administration
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Add Services";allow (add) groupdn = "ldap:///cn=addservices,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Services";allow (delete) groupdn = "ldap:///cn=removeservices,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "usercertificate")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Services";allow (write) groupdn = "ldap:///cn=modifyservices,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Add Services";allow (add) groupdn = "ldap:///cn=addservices,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Services";allow (delete) groupdn = "ldap:///cn=removeservices,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "usercertificate")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Services";allow (write) groupdn = "ldap:///cn=modifyservices,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Delegation administration
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "Add Roles";allow (add) groupdn = "ldap:///cn=addroles,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Roles";allow (delete) groupdn = "ldap:///cn=removeroles,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "cn || description")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0; acl "Modify Roles";allow (write) groupdn = "ldap:///cn=modifyroles,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "member")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "Modify role group membership";allow (write) groupdn = "ldap:///cn=modifyrolemembership,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "member")(target = "ldap:///cn=*,cn=permissions,cn=accounts,$SUFFIX")(version 3.0;acl "Modify privilege membership";allow (write) groupdn = "ldap:///cn=modifyprivilegemembership,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "Add Roles";allow (add) groupdn = "ldap:///cn=addroles,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "Remove Roles";allow (delete) groupdn = "ldap:///cn=removeroles,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "cn || description")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0; acl "Modify Roles";allow (write) groupdn = "ldap:///cn=modifyroles,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "member")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "Modify role group membership";allow (write) groupdn = "ldap:///cn=modifyrolemembership,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "member")(target = "ldap:///cn=*,cn=permissions,cn=pbac,$SUFFIX")(version 3.0;acl "Modify privilege membership";allow (write) groupdn = "ldap:///cn=modifyprivilegemembership,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Automount administration
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "Add Automount maps";allow (add) groupdn = "ldap:///cn=addautomountmaps,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "Remove automount maps";allow (delete) groupdn = "ldap:///cn=removeautomountmaps,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (target = "ldap:///automountkey=*,automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "Add automount keys";allow (add) groupdn = "ldap:///cn=addautomountkeys,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (target = "ldap:///automountkey=*,automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "Remove automount keys";allow (delete) groupdn = "ldap:///cn=removeautomountkeys,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "Add Automount maps";allow (add) groupdn = "ldap:///cn=addautomountmaps,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "Remove automount maps";allow (delete) groupdn = "ldap:///cn=removeautomountmaps,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (target = "ldap:///automountkey=*,automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "Add automount keys";allow (add) groupdn = "ldap:///cn=addautomountkeys,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (target = "ldap:///automountkey=*,automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "Remove automount keys";allow (delete) groupdn = "ldap:///cn=removeautomountkeys,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Netgroup administration
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0;acl "Add netgroups";allow (add) groupdn = "ldap:///cn=addnetgroups,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0;acl "Remove netgroups";allow (delete) groupdn = "ldap:///cn=removenetgroups,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "description")(target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0; acl "Modify netgroups";allow (write) groupdn = "ldap:///cn=modifynetgroups,cn=permissions,cn=accounts,$SUFFIX";)
-aci: (targetattr = "memberhost || externalhost || memberuser || member")(target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0;acl "Modify netgroup membership";allow (write) groupdn = "ldap:///cn=modifynetgroupmembership,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0;acl "Add netgroups";allow (add) groupdn = "ldap:///cn=addnetgroups,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0;acl "Remove netgroups";allow (delete) groupdn = "ldap:///cn=removenetgroups,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "description")(target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0; acl "Modify netgroups";allow (write) groupdn = "ldap:///cn=modifynetgroups,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "memberhost || externalhost || memberuser || member")(target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0;acl "Modify netgroup membership";allow (write) groupdn = "ldap:///cn=modifynetgroupmembership,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Host keytab admin
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Manage host keytab";allow (write) groupdn = "ldap:///cn=manage_host_keytab,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Manage host keytab";allow (write) groupdn = "ldap:///cn=manage_host_keytab,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Service keytab admin
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Manage service keytab";allow (write) groupdn = "ldap:///cn=manage_service_keytab,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Manage service keytab";allow (write) groupdn = "ldap:///cn=manage_service_keytab,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Add the ACI needed to do host enrollment. When this occurs we
 # set the krbPrincipalName, add krbPrincipalAux to objectClass and
@@ -598,24 +605,24 @@ aci: (targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///krbp
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "enrolledby || objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Enroll a host";allow (write) groupdn = "ldap:///cn=enroll_host,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "enrolledby || objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Enroll a host";allow (write) groupdn = "ldap:///cn=enroll_host,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Entitlement administration
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Add Entitlements";allow (add) groupdn = "ldap:///cn=addentitlements,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Add Entitlements";allow (add) groupdn = "ldap:///cn=addentitlements,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "usercertificate")(target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Modify Entitlements";allow (write) groupdn = "ldap:///cn=modifyentitlements,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "usercertificate")(target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Modify Entitlements";allow (write) groupdn = "ldap:///cn=modifyentitlements,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Remove Entitlements";allow (delete) groupdn = "ldap:///cn=removeentitlements,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Remove Entitlements";allow (delete) groupdn = "ldap:///cn=removeentitlements,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Create virtual operations entry. This is used to control access to
 # operations that don't rely on LDAP directly.
@@ -632,18 +639,18 @@ objectClass: top
 objectClass: nsContainer
 cn: retrieve certificate
 
-dn: cn=retrieve_certs,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=retrieve_certs,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: retrieve_certs
 description: Retrieve Certificates from the CA
-member: cn=certadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=certadmin,cn=privileges,cn=pbac,$SUFFIX
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectclass")(target = "ldap:///cn=retrieve certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Retrieve Certificates from the CA" ; allow (write) groupdn = "ldap:///cn=retrieve_certs,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=retrieve certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Retrieve Certificates from the CA" ; allow (write) groupdn = "ldap:///cn=retrieve_certs,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Request Certificate virtual op
 dn: cn=request certificate,cn=virtual operations,$SUFFIX
@@ -652,18 +659,18 @@ objectClass: top
 objectClass: nsContainer
 cn: request certificate
 
-dn: cn=request_certs,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=request_certs,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: request_certs
 description: Request Certificates from the CA
-member: cn=certadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=certadmin,cn=privileges,cn=pbac,$SUFFIX
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectclass")(target = "ldap:///cn=request certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Request Certificates from the CA" ; allow (write) groupdn = "ldap:///cn=request_certs,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=request certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Request Certificates from the CA" ; allow (write) groupdn = "ldap:///cn=request_certs,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Request Certificate from different host virtual op
 dn: cn=request certificate different host,cn=virtual operations,$SUFFIX
@@ -672,18 +679,18 @@ objectClass: top
 objectClass: nsContainer
 cn: request certificate different host
 
-dn: cn=request_cert_different_host,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=request_cert_different_host,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: request_cert_different_host
 description: Request Certificates from a different host
-member: cn=certadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=certadmin,cn=privileges,cn=pbac,$SUFFIX
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectclass")(target = "ldap:///cn=request certificate different host,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Request Certificates from a different host" ; allow (write) groupdn = "ldap:///cn=request_cert_different_host,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=request certificate different host,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Request Certificates from a different host" ; allow (write) groupdn = "ldap:///cn=request_cert_different_host,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Certificate Status virtual op
 dn: cn=certificate status,cn=virtual operations,$SUFFIX
@@ -692,18 +699,18 @@ objectClass: top
 objectClass: nsContainer
 cn: certificate status
 
-dn: cn=certificate_status,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=certificate_status,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: certificate_status
 description: Get Certificates status from the CA
-member: cn=certadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=certadmin,cn=privileges,cn=pbac,$SUFFIX
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectclass")(target = "ldap:///cn=certificate status,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Get Certificates status from the CA" ; allow (write) groupdn = "ldap:///cn=certificate_status,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=certificate status,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Get Certificates status from the CA" ; allow (write) groupdn = "ldap:///cn=certificate_status,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Revoke Certificate virtual op
 dn: cn=revoke certificate,cn=virtual operations,$SUFFIX
@@ -712,18 +719,18 @@ objectClass: top
 objectClass: nsContainer
 cn: revoke certificate
 
-dn: cn=revoke_certificate,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=revoke_certificate,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: revoke_certificate
 description: Revoke Certificate
-member: cn=certadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=certadmin,cn=privileges,cn=pbac,$SUFFIX
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectclass")(target = "ldap:///cn=revoke certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Revoke Certificate"; allow (write) groupdn = "ldap:///cn=revoke_certificate,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=revoke certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Revoke Certificate"; allow (write) groupdn = "ldap:///cn=revoke_certificate,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Certificate Remove Hold virtual op
 dn: cn=certificate remove hold,cn=virtual operations,$SUFFIX
@@ -732,15 +739,15 @@ objectClass: top
 objectClass: nsContainer
 cn: certificate remove hold
 
-dn: cn=certificate_remove_hold,cn=permissions,cn=accounts,$SUFFIX
+dn: cn=certificate_remove_hold,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 cn: certificate_remove_hold
 description: Certificate Remove Hold
-member: cn=certadmin,cn=privileges,cn=accounts,$SUFFIX
+member: cn=certadmin,cn=privileges,cn=pbac,$SUFFIX
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectclass")(target = "ldap:///cn=certificate remove hold,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Certificate Remove Hold"; allow (write) groupdn = "ldap:///cn=certificate_remove_hold,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=certificate remove hold,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Certificate Remove Hold"; allow (write) groupdn = "ldap:///cn=certificate_remove_hold,cn=permissions,cn=pbac,$SUFFIX";)

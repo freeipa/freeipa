@@ -3,19 +3,19 @@
 dn: cn="$SUFFIX",cn=mapping tree,cn=config
 changetype: modify
 add: aci
-aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement))")(version 3.0;acl "Add Replication Agreements";allow (add) groupdn = "ldap:///cn=addreplica,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement))")(version 3.0;acl "Add Replication Agreements";allow (add) groupdn = "ldap:///cn=addreplica,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: cn="$SUFFIX",cn=mapping tree,cn=config
 changetype: modify
 add: aci
-aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5Replica)(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement)(objectClass=nsMappingTree))")(version 3.0; acl "Modify Replication Agreements"; allow (read, write, search) groupdn = "ldap:///cn=modifyreplica,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5Replica)(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement)(objectClass=nsMappingTree))")(version 3.0; acl "Modify Replication Agreements"; allow (read, write, search) groupdn = "ldap:///cn=modifyreplica,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: cn="$SUFFIX",cn=mapping tree,cn=config
 changetype: modify
 add: aci
-aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement))")(version 3.0;acl "Remove Replication Agreements";allow (delete) groupdn = "ldap:///cn=removereplica,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement))")(version 3.0;acl "Remove Replication Agreements";allow (delete) groupdn = "ldap:///cn=removereplica,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: cn=tasks,cn=config
 changetype: modify
 add: aci
-aci: (targetattr=*)(version 3.0; acl "Run tasks after replica re-initialization"; allow (add) groupdn = "ldap:///cn=modifyreplica,cn=permissions,cn=accounts,$SUFFIX";)
+aci: (targetattr=*)(version 3.0; acl "Run tasks after replica re-initialization"; allow (add) groupdn = "ldap:///cn=modifyreplica,cn=permissions,cn=pbac,$SUFFIX";)

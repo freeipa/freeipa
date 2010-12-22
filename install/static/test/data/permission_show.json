@@ -22,7 +22,7 @@
             "description": [
                 "Add Users"
             ],
-            "dn": "cn=addusers,cn=permissions,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "cn=addusers,cn=permissions,cn=hbac,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
             "member": [
                 "cn=useradmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
             ],
