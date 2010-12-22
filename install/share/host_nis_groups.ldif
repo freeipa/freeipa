@@ -5,6 +5,8 @@ cn: NGP HGP Template
 mepRDNAttr: cn
 mepStaticAttr: ipaUniqueId: autogenerate
 mepStaticAttr: objectclass: ipanisnetgroup
+mepStaticAttr: objectclass: ipaobject
+mepStaticAttr: nisDomainName: $DOMAIN
 mepMappedAttr: cn: $$cn
 mepMappedAttr: memberHost: $$dn
 mepMappedAttr: description: ipaNetgroup $$cn
