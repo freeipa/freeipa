@@ -157,6 +157,8 @@ class selfservice_mod(crud.Update):
 
     def execute(self, aciname, **kw):
         is_selfservice(aciname)
+        if 'attrs' in kw and kw['attrs'] is None:
+            raise errors.RequirementError(name='attrs')
         result = api.Command['aci_mod'](aciname, **kw)['result']
         return dict(
             result=result,

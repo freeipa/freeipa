@@ -175,6 +175,10 @@ class ACI:
         self.target['targetfilter']['operator'] = operator
 
     def set_target_attr(self, attr, operator="="):
+        if not attr:
+            if 'targetattr' in self.target:
+                del self.target['targetattr']
+            return
         if not type(attr) in (tuple, list):
             attr = [attr]
         self.target['targetattr'] = {}

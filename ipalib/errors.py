@@ -1319,11 +1319,11 @@ class OnlyOneValueAllowed(ExecutionError):
 
 class InvalidSyntax(ExecutionError):
     """
-    **4208** Raised when trying to set more than one value to single-value attributes
+    **4208** Raised when an value does not match the required syntax
 
     For example:
 
-    >> raise OnlyOneValueAllowed(attr='ipahomesrootdir')
+    >> raise InvalidSyntax(attr='ipahomesrootdir')
     Traceback (most recent call last):
       ...
     InvalidSyntax: ipahomesrootdir: Invalid syntax

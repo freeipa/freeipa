@@ -207,35 +207,38 @@ def _make_aci(current, aciname, kw):
         except errors.NotFound:
             raise errors.NotFound(reason=_("Group '%s' does not exist") % kw['group'])
 
-    a = ACI(current)
-    a.name = aciname
-    a.permissions = kw['permissions']
-    if 'selfaci' in kw and kw['selfaci']:
-        a.set_bindrule('userdn = "ldap:///self"')
-    else:
-        dn = entry_attrs['dn']
-        a.set_bindrule('groupdn = "ldap:///%s"' % dn)
-    if 'attrs' in kw:
-        a.set_target_attr(kw['attrs'])
-    if 'memberof' in kw:
-        entry_attrs = api.Command['group_show'](kw['memberof'])['result']
-        a.set_target_filter('memberOf=%s' % entry_attrs['dn'])
-    if 'filter' in kw:
-        a.set_target_filter(kw['filter'])
-    if 'type' in kw:
-        target = _type_map[kw['type']]
-        a.set_target(target)
-    if 'targetgroup' in kw:
-        # Purposely no try here so we'll raise a NotFound
-        entry_attrs = api.Command['group_show'](kw['targetgroup'])['result']
-        target = 'ldap:///%s' % entry_attrs['dn']
-        a.set_target(target)
-    if 'subtree' in kw:
-        # See if the subtree is a full URI
-        target = kw['subtree']
-        if not target.startswith('ldap:///'):
-            target = 'ldap:///%s' % target
-        a.set_target(target)
+    try:
+        a = ACI(current)
+        a.name = aciname
+        a.permissions = kw['permissions']
+        if 'selfaci' in kw and kw['selfaci']:
+            a.set_bindrule('userdn = "ldap:///self"')
+        else:
+            dn = entry_attrs['dn']
+            a.set_bindrule('groupdn = "ldap:///%s"' % dn)
+        if 'attrs' in kw:
+            a.set_target_attr(kw['attrs'])
+        if 'memberof' in kw:
+            entry_attrs = api.Command['group_show'](kw['memberof'])['result']
+            a.set_target_filter('memberOf=%s' % entry_attrs['dn'])
+        if 'filter' in kw:
+            a.set_target_filter(kw['filter'])
+        if 'type' in kw:
+            target = _type_map[kw['type']]
+            a.set_target(target)
+        if 'targetgroup' in kw:
+            # Purposely no try here so we'll raise a NotFound
+            entry_attrs = api.Command['group_show'](kw['targetgroup'])['result']
+            target = 'ldap:///%s' % entry_attrs['dn']
+            a.set_target(target)
+        if 'subtree' in kw:
+            # See if the subtree is a full URI
+            target = kw['subtree']
+            if not target.startswith('ldap:///'):
+                target = 'ldap:///%s' % target
+            a.set_target(target)
+    except SyntaxError, e:
+        raise errors.ValidationError(name='target', error=_('Syntax Error: %(error)s') % dict(error=str(e)))
 
     return a
 
