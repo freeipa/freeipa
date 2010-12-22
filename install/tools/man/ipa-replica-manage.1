@@ -20,23 +20,33 @@
 .SH "NAME"
 ipa\-replica\-manage \- Manage an IPA replica
 .SH "SYNOPSIS"
-ipa\-replica\-manage [\fIOPTION\fR]... [add|del|list|init|synch] [SERVER]
+ipa\-replica\-manage [\fIOPTION\fR]...  [connect|disconnect|del|list|re-initialize|force-sync]
 .SH "DESCRIPTION"
 Manages the replication agreements of an IPA server.
 .TP
-add \- Adds a new replication agreement between two existing IPA servers
+\fBconnect\fR [SERVER_A] <SERVER_B>
+\- Adds a new replication agreement between SERVER_A/localhost and SERVER_B
 .TP
-del \- Removes a replication agreement
+\fBdisconnect\fR [SERVER_A] <SERVER_B>
+\- Removes a replication agreement between SERVER_A/localhost and SERVER_B
 .TP
-list \- Lists the hostnames that HOST IPA server has agreements with
+\fBdel\fR <SERVER>
+\- Removes all replication agreements and data about SERVER
 .TP
-init \- Forces a full initialization of the IPA server on SERVER from HOST
+\fBlist\fR [SERVER]
+\- Lists all the servers or the list of agreements of SERVER
 .TP
-synch \- Immediately flush any data to be replicated to SERVER
+\fBre-initialize\fR
+\- Forces a full re-initialization of the IPA server retrieving data from the server specified with the --from option
+.TP
+\fBforce-sync\fR
+\- Immediately flush any data to be replicated from a server specified with the --from option
 .SH "OPTIONS"
 .TP
 \fB\-H HOST\fR, \fB\-\-host\fR=\fIHOST\fR
-The IPA server to manage
+The IPA server to manage.
+The default is the machine on which the command is run
+Not honoured by the re-initialize command.
 .TP
 \fB\-p DM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 The Directory Manager password to use for authentication
@@ -64,28 +74,38 @@ DN of Windows subtree containing the users you want to sync (default cn=Users,<d
 .TP
 \fB\-\-passsync\fR=\fIPASSSYNC_PWD\fR
 Password for the Windows PassSync user.
+.TP
+\fB\-\-from\fR=\fISERVER\fR
+The server to pull the data from, used by the re-initialize and force-sync commands.
 .SH "EXAMPLES"
-List current agreements:
+.TP
+List all masters:
+ # ipa\-replica\-manage list
+ srv1.example.com
+ srv2.example.com
+ srv3.example.com
+ srv4.example.com
+.TP
+List a server's replication agreements.
+ # ipa\-replica\-manage list srv1.example.com
+ srv2.example.com
+ srv3.example.com
+.TP
+Re-initialize a replica:
+ # ipa\-replica\-manage re-initialize --from srv2.example.com
 
-# ipa\-replica\-manage list
-panther.example.com
-
-Initialize a replica:
-
-# ipa\-replica\-manage init panther.example.com
-
-This will re\-initialize the data on panther.example.com from the host you execute the command from.
-
+This will re\-initialize the data on the server where you execute the command, retrieving the data from the srv2.example.com replica
+.TP
 Add a new replication agreement:
-
-# ipa replica\-manage add tiger.example.com
-
+ # ipa replica\-manage connect srv2.example.com srv4.example.com
+.TP
 Remove an existing replication agreement:
-
-# ipa replica\-manage del tiger.example.com
-
-Using add/del you can manage the replication topology.
+ # ipa replica\-manage disconnect srv1.example.com srv3.example.com
+.TP
+Completely remove a replica:
+ # ipa replica\-manage del srv4.example.com
+.TP
+Using connect/disconnect you can manage the replication topology.
 .SH "EXIT STATUS"
-0 if the command was successful
-
-1 if an error occurred
+ 0 if the command was successful
+ 1 if an error occurred
