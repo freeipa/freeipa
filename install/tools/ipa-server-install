@@ -545,6 +545,7 @@ def main():
     master_password = ""
     dm_password = ""
     admin_password = ""
+    create_reverse = False
 
     # check bind packages are installed
     if options.setup_dns:
@@ -834,7 +835,8 @@ def main():
 
     # Create a BIND instance
     bind = bindinstance.BindInstance(fstore, dm_password)
-    create_reverse = bindinstance.create_reverse(options.unattended)
+    if options.setup_dns:
+        create_reverse = bindinstance.create_reverse(options.unattended)
     bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders, options.conf_ntp, create_reverse, zonemgr=options.zonemgr)
     if options.setup_dns:
         api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
