@@ -28,7 +28,6 @@ ipa_entity_set_details_definition('config',[
 
     ipa_stanza({name:'ipaserver', label:'Configuration'}).
         input({name:'cn', label:'Name'}).
-        input({name:'description', label:'Description'}).
         input({name:'ipacertificatesubjectbase'}).
         input({name:'ipadefaultloginshell'}).
         input({name:'ipadefaultprimarygroup'}).
