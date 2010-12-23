@@ -42,7 +42,6 @@ var admin_tab_set = [
             {name:'sudocmd', entity:'sudocmd'},
             {name:'sudocmdgroup', entity:'sudocmdgroup'}
         ]},
-        {name:'automountlocation', entity:'automountlocation'},
         {name:'pwpolicy', entity:'pwpolicy'},
         {name:'krbtpolicy', entity:'krbtpolicy'}
     ]},
