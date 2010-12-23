@@ -194,7 +194,7 @@ function resetpwd_on_click(){
 
         var user_pkey = $.bbq.getState('user-pkey');
         var pw_pkey;
-        if (user_pkey === ipa_whoami_pkey){
+        if (user_pkey === IPA.whoami.uid[0]){
             pw_pkey = [];
         }else{
             pw_pkey = [user_pkey];
