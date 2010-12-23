@@ -205,14 +205,15 @@ function ipa_text_widget(spec) {
 function ipa_checkbox_widget(spec) {
 
     spec = spec || {};
-
+    var is_checked = spec.checked || '';
     var that = ipa_widget(spec);
 
     that.create = function(container) {
 
         $('<input/>', {
-            'type': 'checkbox',
-            'name': that.name
+            type: 'checkbox',
+            name: that.name,
+            checked : is_checked
         }).appendTo(container);
 
         if (that.undo) {
