@@ -584,27 +584,33 @@ class CAInstance(service.Service):
             nolog = (self.admin_password, self.dm_password,)
 
             ipautil.run(args, nolog=nolog)
-
-            if self.external == 1:
-                print "The next step is to get %s signed by your CA and re-run ipa-server-install as:" % self.csr_file
-                print "ipa-server-install --external_cert_file=/path/to/signed_certificate --external_ca_file=/path/to/external_ca_certificate"
-                sys.exit(0)
-
-            # pkisilent doesn't return 1 on error so look at the output of
-            # /sbin/service pki-cad status. It will tell us if the instance
-            # still needs to be configured.
-            (stdout, stderr, returncode) = ipautil.run(["/sbin/service", self.service_name, "status"])
-            try:
-                stdout.index("CONFIGURED!")
-                raise RuntimeError("pkisilent failed to configure instance.")
-            except ValueError:
-                # This is raised because the string doesn't exist, we're done
-                pass
-
-            logging.debug("completed creating ca instance")
         except ipautil.CalledProcessError, e:
-            logging.critical("failed to restart ca instance %s" % e)
+            logging.critical("failed to configure ca instance %s" % e)
             raise RuntimeError('Configuration of CA failed')
+
+        if self.external == 1:
+            print "The next step is to get %s signed by your CA and re-run ipa-server-install as:" % self.csr_file
+            print "ipa-server-install --external_cert_file=/path/to/signed_certificate --external_ca_file=/path/to/external_ca_certificate"
+            sys.exit(0)
+
+        try:
+            # After configuration the service is running and configured
+            # but must be restarted for configuration to take effect.
+            # The service status in this case will be 4.
+            self.restart()
+        except ipautil.CalledProcessError, e:
+            logging.critical("failed to restart ca instance after pkisilent configuration %s" % e)
+            raise RuntimeError('Restarting CA after pkisilent configuration failed')
+
+        # If the configuration was successful status should now be 0.
+        # We don't call is_running() because we want the exit status for debugging.
+        try:
+            ipautil.run(["/sbin/service", self.service_name, "status", PKI_INSTANCE_NAME])
+        except ipautil.CalledProcessError, e:
+            logging.critical("ca instance configuration not successful after restart %s" % e)
+            raise RuntimeError('CA configuration not successful after restart')
+
+        logging.debug("completed creating ca instance")
 
         # Turn off Nonces (again)
         if installutils.update_file('/var/lib/pki-ca/conf/CS.cfg', 'ca.enableNonces=true', 'ca.enableNonces=false') != 0:
