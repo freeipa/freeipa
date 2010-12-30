@@ -120,7 +120,7 @@ class permission(LDAPObject):
         StrEnum('type?',
             cli_name='type',
             label=_('Type'),
-            doc=_('Type of IPA object (user, group, host, hostgroup, service, netgroup)'),
+            doc=_('Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)'),
             values=(u'user', u'group', u'host', u'service', u'hostgroup', u'netgroup', u'dns',),
         ),
         Str('memberof?',
