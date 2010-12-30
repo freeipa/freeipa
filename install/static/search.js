@@ -206,6 +206,11 @@ function ipa_search_widget(spec) {
 
         function on_success(data, text_status, xhr) {
 
+            var action_panel = that.facet.get_action_panel();
+            $('li.entity-facet', action_panel).
+                addClass('entity-facet-disabled');
+            $('input', action_panel).val(null);
+
             that.tbody.empty();
 
             var result = data.result.result;
@@ -215,7 +220,6 @@ function ipa_search_widget(spec) {
             }
 
             var summary = $('span[name=summary]', that.tfoot);
-
             if (data.result.truncated) {
                 summary.text(
                     'Query returned results than configured size limit will show.' +
