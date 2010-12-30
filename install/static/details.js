@@ -730,6 +730,7 @@ function ipa_insert_dd(jobj, content, dd_class){
 /* mapping of parameter types to handlers used to create inputs */
 var _ipa_param_type_2_handler_map = {
     'Str': _ipa_create_text_input,
+    'IA5Str': _ipa_create_text_input,
     'Int': _ipa_create_text_input,
     'Bool': _ipa_create_text_input,
     'List': _ipa_create_text_input
