@@ -375,7 +375,7 @@ class host_del(LDAPDelete):
     msg_summary = _('Deleted host "%(value)s"')
     member_attributes = ['managedby']
 
-    takes_options = LDAPCreate.takes_options + (
+    takes_options = (
         Flag('updatedns?',
             doc=_('Remove entries from DNS'),
             default=False,
