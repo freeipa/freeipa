@@ -588,8 +588,8 @@ IPA.add_entity(function (){
 */
 
 ipa_entity_set_details_definition('krbtpolicy', [
-    ipa_stanza({name:'identity', label:'Krbtpolicy Location Details'}).
-        input({name:'cn'}).
+    ipa_stanza({name:'identity', label:'Kerberos ticket policy'}).
+        input({name:'uid'}).
         input({name:'krbmaxrenewableage'}).
         input({name:'krbmaxticketlife'})
 ]);

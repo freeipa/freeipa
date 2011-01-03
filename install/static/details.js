@@ -638,8 +638,12 @@ function ipa_details_update(on_win, on_fail)
             on_fail(xhr, text_status, error_thrown);
     }
 
-    if (!pkey)
-        return;
+    /*
+      The check
+      if (!pkey) {   return; }
+      used to happen here, but it breaks krbtpolicy, which allows a null pkey
+      and usually requires it.
+    */
 
     var values;
     var modlist = {'all': true, 'setattr': [], 'addattr': [], 'rights': true};
