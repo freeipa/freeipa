@@ -158,6 +158,7 @@ class user(LDAPObject):
             doc=_('User ID Number (system will assign one if not provided)'),
             autofill=True,
             default=999,
+            minvalue=1,
         ),
         Int('gidnumber?',
             label=_('GID'),
