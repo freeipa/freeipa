@@ -115,7 +115,7 @@ def main():
     api.bootstrap(**cfg)
     api.finalize()
 
-    if bindinstance.dns_container_exists(api.env.host, api.env.realm):
+    if bindinstance.named_conf_exists():
         sys.exit("\nDNS is already configured in this IPA server.")
 
     # Check we have a public IP that is associated with the hostname

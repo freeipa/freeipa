@@ -63,7 +63,16 @@ def create_reverse(unattended):
         return False
     return ipautil.user_input("Do you want to configure the reverse zone?", False)
 
-def dns_container_exists(fqdn, realm):
+def named_conf_exists():
+    named_fd = open('/etc/named.conf', 'r')
+    lines = named_fd.readlines()
+    named_fd.close()
+    for line in lines:
+        if line.startswith('dynamic-db "ipa"'):
+            return True
+    return False
+
+def dns_container_exists(fqdn, suffix):
     """
     Test whether the dns container exists.
     """
@@ -85,7 +94,6 @@ def dns_container_exists(fqdn, realm):
     except ldap.SERVER_DOWN:
         raise RuntimeError('LDAP server on %s is not responding. Is IPA installed?' % fqdn)
 
-    suffix = util.realm_to_suffix(realm)
     ret = object_exists("cn=dns,%s" % suffix)
     server.unbind_s()
 
@@ -98,6 +106,17 @@ def get_reverse_zone(ip_address):
     zone = ".".join(tmp) + ".in-addr.arpa"
 
     return zone, name
+
+def dns_zone_exists(name):
+    try:
+        zone = api.Command.dns_show(unicode(name))
+    except Exception:
+        return False
+
+    if len(zone) == 0:
+        return False
+    else:
+        return True
 
 def add_zone(name, update_policy=None, zonemgr=None, dns_backup=None):
     if not update_policy:
@@ -253,9 +272,11 @@ class BindInstance(service.Service):
 
         if not dns_container_exists(self.fqdn, self.suffix):
             self.step("adding DNS container", self.__setup_dns_container)
-        self.step("setting up our zone", self.__setup_zone)
+        if not dns_zone_exists(self.domain):
+            self.step("setting up our zone", self.__setup_zone)
         if self.create_reverse:
             self.step("setting up reverse zone", self.__setup_reverse_zone)
+        self.step("setting up our own record", self.__add_self)
 
         self.step("setting up kerberos principal", self.__setup_principal)
         self.step("setting up named.conf", self.__setup_named_conf)
@@ -310,6 +331,10 @@ class BindInstance(service.Service):
         self._ldap_mod("dns.ldif", self.sub_dict)
 
     def __setup_zone(self):
+        zone = add_zone(self.domain, zonemgr=self.zonemgr, dns_backup=self.dns_backup)
+
+    def __add_self(self):
+        zone = self.domain
         resource_records = (
             (self.host, "A", self.ip_address),
             ("_ldap._tcp", "SRV", "0 100 389 %s" % self.host),
@@ -322,8 +347,6 @@ class BindInstance(service.Service):
             ("_kpasswd._udp", "SRV", "0 100 464 %s" % self.host),
         )
 
-        zone = add_zone(self.domain, zonemgr=self.zonemgr, dns_backup=self.dns_backup)
-
         for (host, type, rdata) in resource_records:
             if type == "SRV":
                 add_rr(zone, host, type, rdata, self.dns_backup)
@@ -332,9 +355,11 @@ class BindInstance(service.Service):
         if self.ntp:
             add_rr(zone, "_ntp._udp", "SRV", "0 100 123 %s" % self.host)
 
+        if dns_zone_exists(get_reverse_zone(self.ip_address)[0]):
+            add_ptr_rr(self.ip_address, self.fqdn)
+
     def __setup_reverse_zone(self):
         add_reverze_zone(self.ip_address, dns_backup=self.dns_backup)
-        add_ptr_rr(self.ip_address, self.fqdn)
 
     def __setup_principal(self):
         dns_principal = "DNS/" + self.fqdn + "@" + self.realm

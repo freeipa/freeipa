@@ -71,6 +71,8 @@ def parse_options():
                       help="Do not use DNS for hostname lookup during installation")
     parser.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
                       default=True, help="disables pkinit setup steps")
+    parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
+                      default=False, help="unattended installation never prompts the user")
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)

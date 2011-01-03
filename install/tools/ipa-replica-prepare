@@ -246,7 +246,7 @@ def main():
         options.setup_pkinit = False
 
     if options.ip_address:
-        if not bindinstance.dns_container_exists(api.env.host, api.env.realm):
+        if not bindinstance.dns_container_exists(api.env.host, api.env.basedn):
             print "You can't add a DNS record because DNS is not set up."
             sys.exit(1)
 
