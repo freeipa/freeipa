@@ -23,6 +23,10 @@
 #include <libintl.h>
 #define _(STRING) gettext(STRING)
 
+#ifndef discard_const
+#define discard_const(ptr) ((void *)((uintptr_t)(ptr)))
+#endif
+
 int init_gettext(void);
 
 #endif /* __IPA_CLIENT_COMMON_H */

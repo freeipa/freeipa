@@ -18,7 +18,6 @@
  */
 
 #define _GNU_SOURCE
-#define LDAP_DEPRECATED 1
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -178,6 +177,9 @@ connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
     int version = LDAP_VERSION3;
     int ret;
     int ldapdebug = 0;
+    char *uri;
+    struct berval bindpw_bv;
+
     if (debug) {
         ldapdebug=2;
         ret = ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &ldapdebug);
@@ -186,7 +188,20 @@ connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
     if (ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTFILE, CAFILE) != LDAP_OPT_SUCCESS)
         goto fail;
 
-    ld = (LDAP *)ldap_init(hostname, 636);
+    ret = asprintf(&uri, "ldaps://%s:636", hostname);
+    if (ret == -1) {
+        fprintf(stderr, _("Out of memory!"));
+        goto fail;
+    }
+
+    ret = ldap_initialize(&ld, uri);
+    free(uri);
+    if(ret != LDAP_SUCCESS) {
+        fprintf(stderr, _("Unable to initialize connection to ldap server: %s"),
+                        ldap_err2string(ret));
+        goto fail;
+    }
+
     if (ldap_set_option(ld, LDAP_OPT_X_TLS, &ssl) != LDAP_OPT_SUCCESS) {
         fprintf(stderr, _("Unable to enable SSL in LDAP\n"));
         goto fail;
@@ -198,7 +213,12 @@ connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
         goto fail;
     }
 
-    ret = ldap_bind_s(ld, binddn, bindpw, LDAP_AUTH_SIMPLE);
+    bindpw_bv.bv_val = discard_const(bindpw);
+    bindpw_bv.bv_len = strlen(bindpw);
+
+    ret = ldap_sasl_bind_s(ld, binddn, LDAP_SASL_SIMPLE, &bindpw_bv,
+                           NULL, NULL, NULL);
+
     if (ret != LDAP_SUCCESS) {
         int err;
 
@@ -446,7 +466,10 @@ join_ldap(const char *ipaserver, char *hostname, const char ** binddn, const cha
     if ((rc = ldap_extended_operation_s(ld, JOIN_OID, &valrequest, NULL, NULL, &oidresult, &valresult)) != LDAP_SUCCESS) {
         if (!quiet)
             fprintf(stderr, _("principal not found in host entry\n"));
-        if (debug) ldap_perror(ld, "ldap_extended_operation_s");
+        if (debug) {
+            fprintf(stderr, "ldap_extended_operation_s failed: %s",
+                            ldap_err2string(rc));
+        }
         rval = 18;
         goto ldap_done;
     }

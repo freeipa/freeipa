@@ -49,8 +49,6 @@
 #include <unistd.h>
 #include <stdbool.h>
 
-#define LDAP_DEPRECATED 1
-
 #include <prio.h>
 #include <ssl.h>
 #include <dirsrv/slapi-plugin.h>

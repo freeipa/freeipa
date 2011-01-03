@@ -57,10 +57,6 @@
 #define KEYTAB_SET_OID "2.16.840.1.113730.3.8.3.1"
 #define KEYTAB_RET_OID "2.16.840.1.113730.3.8.3.2"
 
-#ifndef discard_const
-#define discard_const(ptr) ((void *)((uintptr_t)(ptr)))
-#endif
-
 struct krb_key_salt {
     krb5_enctype enctype;
     krb5_int32 salttype;

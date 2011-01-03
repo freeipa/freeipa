@@ -373,6 +373,40 @@ static void pwd_values_free(Slapi_ValueSet** results,
     slapi_vattr_values_free(results, actual_type_name, buffer_flags);
 }
 
+static int ipapwd_rdn_count(const char *dn)
+{
+    int rdnc = 0;
+
+#ifdef WITH_MOZLDAP
+    char **edn;
+
+    edn = ldap_explode_dn(dn, 0);
+    if (!edn) {
+        LOG_TRACE("ldap_explode_dn(dn) failed ?!");
+        return -1;
+    }
+
+    for (rdnc = 0; edn != NULL && edn[rdnc]; rdnc++) /* count */ ;
+    ldap_value_free(edn);
+#else
+    /* both ldap_explode_dn and ldap_value_free are deprecated
+     * in OpenLDAP */
+    LDAPDN ldn;
+    int ret;
+
+    ret = ldap_str2dn(dn, &ldn, LDAP_DN_FORMAT_LDAPV3);
+    if (ret != LDAP_SUCCESS) {
+        LOG_TRACE("ldap_str2dn(dn) failed ?!");
+        return -1;
+    }
+
+    for (rdnc = 0; ldn != NULL && ldn[rdnc]; rdnc++) /* count */ ;
+    ldap_dnfree(ldn);
+#endif
+
+    return rdnc;
+}
+
 static int ipapwd_getPolicy(const char *dn,
                             Slapi_Entry *target, Slapi_Entry **e)
 {
@@ -386,7 +420,6 @@ static int ipapwd_getPolicy(const char *dn,
                       "krbPwdHistoryLength", NULL};
     Slapi_Entry **es = NULL;
     Slapi_Entry *pe = NULL;
-    char **edn;
     int ret, res, dist, rdnc, scope, i;
     Slapi_DN *sdn = NULL;
     int buffer_flags=0;
@@ -465,14 +498,12 @@ static int ipapwd_getPolicy(const char *dn,
     }
 
     /* count number of RDNs in DN */
-    edn = ldap_explode_dn(dn, 0);
-    if (!edn) {
-        LOG_TRACE("ldap_explode_dn(dn) failed ?!");
+    rdnc = ipapwd_rdn_count(dn);
+    if (rdnc == -1) {
+        LOG_TRACE("ipapwd_rdn_count(dn) failed");
         ret = -1;
         goto done;
     }
-    for (rdnc = 0; edn[rdnc]; rdnc++) /* count */ ;
-    ldap_value_free(edn);
 
     pe = NULL;
     dist = -1;
@@ -490,15 +521,12 @@ static int ipapwd_getPolicy(const char *dn,
         }
         if (slapi_sdn_issuffix(sdn, esdn)) {
             const char *dn1;
-            char **e1;
             int c1;
 
             dn1 = slapi_sdn_get_dn(esdn);
             if (!dn1) continue;
-            e1 = ldap_explode_dn(dn1, 0);
-            if (!e1) continue;
-            for (c1 = 0; e1[c1]; c1++) /* count */ ;
-            ldap_value_free(e1);
+            c1 = ipapwd_rdn_count(dn1);
+            if (c1 == -1) continue;
             if ((dist == -1) ||
                 ((rdnc - c1) < dist)) {
                 dist = rdnc - c1;

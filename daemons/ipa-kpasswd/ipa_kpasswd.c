@@ -42,7 +42,6 @@
 #ifdef WITH_MOZLDAP
 #include <mozldap/ldap.h>
 #else
-#define LDAP_DEPRECATED 1
 #include <ldap.h>
 #endif
 #include <sasl/sasl.h>
@@ -331,6 +330,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	struct berval *control = NULL;
 	struct berval newpw;
 	char hostname[1024];
+	char *uri;
 	struct berval **ncvals;
 	char *ldap_base = NULL;
 	char *filter;
@@ -386,11 +386,19 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 		goto done;
 	}
 
+	ret = asprintf(&uri, "ldap://%s:389", hostname);
+	if (ret == -1) {
+	    syslog(LOG_ERR, "Out of memory!");
+	    goto done;
+	}
+
 	/* connect to ldap server */
 	/* TODO: support referrals ? */
-	ld = ldap_init(hostname, 389);
-	if(ld == NULL) {
-		syslog(LOG_ERR, "Unable to connect to ldap server");
+	ret = ldap_initialize(&ld, uri);
+	free(uri);
+	if(ret != LDAP_SUCCESS) {
+		syslog(LOG_ERR, "Unable to connect to ldap server: %s",
+				ldap_err2string(ret));
 		goto done;
 	}
 
@@ -414,7 +422,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	/* find base dn */
 	/* TODO: address the case where we have multiple naming contexts */
 	tv.tv_sec = 10;
-	tv.tv_usec = 0; 
+	tv.tv_usec = 0;
 
 	ret = ldap_search_ext_s(ld, "", LDAP_SCOPE_BASE,
 				"objectclass=*", root_attrs, 0,
