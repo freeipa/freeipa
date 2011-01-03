@@ -77,7 +77,7 @@ function ipa_add_dialog(spec) {
                     state[that.entity_name + '-pkey'] = pkey;
                     $.bbq.pushState(state);
                 },
-                function() { that.close(); }
+                function() {  }
             );
         });
 
