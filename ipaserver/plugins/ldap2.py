@@ -904,7 +904,7 @@ class ldap2(CrudBackend, Encoder):
         """Mark entry active/inactive."""
         assert isinstance(active, bool)
         # get the entry in question
-        (dn, entry_attrs) = self.get_entry(dn, ['nsaccountlock', 'memberof'])
+        (dn, entry_attrs) = self.get_entry(dn, ['nsaccountlock'])
 
         # check nsAccountLock attribute
         account_lock_attr = entry_attrs.get('nsaccountlock', ['false'])
@@ -915,53 +915,10 @@ class ldap2(CrudBackend, Encoder):
         else:
             if account_lock_attr == 'true':
                 raise errors.AlreadyInactive()
+        account_lock_attr = str(not active)
 
-        # check if nsAccountLock attribute is in the entry itself
-        is_member = False
-        member_of_attr = entry_attrs.get('memberof', [])
-        for m in member_of_attr:
-            if m.find('cn=activated') >= 0 or m.find('cn=inactivated') >=0:
-                is_member = True
-                break
-        if not is_member and entry_attrs.has_key('nsaccountlock'):
-            raise errors.HasNSAccountLock()
-
-        activated_filter = '(cn=activated)'
-        inactivated_filter = '(cn=inactivated)'
-        parent_rdn = self.get_container_rdn('accounts')
-
-        # try to remove the entry from activated/inactivated group
-        if active:
-            entries = self.find_entries(inactivated_filter, [], parent_rdn)[0]
-        else:
-            entries = self.find_entries(activated_filter, [], parent_rdn)[0]
-        (group_dn, group_entry_attrs) = entries[0]
-        try:
-            self.remove_entry_from_group(dn, group_dn)
-        except errors.NotGroupMember:
-            pass
-
-        # add the entry to the activated/inactivated group if necessary
-        if active:
-            (dn, entry_attrs) = self.get_entry(dn, ['nsaccountlock'])
-
-            # check if we still need to add entry to the activated group
-            account_lock_attr = entry_attrs.get('nsaccountlock', ['false'])
-            account_lock_attr = account_lock_attr[0].lower()
-            if account_lock_attr == 'false':
-                return  # we don't
-
-            entries = self.find_entries(activated_filter, [], parent_rdn)[0]
-        else:
-            entries = self.find_entries(inactivated_filter, [], parent_rdn)[0]
-        (group_dn, group_entry_attrs) = entries[0]
-        try:
-            self.add_entry_to_group(dn, group_dn)
-        except errors.EmptyModlist:
-            if active:
-                raise errors.AlreadyActive()
-            else:
-                raise errors.AlreadyInactive()
+        entry_attrs['nsaccountlock'] = account_lock_attr
+        self.update_entry(dn, entry_attrs)
 
     def activate_entry(self, dn):
         """Mark entry active."""
