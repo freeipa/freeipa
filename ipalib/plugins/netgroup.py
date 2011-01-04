@@ -85,6 +85,15 @@ class netgroup(LDAPObject):
         'memberuser': ['user', 'group'],
         'memberhost': ['host', 'hostgroup'],
     }
+    relationships = {
+        'member': ('Member', '', 'no_'),
+        'memberof': ('Parent', 'in_', 'not_in_'),
+        'memberindirect': (
+            'Indirect Member', None, 'no_indirect_'
+        ),
+        'memberuser': ('Member', '', 'no_'),
+        'memberhost': ('Member', '', 'no_'),
+    }
 
     label = _('Net Groups')
 
@@ -171,7 +180,7 @@ class netgroup_find(LDAPSearch):
     """
     Search for a netgroup.
     """
-    member_attributes = ['member', 'memberuser', 'memberhost']
+    member_attributes = ['member', 'memberuser', 'memberhost', 'memberof']
     has_output_params = LDAPSearch.has_output_params + output_params
     msg_summary = ngettext(
         '%(count)d netgroup matched', '%(count)d netgroups matched'

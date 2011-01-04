@@ -247,6 +247,15 @@ class LDAPObject(Object):
     rdnattr = None
     # Can bind as this entry (has userPassword or krbPrincipalKey)
     bindable = False
+    relationships = {
+        # attribute: (label, inclusive param prefix, exclusive param prefix)
+        'member': ('Member', '', 'no_'),
+        'memberof': ('Parent', 'in_', 'not_in_'),
+        'memberindirect': (
+            'Indirect Member', None, 'no_indirect_'
+        ),
+    }
+    label = _('Entry')
 
     container_not_found_msg = _('container entry (%(container)s) not found')
     parent_not_found_msg = _('%(parent)s: %(oname)s not found')
@@ -343,7 +352,7 @@ class LDAPObject(Object):
         'parent_object', 'container_dn', 'object_name', 'object_name_plural',
         'object_class', 'object_class_config', 'default_attributes', 'label',
         'hidden_attributes', 'uuid_attribute', 'attribute_members', 'name',
-        'takes_params', 'rdn_attribute', 'bindable',
+        'takes_params', 'rdn_attribute', 'bindable', 'relationships',
     )
 
     def __json__(self):
@@ -1193,7 +1202,8 @@ class LDAPSearch(CallbackInterface, crud.Search):
     Retrieve all LDAP entries matching the given criteria.
     """
     member_attributes = []
-    member_param_doc = 'exclude %s with member %s (comma-separated list)'
+    member_param_incl_doc = 'only %s with %s %s'
+    member_param_excl_doc = 'only %s with no %s %s'
 
     takes_options = (
         Int('timelimit?',
@@ -1225,21 +1235,50 @@ class LDAPSearch(CallbackInterface, crud.Search):
         for attr in self.member_attributes:
             for ldap_obj_name in self.obj.attribute_members[attr]:
                 ldap_obj = self.api.Object[ldap_obj_name]
-                name = to_cli(ldap_obj_name)
-                doc = self.member_param_doc % (
-                    self.obj.object_name_plural, ldap_obj.object_name_plural
+                relationship = self.obj.relationships.get(
+                    attr, ['member', '', 'no_']
                 )
-                yield List('no_%s?' % name, cli_name='no_%ss' % name, doc=doc,
-                           label=ldap_obj.object_name)
+                doc = self.member_param_incl_doc % (
+                    self.obj.object_name_plural, relationship[0].lower(),
+                    ldap_obj.object_name_plural
+                )
+                name = '%s%s' % (relationship[1], to_cli(ldap_obj_name))
+                yield List(
+                    '%s?' % name, cli_name='%ss' % name, doc=doc,
+                    label=ldap_obj.object_name
+                )
+                doc = self.member_param_excl_doc % (
+                    self.obj.object_name_plural, relationship[0].lower(),
+                    ldap_obj.object_name_plural
+                )
+                name = '%s%s' % (relationship[2], to_cli(ldap_obj_name))
+                yield List(
+                    '%s?' % name, cli_name='%ss' % name, doc=doc,
+                    label=ldap_obj.object_name
+                )
 
     def get_member_filter(self, ldap, **options):
         filter = ''
         for attr in self.member_attributes:
             for ldap_obj_name in self.obj.attribute_members[attr]:
-                param_name = 'no_%s' % to_cli(ldap_obj_name)
+                ldap_obj = self.api.Object[ldap_obj_name]
+                relationship = self.obj.relationships.get(
+                    attr, ['member', '', 'no_']
+                )
+                param_name = '%s%s' % (relationship[1], to_cli(ldap_obj_name))
                 if param_name in options:
                     dns = []
-                    ldap_obj = self.api.Object[ldap_obj_name]
+                    for pkey in options[param_name]:
+                        dns.append(ldap_obj.get_dn(pkey))
+                    flt = ldap.make_filter_from_attr(
+                        attr, dns, ldap.MATCH_ALL
+                    )
+                    filter = ldap.combine_filters(
+                        (filter, flt), ldap.MATCH_ALL
+                    )
+                param_name = '%s%s' % (relationship[2], to_cli(ldap_obj_name))
+                if param_name in options:
+                    dns = []
                     for pkey in options[param_name]:
                         dns.append(ldap_obj.get_dn(pkey))
                     flt = ldap.make_filter_from_attr(

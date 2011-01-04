@@ -316,6 +316,7 @@ class user_find(LDAPSearch):
     """
     Search for users.
     """
+    member_attributes = ['memberof']
 
     takes_options = LDAPSearch.takes_options + (
         Flag('whoami',
@@ -323,6 +324,7 @@ class user_find(LDAPSearch):
             doc=_('Display user record for current Kerberos principal'),
         ),
     )
+
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *keys, **options):
         if options.get('whoami'):
             return ("(&(objectclass=posixaccount)(krbprincipalname=%s))"%\

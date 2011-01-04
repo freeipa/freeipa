@@ -170,6 +170,11 @@ class host(LDAPObject):
         'managedby': ['host'],
     }
     bindable = True
+    relationships = {
+        'memberof': ('Parent', 'in_', 'not_in_'),
+        'enrolledby': ('Enrolled by', 'enroll_by_', 'not_enroll_by_'),
+        'managedby': ('Managed by', 'man_by_', 'not_man_by_'),
+    }
 
     label = _('Hosts')
 
@@ -568,7 +573,7 @@ class host_find(LDAPSearch):
     msg_summary = ngettext(
         '%(count)d host matched', '%(count)d hosts matched'
     )
-    member_attributes = ['managedby']
+    member_attributes = ['memberof', 'enrolledby', 'managedby']
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
         if 'locality' in attrs_list:
