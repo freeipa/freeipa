@@ -66,6 +66,8 @@ def parse_options():
                       help="Add a DNS forwarder")
     parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
+    parser.add_option("--no-reverse", dest="no_reverse", action="store_true",
+                      default=False, help="Do not create reverse DNS zone")
     parser.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
                       default=False,
                       help="Do not use DNS for hostname lookup during installation")
@@ -85,6 +87,8 @@ def parse_options():
             parser.error("You cannot specify a --forwarder option without the --setup-dns option")
         if options.no_forwarders:
             parser.error("You cannot specify a --no-forwarders option without the --setup-dns option")
+        if options.no_reverse:
+            parser.error("You cannot specify a --no-reverse option without the --setup-dns option")
     elif options.forwarders and options.no_forwarders:
         parser.error("You cannot specify a --forwarder option together with --no-forwarders")
     elif not options.forwarders and not options.no_forwarders:
@@ -249,7 +253,15 @@ def install_bind(config, options):
     ip_address = resolve_host(config.host_name)
     if not ip_address:
         sys.exit("Unable to resolve IP address for host name")
-    create_reverse = bindinstance.create_reverse(options.unattended)
+
+    create_reverse = True
+    if options.unattended:
+        # In unattended mode just use the cmdline flag
+        create_reverse = not options.no_reverse
+    elif not options.no_reverse:
+        # In interactive mode, if the flag was not explicitly specified, ask the user
+        create_reverse = bindinstance.create_reverse()
+
     bind.setup(config.host_name, ip_address, config.realm_name,
                config.domain_name, forwarders, options.conf_ntp, create_reverse)
     bind.create_instance()

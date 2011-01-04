@@ -42,6 +42,9 @@ def parse_options():
                       help="Add a DNS forwarder")
     parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
+    parser.add_option("--no-reverse", dest="no_reverse",
+                      action="store_true", default=False,
+                      help="Do not create reverse DNS zone")
     parser.add_option("--zonemgr", dest="zonemgr", 
                       help="DNS zone manager e-mail address. Defaults to root")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
@@ -167,7 +170,11 @@ def main():
                 sys.exit("\nPassword is not valid!")
             bind.dm_password = read_password("Directory Manager", confirm=False, validate=False)
 
-    create_reverse = bindinstance.create_reverse(options.unattended)
+    create_reverse = True
+    if options.unattended:
+        create_reverse = not options.no_reverse
+    elif not options.no_reverse:
+        create_reverse = bindinstance.create_reverse()
     bind.setup(api.env.host, ip_address, api.env.realm, api.env.domain, dns_forwarders, conf_ntp, create_reverse, zonemgr=options.zonemgr)
 
     if bind.dm_password:

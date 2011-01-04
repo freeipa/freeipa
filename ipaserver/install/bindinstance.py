@@ -58,10 +58,8 @@ def check_inst(unattended):
 
     return True
 
-def create_reverse(unattended):
-    if unattended:
-        return False
-    return ipautil.user_input("Do you want to configure the reverse zone?", False)
+def create_reverse():
+    return ipautil.user_input("Do you want to configure the reverse zone?", True)
 
 def named_conf_exists():
     named_fd = open('/etc/named.conf', 'r')
@@ -223,7 +221,7 @@ class BindInstance(service.Service):
         self.realm = None
         self.forwarders = None
         self.sub_dict = None
-        self.create_reverse = False
+        self.create_reverse = True
 
         if fstore:
             self.fstore = fstore
