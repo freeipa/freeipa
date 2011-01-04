@@ -750,12 +750,17 @@ function ipa_sudorule_association_table_widget(spec) {
         var label = IPA.metadata[that.other_entity].label;
         var title = 'Add '+label+' to '+that.entity_name+' '+pkey;
 
+        var template;
+        if (IPA.layout) {
+            template = 'sudorule-'+that.other_entity+'-dialog.html #contents';
+        }
+
         return ipa_sudorule_association_adder_dialog({
             'title': title,
             'entity_name': that.entity_name,
             'pkey': pkey,
             'other_entity': that.other_entity,
-            'template': 'sudorule-'+that.other_entity+'-dialog.html #contents'
+            'template': template
         });
     };
 
@@ -775,7 +780,8 @@ function ipa_sudorule_association_adder_dialog(spec) {
             that.create_column({
                 name: pkey_name,
                 label: IPA.metadata[that.other_entity].label,
-                primary_key: true
+                primary_key: true,
+                width: '200px'
             });
         }
 
@@ -796,6 +802,92 @@ function ipa_sudorule_association_adder_dialog(spec) {
         that.selected_table.init();
 
         that.association_adder_dialog_init();
+    };
+
+    that.create = function() {
+
+        // do not call that.dialog_create();
+
+        var search_panel = $('<div/>', {
+            'class': 'adder-dialog-filter'
+        }).appendTo(that.container);
+
+        $('<input/>', {
+            type: 'text',
+            name: 'filter',
+            style: 'width: 244px'
+        }).appendTo(search_panel);
+
+        search_panel.append(' ');
+
+        $('<input/>', {
+            type: 'button',
+            name: 'find',
+            value: 'Find'
+        }).appendTo(search_panel);
+
+        var results_panel = $('<div/>', {
+            'class': 'adder-dialog-results'
+        }).appendTo(that.container);
+
+        var available_panel = $('<div/>', {
+            name: 'available',
+            'class': 'adder-dialog-internal'
+        }).appendTo(results_panel);
+
+        $('<div/>', {
+            html: 'Available',
+            'class': 'ui-widget-header'
+        }).appendTo(available_panel);
+
+        that.available_table.create(available_panel);
+
+        var buttons_panel = $('<div/>', {
+            name: 'buttons',
+            'class': 'adder-dialog-buttons'
+        }).appendTo(results_panel);
+
+        var p = $('<p/>').appendTo(buttons_panel);
+        $('<input />', {
+            type: 'button',
+            name: 'remove',
+            value: '<<'
+        }).appendTo(p);
+
+        p = $('<p/>').appendTo(buttons_panel);
+        $('<input />', {
+            type: 'button',
+            name: 'add',
+            value: '>>'
+        }).appendTo(p);
+
+        var selected_panel = $('<div/>', {
+            name: 'selected',
+            'class': 'adder-dialog-selected'
+        }).appendTo(results_panel);
+
+        $('<div/>', {
+            html: 'Prospective',
+            'class': 'ui-widget-header'
+        }).appendTo(selected_panel);
+
+        that.selected_table.create(selected_panel);
+
+        var external_panel = $('<div/>', {
+            name: 'external',
+            'class': 'adder-dialog-external'
+        }).appendTo(results_panel);
+
+        $('<div/>', {
+            html: 'External',
+            'class': 'ui-widget-header'
+        }).appendTo(external_panel);
+
+        $('<input/>', {
+            type: 'text',
+            name: 'external',
+            style: 'width: 244px'
+        }).appendTo(external_panel);
     };
 
     that.setup = function() {

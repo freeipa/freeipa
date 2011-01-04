@@ -13,6 +13,11 @@ app_DATA =                              \
 	hbac-details-service.html	\
 	hbac-details-sourcehost.html	\
 	hbac-details-user.html		\
+	sudorule-details-general.html	\
+	sudorule-group-dialog.html	\
+	sudorule-host-dialog.html	\
+	sudorule-hostgroup-dialog.html	\
+	sudorule-user-dialog.html	\
 	$(NULL)
 
 EXTRA_DIST =                            \
