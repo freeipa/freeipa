@@ -147,6 +147,7 @@ main(int argc, const char **argv)
     krb5_context context;
     krb5_error_code krberr;
     krb5_keytab ktid;
+    krb5_kt_cursor cursor;
     char * ktname;
     char * atrealm;
     poptContext pc;
@@ -212,10 +213,19 @@ main(int argc, const char **argv)
 
     krberr = krb5_kt_resolve(context, ktname, &ktid);
     if (krberr) {
-        fprintf(stderr, _("Failed to open keytab '%s'\n"), keytab);
+        fprintf(stderr, _("Failed to open keytab '%s': %s\n"), keytab,
+            error_message(krberr));
         rval = 3;
         goto cleanup;
     }
+    krberr = krb5_kt_start_seq_get(context, ktid, &cursor);
+    if (krberr) {
+        fprintf(stderr, _("Failed to open keytab '%s': %s\n"), keytab,
+            error_message(krberr));
+        rval = 3;
+        goto cleanup;
+    }
+    krb5_kt_end_seq_get(context, ktid, &cursor);
 
     if (principal)
         rval = remove_principal(context, ktid, principal, debug);
