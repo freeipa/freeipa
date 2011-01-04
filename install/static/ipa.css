@@ -485,6 +485,14 @@ span.main-separator{
     text-transform: none;
 }
 
+.action-panel li.entity-facet-relation-label {
+    font-family: "FreeWayBold", "Liberation Sans", Arial, Sans;
+    color: #333333;
+    cursor: default;
+    text-transform: uppercase;
+    font-size: 1.2em;
+}
+
 .action-button {
     background: none;
     background-image:none;

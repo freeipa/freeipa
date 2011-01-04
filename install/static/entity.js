@@ -137,7 +137,7 @@ function ipa_entity(spec) {
         return config;
     };
 
-    that.create_association_facet = function(attribute_member, other_entity, label) {
+    that.create_association_facet = function(attribute_member, other_entity, label, facet_group) {
 
         if (!attribute_member) {
             attribute_member = ipa_get_member_attribute(
@@ -148,7 +148,9 @@ function ipa_entity(spec) {
         return ipa_association_facet({
             'name': attribute_member+'_'+other_entity,
             'label': label,
-            'other_entity': other_entity
+            'other_entity': other_entity,
+            'facet_group': facet_group,
+            'attribute_member': attribute_member,
         });
     };
 
@@ -170,18 +172,19 @@ function ipa_entity(spec) {
 
                 var label = other_entity_name;
 
-                if (attribute_member.match(/^memberof$/)) {
-                    label = IPA.messages.association.membershipin+' '+other_entity_name;
+                var relationships = IPA.metadata[that.name].relationships;
 
-                } else if (attribute_member.match(/^member/)) {
-                    label = other_entity_name+' '+IPA.messages.association.members;
+                var relationship = relationships[attribute_member];
+                if (!relationship)
+                    relationship = ['Member', '', 'no_'];
+                var facet_group = relationship[0];
 
-                } else if (attribute_member.match(/^managedby$/)) {
-                    label = IPA.messages.association.managedby+' '+other_entity_name;
-                }
+                var facet = that.create_association_facet(
+                    attribute_member, other_entity, label, facet_group
+                );
 
-                var facet = that.create_association_facet(attribute_member, other_entity, label);
                 if (that.get_facet(facet.name)) continue;
+
                 that.add_facet(facet);
             }
         }
@@ -488,10 +491,30 @@ function ipa_facet_create_action_panel(container) {
             main_facet.appendTo(ul);
 
             ul.append($('<li><span class="action-controls"/></li>'));
+            var facet_groups = {};
             for (var i=1; i<entity.facets.length; i++) {
                 other_facet = entity.facets[i];
                 other_facet_name = other_facet.name;
-                ul.append(build_link(other_facet,other_facet.label));
+
+                if (other_facet.facet_group) {
+                    var facet_group = other_facet.facet_group;
+                    if (!facet_groups[facet_group]) {
+                        var li = $('<li/>', {
+                            'class': 'entity-facet-relation-label',
+                            'text': other_facet.facet_group,
+                            'title': other_facet.facet_group,
+                        })
+                        ul.append(li);
+                        facet_groups[facet_group] = li;
+                    }
+                    var li = facet_groups[facet_group];
+                    li.after(
+                        build_link(other_facet, other_facet.label)
+                    );
+                    facet_groups[facet_group] = li.next();
+                } else {
+                    ul.append(build_link(other_facet, other_facet.label));
+                }
             }
         }else{
             $('<li/>', {

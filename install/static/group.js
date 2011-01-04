@@ -62,13 +62,6 @@ function ipa_group() {
         });
         that.add_facet(facet);
 
-        facet = ipa_group_member_user_facet({
-            'name': 'member_user',
-            'label': IPA.metadata['user'].label+' '+IPA.messages.association.members,
-            'other_entity': 'user'
-        });
-        that.add_facet(facet);
-
         that.create_association_facets();
 
         that.entity_init();

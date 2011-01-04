@@ -140,6 +140,7 @@ function ipa_association_adder_dialog(spec) {
     that.entity_name = spec.entity_name;
     that.pkey = spec.pkey;
     that.other_entity = spec.other_entity;
+    that.attribute_member = spec.attribute_member;
 
     that.init = function() {
         if (!that.columns.length) {
@@ -151,6 +152,9 @@ function ipa_association_adder_dialog(spec) {
                 width: '200px'
             });
         }
+
+        /* FIXME: event not firing? */
+        $('input[name=hidememb]', that.container).click(that.search);
 
         that.adder_dialog_init();
     };
@@ -166,7 +170,31 @@ function ipa_association_adder_dialog(spec) {
             }
         }
 
-        ipa_cmd('find', [that.get_filter()], {'all': true}, on_success, null, that.other_entity);
+        var hide_checkbox = $('input[name=hidememb]', that.container);
+
+        var options = {'all': true};
+        if (hide_checkbox.attr('checked')) {
+            var relationships = IPA.metadata[that.other_entity].relationships;
+
+            /* TODO: better generic handling of different relationships! */
+            var other_attribute_member = '';
+            if (that.attribute_member == 'member')
+                other_attribute_member = 'memberof';
+            else if (that.attribute_member == 'memberuser')
+                other_attribute_member = 'memberof';
+            else if (that.attribute_member == 'memberhost')
+                other_attribute_member = 'memberof';
+            else if (that.attribute_member == 'memberof')
+                other_attribute_member = 'member';
+
+            var relationship = relationships[other_attribute_member];
+            if (relationship) {
+                var param_name = relationship[2] + that.entity_name;
+                options[param_name] = that.pkey;
+            }
+        }
+
+        ipa_cmd('find', [that.get_filter()], options, on_success, null, that.other_entity);
     };
 
     that.association_adder_dialog_init = that.init;
@@ -234,6 +262,7 @@ function ipa_association_table_widget(spec) {
     var that = ipa_table_widget(spec);
 
     that.other_entity = spec.other_entity;
+    that.attribute_member = spec.attribute_member;
 
     that.associator = spec.associator || bulk_associator;
     that.add_method = spec.add_method || 'add_member';
@@ -398,7 +427,8 @@ function ipa_association_table_widget(spec) {
             'title': title,
             'entity_name': that.entity_name,
             'pkey': pkey,
-            'other_entity': that.other_entity
+            'other_entity': that.other_entity,
+            'attribute_member': that.attribute_member,
         });
     };
 
@@ -513,6 +543,8 @@ function ipa_association_facet(spec) {
     var that = ipa_facet(spec);
 
     that.other_entity = spec.other_entity;
+    that.facet_group = spec.facet_group;
+    that.attribute_member = spec.attribute_member;
 
     that.associator = spec.associator || bulk_associator;
     that.add_method = spec.add_method || 'add_member';
@@ -636,9 +668,20 @@ function ipa_association_facet(spec) {
 
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 
-        //TODO I18N
-        var header_message = that.other_entity + '(s) enrolled in '  +
-            that.entity_name + ' ' + that.pkey;
+        var relationships = IPA.metadata[that.entity_name].relationships;
+        var relationship = relationships[that.attribute_member];
+        if (!relationship)
+            relationship = ['', '', ''];
+
+        /* TODO: I18N and some generic handling of different relationships */
+        var header_message = '';
+        if (relationship[0] == 'Member') {
+            header_message = that.other_entity + '(s) enrolled in ' +
+                that.entity_name + ' ' + that.pkey;
+        } else if (relationship[0] == 'Parent') {
+            header_message = that.entity_name + ' ' + that.pkey +
+                ' is enrolled in the following ' + that.other_entity + '(s)';
+        }
 
         $('<div/>', {
             'id': that.entity_name+'-'+that.other_entity,
@@ -659,12 +702,14 @@ function ipa_association_facet(spec) {
             'value': IPA.messages.button.remove
         }).appendTo(li);
 
-        $('<input/>', {
-            'type': 'button',
-            'name': 'add',
-            'value': IPA.messages.button.enroll
-        }).appendTo(li);
-
+        /* TODO: genering handling of different relationships */
+        if (relationship[0] == 'Member') {
+            $('<input/>', {
+                'type': 'button',
+                'name': 'add',
+                'value': IPA.messages.button.enroll
+            }).appendTo(li);
+        }
     };
 
     that.setup = function(container) {
@@ -697,13 +742,14 @@ function ipa_association_facet(spec) {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         var label = IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity;
-        var title = 'Enroll '+that.entity_name+' '+pkey+' in '+label;
+        var title = 'Enroll ' + label + ' in ' + that.entity_name + ' ' + pkey;
 
         var dialog = ipa_association_adder_dialog({
             'title': title,
             'entity_name': that.entity_name,
             'pkey': pkey,
-            'other_entity': that.other_entity
+            'other_entity': that.other_entity,
+            'attribute_member': that.attribute_member,
         });
 
         if (that.adder_columns.length) {

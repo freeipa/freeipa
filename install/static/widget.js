@@ -1023,6 +1023,23 @@ function ipa_adder_dialog(spec) {
             value: 'Find'
         }).appendTo(search_panel);
 
+        $('<input/>', {
+            type: 'checkbox',
+            name: 'hidememb',
+            id: 'hidememb',
+            checked: 'checked',
+            style: 'margin-left: 5px; vertical-align: middle',
+        }).appendTo(search_panel);
+
+        var label = $('<label/>', {
+            'for': 'hidememb',
+            style: 'margin-left: 3px',
+        });
+
+        label.text('Hide already enrolled.');
+
+        label.appendTo(search_panel);
+
         var results_panel = $('<div/>', {
             'class': 'adder-dialog-results'
         }).appendTo(that.container);
@@ -1139,6 +1156,10 @@ function ipa_adder_dialog(spec) {
 
     that.get_filter = function() {
         return that.filter_field.val();
+    };
+
+    that.get_hide_checkbox = function() {
+        return that.hide_checkbox.checked;
     };
 
     that.clear_available_values = function() {
