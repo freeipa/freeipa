@@ -69,7 +69,7 @@ function ipa_user(){
           entity.create_association_facets();
           but we are currently defining the associator using the global
           function after the registration of the entity */
-
+      that.create_association_facets();
 
         that.entity_init();
     };
