@@ -269,7 +269,7 @@ class host_add(LDAPCreate):
         Flag('no_reverse',
             doc=_('skip reverse DNS detection'),
         ),
-        Str('ipaddr?', validate_ipaddr,
+        Str('ip_address?', validate_ipaddr,
             doc=_('Add the host to DNS with this IP address'),
         ),
     )
