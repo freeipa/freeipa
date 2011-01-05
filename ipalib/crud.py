@@ -210,9 +210,15 @@ class Search(Method):
         for option in self.obj.params_minus(self.args):
             if 'no_search' in option.flags:
                 continue
-            yield option.clone(
-                attribute=True, query=True, required=False, autofill=False
-            )
+            if isinstance(option, parameters.Flag):
+                yield option.clone_retype(
+                    option.name, parameters.Bool,
+                    attribute=True, query=True, required=False, autofill=False
+                )
+            else:
+                yield option.clone(
+                    attribute=True, query=True, required=False, autofill=False
+                )
         if not self.extra_options_first:
             for option in super(Search, self).get_options():
                 yield option

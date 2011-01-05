@@ -585,9 +585,15 @@ class Param(ReadOnly):
         """
         Return a new `Param` instance similar to this one, but named differently
         """
+        return self.clone_retype(name, self.__class__, **overrides)
+
+    def clone_retype(self, name, klass, **overrides):
+        """
+        Return a new `Param` instance similar to this one, but of a different type
+        """
         kw = dict(self.__clonekw)
         kw.update(overrides)
-        return self.__class__(name, *self.rules, **kw)
+        return klass(name, *self.rules, **kw)
 
     def normalize(self, value):
         """
