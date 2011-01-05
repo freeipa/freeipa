@@ -14,6 +14,7 @@ app_DATA =                              \
 	ipa_logo_180x50.png		\
 	ipa.js				\
 	ipa.css				\
+	json2.js			\
 	jquery.js			\
 	jquery-ui.js			\
 	jquery.ba-bbq.js		\
@@ -47,6 +48,8 @@ app_DATA =                              \
 	Mainnav-background.png		\
 	Mainnav-offtab.png  		\
 	Mainnav-ontab.png  		\
+	modal-background.png		\
+	panel-background.png		\
 	Subnav-background.png		\
 	Subnav-offbutton.png		\
 	Subnav-onbutton.png		\
@@ -65,6 +68,8 @@ app_DATA =                              \
 	ui-icons_ededed_256x240.png \
 	ui-icons_ffcf29_256x240.png \
 	ui-icons_ffffff_256x240.png \
+	FreeWay.otf \
+	FreeWay-Bold.otf \
 	$(NULL)
 
 EXTRA_DIST =                            \

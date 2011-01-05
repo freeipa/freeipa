@@ -15,8 +15,8 @@ body{
     margin: 0;
 }
 
-@font-face {font-family: "FreeWay"; src:url("fonts/FreeWay.otf");}
-@font-face {font-family: "FreeWayBold"; src:url("fonts/FreeWay-Bold.otf");}
+@font-face {font-family: "FreeWay"; src:url("FreeWay.otf");}
+@font-face {font-family: "FreeWayBold"; src:url("FreeWay-Bold.otf");}
 
 .input_link {
     padding: .4em 1em .4em 2em;
