@@ -137,7 +137,8 @@ function ipa_sudorule_details_facet(spec) {
         section.add_field(ipa_sudorule_association_table_widget({
             'id': that.entity_name+'-memberuser_user',
             'name': 'memberuser_user', 'label': 'Users', 'category': category,
-            'other_entity': 'user', 'add_method': 'add_user', 'remove_method': 'remove_user'
+            'other_entity': 'user', 'add_method': 'add_user', 'remove_method': 'remove_user',
+            'external': 'externaluser'
         }));
         section.add_field(ipa_sudorule_association_table_widget({
             'id': that.entity_name+'-memberuser_group',
@@ -164,7 +165,8 @@ function ipa_sudorule_details_facet(spec) {
         section.add_field(ipa_sudorule_association_table_widget({
             'id': that.entity_name+'-memberhost_host',
             'name': 'memberhost_host', 'label': 'Host', 'category': category,
-            'other_entity': 'host', 'add_method': 'add_host', 'remove_method': 'remove_host'
+            'other_entity': 'host', 'add_method': 'add_host', 'remove_method': 'remove_host',
+            'external': 'externalhost'
         }));
         section.add_field(ipa_sudorule_association_table_widget({
             'id': that.entity_name+'-memberhost_hostgroup',
@@ -745,6 +747,8 @@ function ipa_sudorule_association_table_widget(spec) {
 
     var that = ipa_rule_association_table_widget(spec);
 
+    that.external = spec.external;
+
     that.create_add_dialog = function() {
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         var label = IPA.metadata[that.other_entity].label;
@@ -760,8 +764,18 @@ function ipa_sudorule_association_table_widget(spec) {
             'entity_name': that.entity_name,
             'pkey': pkey,
             'other_entity': that.other_entity,
+            'external': that.external,
             'template': template
         });
+    };
+
+    that.load = function(result) {
+        that.values = result[that.name] || [];
+        if (that.external) {
+            var external_values = result[that.external] || [];
+            $.merge(that.values, external_values);
+        }
+        that.reset();
     };
 
     return that;
@@ -772,6 +786,8 @@ function ipa_sudorule_association_adder_dialog(spec) {
     spec = spec || {};
 
     var that = ipa_association_adder_dialog(spec);
+
+    that.external = spec.external;
 
     that.init = function() {
 
@@ -830,9 +846,11 @@ function ipa_sudorule_association_adder_dialog(spec) {
             'class': 'adder-dialog-results'
         }).appendTo(that.container);
 
+        var class_name = that.external ? 'adder-dialog-internal' : 'adder-dialog-available';
+
         var available_panel = $('<div/>', {
             name: 'available',
-            'class': 'adder-dialog-internal'
+            'class': class_name
         }).appendTo(results_panel);
 
         $('<div/>', {
@@ -873,40 +891,44 @@ function ipa_sudorule_association_adder_dialog(spec) {
 
         that.selected_table.create(selected_panel);
 
-        var external_panel = $('<div/>', {
-            name: 'external',
-            'class': 'adder-dialog-external'
-        }).appendTo(results_panel);
+        if (that.external) {
+            var external_panel = $('<div/>', {
+                name: 'external',
+                'class': 'adder-dialog-external'
+            }).appendTo(results_panel);
 
-        $('<div/>', {
-            html: 'External',
-            'class': 'ui-widget-header'
-        }).appendTo(external_panel);
+            $('<div/>', {
+                html: 'External',
+                'class': 'ui-widget-header'
+            }).appendTo(external_panel);
 
-        $('<input/>', {
-            type: 'text',
-            name: 'external',
-            style: 'width: 244px'
-        }).appendTo(external_panel);
+            $('<input/>', {
+                type: 'text',
+                name: 'external',
+                style: 'width: 244px'
+            }).appendTo(external_panel);
+        }
     };
 
     that.setup = function() {
         that.association_adder_dialog_setup();
-        that.external_field = $('input[name=external]', that.container);
+        if (that.external) that.external_field = $('input[name=external]', that.container);
     };
 
     that.add = function() {
         var rows = that.available_table.remove_selected_rows();
         that.selected_table.add_rows(rows);
 
-        var pkey_name = IPA.metadata[that.other_entity].primary_key;
-        var value = that.external_field.val();
-        if (!value) return;
+        if (that.external) {
+            var pkey_name = IPA.metadata[that.other_entity].primary_key;
+            var value = that.external_field.val();
+            if (!value) return;
 
-        var record = {};
-        record[pkey_name] = value;
-        that.selected_table.add_record(record);
-        that.external_field.val('');
+            var record = {};
+            record[pkey_name] = value;
+            that.selected_table.add_record(record);
+            that.external_field.val('');
+        }
     };
 
     return that;
