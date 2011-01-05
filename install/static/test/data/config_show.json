@@ -1,17 +1,55 @@
 {
     "error": null,
-    "id": 6,
+    "id": 4,
     "result": {
         "result": {
-            "dn": "cn=ipaconfig,cn=etc,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "attributelevelrights": {
+                "aci": "rscwo",
+                "cn": "rscwo",
+                "ipacertificatesubjectbase": "rscwo",
+                "ipaconfigstring": "rscwo",
+                "ipacustomfields": "rscwo",
+                "ipadefaultemaildomain": "rscwo",
+                "ipadefaultloginshell": "rscwo",
+                "ipadefaultprimarygroup": "rscwo",
+                "ipagroupobjectclasses": "rscwo",
+                "ipagroupsearchfields": "rscwo",
+                "ipahomesrootdir": "rscwo",
+                "ipamaxusernamelength": "rscwo",
+                "ipamigrationenabled": "rscwo",
+                "ipapwdexpadvnotify": "rscwo",
+                "ipasearchrecordslimit": "rscwo",
+                "ipasearchtimelimit": "rscwo",
+                "ipauserobjectclasses": "rscwo",
+                "ipausersearchfields": "rscwo",
+                "nsaccountlock": "rscwo",
+                "objectclass": "rscwo"
+            },
+            "cn": [
+                "ipaConfig"
+            ],
+            "dn": "cn=ipaconfig,cn=etc,dc=ipa14,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
             "ipacertificatesubjectbase": [
-                "O=IPA"
+                "O=IPA14.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
+            ],
+            "ipaconfigstring": [
+                "AllowNThash"
+            ],
+            "ipadefaultemaildomain": [
+                "ayoung.boston.devel.redhat.com"
             ],
             "ipadefaultloginshell": [
                 "/bin/sh"
             ],
             "ipadefaultprimarygroup": [
                 "ipausers"
+            ],
+            "ipagroupobjectclasses": [
+                "top",
+                "groupofnames",
+                "nestedgroup",
+                "ipausergroup",
+                "ipaobject"
             ],
             "ipagroupsearchfields": [
                 "cn,description"
@@ -20,19 +58,39 @@
                 "/home"
             ],
             "ipamaxusernamelength": [
-                "8"
+                "32"
             ],
             "ipamigrationenabled": [
                 "FALSE"
             ],
+            "ipapwdexpadvnotify": [
+                "4"
+            ],
             "ipasearchrecordslimit": [
-                "0"
+                "100"
             ],
             "ipasearchtimelimit": [
                 "2"
             ],
+            "ipauserobjectclasses": [
+                "top",
+                "person",
+                "organizationalperson",
+                "inetorgperson",
+                "inetuser",
+                "posixaccount",
+                "krbprincipalaux",
+                "krbticketpolicyaux",
+                "ipaobject"
+            ],
             "ipausersearchfields": [
                 "uid,givenname,sn,telephonenumber,ou,title"
+            ],
+            "objectclass": [
+                "nsContainer",
+                "top",
+                "ipaGuiConfig",
+                "ipaConfigObject"
             ]
         },
         "summary": null,

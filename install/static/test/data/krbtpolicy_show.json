@@ -1,17 +1,78 @@
 {
-    "error": null, 
-    "id": 6, 
+    "error": null,
+    "id": 6,
     "result": {
         "result": {
-            "dn": "cn=ayoung.boston.devel.redhat.com,cn=kerberos,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+            "aci": [
+                "(targetattr = \"krbMKey\")(version 3.0; acl \"No external access\"; deny (read,write,search,compare) userdn != \"ldap:///uid=kdc,cn=sysaccounts,cn=etc,dc=ipa14,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com\";)"
+            ],
+            "attributelevelrights": {
+                "aci": "rscwo",
+                "cn": "rscwo",
+                "krbadmservers": "rscwo",
+                "krbdefaultencsalttypes": "rscwo",
+                "krbkdcservers": "rscwo",
+                "krbldapservers": "rscwo",
+                "krbmaxrenewableage": "rscwo",
+                "krbmaxticketlife": "rscwo",
+                "krbmkey": "none",
+                "krbprinccontainerref": "rscwo",
+                "krbprincnamingattr": "rscwo",
+                "krbpwdpolicyreference": "rsc",
+                "krbpwdservers": "rscwo",
+                "krbsearchscope": "rscwo",
+                "krbsubtrees": "rscwo",
+                "krbsupportedencsalttypes": "rscwo",
+                "krbticketflags": "rsc",
+                "krbticketpolicyreference": "rsc",
+                "krbupenabled": "rsc",
+                "nsaccountlock": "rscwo",
+                "objectclass": "rscwo"
+            },
+            "cn": [
+                "IPA14.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
+            ],
+            "dn": "cn=ipa14.ayoung.boston.devel.redhat.com,cn=kerberos,dc=ipa14,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "krbdefaultencsalttypes": [
+                "aes256-cts:special",
+                "aes128-cts:special",
+                "des3-hmac-sha1:special",
+                "arcfour-hmac:special"
+            ],
             "krbmaxrenewableage": [
                 "604800"
-            ], 
+            ],
             "krbmaxticketlife": [
                 "86400"
+            ],
+            "krbsearchscope": [
+                "2"
+            ],
+            "krbsubtrees": [
+                "dc=ipa14,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+            ],
+            "krbsupportedencsalttypes": [
+                "aes256-cts:normal",
+                "aes256-cts:special",
+                "aes128-cts:normal",
+                "aes128-cts:special",
+                "des3-hmac-sha1:normal",
+                "des3-hmac-sha1:special",
+                "arcfour-hmac:normal",
+                "arcfour-hmac:special",
+                "des-hmac-sha1:normal",
+                "des-cbc-md5:normal",
+                "des-cbc-crc:normal",
+                "des-cbc-crc:v4",
+                "des-cbc-crc:afs3"
+            ],
+            "objectclass": [
+                "top",
+                "krbrealmcontainer",
+                "krbticketpolicyaux"
             ]
-        }, 
-        "summary": null, 
+        },
+        "summary": null,
         "value": ""
     }
 }

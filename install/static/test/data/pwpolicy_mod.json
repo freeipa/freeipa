@@ -1,6 +1,6 @@
 {
     "error": null,
-    "id": 8,
+    "id": 3,
     "result": {
         "result": {
             "attributelevelrights": {
@@ -20,7 +20,6 @@
             "cn": [
                 "global_policy"
             ],
-            "dn": "cn=global_policy,cn=ipa14.ayoung.boston.devel.redhat.com,cn=kerberos,dc=ipa14,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
             "krbmaxpwdlife": [
                 "90"
             ],
