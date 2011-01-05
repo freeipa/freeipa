@@ -164,9 +164,12 @@ function ipa_association_adder_dialog(spec) {
             var results = data.result;
             that.clear_available_values();
 
+            var pkey_attr = IPA.metadata[that.entity_name].primary_key;
+
             for (var i=0; i<results.count; i++){
                 var result = results.result[i];
-                that.add_available_value(result);
+                if (result[pkey_attr] != spec.pkey)
+                    that.add_available_value(result);
             }
         }
 
