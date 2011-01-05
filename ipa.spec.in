@@ -380,6 +380,7 @@ fi
 %{_sbindir}/ipa-upgradeconfig
 %attr(755,root,root) %{_initrddir}/ipa
 %attr(755,root,root) %{_initrddir}/ipa_kpasswd
+%dir %{python_sitelib}/ipaserver
 %{python_sitelib}/ipaserver/*
 %dir %{_usr}/share/ipa
 %{_usr}/share/ipa/wsgi.py*
@@ -483,6 +484,7 @@ fi
 %defattr(-,root,root,-)
 %dir %{python_sitelib}/ipapython
 %{python_sitelib}/ipapython/*.py*
+%dir %{python_sitelib}/ipalib
 %{python_sitelib}/ipalib/*
 %{python_sitearch}/default_encoding_utf8.so
 %if 0%{?fedora} >= 12 || 0%{?rhel} >= 6
