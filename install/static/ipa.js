@@ -314,21 +314,25 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname, comm
     }
 
     function error_handler(xhr, text_status, error_thrown) {
-        if (!error_thrown){
-            error_thrown = {name:'unknown'}
+
+        if (!error_thrown) {
+            error_thrown = {
+                name: xhr.responseText || 'Unknown Error',
+                message: xhr.statusText || 'Unknown Error'
+            }
         }
 
-        if (xhr.status === 401){
-            error_thrown.name  = 'Kerberos ticket no longer valid.';
+        if (xhr.status === 401) {
+            error_thrown.name = 'Kerberos ticket no longer valid.';
             if (IPA.messages && IPA.messages.ajax){
-                error_thrown.message =  IPA.messages.ajax["401"];
-            }else{
+                error_thrown.message = IPA.messages.ajax["401"];
+            } else {
                 error_thrown.message =
-                    "Your kerberos ticket no longer valid."+
-                    "Please run kinit and then click 'retry'"+
-                    "If this is your first time running the IPA Web UI"+
-                    "<a href='/ipa//config/unauthorized.html'> "+
-                    "Follow these directions</a> to configure your browser."
+                    "Your kerberos ticket no longer valid. "+
+                    "Please run kinit and then click 'retry'. "+
+                    "If this is your first time running the IPA Web UI "+
+                    "<a href='/ipa/config/unauthorized.html'>"+
+                    "follow these directions</a> to configure your browser."
             }
         }
 
