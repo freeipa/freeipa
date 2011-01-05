@@ -233,10 +233,10 @@ function ipa_sudorule_details_facet(spec) {
             'cmdcategory': {
                 'remove_values': false
             },
-            'runasusercategory': {
+            'ipasudorunasusercategory': {
                 'remove_values': false
             },
-            'runasgroupcategory': {
+            'ipasudorunasgroupcategory': {
                 'remove_values': false
             }
         };
@@ -278,20 +278,20 @@ function ipa_sudorule_details_facet(spec) {
                     'options': {'all': true, 'rights': true}
                 })
             },
-            'runasuser': {
-                'category': 'runasusercategory',
+            'ipasudorunas': {
+                'category': 'ipasudorunasusercategory',
                 'has_values': false,
                 'command': ipa_command({
-                    'method': that.entity_name+'_remove_runas_user',
+                    'method': that.entity_name+'_remove_runasuser',
                     'args': [pkey],
                     'options': {'all': true, 'rights': true}
                 })
             },
-            'runasgroup': {
-                'category': 'runasgroupcategory',
+            'ipasudorunasgroup': {
+                'category': 'ipasudorunasgroupcategory',
                 'has_values': false,
                 'command': ipa_command({
-                    'method': that.entity_name+'_remove_runas_group',
+                    'method': that.entity_name+'_remove_runasgroup',
                     'args': [pkey],
                     'options': {'all': true, 'rights': true}
                 })
@@ -639,22 +639,22 @@ function ipa_sudorule_details_runas_section(spec){
 
     that.init = function() {
 
-        var category = that.create_radio({ name: 'runasusercategory', label: 'Run as User category' });
+        var category = that.create_radio({ name: 'ipasudorunasusercategory', label: 'Run as User category' });
         that.add_field(ipa_sudorule_association_table_widget({
             'id': that.entity_name+'-runasruser_user',
-            'name': 'runasuser_user', 'label': 'Users', 'category': category,
+            'name': 'ipasudorunas_user', 'label': 'Users', 'category': category,
             'other_entity': 'user', 'add_method': 'add_runasuser', 'remove_method': 'remove_runasuser'
         }));
         that.add_field(ipa_sudorule_association_table_widget({
             'id': that.entity_name+'-runasuser_group',
-            'name': 'runasuser_group', 'label': 'Groups', 'category': category,
+            'name': 'ipasudorunas_group', 'label': 'Groups', 'category': category,
             'other_entity': 'group', 'add_method': 'add_runasuser', 'remove_method': 'remove_runasuser'
         }));
 
-        category = that.create_radio({ name: 'runasgroupcategory', label: 'Run as Group category' });
+        category = that.create_radio({ name: 'ipasudorunasgroupcategory', label: 'Run as Group category' });
         that.add_field(ipa_sudorule_association_table_widget({
             'id': that.entity_name+'-runasgroup_group',
-            'name': 'runasgroup_group', 'label': 'Groups', 'category': category,
+            'name': 'ipasudorunasgroup_group', 'label': 'Groups', 'category': category,
             'other_entity': 'group', 'add_method': 'add_runasgroup', 'remove_method': 'remove_runasgroup'
         }));
 
@@ -665,11 +665,11 @@ function ipa_sudorule_details_runas_section(spec){
 
         if (that.template) return;
 
-        var span = $('<span/>', { 'name': 'runasusercategory' }).appendTo(container);
+        var span = $('<span/>', { 'name': 'ipasudorunasusercategory' }).appendTo(container);
 
         $('<input/>', {
             'type': 'radio',
-            'name': 'runasusercategory',
+            'name': 'ipasudorunasusercategory',
             'value': 'all'
         }).appendTo(span);
 
@@ -677,7 +677,7 @@ function ipa_sudorule_details_runas_section(spec){
 
         $('<input/>', {
             'type': 'radio',
-            'name': 'runasusercategory',
+            'name': 'ipasudorunasusercategory',
             'value': ''
         }).appendTo(span);
 
@@ -694,19 +694,19 @@ function ipa_sudorule_details_runas_section(spec){
 
         span.append('<br/>');
 
-        var table_span = $('<span/>', { 'name': 'runasuser_user' }).appendTo(span);
-        var field = that.get_field('runasuser_user');
+        var table_span = $('<span/>', { 'name': 'ipasudorunas_user' }).appendTo(span);
+        var field = that.get_field('ipasudorunas_user');
         field.create(table_span);
 
-        table_span = $('<span/>', { 'name': 'runasuser_group' }).appendTo(span);
-        field = that.get_field('runasuser_group');
+        table_span = $('<span/>', { 'name': 'ipasudorunas_group' }).appendTo(span);
+        field = that.get_field('ipasudorunas_group');
         field.create(table_span);
 
-        span = $('<span/>', { 'name': 'runasgroupcategory' }).appendTo(container);
+        span = $('<span/>', { 'name': 'ipasudorunasgroupcategory' }).appendTo(container);
 
         $('<input/>', {
             'type': 'radio',
-            'name': 'runasgroupcategory',
+            'name': 'ipasudorunasgroupcategory',
             'value': 'all'
         }).appendTo(span);
 
@@ -714,7 +714,7 @@ function ipa_sudorule_details_runas_section(spec){
 
         $('<input/>', {
             'type': 'radio',
-            'name': 'runasgroupcategory',
+            'name': 'ipasudorunasgroupcategory',
             'value': ''
         }).appendTo(span);
 
@@ -731,8 +731,8 @@ function ipa_sudorule_details_runas_section(spec){
 
         span.append('<br/>');
 
-        table_span = $('<span/>', { 'name': 'runasgroup_group' }).appendTo(span);
-        field = that.get_field('runasgroup_group');
+        table_span = $('<span/>', { 'name': 'ipasudorunasgroup_group' }).appendTo(span);
+        field = that.get_field('ipasudorunasgroup_group');
         field.create(table_span);
     };
 
