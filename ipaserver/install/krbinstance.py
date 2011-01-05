@@ -99,17 +99,10 @@ class KrbInstance(service.Service):
         Used to move a host/ service principal created by kadmin.local from
         cn=kerberos to reside under the host entry.
         """
-        conn = None
 
         service_dn = "krbprincipalname=%s,cn=%s,cn=kerberos,%s" % (principal, self.realm, self.suffix)
-        try:
-            conn = ipaldap.IPAdmin("127.0.0.1")
-            conn.simple_bind_s("cn=directory manager", self.admin_password)
-        except Exception, e:
-            logging.critical("Could not connect to the Directory Server on %s" % self.fqdn)
-            raise e
-        service_entry = conn.getEntry(service_dn, ldap.SCOPE_BASE)
-        conn.deleteEntry(service_dn)
+        service_entry = self.admin_conn.getEntry(service_dn, ldap.SCOPE_BASE)
+        self.admin_conn.deleteEntry(service_dn)
 
         # Create a host entry for this master
         host_dn = "fqdn=%s,cn=computers,cn=accounts,%s" % (self.fqdn, self.suffix)
@@ -127,8 +120,7 @@ class KrbInstance(service.Service):
         host_entry.setValue('fqdn', self.fqdn)
         host_entry.setValue('ipauniqueid', 'autogenerate')
         host_entry.setValue('managedby', host_dn)
-        conn.addEntry(host_entry)
-        conn.unbind()
+        self.admin_conn.addEntry(host_entry)
 
     def __common_setup(self, ds_user, realm_name, host_name, domain_name, admin_password):
         self.ds_user = ds_user
@@ -145,12 +137,7 @@ class KrbInstance(service.Service):
         self.__setup_sub_dict()
 
         # get a connection to the DS
-        try:
-            self.conn = ipaldap.IPAdmin(self.fqdn)
-            self.conn.do_simple_bind(bindpw=self.admin_password)
-        except Exception, e:
-            logging.critical("Could not connect to the Directory Server on %s" % self.fqdn)
-            raise e
+        self.ldap_connect()
 
         self.backup_state("running", self.is_running())
         try:
@@ -271,12 +258,12 @@ class KrbInstance(service.Service):
         # they may conflict.
 
         try:
-            res = self.conn.search_s("cn=mapping,cn=sasl,cn=config",
+            res = self.admin_conn.search_s("cn=mapping,cn=sasl,cn=config",
                                      ldap.SCOPE_ONELEVEL,
                                      "(objectclass=nsSaslMapping)")
             for r in res:
                 try:
-                    self.conn.delete_s(r.dn)
+                    self.admin_conn.delete_s(r.dn)
                 except LDAPError, e:
                     logging.critical("Error during SASL mapping removal: %s" % str(e))
                     raise e
@@ -292,7 +279,7 @@ class KrbInstance(service.Service):
         entry.setValues("nsSaslMapFilterTemplate", '(krbPrincipalName=\\1@\\2)')
 
         try:
-            self.conn.add_s(entry)
+            self.admin_conn.add_s(entry)
         except ldap.ALREADY_EXISTS:
             logging.critical("failed to add Full Principal Sasl mapping")
             raise e
@@ -305,7 +292,7 @@ class KrbInstance(service.Service):
         entry.setValues("nsSaslMapFilterTemplate", '(krbPrincipalName=&@%s)' % self.realm)
 
         try:
-            self.conn.add_s(entry)
+            self.admin_conn.add_s(entry)
         except ldap.ALREADY_EXISTS:
             logging.critical("failed to add Name Only Sasl mapping")
             raise e
@@ -383,7 +370,7 @@ class KrbInstance(service.Service):
 
     def __write_stash_from_ds(self):
         try:
-            entry = self.conn.getEntry("cn=%s, cn=kerberos, %s" % (self.realm, self.suffix), ldap.SCOPE_SUBTREE)
+            entry = self.admin_conn.getEntry("cn=%s, cn=kerberos, %s" % (self.realm, self.suffix), ldap.SCOPE_SUBTREE)
         except errors.NotFound, e:
             logging.critical("Could not find master key in DS")
             raise e
@@ -485,7 +472,7 @@ class KrbInstance(service.Service):
         mod = [(ldap.MOD_ADD, 'aci', ipautil.template_str(KRBMKEY_DENY_ACI, self.sub_dict)),
                (ldap.MOD_ADD, 'krbMKey', str(asn1key))]
         try:
-            self.conn.modify_s(dn, mod)
+            self.admin_conn.modify_s(dn, mod)
         except ldap.TYPE_OR_VALUE_EXISTS, e:
             logging.critical("failed to add master key to kerberos database\n")
             raise e
@@ -553,16 +540,8 @@ class KrbInstance(service.Service):
 
         # Create the special anonymous principal
         installutils.kadmin_addprinc(princ_realm)
-        try:
-            conn = ipaldap.IPAdmin("127.0.0.1")
-            conn.simple_bind_s("cn=directory manager", self.admin_password)
-        except Exception, e:
-            logging.critical("Could not connect to the Directory Server on %s" % self.fqdn)
-            raise e
-
         dn = "krbprincipalname=%s,cn=%s,cn=kerberos,%s" % (princ_realm, self.realm, self.suffix)
-        conn.inactivateEntry(dn, False)
-        conn.unbind()
+        self.admin_conn.inactivateEntry(dn, False)
 
     def uninstall(self):
         if self.is_configured():

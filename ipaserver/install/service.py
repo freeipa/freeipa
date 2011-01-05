@@ -18,7 +18,7 @@
 #
 
 import logging, sys
-import os
+import os, socket
 import tempfile
 from ipapython import sysrestore
 from ipapython import ipautil
@@ -29,6 +29,9 @@ import base64
 import time
 import datetime
 from ipaserver.install import installutils
+
+CACERT = "/etc/ipa/ca.crt"
+SASL_AUTH = ldap.sasl.sasl({}, 'GSSAPI')
 
 SERVICE_LIST = {
     'KDC':('krb5kdc', 10),
@@ -100,10 +103,20 @@ class Service:
         self.output_fd = sys.stdout
         self.dm_password = dm_password
 
+        self.fqdn = socket.gethostname()
+        self.admin_conn = None
+
         if sstore:
             self.sstore = sstore
         else:
             self.sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
+
+    def ldap_connect(self):
+        self.admin_conn = self.__get_conn(self.fqdn, self.dm_password)
+
+    def ldap_disconnect(self):
+        self.admin_conn.unbind()
+        self.admin_conn = None
 
     def _ldap_mod(self, ldif, sub_dict = None):
 
@@ -145,31 +158,24 @@ class Service:
         Used to move a principal entry created by kadmin.local from
         cn=kerberos to cn=services
         """
+
         dn = "krbprincipalname=%s,cn=%s,cn=kerberos,%s" % (principal, self.realm, self.suffix)
         try:
-            conn = ipaldap.IPAdmin("127.0.0.1")
-            conn.simple_bind_s("cn=directory manager", self.dm_password)
-        except Exception, e:
-            logging.critical("Could not connect to the Directory Server on %s: %s" % (self.fqdn, str(e)))
-            raise e
-        try:
-            entry = conn.getEntry(dn, ldap.SCOPE_BASE)
+            entry = self.admin_conn.getEntry(dn, ldap.SCOPE_BASE)
         except errors.NotFound:
             # There is no service in the wrong location, nothing to do.
             # This can happen when installing a replica
-            conn.unbind()
             return
         newdn = "krbprincipalname=%s,cn=services,cn=accounts,%s" % (principal, self.suffix)
         hostdn = "fqdn=%s,cn=computers,cn=accounts,%s" % (self.fqdn, self.suffix)
-        conn.deleteEntry(dn)
+        self.admin_conn.deleteEntry(dn)
         entry.dn = newdn
         classes = entry.getValues("objectclass")
         classes = classes + ["ipaobject", "ipaservice", "pkiuser"]
         entry.setValues("objectclass", list(set(classes)))
         entry.setValue("ipauniqueid", 'autogenerate')
         entry.setValue("managedby", hostdn)
-        conn.addEntry(entry)
-        conn.unbind()
+        self.admin_conn.addEntry(entry)
         return newdn
 
     def add_cert_to_service(self):
@@ -180,6 +186,10 @@ class Service:
         a base64-encoded cert if needed (like when we add certs that come
         from PKCS#12 files.)
         """
+
+        if not self.admin_conn:
+            self.ldap_connect()
+
         try:
             s = self.dercert.find('-----BEGIN CERTIFICATE-----')
             if s > -1:
@@ -190,18 +200,11 @@ class Service:
         except Exception:
             pass
         dn = "krbprincipalname=%s,cn=services,cn=accounts,%s" % (self.principal, self.suffix)
-        try:
-            conn = ipaldap.IPAdmin("127.0.0.1")
-            conn.simple_bind_s("cn=directory manager", self.dm_password)
-        except Exception, e:
-            logging.critical("Could not connect to the Directory Server on %s: %s" % (self.fqdn, str(e)))
-            raise e
         mod = [(ldap.MOD_ADD, 'userCertificate', self.dercert)]
         try:
-            conn.modify_s(dn, mod)
+            self.admin_conn.modify_s(dn, mod)
         except Exception, e:
             logging.critical("Could not add certificate to service %s entry: %s" % (self.principal, str(e)))
-        conn.unbind()
 
     def is_configured(self):
         return self.sstore.has_state(self.service_name)
@@ -278,11 +281,16 @@ class Service:
         self.steps = []
 
     def __get_conn(self, fqdn, dm_password):
+        # If we are passed a password we'll use it as the DM password
+        # otherwise we'll do a GSSAPI bind.
         try:
-            conn = ipaldap.IPAdmin("127.0.0.1")
-            conn.simple_bind_s("cn=directory manager", dm_password)
+            conn = ipaldap.IPAdmin(fqdn, port=636, cacert=CACERT)
+            if dm_password:
+                conn.do_simple_bind(bindpw=dm_password)
+            else:
+                conn.sasl_interactive_bind_s('', SASL_AUTH)
         except Exception, e:
-            logging.critical("Could not connect to the Directory Server on %s: %s" % (fqdn, str(e)))
+            logging.debug("Could not connect to the Directory Server on %s: %s" % (fqdn, str(e)))
             raise e
 
         return conn

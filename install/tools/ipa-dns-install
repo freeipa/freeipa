@@ -28,6 +28,8 @@ from ipapython import version
 from ipapython import ipautil, sysrestore
 from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
+import krbV
+import ldap
 
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
@@ -52,8 +54,6 @@ def parse_options():
         parser.error("You cannot specify a --forwarder option together with --no-forwarders")
 
     if options.unattended:
-        if not options.dm_password:
-            parser.error("In unattended mode you need to provide at least the -p option")
         if not options.forwarders and not options.no_forwarders:
             parser.error("You must specify at least one --forwarder option or --no-forwarders option")
 
@@ -138,22 +138,6 @@ def main():
         dns_forwarders = read_dns_forwarders()
     logging.debug("will use dns_forwarders: %s\n", str(dns_forwarders))
 
-    if not options.dm_password:
-        dm_password = read_password("Directory Manager", confirm=False, validate=False)
-    else:
-        dm_password = options.dm_password
-
-    # Try out the password
-    ldapuri = 'ldap://%s' % api.env.host
-    try:
-        conn = ldap2(shared_instance=False, ldap_uri=ldapuri)
-        conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
-        conn.disconnect()
-    except errors.ACIError:
-        sys.exit("\nThe password provided is incorrect for LDAP server %s" % api.env.host)
-    except errors.LDAPError:
-        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
-
     conf_ntp = ntpinstance.NTPInstance(fstore).is_enabled()
 
     if not options.unattended:
@@ -163,11 +147,38 @@ def main():
         print ""
 
     # Create a BIND instance
-    bind = bindinstance.BindInstance(fstore, dm_password)
+    bind = bindinstance.BindInstance(fstore, options.dm_password)
+
+    valid_password = False
+    while not valid_password:
+        # try the connection
+        try:
+            bind.ldap_connect()
+            bind.ldap_disconnect()
+            valid_password = True
+        except ldap.LOCAL_ERROR, e:
+            if not bind.dm_password:
+                if options.unattended:
+                    sys.exit("\nIn unattended mode you need to provide at least the -p option")
+                else:
+                    bind.dm_password = read_password("Directory Manager", confirm=False, validate=False)
+        except ldap.INVALID_CREDENTIALS, e:
+            if options.unattended:
+                sys.exit("\nPassword is not valid!")
+            bind.dm_password = read_password("Directory Manager", confirm=False, validate=False)
+
     create_reverse = bindinstance.create_reverse(options.unattended)
     bind.setup(api.env.host, ip_address, api.env.realm, api.env.domain, dns_forwarders, conf_ntp, create_reverse, zonemgr=options.zonemgr)
-    api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
+
+    if bind.dm_password:
+        api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=bind.dm_password)
+    else:
+        # See if our LDAP server is up and we can talk to it over GSSAPI
+        ccache = krbV.default_context().default_ccache().name
+        api.Backend.ldap2.connect(ccache)
+
     bind.create_instance()
+
 
     print "=============================================================================="
     print "Setup complete"

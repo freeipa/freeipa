@@ -217,7 +217,6 @@ class BindInstance(service.Service):
         service.Service.__init__(self, "named", dm_password=dm_password)
         self.dns_backup = DnsBackup(self)
         self.named_user = None
-        self.fqdn = None
         self.domain = None
         self.host = None
         self.ip_address = None
@@ -269,6 +268,9 @@ class BindInstance(service.Service):
             self.stop()
         except:
             pass
+
+        # get a connection to the DS
+        self.ldap_connect()
 
         if not dns_container_exists(self.fqdn, self.suffix):
             self.step("adding DNS container", self.__setup_dns_container)
@@ -384,29 +386,18 @@ class BindInstance(service.Service):
         # it can host the memberof attribute, then also add it to the
         # dnsserver role group, this way the DNS is allowed to perform
         # DNS Updates
-        conn = None
-
-        try:
-            conn = ipaldap.IPAdmin("127.0.0.1")
-            conn.simple_bind_s("cn=directory manager", self.dm_password)
-        except Exception, e:
-            logging.critical("Could not connect to the Directory Server on %s" % self.fqdn)
-            raise e
-
         dns_group = "cn=dnsserver,cn=privileges,cn=pbac,%s" % self.suffix
         if isinstance(dns_principal, unicode):
             dns_principal = dns_principal.encode('utf-8')
         mod = [(ldap.MOD_ADD, 'member', dns_principal)]
 
         try:
-            conn.modify_s(dns_group, mod)
+            self.admin_conn.modify_s(dns_group, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
         except Exception, e:
             logging.critical("Could not modify principal's %s entry" % dns_principal)
             raise e
-
-        conn.unbind()
 
     def __setup_named_conf(self):
         self.fstore.backup_file('/etc/named.conf')

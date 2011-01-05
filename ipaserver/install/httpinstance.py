@@ -68,6 +68,10 @@ class HTTPInstance(service.Service):
         self.subject_base = subject_base
         self.sub_dict = { "REALM" : realm, "FQDN": fqdn, "DOMAIN" : self.domain }
 
+        # get a connection to the DS
+        self.ldap_connect()
+
+
         self.step("disabling mod_ssl in httpd", self.__disable_mod_ssl)
         self.step("Setting mod_nss port to 443", self.__set_mod_nss_port)
         self.step("Setting mod_nss password file", self.__set_mod_nss_passwordfile)
