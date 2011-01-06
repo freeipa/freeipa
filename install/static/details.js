@@ -475,8 +475,9 @@ function ipa_details_facet(spec) {
             var section = that.sections[i];
 
             $('<h2/>', {
-                'name': section.name,
-                'html': that.get_section_header_prefix(true) + ' ' + section.label
+                name: section.name,
+                title: section.label,
+                html: that.get_section_header_prefix(true) + ' ' + section.label
             }).appendTo(details);
 
             var div = $('<div/>', {
@@ -579,8 +580,9 @@ function ipa_button(spec) {
     spec = spec || {};
 
     var button = $('<a/>', {
-        'id': spec.id,
-        'html': spec.label,
+        id: spec.id,
+        html: spec.label,
+        title: spec.title || spec.label,
         'class': 'ui-state-default ui-corner-all input_link'
     });
 

@@ -38,7 +38,12 @@ function ipa_rule_details_section(spec){
 
         if (that.text) container.append(that.text);
 
-        var span = $('<span/>', { 'name': that.field_name }).appendTo(container);
+        var param_info = ipa_get_param_info(that.entity_name, that.field_name);
+
+        var span = $('<span/>', {
+            name: that.field_name,
+            title: param_info.doc
+        }).appendTo(container);
 
         if (that.options.length) {
             for (var i=0; i<that.options.length; i++) {
@@ -68,7 +73,12 @@ function ipa_rule_details_section(spec){
         for (var i=0; i<that.tables.length; i++) {
             var table = that.tables[i];
 
-            var table_span = $('<span/>', { 'name': table.field_name }).appendTo(span);
+            param_info = ipa_get_param_info(that.entity_name, table.field_name);
+
+            var table_span = $('<span/>', {
+                name: table.field_name,
+                title: param_info ? param_info.doc : table.field_name
+            }).appendTo(span);
 
             var field = that.get_field(table.field_name);
             field.create(table_span);

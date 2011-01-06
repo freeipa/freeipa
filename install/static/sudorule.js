@@ -435,16 +435,22 @@ function ipa_sudorule_details_general_section(spec){
             'style': 'width: 100%;'
         }).appendTo(container);
 
+        var param_info = ipa_get_param_info(that.entity_name, 'cn');
+
         var tr = $('<tr/>').appendTo(table);
 
         var td = $('<td/>', {
-            'style': 'width: 100px; text-align: right;',
-            'html': 'Name:'
+            style: 'width: 100px; text-align: right;',
+            html: param_info.label+':',
+            title: param_info ? param_info.doc : 'cn'
         }).appendTo(tr);
 
         td = $('<td/>').appendTo(tr);
 
-        var span = $('<span/>', { 'name': 'cn' }).appendTo(td);
+        var span = $('<span/>', {
+            name: 'cn',
+            title: param_info ? param_info.doc : 'cn'
+        }).appendTo(td);
 
         $('<input/>', {
             'type': 'text',
@@ -461,16 +467,22 @@ function ipa_sudorule_details_general_section(spec){
             'html': 'undo'
         }).appendTo(span);
 
+        param_info = ipa_get_param_info(that.entity_name, 'description');
+
         tr = $('<tr/>').appendTo(table);
 
         td = $('<td/>', {
-            'style': 'text-align: right; vertical-align: top;',
-            'html': 'Description:'
+            style: 'text-align: right; vertical-align: top;',
+            html: param_info.label+':',
+            title: param_info ? param_info.doc : 'description'
         }).appendTo(tr);
 
         td = $('<td/>').appendTo(tr);
 
-        span = $('<span/>', { 'name': 'description' }).appendTo(td);
+        span = $('<span/>', {
+            name: 'description',
+            title: param_info ? param_info.doc : 'description'
+        }).appendTo(td);
 
         $('<textarea/>', {
             'name': 'description',
@@ -487,16 +499,23 @@ function ipa_sudorule_details_general_section(spec){
             'html': 'undo'
         }).appendTo(span);
 
+        param_info = ipa_get_param_info(that.entity_name, 'ipaenabledflag');
+
         tr = $('<tr/>').appendTo(table);
 
+        // TODO: Use i18n label
         td = $('<td/>', {
-            'style': 'text-align: right; vertical-align: top;',
-            'html': 'Rule status:'
+            style: 'text-align: right; vertical-align: top;',
+            html: 'Rule status:',
+            title: 'Rule status'
         }).appendTo(tr);
 
         td = $('<td/>').appendTo(tr);
 
-        span = $('<span/>', { 'name': 'ipaenabledflag' }).appendTo(td);
+        span = $('<span/>', {
+            name: 'ipaenabledflag',
+            title: 'Rule status'
+        }).appendTo(td);
 
         $('<input/>', {
             'type': 'radio',
@@ -570,7 +589,12 @@ function ipa_sudorule_details_command_section(spec){
 
         if (that.template) return;
 
-        var span = $('<span/>', { 'name': 'cmdcategory' }).appendTo(container);
+        var param_info = ipa_get_param_info(that.entity_name, 'cmdcategory');
+
+        var span = $('<span/>', {
+            name: 'cmdcategory',
+            title: param_info ? param_info.doc : 'cmdcategory'
+        }).appendTo(container);
 
         $('<input/>', {
             'type': 'radio',
@@ -609,23 +633,55 @@ function ipa_sudorule_details_command_section(spec){
 
         span.append('Specific Command / Group');
 
-        $('<h3/>', { text: 'Allow' }).appendTo(span);
+        // TODO: replace with i18n label
+        $('<h3/>', {
+            text: 'Allow',
+            title: 'Allow'
+        }).appendTo(span);
 
-        var table_span = $('<span/>', { 'name': 'memberallowcmd_sudocmd' }).appendTo(span);
+        param_info = ipa_get_param_info(that.entity_name, 'memberallowcmd_sudocmd');
+
+        var table_span = $('<span/>', {
+            name: 'memberallowcmd_sudocmd',
+            title: param_info ? param_info.doc : 'memberallowcmd_sudocmd'
+        }).appendTo(span);
+
         var field = that.get_field('memberallowcmd_sudocmd');
         field.create(table_span);
 
-        table_span = $('<span/>', { 'name': 'memberallowcmd_sudocmdgroup' }).appendTo(span);
+        param_info = ipa_get_param_info(that.entity_name, 'memberallowcmd_sudocmdgroup');
+
+        table_span = $('<span/>', {
+            name: 'memberallowcmd_sudocmdgroup',
+            title: param_info ? param_info.doc : 'memberallowcmd_sudocmdgroup'
+        }).appendTo(span);
+
         field = that.get_field('memberallowcmd_sudocmdgroup');
         field.create(table_span);
 
-        $('<h3/>', { text: 'Deny' }).appendTo(span);
+        // TODO: replace with i18n label
+        $('<h3/>', {
+            text: 'Deny',
+            title: 'Deny'
+        }).appendTo(span);
 
-        table_span = $('<span/>', { 'name': 'memberdenycmd_sudocmd' }).appendTo(span);
+        param_info = ipa_get_param_info(that.entity_name, 'memberdenycmd_sudocmd');
+
+        table_span = $('<span/>', {
+            name: 'memberdenycmd_sudocmd',
+            title: param_info ? param_info.doc : 'memberdenycmd_sudocmd'
+        }).appendTo(span);
+
         field = that.get_field('memberdenycmd_sudocmd');
         field.create(table_span);
 
-        table_span = $('<span/>', { 'name': 'memberdenycmd_sudocmdgroup' }).appendTo(span);
+        param_info = ipa_get_param_info(that.entity_name, 'memberdenycmd_sudocmdgroup');
+
+        table_span = $('<span/>', {
+            name: 'memberdenycmd_sudocmdgroup',
+            title: param_info ? param_info.doc : 'memberdenycmd_sudocmdgroup'
+        }).appendTo(span);
+
         field = that.get_field('memberdenycmd_sudocmdgroup');
         field.create(table_span);
     };
@@ -667,7 +723,12 @@ function ipa_sudorule_details_runas_section(spec){
 
         if (that.template) return;
 
-        var span = $('<span/>', { 'name': 'ipasudorunasusercategory' }).appendTo(container);
+        var param_info = ipa_get_param_info(that.entity_name, 'ipasudorunasusercategory');
+
+        var span = $('<span/>', {
+            name: 'ipasudorunasusercategory',
+            title: param_info ? param_info.doc : 'ipasudorunasusercategory'
+        }).appendTo(container);
 
         $('<input/>', {
             'type': 'radio',
@@ -696,15 +757,32 @@ function ipa_sudorule_details_runas_section(spec){
 
         span.append('<br/>');
 
-        var table_span = $('<span/>', { 'name': 'ipasudorunas_user' }).appendTo(span);
+        param_info = ipa_get_param_info(that.entity_name, 'ipasudorunas_user');
+
+        var table_span = $('<span/>', {
+            name: 'ipasudorunas_user',
+            title: param_info ? param_info.doc : 'ipasudorunas_user'
+        }).appendTo(span);
+
         var field = that.get_field('ipasudorunas_user');
         field.create(table_span);
 
-        table_span = $('<span/>', { 'name': 'ipasudorunas_group' }).appendTo(span);
+        param_info = ipa_get_param_info(that.entity_name, 'ipasudorunas_group');
+
+        table_span = $('<span/>', {
+            name: 'ipasudorunas_group',
+            title: param_info ? param_info.doc : 'ipasudorunas_group'
+        }).appendTo(span);
+
         field = that.get_field('ipasudorunas_group');
         field.create(table_span);
 
-        span = $('<span/>', { 'name': 'ipasudorunasgroupcategory' }).appendTo(container);
+        param_info = ipa_get_param_info(that.entity_name, 'ipasudorunasgroupcategory');
+
+        span = $('<span/>', {
+            name: 'ipasudorunasgroupcategory',
+            title: param_info ? param_info.doc : 'ipasudorunasgroupcategory'
+        }).appendTo(container);
 
         $('<input/>', {
             'type': 'radio',
@@ -733,7 +811,13 @@ function ipa_sudorule_details_runas_section(spec){
 
         span.append('<br/>');
 
-        table_span = $('<span/>', { 'name': 'ipasudorunasgroup_group' }).appendTo(span);
+        param_info = ipa_get_param_info(that.entity_name, 'ipasudorunasgroup_group');
+
+        table_span = $('<span/>', {
+            name: 'ipasudorunasgroup_group',
+            title: param_info ? param_info.doc : 'ipasudorunasgroup_group'
+        }).appendTo(span);
+
         field = that.get_field('ipasudorunasgroup_group');
         field.create(table_span);
     };
