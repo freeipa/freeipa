@@ -357,10 +357,6 @@ function ipa_search_facet(spec) {
 
         that.table.create(span);
 
-        container.children().last().prepend(
-            $('<h2/>', { 'html': IPA.metadata[that.entity_name].label }));
-        container.children().last().prepend('<br/>');
-
     }
 
     function setup(container) {
