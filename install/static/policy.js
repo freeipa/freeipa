@@ -277,6 +277,9 @@ function ipa_records_facet(spec){
     };
 
     function create(container) {
+        var details = $('<div/>', {
+            'class': 'content'
+        }).appendTo(container);
     }
 
     function setup(container){
