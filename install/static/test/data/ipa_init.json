@@ -59,7 +59,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -192,7 +192,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -275,7 +275,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -382,7 +382,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -1714,7 +1714,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -2382,7 +2382,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -2600,7 +2600,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -3048,7 +3048,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -3231,7 +3231,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -3709,7 +3709,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -3832,7 +3832,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -3981,7 +3981,7 @@
                                 "not_man_by_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -4364,7 +4364,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -4464,7 +4464,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -4637,7 +4637,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ],
@@ -4868,7 +4868,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -5182,7 +5182,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -5307,7 +5307,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -5621,7 +5621,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -5858,7 +5858,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -5969,7 +5969,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -6102,7 +6102,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -6336,7 +6336,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -6988,7 +6988,7 @@
                                 "no_indirect_"
                             ],
                             "memberof": [
-                                "Parent",
+                                "Member Of",
                                 "in_",
                                 "not_in_"
                             ]
@@ -7757,22 +7757,22 @@
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "1342000000"
+                            "902200000"
                         ],
                         "homedirectory": [
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "f69bd094-1822-11e0-9b8f-52540029a798"
+                            "9aafe8c2-19e6-11e0-849f-52540029a798"
                         ],
                         "krblastpwdchange": [
-                            "20110104165354Z"
+                            "20110106224650Z"
                         ],
                         "krblastsuccessfulauth": [
-                            "20110105032257Z"
+                            "20110106224950Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20110404165354Z"
+                            "20110406224650Z"
                         ],
                         "krbprincipalname": [
                             "admin@IPA14.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
@@ -7781,8 +7781,7 @@
                             "/bin/bash"
                         ],
                         "memberof_group": [
-                            "admins",
-                            "testgroup"
+                            "admins"
                         ],
                         "mepmanagedentry": [
                             "cn=admin,cn=groups,cn=accounts,dc=ipa14,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
@@ -7807,7 +7806,7 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "1342000000"
+                            "902200000"
                         ]
                     }
                 ],
