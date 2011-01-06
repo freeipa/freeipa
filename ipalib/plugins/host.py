@@ -456,7 +456,11 @@ class host_del(LDAPDelete):
                                         _attribute_types[attr], record[attr][i])
                             break
 
-        (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
+        try:
+            (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
         if 'usercertificate' in entry_attrs:
             cert = normalize_certificate(entry_attrs.get('usercertificate')[0])
             try:
@@ -651,7 +655,10 @@ class host_disable(LDAPQuery):
         done_work = False
 
         dn = self.obj.get_dn(*keys, **options)
-        (dn, entry_attrs) = ldap.get_entry(dn, ['krblastpwdchange', 'usercertificate'])
+        try:
+            (dn, entry_attrs) = ldap.get_entry(dn, ['krblastpwdchange', 'usercertificate'])
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
 
         truncated = True
         while truncated:
