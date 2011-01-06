@@ -520,22 +520,35 @@ function ipa_facet_create_action_panel(container) {
                     }
                     var li = facet_groups[facet_group];
                     var link =  build_link(other_facet, other_facet.label)
+                    link.addClass('facet-group-member');
                     li.after(link );
+                    /*
+                      If we are on the current facet, we make the text black, non-clickable,
+                      add an icon and make suer the action controls are positioned underneath it.
+                     */
                     if ( other_facet.name === ipa_current_facet( entity)){
                         var text = link.text();
                         link.text('');
                         link.append($('<ul>').
-                                    append('<li>'+ text+'</li>').
+                                    append($('<li />',{
+                                        'class': 'entity-facet-selected',
+                                        html:  $('<span />',{
+                                            'class':'input_link',
+                                            html:'<span class="ui-icon ui-icon-triangle-1-e" />'+ text
+                                        })})).
                                     append($('<li/>',{
                                         html:$('<span />',{
-                                            class:"action-controls"})})));
+                                            class:"action-controls"
+                                        })
+                                    }))
+                                   );
                     }
                     facet_groups[facet_group] = li.next();
-
                 } else {
-                    ul.append(build_link(other_facet, other_facet.label));
+                    var innerlist = $('<ul/>').appendTo(ul);
+                    innerlist.append(build_link(other_facet, other_facet.label));
                     if ( other_facet.name === ipa_current_facet( entity)){
-                        ul.append($('<li><span class="action-controls"/></li>'));
+                        innerlist.append($('<li class="entity-facet"><span class="action-controls"  /></li>'));
                     }
                 }
             }

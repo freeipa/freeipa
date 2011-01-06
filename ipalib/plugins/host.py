@@ -171,7 +171,7 @@ class host(LDAPObject):
     }
     bindable = True
     relationships = {
-        'memberof': ('Parent', 'in_', 'not_in_'),
+        'memberof': ('Member Of', 'in_', 'not_in_'),
         'enrolledby': ('Enrolled by', 'enroll_by_', 'not_enroll_by_'),
         'managedby': ('Managed by', 'man_by_', 'not_man_by_'),
     }

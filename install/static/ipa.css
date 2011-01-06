@@ -465,12 +465,20 @@ span.main-separator{
     text-transform: none;
 }
 
+.action-panel li.entity-facet-selected {
+    font-family: "FreeWayBold", "Liberation Sans", Arial, Sans;
+    color: black;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
 .action-panel li.entity-facet-disabled {
     font-family: "Liberation Sans",Arial,sans-serif;
     color: gray;
     cursor: default;
     text-decoration: none;
     text-transform: none;
+
 }
 
 .action-panel li.entity-facet-relation-label {
@@ -479,7 +487,13 @@ span.main-separator{
     cursor: default;
     text-transform: uppercase;
     font-size: 1.2em;
+    margin-left:1.8em;
 }
+
+.action-panel li.facet-group-member {
+    margin-left:3.6em;
+}
+
 
 .action-button {
     background: none;
@@ -489,7 +503,8 @@ span.main-separator{
 }
 
 .action-controls {
-    padding-left: 2em;
+    position: relative;
+    display:inline;
 }
 
 .client {

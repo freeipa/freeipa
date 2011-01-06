@@ -87,7 +87,7 @@ class netgroup(LDAPObject):
     }
     relationships = {
         'member': ('Member', '', 'no_'),
-        'memberof': ('Parent', 'in_', 'not_in_'),
+        'memberof': ('Member Of', 'in_', 'not_in_'),
         'memberindirect': (
             'Indirect Member', None, 'no_indirect_'
         ),
