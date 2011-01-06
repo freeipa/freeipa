@@ -486,11 +486,22 @@ function ipa_facet_create_action_panel(container) {
             /*assume for now that entities with only a single facet
               do not have search*/
             if (entity.facets.length > 0 ){
-                main_facet.text( 'List ' +  IPA.metadata[entity_name].label);
+                if ( entity.facets[0].name === ipa_current_facet( entity)){
+                    main_facet.text( IPA.metadata[entity_name].label);
+                    main_facet.appendTo(ul);
+                    ul.append($('<li><span class="action-controls"/></li>'));
+                }else{
+                    main_facet.html(
+                        $('<span />',{
+                            "class":"input_link"
+                        }).append(
+                            $('<span/>',{
+                                "class":"ui-icon ui-icon-triangle-1-w "
+                            })
+                        ).append('Back to List '));
+                    main_facet.appendTo(ul);
+                }
             }
-            main_facet.appendTo(ul);
-
-            ul.append($('<li><span class="action-controls"/></li>'));
             var facet_groups = {};
             for (var i=1; i<entity.facets.length; i++) {
                 other_facet = entity.facets[i];
@@ -508,12 +519,24 @@ function ipa_facet_create_action_panel(container) {
                         facet_groups[facet_group] = li;
                     }
                     var li = facet_groups[facet_group];
-                    li.after(
-                        build_link(other_facet, other_facet.label)
-                    );
+                    var link =  build_link(other_facet, other_facet.label)
+                    li.after(link );
+                    if ( other_facet.name === ipa_current_facet( entity)){
+                        var text = link.text();
+                        link.text('');
+                        link.append($('<ul>').
+                                    append('<li>'+ text+'</li>').
+                                    append($('<li/>',{
+                                        html:$('<span />',{
+                                            class:"action-controls"})})));
+                    }
                     facet_groups[facet_group] = li.next();
+
                 } else {
                     ul.append(build_link(other_facet, other_facet.label));
+                    if ( other_facet.name === ipa_current_facet( entity)){
+                        ul.append($('<li><span class="action-controls"/></li>'));
+                    }
                 }
             }
         }else{
