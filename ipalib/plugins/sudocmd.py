@@ -24,7 +24,7 @@ Commands used as building blocks for sudo
 EXAMPLES:
 
  Create a new commnad
-   ipa sudocmd-add --description='For reading log files' /usr/bin/less
+   ipa sudocmd-add --desc='For reading log files' /usr/bin/less
 
  Remove a command
    ipa sudocmd-del /usr/bin/less
