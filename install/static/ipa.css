@@ -331,7 +331,7 @@ span.attrhint {
 }
 
 .tabs2 .ui-tabs-nav {
-    padding:  0.3em 6em 0  7em;
+    padding:  0.3em 6em 0  4em;
     margin: 0;
     height:  2.5em;
     background-image: url(Subnav-background.png);
@@ -461,7 +461,7 @@ span.main-separator{
     font-family: "Liberation Sans",Arial,sans-serif;
     color: #1d85d5;
     cursor: pointer;
-    margin-left:1.8em;
+    margin-left:1.2em;
     text-transform: none;
 }
 
@@ -483,15 +483,14 @@ span.main-separator{
 
 .action-panel li.entity-facet-relation-label {
     font-family: "FreeWayBold", "Liberation Sans", Arial, Sans;
-    color: #333333;
+    color: #8a8a8a;
     cursor: default;
     text-transform: uppercase;
-    font-size: 1.2em;
     margin-left:1.8em;
 }
 
 .action-panel li.facet-group-member {
-    margin-left:3.6em;
+    margin-left: 2.9em
 }
 
 
