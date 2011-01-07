@@ -48,7 +48,7 @@ class sudorule(LDAPObject):
         'memberhost': ['host', 'hostgroup'],
         'memberallowcmd': ['sudocmd', 'sudocmdgroup'],
         'memberdenycmd': ['sudocmd', 'sudocmdgroup'],
-        'ipasudorunas': ['user'],
+        'ipasudorunas': ['user', 'group'],
         'ipasudorunasgroup': ['group'],
     }
 
@@ -138,6 +138,16 @@ class sudorule(LDAPObject):
             cli_name='externaluser',
             label=_('External User'),
             doc=_('External User the rule applies to'),
+        ),
+        Str('ipasudorunasextuser?',
+            cli_name='runasexternaluser',
+            label=_('RunAs External User'),
+            doc=_('External User the commands can run as'),
+        ),
+        Str('ipasudorunasextgroup?',
+            cli_name='runasexternalgroup',
+            label=_('RunAs External Group'),
+            doc=_('External Group the commands can run as'),
         ),
     )
 
@@ -429,6 +439,32 @@ class sudorule_add_runasuser(LDAPAddMember):
     member_attributes = ['ipasudorunas']
     member_count_out = ('%i object added.', '%i objects added.')
 
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        completed_external = 0
+        # Sift through the user failures. We assume that these are all
+        # users that aren't stored in IPA, aka external users.
+        if 'ipasudorunas' in failed and 'user' in failed['ipasudorunas']:
+            (dn, entry_attrs_) = ldap.get_entry(dn, ['ipasudorunasextuser'])
+            members = entry_attrs.get('ipasudorunas', [])
+            external_users = entry_attrs_.get('ipasudorunasextuser', [])
+            failed_users = []
+            for user in failed['ipasudorunas']['user']:
+                username = user[0].lower()
+                user_dn = self.api.Object['user'].get_dn(username)
+                if username not in external_users and user_dn not in members:
+                    external_users.append(username)
+                    completed_external += 1
+                else:
+                    failed_users.append(username)
+            if completed_external:
+                try:
+                    ldap.update_entry(dn, {'ipasudorunasextuser': external_users})
+                except errors.EmptyModlist:
+                    pass
+                failed['ipasudorunas']['user'] = failed_users
+                entry_attrs['ipasudorunasextuser'] = external_users
+        return (completed + completed_external, dn)
+
 api.register(sudorule_add_runasuser)
 
 
@@ -438,6 +474,30 @@ class sudorule_remove_runasuser(LDAPRemoveMember):
     """
     member_attributes = ['ipasudorunas']
     member_count_out = ('%i object removed.', '%i objects removed.')
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        # Run through the user failures and gracefully remove any defined as
+        # as an externaluser.
+        if 'ipasudorunas' in failed and 'user' in failed['ipasudorunas']:
+            (dn, entry_attrs) = ldap.get_entry(dn, ['ipasudorunasextuser'])
+            external_users = entry_attrs.get('ipasudorunasextuser', [])
+            failed_users = []
+            completed_external = 0
+            for user in failed['ipasudorunas']['user']:
+                username = user[0].lower()
+                if username in external_users:
+                    external_users.remove(username)
+                    completed_external += 1
+                else:
+                    failed_users.append(username)
+            if completed_external:
+                try:
+                    ldap.update_entry(dn, {'ipasudorunasextuser': external_users})
+                except errors.EmptyModlist:
+                    pass
+                failed['ipasudorunas']['user'] = failed_users
+                entry_attrs['ipasudorunasextuser'] = external_users
+        return (completed + completed_external, dn)
 
 api.register(sudorule_remove_runasuser)
 
@@ -449,6 +509,32 @@ class sudorule_add_runasgroup(LDAPAddMember):
     member_attributes = ['ipasudorunasgroup']
     member_count_out = ('%i object added.', '%i objects added.')
 
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        completed_external = 0
+        # Sift through the group failures. We assume that these are all
+        # groups that aren't stored in IPA, aka external groups.
+        if 'ipasudorunasgroup' in failed and 'group' in failed['ipasudorunasgroup']:
+            (dn, entry_attrs_) = ldap.get_entry(dn, ['ipasudorunasextgroup'])
+            members = entry_attrs.get('ipasudorunasgroup', [])
+            external_groups = entry_attrs_.get('ipasudorunasextgroup', [])
+            failed_groups = []
+            for group in failed['ipasudorunasgroup']['group']:
+                groupname = group[0].lower()
+                group_dn = self.api.Object['group'].get_dn(groupname)
+                if groupname not in external_groups and group_dn not in members:
+                    external_groups.append(groupname)
+                    completed_external += 1
+                else:
+                    failed_groups.append(groupname)
+            if completed_external:
+                try:
+                    ldap.update_entry(dn, {'ipasudorunasextgroup': external_groups})
+                except errors.EmptyModlist:
+                    pass
+                failed['ipasudorunasgroup']['group'] = failed_groups
+                entry_attrs['ipasudorunasextgroup'] = external_groups
+        return (completed + completed_external, dn)
+
 api.register(sudorule_add_runasgroup)
 
 
@@ -458,6 +544,30 @@ class sudorule_remove_runasgroup(LDAPRemoveMember):
     """
     member_attributes = ['ipasudorunasgroup']
     member_count_out = ('%i object removed.', '%i objects removed.')
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        # Run through the group failures and gracefully remove any defined as
+        # as an external group.
+        if 'ipasudorunasgroup' in failed and 'group' in failed['ipasudorunasgroup']:
+            (dn, entry_attrs) = ldap.get_entry(dn, ['ipasudorunasextgroup'])
+            external_groups = entry_attrs.get('ipasudorunasextgroup', [])
+            failed_groups = []
+            completed_external = 0
+            for group in failed['ipasudorunasgroup']['group']:
+                groupname = group[0].lower()
+                if groupname in external_groups:
+                    external_groups.remove(groupname)
+                    completed_external += 1
+                else:
+                    failed_groups.append(groupname)
+            if completed_external:
+                try:
+                    ldap.update_entry(dn, {'ipasudorunasextgroup': external_groups})
+                except errors.EmptyModlist:
+                    pass
+                failed['ipasudorunasgroup']['group'] = failed_groups
+                entry_attrs['ipasudorunasextgroup'] = external_groups
+        return (completed + completed_external, dn)
 
 api.register(sudorule_remove_runasgroup)
 

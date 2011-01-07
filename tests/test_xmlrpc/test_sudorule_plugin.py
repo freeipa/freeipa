@@ -38,6 +38,7 @@ class test_sudorule(XMLRPC_test):
     test_user = u'sudorule_test_user'
     test_external_user = u'external_test_user'
     test_group = u'sudorule_test_group'
+    test_external_group = u'external_test_group'
     test_host = u'sudorule._test_host'
     test_external_host = u'external._test_host'
     test_hostgroup = u'sudorule_test_hostgroup'
@@ -263,6 +264,60 @@ class test_sudorule(XMLRPC_test):
         failed = ret['failed']
         entry = ret['result']
         assert 'externaluser' not in entry
+
+    def test_a_sudorule_add_runasexternaluser(self):
+        """
+        Test adding an external runasuser to Sudo rule using
+        `xmlrpc.sudorule_add_runasuser`.
+        """
+        ret = api.Command['sudorule_add_runasuser'](
+            self.rule_name, user=self.test_external_user
+        )
+        assert ret['completed'] == 1
+        failed = ret['failed']
+        entry = ret['result']
+        assert_attr_equal(entry, 'ipasudorunasextuser', self.test_external_user)
+
+    def test_b_sudorule_remove_runasexternaluser(self):
+        """
+        Test removing an external runasuser from Sudo rule using
+        `xmlrpc.sudorule_remove_runasuser'.
+        """
+        ret = api.Command['sudorule_remove_runasuser'](
+            self.rule_name, user=self.test_external_user
+        )
+        assert ret['completed'] == 1
+        failed = ret['failed']
+        entry = ret['result']
+        assert 'ipasudorunasextuser' not in entry
+
+    def test_a_sudorule_add_runasexternalgroup(self):
+        """
+        Test adding an external runasgroup to Sudo rule using
+        `xmlrpc.sudorule_add_runasgroup`.
+        """
+        ret = api.Command['sudorule_add_runasgroup'](
+            self.rule_name, group=self.test_external_group
+        )
+        print ret
+        assert ret['completed'] == 1
+        failed = ret['failed']
+        entry = ret['result']
+        assert_attr_equal(entry, 'ipasudorunasextgroup', self.test_external_group)
+
+    def test_b_sudorule_remove_runasexternalgroup(self):
+        """
+        Test removing an external runasgroup from Sudo rule using
+        `xmlrpc.sudorule_remove_runasgroup'.
+        """
+        ret = api.Command['sudorule_remove_runasgroup'](
+            self.rule_name, group=self.test_external_group
+        )
+        print ret
+        assert ret['completed'] == 1
+        failed = ret['failed']
+        entry = ret['result']
+        assert 'ipasudorunasextgroup' not in entry
 
     def test_a_sudorule_add_option(self):
         """
