@@ -793,7 +793,6 @@ IPA.add_entity( function() {
             that.add_section(
                 ipa_stanza({name:'general', label:'General'}).
                     input({name:'aciname'}).
-                    custom_input(IPA.rights_widget({name:'permissions'})).
                     custom_input(IPA.attribute_table_widget({
                         object_type:'user',
                         name:'attrs'
@@ -817,7 +816,6 @@ IPA.add_entity( function() {
         });
         that.add_dialog(dialog);
         dialog.add_field(ipa_text_widget({ name: 'aciname', undo: false}));
-        dialog.add_field(IPA.rights_widget({name:'permissions'}));
         dialog.add_field(IPA.attribute_table_widget({
             object_type:'user',
             name:'attrs'
