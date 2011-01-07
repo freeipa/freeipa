@@ -43,6 +43,7 @@ function ipa_widget(spec) {
     that.load = spec.load || load;
     that.save = spec.save || save;
     that.update = spec.update || update;
+    that.validate_input = spec.validate_input || validate_input;
 
     that.__defineGetter__("entity_name", function(){
         return that._entity_name;
@@ -52,9 +53,36 @@ function ipa_widget(spec) {
         that._entity_name = entity_name;
     });
 
+    var param_info;
+
+    /*returns true and clears the error message if the field value  passes
+      the validation pattern.  If the field value does not pass validation, 
+      displays the error message and returns false. */
+    function validate_input(text){
+        if(!(param_info && param_info.pattern)){
+            return true;
+        }
+        var error_link = that.get_error_link();
+        if (!error_link){
+            return true;
+        }
+        var regex = new RegExp( param_info.pattern );
+        //If the field is empty, don't validate
+        if (!text || text.match(regex) ) {
+            error_link.css('display', 'none');
+            return true;
+        }else{
+            error_link.css('display', 'block');
+            if ( param_info.pattern_errmsg){
+                error_link.html(param_info.pattern_errmsg);
+            }
+            return false;
+        }
+    }
+
     function init() {
         if (that.entity_name && !that.label){
-            var param_info = ipa_get_param_info(that.entity_name, spec.name);
+            param_info = ipa_get_param_info(that.entity_name, spec.name);
             if ((param_info) && (that.label === undefined)){
                 that.label = param_info.label;
             }
@@ -113,6 +141,22 @@ function ipa_widget(spec) {
         undo.css('display', 'none');
     };
 
+    that.get_error_link = function() {
+        return $('span[name="error_link"]', that.container);
+    };
+
+    that.show_error_link = function() {
+        var error_link = that.get_error_link();
+        error_link.css('display', 'inline');
+    };
+
+    that.hide_error_link = function() {
+        var error_link = that.get_error_link();
+        error_link.css('display', 'none');
+    };
+
+
+
     that.refresh = function() {
     };
 
@@ -140,13 +184,18 @@ function ipa_text_widget(spec) {
             'size': that.size
         }).appendTo(container);
 
-        if (that.undo) {
-            $('<span/>', {
-                'name': 'undo',
-                'style': 'display: none;',
-                'html': 'undo'
-            }).appendTo(container);
-        }
+        $('<span/>', {
+            'name': 'undo',
+            'style': 'display: none;',
+            'html': 'undo'
+        }).appendTo(container);
+
+        $("<span/>",{
+            name:'error_link',
+            html:"Text does not match field pattern",
+            "class":"ui-state-error ui-corner-all",
+            style:"display:none"
+        }).appendTo(container);
     };
 
     that.setup = function(container) {
@@ -155,7 +204,11 @@ function ipa_text_widget(spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.keyup(function() {
-            that.show_undo();
+            if(that.undo){
+                that.show_undo();
+            }
+            var value = $('input[name="'+that.name+'"]', that.container).val();
+            that.validate_input(value);
         });
 
         var undo = that.get_undo();
