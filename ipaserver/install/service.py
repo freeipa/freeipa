@@ -284,7 +284,8 @@ class Service:
         # If we are passed a password we'll use it as the DM password
         # otherwise we'll do a GSSAPI bind.
         try:
-            conn = ipaldap.IPAdmin(fqdn, port=636, cacert=CACERT)
+#            conn = ipaldap.IPAdmin(fqdn, port=636, cacert=CACERT)
+            conn = ipaldap.IPAdmin(fqdn, port=389)
             if dm_password:
                 conn.do_simple_bind(bindpw=dm_password)
             else:
