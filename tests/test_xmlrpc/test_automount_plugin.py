@@ -147,7 +147,8 @@ class test_automount(XMLRPC_test):
         """
         delkey_kw={'automountkey': self.keyname, 'raw': True}
         res = api.Command['automountkey_del'](self.locname, self.mapname, **delkey_kw)['result']
-        assert res == True
+        assert res
+        assert_attr_equal(res, 'failed', '')
 
         # Verify that it is gone
         try:
@@ -162,7 +163,8 @@ class test_automount(XMLRPC_test):
         Test the `xmlrpc.automountlocation_del` method.
         """
         res = api.Command['automountlocation_del'](self.locname)['result']
-        assert res == True
+        assert res
+        assert_attr_equal(res, 'failed', '')
 
         # Verify that it is gone
         try:
@@ -227,7 +229,8 @@ class test_automount_indirect(XMLRPC_test):
         """
         delkey_kw = {'automountkey': self.keyname}
         res = api.Command['automountkey_del'](self.locname, self.parentmap, **delkey_kw)['result']
-        assert res == True
+        assert res
+        assert_attr_equal(res, 'failed', '')
 
         # Verify that it is gone
         try:
@@ -242,7 +245,8 @@ class test_automount_indirect(XMLRPC_test):
         Remove the indirect map for auto.home.
         """
         res = api.Command['automountmap_del'](self.locname, self.mapname)['result']
-        assert res == True
+        assert res
+        assert_attr_equal(res, 'failed', '')
 
         # Verify that it is gone
         try:
@@ -257,7 +261,8 @@ class test_automount_indirect(XMLRPC_test):
         Remove the location.
         """
         res = api.Command['automountlocation_del'](self.locname)['result']
-        assert res == True
+        assert res
+        assert_attr_equal(res, 'failed', '')
 
         # Verity that it is gone
         try:
@@ -310,7 +315,8 @@ class test_automount_indirect_no_parent(XMLRPC_test):
         """
         delkey_kw={'automountkey': self.keyname}
         res = api.Command['automountkey_del'](self.locname, self.parentmap, **delkey_kw)['result']
-        assert res == True
+        assert res
+        assert_attr_equal(res, 'failed', '')
 
         # Verify that it is gone
         try:
@@ -325,7 +331,8 @@ class test_automount_indirect_no_parent(XMLRPC_test):
         Remove the indirect map for auto.home.
         """
         res = api.Command['automountmap_del'](self.locname, self.mapname)['result']
-        assert res == True
+        assert res
+        assert_attr_equal(res, 'failed', '')
 
         # Verify that it is gone
         try:
@@ -340,7 +347,8 @@ class test_automount_indirect_no_parent(XMLRPC_test):
         Remove the location.
         """
         res = api.Command['automountlocation_del'](self.locname)['result']
-        assert res == True
+        assert res
+        assert_attr_equal(res, 'failed', '')
 
         # Verity that it is gone
         try:

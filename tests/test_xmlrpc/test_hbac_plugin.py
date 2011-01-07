@@ -405,7 +405,7 @@ class test_hbac(XMLRPC_test):
         """
         Test deleting a HBAC rule using `xmlrpc.hbacrule_del`.
         """
-        assert api.Command['hbacrule_del'](self.rule_name)['result'] is True
+        api.Command['hbacrule_del'](self.rule_name)
         # verify that it's gone
         try:
             api.Command['hbacrule_show'](self.rule_name)

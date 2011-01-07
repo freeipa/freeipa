@@ -280,7 +280,7 @@ class test_host(Declarative):
             expected=dict(
                 value=service1,
                 summary=u'Deleted service "%s"' % service1,
-                result=True,
+                result=dict(failed=u''),
             ),
         ),
 

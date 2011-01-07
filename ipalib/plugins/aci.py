@@ -473,7 +473,7 @@ class aci_del(crud.Delete):
     Delete ACI.
     """
     INTERNAL = True
-    has_output = output.standard_delete
+    has_output = output.standard_boolean
     msg_summary = _('Deleted ACI "%(value)s"')
 
     def execute(self, aciname, **kw):

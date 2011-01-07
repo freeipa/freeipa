@@ -163,7 +163,7 @@ class test_sudocmd(Declarative):
             expected=dict(
                 value=sudocmd1,
                 summary=u'Deleted sudo command "%s"' % sudocmd1,
-                result=True,
+                result=dict(failed=u''),
             ),
         ),
 

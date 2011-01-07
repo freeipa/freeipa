@@ -370,7 +370,7 @@ class test_user(Declarative):
             desc='Delete %r' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
-                result=True,
+                result=dict(failed=u''),
                 summary=u'Deleted user "tuser1"',
                 value=user1,
             ),
@@ -411,6 +411,7 @@ class test_user(Declarative):
             ),
         ),
 
+
         dict(
             desc='Create %r' % user2,
             command=(
@@ -438,11 +439,12 @@ class test_user(Declarative):
             ),
         ),
 
+
         dict(
             desc='Delete %r and %r at the same time' % (user1, user2),
             command=('user_del', [user1, user2], {}),
             expected=dict(
-                result=True,
+                result=dict(failed=u''),
                 summary=u'Deleted user "tuser1,tuser2"',
                 value=u','.join((user1, user2)),
             ),

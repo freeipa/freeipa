@@ -370,7 +370,7 @@ class test_host(Declarative):
             expected=dict(
                 value=fqdn1,
                 summary=u'Deleted host "%s"' % fqdn1,
-                result=True,
+                result=dict(failed=u''),
             ),
         ),
 
@@ -444,7 +444,7 @@ class test_host(Declarative):
             expected=dict(
                 value=short1,
                 summary=u'Deleted host "%s"' % short1,
-                result=True,
+                result=dict(failed=u''),
             ),
         ),
 

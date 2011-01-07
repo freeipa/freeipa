@@ -174,7 +174,7 @@ class delegation_del(crud.Delete):
     Delete a delegation.
     """
 
-    has_output = output.standard_delete
+    has_output = output.standard_boolean
     msg_summary = _('Deleted delegation "%(value)s"')
 
     def execute(self, aciname, **kw):

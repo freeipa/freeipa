@@ -895,6 +895,7 @@ class Command(HasParam):
             labels = None
         else:
             labels = dict((p.name, unicode(p.label)) for p in self.output_params())
+        flags = dict((p.name, p.flags) for p in self.output_params())
 
         for o in self.output:
             outp = self.output[o]
@@ -912,13 +913,13 @@ class Command(HasParam):
                     # Return an error to the shell
                     rv = 1
             if isinstance(outp, ListOfEntries):
-                textui.print_entries(result, order, labels, print_all)
+                textui.print_entries(result, order, labels, flags, print_all)
             elif isinstance(result, (tuple, list)):
-                textui.print_entries(result, order, labels, print_all)
+                textui.print_entries(result, order, labels, flags, print_all)
             elif isinstance(outp, Entry):
-                textui.print_entry(result, order, labels, print_all)
+                textui.print_entry(result, order, labels, flags, print_all)
             elif isinstance(result, dict):
-                textui.print_entry(result, order, labels, print_all)
+                textui.print_entry(result, order, labels, flags, print_all)
             elif isinstance(result, unicode):
                 if o == 'summary':
                     textui.print_summary(result)

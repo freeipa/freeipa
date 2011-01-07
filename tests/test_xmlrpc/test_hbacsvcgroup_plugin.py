@@ -230,7 +230,7 @@ class test_hbacsvcgroup(Declarative):
             expected=dict(
                 value=hbacsvcgroup1,
                 summary=u'Deleted HBAC Service group "testhbacsvcgroup1"',
-                result=True,
+                result=dict(failed=u''),
             ),
         ),
 
@@ -241,7 +241,7 @@ class test_hbacsvcgroup(Declarative):
             expected=dict(
                 value=hbacsvc1,
                 summary=u'Deleted service "%s"' % hbacsvc1,
-                result=True,
+                result=dict(failed=u''),
             ),
         )
 

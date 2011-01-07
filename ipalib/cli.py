@@ -326,16 +326,16 @@ class textui(backend.Backend):
         for attr in sorted(entry):
             print_attr(attr)
 
-    def print_entries(self, entries, order=None, labels=None, print_all=True, format='%s: %s', indent=1):
+    def print_entries(self, entries, order=None, labels=None, flags=None, print_all=True, format='%s: %s', indent=1):
         assert isinstance(entries, (list, tuple))
         first = True
         for entry in entries:
             if not first:
                 print ''
             first = False
-            self.print_entry(entry, order, labels, print_all, format, indent)
+            self.print_entry(entry, order, labels, flags, print_all, format, indent)
 
-    def print_entry(self, entry, order=None, labels=None, print_all=True, format='%s: %s', indent=1):
+    def print_entry(self, entry, order=None, labels=None, flags=None, print_all=True, format='%s: %s', indent=1):
         """
         """
         if isinstance(entry, (list, tuple)):
@@ -351,7 +351,10 @@ class textui(backend.Backend):
                 if key not in entry:
                     continue
                 label = labels.get(key, key)
+                flag = flags.get(key, [])
                 value = entry[key]
+                if 'suppress_empty' in flag and value in [u'', '', [], None]:
+                    continue
                 if isinstance(value, dict):
                     if frontend.entry_count(value) == 0:
                         continue

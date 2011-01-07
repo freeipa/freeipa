@@ -136,6 +136,10 @@ global_output_params = (
     Str('memberuser',
         label=_('Failed users/groups'),
     ),
+    Str('failed',
+        label=_('Failed to remove'),
+        flags=['suppress_empty'],
+    ),
 )
 
 
@@ -937,8 +941,8 @@ class LDAPDelete(LDAPMultiQuery):
                 deleted.append(pkey)
 
         if self.obj.primary_key and pkeyiter[0] is not None:
-            return dict(result=result, value=u','.join(deleted))
-        return dict(result=result, value=u'')
+            return dict(result=dict(failed=u','.join(failed)), value=u','.join(deleted))
+        return dict(result=dict(failed=u''), value=u'')
 
     def pre_callback(self, ldap, dn, *keys, **options):
         return dn

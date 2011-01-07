@@ -497,7 +497,7 @@ class test_group(Declarative):
             desc='Delete %r' % group1,
             command=('group_del', [group1], {}),
             expected=dict(
-                result=True,
+                result=dict(failed=u''),
                 value=group1,
                 summary=u'Deleted group "testgroup1"',
             )
@@ -532,7 +532,7 @@ class test_group(Declarative):
             desc='Delete %r' % group2,
             command=('group_del', [group2], {}),
             expected=dict(
-                result=True,
+                result=dict(failed=u''),
                 value=group2,
                 summary=u'Deleted group "testgroup2"',
             )
@@ -652,7 +652,7 @@ class test_group(Declarative):
             desc='Now delete the unmanaged group %r' % user1,
             command=('group_del', [user1], {}),
             expected=dict(
-                result=True,
+                result=dict(failed=u''),
                 value=user1,
                 summary=u'Deleted group "%s"' % user1,
             )

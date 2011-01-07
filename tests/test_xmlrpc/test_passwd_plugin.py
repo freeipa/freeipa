@@ -59,7 +59,7 @@ class test_passwd(XMLRPC_test):
         """
         Remove the test user
         """
-        assert api.Command['user_del'](self.uid)['result'] is True
+        api.Command['user_del'](self.uid)
 
         # Verify that it is gone
         try:

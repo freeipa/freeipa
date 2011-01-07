@@ -449,7 +449,7 @@ class test_sudorule(XMLRPC_test):
         """
         Test deleting a Sudo rule using `xmlrpc.sudorule_del`.
         """
-        assert api.Command['sudorule_del'](self.rule_name)['result'] is True
+        api.Command['sudorule_del'](self.rule_name)
         # verify that it's gone
         try:
             api.Command['sudorule_show'](self.rule_name)

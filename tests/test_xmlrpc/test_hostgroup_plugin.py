@@ -238,7 +238,7 @@ class test_hostgroup(Declarative):
             expected=dict(
                 value=hostgroup1,
                 summary=u'Deleted hostgroup "testhostgroup1"',
-                result=True,
+                result=dict(failed=u''),
             ),
         ),
 
@@ -249,7 +249,7 @@ class test_hostgroup(Declarative):
             expected=dict(
                 value=fqdn1,
                 summary=u'Deleted host "%s"' % fqdn1,
-                result=True,
+                result=dict(failed=u''),
             ),
         )
 

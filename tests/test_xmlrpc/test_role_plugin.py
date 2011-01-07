@@ -411,7 +411,7 @@ class test_role(Declarative):
             desc='Delete %r' % group1,
             command=('group_del', [group1], {}),
             expected=dict(
-                result=True,
+                result=dict(failed=u''),
                 value=group1,
                 summary=u'Deleted group "testgroup1"',
             )
@@ -495,7 +495,7 @@ class test_role(Declarative):
             desc='Delete %r' % role1,
             command=('role_del', [role1], {}),
             expected=dict(
-                result=True,
+                result=dict(failed=u''),
                 value=role1,
                 summary=u'Deleted role "%s"' % role1,
             )
@@ -545,7 +545,7 @@ class test_role(Declarative):
             desc='Delete %r' % role2,
             command=('role_del', [role2], {}),
             expected=dict(
-                result=True,
+                result=dict(failed=u''),
                 value=role2,
                 summary=u'Deleted role "%s"' % role2,
             )

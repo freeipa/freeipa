@@ -1057,7 +1057,7 @@ class test_netgroup(Declarative):
             expected=dict(
                 value=netgroup1,
                 summary=u'Deleted netgroup "%s"' % netgroup1,
-                result=True,
+                result=dict(failed=u''),
             ),
         ),
 

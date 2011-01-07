@@ -134,7 +134,7 @@ class selfservice_del(crud.Delete):
     Delete a selfservice.
     """
 
-    has_output = output.standard_delete
+    has_output = output.standard_boolean
     msg_summary = _('Deleted selfservice "%(value)s"')
 
     def execute(self, aciname, **kw):

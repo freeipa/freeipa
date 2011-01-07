@@ -355,7 +355,7 @@ class test_privilege(Declarative):
             desc='Delete %r' % privilege1,
             command=('privilege_del', [privilege1], {}),
             expected=dict(
-                result=True,
+                result=dict(failed=u''),
                 value=privilege1,
                 summary=u'Deleted privilege "%s"' % privilege1,
             )

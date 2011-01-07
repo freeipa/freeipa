@@ -336,7 +336,7 @@ class test_permission(Declarative):
             desc='Delete %r' % permission1,
             command=('permission_del', [permission1], {}),
             expected=dict(
-                result=True,
+                result=dict(failed=u''),
                 value=permission1,
                 summary=u'Deleted permission "%s"' % permission1,
             )
@@ -368,7 +368,7 @@ class test_permission(Declarative):
             desc='Delete %r' % permission2,
             command=('permission_del', [permission2], {}),
             expected=dict(
-                result=True,
+                result=dict(failed=u''),
                 value=permission2,
                 summary=u'Deleted permission "%s"' % permission2,
             )
@@ -391,7 +391,7 @@ class test_permission(Declarative):
             desc='Delete %r' % privilege1,
             command=('privilege_del', [privilege1], {}),
             expected=dict(
-                result=True,
+                result=dict(failed=u''),
                 value=privilege1,
                 summary=u'Deleted privilege "%s"' % privilege1,
             )

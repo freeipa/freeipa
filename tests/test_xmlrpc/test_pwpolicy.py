@@ -164,7 +164,7 @@ class test_pwpolicy(XMLRPC_test):
         """
         Test the `xmlrpc.pwpolicy_del` method.
         """
-        assert api.Command['pwpolicy_del'](self.group)['result'] is True
+        api.Command['pwpolicy_del'](self.group)
         # Verify that it is gone
         try:
             api.Command['pwpolicy_show'](self.group)

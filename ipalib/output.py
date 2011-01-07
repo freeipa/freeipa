@@ -136,8 +136,14 @@ standard_list_of_entries = (
 
 standard_delete = (
     summary,
+    Output('result', dict, 'list of deletions that failed'),
+    value,
+)
+
+standard_boolean = (
+    summary,
     Output('result', bool, 'True means the operation was successful'),
     value,
 )
 
-standard_value = standard_delete
+standard_value = standard_boolean
