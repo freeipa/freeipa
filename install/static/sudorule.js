@@ -596,42 +596,67 @@ function ipa_sudorule_details_command_section(spec){
             title: param_info ? param_info.doc : 'cmdcategory'
         }).appendTo(container);
 
-        $('<input/>', {
-            'type': 'radio',
-            'name': 'cmdcategory',
-            'value': 'allow'
-        }).appendTo(span);
-
-        span.append('Allow Any Command / Group');
-
-        span.append(' ');
-
-        $('<span/>', {
+        var undo = $('<span/>', {
             'name': 'undo',
             'class': 'ui-state-highlight ui-corner-all',
             'style': 'display: none;',
             'html': 'undo'
         }).appendTo(span);
 
+        $('<input/>', {
+            type: 'radio',
+            name: 'cmdcategory',
+            value: 'allow',
+            click: function() {
+                undo.detach();
+                undo.appendTo(option1_undo);
+            }
+        }).appendTo(span);
+
+        // TODO: replace with i18n label
+        span.append('Allow Any Command / Group');
+
+        span.append(' ');
+
+        var option1_undo = $('<span/>').appendTo(span);
+
         span.append('<br/>');
 
         $('<input/>', {
-            'type': 'radio',
-            'name': 'cmdcategory',
-            'value': 'deny'
+            type: 'radio',
+            name: 'cmdcategory',
+            value: 'deny',
+            click: function() {
+                undo.detach();
+                undo.appendTo(option2_undo);
+            }
         }).appendTo(span);
 
+        // TODO: replace with i18n label
         span.append('Deny Any Command / Group');
 
+        span.append(' ');
+
+        var option2_undo = $('<span/>').appendTo(span);
+
         span.append('<br/>');
 
         $('<input/>', {
-            'type': 'radio',
-            'name': 'cmdcategory',
-            'value': ''
+            type: 'radio',
+            name: 'cmdcategory',
+            value: '',
+            click: function() {
+                undo.detach();
+                undo.appendTo(option3_undo);
+            }
         }).appendTo(span);
 
+        // TODO: replace with i18n label
         span.append('Specific Command / Group');
+
+        span.append(' ');
+
+        var option3_undo = $('<span/>').appendTo(span);
 
         // TODO: replace with i18n label
         $('<h3/>', {
