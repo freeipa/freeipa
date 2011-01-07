@@ -1,0 +1,78 @@
+Here is a quickie guide to get you started in IPA development.
+
+Dependencies
+------------
+
+The quickest way to get the dependencies needed for building is:
+
+# yum install rpm-build `grep "^BuildRequires" ipa.spec.in | awk '{ print $2 }' | grep -v "^/"`
+
+This is currently (01/05/11):
+
+yum install 389-ds-base-devel mozldap-devel svrcore-devel nspr-devel \
+openssl-devel openldap-devel e2fsprogs-devel krb5-devel nss-devel \
+libcap-devel python-devel autoconf automake libtool popt-devel m4 \
+policycoreutils python-setuptools python-krbV xmlrpc-c-devel \
+libcurl-devel gettext authconfig libuuid-devel
+
+Building
+--------
+
+From the root of the source tree run:
+$ make rpms
+
+The resulting rpm packages are in dist/rpms:
+
+# yum --nogpgcheck localinstall dist/rpms/*
+# ipa-server-install
+
+It may be possible to do a simple make all install but this has not been
+well-tested. Additional work is done in pre/post install scripts in the ipa
+spec file.
+
+Developing plugins
+------------------
+
+It is possible to do management plugin development within the source tree.
+
+To start with, you need a full IPA install on the current system. Build and
+install the rpms and then configure IPA using ipa-server-install.
+
+Get a TGT for the admin user with: kinit admin
+
+Next you'll need 2 sessions in the source tree. In the first session run
+python lite-server.py. In the second session you can run the ./ipa
+tool and it will make requests to the lite-server listening on 127.0.0.1:8080.
+
+This makes developing plugins much faster and you can also make use of the
+Python pdb debugger on the server side.
+
+You'll find you may need to refresh the underlying build if schema or other
+changes are required.
+
+Testing
+-------
+
+We use python nosetests to test for regressions in the management framework
+and plugins. You'll need the python-nose package installed to run the tests.
+
+To run all of the tests you will need 2 sessions, one to run the lite-server
+and the other to execute the tests. You'll also need a TGT before starting
+the lite-server:
+
+% kinit admin
+% make test
+
+Some tests may be skipped. For example, all the XML-RPC tests will be skipped
+if you haven't started the lite-server. The DNS tests will be skipped if
+the underlying IPA installation doesn't configure DNS, etc.
+
+General Notes
+-------------
+IPA is not relocatable.
+
+When building rpms the version contains the GIT id in the version. To prevent
+this pass the argument IPA_VERSION_IS_GIT_SNAPSHOT=yes to make.
+
+If you don't need a full CA during testing then using the self-signed CA
+(pass --selfsign to ipa-server-install) takes less time to install.
