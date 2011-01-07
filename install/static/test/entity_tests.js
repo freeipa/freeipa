@@ -111,12 +111,13 @@ test('Testing ipa_facet_setup_views().', function() {
 
     var views = ul.children();
 
-    /*5 Views:
+    /*6 Views:
       one for each of 3 associations
       one for search
+      one for details
       a blank one for the action controls*/
     equals(
-        views.length, 5,
+        views.length, 6,
         'Checking number of views'
     );
 
@@ -126,6 +127,7 @@ test('Testing ipa_facet_setup_views().', function() {
     );
 
     li = li.next(); // skip action controls
+    li = li.next(); // skip the header line for Member of
 
     var attribute_members = IPA.metadata['user'].attribute_members;
     for (var attribute_member in attribute_members) {
