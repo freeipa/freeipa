@@ -24,10 +24,10 @@ Manage DNS zone and resource records.
 EXAMPLES:
 
  Add new zone:
-   ipa dnszone-add example.com --name_server nameserver.example.com
-                               --admin_email admin@example.com
+   ipa dnszone-add example.com --name-server nameserver.example.com
+                               --admin-email admin@example.com
 
- edd second nameserver for example.com:
+ Add second nameserver for example.com:
    ipa dnsrecord-add example.com @ --ns-rec nameserver2.example.com
 
  Delete previously added nameserver from example.com:
@@ -246,6 +246,12 @@ class dnszone_add(LDAPCreate):
         entry_attrs['idnsallowdynupdate'] = str(
             entry_attrs.get('idnsallowdynupdate', False)
         ).upper()
+
+        nameserver = entry_attrs['idnssoamname']
+        if nameserver[-1] != '.':
+            nameserver += '.'
+        entry_attrs['nsrecord'] = nameserver
+        entry_attrs['idnssoamname'] = nameserver
         return dn
 
 api.register(dnszone_add)
