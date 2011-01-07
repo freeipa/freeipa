@@ -373,6 +373,8 @@ join_ldap(const char *ipaserver, char *hostname, const char ** binddn, const cha
     int has_principal = 0;
 
     *binddn = NULL;
+    *princ = NULL;
+    *subject = NULL;
 
     if (get_root_dn(ipaserver, &ldap_base) != 0) {
         if (!quiet)
@@ -482,7 +484,7 @@ ldap_done:
     free(filter);
     free(search_base);
     free(ldap_base);
-    free((void *)*subject);
+
     if (ld != NULL) {
         ldap_unbind_ext(ld, NULL, NULL);
     }
@@ -510,6 +512,10 @@ join_krb5(const char *ipaserver, char *hostname, const char **hostdn, const char
     const char *krblastpwdchange = NULL;
     char * url = NULL;
     int rval = 0;
+
+    *hostdn = NULL;
+    *subject = NULL;
+    *princ = NULL;
 
     /* Start up our XML-RPC client library. */
     xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS, NAME, VERSION);
@@ -614,8 +620,6 @@ cleanup:
 
 cleanup_xmlrpc:
     free(url);
-//    free((char *)princ);
-//    free((char *)hostdn);
     free((char *)krblastpwdchange);
     xmlrpc_env_clean(&env);
     xmlrpc_client_cleanup();
@@ -940,15 +944,17 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
     }
 
 cleanup:
-    if (NULL != subject)
+    if (NULL != subject && !quiet)
         fprintf(stderr, _("Certificate subject base is: %s\n"), subject);
 
     free((char *)princ);
     free((char *)subject);
+
     if (bindpw)
         ldap_memfree((void *)hostdn);
     else
         free((char *)hostdn);
+
     free((char *)ipaserver);
     free((char *)iparealm);
     if (uprinc) krb5_free_principal(krbctx, uprinc);
