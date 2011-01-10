@@ -1002,6 +1002,7 @@ class LDAPAddMember(LDAPModMember):
     """
     member_param_doc = 'comma-separated list of %s to add'
     member_count_out = ('%i member added.', '%i members added.')
+    allow_same = False
 
     has_output = (
         output.Entry('result'),
@@ -1039,7 +1040,7 @@ class LDAPAddMember(LDAPModMember):
                     if not m_dn:
                         continue
                     try:
-                        ldap.add_entry_to_group(m_dn, dn, attr)
+                        ldap.add_entry_to_group(m_dn, dn, attr, allow_same=self.allow_same)
                     except errors.PublicError, e:
                         ldap_obj = self.api.Object[ldap_obj_name]
                         failed[attr][ldap_obj_name].append((

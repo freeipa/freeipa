@@ -360,7 +360,7 @@ class textui(backend.Backend):
                         continue
                     self.print_indented(format % (label, ''), indent)
                     self.print_entry(
-                        value, order, labels, print_all, format,
+                        value, order, labels, flags, print_all, format,
                         indent=indent+1
                     )
                 else:
@@ -764,7 +764,7 @@ class help(frontend.Local):
                     mcl = self._topics[t][2][topic][1]
                     commands = self._topics[t][2][topic][2]
                     break
-            
+
             m = '%s.%s' % (self._PLUGIN_BASE_MODULE, topic)
             doc = (sys.modules[m].__doc__ or '').strip()
 

@@ -802,8 +802,14 @@ class ldap2(CrudBackend, Encoder):
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
 
-    def add_entry_to_group(self, dn, group_dn, member_attr='member'):
-        """Add entry to group."""
+    def add_entry_to_group(self, dn, group_dn, member_attr='member', allow_same=False):
+        """
+        Add entry designaed by dn to group group_dn in the member attribute
+        member_attr.
+
+        Adding a group as a member of itself is not allowed unless allow_same
+        is True.
+        """
         # check if the entry exists
         (dn, entry_attrs) = self.get_entry(dn, ['objectclass'])
 
@@ -811,7 +817,7 @@ class ldap2(CrudBackend, Encoder):
         (group_dn, group_entry_attrs) = self.get_entry(group_dn, [member_attr])
 
         # check if we're not trying to add group into itself
-        if dn == group_dn:
+        if dn == group_dn and not allow_same:
             raise errors.SameGroupError()
 
         # add dn to group entry's `member_attr` attribute

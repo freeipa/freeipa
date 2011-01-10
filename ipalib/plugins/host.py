@@ -133,6 +133,10 @@ host_output_params = (
     ),
     Str('revocation_reason?',
         label=_('Revocation reason'),
+    ),
+    Str('managedby?',
+        label=_('Failed managedby'),
+        flags=['no_create', 'no_update'],
     )
 )
 
@@ -726,6 +730,7 @@ class host_add_managedby(LDAPAddMember):
     """
     member_attributes = ['managedby']
     has_output_params = LDAPAddMember.has_output_params + host_output_params
+    allow_same = True
 
 api.register(host_add_managedby)
 
