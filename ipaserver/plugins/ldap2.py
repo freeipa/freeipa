@@ -281,7 +281,7 @@ class ldap2(CrudBackend, Encoder):
     @encode_args(2, 3, 'bind_dn', 'bind_pw')
     def create_connection(self, ccache=None, bind_dn='', bind_pw='',
             tls_cacertfile=None, tls_certfile=None, tls_keyfile=None,
-            debug_level=255):
+            debug_level=0):
         """
         Connect to LDAP server.
 
@@ -304,6 +304,9 @@ class ldap2(CrudBackend, Encoder):
             _ldap.set_option(_ldap.OPT_X_TLS_CERTFILE, tls_certfile)
         if tls_keyfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_KEYFILE, tls_keyfile)
+
+        if debug_level:
+            _ldap.set_option(_ldap.OPT_X_DEBUG_LEVEL, debug_level)
 
         try:
             conn = _ldap.initialize(self.ldap_uri)
