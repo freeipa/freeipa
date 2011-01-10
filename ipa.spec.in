@@ -434,6 +434,7 @@ fi
 %{_mandir}/man1/ipa-replica-prepare.1.gz
 %{_mandir}/man1/ipa-server-certinstall.1.gz
 %{_mandir}/man1/ipa-server-install.1.gz
+%{_mandir}/man1/ipa-dns-install.1.gz
 %{_mandir}/man8/ipa_kpasswd.8.gz
 %{_mandir}/man8/ipactl.8.gz
 %{_mandir}/man1/ipa-compat-manage.1.gz
