@@ -1063,7 +1063,7 @@ function ipa_sudorule_command_table_widget(spec) {
 
         var command;
 
-        if (that.category.save() == 'all') {
+        if (that.category.save() == 'allow') {
             command = ipa_command({
                 'method': that.entity_name+'_mod',
                 'args': [pkey],
