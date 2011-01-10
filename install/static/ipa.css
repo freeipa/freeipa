@@ -15,6 +15,7 @@ body{
     background-image:url('outer-bg.png');
     background-repeat:repeat-x; 
     background-position:left top;
+    background-color:#F9F9F9;
     border-width: 0;
     font-family:"Liberation Sans",Arial,Sans;
     font-size:11px;
@@ -258,7 +259,6 @@ span.attrhint {
 }
 
 .ui-widget-content {
-    background: -moz-linear-gradient(top,  #F9F9F9,  #fff);
 }
 
 
