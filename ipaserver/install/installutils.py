@@ -99,7 +99,7 @@ def verify_dns_records(host_name, responses, resaddr, family):
 
 def verify_fqdn(host_name,no_host_dns=False):
     if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":
-        raise RuntimeError("Invalid hostname: " + host_name)
+        raise RuntimeError("Invalid hostname '%s', must be fully-qualified." % host_name)
 
     try:
         hostaddr = socket.getaddrinfo(host_name, None)
@@ -129,7 +129,7 @@ def verify_fqdn(host_name,no_host_dns=False):
     if len(rs) != 0:
         for rsn in rs:
             if rsn.dns_type == dnsclient.DNS_T_CNAME:
-                raise RuntimeError("The IPA Server Hostname cannot be a CNAME, only A names are allowed.")
+                raise RuntimeError("The IPA Server Hostname cannot be a CNAME, only A and AAAA names are allowed.")
 
     # Verify that it is a DNS A or AAAA record
     rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_A)

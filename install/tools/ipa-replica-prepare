@@ -245,6 +245,22 @@ def main():
     if not options.pkinit_pkcs12 and not certs.ipa_self_signed():
         options.setup_pkinit = False
 
+    try:
+        installutils.verify_fqdn(replica_fqdn)
+    except RuntimeError, e:
+        msg = str(e)
+        if msg.startswith('Unable to resolve host name'):
+            if options.ip_address is None:
+                if bindinstance.dns_container_exists(api.env.host,
+                    api.env.basedn):
+                    msg += '\nAdd the --ip-address argument to create a DNS entry.'
+                sys.exit(msg)
+            else:
+                # The host doesn't exist in DNS but we're adding it.
+                pass
+        else:
+            sys.exit(msg)
+
     if options.ip_address:
         if not bindinstance.dns_container_exists(api.env.host, api.env.basedn):
             print "You can't add a DNS record because DNS is not set up."
@@ -254,6 +270,12 @@ def main():
         sys.exit("The replica must be created on the primary IPA server.\nIf you installed IPA with your own certificates using PKCS#12 files you must provide PKCS#12 files for any replicas you create as well.")
 
     check_ipa_configuration(api.env.realm)
+
+    if not options.ip_address:
+        try:
+            api.Command['dns_resolve'](replica_fqdn)
+        except errors.NotFound:
+            sys.exit("Neither an A nor AAAA record for host '%s' does not exist in DNS.\nUse the --ip-address option to add DNS entries for the replica." % replica_fqdn)
 
     if api.env.host == replica_fqdn:
         print "You can't create a replica on itself"
