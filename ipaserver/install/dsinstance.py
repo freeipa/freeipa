@@ -287,14 +287,12 @@ class DsInstance(service.Service):
 
 
     def __setup_replica(self):
-        try:
-            repl = replication.ReplicationManager(self.fqdn, self.dm_password)
-            ret = repl.setup_replication(self.master_fqdn, self.realm_name)
-        except Exception, e:
-            logging.debug("Connection error: %s" % e)
-            raise RuntimeError("Unable to connect to LDAP server %s." % self.fqdn)
-        if ret != 0:
-            raise RuntimeError("Failed to start replication")
+        repl = replication.ReplicationManager(self.realm_name,
+                                              self.fqdn,
+                                              self.dm_password)
+        repl.setup_replication(self.master_fqdn,
+                               "cn=Directory Manager",
+                               self.dm_password)
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())

@@ -54,18 +54,19 @@ def parse_options():
     parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
                       help="ignore some types of errors")
     parser.add_option("--port", type="int", dest="port",
+                      default=replication.PORT,
                       help="port number of other server")
-    parser.add_option("--binddn", dest="binddn",
+    parser.add_option("--binddn", dest="binddn", default=None,
                       help="Bind DN to use with remote server")
-    parser.add_option("--bindpw", dest="bindpw",
+    parser.add_option("--bindpw", dest="bindpw", default=None,
                       help="Password for Bind DN to use with remote server")
     parser.add_option("--winsync", dest="winsync", action="store_true", default=False,
                       help="This is a Windows Sync Agreement")
-    parser.add_option("--cacert", dest="cacert",
+    parser.add_option("--cacert", dest="cacert", default=None,
                       help="Full path and filename of CA certificate to use with TLS/SSL to the remote server")
-    parser.add_option("--win-subtree", dest="win_subtree",
+    parser.add_option("--win-subtree", dest="win_subtree", default=None,
                       help="DN of Windows subtree containing the users you want to sync (default cn=Users,<domain suffix)")
-    parser.add_option("--passsync", dest="passsync",
+    parser.add_option("--passsync", dest="passsync", default=None,
                       help="Password for the Windows PassSync user")
     parser.add_option("--from", dest="fromhost", help="Host to get data from")
 
@@ -102,15 +103,7 @@ def parse_options():
         # else user has already configured logging externally lower
     return options, args
 
-def get_realm_name():
-    c = krbV.default_context()
-    return c.default_realm
-
-def get_suffix():
-    suffix = util.realm_to_suffix(get_realm_name())
-    return ipaldap.IPAdmin.normalizeDN(suffix)
-
-def test_connection(host):
+def test_connection(realm, host):
     """
     Make a GSSAPI connection to the remote LDAP server to test out credentials.
 
@@ -119,19 +112,18 @@ def test_connection(host):
     returns True if connection successful, False otherwise
     """
     try:
-        replman = replication.ReplicationManager(host, None)
+        replman = replication.ReplicationManager(realm, host, None)
         ents = replman.find_replication_agreements()
         del replman
         return True
     except ldap.LOCAL_ERROR:
         return False
 
-def list_masters(host, replica, dirman_passwd, verbose):
+def list_masters(realm, host, replica, dirman_passwd, verbose):
 
     if replica:
         try:
-            repl = replication.ReplicationManager(replica, dirman_passwd)
-            repl.suffix = get_suffix()
+            repl = replication.ReplicationManager(realm, replica, dirman_passwd)
         except Exception, e:
             print "Failed to get data from '%s': %s" % (replica, str(e))
             return
@@ -154,7 +146,7 @@ def list_masters(host, replica, dirman_passwd, verbose):
             else:
                 conn.sasl_interactive_bind_s('', ipaldap.sasl_auth)
 
-            dn = 'cn=masters,cn=ipa,cn=etc,%s' % get_suffix()
+            dn = 'cn=masters,cn=ipa,cn=etc,%s' % util.realm_to_suffix(realm)
             entries = conn.search_s(dn, ldap.SCOPE_ONELEVEL)
 
             for ent in entries:
@@ -164,13 +156,12 @@ def list_masters(host, replica, dirman_passwd, verbose):
             print "Failed to get data from '%s': %s" % (host, str(e))
             return
 
-def del_link(replica1, replica2, dirman_passwd, force=False):
+def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
     repl2 = None
 
     try:
-        repl1 = replication.ReplicationManager(replica1, dirman_passwd)
-        repl1.suffix = get_suffix()
+        repl1 = replication.ReplicationManager(realm, replica1, dirman_passwd)
 
         type1 = repl1.get_agreement_type(replica2)
 
@@ -192,8 +183,7 @@ def del_link(replica1, replica2, dirman_passwd, force=False):
 
     if type1 == replication.IPA_REPLICA:
         try:
-            repl2 = replication.ReplicationManager(replica2, dirman_passwd)
-            repl2.suffix = get_suffix()
+            repl2 = replication.ReplicationManager(realm, replica2, dirman_passwd)
 
             repl_list = repl1.find_ipa_replication_agreements()
             if not force and len(repl_list) <= 1:
@@ -240,14 +230,13 @@ def del_link(replica1, replica2, dirman_passwd, force=False):
     repl1.delete_agreement(replica2)
     repl1.delete_referral(replica2)
 
-def del_master(hostname, options):
+def del_master(realm, hostname, options):
 
     force_del = False
 
     # 1. Connect to the master to be removed.
     try:
-        delrepl = replication.ReplicationManager(hostname, options.dirman_passwd)
-        delrepl.suffix = get_suffix()
+        delrepl = replication.ReplicationManager(realm, hostname, options.dirman_passwd)
     except Exception, e:
         if not options.force:
             print "Unable to delete replica %s: %s" % (hostname, str(e))
@@ -258,14 +247,14 @@ def del_master(hostname, options):
 
     # 2. Connect to the local server
     try:
-        thisrepl = replication.ReplicationManager(options.host,
+        thisrepl = replication.ReplicationManager(realm, options.host,
                                                   options.dirman_passwd)
     except Exception, e:
         print "Failed to connect to server %s: %s" % (options.host, str(e))
         sys.exit(1)
 
     if force_del:
-        dn = 'cn=masters,cn=ipa,cn=etc,%s' % get_suffix()
+        dn = 'cn=masters,cn=ipa,cn=etc,%s' % thisrepl.suffix
         res = thisrepl.conn.search_s(dn, ldap.SCOPE_ONELEVEL)
         replica_names = []
         for entry in res:
@@ -277,41 +266,27 @@ def del_master(hostname, options):
     # 3. Remove each agreement
     for r in replica_names:
         try:
-            del_link(r, hostname, options.dirman_passwd, force=True)
+            del_link(realm, r, hostname, options.dirman_passwd, force=True)
         except Exception, e:
             print "There were issues removing a connection: %s" % str(e)
 
     # 4. Finally clean up the removed replica common entries.
     try:
-        thisrepl.replica_cleanup(hostname, get_realm_name(), force=True)
+        thisrepl.replica_cleanup(hostname, realm, force=True)
     except Exception, e:
         print "Failed to cleanup %s entries: %s" % (hostname, str(e))
         print "You may need to manually remove them from the tree"
 
-def add_link(replica1, replica2, dirman_passwd, options):
+def add_link(realm, replica1, replica2, dirman_passwd, options):
 
-    other_args = {}
-    if options.port:
-        other_args['port'] = options.port
-    if options.binddn:
-        other_args['binddn'] = options.binddn
-    if options.bindpw:
-        other_args['bindpw'] = options.bindpw
-    if options.cacert:
-        other_args['cacert'] = options.cacert
-    if options.win_subtree:
-        other_args['win_subtree'] = options.win_subtree
-    if options.passsync:
-        other_args['passsync'] = options.passsync
     if options.winsync:
-        other_args['winsync'] = True
         if not options.binddn or not options.bindpw or not options.cacert or not options.passsync:
             logging.error("The arguments --binddn, --bindpw, --passsync and --cacert are required to create a winsync agreement")
             sys.exit(1)
 
     if options.cacert:
         # have to install the given CA cert before doing anything else
-        ds = dsinstance.DsInstance(realm_name = get_realm_name(),
+        ds = dsinstance.DsInstance(realm_name = realm,
                                    dm_password = dirman_passwd)
         if not ds.add_ca_cert(options.cacert):
             print "Could not load the required CA certificate file [%s]" % options.cacert
@@ -322,8 +297,7 @@ def add_link(replica1, replica2, dirman_passwd, options):
     # need to wait until cacert is installed as that command may restart
     # the directory server and kill the connection
     try:
-        repl1 = replication.ReplicationManager(replica1, dirman_passwd)
-        repl1.suffix = get_suffix()
+        repl1 = replication.ReplicationManager(realm, replica1, dirman_passwd)
 
     except ldap.NO_SUCH_OBJECT:
         print "Cannot find replica '%s'" % replica1
@@ -335,17 +309,22 @@ def add_link(replica1, replica2, dirman_passwd, options):
         print "Failed to get data from '%s': %s" % (replica1, str(e))
         return
 
-    repl1.setup_replication(replica2, get_realm_name(), **other_args)
+    if options.winsync:
+        repl1.setup_winsync_replication(replica2,
+                                        options.binddn, options.bindpw,
+                                        options.passsync, options.win_subtree,
+                                        options.cacert)
+    else:
+        repl1.setup_replication(replica2, "cn=Directory Manager", dirman_passwd)
     print "Connected '%s' to '%s'" % (replica1, replica2)
 
-def re_initialize(options):
+def re_initialize(realm, options):
 
     if not options.fromhost:
         print "re-initialize requires the option --from <host name>"
         sys.exit(1)
 
-    repl = replication.ReplicationManager(options.fromhost, options.dirman_passwd)
-    repl.suffix = get_suffix()
+    repl = replication.ReplicationManager(realm, options.fromhost, options.dirman_passwd)
 
     thishost = installutils.get_fqdn()
 
@@ -360,13 +339,12 @@ def re_initialize(options):
     repl.initialize_replication(entry[0].dn, repl.conn)
     repl.wait_for_repl_init(repl.conn, entry[0].dn)
 
-    ds = dsinstance.DsInstance(realm_name = get_realm_name(), dm_password = options.dirman_passwd)
+    ds = dsinstance.DsInstance(realm_name = realm, dm_password = options.dirman_passwd)
     ds.init_memberof()
 
-def force_sync(thishost, fromhost, dirman_passwd):
+def force_sync(realm, thishost, fromhost, dirman_passwd):
 
-    repl = replication.ReplicationManager(fromhost, dirman_passwd)
-    repl.suffix = get_suffix()
+    repl = replication.ReplicationManager(realm, fromhost, dirman_passwd)
 
     filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % thishost
     entry = repl.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
@@ -381,6 +359,7 @@ def main():
     options, args = parse_options()
 
     dirman_passwd = None
+    realm = krbV.default_context().default_realm
 
     if options.host:
         host = options.host
@@ -392,7 +371,7 @@ def main():
     if options.dirman_passwd:
         dirman_passwd = options.dirman_passwd
     else:
-        if not test_connection(host) or args[0] == "connect":
+        if not test_connection(realm, host) or args[0] == "connect":
             dirman_passwd = getpass.getpass("Directory Manager password: ")
 
     options.dirman_passwd = dirman_passwd
@@ -401,16 +380,16 @@ def main():
         replica = None
         if len(args) == 2:
             replica = args[1]
-        list_masters(host, replica, dirman_passwd, options.verbose)
+        list_masters(realm, host, replica, dirman_passwd, options.verbose)
     elif args[0] == "del":
-        del_master(args[1], options)
+        del_master(realm, args[1], options)
     elif args[0] == "re-initialize":
-        re_initialize(options)
+        re_initialize(realm, options)
     elif args[0] == "force-sync":
         if not options.fromhost:
             print "force-sync requires the option --from <host name>"
             sys.exit(1)
-        force_sync(host, options.fromhost, options.dirman_passwd)
+        force_sync(realm, host, options.fromhost, options.dirman_passwd)
     elif args[0] == "connect":
         if len(args) == 3:
             replica1 = args[1]
@@ -418,7 +397,7 @@ def main():
         elif len(args) == 2:
             replica1 = host
             replica2 = args[1]
-        add_link(replica1, replica2, dirman_passwd, options)
+        add_link(realm, replica1, replica2, dirman_passwd, options)
     elif args[0] == "disconnect":
         if len(args) == 3:
             replica1 = args[1]
@@ -426,7 +405,7 @@ def main():
         elif len(args) == 2:
             replica1 = host
             replica2 = args[1]
-        del_link(replica1, replica2, dirman_passwd)
+        del_link(realm, replica1, replica2, dirman_passwd)
 
 try:
     main()
