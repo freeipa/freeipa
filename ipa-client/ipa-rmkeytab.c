@@ -148,8 +148,8 @@ main(int argc, const char **argv)
     krb5_error_code krberr;
     krb5_keytab ktid;
     krb5_kt_cursor cursor;
-    char * ktname;
-    char * atrealm;
+    char * ktname = NULL;
+    char * atrealm = NULL;
     poptContext pc;
     static const char *keytab = NULL;
     static const char *principal = NULL;
@@ -201,14 +201,20 @@ main(int argc, const char **argv)
      * the string we pass in looks like a realm.
      */
     if (realm) {
-        if (realm[0] != '@')
+        if (realm[0] != '@') {
             ret = asprintf(&atrealm, "@%s", realm);
             if (ret == -1) {
                 rval = 2;
                 goto cleanup;
             }
-        else
-            atrealm = strcpy(atrealm, realm);
+        } else {
+            atrealm = strdup(realm);
+
+            if (NULL == atrealm) {
+                rval = 2;
+                goto cleanup;
+            }
+        }
     }
 
     krberr = krb5_kt_resolve(context, ktname, &ktid);
@@ -246,6 +252,9 @@ cleanup:
     krb5_free_context(context);
 
     poptFreeContext(pc);
+
+    free(atrealm);
+    free(ktname);
 
     return rval;
 }
