@@ -12,10 +12,19 @@
 @font-face {font-family: "FreeWayBold"; src:url("FreeWay-Bold.otf");}
 
 body{
+    background-image:url('outer-bg.png');
+    background-repeat:repeat-x; 
+    background-position:left top;
     border-width: 0;
     font-family:"Liberation Sans",Arial,Sans;
     font-size:11px;
     margin: 0;
+}
+
+.center-container {
+        margin-left: auto;
+        margin-right: auto;
+        width: 960px;
 }
 
 .ui-widget {
@@ -60,7 +69,7 @@ div.header a:visited {
 }
 
 div.header span.header-logo {
-    padding-left: 6em;
+    padding-left: 2em;
 }
 
 div.header span.header-logo a img {
@@ -71,7 +80,7 @@ div.header span.header-loggedinas {
     width: 96em;
     color: #fff;
     display: block;
-    padding-left: none;
+    padding-left: 71em;
     margin-top: -2.6em;
     margin-left: auto;
     margin-right: 27.6em;
@@ -217,7 +226,7 @@ span.attrhint {
 
 /*Navigation */
 .tabs1 .ui-tabs-nav{
-    padding-left: 5.5em;
+    padding-left: 2.5em;
     padding-top: 2em;
     margin: 0;
     border: none;
@@ -333,7 +342,7 @@ span.attrhint {
 .tabs2 .ui-tabs-nav {
     padding:  0.3em 6em 0  4em;
     margin: 0;
-    height:  2.5em;
+    height:  2.4em;
     background-image: url(Subnav-background.png);
 }
 
@@ -396,7 +405,7 @@ span.main-separator{
 
 .entity-container{
     position: relative;
-    left: 25em;
+    left: 22em;
     width: 80%;
     margin: 0.06em;
     padding: 0.06em;
@@ -406,13 +415,14 @@ span.main-separator{
 .action-panel {
     position: fixed;
     height: 33em;
-    left: 3em;
+    left: auto;
     border: none;
-    float: left;
+    float: none;
     margin-top: 6.3em;
-    margin-left: 2.5em;
-    padding-left: 0.5em;
-    padding-bottom: 1em;
+    margin-left: -19.5em;
+    margin-right: 0;
+    padding-left: 0;
+    position: fixed;
     width: 18em;
     background-image:url('panel-background.png');
     background-repeat:no-repeat;
