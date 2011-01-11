@@ -107,7 +107,166 @@ function ipa_sudocmd_details_facet(spec) {
         section.create_field({'name': 'sudocmd'});
         section.create_field({'name': 'description'});
 
+        section = ipa_details_section({
+            'name': 'groups',
+            'label': 'Groups'
+        });
+        that.add_section(section);
+
+        var field = ipa_sudocmd_member_sudocmdgroup_table_widget({
+            'name': 'memberof',
+            'label': 'Groups',
+            'other_entity': 'sudocmdgroup',
+            'save_values': false
+        });
+        section.add_field(field);
+
         that.details_facet_init();
+    };
+
+    return that;
+}
+
+function ipa_sudocmd_member_sudocmdgroup_table_widget(spec) {
+
+    spec = spec || {};
+
+    var that = ipa_association_table_widget(spec);
+
+    that.init = function() {
+
+        var column = that.create_column({
+            name: 'cn',
+            primary_key: true,
+            width: '150px'
+        });
+
+        column.setup = function(container, record) {
+            container.empty();
+
+            var value = record[column.name];
+            value = value ? value.toString() : '';
+
+            $('<a/>', {
+                'href': '#'+value,
+                'html': value,
+                'click': function (value) {
+                    return function() {
+                        var state = IPA.tab_state(that.other_entity);
+                        state[that.other_entity + '-facet'] = 'details';
+                        state[that.other_entity + '-pkey'] = value;
+                        $.bbq.pushState(state);
+                        return false;
+                    }
+                }(value)
+            }).appendTo(container);
+        };
+
+        that.create_column({
+            name: 'description',
+            label: 'Description',
+            width: '150px'
+        });
+
+        that.create_adder_column({
+            name: 'cn',
+            primary_key: true,
+            width: '100px'
+        });
+
+        that.create_adder_column({
+            name: 'description',
+            width: '100px'
+        });
+
+        that.association_table_widget_init();
+    };
+
+    that.get_records = function(on_success, on_error) {
+
+        if (!that.values.length) return;
+
+        var batch = ipa_batch_command({
+            'name': that.entity_name+'_'+that.name+'_show',
+            'on_success': on_success,
+            'on_error': on_error
+        });
+
+        for (var i=0; i<that.values.length; i++) {
+            var dn = that.values[i];
+            var j = dn.indexOf('=');
+            var k = dn.indexOf(',');
+            var value = dn.substring(j+1, k);
+
+            var command = ipa_command({
+                'method': that.other_entity+'_show',
+                'args': [value],
+                'options': {
+                    'all': true,
+                    'rights': true
+                }
+            });
+
+            batch.add_command(command);
+        }
+
+        batch.execute();
+    };
+
+    that.add = function(values, on_success, on_error) {
+
+        if (!values.length) return;
+
+        var batch = ipa_batch_command({
+            'name': that.entity_name+'_'+that.name+'_add',
+            'on_success': on_success,
+            'on_error': on_error
+        });
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+
+        for (var i=0; i<values.length; i++) {
+            var value = values[i];
+
+            var command = ipa_command({
+                'method': that.other_entity+'_add_member',
+                'args': [value]
+            });
+
+            command.set_option('sudocmd', pkey);
+
+            batch.add_command(command);
+        }
+
+        batch.execute();
+    };
+
+    that.remove = function(values, on_success, on_error) {
+
+        if (!values.length) return;
+
+        var batch = ipa_batch_command({
+            'name': that.entity_name+'_'+that.name+'_remove',
+            'on_success': on_success,
+            'on_error': on_error
+        });
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+
+        for (var i=0; i<values.length; i++) {
+            var value = values[i];
+
+            var command = ipa_command({
+                'method': that.other_entity+'_remove_member',
+                'args': [value]
+            });
+
+            command.set_option('sudocmd', pkey);
+
+            batch.add_command(command);
+        }
+
+        batch.execute();
     };
 
     return that;

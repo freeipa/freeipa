@@ -169,6 +169,7 @@ function ipa_sudocmdgroup_member_sudocmd_table_widget(spec) {
         };
 
         that.create_column({
+            name: 'description',
             label: 'Description',
             width: '150px'
         });
