@@ -34,6 +34,7 @@ from ipalib import util
 from ipalib import errors
 
 from ipaserver import ipaldap
+from ipaserver.install import replication
 
 import ldap
 from ldap import LDAPError
@@ -181,7 +182,8 @@ class KrbInstance(service.Service):
         self.kpasswd = KpasswdInstance()
         self.kpasswd.create_instance('KPASSWD', self.fqdn, self.admin_password, self.suffix)
 
-    def create_replica(self, ds_user, realm_name, host_name,
+    def create_replica(self, ds_user, realm_name,
+                       master_fqdn, host_name,
                        domain_name, admin_password,
                        ldap_passwd_filename, kpasswd_filename,
                        setup_pkinit=False, pkcs12_info=None,
@@ -191,6 +193,7 @@ class KrbInstance(service.Service):
         self.subject_base = subject_base
         self.__copy_ldap_passwd(ldap_passwd_filename)
         self.__copy_kpasswd_keytab(kpasswd_filename)
+        self.master_fqdn = master_fqdn
 
         self.__common_setup(ds_user, realm_name, host_name, domain_name, admin_password)
 
@@ -202,6 +205,7 @@ class KrbInstance(service.Service):
         self.step("adding the password extension to the directory", self.__add_pwd_extop_module)
         if setup_pkinit:
             self.step("installing X509 Certificate for PKINIT", self.__setup_pkinit)
+        self.step("Enable GSSAPI for replication", self.__convert_to_gssapi_replication)
 
         self.__common_post_setup()
 
@@ -542,6 +546,14 @@ class KrbInstance(service.Service):
         installutils.kadmin_addprinc(princ_realm)
         dn = "krbprincipalname=%s,cn=%s,cn=kerberos,%s" % (princ_realm, self.realm, self.suffix)
         self.admin_conn.inactivateEntry(dn, False)
+
+    def __convert_to_gssapi_replication(self):
+        repl = replication.ReplicationManager(self.realm,
+                                              self.fqdn,
+                                              self.dm_password)
+        repl.convert_to_gssapi_replication(self.master_fqdn,
+                                           r_binddn="cn=Directory Manager",
+                                           r_bindpw=self.dm_password)
 
     def uninstall(self):
         if self.is_configured():

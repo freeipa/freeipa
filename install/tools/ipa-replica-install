@@ -205,7 +205,8 @@ def install_krb(config, setup_pkinit=False):
         pkcs12_info = (config.dir + "/pkinitcert.p12",
                        config.dir + "/pkinit_pin.txt")
 
-    krb.create_replica(config.ds_user, config.realm_name, config.host_name,
+    krb.create_replica(config.ds_user, config.realm_name,
+                       config.master_host_name, config.host_name,
                        config.domain_name, config.dirman_password,
                        ldappwd_filename, kpasswd_filename,
                        setup_pkinit, pkcs12_info)

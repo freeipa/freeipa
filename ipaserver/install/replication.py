@@ -59,6 +59,7 @@ class ReplicationManager:
     def __init__(self, realm, hostname, dirman_passwd):
         self.hostname = hostname
         self.dirman_passwd = dirman_passwd
+        self.realm = realm
         tmp = util.realm_to_suffix(realm)
         self.suffix = ipaldap.IPAdmin.normalizeDN(tmp)
 
@@ -353,15 +354,15 @@ class ReplicationManager:
         entry.setValues("nsds7NewWinGroupSyncEnabled", 'false')
         entry.setValues("nsds7WindowsDomain", windomain)
 
-    def agreement_dn(self, hostname, port=PORT):
-        cn = "meTo%s%d" % (hostname, port)
+    def agreement_dn(self, hostname):
+        cn = "meTo%s" % (hostname)
         dn = "cn=%s, %s" % (cn, self.replica_dn())
 
         return (cn, dn)
 
     def setup_agreement(self, a, b,
                         repl_man_dn=None, repl_man_passwd=None,
-                        iswinsync=False, win_subtree=None):
+                        iswinsync=False, win_subtree=None, isgssapi=False):
         cn, dn = self.agreement_dn(b.host)
         try:
             a.getEntry(dn, ldap.SCOPE_BASE)
@@ -369,7 +370,7 @@ class ReplicationManager:
         except errors.NotFound:
             pass
 
-        port = PORT
+        port = 389
         if repl_man_dn is None:
             repl_man_dn = self.repl_man_dn
         if repl_man_passwd is None:
@@ -387,21 +388,84 @@ class ReplicationManager:
         entry.setValues('nsds5replicahost', b.host)
         entry.setValues('nsds5replicaport', str(port))
         entry.setValues('nsds5replicatimeout', str(TIMEOUT))
-        entry.setValues('nsds5replicabinddn', repl_man_dn)
-        entry.setValues('nsds5replicacredentials', repl_man_passwd)
-        entry.setValues('nsds5replicabindmethod', 'simple')
         entry.setValues('nsds5replicaroot', self.suffix)
         entry.setValues('nsds5replicaupdateschedule', '0000-2359 0123456')
-        entry.setValues('nsds5replicatransportinfo', 'SSL')
         entry.setValues('nsDS5ReplicatedAttributeList',
                         '(objectclass=*) $ EXCLUDE %s' % " ".join(excludes))
-        entry.setValues('description', "me to %s%d" % (b.host, port))
+        entry.setValues('description', "me to %s" % b.host)
+        entry.setValues('nsds5replicabinddn', repl_man_dn)
+        if isgssapi:
+            entry.setValues('nsds5replicatransportinfo', 'LDAP')
+            entry.setValues('nsds5replicabindmethod', 'SASL/GSSAPI')
+        else:
+            entry.setValues('nsds5replicacredentials', repl_man_passwd)
+            entry.setValues('nsds5replicatransportinfo', 'TLS')
+            entry.setValues('nsds5replicabindmethod', 'simple')
+
         if iswinsync:
             self.setup_winsync_agmt(entry, win_subtree)
 
         a.add_s(entry)
 
         entry = a.waitForEntry(entry)
+
+    def setup_krb_princs_as_replica_binddns(self, a, b):
+        """
+        Search the appropriate principal names so we can get
+        the correct DNs to store in the replication agreements.
+        Then modify the replica object to allow these DNs to act
+        as replication agents.
+        """
+
+        rep_dn = self.replica_dn()
+        filter_a = '(krbprincipalname=ldap/%s@%s)' % (a.host, self.realm)
+        filter_b = '(krbprincipalname=ldap/%s@%s)' % (b.host, self.realm)
+
+        a_pn = b.search_s(self.suffix, ldap.SCOPE_SUBTREE, filterstr=filter_a)
+        b_pn = a.search_s(self.suffix, ldap.SCOPE_SUBTREE, filterstr=filter_b)
+
+        # Add kerberos principal DNs as valid bindDNs for replication
+        try:
+            mod = [(ldap.MOD_ADD, "nsds5replicabinddn", b_pn[0].dn)]
+            a.modify_s(rep_dn, mod)
+        except ldap.TYPE_OR_VALUE_EXISTS:
+            pass
+        try:
+            mod = [(ldap.MOD_ADD, "nsds5replicabinddn", a_pn[0].dn)]
+            b.modify_s(rep_dn, mod)
+        except ldap.TYPE_OR_VALUE_EXISTS:
+            pass
+
+        return (a_pn[0].dn, b_pn[0].dn)
+
+    def gssapi_update_agreements(self, a, b):
+
+        (a_pn_dn, b_pn_dn) = self.setup_krb_princs_as_replica_binddns(a, b)
+
+        #change replication agreements to connect to other host using GSSAPI
+        cn, a_ag_dn = self.agreement_dn(b.host)
+        mod = [(ldap.MOD_REPLACE, "nsds5replicabinddn", a_pn_dn),
+               (ldap.MOD_DELETE, "nsds5replicacredentials", None),
+               (ldap.MOD_REPLACE, "nsds5replicatransportinfo", "LDAP"),
+               (ldap.MOD_REPLACE, "nsds5replicabindmethod", "SASL/GSSAPI")]
+        a.modify_s(a_ag_dn, mod)
+
+        cn, b_ag_dn = self.agreement_dn(a.host)
+        mod = [(ldap.MOD_REPLACE, "nsds5replicabinddn", b_pn_dn),
+               (ldap.MOD_DELETE, "nsds5replicacredentials", None),
+               (ldap.MOD_REPLACE, "nsds5replicatransportinfo", "LDAP"),
+               (ldap.MOD_REPLACE, "nsds5replicabindmethod", "SASL/GSSAPI")]
+        b.modify_s(b_ag_dn, mod)
+
+        # Finally remove the temporary replication manager user
+        try:
+            a.delete_s(self.repl_man_dn)
+        except ldap.NO_SUCH_OBJECT:
+            pass
+        try:
+            b.delete_s(self.repl_man_dn)
+        except ldap.NO_SUCH_OBJECT:
+            pass
 
     def delete_agreement(self, hostname):
         cn, dn = self.agreement_dn(hostname)
@@ -582,6 +646,58 @@ class ReplicationManager:
         return self.start_replication(self.conn, ad_conn,
                                       self.repl_man_dn, self.repl_man_passwd)
 
+    def convert_to_gssapi_replication(self, r_hostname, r_binddn, r_bindpw):
+        r_conn = ipaldap.IPAdmin(r_hostname, port=PORT, cacert=CACERT)
+        if r_bindpw:
+            r_conn.do_simple_bind(binddn=r_binddn, bindpw=r_bindpw)
+        else:
+            r_conn.sasl_interactive_bind_s('', SASL_AUTH)
+
+        # First off make sure servers are in sync so that both KDCs
+        # have all princiapls and their passwords and can release
+        # the right tickets. We do this by force pushing all our changes
+        filter = "(&(nsDS5ReplicaHost=%s)(objectclass=nsds5ReplicationAgreement))" % r_hostname
+        entry = self.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
+        if len(entry) == 0:
+            raise RuntimeError("Missing %s -> %s replication agreement" %
+                               (self.hostname, r_hostname))
+        if len(entry) > 1:
+            logging.info("Found multiple agreements for %s." % r_hostname)
+            logging.info("Syncing only the first one: %s" % entry[0].dn)
+
+        self.force_synch(entry[0].dn, entry[0].nsds5replicaupdateschedule)
+
+        # now wait until we are sure replication has succeeded.
+        cn, dn = self.agreement_dn(r_hostname)
+        self.wait_for_repl_update(self.conn, dn, 30)
+
+        # now that directories are in sync,
+        # change the agreements to use GSSAPI
+        self.gssapi_update_agreements(self.conn, r_conn)
+
+    def setup_gssapi_replication(self, r_hostname, r_binddn=None, r_bindpw=None):
+        """
+        Directly sets up GSSAPI replication.
+        Only usable to connect 2 existing replicas (needs existing kerberos
+        principals)
+        """
+        # note - there appears to be a bug in python-ldap - it does not
+        # allow connections using two different CA certs
+        r_conn = ipaldap.IPAdmin(r_hostname, port=PORT, cacert=CACERT)
+        if r_bindpw:
+            r_conn.do_simple_bind(binddn=r_binddn, bindpw=r_bindpw)
+        else:
+            r_conn.sasl_interactive_bind_s('', SASL_AUTH)
+
+        # Allow krb principals to act as replicas
+        (self_dn, r_dn) = self.setup_krb_princs_as_replica_binddns(self.conn, r_conn)
+
+        # Create mutual replication agreementsausiung SASL/GSSAPI
+        self.setup_agreement(self.conn, r_conn,
+                             repl_man_dn=self_dn, isgssapi=True)
+        self.setup_agreement(r_conn, self.conn,
+                             repl_man_dn=r_dn, isgssapi=True)
+
     def initialize_replication(self, dn, conn):
         mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start')]
         try:
@@ -589,7 +705,7 @@ class ReplicationManager:
         except ldap.ALREADY_EXISTS:
             return
 
-    def force_synch(self, dn, schedule, conn):
+    def force_synch(self, dn, schedule):
         newschedule = '2358-2359 0'
 
         # On the remote chance of a match. We force a synch to happen right
@@ -600,12 +716,12 @@ class ReplicationManager:
         logging.info("Changing agreement %s schedule to %s to force synch" %
                      (dn, newschedule))
         mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaUpdateSchedule', [ newschedule ])]
-        conn.modify_s(dn, mod)
+        self.conn.modify_s(dn, mod)
         time.sleep(1)
         logging.info("Changing agreement %s to restore original schedule %s" %
                      (dn, schedule))
         mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaUpdateSchedule', [ schedule ])]
-        conn.modify_s(dn, mod)
+        self.conn.modify_s(dn, mod)
 
     def get_agreement_type(self, hostname):
         cn, dn = self.agreement_dn(hostname)
