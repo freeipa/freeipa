@@ -3132,7 +3132,7 @@
                         ],
                         "uuid_attribute": "ipauniqueid"
                     },
-                    "hbac": {
+                    "hbacrule": {
                         "aciattrs": [
                             "accessruletype",
                             "accesstime",
@@ -3169,7 +3169,7 @@
                             ]
                         },
                         "bindable": false,
-                        "container_dn": "cn=hbac",
+                        "container_dn": "cn=hbacrules",
                         "default_attributes": [
                             "cn",
                             "accessruletype",
@@ -3208,7 +3208,7 @@
                             "remove_user",
                             "show"
                         ],
-                        "name": "hbac",
+                        "name": "hbacrule",
                         "object_class": [
                             "ipaassociation",
                             "ipahbacrule"
@@ -7833,7 +7833,7 @@
                     "container_configs": "cn=configs,cn=policies",
                     "container_dns": "cn=dns",
                     "container_group": "cn=groups,cn=accounts",
-                    "container_hbac": "cn=hbac",
+                    "container_hbacrule": "cn=hbacrules",
                     "container_hbacservice": "cn=hbacservices,cn=accounts",
                     "container_hbacservicegroup": "cn=hbacservicegroups,cn=accounts",
                     "container_host": "cn=computers,cn=accounts",

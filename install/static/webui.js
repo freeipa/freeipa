@@ -34,7 +34,7 @@ var admin_tab_set = [
     ]},
     {name:'policy', children:[
         {name:'dnszone', entity:'dnszone'},
-        {name:'hbac', entity:'hbac', children:[
+        {name:'hbacrule', entity:'hbacrule', children:[
             {name:'hbacsvc', entity:'hbacsvc'},
             {name:'hbacsvcgroup', entity:'hbacsvcgroup'}
         ]},

@@ -21,7 +21,7 @@ app_DATA =                              \
 	jquery-ui.css			\
 	certificate.js 			\
 	group.js 			\
-	hbac.js 			\
+	hbacrule.js 			\
 	hbacsvc.js 			\
 	hbacsvcgroup.js 		\
 	host.js 			\

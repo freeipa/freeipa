@@ -7,12 +7,12 @@ SUBDIRS =  				\
 
 appdir = $(IPA_DATA_DIR)/static/layouts/default
 app_DATA =                              \
-	hbac-details-accesstime.html	\
-	hbac-details-general.html	\
-	hbac-details-host.html		\
-	hbac-details-service.html	\
-	hbac-details-sourcehost.html	\
-	hbac-details-user.html		\
+	hbacrule-details-accesstime.html	\
+	hbacrule-details-general.html	\
+	hbacrule-details-host.html		\
+	hbacrule-details-service.html	\
+	hbacrule-details-sourcehost.html	\
+	hbacrule-details-user.html		\
 	sudorule-details-general.html	\
 	sudorule-group-dialog.html	\
 	sudorule-host-dialog.html	\

@@ -20,28 +20,28 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-function ipa_hbac() {
+function ipa_hbacrule() {
 
     var that = ipa_entity({
-        'name': 'hbac'
+        'name': 'hbacrule'
     });
 
     that.init = function() {
 
-        var dialog = ipa_hbac_add_dialog({
+        var dialog = ipa_hbacrule_add_dialog({
             'name': 'add',
             'title': 'Add New Rule'
         });
         that.add_dialog(dialog);
         dialog.init();
 
-        var facet = ipa_hbac_search_facet({
+        var facet = ipa_hbacrule_search_facet({
             'name': 'search',
             'label': 'Search'
         });
         that.add_facet(facet);
 
-        facet = ipa_hbac_details_facet({
+        facet = ipa_hbacrule_details_facet({
             'name': 'details',
             'label': 'Details'
         });
@@ -53,9 +53,9 @@ function ipa_hbac() {
     return that;
 }
 
-IPA.add_entity(ipa_hbac());
+IPA.add_entity(ipa_hbacrule());
 
-function ipa_hbac_add_dialog(spec) {
+function ipa_hbacrule_add_dialog(spec) {
 
     spec = spec || {};
 
@@ -83,7 +83,7 @@ function ipa_hbac_add_dialog(spec) {
     return that;
 }
 
-function ipa_hbac_search_facet(spec) {
+function ipa_hbacrule_search_facet(spec) {
 
     spec = spec || {};
 
@@ -126,7 +126,7 @@ function ipa_hbac_search_facet(spec) {
     return that;
 }
 
-function ipa_hbac_details_facet(spec) {
+function ipa_hbacrule_details_facet(spec) {
 
     spec = spec || {};
 
@@ -140,11 +140,11 @@ function ipa_hbac_details_facet(spec) {
             section = that.create_section({
                 'name': 'general',
                 'label': 'General',
-                'template': 'hbac-details-general.html #contents'
+                'template': 'hbacrule-details-general.html #contents'
             });
 
         } else {
-            section = ipa_hbac_details_general_section({
+            section = ipa_hbacrule_details_general_section({
                 'name': 'general',
                 'label': 'General'
             });
@@ -160,7 +160,7 @@ function ipa_hbac_details_facet(spec) {
             section = that.create_section({
                 'name': 'user',
                 'label': 'Who',
-                'template': 'hbac-details-user.html #contents'
+                'template': 'hbacrule-details-user.html #contents'
             });
 
         } else {
@@ -197,7 +197,7 @@ function ipa_hbac_details_facet(spec) {
             section = that.create_section({
                 'name': 'host',
                 'label': 'Accessing',
-                'template': 'hbac-details-host.html #contents'
+                'template': 'hbacrule-details-host.html #contents'
             });
 
         } else {
@@ -234,7 +234,7 @@ function ipa_hbac_details_facet(spec) {
             section = that.create_section({
                 'name': 'service',
                 'label': 'Via Service',
-                'template': 'hbac-details-service.html #contents'
+                'template': 'hbacrule-details-service.html #contents'
             });
 
         } else {
@@ -271,7 +271,7 @@ function ipa_hbac_details_facet(spec) {
             section = that.create_section({
                 'name': 'sourcehost',
                 'label': 'From',
-                'template': 'hbac-details-sourcehost.html #contents'
+                'template': 'hbacrule-details-sourcehost.html #contents'
             });
 
         } else {
@@ -308,7 +308,7 @@ function ipa_hbac_details_facet(spec) {
             section = that.create_section({
                 'name': 'accesstime',
                 'label': 'When',
-                'template': 'hbac-details-accesstime.html #contents'
+                'template': 'hbacrule-details-accesstime.html #contents'
             });
 
         } else {
@@ -318,7 +318,7 @@ function ipa_hbac_details_facet(spec) {
             });
         }
 
-        section.add_field(ipa_hbac_accesstime_widget({
+        section.add_field(ipa_hbacrule_accesstime_widget({
             'id': 'accesstime',
             'name': 'accesstime', 'label': 'Access Time',
             'text': 'Rule applies when access is being requested at:',
@@ -523,7 +523,7 @@ function ipa_hbac_details_facet(spec) {
             return;
         }
 
-        //alert(JSON.stringify(batch.to_json()));
+        alert(JSON.stringify(batch.to_json()));
 
         batch.execute();
     };
@@ -538,7 +538,7 @@ function ipa_hbac_details_facet(spec) {
     return that;
 }
 
-function ipa_hbac_details_general_section(spec){
+function ipa_hbacrule_details_general_section(spec){
 
     spec = spec || {};
 
@@ -679,7 +679,7 @@ function ipa_hbac_details_general_section(spec){
     return that;
 }
 
-function ipa_hbac_accesstime_widget(spec) {
+function ipa_hbacrule_accesstime_widget(spec) {
 
     spec = spec || {};
 
