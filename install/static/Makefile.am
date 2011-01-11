@@ -70,6 +70,9 @@ app_DATA =                              \
 	ui-icons_ffffff_256x240.png \
 	FreeWay.otf \
 	FreeWay-Bold.otf \
+	spinner_header.gif \
+	spinner_large.gif \
+	spinner_small.gif \
 	$(NULL)
 
 EXTRA_DIST =                            \

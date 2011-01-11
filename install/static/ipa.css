@@ -22,6 +22,10 @@ body{
     margin: 0;
 }
 
+.network-activity-indicator{
+    display:none;
+}
+
 .center-container {
         margin-left: auto;
         margin-right: auto;
@@ -132,6 +136,20 @@ div.content div.content-buttons {
 div.content div.content-buttons img {
     border: 0;
 }
+
+
+.entity-container h1{
+    -moz-border-radius: 0.3em;
+    font-family: "FreeWayBold", "Liberation Sans", Arial, sans-serif;
+    color: #333333;
+    margin: 0;
+    background: #EEEEEE;
+    margin-top: 0.5em;
+    padding: .5em;
+    text-transform: uppercase;
+    font-size: 1.2em;
+}
+
 
 h2 {
     font-family: "FreeWayBold","Liberation Sans", Arial, sans-serif;

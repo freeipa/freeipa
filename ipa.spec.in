@@ -398,6 +398,7 @@ fi
 %dir %{_usr}/share/ipa/static
 %{_usr}/share/ipa/static/index.html
 %{_usr}/share/ipa/static/*.png
+%{_usr}/share/ipa/static/*.gif
 %{_usr}/share/ipa/static/*.css
 %{_usr}/share/ipa/static/*.js
 %{_usr}/share/ipa/static/*.otf

@@ -1105,6 +1105,8 @@ IPA.adder_dialog = function (spec) {
 
         label.appendTo(search_panel);
 
+        search_panel.append(IPA.create_network_spinner());
+
         var results_panel = $('<div/>', {
             'class': 'adder-dialog-results'
         }).appendTo(that.container);

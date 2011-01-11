@@ -41,6 +41,8 @@ IPA.search_widget =  function (spec) {
             'name': 'search-filter'
         }).appendTo(search_controls);
 
+        search_controls.append(IPA.create_network_spinner());
+
         this.filter = $('<input/>', {
             'type': 'text',
             'name': 'search-' + that.entity_name + '-filter'

@@ -554,6 +554,11 @@ IPA.details_facet = function (spec) {
 
         container.attr('title', that.entity_name);
 
+        $('<h1/>',{
+            html: "<span id='headerpkey' />"+that.entity_name + ' Settings'
+        }).append(IPA.create_network_spinner()).
+            appendTo(container);
+
         var details = $('<div/>', {
             'class': 'content'
         }).appendTo(container);
@@ -573,8 +578,6 @@ IPA.details_facet = function (spec) {
             'name': 'update'
         }).appendTo(buttons);
 
-        details.append('<br/>');
-        details.append('<hr/>');
 
         for (var i = 0; i < that.sections.length; ++i) {
             var section = that.sections[i];
@@ -651,14 +654,17 @@ IPA.details_facet = function (spec) {
 
     function load(record) {
         that.record = record;
-
         for (var i=0; i<that.sections.length; i++) {
             var section = that.sections[i];
             section.load(record);
         }
+        if (that.pkey){
+            $('h1 #headerpkey',that.container).html(that.pkey+": ");
+        }
     }
 
     function reset() {
+
         for (var i=0; i<that.sections.length; i++) {
             var section = that.sections[i];
             section.reset();

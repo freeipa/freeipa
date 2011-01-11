@@ -229,6 +229,7 @@ IPA.batch_command = function (spec) {
             that.args,
             that.options,
             function(data, text_status, xhr) {
+
                 for (var i=0; i<that.commands.length; i++) {
                     var command = that.commands[i];
                     var result = data.result.results[i];
@@ -283,6 +284,20 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
 {
     var default_json_url = '/ipa/json';
 
+    var network_call_count = 0;
+    function display_activity_icon(){
+        network_call_count += 1;
+        $('.network-activity-indicator').css('display','inline');
+    }
+
+    function hide_activity_icon(){
+        network_call_count -= 1;
+
+        if (0 === network_call_count){
+            $('.network-activity-indicator').css('display','none');
+        }
+    }
+
     function dialog_open(xhr, text_status, error_thrown) {
         var that = this;
 
@@ -292,11 +307,15 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
             buttons: {
                 'Retry': function () {
                     IPA.error_dialog.dialog('close');
-                    IPA.cmd(name, args, options, win_callback, fail_callback, objname, command_name);
+                    IPA.cmd(name, args, options, win_callback, fail_callback,
+                            objname, command_name);
                 },
                 'Cancel': function () {
                     IPA.error_dialog.dialog('close');
-                    if (fail_callback) fail_callback.call(that, xhr, text_status, error_thrown);
+                    if (fail_callback) {
+                        fail_callback.call(that, xhr, text_status,
+                                           error_thrown);
+                    }
                 }
             }
         });
@@ -312,7 +331,7 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
     }
 
     function error_handler(xhr, text_status, error_thrown) {
-
+        hide_activity_icon();
         if (!error_thrown) {
             error_thrown = {
                 name: xhr.responseText || 'Unknown Error',
@@ -349,7 +368,9 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
         dialog_open.call(this, xhr, text_status, error_thrown);
     }
 
-    function error_handler(xhr, text_status, error_thrown) {
+    //Think this should be removed
+    function alt_error_handler(xhr, text_status, error_thrown) {
+        hide_activity_icon();
         IPA.error_dialog.empty();
         IPA.error_dialog.attr('title', error_thrown.title);
 
@@ -360,6 +381,7 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
 
 
     function success_handler(data, text_status, xhr) {
+        hide_activity_icon();
         if (!data) {
             var error_thrown = {
                 title: 'HTTP Error '+xhr.status,
@@ -408,7 +430,7 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
         success: success_handler,
         error: error_handler
     };
-
+    display_activity_icon();
     $.ajax(request);
 
     return (id);
@@ -454,4 +476,10 @@ IPA.get_member_attribute = function (obj_name, member)
         }
     }
     return null;
+}
+
+IPA.create_network_spinner = function(){
+    return $('<span />',{
+        'class':'network-activity-indicator',
+        html: '<img src="spinner_small.gif" />'});
 }
