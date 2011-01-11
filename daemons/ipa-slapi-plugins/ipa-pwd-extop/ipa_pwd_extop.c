@@ -853,6 +853,13 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 		char * enrolledBy = slapi_entry_attr_get_charptr(targetEntry, "enrolledBy");
 		if (NULL == enrolledBy) {
 			evals = (Slapi_Value **)calloc(2, sizeof(Slapi_Value *));
+
+			if (!evals) {
+				LOG_OOM();
+				slapi_mods_free(&smods);
+				goto free_and_return;
+			}
+			
 			evals[0] = slapi_value_new_string(bindDN);
 			slapi_mods_add_mod_values(smods, LDAP_MOD_ADD, "enrolledBy", evals);
 		} else {
