@@ -401,8 +401,24 @@ join_ldap(const char *ipaserver, char *hostname, const char ** binddn, const cha
         goto done;
     }
     /* Search for the entry. */
-    asprintf(&filter, "(fqdn=%s)", hostname);
-    asprintf(&search_base, "cn=computers,cn=accounts,%s", ldap_base);
+    ret = asprintf(&filter, "(fqdn=%s)", hostname);
+    if (ret == -1)
+    {
+        if (!quiet)
+            fprintf(stderr, _("Out of memory!\n"));
+        rval = 3;
+        goto done;
+    }
+
+    ret = asprintf(&search_base, "cn=computers,cn=accounts,%s", ldap_base);
+    if (ret == -1)
+    {
+        if (!quiet)
+            fprintf(stderr, _("Out of memory!\n"));
+        rval = 3;
+        goto done;
+    }
+
     if (debug) {
         fprintf(stderr, _("Searching with %s in %s\n"), filter, search_base);
     }
@@ -512,6 +528,7 @@ join_krb5(const char *ipaserver, char *hostname, const char **hostdn, const char
     const char *krblastpwdchange = NULL;
     char * url = NULL;
     int rval = 0;
+    int ret;
 
     *hostdn = NULL;
     *subject = NULL;
@@ -527,10 +544,18 @@ join_krb5(const char *ipaserver, char *hostname, const char **hostdn, const char
     xmlrpc_client_setup_global_const(&env);
 
 #if 1
-    asprintf(&url, "https://%s:443/ipa/xml", ipaserver);
+    ret = asprintf(&url, "https://%s:443/ipa/xml", ipaserver);
 #else
-    asprintf(&url, "http://%s:8888/", ipaserver);
+    ret = asprintf(&url, "http://%s:8888/", ipaserver);
 #endif
+    if (ret == -1)
+    {
+        if (!quiet)
+            fprintf(stderr, _("Out of memory!\n"));
+        rval = 3;
+        goto cleanup;
+    }
+
     serverInfoP = xmlrpc_server_info_new(&env, url);
 
     argArrayP = xmlrpc_array_new(&env);
@@ -631,6 +656,7 @@ static int
 unenroll_host(const char *server, const char *hostname, const char *ktname, int quiet)
 {
     int rval = 0;
+    int ret;
     char *ipaserver = NULL;
     char *host = NULL;
     struct utsname uinfo;
@@ -696,11 +722,28 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
         if (!quiet)
             fprintf(stderr, _("Error resolving keytab: %s.\n"),
                 error_message(krberr));
-            rval = 7;
-            goto cleanup;
+        rval = 7;
+        goto cleanup;
     }
-    krb5_get_default_realm(krbctx, &realm);
-    asprintf(&principal, "host/%s@%s", host,  realm);
+
+    krberr = krb5_get_default_realm(krbctx, &realm);
+    if (krberr != 0) {
+        if (!quiet)
+            fprintf(stderr, _("Error getting default Kerberos realm: %s.\n"),
+                error_message(krberr));
+        rval = 21;
+        goto cleanup;
+    }
+
+    ret = asprintf(&principal, "host/%s@%s", host,  realm);
+    if (ret == -1)
+    {
+        if (!quiet)
+            fprintf(stderr, _("Out of memory!\n"));
+        rval = 3;
+        goto cleanup;
+    }
+
     krberr = krb5_parse_name(krbctx, principal, &princ);
     if (krberr != 0) {
         if (!quiet)
@@ -757,10 +800,17 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
     xmlrpc_client_setup_global_const(&env);
 
 #if 1
-    asprintf(&url, "https://%s:443/ipa/xml", ipaserver);
+    ret = asprintf(&url, "https://%s:443/ipa/xml", ipaserver);
 #else
-    asprintf(&url, "http://%s:8888/", ipaserver);
+    ret = asprintf(&url, "http://%s:8888/", ipaserver);
 #endif
+    if (ret == -1)
+    {
+        if (!quiet)
+            fprintf(stderr, _("Out of memory!\n"));
+        rval = 3;
+        goto cleanup;
+    }
     serverInfoP = xmlrpc_server_info_new(&env, url);
 
     argArrayP = xmlrpc_array_new(&env);
