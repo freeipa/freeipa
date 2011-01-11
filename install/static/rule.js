@@ -85,6 +85,39 @@ function ipa_rule_details_section(spec){
         }
     };
 
+    that.setup = function(container) {
+
+        that.section_setup(container);
+
+        function update_tables(value) {
+
+            var enabled = '' == value;
+
+            for (var i=0; i<that.tables.length; i++) {
+                var table = that.tables[i];
+
+                var field = that.get_field(table.field_name);
+                field.set_enabled(enabled);
+            }
+        }
+
+        var category = that.get_field(that.field_name);
+        category.reset = function() {
+            category.widget_reset();
+            var values = category.save();
+            if (values.length == 0) return;
+            var value = values[0];
+            update_tables(value);
+        };
+
+        var inputs = $('input[name='+that.field_name+']', container);
+        inputs.change(function() {
+            var input = $(this);
+            var value = input.val();
+            update_tables(value);
+        });
+    };
+
     return that;
 }
 
@@ -107,7 +140,7 @@ function ipa_rule_association_table_widget(spec) {
 
         var command;
 
-        if (that.category.save() != '') {
+        if (that.category) {
             command = ipa_command({
                 'method': that.entity_name+'_mod',
                 'args': [pkey],
@@ -115,7 +148,7 @@ function ipa_rule_association_table_widget(spec) {
                 'on_success': function() {
                     var record = {};
                     record[that.category.name] = [''];
-                    that.category.load(['']);
+                    that.category.load(record);
                 }
             });
             command.set_option(that.category.name, '');

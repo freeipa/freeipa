@@ -633,6 +633,38 @@ function ipa_sudorule_details_command_section(spec){
         field.create(table_span);
     };
 
+    that.setup = function(container) {
+
+        that.section_setup(container);
+
+        function update_tables(value) {
+
+            var enabled = '' == value;
+
+            var field = that.get_field('memberallowcmd_sudocmd');
+            field.set_enabled(enabled);
+
+            field = that.get_field('memberallowcmd_sudocmdgroup');
+            field.set_enabled(enabled);
+        }
+
+        var cmdcategory = that.get_field('cmdcategory');
+        cmdcategory.reset = function() {
+            cmdcategory.widget_reset();
+            var values = cmdcategory.save();
+            if (values.length == 0) return;
+            var value = values[0];
+            update_tables(value);
+        };
+
+        var inputs = $('input[name=cmdcategory]', container);
+        inputs.change(function() {
+            var input = $(this);
+            var value = input.val();
+            update_tables(value);
+        });
+    };
+
     return that;
 }
 
@@ -767,6 +799,62 @@ function ipa_sudorule_details_runas_section(spec){
 
         field = that.get_field('ipasudorunasgroup_group');
         field.create(table_span);
+    };
+
+    that.setup = function(container) {
+
+        that.section_setup(container);
+
+        function user_update_tables(value) {
+
+            var enabled = '' == value;
+
+            var field = that.get_field('ipasudorunas_user');
+            field.set_enabled(enabled);
+
+            field = that.get_field('ipasudorunas_group');
+            field.set_enabled(enabled);
+        }
+
+        var user_category = that.get_field('ipasudorunasusercategory');
+        user_category.reset = function() {
+            user_category.widget_reset();
+            var values = user_category.save();
+            if (values.length == 0) return;
+            var value = values[0];
+            user_update_tables(value);
+        };
+
+        var user_inputs = $('input[name=ipasudorunasusercategory]', container);
+        user_inputs.change(function() {
+            var input = $(this);
+            var value = input.val();
+            user_update_tables(value);
+        });
+
+        function group_update_tables(value) {
+
+            var enabled = '' == value;
+
+            var field = that.get_field('ipasudorunasgroup_group');
+            field.set_enabled(enabled);
+        }
+
+        var group_category = that.get_field('ipasudorunasgroupcategory');
+        group_category.reset = function() {
+            group_category.widget_reset();
+            var values = group_category.save();
+            if (values.length == 0) return;
+            var value = values[0];
+            group_update_tables(value);
+        };
+
+        var group_inputs = $('input[name=ipasudorunasgroupcategory]', container);
+        group_inputs.change(function() {
+            var input = $(this);
+            var value = input.val();
+            group_update_tables(value);
+        });
     };
 
     return that;
@@ -985,7 +1073,7 @@ function ipa_sudorule_command_table_widget(spec) {
 
         var command;
 
-        if (that.category && that.category.save() == 'all') {
+        if (that.category) {
             command = ipa_command({
                 'method': that.entity_name+'_mod',
                 'args': [pkey],
@@ -993,7 +1081,7 @@ function ipa_sudorule_command_table_widget(spec) {
                 'on_success': function() {
                     var record = {};
                     record[that.category.name] = [''];
-                    that.category.load(['']);
+                    that.category.load(record);
                 }
             });
             command.set_option(that.category.name, '');

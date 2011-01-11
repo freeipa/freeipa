@@ -155,7 +155,8 @@ function ipa_widget(spec) {
         error_link.css('display', 'none');
     };
 
-
+    that.set_enabled = function() {
+    };
 
     that.refresh = function() {
     };
@@ -164,6 +165,7 @@ function ipa_widget(spec) {
     that.widget_init = that.init;
     that.widget_create = that.create;
     that.widget_setup = that.setup;
+    that.widget_reset = that.reset;
 
     return that;
 }
@@ -795,6 +797,14 @@ function ipa_table_widget(spec) {
         return rows;
     };
 
+    that.set_enabled = function(enabled) {
+        if (enabled) {
+            $('input[name="select"]', that.table).attr('disabled', false);
+        } else {
+            $('input[name="select"]', that.table).attr('disabled', true);
+        }
+    };
+
     that.refresh = function() {
 
         function on_success(data, text_status, xhr) {
@@ -822,6 +832,7 @@ function ipa_table_widget(spec) {
     that.table_init = that.init;
     that.table_create = that.create;
     that.table_setup = that.setup;
+    that.table_set_enabled = that.set_enabled;
 
     return that;
 }

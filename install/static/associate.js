@@ -352,15 +352,30 @@ function ipa_association_table_widget(spec) {
         button.replaceWith(IPA.action_button({
             'label': button.val(),
             'icon': 'ui-icon-trash',
-            'click': function() { that.show_remove_dialog(); }
+            'click': function() {
+                if ($(this).hasClass('action-button-disabled')) return false;
+                that.show_remove_dialog();
+            }
         }));
 
         button = $('input[name=add]', container);
         button.replaceWith(IPA.action_button({
             'label': button.val(),
             'icon': 'ui-icon-plus',
-            'click': function() { that.show_add_dialog() }
+            'click': function() {
+                if ($(this).hasClass('action-button-disabled')) return false;
+                that.show_add_dialog();
+            }
         }));
+    };
+
+    that.set_enabled = function(enabled) {
+        that.table_set_enabled(enabled);
+        if (enabled) {
+            $('.action-button', that.table).removeClass('action-button-disabled');
+        } else {
+            $('.action-button', that.table).addClass('action-button-disabled');
+        }
     };
 
     that.get_records = function(on_success, on_error) {

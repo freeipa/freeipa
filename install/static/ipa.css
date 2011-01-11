@@ -511,6 +511,11 @@ span.main-separator{
     font-size: 0.9em;
 }
 
+a.action-button-disabled {
+    color: gray;
+    cursor: default;
+}
+
 .action-controls {
     position: relative;
     display:inline;
