@@ -189,29 +189,6 @@ function ipa_sudorule_details_facet(spec) {
         that.details_facet_init();
     };
 
-    that.load = function(record) {
-        var category = record['cmdcategory'];
-        if (category && category[0] == 'all') {
-            record['cmdcategory'] = ['allow'];
-
-        } else {
-            var memberallowcmd_sudocmd = record['memberallowcmd_sudocmd'];
-            var memberallowcmd_sudocmdgroup = record['memberallowcmd_sudocmdgroup'];
-            var memberdenycmd_sudocmd = record['memberdenycmd_sudocmd'];
-            var memberdenycmd_sudocmdgroup = record['memberdenycmd_sudocmdgroup'];
-
-            if (!memberallowcmd_sudocmd && !memberallowcmd_sudocmdgroup
-                && !memberdenycmd_sudocmd && !memberdenycmd_sudocmdgroup) {
-                record['cmdcategory'] = ['deny'];
-
-            } else {
-                record['cmdcategory'] = [''];
-            }
-        }
-
-        that.details_facet_load(record);
-    };
-
     that.update = function() {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
@@ -271,15 +248,6 @@ function ipa_sudorule_details_facet(spec) {
                     'options': {'all': true, 'rights': true}
                 })
             },
-            'memberdenycmd': {
-                'category': 'cmdcategory',
-                'has_values': false,
-                'command': ipa_command({
-                    'method': that.entity_name+'_remove_deny_command',
-                    'args': [pkey],
-                    'options': {'all': true, 'rights': true}
-                })
-            },
             'ipasudorunas': {
                 'category': 'ipasudorunasusercategory',
                 'has_values': false,
@@ -332,7 +300,7 @@ function ipa_sudorule_details_facet(spec) {
                     var attribute = field.name.substring(0, p);
                     var other_entity = field.name.substring(p+1);
 
-                    if (values.length) {
+                    if (member_operations[attribute] && values.length) {
                         member_operations[attribute].command.set_option(other_entity, values.join(','));
                         member_operations[attribute].has_values = true;
                     }
@@ -349,22 +317,9 @@ function ipa_sudorule_details_facet(spec) {
                     continue;
                 }
 
-                if (field.name == 'cmdcategory') {
-                    var value = values[0];
-                    if (value == 'allow') {
-                        values = ['all'];
-                        categories[field.name].remove_values = true;
-                    } else if (value == 'deny') {
-                        values = [];
-                        categories[field.name].remove_values = true;
-                    } else {
-                        values = [];
-                    }
 
-                } else if (categories[field.name]) {
-                    if (values[0] == 'all') {
-                        categories[field.name].remove_values = true;
-                    }
+                if (categories[field.name] && values[0] == 'all') {
+                    categories[field.name].remove_values = true;
                 }
 
                 // use setattr/addattr if param_info not available
@@ -572,13 +527,13 @@ function ipa_sudorule_details_command_section(spec){
         that.add_field(ipa_sudorule_command_table_widget({
             'id': that.entity_name+'-memberdenycmd_sudocmd',
             'name': 'memberdenycmd_sudocmd', 'label': 'Command',
-            'category': category, 'section': that,
+            'section': that,
             'other_entity': 'sudocmd', 'add_method': 'add_deny_command', 'remove_method': 'remove_deny_command'
         }));
         that.add_field(ipa_sudorule_command_table_widget({
             'id': that.entity_name+'-memberdenycmd_sudocmdgroup',
             'name': 'memberdenycmd_sudocmdgroup', 'label': 'Groups',
-            'category': category, 'section': that,
+            'section': that,
             'other_entity': 'sudocmdgroup', 'add_method': 'add_deny_command', 'remove_method': 'remove_deny_command'
         }));
 
@@ -596,72 +551,39 @@ function ipa_sudorule_details_command_section(spec){
             title: param_info ? param_info.doc : 'cmdcategory'
         }).appendTo(container);
 
+        // TODO: replace with i18n label
+        $('<h3/>', {
+            text: 'Allow',
+            title: 'Allow'
+        }).appendTo(span);
+
+        $('<input/>', {
+            type: 'radio',
+            name: 'cmdcategory',
+            value: 'all'
+        }).appendTo(span);
+
+        // TODO: replace with i18n label
+        span.append('Any Command');
+
+        span.append(' ');
+
+        $('<input/>', {
+            type: 'radio',
+            name: 'cmdcategory',
+            value: ''
+        }).appendTo(span);
+
+        // TODO: replace with i18n label
+        span.append('Specified Commands and Groups');
+
+        span.append(' ');
+
         var undo = $('<span/>', {
             'name': 'undo',
             'class': 'ui-state-highlight ui-corner-all',
             'style': 'display: none;',
             'html': 'undo'
-        }).appendTo(span);
-
-        $('<input/>', {
-            type: 'radio',
-            name: 'cmdcategory',
-            value: 'allow',
-            click: function() {
-                undo.detach();
-                undo.appendTo(option1_undo);
-            }
-        }).appendTo(span);
-
-        // TODO: replace with i18n label
-        span.append('Allow Any Command / Group');
-
-        span.append(' ');
-
-        var option1_undo = $('<span/>').appendTo(span);
-
-        span.append('<br/>');
-
-        $('<input/>', {
-            type: 'radio',
-            name: 'cmdcategory',
-            value: 'deny',
-            click: function() {
-                undo.detach();
-                undo.appendTo(option2_undo);
-            }
-        }).appendTo(span);
-
-        // TODO: replace with i18n label
-        span.append('Deny Any Command / Group');
-
-        span.append(' ');
-
-        var option2_undo = $('<span/>').appendTo(span);
-
-        span.append('<br/>');
-
-        $('<input/>', {
-            type: 'radio',
-            name: 'cmdcategory',
-            value: '',
-            click: function() {
-                undo.detach();
-                undo.appendTo(option3_undo);
-            }
-        }).appendTo(span);
-
-        // TODO: replace with i18n label
-        span.append('Specific Command / Group');
-
-        span.append(' ');
-
-        var option3_undo = $('<span/>').appendTo(span);
-
-        // TODO: replace with i18n label
-        $('<h3/>', {
-            text: 'Allow',
-            title: 'Allow'
         }).appendTo(span);
 
         param_info = ipa_get_param_info(that.entity_name, 'memberallowcmd_sudocmd');
@@ -1063,11 +985,16 @@ function ipa_sudorule_command_table_widget(spec) {
 
         var command;
 
-        if (that.category.save() == 'allow') {
+        if (that.category && that.category.save() == 'all') {
             command = ipa_command({
                 'method': that.entity_name+'_mod',
                 'args': [pkey],
-                'options': {'all': true, 'rights': true}
+                'options': {'all': true, 'rights': true},
+                'on_success': function() {
+                    var record = {};
+                    record[that.category.name] = [''];
+                    that.category.load(['']);
+                }
             });
             command.set_option(that.category.name, '');
             batch.add_command(command);
@@ -1075,12 +1002,7 @@ function ipa_sudorule_command_table_widget(spec) {
 
         command = ipa_command({
             'method': that.entity_name+'_'+that.add_method,
-            'args': [pkey],
-            'on_success': function() {
-                var record = {};
-                record[that.category.name] = [''];
-                that.category.load(['']);
-            }
+            'args': [pkey]
         });
         command.set_option(that.other_entity, values.join(','));
         batch.add_command(command);
@@ -1095,42 +1017,7 @@ function ipa_sudorule_command_table_widget(spec) {
         var command = ipa_command({
             'method': that.entity_name+'_'+that.remove_method,
             'args': [pkey],
-            'on_success': function(data, text_status, xhr) {
-
-                // if all values in this field are removed
-                // and other fields are already empty,
-                // change category to 'deny'
-
-                var update_category = values.length == that.values.length;
-
-                if (update_category && that.name != 'memberallowcmd_sudocmd') {
-                    var memberallowcmd_sudocmd = that.section.get_field('memberallowcmd_sudocmd').save();
-                    if (memberallowcmd_sudocmd.length) update_category = false;
-                }
-
-                if (update_category && that.name != 'memberallowcmd_sudocmdgroup') {
-                    var memberallowcmd_sudocmdgroup = that.section.get_field('memberallowcmd_sudocmdgroup').save();
-                    if (memberallowcmd_sudocmdgroup.length) update_category = false;
-                }
-
-                if (update_category && that.name != 'memberdenycmd_sudocmd') {
-                    var memberdenycmd_sudocmd = that.section.get_field('memberdenycmd_sudocmd').save();
-                    if (memberdenycmd_sudocmd.length) update_category = false;
-                }
-
-                if (update_category && that.name != 'memberdenycmd_sudocmdgroup') {
-                    var memberdenycmd_sudocmdgroup = that.section.get_field('memberdenycmd_sudocmdgroup').save();
-                    if (memberdenycmd_sudocmdgroup.length) update_category = false;
-                }
-
-                if (update_category) {
-                    var record = {};
-                    record[that.category.name] = ['deny'];
-                    that.category.load(record);
-                }
-
-                if (on_success) on_success(data, text_status, xhr);
-            },
+            'on_success': on_success,
             'on_error': on_error
         });
 
