@@ -76,18 +76,31 @@ static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *s
 	krb5_principal princ = (krb5_principal)priv_data;
 	krb5_context krbctx;
 	char *outname = NULL;
+	krb5_error_code krberr;
 
 	if (!ld) return LDAP_PARAM_ERROR;
-
-	krb5_init_context(&krbctx);
 
 	for (in = sit; in && in->id != SASL_CB_LIST_END; in++) {
 		switch(in->id) {
 		case SASL_CB_USER:
+			krberr = krb5_init_context(&krbctx);
+
+			if (krberr) {
+				fprintf(stderr, _("Kerberos context initialization failed\n"));
+				in->result = NULL;
+				in->len = 0;
+				ret = LDAP_LOCAL_ERROR;
+				break;
+			}
+
 			krb5_unparse_name(krbctx, princ, &outname);
+
 			in->result = outname;
 			in->len = strlen(outname);
 			ret = LDAP_SUCCESS;
+
+			krb5_free_context(krbctx);
+
 			break;
 		case SASL_CB_GETREALM:
 			in->result = princ->realm.data;
@@ -100,7 +113,6 @@ static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *s
 			ret = LDAP_OTHER;
 		}
 	}
-	krb5_free_context(krbctx);
 	return ret;
 }
 
