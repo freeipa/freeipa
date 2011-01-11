@@ -141,7 +141,7 @@ ipa_join(Slapi_PBlock *pb)
     char * filter;
 
     int scope = LDAP_SCOPE_SUBTREE;
-    char *principal;
+    char *principal = NULL;
     struct berval retbval;
 
     /* Get Bind DN */
