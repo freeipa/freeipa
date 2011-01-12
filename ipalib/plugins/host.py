@@ -84,7 +84,7 @@ from ipalib.plugins.service import normalize_certificate
 from ipalib.plugins.service import set_certificate_attrs
 from ipalib.plugins.service import make_pem, check_writable_file
 from ipalib.plugins.service import write_certificate
-from ipalib.plugins.dns import dns_container_exists, _attribute_types
+from ipalib.plugins.dns2 import dns_container_exists, _record_types
 from ipalib import _, ngettext
 from ipalib import x509
 from ipapython.ipautil import ipa_generate_password
@@ -282,7 +282,7 @@ class host_add(LDAPCreate):
         if 'ip_address' in options and dns_container_exists(ldap):
             parts = keys[-1].split('.')
             domain = unicode('.'.join(parts[1:]))
-            result = api.Command['dns_find']()['result']
+            result = api.Command['dnszone_find']()['result']
             match = False
             for zone in result:
                 if domain == zone['idnsname'][0]:
@@ -290,7 +290,7 @@ class host_add(LDAPCreate):
                     break
             if not match:
                 raise errors.NotFound(reason=_('DNS zone %(zone)s not found' % dict(zone=domain)))
-            if not options.get('no_reverse',False):
+            if not options.get('no_reverse', False):
                 # we prefer lookup of the IP through the reverse zone
                 revzone, revname = get_reverse_zone(options['ip_address'])
                 # Verify that our reverse zone exists
@@ -302,7 +302,7 @@ class host_add(LDAPCreate):
                 if not match:
                     raise errors.NotFound(reason=_('Reverse DNS zone %(zone)s not found' % dict(zone=revzone)))
                 try:
-                    reverse = api.Command['dns_find_rr'](revzone, revname)
+                    reverse = api.Command['dnsrecord_find'](revzone, idnsname=revname)
                     if reverse['count'] > 0:
                         raise errors.DuplicateEntry(message=u'This IP address is already assigned.')
                 except errors.NotFound:
@@ -344,17 +344,18 @@ class host_add(LDAPCreate):
                 parts = keys[-1].split('.')
                 domain = unicode('.'.join(parts[1:]))
                 if ':' in options['ip_address']:
-                    type = u'AAAA'
+                    addkw = { u'aaaarecord' : options['ip_address'] }
                 else:
-                    type = u'A'
+                    addkw = { u'arecord' : options['ip_address'] }
                 try:
-                    api.Command['dns_add_rr'](domain, parts[0], type, options['ip_address'])
+                    api.Command['dnsrecord_add'](domain, parts[0], **addkw)
                 except errors.EmptyModlist:
                     # the entry already exists and matches
                     pass
                 revzone, revname = get_reverse_zone(options['ip_address'])
                 try:
-                    api.Command['dns_add_rr'](revzone, revname, u'PTR', keys[-1]+'.')
+                    addkw = { u'ptrrecord' : keys[-1]+'.' }
+                    api.Command['dnsrecord_add'](revzone, revname, **addkw)
                 except errors.EmptyModlist:
                     # the entry already exists and matches
                     pass
@@ -424,7 +425,7 @@ class host_del(LDAPDelete):
             # Remove DNS entries
             parts = fqdn.split('.')
             domain = unicode('.'.join(parts[1:]))
-            result = api.Command['dns_find']()['result']
+            result = api.Command['dnszone_find']()['result']
             match = False
             for zone in result:
                 if domain == zone['idnsname'][0]:
@@ -434,30 +435,34 @@ class host_del(LDAPDelete):
                 raise errors.NotFound(reason=_('DNS zone %(zone)s not found' % dict(zone=domain)))
                 raise e
             # Get all forward resources for this host
-            records = api.Command['dns_find_rr'](domain, parts[0])['result']
+            records = api.Command['dnsrecord_find'](domain, idnsname=parts[0])['result']
             for record in records:
                 if 'arecord' in record:
                     ipaddr = record['arecord'][0]
                     self.debug('deleting ipaddr %s' % ipaddr)
                     revzone, revname = get_reverse_zone(ipaddr)
                     try:
-                        api.Command['dns_del_rr'](revzone, revname, u'PTR', fqdn+'.')
+                        delkw = { u'ptrrecord' : fqdn+'.' }
+                        api.Command['dnsrecord_del'](revzone, revname, **delkw)
                     except errors.NotFound:
                         pass
                     try:
-                        api.Command['dns_del_rr'](domain, parts[0], u'A', ipaddr)
+                        delkw = { u'arecord' : ipaddr }
+                        api.Command['dnsrecord_del'](domain, parts[0], **delkw)
                     except errors.NotFound:
                         pass
                 else:
                     # Try to delete all other record types too
+                    _attribute_types = [str('%srecord' % t.lower()) for t in _record_types]
                     for attr in _attribute_types:
                         if attr != 'arecord' and attr in record:
                             for i in xrange(len(record[attr])):
                                 if (record[attr][i].endswith(parts[0]) or
                                     record[attr][i].endswith(fqdn+'.')):
-                                    api.Command['dns_del_rr'](domain,
-                                        record['idnsname'][0],
-                                        _attribute_types[attr], record[attr][i])
+                                    delkw = { unicode(attr) : record[attr][i] }
+                                    api.Command['dnsrecord_del'](domain,
+                                            record['idnsname'][0],
+                                            **delkw)
                             break
 
         try:

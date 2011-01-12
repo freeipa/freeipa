@@ -37,7 +37,7 @@ EXAMPLES:
    ipa dnsrecord-add example.com www --a-rec 80.142.15.2
 
  Add new PTR record for www.example.com
-   ipa dnsrecord 15.142.80.in-addr.arpa 2 --ptr-rec www.example.com.
+   ipa dnsrecord-add 15.142.80.in-addr.arpa 2 --ptr-rec www.example.com.
 
  Show zone example.com:
    ipa dnszone-show example.com
@@ -120,6 +120,13 @@ _record_validators = {
     u'APL': _validate_ipnet,
 }
 
+
+def dns_container_exists(ldap):
+    try:
+        ldap.get_entry(api.env.container_dns, [])
+    except errors.NotFound:
+        return False
+    return True
 
 class dnszone(LDAPObject):
     """
@@ -227,12 +234,6 @@ class dnszone(LDAPObject):
         ),
     )
 
-    def check_container_exists(self):
-        try:
-            self.backend.get_entry(self.container_dn, [])
-        except errors.NotFound:
-            raise errors.NotFound(reason=_('DNS is not configured'))
-
 api.register(dnszone)
 
 
@@ -241,7 +242,9 @@ class dnszone_add(LDAPCreate):
     Create new DNS zone (SOA record).
     """
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        self.obj.check_container_exists()
+        if not dns_container_exists(self.api.Backend.ldap2):
+            raise errors.NotFound(reason=_('DNS is not configured'))
+
         entry_attrs['idnszoneactive'] = 'TRUE'
         entry_attrs['idnsallowdynupdate'] = str(
             entry_attrs.get('idnsallowdynupdate', False)
@@ -583,3 +586,38 @@ class dnsrecord_find(LDAPSearch, dnsrecord_cmd_w_record_options):
 
 api.register(dnsrecord_find)
 
+class dns_resolve(Command):
+    """
+    Resolve a host name in DNS
+    """
+    has_output = output.standard_value
+    msg_summary = _('Found \'%(value)s\'')
+
+    takes_args = (
+        Str('hostname',
+            label=_('Hostname'),
+        ),
+    )
+
+    def execute(self, *args, **options):
+        query=args[0]
+        if query.find(api.env.domain) == -1 and query.find('.') == -1:
+            query = '%s.%s.' % (query, api.env.domain)
+        if query[-1] != '.':
+            query = query + '.'
+        reca = dnsclient.query(query, dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
+        rec6 = dnsclient.query(query, dnsclient.DNS_C_IN, dnsclient.DNS_T_AAAA)
+        records = reca + rec6
+        found = False
+        for rec in records:
+            if rec.dns_type == dnsclient.DNS_T_A or \
+              rec.dns_type == dnsclient.DNS_T_AAAA:
+                found = True
+                break
+
+        if not found:
+            raise errors.NotFound(reason=_('Host \'%(host)s\' not found' % {'host':query}))
+
+        return dict(result=True, value=query)
+
+api.register(dns_resolve)
