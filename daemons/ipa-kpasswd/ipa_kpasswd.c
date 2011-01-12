@@ -925,6 +925,9 @@ kpreply:
 	kdec.data[1] = result_err & 0xff;
 	memcpy(&kdec.data[2], result_string, strlen(result_string));
 
+	free(result_string);
+	result_string = NULL;
+
 	krberr = krb5_auth_con_setaddrs(context, auth_context, &lkaddr, NULL);
 	if (krberr) {
 		result_string = strdup("Failed to set local address");
@@ -938,6 +941,9 @@ kpreply:
 		result_string = strdup("Failed to encrypt reply message");
 		syslog(LOG_ERR, "%s: %s", result_string, 
 			krb5_get_error_message(context, krberr));
+
+		free(result_string);
+		result_string = NULL;
 		/* encryption was unsuccessful, let's return a krb error */
 
 		/* the ap data is no more useful */
