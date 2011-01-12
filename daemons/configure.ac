@@ -151,13 +151,6 @@ if test "x$ac_cv_header_svrcore_svrcore_h" = "yes" ; then
 	CPPFLAGS="$CPPFLAGS -I/usr/include/svrcore"
 fi
 
-CPPFLAGS=$SAVE_CPPFLAGS
-AC_CHECK_HEADER(mozldap/ldap.h)
-if test "x$ac_cv_header_mozldap_ldap_h" = "xno" ; then
-	AC_MSG_ERROR([Required MOZLDAP header not available (mozldap-devel)])
-fi
-PKG_CHECK_MODULES(MOZLDAP, mozldap > 6)
-
 AC_CHECK_LIB(ldap, ldap_search, with_ldap=yes)
 dnl Check for other libraries we need to link with to get the main routines.
 test "$with_ldap" != "yes" && { AC_CHECK_LIB(ldap, ldap_open, [with_ldap=yes with_ldap_lber=yes], , -llber) }

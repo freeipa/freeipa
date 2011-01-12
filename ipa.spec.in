@@ -24,7 +24,6 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %if ! %{ONLY_CLIENT}
 BuildRequires:  389-ds-base-devel >= 1.2.7.4
-BuildRequires:  mozldap-devel
 BuildRequires:  svrcore-devel
 BuildRequires:  nspr-devel
 BuildRequires:  openssl-devel
@@ -229,7 +228,7 @@ export CPPFLAGS="$CPPFLAGS %{optflags}"
 make version-update
 cd ipa-client; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 %if ! %{ONLY_CLIENT}
-%if 0%{?fedora} >= 14
+%if 0%{?fedora} >= 14 || 0%{?rhel} >= 6
 cd daemons; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir} --with-openldap; cd ..
 %else
 cd daemons; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
@@ -515,6 +514,9 @@ fi
 %endif
 
 %changelog
+* Wed Jan 12 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-36
+- Drop BuildRequires on mozldap-devel
+
 * Mon Dec 13 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-35
 - Add Requires on krb5-pkinit-openssl
 
