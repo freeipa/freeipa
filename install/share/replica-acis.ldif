@@ -3,7 +3,7 @@
 dn: cn="$SUFFIX",cn=mapping tree,cn=config
 changetype: modify
 add: aci
-aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement))")(version 3.0;acl "Add Replication Agreements";allow (add) groupdn = "ldap:///cn=addreplica,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr=*)(version 3.0;acl "Add Replication Agreements";allow (add) groupdn = "ldap:///cn=addreplica,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: cn="$SUFFIX",cn=mapping tree,cn=config
 changetype: modify

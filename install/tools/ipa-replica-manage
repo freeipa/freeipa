@@ -368,7 +368,7 @@ def main():
     if options.dirman_passwd:
         dirman_passwd = options.dirman_passwd
     else:
-        if not test_connection(realm, host) or args[0] == "connect":
+        if not test_connection(realm, host):
             dirman_passwd = getpass.getpass("Directory Manager password: ")
 
     options.dirman_passwd = dirman_passwd
