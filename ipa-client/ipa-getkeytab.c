@@ -245,6 +245,7 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
                                             &similar);
             if (krberr) {
                 free_keys_contents(krbctx, keys);
+                free(ksdata);
                 fprintf(stderr, _("Enctype comparison failed!\n"));
                 return 0;
             }
@@ -707,6 +708,7 @@ static int ldap_set_keytab(krb5_context krbctx,
 	ldap_controls_free(srvctrl);
 	ldap_msgfree(res);
 	ldap_unbind_ext(ld, NULL, NULL);
+	free(encs);
 	return kvno;
 
 error_out:
