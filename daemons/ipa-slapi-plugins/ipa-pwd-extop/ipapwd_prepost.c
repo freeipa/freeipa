@@ -564,8 +564,8 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
                 if (!bv) {
                     is_pwd_op = 0;
                 } else {
-                    if (0 == strncmp(userpw, bv->bv_val, bv->bv_len) ||
-                        0 == strncmp(unhashedpw, bv->bv_val, bv->bv_len))
+                    if ((userpw && 0 == strncmp(userpw, bv->bv_val, bv->bv_len)) ||
+                        (unhashedpw && 0 == strncmp(unhashedpw, bv->bv_val, bv->bv_len)))
                         is_pwd_op = 0;
                 }
             default:
