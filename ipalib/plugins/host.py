@@ -279,7 +279,7 @@ class host_add(LDAPCreate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        if 'ipaddr' in options and dns_container_exists(ldap):
+        if 'ip_address' in options and dns_container_exists(ldap):
             parts = keys[-1].split('.')
             domain = unicode('.'.join(parts[1:]))
             result = api.Command['dns_find']()['result']
@@ -292,7 +292,7 @@ class host_add(LDAPCreate):
                 raise errors.NotFound(reason=_('DNS zone %(zone)s not found' % dict(zone=domain)))
             if not options.get('no_reverse',False):
                 # we prefer lookup of the IP through the reverse zone
-                revzone, revname = get_reverse_zone(options['ipaddr'])
+                revzone, revname = get_reverse_zone(options['ip_address'])
                 # Verify that our reverse zone exists
                 match = False
                 for zone in result:
@@ -308,10 +308,10 @@ class host_add(LDAPCreate):
                 except errors.NotFound:
                     pass
             else:
-                result = api.Command['dnsrecord_find'](domain, arecord=options['ipaddr'])
+                result = api.Command['dnsrecord_find'](domain, arecord=options['ip_address'])
                 if result['count'] > 0:
                     raise errors.DuplicateEntry(message=u'This IP address is already assigned.')
-        if not options.get('force', False) and not 'ipaddr' in options:
+        if not options.get('force', False) and not 'ip_address' in options:
             util.validate_host_dns(self.log, keys[-1])
         if 'locality' in entry_attrs:
             entry_attrs['l'] = entry_attrs['locality']
@@ -340,25 +340,25 @@ class host_add(LDAPCreate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         exc = None
         try:
-            if 'ipaddr' in options and dns_container_exists(ldap):
+            if 'ip_address' in options and dns_container_exists(ldap):
                 parts = keys[-1].split('.')
                 domain = unicode('.'.join(parts[1:]))
-                if ':' in options['ipaddr']:
+                if ':' in options['ip_address']:
                     type = u'AAAA'
                 else:
                     type = u'A'
                 try:
-                    api.Command['dns_add_rr'](domain, parts[0], type, options['ipaddr'])
+                    api.Command['dns_add_rr'](domain, parts[0], type, options['ip_address'])
                 except errors.EmptyModlist:
                     # the entry already exists and matches
                     pass
-                revzone, revname = get_reverse_zone(options['ipaddr'])
+                revzone, revname = get_reverse_zone(options['ip_address'])
                 try:
                     api.Command['dns_add_rr'](revzone, revname, u'PTR', keys[-1]+'.')
                 except errors.EmptyModlist:
                     # the entry already exists and matches
                     pass
-                del options['ipaddr']
+                del options['ip_address']
         except Exception, e:
             exc = e
         if options.get('random', False):
