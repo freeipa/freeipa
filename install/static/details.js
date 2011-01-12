@@ -524,17 +524,15 @@ function ipa_details_facet(spec) {
 
             var header = $('h2[name='+section.name+']', that.container);
 
-            var div = $(
-                '#'+that.entity_name+'-'+that.name+'-'+section.name,
-                that.container
-            );
+            var div = $('#'+that.entity_name+'-'+that.name+'-'+section.name,
+                that.container);
 
             header.click(function(section, header, div) {
                 return function() {
                     var visible = div.is(":visible");
                     header.html(that.get_section_header_prefix(!visible) + ' ' + section.label);
                     div.slideToggle();
-                }
+                };
             }(section, header, div));
 
             section.setup(div);
@@ -573,7 +571,7 @@ IPA.action_button = function(spec) {
     var button = ipa_button(spec);
     button.removeClass("ui-state-default").addClass("action-button");
     return button;
-}
+};
 
 function ipa_button(spec) {
 
@@ -613,9 +611,8 @@ function ipa_details_refresh() {
     var params = [];
     if (that.pkey) params.push(that.pkey);
 
-    ipa_cmd(
-        'show', params, {all: true, rights: true}, on_success, on_failure, that.entity_name
-    );
+    ipa_cmd( 'show', params, {all: true, rights: true}, on_success, on_failure,
+        that.entity_name );
 }
 
 function ipa_details_update(on_win, on_fail)
@@ -687,8 +684,9 @@ function ipa_details_update(on_win, on_fail)
     for (attr in attrs_wo_option) {
         values = attrs_wo_option[attr];
         modlist['setattr'].push(attr + '=' + values[0]);
-        for (var i = 1; i < values.length; ++i)
-            modlist['addattr'].push(attr + '=' + values[i]);
+        for (var k = 1; k < values.length; ++k){
+            modlist['addattr'].push(attr + '=' + values[k]);
+        }
     }
 
     ipa_cmd('mod', [pkey], modlist, update_on_win, null, entity_name);
@@ -724,7 +722,7 @@ function ipa_insert_first_dd(jobj, content){
 function ipa_insert_dd(jobj, content, dd_class){
     jobj.after( $('<dd/>',{
         "class": dd_class
-    }).append(content))
+    }).append(content));
 }
 
 
@@ -757,8 +755,9 @@ function ipa_details_field_create_input(value,hint,rights, index)
     }else if (param_info['primary_key'] ||
               ('no_update' in param_info['flags'])){
         /* check if the param value can be modified */
-        /*  THis is currently a no-op, as we use this logic for the
+        /*  This is currently a no-op, as we use this logic for the
             default case as well */
+        return input;
     }else{
         /* call handler by param class */
         var handler = _ipa_param_type_2_handler_map[param_info['class']];
@@ -791,7 +790,7 @@ function _ipa_create_remove_link(attr, param_info)
 
     return $('<a/>',{
         href:"jslink",
-        click: function (){return (_ipa_remove_on_click(this))},
+        click: function (){return (_ipa_remove_on_click(this));},
         title: attr,
         text: 'Remove'});
 

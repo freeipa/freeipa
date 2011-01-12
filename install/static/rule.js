@@ -70,8 +70,8 @@ function ipa_rule_details_section(spec){
             span.append('<br/>');
         }
 
-        for (var i=0; i<that.tables.length; i++) {
-            var table = that.tables[i];
+        for (var j=0; i<that.tables.length; i++) {
+            var table = that.tables[j];
 
             param_info = ipa_get_param_info(that.entity_name, table.field_name);
 
@@ -91,7 +91,7 @@ function ipa_rule_details_section(spec){
 
         function update_tables(value) {
 
-            var enabled = '' == value;
+            var enabled = ('' === value);
 
             for (var i=0; i<that.tables.length; i++) {
                 var table = that.tables[i];
@@ -105,7 +105,9 @@ function ipa_rule_details_section(spec){
         category.reset = function() {
             category.widget_reset();
             var values = category.save();
-            if (values.length == 0) return;
+            if (values.length === 0){
+                return;
+            }
             var value = values[0];
             update_tables(value);
         };

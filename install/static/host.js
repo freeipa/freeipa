@@ -406,7 +406,7 @@ function host_certificate_status_widget(spec) {
         that.get_entity_certificate = function(result) {
             var values = result['usercertificate'];
             return values ? values[0].__base64__ : null;
-        }
+        };
     };
 
     return that;
@@ -444,7 +444,7 @@ function ipa_host_managedby_host_facet(spec) {
                         state[that.other_entity + '-pkey'] = value;
                         $.bbq.pushState(state);
                         return false;
-                    }
+                    };
                 }(value)
             }).appendTo(container);
         };

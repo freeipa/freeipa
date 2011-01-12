@@ -597,7 +597,7 @@ function ipa_table_widget(spec) {
 
             if (that.scrollable && (i == that.columns.length-1)) {
                 if (column.width) {
-                    var width = parseInt(column.width.substring(0, column.width.length-2));
+                    var width = parseInt(column.width.substring(0, column.width.length-2),10);
                     width += 16;
                     th.css('width', width+'px');
                 }
@@ -640,8 +640,8 @@ function ipa_table_widget(spec) {
             'value': 'user'
         }).appendTo(td);
 
-        for (var i=0; i<that.columns.length; i++) {
-            var column = that.columns[i];
+        for (/* var */ i=0; i<that.columns.length; i++) {
+            /* var */ column = that.columns[i];
 
             td = $('<td/>').appendTo(tr);
             if (column.width) {
@@ -1093,12 +1093,12 @@ function ipa_adder_dialog(spec) {
             name: 'hidememb',
             id: 'hidememb',
             checked: 'checked',
-            style: 'margin-left: 5px; vertical-align: middle',
+            style: 'margin-left: 5px; vertical-align: middle'
         }).appendTo(search_panel);
 
         var label = $('<label/>', {
             'for': 'hidememb',
-            style: 'margin-left: 3px',
+            style: 'margin-left: 3px'
         });
 
         label.text('Hide already enrolled.');

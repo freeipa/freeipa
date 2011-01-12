@@ -147,8 +147,6 @@ function ipa_records_facet(spec){
             var options = {};
             function add_win(data, text_status, xhr) {
                 reload();
-                if (called_from_add_and_edit) {
-                }
             }
 
             function add_fail(data, text_status, xhr) {
@@ -220,7 +218,7 @@ function ipa_records_facet(spec){
                     var type = $(tr).find('[title="type"]').
                         text().toLowerCase();
                     var data = $(tr).find('[title="data"]').text();
-                    var rectype=type+"record"
+                    var rectype=type+"record";
 
                     var options = {};
                     options[rectype]=data;
@@ -253,9 +251,9 @@ function ipa_records_facet(spec){
         }
 
 
-        if (delete_list.length == 0)
+        if (delete_list.length === 0){
             return;
-
+        }
         delete_dialog.append($('<P/>',
                                {text: IPA.messages.search.delete_confirm}));
 
@@ -296,8 +294,8 @@ function ipa_records_facet(spec){
         }).appendTo(that.container);
 
 
-        var div = $('<div class="search-controls"></div>')
-            .appendTo(that.container);
+        var div = $('<div class="search-controls"></div>').
+            appendTo(that.container);
 
         var control_span =$('<span class="record-filter"></span>').appendTo(div);
 
@@ -324,7 +322,7 @@ function ipa_records_facet(spec){
         ipa_button({
             'label': IPA.messages.button.find,
             'icon': 'ui-icon-search',
-            'click': function(){refresh()}
+            'click': function(){refresh();}
         }).appendTo(control_span);
 
         var action_panel_ul = $('.action-panel ul', that.container);
@@ -367,8 +365,7 @@ function ipa_records_facet(spec){
                     tbody.find("INPUT[type='checkbox']").
                         attr('checked', this.checked);
                 }
-            })
-        ));
+            })));
         tr.append($('<th/>',{
             text: ipa_get_param_info("dnsrecord", "idnsname").label  }));
          tr.append($('<th>Record Type</th>'));
@@ -395,8 +392,8 @@ function ipa_records_facet(spec){
 
         var options = {};
 
-        var resource_filter = that.container.find("#dns-record-resource-filter")
-            .val();
+        var resource_filter = that.container.
+            find("#dns-record-resource-filter").val();
         if (resource_filter){
             options.idnsname = resource_filter;
         }
@@ -475,8 +472,7 @@ function ipa_records_facet(spec){
         if (data.result.truncated) {
             tfoot.text(
                 'Query returned results than configured size limit will show.' +
-                    'First ' + data.result.count + ' results shown.'
-            );
+                    'First ' + data.result.count + ' results shown.' );
         } else {
             tfoot.text(data.result.summary);
         }
@@ -529,7 +525,7 @@ IPA.add_entity(function (){
         that.create_association_facets();
         that.entity_init();
 
-    }
+    };
     return that;
 }());
 

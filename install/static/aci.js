@@ -43,8 +43,7 @@ IPA.populate_attribute_table = function (table, entity){
         td.append($('<label/>',{
             text:aciattrs[a].toLowerCase()}));
     }
-}
-
+};
 
 IPA.attribute_table_widget= function (spec){
     var id = spec.name;
@@ -93,7 +92,7 @@ IPA.attribute_table_widget= function (spec){
         }
 
         return [retval];
-    }
+    };
 
     var attrs = [];
     that.reset =function(){
@@ -101,7 +100,7 @@ IPA.attribute_table_widget= function (spec){
         for (var i = 0; i < attrs.length; i+=1){
             $(attrs[i], table).attr('checked','checked');
         }
-    }
+    };
 
     that.load = function(record){
         if (!record.attrs) return;
@@ -110,12 +109,10 @@ IPA.attribute_table_widget= function (spec){
             attrs.push('#aciattr-' +record.attrs[i]);
         }
         that.reset();
-    }
+    };
 
     return that;
-}
-
-
+};
 
 IPA.entity_select_widget = function(spec){
 
@@ -145,7 +142,7 @@ IPA.entity_select_widget = function(spec){
             args:[that.entity_filter.val()],
             options:{},
             on_success:find_success,
-            on_error:find_error,
+            on_error:find_error
         }).execute();
     }
 
@@ -180,24 +177,24 @@ IPA.entity_select_widget = function(spec){
             }
         }).appendTo(dd);
         populate_select();
-    }
+    };
     var value = '';
     that.reset = function(){
         that.entity_filter.val(value );
         populate_select(value);
 
-    }
+    };
     that.load = function(record){
         value = record[that.name];
         that.reset();
-    }
+    };
 
     that.save = function(){
         return [$('option:selected', that.entity_select).val()];
-    }
+    };
 
     return that;
-}
+};
 
 IPA.rights_widget = function(spec){
     var rights = ['write','add','delete'];
@@ -220,7 +217,7 @@ IPA.rights_widget = function(spec){
                 appendTo(container);
         }
 
-    }
+    };
     var values = [];
 
     that.reset = function(){
@@ -232,18 +229,18 @@ IPA.rights_widget = function(spec){
             checkboxes.attr('checked','');
         }
 
-        for (var i = 0; i < values.length; i +=1){
-            var value = values[i];
+        for (var j = 0; j < values.length; j +=1){
+            var value = values[j];
             var cb = $('#'+value+ selector);
             cb.attr('checked', 'checked');
         }
 
-    }
+    };
 
     that.load = function(record) {
         values = record[that.name] || [];
         that.reset();
-    }
+    };
 
     that.save = function(){
         var rights_input =  $('.'+ that.entity_name +"_"+ that.name);
@@ -255,10 +252,10 @@ IPA.rights_widget = function(spec){
             retval += rights_input[i].value;
         }
         return [retval];
-    }
+    };
 
     return that;
-}
+};
 
 IPA.hidden_widget = function(spec){
     spec.label = '';
@@ -272,22 +269,22 @@ IPA.hidden_widget = function(spec){
             value: value
         }).
             appendTo(container);
-    }
+    };
 
     that.save = function(){
         return [value];
-    }
+    };
     that.reset = function(){
 
-    }
+    };
     return that;
-}
-
-
+};
 
 function ipa_rights_section() {
-    var    spec =  {'name':'rights',
-                    'label': 'Rights'}
+    var    spec =  {
+        'name':'rights',
+        'label': 'Rights'
+    };
     var that = ipa_details_section(spec);
     that.add_field(IPA.rights_widget({name:'permissions'}));
 
@@ -295,8 +292,10 @@ function ipa_rights_section() {
 }
 
 function ipa_target_section() {
-    var    spec =  {'name':'target',
-                    'label': 'Target'}
+    var    spec =  {
+        'name':'target',
+        'label': 'Target'
+    };
 
     var that = ipa_details_section(spec);
     var groupings = ['aci_by_type',  'aci_by_query', 'aci_by_group',
@@ -321,14 +320,14 @@ function ipa_target_section() {
     function display_filter_target(dl){
         $("<dt/>").
             append($("<label/>",{
-                text:  "Filter",
-            })).
+                text:  "Filter" })).
             append($('<input/>',{
                 type:"radio",
                 name:"type",
                 checked:"true",
                 id:"aci_by_filter"
-            })).appendTo(dl);
+            })).
+            appendTo(dl);
 
         $('<dd/>',{
             'class': 'aci_by_filter first'}).
@@ -345,18 +344,17 @@ function ipa_target_section() {
     function display_type_target(dl){
         $("<dt/>").
             append($("<label/>",{
-                text:  "Object By Type ",
-            })).
+                text:  "Object By Type " })).
             append($('<input/>',{
                 type:"radio",
                 name:"type",
                 checked:"true",
-                id:"aci_by_type"
-            })).appendTo(dl);
+                id:"aci_by_type" })).
+            appendTo(dl);
 
         var dd = $('<dd/>',{
-            "class":"aci_by_type first",
-        }).appendTo(dl);
+            "class":"aci_by_type first" }).
+            appendTo(dl);
 
         var type_select = $('<select/>', {
             id: 'object_type_select',
@@ -435,8 +433,7 @@ function ipa_target_section() {
 
         that.group_filter = $('<input/>',{
             type: 'text',
-            id: 'group_filter',
-        });
+            id: 'group_filter' });
         that.group_select = $('<select/>', {
             id: 'aci_target_group_select',
             change: function(){
@@ -495,8 +492,7 @@ function ipa_target_section() {
     };
 
     that.setup = function(container) {
-
-    }
+    };
 
     that.load = function(result) {
         if(result.subtree){
@@ -527,8 +523,7 @@ function ipa_target_section() {
         }else{
             alert('permission with invalid target specification');
         }
-
-    }
+    };
 
     that.reset = function() {
     };
@@ -559,9 +554,7 @@ function ipa_target_section() {
             }
             record.attributes += id;
         });
-    }
-
-
+    };
     return that;
 }
 
@@ -639,8 +632,7 @@ function ipa_permission_search_facet(spec) {
         that.create_column({name:'cn'});
         that.create_column({name:'description'});
         that.search_facet_init();
-    }
-
+    };
     return that;
 }
 
@@ -673,13 +665,12 @@ function ipa_permission_details_facet() {
 
     that.load = function(result) {
         that.superior_load(result);
-    }
+    };
 
     that.superior_update = that.update;
     that.update = function(on_win, on_fail){
         that.superior_update(on_win, on_fail);
-    }
-
+    };
     return that;
 }
 
@@ -781,7 +772,7 @@ IPA.add_entity( function() {
         that.init = function() {
             that.create_column({name:'aciname'});
             that.search_facet_init();
-        }
+        };
         return that;
     }());
 
@@ -796,13 +787,8 @@ IPA.add_entity( function() {
                     custom_input(IPA.attribute_table_widget({
                         object_type:'user',
                         name:'attrs'
-                    }))
-            );
-
-        }
-
-
-
+                    })));
+        };
         return that;
     }());
 
@@ -821,8 +807,7 @@ IPA.add_entity( function() {
             name:'attrs'
         }));
         dialog.init();
-    }
-
+    };
     return that;
 }());
 
@@ -841,7 +826,7 @@ IPA.add_entity( function() {
             that.init = function() {
                 that.create_column({name:'aciname'});
                 that.search_facet_init();
-            }
+            };
             return that;
         }());
     that.add_facet(function(){
@@ -881,7 +866,7 @@ IPA.add_entity( function() {
 
         dialog.init();
         that.create_association_facets();
-    }
+    };
 
     return that;
 }());

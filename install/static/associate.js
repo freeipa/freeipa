@@ -77,8 +77,7 @@ function serial_associator(spec) {
             options,
             that.execute,
             that.on_error,
-            that.other_entity
-        );
+            that.other_entity);
     };
 
     return that;
@@ -121,8 +120,7 @@ function bulk_associator(spec) {
             options,
             that.on_success,
             that.on_error,
-            that.entity_name
-        );
+            that.entity_name);
     };
 
     return that;
@@ -293,7 +291,7 @@ function ipa_association_table_widget(spec) {
 
         var entity = IPA.get_entity(that.entity_name);
         var association = entity.get_association(that.other_entity);
-
+        var column;
         if (association) {
             if (association.associator) {
                 that.associator = association.associator == 'serial' ? serial_associator : bulk_associator;
@@ -313,12 +311,12 @@ function ipa_association_table_widget(spec) {
         }
 
         for (var i=0; i<that.columns.length; i++) {
-            var column = that.columns[i];
+            column = that.columns[i];
             column.entity_name = that.other_entity;
         }
 
-        for (var i=0; i<that.adder_columns.length; i++) {
-            var column = that.adder_columns[i];
+        for (var j=0; j<that.adder_columns.length; j++) {
+            column = that.adder_columns[j];
             column.entity_name = that.other_entity;
         }
 
@@ -353,8 +351,11 @@ function ipa_association_table_widget(spec) {
             'label': button.val(),
             'icon': 'ui-icon-trash',
             'click': function() {
-                if ($(this).hasClass('action-button-disabled')) return false;
+                if ($(this).hasClass('action-button-disabled')) {
+                    return false;
+                }
                 that.show_remove_dialog();
+                return false;
             }
         }));
 
@@ -365,6 +366,7 @@ function ipa_association_table_widget(spec) {
             'click': function() {
                 if ($(this).hasClass('action-button-disabled')) return false;
                 that.show_add_dialog();
+                return false;
             }
         }));
     };
@@ -446,7 +448,7 @@ function ipa_association_table_widget(spec) {
             'entity_name': that.entity_name,
             'pkey': pkey,
             'other_entity': that.other_entity,
-            'attribute_member': that.attribute_member,
+            'attribute_member': that.attribute_member
         });
     };
 
@@ -610,6 +612,8 @@ function ipa_association_facet(spec) {
 
         var entity = IPA.get_entity(that.entity_name);
         var association = entity.get_association(that.other_entity);
+        var column;
+        var i;
 
         if (association) {
             if (association.associator) {
@@ -636,7 +640,7 @@ function ipa_association_facet(spec) {
 
         } else {
 
-            var column = that.table.create_column({
+            column = that.table.create_column({
                 name: that.table.name,
                 label: IPA.metadata[that.other_entity].label,
                 primary_key: true
@@ -658,19 +662,19 @@ function ipa_association_facet(spec) {
                             state[that.other_entity + '-pkey'] = value;
                             $.bbq.pushState(state);
                             return false;
-                        }
+                        };
                     }(value)
                 }).appendTo(container);
             };
         }
 
-        for (var i=0; i<that.columns.length; i++) {
-            var column = that.columns[i];
+        for (i=0; i<that.columns.length; i++) {
+            column = that.columns[i];
             column.entity_name = that.other_entity;
         }
 
-        for (var i=0; i<that.adder_columns.length; i++) {
-            var column = that.adder_columns[i];
+        for (i=0; i<that.adder_columns.length; i++) {
+            column = that.adder_columns[i];
             column.entity_name = that.other_entity;
         }
 
@@ -752,7 +756,7 @@ function ipa_association_facet(spec) {
         button.replaceWith(IPA.action_button({
             'label': button.val(),
             'icon': 'ui-icon-plus',
-            'click': function() { that.show_add_dialog() }
+            'click': function() { that.show_add_dialog(); }
         }));
     };
 
@@ -767,7 +771,7 @@ function ipa_association_facet(spec) {
             'entity_name': that.entity_name,
             'pkey': pkey,
             'other_entity': that.other_entity,
-            'attribute_member': that.attribute_member,
+            'attribute_member': that.attribute_member
         });
 
         if (that.adder_columns.length) {

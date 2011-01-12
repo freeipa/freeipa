@@ -149,7 +149,6 @@ function ipa_sudocmd_member_sudocmdgroup_table_widget(spec) {
 
             $('<a/>', {
                 'href': '#'+value,
-                'html': value,
                 'click': function (value) {
                     return function() {
                         var state = IPA.tab_state(that.other_entity);
@@ -157,8 +156,9 @@ function ipa_sudocmd_member_sudocmdgroup_table_widget(spec) {
                         state[that.other_entity + '-pkey'] = value;
                         $.bbq.pushState(state);
                         return false;
-                    }
-                }(value)
+                    };
+                }(value),
+                'html': value
             }).appendTo(container);
         };
 

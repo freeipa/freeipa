@@ -167,7 +167,7 @@ function ipa_group_member_user_facet(spec) {
                         state[that.other_entity + '-pkey'] = value;
                         $.bbq.pushState(state);
                         return false;
-                    }
+                    };
                 }(value)
             }).appendTo(container);
         };

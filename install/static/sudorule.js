@@ -326,9 +326,8 @@ function ipa_sudorule_details_facet(spec) {
                 if (!param_info) {
                     for (var k=0; k<values.length; k++) {
                         modify_operation.command.set_option(
-                            k == 0 ? 'setattr' : 'addattr',
-                            field.name+'='+values[k]
-                        );
+                            k === 0 ? 'setattr' : 'addattr',
+                            field.name+'='+values[k]);
                         modify_operation.execute = true;
                     }
                     continue;
@@ -639,7 +638,7 @@ function ipa_sudorule_details_command_section(spec){
 
         function update_tables(value) {
 
-            var enabled = '' == value;
+            var enabled = ('' === value);
 
             var field = that.get_field('memberallowcmd_sudocmd');
             field.set_enabled(enabled);
@@ -652,7 +651,7 @@ function ipa_sudorule_details_command_section(spec){
         cmdcategory.reset = function() {
             cmdcategory.widget_reset();
             var values = cmdcategory.save();
-            if (values.length == 0) return;
+            if (values.length === 0) return;
             var value = values[0];
             update_tables(value);
         };
@@ -807,7 +806,7 @@ function ipa_sudorule_details_runas_section(spec){
 
         function user_update_tables(value) {
 
-            var enabled = '' == value;
+            var enabled = ('' === value);
 
             var field = that.get_field('ipasudorunas_user');
             field.set_enabled(enabled);
@@ -820,7 +819,7 @@ function ipa_sudorule_details_runas_section(spec){
         user_category.reset = function() {
             user_category.widget_reset();
             var values = user_category.save();
-            if (values.length == 0) return;
+            if (values.length === 0) return;
             var value = values[0];
             user_update_tables(value);
         };
@@ -834,7 +833,7 @@ function ipa_sudorule_details_runas_section(spec){
 
         function group_update_tables(value) {
 
-            var enabled = '' == value;
+            var enabled = ('' === value);
 
             var field = that.get_field('ipasudorunasgroup_group');
             field.set_enabled(enabled);
@@ -844,7 +843,7 @@ function ipa_sudorule_details_runas_section(spec){
         group_category.reset = function() {
             group_category.widget_reset();
             var values = group_category.save();
-            if (values.length == 0) return;
+            if (values.length === 0) return;
             var value = values[0];
             group_update_tables(value);
         };

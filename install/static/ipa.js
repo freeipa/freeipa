@@ -30,7 +30,7 @@ var IPA = ( function () {
     that.use_static_files = false;
     that.json_url = '/ipa/json';
     if (that.use_static_files){
-        that.json_url = 'test/data'
+        that.json_url = 'test/data';
     }
 
     that.ajax_options = {
@@ -98,8 +98,7 @@ var IPA = ( function () {
             },
             on_error,
             null,
-            'ipa_init'
-        );
+            'ipa_init');
     };
 
     that.get_entities = function () {
@@ -172,8 +171,7 @@ function ipa_command(spec) {
             that.on_success,
             that.on_error,
             null,
-            that.name
-        );
+            that.name);
     };
 
     that.to_json = function() {
@@ -263,11 +261,12 @@ function ipa_batch_command(spec) {
             },
             function(xhr, text_status, error_thrown) {
                 // TODO: undefined behavior
-                if (that.on_error) that.on_error(xhr, text_status, error_thrown)
+                if (that.on_error) {
+                    that.on_error(xhr, text_status, error_thrown);
+                }
             },
             null,
-            that.name
-        );
+            that.name);
     };
 
     return that;
@@ -319,7 +318,7 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname, comm
             error_thrown = {
                 name: xhr.responseText || 'Unknown Error',
                 message: xhr.statusText || 'Unknown Error'
-            }
+            };
         }
 
         if (xhr.status === 401) {
@@ -332,7 +331,7 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname, comm
                     "Please run kinit and then click 'retry'. "+
                     "If this is your first time running the IPA Web UI "+
                     "<a href='/ipa/config/unauthorized.html'>"+
-                    "follow these directions</a> to configure your browser."
+                    "follow these directions</a> to configure your browser.";
             }
         }
 

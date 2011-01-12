@@ -94,8 +94,9 @@ IPA.tab_state = function(entity_name){
             }
         }
     }
-}
-
+    /*should never reach here*/
+    return null;
+};
 
 
 /* main (document onready event handler) */

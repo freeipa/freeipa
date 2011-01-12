@@ -164,7 +164,7 @@ function ipa_hbacsvcgroup_member_hbacsvc_table_widget(spec) {
                         state[that.other_entity + '-pkey'] = value;
                         $.bbq.pushState(state);
                         return false;
-                    }
+                    };
                 }(value)
             }).appendTo(container);
         };

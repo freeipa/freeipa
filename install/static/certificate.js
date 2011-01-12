@@ -89,8 +89,7 @@ function certificate_get_dialog(spec) {
     textarea.val(
         BEGIN_CERTIFICATE+'\n'+
         that.usercertificate+'\n'+
-        END_CERTIFICATE
-    );
+        END_CERTIFICATE  );
 
     that.open = function() {
         dialog.dialog({

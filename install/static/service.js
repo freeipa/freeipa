@@ -427,7 +427,7 @@ function ipa_service_managedby_host_facet(spec) {
                         state[that.other_entity + '-pkey'] = value;
                         $.bbq.pushState(state);
                         return false;
-                    }
+                    };
                 }(value)
             }).appendTo(container);
         };

@@ -141,8 +141,7 @@ function ipa_entity(spec) {
 
         if (!attribute_member) {
             attribute_member = ipa_get_member_attribute(
-                that.entity_name, other_entity
-            );
+                that.entity_name, other_entity);
         }
 
         return ipa_association_facet({
@@ -150,7 +149,7 @@ function ipa_entity(spec) {
             'label': label,
             'other_entity': other_entity,
             'facet_group': facet_group,
-            'attribute_member': attribute_member,
+            'attribute_member': attribute_member
         });
     };
 
@@ -180,8 +179,7 @@ function ipa_entity(spec) {
                 var facet_group = relationship[0];
 
                 var facet = that.create_association_facet(
-                    attribute_member, other_entity, label, facet_group
-                );
+                    attribute_member, other_entity, label, facet_group);
 
                 if (that.get_facet(facet.name)) continue;
 
@@ -386,6 +384,8 @@ function ipa_entity_setup(container) {
 IPA.nested_tabs = function(entity_name){
 
     var siblings = [];
+    var nested_index;
+    var nested_entities;
 
     if (!IPA.tab_set) {
         siblings.push(entity_name);
@@ -403,17 +403,17 @@ IPA.nested_tabs = function(entity_name){
                 if (top_tab.children[subtab_index].name === entity_name){
                     siblings.push(entity_name);
                     if (top_tab.children[subtab_index].children){
-                        var  nested_entities = top_tab.children[subtab_index].children;
-                        for (var nested_index = 0;
-                             nested_index < nested_entities.length;
-                             nested_index += 1){
+                        nested_entities = top_tab.children[subtab_index].children;
+                        for ( nested_index = 0;
+                              nested_index < nested_entities.length;
+                              nested_index += 1){
                             siblings.push (nested_entities[nested_index].name);
                         }
                     }
                 }else{
                     if (top_tab.children[subtab_index].children){
-                        var  nested_entities = top_tab.children[subtab_index].children;
-                        for (var nested_index = 0;
+                        nested_entities = top_tab.children[subtab_index].children;
+                        for (nested_index = 0;
                              nested_index < nested_entities.length;
                              nested_index += 1){
                             if (nested_entities[nested_index].name === entity_name){
@@ -431,7 +431,7 @@ IPA.nested_tabs = function(entity_name){
         }
     }
     return siblings;
-}
+};
 
 
 
@@ -478,7 +478,7 @@ function ipa_facet_create_action_panel(container) {
     var other_facet = entity.facets[0];
     var other_facet_name = other_facet.name;
     var nested_tabs = IPA.nested_tabs(entity_name);
-    var main_facet = build_link(other_facet,other_facet.label)
+    var main_facet = build_link(other_facet,other_facet.label);
     for (var nested_index = 0 ;
          nested_index < nested_tabs.length;
          nested_index += 1){
@@ -493,16 +493,18 @@ function ipa_facet_create_action_panel(container) {
                 }else{
                     main_facet.html(
                         $('<span />',{
-                            "class":"input_link"
-                        }).append(
-                            $('<span/>',{
-                                "class":"ui-icon ui-icon-triangle-1-w "
-                            })
-                        ).append('Back to List '));
+                            "class":"input_link" 
+                        }).
+                            append(
+                                $('<span/>',{
+                                    "class":"ui-icon ui-icon-triangle-1-w "
+                                })).
+                            append('Back to List '));
                     main_facet.appendTo(ul);
                 }
             }
             var facet_groups = {};
+            var li;
             for (var i=1; i<entity.facets.length; i++) {
                 other_facet = entity.facets[i];
                 other_facet_name = other_facet.name;
@@ -510,16 +512,16 @@ function ipa_facet_create_action_panel(container) {
                 if (other_facet.facet_group) {
                     var facet_group = other_facet.facet_group;
                     if (!facet_groups[facet_group]) {
-                        var li = $('<li/>', {
+                        li = $('<li/>', {
                             'class': 'entity-facet-relation-label',
                             'text': other_facet.facet_group,
-                            'title': other_facet.facet_group,
-                        })
+                            'title': other_facet.facet_group
+                        });
                         ul.append(li);
                         facet_groups[facet_group] = li;
                     }
-                    var li = facet_groups[facet_group];
-                    var link =  build_link(other_facet, other_facet.label)
+                    li = facet_groups[facet_group];
+                    var link =  build_link(other_facet, other_facet.label);
                     link.addClass('facet-group-member');
                     li.after(link );
                     /*
@@ -538,10 +540,9 @@ function ipa_facet_create_action_panel(container) {
                                         })})).
                                     append($('<li/>',{
                                         html:$('<span />',{
-                                            class:"action-controls"
+                                            'class':"action-controls"
                                         })
-                                    }))
-                                   );
+                                    })));
                     }
                     facet_groups[facet_group] = li.next();
                 } else {

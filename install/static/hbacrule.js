@@ -475,11 +475,10 @@ function ipa_hbacrule_details_facet(spec) {
 
                 // use setattr/addattr if param_info not available
                 if (!param_info) {
-                    for (var k=0; k<values.length; k++) {
+                    for (var l=0; l<values.length; l++) {
                         modify_operation.command.set_option(
-                            k == 0 ? 'setattr' : 'addattr',
-                            field.name+'='+values[k]
-                        );
+                            l === 0 ? 'setattr' : 'addattr',
+                            field.name+'='+values[l]);
                         modify_operation.execute = true;
                     }
                     continue;
@@ -774,7 +773,7 @@ function ipa_hbacrule_accesstime_widget(spec) {
         button.replaceWith(ipa_button({
             'label': button.val(),
             'icon': 'ui-icon-plus',
-            'click': function() { that.add(that.container) }
+            'click': function() { that.add(that.container); }
         }));
 
         var input = $('input[name="'+that.name+'"]', that.container);
@@ -790,7 +789,7 @@ function ipa_hbacrule_accesstime_widget(spec) {
 
     that.save = function() {
         var value = $('input[name="'+that.name+'"]:checked', that.container).val();
-        if (value == '') {
+        if (value === '') {
             return that.table.save();
         } else {
             return [];

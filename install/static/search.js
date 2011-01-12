@@ -222,9 +222,9 @@ function ipa_search_widget(spec) {
             var summary = $('span[name=summary]', that.tfoot);
             if (data.result.truncated) {
                 summary.text(
-                    'Query returned results than configured size limit will show.' +
-                    'First ' + data.result.count + ' results shown.'
-                );
+                    'Query returned more results than configured size limit '+
+                        'will show.  First ' +
+                        data.result.count + ' results shown.');
             } else {
                 summary.text(data.result.summary);
             }
@@ -239,8 +239,8 @@ function ipa_search_widget(spec) {
 
         var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
         ipa_cmd(
-          'find', [filter], {all: true}, on_success, on_error, that.entity_name
-        );
+          'find', [filter], {all: true}, on_success, on_error,
+            that.entity_name);
     };
 
     return that;
@@ -311,7 +311,7 @@ function ipa_search_facet(spec) {
                         state[that.entity_name + '-pkey'] = value;
                         $.bbq.pushState(state);
                         return false;
-                    }
+                    };
                 }(value)
             }).appendTo(container);
         };
