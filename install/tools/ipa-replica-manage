@@ -53,9 +53,6 @@ def parse_options():
                       help="provide additional information")
     parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
                       help="ignore some types of errors")
-    parser.add_option("--port", type="int", dest="port",
-                      default=replication.PORT,
-                      help="port number of other server")
     parser.add_option("--binddn", dest="binddn", default=None,
                       help="Bind DN to use with remote server")
     parser.add_option("--bindpw", dest="bindpw", default=None,
