@@ -721,7 +721,7 @@ function ipa_association_facet(spec) {
         }).appendTo(li);
 
         /* TODO: genering handling of different relationships */
-        if (relationship[0] == 'Member') {
+        if ((relationship[0] == 'Member')||(relationship[0] == 'Member Of')) {
             $('<input/>', {
                 'type': 'button',
                 'name': 'add',
