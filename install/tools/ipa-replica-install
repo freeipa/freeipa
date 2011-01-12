@@ -47,7 +47,6 @@ class ReplicaConfig:
         self.dirman_password = ""
         self.ds_user = ""
         self.host_name = ""
-        self.repl_password = ""
         self.dir = ""
         self.subject_base = ""
 
@@ -344,7 +343,6 @@ def main():
             print ""
         except KeyboardInterrupt:
             sys.exit(0)
-    config.repl_password = ipautil.ipa_generate_password()
     config.dir = dir
 
     # Create the management framework config file
