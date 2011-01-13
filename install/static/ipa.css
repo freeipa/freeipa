@@ -590,37 +590,35 @@ a.action-button-disabled {
 .strikethrough { text-decoration: line-through; }
 
 
-.key-status-valid {
-    list-style-type: circle;
-    color: #008000;
+.status-icon {
+    width: 0.5em;
+    height: 0.5em;
+    -webkit-border-radius: 0.5em;
+    -moz-border-radius: 0.5em;
 }
 
-.key-status-missing {
-    list-style-type: circle;
-    color: #daa520;
+.status-valid {
+    border: 0.2em solid #008000;
 }
 
-.key-status-active {
-    list-style-type: disc;
+.status-valid-active {
+    background-color: #008000;
 }
 
-.certificate-status-valid {
-    list-style-type: circle;
-    color: #008000;
+.status-revoked {
+    border: 0.2em solid #ff0000;
 }
 
-.certificate-status-revoked {
-    list-style-type: circle;
-    color: #ff0000;
+.status-revoked-active {
+    background-color: #ff0000;
 }
 
-.certificate-status-missing {
-    list-style-type: circle;
-    color: #daa520;
+.status-missing {
+    border: 0.2em solid #daa520;
 }
 
-.certificate-status-active {
-    list-style-type: disc;
+.status-missing-active {
+    background-color: #daa520;
 }
 
 dl.modal {

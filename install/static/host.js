@@ -219,8 +219,8 @@ function host_provisioning_status_widget(spec) {
         var tr = $('<tr/>').appendTo(table);
 
         var td = $('<td/>').appendTo(tr);
-        var li = $('<li/>', {
-            'class': 'key-status-valid'
+        $('<div/>', {
+            'class': 'status-icon status-valid'
         }).appendTo(td);
 
         td = $('<td/>').appendTo(tr);
@@ -237,8 +237,8 @@ function host_provisioning_status_widget(spec) {
         tr = $('<tr/>').appendTo(table);
 
         td = $('<td/>').appendTo(tr);
-        li = $('<li/>', {
-            'class': 'key-status-missing'
+        $('<div/>', {
+            'class': 'status-icon status-missing'
         }).appendTo(td);
 
         td = $('<td/>').appendTo(tr);
@@ -272,8 +272,8 @@ function host_provisioning_status_widget(spec) {
 
         that.widget_setup(container);
 
-        that.valid = $('li.key-status-valid', that.container);
-        that.missing = $('li.key-status-missing', that.container);
+        that.valid = $('.status-valid', that.container);
+        that.missing = $('.status-missing', that.container);
 
         var button = $('input[name=unprovision]', that.container);
         that.unprovision_button = ipa_button({
@@ -375,8 +375,8 @@ function host_provisioning_status_widget(spec) {
     };
 
     function set_status(status) {
-        that.valid.toggleClass('key-status-active', status == 'valid');
-        that.missing.toggleClass('key-status-active', status == 'missing');
+        that.valid.toggleClass('status-valid-active', status == 'valid');
+        that.missing.toggleClass('status-missing-active', status == 'missing');
 
         that.unprovision_button.css('visibility', status == 'valid' ? 'visible' : 'hidden');
         that.otp_input.css('visibility', status == 'missing' ? 'visible' : 'hidden');

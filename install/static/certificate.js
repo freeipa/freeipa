@@ -416,8 +416,9 @@ function certificate_status_widget(spec) {
         var tr = $('<tr/>').appendTo(table);
 
         var td = $('<td/>').appendTo(tr);
-        $('<li/>', {
-            'class': 'certificate-status-valid'
+
+        $('<div/>', {
+            'class': 'status-icon status-valid'
         }).appendTo(td);
 
         td = $('<td/>').appendTo(tr);
@@ -449,8 +450,8 @@ function certificate_status_widget(spec) {
             tr = $('<tr/>').appendTo(table);
 
             td = $('<td/>').appendTo(tr);
-            $('<li/>', {
-                'class': 'certificate-status-revoked'
+            $('<div/>', {
+                'class': 'status-icon status-revoked'
             }).appendTo(td);
 
             td = $('<td/>').appendTo(tr);
@@ -472,8 +473,8 @@ function certificate_status_widget(spec) {
         tr = $('<tr/>').appendTo(table);
 
         td = $('<td/>').appendTo(tr);
-        $('<li/>', {
-            'class': 'certificate-status-missing'
+        $('<div/>', {
+            'class': 'status-icon status-missing'
         }).appendTo(td);
 
         td = $('<td/>').appendTo(tr);
@@ -491,9 +492,9 @@ function certificate_status_widget(spec) {
 
         that.widget_setup(container);
 
-        that.valid = $('li.certificate-status-valid', that.container);
-        that.revoked = $('li.certificate-status-revoked', that.container);
-        that.missing = $('li.certificate-status-missing', that.container);
+        that.valid = $('.status-valid', that.container);
+        that.revoked = $('.status-revoked', that.container);
+        that.missing = $('.status-missing', that.container);
 
         var button = $('input[name=get]', that.container);
         that.get_button = ipa_button({
@@ -573,14 +574,14 @@ function certificate_status_widget(spec) {
     };
 
     function set_status(status, revocation_reason) {
-        that.valid.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_VALID);
-        that.missing.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_MISSING);
+        that.valid.toggleClass('status-valid-active', status == CERTIFICATE_STATUS_VALID);
+        that.missing.toggleClass('status-missing-active', status == CERTIFICATE_STATUS_MISSING);
 
         that.get_button.css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
         that.view_button.css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
 
         if (!that.is_selfsign()) {
-            that.revoked.toggleClass('certificate-status-active', status == CERTIFICATE_STATUS_REVOKED);
+            that.revoked.toggleClass('status-revoked-active', status == CERTIFICATE_STATUS_REVOKED);
             that.revoke_button.css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
             that.revocation_reason.html(revocation_reason == undefined ? '' : CRL_REASON[revocation_reason]);
             that.restore_button.css('visibility', revocation_reason == 6 ? 'visible' : 'hidden');
