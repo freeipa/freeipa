@@ -767,7 +767,7 @@
                 "permissions": [
                     "write"
                 ],
-                "subtree": "ldap:///cn=retrieve certificate,cn=virtual operations,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+                "subtree": "ldap:///cn=retrieve certificate,cn=virtual operations,cn=etc,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
             },
             {
                 "attrs": [
@@ -786,7 +786,7 @@
                 "permissions": [
                     "write"
                 ],
-                "subtree": "ldap:///cn=request certificate,cn=virtual operations,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+                "subtree": "ldap:///cn=request certificate,cn=virtual operations,cn=etc,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
             },
             {
                 "attrs": [
@@ -805,7 +805,7 @@
                 "permissions": [
                     "write"
                 ],
-                "subtree": "ldap:///cn=request certificate different host,cn=virtual operations,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+                "subtree": "ldap:///cn=request certificate different host,cn=virtual operations,cn=etc,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
             },
             {
                 "attrs": [
@@ -824,7 +824,7 @@
                 "permissions": [
                     "write"
                 ],
-                "subtree": "ldap:///cn=certificate status,cn=virtual operations,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+                "subtree": "ldap:///cn=certificate status,cn=virtual operations,cn=etc,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
             },
             {
                 "attrs": [
@@ -843,7 +843,7 @@
                 "permissions": [
                     "write"
                 ],
-                "subtree": "ldap:///cn=revoke certificate,cn=virtual operations,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+                "subtree": "ldap:///cn=revoke certificate,cn=virtual operations,cn=etc,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
             },
             {
                 "attrs": [
@@ -862,7 +862,7 @@
                 "permissions": [
                     "write"
                 ],
-                "subtree": "ldap:///cn=certificate remove hold,cn=virtual operations,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+                "subtree": "ldap:///cn=certificate remove hold,cn=virtual operations,cn=etc,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
             },
             {
                 "cn": [

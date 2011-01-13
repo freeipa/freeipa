@@ -7904,7 +7904,7 @@
                     "container_sudocmdgroup": "cn=sudocmdgroups,cn=accounts",
                     "container_sudorule": "cn=sudorules",
                     "container_user": "cn=users,cn=accounts",
-                    "container_virtual": "cn=virtual operations",
+                    "container_virtual": "cn=virtual operations,cn=etc",
                     "context": "server",
                     "debug": false,
                     "domain": "ayoung.boston.devel.redhat.com",

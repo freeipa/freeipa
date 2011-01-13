@@ -626,14 +626,14 @@ aci: (target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3
 
 # Create virtual operations entry. This is used to control access to
 # operations that don't rely on LDAP directly.
-dn: cn=virtual operations,$SUFFIX
+dn: cn=virtual operations,cn=etc,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
 cn: virtual operations
 
 # Retrieve Certificate virtual op
-dn: cn=retrieve certificate,cn=virtual operations,$SUFFIX
+dn: cn=retrieve certificate,cn=virtual operations,cn=etc,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
@@ -650,10 +650,10 @@ member: cn=certadmin,cn=privileges,cn=pbac,$SUFFIX
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectclass")(target = "ldap:///cn=retrieve certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Retrieve Certificates from the CA" ; allow (write) groupdn = "ldap:///cn=retrieve_certs,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=retrieve certificate,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "Retrieve Certificates from the CA" ; allow (write) groupdn = "ldap:///cn=retrieve_certs,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Request Certificate virtual op
-dn: cn=request certificate,cn=virtual operations,$SUFFIX
+dn: cn=request certificate,cn=virtual operations,cn=etc,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
@@ -670,10 +670,10 @@ member: cn=certadmin,cn=privileges,cn=pbac,$SUFFIX
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectclass")(target = "ldap:///cn=request certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Request Certificates from the CA" ; allow (write) groupdn = "ldap:///cn=request_certs,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=request certificate,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "Request Certificates from the CA" ; allow (write) groupdn = "ldap:///cn=request_certs,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Request Certificate from different host virtual op
-dn: cn=request certificate different host,cn=virtual operations,$SUFFIX
+dn: cn=request certificate different host,cn=virtual operations,cn=etc,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
@@ -690,10 +690,10 @@ member: cn=certadmin,cn=privileges,cn=pbac,$SUFFIX
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectclass")(target = "ldap:///cn=request certificate different host,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Request Certificates from a different host" ; allow (write) groupdn = "ldap:///cn=request_cert_different_host,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=request certificate different host,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "Request Certificates from a different host" ; allow (write) groupdn = "ldap:///cn=request_cert_different_host,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Certificate Status virtual op
-dn: cn=certificate status,cn=virtual operations,$SUFFIX
+dn: cn=certificate status,cn=virtual operations,cn=etc,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
@@ -710,10 +710,10 @@ member: cn=certadmin,cn=privileges,cn=pbac,$SUFFIX
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectclass")(target = "ldap:///cn=certificate status,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Get Certificates status from the CA" ; allow (write) groupdn = "ldap:///cn=certificate_status,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=certificate status,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "Get Certificates status from the CA" ; allow (write) groupdn = "ldap:///cn=certificate_status,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Revoke Certificate virtual op
-dn: cn=revoke certificate,cn=virtual operations,$SUFFIX
+dn: cn=revoke certificate,cn=virtual operations,cn=etc,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
@@ -730,10 +730,10 @@ member: cn=certadmin,cn=privileges,cn=pbac,$SUFFIX
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectclass")(target = "ldap:///cn=revoke certificate,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Revoke Certificate"; allow (write) groupdn = "ldap:///cn=revoke_certificate,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=revoke certificate,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "Revoke Certificate"; allow (write) groupdn = "ldap:///cn=revoke_certificate,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Certificate Remove Hold virtual op
-dn: cn=certificate remove hold,cn=virtual operations,$SUFFIX
+dn: cn=certificate remove hold,cn=virtual operations,cn=etc,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
@@ -750,4 +750,4 @@ member: cn=certadmin,cn=privileges,cn=pbac,$SUFFIX
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "objectclass")(target = "ldap:///cn=certificate remove hold,cn=virtual operations,$SUFFIX" )(version 3.0 ; acl "Certificate Remove Hold"; allow (write) groupdn = "ldap:///cn=certificate_remove_hold,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///cn=certificate remove hold,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "Certificate Remove Hold"; allow (write) groupdn = "ldap:///cn=certificate_remove_hold,cn=permissions,cn=pbac,$SUFFIX";)

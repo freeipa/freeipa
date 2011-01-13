@@ -99,7 +99,7 @@ DEFAULT_CONFIG = (
     ('container_hbacservice', 'cn=hbacservices,cn=accounts'),
     ('container_hbacservicegroup', 'cn=hbacservicegroups,cn=accounts'),
     ('container_dns', 'cn=dns'),
-    ('container_virtual', 'cn=virtual operations'),
+    ('container_virtual', 'cn=virtual operations,cn=etc'),
     ('container_sudorule', 'cn=sudorules'),
     ('container_sudocmd', 'cn=sudocmds,cn=accounts'),
     ('container_sudocmdgroup', 'cn=sudocmdgroups,cn=accounts'),

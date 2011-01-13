@@ -36,7 +36,7 @@ class VirtualCommand(Command):
         cn=<operation>, api.env.container_virtual, api.env.basedn
 
     Ex.
-        cn=request certificate, cn=virtual operations, dc=example, dc=com
+        cn=request certificate, cn=virtual operations,cn=etc, dc=example, dc=com
     """
     operation = None
 
