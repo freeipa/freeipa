@@ -522,7 +522,7 @@ function ipa_hbacrule_details_facet(spec) {
             return;
         }
 
-        alert(JSON.stringify(batch.to_json()));
+        //alert(JSON.stringify(batch.to_json()));
 
         batch.execute();
     };
