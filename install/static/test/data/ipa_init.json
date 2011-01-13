@@ -3169,7 +3169,7 @@
                             ]
                         },
                         "bindable": false,
-                        "container_dn": "cn=hbacrules",
+                        "container_dn": "cn=hbac",
                         "default_attributes": [
                             "cn",
                             "accessruletype",
@@ -4980,7 +4980,7 @@
                                 "cli_name": "type",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Type of IPA object (user, group, host, hostgroup, service, netgroup)",
+                                "doc": "Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -6249,7 +6249,8 @@
                         ],
                         "attribute_members": {
                             "ipasudorunas": [
-                                "user"
+                                "user",
+                                "group"
                             ],
                             "ipasudorunasgroup": [
                                 "group"
@@ -6838,6 +6839,58 @@
                                 "minlength": null,
                                 "multivalue": false,
                                 "name": "externaluser",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "runasexternaluser",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "External User the commands can run as",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "RunAs External User",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "ipasudorunasextuser",
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "runasexternalgroup",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "External Group the commands can run as",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "RunAs External Group",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "ipasudorunasextgroup",
                                 "pattern": null,
                                 "pattern_errmsg": null,
                                 "primary_key": false,
@@ -7757,22 +7810,22 @@
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "902200000"
+                            "1333600000"
                         ],
                         "homedirectory": [
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "9aafe8c2-19e6-11e0-849f-52540029a798"
+                            "26f59232-1eb0-11e0-9271-52540029a798"
                         ],
                         "krblastpwdchange": [
-                            "20110106224650Z"
+                            "20110113005936Z"
                         ],
                         "krblastsuccessfulauth": [
-                            "20110106224950Z"
+                            "20110113180851Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20110406224650Z"
+                            "20110413005936Z"
                         ],
                         "krbprincipalname": [
                             "admin@IPA14.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
@@ -7806,7 +7859,7 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "902200000"
+                            "1333600000"
                         ]
                     }
                 ],
@@ -7833,7 +7886,7 @@
                     "container_configs": "cn=configs,cn=policies",
                     "container_dns": "cn=dns",
                     "container_group": "cn=groups,cn=accounts",
-                    "container_hbacrule": "cn=hbacrules",
+                    "container_hbac": "cn=hbac",
                     "container_hbacservice": "cn=hbacservices,cn=accounts",
                     "container_hbacservicegroup": "cn=hbacservicegroups,cn=accounts",
                     "container_host": "cn=computers,cn=accounts",
