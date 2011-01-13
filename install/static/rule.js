@@ -70,7 +70,7 @@ function ipa_rule_details_section(spec){
             span.append('<br/>');
         }
 
-        for (var j=0; i<that.tables.length; i++) {
+        for (var j=0; j<that.tables.length; j++) {
             var table = that.tables[j];
 
             param_info = ipa_get_param_info(that.entity_name, table.field_name);
