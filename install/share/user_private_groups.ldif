@@ -1,4 +1,4 @@
-dn: cn=UPG Template,$SUFFIX
+dn: cn=UPG Template,cn=etc,$SUFFIX
 changetype: add
 objectclass: mepTemplateEntry
 cn: UPG Template
@@ -17,5 +17,5 @@ cn: UPG Definition
 originScope: cn=users,cn=accounts,$SUFFIX
 originFilter: objectclass=posixAccount
 managedBase: cn=groups,cn=accounts,$SUFFIX
-managedTemplate: cn=UPG Template,$SUFFIX
+managedTemplate: cn=UPG Template,cn=etc,$SUFFIX
 

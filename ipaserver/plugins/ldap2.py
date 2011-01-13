@@ -627,7 +627,8 @@ class ldap2(CrudBackend, Encoder):
         if _upg is None:
             try:
                 upg_entry = self.conn.search_s(
-                    'cn=UPG Template, %s' % api.env.basedn, _ldap.SCOPE_BASE,
+                    'cn=UPG Template,cn=etc,%s' % api.env.basedn,
+                    _ldap.SCOPE_BASE,
                     attrlist=['*']
                 )[0]
                 _upg = True

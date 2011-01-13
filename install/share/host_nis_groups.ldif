@@ -1,4 +1,4 @@
-dn: cn=NGP HGP Template,$SUFFIX
+dn: cn=NGP HGP Template,cn=etc,$SUFFIX
 changetype: add
 objectclass: mepTemplateEntry
 cn: NGP HGP Template
@@ -18,4 +18,4 @@ cn: HGP Definition
 originScope: cn=hostgroups,cn=accounts,$SUFFIX
 originFilter: objectclass=ipahostgroup
 managedBase: cn=ng,cn=alt,$SUFFIX
-managedTemplate: cn=NGP HGP Template,$SUFFIX
+managedTemplate: cn=NGP HGP Template,cn=etc,$SUFFIX

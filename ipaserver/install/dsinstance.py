@@ -208,10 +208,10 @@ class DsInstance(service.Service):
         self.step("configuring ssl for ds instance", self.__enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("restarting directory server", self.__restart_instance)
-        self.step("configuring user private groups", self.__user_private_groups)
-        self.step("configuring netgroups from hostgroups", self.__host_nis_groups)
 
     def __common_post_setup(self):
+        self.step("configuring user private groups", self.__user_private_groups)
+        self.step("configuring netgroups from hostgroups", self.__host_nis_groups)
         self.step("initializing group membership", self.init_memberof)
         self.step("adding master entry", self.__add_master_entry)
         self.step("configuring Posix uid/gid generation",
