@@ -84,7 +84,7 @@ from ipalib.plugins.service import normalize_certificate
 from ipalib.plugins.service import set_certificate_attrs
 from ipalib.plugins.service import make_pem, check_writable_file
 from ipalib.plugins.service import write_certificate
-from ipalib.plugins.dns2 import dns_container_exists, _record_types
+from ipalib.plugins.dns import dns_container_exists, _record_types
 from ipalib import _, ngettext
 from ipalib import x509
 from ipapython.ipautil import ipa_generate_password
