@@ -129,11 +129,6 @@ Requires: krb5-workstation
 Requires: krb5-libs
 Requires: authconfig
 Requires: pam_krb5
-%if 0%{?fedora} >= 14 || 0%{?rhel} >= 6
-Requires: nss-pam-ldapd
-%else
-Requires: nss_ldap
-%endif
 Requires: wget
 Requires: xmlrpc-c
 Requires: libcurl
@@ -464,6 +459,10 @@ fi
 %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Thu Jan 13 2011 Simo Sorce <ssorce@redhat.com> - 1.99-39
+- Remove dependency on nss_ldap/nss-pam-ldapd
+- The official client is sssd and that's what we use by default.
+
 * Thu Jan 13 2011 Simo Sorce <ssorce@redhat.com> - 1.99-38
 - Remove radius subpackages
 
