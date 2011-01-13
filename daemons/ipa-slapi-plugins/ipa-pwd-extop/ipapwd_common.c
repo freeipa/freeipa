@@ -74,12 +74,14 @@ static int new_ipapwd_encsalt(krb5_context krbctx,
 {
     struct ipapwd_encsalt *es;
     int nes, i;
+    int rc;
 
     for (i = 0; encsalts[i]; i++) /* count */ ;
     es = calloc(i + 1, sizeof(struct ipapwd_encsalt));
     if (!es) {
         LOG_OOM();
-        return LDAP_OPERATIONS_ERROR;
+        rc = LDAP_OPERATIONS_ERROR;
+        goto fail;
     }
 
     for (i = 0, nes = 0; encsalts[i]; i++) {
@@ -93,7 +95,8 @@ static int new_ipapwd_encsalt(krb5_context krbctx,
         enc = strdup(encsalts[i]);
         if (!enc) {
             LOG_OOM();
-            return LDAP_OPERATIONS_ERROR;
+            rc = LDAP_OPERATIONS_ERROR;
+            goto fail;
         }
         salt = strchr(enc, ':');
         if (!salt) {
@@ -133,6 +136,10 @@ static int new_ipapwd_encsalt(krb5_context krbctx,
     *num_es_types = nes;
 
     return LDAP_SUCCESS;
+
+fail:
+    free(es);
+    return rc;
 }
 
 static struct ipapwd_krbcfg *ipapwd_getConfig(void)

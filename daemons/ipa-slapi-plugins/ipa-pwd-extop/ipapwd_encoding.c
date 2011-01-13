@@ -280,7 +280,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
     if (!krbPrincipalName) {
         *errMesg = "no krbPrincipalName present in this entry\n";
         LOG_FATAL("%s", *errMesg);
-        return NULL;
+        goto enc_error;
     }
 
     krberr = krb5_parse_name(krbctx, krbPrincipalName, &princ);
@@ -680,6 +680,7 @@ static int encode_ntlm_keys(char *newPasswd,
         ucs2Passwd = calloc(ol, 1);
         if (!ucs2Passwd) {
             ret = -1;
+            iconv_close(cd);
             goto done;
         }
 
@@ -735,6 +736,11 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
 {
     int rc;
 
+    *svals = NULL;
+    *nthash = NULL;
+    *lmhash = NULL;
+    *errMesg = NULL;
+
     if (is_krb) {
 
         *svals = encrypt_encode_key(krbcfg, data, errMesg);
@@ -777,6 +783,11 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
     rc = LDAP_SUCCESS;
 
 done:
+
+    /* when error, free possibly allocated output parameters */
+    if (rc) {
+        ipapwd_free_slapi_value_array(svals);
+    }
 
     return rc;
 }
