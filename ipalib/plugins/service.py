@@ -52,7 +52,7 @@ EXAMPLES:
  Delete an IPA service:
    ipa service-del HTTP/web.example.com
 
- Find all IPA services assicated with a host:
+ Find all IPA services associated with a host:
    ipa service-find web.example.com
 
  Find all HTTP services:
