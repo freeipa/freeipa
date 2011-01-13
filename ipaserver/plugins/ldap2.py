@@ -535,6 +535,8 @@ class ldap2(CrudBackend, Encoder):
                 time_limit = config.get('ipasearchtimelimit', [-1])[0]
             if size_limit is None:
                 size_limit = config.get('ipasearchrecordslimit', [0])[0]
+        if time_limit == 0:
+            time_limit = -1
         if not isinstance(size_limit, int):
             size_limit = int(size_limit)
         if not isinstance(time_limit, float):

@@ -68,7 +68,13 @@ from ipalib import api
 from ipalib import Bool, Int, Str, IA5Str
 from ipalib.plugins.baseldap import *
 from ipalib import _
+from ipalib.errors import ValidationError
 
+
+def validate_searchtimelimit(ugettext, limit):
+    if limit == 0:
+        raise ValidationError(name='ipasearchtimelimit', error=_('searchtimelimit must be -1 or > 1.'))
+    return None
 
 class config(LDAPObject):
     """
@@ -110,7 +116,7 @@ class config(LDAPObject):
             label=_('Default e-mail domain'),
             doc=_('Default e-mail domain new users'),
         ),
-        Int('ipasearchtimelimit?',
+        Int('ipasearchtimelimit?', validate_searchtimelimit,
             cli_name='searchtimelimit',
             label=_('Search time limit'),
             doc=_('Max. amount of time (sec.) for a search (-1 is unlimited)'),
