@@ -23,6 +23,7 @@ Ping the remote IPA server
 from ipalib import api
 from ipalib import Command
 from ipalib import output
+from ipapython.version import VERSION, API_VERSION
 
 class ping(Command):
     """
@@ -37,6 +38,6 @@ class ping(Command):
         A possible enhancement would be to take an argument and echo it
         back but a fixed value works for now.
         """
-        return dict(summary=u'pong')
+        return dict(summary=u'IPA server version %s. API version %s' % (VERSION, API_VERSION))
 
 api.register(ping)

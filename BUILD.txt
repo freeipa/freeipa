@@ -67,6 +67,25 @@ Some tests may be skipped. For example, all the XML-RPC tests will be skipped
 if you haven't started the lite-server. The DNS tests will be skipped if
 the underlying IPA installation doesn't configure DNS, etc.
 
+API.txt
+-------
+The purpose of the file API.txt is to prevent accidental API changes. The
+program ./makeapi creates file and also validates it (with the --validate
+option). This validation is part of the build process.
+
+There are three solutions to changes to the API:
+
+1. Changes to existing API require a change to the MAJOR version.
+2. Addition of new API requires a change to the MINOR version.
+3. Or just back out your changes and don't make an API change.
+
+If the API changes you'll need to run ./makeapi to update API.txt and
+commit it along with VERSION with your API change.
+
+If a module is optionally loaded then you will need to be able to
+conditionally load it for API validation. The environment variable
+api.env.validate_api is True during validation.
+
 General Notes
 -------------
 IPA is not relocatable.

@@ -49,7 +49,7 @@ client: client-autogen
 
 bootstrap-autogen: version-update client-autogen
 	@echo "Building IPA $(IPA_VERSION)"
-	cd daemons; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
+	cd daemons; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR) --with-openldap; fi
 	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
 client-autogen: version-update
@@ -90,6 +90,7 @@ version-update: release-update
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipapython/version.py.in \
 		> ipapython/version.py
 	perl -pi -e "s:__NUM_VERSION__:$(IPA_VERSION_MAJOR)$(IPA_VERSION_MINOR)$(IPA_VERSION_RELEASE):" ipapython/version.py
+	perl -pi -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" ipapython/version.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ daemons/ipa-version.h.in \
 		> daemons/ipa-version.h
 	perl -pi -e "s:__NUM_VERSION__:$(IPA_VERSION_MAJOR)$(IPA_VERSION_MINOR)$(IPA_VERSION_RELEASE):" daemons/ipa-version.h
@@ -99,6 +100,9 @@ version-update: release-update
 		ipa-client/ipa-client.spec.in > ipa-client/ipa-client.spec
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-client/version.m4.in \
 		> ipa-client/version.m4
+	if [ "$(SKIP_API_VERSION_CHECK)" != "yes" ]; then \
+		./makeapi --validate; \
+	fi
 
 server:
 	python setup.py build

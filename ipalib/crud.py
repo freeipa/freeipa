@@ -76,7 +76,7 @@ us:
 >>> list(api.Command.user_add.args)
 ['login']
 >>> list(api.Command.user_add.options)
-['first', 'last', 'all', 'raw']
+['first', 'last', 'all', 'raw', 'version']
 
 Notice that ``'ipauniqueid'`` isn't included in the options for our ``user_add``
 plugin.  This is because of the ``'no_create'`` flag we used when defining the
@@ -94,7 +94,7 @@ class created them for us:
 >>> list(api.Command.user_show.args)
 ['login']
 >>> list(api.Command.user_show.options)
-['all', 'raw']
+['all', 'raw', 'version']
 
 As you can see, `Retrieve` plugins take a single argument (the primary key) and
 no options.  If needed, you can still specify options for your `Retrieve` plugin

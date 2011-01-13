@@ -74,12 +74,13 @@ class test_Create(CrudChecker):
         """
         api = self.get_api()
         assert list(api.Method.user_verb.options) == \
-            ['givenname', 'sn', 'initials', 'all', 'raw']
+            ['givenname', 'sn', 'initials', 'all', 'raw', 'version']
         for param in api.Method.user_verb.options():
-            assert param.required is True
+            if param.name != 'version':
+                assert param.required is True
         api = self.get_api(options=('extra?',))
         assert list(api.Method.user_verb.options) == \
-            ['givenname', 'sn', 'initials', 'extra', 'all', 'raw']
+            ['givenname', 'sn', 'initials', 'extra', 'all', 'raw', 'version']
         assert api.Method.user_verb.options.extra.required is False
 
 
@@ -104,7 +105,7 @@ class test_Update(CrudChecker):
         """
         api = self.get_api()
         assert list(api.Method.user_verb.options) == \
-            ['givenname', 'initials', 'uidnumber', 'all', 'raw']
+            ['givenname', 'initials', 'uidnumber', 'all', 'raw', 'version']
         for param in api.Method.user_verb.options():
             if param.name in ['all', 'raw']:
                 assert param.required is True
@@ -132,7 +133,7 @@ class test_Retrieve(CrudChecker):
         Test the `ipalib.crud.Retrieve.get_options` method.
         """
         api = self.get_api()
-        assert list(api.Method.user_verb.options) == ['all', 'raw']
+        assert list(api.Method.user_verb.options) == ['all', 'raw', 'version']
 
 
 class test_Delete(CrudChecker):
@@ -180,7 +181,7 @@ class test_Search(CrudChecker):
         """
         api = self.get_api()
         assert list(api.Method.user_verb.options) == \
-            ['givenname', 'sn', 'uid', 'initials', 'all', 'raw']
+            ['givenname', 'sn', 'uid', 'initials', 'all', 'raw', 'version']
         for param in api.Method.user_verb.options():
             if param.name in ['all', 'raw']:
                 assert param.required is True

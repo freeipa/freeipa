@@ -29,6 +29,7 @@ from ipalib.base import NameSpace
 from ipalib import frontend, backend, plugable, errors, parameters, config
 from ipalib import output
 from ipalib.parameters import Str
+from ipapython.version import API_VERSION
 
 def test_RULE_FLAG():
     assert frontend.RULE_FLAG == 'validation_rule'
@@ -431,6 +432,7 @@ class test_Command(ClassChecker):
             option0=u'option0',
             option1=u'option1',
             another_option='some value',
+            version=API_VERSION,
         )
         sub.validate(**okay)
 
@@ -561,7 +563,7 @@ class test_Command(ClassChecker):
                 return ('forward', args, kw)
 
         args = ('Hello,', 'world,')
-        kw = dict(how_are='you', on_this='fine day?')
+        kw = dict(how_are='you', on_this='fine day?', version=API_VERSION)
 
         # Test in server context:
         (api, home) = create_test_api(in_server=True)
@@ -569,7 +571,9 @@ class test_Command(ClassChecker):
         o = my_cmd()
         o.set_api(api)
         assert o.run.im_func is self.cls.run.im_func
-        assert ('execute', args, kw) == o.run(*args, **kw)
+        out = o.run(*args, **kw)
+        del kw['version']
+        assert ('execute', args, kw) == out
 
         # Test in non-server context
         (api, home) = create_test_api(in_server=False)

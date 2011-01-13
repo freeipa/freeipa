@@ -39,6 +39,11 @@ BuildRequires:  m4
 BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
 BuildRequires:  python-setuptools
 BuildRequires:  python-krbV
+BuildRequires:  python-nss
+BuildRequires:  python-netaddr
+BuildRequires:  python-kerberos
+BuildRequires:  python-ldap
+BuildRequires:  krb5-workstation
 BuildRequires:  xmlrpc-c-devel
 BuildRequires:  libcurl-devel
 BuildRequires:  gettext

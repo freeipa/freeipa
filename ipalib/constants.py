@@ -140,6 +140,9 @@ DEFAULT_CONFIG = (
     ('enable_ra', False),
     ('ra_plugin', 'selfsign'),
 
+    # Used when verifying that the API hasn't changed. Not for production.
+    ('validate_api', False),
+
     # ********************************************************
     #  The remaining keys are never set from the values here!
     # ********************************************************

@@ -30,9 +30,11 @@ from util import make_repr
 from output import Output, Entry, ListOfEntries
 from text import _, ngettext
 
-from errors import ZeroArgumentError, MaxArgumentError, OverlapError, RequiresRoot
+from errors import ZeroArgumentError, MaxArgumentError, OverlapError, RequiresRoot, VersionError, RequirementError
 from errors import InvocationError
 from constants import TYPE_ERROR
+from ipapython.version import API_VERSION
+from distutils import version
 
 
 RULE_FLAG = 'validation_rule'
@@ -412,6 +414,8 @@ class Command(HasParam):
         self.info(
             '%s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
+        if not self.api.env.in_server and 'version' not in params:
+            params['version'] = API_VERSION
         self.validate(**params)
         (args, options) = self.params_2_args_options(**params)
         ret = self.run(*args, **options)
@@ -680,6 +684,30 @@ class Command(HasParam):
             value = kw.get(param.name, None)
             param.validate(value, self.env.context)
 
+    def verify_client_version(self, client_version):
+        """
+        Compare the version the client provided to the version of the
+        server.
+
+        If the client major version does not match then return an error.
+        If the client minor version is less than or equal to the server
+        then let the request proceed.
+        """
+        ver = version.LooseVersion(client_version)
+        if len(ver.version) < 2:
+            raise VersionError(cver=ver.version, sver=server_ver.version, server= self.env.xmlrpc_uri)
+        client_major = ver.version[0]
+        client_minor = ver.version[1]
+
+        server_ver = version.LooseVersion(API_VERSION)
+        server_major = server_ver.version[0]
+        server_minor = server_ver.version[1]
+
+        if server_major != client_major:
+            raise VersionError(cver=client_version, sver=API_VERSION, server=self.env.xmlrpc_uri)
+        if client_minor > server_minor:
+            raise VersionError(cver=client_version, sver=API_VERSION, server=self.env.xmlrpc_uri)
+
     def run(self, *args, **options):
         """
         Dispatch to `Command.execute` or `Command.forward`.
@@ -693,6 +721,9 @@ class Command(HasParam):
         performs is executed remotely.
         """
         if self.api.env.in_server:
+            if 'version' in options:
+                self.verify_client_version(options['version'])
+                del options['version']
             return self.execute(*args, **options)
         return self.forward(*args, **options)
 
@@ -825,6 +856,11 @@ class Command(HasParam):
                     doc=_('print entries as stored on the server. Only affects output format.'),
                     exclude='webui',
                     flags=['no_output'],
+                )
+                yield Str('version?',
+                    doc=_('Client version. Used to determine if server will accept request.'),
+                    exclude='webui',
+                    flags=['no_option', 'no_output'],
                 )
                 return
 

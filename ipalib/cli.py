@@ -32,7 +32,14 @@ import fcntl
 import termios
 import struct
 import base64
-import default_encoding_utf8
+try:
+    import default_encoding_utf8
+except ImportError:
+    # This is a chicken-and-egg problem. The api can't be imported unless
+    # this is already installed and since it is installed with IPA therein
+    # lies the problem. Skip it for now so ipalib can be imported in-tree
+    # even in cases that IPA isn't installed on the dev machine.
+    pass
 
 import frontend
 import backend
@@ -42,6 +49,7 @@ from errors import PublicError, CommandError, HelpError, InternalError, NoSuchNa
 from constants import CLI_TAB
 from parameters import Password, Bytes, File
 from text import _
+from ipapython.version import API_VERSION
 
 
 def to_cli(name):
@@ -884,6 +892,7 @@ class cli(backend.Executioner):
         if not isinstance(cmd, frontend.Local):
             self.create_context()
         kw = self.parse(cmd, argv)
+        kw['version'] = API_VERSION
         if self.env.interactive:
             self.prompt_interactively(cmd, kw)
         self.load_files(cmd, kw)
@@ -931,6 +940,8 @@ class cli(backend.Executioner):
                 dest=option.name,
                 help=unicode(option.doc),
             )
+            if 'no_option' in option.flags:
+                continue
             if option.password and self.env.interactive:
                 kw['action'] = 'store_true'
             elif option.type is bool and option.autofill:

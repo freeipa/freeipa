@@ -66,3 +66,17 @@ IPA_VERSION_IS_GIT_SNAPSHOT="yes"
 #  ->  "20100614120000"                                #
 ########################################################
 IPA_DATA_VERSION=20100614120000
+
+########################################################
+# The version of the IPA API. This controls which      #
+# client versions can use the XML-RPC and json APIs    #
+#                                                      #
+# A change to existing API requires a MAJOR version    #
+# update.  The addition of new API bumps the MINOR     #
+# version.                                             #
+#                                                      #
+# The format is a whole number                         #
+#                                                      #
+########################################################
+IPA_API_VERSION_MAJOR=2
+IPA_API_VERSION_MINOR=0

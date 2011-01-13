@@ -33,7 +33,7 @@ where the contenst of the file batch_request.json follow the below example
         {"method":"user_show","params":[["admin"],{"all":true}]}
         ],{}],"id":1}
 
-THe format of the response is nested the same way.  At the top you will see
+The format of the response is nested the same way.  At the top you will see
   "error": null,
     "id": 1,
     "result": {
@@ -51,6 +51,7 @@ from ipalib import Str, List
 from ipalib.output import Output
 from ipalib import output
 from ipalib.text import _
+from ipapython.version import API_VERSION
 
 class batch(Command):
     INTERNAL = True
@@ -60,6 +61,17 @@ class batch(Command):
              doc=_('Nested Methods to execute'),
              ),
         )
+
+    take_options = (
+        Str('version',
+            cli_name='version',
+            doc=_('Client version. Used to determine if server will accept request.'),
+            exclude='webui',
+            flags=['no_option', 'no_output'],
+            default=API_VERSION,
+            autofill=True,
+            )
+    )
 
     has_output = (
         Output('count', int, doc=_('')),

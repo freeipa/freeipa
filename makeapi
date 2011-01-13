@@ -1,0 +1,238 @@
+#!/usr/bin/env python
+# Authors:
+#   Rob Crittenden <rcritten@redhat.com>
+#
+# Copyright (C) 2011  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Test the API against a known-good API to ensure that changes aren't made
+# lightly.
+
+import sys
+import os
+import re
+from ipalib import *
+from ipalib.text import Gettext
+
+API_FILE='API.txt'
+
+API_FILE_DIFFERENCE = 1
+API_NEW_COMMAND = 2
+API_NO_FILE = 4
+
+def parse_options():
+    from optparse import OptionParser
+
+    parser = OptionParser()
+    parser.add_option("--validate", dest="validate", action="store_true",
+        default=False, help="Validate the API vs the stored API")
+
+    options, args = parser.parse_args()
+    return options, args
+
+def strip_doc(line):
+    """
+    Remove the doc= line from the repr() of a Paramter.
+    """
+    s = line.find(' doc=')
+    if s >= 0:
+        e = line.find('), ', s)
+        line = '%s%s' % (line[0:s], line[e+2:])
+
+    return line
+
+def make_api():
+    """
+    Write a new API file from the current tree.
+    """
+    fd = open(API_FILE, 'w')
+    for cmd in api.Command():
+        fd.write('command: %s\n' % cmd.name)
+        fd.write('args: %d,%d,%d\n' % (len(cmd.args), len(cmd.options), len(cmd.output)))
+        for a in cmd.args():
+            fd.write('arg: %s\n' % strip_doc(repr(a)))
+        for o in cmd.options():
+            fd.write('option: %s\n' % strip_doc(repr(o)))
+        for o in cmd.output():
+            fd.write('output: %s\n' % strip_doc(repr(o)))
+    fd.close()
+
+    return 0
+
+def find_name(line):
+    """
+    Break apart a Param line and pull out the name. It would be nice if we
+    could just eval() the line but we wouldn't have defined any validators
+    or normalizers it may be using.
+    """
+    m = re.match('^[a-zA-Z0-9]+\(\'([a-z][_a-z0-9?\*\+]*)\'.*', line)
+    if m:
+        name = m.group(1)
+    else:
+        print "Couldn't find name in: %s" % line
+        name = ''
+    return name
+
+def validate_api():
+    """
+    Compare the API in the file to the one in ipalib.
+
+    Return a bitwise return code to identify the types of errors found, if
+    any.
+    """
+    fd = open(API_FILE, 'r')
+    lines = fd.readlines()
+    fd.close()
+
+    rval = 0
+
+    # First run through the file and compare it to the API
+    existing_cmds = []
+    cmd = None
+    for line in lines:
+        line = line.strip()
+        if line.startswith('command:'):
+            if cmd:
+                # Check the args of the previous command.
+                if found_args != expected_args:
+                    print 'Argument count in %s of %d doesn\'t match expected: %d' % (
+                        name, found_args, expected_args)
+                    rval |= API_FILE_DIFFERENCE
+                if found_options != expected_options:
+                    print 'Options count in %s of %d doesn\'t match expected: %d' % (
+                        name, found_options, expected_options)
+                    rval |= API_FILE_DIFFERENCE
+                if found_output != expected_output:
+                    print 'Output count in %s of %d doesn\'t match expected: %d' % (
+                        name, found_output, expected_output)
+                    rval |= API_FILE_DIFFERENCE
+            (arg, name) = line.split(': ', 1)
+            if name not in api.Command:
+                print "Command %s in API file, not in ipalib" % name
+                rval |= API_FILE_DIFFERENCE
+                cmd = None
+            else:
+                existing_cmds.append(name)
+                cmd = api.Command[name]
+            found_args = 0
+            found_options = 0
+            found_output = 0
+        if line.startswith('args:') and cmd:
+            line = line.replace('args: ', '')
+            (expected_args, expected_options, expected_output) = line.split(',')
+            expected_args = int(expected_args)
+            expected_options = int(expected_options)
+            expected_output = int(expected_output)
+        if line.startswith('arg:') and cmd:
+            line = line.replace('arg: ', '')
+            found = False
+            for a in cmd.args():
+                if strip_doc(repr(a)) == line:
+                    found = True
+                else:
+                    arg = find_name(line)
+                    if a.name == arg:
+                        found = True
+                        print 'Arg in %s doesn\'t match.\nGot      %s\nExpected %s' % (
+                            name, strip_doc(repr(a)), line)
+                        rval |= API_FILE_DIFFERENCE
+            if found:
+                found_args += 1
+            else:
+                arg = find_name(line)
+                print "Argument '%s' in command '%s' in API file not found" % (arg, name)
+                rval |= API_FILE_DIFFERENCE
+        if line.startswith('option:') and cmd:
+            line = line.replace('option: ', '')
+            found = False
+            for o in cmd.options():
+                if strip_doc(repr(o)) == line:
+                    found = True
+                else:
+                    option = find_name(line)
+                    if o.name == option:
+                        found = True
+                        print 'Option in %s doesn\'t match. Got %s Expected %s' % (name, o, line)
+                        rval |= API_FILE_DIFFERENCE
+            if found:
+                found_options += 1
+            else:
+                option = find_name(line)
+                print "Option '%s' in command '%s' in API file not found" % (option, name)
+                rval |= API_FILE_DIFFERENCE
+        if line.startswith('output:') and cmd:
+            line = line.replace('output: ', '')
+            found = False
+            for o in cmd.output():
+                if strip_doc(repr(o)) == line:
+                    found = True
+                else:
+                    output = find_name(line)
+                    if o.name == output:
+                        found = True
+                        print 'Output in %s doesn\'t match. Got %s Expected %s' % (name, o, line)
+                        rval |= API_FILE_DIFFERENCE
+            if found:
+                found_output += 1
+            else:
+                output = find_name(line)
+                print "Option '%s' in command '%s' in API file not found" % (output, name)
+                rval |= API_FILE_DIFFERENCE
+
+    # Now look for new commands not in the current API
+    for cmd in api.Command():
+        if cmd.name not in existing_cmds:
+            print "Command %s in ipalib, not in API" % cmd.name
+            rval |= API_NEW_COMMAND
+
+    return rval
+
+def main():
+    options, args = parse_options()
+
+    cfg = dict(
+        context='cli',
+        in_server=False,
+        debug=False,
+        verbose=0,
+        validate_api=True,
+        enable_ra=True,
+    )
+
+    api.bootstrap(**cfg)
+    api.finalize()
+
+    if options.validate:
+        if not os.path.exists(API_FILE):
+            print 'No %s to validate' % API_FILE
+            rval = API_NO_FILE
+        else:
+            rval = validate_api()
+    else:
+        print "Writing API to API.txt"
+        rval = make_api()
+
+    if rval & API_FILE_DIFFERENCE:
+        print ''
+        print 'There are one or more changes to the API.\nEither undo the API changes or update API.txt and increment the major version in VERSION.'
+
+    if rval & API_NEW_COMMAND:
+        print ''
+        print 'There are one or more new commands defined.\nUpdate API.txt and increment the minor version in VERSION.'
+
+    return rval
+
+sys.exit(main())
