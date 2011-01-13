@@ -47,7 +47,7 @@ IPA.populate_attribute_table = function (table, entity){
 
 IPA.attribute_table_widget= function (spec){
     var id = spec.name;
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
     var object_type = spec.objecttype || 'user';
     var table;
 
@@ -116,7 +116,7 @@ IPA.attribute_table_widget= function (spec){
 
 IPA.entity_select_widget = function(spec){
 
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
     var entity = spec.entity || 'group';
 
     function populate_select(value){
@@ -137,7 +137,7 @@ IPA.entity_select_widget = function(spec){
         }
         function find_error(err){
         }
-        ipa_command({
+        IPA.command({
             method: entity+'_find',
             args:[that.entity_filter.val()],
             options:{},
@@ -199,7 +199,7 @@ IPA.entity_select_widget = function(spec){
 IPA.rights_widget = function(spec){
     var rights = ['write','add','delete'];
 
-    var that = ipa_widget({name:'permissions',label:'Permissions'});
+    var that = IPA.widget({name:'permissions',label:'Permissions'});
     that.id = spec.id;
 
     that.create = function(container){
@@ -259,7 +259,7 @@ IPA.rights_widget = function(spec){
 
 IPA.hidden_widget = function(spec){
     spec.label = '';
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
     that.id = spec.id;
     var value = spec.value || '';
     that.create = function(container){
@@ -280,24 +280,24 @@ IPA.hidden_widget = function(spec){
     return that;
 };
 
-function ipa_rights_section() {
+IPA.rights_section = function () {
     var    spec =  {
         'name':'rights',
         'label': 'Rights'
     };
-    var that = ipa_details_section(spec);
+    var that = IPA.details_section(spec);
     that.add_field(IPA.rights_widget({name:'permissions'}));
 
     return that;
 }
 
-function ipa_target_section() {
+IPA.target_section = function () {
     var    spec =  {
         'name':'target',
         'label': 'Target'
     };
 
-    var that = ipa_details_section(spec);
+    var that = IPA.details_section(spec);
     var groupings = ['aci_by_type',  'aci_by_query', 'aci_by_group',
                      'aci_by_filter' ];
     var inputs = ['input', 'select', 'textarea'];
@@ -364,7 +364,7 @@ function ipa_target_section() {
                     attribute_table, this.options[this.selectedIndex].value);
             }
         }).appendTo(dd);
-        var type_params=ipa_get_param_info("permission","type");
+        var type_params=IPA.get_param_info("permission","type");
         for (var pc =0; pc <  type_params.values.length; pc += 1){
             type_select.append($('<option/>',{
                 value:  type_params.values[pc],
@@ -413,7 +413,7 @@ function ipa_target_section() {
         }
 
         $('option', that.group_select).remove();
-        ipa_command({
+        IPA.command({
             method:'group_find',
             args:[that.group_filter.val()],
             options:{},
@@ -561,15 +561,15 @@ function ipa_target_section() {
 
 
 
-function ipa_permission() {
+IPA.permission = function () {
 
-    var that = ipa_entity({
+    var that = IPA.entity({
         'name': 'permission'
     });
 
     that.init = function() {
 
-        var dialog = ipa_permission_add_dialog({
+        var dialog = IPA.permission_add_dialog({
             name: 'add',
             title: 'Add New Permission',
             entity_name: 'permission'
@@ -577,13 +577,13 @@ function ipa_permission() {
         that.add_dialog(dialog);
         dialog.init();
 
-        var facet = ipa_permission_search_facet({
+        var facet = IPA.permission_search_facet({
             name: 'search',
             label: 'Search'
         });
         that.add_facet(facet);
 
-        facet = ipa_permission_details_facet();
+        facet = IPA.permission_details_facet();
         that.add_facet(facet);
 
         that.entity_init();
@@ -592,24 +592,24 @@ function ipa_permission() {
     return that;
 }
 
-IPA.add_entity(ipa_permission());
+IPA.add_entity(IPA.permission());
 
 
 
-function ipa_permission_add_dialog(spec) {
+IPA.permission_add_dialog =  function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_add_dialog(spec);
+    var that = IPA.add_dialog(spec);
 
     that.init = function() {
 
-        that.add_field(ipa_text_widget({
+        that.add_field(IPA.text_widget({
             name: 'cn',
             undo: false
         }));
 
-        that.add_field(ipa_text_widget({
+        that.add_field(IPA.text_widget({
             name: 'description',
             undo: false
         }));
@@ -624,10 +624,10 @@ function ipa_permission_add_dialog(spec) {
 }
 
 
-function ipa_permission_search_facet(spec) {
+IPA.permission_search_facet =  function (spec) {
 
     spec = spec || {};
-    var that = ipa_search_facet(spec);
+    var that = IPA.search_facet(spec);
     that.init = function() {
         that.create_column({name:'cn'});
         that.create_column({name:'description'});
@@ -637,25 +637,25 @@ function ipa_permission_search_facet(spec) {
 }
 
 
-function ipa_permission_details_facet() {
+IPA.permission_details_facet = function () {
 
     var spec = {
             name: 'details',
             label: 'Details'
     };
-    var that = ipa_details_facet(spec);
+    var that = IPA.details_facet(spec);
 
     that.init = function() {
 
-        var section = that.add_section(ipa_details_list_section({
+        var section = that.add_section(IPA.details_list_section({
             name:'identity',label:'Identity'  }));
         section.create_field({ name: 'cn', 'read_only': true });
         section.create_field({ name: 'description'});
 
-        that.rights_section = ipa_rights_section();
+        that.rights_section = IPA.rights_section();
         that.add_section(that.rights_section);
 
-        that.target_section = ipa_target_section();
+        that.target_section = IPA.target_section();
 
         that.add_section(that.target_section);
         that.details_facet_init();
@@ -675,12 +675,12 @@ function ipa_permission_details_facet() {
 }
 
 IPA.add_entity( function() {
-    var that = ipa_entity({
+    var that = IPA.entity({
         'name': 'privilege'
     });
     that.init = function() {
 
-        var search_facet = ipa_search_facet({
+        var search_facet = IPA.search_facet({
             name: 'search',
             label: 'Search',
             entity_name: that.name
@@ -690,24 +690,24 @@ IPA.add_entity( function() {
         that.add_facet(search_facet);
 
         that.add_facet(function() {
-            var that = ipa_details_facet({name:'details',label:'Details'});
+            var that = IPA.details_facet({name:'details',label:'Details'});
             that.add_section(
-                ipa_stanza({name:'identity', label:'Privilege Details'}).
+                IPA.stanza({name:'identity', label:'Privilege Details'}).
                     input({name:'cn'}).
                     input({name: 'description'}));
             return that;
         }());
 
 
-        var dialog = ipa_add_dialog({
+        var dialog = IPA.add_dialog({
             name: 'add',
             title: 'Add Privilege',
             entity_name: that.entity
         });
         that.add_dialog(dialog);
 
-        dialog.add_field(ipa_text_widget({ name: 'cn', undo: false}));
-        dialog.add_field(ipa_text_widget({ name: 'description', undo: false}));
+        dialog.add_field(IPA.text_widget({ name: 'cn', undo: false}));
+        dialog.add_field(IPA.text_widget({ name: 'description', undo: false}));
         dialog.init();
 
         that.create_association_facets();
@@ -718,11 +718,11 @@ IPA.add_entity( function() {
 
 
 IPA.add_entity( function() {
-    var that = ipa_entity({
+    var that = IPA.entity({
         'name': 'role'
     });
     that.init = function() {
-        var search_facet = ipa_search_facet({
+        var search_facet = IPA.search_facet({
             name: 'search',
             label: 'Search',
             entity_name: that.name
@@ -732,22 +732,22 @@ IPA.add_entity( function() {
         that.add_facet(search_facet);
 
         that.add_facet(function() {
-            var that = ipa_details_facet({name:'details',label:'Details'});
+            var that = IPA.details_facet({name:'details',label:'Details'});
             that.add_section(
-                ipa_stanza({name:'identity', label:'Role Details'}).
+                IPA.stanza({name:'identity', label:'Role Details'}).
                     input({name:'cn'}).
                     input({name: 'description'}));
             return that;
         }());
 
-        var dialog = ipa_add_dialog({
+        var dialog = IPA.add_dialog({
             name: 'add',
             title: 'Add Role'
         });
         that.add_dialog(dialog);
 
-        dialog.add_field(ipa_text_widget({ name: 'cn', undo: false}));
-        dialog.add_field(ipa_text_widget({ name: 'description', undo: false}));
+        dialog.add_field(IPA.text_widget({ name: 'cn', undo: false}));
+        dialog.add_field(IPA.text_widget({ name: 'description', undo: false}));
         dialog.init();
 
         that.create_association_facets();
@@ -759,7 +759,7 @@ IPA.add_entity( function() {
 
 
 IPA.add_entity( function() {
-    var that = ipa_entity({
+    var that = IPA.entity({
         'name': 'selfservice'
     });
 
@@ -768,7 +768,7 @@ IPA.add_entity( function() {
             name: 'search',
             label: 'Search'
         };
-        var that = ipa_search_facet(spec);
+        var that = IPA.search_facet(spec);
         that.init = function() {
             that.create_column({name:'aciname'});
             that.search_facet_init();
@@ -778,11 +778,11 @@ IPA.add_entity( function() {
 
 
     that.add_facet(function(){
-        var that = ipa_details_facet({'name':'details',label:'Details'});
+        var that = IPA.details_facet({'name':'details',label:'Details'});
 
         that.init = function() {
             that.add_section(
-                ipa_stanza({name:'general', label:'General'}).
+                IPA.stanza({name:'general', label:'General'}).
                     input({name:'aciname'}).
                     custom_input(IPA.attribute_table_widget({
                         object_type:'user',
@@ -796,12 +796,12 @@ IPA.add_entity( function() {
     that.parent_init = that.init;
     that.init = function(){
         that.parent_init();
-        var dialog = ipa_add_dialog({
+        var dialog = IPA.add_dialog({
             name: 'add',
             title: 'Add Self Service Definition'
         });
         that.add_dialog(dialog);
-        dialog.add_field(ipa_text_widget({ name: 'aciname', undo: false}));
+        dialog.add_field(IPA.text_widget({ name: 'aciname', undo: false}));
         dialog.add_field(IPA.attribute_table_widget({
             object_type:'user',
             name:'attrs'
@@ -813,7 +813,7 @@ IPA.add_entity( function() {
 
 
 IPA.add_entity( function() {
-    var that = ipa_entity({
+    var that = IPA.entity({
         'name': 'delegation'
     });
 
@@ -822,7 +822,7 @@ IPA.add_entity( function() {
                 name: 'search',
                 label: 'Search'
             };
-            var that = ipa_search_facet(spec);
+            var that = IPA.search_facet(spec);
             that.init = function() {
                 that.create_column({name:'aciname'});
                 that.search_facet_init();
@@ -830,9 +830,9 @@ IPA.add_entity( function() {
             return that;
         }());
     that.add_facet(function(){
-        var that = ipa_details_facet({'name':'details',label:'Details'});
+        var that = IPA.details_facet({'name':'details',label:'Details'});
         var section =
-            ipa_stanza({name:'general', label:'General'}).
+            IPA.stanza({name:'general', label:'General'}).
             input({name:'aciname'}).
             custom_input(IPA.entity_select_widget(
                 {name:'group', entity:'group'})).
@@ -851,13 +851,13 @@ IPA.add_entity( function() {
     that.super_init = that.init;
     that.init = function(){
         that.super_init();
-        var dialog = ipa_add_dialog({
+        var dialog = IPA.add_dialog({
             name: 'add',
             title: 'Add Delegation',
             entity_name: that.entity
         });
         that.add_dialog(dialog);
-        dialog.add_field(ipa_text_widget({ name: 'aciname', undo: false}));
+        dialog.add_field(IPA.text_widget({ name: 'aciname', undo: false}));
         dialog.add_field(IPA.entity_select_widget({name:'group',
                                                    entity:'group'}));
         dialog.add_field(IPA.entity_select_widget({name:'memberof',

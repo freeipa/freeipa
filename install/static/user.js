@@ -20,9 +20,9 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-function ipa_user(){
+IPA.user = function (){
 
-    var that = ipa_entity({
+    var that = IPA.entity({
         name: 'user'
     });
 
@@ -38,7 +38,7 @@ function ipa_user(){
             'associator': 'serial'
         });
 
-        var search_facet = ipa_search_facet({
+        var search_facet = IPA.search_facet({
             'name': 'search',
             'label': 'Search',
             entity_name: that.name
@@ -54,15 +54,15 @@ function ipa_user(){
 
         that.add_facet(details_facet({name:'details',label:'Details'}));
 
-        var dialog = ipa_add_dialog({
+        var dialog = IPA.add_dialog({
             'name': 'add',
             'title': 'Add User'
         });
         that.add_dialog(dialog);
 
-        dialog.add_field(ipa_text_widget({ name: 'uid', undo: false }));
-        dialog.add_field(ipa_text_widget({ name: 'givenname', undo: false }));
-        dialog.add_field(ipa_text_widget({ name: 'sn', undo: false }));
+        dialog.add_field(IPA.text_widget({ name: 'uid', undo: false }));
+        dialog.add_field(IPA.text_widget({ name: 'givenname', undo: false }));
+        dialog.add_field(IPA.text_widget({ name: 'sn', undo: false }));
         dialog.init();
 
         /*eventually,  we need to call
@@ -76,17 +76,17 @@ function ipa_user(){
 
     function details_facet(spec) {
         spec = spec || {};
-        var that = ipa_details_facet(spec);
+        var that = IPA.details_facet(spec);
 
         var sections =[
-            ipa_stanza({name:'identity', label:'Identity Details'}).
+            IPA.stanza({name:'identity', label:'Identity Details'}).
                 input({name:'title'}).
                 input({name:'givenname'}).
                 input({name:'sn'}).
                 input({name:'cn'}).
                 input({name:'displayname'}).
                 input({name:'initials'}),
-            ipa_stanza({name:'account', label:'Account Details'}).
+            IPA.stanza({name:'account', label:'Account Details'}).
                 custom_input(user_status_widget({name:'nsaccountlock'})).
                 input({name:'uid'}).
                 input({name:'userpassword', load: user_password_load}).
@@ -94,21 +94,21 @@ function ipa_user(){
                 input({name:'gidnumber'}).
                 input({name:'loginshell'}).
                 input({name:'homedirectory'}),
-            ipa_stanza({name:'contact', label:'Contact Details'}).
+            IPA.stanza({name:'contact', label:'Contact Details'}).
                 input({name:'mail'}).
                 input({name:'telephonenumber'}).
                 input({name:'pager'}).
                 input({name:'mobile'}).
                 input({name:'facsimiletelephonenumber'}),
-            ipa_stanza({name:'address', label:'Mailing Address'}).
+            IPA.stanza({name:'address', label:'Mailing Address'}).
                 input({name:'street'}).
                 input({name:'location'}).
                 input({name:'state', load:user_state_load}).
                 input({name:'postalcode'}),
-            ipa_stanza({name:'employee', label:'Employee Information'}).
+            IPA.stanza({name:'employee', label:'Employee Information'}).
                 input({name:'ou', label:'Org. Unit'}).
                 input({name:'manager'}),
-            ipa_stanza({name:'misc', label:'Misc. Information'}).
+            IPA.stanza({name:'misc', label:'Misc. Information'}).
                 input({name:'carlicense'})
         ];
         for (var i = 0; i < sections.length; i += 1){
@@ -118,7 +118,7 @@ function ipa_user(){
     }
     return that;
 }
-IPA.add_entity(ipa_user());
+IPA.add_entity(IPA.user());
 
 /* ATTRIBUTE CALLBACKS */
 
@@ -127,7 +127,7 @@ function user_status_widget(spec) {
 
     spec = spec || {};
 
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
 
     that.update = function() {
 
@@ -135,7 +135,7 @@ function user_status_widget(spec) {
 
         $('dd', that.container).remove();
 
-        var dd = ipa_create_first_dd(this.name);
+        var dd = IPA.create_first_dd(this.name);
         dd.appendTo(that.container);
 
         var lock_field = 'nsaccountlock';
@@ -176,7 +176,7 @@ function user_status_widget(spec) {
                       if (val == 'Active') {
                           command = 'user_disable';
                       }
-                      ipa_cmd(command, [pkey], {}, on_lock_win,on_lock_fail);
+                      IPA.cmd(command, [pkey], {}, on_lock_win,on_lock_fail);
 
                       return (false);
                   }
@@ -200,7 +200,7 @@ function resetpwd_on_click(){
             pw_pkey = [user_pkey];
         }
 
-        ipa_cmd('passwd',
+        IPA.cmd('passwd',
                 pw_pkey, {"password":new_password},
                 function(){
                     alert("Password change complete");
@@ -243,7 +243,7 @@ function user_password_load(result) {
 
     $('dd', that.container).remove();
 
-    var dd = ipa_create_first_dd(this.name);
+    var dd = IPA.create_first_dd(this.name);
     dd.appendTo(that.container);
 
     var link = $('<a/>',{
@@ -276,7 +276,7 @@ function user_state_load(result) {
     //next.css('clear', 'none');
     //next.css('width', '70px');
 
-    var dd = ipa_create_first_dd(this.name);
+    var dd = IPA.create_first_dd(this.name);
     dd.append(select_temp);
     dd.appendTo(that.container);
 

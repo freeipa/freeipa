@@ -20,28 +20,28 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-function ipa_sudorule() {
+IPA.sudorule = function () {
 
-    var that = ipa_entity({
+    var that = IPA.entity({
         'name': 'sudorule'
     });
 
     that.init = function() {
 
-        var dialog = ipa_sudorule_add_dialog({
+        var dialog = IPA.sudorule_add_dialog({
             'name': 'add',
             'title': 'Add New Rule'
         });
         that.add_dialog(dialog);
         dialog.init();
 
-        var facet = ipa_sudorule_search_facet({
+        var facet = IPA.sudorule_search_facet({
             'name': 'search',
             'label': 'Search'
         });
         that.add_facet(facet);
 
-        facet = ipa_sudorule_details_facet({
+        facet = IPA.sudorule_details_facet({
             'name': 'details',
             'label': 'Details'
         });
@@ -53,17 +53,17 @@ function ipa_sudorule() {
     return that;
 }
 
-IPA.add_entity(ipa_sudorule());
+IPA.add_entity(IPA.sudorule());
 
-function ipa_sudorule_add_dialog(spec) {
+IPA.sudorule_add_dialog = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_add_dialog(spec);
+    var that = IPA.add_dialog(spec);
 
     that.init = function() {
 
-        that.add_field(ipa_text_widget({name: 'cn', undo: false}));
+        that.add_field(IPA.text_widget({name: 'cn', undo: false}));
 
         that.add_dialog_init();
     };
@@ -71,11 +71,11 @@ function ipa_sudorule_add_dialog(spec) {
     return that;
 }
 
-function ipa_sudorule_search_facet(spec) {
+IPA.sudorule_search_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_search_facet(spec);
+    var that = IPA.search_facet(spec);
 
     that.init = function() {
 
@@ -89,11 +89,11 @@ function ipa_sudorule_search_facet(spec) {
     return that;
 }
 
-function ipa_sudorule_details_facet(spec) {
+IPA.sudorule_details_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_details_facet(spec);
+    var that = IPA.details_facet(spec);
 
     that.init = function() {
 
@@ -107,7 +107,7 @@ function ipa_sudorule_details_facet(spec) {
             });
 
         } else {
-            section = ipa_sudorule_details_general_section({
+            section = IPA.sudorule_details_general_section({
                 'name': 'general',
                 'label': 'General'
             });
@@ -118,7 +118,7 @@ function ipa_sudorule_details_facet(spec) {
         section.create_textarea({ 'name': 'description' });
         section.create_radio({ 'name': 'ipaenabledflag' });
 
-        section = ipa_rule_details_section({
+        section = IPA.rule_details_section({
             'name': 'user',
             'label': 'Who',
             'field_name': 'usercategory',
@@ -134,19 +134,19 @@ function ipa_sudorule_details_facet(spec) {
         that.add_section(section);
 
         var category = section.create_radio({ name: 'usercategory', label: 'User category' });
-        section.add_field(ipa_sudorule_association_table_widget({
+        section.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-memberuser_user',
             'name': 'memberuser_user', 'label': 'Users', 'category': category,
             'other_entity': 'user', 'add_method': 'add_user', 'remove_method': 'remove_user',
             'external': 'externaluser'
         }));
-        section.add_field(ipa_sudorule_association_table_widget({
+        section.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-memberuser_group',
             'name': 'memberuser_group', 'label': 'Groups', 'category': category,
             'other_entity': 'group', 'add_method': 'add_user', 'remove_method': 'remove_user'
         }));
 
-        section = ipa_rule_details_section({
+        section = IPA.rule_details_section({
             'name': 'host',
             'label': 'Access this host',
             'field_name': 'hostcategory',
@@ -162,25 +162,25 @@ function ipa_sudorule_details_facet(spec) {
         that.add_section(section);
 
         category = section.create_radio({ 'name': 'hostcategory', 'label': 'Host category' });
-        section.add_field(ipa_sudorule_association_table_widget({
+        section.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-memberhost_host',
             'name': 'memberhost_host', 'label': 'Host', 'category': category,
             'other_entity': 'host', 'add_method': 'add_host', 'remove_method': 'remove_host',
             'external': 'externalhost'
         }));
-        section.add_field(ipa_sudorule_association_table_widget({
+        section.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-memberhost_hostgroup',
             'name': 'memberhost_hostgroup', 'label': 'Groups', 'category': category,
             'other_entity': 'hostgroup', 'add_method': 'add_host', 'remove_method': 'remove_host'
         }));
 
-        section = ipa_sudorule_details_command_section({
+        section = IPA.sudorule_details_command_section({
             'name': 'command',
             'label': 'Run Commands'
         });
         that.add_section(section);
 
-        section = ipa_sudorule_details_runas_section({
+        section = IPA.sudorule_details_runas_section({
             'name': 'runas',
             'label': 'As Whom'
         });
@@ -195,7 +195,7 @@ function ipa_sudorule_details_facet(spec) {
 
         var modify_operation = {
             'execute': false,
-            'command': ipa_command({
+            'command': IPA.command({
                 'method': that.entity_name+'_mod',
                 'args': [pkey],
                 'options': {'all': true, 'rights': true}
@@ -224,7 +224,7 @@ function ipa_sudorule_details_facet(spec) {
             'memberuser': {
                 'category': 'usercategory',
                 'has_values': false,
-                'command': ipa_command({
+                'command': IPA.command({
                     'method': that.entity_name+'_remove_user',
                     'args': [pkey],
                     'options': {'all': true, 'rights': true}
@@ -233,7 +233,7 @@ function ipa_sudorule_details_facet(spec) {
             'memberhost': {
                 'category': 'hostcategory',
                 'has_values': false,
-                'command': ipa_command({
+                'command': IPA.command({
                     'method': that.entity_name+'_remove_host',
                     'args': [pkey],
                     'options': {'all': true, 'rights': true}
@@ -242,7 +242,7 @@ function ipa_sudorule_details_facet(spec) {
             'memberallowcmd': {
                 'category': 'cmdcategory',
                 'has_values': false,
-                'command': ipa_command({
+                'command': IPA.command({
                     'method': that.entity_name+'_remove_allow_command',
                     'args': [pkey],
                     'options': {'all': true, 'rights': true}
@@ -251,7 +251,7 @@ function ipa_sudorule_details_facet(spec) {
             'ipasudorunas': {
                 'category': 'ipasudorunasusercategory',
                 'has_values': false,
-                'command': ipa_command({
+                'command': IPA.command({
                     'method': that.entity_name+'_remove_runasuser',
                     'args': [pkey],
                     'options': {'all': true, 'rights': true}
@@ -260,7 +260,7 @@ function ipa_sudorule_details_facet(spec) {
             'ipasudorunasgroup': {
                 'category': 'ipasudorunasgroupcategory',
                 'has_values': false,
-                'command': ipa_command({
+                'command': IPA.command({
                     'method': that.entity_name+'_remove_runasgroup',
                     'args': [pkey],
                     'options': {'all': true, 'rights': true}
@@ -270,7 +270,7 @@ function ipa_sudorule_details_facet(spec) {
 
         var enable_operation = {
             'execute': false,
-            'command': ipa_command({
+            'command': IPA.command({
                 'method': that.entity_name+'_enable',
                 'args': [pkey],
                 'options': {'all': true, 'rights': true}
@@ -289,7 +289,7 @@ function ipa_sudorule_details_facet(spec) {
                 var values = field.save();
                 if (!values) continue;
 
-                var param_info = ipa_get_param_info(that.entity_name, field.name);
+                var param_info = IPA.get_param_info(that.entity_name, field.name);
 
                 // skip primary key
                 if (param_info && param_info['primary_key']) continue;
@@ -343,7 +343,7 @@ function ipa_sudorule_details_facet(spec) {
             }
         }
 
-        var batch = ipa_batch_command({
+        var batch = IPA.batch_command({
             'name': 'sudorule_details_update',
             'on_success': function(data, text_status, xhr) {
                 that.refresh();
@@ -377,11 +377,11 @@ function ipa_sudorule_details_facet(spec) {
     return that;
 }
 
-function ipa_sudorule_details_general_section(spec){
+IPA.sudorule_details_general_section = function (spec){
 
     spec = spec || {};
 
-    var that = ipa_details_section(spec);
+    var that = IPA.details_section(spec);
 
     that.create = function(container) {
 
@@ -389,7 +389,7 @@ function ipa_sudorule_details_general_section(spec){
             'style': 'width: 100%;'
         }).appendTo(container);
 
-        var param_info = ipa_get_param_info(that.entity_name, 'cn');
+        var param_info = IPA.get_param_info(that.entity_name, 'cn');
 
         var tr = $('<tr/>').appendTo(table);
 
@@ -421,7 +421,7 @@ function ipa_sudorule_details_general_section(spec){
             'html': 'undo'
         }).appendTo(span);
 
-        param_info = ipa_get_param_info(that.entity_name, 'description');
+        param_info = IPA.get_param_info(that.entity_name, 'description');
 
         tr = $('<tr/>').appendTo(table);
 
@@ -453,7 +453,7 @@ function ipa_sudorule_details_general_section(spec){
             'html': 'undo'
         }).appendTo(span);
 
-        param_info = ipa_get_param_info(that.entity_name, 'ipaenabledflag');
+        param_info = IPA.get_param_info(that.entity_name, 'ipaenabledflag');
 
         tr = $('<tr/>').appendTo(table);
 
@@ -500,36 +500,36 @@ function ipa_sudorule_details_general_section(spec){
     return that;
 }
 
-function ipa_sudorule_details_command_section(spec){
+IPA.sudorule_details_command_section = function (spec){
 
     spec = spec || {};
 
-    var that = ipa_details_section(spec);
+    var that = IPA.details_section(spec);
 
     that.init = function() {
 
         var category = that.create_radio({'name': 'cmdcategory'});
 
-        that.add_field(ipa_sudorule_command_table_widget({
+        that.add_field(IPA.sudorule_command_table_widget({
             'id': that.entity_name+'-memberallowcmd_sudocmd',
             'name': 'memberallowcmd_sudocmd', 'label': 'Command',
             'category': category, 'section': that,
             'other_entity': 'sudocmd', 'add_method': 'add_allow_command', 'remove_method': 'remove_allow_command'
         }));
-        that.add_field(ipa_sudorule_command_table_widget({
+        that.add_field(IPA.sudorule_command_table_widget({
             'id': that.entity_name+'-memberallowcmd_sudocmdgroup',
             'name': 'memberallowcmd_sudocmdgroup', 'label': 'Groups',
             'category': category, 'section': that,
             'other_entity': 'sudocmdgroup', 'add_method': 'add_allow_command', 'remove_method': 'remove_allow_command'
         }));
 
-        that.add_field(ipa_sudorule_command_table_widget({
+        that.add_field(IPA.sudorule_command_table_widget({
             'id': that.entity_name+'-memberdenycmd_sudocmd',
             'name': 'memberdenycmd_sudocmd', 'label': 'Command',
             'section': that,
             'other_entity': 'sudocmd', 'add_method': 'add_deny_command', 'remove_method': 'remove_deny_command'
         }));
-        that.add_field(ipa_sudorule_command_table_widget({
+        that.add_field(IPA.sudorule_command_table_widget({
             'id': that.entity_name+'-memberdenycmd_sudocmdgroup',
             'name': 'memberdenycmd_sudocmdgroup', 'label': 'Groups',
             'section': that,
@@ -543,7 +543,7 @@ function ipa_sudorule_details_command_section(spec){
 
         if (that.template) return;
 
-        var param_info = ipa_get_param_info(that.entity_name, 'cmdcategory');
+        var param_info = IPA.get_param_info(that.entity_name, 'cmdcategory');
 
         var span = $('<span/>', {
             name: 'cmdcategory',
@@ -585,7 +585,7 @@ function ipa_sudorule_details_command_section(spec){
             'html': 'undo'
         }).appendTo(span);
 
-        param_info = ipa_get_param_info(that.entity_name, 'memberallowcmd_sudocmd');
+        param_info = IPA.get_param_info(that.entity_name, 'memberallowcmd_sudocmd');
 
         var table_span = $('<span/>', {
             name: 'memberallowcmd_sudocmd',
@@ -595,7 +595,7 @@ function ipa_sudorule_details_command_section(spec){
         var field = that.get_field('memberallowcmd_sudocmd');
         field.create(table_span);
 
-        param_info = ipa_get_param_info(that.entity_name, 'memberallowcmd_sudocmdgroup');
+        param_info = IPA.get_param_info(that.entity_name, 'memberallowcmd_sudocmdgroup');
 
         table_span = $('<span/>', {
             name: 'memberallowcmd_sudocmdgroup',
@@ -611,7 +611,7 @@ function ipa_sudorule_details_command_section(spec){
             title: 'Deny'
         }).appendTo(span);
 
-        param_info = ipa_get_param_info(that.entity_name, 'memberdenycmd_sudocmd');
+        param_info = IPA.get_param_info(that.entity_name, 'memberdenycmd_sudocmd');
 
         table_span = $('<span/>', {
             name: 'memberdenycmd_sudocmd',
@@ -621,7 +621,7 @@ function ipa_sudorule_details_command_section(spec){
         field = that.get_field('memberdenycmd_sudocmd');
         field.create(table_span);
 
-        param_info = ipa_get_param_info(that.entity_name, 'memberdenycmd_sudocmdgroup');
+        param_info = IPA.get_param_info(that.entity_name, 'memberdenycmd_sudocmdgroup');
 
         table_span = $('<span/>', {
             name: 'memberdenycmd_sudocmdgroup',
@@ -667,28 +667,28 @@ function ipa_sudorule_details_command_section(spec){
     return that;
 }
 
-function ipa_sudorule_details_runas_section(spec){
+IPA.sudorule_details_runas_section = function (spec){
 
     spec = spec || {};
 
-    var that = ipa_details_section(spec);
+    var that = IPA.details_section(spec);
 
     that.init = function() {
 
         var category = that.create_radio({ name: 'ipasudorunasusercategory', label: 'Run as User category' });
-        that.add_field(ipa_sudorule_association_table_widget({
+        that.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-runasruser_user',
             'name': 'ipasudorunas_user', 'label': 'Users', 'category': category,
             'other_entity': 'user', 'add_method': 'add_runasuser', 'remove_method': 'remove_runasuser'
         }));
-        that.add_field(ipa_sudorule_association_table_widget({
+        that.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-runasuser_group',
             'name': 'ipasudorunas_group', 'label': 'Groups', 'category': category,
             'other_entity': 'group', 'add_method': 'add_runasuser', 'remove_method': 'remove_runasuser'
         }));
 
         category = that.create_radio({ name: 'ipasudorunasgroupcategory', label: 'Run as Group category' });
-        that.add_field(ipa_sudorule_association_table_widget({
+        that.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-runasgroup_group',
             'name': 'ipasudorunasgroup_group', 'label': 'Groups', 'category': category,
             'other_entity': 'group', 'add_method': 'add_runasgroup', 'remove_method': 'remove_runasgroup'
@@ -701,7 +701,7 @@ function ipa_sudorule_details_runas_section(spec){
 
         if (that.template) return;
 
-        var param_info = ipa_get_param_info(that.entity_name, 'ipasudorunasusercategory');
+        var param_info = IPA.get_param_info(that.entity_name, 'ipasudorunasusercategory');
 
         var span = $('<span/>', {
             name: 'ipasudorunasusercategory',
@@ -735,7 +735,7 @@ function ipa_sudorule_details_runas_section(spec){
 
         span.append('<br/>');
 
-        param_info = ipa_get_param_info(that.entity_name, 'ipasudorunas_user');
+        param_info = IPA.get_param_info(that.entity_name, 'ipasudorunas_user');
 
         var table_span = $('<span/>', {
             name: 'ipasudorunas_user',
@@ -745,7 +745,7 @@ function ipa_sudorule_details_runas_section(spec){
         var field = that.get_field('ipasudorunas_user');
         field.create(table_span);
 
-        param_info = ipa_get_param_info(that.entity_name, 'ipasudorunas_group');
+        param_info = IPA.get_param_info(that.entity_name, 'ipasudorunas_group');
 
         table_span = $('<span/>', {
             name: 'ipasudorunas_group',
@@ -755,7 +755,7 @@ function ipa_sudorule_details_runas_section(spec){
         field = that.get_field('ipasudorunas_group');
         field.create(table_span);
 
-        param_info = ipa_get_param_info(that.entity_name, 'ipasudorunasgroupcategory');
+        param_info = IPA.get_param_info(that.entity_name, 'ipasudorunasgroupcategory');
 
         span = $('<span/>', {
             name: 'ipasudorunasgroupcategory',
@@ -789,7 +789,7 @@ function ipa_sudorule_details_runas_section(spec){
 
         span.append('<br/>');
 
-        param_info = ipa_get_param_info(that.entity_name, 'ipasudorunasgroup_group');
+        param_info = IPA.get_param_info(that.entity_name, 'ipasudorunasgroup_group');
 
         table_span = $('<span/>', {
             name: 'ipasudorunasgroup_group',
@@ -859,11 +859,11 @@ function ipa_sudorule_details_runas_section(spec){
     return that;
 }
 
-function ipa_sudorule_association_table_widget(spec) {
+IPA.sudorule_association_table_widget = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_rule_association_table_widget(spec);
+    var that = IPA.rule_association_table_widget(spec);
 
     that.external = spec.external;
 
@@ -877,7 +877,7 @@ function ipa_sudorule_association_table_widget(spec) {
             template = 'sudorule-'+that.other_entity+'-dialog.html #contents';
         }
 
-        return ipa_sudorule_association_adder_dialog({
+        return IPA.sudorule_association_adder_dialog({
             'title': title,
             'entity_name': that.entity_name,
             'pkey': pkey,
@@ -899,11 +899,11 @@ function ipa_sudorule_association_table_widget(spec) {
     return that;
 }
 
-function ipa_sudorule_association_adder_dialog(spec) {
+IPA.sudorule_association_adder_dialog = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_association_adder_dialog(spec);
+    var that = IPA.association_adder_dialog(spec);
 
     that.external = spec.external;
 
@@ -919,7 +919,7 @@ function ipa_sudorule_association_adder_dialog(spec) {
             });
         }
 
-        that.available_table = ipa_table_widget({
+        that.available_table = IPA.table_widget({
             name: 'available'
         });
 
@@ -927,7 +927,7 @@ function ipa_sudorule_association_adder_dialog(spec) {
 
         that.available_table.init();
 
-        that.selected_table = ipa_table_widget({
+        that.selected_table = IPA.table_widget({
             name: 'selected'
         });
 
@@ -1052,11 +1052,11 @@ function ipa_sudorule_association_adder_dialog(spec) {
     return that;
 }
 
-function ipa_sudorule_command_table_widget(spec) {
+IPA.sudorule_command_table_widget = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_association_table_widget(spec);
+    var that = IPA.association_table_widget(spec);
 
     that.category = spec.category;
     that.section = spec.section;
@@ -1065,7 +1065,7 @@ function ipa_sudorule_command_table_widget(spec) {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 
-        var batch = ipa_batch_command({
+        var batch = IPA.batch_command({
             'on_success': on_success,
             'on_error': on_error
         });
@@ -1073,7 +1073,7 @@ function ipa_sudorule_command_table_widget(spec) {
         var command;
 
         if (that.category) {
-            command = ipa_command({
+            command = IPA.command({
                 'method': that.entity_name+'_mod',
                 'args': [pkey],
                 'options': {'all': true, 'rights': true},
@@ -1087,7 +1087,7 @@ function ipa_sudorule_command_table_widget(spec) {
             batch.add_command(command);
         }
 
-        command = ipa_command({
+        command = IPA.command({
             'method': that.entity_name+'_'+that.add_method,
             'args': [pkey]
         });
@@ -1101,7 +1101,7 @@ function ipa_sudorule_command_table_widget(spec) {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 
-        var command = ipa_command({
+        var command = IPA.command({
             'method': that.entity_name+'_'+that.remove_method,
             'args': [pkey],
             'on_success': on_success,

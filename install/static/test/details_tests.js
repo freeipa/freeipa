@@ -21,7 +21,7 @@
 
 module('details');
 
-test("Testing ipa_details_section.create().", function() {
+test("Testing IPA.details_section.create().", function() {
 
     IPA.ajax_options.async = false;
 
@@ -36,7 +36,7 @@ test("Testing ipa_details_section.create().", function() {
         }
     );
 
-    var section = ipa_stanza({name:'IDIDID', label:'NAMENAMENAME'}).
+    var section = IPA.stanza({name:'IDIDID', label:'NAMENAMENAME'}).
         input({name:'cn'}).
         input({name:'description'}).
         input({name:'number'});
@@ -108,16 +108,16 @@ test("Testing details lifecycle: create, setup, load.", function(){
 
     var result = {};
 
-    ipa_cmd(
+    IPA.cmd(
         'user_show',
         ['kfrog'],
         {},
         function(data, text_status, xhr) {
             result = data.result.result;
-            ok(true, "ipa_cmd() succeeded.");
+            ok(true, "IPA.cmd() succeeded.");
         },
         function(xhr, text_status, error_thrown) {
-            ok(false, "ipa_cmd() failed: "+error_thrown);
+            ok(false, "IPA.cmd() failed: "+error_thrown);
         }
     );
 
@@ -147,37 +147,37 @@ test("Testing details lifecycle: create, setup, load.", function(){
 
     var container = $("<div/>");
     var obj_name = 'user';
-    ipa_entity_set_details_definition(obj_name, [
-        ipa_stanza({name:'identity', label:'Identity Details'}).
+    IPA.entity_set_details_definition(obj_name, [
+        IPA.stanza({name:'identity', label:'Identity Details'}).
             input({name:'title'}).
             input({name:'givenname'}).
             input({name:'sn'}).
             input({name:'cn'}).
             input({name:'displayname'}).
             input({name:'initials'}),
-        ipa_stanza({name:'account', label:'Account Details'}).
+        IPA.stanza({name:'account', label:'Account Details'}).
             input({name:'status', setup: setup_status}).
             input({name:'uid'}).
             input({name:'userpassword', save: save_password}).
             input({name:'uidnumber'}).
             input({name:'gidnumber'}).
             input({name:'homedirectory'}),
-        ipa_stanza({name:'contact', label:'Contact Details'}).
+        IPA.stanza({name:'contact', label:'Contact Details'}).
             input({name:'mail'}).
             input({name:'telephonenumber'}),
-        ipa_stanza({name:'address'}).
+        IPA.stanza({name:'address'}).
             input({name:'street'}).
             input({name:'location'}).
             input({name:'state', setup: setup_st}).
             input({name:'postalcode'}),
-        ipa_stanza({name:'employee', label:'Employee Information'}).
+        IPA.stanza({name:'employee', label:'Employee Information'}).
             input({name:'ou'}).
             input({name:'manager', load: load_manager}),
-        ipa_stanza({name:'misc', label:'Misc. Information'}).
+        IPA.stanza({name:'misc', label:'Misc. Information'}).
             input({name:'carlicense'})
     ]);
 
-    var entity = ipa_get_entity(obj_name);
+    var entity = IPA.fetch_entity(obj_name);
     var facet = entity.get_facet('details');
     facet.create(container);
     facet.setup(container);
@@ -227,7 +227,7 @@ test("Testing details lifecycle: create, setup, load.", function(){
 
 test("Testing create_input().", function() {
 
-    var field = ipa_details_field({
+    var field = IPA.details_field({
         'name': "name"
     });
 
@@ -247,7 +247,7 @@ test("Testing create_input().", function() {
 
 test("Testing create_input() read only .", function() {
 
-    var field = ipa_details_field({
+    var field = IPA.details_field({
         'name': "name"
     });
 
@@ -270,9 +270,9 @@ test("Testing create_input() read only .", function() {
 
 
 
-test("Testing ipa_details_section_setup again()",function(){
+test("Testing IPA.details_section_setup again()",function(){
 
-    var section = ipa_stanza({name: 'IDIDID', label: 'NAMENAMENAME'}).
+    var section = IPA.stanza({name: 'IDIDID', label: 'NAMENAMENAME'}).
         input({name:'cn', label:'Entity Name'}).
         input({name:'description', label:'Description'}).
         input({name:'number', label:'Entity ID'});

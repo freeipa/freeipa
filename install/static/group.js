@@ -20,9 +20,9 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-function ipa_group() {
+IPA.group = function () {
 
-    var that = ipa_entity({
+    var that = IPA.entity({
         'name': 'group'
     });
 
@@ -43,20 +43,20 @@ function ipa_group() {
             associator: 'serial'
         });
 
-        var dialog = ipa_group_add_dialog({
+        var dialog = IPA.group_add_dialog({
             'name': 'add',
             'title': 'Add New Group'
         });
         that.add_dialog(dialog);
         dialog.init();
 
-        var facet = ipa_group_search_facet({
+        var facet = IPA.group_search_facet({
             'name': 'search',
             'label': 'Search'
         });
         that.add_facet(facet);
 
-        facet = ipa_group_details_facet({
+        facet = IPA.group_details_facet({
             'name': 'details',
             'label': 'Details'
         });
@@ -70,25 +70,25 @@ function ipa_group() {
     return that;
 }
 
-IPA.add_entity(ipa_group());
+IPA.add_entity(IPA.group());
 
-function ipa_group_add_dialog(spec) {
+IPA.group_add_dialog = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_add_dialog(spec);
+    var that = IPA.add_dialog(spec);
 
     that.init = function() {
 
-        that.add_field(ipa_text_widget({name:'cn', undo: false}));
-        that.add_field(ipa_text_widget({name:'description', undo: false}));
+        that.add_field(IPA.text_widget({name:'cn', undo: false}));
+        that.add_field(IPA.text_widget({name:'description', undo: false}));
         // TODO: Replace with i18n label
-        that.add_field(ipa_checkbox_widget({
+        that.add_field(IPA.checkbox_widget({
             name:'posix',
             label:'Is this a POSIX group?',
             undo: false,
             checked:'checked'}));
-        that.add_field(ipa_text_widget({name:'gidnumber', undo: false}));
+        that.add_field(IPA.text_widget({name:'gidnumber', undo: false}));
 
         that.add_dialog_init();
     };
@@ -96,11 +96,11 @@ function ipa_group_add_dialog(spec) {
     return that;
 }
 
-function ipa_group_search_facet(spec) {
+IPA.group_search_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_search_facet(spec);
+    var that = IPA.search_facet(spec);
 
     that.init = function() {
         that.create_column({name:'cn'});
@@ -112,15 +112,15 @@ function ipa_group_search_facet(spec) {
     return that;
 }
 
-function ipa_group_details_facet(spec) {
+IPA.group_details_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_details_facet(spec);
+    var that = IPA.details_facet(spec);
 
     that.init = function() {
 
-        var section = ipa_details_list_section({
+        var section = IPA.details_list_section({
             name: 'details',
             label: 'Group Details'
         });
@@ -136,11 +136,11 @@ function ipa_group_details_facet(spec) {
     return that;
 }
 
-function ipa_group_member_user_facet(spec) {
+IPA.group_member_user_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_association_facet(spec);
+    var that = IPA.association_facet(spec);
 
     that.init = function() {
 

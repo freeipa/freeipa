@@ -22,11 +22,11 @@
 
 
 IPA.add_entity( function() {
-    var that = ipa_entity({
+    var that = IPA.entity({
         'name': 'hostgroup'
     });
     that.init = function() {
-        var search_facet = ipa_search_facet({
+        var search_facet = IPA.search_facet({
             name: 'search',
             label: 'Search',
             entity_name: that.name
@@ -36,23 +36,23 @@ IPA.add_entity( function() {
         that.add_facet(search_facet);
 
         that.add_facet(function() {
-            var that = ipa_details_facet({name:'details',label:'Details'});
+            var that = IPA.details_facet({name:'details',label:'Details'});
             that.add_section(
-                ipa_stanza({name:'identity', label:'Hostgroup Details'}).
+                IPA.stanza({name:'identity', label:'Hostgroup Details'}).
                     input({name:'cn'}).
                     input({name: 'description'}));
             return that;
         }());
 
 
-        var dialog = ipa_add_dialog({
+        var dialog = IPA.add_dialog({
             name: 'add',
             title: 'Add Hostgroup'
         });
         that.add_dialog(dialog);
 
-        dialog.add_field(ipa_text_widget({name: 'cn', undo: false}));
-        dialog.add_field(ipa_text_widget({name: 'description', undo: false}));
+        dialog.add_field(IPA.text_widget({name: 'cn', undo: false}));
+        dialog.add_field(IPA.text_widget({name: 'description', undo: false}));
         dialog.init();
 
         that.create_association_facets();

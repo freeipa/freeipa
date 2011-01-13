@@ -20,9 +20,9 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-function ipa_service() {
+IPA.service = function () {
 
-    var that = ipa_entity({
+    var that = IPA.entity({
         'name': 'service'
     });
 
@@ -34,26 +34,26 @@ function ipa_service() {
             'remove_method': 'remove_host'
         });
 
-        var dialog = ipa_service_add_dialog({
+        var dialog = IPA.service_add_dialog({
             'name': 'add',
             'title': 'Add New Service'
         });
         that.add_dialog(dialog);
         dialog.init();
 
-        var facet = ipa_service_search_facet({
+        var facet = IPA.service_search_facet({
             'name': 'search',
             'label': 'Search'
         });
         that.add_facet(facet);
 
-        facet = ipa_service_details_facet({
+        facet = IPA.service_details_facet({
             'name': 'details',
             'label': 'Details'
         });
         that.add_facet(facet);
 
-        facet = ipa_service_managedby_host_facet({
+        facet = IPA.service_managedby_host_facet({
             'name': 'managedby_host',
             'label': IPA.messages.association.managedby+' '+IPA.metadata['host'].label,
             'other_entity': 'host'
@@ -66,22 +66,22 @@ function ipa_service() {
     return that;
 }
 
-IPA.add_entity(ipa_service());
+IPA.add_entity(IPA.service());
 
-function ipa_service_add_dialog(spec) {
+IPA.service_add_dialog = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_add_dialog(spec);
+    var that = IPA.add_dialog(spec);
 
     that.init = function() {
 
-        that.add_field(ipa_widget({
+        that.add_field(IPA.widget({
             name: 'krbprincipalname'
         }));
 
         // TODO: Replace with i18n label
-        that.add_field(ipa_text_widget({
+        that.add_field(IPA.text_widget({
             'name': 'service',
             'label': 'Service',
             'size': 20,
@@ -89,7 +89,7 @@ function ipa_service_add_dialog(spec) {
         }));
 
         // TODO: Replace with i18n label
-        that.add_field(ipa_text_widget({
+        that.add_field(IPA.text_widget({
             'name': 'host',
             'label': 'Host Name',
             'size': 40,
@@ -153,11 +153,11 @@ function ipa_service_add_dialog(spec) {
     return that;
 }
 
-function ipa_service_search_facet(spec) {
+IPA.service_search_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_search_facet(spec);
+    var that = IPA.search_facet(spec);
 
     that.init = function() {
 
@@ -168,15 +168,15 @@ function ipa_service_search_facet(spec) {
     return that;
 }
 
-function ipa_service_details_facet(spec) {
+IPA.service_details_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_details_facet(spec);
+    var that = IPA.details_facet(spec);
 
     that.init = function() {
 
-        var section = ipa_details_list_section({
+        var section = IPA.details_list_section({
             name: 'details',
             label: 'Service Details'
         });
@@ -200,7 +200,7 @@ function ipa_service_details_facet(spec) {
             load: service_host_load
         });
 
-        section = ipa_details_list_section({
+        section = IPA.details_list_section({
             name: 'provisioning',
             label: 'Provisioning'
         });
@@ -211,7 +211,7 @@ function ipa_service_details_facet(spec) {
             label: 'Status'
         }));
 
-        section = ipa_details_list_section({
+        section = IPA.details_list_section({
             name: 'certificate',
             label: 'Service Certificate'
         });
@@ -234,7 +234,7 @@ function service_service_load(result) {
 
     $('dd', that.container).remove();
 
-    var dd = ipa_create_first_dd(this.name);
+    var dd = IPA.create_first_dd(this.name);
     dd.appendTo(that.container);
 
     var krbprincipalname = result['krbprincipalname'][0];
@@ -248,7 +248,7 @@ function service_host_load(result) {
 
     $('dd', that.container).remove();
 
-    var dd = ipa_create_first_dd(this.name);
+    var dd = IPA.create_first_dd(this.name);
     dd.appendTo(that.container);
 
     var krbprincipalname = result['krbprincipalname'][0];
@@ -260,7 +260,7 @@ function service_provisioning_status_widget(spec) {
 
     spec = spec || {};
 
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
 
     that.create = function(container) {
 
@@ -305,7 +305,7 @@ function service_provisioning_status_widget(spec) {
         that.missing = $('.status-missing', that.container);
 
         var button = $('input[name=unprovision]', that.container);
-        that.unprovision_button = ipa_button({
+        that.unprovision_button = IPA.button({
             'label': 'Delete Key, Unprovision',
             'click': that.unprovision
         });
@@ -315,7 +315,7 @@ function service_provisioning_status_widget(spec) {
     that.unprovision = function() {
 
         var label = IPA.metadata[that.entity_name].label;
-        var dialog = ipa_dialog({
+        var dialog = IPA.dialog({
             'title': 'Unprovisioning '+label
         });
 
@@ -327,7 +327,7 @@ function service_provisioning_status_widget(spec) {
 
         dialog.add_button('Unprovision', function() {
             var pkey = that.result['krbprincipalname'][0];
-            ipa_cmd(that.entity_name+'_disable', [pkey], {},
+            IPA.cmd(that.entity_name+'_disable', [pkey], {},
                 function(data, text_status, xhr) {
                     set_status('missing');
                     dialog.close();
@@ -398,11 +398,11 @@ function service_certificate_status_widget(spec) {
     return that;
 }
 
-function ipa_service_managedby_host_facet(spec) {
+IPA.service_managedby_host_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_association_facet(spec);
+    var that = IPA.association_facet(spec);
 
     that.init = function() {
 

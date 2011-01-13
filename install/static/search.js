@@ -22,11 +22,11 @@
 
 /* REQUIRES: ipa.js */
 
-function ipa_search_widget(spec) {
+IPA.search_widget =  function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_table_widget(spec);
+    var that = IPA.table_widget(spec);
 
     that.facet = spec.facet;
 
@@ -85,7 +85,7 @@ function ipa_search_widget(spec) {
         var search_filter = $('span[name=search-filter]', that.container);
 
         var button = $('input[name=find]', search_filter);
-        that.find_button = ipa_button({
+        that.find_button = IPA.button({
             'label': IPA.messages.button.find,
             'icon': 'ui-icon-search',
             'click': function() { that.find(that.container); }
@@ -167,7 +167,7 @@ function ipa_search_widget(spec) {
 
         var title = 'Remove '+that.label;
 
-        var dialog = ipa_deleter_dialog({
+        var dialog = IPA.deleter_dialog({
             'title': title,
             'parent': that.container,
             'values': values
@@ -175,7 +175,7 @@ function ipa_search_widget(spec) {
 
         dialog.remove = function() {
 
-            var batch = ipa_batch_command({
+            var batch = IPA.batch_command({
                 'on_success': function() {
                     that.refresh();
                     dialog.close();
@@ -187,7 +187,7 @@ function ipa_search_widget(spec) {
             });
 
             for (var i=0; i<values.length; i++) {
-                var command = ipa_command({
+                var command = IPA.command({
                     'method': that.entity_name+'_del'
                 });
                 command.add_arg(values[i]);
@@ -238,7 +238,7 @@ function ipa_search_widget(spec) {
         }
 
         var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
-        ipa_cmd(
+        IPA.cmd(
           'find', [filter], {all: true}, on_success, on_error,
             that.entity_name);
     };
@@ -246,13 +246,13 @@ function ipa_search_widget(spec) {
     return that;
 }
 
-function ipa_search_facet(spec) {
+IPA.search_facet = function (spec) {
 
     spec = spec || {};
 
     spec.display_class = 'search-facet';
 
-    var that = ipa_facet(spec);
+    var that = IPA.facet(spec);
 
     that.init = spec.init || init;
     that.create = spec.create || create;
@@ -289,7 +289,7 @@ function ipa_search_facet(spec) {
     };
 
     that.create_column = function(spec) {
-        var column = ipa_column(spec);
+        var column = IPA.column(spec);
         that.add_column(column);
         return column;
     };
@@ -321,7 +321,7 @@ function ipa_search_facet(spec) {
 
         that.facet_init();
 
-        that.table = ipa_search_widget({
+        that.table = IPA.search_widget({
             'id': that.entity_name+'-search',
             'name': 'search', 'label': IPA.metadata[that.entity_name].label,
             'entity_name': that.entity_name,
@@ -331,7 +331,7 @@ function ipa_search_facet(spec) {
         for (var i=0; i<that.columns.length; i++) {
             var column = that.columns[i];
 
-            var param_info = ipa_get_param_info(that.entity_name, column.name);
+            var param_info = IPA.get_param_info(that.entity_name, column.name);
             column.primary_key = param_info && param_info['primary_key'];
 
             if (column.primary_key) {
@@ -450,7 +450,7 @@ function search_generate_td(tr, attr, value, entry_attrs)
 {
     var obj_name = tr.closest('.entity-container').attr('title');
 
-    var param_info = ipa_get_param_info(obj_name, attr);
+    var param_info = IPA.get_param_info(obj_name, attr);
     if (param_info && param_info['primary_key'])
         value = _search_a_pkey_template.replace('V', value);
 

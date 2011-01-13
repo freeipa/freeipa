@@ -21,11 +21,11 @@
 
 /* REQUIRES: ipa.js */
 
-function ipa_add_dialog(spec) {
+IPA.add_dialog = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_dialog(spec);
+    var that = IPA.dialog(spec);
 
     that.name = spec.name;
     that.title = spec.title;
@@ -109,7 +109,7 @@ function ipa_add_dialog(spec) {
             save_field(that.fields[i], record, args, options);
         }
 
-        ipa_cmd('add', args, options, on_success, on_error, that.entity_name);
+        IPA.cmd('add', args, options, on_success, on_error, that.entity_name);
     };
 
     that.add_dialog_init = that.init;

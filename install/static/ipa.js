@@ -86,7 +86,7 @@ var IPA = ( function () {
             ];
 
 
-        ipa_cmd('batch', startup_batch, {},
+        IPA.cmd('batch', startup_batch, {},
             function (data, text_status, xhr) {
                 that.metadata = data.result.results[0].metadata;
                 that.messages = data.result.results[1].messages;
@@ -136,7 +136,7 @@ var IPA = ( function () {
     return that;
 }());
 
-function ipa_command(spec) {
+IPA.command = function (spec) {
 
     spec = spec || {};
 
@@ -164,7 +164,7 @@ function ipa_command(spec) {
     };
 
     that.execute = function() {
-        ipa_cmd(
+        IPA.cmd(
             that.method,
             that.args,
             that.options,
@@ -202,14 +202,13 @@ function ipa_command(spec) {
 
     return that;
 }
-
-function ipa_batch_command(spec) {
+IPA.batch_command = function (spec) {
 
     spec = spec || {};
 
     spec.method = 'batch';
 
-    var that = ipa_command(spec);
+    var that = IPA.command(spec);
 
     that.commands = [];
 
@@ -225,7 +224,7 @@ function ipa_batch_command(spec) {
     };
 
     that.execute = function() {
-        ipa_cmd(
+        IPA.cmd(
             that.method,
             that.args,
             that.options,
@@ -280,7 +279,7 @@ function ipa_batch_command(spec) {
  *   win_callback - function to call if the JSON request succeeds
  *   fail_callback - function to call if the JSON request fails
  *   objname - name of an IPA object (optional) */
-function ipa_cmd(name, args, options, win_callback, fail_callback, objname, command_name)
+IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, command_name)
 {
     var default_json_url = '/ipa/json';
 
@@ -293,7 +292,7 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname, comm
             buttons: {
                 'Retry': function () {
                     IPA.error_dialog.dialog('close');
-                    ipa_cmd(name, args, options, win_callback, fail_callback, objname, command_name);
+                    IPA.cmd(name, args, options, win_callback, fail_callback, objname, command_name);
                 },
                 'Cancel': function () {
                     IPA.error_dialog.dialog('close');
@@ -350,7 +349,7 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname, comm
         dialog_open.call(this, xhr, text_status, error_thrown);
     }
 
-    function ipa_error_handler(xhr, text_status, error_thrown) {
+    function error_handler(xhr, text_status, error_thrown) {
         IPA.error_dialog.empty();
         IPA.error_dialog.attr('title', error_thrown.title);
 
@@ -369,7 +368,7 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname, comm
             http_error_handler.call(this, xhr, text_status, error_thrown);
 
         } else if (data.error) {
-            ipa_error_handler.call(this, xhr, text_status,  /* error_thrown */ {
+            error_handler.call(this, xhr, text_status,  /* error_thrown */ {
                 title: 'IPA Error '+data.error.code,
                 message: data.error.message
             });
@@ -417,14 +416,14 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname, comm
 
 
 /* helper function used to retrieve information about an attribute */
-function ipa_get_param_info(obj_name, attr)
+IPA.get_param_info = function(obj_name, attr)
 {
-    var ipa_obj = IPA.metadata[obj_name];
-    if (!ipa_obj) {
+    var obj = IPA.metadata[obj_name];
+    if (!obj) {
         return null;
     }
 
-    var takes_params = ipa_obj.takes_params;
+    var takes_params = obj.takes_params;
     if (!takes_params) {
         return (null);
 
@@ -439,13 +438,13 @@ function ipa_get_param_info(obj_name, attr)
 }
 
 /* helper function used to retrieve attr name with members of type `member` */
-function ipa_get_member_attribute(obj_name, member)
+IPA.get_member_attribute = function (obj_name, member)
 {
-    var ipa_obj = IPA.metadata[obj_name];
-    if (!ipa_obj) {
+    var obj = IPA.metadata[obj_name];
+    if (!obj) {
         return null;
     }
-    var attribute_members = ipa_obj.attribute_members;
+    var attribute_members = obj.attribute_members;
     for (var a in attribute_members) {
         var objs = attribute_members[a];
         for (var i = 0; i < objs.length; i += 1) {

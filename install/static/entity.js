@@ -22,7 +22,7 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js */
 
-function ipa_facet(spec) {
+IPA.facet = function (spec) {
 
     spec = spec || {};
 
@@ -45,7 +45,7 @@ function ipa_facet(spec) {
         that._entity_name = entity_name;
     });
 
-    that.create_action_panel = ipa_facet_create_action_panel;
+    that.create_action_panel = IPA.facet_create_action_panel;
 
     function init() {
     }
@@ -75,7 +75,7 @@ function ipa_facet(spec) {
     return that;
 }
 
-function ipa_entity(spec) {
+IPA.entity = function (spec) {
 
     spec = spec || {};
 
@@ -83,7 +83,7 @@ function ipa_entity(spec) {
     that.name = spec.name;
     that.label = spec.label;
 
-    that.setup = spec.setup || ipa_entity_setup;
+    that.setup = spec.setup || IPA.entity_setup;
 
     that.dialogs = [];
     that.dialogs_by_name = {};
@@ -132,7 +132,7 @@ function ipa_entity(spec) {
     };
 
     that.create_association = function(spec) {
-        var config = ipa_association_config(spec);
+        var config = IPA.association_config(spec);
         that.add_association(config);
         return config;
     };
@@ -140,11 +140,11 @@ function ipa_entity(spec) {
     that.create_association_facet = function(attribute_member, other_entity, label, facet_group) {
 
         if (!attribute_member) {
-            attribute_member = ipa_get_member_attribute(
+            attribute_member = IPA.get_member_attribute(
                 that.entity_name, other_entity);
         }
 
-        return ipa_association_facet({
+        return IPA.association_facet({
             'name': attribute_member+'_'+other_entity,
             'label': label,
             'other_entity': other_entity,
@@ -212,12 +212,13 @@ function ipa_entity(spec) {
 /* use this to track individual changes between two hashchange events */
 var window_hash_cache = {};
 
-function ipa_get_entity(entity_name) {
+/*renamed to avoid clash with IPA.get_entity*/
+IPA.fetch_entity = function (entity_name) {
 
     var entity = IPA.get_entity(entity_name);
     if (entity) return entity;
 
-    entity = ipa_entity({
+    entity = IPA.entity({
         'name': entity_name
     });
 
@@ -225,14 +226,14 @@ function ipa_get_entity(entity_name) {
     return entity;
 }
 
-function ipa_entity_get_search_facet(entity_name) {
+IPA.entity_get_search_facet  = function (entity_name) {
 
-    var entity = ipa_get_entity(entity_name);
+    var entity = IPA.fetch_entity(entity_name);
 
     var facet = entity.get_facet('search');
     if (facet) return facet;
 
-    facet = ipa_search_facet({
+    facet = IPA.search_facet({
         'name': 'search',
         'label': 'Search'
     });
@@ -241,9 +242,9 @@ function ipa_entity_get_search_facet(entity_name) {
     return facet;
 }
 
-function ipa_entity_set_search_definition(entity_name, data) {
+IPA.entity_set_search_definition =  function (entity_name, data) {
 
-    var facet = ipa_entity_get_search_facet(entity_name);
+    var facet = IPA.entity_get_search_facet(entity_name);
 
     for (var i=0; i<data.length; i++) {
         var defn = data[i];
@@ -255,11 +256,11 @@ function ipa_entity_set_search_definition(entity_name, data) {
     }
 }
 
-function ipa_entity_set_add_definition(entity_name, data) {
+IPA.entity_set_add_definition = function (entity_name, data) {
 
-    var entity = ipa_get_entity(entity_name);
+    var entity = IPA.fetch_entity(entity_name);
 
-    var dialog = ipa_add_dialog({
+    var dialog = IPA.add_dialog({
         'name': 'add',
         'title': data[1]
     });
@@ -267,7 +268,7 @@ function ipa_entity_set_add_definition(entity_name, data) {
 
     for (var i=0; i<data[2].length; i++) {
         var field = data[2][i];
-        dialog.add_field(ipa_text_widget({
+        dialog.add_field(IPA.text_widget({
             name: field[0],
             label: field[1],
             setup: field[2],
@@ -278,20 +279,20 @@ function ipa_entity_set_add_definition(entity_name, data) {
     dialog.init();
 }
 
-function ipa_entity_get_add_dialog(entity_name) {
+IPA.entity_get_add_dialog = function (entity_name) {
 
-    var entity = ipa_get_entity(entity_name);
+    var entity = IPA.fetch_entity(entity_name);
     return entity.get_add_dialog();
 }
 
-function ipa_entity_get_details_facet(entity_name) {
+IPA.entity_get_details_facet = function (entity_name) {
 
-    var entity = ipa_get_entity(entity_name);
+    var entity = IPA.fetch_entity(entity_name);
 
     var facet = entity.get_facet('details');
     if (facet) return facet;
 
-    facet = ipa_details_facet({
+    facet = IPA.details_facet({
         'name': 'details',
         'label': 'Details'
     });
@@ -300,9 +301,9 @@ function ipa_entity_get_details_facet(entity_name) {
     return facet;
 }
 
-function ipa_entity_set_details_definition(entity_name, sections) {
+IPA.entity_set_details_definition = function (entity_name, sections) {
 
-    var facet = ipa_entity_get_details_facet(entity_name);
+    var facet = IPA.entity_get_details_facet(entity_name);
 
     for (var i=0; i<sections.length; i++) {
         var section = sections[i];
@@ -310,9 +311,9 @@ function ipa_entity_set_details_definition(entity_name, sections) {
     }
 }
 
-function ipa_entity_set_association_definition(entity_name, data) {
+IPA.entity_set_association_definition = function (entity_name, data) {
 
-    var entity = ipa_get_entity(entity_name);
+    var entity = IPA.fetch_entity(entity_name);
 
     entity.autogenerate_associations = true;
 
@@ -327,9 +328,9 @@ function ipa_entity_set_association_definition(entity_name, data) {
     }
 }
 
-function ipa_entity_set_facet_definition(entity_name, list) {
+IPA.entity_set_facet_definition = function (entity_name, list) {
 
-    var entity = ipa_get_entity(entity_name);
+    var entity = IPA.fetch_entity(entity_name);
 
     for (var i=0; i<list.length; i++) {
         var facet = list[i];
@@ -337,7 +338,7 @@ function ipa_entity_set_facet_definition(entity_name, list) {
     }
 }
 
-function ipa_current_facet(entity){
+IPA.current_facet =  function (entity){
     var facet_name = $.bbq.getState(entity.name + '-facet', true);
     if (!facet_name && entity.facets.length) {
         facet_name = entity.facets[0].name;
@@ -345,11 +346,11 @@ function ipa_current_facet(entity){
     return facet_name;
 }
 
-function ipa_entity_setup(container) {
+IPA.entity_setup = function (container) {
 
     var entity = this;
 
-    var facet_name = ipa_current_facet(entity);
+    var facet_name = IPA.current_facet(entity);
 
 
     var facet = entity.get_facet(facet_name);
@@ -433,9 +434,7 @@ IPA.nested_tabs = function(entity_name){
     return siblings;
 };
 
-
-
-function ipa_facet_create_action_panel(container) {
+IPA. facet_create_action_panel = function(container) {
 
     var that = this;
     var entity_name = that.entity_name;
@@ -474,7 +473,7 @@ function ipa_facet_create_action_panel(container) {
     }).appendTo(action_panel);
     var ul = $('<ul/>', {'class': 'action'}).appendTo(action_panel);
     var entity = IPA.get_entity(entity_name);
-    var facet_name =  ipa_current_facet(entity);
+    var facet_name =  IPA.current_facet(entity);
     var other_facet = entity.facets[0];
     var other_facet_name = other_facet.name;
     var nested_tabs = IPA.nested_tabs(entity_name);
@@ -486,7 +485,7 @@ function ipa_facet_create_action_panel(container) {
             /*assume for now that entities with only a single facet
               do not have search*/
             if (entity.facets.length > 0 ){
-                if ( entity.facets[0].name === ipa_current_facet( entity)){
+                if ( entity.facets[0].name === IPA.current_facet( entity)){
                     main_facet.text( IPA.metadata[entity_name].label);
                     main_facet.appendTo(ul);
                     ul.append($('<li><span class="action-controls"/></li>'));
@@ -528,7 +527,7 @@ function ipa_facet_create_action_panel(container) {
                       If we are on the current facet, we make the text black, non-clickable,
                       add an icon and make suer the action controls are positioned underneath it.
                      */
-                    if ( other_facet.name === ipa_current_facet( entity)){
+                    if ( other_facet.name === IPA.current_facet( entity)){
                         var text = link.text();
                         link.text('');
                         link.append($('<ul>').
@@ -548,7 +547,7 @@ function ipa_facet_create_action_panel(container) {
                 } else {
                     var innerlist = $('<ul/>').appendTo(ul);
                     innerlist.append(build_link(other_facet, other_facet.label));
-                    if ( other_facet.name === ipa_current_facet( entity)){
+                    if ( other_facet.name === IPA.current_facet( entity)){
                         innerlist.append($('<li class="entity-facet"><span class="action-controls"  /></li>'));
                     }
                 }

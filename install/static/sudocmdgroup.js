@@ -20,9 +20,9 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-function ipa_sudocmdgroup() {
+IPA.sudocmdgroup = function () {
 
-    var that = ipa_entity({
+    var that = IPA.entity({
         'name': 'sudocmdgroup'
     });
 
@@ -34,20 +34,20 @@ function ipa_sudocmdgroup() {
             'remove_method': 'remove_member'
         });
 
-        var dialog = ipa_sudocmdgroup_add_dialog({
+        var dialog = IPA.sudocmdgroup_add_dialog({
             'name': 'add',
             'title': 'Add New SUDO Command Group'
         });
         that.add_dialog(dialog);
         dialog.init();
 
-        var facet = ipa_sudocmdgroup_search_facet({
+        var facet = IPA.sudocmdgroup_search_facet({
             'name': 'search',
             'label': 'Search'
         });
         that.add_facet(facet);
 
-        facet = ipa_sudocmdgroup_details_facet({
+        facet = IPA.sudocmdgroup_details_facet({
             'name': 'details',
             'label': 'Details'
         });
@@ -59,18 +59,18 @@ function ipa_sudocmdgroup() {
     return that;
 }
 
-IPA.add_entity(ipa_sudocmdgroup());
+IPA.add_entity(IPA.sudocmdgroup());
 
-function ipa_sudocmdgroup_add_dialog(spec) {
+IPA.sudocmdgroup_add_dialog = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_add_dialog(spec);
+    var that = IPA.add_dialog(spec);
 
     that.init = function() {
 
-        that.add_field(ipa_text_widget({name:'cn', undo: false}));
-        that.add_field(ipa_text_widget({name:'description', undo: false}));
+        that.add_field(IPA.text_widget({name:'cn', undo: false}));
+        that.add_field(IPA.text_widget({name:'description', undo: false}));
 
         that.add_dialog_init();
     };
@@ -78,11 +78,11 @@ function ipa_sudocmdgroup_add_dialog(spec) {
     return that;
 }
 
-function ipa_sudocmdgroup_search_facet(spec) {
+IPA.sudocmdgroup_search_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_search_facet(spec);
+    var that = IPA.search_facet(spec);
 
     that.init = function() {
 
@@ -96,15 +96,15 @@ function ipa_sudocmdgroup_search_facet(spec) {
 }
 
 
-function ipa_sudocmdgroup_details_facet(spec) {
+IPA.sudocmdgroup_details_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_details_facet(spec);
+    var that = IPA.details_facet(spec);
 
     that.init = function() {
 
-        var section = ipa_details_list_section({
+        var section = IPA.details_list_section({
             'name': 'general',
             'label': 'General'
         });
@@ -113,13 +113,13 @@ function ipa_sudocmdgroup_details_facet(spec) {
         section.create_field({'name': 'cn'});
         section.create_field({'name': 'description'});
 
-        section = ipa_details_section({
+        section = IPA.details_section({
             'name': 'commands',
             'label': 'Commands'
         });
         that.add_section(section);
 
-        var field = ipa_sudocmdgroup_member_sudocmd_table_widget({
+        var field = IPA.sudocmdgroup_member_sudocmd_table_widget({
             'name': 'member_sudocmd',
             'label': 'Commands',
             'other_entity': 'sudocmd',
@@ -133,11 +133,11 @@ function ipa_sudocmdgroup_details_facet(spec) {
     return that;
 }
 
-function ipa_sudocmdgroup_member_sudocmd_table_widget(spec) {
+IPA.sudocmdgroup_member_sudocmd_table_widget = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_association_table_widget(spec);
+    var that = IPA.association_table_widget(spec);
 
     that.init = function() {
 

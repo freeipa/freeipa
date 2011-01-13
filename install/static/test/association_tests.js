@@ -18,11 +18,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+module('associate');
+
+
 test("Testing serial_associator().", function() {
 
     expect(10);
 
-    var orig_ipa_cmd = ipa_cmd;
+    var orig_ipa_cmd = IPA.cmd;
 
     var counter = 0;
 
@@ -35,22 +38,22 @@ test("Testing serial_associator().", function() {
 
     params.values = ['user1', 'user2', 'user3'];
 
-    ipa_cmd = function(name, args, options, win_callback, fail_callback, objname) {
+    IPA.cmd = function(name, args, options, win_callback, fail_callback, objname) {
         counter++;
 
         equals(
             name, params.method,
-            "Checking ipa_cmd() parameter: method"
+            "Checking IPA.cmd() parameter: method"
         );
 
         equals(
             objname, params.other_entity,
-            "Checking ipa_cmd() parameter: object name"
+            "Checking IPA.cmd() parameter: object name"
         );
 
         equals(
             args[0], "user"+counter,
-            "Checking ipa_cmd() parameter: primary key"
+            "Checking IPA.cmd() parameter: primary key"
         );
 
         var response = {};
@@ -65,14 +68,14 @@ test("Testing serial_associator().", function() {
     var associator = serial_associator(params);
     associator.execute();
 
-    ipa_cmd = orig_ipa_cmd;
+    IPA.cmd = orig_ipa_cmd;
 });
 
 test("Testing bulk_associator().", function() {
 
     expect(5);
 
-    var orig_ipa_cmd = ipa_cmd;
+    var orig_ipa_cmd = IPA.cmd;
 
     var counter = 0;
 
@@ -85,27 +88,27 @@ test("Testing bulk_associator().", function() {
 
     params.values = ['user1', 'user2', 'user3'];
 
-    ipa_cmd = function(name, args, options, win_callback, fail_callback, objname) {
+    IPA.cmd = function(name, args, options, win_callback, fail_callback, objname) {
         counter++;
 
         equals(
             name, params.method,
-            "Checking ipa_cmd() parameter: method"
+            "Checking IPA.cmd() parameter: method"
         );
 
         equals(
             objname, params.entity_name,
-            "Checking ipa_cmd() parameter: object name"
+            "Checking IPA.cmd() parameter: object name"
         );
 
         equals(
             args[0], params.pkey,
-            "Checking ipa_cmd() parameter: primary key"
+            "Checking IPA.cmd() parameter: primary key"
         );
 
         equals(
             options[params.other_entity], "user1,user2,user3",
-            "Checking ipa_cmd() parameter: options[\""+params.other_entity+"\"]"
+            "Checking IPA.cmd() parameter: options[\""+params.other_entity+"\"]"
         );
 
         var response = {};
@@ -120,5 +123,5 @@ test("Testing bulk_associator().", function() {
     var associator = bulk_associator(params);
     associator.execute();
 
-    ipa_cmd = orig_ipa_cmd;
+    IPA.cmd = orig_ipa_cmd;
 });

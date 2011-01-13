@@ -20,28 +20,28 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-function ipa_hbacsvc() {
+IPA.hbacsvc = function () {
 
-    var that = ipa_entity({
+    var that = IPA.entity({
         'name': 'hbacsvc'
     });
 
     that.init = function() {
 
-        var dialog = ipa_hbacsvc_add_dialog({
+        var dialog = IPA.hbacsvc_add_dialog({
             'name': 'add',
             'title': 'Add New HBAC Service'
         });
         that.add_dialog(dialog);
         dialog.init();
 
-        var facet = ipa_hbacsvc_search_facet({
+        var facet = IPA.hbacsvc_search_facet({
             'name': 'search',
             'label': 'Search'
         });
         that.add_facet(facet);
 
-        facet = ipa_hbacsvc_details_facet({
+        facet = IPA.hbacsvc_details_facet({
             'name': 'details',
             'label': 'Details'
         });
@@ -53,18 +53,18 @@ function ipa_hbacsvc() {
     return that;
 }
 
-IPA.add_entity(ipa_hbacsvc());
+IPA.add_entity(IPA.hbacsvc());
 
-function ipa_hbacsvc_add_dialog(spec) {
+IPA.hbacsvc_add_dialog = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_add_dialog(spec);
+    var that = IPA.add_dialog(spec);
 
     that.init = function() {
 
-        that.add_field(ipa_text_widget({name:'cn', undo: false}));
-        that.add_field(ipa_text_widget({name:'description', undo: false}));
+        that.add_field(IPA.text_widget({name:'cn', undo: false}));
+        that.add_field(IPA.text_widget({name:'description', undo: false}));
 
         that.add_dialog_init();
     };
@@ -72,11 +72,11 @@ function ipa_hbacsvc_add_dialog(spec) {
     return that;
 }
 
-function ipa_hbacsvc_search_facet(spec) {
+IPA.hbacsvc_search_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_search_facet(spec);
+    var that = IPA.search_facet(spec);
 
     that.init = function() {
 
@@ -90,15 +90,15 @@ function ipa_hbacsvc_search_facet(spec) {
 }
 
 
-function ipa_hbacsvc_details_facet(spec) {
+IPA.hbacsvc_details_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_details_facet(spec);
+    var that = IPA.details_facet(spec);
 
     that.init = function() {
 
-        var section = ipa_details_list_section({
+        var section = IPA.details_list_section({
             'name': 'general',
             'label': 'General'
         });

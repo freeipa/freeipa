@@ -34,11 +34,11 @@ IPA.is_field_writable = function(rights){
     return rights.indexOf('w') > -1;
 };
 
-function ipa_details_field(spec) {
+IPA.details_field =  function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
 
     that.load = spec.load || load;
     that.save = spec.save || save;
@@ -60,7 +60,7 @@ function ipa_details_field(spec) {
         var hint_span = null;
         var dd;
 
-        var param_info = ipa_get_param_info(that.entity_name, that.name);
+        var param_info = IPA.get_param_info(that.entity_name, that.name);
         if (param_info) {
             if (param_info['multivalue'] || param_info['class'] == 'List')
                 multivalue = true;
@@ -87,31 +87,30 @@ function ipa_details_field(spec) {
                 that.values = [that.values];
             }
 
-
-            dd = ipa_create_first_dd(that.name);
+            dd = IPA.create_first_dd(that.name);
             dd.append(that.create_value(that.values[0], hint_span, rights, 0));
             dd.appendTo(that.container);
 
             for (var i = 1; i < that.values.length; ++i) {
-                dd = ipa_create_other_dd(that.name);
+                dd = IPA.create_other_dd(that.name);
                 dd.append(that.create_value(that.values[i], hint_span, rights, i));
                 dd.appendTo(that.container);
             }
 
             if (multivalue && IPA.is_field_writable(rights) ) {
-                dd = ipa_create_other_dd(that.name);
-                dd.append(ipa_details_field_create_add_link.call(that, that.name, rights, that.values.length));
+                dd = IPA.create_other_dd(that.name);
+                dd.append(IPA.details_field_create_add_link.call(that, that.name, rights, that.values.length));
                 dd.appendTo(that.container);
             }
 
         } else {
             if (multivalue  && IPA.is_field_writable(rights)) {
-                dd = ipa_create_first_dd(that.name);
-                dd.append(ipa_details_field_create_add_link.call(that, that.name, rights, 0));
+                dd = IPA.create_first_dd(that.name);
+                dd.append(IPA.details_field_create_add_link.call(that, that.name, rights, 0));
                 dd.appendTo(that.container);
 
             } else {
-                dd = ipa_create_first_dd(that.name);
+                dd = IPA.create_first_dd(that.name);
                 dd.append(that.create_value('', hint_span, rights, 0));
                 dd.appendTo(that.container);
             }
@@ -130,7 +129,7 @@ function ipa_details_field(spec) {
 
         if (!IPA.is_field_writable(rights)) return label;
 
-        var param_info = ipa_get_param_info(that.entity_name, that.name);
+        var param_info = IPA.get_param_info(that.entity_name, that.name);
         if (param_info) {
             if (param_info['primary_key']) return label;
             if ('no_update' in param_info['flags']) return label;
@@ -241,7 +240,7 @@ function ipa_details_field(spec) {
     return that;
 }
 
-function ipa_details_section(spec){
+IPA.details_section = function (spec){
 
     spec = spec || {};
 
@@ -280,34 +279,33 @@ function ipa_details_section(spec){
 
     that.create_field = function(spec) {
 
-        //TODO: replace ipa_details_field with class-specific implementation
+        //TODO: replace IPA.details_field with class-specific implementation
         //Valid field classes: Str, IA5Str, Int, Bool and List
-
-        var field = ipa_details_field(spec);
+        var field = IPA.details_field(spec);
         that.add_field(field);
         return field;
     };
 
     that.create_text = function(spec) {
-        var field = ipa_text_widget(spec);
+        var field = IPA.text_widget(spec);
         that.add_field(field);
         return field;
     };
 
     that.create_radio = function(spec) {
-        var field = ipa_radio_widget(spec);
+        var field = IPA.radio_widget(spec);
         that.add_field(field);
         return field;
     };
 
     that.create_textarea = function(spec) {
-        var field = ipa_textarea_widget(spec);
+        var field = IPA.textarea_widget(spec);
         that.add_field(field);
         return field;
     };
 
     that.create_button = function(spec) {
-        var field = ipa_button_widget(spec);
+        var field = IPA.button_widget(spec);
         that.add_field(field);
         return field;
     };
@@ -415,11 +413,11 @@ function ipa_details_section(spec){
  *
  *   </dl>
  */
-function ipa_details_list_section(spec){
+IPA.details_list_section = function (spec){
 
     spec = spec || {};
 
-    var that = ipa_details_section(spec);
+    var that = IPA.details_section(spec);
 
     that.create = function(container) {
 
@@ -458,11 +456,11 @@ function ipa_details_list_section(spec){
 }
 
 // shorthand notation used for declarative definitions of details pages
-function ipa_stanza(spec) {
+IPA.stanza =  function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_details_list_section(spec);
+    var that = IPA.details_list_section(spec);
 
     // This is to allow declarative style programming for details
     that.input = function(spec) {
@@ -478,19 +476,19 @@ function ipa_stanza(spec) {
     return that;
 }
 
-function ipa_details_facet(spec) {
+IPA.details_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_facet(spec);
+    var that = IPA.facet(spec);
 
     that.is_dirty = spec.is_dirty || is_dirty;
     that.create = spec.create || create;
     that.setup = spec.setup || setup;
     that.load = spec.load || load;
-    that.update = spec.update || ipa_details_update;
+    that.update = spec.update || IPA.details_update;
     that.reset = spec.reset || reset;
-    that.refresh = spec.refresh || ipa_details_refresh;
+    that.refresh = spec.refresh || IPA.details_refresh;
 
     that.sections = [];
     that.sections_by_name = {};
@@ -519,7 +517,7 @@ function ipa_details_facet(spec) {
     };
 
     that.create_section = function(spec) {
-        var section = ipa_details_section(spec);
+        var section = IPA.details_section(spec);
         that.add_section(section);
         return section;
     };
@@ -675,12 +673,12 @@ function ipa_details_facet(spec) {
 }
 
 IPA.action_button = function(spec) {
-    var button = ipa_button(spec);
+    var button = IPA.button(spec);
     button.removeClass("ui-state-default").addClass("action-button");
     return button;
 };
 
-function ipa_button(spec) {
+IPA.button = function(spec) {
 
     spec = spec || {};
 
@@ -698,7 +696,7 @@ function ipa_button(spec) {
     return button;
 }
 
-function ipa_details_refresh() {
+IPA.details_refresh =  function () {
 
     var that = this;
 
@@ -718,11 +716,11 @@ function ipa_details_refresh() {
     var params = [];
     if (that.pkey) params.push(that.pkey);
 
-    ipa_cmd( 'show', params, {all: true, rights: true}, on_success, on_failure,
+    IPA.cmd( 'show', params, {all: true, rights: true}, on_success, on_failure,
         that.entity_name );
 }
 
-function ipa_details_update(on_win, on_fail)
+IPA.details_update = function (on_win, on_fail)
 {
     var that = this;
     var entity_name = that.entity_name;
@@ -772,7 +770,7 @@ function ipa_details_update(on_win, on_fail)
             values = field.save();
             if (!values) continue;
 
-            var param_info = ipa_get_param_info(entity_name, field.name);
+            var param_info = IPA.get_param_info(entity_name, field.name);
             if (param_info) {
                 if (param_info['primary_key']) continue;
                 if (values.length === 1) {
@@ -796,17 +794,11 @@ function ipa_details_update(on_win, on_fail)
         }
     }
 
-    ipa_cmd('mod', [pkey], modlist, update_on_win, null, entity_name);
+    IPA.cmd('mod', [pkey], modlist, update_on_win, null, entity_name);
 }
 
 
-/* HTML templates for ipa_details_display() */
-var _ipa_span_doc_template = '<span class="attrhint">Hint: D</span>';
-var _ipa_span_hint_template = '<span class="attrhint">Hint: D</span>';
-
-
-
-function ipa_create_first_dd(field_name, content){
+IPA.create_first_dd = function (field_name, content){
     var dd = $('<dd/>', {
         'class': 'first',
         'title': field_name
@@ -815,23 +807,12 @@ function ipa_create_first_dd(field_name, content){
     return dd;
 }
 
-function ipa_create_other_dd(field_name, content){
+IPA.create_other_dd = function (field_name, content){
     return $('<dd/>', {
         'class': 'other',
         'title': field_name
     }).append(content);
 }
-
-function ipa_insert_first_dd(jobj, content){
-    ipa_insert_dd(jobj, content, "first");
-}
-
-function ipa_insert_dd(jobj, content, dd_class){
-    jobj.after( $('<dd/>',{
-        "class": dd_class
-    }).append(content));
-}
-
 
 
 /* creates a Remove link for deleting attribute values */
@@ -853,8 +834,7 @@ function _ipa_create_remove_link(attr, param_info)
 
 }
 
-
-function ipa_details_field_create_add_link(title, rights, index) {
+IPA.details_field_create_add_link = function (title, rights, index) {
 
     var that = this;
 
@@ -864,14 +844,14 @@ function ipa_details_field_create_add_link(title, rights, index) {
         'html': 'Add',
         'click': function () {
 
-            var param_info = ipa_get_param_info(that.entity_name, '');
+            var param_info = IPA.get_param_info(that.entity_name, '');
             var input = that.create_input('', param_info, rights, index);
 
             link.replaceWith(input);
             input.focus();
 
-            var dd = ipa_create_other_dd(that.name);
-            dd.append(ipa_details_field_create_add_link.call(that, that.name, rights, index+1));
+            var dd = IPA.create_other_dd(that.name);
+            dd.append(IPA.details_field_create_add_link.call(that, that.name, rights, index+1));
             dd.appendTo(that.container);
 
             return false;

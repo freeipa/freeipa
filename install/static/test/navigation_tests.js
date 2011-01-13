@@ -30,7 +30,7 @@ test("Testing nav_create().", function() {
                 {name:'group', entity:'group'}
             ]}];
 
-    var entity = ipa_entity({name: 'user'});
+    var entity = IPA.entity({name: 'user'});
     entity.setup = function(container){
         user_mock_called = true;
         same(container[0].id,'user','user id');
@@ -38,7 +38,7 @@ test("Testing nav_create().", function() {
     };
     IPA.add_entity(entity);
 
-    entity = ipa_entity({name: 'group'});
+    entity = IPA.entity({name: 'group'});
     entity.setup = function(container){
         group_mock_called = true;
         same(container[0].id,'group','group id');

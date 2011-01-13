@@ -20,9 +20,9 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-function ipa_hbacsvcgroup() {
+IPA.hbacsvcgroup = function () {
 
-    var that = ipa_entity({
+    var that = IPA.entity({
         'name': 'hbacsvcgroup'
     });
 
@@ -34,20 +34,20 @@ function ipa_hbacsvcgroup() {
             'remove_method': 'remove_member'
         });
 
-        var dialog = ipa_hbacsvcgroup_add_dialog({
+        var dialog = IPA.hbacsvcgroup_add_dialog({
             'name': 'add',
             'title': 'Add New HBAC Service Group'
         });
         that.add_dialog(dialog);
         dialog.init();
 
-        var facet = ipa_hbacsvcgroup_search_facet({
+        var facet = IPA.hbacsvcgroup_search_facet({
             'name': 'search',
             'label': 'Search'
         });
         that.add_facet(facet);
 
-        facet = ipa_hbacsvcgroup_details_facet({
+        facet = IPA.hbacsvcgroup_details_facet({
             'name': 'details',
             'label': 'Details'
         });
@@ -59,18 +59,18 @@ function ipa_hbacsvcgroup() {
     return that;
 }
 
-IPA.add_entity(ipa_hbacsvcgroup());
+IPA.add_entity(IPA.hbacsvcgroup());
 
-function ipa_hbacsvcgroup_add_dialog(spec) {
+IPA.hbacsvcgroup_add_dialog = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_add_dialog(spec);
+    var that = IPA.add_dialog(spec);
 
     that.init = function() {
 
-        that.add_field(ipa_text_widget({name:'cn', undo: false}));
-        that.add_field(ipa_text_widget({name:'description', undo: false}));
+        that.add_field(IPA.text_widget({name:'cn', undo: false}));
+        that.add_field(IPA.text_widget({name:'description', undo: false}));
 
         that.add_dialog_init();
     };
@@ -78,11 +78,11 @@ function ipa_hbacsvcgroup_add_dialog(spec) {
     return that;
 }
 
-function ipa_hbacsvcgroup_search_facet(spec) {
+IPA.hbacsvcgroup_search_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_search_facet(spec);
+    var that = IPA.search_facet(spec);
 
     that.init = function() {
 
@@ -97,15 +97,15 @@ function ipa_hbacsvcgroup_search_facet(spec) {
 }
 
 
-function ipa_hbacsvcgroup_details_facet(spec) {
+IPA.hbacsvcgroup_details_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_details_facet(spec);
+    var that = IPA.details_facet(spec);
 
     that.init = function() {
 
-        var section = ipa_details_list_section({
+        var section = IPA.details_list_section({
             'name': 'general',
             'label': 'General'
         });
@@ -114,13 +114,13 @@ function ipa_hbacsvcgroup_details_facet(spec) {
         section.create_field({'name': 'cn'});
         section.create_field({'name': 'description'});
 
-        section = ipa_details_section({
+        section = IPA.details_section({
             'name': 'services',
             'label': 'Services'
         });
         that.add_section(section);
 
-        var field = ipa_hbacsvcgroup_member_hbacsvc_table_widget({
+        var field = IPA.hbacsvcgroup_member_hbacsvc_table_widget({
             'name': 'member_hbacsvc',
             'label': 'Services',
             'other_entity': 'hbacsvc',
@@ -134,11 +134,11 @@ function ipa_hbacsvcgroup_details_facet(spec) {
     return that;
 }
 
-function ipa_hbacsvcgroup_member_hbacsvc_table_widget(spec) {
+IPA.hbacsvcgroup_member_hbacsvc_table_widget = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_association_table_widget(spec);
+    var that = IPA.association_table_widget(spec);
 
     that.init = function() {
 

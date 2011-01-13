@@ -38,64 +38,64 @@ test("Testing ipa_init().", function() {
     );
 });
 
-test("Testing ipa_get_param_info().", function() {
+test("Testing IPA.get_param_info().", function() {
 
-    var param_info = ipa_get_param_info("user", "uid");
+    var param_info = IPA.get_param_info("user", "uid");
     ok(
         param_info,
-        "ipa_get_param_info(\"user\", \"uid\") not null"
+        "IPA.get_param_info(\"user\", \"uid\") not null"
     );
 
     equals(
         param_info["label"], "User login",
-        "ipa_get_param_info(\"user\", \"uid\")[\"label\"]"
+        "IPA.get_param_info(\"user\", \"uid\")[\"label\"]"
     );
 
     equals(
-        ipa_get_param_info("user", "wrong_attribute"), null,
-        "ipa_get_param_info(\"user\", \"wrong_attribute\")"
+        IPA.get_param_info("user", "wrong_attribute"), null,
+        "IPA.get_param_info(\"user\", \"wrong_attribute\")"
     );
 
     equals(
-        ipa_get_param_info("user", null), null,
-        "ipa_get_param_info(\"user\", null)"
+        IPA.get_param_info("user", null), null,
+        "IPA.get_param_info(\"user\", null)"
     );
 
     equals(
-        ipa_get_param_info("wrong_entity", "uid"), null,
-        "ipa_get_param_info(\"wrong_entity\", \"uid\")"
+        IPA.get_param_info("wrong_entity", "uid"), null,
+        "IPA.get_param_info(\"wrong_entity\", \"uid\")"
     );
 
     equals(
-        ipa_get_param_info(null, "uid"), null,
-        "ipa_get_param_info(null, \"uid\")"
+        IPA.get_param_info(null, "uid"), null,
+        "IPA.get_param_info(null, \"uid\")"
     );
 });
 
-test("Testing ipa_get_member_attribute().", function() {
+test("Testing IPA.get_member_attribute().", function() {
 
     equals(
-        ipa_get_member_attribute("user", "group"), "memberof",
-        "ipa_get_member_attribute(\"user\", \"group\")"
+        IPA.get_member_attribute("user", "group"), "memberof",
+        "IPA.get_member_attribute(\"user\", \"group\")"
     );
 
     equals(
-        ipa_get_member_attribute("user", "host"), null,
-        "ipa_get_member_attribute(\"user\", \"host\")"
+        IPA.get_member_attribute("user", "host"), null,
+        "IPA.get_member_attribute(\"user\", \"host\")"
     );
 
     equals(
-        ipa_get_member_attribute("user", null), null,
-        "ipa_get_member_attribute(\"user\", null)"
+        IPA.get_member_attribute("user", null), null,
+        "IPA.get_member_attribute(\"user\", null)"
     );
 
     equals(
-        ipa_get_member_attribute(null, "group"), null,
-        "ipa_get_member_attribute(null, \"group\")"
+        IPA.get_member_attribute(null, "group"), null,
+        "IPA.get_member_attribute(null, \"group\")"
     );
 });
 
-test("Testing successful ipa_cmd().", function() {
+test("Testing successful IPA.cmd().", function() {
 
     var method = 'method';
     var args = ['arg1', 'arg2', 'arg3'];
@@ -148,7 +148,7 @@ test("Testing successful ipa_cmd().", function() {
         request.success(xhr, text_status, error_thrown);
     };
 
-    ipa_cmd(method, args, options, success_handler, error_handler, object);
+    IPA.cmd(method, args, options, success_handler, error_handler, object);
 
     equals(
         ajax_counter, 1,
@@ -170,7 +170,7 @@ test("Testing successful ipa_cmd().", function() {
     $.ajax = orig;
 });
 
-test("Testing unsuccessful ipa_cmd().", function() {
+test("Testing unsuccessful IPA.cmd().", function() {
 
     var method = 'method';
     var args = ['arg1', 'arg2', 'arg3'];
@@ -223,7 +223,7 @@ test("Testing unsuccessful ipa_cmd().", function() {
         request.error(xhr, text_status, error_thrown);
     };
 
-    ipa_cmd(method, args, options, success_handler, error_handler, object);
+    IPA.cmd(method, args, options, success_handler, error_handler, object);
 
     var dialog = IPA.error_dialog.parent('.ui-dialog');
 

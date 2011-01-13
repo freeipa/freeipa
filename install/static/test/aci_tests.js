@@ -36,7 +36,7 @@ module('aci',{
                }
            );
            aci_container = $('<div id="aci"/>').appendTo(document.body);
-           target_section = ipa_target_section();
+           target_section = IPA.target_section();
            target_section.create(aci_container);
        },
        teardown: function() {

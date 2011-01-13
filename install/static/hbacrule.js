@@ -20,28 +20,28 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-function ipa_hbacrule() {
+IPA.hbacrule = function () {
 
-    var that = ipa_entity({
+    var that = IPA.entity({
         'name': 'hbacrule'
     });
 
     that.init = function() {
 
-        var dialog = ipa_hbacrule_add_dialog({
+        var dialog = IPA.hbacrule_add_dialog({
             'name': 'add',
             'title': 'Add New Rule'
         });
         that.add_dialog(dialog);
         dialog.init();
 
-        var facet = ipa_hbacrule_search_facet({
+        var facet = IPA.hbacrule_search_facet({
             'name': 'search',
             'label': 'Search'
         });
         that.add_facet(facet);
 
-        facet = ipa_hbacrule_details_facet({
+        facet = IPA.hbacrule_details_facet({
             'name': 'details',
             'label': 'Details'
         });
@@ -53,22 +53,22 @@ function ipa_hbacrule() {
     return that;
 }
 
-IPA.add_entity(ipa_hbacrule());
+IPA.add_entity(IPA.hbacrule());
 
-function ipa_hbacrule_add_dialog(spec) {
+IPA.hbacrule_add_dialog = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_add_dialog(spec);
+    var that = IPA.add_dialog(spec);
 
     that.init = function() {
 
-        that.add_field(ipa_text_widget({
+        that.add_field(IPA.text_widget({
             'name': 'cn',
             'undo': false
         }));
 
-        that.add_field(ipa_radio_widget({
+        that.add_field(IPA.radio_widget({
             'name': 'accessruletype',
             'options': [
                 { 'value': 'allow', 'label': 'Allow' },
@@ -83,11 +83,11 @@ function ipa_hbacrule_add_dialog(spec) {
     return that;
 }
 
-function ipa_hbacrule_search_facet(spec) {
+IPA.hbacrule_search_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_search_facet(spec);
+    var that = IPA.search_facet(spec);
 
     that.init = function() {
 
@@ -110,11 +110,11 @@ function ipa_hbacrule_search_facet(spec) {
             'style': 'float: left;'
         }).appendTo(container);
 
-        left_buttons.append(ipa_button({
+        left_buttons.append(IPA.button({
             'label': 'Troubleshoot Rules'
         }));
 
-        left_buttons.append(ipa_button({
+        left_buttons.append(IPA.button({
             'label': 'Cull Disabled Rules'
         }));
 */
@@ -126,11 +126,11 @@ function ipa_hbacrule_search_facet(spec) {
     return that;
 }
 
-function ipa_hbacrule_details_facet(spec) {
+IPA.hbacrule_details_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_details_facet(spec);
+    var that = IPA.details_facet(spec);
 
     that.init = function() {
 
@@ -144,7 +144,7 @@ function ipa_hbacrule_details_facet(spec) {
             });
 
         } else {
-            section = ipa_hbacrule_details_general_section({
+            section = IPA.hbacrule_details_general_section({
                 'name': 'general',
                 'label': 'General'
             });
@@ -164,7 +164,7 @@ function ipa_hbacrule_details_facet(spec) {
             });
 
         } else {
-            section = ipa_rule_details_section({
+            section = IPA.rule_details_section({
                 'name': 'user',
                 'label': 'Who',
                 'text': 'Rule applies when access is requested by:',
@@ -182,12 +182,12 @@ function ipa_hbacrule_details_facet(spec) {
         }
 
         var category = section.create_radio({ name: 'usercategory', label: 'User category' });
-        section.add_field(ipa_rule_association_table_widget({
+        section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberuser_user',
             'name': 'memberuser_user', 'label': 'Users', 'category': category,
             'other_entity': 'user', 'add_method': 'add_user', 'remove_method': 'remove_user'
         }));
-        section.add_field(ipa_rule_association_table_widget({
+        section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberuser_group',
             'name': 'memberuser_group', 'label': 'Groups', 'category': category,
             'other_entity': 'group', 'add_method': 'add_user', 'remove_method': 'remove_user'
@@ -201,7 +201,7 @@ function ipa_hbacrule_details_facet(spec) {
             });
 
         } else {
-            section = ipa_rule_details_section({
+            section = IPA.rule_details_section({
                 'name': 'host',
                 'label': 'Accessing',
                 'text': 'Rule applies when access is requested to:',
@@ -219,12 +219,12 @@ function ipa_hbacrule_details_facet(spec) {
         }
 
         category = section.create_radio({ 'name': 'hostcategory', 'label': 'Host category' });
-        section.add_field(ipa_rule_association_table_widget({
+        section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberhost_host',
             'name': 'memberhost_host', 'label': 'Hosts', 'category': category,
             'other_entity': 'host', 'add_method': 'add_host', 'remove_method': 'remove_host'
         }));
-        section.add_field(ipa_rule_association_table_widget({
+        section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberhost_hostgroup',
             'name': 'memberhost_hostgroup', 'label': 'Host Groups', 'category': category,
             'other_entity': 'hostgroup', 'add_method': 'add_host', 'remove_method': 'remove_host'
@@ -238,7 +238,7 @@ function ipa_hbacrule_details_facet(spec) {
             });
 
         } else {
-            section = ipa_rule_details_section({
+            section = IPA.rule_details_section({
                 'name': 'service',
                 'label': 'Via Service',
                 'text': 'Rule applies when access is requested via:',
@@ -256,12 +256,12 @@ function ipa_hbacrule_details_facet(spec) {
         }
 
         category = section.create_radio({ 'name': 'servicecategory', 'label': 'Service category' });
-        section.add_field(ipa_rule_association_table_widget({
+        section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberservice_hbacsvc',
             'name': 'memberservice_hbacsvc', 'label': 'Services', 'category': category,
             'other_entity': 'hbacsvc', 'add_method': 'add_service', 'remove_method': 'remove_service'
         }));
-        section.add_field(ipa_rule_association_table_widget({
+        section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberservice_hbacsvcgroup',
             'name': 'memberservice_hbacsvcgroup', 'label': 'Service Groups', 'category': category,
             'other_entity': 'hbacsvcgroup', 'add_method': 'add_service', 'remove_method': 'remove_service'
@@ -275,7 +275,7 @@ function ipa_hbacrule_details_facet(spec) {
             });
 
         } else {
-            section = ipa_rule_details_section({
+            section = IPA.rule_details_section({
                 'name': 'sourcehost',
                 'label': 'From',
                 'text': 'Rule applies when access is being initiated from:',
@@ -293,12 +293,12 @@ function ipa_hbacrule_details_facet(spec) {
         }
 
         category = section.create_radio({ 'name': 'sourcehostcategory', 'label': 'Source host category' });
-        section.add_field(ipa_rule_association_table_widget({
+        section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-sourcehost_host',
             'name': 'sourcehost_host', 'label': 'Host', 'category': category,
             'other_entity': 'host', 'add_method': 'add_sourcehost', 'remove_method': 'remove_sourcehost'
         }));
-        section.add_field(ipa_rule_association_table_widget({
+        section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-sourcehost_hostgroup',
             'name': 'sourcehost_hostgroup', 'label': 'Host Groups', 'category': category,
             'other_entity': 'hostgroup', 'add_method': 'add_sourcehost', 'remove_method': 'remove_sourcehost'
@@ -337,7 +337,7 @@ function ipa_hbacrule_details_facet(spec) {
 
         var modify_operation = {
             'execute': false,
-            'command': ipa_command({
+            'command': IPA.command({
                 'method': that.entity_name+'_mod',
                 'args': [pkey],
                 'options': {'all': true, 'rights': true}
@@ -345,7 +345,7 @@ function ipa_hbacrule_details_facet(spec) {
         };
 
         var remove_accesstime = {
-            'template': ipa_command({
+            'template': IPA.command({
                 'method': that.entity_name+'_remove_accesstime',
                 'args': [pkey],
                 'options': {'all': true, 'rights': true}
@@ -372,7 +372,7 @@ function ipa_hbacrule_details_facet(spec) {
             'memberuser': {
                 'category': 'usercategory',
                 'has_values': false,
-                'command': ipa_command({
+                'command': IPA.command({
                     'method': that.entity_name+'_remove_user',
                     'args': [pkey],
                     'options': {'all': true, 'rights': true}
@@ -381,7 +381,7 @@ function ipa_hbacrule_details_facet(spec) {
             'memberhost': {
                 'category': 'hostcategory',
                 'has_values': false,
-                'command': ipa_command({
+                'command': IPA.command({
                     'method': that.entity_name+'_remove_host',
                     'args': [pkey],
                     'options': {'all': true, 'rights': true}
@@ -390,7 +390,7 @@ function ipa_hbacrule_details_facet(spec) {
             'memberservice': {
                 'category': 'servicecategory',
                 'has_values': false,
-                'command': ipa_command({
+                'command': IPA.command({
                     'method': that.entity_name+'_remove_service',
                     'args': [pkey],
                     'options': {'all': true, 'rights': true}
@@ -399,7 +399,7 @@ function ipa_hbacrule_details_facet(spec) {
             'sourcehost': {
                 'category': 'sourcehostcategory',
                 'has_values': false,
-                'command': ipa_command({
+                'command': IPA.command({
                     'method': that.entity_name+'_remove_sourcehost',
                     'args': [pkey],
                     'options': {'all': true, 'rights': true}
@@ -409,7 +409,7 @@ function ipa_hbacrule_details_facet(spec) {
 
         var enable_operation = {
             'execute': false,
-            'command': ipa_command({
+            'command': IPA.command({
                 'method': that.entity_name+'_enable',
                 'args': [pkey],
                 'options': {'all': true, 'rights': true}
@@ -428,7 +428,7 @@ function ipa_hbacrule_details_facet(spec) {
                 var values = field.save();
                 if (!values) continue;
 
-                var param_info = ipa_get_param_info(that.entity_name, field.name);
+                var param_info = IPA.get_param_info(that.entity_name, field.name);
 
                 // skip primary key
                 if (param_info && param_info['primary_key']) continue;
@@ -460,7 +460,7 @@ function ipa_hbacrule_details_facet(spec) {
                     // if accesstime is dirty, it means 'Any Time' is selected,
                     // so existing values have to be removed
                     for (var k=0; k<field.values.length; k++) {
-                        var command = ipa_command(remove_accesstime.template);
+                        var command = IPA.command(remove_accesstime.template);
                         command.set_option(field.name, field.values[k]);
                         remove_accesstime.commands.push(command);
                     }
@@ -494,7 +494,7 @@ function ipa_hbacrule_details_facet(spec) {
             }
         }
 
-        var batch = ipa_batch_command({
+        var batch = IPA.batch_command({
             'name': 'hbac_details_update',
             'on_success': function(data, text_status, xhr) {
                 that.refresh();
@@ -537,11 +537,11 @@ function ipa_hbacrule_details_facet(spec) {
     return that;
 }
 
-function ipa_hbacrule_details_general_section(spec){
+IPA.hbacrule_details_general_section = function (spec){
 
     spec = spec || {};
 
-    var that = ipa_details_section(spec);
+    var that = IPA.details_section(spec);
 
     that.create = function(container) {
 
@@ -678,11 +678,11 @@ function ipa_hbacrule_details_general_section(spec){
     return that;
 }
 
-function ipa_hbacrule_accesstime_widget(spec) {
+IPA.hbacrule_accesstime_widget = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
 
     that.text = spec.text;
     that.options = spec.options || [];
@@ -691,7 +691,7 @@ function ipa_hbacrule_accesstime_widget(spec) {
 
         that.widget_init();
 
-        that.table = ipa_table_widget({
+        that.table = IPA.table_widget({
             'id': 'accesstime-table',
             'name': 'table', 'label': that.label
         });
@@ -763,14 +763,14 @@ function ipa_hbacrule_accesstime_widget(spec) {
         that.table.setup(span);
 
         var button = $('input[name=remove]', span);
-        button.replaceWith(ipa_button({
+        button.replaceWith(IPA.button({
             'label': button.val(),
             'icon': 'ui-icon-trash',
             'click': function() { that.remove(that.container); }
         }));
 
         button = $('input[name=add]', span);
-        button.replaceWith(ipa_button({
+        button.replaceWith(IPA.button({
             'label': button.val(),
             'icon': 'ui-icon-plus',
             'click': function() { that.add(that.container); }
@@ -823,11 +823,11 @@ function ipa_hbacrule_accesstime_widget(spec) {
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         var title = 'Add '+that.label+' to '+that.entity_name+' '+pkey;
 
-        var dialog = ipa_dialog({
+        var dialog = IPA.dialog({
             'title': title
         });
 
-        dialog.add_field(ipa_text_widget({
+        dialog.add_field(IPA.text_widget({
             'name': that.name,
             'label': that.label
         }));
@@ -873,7 +873,7 @@ function ipa_hbacrule_accesstime_widget(spec) {
             var field = dialog.get_field(that.name);
             var value = field.save()[0];
 
-            var command = ipa_command({
+            var command = IPA.command({
                 'method': that.entity_name+'_add_'+that.name,
                 'args': [pkey],
                 'on_success': function() {
@@ -925,14 +925,14 @@ function ipa_hbacrule_accesstime_widget(spec) {
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         var title = 'Remove '+that.label+' from '+that.entity_name+' '+pkey;
 
-        var dialog = ipa_deleter_dialog({
+        var dialog = IPA.deleter_dialog({
             'title': title,
             'values': values
         });
 
         dialog.remove = function() {
 
-            var batch = ipa_batch_command({
+            var batch = IPA.batch_command({
                 'on_success': function() {
                     that.refresh();
                     dialog.close();
@@ -944,7 +944,7 @@ function ipa_hbacrule_accesstime_widget(spec) {
             });
 
             for (var i=0; i<values.length; i++) {
-                var command = ipa_command({
+                var command = IPA.command({
                     'method': that.entity_name+'_remove_'+that.name,
                     'args': [pkey]
                 });
@@ -976,7 +976,7 @@ function ipa_hbacrule_accesstime_widget(spec) {
         }
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        ipa_cmd('show', [pkey], {'rights': true}, on_success, on_error, that.entity_name);
+        IPA.cmd('show', [pkey], {'rights': true}, on_success, on_error, that.entity_name);
     };
 
     return that;

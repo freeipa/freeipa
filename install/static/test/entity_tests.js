@@ -20,20 +20,20 @@
 
 module('entity');
 
-test('Testing ipa_entity_set_search_definition().', function() {
+test('Testing IPA.entity_set_search_definition().', function() {
 
     var uid_callback = function() {
         return true;
     };
 
-    ipa_entity_set_search_definition('user', [
+    IPA.entity_set_search_definition('user', [
         ['uid', 'Login', uid_callback]
     ]);
 
-    var facet = ipa_entity_get_search_facet('user');
+    var facet = IPA.entity_get_search_facet('user');
     ok(
         facet,
-        'ipa_entity_get_search_facet(\'user\') is not null'
+        'IPA.entity_get_search_facet(\'user\') is not null'
     );
 
     var column = facet.get_columns()[0];
@@ -79,13 +79,13 @@ test('Testing ipa_facet_setup_views().', function() {
         }
     );
 
-    var entity = ipa_entity({
+    var entity = IPA.entity({
         'name': 'user'
     });
 
     IPA.add_entity(entity);
 
-    var facet = ipa_search_facet({
+    var facet = IPA.search_facet({
         'name': 'search',
         'label': 'Search'
     });

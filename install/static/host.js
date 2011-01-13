@@ -21,9 +21,9 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-function ipa_host() {
+IPA.host = function () {
 
-    var that = ipa_entity({
+    var that = IPA.entity({
         'name': 'host'
     });
 
@@ -39,26 +39,26 @@ function ipa_host() {
             'associator': 'serial'
         });
 
-        var dialog = ipa_host_add_dialog({
+        var dialog = IPA.host_add_dialog({
             'name': 'add',
             'title': 'Add New Host'
         });
         that.add_dialog(dialog);
         dialog.init();
 
-        var facet = ipa_host_search_facet({
+        var facet = IPA.host_search_facet({
             'name': 'search',
             'label': 'Search'
         });
         that.add_facet(facet);
 
-        facet = ipa_host_details_facet({
+        facet = IPA.host_details_facet({
             'name': 'details',
             'label': 'Details'
         });
         that.add_facet(facet);
 
-        facet = ipa_host_managedby_host_facet({
+        facet = IPA.host_managedby_host_facet({
             'name': 'managedby_host',
             'label': IPA.messages.association.managedby+' '+IPA.metadata['host'].label,
             'other_entity': 'host'
@@ -73,17 +73,17 @@ function ipa_host() {
     return that;
 }
 
-IPA.add_entity(ipa_host());
+IPA.add_entity(IPA.host());
 
-function ipa_host_add_dialog(spec) {
+IPA.host_add_dialog = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_add_dialog(spec);
+    var that = IPA.add_dialog(spec);
 
     that.init = function() {
 
-        that.add_field(ipa_text_widget({
+        that.add_field(IPA.text_widget({
             'name': 'fqdn',
             'size': 40,
             'undo': false
@@ -95,11 +95,11 @@ function ipa_host_add_dialog(spec) {
     return that;
 }
 
-function ipa_host_search_facet(spec) {
+IPA.host_search_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_search_facet(spec);
+    var that = IPA.search_facet(spec);
 
     that.init = function() {
 
@@ -115,15 +115,15 @@ function ipa_host_search_facet(spec) {
     return that;
 }
 
-function ipa_host_details_facet(spec) {
+IPA.host_details_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_details_facet(spec);
+    var that = IPA.details_facet(spec);
 
     that.init = function() {
 
-        var section = ipa_details_list_section({
+        var section = IPA.details_list_section({
             'name': 'details',
             'label': 'Host Details'
         });
@@ -147,7 +147,7 @@ function ipa_host_details_facet(spec) {
         section.create_field({'name': 'description'});
 
         //TODO: use i18n labels
-        section = ipa_details_list_section({
+        section = IPA.details_list_section({
             'name': 'enrollment',
             'label': 'Enrollment'
         });
@@ -160,7 +160,7 @@ function ipa_host_details_facet(spec) {
             'facet': that
         }));
 
-        section = ipa_details_list_section({
+        section = IPA.details_list_section({
             'name': 'certificate',
             'label': 'Host Certificate'
         });
@@ -178,7 +178,7 @@ function ipa_host_details_facet(spec) {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 
-        var command = ipa_command({
+        var command = IPA.command({
             'name': that.entity_name+'_show_'+pkey,
             'method': that.entity_name+'_show',
             'args': [pkey],
@@ -206,7 +206,7 @@ function host_provisioning_status_widget(spec) {
 
     spec = spec || {};
 
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
 
     that.facet = spec.facet;
 
@@ -276,7 +276,7 @@ function host_provisioning_status_widget(spec) {
         that.missing = $('.status-missing', that.container);
 
         var button = $('input[name=unprovision]', that.container);
-        that.unprovision_button = ipa_button({
+        that.unprovision_button = IPA.button({
             'label': 'Delete Key, Unprovision',
             'click': that.show_unprovision_dialog
         });
@@ -285,7 +285,7 @@ function host_provisioning_status_widget(spec) {
         that.otp_input = $('input[name=otp]', that.container);
 
         that.enroll_button = $('input[name=enroll]', that.container);
-        button = ipa_button({
+        button = IPA.button({
             'label': 'Set OTP',
             'click': that.set_otp
         });
@@ -297,7 +297,7 @@ function host_provisioning_status_widget(spec) {
     that.show_unprovision_dialog = function() {
 
         var label = IPA.metadata[that.entity_name].label;
-        var dialog = ipa_dialog({
+        var dialog = IPA.dialog({
             'title': 'Unprovisioning '+label
         });
 
@@ -334,7 +334,7 @@ function host_provisioning_status_widget(spec) {
 
         var pkey = that.facet.get_primary_key();
 
-        var command = ipa_command({
+        var command = IPA.command({
             'name': that.entity_name+'_disable_'+pkey,
             'method': that.entity_name+'_disable',
             'args': [pkey],
@@ -352,7 +352,7 @@ function host_provisioning_status_widget(spec) {
         var otp = that.otp_input.val();
         that.otp_input.val('');
 
-        var command = ipa_command({
+        var command = IPA.command({
             'method': that.entity_name+'_mod',
             'args': [pkey],
             'options': {
@@ -419,11 +419,11 @@ function host_certificate_status_widget(spec) {
     return that;
 }
 
-function ipa_host_managedby_host_facet(spec) {
+IPA.host_managedby_host_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_association_facet(spec);
+    var that = IPA.association_facet(spec);
 
     that.add_method = 'add_managedby';
     that.remove_method = 'remove_managedby';

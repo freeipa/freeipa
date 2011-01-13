@@ -20,11 +20,11 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-function ipa_rule_details_section(spec){
+IPA.rule_details_section = function (spec){
 
     spec = spec || {};
 
-    var that = ipa_details_section(spec);
+    var that = IPA.details_section(spec);
 
     that.text = spec.text;
     that.field_name = spec.field_name;
@@ -38,7 +38,7 @@ function ipa_rule_details_section(spec){
 
         if (that.text) container.append(that.text);
 
-        var param_info = ipa_get_param_info(that.entity_name, that.field_name);
+        var param_info = IPA.get_param_info(that.entity_name, that.field_name);
 
         var span = $('<span/>', {
             name: that.field_name,
@@ -73,7 +73,7 @@ function ipa_rule_details_section(spec){
         for (var j=0; j<that.tables.length; j++) {
             var table = that.tables[j];
 
-            param_info = ipa_get_param_info(that.entity_name, table.field_name);
+            param_info = IPA.get_param_info(that.entity_name, table.field_name);
 
             var table_span = $('<span/>', {
                 name: table.field_name,
@@ -123,11 +123,11 @@ function ipa_rule_details_section(spec){
     return that;
 }
 
-function ipa_rule_association_table_widget(spec) {
+IPA.rule_association_table_widget = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_association_table_widget(spec);
+    var that = IPA.association_table_widget(spec);
 
     that.category = spec.category;
 
@@ -135,7 +135,7 @@ function ipa_rule_association_table_widget(spec) {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 
-        var batch = ipa_batch_command({
+        var batch = IPA.batch_command({
             'on_success': on_success,
             'on_error': on_error
         });
@@ -143,7 +143,7 @@ function ipa_rule_association_table_widget(spec) {
         var command;
 
         if (that.category) {
-            command = ipa_command({
+            command = IPA.command({
                 'method': that.entity_name+'_mod',
                 'args': [pkey],
                 'options': {'all': true, 'rights': true},
@@ -157,7 +157,7 @@ function ipa_rule_association_table_widget(spec) {
             batch.add_command(command);
         }
 
-        command = ipa_command({
+        command = IPA.command({
             'method': that.entity_name+'_'+that.add_method,
             'args': [pkey]
         });

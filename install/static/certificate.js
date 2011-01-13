@@ -392,7 +392,7 @@ function certificate_status_widget(spec) {
 
     spec = spec || {};
 
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
 
     that.entity_label = spec.entity_label || that.entity_name;
 
@@ -497,10 +497,10 @@ function certificate_status_widget(spec) {
         that.missing = $('.status-missing', that.container);
 
         var button = $('input[name=get]', that.container);
-        that.get_button = ipa_button({
+        that.get_button = IPA.button({
             'label': 'Get',
             'click': function() {
-                ipa_cmd(that.entity_name+'_show', [that.pkey], {},
+                IPA.cmd(that.entity_name+'_show', [that.pkey], {},
                     function(data, text_status, xhr) {
                         get_certificate(data.result.result);
                     }
@@ -510,10 +510,10 @@ function certificate_status_widget(spec) {
         button.replaceWith(that.get_button);
 
         button = $('input[name=revoke]', that.container);
-        that.revoke_button = ipa_button({
+        that.revoke_button = IPA.button({
             'label': 'Revoke',
             'click': function() {
-                ipa_cmd(that.entity_name+'_show', [that.pkey], {},
+                IPA.cmd(that.entity_name+'_show', [that.pkey], {},
                     function(data, text_status, xhr) {
                         revoke_certificate(data.result.result);
                     }
@@ -523,10 +523,10 @@ function certificate_status_widget(spec) {
         button.replaceWith(that.revoke_button);
 
         button = $('input[name=view]', that.container);
-        that.view_button = ipa_button({
+        that.view_button = IPA.button({
             'label': 'View',
             'click': function() {
-                ipa_cmd(that.entity_name+'_show', [that.pkey], {},
+                IPA.cmd(that.entity_name+'_show', [that.pkey], {},
                     function(data, text_status, xhr) {
                         view_certificate(data.result.result);
                     }
@@ -538,10 +538,10 @@ function certificate_status_widget(spec) {
         that.revocation_reason = $('span[name=revocation_reason]', that.container);
 
         button = $('input[name=restore]', that.container);
-        that.restore_button = ipa_button({
+        that.restore_button = IPA.button({
             'label': 'Restore',
             'click': function() {
-                ipa_cmd(that.entity_name+'_show', [that.pkey], {},
+                IPA.cmd(that.entity_name+'_show', [that.pkey], {},
                     function(data, text_status, xhr) {
                         restore_certificate(data.result.result);
                     }
@@ -551,7 +551,7 @@ function certificate_status_widget(spec) {
         button.replaceWith(that.restore_button);
 
         button = $('input[name=create]', that.container);
-        that.create_button = ipa_button({
+        that.create_button = IPA.button({
             'label': 'New Certificate',
             'click': function() {
                 request_certificate(that.result);
@@ -595,7 +595,7 @@ function certificate_status_widget(spec) {
             return;
         }
 
-        ipa_cmd(
+        IPA.cmd(
             'cert_show',
             [serial_number],
             { },
@@ -662,7 +662,7 @@ function certificate_status_widget(spec) {
             'request': function(values) {
                 var request = values['request'];
 
-                ipa_cmd(
+                IPA.cmd(
                     'cert_request',
                     [request],
                     {
@@ -694,7 +694,7 @@ function certificate_status_widget(spec) {
             'revoke': function(values) {
                 var reason = values['reason'];
 
-                ipa_cmd(
+                IPA.cmd(
                     'cert_revoke',
                     [serial_number],
                     {
@@ -724,7 +724,7 @@ function certificate_status_widget(spec) {
         var dialog = certificate_restore_dialog({
             'title': 'Restore Certificate for '+that.entity_label+' '+entity_name,
             'restore': function(values) {
-                ipa_cmd(
+                IPA.cmd(
                     'cert_remove_hold',
                     [serial_number],
                     { },

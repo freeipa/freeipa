@@ -20,7 +20,7 @@
 
 /* REQUIRES: ipa.js */
 
-function ipa_widget(spec) {
+IPA.widget = function(spec) {
 
     spec = spec || {};
 
@@ -81,7 +81,7 @@ function ipa_widget(spec) {
 
     function init() {
         if (that.entity_name && !that.label){
-            that.param_info = ipa_get_param_info(that.entity_name, that.name);
+            that.param_info = IPA.get_param_info(that.entity_name, that.name);
             if ((that.param_info) && (that.label === undefined)){
                 that.label = that.param_info.label;
             }
@@ -169,11 +169,12 @@ function ipa_widget(spec) {
     return that;
 }
 
-function ipa_text_widget(spec) {
+
+IPA.text_widget = function(spec) {
 
     spec = spec || {};
 
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
 
     that.size = spec.size || 30;
 
@@ -256,11 +257,11 @@ function ipa_text_widget(spec) {
     return that;
 }
 
-function ipa_checkbox_widget(spec) {
+IPA.checkbox_widget = function (spec) {
 
     spec = spec || {};
     var is_checked = spec.checked || '';
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
 
     that.create = function(container) {
 
@@ -312,11 +313,11 @@ function ipa_checkbox_widget(spec) {
     return that;
 }
 
-function ipa_radio_widget(spec) {
+IPA.radio_widget = function(spec) {
 
     spec = spec || {};
 
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
 
     that.options = spec.options;
 
@@ -390,11 +391,11 @@ function ipa_radio_widget(spec) {
     return that;
 }
 
-function ipa_textarea_widget(spec) {
+IPA.textarea_widget = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
 
     that.rows = spec.rows || 5;
     that.cols = spec.cols || 40;
@@ -449,7 +450,7 @@ function ipa_textarea_widget(spec) {
     return that;
 }
 
-function ipa_button_widget(spec) {
+IPA.button_widget = function (spec) {
 
     spec = spec || {};
 
@@ -457,7 +458,7 @@ function ipa_button_widget(spec) {
     spec.load = spec.load || load;
     spec.save = spec.save || save;
 
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
 
     that.click = spec.click;
 
@@ -466,7 +467,7 @@ function ipa_button_widget(spec) {
         that.widget_setup(container);
 
         var input = $('[name="'+that.name+'"]', that.container);
-        input.replaceWith(ipa_button({ 'label': that.label, 'click': that.click }));
+        input.replaceWith(IPA.button({ 'label': that.label, 'click': that.click }));
     }
 
     function load(record) {
@@ -480,7 +481,7 @@ function ipa_button_widget(spec) {
 }
 
 
-function ipa_column(spec) {
+IPA.column = function (spec) {
 
     spec = spec || {};
 
@@ -496,7 +497,7 @@ function ipa_column(spec) {
 
     that.init = function() {
         if (that.entity_name && !that.label) {
-            var param_info = ipa_get_param_info(that.entity_name, that.name);
+            var param_info = IPA.get_param_info(that.entity_name, that.name);
             if (param_info) that.label = param_info.label;
         }
     };
@@ -514,11 +515,11 @@ function ipa_column(spec) {
     return that;
 }
 
-function ipa_table_widget(spec) {
+IPA.table_widget = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_widget(spec);
+    var that = IPA.widget(spec);
 
     that.scrollable = spec.scrollable;
     that.save_values = typeof spec.save_values == 'undefined' ? true : spec.save_values;
@@ -552,7 +553,7 @@ function ipa_table_widget(spec) {
     };
 
     that.create_column = function(spec) {
-        var column = ipa_column(spec);
+        var column = IPA.column(spec);
         that.add_column(column);
         return column;
     };
@@ -818,7 +819,7 @@ function ipa_table_widget(spec) {
         }
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        ipa_cmd('show', [pkey], {'all': true, 'rights': true}, on_success, on_error, that.entity_name);
+        IPA.cmd('show', [pkey], {'all': true, 'rights': true}, on_success, on_error, that.entity_name);
     };
 
     if (spec.columns) {
@@ -839,7 +840,7 @@ function ipa_table_widget(spec) {
 /**
  * This is a base class for dialog boxes.
  */
-function ipa_dialog(spec) {
+IPA.dialog = function(spec) {
 
     spec = spec || {};
 
@@ -1003,11 +1004,11 @@ function ipa_dialog(spec) {
  * This dialog provides an interface for searching and selecting
  * values from the available results.
  */
-function ipa_adder_dialog(spec) {
+IPA.adder_dialog = function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_dialog(spec);
+    var that = IPA.dialog(spec);
 
     that.width = spec.width || '600px';
 
@@ -1036,13 +1037,13 @@ function ipa_adder_dialog(spec) {
     };
 
     that.create_column = function(spec) {
-        var column = ipa_column(spec);
+        var column = IPA.column(spec);
         that.add_column(column);
         return column;
     };
 
     that.init = function() {
-        that.available_table = ipa_table_widget({
+        that.available_table = IPA.table_widget({
             name: 'available',
             scrollable: true,
             height: '151px'
@@ -1052,7 +1053,7 @@ function ipa_adder_dialog(spec) {
 
         that.available_table.init();
 
-        that.selected_table = ipa_table_widget({
+        that.selected_table = IPA.table_widget({
             name: 'selected',
             scrollable: true,
             height: '151px'
@@ -1165,7 +1166,7 @@ function ipa_adder_dialog(spec) {
         that.filter_field = $('input[name=filter]', that.container);
 
         var button = $('input[name=find]', that.container);
-        that.find_button = ipa_button({
+        that.find_button = IPA.button({
             'label': button.val(),
             'icon': 'ui-icon-search',
             'click': function() { that.search(); }
@@ -1173,7 +1174,7 @@ function ipa_adder_dialog(spec) {
         button.replaceWith(that.find_button);
 
         button = $('input[name=remove]', that.container);
-        that.remove_button = ipa_button({
+        that.remove_button = IPA.button({
             'label': button.val(),
             'icon': 'ui-icon-trash',
             'click': function() {
@@ -1183,7 +1184,7 @@ function ipa_adder_dialog(spec) {
         button.replaceWith(that.remove_button);
 
         button = $('input[name=add]', that.container);
-        that.add_button = ipa_button({
+        that.add_button = IPA.button({
             'label': button.val(),
             'icon': 'ui-icon-plus',
             'click': function() {
@@ -1256,11 +1257,11 @@ function ipa_adder_dialog(spec) {
 /**
  * This dialog displays the values to be deleted.
  */
-function ipa_deleter_dialog(spec) {
+IPA.deleter_dialog =  function (spec) {
 
     spec = spec || {};
 
-    var that = ipa_dialog(spec);
+    var that = IPA.dialog(spec);
 
     that.title = spec.title || IPA.messages.button.remove;
     that.remove = spec.remove;
