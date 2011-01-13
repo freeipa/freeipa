@@ -44,6 +44,7 @@ function ipa_widget(spec) {
     that.save = spec.save || save;
     that.update = spec.update || update;
     that.validate_input = spec.validate_input || validate_input;
+    that.param_info = spec.param_info;
 
     that.__defineGetter__("entity_name", function(){
         return that._entity_name;
@@ -53,28 +54,26 @@ function ipa_widget(spec) {
         that._entity_name = entity_name;
     });
 
-    var param_info;
-
     /*returns true and clears the error message if the field value  passes
       the validation pattern.  If the field value does not pass validation, 
       displays the error message and returns false. */
-    function validate_input(text){
-        if(!(param_info && param_info.pattern)){
+    function validate_input(text) {
+        if (!(that.param_info && that.param_info.pattern)) {
             return true;
         }
         var error_link = that.get_error_link();
-        if (!error_link){
+        if (!error_link) {
             return true;
         }
-        var regex = new RegExp( param_info.pattern );
+        var regex = new RegExp( that.param_info.pattern );
         //If the field is empty, don't validate
-        if (!text || text.match(regex) ) {
+        if ( !text || text.match(regex) ) {
             error_link.css('display', 'none');
             return true;
         }else{
             error_link.css('display', 'block');
-            if ( param_info.pattern_errmsg){
-                error_link.html(param_info.pattern_errmsg);
+            if (that.param_info.pattern_errmsg) {
+                error_link.html(that.param_info.pattern_errmsg);
             }
             return false;
         }
@@ -82,9 +81,9 @@ function ipa_widget(spec) {
 
     function init() {
         if (that.entity_name && !that.label){
-            param_info = ipa_get_param_info(that.entity_name, spec.name);
-            if ((param_info) && (that.label === undefined)){
-                that.label = param_info.label;
+            that.param_info = ipa_get_param_info(that.entity_name, that.name);
+            if ((that.param_info) && (that.label === undefined)){
+                that.label = that.param_info.label;
             }
         }
     }

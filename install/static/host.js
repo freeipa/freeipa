@@ -129,17 +129,24 @@ function ipa_host_details_facet(spec) {
         });
         that.add_section(section);
 
-        section.create_field({'name': 'fqdn'});
+        //TODO: use i18n labels
+        section.create_field({
+            name: 'fqdn',
+            label: 'Fully Qualified Host Name'
+        });
+
         section.create_field({'name': 'krbprincipalname'});
 
-        //TODO add this to the host plugin
+        //TODO: add this to the host plugin
+        //TODO: use i18n labels
         section.create_field({
             'name': 'serverhostname',
-            'label': 'Server Host Name'
+            'label': 'Host Name'
         });
 
         section.create_field({'name': 'description'});
 
+        //TODO: use i18n labels
         section = ipa_details_list_section({
             'name': 'enrollment',
             'label': 'Enrollment'

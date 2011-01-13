@@ -89,12 +89,12 @@ function ipa_details_field(spec) {
 
 
             dd = ipa_create_first_dd(that.name);
-            dd.append(ipa_details_field_create_input.call(that, that.values[0], hint_span, rights, 0));
+            dd.append(that.create_value(that.values[0], hint_span, rights, 0));
             dd.appendTo(that.container);
 
             for (var i = 1; i < that.values.length; ++i) {
                 dd = ipa_create_other_dd(that.name);
-                dd.append(ipa_details_field_create_input.call(that, that.values[i], hint_span, rights, i));
+                dd.append(that.create_value(that.values[i], hint_span, rights, i));
                 dd.appendTo(that.container);
             }
 
@@ -112,10 +112,111 @@ function ipa_details_field(spec) {
 
             } else {
                 dd = ipa_create_first_dd(that.name);
-                dd.append(ipa_details_field_create_input.call(that, '', hint_span, rights, 0));
+                dd.append(that.create_value('', hint_span, rights, 0));
                 dd.appendTo(that.container);
             }
         }
+    };
+
+    /* create an HTML element for displaying/editing an attribute
+     * arguments:
+     *   attr - LDAP attribute name
+     *   value - the attributes value */
+    that.create_value = function(value, hint, rights, index) {
+
+        // if field is primary key or non-writable, return a label
+
+        var label = $('<label/>', { html:value.toString() });
+
+        if (!IPA.is_field_writable(rights)) return label;
+
+        var param_info = ipa_get_param_info(that.entity_name, that.name);
+        if (param_info) {
+            if (param_info['primary_key']) return label;
+            if ('no_update' in param_info['flags']) return label;
+        }
+
+        // otherwise, create input field
+
+        var input = that.create_input(value, param_info, rights, index);
+        if (param_info) {
+            if (param_info['multivalue'] || param_info['class'] == 'List') {
+                input.append(_ipa_create_remove_link(that.name, param_info));
+            }
+        }
+
+        if (hint) input.after(hint);
+
+        return input;
+    };
+
+    /* creates a input box for editing a string attribute */
+    that.create_input = function(value, param_info, rights, index) {
+
+        index = index || 0;
+
+        function validate_input(text, param_info, error_link) {
+            if (param_info && param_info.pattern) {
+                var regex = new RegExp( param_info.pattern );
+                if (!text.match(regex)) {
+                    error_link.style.display = "block";
+                    if (param_info.pattern_errmsg) {
+                        error_link.innerHTML =  param_info.pattern_errmsg;
+                    }
+                } else {
+                    error_link.style.display = "none";
+                }
+            }
+        }
+
+        var doc = that.name;
+        if (param_info && param_info.doc) {
+            doc = param_info.doc;
+        }
+        var span = $("<Span />");
+        var input = $("<input/>", {
+            type: "text",
+            name: that.name,
+            value: value.toString(),
+            title: doc,
+            keyup: function(){
+                var undo_link = this.nextElementSibling;
+                undo_link.style.display = "inline";
+                var error_link = undo_link.nextElementSibling;
+
+                var text = $(this).val();
+                validate_input(text, param_info,error_link);
+            }
+        }).appendTo(span) ;
+
+        if (!IPA.is_field_writable(rights)) {
+            input.attr('disabled', 'disabled');
+        }
+
+        span.append($("<a/>", {
+            html:"undo",
+            "class":"ui-state-highlight ui-corner-all undo",
+            style:"display:none",
+            click: function(){
+                var previous_value = that.values || '';
+                if (index >= previous_value.length){
+                    previous_value = '';
+                }else{
+                    previous_value= previous_value[index];
+                }
+
+                this.previousElementSibling.value =  previous_value;
+                this.style.display = "none";
+                var error_link = this.nextElementSibling;
+                validate_input(previous_value, param_info,error_link);
+            }
+        }));
+        span.append($("<span/>", {
+            html:"Does not match pattern",
+            "class":"ui-state-error ui-corner-all",
+            style:"display:none"
+        }));
+        return span;
     };
 
     function save() {
@@ -178,6 +279,10 @@ function ipa_details_section(spec){
     };
 
     that.create_field = function(spec) {
+
+        //TODO: replace ipa_details_field with class-specific implementation
+        //Valid field classes: Str, IA5Str, Int, Bool and List
+
         var field = ipa_details_field(spec);
         that.add_field(field);
         return field;
@@ -332,11 +437,13 @@ function ipa_details_list_section(spec){
             var field = fields[i];
 
             var label = field.label;
-            if (label !== ''){
+
+            // no need to get i18n label from metadata
+            // because it's already done by field.init()
+
+            if (label !== '') {
                 label += ':';
             }
-            var param_info = ipa_get_param_info(that.entity_name, field.name);
-            if (param_info && param_info['label']) label = param_info['label'];
 
             $('<dt/>', {
                 html: label
@@ -727,56 +834,6 @@ function ipa_insert_dd(jobj, content, dd_class){
 
 
 
-/* mapping of parameter types to handlers used to create inputs */
-var _ipa_param_type_2_handler_map = {
-    'Str': _ipa_create_text_input,
-    'IA5Str': _ipa_create_text_input,
-    'Int': _ipa_create_text_input,
-    'Bool': _ipa_create_text_input,
-    'List': _ipa_create_text_input
-};
-
-/* create an HTML element for displaying/editing an attribute
- * arguments:
- *   attr - LDAP attribute name
- *   value - the attributes value */
-function ipa_details_field_create_input(value,hint,rights, index)
-{
-    var that = this;
-
-    var input = $("<label>",{html:value.toString()});
-    var param_info = ipa_get_param_info(that.entity_name, that.name);
-    if (!param_info) {
-        /* no information about the param is available, default to text input */
-        input = _ipa_create_text_input.call(that, value, null, rights, index);
-        if (hint){
-            input.after(hint);
-        }
-    }else if (param_info['primary_key'] ||
-              ('no_update' in param_info['flags'])){
-        /* check if the param value can be modified */
-        /*  This is currently a no-op, as we use this logic for the
-            default case as well */
-        return input;
-    }else{
-        /* call handler by param class */
-        var handler = _ipa_param_type_2_handler_map[param_info['class']];
-        if (handler) {
-            input = handler.call(that, value, param_info, rights, index);
-            if ((param_info['multivalue'] ||
-                 param_info['class'] == 'List') &&
-                IPA.is_field_writable(rights)){
-                input.append( _ipa_create_remove_link(that.name, param_info));
-            }
-            if (hint){
-                input.after(hint);
-            }
-        }
-    }
-    return input;
-}
-
-
 /* creates a Remove link for deleting attribute values */
 function _ipa_create_remove_link(attr, param_info)
 {
@@ -797,76 +854,6 @@ function _ipa_create_remove_link(attr, param_info)
 }
 
 
-/* creates a input box for editing a string attribute */
-function _ipa_create_text_input(value, param_info, rights, index)
-{
-    var that = this;
-    index = index || 0;
-
-    function validate_input(text, param_info,error_link){
-        if(param_info && param_info.pattern){
-            var regex = new RegExp( param_info.pattern );
-            if (!text.match(regex)) {
-                error_link.style.display ="block";
-                if ( param_info.pattern_errmsg){
-                    error_link.innerHTML =  param_info.pattern_errmsg;
-                }
-            }else{
-                error_link.style.display ="none";
-            }
-        }
-    }
-
-    var doc = that.name;
-    if (param_info && param_info.doc){
-        doc =  param_info.doc;
-    }
-    var span = $("<Span />");
-    var input = $("<input/>",{
-        type: "text",
-        name: that.name,
-        value: value.toString(),
-        title: doc,
-        keyup: function(){
-            var undo_link=this.nextElementSibling;
-            undo_link.style.display ="inline";
-            var error_link = undo_link.nextElementSibling;
-
-            var text = $(this).val();
-            validate_input(text, param_info,error_link);
-        }
-    }).appendTo(span) ;
-
-    if (!IPA.is_field_writable(rights)){
-        input.attr('disabled', 'disabled');
-    }
-
-    span.append($("<a/>",{
-        html:"undo",
-        "class":"ui-state-highlight ui-corner-all undo",
-        style:"display:none",
-        click: function(){
-            var previous_value = that.values || '';
-            if (index >= previous_value.length){
-                previous_value = '';
-            }else{
-                previous_value= previous_value[index];
-            }
-
-            this.previousElementSibling.value =  previous_value;
-            this.style.display = "none";
-            var error_link = this.nextElementSibling;
-            validate_input(previous_value, param_info,error_link);
-        }
-    }));
-    span.append($("<span/>",{
-        html:"Does not match pattern",
-        "class":"ui-state-error ui-corner-all",
-        style:"display:none"
-    }));
-    return span;
-}
-
 function ipa_details_field_create_add_link(title, rights, index) {
 
     var that = this;
@@ -878,7 +865,7 @@ function ipa_details_field_create_add_link(title, rights, index) {
         'click': function () {
 
             var param_info = ipa_get_param_info(that.entity_name, '');
-            var input = _ipa_create_text_input.call(that, '', param_info, rights, index);
+            var input = that.create_input('', param_info, rights, index);
 
             link.replaceWith(input);
             input.focus();

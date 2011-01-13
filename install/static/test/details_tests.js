@@ -225,7 +225,7 @@ test("Testing details lifecycle: create, setup, load.", function(){
 });
 
 
-test("Testing  _ipa_create_text_input().", function(){
+test("Testing create_input().", function() {
 
     var field = ipa_details_field({
         'name': "name"
@@ -234,7 +234,7 @@ test("Testing  _ipa_create_text_input().", function(){
     var name = "name";
     var value="value";
     var rights = 'rscwo'
-    var input = _ipa_create_text_input.call(field, value, null,rights);
+    var input = field.create_input(value, null, rights);
     ok(input,"input not null");
 
     var text = input.find('input');
@@ -245,7 +245,7 @@ test("Testing  _ipa_create_text_input().", function(){
     same(text[0].type,"text" );
 });
 
-test("Testing  _ipa_create_text_input() read only .", function(){
+test("Testing create_input() read only .", function() {
 
     var field = ipa_details_field({
         'name': "name"
@@ -254,7 +254,7 @@ test("Testing  _ipa_create_text_input() read only .", function(){
     var name = "name";
     var value="value";
     var rights = 'rsc'
-    var input = _ipa_create_text_input.call(field, value, null,rights);
+    var input = field.create_input(value, null, rights);
     ok(input,"input not null");
 
     var text = input.find('input');
