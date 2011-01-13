@@ -221,7 +221,9 @@ function host_provisioning_status_widget(spec) {
 
         that.widget_create(container);
 
-        var table = $('<table/>').appendTo(container);
+        var table = $('<table/>', {
+            'class': 'kerberos-key-status'
+        }).appendTo(container);
 
         var tr = $('<tr/>').appendTo(table);
 
@@ -262,11 +264,19 @@ function host_provisioning_status_widget(spec) {
 
         td = $('<td/>').appendTo(tr);
 
+        tr = $('<tr/>').appendTo(table);
+
+        td = $('<td/>').appendTo(tr);
+
+        td = $('<td/>').appendTo(tr);
+
         $('<input/>', {
             'type': 'text',
             'name': 'otp',
-            'size': 10
+            'class': 'otp'
         }).appendTo(td);
+
+        td = $('<td/>').appendTo(tr);
 
         $('<input/>', {
             'type': 'button',

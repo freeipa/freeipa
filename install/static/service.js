@@ -274,7 +274,9 @@ function service_provisioning_status_widget(spec) {
 
         that.widget_create(container);
 
-        var table = $('<table/>').appendTo(container);
+        var table = $('<table/>', {
+            'class': 'kerberos-key-status'
+        }).appendTo(container);
 
         var tr = $('<tr/>').appendTo(table);
 

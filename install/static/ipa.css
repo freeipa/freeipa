@@ -233,6 +233,10 @@ dl.entryattrs input {
     min-width: 27.5em;
 }
 
+dl.entryattrs input.otp {
+    min-width: 15em;
+    width: 98%;
+}
 
 span.attrhint {
     font-size: 8pt;
@@ -606,6 +610,13 @@ a.action-button-disabled {
 
 .strikethrough { text-decoration: line-through; }
 
+table.certificate-status {
+    line-height: 2;
+}
+
+table.kerberos-key-status {
+    line-height: 2;
+}
 
 .status-icon {
     width: 0.5em;

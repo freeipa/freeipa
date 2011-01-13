@@ -413,7 +413,9 @@ function certificate_status_widget(spec) {
 
         that.widget_create(container);
 
-        var table = $('<table/>').appendTo(container);
+        var table = $('<table/>', {
+            'class': 'certificate-status'
+        }).appendTo(container);
 
         var tr = $('<tr/>').appendTo(table);
 
@@ -434,12 +436,16 @@ function certificate_status_widget(spec) {
             'value': 'Get'
         }).appendTo(td);
 
+        td.append(' ');
+
         if (!that.is_selfsign()) {
             $('<input/>', {
                 'type': 'button',
                 'name': 'revoke',
                 'value': 'Revoke'
             }).appendTo(td);
+
+            td.append(' ');
         }
 
         $('<input/>', {
