@@ -1,7 +1,6 @@
 include VERSION
 
 SUBDIRS=daemons install ipapython ipa-client
-RADIUSDIRS=ipa-radius-server ipa-radius-admintools
 CLIENTDIRS=ipapython ipa-client
 
 PRJ_PREFIX=ipa
@@ -48,11 +47,6 @@ client: client-autogen
 		(cd $$subdir && $(MAKE) all) || exit 1; \
 	done
 
-radius:
-	@for subdir in $(RADIUSDIRS); do \
-		(cd $$subdir && $(MAKE) all) || exit 1; \
-	done
-
 bootstrap-autogen: version-update client-autogen
 	@echo "Building IPA $(IPA_VERSION)"
 	cd daemons; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
@@ -77,11 +71,6 @@ client-install: client
 	else \
 		python setup-client.py install --root $(DESTDIR); \
 	fi
-
-radius-install: radius install
-	@for subdir in $(RADIUSDIRS); do \
-		(cd $$subdir && $(MAKE) install) || exit 1; \
-	done
 
 test:
 	$(MAKE) -C install/po test_lang
@@ -204,7 +193,5 @@ maintainer-clean: clean
 	cd install && $(MAKE) maintainer-clean
 	cd ipa-client && $(MAKE) maintainer-clean
 	cd ipapython && $(MAKE) maintainer-clean
-	cd ipa-radius-admintools && $(MAKE) maintainer-clean
-	cd ipa-radius-server && $(MAKE) maintainer-clean
 	rm -f version.m4
 	rm -f ipa.spec

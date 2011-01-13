@@ -31,7 +31,6 @@
                 "posixaccount",
                 "krbprincipalaux",
                 "krbticketpolicyaux",
-                "radiusprofile",
                 "ipaobject"
             ],
             "sn": [

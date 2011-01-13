@@ -100,7 +100,6 @@
                     "posixaccount",
                     "krbprincipalaux",
                     "krbticketpolicyaux",
-                    "radiusprofile",
                     "ipaobject"
                 ],
                 "sn": [
@@ -160,7 +159,6 @@
                     "posixaccount",
                     "krbprincipalaux",
                     "krbticketpolicyaux",
-                    "radiusprofile",
                     "ipaobject"
                 ],
                 "sn": [
@@ -220,7 +218,6 @@
                     "posixaccount",
                     "krbprincipalaux",
                     "krbticketpolicyaux",
-                    "radiusprofile",
                     "ipaobject"
                 ],
                 "sn": [

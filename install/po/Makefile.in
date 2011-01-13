@@ -32,7 +32,7 @@ po_files = $(patsubst %, %.po, $(languages))
 mo_files = $(patsubst %.po, %.mo, $(po_files))
 po_count=$(words $(po_files))
 
-PY_FILES = $(shell cd ../..; git ls-files | grep -v -e "^tests/" -e "^doc/" -e "^install/po/" -e "^ipapython/test/" -e "^ipa-radius-server/" -e "setup.py" -e "setup-client.py" | grep "\.py$$" | tr '\n' ' '; cd install/po)
+PY_FILES = $(shell cd ../..; git ls-files | grep -v -e "^tests/" -e "^doc/" -e "^install/po/" -e "^ipapython/test/" -e "setup.py" -e "setup-client.py" | grep "\.py$$" | tr '\n' ' '; cd install/po)
 C_FILES = $(shell cd ../..; git ls-files | grep "\.c$$" | tr '\n' ' '; cd install/po)
 H_FILES = $(shell cd ../..; git ls-files | grep "\.h$$" | tr '\n' ' '; cd install/po)
 

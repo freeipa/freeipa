@@ -383,8 +383,6 @@ class DsInstance(service.Service):
                         schema_dirname(self.serverid) + "60kerberos.ldif")
         shutil.copyfile(ipautil.SHARE_DIR + "60samba.ldif",
                         schema_dirname(self.serverid) + "60samba.ldif")
-        shutil.copyfile(ipautil.SHARE_DIR + "60radius.ldif",
-                        schema_dirname(self.serverid) + "60radius.ldif")
         shutil.copyfile(ipautil.SHARE_DIR + "60ipaconfig.ldif",
                         schema_dirname(self.serverid) + "60ipaconfig.ldif")
         shutil.copyfile(ipautil.SHARE_DIR + "60basev2.ldif",

@@ -34,12 +34,6 @@ add: aci
 aci: (targetattr = "krbMaxPwdLife || krbMinPwdLife || krbPwdMinDiffChars || krbPwdMinLength || krbPwdHistoryLength")(version 3.0;acl "Admins can write password policy"; allow (write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 aci: (targetattr = "aci")(version 3.0;acl "Admins can manage delegations"; allow (write, delete) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 
-dn: cn=radius,$SUFFIX
-changetype: modify
-add: aci
-aci: (targetattr = "*")(version 3.0; acl "Only radius and admin can access radius service data"; deny (all) userdn!="ldap:///uid=admin,cn=users,cn=accounts,$SUFFIX || ldap:///krbprincipalname=radius/$FQDN@$REALM,cn=$REALM,cn=kerberos,$SUFFIX";)
-aci: (targetfilter = "(objectClass=radiusprofile)")(targetattr != "aci || userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Account Admins can manage Users and Groups"; allow (add, delete, read, write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
-
 dn: cn=services,cn=accounts,$SUFFIX
 changetype: modify
 add: aci

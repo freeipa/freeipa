@@ -1,9 +1,6 @@
 # Define ONLY_CLIENT to only make the ipa-client and ipa-python subpackages
 %{!?ONLY_CLIENT:%global ONLY_CLIENT 0}
 
-# Define WITH_RADIUS to build the radius packages
-%global WITH_RADIUS 0
-
 %global httpd_conf /etc/httpd/conf.d
 %global plugin_dir %{_libdir}/dirsrv/plugins
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
@@ -188,35 +185,6 @@ user, virtual machines, groups, authentication credentials), Policy
 (configuration settings, access control information) and Audit (events,
 logs, analysis thereof). If you are using IPA you need to install this
 package.
-
-%if %{WITH_RADIUS}
-%package radius-server
-Summary: IPA authentication server - radius plugin
-Group: System Environment/Base
-Requires: freeradius
-Requires: freeradius-ldap
-Requires: %{name}-python = %{version}-%{release}
-
-%description radius-server
-IPA is an integrated solution to provide centrally managed Identity (machine,
-user, virtual machines, groups, authentication credentials), Policy
-(configuration settings, access control information) and Audit (events,
-logs, analysis thereof). This plugin enables radius support.
-
-%package radius-admintools
-Summary: IPA authentication server - radius administration tools
-Group: System Environment/Base
-Requires: %{name}-python = %{version}-%{release}
-Requires: %{name}-admintools = %{version}-%{release}
-Requires: python-krbV
-
-%description radius-admintools
-IPA is an integrated solution to provide centrally managed Identity (machine,
-user, virtual machines, groups, authentication credentials), Policy
-(configuration settings, access control information) and Audit (events,
-logs, analysis thereof). This package provides command-line tools for
-administering radius authentication settings in IPA.
-%endif
 
 
 %prep
@@ -495,26 +463,10 @@ fi
 %endif
 %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
-%if %{WITH_RADIUS}
-%files radius-server
-%doc COPYING README Contributors.txt
-%{_usr}/share/ipa/ipaserver/plugins/*
-%dir %{_usr}/share/ipa/plugins
-%{_usr}/share/ipa/plugins/radius.radiusd.conf.template
-
-%files radius-admintools
-%doc COPYING README Contributors.txt
-%{_sbindir}/ipa-addradiusclient
-%{_sbindir}/ipa-addradiusprofile
-%{_sbindir}/ipa-delradiusclient
-%{_sbindir}/ipa-delradiusprofile
-%{_sbindir}/ipa-findradiusclient
-%{_sbindir}/ipa-findradiusprofile
-%{_sbindir}/ipa-modradiusclient
-%{_sbindir}/ipa-modradiusprofile
-%endif
-
 %changelog
+* Thu Jan 13 2011 Simo Sorce <ssorce@redhat.com> - 1.99-38
+- Remove radius subpackages
+
 * Thu Jan 13 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-37
 - Set minimum pki-ca and pki-silent versions to 9.0.0
 

@@ -10,8 +10,6 @@ dnsclient.py - find IPA information via DNS
 
 ipautil.py - helper functions
 
-radius_util.py - helper functions for Radius
-
 entity.py - entity is the main data type. User and Group extend this class
             (but don't add anything currently).
 
