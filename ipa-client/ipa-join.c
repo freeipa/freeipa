@@ -664,7 +664,7 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
     char *realm = NULL;
 
     krb5_context krbctx = NULL;
-    krb5_keytab keytab;
+    krb5_keytab keytab = NULL;
     krb5_ccache ccache = NULL;
     krb5_principal princ = NULL;
     krb5_error_code krberr;
@@ -849,7 +849,7 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
 
 cleanup:
 
-    krb5_kt_close(krbctx, keytab);
+    if (keytab) krb5_kt_close(krbctx, keytab);
     free((char *)principal);
     free((char *)ipaserver);
     if (princ) krb5_free_principal(krbctx, princ);
