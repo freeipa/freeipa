@@ -488,6 +488,7 @@ IPA.details_facet = function (spec) {
 
     var that = IPA.facet(spec);
 
+    that.label =  ( IPA.messages && IPA.messages.facets &&  IPA.messages.facets.details)  || spec.label;
     that.is_dirty = spec.is_dirty || is_dirty;
     that.create = spec.create || create;
     that.setup = spec.setup || setup;

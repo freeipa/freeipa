@@ -303,8 +303,7 @@ IPA.entity_get_details_facet = function (entity_name) {
     if (facet) return facet;
 
     facet = IPA.details_facet({
-        'name': 'details',
-        'label': 'Details'
+        'name': 'details'
     });
     entity.add_facet(facet);
 

@@ -50,8 +50,7 @@ IPA.hbacsvcgroup = function () {
         that.add_facet(facet);
 
         facet = IPA.hbacsvcgroup_details_facet({
-            'name': 'details',
-            'label': 'Details'
+            'name': 'details'
         });
         that.add_facet(facet);
 

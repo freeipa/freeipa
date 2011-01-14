@@ -54,7 +54,7 @@ IPA.user = function (){
         search_facet.create_column({name:'telephonenumber'});
         search_facet.create_column({name:'title'});
 
-        that.add_facet(details_facet({name:'details',label:'Details'}));
+        that.add_facet(details_facet({name:'details'}));
 
         var dialog = IPA.add_dialog({
             'name': 'add',
@@ -81,14 +81,14 @@ IPA.user = function (){
         var that = IPA.details_facet(spec);
 
         var sections =[
-            IPA.stanza({name:'identity', label:'Identity Details'}).
+            IPA.stanza({name:'identity', label:IPA.messages.details.identity}).
                 input({name:'title'}).
                 input({name:'givenname'}).
                 input({name:'sn'}).
                 input({name:'cn'}).
                 input({name:'displayname'}).
                 input({name:'initials'}),
-            IPA.stanza({name:'account', label:'Account Details'}).
+            IPA.stanza({name:'account', label:IPA.messages.details.account}).
                 custom_input(user_status_widget({name:'nsaccountlock'})).
                 input({name:'uid'}).
                 input({name:'userpassword', load: user_password_load}).
@@ -96,21 +96,21 @@ IPA.user = function (){
                 input({name:'gidnumber'}).
                 input({name:'loginshell'}).
                 input({name:'homedirectory'}),
-            IPA.stanza({name:'contact', label:'Contact Details'}).
+            IPA.stanza({name:'contact', label:IPA.messages.details.contact}).
                 input({name:'mail'}).
                 input({name:'telephonenumber'}).
                 input({name:'pager'}).
                 input({name:'mobile'}).
                 input({name:'facsimiletelephonenumber'}),
-            IPA.stanza({name:'address', label:'Mailing Address'}).
+            IPA.stanza({name:'address', label: IPA.messages.details.mailing}).
                 input({name:'street'}).
                 input({name:'location'}).
                 input({name:'state', load:user_state_load}).
                 input({name:'postalcode'}),
-            IPA.stanza({name:'employee', label:'Employee Information'}).
+            IPA.stanza({name:'employee', label:IPA.messages.details.employee}).
                 input({name:'ou', label:'Org. Unit'}).
                 input({name:'manager'}),
-            IPA.stanza({name:'misc', label:'Misc. Information'}).
+            IPA.stanza({name:'misc', label:IPA.messages.details.misc}).
                 input({name:'carlicense'})
         ];
         for (var i = 0; i < sections.length; i += 1){

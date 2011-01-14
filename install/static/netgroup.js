@@ -37,9 +37,9 @@ IPA.add_entity( function() {
         that.add_facet(search_facet);
 
         that.add_facet(function() {
-            var that = IPA.details_facet({name:'details',label:'Details'});
+            var that = IPA.details_facet({name:'details'});
             that.add_section(
-                IPA.stanza({name:'identity', label:'Netgroup Details'}).
+                IPA.stanza({name:'identity', label:'Netgroup Settings'}).
                     input({name:'cn'}).
                     input({name: 'description'}).
                     input({name:'nisdomainname'}));

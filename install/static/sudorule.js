@@ -45,7 +45,6 @@ IPA.sudorule = function () {
 
         facet = IPA.sudorule_details_facet({
             'name': 'details',
-            'label': 'Details'
         });
         that.add_facet(facet);
 

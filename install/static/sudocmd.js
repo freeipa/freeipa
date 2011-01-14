@@ -45,7 +45,6 @@ IPA.sudocmd = function () {
 
         facet = IPA.sudocmd_details_facet({
             'name': 'details',
-            'label': 'Details'
         });
         that.add_facet(facet);
 

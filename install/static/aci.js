@@ -644,8 +644,7 @@ IPA.permission_search_facet =  function (spec) {
 IPA.permission_details_facet = function () {
 
     var spec = {
-            name: 'details',
-            label: 'Details'
+            name: 'details'
     };
     var that = IPA.details_facet(spec);
 
@@ -695,9 +694,9 @@ IPA.add_entity( function() {
         that.add_facet(search_facet);
 
         that.add_facet(function() {
-            var that = IPA.details_facet({name:'details',label:'Details'});
+            var that = IPA.details_facet({name:'details'});
             that.add_section(
-                IPA.stanza({name:'identity', label:'Privilege Details'}).
+                IPA.stanza({name:'identity', label:'Privilege Settings'}).
                     input({name:'cn'}).
                     input({name: 'description'}));
             return that;
@@ -737,9 +736,9 @@ IPA.add_entity( function() {
         that.add_facet(search_facet);
 
         that.add_facet(function() {
-            var that = IPA.details_facet({name:'details',label:'Details'});
+            var that = IPA.details_facet({name:'details'});
             that.add_section(
-                IPA.stanza({name:'identity', label:'Role Details'}).
+                IPA.stanza({name:'identity', label:'Role Settings'}).
                     input({name:'cn'}).
                     input({name: 'description'}));
             return that;
@@ -783,7 +782,7 @@ IPA.add_entity( function() {
 
 
     that.add_facet(function(){
-        var that = IPA.details_facet({'name':'details',label:'Details'});
+        var that = IPA.details_facet({'name':'details'});
 
         that.init = function() {
             that.add_section(
@@ -835,7 +834,7 @@ IPA.add_entity( function() {
             return that;
         }());
     that.add_facet(function(){
-        var that = IPA.details_facet({'name':'details',label:'Details'});
+        var that = IPA.details_facet({'name':'details'});
         var section =
             IPA.stanza({name:'general', label:'General'}).
             input({name:'aciname'}).

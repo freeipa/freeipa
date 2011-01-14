@@ -7714,13 +7714,17 @@
                         "update": "Update"
                     },
                     "details": {
-                        "account": "Account Details",
-                        "contact": "Contact Details",
-                        "employee": "      Employee Information",
-                        "identity": "Identity Details",
+                        "account": "Account Settings",
+                        "contact": "Contact Settings",
+                        "employee": "Employee Information",
+                        "identity": "Identity Settings",
                         "mailing": "Mailing Address",
                         "misc": "Misc. Information",
                         "to_top": "Back to Top"
+                    },
+                    "facets": {
+                        "details": "Settings",
+                        "search": "Search"
                     },
                     "login": {
                         "header": "Logged In As"
@@ -7746,22 +7750,22 @@
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "1333600000"
+                            "590200000"
                         ],
                         "homedirectory": [
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "26f59232-1eb0-11e0-9271-52540029a798"
+                            "3f1c60c6-2026-11e0-80c2-52540029a798"
                         ],
                         "krblastpwdchange": [
-                            "20110113005936Z"
+                            "20110114213748Z"
                         ],
                         "krblastsuccessfulauth": [
-                            "20110113180851Z"
+                            "20110114213845Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20110413005936Z"
+                            "20110414213748Z"
                         ],
                         "krbprincipalname": [
                             "admin@IPA14.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
@@ -7795,7 +7799,7 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "1333600000"
+                            "590200000"
                         ]
                     }
                 ],

@@ -44,8 +44,7 @@ IPA.hbacsvc = function () {
         that.add_facet(facet);
 
         facet = IPA.hbacsvc_details_facet({
-            'name': 'details',
-            'label': 'Details'
+            'name': 'details'
         });
         that.add_facet(facet);
 

@@ -40,9 +40,9 @@ IPA.add_entity(function (){
         that.add_facet(search_facet);
 
         that.add_facet(function() {
-            var that = IPA.details_facet({name:'details',label:'Details'});
+            var that = IPA.details_facet({name:'details'});
             that.add_section(
-                IPA.stanza({name:'identity', label:'DNS Zone Details'}).
+                IPA.stanza({name:'identity', label:'DNS Zone Settings'}).
                     input({name:'idnsname'}).
                     input({name:'idnszoneactive'}).
                     input({name:'idnssoamname'}).
@@ -507,9 +507,9 @@ IPA.add_entity(function (){
 
 
         that.add_facet(function() {
-            var that = IPA.details_facet({name:'details',label:'Details'});
+            var that = IPA.details_facet({name:'details'});
             that.add_section(
-                IPA.stanza({name:'identity', label:'Automount Location Details'}).
+                IPA.stanza({name:'identity', label:'Automount Location Settings'}).
                     input({name:'cn'}));
             return that;
         }());
@@ -551,7 +551,7 @@ IPA.add_entity(function (){
 
 
         that.add_facet(function() {
-            var that = IPA.details_facet({name:'details',label:'Details'});
+            var that = IPA.details_facet({name:'details'});
             that.add_section(
 
                 IPA.stanza({name:'identity', label:'Password Policy'}).

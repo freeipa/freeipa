@@ -51,8 +51,7 @@ IPA.service = function () {
         that.add_facet(facet);
 
         facet = IPA.service_details_facet({
-            'name': 'details',
-            'label': 'Details'
+            'name': 'details'
         });
         that.add_facet(facet);
 
@@ -185,7 +184,7 @@ IPA.service_details_facet = function (spec) {
 
         var section = IPA.details_list_section({
             name: 'details',
-            label: 'Service Details'
+            label: 'Service Settings'
         });
         that.add_section(section);
 

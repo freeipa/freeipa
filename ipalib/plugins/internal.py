@@ -84,6 +84,10 @@ class i18n_messages(Command):
             "enroll":_("Enroll"),
             "remove":_("Delete"),
             },
+        "facets":{
+            "search":_("Search"),
+            "details": _("Settings"),
+            },
         "search":{
             "quick_links":_("Quick Links"),
             "select_all":_("Select All"),
@@ -91,11 +95,11 @@ class i18n_messages(Command):
             "delete_confirm":_("Do you really want to delete the selected entries?"),
             },
         "details":{
-            "identity":_("Identity Details"),
-            "account":_("Account Details"),
-            "contact":_("Contact Details"),
+            "identity":_("Identity Settings"),
+            "account":_("Account Settings"),
+            "contact":_("Contact Settings"),
             "mailing":_("Mailing Address"),
-            "employee":_("      Employee Information"),
+            "employee":_("Employee Information"),
             "misc":_("Misc. Information"),
             "to_top":_("Back to Top")},
         "association":{

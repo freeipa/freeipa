@@ -59,8 +59,7 @@ IPA.group = function () {
         that.add_facet(facet);
 
         facet = IPA.group_details_facet({
-            'name': 'details',
-            'label': 'Details'
+            'name': 'details'
         });
         that.add_facet(facet);
 
@@ -128,7 +127,7 @@ IPA.group_details_facet = function (spec) {
 
         var section = IPA.details_list_section({
             name: 'details',
-            label: 'Group Details'
+            label: 'Group Settings'
         });
         that.add_section(section);
 

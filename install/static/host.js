@@ -56,8 +56,7 @@ IPA.host = function () {
         that.add_facet(facet);
 
         facet = IPA.host_details_facet({
-            'name': 'details',
-            'label': 'Details'
+            'name': 'details'
         });
         that.add_facet(facet);
 
@@ -132,7 +131,7 @@ IPA.host_details_facet = function (spec) {
 
         var section = IPA.details_list_section({
             'name': 'details',
-            'label': 'Host Details'
+            'label': 'Host Settings'
         });
         that.add_section(section);
 
