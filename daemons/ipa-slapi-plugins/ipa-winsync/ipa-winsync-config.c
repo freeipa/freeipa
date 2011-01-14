@@ -702,8 +702,8 @@ internal_find_entry_get_attr_val(const Slapi_DN *basedn, int scope,
     if (entries && entries[0]) { /* found one */
         if (svs) {
             Slapi_Attr *attr = NULL;
-            slapi_entry_attr_find(entries[0], attrname, &attr);
-            if (attr) {
+            if (!slapi_entry_attr_find(entries[0], attrname, &attr) &&
+               (NULL != attr)) {
                 /* slapi_attr_get_valueset allocates svs - must be freed later */
                 slapi_attr_get_valueset(attr, svs);
             }

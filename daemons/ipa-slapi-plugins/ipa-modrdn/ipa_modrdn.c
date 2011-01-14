@@ -748,8 +748,8 @@ static int ipamodrdn_post_op(Slapi_PBlock *pb)
                 Slapi_Value *val;
                 const char *strval;
 
-                slapi_attr_first_value(sattr, &val);
-                if (!val) {
+                ret = slapi_attr_first_value(sattr, &val);
+                if (ret == -1 || !val) {
                     LOG_FATAL("Source attr %s is empty\n", cfgentry->sattr);
                     continue;
                 }

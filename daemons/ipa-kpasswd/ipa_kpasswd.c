@@ -491,9 +491,13 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 		goto done;
 	}
 
-	ber_printf(ctrl, "{tstO}",
+	ret = ber_printf(ctrl, "{tstO}",
 		   LDAP_TAG_EXOP_MODIFY_PASSWD_ID, userdn,
 		   LDAP_TAG_EXOP_MODIFY_PASSWD_NEW, &newpw);
+	if (ret < 0) {
+		syslog(LOG_ERR, "ber printf failed!");
+		goto done;
+	}
 
 	ret = ber_flatten(ctrl, &control);
 	if (ret < 0) {

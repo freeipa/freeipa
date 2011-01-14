@@ -815,8 +815,16 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
          */
         Slapi_DN *tmp_dn = slapi_sdn_new_dn_byref(dn);
         if (tmp_dn) {
-            slapi_search_internal_get_entry(tmp_dn, NULL, &e, getPluginID());
+            ret = slapi_search_internal_get_entry(tmp_dn, NULL, &e, getPluginID());
             slapi_sdn_free(&tmp_dn);
+
+            if (ret) {
+                LOG_FATAL("slapi_search_internal_get_entry failed!? Err %d\n",
+                        ret);
+                ret = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
+
             free_entry = true;
         }
 
@@ -967,8 +975,8 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
                         Slapi_Attr *sattr = NULL;
                         int e_numvals = 0;
 
-                        slapi_entry_attr_find(e, attr, &sattr);
-                        if (sattr) {
+                        if ((!slapi_entry_attr_find(e, attr, &sattr)) &&
+                            (NULL != sattr)) {
                             slapi_attr_get_numvalues(sattr, &e_numvals);
                             if (numvals >= e_numvals) {
                                 generate = true;
