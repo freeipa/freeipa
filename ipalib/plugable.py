@@ -385,7 +385,7 @@ class API(DictProxy):
 
         # If logging has already been configured somewhere else (like in the
         # installer), don't add handlers or change levels:
-        if len(log.handlers) > 0:
+        if len(log.handlers) > 0 or self.env.validate_api:
             return
 
         if self.env.debug:
