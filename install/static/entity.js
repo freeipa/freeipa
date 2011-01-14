@@ -502,19 +502,19 @@ IPA. facet_create_action_panel = function(container) {
               do not have search*/
             if (entity.facets.length > 0 ){
                 if ( entity.facets[0].name === IPA.current_facet( entity)){
-                    main_facet.text( IPA.metadata[entity_name].label);
-                    main_facet.removeClass('back-to-search');
-                    main_facet.appendTo(ul);
                     ul.append($('<li><span class="action-controls"/></li>'));
+
                 }else{
                     main_facet.html(
                         $('<span />',{
-                            "class":"input_link" 
+                            "class":"input_link"
                         }).
                             append(IPA.back_icon + '  Back to List '));
                     main_facet.addClass('back-to-search');
                     main_facet.appendTo(ul);
                 }
+                ul.append($('<li><hr/></li>'));
+
             }
             var facet_groups = {};
             var li;
