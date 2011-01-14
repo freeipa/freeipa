@@ -1,3 +1,5 @@
+/*jsl:import ipa.js */
+
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Endi Sukma Dewata <edewata@redhat.com>
@@ -115,5 +117,5 @@ IPA.add_dialog = function (spec) {
     that.add_dialog_init = that.init;
 
     return that;
-}
+};
 

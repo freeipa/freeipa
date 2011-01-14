@@ -1,3 +1,5 @@
+/*jsl:import ipa.js */
+
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
  *
@@ -57,9 +59,11 @@ IPA.hbacsvcgroup = function () {
     };
 
     return that;
-}
+};
+
 
 IPA.add_entity(IPA.hbacsvcgroup());
+
 
 IPA.hbacsvcgroup_add_dialog = function (spec) {
 
@@ -76,7 +80,8 @@ IPA.hbacsvcgroup_add_dialog = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.hbacsvcgroup_search_facet = function (spec) {
 
@@ -94,7 +99,7 @@ IPA.hbacsvcgroup_search_facet = function (spec) {
 
 
     return that;
-}
+};
 
 
 IPA.hbacsvcgroup_details_facet = function (spec) {
@@ -132,7 +137,8 @@ IPA.hbacsvcgroup_details_facet = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.hbacsvcgroup_member_hbacsvc_table_widget = function (spec) {
 
@@ -189,4 +195,4 @@ IPA.hbacsvcgroup_member_hbacsvc_table_widget = function (spec) {
     };
 
     return that;
-}
+};

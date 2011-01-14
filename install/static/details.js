@@ -1,3 +1,5 @@
+/*jsl:import ipa.js */
+
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Adam Young <ayoung@redhat.com>
@@ -238,7 +240,8 @@ IPA.details_field =  function (spec) {
     }
 
     return that;
-}
+};
+
 
 IPA.details_section = function (spec){
 
@@ -387,7 +390,8 @@ IPA.details_section = function (spec){
     that.section_load = that.load;
 
     return that;
-}
+};
+
 
 /**
  * This class creates a details section formatted as a list of
@@ -453,9 +457,10 @@ IPA.details_list_section = function (spec){
     };
 
     return that;
-}
+};
 
-// shorthand notation used for declarative definitions of details pages
+
+/* shorthand notation used for declarative definitions of details pages */
 IPA.stanza =  function (spec) {
 
     spec = spec || {};
@@ -474,7 +479,8 @@ IPA.stanza =  function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.details_facet = function (spec) {
 
@@ -676,7 +682,7 @@ IPA.details_facet = function (spec) {
     that.details_facet_load = that.load;
 
     return that;
-}
+};
 
 IPA.action_button = function(spec) {
     var button = IPA.button(spec);
@@ -700,7 +706,7 @@ IPA.button = function(spec) {
     if (spec.icon) button.append('<span class="ui-icon '+spec.icon+'" ></span> ');
 
     return button;
-}
+};
 
 IPA.details_refresh =  function () {
 
@@ -724,7 +730,7 @@ IPA.details_refresh =  function () {
 
     IPA.cmd( 'show', params, {all: true, rights: true}, on_success, on_failure,
         that.entity_name );
-}
+};
 
 IPA.details_update = function (on_win, on_fail)
 {
@@ -783,7 +789,7 @@ IPA.details_update = function (on_win, on_fail)
         }
     }
 
-    for (attr in attrs_wo_option) {
+    for (var attr in attrs_wo_option) {
         values = attrs_wo_option[attr];
         modlist['setattr'].push(attr + '=' + values[0]);
         for (var k = 1; k < values.length; ++k){
@@ -799,7 +805,7 @@ IPA.details_update = function (on_win, on_fail)
     }
 
     IPA.cmd('mod', pkey, modlist, update_on_win, null, entity_name);
-}
+};
 
 
 IPA.create_first_dd = function (field_name, content){
@@ -809,27 +815,26 @@ IPA.create_first_dd = function (field_name, content){
     });
     if (content) dd.append(content);
     return dd;
-}
+};
 
 IPA.create_other_dd = function (field_name, content){
     return $('<dd/>', {
         'class': 'other',
         'title': field_name
     }).append(content);
-}
+};
 
 
 /* creates a Remove link for deleting attribute values */
 function _ipa_create_remove_link(attr, param_info)
 {
-    if (!param_info)
-        return (_ipa_a_remove_template.replace('A', attr));
-
-    /* check if the param is required or of the Password type
-     * if it is, then we don't want people to be able to remove it */
-    if ((param_info['required']) || (param_info['class'] == 'Password'))
-        return ('');
-
+    if (param_info){
+        /* check if the param is required or of the Password type
+         * if it is, then we don't want people to be able to remove it */
+        if ((param_info['required']) || (param_info['class'] == 'Password')){
+            return ('');
+        }
+    }
     return $('<a/>',{
         href:"jslink",
         click: function (){return (_ipa_remove_on_click(this));},
@@ -863,8 +868,7 @@ IPA.details_field_create_add_link = function (title, rights, index) {
     });
 
     return link;
-}
-
+};
 
 
 function _ipa_remove_on_click(obj)

@@ -1,3 +1,6 @@
+/*jsl:import ipa.js */
+/*jsl:import navigation.js */
+
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *
@@ -137,7 +140,7 @@ $(function() {
             nav_create(self_serv_tab_set, navigation, 'tabs');
 
             var state = {'user-pkey':IPA.whoami_pkey ,
-                         'user-facet': jQuery.bbq.getState('user-facet') ||
+                         'user-facet': $.bbq.getState('user-facet') ||
                          'details'};
             $.bbq.pushState(state);
         }
@@ -158,14 +161,12 @@ $(function() {
 });
 
 /* main loop (hashchange event handler) */
-function window_hashchange(evt)
-{
+function window_hashchange(evt){
     nav_update_tabs();
 }
 
 /* builder function for unimplemented tab content */
-function unimplemented_tab(jobj)
-{
+function unimplemented_tab(jobj){
     jobj.text('Not implemented yet!');
 }
 

@@ -1,3 +1,6 @@
+/*jsl:import ipa.js */
+/*jsl:import search.js */
+
 /*  Authors:
  *    Adam Young <ayoung@redhat.com>
  *
@@ -183,7 +186,6 @@ IPA.records_facet = function (spec){
             }
         });
     }
-
 
 
     function delete_records(records_table){
@@ -483,7 +485,7 @@ IPA.records_facet = function (spec){
     that.refresh = refresh;
 
     return that;
-}
+};
 
 
 /**Automount*/

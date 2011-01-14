@@ -1,3 +1,5 @@
+/*jsl:import ipa.js */
+
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
  *

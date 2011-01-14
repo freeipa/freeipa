@@ -1,3 +1,6 @@
+/*jsl:import ipa.js */
+/*jsl:import certificate.js */
+
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
  *
@@ -64,9 +67,11 @@ IPA.service = function () {
     };
 
     return that;
-}
+};
+
 
 IPA.add_entity(IPA.service());
+
 
 IPA.service_add_dialog = function (spec) {
 
@@ -151,7 +156,8 @@ IPA.service_add_dialog = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.service_search_facet = function (spec) {
 
@@ -166,7 +172,8 @@ IPA.service_search_facet = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.service_details_facet = function (spec) {
 
@@ -226,7 +233,8 @@ IPA.service_details_facet = function (spec) {
     };
 
     return that;
-}
+};
+
 
 function service_service_load(result) {
 
@@ -255,6 +263,7 @@ function service_host_load(result) {
     var host = krbprincipalname.replace(/^.*\//, '').replace(/@.*$/, '');
     dd.append(host);
 }
+
 
 function service_provisioning_status_widget(spec) {
 
@@ -449,4 +458,4 @@ IPA.service_managedby_host_facet = function (spec) {
     };
 
     return that;
-}
+};

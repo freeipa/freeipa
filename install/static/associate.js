@@ -1,3 +1,5 @@
+/*jsl:import ipa.js */
+
 /*  Authors:
  *    Adam Young <ayoung@redhat.com>
  *
@@ -43,7 +45,8 @@ IPA.associator = function (spec) {
     };
 
     return that;
-}
+};
+
 
 /**
 *This associator is built for the case where each association requires a separate rpc
@@ -202,7 +205,8 @@ IPA.association_adder_dialog = function (spec) {
     that.association_adder_dialog_setup = that.setup;
 
     return that;
-}
+};
+
 
 /**
  * This dialog is used for removing associations between two entities.
@@ -240,7 +244,8 @@ IPA.association_deleter_dialog = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.association_config = function (spec) {
 
@@ -254,7 +259,8 @@ IPA.association_config = function (spec) {
     that.remove_method = spec.remove_method;
 
     return that;
-}
+};
+
 
 IPA.association_table_widget = function (spec) {
 
@@ -554,7 +560,8 @@ IPA.association_table_widget = function (spec) {
     that.association_table_widget_init = that.init;
 
     return that;
-}
+};
+
 
 IPA.association_facet = function (spec) {
 
@@ -915,7 +922,8 @@ IPA.association_facet = function (spec) {
     that.association_facet_init = that.init;
 
     return that;
-}
+};
+
 
 IPA.deleter_dialog_setup = function () {
 
@@ -933,4 +941,4 @@ IPA.deleter_dialog_setup = function () {
     $('<p/>', {
         'text': IPA.messages.search.delete_confirm
     }).appendTo(that.dialog);
-}
+};

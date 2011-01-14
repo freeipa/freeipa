@@ -1,3 +1,5 @@
+/*jsl:import ipa.js */
+
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
  *
@@ -51,9 +53,11 @@ IPA.sudocmd = function () {
     };
 
     return that;
-}
+};
+
 
 IPA.add_entity(IPA.sudocmd());
+
 
 IPA.sudocmd_add_dialog = function (spec) {
 
@@ -70,7 +74,8 @@ IPA.sudocmd_add_dialog = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.sudocmd_search_facet = function (spec) {
 
@@ -87,7 +92,7 @@ IPA.sudocmd_search_facet = function (spec) {
     };
 
     return that;
-}
+};
 
 
 IPA.sudocmd_details_facet = function (spec) {
@@ -125,7 +130,8 @@ IPA.sudocmd_details_facet = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.sudocmd_member_sudocmdgroup_table_widget = function (spec) {
 
@@ -270,4 +276,4 @@ IPA.sudocmd_member_sudocmdgroup_table_widget = function (spec) {
     };
 
     return that;
-}
+};

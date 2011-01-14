@@ -1,3 +1,5 @@
+/*jsl:import ipa.js */
+
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
  *
@@ -51,9 +53,11 @@ IPA.sudorule = function () {
     };
 
     return that;
-}
+};
+
 
 IPA.add_entity(IPA.sudorule());
+
 
 IPA.sudorule_add_dialog = function (spec) {
 
@@ -69,7 +73,8 @@ IPA.sudorule_add_dialog = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.sudorule_search_facet = function (spec) {
 
@@ -87,7 +92,8 @@ IPA.sudorule_search_facet = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.sudorule_details_facet = function (spec) {
 
@@ -369,13 +375,13 @@ IPA.sudorule_details_facet = function (spec) {
             return;
         }
 
-        //alert(JSON.stringify(batch.to_json()));
 
         batch.execute();
     };
 
     return that;
-}
+};
+
 
 IPA.sudorule_details_general_section = function (spec){
 
@@ -498,7 +504,8 @@ IPA.sudorule_details_general_section = function (spec){
     };
 
     return that;
-}
+};
+
 
 IPA.sudorule_details_command_section = function (spec){
 
@@ -665,7 +672,8 @@ IPA.sudorule_details_command_section = function (spec){
     };
 
     return that;
-}
+};
+
 
 IPA.sudorule_details_runas_section = function (spec){
 
@@ -857,7 +865,8 @@ IPA.sudorule_details_runas_section = function (spec){
     };
 
     return that;
-}
+};
+
 
 IPA.sudorule_association_table_widget = function (spec) {
 
@@ -897,7 +906,8 @@ IPA.sudorule_association_table_widget = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.sudorule_association_adder_dialog = function (spec) {
 
@@ -1050,7 +1060,8 @@ IPA.sudorule_association_adder_dialog = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.sudorule_command_table_widget = function (spec) {
 
@@ -1114,4 +1125,4 @@ IPA.sudorule_command_table_widget = function (spec) {
     };
 
     return that;
-}
+};

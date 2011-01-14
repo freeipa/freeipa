@@ -1,3 +1,5 @@
+/*jsl:import ipa.js */
+
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *
@@ -68,9 +70,11 @@ IPA.group = function () {
     };
 
     return that;
-}
+};
+
 
 IPA.add_entity(IPA.group());
+
 
 IPA.group_add_dialog = function (spec) {
 
@@ -94,7 +98,8 @@ IPA.group_add_dialog = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.group_search_facet = function (spec) {
 
@@ -110,7 +115,8 @@ IPA.group_search_facet = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.group_details_facet = function (spec) {
 
@@ -134,7 +140,8 @@ IPA.group_details_facet = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.group_member_user_facet = function (spec) {
 
@@ -192,4 +199,4 @@ IPA.group_member_user_facet = function (spec) {
     };
 
     return that;
-}
+};

@@ -1,3 +1,5 @@
+/*jsl:import ipa.js */
+
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Adam Young <ayoung@redhat.com>
@@ -246,7 +248,7 @@ IPA.search_widget =  function (spec) {
     };
 
     return that;
-}
+};
 
 IPA.search_facet = function (spec) {
 
@@ -385,7 +387,7 @@ IPA.search_facet = function (spec) {
     that.search_facet_setup = that.setup;
 
     return that;
-}
+};
 
 function search_generate_tr(thead, tbody, entry_attrs)
 {

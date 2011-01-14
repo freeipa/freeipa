@@ -1,5 +1,7 @@
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
+ *    Adam Young <ayoung@redhat.com>
+ *    Endi Dewata <edewata@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -201,7 +203,8 @@ IPA.command = function (spec) {
     };
 
     return that;
-}
+};
+
 IPA.batch_command = function (spec) {
 
     spec = spec || {};
@@ -270,7 +273,7 @@ IPA.batch_command = function (spec) {
     };
 
     return that;
-}
+};
 
 /* call an IPA command over JSON-RPC
  * arguments:
@@ -434,7 +437,7 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
     $.ajax(request);
 
     return (id);
-}
+};
 
 
 /* helper function used to retrieve information about an attribute */
@@ -457,7 +460,7 @@ IPA.get_param_info = function(obj_name, attr)
     }
 
     return (null);
-}
+};
 
 /* helper function used to retrieve attr name with members of type `member` */
 IPA.get_member_attribute = function (obj_name, member)
@@ -476,10 +479,11 @@ IPA.get_member_attribute = function (obj_name, member)
         }
     }
     return null;
+
 }
 
 IPA.create_network_spinner = function(){
     return $('<span />',{
         'class':'network-activity-indicator',
         html: '<img src="spinner_small.gif" />'});
-}
+};

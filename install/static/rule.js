@@ -1,3 +1,5 @@
+/*jsl:import ipa.js */
+
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
  *
@@ -121,7 +123,8 @@ IPA.rule_details_section = function (spec){
     };
 
     return that;
-}
+};
+
 
 IPA.rule_association_table_widget = function (spec) {
 
@@ -168,4 +171,4 @@ IPA.rule_association_table_widget = function (spec) {
     };
 
     return that;
-}
+};

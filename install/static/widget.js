@@ -1,3 +1,4 @@
+/*jsl:import ipa.js */
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
  *
@@ -167,7 +168,7 @@ IPA.widget = function(spec) {
     that.widget_reset = that.reset;
 
     return that;
-}
+};
 
 
 IPA.text_widget = function(spec) {
@@ -255,7 +256,7 @@ IPA.text_widget = function(spec) {
     };
 
     return that;
-}
+};
 
 IPA.checkbox_widget = function (spec) {
 
@@ -311,7 +312,7 @@ IPA.checkbox_widget = function (spec) {
     };
 
     return that;
-}
+};
 
 IPA.radio_widget = function(spec) {
 
@@ -389,7 +390,7 @@ IPA.radio_widget = function(spec) {
     that.radio_save = that.save;
 
     return that;
-}
+};
 
 IPA.textarea_widget = function (spec) {
 
@@ -448,7 +449,7 @@ IPA.textarea_widget = function (spec) {
     };
 
     return that;
-}
+};
 
 IPA.button_widget = function (spec) {
 
@@ -478,8 +479,7 @@ IPA.button_widget = function (spec) {
     }
 
     return that;
-}
-
+};
 
 IPA.column = function (spec) {
 
@@ -513,7 +513,7 @@ IPA.column = function (spec) {
     }
 
     return that;
-}
+};
 
 IPA.table_widget = function (spec) {
 
@@ -835,7 +835,7 @@ IPA.table_widget = function (spec) {
     that.table_set_enabled = that.set_enabled;
 
     return that;
-}
+};
 
 /**
  * This is a base class for dialog boxes.
@@ -998,7 +998,7 @@ IPA.dialog = function(spec) {
     that.dialog_open = that.open;
 
     return that;
-}
+};
 
 /**
  * This dialog provides an interface for searching and selecting
@@ -1254,7 +1254,7 @@ IPA.adder_dialog = function (spec) {
     that.adder_dialog_setup = that.setup;
 
     return that;
-}
+};
 
 /**
  * This dialog displays the values to be deleted.
@@ -1303,4 +1303,4 @@ IPA.deleter_dialog =  function (spec) {
     };
 
     return that;
-}
+};

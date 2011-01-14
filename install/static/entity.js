@@ -1,3 +1,6 @@
+/*jsl:import ipa.js */
+/*jsl:import navigation.js */
+
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Endi S. Dewata <edewata@redhat.com>
@@ -73,7 +76,8 @@ IPA.facet = function (spec) {
     that.facet_setup = that.setup;
 
     return that;
-}
+};
+
 
 IPA.entity = function (spec) {
 
@@ -207,7 +211,8 @@ IPA.entity = function (spec) {
     that.entity_init = that.init;
 
     return that;
-}
+};
+
 
 /* use this to track individual changes between two hashchange events */
 var window_hash_cache = {};
@@ -224,7 +229,8 @@ IPA.fetch_entity = function (entity_name) {
 
     IPA.add_entity(entity);
     return entity;
-}
+};
+
 
 IPA.entity_get_search_facet  = function (entity_name) {
 
@@ -240,7 +246,8 @@ IPA.entity_get_search_facet  = function (entity_name) {
     entity.add_facet(facet);
 
     return facet;
-}
+};
+
 
 IPA.entity_set_search_definition =  function (entity_name, data) {
 
@@ -254,7 +261,8 @@ IPA.entity_set_search_definition =  function (entity_name, data) {
             'setup': defn[2]
         });
     }
-}
+};
+
 
 IPA.entity_set_add_definition = function (entity_name, data) {
 
@@ -277,13 +285,15 @@ IPA.entity_set_add_definition = function (entity_name, data) {
     }
 
     dialog.init();
-}
+};
+
 
 IPA.entity_get_add_dialog = function (entity_name) {
 
     var entity = IPA.fetch_entity(entity_name);
     return entity.get_add_dialog();
-}
+};
+
 
 IPA.entity_get_details_facet = function (entity_name) {
 
@@ -299,7 +309,8 @@ IPA.entity_get_details_facet = function (entity_name) {
     entity.add_facet(facet);
 
     return facet;
-}
+};
+
 
 IPA.entity_set_details_definition = function (entity_name, sections) {
 
@@ -309,7 +320,8 @@ IPA.entity_set_details_definition = function (entity_name, sections) {
         var section = sections[i];
         facet.add_section(section);
     }
-}
+};
+
 
 IPA.entity_set_association_definition = function (entity_name, data) {
 
@@ -326,7 +338,8 @@ IPA.entity_set_association_definition = function (entity_name, data) {
             'remove_method': config.remove_method
         });
     }
-}
+};
+
 
 IPA.entity_set_facet_definition = function (entity_name, list) {
 
@@ -336,7 +349,8 @@ IPA.entity_set_facet_definition = function (entity_name, list) {
         var facet = list[i];
         entity.add_facet(facet);
     }
-}
+};
+
 
 IPA.current_facet =  function (entity){
     var facet_name = $.bbq.getState(entity.name + '-facet', true);
@@ -344,7 +358,8 @@ IPA.current_facet =  function (entity){
         facet_name = entity.facets[0].name;
     }
     return facet_name;
-}
+};
+
 
 IPA.entity_setup = function (container) {
 
@@ -374,8 +389,7 @@ IPA.entity_setup = function (container) {
     container.children().last().addClass('client');
     facet.setup(container);
     facet.refresh();
-}
-
+};
 
 
 /*Returns the entity requested, as well as:
@@ -433,6 +447,7 @@ IPA.nested_tabs = function(entity_name){
     }
     return siblings;
 };
+
 
 IPA. facet_create_action_panel = function(container) {
 
@@ -573,4 +588,4 @@ IPA. facet_create_action_panel = function(container) {
         $('.entity-facet', action_panel).addClass('entity-facet-disabled');
     }
     return action_panel;
-}
+};

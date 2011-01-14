@@ -1,3 +1,5 @@
+/*jsl:import ipa.js */
+
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *

@@ -1,3 +1,5 @@
+/*jsl:import ipa.js */
+
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *
@@ -117,7 +119,9 @@ IPA.user = function (){
         return that;
     }
     return that;
-}
+};
+
+
 IPA.add_entity(IPA.user());
 
 /* ATTRIBUTE CALLBACKS */

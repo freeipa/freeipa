@@ -1,3 +1,6 @@
+/*jsl:import ipa.js */
+/*jsl:import certificate.js */
+
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Endi S. Dewata <edewata@redhat.com>
@@ -71,9 +74,11 @@ IPA.host = function () {
     };
 
     return that;
-}
+};
+
 
 IPA.add_entity(IPA.host());
+
 
 IPA.host_add_dialog = function (spec) {
 
@@ -93,7 +98,8 @@ IPA.host_add_dialog = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.host_search_facet = function (spec) {
 
@@ -113,7 +119,8 @@ IPA.host_search_facet = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.host_details_facet = function (spec) {
 
@@ -200,7 +207,8 @@ IPA.host_details_facet = function (spec) {
     };
 
     return that;
-}
+};
+
 
 function host_provisioning_status_widget(spec) {
 
@@ -473,4 +481,4 @@ IPA.host_managedby_host_facet = function (spec) {
     };
 
     return that;
-}
+};

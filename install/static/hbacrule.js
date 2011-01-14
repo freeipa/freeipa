@@ -1,3 +1,5 @@
+/*jsl:import ipa.js */
+
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
  *
@@ -51,9 +53,11 @@ IPA.hbacrule = function () {
     };
 
     return that;
-}
+};
+
 
 IPA.add_entity(IPA.hbacrule());
+
 
 IPA.hbacrule_add_dialog = function (spec) {
 
@@ -81,7 +85,8 @@ IPA.hbacrule_add_dialog = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.hbacrule_search_facet = function (spec) {
 
@@ -124,7 +129,8 @@ IPA.hbacrule_search_facet = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.hbacrule_details_facet = function (spec) {
 
@@ -535,7 +541,8 @@ IPA.hbacrule_details_facet = function (spec) {
     };
 
     return that;
-}
+};
+
 
 IPA.hbacrule_details_general_section = function (spec){
 
@@ -676,7 +683,7 @@ IPA.hbacrule_details_general_section = function (spec){
     };
 
     return that;
-}
+};
 
 IPA.hbacrule_accesstime_widget = function (spec) {
 
@@ -980,4 +987,4 @@ IPA.hbacrule_accesstime_widget = function (spec) {
     };
 
     return that;
-}
+};

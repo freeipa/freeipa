@@ -1,3 +1,5 @@
+/*jsl:import ipa.js */
+
 /*  Authors:
  *    Adam Young <ayoung@redhat.com>
  *
@@ -257,6 +259,7 @@ IPA.rights_widget = function(spec){
     return that;
 };
 
+
 IPA.hidden_widget = function(spec){
     spec.label = '';
     var that = IPA.widget(spec);
@@ -280,6 +283,7 @@ IPA.hidden_widget = function(spec){
     return that;
 };
 
+
 IPA.rights_section = function () {
     var    spec =  {
         'name':'rights',
@@ -289,7 +293,8 @@ IPA.rights_section = function () {
     that.add_field(IPA.rights_widget({name:'permissions'}));
 
     return that;
-}
+};
+
 
 IPA.target_section = function () {
     var    spec =  {
@@ -458,7 +463,7 @@ IPA.target_section = function () {
 
 
     that.create = function(container) {
-        dl =  $('<dl class="entryattrs"/>').appendTo(container);
+        var dl =  $('<dl class="entryattrs"/>').appendTo(container);
 
         display_filter_target(dl);
         display_query_target(dl);
@@ -556,9 +561,7 @@ IPA.target_section = function () {
         });
     };
     return that;
-}
-
-
+};
 
 
 IPA.permission = function () {
@@ -590,7 +593,8 @@ IPA.permission = function () {
     };
 
     return that;
-}
+};
+
 
 IPA.add_entity(IPA.permission());
 
@@ -621,7 +625,7 @@ IPA.permission_add_dialog =  function (spec) {
 
 
     return that;
-}
+};
 
 
 IPA.permission_search_facet =  function (spec) {
@@ -634,7 +638,7 @@ IPA.permission_search_facet =  function (spec) {
         that.search_facet_init();
     };
     return that;
-}
+};
 
 
 IPA.permission_details_facet = function () {
@@ -672,7 +676,8 @@ IPA.permission_details_facet = function () {
         that.superior_update(on_win, on_fail);
     };
     return that;
-}
+};
+
 
 IPA.add_entity( function() {
     var that = IPA.entity({
