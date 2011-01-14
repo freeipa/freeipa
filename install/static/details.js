@@ -731,8 +731,6 @@ IPA.details_update = function (on_win, on_fail)
     var that = this;
     var entity_name = that.entity_name;
 
-    var pkey = that.get_primary_key();
-
     function update_on_win(data, text_status, xhr) {
         if (on_win)
             on_win(data, text_status, xhr);
@@ -747,13 +745,6 @@ IPA.details_update = function (on_win, on_fail)
         if (on_fail)
             on_fail(xhr, text_status, error_thrown);
     }
-
-    /*
-      The check
-      if (!pkey) {   return; }
-      used to happen here, but it breaks krbtpolicy, which allows a null pkey
-      and usually requires it.
-    */
 
     var values;
     var modlist = {'all': true, 'setattr': [], 'addattr': [], 'rights': true};
@@ -800,7 +791,14 @@ IPA.details_update = function (on_win, on_fail)
         }
     }
 
-    IPA.cmd('mod', [pkey], modlist, update_on_win, null, entity_name);
+    var pkey = that.get_primary_key() ;
+    if (pkey){
+        pkey = [pkey];
+    }else{
+        pkey = [];
+    }
+
+    IPA.cmd('mod', pkey, modlist, update_on_win, null, entity_name);
 }
 
 
