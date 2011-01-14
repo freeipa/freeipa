@@ -448,6 +448,8 @@ IPA.nested_tabs = function(entity_name){
     return siblings;
 };
 
+IPA.selected_icon = '&#x25B6; ';
+IPA.back_icon = '&#x25C0; ';
 
 IPA. facet_create_action_panel = function(container) {
 
@@ -502,6 +504,7 @@ IPA. facet_create_action_panel = function(container) {
             if (entity.facets.length > 0 ){
                 if ( entity.facets[0].name === IPA.current_facet( entity)){
                     main_facet.text( IPA.metadata[entity_name].label);
+                    main_facet.removeClass('back-to-search');
                     main_facet.appendTo(ul);
                     ul.append($('<li><span class="action-controls"/></li>'));
                 }else{
@@ -509,11 +512,8 @@ IPA. facet_create_action_panel = function(container) {
                         $('<span />',{
                             "class":"input_link" 
                         }).
-                            append(
-                                $('<span/>',{
-                                    "class":"ui-icon ui-icon-triangle-1-w "
-                                })).
-                            append('Back to List '));
+                            append(IPA.back_icon + '  Back to List '));
+                    main_facet.addClass('back-to-search');
                     main_facet.appendTo(ul);
                 }
             }
@@ -540,7 +540,7 @@ IPA. facet_create_action_panel = function(container) {
                     li.after(link );
                     /*
                       If we are on the current facet, we make the text black, non-clickable,
-                      add an icon and make suer the action controls are positioned underneath it.
+                      add an icon and make sure the action controls are positioned underneath it.
                      */
                     if ( other_facet.name === IPA.current_facet( entity)){
                         var text = link.text();
@@ -548,10 +548,8 @@ IPA. facet_create_action_panel = function(container) {
                         link.append($('<ul>').
                                     append($('<li />',{
                                         'class': 'entity-facet-selected',
-                                        html:  $('<span />',{
-                                            'class':'input_link',
-                                            html:'<span class="ui-icon ui-icon-triangle-1-e" />'+ text
-                                        })})).
+                                        html:  IPA.selected_icon +  text
+                                        })).
                                     append($('<li/>',{
                                         html:$('<span />',{
                                             'class':"action-controls"
@@ -561,8 +559,12 @@ IPA. facet_create_action_panel = function(container) {
                     facet_groups[facet_group] = li.next();
                 } else {
                     var innerlist = $('<ul/>').appendTo(ul);
-                    innerlist.append(build_link(other_facet, other_facet.label));
+                    var facet_link = build_link(other_facet, other_facet.label);
+                    facet_link.addClass('entity-facet-selected');
+                    facet_link.prepend(IPA.selected_icon);
+                    innerlist.append(facet_link);
                     if ( other_facet.name === IPA.current_facet( entity)){
+
                         innerlist.append($('<li class="entity-facet"><span class="action-controls"  /></li>'));
                     }
                 }
