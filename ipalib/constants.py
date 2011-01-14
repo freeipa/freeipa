@@ -100,9 +100,9 @@ DEFAULT_CONFIG = (
     ('container_hbacservicegroup', 'cn=hbacservicegroups,cn=accounts'),
     ('container_dns', 'cn=dns'),
     ('container_virtual', 'cn=virtual operations,cn=etc'),
-    ('container_sudorule', 'cn=sudorules'),
-    ('container_sudocmd', 'cn=sudocmds,cn=accounts'),
-    ('container_sudocmdgroup', 'cn=sudocmdgroups,cn=accounts'),
+    ('container_sudorule', 'cn=sudorules,cn=sudo'),
+    ('container_sudocmd', 'cn=sudocmds,cn=sudo'),
+    ('container_sudocmdgroup', 'cn=sudocmdgroups,cn=sudo'),
 
     # Ports, hosts, and URIs:
     # FIXME: let's renamed xmlrpc_uri to rpc_xml_uri

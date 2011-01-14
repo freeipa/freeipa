@@ -13,7 +13,7 @@
                     "description": [
                         "Group 1"
                     ],
-                    "dn": "cn=group1,cn=sudocmdgroups,cn=accounts,dc=ipa",
+                    "dn": "cn=group1,cn=sudocmdgroups,cn=sudo,dc=ipa",
                     "ipauniqueid": [
                         "fc775d2e-1d56-11e0-b7cd-00163e2fe6de"
                     ],
@@ -39,7 +39,7 @@
                     "description": [
                         "Group 2"
                     ],
-                    "dn": "cn=group2,cn=sudocmdgroups,cn=accounts,dc=ipa",
+                    "dn": "cn=group2,cn=sudocmdgroups,cn=sudo,dc=ipa",
                     "ipauniqueid": [
                         "b90c1930-1d5b-11e0-ac89-00163e2fe6de"
                     ],

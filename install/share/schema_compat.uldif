@@ -67,7 +67,7 @@ add:objectClass: top
 add:objectClass: extensibleObject
 add:cn: sudoers
 add:schema-compat-container-group: 'ou=SUDOers, $SUFFIX'
-add:schema-compat-search-base: 'cn=sudorules, $SUFFIX'
+add:schema-compat-search-base: 'cn=sudorules, cn=sudo, $SUFFIX'
 add:schema-compat-search-filter: (&(objectclass=ipaSudoRule)(!(compatVisible=FALSE))(!(ipaEnabledFlag=FALSE)))
 add:schema-compat-entry-rdn: cn=%{cn}
 add:schema-compat-entry-attribute: objectclass=sudoRole

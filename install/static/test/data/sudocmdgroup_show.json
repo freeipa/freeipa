@@ -23,7 +23,7 @@
             "description": [
                 "Group 1"
             ],
-            "dn": "cn=group1,cn=sudocmdgroups,cn=accounts,dc=dev,dc=example,dc=com",
+            "dn": "cn=group1,cn=sudocmdgroups,cn=sudo,dc=dev,dc=example,dc=com",
             "ipauniqueid": [
                 "d99989a6-f459-11df-9273-00163e72f2d9"
             ],

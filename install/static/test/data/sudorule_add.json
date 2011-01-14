@@ -9,7 +9,7 @@
             "description": [
                 "test"
             ],
-            "dn": "ipauniqueid=94ef3550-f443-11df-a2aa-00163e72f2d9,cn=sudorules,dc=dev,dc=example,dc=com",
+            "dn": "ipauniqueid=94ef3550-f443-11df-a2aa-00163e72f2d9,cn=sudorules,cn=sudo,dc=dev,dc=example,dc=com",
             "ipauniqueid": [
                 "94ef3550-f443-11df-a2aa-00163e72f2d9"
             ],

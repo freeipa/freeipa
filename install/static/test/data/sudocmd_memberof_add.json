@@ -20,7 +20,7 @@
                     "description": [
                         "Group 1"
                     ],
-                    "dn": "cn=group1,cn=sudocmdgroups,cn=accounts,dc=ipa",
+                    "dn": "cn=group1,cn=sudocmdgroups,cn=sudo,dc=ipa",
                     "member_sudocmd": [
                         "/usr/bin/less"
                     ]
@@ -42,7 +42,7 @@
                     "description": [
                         "Group 2"
                     ],
-                    "dn": "cn=group2,cn=sudocmdgroups,cn=accounts,dc=ipa",
+                    "dn": "cn=group2,cn=sudocmdgroups,cn=sudo,dc=ipa",
                     "member_sudocmd": [
                         "/usr/bin/more"
                     ]

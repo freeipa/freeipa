@@ -82,29 +82,35 @@ objectClass: top
 objectClass: nsContainer
 cn: hbacservicegroups
 
-dn: cn=sudocmds,cn=accounts,$SUFFIX
+dn: cn=sudo,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: sudo
+
+dn: cn=sudocmds,cn=sudo,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
 cn: sudocmds
 
-dn: cn=sudocmdgroups,cn=accounts,$SUFFIX
+dn: cn=sudocmdgroups,cn=sudo,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
 cn: sudocmdgroups
+
+dn: cn=sudorules,cn=sudo,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: sudorules
 
 dn: cn=hbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
 cn: hbac
-
-dn: cn=sudorules,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: nsContainer
-cn: sudorules
 
 dn: cn=etc,$SUFFIX
 changetype: add

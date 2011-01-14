@@ -11,7 +11,7 @@
                 "description": [
                     "Group 1"
                 ],
-                "dn": "cn=group1,cn=sudocmdgroups,cn=accounts,dc=dev,dc=example,dc=com",
+                "dn": "cn=group1,cn=sudocmdgroups,cn=sudo,dc=dev,dc=example,dc=com",
                 "member_sudocmd": [
                     "/usr/bin/more",
                     "/usr/bin/less"
@@ -24,7 +24,7 @@
                 "description": [
                     "Group 2"
                 ],
-                "dn": "cn=group2,cn=sudocmdgroups,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=group2,cn=sudocmdgroups,cn=sudo,dc=dev,dc=example,dc=com"
             }
         ],
         "summary": "2 sudo command groups matched",

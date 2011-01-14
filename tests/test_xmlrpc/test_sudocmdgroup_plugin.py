@@ -51,7 +51,7 @@ class test_sudocmdgroup(Declarative):
                     objectclass=objectclasses.sudocmd,
                     sudocmd=[u'/usr/bin/sudotestcmd1'],
                     ipauniqueid=[fuzzy_uuid],
-                    dn=u'sudocmd=%s,cn=sudocmds,cn=accounts,%s' % (sudocmd1,
+                    dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
                         api.env.basedn),
                 ),
             ),
@@ -66,7 +66,7 @@ class test_sudocmdgroup(Declarative):
                 summary=None,
                 result=dict(
                     sudocmd=[sudocmd1],
-                    dn=u'sudocmd=%s,cn=sudocmds,cn=accounts,%s' % (sudocmd1,
+                    dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
                         api.env.basedn),
                 ),
             ),
@@ -111,7 +111,7 @@ class test_sudocmdgroup(Declarative):
                     description=[u'Test desc 1'],
                     objectclass=objectclasses.sudocmdgroup,
                     ipauniqueid=[fuzzy_uuid],
-                    dn=u'cn=testsudocmdgroup1,cn=sudocmdgroups,cn=accounts,' + \
+                    dn=u'cn=testsudocmdgroup1,cn=sudocmdgroups,cn=sudo,' + \
                         api.env.basedn,
                 ),
             ),
@@ -137,7 +137,7 @@ class test_sudocmdgroup(Declarative):
                 result=dict(
                     cn=[sudocmdgroup1],
                     description=[u'Test desc 1'],
-                    dn=u'cn=testsudocmdgroup1,cn=sudocmdgroups,cn=accounts,' + \
+                    dn=u'cn=testsudocmdgroup1,cn=sudocmdgroups,cn=sudo,' + \
                         api.env.basedn,
                 ),
             ),
@@ -169,7 +169,7 @@ class test_sudocmdgroup(Declarative):
                 result=dict(
                     cn=[sudocmdgroup1],
                     description=[u'New desc 1'],
-                    dn=u'cn=testsudocmdgroup1,cn=sudocmdgroups,cn=accounts,' + \
+                    dn=u'cn=testsudocmdgroup1,cn=sudocmdgroups,cn=sudo,' + \
                         api.env.basedn,
                 ),
                 summary=None,
@@ -185,7 +185,7 @@ class test_sudocmdgroup(Declarative):
                 truncated=False,
                 result=[
                     dict(
-                        dn=u'cn=%s,cn=sudocmdgroups,cn=accounts,%s' % \
+                        dn=u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
                             (sudocmdgroup1, api.env.basedn),
                         cn=[sudocmdgroup1],
                         description=[u'New desc 1'],
@@ -235,7 +235,7 @@ class test_sudocmdgroup(Declarative):
                     description=[u'Test desc 2'],
                     objectclass=objectclasses.sudocmdgroup,
                     ipauniqueid=[fuzzy_uuid],
-                    dn=u'cn=testsudocmdgroup2,cn=sudocmdgroups,cn=accounts,' + \
+                    dn=u'cn=testsudocmdgroup2,cn=sudocmdgroups,cn=sudo,' + \
                         api.env.basedn,
                 ),
             ),
@@ -261,7 +261,7 @@ class test_sudocmdgroup(Declarative):
                 result=dict(
                     cn=[sudocmdgroup2],
                     description=[u'Test desc 2'],
-                    dn=u'cn=testsudocmdgroup2,cn=sudocmdgroups,cn=accounts,' + \
+                    dn=u'cn=testsudocmdgroup2,cn=sudocmdgroups,cn=sudo,' + \
                         api.env.basedn,
                 ),
             ),
@@ -293,7 +293,7 @@ class test_sudocmdgroup(Declarative):
                 result=dict(
                     cn=[sudocmdgroup2],
                     description=[u'New desc 2'],
-                    dn=u'cn=testsudocmdgroup2,cn=sudocmdgroups,cn=accounts,' + \
+                    dn=u'cn=testsudocmdgroup2,cn=sudocmdgroups,cn=sudo,' + \
                         api.env.basedn,
                 ),
                 summary=None,
@@ -309,7 +309,7 @@ class test_sudocmdgroup(Declarative):
                 truncated=False,
                 result=[
                     dict(
-                        dn=u'cn=%s,cn=sudocmdgroups,cn=accounts,%s' % \
+                        dn=u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
                             (sudocmdgroup2, api.env.basedn),
                         cn=[sudocmdgroup2],
                         description=[u'New desc 2'],
@@ -329,13 +329,13 @@ class test_sudocmdgroup(Declarative):
                 truncated=False,
                 result=[
                     dict(
-                        dn=u'cn=%s,cn=sudocmdgroups,cn=accounts,%s' % \
+                        dn=u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
                             (sudocmdgroup1, api.env.basedn),
                         cn=[sudocmdgroup1],
                         description=[u'New desc 1'],
                     ),
                     dict(
-                        dn=u'cn=%s,cn=sudocmdgroups,cn=accounts,%s' % \
+                        dn=u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
                             (sudocmdgroup2, api.env.basedn),
                         cn=[sudocmdgroup2],
                         description=[u'New desc 2'],
@@ -363,7 +363,7 @@ class test_sudocmdgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': u'cn=%s,cn=sudocmdgroups,cn=accounts,%s' % \
+                        'dn': u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
                             (sudocmdgroup1, api.env.basedn),
                         'member_sudocmd': (sudocmd1,),
                         'cn': [sudocmdgroup1],
@@ -388,7 +388,7 @@ class test_sudocmdgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': u'cn=%s,cn=sudocmdgroups,cn=accounts,%s' % \
+                        'dn': u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
                             (sudocmdgroup1, api.env.basedn),
                         'member_sudocmd': (u'/usr/bin/sudotestcmd1',),
                         'cn': [sudocmdgroup1],
@@ -411,7 +411,7 @@ class test_sudocmdgroup(Declarative):
                     ),
                 ),
                 result={
-                    'dn': u'cn=%s,cn=sudocmdgroups,cn=accounts,%s' % \
+                    'dn': u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
                         (sudocmdgroup1, api.env.basedn),
                     'cn': [sudocmdgroup1],
                     'description': [u'New desc 1'],
@@ -434,7 +434,7 @@ class test_sudocmdgroup(Declarative):
                     ),
                 ),
                 result={
-                    'dn': u'cn=%s,cn=sudocmdgroups,cn=accounts,%s' % \
+                    'dn': u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
                         (sudocmdgroup1, api.env.basedn),
                     'cn': [sudocmdgroup1],
                     'description': [u'New desc 1'],

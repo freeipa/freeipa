@@ -16,7 +16,7 @@
             "description": [
                 "SUDO Group 1"
             ],
-            "dn": "cn=group1,cn=sudocmdgroups,cn=accounts,dc=dev,dc=example,dc=com",
+            "dn": "cn=group1,cn=sudocmdgroups,cn=sudo,dc=dev,dc=example,dc=com",
             "member_sudocmd": [
                 "/usr/bin/more",
                 "/usr/bin/less"

@@ -10,12 +10,12 @@
                     "description": [
                         "more"
                     ],
-                    "dn": "sudocmd=/usr/bin/more,cn=sudocmds,cn=accounts,dc=dev,dc=example,dc=com",
+                    "dn": "sudocmd=/usr/bin/more,cn=sudocmds,cn=sudo,dc=dev,dc=example,dc=com",
                     "ipauniqueid": [
                         "a9138c9a-fc0c-11df-8584-00163e72f2d9"
                     ],
                     "memberof": [
-                        "cn=test,cn=sudocmdgroups,cn=accounts,dc=dev,dc=example,dc=com"
+                        "cn=test,cn=sudocmdgroups,cn=sudo,dc=dev,dc=example,dc=com"
                     ],
                     "objectclass": [
                         "ipaobject",
@@ -34,12 +34,12 @@
                     "description": [
                         "less"
                     ],
-                    "dn": "sudocmd=/usr/bin/less,cn=sudocmds,cn=accounts,dc=dev,dc=example,dc=com",
+                    "dn": "sudocmd=/usr/bin/less,cn=sudocmds,cn=sudo,dc=dev,dc=example,dc=com",
                     "ipauniqueid": [
                         "44ce29ee-fc38-11df-b995-00163e72f2d9"
                     ],
                     "memberof": [
-                        "cn=test,cn=sudocmdgroups,cn=accounts,dc=dev,dc=example,dc=com"
+                        "cn=test,cn=sudocmdgroups,cn=sudo,dc=dev,dc=example,dc=com"
                     ],
                     "objectclass": [
                         "ipaobject",

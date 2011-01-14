@@ -69,7 +69,7 @@ class test_sudocmd(Declarative):
                 value=sudocmd1,
                 summary=u'Added sudo command "%s"' % sudocmd1,
                 result=dict(
-                    dn=u'sudocmd=%s,cn=sudocmds,cn=accounts,%s' % (sudocmd1,
+                    dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
                         api.env.basedn),
                     sudocmd=[sudocmd1],
                     description=[u'Test sudo command 1'],
@@ -98,7 +98,7 @@ class test_sudocmd(Declarative):
                 value=sudocmd1,
                 summary=None,
                 result=dict(
-                    dn=u'sudocmd=%s,cn=sudocmds,cn=accounts,%s' % (sudocmd1,
+                    dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
                         api.env.basedn),
                     sudocmd=[sudocmd1],
                     description=[u'Test sudo command 1'],
@@ -116,7 +116,7 @@ class test_sudocmd(Declarative):
                 summary=u'1 sudo command matched',
                 result=[
                     dict(
-                        dn=u'sudocmd=%s,cn=sudocmds,cn=accounts,%s' % (sudocmd1,
+                        dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
                             api.env.basedn),
                         sudocmd=[sudocmd1],
                         description=[u'Test sudo command 1'],
@@ -148,7 +148,7 @@ class test_sudocmd(Declarative):
                 value=sudocmd1,
                 summary=None,
                 result=dict(
-                    dn=u'sudocmd=%s,cn=sudocmds,cn=accounts,%s' % (sudocmd1,
+                    dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
                         api.env.basedn),
                     sudocmd=[sudocmd1],
                     description=[u'Updated sudo command 1'],

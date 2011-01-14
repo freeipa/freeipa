@@ -5865,7 +5865,7 @@
                         ],
                         "attribute_members": {},
                         "bindable": false,
-                        "container_dn": "cn=sudocmds,cn=accounts",
+                        "container_dn": "cn=sudocmds,cn=sudo",
                         "default_attributes": [
                             "sudocmd",
                             "description"
@@ -5993,7 +5993,7 @@
                             ]
                         },
                         "bindable": false,
-                        "container_dn": "cn=sudocmdgroups,cn=accounts",
+                        "container_dn": "cn=sudocmdgroups,cn=sudo",
                         "default_attributes": [
                             "cn",
                             "description",
@@ -6209,7 +6209,7 @@
                             ]
                         },
                         "bindable": false,
-                        "container_dn": "cn=sudorules",
+                        "container_dn": "cn=sudorules,cn=sudo",
                         "default_attributes": [
                             "cn",
                             "ipaenabledflag",
@@ -7840,9 +7840,9 @@
                     "container_rolegroup": "cn=roles,cn=accounts",
                     "container_roles": "cn=roles,cn=policies",
                     "container_service": "cn=services,cn=accounts",
-                    "container_sudocmd": "cn=sudocmds,cn=accounts",
-                    "container_sudocmdgroup": "cn=sudocmdgroups,cn=accounts",
-                    "container_sudorule": "cn=sudorules",
+                    "container_sudocmd": "cn=sudocmds,cn=sudo",
+                    "container_sudocmdgroup": "cn=sudocmdgroups,cn=sudo",
+                    "container_sudorule": "cn=sudorules,cn=sudo",
                     "container_user": "cn=users,cn=accounts",
                     "container_virtual": "cn=virtual operations,cn=etc",
                     "context": "server",

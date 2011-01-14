@@ -2959,7 +2959,7 @@
             },
             "sudocmd": {
                 "attribute_members": {},
-                "container_dn": "cn=sudocmds,cn=accounts",
+                "container_dn": "cn=sudocmds,cn=sudo",
                 "default_attributes": [
                     "sudocmd",
                     "description"
@@ -3055,7 +3055,7 @@
                         "sudocmdgroup"
                     ]
                 },
-                "container_dn": "cn=sudocmdgroups,cn=accounts",
+                "container_dn": "cn=sudocmdgroups,cn=sudo",
                 "default_attributes": [
                     "cn",
                     "description",
@@ -3219,7 +3219,7 @@
                         "group"
                     ]
                 },
-                "container_dn": "cn=sudorules",
+                "container_dn": "cn=sudorules,cn=sudo",
                 "default_attributes": [
                     "cn",
                     "description"

@@ -3,7 +3,7 @@
     "id": 0,
     "result": {
         "result": {
-            "dn": "sudocmd=/usr/bin/less,cn=sudocmds,cn=accounts,dc=dev,dc=example,dc=com",
+            "dn": "sudocmd=/usr/bin/less,cn=sudocmds,cn=sudo,dc=dev,dc=example,dc=com",
             "ipauniqueid": [
                 "09e4ab26-f456-11df-bb95-00163e72f2d9"
             ],

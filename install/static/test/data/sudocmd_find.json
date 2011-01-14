@@ -5,13 +5,13 @@
         "count": 2,
         "result": [
             {
-                "dn": "sudocmd=/usr/bin/more,cn=sudocmds,cn=accounts,dc=dev,dc=example,dc=com",
+                "dn": "sudocmd=/usr/bin/more,cn=sudocmds,cn=sudo,dc=dev,dc=example,dc=com",
                 "sudocmd": [
                     "/usr/bin/more"
                 ]
             },
             {
-                "dn": "sudocmd=/usr/bin/less,cn=sudocmds,cn=accounts,dc=dev,dc=example,dc=com",
+                "dn": "sudocmd=/usr/bin/less,cn=sudocmds,cn=sudo,dc=dev,dc=example,dc=com",
                 "sudocmd": [
                     "/usr/bin/less"
                 ]
