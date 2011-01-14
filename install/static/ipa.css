@@ -501,12 +501,7 @@ span.main-separator{
 }
 
 .action-panel li.entity-facet-disabled {
-    font-family: "Liberation Sans",Arial,sans-serif;
-    color: gray;
-    cursor: default;
-    text-decoration: none;
-    text-transform: none;
-
+    display:none;
 }
 
 .action-panel li.entity-facet-relation-label {

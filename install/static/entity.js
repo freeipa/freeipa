@@ -512,7 +512,7 @@ IPA. facet_create_action_panel = function(container) {
                     var facet_group = other_facet.facet_group;
                     if (!facet_groups[facet_group]) {
                         li = $('<li/>', {
-                            'class': 'entity-facet-relation-label',
+                            'class': 'entity-facet entity-facet-relation-label',
                             'text': other_facet.facet_group,
                             'title': other_facet.facet_group
                         });
