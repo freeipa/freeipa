@@ -376,6 +376,10 @@ ipa_winsync_get_new_ds_user_dn_cb(void *cbdata, const Slapi_Entry *rawentry,
     PRBool flatten = PR_TRUE;
     IPA_WinSync_Config *ipaconfig = ipa_winsync_get_config();
 
+    LDAPDN ldn;
+    int ret;
+    char *rdn;
+
     LOG("--> ipa_winsync_get_new_ds_user_dn_cb -- old dn [%s] -- begin\n",
                     *new_dn_string);
 
@@ -387,25 +391,6 @@ ipa_winsync_get_new_ds_user_dn_cb(void *cbdata, const Slapi_Entry *rawentry,
         return;
     }
 
-#ifdef WITH_MOZLDAP
-    char **rdns = NULL;
-
-    rdns = ldap_explode_dn(*new_dn_string, 0);
-    if (!rdns || !rdns[0]) {
-        ldap_value_free(rdns);
-        return;
-    }
-
-    slapi_ch_free_string(new_dn_string);
-    *new_dn_string = slapi_ch_smprintf("%s,%s", rdns[0], slapi_sdn_get_dn(ds_suffix));
-    ldap_value_free(rdns);
-#else
-    /* both ldap_explode_dn and ldap_value_free are deprecated
-     * in OpenLDAP */
-    LDAPDN ldn;
-    int ret;
-    char *rdn;
-
     ret = ldap_str2dn(*new_dn_string, &ldn, LDAP_DN_FORMAT_LDAPV3);
     if (ret != LDAP_SUCCESS) {
         LOG_TRACE("ldap_str2dn(dn) failed ?!");
@@ -416,7 +401,6 @@ ipa_winsync_get_new_ds_user_dn_cb(void *cbdata, const Slapi_Entry *rawentry,
     *new_dn_string = slapi_ch_smprintf("%s,%s", rdn, slapi_sdn_get_dn(ds_suffix));
     ldap_dnfree(ldn);
     ldap_memfree(rdn);
-#endif
 
     LOG("<-- ipa_winsync_get_new_ds_user_dn_cb -- new dn [%s] -- end\n",
                     *new_dn_string);

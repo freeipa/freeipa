@@ -28,7 +28,6 @@ INCLUDES =							\
 	$(AM_CFLAGS)						\
 	$(KRB5_CFLAGS)						\
 	$(OPENLDAP_CFLAGS)					\
-	$(MOZLDAP_CFLAGS)					\
 	$(SASL_CFLAGS)						\
 	$(POPT_CFLAGS)						\
 	$(WARN_CFLAGS)						\
@@ -49,7 +48,6 @@ ipa_getkeytab_SOURCES =		\
 ipa_getkeytab_LDADD = 		\
 	$(KRB5_LIBS)		\
 	$(OPENLDAP_LIBS)	\
-	$(MOZLDAP_LIBS)		\
 	$(SASL_LIBS)		\
 	$(POPT_LIBS)		\
 	$(NULL)

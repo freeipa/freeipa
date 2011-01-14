@@ -32,11 +32,7 @@
 #include <errno.h>
 #include <time.h>
 #include <krb5.h>
-#ifdef WITH_MOZLDAP
-#include <mozldap/ldap.h>
-#else
 #include <ldap.h>
-#endif
 #include <sasl/sasl.h>
 #include <popt.h>
 

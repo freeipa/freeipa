@@ -383,21 +383,6 @@ static void pwd_values_free(Slapi_ValueSet** results,
 static int ipapwd_rdn_count(const char *dn)
 {
     int rdnc = 0;
-
-#ifdef WITH_MOZLDAP
-    char **edn;
-
-    edn = ldap_explode_dn(dn, 0);
-    if (!edn) {
-        LOG_TRACE("ldap_explode_dn(dn) failed ?!");
-        return -1;
-    }
-
-    for (rdnc = 0; edn != NULL && edn[rdnc]; rdnc++) /* count */ ;
-    ldap_value_free(edn);
-#else
-    /* both ldap_explode_dn and ldap_value_free are deprecated
-     * in OpenLDAP */
     LDAPDN ldn;
     int ret;
 
@@ -409,7 +394,6 @@ static int ipapwd_rdn_count(const char *dn)
 
     for (rdnc = 0; ldn != NULL && ldn[rdnc]; rdnc++) /* count */ ;
     ldap_dnfree(ldn);
-#endif
 
     return rdnc;
 }

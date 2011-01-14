@@ -39,23 +39,13 @@
 #include <arpa/inet.h>
 #include <time.h>
 #include <krb5.h>
-#ifdef WITH_MOZLDAP
-#include <mozldap/ldap.h>
-#else
 #include <ldap.h>
-#endif
 #include <sasl/sasl.h>
 #include <ifaddrs.h>
 
 #define DEFAULT_KEYTAB "FILE:/var/kerberos/krb5kdc/kpasswd.keytab"
 #define TMP_TEMPLATE "/var/cache/ipa/kpasswd/krb5_cc.XXXXXX"
 #define KPASSWD_PORT 464
-
-#ifdef WITH_MOZLDAP
-/* From OpenLDAP's ldap.h */
-#define LDAP_TAG_EXOP_MODIFY_PASSWD_ID  ((ber_tag_t) 0x80U)
-#define LDAP_TAG_EXOP_MODIFY_PASSWD_NEW ((ber_tag_t) 0x82U)
-#endif
 
 /* blacklist entries are released only BLCAKLIST_TIMEOUT seconds
  * after the children performing the noperation has finished.

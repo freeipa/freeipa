@@ -189,15 +189,10 @@ AC_ARG_WITH([openldap],
                             [compile plugins with openldap instead of mozldap])],
             [], [])
 
-if test "x$with_openldap" == xyes; then
-    LDAP_CFLAGS="${OPENLDAP_CFLAGS} $NSPR4 $NSS3 -DUSE_OPENLDAP"
-    LDAP_LIBS="${OPENLDAP_LIBS}"
-    AC_DEFINE_UNQUOTED(WITH_OPENLDAP, 1, [Use OpenLDAP libraries])
-else
-    LDAP_CFLAGS="${MOZLDAP_CFLAGS}"
-    LDAP_LIBS="${MOZLDAP_LIBS}"
-    AC_DEFINE_UNQUOTED(WITH_MOZLDAP, 1, [Use Mozilla LDAP libraries])
-fi
+LDAP_CFLAGS="${OPENLDAP_CFLAGS} $NSPR4 $NSS3 -DUSE_OPENLDAP"
+LDAP_LIBS="${OPENLDAP_LIBS}"
+AC_DEFINE_UNQUOTED(WITH_OPENLDAP, 1, [Use OpenLDAP libraries])
+
 AC_SUBST(LDAP_CFLAGS)
 AC_SUBST(LDAP_LIBS)
 
