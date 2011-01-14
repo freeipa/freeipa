@@ -210,8 +210,6 @@ class DsInstance(service.Service):
         self.step("restarting directory server", self.__restart_instance)
 
     def __common_post_setup(self):
-        self.step("configuring user private groups", self.__user_private_groups)
-        self.step("configuring netgroups from hostgroups", self.__host_nis_groups)
         self.step("initializing group membership", self.init_memberof)
         self.step("adding master entry", self.__add_master_entry)
         self.step("configuring Posix uid/gid generation",
@@ -246,6 +244,8 @@ class DsInstance(service.Service):
         self.step("adding default layout", self.__add_default_layout)
         self.step("adding delegation layout", self.__add_delegation_layout)
         self.step("adding replication acis", self.__add_replication_acis)
+        self.step("configuring user private groups", self.__user_private_groups)
+        self.step("configuring netgroups from hostgroups", self.__host_nis_groups)
         if hbac_allow:
             self.step("creating default HBAC rule allow_all", self.add_hbac)
 
