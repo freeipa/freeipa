@@ -326,7 +326,7 @@ option: IA5Str('ipahomesrootdir', attribute=True, autofill=False, cli_name='home
 option: Str('ipadefaultloginshell', attribute=True, autofill=False, cli_name='defaultshell', label=Gettext('Default shell', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('ipadefaultprimarygroup', attribute=True, autofill=False, cli_name='defaultgroup', label=Gettext('Default users group', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('ipadefaultemaildomain', attribute=True, autofill=False, cli_name='emaildomain', label=Gettext('Default e-mail domain', domain='ipa', localedir=None), multivalue=False, required=False)
-option: Int('ipasearchtimelimit', attribute=True, autofill=False, cli_name='searchtimelimit', label=Gettext('Search time limit', domain='ipa', localedir=None), minvalue=-1, multivalue=False, required=False)
+option: Int('ipasearchtimelimit', validate_searchtimelimit, attribute=True, autofill=False, cli_name='searchtimelimit', label=Gettext('Search time limit', domain='ipa', localedir=None), minvalue=-1, multivalue=False, required=False)
 option: Int('ipasearchrecordslimit', attribute=True, autofill=False, cli_name='searchrecordslimit', label=Gettext('Search size limit', domain='ipa', localedir=None), minvalue=-1, multivalue=False, required=False)
 option: IA5Str('ipausersearchfields', attribute=True, autofill=False, cli_name='usersearch', label=Gettext('User search fields', domain='ipa', localedir=None), multivalue=False, required=False)
 option: IA5Str('ipagroupsearchfields', attribute=True, autofill=False, cli_name='groupsearch', label='Group search fields', multivalue=False, required=False)
