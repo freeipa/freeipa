@@ -235,7 +235,7 @@ dl.entryattrs input {
 
 dl.entryattrs input.otp {
     min-width: 15em;
-    width: 98%;
+    width: 15em;
 }
 
 span.attrhint {
@@ -619,13 +619,15 @@ table.kerberos-key-status {
 }
 
 .status-icon {
-    width: 0.5em;
-    height: 0.5em;
-    -webkit-border-radius: 0.5em;
-    -moz-border-radius: 0.5em;
+    vertical-align: bottom;
+#    width: auto;
+#    height: 1em;
+#    -webkit-border-radius: 0.5em;
+#    -moz-border-radius: 0.5em;
 }
 
 .status-valid {
+    background-image:url('check.png');
     border: 0.2em solid #008000;
 }
 

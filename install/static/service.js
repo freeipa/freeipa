@@ -274,45 +274,57 @@ function service_provisioning_status_widget(spec) {
 
         that.widget_create(container);
 
-        var table = $('<table/>', {
-            'class': 'kerberos-key-status'
+        var dd = $('<dd/>', {
+            'class': 'first'
         }).appendTo(container);
 
-        var tr = $('<tr/>').appendTo(table);
+        var div = $('<div/>', {
+            'class': 'kerberos-key-valid'
+        }).appendTo(dd);
 
-        var td = $('<td/>').appendTo(tr);
-        $('<div/>', {
-            'class': 'status-icon status-valid'
-        }).appendTo(td);
+        $('<img/>', {
+            src: 'check.png',
+            style: 'float: left;',
+            'class': 'status-icon'
+        }).appendTo(div);
 
-        td = $('<td/>').appendTo(tr);
-        td.append('Kerberos Key Present, Service Provisioned:');
+        var content_div = $('<div/>', {
+            style: 'float: left;'
+        }).appendTo(div);
 
-        td = $('<td/>').appendTo(tr);
+        content_div.append('<b>Kerberos Key Present, Service Provisioned:</b>');
+
+        content_div.append(' ');
 
         $('<input/>', {
             'type': 'button',
             'name': 'unprovision',
             'value': 'Delete Key, Unprovision'
-        }).appendTo(td);
+        }).appendTo(content_div);
 
-        tr = $('<tr/>').appendTo(table);
+        div = $('<div/>', {
+            name: 'kerberos-key-missing'
+        }).appendTo(dd);
 
-        td = $('<td/>').appendTo(tr);
-        $('<div/>', {
-            'class': 'status-icon status-missing'
-        }).appendTo(td);
+        $('<img/>', {
+            src: 'caution.png',
+            style: 'float: left;',
+            'class': 'status-icon'
+        }).appendTo(div);
 
-        td = $('<td/>').appendTo(tr);
-        td.append('Kerberos Key Not Present');
+        content_div = $('<div/>', {
+            style: 'float: left;'
+        }).appendTo(div);
+
+        content_div.append('<b>Kerberos Key Not Present</b>');
     };
 
     that.setup = function(container) {
 
         that.widget_setup(container);
 
-        that.valid = $('.status-valid', that.container);
-        that.missing = $('.status-missing', that.container);
+        that.valid = $('div[name=kerberos-key-valid]', that.container);
+        that.missing = $('div[name=kerberos-key-missing]', that.container);
 
         var button = $('input[name=unprovision]', that.container);
         that.unprovision_button = IPA.button({
@@ -366,10 +378,8 @@ function service_provisioning_status_widget(spec) {
     };
 
     function set_status(status) {
-        that.valid.toggleClass('status-valid-active', status == 'valid');
-        that.missing.toggleClass('status-missing-active', status == 'missing');
-
-        that.unprovision_button.css('visibility', status == 'valid' ? 'visible' : 'hidden');
+        that.valid.css('display', status == 'valid' ? 'inline' : 'none');
+        that.missing.css('display', status == 'missing' ? 'inline' : 'none');
     }
 
     return that;

@@ -11,6 +11,8 @@ app_DATA =                              \
 	aci.js				\
 	add.js				\
 	associate.js			\
+	caution.png			\
+	check.png			\
 	ipa_logo_180x50.png		\
 	ipa.js				\
 	ipa.css				\

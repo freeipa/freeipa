@@ -413,96 +413,132 @@ function certificate_status_widget(spec) {
 
         that.widget_create(container);
 
-        var table = $('<table/>', {
-            'class': 'certificate-status'
+        var dd = $('<dd/>', {
+            'class': 'first'
         }).appendTo(container);
 
-        var tr = $('<tr/>').appendTo(table);
+        var div = $('<div/>', {
+            name: 'certificate-valid'
+        }).appendTo(dd);
 
-        var td = $('<td/>').appendTo(tr);
+        $('<img/>', {
+            src: 'check.png',
+            style: 'float: left;',
+            'class': 'status-icon'
+        }).appendTo(div);
 
-        $('<div/>', {
-            'class': 'status-icon status-valid'
-        }).appendTo(td);
+        var content_div = $('<div/>', {
+            style: 'float: left;'
+        }).appendTo(div);
 
-        td = $('<td/>').appendTo(tr);
-        td.append('Valid Certificate Present:');
+        content_div.append('<b>Valid Certificate Present:</b>');
 
-        td = $('<td/>').appendTo(tr);
+        content_div.append(' ');
 
         $('<input/>', {
             'type': 'button',
             'name': 'get',
             'value': 'Get'
-        }).appendTo(td);
+        }).appendTo(content_div);
 
-        td.append(' ');
+        content_div.append(' ');
 
         if (!that.is_selfsign()) {
             $('<input/>', {
                 'type': 'button',
                 'name': 'revoke',
                 'value': 'Revoke'
-            }).appendTo(td);
+            }).appendTo(content_div);
 
-            td.append(' ');
+            content_div.append(' ');
         }
 
         $('<input/>', {
             'type': 'button',
             'name': 'view',
             'value': 'View'
-        }).appendTo(td);
+        }).appendTo(content_div);
+
+        content_div.append(' ');
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'create',
+            'value': 'New Certificate'
+        }).appendTo(content_div);
 
         if (!that.is_selfsign()) {
-            tr = $('<tr/>').appendTo(table);
+            div = $('<div/>', {
+                name: 'certificate-revoked'
+            }).appendTo(dd);
 
-            td = $('<td/>').appendTo(tr);
-            $('<div/>', {
-                'class': 'status-icon status-revoked'
-            }).appendTo(td);
+            $('<img/>', {
+                src: 'caution.png',
+                style: 'float: left;',
+                'class': 'status-icon'
+            }).appendTo(div);
 
-            td = $('<td/>').appendTo(tr);
-            td.append('Certificate Revoked:');
+            content_div = $('<div/>', {
+                style: 'float: left;'
+            }).appendTo(div);
 
-            td = $('<td/>').appendTo(tr);
-            td.append($('<span/>', {
+            content_div.append('<b>Certificate Revoked:</b>');
+
+            content_div.append(' ');
+
+            content_div.append($('<span/>', {
                 'name': 'revocation_reason'
             }));
-            td.append(' ');
+
+            content_div.append(' ');
 
             $('<input/>', {
                 'type': 'button',
                 'name': 'restore',
                 'value': 'Restore'
-            }).appendTo(td);
+            }).appendTo(content_div);
+
+            content_div.append(' ');
+
+            $('<input/>', {
+                'type': 'button',
+                'name': 'create',
+                'value': 'New Certificate'
+            }).appendTo(content_div);
         }
 
-        tr = $('<tr/>').appendTo(table);
+        div = $('<div/>', {
+            name: 'certificate-missing'
+        }).appendTo(dd);
 
-        td = $('<td/>').appendTo(tr);
-        $('<div/>', {
-            'class': 'status-icon status-missing'
-        }).appendTo(td);
+        $('<img/>', {
+            src: 'caution.png',
+            style: 'float: left;',
+            'class': 'status-icon'
+        }).appendTo(div);
 
-        td = $('<td/>').appendTo(tr);
-        td.append('No Valid Certificate:');
+        content_div = $('<div/>', {
+            style: 'float: left;'
+        }).appendTo(div);
 
-        td = $('<td/>').appendTo(tr);
+        content_div.append('<b>No Valid Certificate:</b>');
+
+        content_div.append(' ');
+
         $('<input/>', {
             'type': 'button',
             'name': 'create',
             'value': 'New Certificate'
-        }).appendTo(td);
+        }).appendTo(content_div);
     };
 
     that.setup = function(container) {
 
         that.widget_setup(container);
 
-        that.valid = $('.status-valid', that.container);
-        that.revoked = $('.status-revoked', that.container);
-        that.missing = $('.status-missing', that.container);
+        that.valid = $('div[name=certificate-valid]', that.container);
+        that.revoked = $('div[name=certificate-revoked]', that.container);
+        that.missing = $('div[name=certificate-missing]', that.container);
 
         var button = $('input[name=get]', that.container);
         that.get_button = IPA.button({
@@ -558,14 +594,16 @@ function certificate_status_widget(spec) {
         });
         button.replaceWith(that.restore_button);
 
-        button = $('input[name=create]', that.container);
-        that.create_button = IPA.button({
-            'label': 'New Certificate',
-            'click': function() {
-                request_certificate(that.result);
-            }
+        $('input[name=create]', that.container).each(function(index) {
+            button = $(this);
+            that.create_button = IPA.button({
+                'label': 'New Certificate',
+                'click': function() {
+                    request_certificate(that.result);
+                }
+            });
+            button.replaceWith(that.create_button);
         });
-        button.replaceWith(that.create_button);
     };
 
     that.load = function(result) {
@@ -582,14 +620,11 @@ function certificate_status_widget(spec) {
     };
 
     function set_status(status, revocation_reason) {
-        that.valid.toggleClass('status-valid-active', status == CERTIFICATE_STATUS_VALID);
-        that.missing.toggleClass('status-missing-active', status == CERTIFICATE_STATUS_MISSING);
-
-        that.get_button.css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
-        that.view_button.css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
+        that.valid.css('display', status == CERTIFICATE_STATUS_VALID ? 'inline' : 'none');
+        that.missing.css('display', status == CERTIFICATE_STATUS_MISSING ? 'inline' : 'none');
 
         if (!that.is_selfsign()) {
-            that.revoked.toggleClass('status-revoked-active', status == CERTIFICATE_STATUS_REVOKED);
+            that.revoked.css('display', status == CERTIFICATE_STATUS_REVOKED ? 'inline' : 'none');
             that.revoke_button.css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
             that.revocation_reason.html(revocation_reason == undefined ? '' : CRL_REASON[revocation_reason]);
             that.restore_button.css('visibility', revocation_reason == 6 ? 'visible' : 'hidden');
