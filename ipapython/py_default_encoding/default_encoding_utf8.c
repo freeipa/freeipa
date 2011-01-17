@@ -52,8 +52,6 @@ static PyMethodDef methods[] = {
 PyMODINIT_FUNC
 initdefault_encoding_utf8(void) 
 {
-    PyObject* m;
-
     PyUnicode_SetDefaultEncoding("utf-8");
-    m = Py_InitModule3("default_encoding_utf8", methods, "Forces the default encoding to utf-8");
+    Py_InitModule3("default_encoding_utf8", methods, "Forces the default encoding to utf-8");
 }
