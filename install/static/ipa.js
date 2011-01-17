@@ -480,7 +480,8 @@ IPA.get_member_attribute = function (obj_name, member)
     }
     return null;
 
-}
+};
+
 
 IPA.create_network_spinner = function(){
     return $('<span />',{

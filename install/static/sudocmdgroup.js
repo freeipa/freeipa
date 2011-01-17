@@ -50,7 +50,7 @@ IPA.sudocmdgroup = function () {
         that.add_facet(facet);
 
         facet = IPA.sudocmdgroup_details_facet({
-            'name': 'details',
+            'name': 'details'
         });
         that.add_facet(facet);
 
