@@ -213,8 +213,13 @@ connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
         goto fail;
     }
 
-    bindpw_bv.bv_val = discard_const(bindpw);
-    bindpw_bv.bv_len = strlen(bindpw);
+    if (bindpw) {
+        bindpw_bv.bv_val = discard_const(bindpw);
+        bindpw_bv.bv_len = strlen(bindpw);
+    } else {
+        bindpw_bv.bv_val = NULL;
+        bindpw_bv.bv_len = 0;
+    }
 
     ret = ldap_sasl_bind_s(ld, binddn, LDAP_SASL_SIMPLE, &bindpw_bv,
                            NULL, NULL, NULL);
