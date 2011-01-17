@@ -75,5 +75,6 @@ optional_policy(`
              type kerberos_password_port_t;
     ')
     corenet_tcp_bind_kerberos_password_port(ipa_kpasswd_t)
+    corenet_udp_bind_kerberos_password_port(ipa_kpasswd_t)
 ')
 
