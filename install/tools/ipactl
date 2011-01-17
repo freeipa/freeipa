@@ -88,7 +88,7 @@ def ipa_start(serverid):
 
     try:
         print "Starting Directory Service"
-        service.start('dirsrv', instance_name=serverid)
+        service.start('dirsrv', instance_name=serverid, capture_output=False)
     except:
         emit_err("Failed to start Directory Service")
         return
@@ -99,7 +99,7 @@ def ipa_start(serverid):
     except:
         emit_err("Failed to read data from Directory Service")
         emit_err("Shutting down")
-        service.stop('dirsrv', instance_name=serverid)
+        service.stop('dirsrv', instance_name=serverid, capture_output=False)
 
     if len(svc_list) == 0:
         return
@@ -108,18 +108,18 @@ def ipa_start(serverid):
         svc_name = service.SERVICE_LIST[svc][0]
         try:
             print "Starting %s Service" % svc
-            service.start(svc_name)
+            service.start(svc_name, capture_output=False)
         except:
             emit_err("Failed to start %s Service" % svc)
             emit_err("Shutting down")
             for (order, svc) in sorted(svc_list):
                 svc_name = service.SERVICE_LIST[svc][0]
                 try:
-                    service.stop(svc_name)
+                    service.stop(svc_name, capture_output=False)
                 except:
                     pass
             try:
-                service.stop('dirsrv', instance_name=serverid)
+                service.stop('dirsrv', instance_name=serverid, capture_output=False)
             except:
                 pass
             return
@@ -134,12 +134,12 @@ def ipa_stop(serverid):
         # and see if we can get anything. If not throw our hands up and just
         # exit
         try:
-            service.start('dirsrv', instance_name=serverid)
+            service.start('dirsrv', instance_name=serverid, capture_output=False)
             svc_list = get_config()
         except:
             emit_err("Failed to read data from Directory Service")
             emit_err("Shutting down")
-            service.stop('dirsrv', instance_name=serverid)
+            service.stop('dirsrv', instance_name=serverid, capture_output=False)
 
     if len(svc_list) == 0:
         return
@@ -148,13 +148,13 @@ def ipa_stop(serverid):
         svc_name = service.SERVICE_LIST[svc][0]
         try:
             print "Stopping %s Service" % svc
-            service.stop(svc_name)
+            service.stop(svc_name, capture_output=False)
         except:
             emit_err("Failed to stop %s Service" % svc)
 
     try:
         print "Stopping Directory Service"
-        service.stop('dirsrv', instance_name=serverid)
+        service.stop('dirsrv', instance_name=serverid, capture_output=False)
     except:
         emit_err("Failed to stop Directory Service")
         return
@@ -163,7 +163,7 @@ def ipa_stop(serverid):
 def ipa_restart(serverid):
     try:
         print "Restarting Directory Service"
-        service.restart('dirsrv', instance_name=serverid)
+        service.restart('dirsrv', instance_name=serverid, capture_output=False)
     except:
         emit_err("Failed to restart Directory Service")
         return
@@ -174,7 +174,7 @@ def ipa_restart(serverid):
     except:
         emit_err("Failed to read data from Directory Service")
         emit_err("Shutting down")
-        service.stop('dirsrv', instance_name=serverid)
+        service.stop('dirsrv', instance_name=serverid, capture_output=False)
 
     if len(svc_list) == 0:
         return
@@ -183,18 +183,18 @@ def ipa_restart(serverid):
         svc_name = service.SERVICE_LIST[svc][0]
         try:
             print "Restarting %s Service" % svc
-            service.restart(svc_name)
+            service.restart(svc_name, capture_output=False)
         except:
             emit_err("Failed to restart %s Service" % svc)
             emit_err("Shutting down")
             for (order, svc) in sorted(svc_list):
                 svc_name = service.SERVICE_LIST[svc][0]
                 try:
-                    service.stop(svc_name)
+                    service.stop(svc_name, capture_output=False)
                 except:
                     pass
             try:
-                service.stop('dirsrv', instance_name=serverid)
+                service.stop('dirsrv', instance_name=serverid, capture_output=False)
             except:
                 pass
             return

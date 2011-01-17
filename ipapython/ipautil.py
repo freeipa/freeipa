@@ -92,7 +92,8 @@ def write_tmp_file(txt):
 
     return fd
 
-def run(args, stdin=None, raiseonerr=True, nolog=(), env=None):
+def run(args, stdin=None, raiseonerr=True,
+        nolog=(), env=None, capture_output=True):
     """
     Execute a command and return stdin, stdout and the process return code.
 
@@ -116,14 +117,23 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None):
 
     If an value isn't found in the list it is silently ignored.
     """
+    p_in = None
+    p_out = None
+    p_err = None
+
     if env is None:
         env={"PATH": "/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
     if stdin:
-        p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, env=env)
-        stdout,stderr = p.communicate(stdin)
-    else:
-        p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, env=env)
-        stdout,stderr = p.communicate()
+        p_in = subprocess.PIPE
+    if capture_output:
+        p_out = subprocess.PIPE
+        p_err = subprocess.PIPE
+    elif len(nolog):
+        raise RuntimeError("Can't use nolog if output is not captured")
+
+    p = subprocess.Popen(args, stdin=p_in, stdout=p_out, stderr=p_err,
+                         close_fds=True, env=env)
+    stdout,stderr = p.communicate(stdin)
 
     # The command and its output may include passwords that we don't want
     # to log. Run through the nolog items.
@@ -137,8 +147,9 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None):
         stdout = stdout.replace(quoted, 'XXXXXXXX')
         stderr = stderr.replace(quoted, 'XXXXXXXX')
     logging.info('args=%s' % args)
-    logging.info('stdout=%s' % stdout)
-    logging.info('stderr=%s' % stderr)
+    if capture_output:
+        logging.info('stdout=%s' % stdout)
+        logging.info('stderr=%s' % stderr)
 
     if p.returncode != 0 and raiseonerr:
         raise CalledProcessError(p.returncode, args)

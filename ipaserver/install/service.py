@@ -41,14 +41,17 @@ SERVICE_LIST = {
     'CA':('pki-cad', 50)
 }
 
-def stop(service_name, instance_name=""):
-    ipautil.run(["/sbin/service", service_name, "stop", instance_name])
+def stop(service_name, instance_name="", capture_output=True):
+    ipautil.run(["/sbin/service", service_name, "stop", instance_name],
+                capture_output=capture_output)
 
-def start(service_name, instance_name=""):
-    ipautil.run(["/sbin/service", service_name, "start", instance_name])
+def start(service_name, instance_name="", capture_output=True):
+    ipautil.run(["/sbin/service", service_name, "start", instance_name],
+                capture_output=capture_output)
 
-def restart(service_name, instance_name=""):
-    ipautil.run(["/sbin/service", service_name, "restart", instance_name])
+def restart(service_name, instance_name="", capture_output=True):
+    ipautil.run(["/sbin/service", service_name, "restart", instance_name],
+                capture_output=capture_output)
 
 def is_running(service_name, instance_name=""):
     ret = True
@@ -217,14 +220,14 @@ class Service:
     def set_output(self, fd):
         self.output_fd = fd
 
-    def stop(self, instance_name=""):
-        stop(self.service_name, instance_name)
+    def stop(self, instance_name="", capture_output=True):
+        stop(self.service_name, instance_name, capture_output=capture_output)
 
-    def start(self, instance_name=""):
-        start(self.service_name, instance_name)
+    def start(self, instance_name="", capture_output=True):
+        start(self.service_name, instance_name, capture_output=capture_output)
 
-    def restart(self, instance_name=""):
-        restart(self.service_name, instance_name)
+    def restart(self, instance_name="", capture_output=True):
+        restart(self.service_name, instance_name, capture_output=capture_output)
 
     def is_running(self):
         return is_running(self.service_name)
