@@ -68,7 +68,7 @@ ipa-client/missing
 ipa-client/py-compile
 ipa-client/stamp-h1
 ipa-client/version.m4
-ipa.spec
+freeipa.spec
 ipapython/setup.py
 ipapython/version.py
 version.m4

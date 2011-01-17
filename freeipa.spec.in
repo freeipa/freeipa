@@ -8,7 +8,7 @@
 %global POLICYCOREUTILSVER 1.33.12-1
 %global gettext_domain ipa
 
-Name:           ipa
+Name:           freeipa
 Version:        __VERSION__
 Release:        __RELEASE__%{?dist}
 Summary:        The Identity, Policy and Audit system
@@ -91,6 +91,8 @@ Requires: pki-silent >= 9.0.0
 Requires(preun):  python initscripts chkconfig
 Requires(postun): python initscripts chkconfig
 
+Obsoletes: ipa-server
+
 %description server
 IPA is an integrated solution to provide centrally managed Identity (machine,
 user, virtual machines, groups, authentication credentials), Policy
@@ -101,7 +103,7 @@ this package).
 
 
 %package server-selinux
-Summary: SELinux rules for ipa-server daemons
+Summary: SELinux rules for freeipa-server daemons
 Group: System Environment/Base
 Requires: %{name}-server = %{version}-%{release}
 Requires(pre): policycoreutils >= %{POLICYCOREUTILSVER} libsemanage
@@ -111,7 +113,7 @@ IPA is an integrated solution to provide centrally managed Identity (machine,
 user, virtual machines, groups, authentication credentials), Policy
 (configuration settings, access control information) and Audit (events,
 logs, analysis thereof). This package provides SELinux rules for the
-daemons included in ipa-server
+daemons included in freeipa-server
 %endif
 
 
@@ -131,6 +133,8 @@ Requires: sssd >= 1.2.1
 Requires: certmonger >= 0.26
 Requires: nss-tools
 
+Obsoletes: ipa-client
+
 %description client
 IPA is an integrated solution to provide centrally managed Identity (machine,
 user, virtual machines, groups, authentication credentials), Policy
@@ -147,6 +151,8 @@ Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: python-krbV
 Requires: python-ldap
+
+Obsoletes: ipa-admintools
 
 %description admintools
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -168,6 +174,8 @@ Requires: pyOpenSSL
 Requires: python-nss >= 0.9-8
 Requires: python-lxml
 Requires: python-netaddr
+
+Obsoletes: ipa-python
 
 %description python
 IPA is an integrated solution to provide centrally managed Identity (machine,

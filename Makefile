@@ -3,7 +3,7 @@ include VERSION
 SUBDIRS=daemons install ipapython ipa-client
 CLIENTDIRS=ipapython ipa-client
 
-PRJ_PREFIX=ipa
+PRJ_PREFIX=freeipa
 
 RPMBUILD ?= $(PWD)/rpmbuild
 TARGET ?= master
@@ -81,7 +81,7 @@ release-update:
 
 version-update: release-update
 	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
-		ipa.spec.in > ipa.spec
+		freeipa.spec.in > freeipa.spec
 	sed -e s/__VERSION__/$(IPA_VERSION)/ version.m4.in \
 		> version.m4
 
@@ -147,21 +147,21 @@ rpmdistdir:
 
 rpms: rpmroot rpmdistdir version-update tarballs
 	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
-	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa.spec
+	rpmbuild --define "_topdir $(RPMBUILD)" -ba freeipa.spec
 	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-*-$(IPA_VERSION)-*.rpm dist/rpms/
 	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
 	rm -rf rpmbuild
 
 client-rpms: rpmroot rpmdistdir version-update tarballs
 	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
-	rpmbuild --define "_topdir $(RPMBUILD)" --define "ONLY_CLIENT 1" -ba ipa.spec
+	rpmbuild --define "_topdir $(RPMBUILD)" --define "ONLY_CLIENT 1" -ba freeipa.spec
 	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-*-$(IPA_VERSION)-*.rpm dist/rpms/
 	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
 	rm -rf rpmbuild
 
 srpms: rpmroot rpmdistdir version-update tarballs
 	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
-	rpmbuild --define "_topdir $(RPMBUILD)" -bs ipa.spec
+	rpmbuild --define "_topdir $(RPMBUILD)" -bs freeipa.spec
 	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
 	rm -rf rpmbuild
 
@@ -198,4 +198,4 @@ maintainer-clean: clean
 	cd ipa-client && $(MAKE) maintainer-clean
 	cd ipapython && $(MAKE) maintainer-clean
 	rm -f version.m4
-	rm -f ipa.spec
+	rm -f freeipa.spec
