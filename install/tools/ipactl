@@ -27,7 +27,6 @@ try:
     import logging
     import ldap
     import socket
-    import syslog
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -51,8 +50,7 @@ def parse_options():
     return safe_options, options, args
 
 def emit_err(err):
-    syslog.syslog(syslog.LOG_ERR, err)
-    print err
+    sys.stderr.write(err)
 
 def get_config():
     base = "cn=%s,cn=masters,cn=ipa,cn=etc,%s" % (socket.gethostname(),
@@ -240,8 +238,6 @@ def main():
     api.bootstrap(context='cli', debug=options.debug)
     api.finalize()
 
-    syslog.openlog('ipa', syslog.LOG_NDELAY, syslog.LOG_DAEMON)
-
     serverid = dsinstance.realm_to_serverid(api.env.realm)
 
     if args[0].lower() == "start":
@@ -252,8 +248,6 @@ def main():
         ipa_restart(serverid)
     elif args[0].lower() == "status":
         ipa_status(serverid)
-
-    syslog.closelog()
 
 try:
     if __name__ == "__main__":
