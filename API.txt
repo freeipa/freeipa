@@ -467,6 +467,11 @@ option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
+command: dns_is_enabled
+args: 0,0,3
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
+output: Output('result', <type 'bool'>, 'True means the operation was successful')
+output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dns_resolve
 args: 1,0,3
 arg: Str('hostname', label=Gettext('Hostname', domain='ipa', localedir=None))

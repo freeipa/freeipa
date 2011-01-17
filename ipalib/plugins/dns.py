@@ -616,3 +616,28 @@ class dns_resolve(Command):
         return dict(result=True, value=query)
 
 api.register(dns_resolve)
+
+class dns_is_enabled(Command):
+    """
+    Checks if any of the servers has the DNS service enabled.
+    """
+    INTERNAL = True
+    has_output = output.standard_value
+
+    base_dn = 'cn=master,cn=ipa,cn=etc,%s' % api.env.basedn
+    filter = '(&(objectClass=ipaConfigObject)(cn=DNS))'
+
+    def execute(self, *args, **options):
+        ldap = self.api.Backend.ldap2
+        dns_enabled = False
+
+        try:
+            ent = ldap.find_entries(filter=filter, base_dn=base_dn)
+            if len(e):
+                dns_enabled = True
+        except Exception, e:
+            pass
+
+        return dict(result=dns_enabled, value=u'')
+
+api.register(dns_is_enabled)
