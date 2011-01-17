@@ -122,8 +122,8 @@ test('Testing ipa_facet_setup_views().', function() {
     );
 
     var li = views.first();
-    ok(  li.hasClass('search-facet'),
-        'Checking the search facet'
+    ok(  li.children().first().hasClass('action-controls'),
+        'Checking that first item in list is placement for controls'
     );
 
     li = li.next(); // skip action controls
@@ -148,11 +148,14 @@ test('Testing ipa_facet_setup_views().', function() {
     var pkey_input =  $('input[name=pkey]', action_panel);
     ok(pkey_input.length,'pkey input exists');
     var search_facets = $('li.search-facet', action_panel);
-    equals(search_facets.length,1,'one search facet in action panel');
+    equals(search_facets.length,0,'search facet should not show up  in action panel');
     var entity_facets = $('li.entity-facet', action_panel);
     /*No longer automatically adding details, so ony the assoc. facets */
-    equals(entity_facets.length,3,'3 entity facets in action panel');
-
+    equals(entity_facets.length,4,'4 hidden entity facets in action panel');
+    entity_facets.each(function() {
+        ok( $(this).hasClass('entity-facet-disabled'),
+            'entity facets are disabled');
+    });
 
     for ( var entity_facet = entity_facets.first();
           entity_facet.length;
