@@ -38,7 +38,7 @@ import errno
 from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, Transport, ProtocolError
 import kerberos
 from ipalib.backend import Connectible
-from ipalib.errors import public_errors, PublicError, UnknownError, NetworkError, KerberosError
+from ipalib.errors import public_errors, PublicError, UnknownError, NetworkError, KerberosError, XMLRPCMarshallError
 from ipalib import errors
 from ipalib.request import context
 from ipapython import ipautil, dnsclient
@@ -373,3 +373,5 @@ class xmlclient(Connectible):
             raise NetworkError(uri=server, error=e.errmsg)
         except socket.error, e:
             raise NetworkError(uri=server, error=str(e))
+        except (OverflowError, TypeError), e:
+            raise XMLRPCMarshallError(error=str(e))

@@ -420,6 +420,20 @@ class JSONError(PublicError):
     format = _('Invalid JSON-RPC request: %(error)s')
 
 
+class XMLRPCMarshallError(PublicError):
+    """
+    **910** Raised when the XML-RPC lib cannot marshall the request
+
+    For example:
+
+    >>> raise XMLRPCMarshallError(error='int exceeds XML-RPC limits')
+    Traceback (most recent call last):
+      ...
+    XMLRPCMarshallError: error marshalling data for XML-RPC transport: int exceeds XML-RPC limits
+    """
+
+    errno = 910
+    format = _('error marshalling data for XML-RPC transport: %(error)s')
 
 ##############################################################################
 # 1000 - 1999: Authentication errors

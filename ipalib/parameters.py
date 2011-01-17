@@ -109,6 +109,7 @@ from errors import PasswordMismatch
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
 from text import Gettext, FixMe
 import csv
+from xmlrpclib import MAXINT
 
 
 class DefaultFrom(ReadOnly):
@@ -1002,7 +1003,7 @@ class Int(Number):
 
     kwargs = Param.kwargs + (
         ('minvalue', int, None),
-        ('maxvalue', int, None),
+        ('maxvalue', int, int(MAXINT)),
     )
 
     def __init__(self, name, *rules, **kw):
