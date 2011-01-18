@@ -240,15 +240,16 @@ class host(LDAPObject):
     )
 
     def get_dn(self, *keys, **options):
-        if keys[-1].endswith('.'):
-            keys[-1] = keys[-1][:-1]
-        dn = super(host, self).get_dn(*keys, **options)
+        hostname = keys[-1]
+        if hostname.endswith('.'):
+            hostname = hostname[:-1]
+        dn = super(host, self).get_dn(hostname, **options)
         try:
             self.backend.get_entry(dn, [''])
         except errors.NotFound:
             try:
                 (dn, entry_attrs) = self.backend.find_entry_by_attr(
-                    'serverhostname', keys[-1], self.object_class, [''],
+                    'serverhostname', hostname, self.object_class, [''],
                     self.container_dn
                 )
             except errors.NotFound:
