@@ -52,6 +52,13 @@ body{
     top: 50%;
 }
 
+.button-without-icon {
+    padding: .4em 1em .4em 1em;
+    text-decoration: none;
+    position: relative;
+    cursor: pointer;
+}
+
 /*  ----  Header  ----  */
 div.header {
     background-color:#0C3B00;

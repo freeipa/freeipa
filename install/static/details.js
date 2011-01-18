@@ -699,12 +699,18 @@ IPA.button = function(spec) {
         id: spec.id,
         html: spec.label,
         title: spec.title || spec.label,
-        'class': 'ui-state-default ui-corner-all input_link'
+        'class': 'ui-state-default ui-corner-all'
     });
 
     if (spec.click) button.click(spec.click);
     if (spec['class']) button.addClass(spec['class']);
-    if (spec.icon) button.append('<span class="ui-icon '+spec.icon+'" ></span> ');
+
+    if (spec.icon) {
+        button.addClass('input_link');
+        button.append('<span class="ui-icon '+spec.icon+'" ></span> ');
+    } else {
+        button.addClass('button-without-icon');
+    }
 
     return button;
 };
