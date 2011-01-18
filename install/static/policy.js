@@ -326,7 +326,8 @@ IPA.records_facet = function (spec){
             'click': function(){refresh();}
         }).appendTo(control_span);
 
-        var action_panel_ul = $('.action-panel ul', that.container);
+        var action_panel_ul = $('.action-panel .entity-facet', that.container).
+            last();
 
         var action_controls =  $('<li/>',{
             "class":"action-controls"}).appendTo(action_panel_ul);
