@@ -11,7 +11,7 @@
                 "description": [
                     "Default group of SUDO related services"
                 ],
-                "dn": "cn=sudo,cn=hbacservicegroups,cn=accounts,dc=dev,dc=example,dc=com",
+                "dn": "cn=sudo,cn=hbacservicegroups,cn=hbac,dc=dev,dc=example,dc=com",
                 "member_hbacsvc": [
                     "sudo",
                     "sudo-i"

@@ -1624,7 +1624,7 @@
             },
             "hbacsvc": {
                 "attribute_members": {},
-                "container_dn": "cn=hbacservices,cn=accounts",
+                "container_dn": "cn=hbacservices,cn=hbac",
                 "default_attributes": [
                     "cn",
                     "description",
@@ -1713,7 +1713,7 @@
                         "hbacsvc"
                     ]
                 },
-                "container_dn": "cn=hbacservicegroups,cn=accounts",
+                "container_dn": "cn=hbacservicegroups,cn=hbac",
                 "default_attributes": [
                     "cn",
                     "description",

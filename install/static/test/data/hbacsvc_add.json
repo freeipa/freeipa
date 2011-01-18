@@ -9,7 +9,7 @@
             "description": [
                 "Test Service"
             ],
-            "dn": "cn=test,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com",
+            "dn": "cn=test,cn=hbacservices,cn=hbac,dc=dev,dc=example,dc=com",
             "ipauniqueid": [
                 "c3302e82-ecfd11df-b3f78f4b-11cc007b"
             ],

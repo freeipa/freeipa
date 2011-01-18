@@ -11,7 +11,7 @@
                 "description": [
                     "sshd"
                 ],
-                "dn": "cn=sshd,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=sshd,cn=hbacservices,cn=hbac,dc=dev,dc=example,dc=com"
             },
             {
                 "cn": [
@@ -20,7 +20,7 @@
                 "description": [
                     "ftp"
                 ],
-                "dn": "cn=ftp,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=ftp,cn=hbacservices,cn=hbac,dc=dev,dc=example,dc=com"
             },
             {
                 "cn": [
@@ -29,7 +29,7 @@
                 "description": [
                     "su"
                 ],
-                "dn": "cn=su,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=su,cn=hbacservices,cn=hbac,dc=dev,dc=example,dc=com"
             },
             {
                 "cn": [
@@ -38,7 +38,7 @@
                 "description": [
                     "login"
                 ],
-                "dn": "cn=login,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=login,cn=hbacservices,cn=hbac,dc=dev,dc=example,dc=com"
             },
             {
                 "cn": [
@@ -47,7 +47,7 @@
                 "description": [
                     "su with login shell"
                 ],
-                "dn": "cn=su-l,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=su-l,cn=hbacservices,cn=hbac,dc=dev,dc=example,dc=com"
             },
             {
                 "cn": [
@@ -56,7 +56,7 @@
                 "description": [
                     "sudo"
                 ],
-                "dn": "cn=sudo,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=sudo,cn=hbacservices,cn=hbac,dc=dev,dc=example,dc=com"
             },
             {
                 "cn": [
@@ -65,7 +65,7 @@
                 "description": [
                     "sudo-i"
                 ],
-                "dn": "cn=sudo-i,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=sudo-i,cn=hbacservices,cn=hbac,dc=dev,dc=example,dc=com"
             },
             {
                 "cn": [
@@ -74,7 +74,7 @@
                 "description": [
                     "gdm"
                 ],
-                "dn": "cn=gdm,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=gdm,cn=hbacservices,cn=hbac,dc=dev,dc=example,dc=com"
             },
             {
                 "cn": [
@@ -83,7 +83,7 @@
                 "description": [
                     "gdm-password"
                 ],
-                "dn": "cn=gdm-password,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=gdm-password,cn=hbacservices,cn=hbac,dc=dev,dc=example,dc=com"
             },
             {
                 "cn": [
@@ -92,7 +92,7 @@
                 "description": [
                     "kdm"
                 ],
-                "dn": "cn=kdm,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=kdm,cn=hbacservices,cn=hbac,dc=dev,dc=example,dc=com"
             }
         ],
         "summary": null,

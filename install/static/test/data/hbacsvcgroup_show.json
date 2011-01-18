@@ -24,7 +24,7 @@
             "description": [
                 "Default group of SUDO related services"
             ],
-            "dn": "cn=sudo,cn=hbacservicegroups,cn=accounts,dc=dev,dc=example,dc=com",
+            "dn": "cn=sudo,cn=hbacservicegroups,cn=hbac,dc=dev,dc=example,dc=com",
             "ipauniqueid": [
                 "676e92ab-ec7611df-b3f78f4b-11cc007b"
             ],

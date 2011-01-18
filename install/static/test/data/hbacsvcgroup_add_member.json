@@ -15,7 +15,7 @@
             "description": [
                 "Test Service Group"
             ],
-            "dn": "cn=test,cn=hbacservicegroups,cn=accounts,dc=dev,dc=example,dc=com",
+            "dn": "cn=test,cn=hbacservicegroups,cn=hbac,dc=dev,dc=example,dc=com",
             "member_hbacsvc": [
                 "test"
             ]

@@ -3604,7 +3604,7 @@
                         ],
                         "attribute_members": {},
                         "bindable": false,
-                        "container_dn": "cn=hbacservices,cn=accounts",
+                        "container_dn": "cn=hbacservices,cn=hbac",
                         "default_attributes": [
                             "cn",
                             "description",
@@ -3725,7 +3725,7 @@
                             ]
                         },
                         "bindable": false,
-                        "container_dn": "cn=hbacservicegroups,cn=accounts",
+                        "container_dn": "cn=hbacservicegroups,cn=hbac",
                         "default_attributes": [
                             "cn",
                             "description",
@@ -7827,8 +7827,8 @@
                     "container_dns": "cn=dns",
                     "container_group": "cn=groups,cn=accounts",
                     "container_hbac": "cn=hbac",
-                    "container_hbacservice": "cn=hbacservices,cn=accounts",
-                    "container_hbacservicegroup": "cn=hbacservicegroups,cn=accounts",
+                    "container_hbacservice": "cn=hbacservices,cn=hbac",
+                    "container_hbacservicegroup": "cn=hbacservicegroups,cn=hbac",
                     "container_host": "cn=computers,cn=accounts",
                     "container_hostgroup": "cn=hostgroups,cn=accounts",
                     "container_netgroup": "cn=ng,cn=alt",

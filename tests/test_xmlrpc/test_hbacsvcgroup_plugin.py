@@ -26,10 +26,10 @@ from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from tests.test_xmlrpc import objectclasses
 
 hbacsvcgroup1 = u'testhbacsvcgroup1'
-dn1 = u'cn=%s,cn=hbacservicegroups,cn=accounts,%s' % (hbacsvcgroup1, api.env.basedn)
+dn1 = u'cn=%s,cn=hbacservicegroups,cn=hbac,%s' % (hbacsvcgroup1, api.env.basedn)
 
 hbacsvc1 = u'sshd'
-hbacsvc_dn1 = u'cn=%s,cn=hbacservices,cn=accounts,%s' % (hbacsvc1, api.env.basedn)
+hbacsvc_dn1 = u'cn=%s,cn=hbacservices,cn=hbac,%s' % (hbacsvc1, api.env.basedn)
 
 
 class test_hbacsvcgroup(Declarative):

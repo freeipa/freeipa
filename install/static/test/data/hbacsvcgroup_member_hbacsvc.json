@@ -13,12 +13,12 @@
                     "description": [
                         "sudo"
                     ],
-                    "dn": "cn=sudo,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com",
+                    "dn": "cn=sudo,cn=hbacservices,cn=hbac,dc=dev,dc=example,dc=com",
                     "ipauniqueid": [
                         "42927a86-f46d-11df-8cc1-00163e72f2d9"
                     ],
                     "memberof": [
-                        "cn=SUDO,cn=hbacservicegroups,cn=accounts,dc=dev,dc=example,dc=com"
+                        "cn=SUDO,cn=hbacservicegroups,cn=hbac,dc=dev,dc=example,dc=com"
                     ],
                     "objectclass": [
                         "ipahbacservice",
@@ -37,12 +37,12 @@
                     "description": [
                         "sudo-i"
                     ],
-                    "dn": "cn=sudo-i,cn=hbacservices,cn=accounts,dc=dev,dc=example,dc=com",
+                    "dn": "cn=sudo-i,cn=hbacservices,cn=hbac,dc=dev,dc=example,dc=com",
                     "ipauniqueid": [
                         "42970a6a-f46d-11df-8cc1-00163e72f2d9"
                     ],
                     "memberof": [
-                        "cn=SUDO,cn=hbacservicegroups,cn=accounts,dc=dev,dc=example,dc=com"
+                        "cn=SUDO,cn=hbacservicegroups,cn=hbac,dc=dev,dc=example,dc=com"
                     ],
                     "objectclass": [
                         "ipahbacservice",
