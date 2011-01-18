@@ -710,13 +710,13 @@ table.scrollable tbody {
     top: 0;
     left: 0;
     bottom: 0;
-    width: 25.0em;
+    width: 23.0em;
 }
 
 .adder-dialog-buttons {
     position: absolute;
     top: 1.5em;
-    left: 25em;
+    left: 23.35em;
     right: 25;
     bottom: 0;
     text-align: center;
@@ -728,7 +728,7 @@ table.scrollable tbody {
     top: 0;
     right: 0;
     bottom: 0;
-    width: 25em;
+    width: 23em;
 }
 
 .adder-dialog-internal {
