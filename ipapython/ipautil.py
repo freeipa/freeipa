@@ -20,6 +20,8 @@
 SHARE_DIR = "/usr/share/ipa/"
 PLUGINS_SHARE_DIR = "/usr/share/ipa/plugins"
 
+GEN_PWD_LEN = 12
+
 import string
 import tempfile
 import logging
@@ -422,8 +424,15 @@ def parse_generalized_time(timestr):
 def ipa_generate_password():
     rndpwd = ''
     r = random.SystemRandom()
-    for x in range(12):
-        rndpwd += chr(r.randint(32,126))
+    for x in range(GEN_PWD_LEN):
+        # do not generate space (chr(32)) as the first or last character
+        if x == 0 or x == (GEN_PWD_LEN-1):
+            rndchar = chr(r.randint(33,126))
+        else:
+            rndchar = chr(r.randint(32,126))
+
+        rndpwd += rndchar
+
     return rndpwd
 
 

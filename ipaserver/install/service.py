@@ -124,11 +124,16 @@ class Service:
         fd = None
         path = ipautil.SHARE_DIR + ldif
         hostname = installutils.get_fqdn()
+        nologlist=()
 
         if sub_dict is not None:
             txt = ipautil.template_file(path, sub_dict)
             fd = ipautil.write_tmp_file(txt)
             path = fd.name
+
+            # do not log passwords
+            if sub_dict.has_key('PASSWORD'):
+                nologlist = sub_dict['PASSWORD'],
 
         if self.dm_password:
             [pw_fd, pw_name] = tempfile.mkstemp()
@@ -143,7 +148,7 @@ class Service:
 
         try:
             try:
-                ipautil.run(args)
+                ipautil.run(args, nolog=nologlist)
             except ipautil.CalledProcessError, e:
                 logging.critical("Failed to load %s: %s" % (ldif, str(e)))
         finally:

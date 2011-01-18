@@ -335,7 +335,7 @@ class KrbInstance(service.Service):
             #populate the directory with the realm structure
             args = ["kdb5_ldap_util", "-D", "uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-P", self.master_password, "-r", self.realm, "-subtrees", self.suffix, "-sscope", "sub"]
             try:
-                ipautil.run(args)
+                ipautil.run(args, nolog=(self.kdc_password, self.master_password))
             except ipautil.CalledProcessError, e:
                 print "Failed to populate the realm structure in kerberos", e
 
