@@ -100,6 +100,14 @@ IPA.service_add_dialog = function (spec) {
             'undo': false
         }));
 
+        // TODO: Replace with i18n label
+        that.add_field(IPA.checkbox_widget({
+            name: 'force',
+            label: 'Force',
+            tooltip: 'force principal name even if not in DNS',
+            undo: false
+        }));
+
         that.add_dialog_init();
     };
 
@@ -112,7 +120,8 @@ IPA.service_add_dialog = function (spec) {
         var tr = $('<tr/>').appendTo(table);
 
         var td = $('<td/>', {
-            'style': 'vertical-align: top;'
+            style: 'vertical-align: top;',
+            title: field.label
         }).appendTo(tr);
         td.append(field.label+': ');
 
@@ -128,7 +137,8 @@ IPA.service_add_dialog = function (spec) {
         tr = $('<tr/>').appendTo(table);
 
         td = $('<td/>', {
-            'style': 'vertical-align: top;'
+            style: 'vertical-align: top;',
+            title: field.label
         }).appendTo(tr);
         td.append(field.label+': ');
 
@@ -137,6 +147,23 @@ IPA.service_add_dialog = function (spec) {
         }).appendTo(tr);
 
         span = $('<span/>', { 'name': 'host' }).appendTo(td);
+        field.create(span);
+
+        field = that.get_field('force');
+
+        tr = $('<tr/>').appendTo(table);
+
+        td = $('<td/>', {
+            style: 'vertical-align: top;',
+            title: field.label
+        }).appendTo(tr);
+        td.append(field.label+': ');
+
+        td = $('<td/>', {
+            'style': 'vertical-align: top;'
+        }).appendTo(tr);
+
+        span = $('<span/>', { 'name': 'force' }).appendTo(td);
         field.create(span);
     };
 
@@ -150,6 +177,11 @@ IPA.service_add_dialog = function (spec) {
         var host = field.save()[0];
 
         record['krbprincipalname'] = service+'/'+host;
+
+        field = that.get_field('force');
+        var force = field.save()[0];
+
+        record['force'] = force;
 
         return record;
     };

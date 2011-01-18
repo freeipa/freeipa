@@ -88,9 +88,17 @@ IPA.host_add_dialog = function (spec) {
     that.init = function() {
 
         that.add_field(IPA.text_widget({
-            'name': 'fqdn',
-            'size': 40,
-            'undo': false
+            name: 'fqdn',
+            size: 40,
+            undo: false
+        }));
+
+        // TODO: Replace with i18n label
+        that.add_field(IPA.checkbox_widget({
+            name: 'force',
+            label: 'Force',
+            tooltip: 'force host name even if not in DNS',
+            undo: false
         }));
 
         that.add_dialog_init();

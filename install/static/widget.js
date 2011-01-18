@@ -30,6 +30,7 @@ IPA.widget = function(spec) {
     that.id = spec.id;
     that.name = spec.name;
     that.label = spec.label;
+    that.tooltip = spec.tooltip;
     that.read_only = spec.read_only;
     that._entity_name = spec.entity_name;
 
@@ -81,10 +82,18 @@ IPA.widget = function(spec) {
     }
 
     function init() {
-        if (that.entity_name && !that.label){
+        if (that.entity_name) {
             that.param_info = IPA.get_param_info(that.entity_name, that.name);
-            if ((that.param_info) && (that.label === undefined)){
-                that.label = that.param_info.label;
+
+            if (that.param_info) {
+
+                if (that.label === undefined) {
+                    that.label = that.param_info.label;
+                }
+
+                if (that.tooltip === undefined) {
+                    that.tooltip = that.param_info.doc;
+                }
             }
         }
     }
@@ -182,9 +191,10 @@ IPA.text_widget = function(spec) {
     that.create = function(container) {
 
         $('<input/>', {
-            'type': 'text',
-            'name': that.name,
-            'size': that.size
+            type: 'text',
+            name: that.name,
+            size: that.size,
+            title: that.tooltip
         }).appendTo(container);
 
         $('<span/>', {
@@ -269,7 +279,8 @@ IPA.checkbox_widget = function (spec) {
         $('<input/>', {
             type: 'checkbox',
             name: that.name,
-            checked : is_checked
+            checked : is_checked,
+            title: that.tooltip
         }).appendTo(container);
 
         if (that.undo) {
@@ -404,9 +415,10 @@ IPA.textarea_widget = function (spec) {
     that.create = function(container) {
 
         $('<textarea/>', {
-            'rows': that.rows,
-            'cols': that.cols,
-            'name': that.name
+            rows: that.rows,
+            cols: that.cols,
+            name: that.name,
+            title: that.tooltip
         }).appendTo(container);
 
         if (that.undo) {
@@ -904,12 +916,13 @@ IPA.dialog = function(spec) {
             var tr = $('<tr/>').appendTo(table);
 
             var td = $('<td/>', {
-                'style': 'vertical-align: top;'
+                style: 'vertical-align: top;',
+                title: field.label
             }).appendTo(tr);
             td.append(field.label+': ');
 
             td = $('<td/>', {
-                'style': 'vertical-align: top;'
+                style: 'vertical-align: top;'
             }).appendTo(tr);
 
             var span = $('<span/>', { 'name': field.name }).appendTo(td);

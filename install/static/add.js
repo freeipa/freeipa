@@ -78,8 +78,7 @@ IPA.add_dialog = function (spec) {
                     state[that.entity_name + '-facet'] = 'details';
                     state[that.entity_name + '-pkey'] = pkey;
                     $.bbq.pushState(state);
-                },
-                function() {  }
+                }
             );
         });
 
@@ -90,28 +89,30 @@ IPA.add_dialog = function (spec) {
         that.dialog_init();
     };
 
-
-    function save_field(field, record, args, options){
-        var pkey_name = IPA.metadata[that.entity_name].primary_key;
-        var value = record[field.name];
-        if (!value) return;
-        if (field.name == pkey_name) {
-            args.push(value);
-        } else {
-            options[field.name] = value;
-        }
-    }
-
     that.add = function(record, on_success, on_error) {
 
-        var args = [];
-        var options = {};
+        var pkey_name = IPA.metadata[that.entity_name].primary_key;
+
+        var command = IPA.command({
+            method: that.entity_name+'_add',
+            on_success: on_success,
+            on_error: on_error
+        });
 
         for (var i=0; i<that.fields.length; i++) {
-            save_field(that.fields[i], record, args, options);
+            var field = that.fields[i];
+
+            var value = record[field.name];
+            if (!value) continue;
+
+            if (field.name == pkey_name) {
+                command.add_arg(value);
+            } else {
+                command.set_option(field.name, value);
+            }
         }
 
-        IPA.cmd('add', args, options, on_success, on_error, that.entity_name);
+        command.execute();
     };
 
     that.add_dialog_init = that.init;
