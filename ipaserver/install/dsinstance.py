@@ -204,6 +204,7 @@ class DsInstance(service.Service):
         self.step("configuring uuid plugin", self.__config_uuid_module)
         self.step("configuring modrdn plugin", self.__config_modrdn_module)
         self.step("enabling entryUSN plugin", self.__enable_entryusn)
+        self.step("configuring lockout plugin", self.__config_lockout_module)
         self.step("creating indices", self.__create_indices)
         self.step("configuring ssl for ds instance", self.__enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
@@ -458,6 +459,9 @@ class DsInstance(service.Service):
     def __config_modrdn_module(self):
         self._ldap_mod("modrdn-conf.ldif")
         self._ldap_mod("modrdn-krbprinc.ldif", self.sub_dict)
+
+    def __config_lockout_module(self):
+        self._ldap_mod("lockout-conf.ldif")
 
     def __user_private_groups(self):
         if not has_managed_entries(self.fqdn, self.dm_password):

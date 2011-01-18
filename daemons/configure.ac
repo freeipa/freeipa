@@ -291,6 +291,7 @@ AC_CONFIG_FILES([
     ipa-kpasswd/Makefile
     ipa-slapi-plugins/Makefile
     ipa-slapi-plugins/ipa-enrollment/Makefile
+    ipa-slapi-plugins/ipa-lockout/Makefile
     ipa-slapi-plugins/ipa-pwd-extop/Makefile
     ipa-slapi-plugins/ipa-winsync/Makefile
     ipa-slapi-plugins/ipa-version/Makefile

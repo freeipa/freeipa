@@ -2,6 +2,7 @@ NULL =
 
 SUBDIRS =			\
 	ipa-enrollment		\
+	ipa-lockout		\
 	ipa-modrdn		\
 	ipa-pwd-extop		\
 	ipa-uuid		\

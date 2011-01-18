@@ -235,6 +235,7 @@ rm %{buildroot}/%{plugin_dir}/libipa_winsync.la
 rm %{buildroot}/%{plugin_dir}/libipa_repl_version.la
 rm %{buildroot}/%{plugin_dir}/libipa_uuid.la
 rm %{buildroot}/%{plugin_dir}/libipa_modrdn.la
+rm %{buildroot}/%{plugin_dir}/libipa_lockout.la
 
 # Some user-modifiable HTML files are provided. Move these to /etc
 # and link back.
@@ -392,6 +393,7 @@ fi
 %attr(755,root,root) %{plugin_dir}/libipa_repl_version.so
 %attr(755,root,root) %{plugin_dir}/libipa_uuid.so
 %attr(755,root,root) %{plugin_dir}/libipa_modrdn.so
+%attr(755,root,root) %{plugin_dir}/libipa_lockout.so
 %dir %{_localstatedir}/lib/ipa
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
 %dir %{_localstatedir}/cache/ipa
