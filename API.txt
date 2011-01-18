@@ -695,7 +695,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnszone_add
-args: 1,17,3
+args: 1,16,3
 arg: Str('idnsname', attribute=True, cli_name='name', label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=True)
 option: Str('idnssoamname', attribute=True, cli_name='name_server', label=Gettext('Authoritative name server', domain='ipa', localedir=None), multivalue=False, required=True)
 option: Str('idnssoarname', attribute=True, cli_name='admin_email', default_from=DefaultFrom(<lambda>, 'idnsname'), label=Gettext('Administrator e-mail address', domain='ipa', localedir=None), multivalue=False, normalizer=_rname_normalizer, required=True)
@@ -704,7 +704,6 @@ option: Int('idnssoarefresh', attribute=True, autofill=True, cli_name='refresh',
 option: Int('idnssoaretry', attribute=True, autofill=True, cli_name='retry', default=900, label=Gettext('SOA retry', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Int('idnssoaexpire', attribute=True, autofill=True, cli_name='expire', default=1209600, label=Gettext('SOA expire', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Int('idnssoaminimum', attribute=True, autofill=True, cli_name='minimum', default=3600, label=Gettext('SOA minimum', domain='ipa', localedir=None), multivalue=False, required=False)
-option: Int('idnssoamaximum', attribute=True, cli_name='maximum', label=Gettext('SOA maximum', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Int('dnsttl', attribute=True, cli_name='ttl', label=Gettext('SOA time to live', domain='ipa', localedir=None), multivalue=False, required=False)
 option: StrEnum('dnsclass', attribute=True, cli_name='class', label=Gettext('SOA class', domain='ipa', localedir=None), multivalue=False, required=False, values=(u'IN', u'CS', u'CH', u'HS'))
 option: Str('idnsupdatepolicy', attribute=True, cli_name='update_policy', label=Gettext('BIND update policy', domain='ipa', localedir=None), multivalue=False, required=False)
@@ -737,7 +736,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnszone_find
-args: 1,19,4
+args: 1,18,4
 arg: Str('criteria?')
 option: Str('idnsname', attribute=True, autofill=False, cli_name='name', label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('idnssoamname', attribute=True, autofill=False, cli_name='name_server', label=Gettext('Authoritative name server', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -747,7 +746,6 @@ option: Int('idnssoarefresh', attribute=True, autofill=False, cli_name='refresh'
 option: Int('idnssoaretry', attribute=True, autofill=False, cli_name='retry', default=900, label=Gettext('SOA retry', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('idnssoaexpire', attribute=True, autofill=False, cli_name='expire', default=1209600, label=Gettext('SOA expire', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('idnssoaminimum', attribute=True, autofill=False, cli_name='minimum', default=3600, label=Gettext('SOA minimum', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
-option: Int('idnssoamaximum', attribute=True, autofill=False, cli_name='maximum', label=Gettext('SOA maximum', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('dnsttl', attribute=True, autofill=False, cli_name='ttl', label=Gettext('SOA time to live', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: StrEnum('dnsclass', attribute=True, autofill=False, cli_name='class', label=Gettext('SOA class', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'IN', u'CS', u'CH', u'HS'))
 option: Str('idnsupdatepolicy', attribute=True, autofill=False, cli_name='update_policy', label=Gettext('BIND update policy', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -763,7 +761,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, 'Number of entries returned')
 output: Output('truncated', <type 'bool'>, 'True if not all results were returned')
 command: dnszone_mod
-args: 1,18,3
+args: 1,17,3
 arg: Str('idnsname', attribute=True, cli_name='name', label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
 option: Str('idnssoamname', attribute=True, autofill=False, cli_name='name_server', label=Gettext('Authoritative name server', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('idnssoarname', attribute=True, autofill=False, cli_name='admin_email', default_from=DefaultFrom(<lambda>, 'idnsname'), label=Gettext('Administrator e-mail address', domain='ipa', localedir=None), multivalue=False, normalizer=_rname_normalizer, required=False)
@@ -772,7 +770,6 @@ option: Int('idnssoarefresh', attribute=True, autofill=False, cli_name='refresh'
 option: Int('idnssoaretry', attribute=True, autofill=False, cli_name='retry', default=900, label=Gettext('SOA retry', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Int('idnssoaexpire', attribute=True, autofill=False, cli_name='expire', default=1209600, label=Gettext('SOA expire', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Int('idnssoaminimum', attribute=True, autofill=False, cli_name='minimum', default=3600, label=Gettext('SOA minimum', domain='ipa', localedir=None), multivalue=False, required=False)
-option: Int('idnssoamaximum', attribute=True, autofill=False, cli_name='maximum', label=Gettext('SOA maximum', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Int('dnsttl', attribute=True, autofill=False, cli_name='ttl', label=Gettext('SOA time to live', domain='ipa', localedir=None), multivalue=False, required=False)
 option: StrEnum('dnsclass', attribute=True, autofill=False, cli_name='class', label=Gettext('SOA class', domain='ipa', localedir=None), multivalue=False, required=False, values=(u'IN', u'CS', u'CH', u'HS'))
 option: Str('idnsupdatepolicy', attribute=True, autofill=False, cli_name='update_policy', label=Gettext('BIND update policy', domain='ipa', localedir=None), multivalue=False, required=False)
