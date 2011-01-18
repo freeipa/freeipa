@@ -345,9 +345,9 @@ class host_add(LDAPCreate):
                 parts = keys[-1].split('.')
                 domain = unicode('.'.join(parts[1:]))
                 if ':' in options['ip_address']:
-                    addkw = { u'aaaarecord' : options['ip_address'] }
+                    addkw = { 'aaaarecord' : options['ip_address'] }
                 else:
-                    addkw = { u'arecord' : options['ip_address'] }
+                    addkw = { 'arecord' : options['ip_address'] }
                 try:
                     api.Command['dnsrecord_add'](domain, parts[0], **addkw)
                 except errors.EmptyModlist:
@@ -355,7 +355,7 @@ class host_add(LDAPCreate):
                     pass
                 revzone, revname = get_reverse_zone(options['ip_address'])
                 try:
-                    addkw = { u'ptrrecord' : keys[-1]+'.' }
+                    addkw = { 'ptrrecord' : keys[-1]+'.' }
                     api.Command['dnsrecord_add'](revzone, revname, **addkw)
                 except errors.EmptyModlist:
                     # the entry already exists and matches
@@ -443,12 +443,12 @@ class host_del(LDAPDelete):
                     self.debug('deleting ipaddr %s' % ipaddr)
                     revzone, revname = get_reverse_zone(ipaddr)
                     try:
-                        delkw = { u'ptrrecord' : fqdn+'.' }
+                        delkw = { 'ptrrecord' : fqdn+'.' }
                         api.Command['dnsrecord_del'](revzone, revname, **delkw)
                     except errors.NotFound:
                         pass
                     try:
-                        delkw = { u'arecord' : ipaddr }
+                        delkw = { 'arecord' : ipaddr }
                         api.Command['dnsrecord_del'](domain, parts[0], **delkw)
                     except errors.NotFound:
                         pass
