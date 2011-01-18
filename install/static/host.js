@@ -322,8 +322,7 @@ function host_provisioning_status_widget(spec) {
 
         dialog.create = function() {
             dialog.container.append(
-                'To confirm your intention to unprovision this host, '+
-                'click the "Unprovision" button.');
+                'Are you sure you want to unprovision this host?');
         };
 
         dialog.add_button('Unprovision', function() {
@@ -336,10 +335,6 @@ function host_provisioning_status_widget(spec) {
                     dialog.close();
                 }
             );
-        });
-
-        dialog.add_button('Cancel', function() {
-            dialog.close();
         });
 
         dialog.init();

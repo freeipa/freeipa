@@ -343,8 +343,7 @@ function service_provisioning_status_widget(spec) {
 
         dialog.create = function() {
             dialog.container.append(
-                'To confirm your intention to unprovision this service, '+
-                'click the "Unprovision" button.');
+                'Are you sure you want to unprovision this service?');
         };
 
         dialog.add_button('Unprovision', function() {
@@ -358,10 +357,6 @@ function service_provisioning_status_widget(spec) {
                     dialog.close();
                 }
             );
-        });
-
-        dialog.add_button('Cancel', function() {
-            dialog.close();
         });
 
         dialog.init();
