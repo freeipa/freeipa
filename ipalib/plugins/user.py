@@ -204,7 +204,7 @@ class user(LDAPObject):
             label=_('Car License'),
         ),
         Bool('nsaccountlock?',
-            label=_('Account activation status'),
+            label=_('Account disabled'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
     )
