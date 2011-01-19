@@ -180,6 +180,7 @@ class DsInstance(service.Service):
         self.dercert = None
         self.idstart = None
         self.idmax = None
+        self.subject_base = None
         if realm_name:
             self.suffix = util.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()

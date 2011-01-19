@@ -625,7 +625,8 @@ class ReplicationManager:
         # there is no other side to get a replica ID from
         # So we generate one locally
         replica_id = self._get_replica_id(self.conn, self.conn)
-        self.basic_replication_setup(self.conn, replica_id)
+        self.basic_replication_setup(self.conn, replica_id,
+                                     self.repl_man_dn, self.repl_man_passwd)
 
         #now add a passync user allowed to access the AD server
         self.add_passsync_user(self.conn, passsync_pw)
@@ -638,8 +639,9 @@ class ReplicationManager:
         logging.info("Agreement is ready, starting replication . . .")
 
         #Finally start replication
-        return self.start_replication(self.conn, ad_conn,
-                                      self.repl_man_dn, self.repl_man_passwd)
+        ret = self.start_replication(ad_conn)
+        if ret != 0:
+            raise RuntimeError("Failed to start replication")
 
     def convert_to_gssapi_replication(self, r_hostname, r_binddn, r_bindpw):
         r_conn = ipaldap.IPAdmin(r_hostname, port=PORT, cacert=CACERT)
