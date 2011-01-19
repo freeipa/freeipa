@@ -819,9 +819,8 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
             slapi_sdn_free(&tmp_dn);
 
             if (ret) {
-                LOG_FATAL("slapi_search_internal_get_entry failed!? Err %d\n",
-                        ret);
-                ret = LDAP_OPERATIONS_ERROR;
+                /* ok a client tried to modify an entry that doesn't exist.
+                 * Nothing to see here, move along ... */
                 goto done;
             }
 
