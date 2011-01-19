@@ -210,6 +210,7 @@ def main():
         verbose=0,
         validate_api=True,
         enable_ra=True,
+        mode='developer',
     )
 
     api.bootstrap(**cfg)

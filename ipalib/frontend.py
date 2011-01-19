@@ -351,9 +351,10 @@ class HasParam(Plugin):
             self._filter_param_by_context(name, env),
             sort=False
         )
-        check = getattr(self, 'check_' + name, None)
-        if callable(check):
-            check(namespace)
+        if self.env.mode != 'production':
+            check = getattr(self, 'check_' + name, None)
+            if callable(check):
+                check(namespace)
         setattr(self, name, namespace)
 
 

@@ -387,6 +387,7 @@ def main():
     if ipautil.file_exists(config.dir + "/cacert.p12"):
         fd.write("enable_ra=True\n")
         fd.write("ra_plugin=dogtag\n")
+    fd.write("mode=production\n")
     fd.close()
 
     api.bootstrap(in_server=True)

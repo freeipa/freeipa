@@ -207,6 +207,8 @@ class Plugin(ReadOnly):
     def finalize(self):
         """
         """
+        if self.env.mode == 'production':
+            return
         lock(self)
 
     def set_api(self, api):
@@ -601,19 +603,22 @@ class API(DictProxy):
             namespace = NameSpace(
                 plugin_iter(base, (magic[k] for k in magic))
             )
-            assert not (
-                name in self.__d or hasattr(self, name)
-            )
+	    if self.env.mode != 'production':
+                assert not (
+                    name in self.__d or hasattr(self, name)
+                )
             self.__d[name] = namespace
             object.__setattr__(self, name, namespace)
 
         for p in plugins.itervalues():
             p.instance.set_api(self)
-            assert p.instance.api is self
+            if self.env.mode != 'production':
+                assert p.instance.api is self
 
         for p in plugins.itervalues():
             p.instance.finalize()
-            assert islocked(p.instance) is True
+            if self.env.mode != 'production':
+                assert islocked(p.instance) is True
         object.__setattr__(self, '_API__finalized', True)
         tuple(PluginInfo(p) for p in plugins.itervalues())
         object.__setattr__(self, 'plugins',

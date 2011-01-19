@@ -467,6 +467,9 @@ class Env(object):
             else:
                 self.in_tree = False
 
+        if self.in_tree and 'mode' not in self:
+            self.mode = 'developer'
+
         # Set dot_ipa:
         if 'dot_ipa' not in self:
             self.dot_ipa = self._join('home', '.ipa')

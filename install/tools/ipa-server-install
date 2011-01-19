@@ -683,6 +683,7 @@ def main():
     fd.write("enable_ra=True\n")
     if not options.selfsign:
         fd.write("ra_plugin=dogtag\n")
+    fd.write("mode=production\n")
     fd.close()
 
     api.bootstrap(**cfg)
