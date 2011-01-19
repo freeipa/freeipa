@@ -35,6 +35,7 @@ from ipalib import errors
 
 from ipaserver import ipaldap
 from ipaserver.install import replication
+from ipaserver.install.dsinstance import realm_to_serverid
 
 import ldap
 from ldap import LDAPError
@@ -255,6 +256,7 @@ class KrbInstance(service.Service):
                              SUFFIX=self.suffix,
                              DOMAIN=self.domain,
                              HOST=self.host,
+                             SERVER_ID=realm_to_serverid(self.realm),
                              REALM=self.realm)
 
     def __configure_sasl_mappings(self):
