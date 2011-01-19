@@ -26,6 +26,7 @@ try:
     from ipalib import api, errors
     import logging
     import ldap
+    import ldap.sasl
     import socket
 except ImportError:
     print >> sys.stderr, """\
@@ -35,6 +36,8 @@ error was:
     %s
 """ % sys.exc_value
     sys.exit(1)
+
+SASL_EXTERNAL = ldap.sasl.sasl({}, 'EXTERNAL')
 
 def parse_options():
     usage = "%prog start|stop|restart|status\n"
@@ -60,7 +63,7 @@ def get_config():
 
     try:
         con = ldap.initialize(api.env.ldap_uri)
-        con.simple_bind()
+        con.sasl_interactive_bind_s('', SASL_EXTERNAL)
         res = con.search_st(base,
                             ldap.SCOPE_SUBTREE,
                             filterstr=srcfilter,

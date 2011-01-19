@@ -47,6 +47,7 @@ app_DATA =				\
 	uuid-ipauniqueid.ldif		\
 	modrdn-krbprinc.ldif		\
 	entryusn.ldif			\
+	root-autobind.ldif		\
 	$(NULL)
 
 EXTRA_DIST =				\

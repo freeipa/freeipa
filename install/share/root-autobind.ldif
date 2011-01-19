@@ -1,0 +1,24 @@
+# root-autobind, config
+dn: cn=root-autobind,cn=config
+changetype: add
+objectClass: extensibleObject
+objectClass: top
+cn: root-autobind
+uidNumber: 0
+gidNumber: 0
+
+dn: cn=config
+changetype: modify
+replace: nsslapd-ldapiautobind
+nsslapd-ldapiautobind: on
+
+dn: cn=config
+changetype: modify
+replace: nsslapd-ldapimaptoentries
+nsslapd-ldapimaptoentries: on
+
+dn: cn=config
+changetype: modify
+replace: nsslapd-ldapientrysearchbase
+nsslapd-ldapientrysearchbase: cn=config
+

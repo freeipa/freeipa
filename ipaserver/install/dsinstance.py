@@ -207,6 +207,7 @@ class DsInstance(service.Service):
         self.step("creating indices", self.__create_indices)
         self.step("configuring ssl for ds instance", self.__enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
+        self.step("configure autobind for root", self.__root_autobind)
         self.step("restarting directory server", self.__restart_instance)
 
     def __common_post_setup(self):
@@ -728,3 +729,7 @@ class DsInstance(service.Service):
 
     def __tuning(self):
         self.tune_nofile(8192)
+
+    def __root_autobind(self):
+        self._ldap_mod("root-autobind.ldif")
+
