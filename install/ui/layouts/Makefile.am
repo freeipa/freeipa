@@ -6,7 +6,7 @@ SUBDIRS =  				\
 	default				\
 	$(NULL)
 
-appdir = $(IPA_DATA_DIR)/static/layouts
+appdir = $(IPA_DATA_DIR)/ui/layouts
 app_DATA =                              \
 	$(NULL)
 

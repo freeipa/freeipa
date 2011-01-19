@@ -72,9 +72,9 @@ AC_CONFIG_FILES([
     html/Makefile
     migration/Makefile
     share/Makefile
-    static/Makefile
-    static/layouts/Makefile
-    static/layouts/default/Makefile
+    ui/Makefile
+    ui/layouts/Makefile
+    ui/layouts/default/Makefile
     tools/Makefile
     tools/man/Makefile
     updates/Makefile

@@ -5,7 +5,7 @@ NULL =
 SUBDIRS =  				\
 	$(NULL)
 
-appdir = $(IPA_DATA_DIR)/static/layouts/default
+appdir = $(IPA_DATA_DIR)/ui/layouts/default
 app_DATA =                              \
 	hbacrule-details-accesstime.html	\
 	hbacrule-details-general.html	\

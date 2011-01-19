@@ -6,7 +6,7 @@ SUBDIRS =  				\
 	layouts 				\
 	$(NULL)
 
-appdir = $(IPA_DATA_DIR)/static
+appdir = $(IPA_DATA_DIR)/ui
 app_DATA =                              \
 	aci.js				\
 	add.js				\

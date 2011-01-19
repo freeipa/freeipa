@@ -69,7 +69,7 @@ class WebUIApp(object):
         path_info = environ['PATH_INFO'].lstrip('/')
         if path_info == '':
             path_info = self.INDEX_FILE
-        requested_file = path.join(getcwd(), 'install/static/', path_info)
+        requested_file = path.join(getcwd(), 'install/ui/', path_info)
         extension = requested_file.rsplit('.', 1)[-1]
 
         if extension not in self.EXTENSION_TO_MIME_MAP:
