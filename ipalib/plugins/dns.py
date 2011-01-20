@@ -624,7 +624,7 @@ class dns_is_enabled(Command):
     INTERNAL = True
     has_output = output.standard_value
 
-    base_dn = 'cn=master,cn=ipa,cn=etc,%s' % api.env.basedn
+    base_dn = 'cn=masters,cn=ipa,cn=etc,%s' % api.env.basedn
     filter = '(&(objectClass=ipaConfigObject)(cn=DNS))'
 
     def execute(self, *args, **options):
@@ -632,8 +632,8 @@ class dns_is_enabled(Command):
         dns_enabled = False
 
         try:
-            ent = ldap.find_entries(filter=filter, base_dn=base_dn)
-            if len(e):
+            ent = ldap.find_entries(filter=self.filter, base_dn=self.base_dn)
+            if len(ent):
                 dns_enabled = True
         except Exception, e:
             pass
