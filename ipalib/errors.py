@@ -1347,6 +1347,22 @@ class InvalidSyntax(ExecutionError):
     format = _('%(attr)s: Invalid syntax.')
 
 
+class BadSearchFilter(ExecutionError):
+    """
+    **4209** Raised when an invalid LDAP search filter is used
+
+    For example:
+
+    >>> raise BadSearchFilter(info='')
+    Traceback (most recent call last):
+      ...
+    BadSearchFilter: Bad search filter
+    """
+
+    errno = 4209
+    format = _('Bad search filter %(info)s')
+
+
 class CertificateError(ExecutionError):
     """
     **4300** Base class for Certificate execution errors (*4300 - 4399*).

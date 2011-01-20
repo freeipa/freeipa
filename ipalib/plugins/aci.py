@@ -163,7 +163,7 @@ aci_output = (
 
 
 
-def _make_aci(current, aciname, kw):
+def _make_aci(ldap, current, aciname, kw):
     """
     Given a name and a set of keywords construct an ACI.
     """
@@ -222,6 +222,16 @@ def _make_aci(current, aciname, kw):
             entry_attrs = api.Command['group_show'](kw['memberof'])['result']
             a.set_target_filter('memberOf=%s' % entry_attrs['dn'])
         if 'filter' in kw:
+            # Test the filter by performing a simple search on it. The
+            # filter is considered valid if either it returns some entries
+            # or it returns no entries, otherwise we let whatever exception
+            # happened be raised.
+            if kw['filter'] in ('', None, u''):
+                raise errors.BadSearchFilter(info=_('empty filter'))
+            try:
+                entries = ldap.find_entries(filter=kw['filter'])
+            except errors.NotFound:
+                pass
             a.set_target_filter(kw['filter'])
         if 'type' in kw:
             target = _type_map[kw['type']]
@@ -440,7 +450,7 @@ class aci_add(crud.Create):
         assert 'aciname' not in kw
         ldap = self.api.Backend.ldap2
 
-        newaci = _make_aci(None, aciname, kw)
+        newaci = _make_aci(ldap, None, aciname, kw)
 
         (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
 
@@ -544,7 +554,7 @@ class aci_mod(crud.Update):
 
         # _make_aci is what is run in aci_add and validates the input.
         # Do this before we delete the existing ACI.
-        newaci = _make_aci(None, aciname, newkw)
+        newaci = _make_aci(ldap, None, aciname, newkw)
         if aci.isequal(newaci):
             raise errors.EmptyModlist()
 
@@ -821,7 +831,7 @@ class aci_rename(crud.Update):
 
         # _make_aci is what is run in aci_add and validates the input.
         # Do this before we delete the existing ACI.
-        newaci = _make_aci(None, kw['newname'], newkw)
+        newaci = _make_aci(ldap, None, kw['newname'], newkw)
 
         self.api.Command['aci_del'](aciname)
 

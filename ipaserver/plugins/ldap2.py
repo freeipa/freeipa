@@ -108,6 +108,8 @@ def _handle_errors(e, **kw):
         raise errors.LimitsExceeded()
     except _ldap.NOT_ALLOWED_ON_RDN:
         raise errors.NotAllowedOnRDN(attr=info)
+    except _ldap.FILTER_ERROR:
+        raise errors.BadSearchFilter(info=info)
     except _ldap.SUCCESS:
         pass
     except _ldap.LDAPError, e:
