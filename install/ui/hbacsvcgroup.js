@@ -22,7 +22,7 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.hbacsvcgroup = function () {
+IPA.entity_factories.hbacsvcgroup = function () {
 
     var that = IPA.entity({
         'name': 'hbacsvcgroup'
@@ -41,8 +41,7 @@ IPA.hbacsvcgroup = function () {
             'title': 'Add New HBAC Service Group'
         });
         that.add_dialog(dialog);
-        dialog.init();
-
+        
         var facet = IPA.hbacsvcgroup_search_facet({
             'name': 'search',
             'label': 'Search'
@@ -59,9 +58,6 @@ IPA.hbacsvcgroup = function () {
 
     return that;
 };
-
-
-IPA.add_entity(IPA.hbacsvcgroup());
 
 
 IPA.hbacsvcgroup_add_dialog = function (spec) {

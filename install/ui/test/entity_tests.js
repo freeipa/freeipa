@@ -18,7 +18,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-module('entity');
+module('entity',{
+    setup: function() {
+        IPA.register_entity(function(){return IPA.entity({name:'user'})});
+        IPA.start_entities();
+    },
+    teardown: function() {
+    }
+});
 
 test('Testing IPA.entity_set_search_definition().', function() {
 
@@ -79,19 +86,25 @@ test('Testing ipa_facet_setup_views().', function() {
         }
     );
 
-    var entity = IPA.entity({
-        'name': 'user'
+
+    IPA.register_entity(function(){
+        var entity = IPA.entity({
+            'name': 'user'
+        });
+
+        return entity;
     });
 
-    IPA.add_entity(entity);
+    IPA.start_entities();
 
-    var facet = IPA.search_facet({
-        'name': 'search',
-        'label': 'Search'
-    });
-    entity.add_facet(facet);
+    var entity = IPA.get_entity('user');
+       var facet = IPA.search_facet({
+            'name': 'search',
+            'label': 'Search'
+        });
+        entity.add_facet(facet);
+        entity.create_association_facets();
 
-    entity.create_association_facets();
 
     var container = $('<div/>');
 
@@ -167,5 +180,3 @@ test('Testing ipa_facet_setup_views().', function() {
 
     IPA.switch_and_show_page = orig_switch_and_show_page;
 });
-
-

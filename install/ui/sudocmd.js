@@ -22,7 +22,7 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.sudocmd = function () {
+IPA.entity_factories.sudocmd = function () {
 
     var that = IPA.entity({
         'name': 'sudocmd'
@@ -35,7 +35,6 @@ IPA.sudocmd = function () {
             'title': 'Add New SUDO Command'
         });
         that.add_dialog(dialog);
-        dialog.init();
 
         var facet = IPA.sudocmd_search_facet({
             'name': 'search',
@@ -53,9 +52,6 @@ IPA.sudocmd = function () {
 
     return that;
 };
-
-
-IPA.add_entity(IPA.sudocmd());
 
 
 IPA.sudocmd_add_dialog = function (spec) {

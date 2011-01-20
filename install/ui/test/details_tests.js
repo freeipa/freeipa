@@ -19,7 +19,19 @@
  */
 
 
-module('details');
+module('details', {
+    setup: function() {
+        var obj_name = 'user';
+        IPA.register_entity( 
+            function(){
+                return IPA.entity({name:obj_name});
+            });
+        IPA.start_entities();
+    },
+    teardown: function() {
+    }
+});
+
 
 test("Testing IPA.details_section.create().", function() {
 
@@ -146,7 +158,10 @@ test("Testing details lifecycle: create, setup, load.", function(){
     }
 
     var container = $("<div/>");
+
     var obj_name = 'user';
+
+
     IPA.entity_set_details_definition(obj_name, [
         IPA.stanza({name:'identity', label:'Identity Details'}).
             input({name:'title'}).

@@ -22,7 +22,7 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.hbacrule = function () {
+IPA.entity_factories.hbacrule = function () {
 
     var that = IPA.entity({
         'name': 'hbacrule'
@@ -35,7 +35,7 @@ IPA.hbacrule = function () {
             'title': 'Add New Rule'
         });
         that.add_dialog(dialog);
-        dialog.init();
+        
 
         var facet = IPA.hbacrule_search_facet({
             'name': 'search',
@@ -55,7 +55,6 @@ IPA.hbacrule = function () {
 };
 
 
-IPA.add_entity(IPA.hbacrule());
 
 
 IPA.hbacrule_add_dialog = function (spec) {

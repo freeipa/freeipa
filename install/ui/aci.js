@@ -561,7 +561,7 @@ IPA.target_section = function () {
 };
 
 
-IPA.permission = function () {
+IPA.entity_factories.permission = function () {
 
     var that = IPA.entity({
         'name': 'permission'
@@ -591,9 +591,6 @@ IPA.permission = function () {
 
     return that;
 };
-
-
-IPA.add_entity(IPA.permission());
 
 
 
@@ -675,7 +672,7 @@ IPA.permission_details_facet = function () {
 };
 
 
-IPA.add_entity( function() {
+IPA.entity_factories.privilege =  function() {
     var that = IPA.entity({
         'name': 'privilege'
     });
@@ -715,10 +712,10 @@ IPA.add_entity( function() {
         that.entity_init();
     };
     return that;
-}());
+};
 
 
-IPA.add_entity( function() {
+IPA.entity_factories.role =  function() {
     var that = IPA.entity({
         'name': 'role'
     });
@@ -756,10 +753,10 @@ IPA.add_entity( function() {
         that.entity_init();
     };
     return that;
-}());
+};
 
 
-IPA.add_entity( function() {
+IPA.entity_factories.selfservice =  function() {
     var that = IPA.entity({
         'name': 'selfservice'
     });
@@ -783,7 +780,8 @@ IPA.add_entity( function() {
 
         that.init = function() {
             that.add_section(
-                IPA.stanza({name:'general', label:'General'}).
+                IPA.stanza({name:'general', label:'General',
+                            entity_name:'selfservice'}).
                     input({name:'aciname'}).
                     custom_input(IPA.attribute_table_widget({
                         object_type:'user',
@@ -792,7 +790,6 @@ IPA.add_entity( function() {
         };
         return that;
     }());
-
 
     that.parent_init = that.init;
     that.init = function(){
@@ -810,10 +807,10 @@ IPA.add_entity( function() {
         dialog.init();
     };
     return that;
-}());
+};
 
 
-IPA.add_entity( function() {
+IPA.entity_factories.delegation =  function() {
     var that = IPA.entity({
         'name': 'delegation'
     });
@@ -870,4 +867,5 @@ IPA.add_entity( function() {
     };
 
     return that;
-}());
+
+};

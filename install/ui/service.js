@@ -23,7 +23,7 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.service = function () {
+IPA.entity_factories.service = function () {
 
     var that = IPA.entity({
         'name': 'service'
@@ -42,7 +42,6 @@ IPA.service = function () {
             'title': 'Add New Service'
         });
         that.add_dialog(dialog);
-        dialog.init();
 
         var facet = IPA.service_search_facet({
             'name': 'search',
@@ -67,9 +66,6 @@ IPA.service = function () {
 
     return that;
 };
-
-
-IPA.add_entity(IPA.service());
 
 
 IPA.service_add_dialog = function (spec) {

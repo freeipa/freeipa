@@ -24,7 +24,7 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.host = function () {
+IPA.entity_factories.host = function () {
 
     var that = IPA.entity({
         'name': 'host'
@@ -47,7 +47,6 @@ IPA.host = function () {
             'title': 'Add New Host'
         });
         that.add_dialog(dialog);
-        dialog.init();
 
         var facet = IPA.host_search_facet({
             'name': 'search',
@@ -74,9 +73,6 @@ IPA.host = function () {
 
     return that;
 };
-
-
-IPA.add_entity(IPA.host());
 
 
 IPA.host_add_dialog = function (spec) {

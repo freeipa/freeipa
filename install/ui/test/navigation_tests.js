@@ -23,28 +23,36 @@ module('navigation');
 
 test("Testing nav_create().", function() {
 
-    var mock_tabs_lists =
-        [
-            { name:'identity', label:'IDENTITY', children: [
-                {name:'user', entity:'user'},
-                {name:'group', entity:'group'}
-            ]}];
+    var mock_tabs_lists =  [
+        { name:'identity', label:'IDENTITY', children: [
+            {name:'user', entity:'user'},
+            {name:'group', entity:'group'}
+        ]}];
 
-    var entity = IPA.entity({name: 'user'});
-    entity.setup = function(container){
-        user_mock_called = true;
-        same(container[0].id,'user','user id');
-        same(container[0].nodeName,'DIV','user div');
-    };
-    IPA.add_entity(entity);
+    var entity;
 
-    entity = IPA.entity({name: 'group'});
-    entity.setup = function(container){
-        group_mock_called = true;
-        same(container[0].id,'group','group id');
-        same(container[0].nodeName,'DIV','group Div');
-    };
-    IPA.add_entity(entity);
+    IPA.register_entity( function() {
+        var that = IPA.entity({name: 'user'});
+        that.setup = function(container){
+            user_mock_called = true;
+            same(container[0].id,'user','user id');
+            same(container[0].nodeName,'DIV','user div');
+        }
+        return that;
+    });
+
+    IPA.register_entity( function(){
+
+        var that  = IPA.entity({name: 'group'});
+        that.setup = function(container){
+            group_mock_called = true;
+            same(container[0].id,'group','group id');
+            same(container[0].nodeName,'DIV','group Div');
+        };
+        return that;
+    });
+
+    IPA.start_entities();
 
     IPA.metadata = {};
     var navigation = $('<div id="navigation"/>').appendTo(document.body);

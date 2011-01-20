@@ -24,8 +24,7 @@
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
 /* DNS */
-
-IPA.add_entity(function (){
+IPA.entity_factories.dnszone = function() {
     var that = IPA.entity({
         name: 'dnszone'
     });
@@ -74,15 +73,14 @@ IPA.add_entity(function (){
         dialog.add_field(IPA.text_widget({ name: 'idnsname', undo: false}));
         dialog.add_field(IPA.text_widget({ name: 'idnssoamname', undo: false}));
         dialog.add_field(IPA.text_widget({ name: 'idnssoarname', undo: false}));
-        dialog.init();
+
 
         that.create_association_facets();
         that.entity_init();
     };
 
-
     return that;
-}());
+};
 
 
 IPA.records_facet = function (spec){
@@ -418,7 +416,6 @@ IPA.records_facet = function (spec){
             options.data = data_filter;
         }
 
-
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true);
         IPA.cmd('dnsrecord_find',[pkey],options,load_on_win, load_on_fail);
 
@@ -499,7 +496,7 @@ IPA.records_facet = function (spec){
 
 /**Automount*/
 
-IPA.add_entity(function (){
+IPA.entity_factories.automountlocation = function (){
     var that = IPA.entity({
         name: 'automountlocation'
     });
@@ -530,20 +527,19 @@ IPA.add_entity(function (){
         that.add_dialog(dialog);
 
         dialog.add_field(IPA.text_widget({ name: 'cn', undo: false}));
-        dialog.init();
 
         that.create_association_facets();
         that.entity_init();
 
     };
     return that;
-}());
+};
 
 
 /**pwpolicy*/
 
 
-IPA.add_entity(function (){
+IPA.entity_factories.pwpolicy = function() {
     var that = IPA.entity({
         name: 'pwpolicy'
     });
@@ -580,14 +576,13 @@ IPA.add_entity(function (){
         that.add_dialog(dialog);
 
         dialog.add_field(IPA.text_widget({ name: 'cn', undo: false}));
-        dialog.init();
 
         that.create_association_facets();
         that.entity_init();
 
     };
     return that;
-}());
+};
 
 
 
@@ -595,13 +590,19 @@ IPA.add_entity(function (){
    krbtpolicy
    Does not have search
 */
+IPA.entity_factories.krbtpolicy =  function() {
+    var that = IPA.entity({
+        name: 'krbtpolicy'
+    });
 
-IPA.entity_set_details_definition('krbtpolicy', [
-    IPA.stanza({name:'identity', label:'Kerberos ticket policy'}).
-        //input({name:'uid',label:' '}).
-        input({name:'krbmaxrenewableage'}).
-        input({name:'krbmaxticketlife'})
-]);
-
-IPA.entity_set_association_definition('krbtpolicy', {
-});
+    var details = IPA.details_facet({
+        'name': 'details'
+    });
+    details.add_section(
+        IPA.stanza({name:'identity', label:'Kerberos ticket policy'}).
+            //input({name:'uid',label:' '}).
+            input({name:'krbmaxrenewableage'}).
+            input({name:'krbmaxticketlife'}));
+    that.add_facet(details);
+    return that;
+};

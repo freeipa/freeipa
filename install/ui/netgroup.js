@@ -22,7 +22,7 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.add_entity( function() {
+IPA.entity_factories.netgroup = function() {
     var that = IPA.entity({
         'name': 'netgroup'
     });
@@ -55,13 +55,12 @@ IPA.add_entity( function() {
 
         dialog.add_field(IPA.text_widget({ name: 'cn', undo: false}));
         dialog.add_field(IPA.text_widget({ name: 'description', undo: false}));
-        dialog.init();
 
         that.create_association_facets();
         that.entity_init();
     };
     return that;
-}());
+};
 
 
 

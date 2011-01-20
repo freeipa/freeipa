@@ -2,6 +2,7 @@
 
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
+ *    Adam Young <ayoung@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -22,107 +23,75 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.user = function (){
+IPA.entity_factories.user = function (){
 
-    var that = IPA.entity({
+    return IPA.entity({
         name: 'user'
-    });
-
-    that.init = function() {
-
-        that.create_association({
+    }).
+        association({
             'name': 'group',
             'associator': 'serial'
-        });
-
-        that.create_association({
+        }).
+        association({
             'name': 'netgroup',
             'associator': 'serial'
-        });
-
-        var search_facet = IPA.search_facet({
-            'name': 'search',
-            'label': 'Search',
-            entity_name: that.name
-        });
-        that.add_facet(search_facet);
-
-        search_facet.create_column({name:'cn'});
-        search_facet.create_column({name:'uid'});
-        search_facet.create_column({name:'uidnumber'});
-        search_facet.create_column({name:'mail'});
-        search_facet.create_column({name:'telephonenumber'});
-        search_facet.create_column({name:'title'});
-
-        that.add_facet(details_facet({name:'details'}));
-
-        var dialog = IPA.add_dialog({
-            'name': 'add',
-            'title': 'Add User'
-        });
-        that.add_dialog(dialog);
-
-        dialog.add_field(IPA.text_widget({ name: 'uid', undo: false }));
-        dialog.add_field(IPA.text_widget({ name: 'givenname', undo: false }));
-        dialog.add_field(IPA.text_widget({ name: 'sn', undo: false }));
-        dialog.init();
-
-        /*eventually,  we need to call
-          entity.create_association_facets();
-          but we are currently defining the associator using the global
-          function after the registration of the entity */
-      that.create_association_facets();
-
-        that.entity_init();
-    };
-
-    function details_facet(spec) {
-        spec = spec || {};
-        var that = IPA.details_facet(spec);
-
-        var sections =[
-            IPA.stanza({name:'identity', label:IPA.messages.details.identity}).
+        }).
+        facet(
+            IPA.search_facet().
+                column({name:'cn'}).
+                column({name:'uid'}).
+                column({name:'uidnumber'}).
+                column({name:'mail'}).
+                column({name:'telephonenumber'}).
+                column({name:'title'})).
+        facet(IPA.details_facet().
+            section(
+                IPA.stanza({label:IPA.messages.details.identity}).
                 input({name:'title'}).
                 input({name:'givenname'}).
                 input({name:'sn'}).
                 input({name:'cn'}).
                 input({name:'displayname'}).
-                input({name:'initials'}),
-            IPA.stanza({name:'account', label:IPA.messages.details.account}).
-                custom_input(user_status_widget({name:'nsaccountlock'})).
-                input({name:'uid'}).
-                input({name:'userpassword', load: user_password_load}).
-                input({name:'uidnumber'}).
-                input({name:'gidnumber'}).
-                input({name:'loginshell'}).
-                input({name:'homedirectory'}),
-            IPA.stanza({name:'contact', label:IPA.messages.details.contact}).
-                input({name:'mail'}).
-                input({name:'telephonenumber'}).
-                input({name:'pager'}).
-                input({name:'mobile'}).
-                input({name:'facsimiletelephonenumber'}),
-            IPA.stanza({name:'address', label: IPA.messages.details.mailing}).
-                input({name:'street'}).
-                input({name:'location'}).
-                input({name:'state', load:user_state_load}).
-                input({name:'postalcode'}),
-            IPA.stanza({name:'employee', label:IPA.messages.details.employee}).
-                input({name:'ou', label:'Org. Unit'}).
-                input({name:'manager'}),
-            IPA.stanza({name:'misc', label:IPA.messages.details.misc}).
-                input({name:'carlicense'})
-        ];
-        for (var i = 0; i < sections.length; i += 1){
-            that.add_section(sections[i]);
-        }
-        return that;
-    }
-    return that;
+                input({name:'initials'})).
+            section(
+                IPA.stanza({label:IPA.messages.details.account}).
+                    custom_input(user_status_widget({name:'nsaccountlock'})).
+                    input({name:'uid'}).
+                    input({name:'userpassword', load: user_password_load}).
+                    input({name:'uidnumber'}).
+                    input({name:'gidnumber'}).
+                    input({name:'loginshell'}).
+                    input({name:'homedirectory'})).
+            section(
+                IPA.stanza({label:IPA.messages.details.contact}).
+                    input({name:'mail'}).
+                    input({name:'telephonenumber'}).
+                    input({name:'pager'}).
+                    input({name:'mobile'}).
+                    input({name:'facsimiletelephonenumber'})).
+            section(
+                IPA.stanza({label: IPA.messages.details.mailing}).
+                    input({name:'street'}).
+                    input({name:'location'}).
+                    input({name:'state', load:user_state_load}).
+                    input({name:'postalcode'})).
+            section(
+                IPA.stanza({label:IPA.messages.details.employee}).
+                    input({name:'ou', label:'Org. Unit'}).
+                    input({name:'manager'})).
+            section(
+                IPA.stanza({label:IPA.messages.details.misc}).
+                    input({name:'carlicense'}))).
+        standard_associations().
+        add_dialog(
+            IPA.add_dialog({
+                'name': 'add',
+                'title': 'Add User'
+            }).
+                field(IPA.text_widget({ name: 'uid', undo: false })).
+                field(IPA.text_widget({ name: 'givenname', undo: false })).
+                field(IPA.text_widget({ name: 'sn', undo: false })));
 };
-
-
-IPA.add_entity(IPA.user());
 
 /* ATTRIBUTE CALLBACKS */
 
@@ -294,5 +263,3 @@ function user_state_load(result) {
     else
         sel.val('');
 }
-
-

@@ -22,7 +22,7 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.sudocmdgroup = function () {
+IPA.entity_factories.sudocmdgroup = function () {
 
     var that = IPA.entity({
         'name': 'sudocmdgroup'
@@ -41,8 +41,7 @@ IPA.sudocmdgroup = function () {
             'title': 'Add New SUDO Command Group'
         });
         that.add_dialog(dialog);
-        dialog.init();
-
+        
         var facet = IPA.sudocmdgroup_search_facet({
             'name': 'search',
             'label': 'Search'
@@ -59,9 +58,6 @@ IPA.sudocmdgroup = function () {
 
     return that;
 };
-
-
-IPA.add_entity(IPA.sudocmdgroup());
 
 
 IPA.sudocmdgroup_add_dialog = function (spec) {

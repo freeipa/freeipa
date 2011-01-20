@@ -2,6 +2,8 @@
 
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
+ *    Endi Dewata <edewata@redhat.com>
+ *    Adam Young <ayoung@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -22,123 +24,53 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.group = function () {
+IPA.entity_factories.group =  function () {
 
-    var that = IPA.entity({
+    return IPA.entity({
         'name': 'group'
-    });
-
-    that.init = function() {
-
-        that.create_association({
+    }).
+        facet(IPA.search_facet().
+              column({name:'cn'}).
+              column({name:'gidnumber'}).
+              column({name:'description'})).
+        facet(
+            IPA.details_facet().section(
+                IPA.stanza({label: 'Group Settings' }).
+                    input({name: 'cn' }).
+                    input({name: 'description'}).
+                    input({name: 'gidnumber' }))).
+        facet( IPA.group_member_user_facet({
+            'name': 'member_user',
+            'label': 'Users',
+            'other_entity': 'user'
+        })).
+        association({
             name: 'netgroup',
             associator: 'serial'
-        });
-
-        that.create_association({
+        }).
+        association({
             name: 'rolegroup',
             associator: 'serial'
-        });
-
-        that.create_association({
+        }).
+        association({
             name: 'taskgroup',
             associator: 'serial'
-        });
-
-        var dialog = IPA.group_add_dialog({
-            'name': 'add',
-            'title': 'Add New Group'
-        });
-        that.add_dialog(dialog);
-        dialog.init();
-
-        var facet = IPA.group_search_facet({
-            'name': 'search',
-            'label': 'Search'
-        });
-        that.add_facet(facet);
-
-        facet = IPA.group_details_facet({
-            'name': 'details'
-        });
-        that.add_facet(facet);
-
-        that.create_association_facets();
-
-        that.entity_init();
-    };
-
-    return that;
-};
-
-
-IPA.add_entity(IPA.group());
-
-
-IPA.group_add_dialog = function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.add_dialog(spec);
-
-    that.init = function() {
-
-        that.add_field(IPA.text_widget({name:'cn', undo: false}));
-        that.add_field(IPA.text_widget({name:'description', undo: false}));
-        // TODO: Replace with i18n label
-        that.add_field(IPA.checkbox_widget({
-            name:'posix',
-            label:'Is this a POSIX group?',
-            undo: false,
-            checked:'checked'}));
-        that.add_field(IPA.text_widget({name:'gidnumber', undo: false}));
-
-        that.add_dialog_init();
-    };
-
-    return that;
-};
-
-
-IPA.group_search_facet = function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.search_facet(spec);
-
-    that.init = function() {
-        that.create_column({name:'cn'});
-        that.create_column({name:'gidnumber'});
-        that.create_column({name:'description'});
-        that.search_facet_init();
-    };
-
-    return that;
-};
-
-
-IPA.group_details_facet = function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.details_facet(spec);
-
-    that.init = function() {
-
-        var section = IPA.details_list_section({
-            name: 'details',
-            label: 'Group Settings'
-        });
-        that.add_section(section);
-
-        section.create_field({name: 'cn' });
-        section.create_field({name: 'description'});
-        section.create_field({name: 'gidnumber' });
-
-        that.details_facet_init();
-    };
-
-    return that;
+        }).
+        add_dialog(
+            IPA.add_dialog({
+                'name': 'add',
+                'title': 'Add New Group'
+            }).
+                field(IPA.text_widget({name:'cn', undo: false})).
+                field(IPA.text_widget({name:'description', undo: false})).
+                // TODO: Replace with i18n label
+                field(IPA.checkbox_widget({
+                    name:'posix',
+                    label:'Is this a POSIX group?',
+                    undo: false,
+                    checked:'checked'})).
+                field(IPA.text_widget({name:'gidnumber', undo: false}))).
+        standard_associations();
 };
 
 
@@ -198,4 +130,5 @@ IPA.group_member_user_facet = function (spec) {
     };
 
     return that;
+
 };

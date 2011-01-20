@@ -135,10 +135,7 @@ $(function() {
         $('#loggedinas a').fragment(
             {'user-facet':'details', 'user-pkey':IPA.whoami_pkey},2);
 
-        for (var i=0; i<IPA.entities.length; i++) {
-            var entity = IPA.entities[i];
-            entity.init();
-        }
+        IPA.start_entities();
 
         var navigation = $('#navigation');
 

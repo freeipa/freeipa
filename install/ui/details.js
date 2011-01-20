@@ -485,6 +485,7 @@ IPA.stanza =  function (spec) {
 IPA.details_facet = function (spec) {
 
     spec = spec || {};
+    spec.name = spec.name || 'details';
 
     var that = IPA.facet(spec);
 
@@ -498,8 +499,6 @@ IPA.details_facet = function (spec) {
     that.refresh = spec.refresh || IPA.details_refresh;
 
     that.sections = [];
-    that.sections_by_name = {};
-
     that.__defineGetter__("entity_name", function(){
         return that._entity_name;
     });
@@ -512,15 +511,15 @@ IPA.details_facet = function (spec) {
         }
     });
 
-    that.get_section = function(name) {
-        return that.sections_by_name[name];
-    };
-
     that.add_section = function(section) {
         section.entity_name = that.entity_name;
         that.sections.push(section);
-        that.sections_by_name[section.name] = section;
         return section;
+    };
+
+    that.section = function(section) {
+        that.add_section(section);
+        return that;
     };
 
     that.create_section = function(spec) {

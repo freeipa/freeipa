@@ -58,7 +58,7 @@ IPA.widget = function(spec) {
     });
 
     /*returns true and clears the error message if the field value  passes
-      the validation pattern.  If the field value does not pass validation, 
+      the validation pattern.  If the field value does not pass validation,
       displays the error message and returns false. */
     function validate_input(text) {
         if (!(that.param_info && that.param_info.pattern)) {
@@ -896,6 +896,11 @@ IPA.dialog = function(spec) {
     that.add_field = function(field) {
         that.fields.push(field);
         that.fields_by_name[field.name] = field;
+    };
+
+    that.field = function(field){
+        that.add_field(field);
+        return that;
     };
 
     that.init = function() {

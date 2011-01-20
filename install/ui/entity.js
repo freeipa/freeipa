@@ -110,7 +110,16 @@ IPA.entity = function (spec) {
         dialog.entity_name = that.name;
         that.dialogs.push(dialog);
         that.dialogs_by_name[dialog.name] = dialog;
+        return that;
     };
+
+    function init_dialogs (){
+        var i;
+        for (i = 0; i < that.dialogs.length; i += 1){
+            that.dialogs[i].init();
+        }
+        return that;
+    }
 
     that.get_facet = function(name) {
         return that.facets_by_name[name];
@@ -120,6 +129,14 @@ IPA.entity = function (spec) {
         facet.entity_name = that.name;
         that.facets.push(facet);
         that.facets_by_name[facet.name] = facet;
+        return that;
+    };
+
+    that.facet = function(facet) {
+        facet.entity_name = that.name;
+        that.facets.push(facet);
+        that.facets_by_name[facet.name] = facet;
+        return that;
     };
 
     that.get_associations = function() {
@@ -140,6 +157,13 @@ IPA.entity = function (spec) {
         that.add_association(config);
         return config;
     };
+
+    that.association = function(spec) {
+        var config = IPA.association_config(spec);
+        that.add_association(config);
+        return that;
+    };
+
 
     that.create_association_facet = function(attribute_member, other_entity, label, facet_group) {
 
@@ -190,7 +214,11 @@ IPA.entity = function (spec) {
                 that.add_facet(facet);
             }
         }
+        return that;
     };
+
+    that.standard_associations = that.create_association_facets;
+
 
     that.init = function() {
 
@@ -206,6 +234,7 @@ IPA.entity = function (spec) {
             var facet = that.facets[i];
             facet.init();
         }
+        init_dialogs();
     };
 
     that.entity_init = that.init;
@@ -221,6 +250,7 @@ var window_hash_cache = {};
 IPA.fetch_entity = function (entity_name) {
 
     var entity = IPA.get_entity(entity_name);
+/*
     if (entity) return entity;
 
     entity = IPA.entity({
@@ -228,6 +258,7 @@ IPA.fetch_entity = function (entity_name) {
     });
 
     IPA.add_entity(entity);
+*/
     return entity;
 };
 
@@ -261,30 +292,6 @@ IPA.entity_set_search_definition =  function (entity_name, data) {
             'setup': defn[2]
         });
     }
-};
-
-
-IPA.entity_set_add_definition = function (entity_name, data) {
-
-    var entity = IPA.fetch_entity(entity_name);
-
-    var dialog = IPA.add_dialog({
-        'name': 'add',
-        'title': data[1]
-    });
-    entity.add_dialog(dialog);
-
-    for (var i=0; i<data[2].length; i++) {
-        var field = data[2][i];
-        dialog.add_field(IPA.text_widget({
-            name: field[0],
-            label: field[1],
-            setup: field[2],
-            undo: false
-        }));
-    }
-
-    dialog.init();
 };
 
 

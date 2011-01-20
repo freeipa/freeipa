@@ -22,7 +22,7 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.sudorule = function () {
+IPA.entity_factories.sudorule = function () {
 
     var that = IPA.entity({
         'name': 'sudorule'
@@ -35,7 +35,6 @@ IPA.sudorule = function () {
             'title': 'Add New Rule'
         });
         that.add_dialog(dialog);
-        dialog.init();
 
         var facet = IPA.sudorule_search_facet({
             'name': 'search',
@@ -53,9 +52,6 @@ IPA.sudorule = function () {
 
     return that;
 };
-
-
-IPA.add_entity(IPA.sudorule());
 
 
 IPA.sudorule_add_dialog = function (spec) {

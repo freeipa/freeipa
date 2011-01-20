@@ -254,6 +254,10 @@ IPA.search_facet = function (spec) {
 
     spec = spec || {};
 
+    spec.name = spec.name || 'search';
+    spec.label = spec.label ||  IPA.messages.facets.search;
+
+
     spec.display_class = 'search-facet';
 
     var that = IPA.facet(spec);
@@ -296,6 +300,11 @@ IPA.search_facet = function (spec) {
         var column = IPA.column(spec);
         that.add_column(column);
         return column;
+    };
+
+    that.column = function(spec){
+        that.create_column(spec);
+        return that;
     };
 
     that.setup_column = function(column) {

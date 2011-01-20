@@ -49,6 +49,8 @@ var IPA = ( function () {
 
 
     that.entities = [];
+    that.entity_factories = {};
+
     that.entities_by_name = {};
 
     that.error_dialog = $('<div/>', {
@@ -113,11 +115,21 @@ var IPA = ( function () {
         return that.entities_by_name[name];
     };
 
-    that.add_entity = function (entity) {
+    function add_entity(entity) {
         that.entities.push(entity);
         that.entities_by_name[entity.name] = entity;
-    };
+    }
 
+    that.start_entities = function(){
+        var factory;
+        var name ;
+        for (name in that.entity_factories){
+            factory = that.entity_factories[name];
+            var entity = factory();
+            add_entity(entity);
+            entity.init();
+        }
+    };
 
     that.show_page = function (entity_name, facet_name) {
 
