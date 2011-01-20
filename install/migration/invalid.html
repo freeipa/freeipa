@@ -1,21 +1,60 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-
+<!DOCTYPE html>
+<html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="stylesheet" href="migration.css" type="text/css">
-    <title>IPA Password Migration Page: Invalid credentials</title>
+<meta charset="utf-8">
+    <title>IPA: Identity Policy Audit</title>
+
+    <script type="text/javascript" src="develop.js"></script>
+    <script type="text/javascript" src="webui.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" href="ipa_migration.css" />
 </head>
 
-<body>
-<p>
-Invalid username or password.
-</p>
-<p>
-<a href="index.html">Let me try again!</a>
-</p>
+<body id="header-bg">
+ 
+  <div class="container_1"> 
+    <div class="header-logo">
+            <img src="ipalogo.png" />
+        </div>  
+       <div class="textblock"> 
+        <h3>Password Migration</h3>
+        <p>If you have been sent here by your administrator, your personal 
+           information is being migrated to a new identity management solution 
+           (IPA).</p>
+        <p>Please, enter your credentials in the form below to complete the 
+           process. Upon successful login your kerberos account will be 
+           activated.</p> 
+        </div>
+        <div id="formwindow">
+           <h4>Login</h4>
+           <div id="error-box">
+             <div class="formcontent">
+             <p><strong>Please re-enter your username or password</strong></p>
+             <p>The password or username you entered is incorrect. Please try again (make sure your caps lock is off).</p>
+             <p>If the problem persists, contact your administrator.</p>
+             </div>
+           </div>
+           <form id="login" action="" name="">
+              <ul>
+                <li>
+                  <label for="username">Username:</label>
+                  <input type="text" name="username" value="" accesskey="u" />
+                </li>
+                <li>
+                  <label for="password">Password:</label>
+                  <input type="password" name="password" value="" accesskey="p" />
+                </li>
+              <ul>
+           <div class="formbutton">
+          <input name="submit" value="Migrate" type="submit" />
+          </div>
+       
+          </form>
+       </div>
+   </div>
+
 </body>
+
+</html>
 

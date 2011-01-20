@@ -1,28 +1,41 @@
+<!DOCTYPE html>
 <html>
-<title>Kerberos Authentication Failed</title>
-<body>
-<h2>Kerberos Authentication Failed</h2>
-<p>
-Unable to verify your Kerberos credentials. Please make sure
-that you have valid Kerberos tickets (obtainable via kinit), and that you
-have <a href="/ipa/errors/ssbrowser.html">configured your
-browser correctly</a>. If you are still unable to access
-the IPA Web interface, please contact the helpdesk on for additional assistance.
-</p>
-<p>
-Import the <a href="/ipa/errors/ca.crt">IPA Certificate Authority</a>.
-</p>
-<p>
-<script type="text/javascript">
-  if (navigator.userAgent.indexOf("Firefox") != -1 ||
-      navigator.userAgent.indexOf("SeaMonkey") != -1)
-  {
-    document.write("<p>You can automatically configure your browser to work with Kerberos by importing the Certificate Authority above and clicking on the Configure Browser button.</p>");
-    document.write("<p>You <strong>must</strong> reload this page after importing the Certificate Authority for the automatic settings to work</p>");
-    document.write("<object data=\"jar:/ipa/errors/configure.jar!/preferences.html\" type=\"text/html\"><\/object");
-  }
-</script>
-</p>
-</ul>
+<head>
+<meta charset="utf-8">
+    <title>IPA: Identity Policy Audit</title>
+
+    <script type="text/javascript" src="develop.js"></script>
+    <script type="text/javascript" src="webui.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" href="ipa_error.css" />
+</head>
+
+<body id="header-bg">
+ 
+  <div class="container_1"> 
+    <div class="header-logo">
+            <img src="ipalogo.png" />
+        </div>  
+       <div class="textblockkrb"> 
+        <h3>Kerberos Authentication Failed</h3>
+        <p><strong>Unable to verify your Kerberos credentials.</strong> Please make sure that you have valid Kerberos tickets (obtainable via kinit), and that you
+                   <br>
+have <a href="/ipa/errors/ssbrowser.html">configured your browser correctly</a>. If you are still unable to access the IPA Web interface, please
+				   contact the helpdesk on for additional assistance.  </p>
+                   
+          <p>Import the <a href="/ipa/errors/ca.crt">IPA Certificate Authority</a>. </p>
+          
+          <p>You can automatically configure your browser to work with Kerberos by importing the Certificate Authority<br>
+			 above and clicking on the Configure Browser button. </p>
+          
+          <p><strong>Reload this page after importing the Certificate Authority</strong></p>    
+             
+        </div>
+        
+   </div>
+
 </body>
+
 </html>
+

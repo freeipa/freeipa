@@ -1,68 +1,68 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-<title>Browser Kerberos Setup</title>
+<meta charset="utf-8">
+    <title>IPA: Identity Policy Audit</title>
+
+    <script type="text/javascript" src="develop.js"></script>
+    <script type="text/javascript" src="webui.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" href="ipa_error.css" />
 </head>
-<body>
-    <h2>Browser Kerberos Setup</h2>
-    <h3> Internet Explorer Configuration </h3>
-<p>Once you are able to log into the workstation with your kerberos key you should be able to use that ticket in Internet Explorer. For illustration purposes his page will use EXAMPLE.COM as the sample realm and example.com for the domain.
-</p>
-<ul><li> Login to the Windows machine using an account of domain EXAMPLE.COM
 
-</li><li> In Internet Explorer, click Tools, and then click Internet Options.
-</li></ul>
-<ol><li> Click the Security tab.
-</li><li> Click Local intranet.
-</li><li> Click Sites
-</li><li> Click Advanced
-</li><li> Add *.example.com to the list
+<body id="header-bg">
+ 
+  <div class="container_1"> 
+    <div class="header-logo">
+            <img src="ipalogo.png" />
+        </div>  
+       <div class="textblockkrb"> 
+        <h3>Browser Kerberos Setup</h3>
+        <img alt="Internet Explorer" src="ie-icon.png"><h5>Internet Explorer Configuration</h5>
+        <p>Once you are able to log into the workstation with your kerberos key you are now able to use that ticket in Internet Explorer. </p>
+        
+          <strong>Login to the Windows machine using an account of your Kerberos realm (administrative domain)</strong><br>
+    	  <strong>In Internet Explorer, click Tools, and then click Internet Options.</strong> 
+            <br>
+            <ul>
+            <li> 1. Click the Security tab </li>
+            <li> 2. Click Local intranet </li>
+            <li> 3. Click Sites </li>
+            <li> 4. Click Advanced </li>
+            <li> 5. Add your domain to the list </li>
+            <br>
+            <li> 1. Click the Security tab </li>
+            <li> 2. Click Local intranet </li>
+            <li> 3. Click Custom Level </li>
+            <li> 4. Select Automatic logon only in Intranet zone </li>
+            <br>
+            <li> Visit a kerberized web site using IE (You must use the fully-qualified Domain Name in the URL)</li>
+            <li><strong> You are all set. </strong></li>
+            </ul>
+            
+            <br>
+            
+        <img alt="Firefox" src="firefox-icon.png"><h5>Firefox Configuration</h5>
+       
+        <p>You can configure Firefox to use Kerberos for Single Sign-on. The following instructions will guide you in configuring your web browser <br>
+         to send your Kerberos credentials to the appropriate Key Distribution Center which enables Single Sign-on.  </p>
+        
+        	<ul><li> 1. In the address bar of Firefox, type <tt>about:config</tt> to display the list of current configuration options.</li>
+                <li> 2. In the Filter field, type <tt>negotiate</tt> to restrict the list of options. </li>
+                <li> 3. Double-click the <tt>network.negotiate-auth.trusted-uris</tt> entry to display the Enter string value dialog box. </li>
+                <li> 4. Enter the name of the domain against which you want to authenticate, for example, <tt>.example.com.</tt> </li>
+                <li> 5. Repeat the above procedure for the <tt>network.negotiate-auth.delegation-uris</tt> entry, using the same domain. </li>
+                <br>
+                <li><strong> You are all set. </strong></li>
+            </ul>
+        
+             
+        </div>
+        
+   </div>
 
-</li></ol>
-<ul><li> In Internet Explorer, click Tools, and then click Internet Options.
-</li></ul>
-<ol><li> Click the Security tab.
-</li><li> Click Local intranet.
-</li><li> Click Custom Level
-</li><li> Select Automatic logon only in Intranet zone.
-</li></ol>
-<ul><li> Visit a kerberized web site using IE. You must use the fully-qualified DN in the URL.
-</li><li> If all went right, it should work.
-
-</li></ul>
-<h3 class="title">Firefox Configuration</h3>
-<p>
-You can configure Firefox to use Kerberos for Single Sign-on. In order for this functionality to work correctly, you need to configure your web browser to send your Kerberos credentials to the appropriate <span class="abbrev">KDC</span>.The following section describes the configuration changes and other requirements to achieve this.
-</p>
-<ol class="arabic">
-<li>
-<p>
-In the address bar of Firefox, type <b class="userinput"><tt>about:config</tt></b> to display the list of current configuration options.
-</p>
-</li>
-
-<li>
-<p>
-In the <span><b class="guilabel">Filter</b></span> field, type <b class="userinput"><tt>negotiate</tt></b> to restrict the list of options.
-</p>
-</li>
-<li>
-<p>
-Double-click the <span class="emphasis"><em>network.negotiate-auth.trusted-uris</em></span> entry to display the <span class="emphasis"><em>Enter string value</em></span> dialog box.
-
-</p>
-</li>
-<li>
-<p>
-Enter the name of the domain against which you want to authenticate, for example, <i class="replaceable"><tt>.example.com</tt></i>.
-</p>
-</li>
-<li>
-<p>
-Repeat the above procedure for the <span class="emphasis"><em>network.negotiate-auth.delegation-uris</em></span> entry, using the same domain.
-</p>
-</li>
-
-</ol>
 </body>
+
 </html>
+
