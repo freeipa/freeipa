@@ -580,9 +580,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnsrecord_del
-args: 2,41,3
+args: 2,42,3
 arg: Str('dnszoneidnsname', cli_name='dnszone', label=Gettext('Zone name', domain='ipa', localedir=None), query=True, required=True)
 arg: Str('idnsname', attribute=True, cli_name='name', label=Gettext('Record name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
+option: Flag('del_all', autofill=True, default=False, label=Gettext('Delete all associated records', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])

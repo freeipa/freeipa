@@ -120,6 +120,13 @@ _record_validators = {
     u'APL': _validate_ipnet,
 }
 
+def has_cli_options(entry, no_option_msg):
+    entry = dict((t, entry.get(t, [])) for t in _record_attributes)
+    numattr = reduce(lambda x,y: x+y,
+                     map(lambda x: len(x), entry.values()))
+    if numattr == 0:
+        raise errors.OptionError(no_option_msg)
+    return entry
 
 def dns_container_exists(ldap):
     try:
@@ -380,6 +387,13 @@ class dnsrecord(LDAPObject):
             return self.api.Object[self.parent_object].get_dn(*keys[:-1], **options)
         return super(dnsrecord, self).get_dn(*keys, **options)
 
+    def attr_to_cli(self, attr):
+        try:
+            cliname = attr[:-len('record')].upper()
+        except IndexError:
+            cliname = attr
+        return cliname
+
 api.register(dnsrecord)
 
 
@@ -407,7 +421,9 @@ class dnsrecord_cmd_w_record_options(Command):
                 )
 
     def record_options_2_entry(self, **options):
-        return dict((t, options.get(t, [])) for t in _record_attributes)
+        entries = dict((t, options.get(t, [])) for t in _record_attributes)
+        entries.update(dict((k, []) for (k,v) in entries.iteritems() if v == None ))
+        return entries
 
 
 class dnsrecord_mod_record(LDAPQuery, dnsrecord_cmd_w_record_options):
@@ -456,7 +472,9 @@ class dnsrecord_mod_record(LDAPQuery, dnsrecord_cmd_w_record_options):
         if self.obj.is_pkey_zone_record(*keys):
             entry_attrs[self.obj.primary_key.name] = [u'@']
 
-        self.post_callback(keys, entry_attrs)
+        retval = self.post_callback(keys, entry_attrs)
+        if retval:
+            return retval
 
         return dict(result=entry_attrs, value=keys[-1])
 
@@ -487,11 +505,17 @@ class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
     """
     Add new DNS resource record.
     """
+    no_option_msg = 'No options to add a specific record provided.'
+
     def get_options(self):
         for option in super(dnsrecord_add, self).get_options():
             yield option
         for option in self.get_record_options():
             yield option
+
+    def args_options_2_entry(self, *keys, **options):
+        has_cli_options(options, self.no_option_msg)
+        return super(dnsrecord_add, self).args_options_2_entry(*keys, **options)
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         if call_func.func_name == 'add_entry':
@@ -509,6 +533,7 @@ class dnsrecord_delentry(LDAPDelete):
     """
     Delete DNS record entry.
     """
+    msg_summary = _('Deleted record "%(value)s"')
     NO_CLI = True
 
 api.register(dnsrecord_delentry)
@@ -518,6 +543,24 @@ class dnsrecord_del(dnsrecord_mod_record):
     """
     Delete DNS resource record.
     """
+    no_option_msg = 'Neither --del-all nor options to delete a specific record provided.'
+    takes_options = (
+            Flag('del_all',
+                default=False,
+                label=_('Delete all associated records'),
+            ),
+    )
+
+    def execute(self, *keys, **options):
+        if options.get('del_all', False):
+            return self.obj.methods.delentry(*keys)
+
+        return super(dnsrecord_del, self).execute(*keys, **options)
+
+    def record_options_2_entry(self, **options):
+        entry = super(dnsrecord_del, self).record_options_2_entry(**options)
+        return has_cli_options(entry, self.no_option_msg)
+
     def update_old_entry_callback(self, entry_attrs, old_entry_attrs):
         for (a, v) in entry_attrs.iteritems():
             if not isinstance(v, (list, tuple)):
@@ -526,14 +569,15 @@ class dnsrecord_del(dnsrecord_mod_record):
                 try:
                     old_entry_attrs[a].remove(val)
                 except (KeyError, ValueError):
-                    pass
+                    raise errors.NotFound(reason='%s record with value %s not found' %
+                                          (self.obj.attr_to_cli(a), val))
 
     def post_callback(self, keys, entry_attrs):
         if not self.obj.is_pkey_zone_record(*keys):
             for a in _record_attributes:
                 if a in entry_attrs and entry_attrs[a]:
                     return
-            self.obj.methods.delentry(*keys)
+            return self.obj.methods.delentry(*keys)
 
 api.register(dnsrecord_del)
 

@@ -45,7 +45,7 @@ class test_dns(Declarative):
 
     cleanup_commands = [
         ('dnszone_del', [dnszone1], {}),
-        ('dnsrecord_del', [dnszone1, dnsres1], {}),
+        ('dnsrecord_del', [dnszone1, dnsres1], {'del_all' : True}),
     ]
 
     tests = [
@@ -86,7 +86,8 @@ class test_dns(Declarative):
                     'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [u'ns1.%s' % dnszone1],
+                    'idnssoamname': [u'ns1.%s.' % dnszone1],
+                    'nsrecord': [u'ns1.%s.' % dnszone1],
                     'idnssoarname': [u'root.%s.' % dnszone1],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -122,7 +123,8 @@ class test_dns(Declarative):
                     'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [u'ns1.%s' % dnszone1],
+                    'nsrecord': [u'ns1.%s.' % dnszone1],
+                    'idnssoamname': [u'ns1.%s.' % dnszone1],
                     'idnssoarname': [u'root.%s.' % dnszone1],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -143,7 +145,8 @@ class test_dns(Declarative):
                 'result': {
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [u'ns1.%s' % dnszone1],
+                    'nsrecord': [u'ns1.%s.' % dnszone1],
+                    'idnssoamname': [u'ns1.%s.' % dnszone1],
                     'idnssoarname': [u'root.%s.' % dnszone1],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
@@ -157,8 +160,8 @@ class test_dns(Declarative):
 
 
         dict(
-            desc='Search for zones with name server %r' % (u'ns1.%s' % dnszone1),
-            command=('dnszone_find', [], {'idnssoamname': u'ns1.%s' % dnszone1}),
+            desc='Search for zones with name server %r' % (u'ns1.%s.' % dnszone1),
+            command=('dnszone_find', [], {'idnssoamname': u'ns1.%s.' % dnszone1}),
             expected={
                 'summary': None,
                 'count': 1,
@@ -167,7 +170,8 @@ class test_dns(Declarative):
                     'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [u'ns1.%s' % dnszone1],
+                    'nsrecord': [u'ns1.%s.' % dnszone1],
+                    'idnssoamname': [u'ns1.%s.' % dnszone1],
                     'idnssoarname': [u'root.%s.' % dnszone1],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
@@ -200,7 +204,8 @@ class test_dns(Declarative):
                     'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'FALSE'],
-                    'idnssoamname': [u'ns1.%s' % dnszone1],
+                    'nsrecord': [u'ns1.%s.' % dnszone1],
+                    'idnssoamname': [u'ns1.%s.' % dnszone1],
                     'idnssoarname': [u'root.%s.' % dnszone1],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -233,7 +238,8 @@ class test_dns(Declarative):
                     'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [u'ns1.%s' % dnszone1],
+                    'nsrecord': [u'ns1.%s.' % dnszone1],
+                    'idnssoamname': [u'ns1.%s.' % dnszone1],
                     'idnssoarname': [u'root.%s.' % dnszone1],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -254,7 +260,7 @@ class test_dns(Declarative):
 
         dict(
             desc='Try to delete non-existent record %r in zone %r' % (dnsres1, dnszone1),
-            command=('dnsrecord_del', [dnszone1, dnsres1], {}),
+            command=('dnsrecord_del', [dnszone1, dnsres1], {'del_all' : True}),
             expected=errors.NotFound(reason='DNS resource record not found'),
         ),
 
@@ -285,6 +291,7 @@ class test_dns(Declarative):
                 'result': [
                     {
                         'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
+                        'nsrecord': (u'ns1.dnszone.test.',),
                         'idnsname': [u'@'],
                     },
                     {
@@ -329,14 +336,11 @@ class test_dns(Declarative):
 
         dict(
             desc='Delete record %r in zone %r' % (dnsres1, dnszone1),
-            command=('dnsrecord_del', [dnszone1, dnsres1], {}),
+            command=('dnsrecord_del', [dnszone1, dnsres1], {'del_all': True }),
             expected={
                 'value': dnsres1,
-                'summary': None,
-                'result': {
-                    'idnsname': [dnsres1],
-                    'arecord': [u'10.10.0.1'],
-                }
+                'summary': u'Deleted record "%s"' % dnsres1,
+                'result': {'failed': u''},
             },
         ),
 
@@ -347,7 +351,7 @@ class test_dns(Declarative):
             expected={
                 'value': dnszone1,
                 'summary': None,
-                'result': True,
+                'result': {'failed': u''},
             },
         ),
 
