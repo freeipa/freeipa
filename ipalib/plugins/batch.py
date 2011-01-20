@@ -54,7 +54,7 @@ from ipalib.text import _
 from ipapython.version import API_VERSION
 
 class batch(Command):
-    INTERNAL = True
+    NO_CLI = True
 
     takes_args = (
         List('methods?',

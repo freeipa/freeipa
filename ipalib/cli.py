@@ -656,7 +656,7 @@ class help(frontend.Local):
 
         # build help topics
         for c in self.Command():
-            if c.INTERNAL:
+            if c.NO_CLI:
                 continue
 
             topic = self._get_module_topic(c.module)
@@ -715,7 +715,7 @@ class help(frontend.Local):
             mcl = max(len(s) for s in (self.Command))
             for cname in self.Command:
                 cmd = self.Command[cname]
-                if cmd.INTERNAL:
+                if cmd.NO_CLI:
                     continue
                 print '%s  %s' % (to_cli(cmd.name).ljust(mcl), cmd.summary)
         else:
@@ -886,7 +886,7 @@ class cli(backend.Executioner):
             return
         (key, argv) = (argv[0], argv[1:])
         name = from_cli(key)
-        if name not in self.Command or self.Command[name].INTERNAL:
+        if name not in self.Command or self.Command[name].NO_CLI:
             raise CommandError(name=key)
         cmd = self.Command[name]
         if not isinstance(cmd, frontend.Local):

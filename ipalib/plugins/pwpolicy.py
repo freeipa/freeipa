@@ -70,7 +70,7 @@ class cosentry(LDAPObject):
     """
     Class of Service object used for linking policies with groups
     """
-    INTERNAL = True
+    NO_CLI = True
 
     container_dn = 'cn=costemplates,%s' % api.env.container_accounts
     object_class = ['top', 'costemplate', 'extensibleobject', 'krbcontainer']
@@ -113,7 +113,7 @@ api.register(cosentry)
 
 
 class cosentry_add(LDAPCreate):
-    INTERNAL = True
+    NO_CLI = True
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         # check for existence of the group
@@ -129,13 +129,13 @@ api.register(cosentry_add)
 
 
 class cosentry_del(LDAPDelete):
-    INTERNAL = True
+    NO_CLI = True
 
 api.register(cosentry_del)
 
 
 class cosentry_mod(LDAPUpdate):
-    INTERNAL = True
+    NO_CLI = True
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         self.obj.check_priority_uniqueness(*keys, **options)
@@ -145,13 +145,13 @@ api.register(cosentry_mod)
 
 
 class cosentry_show(LDAPRetrieve):
-    INTERNAL = True
+    NO_CLI = True
 
 api.register(cosentry_show)
 
 
 class cosentry_find(LDAPSearch):
-    INTERNAL = True
+    NO_CLI = True
 
 api.register(cosentry_find)
 

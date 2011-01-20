@@ -220,8 +220,8 @@ class HasParam(Plugin):
     that consider arbitrary ``api.env`` values.
     """
     # HasParam is the base class for most frontend plugins, that make it to users
-    # This flag should be used by UI components to make the plugin unaccessible
-    INTERNAL = False
+    # This flag indicates that the command should not be available in the cli
+    NO_CLI = False
 
     def _get_param_iterable(self, name, verb='takes'):
         """

@@ -471,7 +471,7 @@ class dnsrecord_add_record(dnsrecord_mod_record):
     """
     Add records to DNS resource.
     """
-    INTERNAL = True
+    NO_CLI = True
 
     def update_old_entry_callback(self, entry_attrs, old_entry_attrs):
         for (a, v) in entry_attrs.iteritems():
@@ -509,7 +509,7 @@ class dnsrecord_delentry(LDAPDelete):
     """
     Delete DNS record entry.
     """
-    INTERNAL = True
+    NO_CLI = True
 
 api.register(dnsrecord_delentry)
 
@@ -621,7 +621,7 @@ class dns_is_enabled(Command):
     """
     Checks if any of the servers has the DNS service enabled.
     """
-    INTERNAL = True
+    NO_CLI = True
     has_output = output.standard_value
 
     base_dn = 'cn=masters,cn=ipa,cn=etc,%s' % api.env.basedn

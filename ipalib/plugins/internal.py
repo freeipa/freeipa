@@ -35,7 +35,7 @@ class json_metadata(Command):
     """
     Export plugin meta-data for the webUI.
     """
-    INTERNAL = False
+    NO_CLI = True
 
 
     takes_args = (
@@ -74,6 +74,8 @@ class json_metadata(Command):
 api.register(json_metadata)
 
 class i18n_messages(Command):
+    NO_CLI = True
+
     messages={
         "login": {"header" :_("Logged In As")},
         "button":{

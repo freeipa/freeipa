@@ -368,7 +368,7 @@ class permission_add_member(LDAPAddMember):
     """
     Add members to a permission.
     """
-    INTERNAL = True
+    NO_CLI = True
 
 api.register(permission_add_member)
 
@@ -377,6 +377,6 @@ class permission_remove_member(LDAPRemoveMember):
     """
     Remove members from a permission.
     """
-    INTERNAL = True
+    NO_CLI = True
 
 api.register(permission_remove_member)

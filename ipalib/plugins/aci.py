@@ -356,7 +356,7 @@ class aci(Object):
     """
     ACI object.
     """
-    INTERNAL = True
+    NO_CLI = True
 
     label = _('ACIs')
 
@@ -428,7 +428,7 @@ class aci_add(crud.Create):
     """
     Create new ACI.
     """
-    INTERNAL = True
+    NO_CLI = True
     msg_summary = _('Created ACI "%(value)s"')
 
     takes_options = (
@@ -482,7 +482,7 @@ class aci_del(crud.Delete):
     """
     Delete ACI.
     """
-    INTERNAL = True
+    NO_CLI = True
     has_output = output.standard_boolean
     msg_summary = _('Deleted ACI "%(value)s"')
 
@@ -523,7 +523,7 @@ class aci_mod(crud.Update):
     """
     Modify ACI.
     """
-    INTERNAL = True
+    NO_CLI = True
     has_output_params = (
         Str('aci',
             label=_('ACI'),
@@ -594,7 +594,7 @@ class aci_find(crud.Search):
     have ipausers as a memberof. There may be other ACIs that apply to
     members of that group indirectly.
     """
-    INTERNAL = True
+    NO_CLI = True
     msg_summary = ngettext('%(count)d ACI matched', '%(count)d ACIs matched', 0)
 
     def execute(self, term, **kw):
@@ -752,7 +752,7 @@ class aci_show(crud.Retrieve):
     """
     Display a single ACI given an ACI name.
     """
-    INTERNAL = True
+    NO_CLI = True
 
     has_output_params = (
         Str('aci',
@@ -792,7 +792,7 @@ class aci_rename(crud.Update):
     """
     Rename an ACI.
     """
-    INTERNAL = True
+    NO_CLI = True
     has_output_params = (
         Str('aci',
             label=_('ACI'),

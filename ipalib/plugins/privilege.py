@@ -127,7 +127,7 @@ class privilege_add_member(LDAPAddMember):
     """
     Add members to a privilege
     """
-    INTERNAL=True
+    NO_CLI=True
 
 api.register(privilege_add_member)
 
@@ -136,7 +136,7 @@ class privilege_remove_member(LDAPRemoveMember):
     """
     Remove members from a privilege
     """
-    INTERNAL=True
+    NO_CLI=True
 
 api.register(privilege_remove_member)
 
