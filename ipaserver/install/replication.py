@@ -371,10 +371,6 @@ class ReplicationManager:
             pass
 
         port = 389
-        if repl_man_dn is None:
-            repl_man_dn = self.repl_man_dn
-        if repl_man_passwd is None:
-            repl_man_passwd = self.repl_man_passwd
 
         # List of attributes that need to be excluded from replication.
         excludes = ('memberof', 'entryusn',
@@ -393,11 +389,11 @@ class ReplicationManager:
         entry.setValues('nsDS5ReplicatedAttributeList',
                         '(objectclass=*) $ EXCLUDE %s' % " ".join(excludes))
         entry.setValues('description', "me to %s" % b.host)
-        entry.setValues('nsds5replicabinddn', repl_man_dn)
         if isgssapi:
             entry.setValues('nsds5replicatransportinfo', 'LDAP')
             entry.setValues('nsds5replicabindmethod', 'SASL/GSSAPI')
         else:
+            entry.setValues('nsds5replicabinddn', repl_man_dn)
             entry.setValues('nsds5replicacredentials', repl_man_passwd)
             entry.setValues('nsds5replicatransportinfo', 'TLS')
             entry.setValues('nsds5replicabindmethod', 'simple')
@@ -436,25 +432,20 @@ class ReplicationManager:
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
 
-        return (a_pn[0].dn, b_pn[0].dn)
-
     def gssapi_update_agreements(self, a, b):
 
-        (a_pn_dn, b_pn_dn) = self.setup_krb_princs_as_replica_binddns(a, b)
+        self.setup_krb_princs_as_replica_binddns(a, b)
 
         #change replication agreements to connect to other host using GSSAPI
+        mod = [(ldap.MOD_REPLACE, "nsds5replicatransportinfo", "LDAP"),
+               (ldap.MOD_REPLACE, "nsds5replicabindmethod", "SASL/GSSAPI"),
+               (ldap.MOD_DELETE, "nsds5replicabinddn", None),
+               (ldap.MOD_DELETE, "nsds5replicacredentials", None)]
+
         cn, a_ag_dn = self.agreement_dn(b.host)
-        mod = [(ldap.MOD_REPLACE, "nsds5replicabinddn", a_pn_dn),
-               (ldap.MOD_DELETE, "nsds5replicacredentials", None),
-               (ldap.MOD_REPLACE, "nsds5replicatransportinfo", "LDAP"),
-               (ldap.MOD_REPLACE, "nsds5replicabindmethod", "SASL/GSSAPI")]
         a.modify_s(a_ag_dn, mod)
 
         cn, b_ag_dn = self.agreement_dn(a.host)
-        mod = [(ldap.MOD_REPLACE, "nsds5replicabinddn", b_pn_dn),
-               (ldap.MOD_DELETE, "nsds5replicacredentials", None),
-               (ldap.MOD_REPLACE, "nsds5replicatransportinfo", "LDAP"),
-               (ldap.MOD_REPLACE, "nsds5replicabindmethod", "SASL/GSSAPI")]
         b.modify_s(b_ag_dn, mod)
 
         # Finally remove the temporary replication manager user
@@ -605,8 +596,12 @@ class ReplicationManager:
         self.basic_replication_setup(r_conn, r_id,
                                      self.repl_man_dn, self.repl_man_passwd)
 
-        self.setup_agreement(r_conn, self.conn)
-        self.setup_agreement(self.conn, r_conn)
+        self.setup_agreement(r_conn, self.conn,
+                             repl_man_dn=self.repl_man_dn,
+                             repl_man_passwd=self.repl_man_passwd)
+        self.setup_agreement(self.conn, r_conn,
+                             repl_man_dn=self.repl_man_dn,
+                             repl_man_passwd=self.repl_man_passwd)
 
         #Finally start replication
         ret = self.start_replication(r_conn)
@@ -690,13 +685,11 @@ class ReplicationManager:
             r_conn.sasl_interactive_bind_s('', SASL_AUTH)
 
         # Allow krb principals to act as replicas
-        (self_dn, r_dn) = self.setup_krb_princs_as_replica_binddns(self.conn, r_conn)
+        self.setup_krb_princs_as_replica_binddns(self.conn, r_conn)
 
         # Create mutual replication agreementsausiung SASL/GSSAPI
-        self.setup_agreement(self.conn, r_conn,
-                             repl_man_dn=self_dn, isgssapi=True)
-        self.setup_agreement(r_conn, self.conn,
-                             repl_man_dn=r_dn, isgssapi=True)
+        self.setup_agreement(self.conn, r_conn, isgssapi=True)
+        self.setup_agreement(r_conn, self.conn, isgssapi=True)
 
     def initialize_replication(self, dn, conn):
         mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start')]
