@@ -482,7 +482,12 @@ IPA.sudorule_details_general_section = function (spec){
             'value': 'TRUE'
         }).appendTo(span);
 
+        span.append(' ');
+
+        // TODO: i18n
         span.append('Active');
+
+        span.append(' ');
 
         $('<input/>', {
             'type': 'radio',
@@ -490,6 +495,9 @@ IPA.sudorule_details_general_section = function (spec){
             'value': 'FALSE'
         }).appendTo(span);
 
+        span.append(' ');
+
+        // TODO: i18n
         span.append('Inactive');
 
         span.append(' ');
@@ -568,6 +576,8 @@ IPA.sudorule_details_command_section = function (spec){
             value: 'all'
         }).appendTo(span);
 
+        span.append(' ');
+
         // TODO: replace with i18n label
         span.append('Any Command');
 
@@ -578,6 +588,8 @@ IPA.sudorule_details_command_section = function (spec){
             name: 'cmdcategory',
             value: ''
         }).appendTo(span);
+
+        span.append(' ');
 
         // TODO: replace with i18n label
         span.append('Specified Commands and Groups');
@@ -721,7 +733,12 @@ IPA.sudorule_details_runas_section = function (spec){
             'value': 'all'
         }).appendTo(span);
 
+        span.append(' ');
+
+        // TODO: i18n
         span.append('Anyone');
+
+        span.append(' ');
 
         $('<input/>', {
             'type': 'radio',
@@ -729,6 +746,9 @@ IPA.sudorule_details_runas_section = function (spec){
             'value': ''
         }).appendTo(span);
 
+        span.append(' ');
+
+        // TODO: i18n
         span.append('Specified Users and Groups');
 
         span.append(' ');
@@ -775,7 +795,12 @@ IPA.sudorule_details_runas_section = function (spec){
             'value': 'all'
         }).appendTo(span);
 
+        span.append(' ');
+
+        // TODO: i18n
         span.append('Any Group');
+
+        span.append(' ');
 
         $('<input/>', {
             'type': 'radio',
@@ -783,6 +808,9 @@ IPA.sudorule_details_runas_section = function (spec){
             'value': ''
         }).appendTo(span);
 
+        span.append(' ');
+
+        // TODO: i18n
         span.append('Specified Groups');
 
         span.append(' ');

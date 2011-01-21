@@ -57,10 +57,12 @@ IPA.rule_details_section = function (spec){
                     'value': option.value
                 }).appendTo(span);
 
-                span.append(option.label);
-            }
+                span.append(' ');
 
-            span.append(' ');
+                span.append(option.label);
+
+                span.append(' ');
+            }
 
             $('<span/>', {
                 'name': 'undo',

@@ -595,7 +595,12 @@ IPA.hbacrule_details_general_section = function (spec){
             'value': 'allow'
         }).appendTo(span);
 
+        span.append(' ');
+
+        // TODO: i18n
         span.append('Allow');
+
+        span.append(' ');
 
         $('<input/>', {
             'type': 'radio',
@@ -603,6 +608,9 @@ IPA.hbacrule_details_general_section = function (spec){
             'value': 'deny'
         }).appendTo(span);
 
+        span.append(' ');
+
+        // TODO: i18n
         span.append('Deny');
 
         span.append(' ');
@@ -661,7 +669,12 @@ IPA.hbacrule_details_general_section = function (spec){
             'value': 'TRUE'
         }).appendTo(span);
 
+        span.append(' ');
+
+        // TODO: i18n
         span.append('Active');
+
+        span.append(' ');
 
         $('<input/>', {
             'type': 'radio',
@@ -669,6 +682,9 @@ IPA.hbacrule_details_general_section = function (spec){
             'value': 'FALSE'
         }).appendTo(span);
 
+        span.append(' ');
+
+        // TODO: i18n
         span.append('Inactive');
 
         span.append(' ');
@@ -728,10 +744,12 @@ IPA.hbacrule_accesstime_widget = function (spec) {
                 'value': option.value
             }).appendTo(container);
 
-            container.append(option.label);
-        }
+            container.append(' ');
 
-        container.append(' ');
+            container.append(option.label);
+
+            container.append(' ');
+        }
 
         $('<span/>', {
             'name': 'undo',
