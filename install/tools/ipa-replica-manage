@@ -24,9 +24,10 @@ import traceback, logging
 
 from ipapython import ipautil
 from ipaserver.install import replication, dsinstance, installutils
+from ipaserver.install import bindinstance
 from ipaserver import ipaldap
 from ipapython import version
-from ipalib import errors, util
+from ipalib import api, errors, util
 
 CACERT = "/etc/ipa/ca.crt"
 
@@ -274,6 +275,21 @@ def del_master(realm, hostname, options):
         print "Failed to cleanup %s entries: %s" % (hostname, str(e))
         print "You may need to manually remove them from the tree"
 
+    # 5. And clean up the removed replica DNS entries if any.
+    try:
+        if bindinstance.dns_container_exists(options.host, thisrepl.suffix):
+            if options.dirman_passwd:
+                api.Backend.ldap2.connect(bind_dn='cn=Directory Manager',
+                                          bind_pw=options.dirman_passwd)
+            else:
+                ccache = krbV.default_context().default_ccache().name
+                api.Backend.ldap2.connect(ccache=ccache)
+            bind = bindinstance.BindInstance()
+            bind.remove_master_dns_records(hostname, realm, realm.lower())
+    except Exception, e:
+        print "Failed to cleanup %s DNS entries: %s" % (hostname, str(e))
+        print "You may need to manually remove them from the tree"
+
 def add_link(realm, replica1, replica2, dirman_passwd, options):
 
     if options.winsync:
@@ -354,6 +370,11 @@ def force_sync(realm, thishost, fromhost, dirman_passwd):
 
 def main():
     options, args = parse_options()
+
+    # Just initialize the environment. This is so the installer can have
+    # access to the plugin environment
+    api.bootstrap(in_server=True)
+    api.finalize()
 
     dirman_passwd = None
     realm = krbV.default_context().default_realm

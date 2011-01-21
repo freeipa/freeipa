@@ -162,6 +162,23 @@ def add_ptr_rr(ip_address, fqdn, dns_backup=None):
     zone, name = get_reverse_zone(ip_address)
     add_rr(zone, name, "PTR", fqdn+".", dns_backup)
 
+def del_rr(zone, name, type, rdata):
+    delkw = { '%srecord' % unicode(type.lower()) : unicode(rdata) }
+    try:
+        api.Command.dnsrecord_del(unicode(zone), unicode(name), **delkw)
+    except (errors.NotFound, errors.EmptyModlist):
+        pass
+
+def get_rr(zone, name, type):
+    rectype = '%srecord' % unicode(type.lower())
+    ret = api.Command.dnsrecord_find(unicode(zone), unicode(name))
+    if ret['count'] > 0:
+        for r in ret['result']:
+            if rectype in r:
+                return r[rectype]
+
+    return []
+
 
 class DnsBackup(object):
     def __init__(self, service):
@@ -414,6 +431,47 @@ class BindInstance(service.Service):
         resolv_fd.truncate(0)
         resolv_fd.write(resolv_txt)
         resolv_fd.close()
+
+    def add_master_dns_records(self, fqdn, ip_address,
+                               realm_name, domain_name, ntp=False):
+        self.fqdn = fqdn
+        self.ip_address = ip_address
+        self.realm = realm_name
+        self.domain = domain_name
+        self.host = fqdn.split(".")[0]
+        self.suffix = util.realm_to_suffix(self.realm)
+        self.ntp = ntp
+
+        self.__add_self()
+
+    def remove_master_dns_records(self, fqdn, realm_name, domain_name):
+        host = fqdn.split(".")[0]
+        suffix = util.realm_to_suffix(realm_name)
+
+        zone = domain_name
+        resource_records = (
+            ("_ldap._tcp", "SRV", "0 100 389 %s" % host),
+            ("_kerberos._tcp", "SRV", "0 100 88 %s" % host),
+            ("_kerberos._udp", "SRV", "0 100 88 %s" % host),
+            ("_kerberos-master._tcp", "SRV", "0 100 88 %s" % host),
+            ("_kerberos-master._udp", "SRV", "0 100 88 %s" % host),
+            ("_kpasswd._tcp", "SRV", "0 100 464 %s" % host),
+            ("_kpasswd._udp", "SRV", "0 100 464 %s" % host),
+            ("_ntp._udp", "SRV", "0 100 123 %s" % host),
+        )
+
+        for (record, type, rdata) in resource_records:
+            del_rr(zone, record, type, rdata)
+
+        areclist = get_rr(zone, host, "A")
+        if len(areclist) != 0:
+            for rdata in areclist:
+                del_rr(zone, host, "A", rdata)
+
+                rzone, record = get_reverse_zone(rdata)
+                if dns_zone_exists(rzone):
+                    del_rr(rzone, record, "PTR", fqdn+".")
+
 
     def uninstall(self):
         if self.is_configured():
