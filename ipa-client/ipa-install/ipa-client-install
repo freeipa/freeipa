@@ -542,6 +542,7 @@ def main():
         if options.domain:
             cli_domain = options.domain
         elif options.unattended:
+            print >>sys.stderr, "Unable to discover domain, not provided on command line"
             return ret
         else:
             print "DNS discovery failed to determine your DNS domain"
@@ -561,6 +562,7 @@ def main():
         if options.server:
             cli_server = options.server
         elif options.unattended:
+            print >>sys.stderr, "Unable to find IPA Server to join"
             return ret
         else:
             print "DNS discovery failed to find the IPA Server"
@@ -654,7 +656,7 @@ def main():
                         sys.stdout.flush()
                     else:
                         if sys.stdin.isatty():
-                            sys.exit("Password must be provided in non-interactive mode")
+                            sys.exit("Password must be provided in non-interactive mode.\nThis can be done via echo password | ipa-client-install ... or\nwith the -w option.")
                         else:
                             stdin = sys.stdin.readline()
 
