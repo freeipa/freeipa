@@ -167,6 +167,15 @@ cn: add_user_to_default_group
 description: Add user to default group
 member: cn=useradmin,cn=privileges,cn=pbac,$SUFFIX
 
+dn: cn=unlock_user,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectclass: top
+objectclass: groupofnames
+cn: unlock_user
+description: Unlock user accounts
+member: cn=useradmin,cn=privileges,cn=pbac,$SUFFIX
+member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
 dn: cn=removeusers,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
@@ -509,6 +518,7 @@ changetype: modify
 add: aci
 aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:addusers";allow (add) groupdn = "ldap:///cn=addusers,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "permission:change_password";allow (write) groupdn = "ldap:///cn=change_password,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "krbLastAdminUnlock || krbLoginFailedCount")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Unlock user accounts";allow (write) groupdn = "ldap:///cn=unlock_user,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (targetattr = "member")(target = "ldap:///cn=ipausers,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:add_user_to_default_group";allow (write) groupdn = "ldap:///cn=add_user_to_default_group,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:removeusers";allow (delete) groupdn = "ldap:///cn=removeusers,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype || businesscategory || ou || mepmanagedentry || objectclass")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:modifyusers";allow (write) groupdn = "ldap:///cn=modifyusers,cn=permissions,cn=pbac,$SUFFIX";)

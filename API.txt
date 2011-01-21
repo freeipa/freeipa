@@ -2614,3 +2614,9 @@ option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
+command: user_unlock
+args: 1,0,3
+arg: Str('uid', attribute=True, cli_name='login', default_from=DefaultFrom(<lambda>, 'givenname', 'sn'), label=Gettext('User login', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, query=True, required=True)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
+output: Output('result', <type 'bool'>, 'True means the operation was successful')
+output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")

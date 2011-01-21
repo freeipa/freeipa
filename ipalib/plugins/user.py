@@ -58,6 +58,7 @@ from ipalib import Flag, Int, Password, Str, Bool
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.request import context
+from time import gmtime, strftime
 
 
 class user(LDAPObject):
@@ -401,3 +402,26 @@ class user_enable(LDAPQuery):
         )
 
 api.register(user_enable)
+
+class user_unlock(LDAPQuery):
+    """
+    Lock user account
+
+    - locked account can't log in against Kerberos and must be unlocked by admin
+    - account can be locked e.g. by inputting wrong password too many times
+    """
+    has_output = output.standard_value
+    msg_summary = _('Unlocked account "%(value)s"')
+
+    def execute(self, *keys, **options):
+        dn = self.obj.get_dn(*keys, **options)
+        entry_attrs = {'krbLastAdminUnlock': strftime("%Y%m%d%H%M%SZ",gmtime()), 'krbLoginFailedCount': '0'}
+
+        self.obj.backend.update_entry(dn, entry_attrs)
+
+        return dict(
+            result=True,
+            value=keys[0],
+        )
+
+api.register(user_unlock)

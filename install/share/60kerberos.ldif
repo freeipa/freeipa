@@ -254,6 +254,8 @@ attributetypes: ( 2.16.840.1.113719.1.301.4.52.1 NAME 'krbObjectReferences' EQUA
 ##### the additional principal objects and stand alone principal 
 ##### objects (krbPrincipal) can be created.
 attributetypes: ( 2.16.840.1.113719.1.301.4.53.1 NAME 'krbPrincContainerRef' EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12)
+##### The time at which administrator unlocked the account
+attributetypes: ( 1.3.6.1.4.1.5322.21.2.5 NAME 'krbLastAdminUnlock' EQUALITY generalizedTimeMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 SINGLE-VALUE)
 ########################################################################
 ########################################################################
 # 		        Object Class Definitions                       #
@@ -282,7 +284,7 @@ objectClasses: ( 2.16.840.1.113719.1.301.6.4.1 NAME 'krbKdcService' SUP ( krbSer
 objectClasses: ( 2.16.840.1.113719.1.301.6.5.1 NAME 'krbPwdService' SUP ( krbService ) )
 ###### The principal data auxiliary class. Holds principal information
 ###### and is used to store principal information for Person, Service objects.
-objectClasses: ( 2.16.840.1.113719.1.301.6.8.1 NAME 'krbPrincipalAux' AUXILIARY MAY ( krbPrincipalName $ krbCanonicalName $ krbUPEnabled $ krbPrincipalKey $ krbTicketPolicyReference $ krbPrincipalExpiration $ krbPasswordExpiration $ krbPwdPolicyReference $ krbPrincipalType $ krbPwdHistory $ krbLastPwdChange $ krbPrincipalAliases $ krbLastSuccessfulAuth $ krbLastFailedAuth $ krbLoginFailedCount $ krbExtraData ) )
+objectClasses: ( 2.16.840.1.113719.1.301.6.8.1 NAME 'krbPrincipalAux' AUXILIARY MAY ( krbPrincipalName $ krbCanonicalName $ krbUPEnabled $ krbPrincipalKey $ krbTicketPolicyReference $ krbPrincipalExpiration $ krbPasswordExpiration $ krbPwdPolicyReference $ krbPrincipalType $ krbPwdHistory $ krbLastPwdChange $ krbPrincipalAliases $ krbLastSuccessfulAuth $ krbLastFailedAuth $ krbLoginFailedCount $ krbExtraData $ krbLastAdminUnlock ) )
 ###### This class is used to create additional principals and stand alone principals.
 objectClasses: ( 2.16.840.1.113719.1.301.6.9.1 NAME 'krbPrincipal' SUP ( top ) MUST ( krbPrincipalName ) MAY ( krbObjectReferences ) )
 ###### The principal references auxiliary class. Holds all principals referred
