@@ -50,6 +50,8 @@ from ipalib import api, crud, errors
 from ipalib import output
 from ipalib import Object, Command
 
+ACI_PREFIX=u"selfservice"
+
 def is_selfservice(aciname):
     """
     Determine if the ACI is a Self-Service ACI and raise an exception if it
@@ -57,7 +59,7 @@ def is_selfservice(aciname):
 
     Return the result if it is a self-service ACI.
     """
-    result = api.Command['aci_show'](aciname)['result']
+    result = api.Command['aci_show'](aciname, aciprefix=ACI_PREFIX)['result']
     if 'selfaci' not in result or result['selfaci'] == False:
         raise errors.NotFound(reason=_('Self-service permission \'%(permission)s\' not found') % dict(permission=aciname))
     return result
@@ -119,7 +121,9 @@ class selfservice_add(crud.Create):
         if not 'permissions' in kw:
             kw['permissions'] = (u'write',)
         kw['selfaci'] = True
+        kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_add'](aciname, **kw)['result']
+        del result['aciprefix']     # do not include prefix in result
 
         return dict(
             result=result,
@@ -139,7 +143,9 @@ class selfservice_del(crud.Delete):
 
     def execute(self, aciname, **kw):
         is_selfservice(aciname)
+        kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_del'](aciname, **kw)
+
         return dict(
             result=True,
             value=aciname,
@@ -159,7 +165,10 @@ class selfservice_mod(crud.Update):
         is_selfservice(aciname)
         if 'attrs' in kw and kw['attrs'] is None:
             raise errors.RequirementError(name='attrs')
+
+        kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_mod'](aciname, **kw)['result']
+        del result['aciprefix']     # do not include prefix in result
         return dict(
             result=result,
             value=aciname,
@@ -179,7 +188,11 @@ class selfservice_find(crud.Search):
 
     def execute(self, term, **kw):
         kw['selfaci'] = True
+        kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_find'](term, **kw)['result']
+
+        for aci in result:
+            del aci['aciprefix']     # do not include prefix in result
 
         return dict(
             result=result,
@@ -202,6 +215,7 @@ class selfservice_show(crud.Retrieve):
 
     def execute(self, aciname, **kw):
         result = is_selfservice(aciname)
+        del result['aciprefix']     # do not include prefix in result
         return dict(
             result=result,
             value=aciname,

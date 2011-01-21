@@ -50,6 +50,8 @@ from ipalib import api, crud, errors
 from ipalib import output
 from ipalib import Object, Command
 
+ACI_PREFIX=u"delegation"
+
 def convert_delegation(ldap, aci):
     """
     memberOf is in filter but we want to pull out the group for easier
@@ -70,6 +72,7 @@ def convert_delegation(ldap, aci):
     aci['membergroup'] = entry_attrs['cn']
 
     del aci['filter']
+    del aci['aciprefix']     # do not include prefix in result
 
     return aci
 
@@ -81,7 +84,7 @@ def is_delegation(ldap, aciname):
     Return the result if it is a delegation ACI, adding a new attribute
     membergroup.
     """
-    result = api.Command['aci_show'](aciname)['result']
+    result = api.Command['aci_show'](aciname, aciprefix=ACI_PREFIX)['result']
     if 'filter' in result:
         result = convert_delegation(ldap, result)
     else:
@@ -157,6 +160,7 @@ class delegation_add(crud.Create):
         ldap = self.api.Backend.ldap2
         if not 'permissions' in kw:
             kw['permissions'] = (u'write',)
+        kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_add'](aciname, **kw)['result']
         if 'filter' in result:
             result = convert_delegation(ldap, result)
@@ -180,6 +184,7 @@ class delegation_del(crud.Delete):
     def execute(self, aciname, **kw):
         ldap = self.api.Backend.ldap2
         is_delegation(ldap, aciname)
+        kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_del'](aciname, **kw)
         return dict(
             result=True,
@@ -199,6 +204,7 @@ class delegation_mod(crud.Update):
     def execute(self, aciname, **kw):
         ldap = self.api.Backend.ldap2
         is_delegation(ldap, aciname)
+        kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_mod'](aciname, **kw)['result']
         if 'filter' in result:
             result = convert_delegation(ldap, result)
@@ -221,6 +227,7 @@ class delegation_find(crud.Search):
 
     def execute(self, term, **kw):
         ldap = self.api.Backend.ldap2
+        kw['aciprefix'] = ACI_PREFIX
         acis = api.Command['aci_find'](term, **kw)['result']
         results = []
         for aci in acis:

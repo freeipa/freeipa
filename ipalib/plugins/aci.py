@@ -89,22 +89,22 @@ command-line now (see last example).
 
  Add an ACI so that the group "secretaries" can update the address on any user:
    ipa group-add --desc="Office secretaries" secretaries
-   ipa aci-add --attrs=streetAddress --memberof=ipausers --group=secretaries --permissions=write "Secretaries write addresses"
+   ipa aci-add --attrs=streetAddress --memberof=ipausers --group=secretaries --permissions=write --prefix=none "Secretaries write addresses"
 
  Show the new ACI:
-   ipa aci-show "Secretaries write addresses"
+   ipa aci-show --prefix=none "Secretaries write addresses"
 
  Add an ACI that allows members of the "addusers" permission to add new users:
-   ipa aci-add --type=user --permission=addusers --permissions=add "Add new users"
+   ipa aci-add --type=user --permission=addusers --permissions=add --prefix=none "Add new users"
 
  Add an ACI that allows members of the editors manage members of the admins group:
-   ipa aci-add --permissions=write --attrs=member --targetgroup=admins --group=editors "Editors manage admins"
+   ipa aci-add --permissions=write --attrs=member --targetgroup=admins --group=editors --prefix=none "Editors manage admins"
 
  Add an ACI that allows members of the admin group to manage the street and zip code of those in the editors group:
-   ipa aci-add --permissions=write --memberof=editors --group=admins --attrs=street,postalcode "admins edit the address of editors"
+   ipa aci-add --permissions=write --memberof=editors --group=admins --attrs=street,postalcode --prefix=none "admins edit the address of editors"
 
  Add an ACI that allows the admins group manage the street and zipcode of those who work for the boss:
-   ipa aci-add --permissions=write --group=admins --attrs=street,postalcode --filter="(manager=uid=boss,cn=users,cn=accounts,dc=example,dc=com)" "Edit the address of those who work for the boss"
+   ipa aci-add --permissions=write --group=admins --attrs=street,postalcode --filter="(manager=uid=boss,cn=users,cn=accounts,dc=example,dc=com)" --prefix=none "Edit the address of those who work for the boss"
 
  Add an entirely new kind of record to IPA that isn't covered by any of the --type options, creating a permission:
    ipa permission-add  --permissions=add --subtree="cn=*,cn=orange,cn=accounts,dc=example,dc=com" --desc="Add Orange Entries" add_orange
@@ -128,6 +128,8 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
     from ldap import explode_dn
 import logging
 
+ACI_NAME_PREFIX_SEP = ":"
+
 _type_map = {
     'user': 'ldap:///uid=*,%s,%s' % (api.env.container_user, api.env.basedn),
     'group': 'ldap:///cn=*,%s,%s' % (api.env.container_group, api.env.basedn),
@@ -141,6 +143,10 @@ _type_map = {
 _valid_permissions_values = [
     u'read', u'write', u'add', u'delete', u'all'
 ]
+
+_valid_prefix_values = (
+    u'permission', u'delegation', u'selfservice', u'none'
+)
 
 class ListOfACI(output.Output):
     type = (list, tuple)
@@ -162,6 +168,26 @@ aci_output = (
 )
 
 
+def _make_aci_name(aciprefix, aciname):
+    """
+    Given a name and a prefix construct an ACI name.
+    """
+    if aciprefix == u"none":
+        return aciname
+
+    return aciprefix + ACI_NAME_PREFIX_SEP + aciname
+
+def _parse_aci_name(aciname):
+    """
+    Parse the raw ACI name and return a tuple containing the ACI prefix
+    and the actual ACI name.
+    """
+    aciparts = aciname.partition(ACI_NAME_PREFIX_SEP)
+
+    if not aciparts[2]: # no prefix/name separator found
+        return (u"none",aciparts[0])
+
+    return (aciparts[0], aciparts[2])
 
 def _make_aci(ldap, current, aciname, kw):
     """
@@ -176,6 +202,9 @@ def _make_aci(ldap, current, aciname, kw):
     t6 = 'memberof' in kw
     if t1 + t2 + t3 + t4 > 1:
         raise errors.ValidationError(name='target', error=_('type, filter, subtree and targetgroup are mutually exclusive'))
+
+    if 'aciprefix' not in kw:
+        raise errors.ValidationError(name='aciprefix', error=_('ACI prefix is required'))
 
     if t1 + t2 + t3 + t4 + t5 + t6 == 0:
         raise errors.ValidationError(name='target', error=_('at least one of: type, filter, subtree, targetgroup, attrs or memberof are required'))
@@ -209,7 +238,7 @@ def _make_aci(ldap, current, aciname, kw):
 
     try:
         a = ACI(current)
-        a.name = aciname
+        a.name = _make_aci_name(kw['aciprefix'], aciname)
         a.permissions = kw['permissions']
         if 'selfaci' in kw and kw['selfaci']:
             a.set_bindrule('userdn = "ldap:///self"')
@@ -260,7 +289,7 @@ def _aci_to_kw(ldap, a, test=False):
        _make_aci().
     """
     kw = {}
-    kw['aciname'] = a.name
+    kw['aciprefix'], kw['aciname'] = _parse_aci_name(a.name)
     kw['permissions'] = tuple(a.permissions)
     if 'targetattr' in a.target:
         kw['attrs'] = list(a.target['targetattr']['expression'])
@@ -328,9 +357,10 @@ def _convert_strings_to_acis(acistrs):
             logging.warn("Failed to parse: %s" % a)
     return acis
 
-def _find_aci_by_name(acis, aciname):
+def _find_aci_by_name(acis, aciprefix, aciname):
+    name = _make_aci_name(aciprefix, aciname).lower()
     for a in acis:
-        if a.name.lower() == aciname.lower():
+        if a.name.lower() == name:
             return a
     raise errors.NotFound(reason=_('ACI with name "%s" not found') % aciname)
 
@@ -351,6 +381,13 @@ def _normalize_permissions(permissions):
             valid_permissions.append(p)
     return ','.join(valid_permissions)
 
+_prefix_option = StrEnum('aciprefix',
+                cli_name='prefix',
+                label=_('ACI prefix'),
+                doc=_('Prefix used to distinguish ACI types ' \
+                    '(permission, delegation, selfservice, none)'),
+                values=_valid_prefix_values,
+                )
 
 class aci(Object):
     """
@@ -423,7 +460,6 @@ class aci(Object):
 
 api.register(aci)
 
-
 class aci_add(crud.Create):
     """
     Create new ACI.
@@ -432,6 +468,7 @@ class aci_add(crud.Create):
     msg_summary = _('Created ACI "%(value)s"')
 
     takes_options = (
+        _prefix_option,
         Flag('test?',
              doc=_('Test the ACI syntax but don\'t write anything'),
              default=False,
@@ -486,6 +523,8 @@ class aci_del(crud.Delete):
     has_output = output.standard_boolean
     msg_summary = _('Deleted ACI "%(value)s"')
 
+    takes_options = (_prefix_option,)
+
     def execute(self, aciname, **kw):
         """
         Execute the aci-delete operation.
@@ -500,7 +539,7 @@ class aci_del(crud.Delete):
 
         acistrs = entry_attrs.get('aci', [])
         acis = _convert_strings_to_acis(acistrs)
-        aci = _find_aci_by_name(acis, aciname)
+        aci = _find_aci_by_name(acis, kw['aciprefix'], aciname)
         for a in acistrs:
             candidate = ACI(a)
             if aci.isequal(candidate):
@@ -530,6 +569,8 @@ class aci_mod(crud.Update):
         ),
     )
 
+    takes_options = (_prefix_option,)
+
     msg_summary = _('Modified ACI "%(value)s"')
 
     def execute(self, aciname, **kw):
@@ -538,7 +579,7 @@ class aci_mod(crud.Update):
         (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
 
         acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
-        aci = _find_aci_by_name(acis, aciname)
+        aci = _find_aci_by_name(acis, kw['aciprefix'], aciname)
 
         # The strategy here is to convert the ACI we're updating back into
         # a series of keywords. Then we replace any keywords that have been
@@ -558,7 +599,7 @@ class aci_mod(crud.Update):
         if aci.isequal(newaci):
             raise errors.EmptyModlist()
 
-        self.api.Command['aci_del'](aciname)
+        self.api.Command['aci_del'](aciname, **kw)
 
         result = self.api.Command['aci_add'](aciname, **newkw)['result']
 
@@ -597,6 +638,8 @@ class aci_find(crud.Search):
     NO_CLI = True
     msg_summary = ngettext('%(count)d ACI matched', '%(count)d ACIs matched', 0)
 
+    takes_options = (_prefix_option.clone_rename("aciprefix?", required=False),)
+
     def execute(self, term, **kw):
         ldap = self.api.Backend.ldap2
 
@@ -616,7 +659,15 @@ class aci_find(crud.Search):
 
         if 'aciname' in kw:
             for a in acis:
-                if a.name != kw['aciname']:
+                prefix, name = _parse_aci_name(a.name)
+                if name != kw['aciname']:
+                    results.remove(a)
+            acis = list(results)
+
+        if 'aciprefix' in kw:
+            for a in acis:
+                prefix, name = _parse_aci_name(a.name)
+                if prefix != kw['aciprefix']:
                     results.remove(a)
             acis = list(results)
 
@@ -760,6 +811,8 @@ class aci_show(crud.Retrieve):
         ),
     )
 
+    takes_options = (_prefix_option,)
+
     def execute(self, aciname, **kw):
         """
         Execute the aci-show operation.
@@ -775,7 +828,7 @@ class aci_show(crud.Retrieve):
 
         acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
 
-        aci = _find_aci_by_name(acis, aciname)
+        aci = _find_aci_by_name(acis, kw['aciprefix'], aciname)
         if kw.get('raw', False):
             result = dict(aci=unicode(aci))
         else:
@@ -800,12 +853,13 @@ class aci_rename(crud.Update):
     )
 
     takes_options = (
+        _prefix_option,
         Str('newname',
              doc=_('New ACI name'),
         ),
     )
 
-    msg_summary = _('Renameed ACI to "%(value)s"')
+    msg_summary = _('Renamed ACI to "%(value)s"')
 
     def execute(self, aciname, **kw):
         ldap = self.api.Backend.ldap2
@@ -813,10 +867,11 @@ class aci_rename(crud.Update):
         (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
 
         acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
-        aci = _find_aci_by_name(acis, aciname)
+        aci = _find_aci_by_name(acis, kw['aciprefix'], aciname)
 
         for a in acis:
-            if kw['newname'] == a.name:
+            prefix, name = _parse_aci_name(a.name)
+            if _make_aci_name(prefix, kw['newname']) == a.name:
                 raise errors.DuplicateEntry()
 
         # The strategy here is to convert the ACI we're updating back into
@@ -833,7 +888,7 @@ class aci_rename(crud.Update):
         # Do this before we delete the existing ACI.
         newaci = _make_aci(ldap, None, kw['newname'], newkw)
 
-        self.api.Command['aci_del'](aciname)
+        self.api.Command['aci_del'](aciname, **kw)
 
         result = self.api.Command['aci_add'](kw['newname'], **newkw)['result']
 
