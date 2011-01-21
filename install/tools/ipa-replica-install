@@ -445,6 +445,7 @@ def main():
         print "ipa-client-install returned: " + str(e)
         raise RuntimeError("Failed to configure the client")
 
+    ds.replica_populate()
     ds.init_memberof()
 
 try:

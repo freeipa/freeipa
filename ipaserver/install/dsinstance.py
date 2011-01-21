@@ -737,3 +737,25 @@ class DsInstance(service.Service):
     def __root_autobind(self):
         self._ldap_mod("root-autobind.ldif")
 
+    def replica_populate(self):
+        self.ldap_connect()
+
+        dn = "cn=default,ou=profile,%s" % self.suffix
+        try:
+            ret = self.admin_conn.search_s(dn, ldap.SCOPE_BASE,
+                                           '(objectclass=*)')[0]
+            srvlist = ret.data.get('defaultServerList')
+            if len(srvlist) > 0:
+                srvlist = srvlist[0].split()
+            if not self.fqdn in srvlist:
+                srvlist.append(self.fqdn)
+                attr = ' '.join(srvlist)
+                mod = [(ldap.MOD_REPLACE, 'defaultServerList', attr)]
+                self.admin_conn.modify_s(dn, mod)
+        except ldap.NO_SUCH_OBJECT:
+            pass
+        except ldap.TYPE_OR_VALUE_EXISTS:
+            pass
+
+        self.ldap_disconnect()
+

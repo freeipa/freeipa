@@ -730,6 +730,11 @@ class ReplicationManager:
         return IPA_REPLICA
 
     def replica_cleanup(self, replica, realm, force=False):
+        """
+        This function removes information about the replica in parts
+        of the shared tree that expose it, so clients stop trying to
+        use this replica.
+        """
 
         err = None
 
@@ -788,6 +793,30 @@ class ReplicationManager:
         except ldap.NO_SUCH_OBJECT:
             pass
         except errors.NotFound:
+            pass
+        except Exception, e:
+            if not force:
+                raise e
+            elif not err:
+                err = e
+
+        try:
+            dn = 'cn=default,ou=profile,%s' % self.suffix
+            ret = self.conn.search_s(dn, ldap.SCOPE_BASE,
+                                     '(objectclass=*)')[0]
+            srvlist = ret.data.get('defaultServerList')
+            if len(srvlist) > 0:
+                srvlist = srvlist[0].split()
+            if replica in srvlist:
+                srvlist.remove(replica)
+                attr = ' '.join(srvlist)
+                mod = [(ldap.MOD_REPLACE, 'defaultServerList', attr)]
+                self.conn.modify_s(dn, mod)
+        except ldap.NO_SUCH_OBJECT:
+            pass
+        except ldap.NO_SUCH_ATTRIBUTE:
+            pass
+        except ldap.TYPE_OR_VALUE_EXISTS:
             pass
         except Exception, e:
             if force and err:
