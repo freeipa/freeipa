@@ -970,6 +970,7 @@ class cli(backend.Executioner):
                 yield name
             else:
                 yield '[%s]' % name
+        yield '[options]'
 
     def prompt_interactively(self, cmd, kw):
         """
