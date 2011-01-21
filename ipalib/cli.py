@@ -302,6 +302,8 @@ class textui(backend.Backend):
                     text = textwrap.wrap(
                         text, line_len, break_long_words=False
                     )
+                    if len(text) == 0:
+                        text = [u'']
                 else:
                     text = [text]
                 self.print_indented(format % (attr, text[0]), indent)
