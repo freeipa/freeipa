@@ -1769,7 +1769,7 @@ msgid "Sudo Command Groups"
 msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:71
-msgid "Sudo Command Group name"
+msgid "Sudo Command Group"
 msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:81

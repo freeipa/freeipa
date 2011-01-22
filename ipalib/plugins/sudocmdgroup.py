@@ -70,7 +70,7 @@ class sudocmdgroup(LDAPObject):
     takes_params = (
         Str('cn',
             cli_name='sudocmdgroup_name',
-            label=_('Sudo Command Group name'),
+            label=_('Sudo Command Group'),
             primary_key=True,
             normalizer=lambda value: value.lower(),
         ),

@@ -1818,7 +1818,7 @@ msgid "Sudo Command Groups"
 msgstr "Grupy polecenia sudo"
 
 #: ipalib/plugins/sudocmdgroup.py:71
-msgid "Sudo Command Group name"
+msgid "Sudo Command Group"
 msgstr "Nazwa grupy polecenia sudo"
 
 #: ipalib/plugins/sudocmdgroup.py:81

@@ -1829,7 +1829,7 @@ msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:71
 #, fuzzy
-msgid "Sudo Command Group name"
+msgid "Sudo Command Group"
 msgstr "Nombre del grupo"
 
 #: ipalib/plugins/sudocmdgroup.py:81

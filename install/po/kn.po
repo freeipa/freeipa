@@ -1819,7 +1819,7 @@ msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:71
 #, fuzzy
-msgid "Sudo Command Group name"
+msgid "Sudo Command Group"
 msgstr "ಗುಂಪಿನ ಹೆಸರು"
 
 #: ipalib/plugins/sudocmdgroup.py:81
