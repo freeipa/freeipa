@@ -94,7 +94,7 @@ class i18n_messages(Command):
             "quick_links":_("Quick Links"),
             "select_all":_("Select All"),
             "unselect_all":_("Unselect All"),
-            "delete_confirm":_("Do you really want to delete the selected entries?"),
+            "delete_confirm":_("Are you sure you want to delete selected entries?"),
             },
         "details":{
             "identity":_("Identity Settings"),

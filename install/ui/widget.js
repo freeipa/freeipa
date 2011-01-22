@@ -1292,18 +1292,23 @@ IPA.deleter_dialog =  function (spec) {
     };
 
     that.create = function() {
+
+        $('<p/>', {
+            'text': IPA.messages.search.delete_confirm
+        }).appendTo(that.container);
+
+        var div = $('<div/>', {
+            style: 'overflow:auto; max-height: 100px'
+        }).appendTo(that.container);
+
         var ul = $('<ul/>');
-        ul.appendTo(that.container);
+        ul.appendTo(div);
 
         for (var i=0; i<that.values.length; i++) {
             $('<li/>',{
                 'text': that.values[i]
             }).appendTo(ul);
         }
-
-        $('<p/>', {
-            'text': IPA.messages.search.delete_confirm
-        }).appendTo(that.container);
     };
 
     that.open = function(container) {

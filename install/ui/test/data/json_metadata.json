@@ -27,7 +27,7 @@
                 "header": "Logged In As"
             },
             "search": {
-                "delete_confirm": "Do you really want to delete the selected entries?",
+                "delete_confirm": "Are you sure you want to delete selected entries?",
                 "quick_links": "Quick Links",
                 "select_all": "Select All",
                 "unselect_all": "Unselect All"
