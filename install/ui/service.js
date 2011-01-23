@@ -355,8 +355,8 @@ function service_provisioning_status_widget(spec) {
 
         that.widget_setup(container);
 
-        that.valid = $('div[name=kerberos-key-valid]', that.container);
-        that.missing = $('div[name=kerberos-key-missing]', that.container);
+        that.status_valid = $('div[name=kerberos-key-valid]', that.container);
+        that.status_missing = $('div[name=kerberos-key-missing]', that.container);
 
         var button = $('input[name=unprovision]', that.container);
         that.unprovision_button = IPA.button({
@@ -405,8 +405,8 @@ function service_provisioning_status_widget(spec) {
     };
 
     function set_status(status) {
-        that.valid.css('display', status == 'valid' ? 'inline' : 'none');
-        that.missing.css('display', status == 'missing' ? 'inline' : 'none');
+        that.status_valid.css('display', status == 'valid' ? 'inline' : 'none');
+        that.status_missing.css('display', status == 'missing' ? 'inline' : 'none');
     }
 
     return that;

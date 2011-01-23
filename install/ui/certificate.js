@@ -536,9 +536,9 @@ function certificate_status_widget(spec) {
 
         that.widget_setup(container);
 
-        that.valid = $('div[name=certificate-valid]', that.container);
-        that.revoked = $('div[name=certificate-revoked]', that.container);
-        that.missing = $('div[name=certificate-missing]', that.container);
+        that.status_valid = $('div[name=certificate-valid]', that.container);
+        that.status_revoked = $('div[name=certificate-revoked]', that.container);
+        that.status_missing = $('div[name=certificate-missing]', that.container);
 
         var button = $('input[name=get]', that.container);
         that.get_button = IPA.button({
@@ -620,11 +620,11 @@ function certificate_status_widget(spec) {
     };
 
     function set_status(status, revocation_reason) {
-        that.valid.css('display', status == CERTIFICATE_STATUS_VALID ? 'inline' : 'none');
-        that.missing.css('display', status == CERTIFICATE_STATUS_MISSING ? 'inline' : 'none');
+        that.status_valid.css('display', status == CERTIFICATE_STATUS_VALID ? 'inline' : 'none');
+        that.status_missing.css('display', status == CERTIFICATE_STATUS_MISSING ? 'inline' : 'none');
 
         if (!that.is_selfsign()) {
-            that.revoked.css('display', status == CERTIFICATE_STATUS_REVOKED ? 'inline' : 'none');
+            that.status_revoked.css('display', status == CERTIFICATE_STATUS_REVOKED ? 'inline' : 'none');
             that.revoke_button.css('visibility', status == CERTIFICATE_STATUS_VALID ? 'visible' : 'hidden');
             that.revocation_reason.html(revocation_reason == undefined ? '' : CRL_REASON[revocation_reason]);
             that.restore_button.css('visibility', revocation_reason == 6 ? 'visible' : 'hidden');

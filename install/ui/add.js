@@ -101,6 +101,7 @@ IPA.add_dialog = function (spec) {
 
         for (var i=0; i<that.fields.length; i++) {
             var field = that.fields[i];
+            if (!field.valid) return;
 
             var value = record[field.name];
             if (!value) continue;

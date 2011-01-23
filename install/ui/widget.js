@@ -46,6 +46,7 @@ IPA.widget = function(spec) {
     that.save = spec.save || save;
     that.update = spec.update || update;
     that.validate_input = spec.validate_input || validate_input;
+    that.valid = true;
     that.param_info = spec.param_info;
 
     that.__defineGetter__("entity_name", function(){
@@ -61,23 +62,25 @@ IPA.widget = function(spec) {
       displays the error message and returns false. */
     function validate_input(text) {
         if (!(that.param_info && that.param_info.pattern)) {
-            return true;
+            that.valid = true;
+            return;
         }
         var error_link = that.get_error_link();
         if (!error_link) {
-            return true;
+            that.valid = true;
+            return;
         }
         var regex = new RegExp( that.param_info.pattern );
         //If the field is empty, don't validate
         if ( !text || text.match(regex) ) {
             error_link.css('display', 'none');
-            return true;
+            that.valid = true;
         }else{
             error_link.css('display', 'block');
             if (that.param_info.pattern_errmsg) {
                 error_link.html(that.param_info.pattern_errmsg);
             }
-            return false;
+            that.valid = false;
         }
     }
 
