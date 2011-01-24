@@ -507,15 +507,19 @@ class textui(backend.Backend):
     def print_error(self, text):
         print '  ** %s **' % unicode(text)
 
-    def prompt(self, label, default=None, get_values=None):
+    def prompt(self, label, default=None, get_values=None, optional=False):
         """
         Prompt user for input.
         """
         # TODO: Add tab completion using readline
-        if default is None:
-            prompt = u'%s: ' % label
+        if optional:
+            prompt = u'[%s]' % label
         else:
-            prompt = u'%s [%s]: ' % (label, default)
+            prompt = u'%s' % label
+        if default is None:
+            prompt = u'%s: ' % prompt
+        else:
+            prompt = u'%s [%s]: ' % (prompt, default)
         try:
             data = raw_input(self.encode(prompt))
         except EOFError:
@@ -992,7 +996,7 @@ class cli(backend.Executioner):
                     while True:
                         if error is not None:
                             print '>>> %s: %s' % (unicode(param.label), unicode(error))
-                        raw = self.Backend.textui.prompt(param.label, default)
+                        raw = self.Backend.textui.prompt(param.label, default, optional=param.alwaysask or not param.required)
                         try:
                             value = param(raw, **kw)
                             if value is not None:
