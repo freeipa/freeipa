@@ -270,12 +270,18 @@ def install_bind(config, options):
 
 def install_dns_records(config, options):
 
-    if not bindinstance.dns_container_exists(config.host_name,
+    if not bindinstance.dns_container_exists(config.master_host_name,
                                              util.realm_to_suffix(config.realm_name)):
         return
 
+    # We have to force to connect to the remote master because we do this step
+    # before our DS server is installed.
+    cur_uri = api.Backend.ldap2.ldap_uri
+    object.__setattr__(api.Backend.ldap2, 'ldap_uri',
+                       'ldaps://%s' % config.master_host_name)
     api.Backend.ldap2.connect(bind_dn="cn=Directory Manager",
-                              bind_pw=config.dirman_password)
+                              bind_pw=config.dirman_password,
+                              tls_cacertfile=CACERT)
     bind = bindinstance.BindInstance(dm_password=config.dirman_password)
     ip_address = resolve_host(config.host_name)
     if not ip_address:
@@ -284,6 +290,10 @@ def install_dns_records(config, options):
     bind.add_master_dns_records(config.host_name, ip_address,
                                 config.realm_name, config.domain_name,
                                 options.conf_ntp)
+
+    #set it back to the default
+    api.Backend.ldap2.disconnect()
+    object.__setattr__(api.Backend.ldap2, 'ldap_uri', cur_uri)
 
 def check_dirsrv():
     serverids = dsinstance.check_existing_installation()
@@ -421,6 +431,9 @@ def main():
     # Configure the CA if necessary
     CA = install_ca(config)
 
+    # Always try to install DNS records
+    install_dns_records(config, options)
+
     # Configure dirsrv
     ds = install_replica_ds(config)
 
@@ -452,8 +465,6 @@ def main():
 
     if options.setup_dns:
         install_bind(config, options)
-    else:
-        install_dns_records(config, options)
 
     # Call client install script
     try:
