@@ -1353,10 +1353,10 @@ class BadSearchFilter(ExecutionError):
 
     For example:
 
-    >>> raise BadSearchFilter(info='')
+    >>> raise BadSearchFilter(info='invalid syntax')
     Traceback (most recent call last):
       ...
-    BadSearchFilter: Bad search filter
+    BadSearchFilter: Bad search filter invalid syntax
     """
 
     errno = 4209
