@@ -275,7 +275,7 @@ class TestTimeParser(unittest.TestCase):
         time = ipautil.parse_generalized_time(timestr)
         self.assertEqual(0, time.tzinfo.houroffset)
         self.assertEqual(0, time.tzinfo.minoffset)
-        offset = time.tzinfo.utcoffset()
+        offset = time.tzinfo.utcoffset(time.tzinfo.dst())
         self.assertEqual(0, offset.seconds)
 
         timestr = "20051213141205+0500"
@@ -283,7 +283,7 @@ class TestTimeParser(unittest.TestCase):
         time = ipautil.parse_generalized_time(timestr)
         self.assertEqual(5, time.tzinfo.houroffset)
         self.assertEqual(0, time.tzinfo.minoffset)
-        offset = time.tzinfo.utcoffset()
+        offset = time.tzinfo.utcoffset(time.tzinfo.dst())
         self.assertEqual(5 * 60 * 60, offset.seconds)
 
         timestr = "20051213141205-0500"
@@ -293,7 +293,7 @@ class TestTimeParser(unittest.TestCase):
         self.assertEqual(0, time.tzinfo.minoffset)
         # NOTE - the offset is always positive - it's minutes
         #        _east_ of UTC
-        offset = time.tzinfo.utcoffset()
+        offset = time.tzinfo.utcoffset(time.tzinfo.dst())
         self.assertEqual((24 - 5) * 60 * 60, offset.seconds)
 
         timestr = "20051213141205-0930"
@@ -301,7 +301,7 @@ class TestTimeParser(unittest.TestCase):
         time = ipautil.parse_generalized_time(timestr)
         self.assertEqual(-9, time.tzinfo.houroffset)
         self.assertEqual(-30, time.tzinfo.minoffset)
-        offset = time.tzinfo.utcoffset()
+        offset = time.tzinfo.utcoffset(time.tzinfo.dst())
         self.assertEqual(((24 - 9) * 60 * 60) - (30 * 60), offset.seconds)
 
 

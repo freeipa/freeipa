@@ -33,6 +33,7 @@ from ipalib import parameters, request, errors, config
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, NULLS
 from ipalib.errors import ValidationError
 from ipalib import _
+from xmlrpclib import MAXINT
 
 class test_DefaultFrom(ClassChecker):
     """
@@ -921,7 +922,7 @@ class test_Str(ClassChecker):
         mthd = o._convert_scalar
         for value in (u'Hello', 42, 1.2, unicode_str):
             assert mthd(value) == unicode(value)
-        bad = [True, 'Hello', dict(one=1), utf8_bytes]
+        bad = [True, dict(one=1)]
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
@@ -1164,7 +1165,7 @@ class test_Int(ClassChecker):
         assert o.type is int
         assert isinstance(o, parameters.Int)
         assert o.minvalue is None
-        assert o.maxvalue is None
+        assert o.maxvalue == int(MAXINT)
 
         # Test when min > max:
         e = raises(ValueError, self.cls, 'my_number', minvalue=22, maxvalue=15)
@@ -1233,7 +1234,7 @@ class test_Int(ClassChecker):
         """
         o = self.cls('my_number')
         # Assure invalid inputs raise error
-        for bad in ['hello', u'hello', True, None, '10', u'', u'.']:
+        for bad in ['hello', u'hello', True, None, u'', u'.']:
             e = raises(errors.ConversionError, o._convert_scalar, bad)
             assert e.name == 'my_number'
             assert e.index is None
