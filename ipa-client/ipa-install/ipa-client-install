@@ -81,6 +81,8 @@ def parse_options():
                       help="create home directories for users on their first login", default=False)
     parser.add_option("", "--uninstall", dest="uninstall", action="store_true",
                       default=False, help="uninstall an existing installation")
+    parser.add_option("", "--hostname", dest="hostname",
+                      help="The hostname of this server (FQDN). By default of nodename from uname(2) is used.")
 
     options, args = parser.parse_args()
     safe_opts = parser.get_safe_opts(options)
@@ -643,6 +645,9 @@ def main():
             join_args = ["/usr/sbin/ipa-join", "-s", cli_server]
             if options.debug:
                 join_args.append("-d")
+            if options.hostname:
+                join_args.append("-h")
+                join_args.append(options.hostname)
             if options.principal is not None:
                 stdin = None
                 principal = options.principal
