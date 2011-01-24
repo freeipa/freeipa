@@ -800,6 +800,8 @@ class LDAPUpdate(LDAPQuery, crud.Update):
         rdnupdate = False
         try:
             if self.obj.rdnattr and 'rename' in options:
+                if not options['rename']:
+                    raise errors.ValidationError(name='rename', error=u'can\'t be empty')
                 entry_attrs[self.obj.rdnattr] = options['rename']
 
             if self.obj.rdnattr and self.obj.rdnattr in entry_attrs:
