@@ -23,6 +23,7 @@ Base classes for LDAP plugins.
 import re
 import json
 import time
+from copy import deepcopy
 
 from ipalib import api, crud, errors
 from ipalib import Method, Object
@@ -504,7 +505,7 @@ class LDAPCreate(CallbackInterface, crud.Create):
         ldap = self.obj.backend
 
         entry_attrs = self.args_options_2_entry(*keys, **options)
-        entry_attrs['objectclass'] = self.obj.object_class
+        entry_attrs['objectclass'] = deepcopy(self.obj.object_class)
 
         if self.obj.object_class_config:
             config = ldap.get_ipa_config()[1]

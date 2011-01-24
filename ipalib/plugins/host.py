@@ -323,15 +323,15 @@ class host_add(LDAPCreate):
             entry_attrs['krbprincipalname'] = 'host/%s@%s' % (
                 keys[-1], self.api.env.realm
             )
+            if 'krbprincipalaux' not in entry_attrs:
+                entry_attrs['objectclass'].append('krbprincipalaux')
             if 'krbprincipal' not in entry_attrs:
                 entry_attrs['objectclass'].append('krbprincipal')
-            if 'krbprincipal' not in entry_attrs:
-                entry_attrs['objectclass'].append('krbprincipalaux')
         else:
-            if 'krbprincipal' in entry_attrs['objectclass']:
-                entry_attrs['objectclass'].remove('krbprincipal')
             if 'krbprincipalaux' in entry_attrs['objectclass']:
                 entry_attrs['objectclass'].remove('krbprincipalaux')
+            if 'krbprincipal' in entry_attrs['objectclass']:
+                entry_attrs['objectclass'].remove('krbprincipal')
         if 'random' in options:
             if options.get('random'):
                 entry_attrs['userpassword'] = ipa_generate_password()
