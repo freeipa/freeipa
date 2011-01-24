@@ -58,6 +58,7 @@ from ipapython.ipautil import *
 from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
 
+DEF_DS_USER = 'dirsrv'
 
 pw_name = None
 uninstalling = False
@@ -154,9 +155,11 @@ def parse_options():
             options.admin_password or options.master_password):
             parser.error("In uninstall mode, -u, r and -P options are not allowed")
     elif options.unattended:
-        if (not options.ds_user or not options.realm_name or
+        if not options.ds_user:
+            options.ds_user = DEF_DS_USER
+        if (not options.realm_name or
             not options.dm_password or not options.admin_password):
-            parser.error("In unattended mode you need to provide at least -u, -r, -p and -a options")
+            parser.error("In unattended mode you need to provide at least -r, -p and -a options")
         if options.setup_dns:
             if not options.forwarders and not options.no_forwarders:
                 parser.error("You must specify at least one --forwarder option or --no-forwarders option")
@@ -313,19 +316,19 @@ def read_ds_user():
 
     ds_user = ""
     try:
-        pwd.getpwnam('dirsrv')
+        pwd.getpwnam(DEF_DS_USER)
 
-        print "A user account named 'dirsrv' already exists. This is the user id"
-        print "that the Directory Server will run as."
+        print "A user account named %s already exists." % DEF_DS_USER
+        print "This is the user id that the Directory Server will run as."
         print ""
-        if user_input("Do you want to use the existing 'dirsrv' account?", True):
-            ds_user = "dirsrv"
+        if user_input("Do you want to use the existing %s account?" % DEF_DS_USER, True):
+            ds_user = DEF_DS_USER
         else:
             print ""
             ds_user = user_input_plain("Which account name do you want to use for the DS instance?", allow_empty = False, allow_spaces = False)
         print ""
     except KeyError:
-        ds_user = "dirsrv"
+        ds_user = DEF_DS_USER
 
     return ds_user
 
