@@ -101,7 +101,7 @@ def parse_options():
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
     parser.add_option("--no-reverse", dest="no_reverse", action="store_true",
                       default=False, help="Do not create reverse DNS zone")
-    parser.add_option("--zonemgr", dest="zonemgr", 
+    parser.add_option("--zonemgr", dest="zonemgr",
                       help="DNS zone manager e-mail address. Defaults to root")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
                       default=False, help="unattended installation never prompts the user")
