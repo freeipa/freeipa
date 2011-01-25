@@ -283,6 +283,10 @@ span.attrhint {
     background-position: -176px -97px;
 }
 
+.ui-dialog .ui-dialog-titlebar-close span {
+	background-color: none !important;
+}
+
 .ui-widget-content .ui-icon {
   //background-image: url("ui-icons_222222_256x240.png");
     background-color: #e2e2e2;
@@ -305,6 +309,22 @@ span.attrhint {
     font-weight: bold;
 }
 
+.ui-dialog .ui-dialog-buttonpane button {
+    cursor: pointer;
+    margin: 0.5em 0.4em 0.5em 0;
+    padding: 0.1em 0.2em;
+}
+
+.ui-dialog .ui-dialog-buttonpane {
+    background-image: none;
+    border-width: 1px 0 0;
+    padding: 0.3em 1em 0.5em 0.4em;
+    text-align: left;
+}
+
+//.ui-dialog .ui-dialog-content {
+	min-height: 26em !important;
+}//
 
 .ui-widget input, .ui-widget select,
 .ui-widget textarea, .ui-widget button {
@@ -607,6 +627,7 @@ a.action-button-disabled {
     padding-left: 0.5em;
 }
 
+
 .search-table th{
     padding-left: 0.5em;
     background-color:#f6f6f6;
@@ -706,7 +727,14 @@ dl.modal dd {
     margin-left: 0.8em;
 }
 
+#dns-record-resource-filter {
+	padding: 0em 1em;
+	margin: 0 1em;	
+}
 
+#dns-record-type-filter {
+	margin: 0 1em 0 0.5em;
+}
 
 .ui-widget-content {
 border:0;
@@ -723,6 +751,7 @@ table.scrollable tbody {
 
 .adder-dialog-filter {
     height: 2.5em;
+	padding-top: 0.7em;
 }
 
 .adder-dialog-results {
@@ -731,30 +760,34 @@ table.scrollable tbody {
 }
 
 .adder-dialog-available {
-    border: 1px solid black;
+    background-color: #ffffff;
+	border: none;
     position: absolute;
     top: 0;
     left: 0;
     bottom: 0;
-    width: 25.0em;
-}
-
-.adder-dialog-buttons {
-    position: absolute;
-    top: 1.5em;
-    left: 23.35em;
-    right: 25;
-    bottom: 0;
-    text-align: center;
+    width: 23em;
+	padding-top: 1em;
 }
 
 .adder-dialog-selected {
-    border: 1px solid black;
+    background-color: #ffffff;
+	border: none;
     position: absolute;
     top: 0;
     right: 0;
     bottom: 0;
     width: 23em;
+	padding-top: 1em;
+}
+
+.adder-dialog-buttons {
+    position: absolute;
+    top: 7.5em;
+	left: 23.7em;
+    right: 25;
+    bottom: 0;
+    text-align: center;
 }
 
 .adder-dialog-internal {
