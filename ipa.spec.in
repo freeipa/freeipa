@@ -69,9 +69,7 @@ Requires: 389-ds-base >= 1.2.7.4
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
-%if 0%{?fedora} >= 12 || 0%{?rhel} >= 6
 Requires: krb5-server
-%endif
 Requires: krb5-server-ldap
 Requires: krb5-pkinit-openssl
 Requires: cyrus-sasl-gssapi
@@ -79,19 +77,13 @@ Requires: ntp
 Requires: httpd
 Requires: mod_wsgi
 Requires: mod_auth_kerb
-%if 0%{?fedora} >= 12 || 0%{?rhel} >= 6
 Requires: mod_nss
-%endif
 Requires: python-ldap
 Requires: python-krbV
 Requires: acl
 Requires: python-pyasn1 >= 0.0.9a
 Requires: libcap
-%{?fc12:Requires: selinux-policy >= 3.6.32-123}
-%{?fc13:Requires: selinux-policy >= 3.7.19-40}
-%if 0%{?fedora} >= 14 || 0%{?rhel} >= 6
 Requires: selinux-policy
-%endif
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.21
 Requires: pki-ca >= 9.0.0
@@ -131,12 +123,10 @@ Requires: python-ldap
 Requires: cyrus-sasl-gssapi
 Requires: ntp
 Requires: krb5-workstation
-Requires: krb5-libs
 Requires: authconfig
 Requires: pam_krb5
 Requires: wget
 Requires: xmlrpc-c
-Requires: libcurl
 Requires: sssd >= 1.2.1
 Requires: certmonger >= 0.26
 Requires: nss-tools
@@ -196,11 +186,7 @@ export CPPFLAGS="$CPPFLAGS %{optflags}"
 make version-update
 cd ipa-client; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 %if ! %{ONLY_CLIENT}
-%if 0%{?fedora} >= 14 || 0%{?rhel} >= 6
 cd daemons; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir} --with-openldap; cd ..
-%else
-cd daemons; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
-%endif
 cd install; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 %endif
 
@@ -248,19 +234,19 @@ ln -s ../../../..%{_sysconfdir}/ipa/html/unauthorized.html \
     %{buildroot}%{_usr}/share/ipa/html/unauthorized.html
 
 # So we can own our Apache configuration
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/
-/bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/ipa.conf
-/bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
-install -m755 ipa.init $RPM_BUILD_ROOT%{_initrddir}/ipa
+mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d/
+/bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa.conf
+/bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
+install -m755 ipa.init %{buildroot}%{_initrddir}/ipa
 %endif
 
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ipa/
-/bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/ipa/default.conf
+mkdir -p %{buildroot}%{_sysconfdir}/ipa/
+/bin/touch %{buildroot}%{_sysconfdir}/ipa/default.conf
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
 
 %if ! %{ONLY_CLIENT}
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/bash_completion.d
-install -pm 644 contrib/completion/ipa.bash_completion $RPM_BUILD_ROOT%{_sysconfdir}/bash_completion.d/ipa
+mkdir -p %{buildroot}%{_sysconfdir}/bash_completion.d
+install -pm 644 contrib/completion/ipa.bash_completion %{buildroot}%{_sysconfdir}/bash_completion.d/ipa
 %endif
 
 %clean
@@ -335,8 +321,8 @@ fi
 
 %if ! %{ONLY_CLIENT}
 %files server
-%doc COPYING README Contributors.txt
 %defattr(-,root,root,-)
+%doc COPYING README Contributors.txt
 %{_sbindir}/ipa-dns-install
 %{_sbindir}/ipa-server-install
 %{_sbindir}/ipa-replica-install
@@ -407,18 +393,16 @@ fi
 %{_mandir}/man1/ipa-dns-install.1.gz
 %{_mandir}/man8/ipa_kpasswd.8.gz
 %{_mandir}/man8/ipactl.8.gz
-%{_mandir}/man1/ipa-compat-manage.1.gz
-%{_mandir}/man1/ipa-nis-manage.1.gz
-%{_mandir}/man1/ipa-host-net-manage.1.gz
-%{_mandir}/man1/ipa-ldap-updater.1.gz
 
 %files server-selinux
+%defattr(-,root,root,-)
 %{_usr}/share/selinux/targeted/ipa_kpasswd.pp
 %{_usr}/share/selinux/targeted/ipa_httpd.pp
 %{_usr}/share/selinux/targeted/ipa_dogtag.pp
 %endif
 
 %files client
+%defattr(-,root,root,-)
 %doc COPYING README Contributors.txt
 %{_sbindir}/ipa-client-install
 %{_sbindir}/ipa-getkeytab
@@ -439,8 +423,8 @@ fi
 
 %if ! %{ONLY_CLIENT}
 %files admintools
-%doc COPYING README Contributors.txt
 %defattr(-,root,root,-)
+%doc COPYING README Contributors.txt
 %{_bindir}/ipa
 %{_sbindir}/ipa-ldap-updater
 %{_sbindir}/ipa-compat-manage
@@ -448,11 +432,15 @@ fi
 %{_sbindir}/ipa-host-net-manage
 %{_sysconfdir}/bash_completion.d
 %{_mandir}/man1/ipa.1.gz
+%{_mandir}/man1/ipa-compat-manage.1.gz
+%{_mandir}/man1/ipa-nis-manage.1.gz
+%{_mandir}/man1/ipa-host-net-manage.1.gz
+%{_mandir}/man1/ipa-ldap-updater.1.gz
 %endif
 
 %files python -f %{gettext_domain}.lang
-%doc COPYING README Contributors.txt
 %defattr(-,root,root,-)
+%doc COPYING README Contributors.txt
 %dir %{python_sitelib}/ipapython
 %{python_sitelib}/ipapython/*.py*
 %dir %{python_sitelib}/ipalib
@@ -466,9 +454,15 @@ fi
 %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Tue Jan 25 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-41
+- Re-arrange doc and defattr to clean up rpmlint warnings
+- Remove conditionals on older releases
+- Move some man pages into admintools subpackage
+- Remove some explicit Requires in client that aren't needed
+- Consistent use of buildroot vs RPM_BUILD_ROOT
+
 * Thu Jan 19 2011 Adam Young <ayoung@redhat.com> - 1.99-40
 - Moved directory install/static to install/ui
-
 
 * Thu Jan 13 2011 Simo Sorce <ssorce@redhat.com> - 1.99-39
 - Remove dependency on nss_ldap/nss-pam-ldapd
