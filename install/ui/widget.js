@@ -1191,7 +1191,6 @@ IPA.adder_dialog = function (spec) {
         button = $('input[name=remove]', that.container);
         that.remove_button = IPA.button({
             'label': button.val(),
-            'icon': 'ui-icon-trash',
             'click': function() {
                 that.remove();
             }
@@ -1201,7 +1200,6 @@ IPA.adder_dialog = function (spec) {
         button = $('input[name=add]', that.container);
         that.add_button = IPA.button({
             'label': button.val(),
-            'icon': 'ui-icon-plus',
             'click': function() {
                 that.add();
             }
