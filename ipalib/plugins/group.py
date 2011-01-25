@@ -160,7 +160,7 @@ class group_del(LDAPDelete):
         def_primary_group = config.get('ipadefaultprimarygroup', '')
         def_primary_group_dn = group_dn = self.obj.get_dn(def_primary_group)
         if dn == def_primary_group_dn:
-            raise errors.DefaultGroup()
+            raise errors.DefaultGroupError()
         group_attrs = self.obj.methods.show(
             self.obj.get_primary_key_from_dn(dn), all=True
         )['result']

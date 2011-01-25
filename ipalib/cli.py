@@ -620,17 +620,6 @@ class help(frontend.Local):
         if module == __name__:
             return
         return module.split('.')[-1]
-        # get representation in the form of 'base_module.bare_module.command()'
-        r = repr(cmd_plugin_proxy)
-        # skip base module part and the following dot
-        start = r.find(self._PLUGIN_BASE_MODULE)
-        if start == -1:
-            # command module isn't a plugin module, it's a builtin
-            return None
-        start += len(self._PLUGIN_BASE_MODULE) + 1
-        # parse bare module name
-        end = r.find('.', start)
-        return r[start:end]
 
     def _get_module_topic(self, module_name):
         if not sys.modules[module_name]:

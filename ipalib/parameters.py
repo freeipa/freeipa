@@ -1532,6 +1532,13 @@ class AccessTime(Str):
         if value < 1 or value > 52:
             raise ValueError('week of the year out of range')
 
+    def _check_doty(self, t):
+        if not t.isnumeric():
+            raise ValueError('day of the year non-numeric')
+        value = int(t)
+        if value < 1 or value > 365:
+            raise ValueError('day of the year out of range')
+
     def _check_month_num(self, t):
         if not t.isnumeric():
             raise ValueError('month number non-numeric')

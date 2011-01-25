@@ -693,13 +693,13 @@ class Command(HasParam):
         If the client minor version is less than or equal to the server
         then let the request proceed.
         """
+        server_ver = version.LooseVersion(API_VERSION)
         ver = version.LooseVersion(client_version)
         if len(ver.version) < 2:
             raise VersionError(cver=ver.version, sver=server_ver.version, server= self.env.xmlrpc_uri)
         client_major = ver.version[0]
         client_minor = ver.version[1]
 
-        server_ver = version.LooseVersion(API_VERSION)
         server_major = server_ver.version[0]
         server_minor = server_ver.version[1]
 

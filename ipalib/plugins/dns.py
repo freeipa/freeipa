@@ -369,7 +369,7 @@ class dnsrecord(LDAPObject):
         ),
     )
 
-    def is_pkey_zone_record(*keys):
+    def is_pkey_zone_record(self, *keys):
         idnsname = keys[-1]
         if idnsname == '@' or idnsname == ('%s.' % keys[-2]):
             return True

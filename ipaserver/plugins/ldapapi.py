@@ -25,7 +25,6 @@ This wraps the python-ldap bindings.
 """
 
 import ldap as _ldap
-import ldap.dn
 from ipalib import api
 from ipalib import errors
 from ipalib.crud import CrudBackend
@@ -442,10 +441,5 @@ class ldap(CrudBackend):
             results.append(r)
 
         return results
-
-    def get_effective_rights(self, dn, attrs=None):
-        binddn = self.find_entry_dn("krbprincipalname", self.conn.principal, "posixAccount")
-
-        return servercore.get_effective_rights(binddn, dn, attrs)
 
 api.register(ldap)

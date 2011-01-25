@@ -1519,9 +1519,7 @@ class ra(rabase.rabase):
         """
         self.debug('%s.revoke_certificate()', self.fullname)
         if type(revocation_reason) is not int:
-            raise TYPE_ERROR('revocation_reason', int, revocation_reason,
-                type(revocation_reason)
-            )
+            raise TypeError(TYPE_ERROR % ('revocation_reason', int, revocation_reason, type(revocation_reason)))
 
         # Convert serial number to integral type from string to properly handle
         # radix issues. Note: the int object constructor will properly handle large

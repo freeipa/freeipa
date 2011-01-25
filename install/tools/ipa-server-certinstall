@@ -141,7 +141,7 @@ def main():
             set_ds_cert_name(server_cert[0], dm_password)
 
         if options.http:
-            dirname = httpinstance.NSS_DIR
+            dirname = certs.NSS_DIR
             server_cert = import_cert(dirname, pkcs12_fname, options.http_pin, "")
             installutils.set_directive(httpinstance.NSS_CONF, 'NSSNickname', server_cert[0])
 

@@ -611,8 +611,6 @@ class IPAdmin(SimpleLDAPObject):
         while not entry and int(time.time()) < timeout:
             try:
                 entry = self.getEntry(dn, scope, filter, attrlist)
-            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-                pass # found entry, but no attr
             except ldap.NO_SUCH_OBJECT:
                 pass # no entry yet
             except ldap.LDAPError, e: # badness

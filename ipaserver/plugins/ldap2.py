@@ -308,7 +308,7 @@ class ldap2(CrudBackend, Encoder):
             _ldap.set_option(_ldap.OPT_X_TLS_KEYFILE, tls_keyfile)
 
         if debug_level:
-            _ldap.set_option(_ldap.OPT_X_DEBUG_LEVEL, debug_level)
+            _ldap.set_option(_ldap.OPT_DEBUG_LEVEL, debug_level)
 
         try:
             conn = _ldap.initialize(self.ldap_uri)

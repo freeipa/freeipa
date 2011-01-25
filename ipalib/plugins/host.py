@@ -437,7 +437,6 @@ class host_del(LDAPDelete):
                     break
             if not match:
                 raise errors.NotFound(reason=_('DNS zone %(zone)s not found' % dict(zone=domain)))
-                raise e
             # Get all forward resources for this host
             records = api.Command['dnsrecord_find'](domain, idnsname=parts[0])['result']
             for record in records:

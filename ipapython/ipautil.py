@@ -41,9 +41,6 @@ import datetime
 from ipapython import config
 try:
     from subprocess import CalledProcessError
-    class CalledProcessError(subprocess.CalledProcessError):
-        def __init__(self, returncode, cmd):
-            super(CalledProcessError, self).__init__(returncode, cmd)
 except ImportError:
     # Python 2.4 doesn't implement CalledProcessError
     class CalledProcessError(Exception):
@@ -876,6 +873,7 @@ class ItemCompleter:
         self.items = items
         self.initial_input = None
         self.item_delims = ' \t,'
+        self.operator = '='
         self.split_re = re.compile('[%s]+' % self.item_delims)
 
     def open(self):

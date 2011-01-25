@@ -82,7 +82,7 @@ def verify_dns_records(host_name, responses, resaddr, family):
 
     rs = dnsclient.query(dns_addr.reverse_dns, dnsclient.DNS_C_IN, dnsclient.DNS_T_PTR)
     if len(rs) == 0:
-        raise RuntimeError("Cannot find Reverse Address for %s (%s)" % (host_name, addr))
+        raise RuntimeError("Cannot find Reverse Address for %s (%s)" % (host_name, dns_addr.format()))
 
     rev = None
     for rsn in rs:
@@ -91,7 +91,7 @@ def verify_dns_records(host_name, responses, resaddr, family):
             break
 
     if rev == None:
-        raise RuntimeError("Cannot find Reverse Address for %s (%s)" % (host_name, addr))
+        raise RuntimeError("Cannot find Reverse Address for %s (%s)" % (host_name, dns_addr.format()))
 
     if rec.dns_name != rev.rdata.ptrdname:
         raise RuntimeError("The DNS forward record %s does not match the reverse address %s" % (rec.dns_name, rev.rdata.ptrdname))

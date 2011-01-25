@@ -439,8 +439,8 @@ def main():
 
     # We ned to ldap_enable the CA now that DS is up and running
     if CA:
-        CA.ldap_enable('CA', host_name, dm_password,
-                       util.realm_to_suffix(self.realm_name))
+        CA.ldap_enable('CA', config.host_name, config.dirman_password,
+                       util.realm_to_suffix(config.realm_name))
 
     install_krb(config, setup_pkinit=options.setup_pkinit)
     install_http(config)

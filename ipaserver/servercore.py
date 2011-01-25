@@ -168,14 +168,6 @@ def get_entry_by_cn (cn, sattrs):
     searchfilter = "(cn=%s)" % cn
     return get_sub_entry("cn=accounts," + api.env.basedn, searchfilter, sattrs)
 
-def get_user_by_uid(uid, sattrs):
-    """Get a specific user's entry."""
-    # FIXME: should accept a container to look in
-#    uid = self.__safe_filter(uid)
-    searchfilter = "(&(uid=%s)(objectclass=posixAccount))" % uid
-
-    return get_sub_entry("cn=accounts," + api.env.basedn, searchfilter, sattrs)
-
 # User support
 
 def entry_exists(dn):

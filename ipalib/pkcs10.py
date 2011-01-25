@@ -83,8 +83,6 @@ if __name__ == '__main__':
     # Read PEM request from stdin and print out its components
 
     csrlines = sys.stdin.readlines()
-    csrlines = fp.readlines()
-    fp.close()
     csr = ''.join(csrlines)
 
     csr = load_certificate_request(csr)
