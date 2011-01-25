@@ -195,6 +195,22 @@ class config_mod(LDAPUpdate):
                 api.Command['group_show'](group)
             except errors.NotFound:
                 raise errors.NotFound(message=unicode("The group doesn't exist"))
+        kw = {}
+        if 'ipausersearchfields' in entry_attrs:
+            kw['ipausersearchfields'] = 'ipauserobjectclasses'
+        if 'ipagroupsearchfields' in entry_attrs:
+            kw['ipagroupsearchfields']  = 'ipagroupobjectclasses'
+        if kw:
+            config = ldap.get_ipa_config(kw.values())
+            for (k, v) in kw.iteritems():
+                allowed_attrs = ldap.get_allowed_attributes(config[1][v])
+                fields = entry_attrs[k].split(',')
+                for a in fields:
+                    a = a.strip()
+                    if a not in allowed_attrs:
+                        raise errors.ValidationError(
+                            name=k, error='attribute "%s" not allowed' % a
+                        )
         return dn
 
 api.register(config_mod)
