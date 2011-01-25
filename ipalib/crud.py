@@ -141,7 +141,13 @@ class Create(Method):
         for option in self.obj.params_minus(self.args):
             if 'no_create' in option.flags:
                 continue
-            yield option.clone(attribute=True)
+            if 'ask_create' in option.flags:
+                yield option.clone(
+                    attribute=True, query=True, required=False,
+                    autofill=False, alwaysask=True
+                )
+            else:
+                yield option.clone(attribute=True)
         if not self.extra_options_first:
             for option in super(Create, self).get_options():
                 yield option
@@ -179,7 +185,13 @@ class Update(PKQuery):
         for option in self.obj.params_minus_pk():
             if 'no_update' in option.flags:
                 continue
-            yield option.clone(attribute=True, required=False, autofill=False)
+            if 'ask_update' in option.flags:
+                yield option.clone(
+                    attribute=True, query=True, required=False,
+                    autofill=False, alwaysask=True
+                )
+            else:
+                yield option.clone(attribute=True, required=False, autofill=False)
         if not self.extra_options_first:
             for option in super(Update, self).get_options():
                 yield option
@@ -210,7 +222,12 @@ class Search(Method):
         for option in self.obj.params_minus(self.args):
             if 'no_search' in option.flags:
                 continue
-            if isinstance(option, parameters.Flag):
+            if 'ask_search' in option.flags:
+                yield option.clone(
+                    attribute=True, query=True, required=False,
+                    autofill=False, alwaysask=True
+                )
+            elif isinstance(option, parameters.Flag):
                 yield option.clone_retype(
                     option.name, parameters.Bool,
                     attribute=True, query=True, required=False, autofill=False
