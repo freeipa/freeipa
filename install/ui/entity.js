@@ -480,6 +480,8 @@ IPA. facet_create_action_panel = function(container) {
         });
         return li;
     }
+
+
     /*Note, for debugging purposes, it is useful to set var pkey_type = 'text';*/
     var pkey_type = 'hidden';
     $('<input/>', {
@@ -502,19 +504,24 @@ IPA. facet_create_action_panel = function(container) {
               do not have search*/
             if (entity.facets.length > 0 ){
                 if ( entity.facets[0].name === IPA.current_facet( entity)){
-                    ul.append($('<li><span class="action-controls"/></li>'));
+                    if (nested_tabs.length > 1 ){
+                        main_facet.html(IPA.selected_icon +
+                                IPA.metadata[nested_tabs[nested_index]].label);
 
-                }else{
-                    main_facet.html(
-                        $('<span />',{
-                            "class":"input_link"
-                        }).
-                            append(IPA.back_icon + '  Back to List '));
+                        main_facet.addClass('entity-facet-selected');
+                        main_facet.appendTo(ul);
+                    }
+                    ul.append($('<li><span class="action-controls"/></li>'));
+                } else {
+                        main_facet.html(
+                            $('<span />',{
+                                "class":"input_link"
+                            }).
+                                append(IPA.back_icon + '  Back to List '));
                     main_facet.addClass('back-to-search');
                     main_facet.appendTo(ul);
                 }
                 ul.append($('<li><hr/></li>'));
-
             }
             var facet_groups = {};
             var li;
@@ -562,6 +569,9 @@ IPA. facet_create_action_panel = function(container) {
                     innerlist.append(facet_link);
                     if ( other_facet.name === IPA.current_facet( entity)){
 
+                        var text = facet_link.text();
+                        facet_link.html(IPA.selected_icon +  text);
+                        facet_link.addClass('entity-facet-selected');
                         innerlist.append($('<li class="entity-facet"><span class="action-controls"  /></li>'));
                     }
                 }
