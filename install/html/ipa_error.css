@@ -8,11 +8,11 @@
 */
 
 
-@font-face {font-family: "FreeWay"; src:url("FreeWay.otf");}
-@font-face {font-family: "FreeWayBold"; src:url("FreeWay-Bold.otf");}
+@font-face {font-family: "FreeWay"; src:url("../ui/FreeWay.otf");}
+@font-face {font-family: "FreeWayBold"; src:url("../ui/FreeWay-Bold.otf");}
 
 body{
-    background-image:url("outer-bg.png");
+    background-image:url("../ui/outer-bg.png");
     background-repeat:repeat-x; 
     background-position:left top;
     background-color:#F9F9F9;
@@ -231,7 +231,7 @@ span.attrhint {
     padding-top: 2em;
     margin: 0;
     border: none;
-    background-image: url("Mainnav-background.png");
+    background-image: url("../ui/Mainnav-background.png");
     -moz-border-radius: 0;
 }
 
@@ -254,7 +254,7 @@ span.attrhint {
 }
 
 .ui-widget-content .ui-icon {
-    background-image: url("ui-icons_222222_256x240.png");
+    background-image: url("../ui/ui-icons_222222_256x240.png");
     background-color: #e2e2e2;
 }
 
@@ -269,7 +269,7 @@ span.attrhint {
 }
 
 .ui-widget-header {
-    background: url("modal-background.png")     repeat scroll 50% 50% #1f9123;
+    background: url("../ui/modal-background.png")     repeat scroll 50% 50% #1f9123;
     border: 1px solid #244c16;
     color: #EEEEEE;
     font-weight: bold;
@@ -296,7 +296,7 @@ span.attrhint {
 
 .tabs1 .ui-tabs-nav li {
     -moz-border-radius: 0 !important;
-    background-image: url("Mainnav-offtab.png");
+    background-image: url("../ui/Mainnav-offtab.png");
     margin: 0;
     border-width: 0;
     text-align: center;
@@ -305,7 +305,7 @@ span.attrhint {
 
 .tabs1 .ui-tabs-nav li.ui-tabs-selected {
     padding: 0 0;
-    background-image: url("Mainnav-ontab.png");
+    background-image: url("../ui/Mainnav-ontab.png");
     text-align: center;
     margin: 0;
 }
@@ -342,7 +342,7 @@ span.attrhint {
     padding:  0.3em 6em 0  4em;
     margin: 0;
     height:  2.4em;
-    background-image: url("Subnav-background.png");
+    background-image: url("../ui/Subnav-background.png");
 }
 
 .tabs2 .ui-tabs-nav li {
@@ -423,7 +423,7 @@ span.main-separator{
     padding-left: 0;
     position: fixed;
     width: 18em;
-    background-image:url("panel-background.png");
+    background-image:url("../ui/panel-background.png");
     background-repeat:no-repeat;
     background-position:right;
 }
@@ -525,14 +525,14 @@ span.main-separator{
 /* Migration */
 
 body#header-bg {
-    background: url("Static-Background.png") repeat-x scroll left top #EDEDED;
+    background: url("../ui/Static-Background.png") repeat-x scroll left top #EDEDED;
 }
    
 .container_1 {
     margin-left: auto;
     margin-right: auto;
     width: 960px;
-	background: url("centered-bg.png") no-repeat scroll 0 7em transparent;
+	background: url("../ui/centered-bg.png") no-repeat scroll 0 7em transparent;
 	min-height: 40em;
 }
 
@@ -561,7 +561,7 @@ body#header-bg {
 }
 
 .# {
-    background: url("ipalogo.png") no-repeat scroll left top transparent;
+    background: url("../ui/ipalogo.png") no-repeat scroll left top transparent;
     border: none;
     float: left;
     height: 36px;

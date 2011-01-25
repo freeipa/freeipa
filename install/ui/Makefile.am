@@ -12,6 +12,7 @@ app_DATA =                              \
 	add.js				\
 	associate.js			\
 	caution.png			\
+	centered-bg.png                 \
 	check.png			\
 	ipa_logo_180x50.png		\
 	ipa.js				\

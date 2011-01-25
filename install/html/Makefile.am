@@ -3,7 +3,9 @@ NULL =
 appdir = $(IPA_SYSCONF_DIR)/html
 app_DATA =                              \
 	ssbrowser.html			\
-	unauthorized.html		\
+	browserconfig.html       	\
+	unauthorized.html       	\
+	ipa_error.css			\
 	$(NULL)
 
 EXTRA_DIST =                            \

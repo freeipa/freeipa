@@ -240,6 +240,10 @@ ln -s ../../../..%{_sysconfdir}/ipa/html/ssbrowser.html \
     %{buildroot}%{_usr}/share/ipa/html/ssbrowser.html
 ln -s ../../../..%{_sysconfdir}/ipa/html/unauthorized.html \
     %{buildroot}%{_usr}/share/ipa/html/unauthorized.html
+ln -s ../../../..%{_sysconfdir}/ipa/html/browserconfig.html \
+    %{buildroot}%{_usr}/share/ipa/html/browserconfig.html
+ln -s ../../../..%{_sysconfdir}/ipa/html/ipa_error.css \
+    %{buildroot}%{_usr}/share/ipa/html/ipa_error.css
 
 # So we can own our Apache configuration
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d/
@@ -351,12 +355,14 @@ fi
 %{_usr}/share/ipa/*.template
 %dir %{_usr}/share/ipa/html
 %{_usr}/share/ipa/html/ssbrowser.html
+%{_usr}/share/ipa/html/browserconfig.html
 %{_usr}/share/ipa/html/unauthorized.html
+%{_usr}/share/ipa/html/ipa_error.css
 %dir %{_usr}/share/ipa/migration
 %{_usr}/share/ipa/migration/error.html
 %{_usr}/share/ipa/migration/index.html
 %{_usr}/share/ipa/migration/invalid.html
-%{_usr}/share/ipa/migration/migration.css
+%{_usr}/share/ipa/migration/ipa_migration.css
 %{_usr}/share/ipa/migration/migration.py*
 %dir %{_usr}/share/ipa/ui
 %{_usr}/share/ipa/ui/index.html
@@ -371,7 +377,9 @@ fi
 %dir %{_sysconfdir}/ipa
 %dir %{_sysconfdir}/ipa/html
 %config(noreplace) %{_sysconfdir}/ipa/html/ssbrowser.html
+%config(noreplace) %{_sysconfdir}/ipa/html/ipa_error.css
 %config(noreplace) %{_sysconfdir}/ipa/html/unauthorized.html
+%config(noreplace) %{_sysconfdir}/ipa/html/browserconfig.html
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa.conf
