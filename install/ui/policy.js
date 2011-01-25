@@ -333,13 +333,13 @@ IPA.records_facet = function (spec){
             "class":"action-controls"}).appendTo(action_panel_ul);
 
 
-        IPA.button({
+        IPA.action_button({
             'label': IPA.messages.button.add,
             'icon': 'ui-icon-plus',
             'click': add_click
         }).appendTo(action_controls);
 
-        IPA.button({
+        IPA.action_button({
             'label': IPA.messages.button.remove,
             'icon': 'ui-icon-trash',
             'click': function(){delete_records(records_table);}
