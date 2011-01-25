@@ -447,8 +447,8 @@ IPA.nested_tabs = function(entity_name){
     return siblings;
 };
 
-IPA.selected_icon = '&#x25B6; ';
-IPA.back_icon = '&#x25C0; ';
+IPA.selected_icon = '<span class="ipa-icon">&#x25B6;</span>';
+IPA.back_icon = '<span class="ipa-icon">&#x25C0;</span>';
 
 IPA. facet_create_action_panel = function(container) {
 
@@ -569,7 +569,7 @@ IPA. facet_create_action_panel = function(container) {
                     innerlist.append(facet_link);
                     if ( other_facet.name === IPA.current_facet( entity)){
 
-                        var text = facet_link.text();
+                        text = facet_link.text();
                         facet_link.html(IPA.selected_icon +  text);
                         facet_link.addClass('entity-facet-selected');
                         innerlist.append($('<li class="entity-facet"><span class="action-controls"  /></li>'));
