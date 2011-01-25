@@ -266,6 +266,16 @@ class ldap2(CrudBackend, Encoder):
         else:
             return None
 
+    def get_allowed_attributes(self, objectclasses):
+        if not self.schema:
+            return []
+        allowed_attributes = []
+        for oc in objectclasses:
+            obj = self.schema.get_obj(_ldap.schema.ObjectClass, oc)
+            if obj is not None:
+                allowed_attributes += obj.must + obj.may
+        return [unicode(a).lower() for a in list(set(allowed_attributes))]
+
     def get_single_value(self, attr):
         """
         Check the schema to see if the attribute is single-valued.
@@ -597,15 +607,19 @@ class ldap2(CrudBackend, Encoder):
         Keyword arguments:
         attrs_list - list of attributes to return, all if None (default None)
         """
-        return self.find_entries(None, attrs_list, dn, self.SCOPE_BASE, time_limit=time_limit, size_limit=size_limit, normalize=normalize)[0][0]
+        return self.find_entries(
+            None, attrs_list, dn, self.SCOPE_BASE, time_limit=time_limit,
+            size_limit=size_limit, normalize=normalize
+        )[0][0]
 
     config_defaults = {'ipasearchtimelimit': [2], 'ipasearchrecordslimit': [0]}
-    def get_ipa_config(self):
+    def get_ipa_config(self, attrs_list=None):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
         cdn = "%s,%s" % (api.Object.config.get_dn(), api.env.basedn)
         try:
             (cdn, config_entry) = self.find_entries(
-                base_dn=cdn, scope=self.SCOPE_BASE, time_limit=2, size_limit=10
+                None, attrs_list, base_dn=cdn, scope=self.SCOPE_BASE,
+                time_limit=2, size_limit=10
             )[0][0]
         except errors.NotFound:
             config_entry = {}
