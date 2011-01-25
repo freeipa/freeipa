@@ -42,6 +42,7 @@ IPA.populate_attribute_table = function (table, entity){
             id:'aciattr-'+aciattrs[a].toLowerCase(),
             "class":'aci-attribute'
         }));
+        td =  $('<td/>').appendTo(aci_tr);
         td.append($('<label/>',{
             text:aciattrs[a].toLowerCase()}));
     }
@@ -58,25 +59,23 @@ IPA.attribute_table_widget= function (spec){
         var dd  = $('<dd/>').appendTo(container);
         table =   $('<table/>',{
             id:id,
-            'class':'search-table'}).
+            'class':'search-table aci-attribute-table'}).
             append('<thead/>').
-            append($('<tbody/>',{
-                style:"height:30em;   overflow:auto;"
-            })).
+            append($('<tbody/>')).
             appendTo(dd);
 
-        $('<tr></tr>').
-            append($('<th/>',{
-                style:"height:2em; vertical-align:bottom;",
-                html:$('<input/>',{
-                    type: "checkbox",
-                    click: function(){
-                        $('.aci-attribute').
-                            attr('checked', $(this).attr('checked'));
-                    }}).
-                    after('<label>Attribute</lable>')
-            })).
-            appendTo($('thead', table));
+        var tr = $('<tr></tr>').appendTo($('thead', table));
+        tr.append($('<th/>',{
+            style:"height:2em; vertical-align:bottom;",
+            html:$('<input/>',{
+                type: "checkbox",
+                click: function(){
+                    $('.aci-attribute').
+                        attr('checked', $(this).attr('checked'));
+                }})
+        })).
+            append('<th class="aci-attribute-column">Attribute</th>');
+
         IPA.populate_attribute_table(table, object_type);
     };
 

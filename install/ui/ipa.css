@@ -597,12 +597,13 @@ a.action-button-disabled {
     margin-top: 2em;
 }
 
-.search-table tr:nth-child(even){
-#    background-color:#CCC;
+.aci-attribute-table tbody{
+    height:30em;
+    overflow:auto;
 }
 
-.search-table tr:nth-child(odd){
-#    background-color:#FFF;
+.aci-attribute-table th.aci-attribute-column{
+    width: 25em;
 }
 
 .entity-views{
