@@ -559,8 +559,6 @@ IPA. facet_create_action_panel = function(container) {
                 } else {
                     var innerlist = $('<ul/>').appendTo(ul);
                     var facet_link = build_link(other_facet, other_facet.label);
-                    facet_link.addClass('entity-facet-selected');
-                    facet_link.prepend(IPA.selected_icon);
                     innerlist.append(facet_link);
                     if ( other_facet.name === IPA.current_facet( entity)){
 
