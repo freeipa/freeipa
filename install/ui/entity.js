@@ -434,7 +434,7 @@ IPA.nested_tabs = function(entity_name){
                     IPA.nested_tab_labels[entity_name] =
                         top_tab.children[subtab_index].label;
                     if (top_tab.children[subtab_index].children){
-                        label = top_tab.children[subtab_index].label
+                        label = top_tab.children[subtab_index].label;
                         nested_entities = top_tab.children[subtab_index].children;
                         for ( nested_index = 0;
                               nested_index < nested_entities.length;

@@ -95,6 +95,7 @@ var IPA = ( function () {
                 that.messages = data.result.results[1].messages;
                 that.whoami  = data.result.results[2].result[0];
                 that.env = data.result.results[3].result;
+                that.dns_enabled = data.result.results[4].result;
                 if (on_success) {
                     on_success(data, text_status, xhr);
                 }

@@ -27,7 +27,7 @@
 
 
 IPA.admin_tab_set = function () {
-    return [
+    var tabset = [
         {name:'identity', label: IPA.messages.tabs.identity,  children:[
             {name:'user', entity:'user'},
             {name:'group', entity:'group'},
@@ -37,7 +37,6 @@ IPA.admin_tab_set = function () {
             {name:'service', entity:'service'}
         ]},
         {name:'policy', label: IPA.messages.tabs.policy, children:[
-            {name:'dnszone', entity:'dnszone'},
             {name:'hbacrule', label: IPA.messages.tabs.hbac ,
              entity:'hbacrule', children:[
                 {name:'hbacsvc', entity:'hbacsvc'},
@@ -60,6 +59,14 @@ IPA.admin_tab_set = function () {
             {name:'delegation'  ,entity:'delegation'},
             {name:'config', entity:'config'}
         ]}];
+
+    if (IPA.dns_enabled){
+        tabset[1].children.unshift(
+            {name:'dnszone', entity:'dnszone'}
+        );
+    }
+
+    return tabset;
 };
 
 IPA.self_serv_tab_set = function(){
@@ -139,7 +146,7 @@ $(function() {
             IPA.tab_set = IPA.admin_tab_set();
             nav_create(IPA.tab_set, navigation, 'tabs');
         } else {
-            IPA.tab_set = self_serv_tab_set();
+            IPA.tab_set = IPA.self_serv_tab_set();
             nav_create(IPA.tab_set, navigation, 'tabs');
 
             var state = {'user-pkey':IPA.whoami_pkey ,
