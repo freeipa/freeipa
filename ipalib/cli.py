@@ -47,7 +47,7 @@ import plugable
 import util
 from errors import PublicError, CommandError, HelpError, InternalError, NoSuchNamespaceError, ValidationError, NotFound, NotConfiguredError
 from constants import CLI_TAB
-from parameters import Password, Bytes, File
+from parameters import Password, Bytes, File, Str
 from text import _
 from ipapython.version import API_VERSION
 
@@ -767,6 +767,30 @@ class help(frontend.Local):
                     print '  %s  %s' % (to_cli(c.name).ljust(mcl), c.summary)
             print "\n"
 
+class show_mappings(frontend.Command):
+    takes_args = (
+        Str('command_name',
+            label=_('Command name'),
+        ),
+    )
+    has_output = tuple()
+
+    def run(self, command_name):
+        command_name = from_cli(command_name)
+        if command_name not in self.Command:
+            raise CommandError(name=command_name)
+        params = self.Command[command_name].options
+        out = [('Parameter','LDAP attribute'),
+               ('=========','==============')]
+        mcl = len(out[0][0])
+        for param in params():
+            if param.exclude and 'webui' in param.exclude:
+                continue
+            out.append((param.cli_name, param.param_spec))
+            mcl = max(mcl,len(param.cli_name))
+        for item in out:
+            print to_cli(item[0]).ljust(mcl)+' : '+item[1]
+
 
 class console(frontend.Command):
     """Start the IPA interactive Python console."""
@@ -1045,6 +1069,7 @@ cli_plugins = (
     textui,
     console,
     help,
+    show_mappings,
 )
 
 
