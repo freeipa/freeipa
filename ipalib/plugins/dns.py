@@ -39,6 +39,13 @@ EXAMPLES:
  Add new PTR record for www.example.com
    ipa dnsrecord-add 15.142.80.in-addr.arpa 2 --ptr-rec www.example.com.
 
+ Add new SRV records for LDAP servers. Three quarters of the requests
+ should go to fast.example.com, one quarter to slow.example.com. If neither
+ is available, switch to backup.example.com.
+   ipa dnsrecord-add example.com _ldap._tcp --srv-rec="0 3 389 fast.example.com"
+   ipa dnsrecord-add example.com _ldap._tcp --srv-rec="0 1 389 slow.example.com"
+   ipa dnsrecord-add example.com _ldap._tcp --srv-rec="1 1 389 backup.example.com"
+
  Show zone example.com:
    ipa dnszone-show example.com
 
@@ -114,10 +121,26 @@ def _validate_ipnet(ugettext, ipnet):
         return u'invalid format'
     return None
 
+def _validate_srv(ugettext, srv):
+    try:
+        prio, weight, port, host = srv.split()
+    except ValueError:
+        return u'format must be specified as "priority weight port target"'
+
+    try:
+        prio = int(prio)
+        weight = int(weight)
+        port = int(port)
+    except ValueError:
+        return u'the values of priority, weight and port must be integers'
+
+    return None
+
 _record_validators = {
     u'A': _validate_ipaddr,
     u'AAAA': _validate_ipaddr,
     u'APL': _validate_ipnet,
+    u'SRV': _validate_srv,
 }
 
 def has_cli_options(entry, no_option_msg):
