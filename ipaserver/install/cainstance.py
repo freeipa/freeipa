@@ -35,6 +35,7 @@ import httplib
 import urllib
 import xml.dom.minidom
 import stat
+import socket
 from ipapython import dogtag
 from ipapython.certdb import get_ca_nickname
 from ipalib import pkcs10
@@ -391,6 +392,15 @@ class CAInstance(service.Service):
     def __del__(self):
         shutil.rmtree(self.ca_agent_db, ignore_errors=True)
 
+    def is_installed(self):
+        """
+        Installing with an external CA is a two-step process. This
+        is used to determine if the first step has been done.
+
+        Returns True/False
+        """
+        return os.path.exists(self.server_root + '/' + PKI_INSTANCE_NAME)
+
     def configure_instance(self, host_name, dm_password,
                            admin_password, ds_port=DEFAULT_DSPORT,
                            pkcs12_info=None, master_host=None, csr_file=None,
@@ -442,6 +452,7 @@ class CAInstance(service.Service):
                 self.step("creating CA agent PKCS#12 file in /root", self.__create_ca_agent_pkcs12)
             self.step("creating RA agent certificate database", self.__create_ra_agent_db)
             self.step("importing CA chain to RA certificate database", self.__import_ca_chain)
+            self.step("restarting certificate server", self.__restart_instance)
             if not self.clone:
                 self.step("requesting RA certificate from CA", self.__request_ra_certificate)
                 self.step("issuing RA agent certificate", self.__issue_ra_cert)
@@ -629,6 +640,18 @@ class CAInstance(service.Service):
     def __restart_instance(self):
         try:
             self.restart()
+            # Wait until the dogtag webapp responds
+            while True:
+                try:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.connect(('localhost', 9180))
+                    s.close()
+                    break
+                except socket.error, e:
+                    if e.errno == 111: # Connection refused
+                        time.sleep(1)
+                    else:
+                        raise e
         except Exception:
             # TODO: roll back here?
             logging.critical("Failed to restart the certificate server. See the installation log for details.")

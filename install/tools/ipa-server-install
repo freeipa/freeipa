@@ -39,6 +39,7 @@ import glob
 import traceback
 from ConfigParser import RawConfigParser
 import random
+import tempfile
 
 from ipaserver.install import dsinstance
 from ipaserver.install import krbinstance
@@ -203,25 +204,33 @@ def signal_handler(signum, frame):
 
 ANSWER_CACHE = "/root/.ipa_cache"
 
-def read_cache():
+def read_cache(dm_password):
     """
     Returns a dict of cached answers or None if no cache file exists.
     """
     if not ipautil.file_exists(ANSWER_CACHE):
         return {}
 
+    top_dir = tempfile.mkdtemp("ipa")
+    try:
+        clearfile = "%s/cache" % top_dir
+        decrypt_file(ANSWER_CACHE, clearfile, dm_password, top_dir)
+    except Exception, e:
+        shutil.rmtree(top_dir)
+        raise RuntimeError("Problem decrypting answer cache in %s, check your password." % ANSWER_CACHE)
+
     optdict={}
     parser = RawConfigParser()
     try:
-        fp = open(ANSWER_CACHE, "r")
+        fp = open(clearfile, "r")
         parser.readfp(fp)
         optlist = parser.items('options')
         fp.close()
 
-        # this is one-use only
-        os.remove(ANSWER_CACHE)
     except IOError, e:
-        raise RuntimeError("Unable to determine serial number: %s" % str(e))
+        raise RuntimeError("Error reading cache file %s: %s" % (ANSWER_CACHE, str(e)))
+    finally:
+        shutil.rmtree(top_dir)
 
     for opt in optlist:
         value = opt[1]
@@ -247,15 +256,19 @@ def write_cache(options):
     # convert the options instance into a dict
     optdict = eval(str(options))
     parser = RawConfigParser()
+    top_dir = tempfile.mkdtemp("ipa")
     try:
-        fp = open(ANSWER_CACHE, "w")
+        fp = open("%s/cache" % top_dir, "w")
         parser.add_section('options')
         for opt in optdict:
             parser.set('options', opt, optdict[opt])
         parser.write(fp)
         fp.close()
+        ipautil.encrypt_file("%s/cache" % top_dir, ANSWER_CACHE, options.dm_password, top_dir);
     except IOError, e:
         raise RuntimeError("Unable to cache command-line options %s" % str(e))
+    finally:
+        shutil.rmtree(top_dir)
 
 def read_host_name(host_default,no_host_dns=False):
     host_name = ""
@@ -464,7 +477,7 @@ def main():
     else:
         standard_logging_setup("/var/log/ipaserver-install.log", options.debug)
         print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
-        if dsinstance.DsInstance().is_configured() or cainstance.CADSInstance().is_configured():
+        if (dsinstance.DsInstance().is_configured() or cainstance.CADSInstance().is_configured()) and not options.external_cert_file:
             sys.exit("IPA server is already configured on this system.")
 
     logging.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
@@ -500,7 +513,9 @@ def main():
         return uninstall()
 
     # This will override any settings passed in on the cmdline
-    options._update_loose(read_cache())
+    if ipautil.file_exists(ANSWER_CACHE):
+        dm_password = read_dm_password()
+        options._update_loose(read_cache(dm_password))
 
     print "=============================================================================="
     print "This program will set up the FreeIPA Server."
@@ -523,7 +538,9 @@ def main():
     print "To accept the default shown in brackets, press the Enter key."
     print ""
 
-    if not options.external_ca:
+    if not options.external_ca and not options.external_cert_file:
+        # Let it past if there is an external_cert_file defined on the chance
+        # that we are coming in without a cache file.
         check_dirsrv(options.unattended)
 
     realm_name = ""
@@ -686,7 +703,8 @@ def main():
     # Configure ntpd
     if options.conf_ntp:
         ntp = ntpinstance.NTPInstance(fstore)
-        ntp.create_instance()
+        if not ntp.is_configured():
+            ntp.create_instance()
 
     if options.selfsign:
         ca = certs.CertDB(realm_name, host_name=host_name,
@@ -701,6 +719,10 @@ def main():
 
         # Figure out what state we're in. See cainstance.py for more info on
         # the 3 states.
+        if options.external_cert_file is not None and options.external_ca_file is not None:
+            # These options imply this and this is required to install the CA.
+            # This is needed otherwise the setup of dogtag will fail.
+            options.external_ca = True
         external = 0
         if options.external_ca:
             external = 1
@@ -727,6 +749,8 @@ def main():
             options.realm_name = realm_name
             options.domain_name = domain_name
             options.master_password = master_password
+            options.dm_password = dm_password
+            options.admin_password = admin_password
             options.host_name = host_default
             options.unattended = True
             write_cache(options)
@@ -734,6 +758,10 @@ def main():
                                   csr_file="/root/ipa.csr",
                                   subject_base=options.subject)
         else:
+            if not ca.is_installed():
+                # This can happen if someone passes external_ca_file without
+                # already having done the first stage of the CA install.
+                sys.exit('CA is not installed yet. To install with an external CA is a two-stage process.\nFirst run the installer with --external-ca.')
             ca.configure_instance(host_name, dm_password, dm_password,
                                   cert_file=options.external_cert_file,
                                   cert_chain_file=options.external_ca_file,
@@ -910,6 +938,8 @@ def main():
             print "This file is required to create replicas. The password for this"
             print "file is the Directory Manager password"
 
+    if ipautil.file_exists(ANSWER_CACHE):
+        os.remove(ANSWER_CACHE)
     return 0
 
 try:
