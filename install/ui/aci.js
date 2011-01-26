@@ -494,6 +494,12 @@ IPA.target_section = function () {
     };
 
     that.load = function(result) {
+        that.result = result;
+        that.reset();
+    };
+
+    that.reset = function() {
+        var result = that.result;
         if(result.subtree){
             $('#aci_query_text').val(result.subtree);
             $('#aci_by_query').click();
@@ -522,9 +528,6 @@ IPA.target_section = function () {
         }else{
             alert('permission with invalid target specification');
         }
-    };
-
-    that.reset = function() {
     };
 
     that.save = function (record){
