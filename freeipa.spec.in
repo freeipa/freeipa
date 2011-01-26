@@ -88,6 +88,8 @@ Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.21
 Requires: pki-ca >= 9.0.0
 Requires: pki-silent >= 9.0.0
+Requires: dogtag-pki-common-theme
+Requires: dogtag-pki-ca-theme
 Requires(preun):  python initscripts chkconfig
 Requires(postun): python initscripts chkconfig
 
