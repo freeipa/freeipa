@@ -590,7 +590,7 @@ IPA. facet_create_action_panel = function(container) {
                         link.text('');
                         link.append($('<ul>').
                                     append($('<li />',{
-                                        'class': 'entity-facet-selected',
+                                        'class': 'association-facet-selected',
                                         html:  IPA.selected_icon +  text
                                         })).
                                     append($('<li/>',{
