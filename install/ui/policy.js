@@ -276,30 +276,21 @@ IPA.records_facet = function (spec){
     };
 
     function create(container) {
+
+        container.attr('title', that.entity_name);
+
+        $('<h1/>',{
+        }).append(IPA.create_network_spinner()).
+            appendTo(container);
+
         var details = $('<div/>', {
             'class': 'content'
         }).appendTo(container);
-    }
-
-    function setup(container){
-
-        that.facet_setup(container);
-
-        that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        that.record = $.bbq.getState(that.entity_name + '-record', true) || '';
-
-        that.container.attr('title', that.entity_name);
-
-        var h2 = $('<h2></h2>',{
-            text: "Records for DNS Zone:" + that.pkey
-        }).appendTo(that.container);
-
 
         var div = $('<div class="search-controls"></div>').
-            appendTo(that.container);
+            appendTo(details);
 
         var control_span =$('<span class="record-filter"></span>').appendTo(div);
-
         control_span.append('Resource');
         control_span.append($('<input />',{
             type: "text",
@@ -311,13 +302,6 @@ IPA.records_facet = function (spec){
 
         create_type_select('dns-record-type-filter',true).
             appendTo(control_span);
-        //commented out until data is searchable
-        //control_span.append('Data');
-        //control_span.append($('<input />',{
-        //    type: "text",
-        //    id: 'dns-record-data-filter',
-        //    name: 'search-' + obj_name + '-filter'
-        //}));
 
 
         IPA.button({
@@ -349,7 +333,7 @@ IPA.records_facet = function (spec){
 
         var records_results = $('<div/>', {
             'class': 'records-results'
-        }).appendTo(that.container);
+        }).appendTo(details);
 
         var records_table = $('<table/>', {
             'class': 'search-table'
@@ -372,6 +356,30 @@ IPA.records_facet = function (spec){
             text: IPA.get_param_info("dnsrecord", "idnsname").label  }));
          tr.append($('<th>Record Type</th>'));
         tr.append($('<th>Data</th>'));
+
+    }
+
+    function setup(container){
+
+        that.facet_setup(container);
+
+        that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        that.record = $.bbq.getState(that.entity_name + '-record', true) || '';
+
+
+        $('h1',container).
+            html("<span id='headerpkey' />Records for DNS Zone:" + that.pkey);
+
+
+        //commented out until data is searchable
+        //control_span.append('Data');
+        //control_span.append($('<input />',{
+        //    type: "text",
+        //    id: 'dns-record-data-filter',
+        //    name: 'search-' + obj_name + '-filter'
+        //}));
+
+
 
         refresh();
     }
