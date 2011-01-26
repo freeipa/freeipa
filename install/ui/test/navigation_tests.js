@@ -31,7 +31,7 @@ test("Testing nav_create().", function() {
 
     var entity;
 
-    IPA.register_entity( function() {
+    IPA.entity_factories.user =  function() {
         var that = IPA.entity({name: 'user'});
         that.setup = function(container){
             user_mock_called = true;
@@ -39,10 +39,8 @@ test("Testing nav_create().", function() {
             same(container[0].nodeName,'DIV','user div');
         }
         return that;
-    });
-
-    IPA.register_entity( function(){
-
+    };
+    IPA.entity_factories.group = function(){
         var that  = IPA.entity({name: 'group'});
         that.setup = function(container){
             group_mock_called = true;
@@ -50,7 +48,7 @@ test("Testing nav_create().", function() {
             same(container[0].nodeName,'DIV','group Div');
         };
         return that;
-    });
+    };
 
     IPA.start_entities();
 

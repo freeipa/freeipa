@@ -457,9 +457,6 @@ IPA.target_section = function () {
             appendTo(dl);
     }
 
-
-
-
     that.create = function(container) {
         var dl =  $('<dl class="aci-target"/>').appendTo(container);
         display_filter_target(dl);
@@ -563,111 +560,35 @@ IPA.target_section = function () {
 
 IPA.entity_factories.permission = function () {
 
-    var that = IPA.entity({
+    return IPA.entity({
         'name': 'permission'
-    });
-
-    that.init = function() {
-
-        var dialog = IPA.permission_add_dialog({
+    }).add_dialog(
+        IPA.add_dialog({
             name: 'add',
-            title: 'Add New Permission',
-            entity_name: 'permission'
-        });
-        that.add_dialog(dialog);
-        dialog.init();
-
-        var facet = IPA.permission_search_facet({
-            name: 'search',
-            label: 'Search'
-        });
-        that.add_facet(facet);
-
-        facet = IPA.permission_details_facet();
-        that.add_facet(facet);
-
-        that.entity_init();
-    };
-
-    return that;
-};
-
-
-
-IPA.permission_add_dialog =  function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.add_dialog(spec);
-
-    that.init = function() {
-
-        that.add_field(IPA.text_widget({
-            name: 'cn',
-            undo: false
-        }));
-
-        that.add_field(IPA.text_widget({
-            name: 'description',
-            undo: false
-        }));
-
-        that.add_field(IPA.rights_widget({name:'permissions'}));
-        that.add_field(IPA.hidden_widget({name:'filter','value':'objectClass=changethisvalue'}));
-        that.add_dialog_init();
-    };
-
-
-    return that;
-};
-
-
-IPA.permission_search_facet =  function (spec) {
-
-    spec = spec || {};
-    var that = IPA.search_facet(spec);
-    that.init = function() {
-        that.create_column({name:'cn'});
-        that.create_column({name:'description'});
-        that.search_facet_init();
-    };
-    return that;
-};
-
-
-IPA.permission_details_facet = function () {
-
-    var spec = {
-            name: 'details'
-    };
-    var that = IPA.details_facet(spec);
-
-    that.init = function() {
-
-        var section = that.add_section(IPA.details_list_section({
-            name:'identity',label:'Identity'  }));
-        section.create_field({ name: 'cn', 'read_only': true });
-        section.create_field({ name: 'description'});
-
-        that.rights_section = IPA.rights_section();
-        that.add_section(that.rights_section);
-
-        that.target_section = IPA.target_section();
-
-        that.add_section(that.target_section);
-        that.details_facet_init();
-    };
-
-    that.superior_load = that.load;
-
-    that.load = function(result) {
-        that.superior_load(result);
-    };
-
-    that.superior_update = that.update;
-    that.update = function(on_win, on_fail){
-        that.superior_update(on_win, on_fail);
-    };
+            title: 'Add New Permission'
+        }).
+            field(IPA.text_widget({
+                name: 'cn',
+                undo: false
+            })).
+            field(IPA.text_widget({
+                name: 'description',
+                undo: false
+            })).
+            field(IPA.rights_widget({name:'permissions'})).
+            field(IPA.hidden_widget(
+                {name:'filter','value':'objectClass=changethisvalue'}))).
+        facet(IPA.search_facet().
+              column({name:'cn'}).
+              column({name:'description'})).
+        facet(IPA.details_facet({ name: 'details' }).
+              section(
+                  IPA.stanza({
+                name:'identity',label:'Identity'  }).
+                      input({ name: 'cn', 'read_only': true }).
+                      input({ name: 'description'})).
+              section(IPA.rights_section()).
+              section(IPA.target_section()));
     return that;
 };
 
@@ -716,156 +637,89 @@ IPA.entity_factories.privilege =  function() {
 
 
 IPA.entity_factories.role =  function() {
-    var that = IPA.entity({
+    return  IPA.entity({
         'name': 'role'
-    });
-    that.init = function() {
-        var search_facet = IPA.search_facet({
-            name: 'search',
-            label: 'Search',
-            entity_name: that.name
-        });
-        search_facet.create_column({name:'cn'});
-        search_facet.create_column({name:'description'});
-        that.add_facet(search_facet);
-
-        that.add_facet(function() {
-            var that = IPA.details_facet({name:'details'});
-            that.add_section(
-                IPA.stanza({name:'identity', label:'Role Settings'}).
-                    input({name:'cn'}).
-                    input({name: 'description'}));
-            return that;
-        }());
-
-        var dialog = IPA.add_dialog({
-            name: 'add',
-            title: 'Add Role'
-        });
-        that.add_dialog(dialog);
-
-        dialog.add_field(IPA.text_widget({ name: 'cn', undo: false}));
-        dialog.add_field(IPA.text_widget({ name: 'description', undo: false}));
-        dialog.init();
-
-        that.create_association_facets();
-
-        that.entity_init();
-    };
-    return that;
+    }).
+        facet(IPA.search_facet().
+              column({name:'cn'}).
+              column({name:'description'})).
+        facet(
+            IPA.details_facet({name:'details'}).
+                section(
+                    IPA.stanza({name:'identity', label:'Role Settings'}).
+                        input({name:'cn'}).
+                        input({name: 'description'}))).
+        add_dialog(
+            IPA.add_dialog({
+                name: 'add',
+                title: 'Add Role'
+            }).
+                field(IPA.text_widget({ name: 'cn', undo: false})).
+                field(IPA.text_widget({ name: 'description', undo: false}))).
+        standard_associations();
 };
 
 
 IPA.entity_factories.selfservice =  function() {
-    var that = IPA.entity({
+    return IPA.entity({
         'name': 'selfservice'
-    });
-
-    that.add_facet(function () {
-        var spec = {
-            name: 'search',
-            label: 'Search'
-        };
-        var that = IPA.search_facet(spec);
-        that.init = function() {
-            that.create_column({name:'aciname'});
-            that.search_facet_init();
-        };
-        return that;
-    }());
-
-
-    that.add_facet(function(){
-        var that = IPA.details_facet({'name':'details'});
-
-        that.init = function() {
-            that.add_section(
-                IPA.stanza({name:'general', label:'General',
-                            entity_name:'selfservice'}).
-                    input({name:'aciname'}).
-                    custom_input(IPA.attribute_table_widget({
-                        object_type:'user',
-                        name:'attrs'
-                    })));
-        };
-        return that;
-    }());
-
-    that.parent_init = that.init;
-    that.init = function(){
-        that.parent_init();
-        var dialog = IPA.add_dialog({
-            name: 'add',
-            title: 'Add Self Service Definition'
-        });
-        that.add_dialog(dialog);
-        dialog.add_field(IPA.text_widget({ name: 'aciname', undo: false}));
-        dialog.add_field(IPA.attribute_table_widget({
-            object_type:'user',
-            name:'attrs'
-        }));
-        dialog.init();
-    };
-    return that;
+    }).
+        facet(IPA.search_facet().
+              column({name:'aciname'})).
+        facet(
+            IPA.details_facet({'name':'details'}).
+                section(
+                    IPA.stanza({name:'general', label:'General'}).
+                        input({name:'aciname'}).
+                        custom_input(IPA.attribute_table_widget({
+                            object_type:'user',
+                            name:'attrs'
+                        })))).
+        add_dialog(
+            IPA.add_dialog({
+                name: 'add',
+                title: 'Add Self Service Definition'
+            }).
+                field(IPA.text_widget({ name: 'aciname', undo: false})).
+                field(IPA.attribute_table_widget({
+                    object_type:'user',
+                    name:'attrs'
+                })));
 };
 
 
 IPA.entity_factories.delegation =  function() {
     var that = IPA.entity({
         'name': 'delegation'
-    });
-
-    that.add_facet(function () {
-            var spec = {
-                name: 'search',
-                label: 'Search'
-            };
-            var that = IPA.search_facet(spec);
-            that.init = function() {
-                that.create_column({name:'aciname'});
-                that.search_facet_init();
-            };
-            return that;
-        }());
-    that.add_facet(function(){
-        var that = IPA.details_facet({'name':'details'});
-        var section =
-            IPA.stanza({name:'general', label:'General'}).
-            input({name:'aciname'}).
-            custom_input(IPA.entity_select_widget(
-                {name:'group', entity:'group'})).
-            custom_input(IPA.entity_select_widget(
-                {name:'memberof', entity:'group'})).
-            custom_input(
-                IPA.rights_widget({
-                    id:'delegation_rights'})).
-            custom_input(
-                IPA.attribute_table_widget({
-                    name:'attrs'}));
-            that.add_section(section);
-        return that;
-    }());
-
-    that.super_init = that.init;
-    that.init = function(){
-        that.super_init();
-        var dialog = IPA.add_dialog({
+    }).facet(
+        IPA.search_facet().
+            column({name:'aciname'})).
+        facet(
+            IPA.details_facet().
+                section(
+                    IPA.stanza({name:'general', label:'General'}).
+                        input({name:'aciname'}).
+                        custom_input(IPA.entity_select_widget(
+                            {name:'group', entity:'group'})).
+                        custom_input(IPA.entity_select_widget(
+                            {name:'memberof', entity:'group'})).
+                        custom_input(
+                            IPA.rights_widget({
+                                id:'delegation_rights'})).
+                        custom_input(
+                            IPA.attribute_table_widget({
+                                name:'attrs'})))).
+        add_dialog(IPA.add_dialog({
             name: 'add',
-            title: 'Add Delegation',
-            entity_name: that.entity
-        });
-        that.add_dialog(dialog);
-        dialog.add_field(IPA.text_widget({ name: 'aciname', undo: false}));
-        dialog.add_field(IPA.entity_select_widget({name:'group',
-                                                   entity:'group'}));
-        dialog.add_field(IPA.entity_select_widget({name:'memberof',
-                                                   entity:'group'}));
-        dialog.add_field(IPA.attribute_table_widget({ name: 'attrs'}));
-
-        dialog.init();
-        that.create_association_facets();
-    };
-
+            title: 'Add Delegation'
+        }).
+                   field(IPA.text_widget({ name: 'aciname', undo: false})).
+                   field(IPA.entity_select_widget({name:'group',
+                                                   entity:'group'})).
+                   field(IPA.entity_select_widget({name:'memberof',
+                                                   entity:'group'})).
+                   field(IPA.attribute_table_widget({ name: 'attrs'}))).
+        standard_associations();
     return that;
 
 };

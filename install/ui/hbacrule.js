@@ -35,7 +35,7 @@ IPA.entity_factories.hbacrule = function () {
             'title': 'Add New Rule'
         });
         that.add_dialog(dialog);
-        
+
 
         var facet = IPA.hbacrule_search_facet({
             'name': 'search',

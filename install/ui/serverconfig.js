@@ -31,24 +31,20 @@ IPA.entity_factories.config = function(){
 
     var that = IPA.entity({
         name: 'config'
-    });
-
-    var details = IPA.details_facet();
-
-    details.add_section(
-        IPA.stanza({name:'ipaserver', label:'Configuration'}).
-            input({name:'cn', label:'Name'}).
-            input({name:'ipacertificatesubjectbase'}).
-            input({name:'ipadefaultloginshell'}).
-            input({name:'ipadefaultprimarygroup'}).
-            input({name:'ipagroupsearchfields'}).
-            input({name:'ipahomesrootdir'}).
-            input({name:'ipamaxusernamelength'}).
-            input({name:'ipamigrationenabled'}).
-            input({name:'ipasearchrecordslimit'}).
-            input({name:'ipasearchtimelimit'}).
-            input({name:'ipausersearchfields'}));
- 
-    that.add_facet(details);
+    }).facet(
+        IPA.details_facet().
+            section(
+                IPA.stanza({name:'ipaserver', label:'Configuration'}).
+                    input({name:'cn', label:'Name'}).
+                    input({name:'ipacertificatesubjectbase'}).
+                    input({name:'ipadefaultloginshell'}).
+                    input({name:'ipadefaultprimarygroup'}).
+                    input({name:'ipagroupsearchfields'}).
+                    input({name:'ipahomesrootdir'}).
+                    input({name:'ipamaxusernamelength'}).
+                    input({name:'ipamigrationenabled'}).
+                    input({name:'ipasearchrecordslimit'}).
+                    input({name:'ipasearchtimelimit'}).
+                    input({name:'ipausersearchfields'})));
     return that;
 };

@@ -22,11 +22,11 @@
 module('details', {
     setup: function() {
         var obj_name = 'user';
-        IPA.register_entity( 
+        IPA.entity_factories.user=  
             function(){
                 return IPA.entity({name:obj_name});
-            });
-        IPA.start_entities();
+            };
+    IPA.start_entities();
     },
     teardown: function() {
     }

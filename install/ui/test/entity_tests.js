@@ -20,7 +20,8 @@
 
 module('entity',{
     setup: function() {
-        IPA.register_entity(function(){return IPA.entity({name:'user'})});
+        IPA.entity_factories.user = function(){
+            return IPA.entity({name:'user'})};
         IPA.start_entities();
     },
     teardown: function() {
@@ -86,14 +87,6 @@ test('Testing ipa_facet_setup_views().', function() {
         }
     );
 
-
-    IPA.register_entity(function(){
-        var entity = IPA.entity({
-            'name': 'user'
-        });
-
-        return entity;
-    });
 
     IPA.start_entities();
 
