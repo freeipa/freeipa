@@ -136,6 +136,8 @@ def run(args, stdin=None, raiseonerr=True,
     # to log. Run through the nolog items.
     args = ' '.join(args)
     for value in nolog:
+        if not isinstance(value, basestring):
+            continue
         args = args.replace(value, 'XXXXXXXX')
         stdout = stdout.replace(value, 'XXXXXXXX')
         stderr = stderr.replace(value, 'XXXXXXXX')
