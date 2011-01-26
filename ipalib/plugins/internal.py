@@ -110,7 +110,8 @@ class i18n_messages(Command):
             "audit": _("Audit"),
             "ipaserver":_("IPA Server"),
             "sudo":_("SUDO"),
-            "hbac":_("HBAC")},
+            "hbac":_("HBAC"),
+            "role":_("Role Based Access Control")},
         "association":{
             "managedby":_("Managed by"),
             "members":_("Members"),

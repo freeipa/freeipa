@@ -4544,7 +4544,7 @@
                                 "type": "tuple"
                             },
                             {
-                                "alwaysask": true,
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "List",
@@ -4553,7 +4553,10 @@
                                 "default": null,
                                 "doc": "Comma-separated list of attributes",
                                 "exclude": null,
-                                "flags": [],
+                                "flags": [
+                                    "ask_create",
+                                    "ask_update"
+                                ],
                                 "hint": null,
                                 "include": null,
                                 "label": "Attributes",
@@ -4567,7 +4570,7 @@
                                 "type": "tuple"
                             },
                             {
-                                "alwaysask": true,
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "StrEnum",
@@ -4576,7 +4579,10 @@
                                 "default": null,
                                 "doc": "Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)",
                                 "exclude": null,
-                                "flags": [],
+                                "flags": [
+                                    "ask_create",
+                                    "ask_update"
+                                ],
                                 "hint": null,
                                 "include": null,
                                 "label": "Type",
@@ -4597,7 +4603,7 @@
                                 ]
                             },
                             {
-                                "alwaysask": true,
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4606,7 +4612,10 @@
                                 "default": null,
                                 "doc": "Target members of a group",
                                 "exclude": null,
-                                "flags": [],
+                                "flags": [
+                                    "ask_create",
+                                    "ask_update"
+                                ],
                                 "hint": null,
                                 "include": null,
                                 "label": "Member of group",
@@ -4623,7 +4632,7 @@
                                 "type": "unicode"
                             },
                             {
-                                "alwaysask": true,
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4632,7 +4641,10 @@
                                 "default": null,
                                 "doc": "Legal LDAP filter (e.g. ou=Engineering)",
                                 "exclude": null,
-                                "flags": [],
+                                "flags": [
+                                    "ask_create",
+                                    "ask_update"
+                                ],
                                 "hint": null,
                                 "include": null,
                                 "label": "Filter",
@@ -4649,7 +4661,7 @@
                                 "type": "unicode"
                             },
                             {
-                                "alwaysask": true,
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4658,7 +4670,10 @@
                                 "default": null,
                                 "doc": "Subtree to apply permissions to",
                                 "exclude": null,
-                                "flags": [],
+                                "flags": [
+                                    "ask_create",
+                                    "ask_update"
+                                ],
                                 "hint": null,
                                 "include": null,
                                 "label": "Subtree",
@@ -4675,7 +4690,7 @@
                                 "type": "unicode"
                             },
                             {
-                                "alwaysask": true,
+                                "alwaysask": false,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4684,7 +4699,10 @@
                                 "default": null,
                                 "doc": "User group to apply permissions to",
                                 "exclude": null,
-                                "flags": [],
+                                "flags": [
+                                    "ask_create",
+                                    "ask_update"
+                                ],
                                 "hint": null,
                                 "include": null,
                                 "label": "Target group",
@@ -7399,6 +7417,7 @@
                         "identity": "Identity",
                         "ipaserver": "IPA Server",
                         "policy": "Policy",
+                        "role": "Role Based Access Control",
                         "sudo": "SUDO"
                     }
                 }
@@ -7416,22 +7435,22 @@
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "890800000"
+                            "1256800000"
                         ],
                         "homedirectory": [
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "6b8e688e-28e1-11e0-b944-52540029a798"
+                            "37800f46-2983-11e0-abc5-52540029a798"
                         ],
                         "krblastpwdchange": [
-                            "20110126001724Z"
+                            "20110126193538Z"
                         ],
                         "krblastsuccessfulauth": [
-                            "20110126002302Z"
+                            "20110126194824Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20110426001724Z"
+                            "20110426193538Z"
                         ],
                         "krbprincipalname": [
                             "admin@IPA14.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
@@ -7461,7 +7480,7 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "890800000"
+                            "1256800000"
                         ]
                     }
                 ],
