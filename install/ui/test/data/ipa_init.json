@@ -2,7 +2,7 @@
     "error": null,
     "id": 1,
     "result": {
-        "count": 4,
+        "count": 5,
         "results": [
             {
                 "error": null,
@@ -45,7 +45,7 @@
                         "object_name": "automount key",
                         "object_name_plural": "automount keys",
                         "parent_object": "automountmap",
-                        "primary_key": "automountkey",
+                        "primary_key": "description",
                         "rdn_attribute": "",
                         "relationships": {
                             "member": [
@@ -86,7 +86,7 @@
                                 "name": "automountkey",
                                 "pattern": null,
                                 "pattern_errmsg": null,
-                                "primary_key": true,
+                                "primary_key": false,
                                 "query": false,
                                 "required": true,
                                 "type": "unicode"
@@ -122,12 +122,19 @@
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
-                                "cli_name": "desc",
+                                "cli_name": "description",
                                 "cli_short_name": null,
                                 "default": null,
                                 "doc": "description",
-                                "exclude": null,
-                                "flags": [],
+                                "exclude": [
+                                    "webui"
+                                ],
+                                "flags": [
+                                    "no_update",
+                                    "no_create",
+                                    "no_output",
+                                    "no_search"
+                                ],
                                 "hint": null,
                                 "include": null,
                                 "label": "description",
@@ -138,7 +145,7 @@
                                 "name": "description",
                                 "pattern": null,
                                 "pattern_errmsg": null,
-                                "primary_key": false,
+                                "primary_key": true,
                                 "query": false,
                                 "required": false,
                                 "type": "unicode"
@@ -402,7 +409,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "Max username length",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": 1,
                                 "multivalue": false,
                                 "name": "ipamaxusernamelength",
@@ -529,7 +536,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "Search time limit",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": -1,
                                 "multivalue": false,
                                 "name": "ipasearchtimelimit",
@@ -552,7 +559,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "Search size limit",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": -1,
                                 "multivalue": false,
                                 "name": "ipasearchrecordslimit",
@@ -732,7 +739,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "Password Expiration Notification",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": 0,
                                 "multivalue": false,
                                 "name": "ipapwdexpadvnotify",
@@ -866,7 +873,6 @@
                             "dereferencealiases",
                             "description",
                             "destinationindicator",
-                            "dialupaccess",
                             "displayname",
                             "distinguishedname",
                             "ditcontentrules",
@@ -1722,7 +1728,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "<cospriority>",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": 0,
                                 "multivalue": false,
                                 "name": "cospriority",
@@ -1875,331 +1881,6 @@
                                 "primary_key": false,
                                 "query": false,
                                 "required": true,
-                                "type": "unicode"
-                            }
-                        ]
-                    },
-                    "dns": {
-                        "default_attributes": [
-                            "idnsname",
-                            "idnszoneactive",
-                            "idnssoamname",
-                            "idnssoarname",
-                            "idnssoaserial",
-                            "idnssoarefresh",
-                            "idnssoaretry",
-                            "idnssoaexpire",
-                            "idnssoaminimum"
-                        ],
-                        "label": "DNS",
-                        "methods": [
-                            "add",
-                            "del",
-                            "find",
-                            "mod",
-                            "show"
-                        ],
-                        "name": "dns",
-                        "primary_key": "idnsname",
-                        "takes_params": [
-                            {
-                                "alwaysask": false,
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "Str",
-                                "cli_name": "name",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "Zone name (FQDN)",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "Zone",
-                                "length": null,
-                                "maxlength": null,
-                                "minlength": null,
-                                "multivalue": false,
-                                "name": "idnsname",
-                                "pattern": null,
-                                "pattern_errmsg": null,
-                                "primary_key": true,
-                                "query": false,
-                                "required": true,
-                                "type": "unicode"
-                            },
-                            {
-                                "alwaysask": false,
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "Str",
-                                "cli_name": "name_server",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "Authoritative name server",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "Authoritative name server",
-                                "length": null,
-                                "maxlength": null,
-                                "minlength": null,
-                                "multivalue": false,
-                                "name": "idnssoamname",
-                                "pattern": null,
-                                "pattern_errmsg": null,
-                                "primary_key": false,
-                                "query": false,
-                                "required": true,
-                                "type": "unicode"
-                            },
-                            {
-                                "alwaysask": false,
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "Str",
-                                "cli_name": "admin_email",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "administrator e-mail address",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "administrator e-mail address",
-                                "length": null,
-                                "maxlength": null,
-                                "minlength": null,
-                                "multivalue": false,
-                                "name": "idnssoarname",
-                                "pattern": null,
-                                "pattern_errmsg": null,
-                                "primary_key": false,
-                                "query": false,
-                                "required": true,
-                                "type": "unicode"
-                            },
-                            {
-                                "alwaysask": false,
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "Int",
-                                "cli_name": "serial",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "SOA serial",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "SOA serial",
-                                "maxvalue": null,
-                                "minvalue": null,
-                                "multivalue": false,
-                                "name": "idnssoaserial",
-                                "primary_key": false,
-                                "query": false,
-                                "required": false,
-                                "type": "int"
-                            },
-                            {
-                                "alwaysask": false,
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "Int",
-                                "cli_name": "refresh",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "SOA refresh",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "SOA refresh",
-                                "maxvalue": null,
-                                "minvalue": null,
-                                "multivalue": false,
-                                "name": "idnssoarefresh",
-                                "primary_key": false,
-                                "query": false,
-                                "required": false,
-                                "type": "int"
-                            },
-                            {
-                                "alwaysask": false,
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "Int",
-                                "cli_name": "retry",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "SOA retry",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "SOA retry",
-                                "maxvalue": null,
-                                "minvalue": null,
-                                "multivalue": false,
-                                "name": "idnssoaretry",
-                                "primary_key": false,
-                                "query": false,
-                                "required": false,
-                                "type": "int"
-                            },
-                            {
-                                "alwaysask": false,
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "Int",
-                                "cli_name": "expire",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "SOA expire",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "SOA expire",
-                                "maxvalue": null,
-                                "minvalue": null,
-                                "multivalue": false,
-                                "name": "idnssoaexpire",
-                                "primary_key": false,
-                                "query": false,
-                                "required": false,
-                                "type": "int"
-                            },
-                            {
-                                "alwaysask": false,
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "Int",
-                                "cli_name": "minimum",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "SOA minimum",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "SOA minimum",
-                                "maxvalue": null,
-                                "minvalue": null,
-                                "multivalue": false,
-                                "name": "idnssoaminimum",
-                                "primary_key": false,
-                                "query": false,
-                                "required": false,
-                                "type": "int"
-                            },
-                            {
-                                "alwaysask": false,
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "Int",
-                                "cli_name": "ttl",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "SOA time to live",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "SOA time to live",
-                                "maxvalue": null,
-                                "minvalue": null,
-                                "multivalue": false,
-                                "name": "dnsttl",
-                                "primary_key": false,
-                                "query": false,
-                                "required": false,
-                                "type": "int"
-                            },
-                            {
-                                "alwaysask": false,
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "StrEnum",
-                                "cli_name": "class",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "SOA class",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "SOA class",
-                                "multivalue": false,
-                                "name": "dnsclass",
-                                "primary_key": false,
-                                "query": false,
-                                "required": false,
-                                "type": "unicode",
-                                "values": [
-                                    "IN",
-                                    "CS",
-                                    "CH",
-                                    "HS"
-                                ]
-                            },
-                            {
-                                "alwaysask": false,
-                                "attribute": false,
-                                "autofill": true,
-                                "class": "Flag",
-                                "cli_name": "allow_dynupdate",
-                                "cli_short_name": null,
-                                "default": false,
-                                "doc": "allow dynamic update?",
-                                "exclude": null,
-                                "falsehoods": [
-                                    0,
-                                    "0",
-                                    "false"
-                                ],
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "allow dynamic update?",
-                                "multivalue": false,
-                                "name": "idnsallowdynupdate",
-                                "primary_key": false,
-                                "query": false,
-                                "required": true,
-                                "truths": [
-                                    "1",
-                                    1,
-                                    "true"
-                                ],
-                                "type": "bool"
-                            },
-                            {
-                                "alwaysask": false,
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "Str",
-                                "cli_name": "update_policy",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "BIND update policy",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "BIND update policy",
-                                "length": null,
-                                "maxlength": null,
-                                "minlength": null,
-                                "multivalue": false,
-                                "name": "idnsupdatepolicy",
-                                "pattern": null,
-                                "pattern_errmsg": null,
-                                "primary_key": false,
-                                "query": false,
-                                "required": false,
                                 "type": "unicode"
                             }
                         ]
@@ -2364,7 +2045,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "Time to live",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": null,
                                 "multivalue": false,
                                 "name": "dnsttl",
@@ -2634,7 +2315,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "SOA serial",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": null,
                                 "multivalue": false,
                                 "name": "idnssoaserial",
@@ -2657,7 +2338,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "SOA refresh",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": null,
                                 "multivalue": false,
                                 "name": "idnssoarefresh",
@@ -2680,7 +2361,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "SOA retry",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": null,
                                 "multivalue": false,
                                 "name": "idnssoaretry",
@@ -2703,7 +2384,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "SOA expire",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": null,
                                 "multivalue": false,
                                 "name": "idnssoaexpire",
@@ -2726,33 +2407,10 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "SOA minimum",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": null,
                                 "multivalue": false,
                                 "name": "idnssoaminimum",
-                                "primary_key": false,
-                                "query": false,
-                                "required": false,
-                                "type": "int"
-                            },
-                            {
-                                "alwaysask": false,
-                                "attribute": false,
-                                "autofill": false,
-                                "class": "Int",
-                                "cli_name": "maximum",
-                                "cli_short_name": null,
-                                "default": null,
-                                "doc": "SOA record maximum value",
-                                "exclude": null,
-                                "flags": [],
-                                "hint": null,
-                                "include": null,
-                                "label": "SOA maximum",
-                                "maxvalue": null,
-                                "minvalue": null,
-                                "multivalue": false,
-                                "name": "idnssoamaximum",
                                 "primary_key": false,
                                 "query": false,
                                 "required": false,
@@ -2772,7 +2430,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "SOA time to live",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": null,
                                 "multivalue": false,
                                 "name": "dnsttl",
@@ -3056,7 +2714,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "GID",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": null,
                                 "multivalue": false,
                                 "name": "gidnumber",
@@ -4446,7 +4104,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "Max life",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": null,
                                 "multivalue": false,
                                 "name": "krbmaxticketlife",
@@ -4469,7 +4127,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "Max renew",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": null,
                                 "multivalue": false,
                                 "name": "krbmaxrenewableage",
@@ -4886,7 +4544,7 @@
                                 "type": "tuple"
                             },
                             {
-                                "alwaysask": false,
+                                "alwaysask": true,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "List",
@@ -4909,7 +4567,7 @@
                                 "type": "tuple"
                             },
                             {
-                                "alwaysask": false,
+                                "alwaysask": true,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "StrEnum",
@@ -4939,7 +4597,7 @@
                                 ]
                             },
                             {
-                                "alwaysask": false,
+                                "alwaysask": true,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4965,7 +4623,7 @@
                                 "type": "unicode"
                             },
                             {
-                                "alwaysask": false,
+                                "alwaysask": true,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -4991,7 +4649,7 @@
                                 "type": "unicode"
                             },
                             {
-                                "alwaysask": false,
+                                "alwaysask": true,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -5017,7 +4675,7 @@
                                 "type": "unicode"
                             },
                             {
-                                "alwaysask": false,
+                                "alwaysask": true,
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
@@ -5289,7 +4947,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "Max lifetime (days)",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": 0,
                                 "multivalue": false,
                                 "name": "krbmaxpwdlife",
@@ -5312,7 +4970,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "Min lifetime (hours)",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": 0,
                                 "multivalue": false,
                                 "name": "krbminpwdlife",
@@ -5335,7 +4993,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "History size",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": 0,
                                 "multivalue": false,
                                 "name": "krbpwdhistorylength",
@@ -5381,7 +5039,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "Min length",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": 0,
                                 "multivalue": false,
                                 "name": "krbpwdminlength",
@@ -5404,7 +5062,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "Priority",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": 0,
                                 "multivalue": false,
                                 "name": "cospriority",
@@ -5427,7 +5085,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "Max failures",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": 0,
                                 "multivalue": false,
                                 "name": "krbpwdmaxfailure",
@@ -5450,7 +5108,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "Failure reset interval",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": 0,
                                 "multivalue": false,
                                 "name": "krbpwdfailurecountinterval",
@@ -5473,7 +5131,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "Lockout duration",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": 0,
                                 "multivalue": false,
                                 "name": "krbpwdlockoutduration",
@@ -7313,7 +6971,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "UID",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": 1,
                                 "multivalue": false,
                                 "name": "uidnumber",
@@ -7336,7 +6994,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "GID",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": null,
                                 "multivalue": false,
                                 "name": "gidnumber",
@@ -7437,7 +7095,7 @@
                                 "hint": null,
                                 "include": null,
                                 "label": "ZIP",
-                                "maxvalue": null,
+                                "maxvalue": 2147483647,
                                 "minvalue": null,
                                 "multivalue": false,
                                 "name": "postalcode",
@@ -7662,7 +7320,7 @@
                                 "cli_name": "nsaccountlock",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Account activation status",
+                                "doc": "Account disabled",
                                 "exclude": null,
                                 "falsehoods": [
                                     0,
@@ -7676,7 +7334,7 @@
                                 ],
                                 "hint": null,
                                 "include": null,
-                                "label": "Account activation status",
+                                "label": "Account disabled",
                                 "multivalue": false,
                                 "name": "nsaccountlock",
                                 "primary_key": false,
@@ -7734,6 +7392,14 @@
                         "quick_links": "Quick Links",
                         "select_all": "Select All",
                         "unselect_all": "Unselect All"
+                    },
+                    "tabs": {
+                        "audit": "Audit",
+                        "hbac": "HBAC",
+                        "identity": "Identity",
+                        "ipaserver": "IPA Server",
+                        "policy": "Policy",
+                        "sudo": "SUDO"
                     }
                 }
             },
@@ -7750,22 +7416,22 @@
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "590200000"
+                            "890800000"
                         ],
                         "homedirectory": [
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "3f1c60c6-2026-11e0-80c2-52540029a798"
+                            "6b8e688e-28e1-11e0-b944-52540029a798"
                         ],
                         "krblastpwdchange": [
-                            "20110114213748Z"
+                            "20110126001724Z"
                         ],
                         "krblastsuccessfulauth": [
-                            "20110114213845Z"
+                            "20110126002302Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20110414213748Z"
+                            "20110426001724Z"
                         ],
                         "krbprincipalname": [
                             "admin@IPA14.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
@@ -7775,9 +7441,6 @@
                         ],
                         "memberof_group": [
                             "admins"
-                        ],
-                        "mepmanagedentry": [
-                            "cn=admin,cn=groups,cn=accounts,dc=ipa14,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
                         ],
                         "nsaccountlock": [
                             "False"
@@ -7789,8 +7452,7 @@
                             "krbprincipalaux",
                             "krbticketpolicyaux",
                             "inetuser",
-                            "ipaobject",
-                            "mepOriginEntry"
+                            "ipaobject"
                         ],
                         "sn": [
                             "Administrator"
@@ -7799,7 +7461,7 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "590200000"
+                            "890800000"
                         ]
                     }
                 ],
@@ -7807,7 +7469,7 @@
                 "truncated": false
             },
             {
-                "count": 65,
+                "count": 66,
                 "error": null,
                 "result": {
                     "basedn": "dc=ipa14,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
@@ -7871,13 +7533,20 @@
                     "script": "/var/www/mod_wsgi",
                     "site_packages": "/usr/lib/python2.7/site-packages",
                     "startup_traceback": false,
+                    "validate_api": false,
                     "verbose": 0,
                     "webui_assets_dir": null,
                     "webui_prod": true,
                     "xmlrpc_uri": "https://ipa14.ayoung.boston.devel.redhat.com/ipa/xml"
                 },
-                "summary": "65 variables",
-                "total": 65
+                "summary": "66 variables",
+                "total": 66
+            },
+            {
+                "error": null,
+                "result": true,
+                "summary": null,
+                "value": ""
             }
         ]
     }

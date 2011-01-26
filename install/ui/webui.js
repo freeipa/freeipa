@@ -26,43 +26,46 @@
 /* tabs definition for IPA webUI */
 
 
-var admin_tab_set = [
-    {name:'identity', children:[
-        {name:'user', entity:'user'},
-        {name:'group', entity:'group'},
-        {name:'host', entity:'host'},
-        {name:'hostgroup', entity:'hostgroup'},
-        {name:'netgroup', entity:'netgroup'},
-        {name:'service', entity:'service'}
-    ]},
-    {name:'policy', children:[
-        {name:'dnszone', entity:'dnszone'},
-        {name:'hbacrule', entity:'hbacrule', children:[
-            {name:'hbacsvc', entity:'hbacsvc'},
-            {name:'hbacsvcgroup', entity:'hbacsvcgroup'}
+IPA.admin_tab_set = function () {
+    return [
+        {name:'identity', label: IPA.messages.tabs.identity,  children:[
+            {name:'user', entity:'user'},
+            {name:'group', entity:'group'},
+            {name:'host', entity:'host'},
+            {name:'hostgroup', entity:'hostgroup'},
+            {name:'netgroup', entity:'netgroup'},
+            {name:'service', entity:'service'}
         ]},
-        {name:'sudorule', entity:'sudorule',children:[
-            {name:'sudocmd', entity:'sudocmd'},
-            {name:'sudocmdgroup', entity:'sudocmdgroup'}
+        {name:'policy', label: IPA.messages.tabs.policy, children:[
+            {name:'dnszone', entity:'dnszone'},
+            {name:'hbacrule', label: IPA.messages.tabs.hbac ,
+             entity:'hbacrule', children:[
+                {name:'hbacsvc', entity:'hbacsvc'},
+                {name:'hbacsvcgroup', entity:'hbacsvcgroup'}
+            ]},
+            {name:'sudorule', label: IPA.messages.tabs.sudo,
+             entity:'sudorule',children:[
+                {name:'sudocmd', entity:'sudocmd'},
+                {name:'sudocmdgroup', entity:'sudocmdgroup'}
+            ]},
+            {name:'pwpolicy', entity:'pwpolicy'},
+            {name:'krbtpolicy', entity:'krbtpolicy'}
         ]},
-        {name:'pwpolicy', entity:'pwpolicy'},
-        {name:'krbtpolicy', entity:'krbtpolicy'}
-    ]},
-    {name:'ipaserver', children: [
-        {name:'role',entity:'role'  ,children:[
-            {name:'privilege',entity:'privilege' },
-            {name:'permission', entity:'permission'}
-        ]},
-        {name:'selfservice'  ,entity:'selfservice'},
-        {name:'delegation'  ,entity:'delegation'},
-        {name:'config', entity:'config'}
-    ]}
-];
+        {name:'ipaserver', label: IPA.messages.tabs.ipaserver, children: [
+            {name:'role',entity:'role'  ,children:[
+                {name:'privilege',entity:'privilege' },
+                {name:'permission', entity:'permission'}
+            ]},
+            {name:'selfservice'  ,entity:'selfservice'},
+            {name:'delegation'  ,entity:'delegation'},
+            {name:'config', entity:'config'}
+        ]}];
+};
 
-var self_serv_tab_set =
-    [
-        { name:'identity', children: [
-            {name:'user', entity:'user'}]}];
+IPA.self_serv_tab_set = function(){
+    return [ { name:'identity',
+               children: [ {name:'user', entity:'user'}]}];
+};
 
 
 IPA.tab_state = function(entity_name){
@@ -133,11 +136,11 @@ $(function() {
         var navigation = $('#navigation');
 
         if (should_show_all_ui()){
-            IPA.tab_set = admin_tab_set;
-            nav_create(admin_tab_set, navigation, 'tabs');
+            IPA.tab_set = IPA.admin_tab_set();
+            nav_create(IPA.tab_set, navigation, 'tabs');
         } else {
-            IPA.tab_set = self_serv_tab_set;
-            nav_create(self_serv_tab_set, navigation, 'tabs');
+            IPA.tab_set = self_serv_tab_set();
+            nav_create(IPA.tab_set, navigation, 'tabs');
 
             var state = {'user-pkey':IPA.whoami_pkey ,
                          'user-facet': $.bbq.getState('user-facet') ||
@@ -169,4 +172,3 @@ function window_hashchange(evt){
 function unimplemented_tab(jobj){
     jobj.text('Not implemented yet!');
 }
-

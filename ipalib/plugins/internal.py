@@ -104,6 +104,13 @@ class i18n_messages(Command):
             "employee":_("Employee Information"),
             "misc":_("Misc. Information"),
             "to_top":_("Back to Top")},
+        "tabs": {
+            "identity":_("Identity"),
+            "policy":_("Policy"),
+            "audit": _("Audit"),
+            "ipaserver":_("IPA Server"),
+            "sudo":_("SUDO"),
+            "hbac":_("HBAC")},
         "association":{
             "managedby":_("Managed by"),
             "members":_("Members"),

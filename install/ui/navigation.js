@@ -82,6 +82,9 @@ function nav_generate_tabs(nls, container, tabclass, depth)
             var entity = IPA.get_entity(tab.entity);
             label = entity.label;
         }
+        if (tab.label){
+            label = tab.label;
+        }
 
         var li = nav_create_tab_li(tab.name, label);
         ul.append(li);

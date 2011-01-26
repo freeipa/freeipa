@@ -391,6 +391,21 @@ IPA.entity_setup = function (container) {
 };
 
 
+IPA.nested_tab_labels = {};
+
+IPA.get_nested_tab_label = function(entity_name){
+
+    if (!IPA.nested_tab_labels[entity_name]){
+        IPA.nested_tab_labels[entity_name] = "LABEL";
+
+    }
+    return IPA.nested_tab_labels[entity_name];
+
+};
+
+
+
+
 /*Returns the entity requested, as well as:
   any nested tabs underneath it or
   its parent tab and the others nested at the same level*/
@@ -400,7 +415,7 @@ IPA.nested_tabs = function(entity_name){
     var siblings = [];
     var nested_index;
     var nested_entities;
-
+    var label;
     if (!IPA.tab_set) {
         siblings.push(entity_name);
         return siblings;
@@ -416,13 +431,19 @@ IPA.nested_tabs = function(entity_name){
             if(top_tab.children[subtab_index].name){
                 if (top_tab.children[subtab_index].name === entity_name){
                     siblings.push(entity_name);
+                    IPA.nested_tab_labels[entity_name] =
+                        top_tab.children[subtab_index].label;
                     if (top_tab.children[subtab_index].children){
+                        label = top_tab.children[subtab_index].label
                         nested_entities = top_tab.children[subtab_index].children;
                         for ( nested_index = 0;
                               nested_index < nested_entities.length;
                               nested_index += 1){
                             siblings.push (nested_entities[nested_index].name);
+                            IPA.nested_tab_labels[entity_name] =
+                                top_tab.children[subtab_index].label;
                         }
+
                     }
                 }else{
                     if (top_tab.children[subtab_index].children){
@@ -432,10 +453,16 @@ IPA.nested_tabs = function(entity_name){
                              nested_index += 1){
                             if (nested_entities[nested_index].name === entity_name){
                                 siblings.push(top_tab.children[subtab_index].name);
+                                IPA.nested_tab_labels[entity_name] =
+                                    top_tab.children[subtab_index].label;
+
                                 for (var nested_index2 = 0;
                                      nested_index2 < nested_entities.length;
                                      nested_index2 += 1){
                                     siblings.push(nested_entities[nested_index2].name);
+                                IPA.nested_tab_labels[nested_entities[nested_index2].name] =
+                                    top_tab.children[subtab_index].label;
+
                                 }
                             }
                         }
@@ -452,14 +479,7 @@ IPA.back_icon = '<span class="ipa-icon">&#x25C0;</span>';
 
 IPA. facet_create_action_panel = function(container) {
 
-    var that = this;
-    var entity_name = that.entity_name;
-    var action_panel = $('<div/>', {
-        "class": "action-panel",
-        html: $('<h3>',{
-            text: IPA.metadata[entity_name].label
-        })
-    }).appendTo(container);
+
     function build_link(other_facet,label){
         var li = $('<li/>', {
             "class" : other_facet.display_class,
@@ -482,6 +502,24 @@ IPA. facet_create_action_panel = function(container) {
     }
 
 
+    var that = this;
+    var entity_name = that.entity_name;
+    var panel_title = IPA.metadata[entity_name].label;
+    var nested_tabs = IPA.nested_tabs(entity_name);
+
+
+    if (nested_tabs.length > 1){
+        panel_title = IPA.get_nested_tab_label(entity_name);
+    }
+
+    var action_panel = $('<div/>', {
+        "class": "action-panel",
+        html: $('<h3>',{
+            text: panel_title
+        })
+    }).appendTo(container);
+
+
     /*Note, for debugging purposes, it is useful to set var pkey_type = 'text';*/
     var pkey_type = 'hidden';
     $('<input/>', {
@@ -494,7 +532,6 @@ IPA. facet_create_action_panel = function(container) {
     var facet_name =  IPA.current_facet(entity);
     var other_facet = entity.facets[0];
     var other_facet_name = other_facet.name;
-    var nested_tabs = IPA.nested_tabs(entity_name);
     var main_facet = build_link(other_facet,other_facet.label);
     for (var nested_index = 0 ;
          nested_index < nested_tabs.length;

@@ -84,7 +84,8 @@ var IPA = ( function () {
                 {"method":"i18n_messages","params":[[],{}]},
                 {"method":"user_find","params":[[],{
                     "whoami":"true","all":"true"}]},
-                {"method":"env","params":[[],{}]}
+                {"method":"env","params":[[],{}]},
+                {"method":"dns_is_enabled","params":[[],{}]}
             ];
 
 
