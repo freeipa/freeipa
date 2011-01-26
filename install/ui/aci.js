@@ -53,10 +53,11 @@ IPA.attribute_table_widget= function (spec){
     var that = IPA.widget(spec);
     var object_type = spec.objecttype || 'user';
     var table;
+    var dd_class = "other";
 
     that.create = function(container){
 
-        var dd  = $('<dd/>').appendTo(container);
+        var dd  = $('<dd/>',{"class":dd_class}).appendTo(container);
         table =   $('<table/>',{
             id:id,
             'class':'search-table aci-attribute-table'}).
@@ -323,14 +324,14 @@ IPA.target_section = function () {
 
     function display_filter_target(dl){
         $("<dt/>").
-            append($("<label/>",{
-                text:  "Filter" })).
             append($('<input/>',{
                 type:"radio",
                 name:"type",
                 checked:"true",
                 id:"aci_by_filter"
             })).
+            append($("<label/>",{
+                text:  "Filter" })).
             appendTo(dl);
 
         $('<dd/>',{
@@ -347,13 +348,13 @@ IPA.target_section = function () {
 
     function display_type_target(dl){
         $("<dt/>").
-            append($("<label/>",{
-                text:  "Object By Type " })).
             append($('<input/>',{
                 type:"radio",
                 name:"type",
                 checked:"true",
                 id:"aci_by_type" })).
+            append($("<label/>",{
+                text:  "Object By Type " })).
             appendTo(dl);
 
         var dd = $('<dd/>',{
@@ -375,8 +376,6 @@ IPA.target_section = function () {
                 text:  type_params.values[pc]
             }));
         }
-        dd = $('<dd />',{
-            "class":"aci_by_type other"}).appendTo(dl);
 
         var attribute_table = IPA.attribute_table_widget(
             {name:'aci_attributes_table',object_type:'user'});
@@ -388,11 +387,11 @@ IPA.target_section = function () {
 
     function display_query_target(dl){
         $('<dt/>').
-            append($('<label />',{ html: 'By Subtree'} )).
             append($('<input />',{
                 type:"radio",
                 name:"type",
             id:"aci_by_query" })).
+            append($('<label />',{ html: 'By Subtree'} )).
             appendTo(dl);
 
         $("<dd/>",{
@@ -427,12 +426,12 @@ IPA.target_section = function () {
 
     function display_group_target(dl){
         $('<dt/>' ).
-            append($('<label />',{
-                html: 'Target Group'} )).
             append($('<input />',{
                 type:"radio",
                 name:"type",
                 id:"aci_by_group" })).
+            append($('<label />',{
+                html: 'Target Group'} )).
             appendTo(dl);
 
         that.group_filter = $('<input/>',{
@@ -462,8 +461,7 @@ IPA.target_section = function () {
 
 
     that.create = function(container) {
-        var dl =  $('<dl class="entryattrs"/>').appendTo(container);
-
+        var dl =  $('<dl class="aci-target"/>').appendTo(container);
         display_filter_target(dl);
         display_query_target(dl);
         display_group_target(dl);

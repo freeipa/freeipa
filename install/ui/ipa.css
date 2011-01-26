@@ -13,7 +13,7 @@
 
 body{
     background-image:url("outer-bg.png");
-    background-repeat:repeat-x; 
+    background-repeat:repeat-x;
     background-position:left top;
     background-color:#ededed;
     border-width: 0;
@@ -98,7 +98,7 @@ div.tabs {
     width: 100%;
     height: 100%;
     min-height: 40em;
-	background: url("centered-bg.png") no-repeat scroll 0 8.4em transparent;
+        background: url("centered-bg.png") no-repeat scroll 0 8.4em transparent;
 }
 
 div#content {
@@ -148,11 +148,11 @@ h1 {
 
 .entity-container h1{
     -moz-border-radius: 0.5em 0.5em 0 0;
-	background: -moz-linear-gradient(center top , #EEEEEE, #DFDFDF) repeat scroll 0 0 transparent;
-	margin-top: 1.5em;
-	padding: 0.5em 0.9em;
-	position: relative;
-	width: 40.5em;
+        background: -moz-linear-gradient(center top , #EEEEEE, #DFDFDF) repeat scroll 0 0 transparent;
+        margin-top: 1.5em;
+        padding: 0.5em 0.9em;
+        position: relative;
+        width: 40.5em;
 }
 
 h2 {
@@ -224,7 +224,7 @@ dl.entryattrs dd {
 dl.entryattrs dd.first {
     margin-left: 0;
     margin-top: 0.5em;
-	font-weight: bold;
+        font-weight: bold;
 }
 
 dl.entryattrs dd.other {
@@ -243,6 +243,41 @@ dl.entryattrs input.otp {
     width: 15em;
 }
 
+dl.aci-target{
+    clear: both;
+    margin-left: 1.5em;
+    margin-top: 1.8em;
+    white-space: nowrap;
+}
+
+dl.aci-target dt {
+    padding-bottom: 1.8em;
+    padding-left: 2.8em;
+
+    text-align: left;
+    width: 16em;
+    margin: 0.5em -0.5em 0 -6em;
+}
+
+dl.aci-target dd {
+}
+
+dl.aci-target dd.first {
+
+}
+
+dl.entryattrs dd.other {
+}
+
+
+dl.aci-target input {
+
+}
+
+
+
+
+
 span.attrhint {
     font-size: 8pt;
     left: 5em;
@@ -260,7 +295,7 @@ span.attrhint {
     border: none;
     background-image: url("Mainnav-background.png");
     -moz-border-radius: 0;
-	height: 3.5em;
+        height: 3.5em;
 }
 
 .ui-tabs {
@@ -276,7 +311,7 @@ span.attrhint {
 }
 
 .ui-icon-plus {
-	background-position: -16px -129px;
+        background-position: -16px -129px;
 }
 
 .ui-icon-trash {
@@ -284,7 +319,7 @@ span.attrhint {
 }
 
 .ui-dialog .ui-dialog-titlebar-close span {
-	background-color: none !important;
+        background-color: none !important;
 }
 
 .ui-widget-content .ui-icon {
@@ -323,7 +358,7 @@ span.attrhint {
 }
 
 //.ui-dialog .ui-dialog-content {
-	min-height: 26em !important;
+        min-height: 26em !important;
 }//
 
 .ui-widget input, .ui-widget select,
@@ -339,31 +374,31 @@ span.attrhint {
      border: 1px solid #777777;
      color: #fff;
      font-weight: normal;
-	 padding: 0.4em 1em;
+         padding: 0.4em 1em;
 }
 
 span.ui-icon-search {
-	background-color: transparent !important;
+        background-color: transparent !important;
     border: medium none !important;
     color: #FFFFFF !important;
-	margin-left: 0 !important;
+        margin-left: 0 !important;
 }
 
 [title="Find"] {
-	margin-left: 0.5em !important;
+        margin-left: 0.5em !important;
     padding: 0.4em 1em 0.4em 2em !important;
 }
 
 [title="details"] {
-	margin-top: -.7em !important;
+        margin-top: -.7em !important;
 }
 
 [title="Delete"] {
-	margin-left: 1em !important;
+        margin-left: 1em !important;
 }
 
 [title="Add"] {
-	margin-left: 1em !important;
+        margin-left: 1em !important;
 }
 
 .tabs1 .ui-tabs-nav li {
@@ -450,7 +485,7 @@ span.ui-icon-search {
 .tabs2 .ui-tabs-nav li a:hover {
     background-color:#045E01;
     color: #ffffff;
-    
+
 }
 
 span.sub-nav-off > a:link, span.sub-nav-off >  a:visited{
@@ -504,13 +539,13 @@ span.main-separator{
     border-bottom: 1px solid #c9c9c9;
     text-transform: uppercase;
     font-size: 1.6em;
-	font-weight: normal;
+        font-weight: normal;
 }
 
 .action-panel ul {
     list-style-type:none;
     padding-left: .5em;
-	padding-top: 0.5em;
+        padding-top: 0.5em;
 }
 
 .action-panel li {
@@ -532,7 +567,7 @@ span.main-separator{
 
 .action-panel li.back-to-search {
     margin-left: -1.5em;
-	margin-top: 1em;
+        margin-top: 1em;
 }
 
 .action-panel li.entity-facet {
@@ -571,9 +606,9 @@ span.main-separator{
 }
 
 .action-panel li hr {
-	margin-top: 0.3em;
-	margin-left: 1em;
-	background-color: #FFFFFF !important;
+        margin-top: 0.3em;
+        margin-left: 1em;
+        background-color: #FFFFFF !important;
     border-left: medium none !important;
     border-top: 1px solid #C9C9C9 !important;
 }
@@ -600,8 +635,8 @@ a.action-button-disabled {
     float: left;
     min-width: 70em;
 }
- 
-	
+
+
 /* Search */
 
 .search-controls {
@@ -728,12 +763,12 @@ dl.modal dd {
 }
 
 #dns-record-resource-filter {
-	padding: 0em 1em;
-	margin: 0 1em;	
+        padding: 0em 1em;
+        margin: 0 1em;
 }
 
 #dns-record-type-filter {
-	margin: 0 1em 0 0.5em;
+        margin: 0 1em 0 0.5em;
 }
 
 .ui-widget-content {
@@ -751,7 +786,7 @@ table.scrollable tbody {
 
 .adder-dialog-filter {
     height: 2.5em;
-	padding-top: 0.7em;
+        padding-top: 0.7em;
 }
 
 .adder-dialog-results {
@@ -761,30 +796,30 @@ table.scrollable tbody {
 
 .adder-dialog-available {
     background-color: #ffffff;
-	border: none;
+        border: none;
     position: absolute;
     top: 0;
     left: 0;
     bottom: 0;
     width: 23em;
-	padding-top: 1em;
+        padding-top: 1em;
 }
 
 .adder-dialog-selected {
     background-color: #ffffff;
-	border: none;
+        border: none;
     position: absolute;
     top: 0;
     right: 0;
     bottom: 0;
     width: 23em;
-	padding-top: 1em;
+        padding-top: 1em;
 }
 
 .adder-dialog-buttons {
     position: absolute;
     top: 7.5em;
-	left: 23.7em;
+        left: 23.7em;
     right: 25;
     bottom: 0;
     text-align: center;
