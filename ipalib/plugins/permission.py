@@ -242,12 +242,26 @@ class permission_mod(LDAPUpdate):
     msg_summary = _('Modified permission "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        # check if permission is in LDAP
         try:
             (dn, attrs) = ldap.get_entry(
                 dn, attrs_list, normalize=self.obj.normalize_dn
             )
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
+
+        # when renaming permission, check if the target permission does not
+        # exists already. Then, make changes to underlying ACI
+        if 'rename' in options:
+            try:
+                new_dn = dn.replace(keys[-1], options['rename'], 1)
+                (new_dn, attrs) = ldap.get_entry(
+                    new_dn, attrs_list, normalize=self.obj.normalize_dn
+                )
+                raise errors.DuplicateEntry()
+            except errors.NotFound:
+                pass    # permission may be renamed, continue
+
         opts = copy.copy(options)
         for o in ['all', 'raw', 'rights', 'description', 'rename']:
             if o in opts:
@@ -292,15 +306,18 @@ class permission_mod(LDAPUpdate):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         # rename the underlying ACI after the change to permission
+        cn = keys[-1]
+
         if 'rename' in options:
-            aciname = keys[-1]   # ACI still refers to the old permission CN
-            self.api.Command.aci_mod(aciname,aciprefix=ACI_PREFIX,
+            self.api.Command.aci_mod(cn,aciprefix=ACI_PREFIX,
                         permission=options['rename'])
 
-            self.api.Command.aci_rename(aciname, aciprefix=ACI_PREFIX,
-                        newname=keys[-1], newprefix=ACI_PREFIX)
+            self.api.Command.aci_rename(cn, aciprefix=ACI_PREFIX,
+                        newname=options['rename'], newprefix=ACI_PREFIX)
 
-        result = self.api.Command.permission_show(keys[-1])['result']
+            cn = options['rename']     # rename finished
+
+        result = self.api.Command.permission_show(cn)['result']
         for r in result:
             if not r.startswith('member'):
                 entry_attrs[r] = result[r]
