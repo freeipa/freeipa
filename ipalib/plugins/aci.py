@@ -780,7 +780,16 @@ class aci_find(crud.Search):
                     except ValueError:
                         pass
 
-        # TODO: searching by: filter, subtree
+        if 'filter' in kw:
+            if not kw['filter'].startswith('('):
+                kw['filter'] = unicode('('+kw['filter']+')')
+            for a in acis:
+                if 'targetfilter' not in a.target or\
+                    not a.target['targetfilter']['expression'] or\
+                    a.target['targetfilter']['expression'] != kw['filter']:
+                    results.remove(a)
+
+        # TODO: searching by: subtree
 
         acis = []
         for result in results:

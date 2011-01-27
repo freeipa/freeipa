@@ -336,7 +336,6 @@ class permission_find(LDAPSearch):
     )
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
-        newentries = []
         for entry in entries:
             (dn, attrs) = entry
             try:
@@ -374,9 +373,7 @@ class permission_find(LDAPSearch):
                     dn = attrs['dn']
                     del attrs['dn']
                     if (dn, attrs) not in entries:
-                        newentries.append((dn, attrs))
-
-        return newentries
+                        entries.append((dn, attrs))
 
 api.register(permission_find)
 

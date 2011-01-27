@@ -1372,11 +1372,9 @@ class LDAPSearch(CallbackInterface, crud.Search):
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
-                more = callback(ldap, entries, truncated, *args, **options)
+                callback(ldap, entries, truncated, *args, **options)
             else:
-                more = callback(self, ldap, entries, truncated, *args, **options)
-            if more:
-                entries = entries + more
+                callback(self, ldap, entries, truncated, *args, **options)
 
         if not options.get('raw', False):
             for e in entries:
@@ -1392,11 +1390,11 @@ class LDAPSearch(CallbackInterface, crud.Search):
             truncated=truncated,
         )
 
-    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
-        return (filter, base_dn, scope)
+    def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
+        return (filters, base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
-        return []
+        pass
 
     def exc_callback(self, args, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
