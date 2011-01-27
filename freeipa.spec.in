@@ -3,8 +3,12 @@
 
 %global httpd_conf /etc/httpd/conf.d
 %global plugin_dir %{_libdir}/dirsrv/plugins
-%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
-%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
+%if ! (0%{?fedora} > 12 || 0%{?rhel} > 5)
+%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from
+distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from
+distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%endif
 %global POLICYCOREUTILSVER 1.33.12-1
 %global gettext_domain ipa
 
@@ -82,7 +86,6 @@ Requires: python-ldap
 Requires: python-krbV
 Requires: acl
 Requires: python-pyasn1 >= 0.0.9a
-Requires: libcap
 Requires: selinux-policy
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.21
@@ -93,7 +96,7 @@ Requires: dogtag-pki-ca-theme
 Requires(preun):  python initscripts chkconfig
 Requires(postun): python initscripts chkconfig
 
-Obsoletes: ipa-server
+Obsoletes: ipa-server >= 1.0
 
 %description server
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -108,7 +111,9 @@ this package).
 Summary: SELinux rules for freeipa-server daemons
 Group: System Environment/Base
 Requires: %{name}-server = %{version}-%{release}
-Requires(pre): policycoreutils >= %{POLICYCOREUTILSVER} libsemanage
+Requires(pre): policycoreutils >= %{POLICYCOREUTILSVER}
+
+Obsoletes: ipa-server-selinux >= 1.0
 
 %description server-selinux
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -135,7 +140,7 @@ Requires: sssd >= 1.2.1
 Requires: certmonger >= 0.26
 Requires: nss-tools
 
-Obsoletes: ipa-client
+Obsoletes: ipa-client >= 1.0
 
 %description client
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -154,7 +159,7 @@ Requires: %{name}-client = %{version}-%{release}
 Requires: python-krbV
 Requires: python-ldap
 
-Obsoletes: ipa-admintools
+Obsoletes: ipa-admintools >= 1.0
 
 %description admintools
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -177,7 +182,7 @@ Requires: python-nss >= 0.9-8
 Requires: python-lxml
 Requires: python-netaddr
 
-Obsoletes: ipa-python
+Obsoletes: ipa-python >= 1.0
 
 %description python
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -271,9 +276,6 @@ rm -rf %{buildroot}
 if [ $1 = 1 ]; then
     /sbin/chkconfig --add ipa
     /sbin/chkconfig --add ipa_kpasswd
-fi
-if [ -e /usr/share/ipa/serial ]; then
-    mv /usr/share/ipa/serial /var/lib/ipa/ca_serialno
 fi
 /usr/sbin/ipa-upgradeconfig || :
 
@@ -382,13 +384,10 @@ fi
 %config(noreplace) %{_sysconfdir}/ipa/html/ipa_error.css
 %config(noreplace) %{_sysconfdir}/ipa/html/unauthorized.html
 %config(noreplace) %{_sysconfdir}/ipa/html/browserconfig.html
-%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa.conf
 %{_usr}/share/ipa/ipa.conf
 %{_usr}/share/ipa/ipa-rewrite.conf
-#%dir %{_usr}/share/ipa/ipaserver
-#%{_usr}/share/ipa/ipaserver/*
 %dir %{_usr}/share/ipa/updates/
 %{_usr}/share/ipa/updates/*
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
@@ -414,6 +413,7 @@ fi
 
 %files server-selinux
 %defattr(-,root,root,-)
+%doc COPYING README Contributors.txt
 %{_usr}/share/selinux/targeted/ipa_kpasswd.pp
 %{_usr}/share/selinux/targeted/ipa_httpd.pp
 %{_usr}/share/selinux/targeted/ipa_dogtag.pp
@@ -448,7 +448,7 @@ fi
 %{_sbindir}/ipa-compat-manage
 %{_sbindir}/ipa-nis-manage
 %{_sbindir}/ipa-host-net-manage
-%{_sysconfdir}/bash_completion.d
+%config %{_sysconfdir}/bash_completion.d
 %{_mandir}/man1/ipa.1.gz
 %{_mandir}/man1/ipa-compat-manage.1.gz
 %{_mandir}/man1/ipa-nis-manage.1.gz
@@ -469,9 +469,12 @@ fi
 %{python_sitelib}/freeipa-*.egg-info
 %{python_sitearch}/python_default_encoding-*.egg-info
 %endif
-%config(noreplace) %{_sysconfdir}/ipa/default.conf
+%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Thu Jan 27 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-42
+- Apply changes discovered in Fedora package review process (#672986)
+
 * Tue Jan 25 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-41
 - Re-arrange doc and defattr to clean up rpmlint warnings
 - Remove conditionals on older releases
