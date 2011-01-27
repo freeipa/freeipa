@@ -52,6 +52,11 @@ body{
     top: 50%;
 }
 
+.ipa-icon {
+	font-size: 0.7em;
+	padding-right: 0.3em;
+}
+
 /*  ----  Header  ----  */
 div.header {
     background: url("top-bg.png") #0C3B00;
@@ -219,6 +224,7 @@ dl.entryattrs dt {
 dl.entryattrs dd {
     float: left;
     padding-bottom: 1.8em;
+	margin-left: 0;
 }
 
 dl.entryattrs dd.first {
@@ -235,7 +241,6 @@ dl.entryattrs dd.other {
 dl.entryattrs input {
     margin-right: 0.5em;
     margin-top: -1.2em;
-    min-width: 27.5em;
 }
 
 dl.entryattrs input.otp {
@@ -245,7 +250,7 @@ dl.entryattrs input.otp {
 
 dl.aci-target{
     clear: both;
-    margin-left: 1.5em;
+    margin-left: 2em;
     margin-top: 1.8em;
     white-space: nowrap;
 }
@@ -262,11 +267,20 @@ dl.aci-target dt {
 dl.aci-target dd {
 }
 
+dl.aci-target dd.other {
+	margin-left: -1em;
+}
+
 dl.aci-target dd.first {
+	margin-left: 8.5em;
+	margin-top: -3.7em;
+	padding-bottom: 2em;
 
 }
 
 dl.entryattrs dd.other {
+	padding-left: 0.7em;
+	margin-top: -3.5em;
 }
 
 
@@ -274,9 +288,49 @@ dl.aci-target input {
 
 }
 
+.aci-attribute-table th.style {
 
+}
 
+#aci_target_group_select {
+	display: block;
+	margin-left: 32em !important;
+	margin-top: -4em;
+}
 
+#group_filter {
+	margin-right: 2em;
+}
+
+#aci_by_filter {
+	margin-right: 1em;
+}
+
+#aci_by_query {
+	margin-right: 1em;
+}
+
+#aci_by_group {
+	margin-right: 1em;
+}
+
+#aci_by_type {
+	margin-right: 1em;
+	margin-top: 2.2em;
+}
+
+#aci_attributes_table {
+	overflow-x: hidden;
+	width: 46em;
+}
+
+#memberof-entity-select {
+	margin-right: 1em;
+}
+
+#group-entity-select {
+	margin-right: 1em;
+}
 
 span.attrhint {
     font-size: 8pt;
@@ -319,7 +373,7 @@ span.attrhint {
 }
 
 .ui-dialog .ui-dialog-titlebar-close span {
-        background-color: none !important;
+        background-color: transparent !important;
 }
 
 .ui-widget-content .ui-icon {
@@ -335,6 +389,7 @@ span.attrhint {
     text-decoration: none;
     color: #1d85d5;
     font-weight: normal;
+	text-transform: none;
 }
 
 .ui-widget-header {
@@ -401,6 +456,15 @@ span.ui-icon-search {
         margin-left: 1em !important;
 }
 
+[title="mail"] {
+        margin-top: 0em !important;
+}
+
+[title=">>"] {
+        display: block;
+		margin-top: 1em !important;
+}
+
 .tabs1 .ui-tabs-nav li {
     -moz-border-radius: 0 !important;
     background-image: url("Mainnav-offtab.png");
@@ -420,7 +484,7 @@ span.ui-icon-search {
 .tabs1 .ui-tabs-nav li a{
     -moz-border-radius: 0 !important;
     font-family: "FreeWayBold", "Liberation Sans", Arial, Sans;
-    width:4.5em;
+    width: 5em;
     padding: none;
     color: #7E7E7E;
     margin: 0 auto;
@@ -566,23 +630,40 @@ span.main-separator{
 }
 
 .action-panel li.back-to-search {
-    margin-left: -1.5em;
-        margin-top: 1em;
+    margin-left: -1.3em;
+    margin-top: 1.2em;
 }
 
 .action-panel li.entity-facet {
-    font-family: "Liberation Sans",Arial,sans-serif;
+    font-family: "Freewaybold","Liberation Sans",Arial,sans-serif;
     color: #1d85d5;
     cursor: pointer;
-    margin-left: -0.8em;
-    text-transform: none;
+    margin-left: 0.4em;
+    text-transform: uppercase;
 }
 
 .action-panel li.entity-facet-selected {
     font-family: "FreeWayBold", "Liberation Sans", Arial, Sans;
-    color: #333333;
+    color: #565656;
     text-transform: uppercase;
     cursor: pointer;
+	margin-left: -0.5em;
+}
+
+.action-panel li.entity-facet-selected .ipa-icon {
+	color: #8a8a8a;
+}
+
+.action-panel li.association-facet-selected {
+	font-family: "Liberaton Sans",Arial,sans-serif;
+	color: #565656;
+	font-size: 1em;
+	margin-left: -1.4em;
+}
+
+
+.action-panel li.association-facet-selected .ipa-icon {
+	color: #8a8a8a;
 }
 
 .action-panel li.entity-facet-selected .action-controls {
@@ -602,7 +683,9 @@ span.main-separator{
 }
 
 .action-panel li.facet-group-member {
-    margin-left: 2em;
+    font-family: "Liberaton Sans",Arial,sans-serif;
+	margin-left: 2em;
+	text-transform: none;
 }
 
 .action-panel li hr {
@@ -675,16 +758,18 @@ a.action-button-disabled {
     border-top: 1px solid #dfdfdf;
     padding: 0.9em 0 0 1em;
     display: block;
-    margin-top: 2em;
 }
 
 .aci-attribute-table tbody{
     height:30em;
-    overflow:auto;
+    overflow-x:hidden;
+	border-bottom: 1px solid #8a8a8a;
 }
 
 .aci-attribute-table th.aci-attribute-column{
-    width: 25em;
+    float: left;
+	width: 46.5em;
+	padding: 0.4em 0.5em;
 }
 
 .entity-views{
@@ -819,7 +904,7 @@ table.scrollable tbody {
 .adder-dialog-buttons {
     position: absolute;
     top: 7.5em;
-        left: 23.7em;
+    left: 24.4em;
     right: 25;
     bottom: 0;
     text-align: center;
