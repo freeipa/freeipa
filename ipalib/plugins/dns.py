@@ -151,6 +151,24 @@ def has_cli_options(entry, no_option_msg):
         raise errors.OptionError(no_option_msg)
     return entry
 
+def is_ns_rec_resolvable(name):
+    try:
+        return api.Command['dns_resolve'](name)
+    except errors.NotFound:
+        raise errors.NotFound(reason=_('Nameserver \'%(host)s\' does not have a corresponding A/AAAA record' % {'host':name}))
+
+def add_forward_record(zone, name, str_address):
+    addr = netaddr.IPAddress(str_address)
+    try:
+        if addr.version == 4:
+            api.Command['dnsrecord_add'](zone, name, arecord=str_address)
+        elif addr.version == 6:
+            api.Command['dnsrecord_add'](zone, name, aaaarecord=str_address)
+        else:
+            raise ValueError('Invalid address family')
+    except errors.EmptyModlist:
+        pass # the entry already exists and matches
+
 def dns_container_exists(ldap):
     try:
         ldap.get_entry(api.env.container_dns, [])
@@ -266,6 +284,15 @@ class dnszone_add(LDAPCreate):
     """
     Create new DNS zone (SOA record).
     """
+    takes_options = LDAPCreate.takes_options + (
+        Flag('force',
+             doc=_('force DNS zone even if name server not in DNS'),
+        ),
+        Str('ip_address?', _validate_ipaddr,
+            doc=_('Add the nameserver to DNS with this IP address'),
+        ),
+    )
+
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if not dns_container_exists(self.api.Backend.ldap2):
             raise errors.NotFound(reason=_('DNS is not configured'))
@@ -275,11 +302,27 @@ class dnszone_add(LDAPCreate):
             entry_attrs.get('idnsallowdynupdate', False)
         ).upper()
 
+        # Check nameserver has a forward record
         nameserver = entry_attrs['idnssoamname']
+
+        if not 'ip_address' in options and not options['force']:
+            is_ns_rec_resolvable(nameserver)
+
         if nameserver[-1] != '.':
             nameserver += '.'
+
         entry_attrs['nsrecord'] = nameserver
         entry_attrs['idnssoamname'] = nameserver
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if 'ip_address' in options:
+            nameserver = entry_attrs['idnssoamname'][0][:-1] # ends with a dot
+            nsparts = nameserver.split('.')
+            add_forward_record('.'.join(nsparts[1:]),
+                               nsparts[0],
+                               options['ip_address'])
+
         return dn
 
 api.register(dnszone_add)
@@ -468,6 +511,8 @@ class dnsrecord_mod_record(LDAPQuery, dnsrecord_cmd_w_record_options):
 
         entry_attrs = self.record_options_2_entry(**options)
 
+        dn = self.pre_callback(ldap, dn, entry_attrs, *keys, **options)
+
         try:
             (dn, old_entry_attrs) = ldap.get_entry(dn, entry_attrs.keys())
         except errors.NotFound:
@@ -504,6 +549,9 @@ class dnsrecord_mod_record(LDAPQuery, dnsrecord_cmd_w_record_options):
     def update_old_entry_callback(self, entry_attrs, old_entry_attrs):
         pass
 
+    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        return dn
+
     def post_callback(self, keys, entry_attrs):
         pass
 
@@ -539,6 +587,19 @@ class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
     def args_options_2_entry(self, *keys, **options):
         has_cli_options(options, self.no_option_msg)
         return super(dnsrecord_add, self).args_options_2_entry(*keys, **options)
+
+    def _nsrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        for ns in options['nsrecord']:
+            is_ns_rec_resolvable(ns)
+        return dn
+
+    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        for rtype in options:
+            rtype_cb = '_%s_pre_callback' % rtype
+            if hasattr(self, rtype_cb):
+                dn = getattr(self, rtype_cb)(ldap, dn, entry_attrs, *keys, **options)
+
+        return dn
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         if call_func.func_name == 'add_entry':

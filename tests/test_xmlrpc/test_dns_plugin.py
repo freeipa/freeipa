@@ -26,6 +26,7 @@ from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
 dnszone1 = u'dnszone.test'
+dnszone2 = u'dnszone2.test'
 dnsres1 = u'testdnsres'
 
 class test_dns(Declarative):
@@ -36,6 +37,7 @@ class test_dns(Declarative):
            api.Command['dnszone_add'](dnszone1,
                idnssoamname = u'ns1.%s' % dnszone1,
                idnssoarname = u'root.%s' % dnszone1,
+               force = True,
            )
            api.Command['dnszone_del'](dnszone1)
         except errors.NotFound:
@@ -77,6 +79,7 @@ class test_dns(Declarative):
                 'dnszone_add', [dnszone1], {
                     'idnssoamname': u'ns1.%s' % dnszone1,
                     'idnssoarname': u'root.%s' % dnszone1,
+                    'ip_address' : u'1.2.3.4',
                 }
             ),
             expected={
@@ -107,11 +110,62 @@ class test_dns(Declarative):
                 'dnszone_add', [dnszone1], {
                     'idnssoamname': u'ns1.%s' % dnszone1,
                     'idnssoarname': u'root.%s' % dnszone1,
+                    'ip_address' : u'1.2.3.4',
                 }
             ),
             expected=errors.DuplicateEntry(),
         ),
 
+        dict(
+            desc='Try to create a zone with nonexistent NS entry',
+            command=(
+                'dnszone_add', [dnszone2], {
+                    'idnssoamname': u'ns1.%s' % dnszone2,
+                    'idnssoarname': u'root.%s' % dnszone2,
+                }
+            ),
+            expected=errors.NotFound(reason='Nameserver \'ns1.%s\' does not have a corresponding A/AAAA record' % (dnszone2)),
+        ),
+
+        dict(
+            desc='Create a zone with nonexistent NS entry with --force',
+            command=(
+                'dnszone_add', [dnszone2], {
+                    'idnssoamname': u'ns1.%s' % dnszone2,
+                    'idnssoarname': u'root.%s' % dnszone2,
+                    'force'       : True,
+                }
+            ),
+            expected={
+                'value': dnszone2,
+                'summary': None,
+                'result': {
+                    'dn': u'idnsname=%s,cn=dns,%s' % (dnszone2, api.env.basedn),
+                    'idnsname': [dnszone2],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [u'ns1.%s.' % dnszone2],
+                    'nsrecord': [u'ns1.%s.' % dnszone2],
+                    'idnssoarname': [u'root.%s.' % dnszone2],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'objectclass': [u'top', u'idnsrecord', u'idnszone'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Delete zone %r' % dnszone2,
+            command=('dnszone_del', [dnszone2], {}),
+            expected={
+                'value': dnszone2,
+                'summary': None,
+                'result': {'failed': u''},
+            },
+        ),
 
         dict(
             desc='Retrieve zone %r' % dnszone1,
@@ -286,13 +340,18 @@ class test_dns(Declarative):
             command=('dnsrecord_find', [dnszone1], {}),
             expected={
                 'summary': None,
-                'count': 2,
+                'count': 3,
                 'truncated': False,
                 'result': [
                     {
                         'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
                         'nsrecord': (u'ns1.dnszone.test.',),
                         'idnsname': [u'@'],
+                    },
+                    {
+                        'dn': u'idnsname=ns1,idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
+                        'idnsname': [u'ns1'],
+                        'arecord': [u'1.2.3.4'],
                     },
                     {
                         'dn': u'idnsname=%s,idnsname=%s,cn=dns,%s' % (dnsres1, dnszone1, api.env.basedn),
