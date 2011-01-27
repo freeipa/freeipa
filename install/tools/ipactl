@@ -85,11 +85,11 @@ def get_config():
 
     return svc_list
 
-def ipa_start(serverid):
+def ipa_start():
 
     try:
         print "Starting Directory Service"
-        service.start('dirsrv', instance_name=serverid, capture_output=False)
+        service.start('dirsrv', capture_output=False)
     except:
         emit_err("Failed to start Directory Service")
         return
@@ -100,7 +100,7 @@ def ipa_start(serverid):
     except:
         emit_err("Failed to read data from Directory Service")
         emit_err("Shutting down")
-        service.stop('dirsrv', instance_name=serverid, capture_output=False)
+        service.stop('dirsrv', capture_output=False)
 
     if len(svc_list) == 0:
         return
@@ -120,12 +120,12 @@ def ipa_start(serverid):
                 except:
                     pass
             try:
-                service.stop('dirsrv', instance_name=serverid, capture_output=False)
+                service.stop('dirsrv', capture_output=False)
             except:
                 pass
             return
 
-def ipa_stop(serverid):
+def ipa_stop():
 
     svc_list = []
     try:
@@ -135,12 +135,12 @@ def ipa_stop(serverid):
         # and see if we can get anything. If not throw our hands up and just
         # exit
         try:
-            service.start('dirsrv', instance_name=serverid, capture_output=False)
+            service.start('dirsrv', capture_output=False)
             svc_list = get_config()
         except:
             emit_err("Failed to read data from Directory Service")
             emit_err("Shutting down")
-            service.stop('dirsrv', instance_name=serverid, capture_output=False)
+            service.stop('dirsrv', capture_output=False)
 
     if len(svc_list) == 0:
         return
@@ -155,16 +155,16 @@ def ipa_stop(serverid):
 
     try:
         print "Stopping Directory Service"
-        service.stop('dirsrv', instance_name=serverid, capture_output=False)
+        service.stop('dirsrv', capture_output=False)
     except:
         emit_err("Failed to stop Directory Service")
         return
 
 
-def ipa_restart(serverid):
+def ipa_restart():
     try:
         print "Restarting Directory Service"
-        service.restart('dirsrv', instance_name=serverid, capture_output=False)
+        service.restart('dirsrv', capture_output=False)
     except:
         emit_err("Failed to restart Directory Service")
         return
@@ -175,7 +175,7 @@ def ipa_restart(serverid):
     except:
         emit_err("Failed to read data from Directory Service")
         emit_err("Shutting down")
-        service.stop('dirsrv', instance_name=serverid, capture_output=False)
+        service.stop('dirsrv', capture_output=False)
 
     if len(svc_list) == 0:
         return
@@ -195,14 +195,14 @@ def ipa_restart(serverid):
                 except:
                     pass
             try:
-                service.stop('dirsrv', instance_name=serverid, capture_output=False)
+                service.stop('dirsrv', capture_output=False)
             except:
                 pass
             return
 
-def ipa_status(serverid):
+def ipa_status():
     try:
-        if service.is_running('dirsrv', instance_name=serverid):
+        if service.is_running('dirsrv'):
             print "Directory Service: RUNNING"
         else:
             print "Directory Service: STOPPED"
@@ -241,16 +241,14 @@ def main():
     api.bootstrap(context='cli', debug=options.debug)
     api.finalize()
 
-    serverid = dsinstance.realm_to_serverid(api.env.realm)
-
     if args[0].lower() == "start":
-        ipa_start(serverid)
+        ipa_start()
     elif args[0].lower() == "stop":
-        ipa_stop(serverid)
+        ipa_stop()
     elif args[0].lower() == "restart":
-        ipa_restart(serverid)
+        ipa_restart()
     elif args[0].lower() == "status":
-        ipa_status(serverid)
+        ipa_status()
 
 try:
     if __name__ == "__main__":
