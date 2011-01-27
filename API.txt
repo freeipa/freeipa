@@ -1,5 +1,5 @@
 command: aci_add
-args: 1,14,3
+args: 1,15,3
 arg: Str('aciname', attribute=True, cli_name='name', label=Gettext('ACI name', domain='ipa', localedir=None), multivalue=False, primary_key=True, required=True)
 option: Str('permission', attribute=True, cli_name='permission', label=Gettext('Permission', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('group', attribute=True, cli_name='group', label=Gettext('User group', domain='ipa', localedir=None), multivalue=False, required=False)
@@ -11,6 +11,7 @@ option: Str('filter', attribute=True, cli_name='filter', label=Gettext('Filter',
 option: Str('subtree', attribute=True, cli_name='subtree', label=Gettext('Subtree', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('targetgroup', attribute=True, cli_name='targetgroup', label=Gettext('Target group', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Flag('selfaci', attribute=True, autofill=True, cli_name='self', default=False, label=Gettext('Target your own entry (self)', domain='ipa', localedir=None), multivalue=False, required=False)
+option: StrEnum('aciprefix', cli_name='prefix', label=Gettext('ACI prefix', domain='ipa', localedir=None), values=(u'permission', u'delegation', u'selfservice', u'none'))
 option: Flag('test?', autofill=True, default=False,lag('test?', autofill=True, default=False, doc=Gettext("Test the ACI syntax but don't write anything", domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
@@ -19,13 +20,14 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: aci_del
-args: 1,0,3
+args: 1,1,3
 arg: Str('aciname', attribute=True, cli_name='name', label=Gettext('ACI name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
+option: StrEnum('aciprefix', cli_name='prefix', label=Gettext('ACI prefix', domain='ipa', localedir=None), values=(u'permission', u'delegation', u'selfservice', u'none'))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: aci_find
-args: 1,14,4
+args: 1,15,4
 arg: Str('criteria?')
 option: Str('aciname', attribute=True, autofill=False, cli_name='name', label=Gettext('ACI name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Str('permission', attribute=True, autofill=False, cli_name='permission', label=Gettext('Permission', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -38,6 +40,7 @@ option: Str('filter', attribute=True, autofill=False, cli_name='filter', label=G
 option: Str('subtree', attribute=True, autofill=False, cli_name='subtree', label=Gettext('Subtree', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Str('targetgroup', attribute=True, autofill=False, cli_name='targetgroup', label=Gettext('Target group', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Bool('selfaci', attribute=True, autofill=False, cli_name='self', default=False, label=Gettext('Target your own entry (self)', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
+option: StrEnum('aciprefix?', cli_name='prefix', label=Gettext('ACI prefix', domain='ipa', localedir=None), multivalue=False, required=False, values=(u'permission', u'delegation', u'selfservice', u'none'))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -46,25 +49,6 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, 'Number of entries returned')
 output: Output('truncated', <type 'bool'>, 'True if not all results were returned')
 command: aci_mod
-args: 1,13,3
-arg: Str('aciname', attribute=True, cli_name='name', label=Gettext('ACI name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
-option: Str('permission', attribute=True, autofill=False, cli_name='permission', label=Gettext('Permission', domain='ipa', localedir=None), multivalue=False, required=False)
-option: Str('group', attribute=True, autofill=False, cli_name='group', label=Gettext('User group', domain='ipa', localedir=None), multivalue=False, required=False)
-option: List('permissions', validate_permissions, attribute=True, autofill=False, cli_name='permissions', label=Gettext('Permissions', domain='ipa', localedir=None), multivalue=True, normalizer=_normalize_permissions, required=False)
-option: List('attrs', attribute=True, autofill=False, cli_name='attrs', label=Gettext('Attributes', domain='ipa', localedir=None), multivalue=True, required=False)
-option: StrEnum('type', attribute=True, autofill=False, cli_name='type', label=Gettext('Type', domain='ipa', localedir=None), multivalue=False, required=False, values=(u'user', u'group', u'host', u'service', u'hostgroup', u'netgroup', u'dns'))
-option: Str('memberof', attribute=True, autofill=False, cli_name='memberof', label=Gettext('Member of', domain='ipa', localedir=None), multivalue=False, required=False)
-option: Str('filter', attribute=True, autofill=False, cli_name='filter', label=Gettext('Filter', domain='ipa', localedir=None), multivalue=False, required=False)
-option: Str('subtree', attribute=True, autofill=False, cli_name='subtree', label=Gettext('Subtree', domain='ipa', localedir=None), multivalue=False, required=False)
-option: Str('targetgroup', attribute=True, autofill=False, cli_name='targetgroup', label=Gettext('Target group', domain='ipa', localedir=None), multivalue=False, required=False)
-option: Flag('selfaci', attribute=True, autofill=True, cli_name='self', default=False, label=Gettext('Target your own entry (self)', domain='ipa', localedir=None), multivalue=False, required=False)
-option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
-option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
-option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
-output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
-output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
-output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
-command: aci_rename
 args: 1,14,3
 arg: Str('aciname', attribute=True, cli_name='name', label=Gettext('ACI name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Str('permission', attribute=True, autofill=False, cli_name='permission', label=Gettext('Permission', domain='ipa', localedir=None), multivalue=False, required=False)
@@ -77,6 +61,27 @@ option: Str('filter', attribute=True, autofill=False, cli_name='filter', label=G
 option: Str('subtree', attribute=True, autofill=False, cli_name='subtree', label=Gettext('Subtree', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('targetgroup', attribute=True, autofill=False, cli_name='targetgroup', label=Gettext('Target group', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Flag('selfaci', attribute=True, autofill=True, cli_name='self', default=False, label=Gettext('Target your own entry (self)', domain='ipa', localedir=None), multivalue=False, required=False)
+option: StrEnum('aciprefix', cli_name='prefix', label=Gettext('ACI prefix', domain='ipa', localedir=None), values=(u'permission', u'delegation', u'selfservice', u'none'))
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
+option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
+command: aci_rename
+args: 1,15,3
+arg: Str('aciname', attribute=True, cli_name='name', label=Gettext('ACI name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
+option: Str('permission', attribute=True, autofill=False, cli_name='permission', label=Gettext('Permission', domain='ipa', localedir=None), multivalue=False, required=False)
+option: Str('group', attribute=True, autofill=False, cli_name='group', label=Gettext('User group', domain='ipa', localedir=None), multivalue=False, required=False)
+option: List('permissions', validate_permissions, attribute=True, autofill=False, cli_name='permissions', label=Gettext('Permissions', domain='ipa', localedir=None), multivalue=True, normalizer=_normalize_permissions, required=False)
+option: List('attrs', attribute=True, autofill=False, cli_name='attrs', label=Gettext('Attributes', domain='ipa', localedir=None), multivalue=True, required=False)
+option: StrEnum('type', attribute=True, autofill=False, cli_name='type', label=Gettext('Type', domain='ipa', localedir=None), multivalue=False, required=False, values=(u'user', u'group', u'host', u'service', u'hostgroup', u'netgroup', u'dns'))
+option: Str('memberof', attribute=True, autofill=False, cli_name='memberof', label=Gettext('Member of', domain='ipa', localedir=None), multivalue=False, required=False)
+option: Str('filter', attribute=True, autofill=False, cli_name='filter', label=Gettext('Filter', domain='ipa', localedir=None), multivalue=False, required=False)
+option: Str('subtree', attribute=True, autofill=False, cli_name='subtree', label=Gettext('Subtree', domain='ipa', localedir=None), multivalue=False, required=False)
+option: Str('targetgroup', attribute=True, autofill=False, cli_name='targetgroup', label=Gettext('Target group', domain='ipa', localedir=None), multivalue=False, required=False)
+option: Flag('selfaci', attribute=True, autofill=True, cli_name='self', default=False, label=Gettext('Target your own entry (self)', domain='ipa', localedir=None), multivalue=False, required=False)
+option: StrEnum('aciprefix', cli_name='prefix', label=Gettext('ACI prefix', domain='ipa', localedir=None), values=(u'permission', u'delegation', u'selfservice', u'none'))
 option: Str('newname',tr('newname', doc=Gettext('New ACI name', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
@@ -85,8 +90,9 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: aci_show
-args: 1,3,3
+args: 1,4,3
 arg: Str('aciname', attribute=True, cli_name='name', label=Gettext('ACI name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
+option: StrEnum('aciprefix', cli_name='prefix', label=Gettext('ACI prefix', domain='ipa', localedir=None), values=(u'permission', u'delegation', u'selfservice', u'none'))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -702,7 +708,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnszone_add
-args: 1,16,3
+args: 1,18,3
 arg: Str('idnsname', attribute=True, cli_name='name', label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=True)
 option: Str('idnssoamname', attribute=True, cli_name='name_server', label=Gettext('Authoritative name server', domain='ipa', localedir=None), multivalue=False, required=True)
 option: Str('idnssoarname', attribute=True, cli_name='admin_email', default_from=DefaultFrom(<lambda>, 'idnsname'), label=Gettext('Administrator e-mail address', domain='ipa', localedir=None), multivalue=False, normalizer=_rname_normalizer, required=True)
