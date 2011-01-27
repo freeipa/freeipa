@@ -1,12 +1,10 @@
 #!/bin/sh
 #
-# ipa    This starts and stops ipa
+# ipa    This starts and stops ipa controlled daemons
 #
 # chkconfig:   - 21 79
 # description: IPA Server
-# processname: /usr/sbin/ns-slapd
 # configdir:   /etc/ipa/
-# piddir:      /var/run/dirsrv
 #
 
 # Source function library.
@@ -25,19 +23,14 @@ then
     exit 0
 fi
 
-# Lockfile
-if [ -d "/var/lock/subsys" ] ; then
-    lockfile="/var/lock/subsys/dirsrv"
-else
-    lockfile="/var/lock/dirsrv/lock"
-fi
-
 case "$1" in
     start|stop|restart|status)
         /usr/sbin/ipactl $1
         ;;
     condrestart)
-        [ ! -f $lockfile ] || /usr/sbin/ipactl restart
+        /sbin/service dirsrv status
+        RETVAL=$?
+        [ $RETVAL = 0 ] && /usr/sbin/ipactl restart
         ;;
     *)
         echo "Usage: $0 {start|stop|status|restart|condrestart}"
