@@ -5,6 +5,8 @@ objectclass: account
 objectclass: simplesecurityobject
 uid: kdc
 userPassword: $PASSWORD
+passwordExpirationTime: 20380119031407Z
+nsIdleTimeout: 0
 
 #kerberos base object
 dn: cn=kerberos,$SUFFIX
