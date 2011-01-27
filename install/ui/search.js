@@ -103,9 +103,11 @@ IPA.search_widget =  function (spec) {
         that.remove_button = IPA.action_button({
             'label': IPA.messages.button.remove,
             'icon': 'ui-icon-trash',
-            'click': function() { that.remove(that.container); }
         });
+        that.remove_button.addClass('input_link_disabled');
+
         button.replaceWith(that.remove_button);
+
 
         button = $('input[name=add]', search_buttons);
         that.add_button = IPA.action_button({
@@ -156,6 +158,18 @@ IPA.search_widget =  function (spec) {
             $('input', action_panel).val(null);
 
         }
+
+        if(count === 0){
+            var remove_button =  $('a[title=Delete]', action_panel);
+            remove_button.addClass('input_link_disabled');
+            remove_button.unbind('click');
+
+        }else{
+            var remove_button =  $('a[title=Delete]', action_panel);
+            remove_button.click(function() { that.remove(that.container); });
+            remove_button.removeClass('input_link_disabled');
+        }
+
         return false;
     };
 

@@ -43,6 +43,11 @@ body{
     cursor: pointer;
 }
 
+.input_link_disabled {
+    cursor: default;
+    color:black;
+}
+
 .input_link span.ui-icon {
     -moz-border-radius: 0.3em;
     border: 1px solid #B8B8B8;
@@ -51,6 +56,17 @@ body{
     left: .2em;
     top: 50%;
 }
+
+.input_link_disabled span.ui-icon {
+    -moz-border-radius: 0.3em;
+    border: 1px solid #B8B8B8;
+    margin: -0.9em 0.4em 0em -0.3em;
+    position: absolute;
+    left: .2em;
+    top: 50%;
+}
+
+
 
 .ipa-icon {
 	font-size: 0.7em;
