@@ -122,7 +122,8 @@ class i18n_messages(Command):
                 "If this is your first time running the IPA Web UI"+
                 "<a href='/ipa/errors/ssbrowser.html'> "+
                 "Follow these directions</a> to configure your browser.")
-            }
+            },
+        "dirty":_("This page has unsaved changes. Please save or revert."),
         }
     has_output = (
         Output('messages', dict, doc=_('Dict of I18N messages')),

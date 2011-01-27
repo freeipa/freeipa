@@ -126,14 +126,40 @@ IPA.widget = function(spec) {
     }
 
     that.is_dirty = function() {
-
+        if (that.read_only) {
+            return false;
+        }
         var values = that.save();
-        if (!values && !that.values) return false;
-        if (!values || !that.values) return true;
 
-        if (values.length != that.values.length) return true;
+        if (!that.values){
+            if (!values) {
+                return false;
+            }
+            if ( values === "" ){
+                return false;
+            }
+            if ((values instanceof Array) &&
+                (values.length ===1) &&
+                (values[0] === "")){
+                return false;
+            }
+
+            if ((values instanceof Array) &&
+                (values.length === 0)){
+                return false;
+            }
+
+            if (values) {
+                return true;
+            }
+        }
+        if (values.length != that.values.length) {
+            return true;
+        }
         for (var i=0; i<values.length; i++) {
-            if (values[i] != that.values[i]) return true;
+            if (values[i] != that.values[i]) {
+                return true;
+            }
         }
 
         return false;

@@ -49,6 +49,16 @@ IPA.details_field =  function (spec) {
         that.record = record;
         that.values = record[that.name];
         that.reset();
+
+        var param_info = IPA.get_param_info(that.entity_name, that.name);
+        if (param_info) {
+            if (param_info['primary_key']) {
+                that.read_only = true;
+            }
+            if ('no_update' in param_info['flags']) {
+                that.read_only = true;
+            }
+        }
     }
 
     that.update = function() {
@@ -129,7 +139,10 @@ IPA.details_field =  function (spec) {
 
         var label = $('<label/>', { html:value.toString() });
 
-        if (!IPA.is_field_writable(rights)) return label;
+        if (!IPA.is_field_writable(rights)) {
+            that.read_only = true;
+            return label;
+        }
 
         var param_info = IPA.get_param_info(that.entity_name, that.name);
         if (param_info) {
@@ -191,6 +204,7 @@ IPA.details_field =  function (spec) {
         }).appendTo(span) ;
 
         if (!IPA.is_field_writable(rights)) {
+            that.read_only = true;
             input.attr('disabled', 'disabled');
         }
 
@@ -382,6 +396,16 @@ IPA.details_section = function (spec){
             field.reset();
         }
     };
+
+    that.is_dirty = function(){
+        for (var i=0; i<that.fields.length; i++) {
+            var field = that.fields[i];
+            if (field.is_dirty()){
+                return true;
+            }
+        }
+        return false;
+    }
 
     // methods that should be invoked by subclasses
     that.section_init = that.init;
@@ -653,9 +677,23 @@ IPA.details_facet = function (spec) {
         }
     }
 
-    function is_dirty() {
+    function new_key(){
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         return pkey != that.pkey;
+    }
+    that.new_key = new_key;
+
+
+    function is_dirty() {
+
+        var i;
+        for ( i =0; i <   that.sections.length; i +=1 ){
+            if (that.sections[i].is_dirty()){
+                return true;
+            }
+        }
+
+        return false;
     }
 
     function load(record) {

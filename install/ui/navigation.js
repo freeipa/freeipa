@@ -23,9 +23,15 @@
 var nav_tabs_lists;
 var nav_container;
 
+
+
 function nav_push_state(params)
 {
+    if (!IPA.test_dirty()){
+        return false;
+    }
     $.bbq.pushState(params);
+    return true;
 }
 
 function nav_get_state(key)
@@ -58,8 +64,7 @@ function nav_create(nls, container, tabclass)
             var id = parent.attr('id');
             var state = {};
             state[id] = ui.index;
-            nav_push_state(state);
-            return true;
+            return nav_push_state(state);
         }
     });
 

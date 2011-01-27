@@ -116,6 +116,12 @@ IPA.tab_state = function(entity_name){
 /* main (document onready event handler) */
 $(function() {
 
+    /* main loop (hashchange event handler) */
+    function window_hashchange(evt){
+        nav_update_tabs();
+    }
+
+
     function should_show_all_ui(){
         var whoami = IPA.whoami;
 
@@ -167,13 +173,3 @@ $(function() {
 
     IPA.init(null, null, init_on_win, init_on_error);
 });
-
-/* main loop (hashchange event handler) */
-function window_hashchange(evt){
-    nav_update_tabs();
-}
-
-/* builder function for unimplemented tab content */
-function unimplemented_tab(jobj){
-    jobj.text('Not implemented yet!');
-}

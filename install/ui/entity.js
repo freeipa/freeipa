@@ -63,6 +63,10 @@ IPA.facet = function (spec) {
     function load() {
     }
 
+    that.is_dirty = function (){
+        return false;
+    }
+
     that.get_client_area = function() {
         return $('.client', that.container);
     };
@@ -371,6 +375,7 @@ IPA.entity_setup = function (container) {
 
     var entity = this;
 
+    IPA.current_entity = this;
     var facet_name = IPA.current_facet(entity);
 
 
@@ -379,8 +384,7 @@ IPA.entity_setup = function (container) {
 
     if (IPA.entity_name == entity.name) {
         if (entity.facet_name == facet_name) {
-            if (!facet.is_dirty()) return;
-
+            if (facet.new_key   && (!facet.new_key())) return;
         } else {
             entity.facet_name = facet_name;
         }

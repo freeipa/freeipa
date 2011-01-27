@@ -131,7 +131,38 @@ var IPA = ( function () {
         }
     };
 
+
+    that.test_dirty = function(){
+        if (IPA.current_entity){
+            var facet_name =   IPA.current_facet(IPA.current_entity);
+            var facet = IPA.current_entity.facets_by_name[facet_name];
+            if (facet.is_dirty()){
+                var message_box =  $("<div/>",{
+                    html: IPA.messages.dirty
+                }).
+                    appendTo($("#navigation"));
+                message_box.dialog({
+                    title: 'Dirty',
+                    modal:true,
+                    width: '20em',
+                    buttons: {
+		        Ok: function() {
+			    $( this ).dialog( "close" );
+		        }
+		    }
+                });
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+
     that.show_page = function (entity_name, facet_name) {
+        if (!IPA.test_dirty()){
+            return false;
+        }
 
         var state = {};
         state[entity_name + '-facet'] = facet_name;
@@ -139,6 +170,11 @@ var IPA = ( function () {
     };
 
     that.switch_and_show_page = function (this_entity,  facet_name, pkey) {
+
+        if (!IPA.test_dirty()){
+            return false;
+        }
+
         if (!pkey){
             that.show_page(this_entity,  facet_name);
             return;
