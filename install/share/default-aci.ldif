@@ -13,6 +13,7 @@ aci: (targetattr = "userPassword || krbPrincipalKey || krbPasswordExpiration || 
 aci: (targetattr = "krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount")(version 3.0; acl "KDC System Account can update some fields"; allow (write) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
 aci: (targetattr = "krbPrincipalName || krbCanonicalName || krbUPEnabled || krbMKey || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount")(version 3.0; acl "Only the KDC System Account has access to kerberos material"; allow (read, search, compare) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
 aci: (targetfilter = "(objectClass=krbPwdPolicy)")(targetattr = "krbMaxPwdLife || krbMinPwdLife || krbPwdMinDiffChars || krbPwdMinLength || krbPwdHistoryLength")(version 3.0;acl "Admins can write password policies"; allow (read, search, compare, write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+aci: (targetattr = "*")(target = "ldap:///cn=*,ou=SUDOers,$SUFFIX")(version 3.0; acl "No anonymous access to sudo"; deny (read,search,compare) userdn != "ldap:///all";)
 
 dn: cn=users,cn=accounts,$SUFFIX
 changetype: modify
@@ -73,3 +74,8 @@ dn: cn=hbac,$SUFFIX
 changetype: modify
 add: aci
 aci: (targetattr = "*")(version 3.0; acl "No anonymous access to hbac"; deny (read,search,compare) userdn != "ldap:///all";)
+
+dn: cn=sudo,$SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr = "*")(version 3.0; acl "No anonymous access to sudo"; deny (read,search,compare) userdn != "ldap:///all";)
