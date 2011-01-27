@@ -171,7 +171,7 @@ IPA.entity_select_widget = function(spec){
 
         $('<a />',{
             href:"",
-            text: 'filter: ',
+            text: 'add ' +entity + ' filter: ',
             click:function(){
                 that.entity_filter.css('display','inline');
                 $(this).css('display','none');
