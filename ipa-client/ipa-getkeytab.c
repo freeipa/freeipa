@@ -478,7 +478,8 @@ int filter_keys(krb5_context krbctx, struct keys_container *keys,
             krb5_free_keyblock_contents(krbctx, &ksdata[i].key);
             krb5_free_data_contents(krbctx, &ksdata[i].salt);
             for (j = i; j < n-1; j++) {
-                keys[j] = keys[j + 1];
+                ksdata[j] = ksdata[j + 1];
+                enctypes[j] = enctypes[j + 1];
             }
             n--;
             /* new key has been moved to this position, make sure
@@ -693,7 +694,10 @@ static int ldap_set_keytab(krb5_context krbctx,
 
 	for (i = 0; i < keys->nkeys; i++) {
 		ret = ber_scanf(sctrl, "{i}", &encs[i]);
-		if (ret == LBER_ERROR) break;
+		if (ret == LBER_ERROR) {
+                    fprintf(stderr, _("ber_scanf() failed, Invalid control ?!\n"));
+                    goto error_out;
+                }
 	}
 
 	ret = filter_keys(krbctx, keys, encs);
