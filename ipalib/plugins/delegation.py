@@ -28,18 +28,18 @@ of attributes of members of another group.
 
 EXAMPLES:
 
- Add a self-service rule to allow users to manage their address:
-   ipa selfservice-add --permissions=write --attrs=street,postalCode,l,c,st "User's manage their own address"
+ Add a delegation rule to allow editos to edit admin's addresses:
+   ipa delegation-add --attrs=street --membergroup=admins --group=editors 'editors edit admins street'
 
  When managing the list of attributes you need to include all attributes
- in the list, including existing ones. Add telephoneNumber to the list:
-   ipa selfservice-mod --attrs=street,postalCode,l,c,st,telephoneNumber "User's manage their own address"
+ in the list, including existing ones. Add postalCode to the list:
+   ipa delegation-mod --attrs=street,postalCode --membergroup=admins --group=editors 'editors edit admins street'
 
  Display our updated rule:
-   ipa selfservice-show "User's manage their own address"
+   ipa delegation-show 'editors edit admins street'
 
  Delete a rule:
-   ipa selfservice-del "User's manage their own address"
+   ipa delegation-del 'editors edit admins street'
 """
 
 import copy
