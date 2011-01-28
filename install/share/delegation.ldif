@@ -349,7 +349,7 @@ member: cn=delegationadmin,cn=privileges,cn=pbac,$SUFFIX
 dn: cn=modifyprivilegemembership,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
-objectClass: nestedgroup
+objectClass: groupofnames
 cn: modifyprivilegemembership
 description: Modify privilege membership
 member: cn=delegationadmin,cn=privileges,cn=pbac,$SUFFIX
