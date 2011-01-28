@@ -102,17 +102,37 @@ IPA.add_dialog = function (spec) {
             on_error: on_error
         });
 
+        var field, value;
+
         for (var i=0; i<that.fields.length; i++) {
-            var field = that.fields[i];
+            field = that.fields[i];
             if (!field.valid) return;
 
-            var value = record[field.name];
+            value = record[field.name];
             if (!value) continue;
 
             if (field.name == pkey_name) {
                 command.add_arg(value);
             } else {
                 command.set_option(field.name, value);
+            }
+        }
+
+        for (var j=0; j<that.sections.length; j++) {
+            var section = that.sections[j];
+
+            for (var k=0; k<section.fields.length; k++) {
+                field = section.fields[k];
+                if (!field.valid) return;
+
+                value = record[field.name];
+                if (!value) continue;
+
+                if (field.name == pkey_name) {
+                    command.add_arg(value);
+                } else {
+                    command.set_option(field.name, value);
+                }
             }
         }
 

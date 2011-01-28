@@ -523,6 +523,7 @@ IPA.details_facet = function (spec) {
     that.refresh = spec.refresh || IPA.details_refresh;
 
     that.sections = [];
+
     that.__defineGetter__("entity_name", function(){
         return that._entity_name;
     });

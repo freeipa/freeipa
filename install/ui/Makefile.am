@@ -14,6 +14,7 @@ app_DATA =                              \
 	caution.png			\
 	centered-bg.png                 \
 	check.png			\
+	dialog.js 			\
 	ipa_logo_180x50.png		\
 	ipa.js				\
 	ipa.css				\

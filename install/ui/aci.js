@@ -323,12 +323,14 @@ IPA.rights_section = function () {
 
 
 IPA.target_section = function () {
-    var    spec =  {
+
+    var spec =  {
         'name':'target',
         'label': 'Target'
     };
 
     var that = IPA.details_section(spec);
+
     var groupings = ['aci_by_type',  'aci_by_query', 'aci_by_group',
                      'aci_by_filter' ];
     var inputs = ['input', 'select', 'textarea'];
@@ -575,6 +577,14 @@ IPA.target_section = function () {
         }
     };
 
+    that.init = function() {
+        that.create_text({'name': 'targetgroup'});
+        that.create_textarea({'name': 'subtree'});
+        that.create_text({'name': 'type'});
+        that.create_text({'name': 'attrs'});
+        that.create_text({'name': 'filter'});
+    };
+
     that.save = function (record){
 
         var record_type = $("input[name='type']:checked").attr('id');
@@ -584,23 +594,13 @@ IPA.target_section = function () {
                 $('#aci_target_group_select option:selected').val();
         }else if (record_type === 'aci_by_type'){
             record.type = $('#object_type_select option:selected').val();
+            record.attrs =   that.attribute_table.save().join(',');
         }else if (record_type === 'aci_by_query'){
             record.subtree = $('#aci_query_text').val();
         }else if (record_type === 'aci_by_filter'){
             var filter =  $('#aci_filter').val();
             record.filter = filter;
         }
-
-        var attrs = $('.aci-attribute:checked').each(function(){
-            var id = this.id.split('-')[1];
-
-            if (!record.attributes){
-                record.attributes = "";
-            }else{
-                record.attributes += ",";
-            }
-            record.attributes += id;
-        });
     };
     return that;
 };
@@ -613,7 +613,8 @@ IPA.entity_factories.permission = function () {
     }).add_dialog(
         IPA.add_dialog({
             name: 'add',
-            title: 'Add New Permission'
+            title: 'Add New Permission',
+            width: '700px'
         }).
             field(IPA.text_widget({
                 name: 'cn',
@@ -624,8 +625,7 @@ IPA.entity_factories.permission = function () {
                 undo: false
             })).
             field(IPA.rights_widget({name:'permissions'})).
-            field(IPA.hidden_widget(
-                {name:'filter','value':'objectClass=changethisvalue'}))).
+            section(IPA.target_section())).
         facet(IPA.search_facet().
               column({name:'cn'}).
               column({name:'description'})).
