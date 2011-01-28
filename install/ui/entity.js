@@ -112,7 +112,7 @@ IPA.entity = function (spec) {
 
     that.add_dialog = function(dialog) {
         return that.dialog(dialog);
-    }
+    };
 
     that.dialog = function(dialog) {
         dialog.entity_name = that.name;

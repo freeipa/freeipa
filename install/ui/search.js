@@ -102,7 +102,7 @@ IPA.search_widget =  function (spec) {
         button = $('input[name=remove]', search_buttons);
         that.remove_button = IPA.action_button({
             'label': IPA.messages.button.remove,
-            'icon': 'ui-icon-trash',
+            'icon': 'ui-icon-trash'
         });
         that.remove_button.addClass('input_link_disabled');
 
@@ -158,14 +158,14 @@ IPA.search_widget =  function (spec) {
             $('input', action_panel).val(null);
 
         }
-
+        var remove_button;
         if(count === 0){
-            var remove_button =  $('a[title=Delete]', action_panel);
+            remove_button =  $('a[title=Delete]', action_panel);
             remove_button.addClass('input_link_disabled');
             remove_button.unbind('click');
 
         }else{
-            var remove_button =  $('a[title=Delete]', action_panel);
+            remove_button =  $('a[title=Delete]', action_panel);
             remove_button.click(function() { that.remove(that.container); });
             remove_button.removeClass('input_link_disabled');
         }

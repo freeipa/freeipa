@@ -43,8 +43,8 @@ IPA.entity_factories.service = function () {
         facet( IPA.service_details_facet()).
         facet( IPA.service_managedby_host_facet({
             'name': 'managedby_host',
-            'label': IPA.messages.association.managedby
-                +' '+IPA.metadata['host'].label,
+            'label': IPA.messages.association.managedby +
+                ' '+IPA.metadata['host'].label,
             'other_entity': 'host'
         }));
 };
@@ -71,11 +71,11 @@ IPA.service_select_widget = function (spec){
         }
         container.append(select_widget);
         that.parent_create(container);
-    }
+    };
 
     return that;
 
-}
+};
 
 
 /*TODO: the following labels etc. all need to be replaced with I18N strings */

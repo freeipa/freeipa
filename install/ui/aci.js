@@ -78,6 +78,7 @@ IPA.attribute_table_widget= function (spec){
             append('<th class="aci-attribute-column">Attribute</th>');
 
         IPA.populate_attribute_table(table, object_type);
+        that.table = table;
     };
 
     that.save = function(){
@@ -402,10 +403,10 @@ IPA.target_section = function () {
             }));
         }
 
-        var attribute_table = IPA.attribute_table_widget(
+        that.attribute_table = IPA.attribute_table_widget(
             {name:'aci_attributes_table',object_type:'user'});
 
-        attribute_table.create(dl);
+        that.attribute_table.create(dl);
 
 
     }
@@ -534,12 +535,31 @@ IPA.target_section = function () {
             IPA.populate_attribute_table($('#aci_attributes_table'),
                                          result.type);
             if (result.attrs){
+                var unmatched = [];
+
                 for (var a = 0; a < result.attrs.length; a += 1){
                     var cb =  $('#aciattr-'+result.attrs[a]);
                     if (!cb.length){
-                        alert('unmatched:'+result.attrs[a]);
+                        unmatched.push(result.attrs[a]);
                     }
                     cb.attr('checked',true);
+                }
+                if (unmatched.length > 0){
+                    var tbody = $('tbody',that.attribute_table.table);
+                    var td;
+                    for (var u = 0; u < unmatched.length ; u += 1){
+                        var aci_tr =  $('<tr/>').appendTo(tbody);
+                        td =  $('<td/>').appendTo(aci_tr);
+                        td.append($('<input/>',{
+                            type:"checkbox",
+                            checked: true,
+                            id:'aciattr-'+unmatched[u].toLowerCase(),
+                            "class":'aci-attribute'
+                        }));
+                        td =  $('<td/>').appendTo(aci_tr);
+                        td.append($('<label/>',{
+                            text:unmatched[u].toLowerCase()}));
+                    }
                 }
             }
         }else if (result.targetgroup){
