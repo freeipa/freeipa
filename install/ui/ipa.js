@@ -155,9 +155,7 @@ var IPA = ( function () {
             }
         }
         return true;
-    }
-
-
+    };
 
     that.show_page = function (entity_name, facet_name) {
         if (!IPA.test_dirty()){
@@ -170,19 +168,19 @@ var IPA = ( function () {
     };
 
     that.switch_and_show_page = function (this_entity,  facet_name, pkey) {
-
         if (!IPA.test_dirty()){
             return false;
         }
 
         if (!pkey){
             that.show_page(this_entity,  facet_name);
-            return;
+            return false;
         }
         var state = {};
         state[this_entity+'-pkey'] = pkey;
         state[this_entity + '-facet'] = facet_name;
         $.bbq.pushState(state);
+        return true;
     };
 
     return that;

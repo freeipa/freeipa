@@ -222,10 +222,40 @@ IPA.rights_widget = function(spec){
     };
     var values = [];
 
-    that.reset = function(){
-        var selector = '.'+ that.entity_name +"_"+ that.name;
+    function get_selector(){
+        return  '.'+ that.entity_name +"_"+ that.name;
+    }
 
-        var checkboxes = $(selector);
+    that.is_dirty = function(){
+
+        var checkboxes = $(get_selector());
+        var checked = {};
+
+        checkboxes.each(function (){
+            checked[this.id] = this.checked;
+        });
+
+        for (var i = 0; i < values.length; i +=1){
+            var key = values[i];
+
+            if ( !checked[key] ){
+                return true;
+            }
+            checked[key] = false;
+        }
+
+        for (key in checked){
+            if (checked[key] ){
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    that.reset = function(){
+
+        var checkboxes = $(get_selector());
 
         for (var i = 0; i < checkboxes.length; i +=1){
             checkboxes.attr('checked','');
@@ -233,7 +263,7 @@ IPA.rights_widget = function(spec){
 
         for (var j = 0; j < values.length; j +=1){
             var value = values[j];
-            var cb = $('#'+value+ selector);
+            var cb = $('#'+value+ get_selector());
             cb.attr('checked', 'checked');
         }
 
@@ -245,7 +275,7 @@ IPA.rights_widget = function(spec){
     };
 
     that.save = function(){
-        var rights_input =  $('.'+ that.entity_name +"_"+ that.name);
+        var rights_input =  $(get_selector()+":checked");
         var retval = "";
         for (var i =0; i < rights_input.length; i+=1){
             if (i > 0) {
@@ -592,7 +622,7 @@ IPA.entity_factories.permission = function () {
                       input({ name: 'description'})).
               section(IPA.rights_section()).
               section(IPA.target_section()));
-    return that;
+
 };
 
 
