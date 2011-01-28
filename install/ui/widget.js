@@ -262,6 +262,7 @@ IPA.text_widget = function(spec) {
         undo.click(function() {
             that.reset();
         });
+        that.input = input;
     };
 
     that.load = function(record) {

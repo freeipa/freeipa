@@ -25,143 +25,88 @@
 
 IPA.entity_factories.service = function () {
 
-    var that = IPA.entity({
+    return  IPA.entity({
         'name': 'service'
-    });
-
-    that.init = function() {
-
-        that.create_association({
+    }).
+        association({
             'name': 'host',
             'add_method': 'add_host',
             'remove_method': 'remove_host'
-        });
-
-        var dialog = IPA.service_add_dialog({
-            'name': 'add',
-            'title': 'Add New Service'
-        });
-        that.add_dialog(dialog);
-
-        var facet = IPA.service_search_facet({
-            'name': 'search',
-            'label': 'Search'
-        });
-        that.add_facet(facet);
-
-        facet = IPA.service_details_facet({
-            'name': 'details'
-        });
-        that.add_facet(facet);
-
-        facet = IPA.service_managedby_host_facet({
+        }).
+        dialog(
+            IPA.service_add_dialog({
+                'name': 'add',
+                'title': 'Add New Service'
+            })).
+        facet( IPA.search_facet().
+               column({name:'krbprincipalname'})).
+        facet( IPA.service_details_facet()).
+        facet( IPA.service_managedby_host_facet({
             'name': 'managedby_host',
-            'label': IPA.messages.association.managedby+' '+IPA.metadata['host'].label,
+            'label': IPA.messages.association.managedby
+                +' '+IPA.metadata['host'].label,
             'other_entity': 'host'
-        });
-        that.add_facet(facet);
-
-        that.entity_init();
-    };
-
-    return that;
+        }));
 };
 
+
+IPA.service_select_widget = function (spec){
+
+    var that = IPA.text_widget(spec);
+    var known_services = ["", "cifs", "DNS", "ftp", "HTTP","imap", "ldap",
+                          "libvirt","nfs","qpidd","smtp"];
+
+    that.parent_create = that.create;
+
+    that.create = function(container) {
+
+        var select_widget = $('<select/>');
+        for (var i = 0; i < known_services.length; i += 1){
+            select_widget.append($('<option/>',{
+                text: known_services[i],
+                click: function(){
+                    that.input.val(this.value);
+                }
+            }));
+        }
+        container.append(select_widget);
+        that.parent_create(container);
+    }
+
+    return that;
+
+}
+
+
+/*TODO: the following labels etc. all need to be replaced with I18N strings */
 
 IPA.service_add_dialog = function (spec) {
 
     spec = spec || {};
 
-    var that = IPA.add_dialog(spec);
-
-    that.init = function() {
-
-        that.add_field(IPA.widget({
+    var that = IPA.add_dialog(spec).
+        field(IPA.widget({
             name: 'krbprincipalname'
-        }));
-
-        // TODO: Replace with i18n label
-        that.add_field(IPA.text_widget({
+        })).
+        field(IPA.service_select_widget({
             'name': 'service',
             'label': 'Service',
             'size': 20,
             'undo': false
-        }));
-
-        // TODO: Replace with i18n label
-        that.add_field(IPA.text_widget({
+        })).
+        field(IPA.text_widget({
             'name': 'host',
             'label': 'Host Name',
             'size': 40,
             'undo': false
-        }));
-
-        // TODO: Replace with i18n label
-        that.add_field(IPA.checkbox_widget({
+        })).
+        field(IPA.checkbox_widget({
             name: 'force',
             label: 'Force',
             tooltip: 'force principal name even if not in DNS',
             undo: false
         }));
 
-        that.add_dialog_init();
-    };
-
-    that.create = function() {
-
-        var table = $('<table/>').appendTo(that.container);
-
-        var field = that.get_field('service');
-
-        var tr = $('<tr/>').appendTo(table);
-
-        var td = $('<td/>', {
-            style: 'vertical-align: top;',
-            title: field.label
-        }).appendTo(tr);
-        td.append(field.label+': ');
-
-        td = $('<td/>', {
-            'style': 'vertical-align: top;'
-        }).appendTo(tr);
-
-        var span = $('<span/>', { 'name': 'service' }).appendTo(td);
-        field.create(span);
-
-        field = that.get_field('host');
-
-        tr = $('<tr/>').appendTo(table);
-
-        td = $('<td/>', {
-            style: 'vertical-align: top;',
-            title: field.label
-        }).appendTo(tr);
-        td.append(field.label+': ');
-
-        td = $('<td/>', {
-            'style': 'vertical-align: top;'
-        }).appendTo(tr);
-
-        span = $('<span/>', { 'name': 'host' }).appendTo(td);
-        field.create(span);
-
-        field = that.get_field('force');
-
-        tr = $('<tr/>').appendTo(table);
-
-        td = $('<td/>', {
-            style: 'vertical-align: top;',
-            title: field.label
-        }).appendTo(tr);
-        td.append(field.label+': ');
-
-        td = $('<td/>', {
-            'style': 'vertical-align: top;'
-        }).appendTo(tr);
-
-        span = $('<span/>', { 'name': 'force' }).appendTo(td);
-        field.create(span);
-    };
 
     that.save = function(record) {
 
@@ -181,78 +126,47 @@ IPA.service_add_dialog = function (spec) {
 };
 
 
-IPA.service_search_facet = function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.search_facet(spec);
-
-    that.init = function() {
-
-        that.create_column({name:'krbprincipalname'});
-        that.search_facet_init();
-    };
-
-    return that;
-};
-
-
 IPA.service_details_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = IPA.details_facet(spec);
-
-    that.init = function() {
-
-        var section = IPA.details_list_section({
+    var that = IPA.details_facet(spec).
+        section(IPA.stanza({
             name: 'details',
             label: 'Service Settings'
-        });
-        that.add_section(section);
-
-        section.create_field({
+        }).
+        input({
             name: 'krbprincipalname'
-        });
-
-        // TODO: Replace with i18n label
-        section.create_field({
+        }).
+        input({
             name: 'service',
             label: 'Service',
             load: service_service_load
-        });
-
-        // TODO: Replace with i18n label
-        section.create_field({
+        }).
+        input({
             name: 'host',
             label: 'Host Name',
             load: service_host_load
-        });
+        })).
+        section(
+            IPA.stanza({
+                name: 'provisioning',
+                label: 'Provisioning'
+            }).
+                custom_input(service_provisioning_status_widget({
+                    name: 'provisioning_status',
+                    label: 'Status'
+                }))).
+        section(
+            IPA.stanza({
+                name: 'certificate',
+                label: 'Service Certificate'
+            }).
+                custom_input((service_certificate_status_widget({
+                    name: 'certificate_status',
+                    label: 'Status'
+                }))));
 
-        section = IPA.details_list_section({
-            name: 'provisioning',
-            label: 'Provisioning'
-        });
-        that.add_section(section);
-
-        section.add_field(service_provisioning_status_widget({
-            name: 'provisioning_status',
-            label: 'Status'
-        }));
-
-        section = IPA.details_list_section({
-            name: 'certificate',
-            label: 'Service Certificate'
-        });
-        that.add_section(section);
-
-        section.add_field(service_certificate_status_widget({
-            name: 'certificate_status',
-            label: 'Status'
-        }));
-
-        that.details_facet_init();
-    };
 
     return that;
 };
