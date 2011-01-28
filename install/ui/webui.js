@@ -51,8 +51,8 @@ IPA.admin_tab_set = function () {
             {name:'krbtpolicy', entity:'krbtpolicy'}
         ]},
         {name:'ipaserver', label: IPA.messages.tabs.ipaserver, children: [
-            {name:'role',entity:'role', label: IPA.messages.tabs.role
-             ,children:[
+            {name:'role',entity:'role', label: IPA.messages.tabs.role,
+             children:[
                 {name:'privilege',entity:'privilege' },
                 {name:'permission', entity:'permission'}
             ]},

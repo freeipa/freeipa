@@ -65,7 +65,7 @@ IPA.facet = function (spec) {
 
     that.is_dirty = function (){
         return false;
-    }
+    };
 
     that.get_client_area = function() {
         return $('.client', that.container);

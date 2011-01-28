@@ -165,6 +165,7 @@ var IPA = ( function () {
         var state = {};
         state[entity_name + '-facet'] = facet_name;
         $.bbq.pushState(state);
+        return true;
     };
 
     that.switch_and_show_page = function (this_entity,  facet_name, pkey) {

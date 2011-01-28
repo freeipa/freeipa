@@ -405,7 +405,7 @@ IPA.details_section = function (spec){
             }
         }
         return false;
-    }
+    };
 
     // methods that should be invoked by subclasses
     that.section_init = that.init;
