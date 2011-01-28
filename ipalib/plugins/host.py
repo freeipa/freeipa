@@ -356,13 +356,16 @@ class host_add(LDAPCreate):
                 except errors.EmptyModlist:
                     # the entry already exists and matches
                     pass
-                revzone, revname = get_reverse_zone(options['ip_address'])
-                try:
-                    addkw = { 'ptrrecord' : keys[-1]+'.' }
-                    api.Command['dnsrecord_add'](revzone, revname, **addkw)
-                except errors.EmptyModlist:
-                    # the entry already exists and matches
-                    pass
+
+                if not options.get('no_reverse', False):
+                    revzone, revname = get_reverse_zone(options['ip_address'])
+                    try:
+                        addkw = { 'ptrrecord' : keys[-1]+'.' }
+                        api.Command['dnsrecord_add'](revzone, revname, **addkw)
+                    except errors.EmptyModlist:
+                        # the entry already exists and matches
+                        pass
+
                 del options['ip_address']
         except Exception, e:
             exc = e
