@@ -53,6 +53,9 @@ from ipalib import util
 
 DEFAULT_DSPORT=7389
 
+PKI_USER = "pkiuser"
+PKI_DS_USER = "pkisrv"
+
 # These values come from /usr/share/pki/ca/setup/postinstall
 PKI_INSTANCE_NAME="pki-ca"
 AGENT_SECURE_PORT=9443
@@ -219,7 +222,6 @@ class CADSInstance(service.Service):
         self.serverid = None
         self.host_name = None
         self.pkcs12_info = None
-        self.ds_user = None
         self.ds_port = None
         self.master_host = None
         if realm_name:
@@ -228,8 +230,8 @@ class CADSInstance(service.Service):
         else:
             self.suffix = None
 
-    def create_instance(self, ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info=None, ds_port=DEFAULT_DSPORT):
-        self.ds_user = ds_user
+    def create_instance(self, realm_name, host_name, domain_name,
+                        dm_password, pkcs12_info=None, ds_port=DEFAULT_DSPORT):
         self.ds_port = ds_port
         self.realm_name = realm_name.upper()
         self.serverid = "PKI-IPA"
@@ -250,26 +252,29 @@ class CADSInstance(service.Service):
         server_root = dsinstance.find_server_root()
         self.sub_dict = dict(FQHN=self.host_name, SERVERID=self.serverid,
                              PASSWORD=self.dm_password, SUFFIX=self.suffix.lower(),
-                             REALM=self.realm_name, USER=self.ds_user,
+                             REALM=self.realm_name, USER=PKI_DS_USER,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
                              TIME=int(time.time()), DSPORT=self.ds_port)
 
     def __create_ds_user(self):
         user_exists = True
         try:
-            pwd.getpwnam(self.ds_user)
-            logging.debug("ds user %s exists" % self.ds_user)
+            pwd.getpwnam(PKI_DS_USER)
+            logging.debug("ds user %s exists" % PKI_DS_USER)
         except KeyError:
             user_exists = False
-            logging.debug("adding ds user %s" % self.ds_user)
-            args = ["/usr/sbin/useradd", "-c", "DS System User", "-d", "/var/lib/dirsrv", "-M", "-r", "-s", "/sbin/nologin", self.ds_user]
+            logging.debug("adding ds user %s" % PKI_DS_USER)
+            args = ["/usr/sbin/useradd", "-g", dsinstance.DS_GROUP,
+                                         "-c", "PKI DS System User",
+                                         "-d", "/var/lib/dirsrv",
+                                         "-s", "/sbin/nologin",
+                                         "-M", "-r", PKI_DS_USER]
             try:
                 ipautil.run(args)
                 logging.debug("done adding user")
             except ipautil.CalledProcessError, e:
                 logging.critical("failed to add user %s" % e)
 
-        self.backup_state("user", self.ds_user)
         self.backup_state("user_exists", user_exists)
 
     def __create_instance(self):
@@ -328,16 +333,14 @@ class CADSInstance(service.Service):
             dsinstance.erase_ds_instance_data(serverid)
 
         self.service_name="pkids"
-        ds_user = self.restore_state("user")
         user_exists = self.restore_state("user_exists")
 
-        if not ds_user is None and not user_exists is None and not user_exists:
+        if user_exists == False:
             try:
-                ipautil.run(["/usr/sbin/userdel", ds_user])
+                ipautil.run(["/usr/sbin/userdel", PKI_DS_USER])
             except ipautil.CalledProcessError, e:
                 logging.critical("failed to delete user %s" % e)
         self.service_name = sav_name
-
 
 class CAInstance(service.Service):
     """
@@ -360,7 +363,6 @@ class CAInstance(service.Service):
     def __init__(self, realm, ra_db):
         service.Service.__init__(self, "pki-cad")
         self.realm = realm
-        self.pki_user = "pkiuser"
         self.dm_password = None
         self.admin_password = None
         self.host_name = None
@@ -389,7 +391,7 @@ class CAInstance(service.Service):
     def __del__(self):
         shutil.rmtree(self.ca_agent_db, ignore_errors=True)
 
-    def configure_instance(self, pki_user, host_name, dm_password,
+    def configure_instance(self, host_name, dm_password,
                            admin_password, ds_port=DEFAULT_DSPORT,
                            pkcs12_info=None, master_host=None, csr_file=None,
                            cert_file=None, cert_chain_file=None,
@@ -404,7 +406,6 @@ class CAInstance(service.Service):
            chain and actually proceed to create the CA. For step 1 set
            csr_file. For step 2 set cert_file and cert_chain_file.
         """
-        self.pki_user = pki_user
         self.host_name = host_name
         self.dm_password = dm_password
         self.admin_password = admin_password
@@ -484,19 +485,21 @@ class CAInstance(service.Service):
     def __create_ca_user(self):
         user_exists = True
         try:
-            pwd.getpwnam(self.pki_user)
-            logging.debug("ca user %s exists" % self.pki_user)
+            pwd.getpwnam(PKI_USER)
+            logging.debug("ca user %s exists" % PKI_USER)
         except KeyError:
             user_exists = False
-            logging.debug("adding ca user %s" % self.pki_user)
-            args = ["/usr/sbin/useradd", "-c", "CA System User", "-d", "/var/lib", "-M", "-r", "-s", "/sbin/nologin", self.pki_user]
+            logging.debug("adding ca user %s" % PKI_USER)
+            args = ["/usr/sbin/useradd", "-c", "CA System User",
+                                         "-d", "/var/lib",
+                                         "-s", "/sbin/nologin",
+                                         "-M", "-r", PKI_USER]
             try:
                 ipautil.run(args)
                 logging.debug("done adding user")
             except ipautil.CalledProcessError, e:
                 logging.critical("failed to add user %s" % e)
 
-        self.backup_state("user", self.pki_user)
         self.backup_state("user_exists", user_exists)
 
     def __configure_instance(self):
@@ -558,7 +561,7 @@ class CAInstance(service.Service):
                 # The install wizard expects the file to be here.
                 cafile = self.pkcs12_info[0]
                 shutil.copy(cafile, "/var/lib/pki-ca/alias/ca.p12")
-                pent = pwd.getpwnam(self.pki_user)
+                pent = pwd.getpwnam(PKI_USER)
                 os.chown("/var/lib/pki-ca/alias/ca.p12", pent.pw_uid, pent.pw_gid )
                 args.append("-clone")
                 args.append("true")
@@ -615,7 +618,7 @@ class CAInstance(service.Service):
         # Turn off Nonces (again)
         if installutils.update_file('/var/lib/pki-ca/conf/CS.cfg', 'ca.enableNonces=true', 'ca.enableNonces=false') != 0:
             raise RuntimeError("Disabling nonces failed")
-        pent = pwd.getpwnam(self.pki_user)
+        pent = pwd.getpwnam(PKI_USER)
         os.chown('/var/lib/pki-ca/conf/CS.cfg', pent.pw_uid, pent.pw_gid )
 
         # pkisilent makes a copy of the CA PKCS#12 file for us but gives
@@ -934,8 +937,8 @@ class CAInstance(service.Service):
         publishdir='/var/lib/pki-ca/publish'
         os.mkdir(publishdir)
         os.chmod(publishdir, 0755)
-        pent = pwd.getpwnam(self.pki_user)
-        os.chown(publishdir, pent.pw_uid, pent.pw_gid )
+        pent = pwd.getpwnam(PKI_USER)
+        os.chown(publishdir, pent.pw_uid, pent.pw_gid)
 
         # Enable file publishing, disable LDAP
         installutils.set_directive(caconfig, 'ca.publish.enable', 'true', quotes=False, separator='=')
@@ -994,11 +997,10 @@ class CAInstance(service.Service):
         except ipautil.CalledProcessError, e:
             logging.critical("failed to uninstall CA instance %s" % e)
 
-        pki_user = self.restore_state("user")
         user_exists = self.restore_state("user_exists")
-        if not pki_user is None and not user_exists is None and not user_exists:
+        if user_exists == False:
             try:
-                ipautil.run(["/usr/sbin/userdel", pki_user])
+                ipautil.run(["/usr/sbin/userdel", PKI_USER])
             except ipautil.CalledProcessError, e:
                 logging.critical("failed to delete user %s" % e)
 
@@ -1013,6 +1015,6 @@ class CAInstance(service.Service):
 if __name__ == "__main__":
     installutils.standard_logging_setup("install.log", False)
     cs = CADSInstance()
-    cs.create_instance("dirsrv", "EXAMPLE.COM", "catest.example.com", "example.com", "password")
+    cs.create_instance("EXAMPLE.COM", "catest.example.com", "example.com", "password")
     ca = CAInstance("EXAMPLE.COM", "/etc/httpd/alias")
-    ca.configure_instance("pkiuser", "catest.example.com", "password", "password")
+    ca.configure_instance("catest.example.com", "password", "password")

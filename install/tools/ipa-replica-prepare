@@ -183,19 +183,13 @@ def export_ra_pkcs12(dir, dm_password):
     finally:
         os.remove(agent_name)
 
-def get_ds_user(ds_dir):
-    uid = os.stat(ds_dir).st_uid
-    user = pwd.getpwuid(uid)[0]
-
-    return user
-
-def save_config(dir, realm_name, host_name, ds_user, domain_name, dest_host,
+def save_config(dir, realm_name, host_name,
+                domain_name, dest_host,
                 subject_base):
     config = SafeConfigParser()
     config.add_section("realm")
     config.set("realm", "realm_name", realm_name)
     config.set("realm", "master_host_name", host_name)
-    config.set("realm", "ds_user", ds_user)
     config.set("realm", "domain_name", domain_name)
     config.set("realm", "destination_host", dest_host)
     config.set("realm", "subject_base", subject_base)
@@ -213,8 +207,8 @@ def copy_files(realm_name, dir):
     config_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
 
     try:
-        shutil.copy("/var/kerberos/krb5kdc/ldappwd", dir + "/ldappwd") 
-        shutil.copy("/var/kerberos/krb5kdc/kpasswd.keytab", dir + "/kpasswd.keytab") 
+        shutil.copy("/var/kerberos/krb5kdc/ldappwd", dir + "/ldappwd")
+        shutil.copy("/var/kerberos/krb5kdc/kpasswd.keytab", dir + "/kpasswd.keytab")
         shutil.copy("/usr/share/ipa/html/ca.crt", dir + "/ca.crt")
         if ipautil.file_exists("/usr/share/ipa/html/preferences.html"):
             shutil.copy("/usr/share/ipa/html/preferences.html", dir + "/preferences.html")
@@ -281,7 +275,6 @@ def main():
         print "You can't create a replica on itself"
         sys.exit(1)
     ds_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(api.env.realm))
-    ds_user = get_ds_user(ds_dir)
 
     # get the directory manager password
     dirman_password = options.password
@@ -404,7 +397,7 @@ def main():
     print "Copying additional files"
     copy_files(api.env.realm, dir)
     print "Finalizing configuration"
-    save_config(dir, api.env.realm, api.env.host, ds_user, api.env.domain, replica_fqdn, subject_base)
+    save_config(dir, api.env.realm, api.env.host, api.env.domain, replica_fqdn, subject_base)
 
     replicafile = "/var/lib/ipa/replica-info-" + replica_fqdn
     encfile = replicafile+".gpg"

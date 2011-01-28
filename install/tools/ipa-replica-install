@@ -22,6 +22,7 @@ import sys
 import socket
 
 import tempfile, os, pwd, traceback, logging, shutil
+import grp
 from ConfigParser import SafeConfigParser
 
 from ipapython import ipautil
@@ -33,6 +34,7 @@ from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
 from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
+from ipapython import sysrestore
 
 CACERT="/etc/ipa/ca.crt"
 
@@ -45,7 +47,6 @@ class ReplicaConfig:
         self.domain_name = ""
         self.master_host_name = ""
         self.dirman_password = ""
-        self.ds_user = ""
         self.host_name = ""
         self.dir = ""
         self.subject_base = ""
@@ -116,7 +117,6 @@ def read_info(dir, rconfig):
 
     rconfig.realm_name = config.get("realm", "realm_name")
     rconfig.master_host_name = config.get("realm", "master_host_name")
-    rconfig.ds_user = config.get("realm", "ds_user")
     rconfig.domain_name = config.get("realm", "domain_name")
     rconfig.host_name = config.get("realm", "destination_host")
     rconfig.subject_base = config.get("realm", "subject_base")
@@ -145,7 +145,7 @@ def resolve_host(host_name):
         return None
 
 def set_owner(config, dir):
-    pw = pwd.getpwnam(config.ds_user)
+    pw = pwd.getpwnam(dsinstance.DS_USER)
     os.chown(dir, pw.pw_uid, pw.pw_gid)
 
 def install_ca(config):
@@ -168,9 +168,13 @@ def install_ca(config):
         sys.exit(1)
 
     cs = cainstance.CADSInstance()
-    cs.create_instance(config.ds_user, config.realm_name, config.host_name, config.domain_name, config.dirman_password)
+    cs.create_instance(config.realm_name, config.host_name,
+                       config.domain_name, config.dirman_password)
     ca = cainstance.CAInstance(config.realm_name, certs.NSS_DIR)
-    ca.configure_instance("pkiuser", config.host_name, config.dirman_password, config.dirman_password, pkcs12_info=(cafile,), master_host=config.master_host_name, subject_base=config.subject_base)
+    ca.configure_instance(config.host_name, config.dirman_password,
+                          config.dirman_password, pkcs12_info=(cafile,),
+                          master_host=config.master_host_name,
+                          subject_base=config.subject_base)
 
     return ca
 
@@ -187,7 +191,7 @@ def install_replica_ds(config):
                        config.dir + "/dirsrv_pin.txt")
 
     ds = dsinstance.DsInstance()
-    ds.create_replica(config.ds_user, config.realm_name,
+    ds.create_replica(config.realm_name,
                       config.master_host_name, config.host_name,
                       config.domain_name, config.dirman_password,
                       pkcs12_info)
@@ -205,7 +209,7 @@ def install_krb(config, setup_pkinit=False):
         pkcs12_info = (config.dir + "/pkinitcert.p12",
                        config.dir + "/pkinit_pin.txt")
 
-    krb.create_replica(config.ds_user, config.realm_name,
+    krb.create_replica(config.realm_name,
                        config.master_host_name, config.host_name,
                        config.domain_name, config.dirman_password,
                        ldappwd_filename, kpasswd_filename,
@@ -339,6 +343,9 @@ def main():
     if not ipautil.file_exists(filename):
         sys.exit("Replica file %s does not exist" % filename)
 
+    global sstore
+    sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
+
     # check the bind is installed
     if options.setup_dns:
         check_bind()
@@ -392,6 +399,21 @@ def main():
 
     api.bootstrap(in_server=True)
     api.finalize()
+
+    # Create DS group if it doesn't exist yet
+    try:
+        grp.getgrnam(dsinstance.DS_GROUP)
+        logging.debug("ds group %s exists" % dsinstance.DS_GROUP)
+        group_exists = True
+    except KeyError:
+        group_exists = False
+        args = ["/usr/sbin/groupadd", "-r", dsinstance.DS_GROUP]
+        try:
+            ipautil.run(args)
+            logging.debug("done adding DS group")
+        except ipautil.CalledProcessError, e:
+            logging.critical("failed to add DS group: %s" % e)
+    sstore.backup_state("install", "group_exists", group_exists)
 
     #Automatically disable pkinit w/ dogtag until that is supported
     #[certs.ipa_self_signed() must be called only after api.finalize()]

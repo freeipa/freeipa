@@ -21,7 +21,6 @@
 import shutil
 import logging
 import pwd
-import grp
 import glob
 import sys
 import os
@@ -47,6 +46,9 @@ from ipaserver.plugins.ldap2 import ldap2
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
 CACERT="/etc/ipa/ca.crt"
+
+DS_USER = 'dirsrv'
+DS_GROUP = 'dirsrv'
 
 def find_server_root():
     if ipautil.dir_exists(SERVER_ROOT_64):
@@ -176,7 +178,6 @@ class DsInstance(service.Service):
         self.serverid = None
         self.fqdn = None
         self.pkcs12_info = None
-        self.ds_user = None
         self.dercert = None
         self.idstart = None
         self.idmax = None
@@ -223,11 +224,10 @@ class DsInstance(service.Service):
 
         self.step("configuring directory to start on boot", self.__enable)
 
-    def create_instance(self, ds_user, realm_name, fqdn, domain_name,
+    def create_instance(self, realm_name, fqdn, domain_name,
                         dm_password, pkcs12_info=None, self_signed_ca=False,
                         idstart=1100, idmax=999999, subject_base=None,
                         hbac_allow=True):
-        self.ds_user = ds_user
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
         self.suffix = util.realm_to_suffix(self.realm_name)
@@ -256,9 +256,8 @@ class DsInstance(service.Service):
 
         self.start_creation("Configuring directory server", 60)
 
-    def create_replica(self, ds_user, realm_name, master_fqdn, fqdn,
+    def create_replica(self, realm_name, master_fqdn, fqdn,
                        domain_name, dm_password, pkcs12_info=None):
-        self.ds_user = ds_user
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
         self.suffix = util.realm_to_suffix(self.realm_name)
@@ -309,7 +308,7 @@ class DsInstance(service.Service):
         self.sub_dict = dict(FQHN=self.fqdn, SERVERID=self.serverid,
                              PASSWORD=self.dm_password,
                              SUFFIX=self.suffix.lower(),
-                             REALM=self.realm_name, USER=self.ds_user,
+                             REALM=self.realm_name, USER=DS_USER,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
                              TIME=int(time.time()), IDSTART=self.idstart,
                              IDMAX=self.idmax, HOST=self.fqdn,
@@ -319,27 +318,22 @@ class DsInstance(service.Service):
     def __create_ds_user(self):
         user_exists = True
 	try:
-            pwd.getpwnam(self.ds_user)
-            logging.debug("ds user %s exists" % self.ds_user)
+            pwd.getpwnam(DS_USER)
+            logging.debug("ds user %s exists" % DS_USER)
 	except KeyError:
             user_exists = False
-            logging.debug("adding ds user %s" % self.ds_user)
-            args = ["/usr/sbin/useradd", "-c", "DS System User", "-d", "/var/lib/dirsrv", "-M", "-r", "-s", "/sbin/nologin", self.ds_user]
-            try:
-                # if the group already exists we need to request to add it,
-                # otherwise useradd will create it for us
-                grp.getgrnam(self.ds_user)
-                args.append("-g")
-                args.append(self.ds_user)
-            except KeyError:
-                pass
+            logging.debug("adding ds user %s" % DS_USER)
+            args = ["/usr/sbin/useradd", "-g", DS_GROUP,
+                                         "-c", "DS System User",
+                                         "-d", "/var/lib/dirsrv",
+                                         "-s", "/sbin/nologin",
+                                         "-M", "-r", DS_USER]
             try:
                 ipautil.run(args)
                 logging.debug("done adding user")
             except ipautil.CalledProcessError, e:
                 logging.critical("failed to add user %s" % e)
 
-        self.backup_state("user", self.ds_user)
         self.backup_state("user_exists", user_exists)
 
     def __create_instance(self):
@@ -617,12 +611,11 @@ class DsInstance(service.Service):
             dsdb.untrack_server_cert("Server-Cert")
             erase_ds_instance_data(serverid)
 
-        ds_user = self.restore_state("user")
         user_exists = self.restore_state("user_exists")
 
-        if not ds_user is None and not user_exists is None and not user_exists:
+        if user_exists == False:
             try:
-                ipautil.run(["/usr/sbin/userdel", ds_user])
+                ipautil.run(["/usr/sbin/userdel", DS_USER])
             except ipautil.CalledProcessError, e:
                 logging.critical("failed to delete user %s" % e)
 
@@ -686,7 +679,7 @@ class DsInstance(service.Service):
         fd.close()
         for line in lines:
             sline = line.strip()
-            if not sline.startswith(self.ds_user):
+            if not sline.startswith(DS_USER):
                 continue
             if sline.find('nofile') == -1:
                 continue
@@ -711,7 +704,7 @@ class DsInstance(service.Service):
         if need_sysconf and need_limits:
             self.fstore.backup_file("/etc/security/limits.conf")
             fd = open("/etc/security/limits.conf", "a+")
-            fd.write('%s\t\t-\tnofile\t\t%s\n' % (self.ds_user, str(num)))
+            fd.write('%s\t\t-\tnofile\t\t%s\n' % (DS_USER, str(num)))
             fd.close()
 
             fd = open("/etc/sysconfig/dirsrv", "a+")

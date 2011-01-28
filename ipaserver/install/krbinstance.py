@@ -35,7 +35,7 @@ from ipalib import errors
 
 from ipaserver import ipaldap
 from ipaserver.install import replication
-from ipaserver.install.dsinstance import realm_to_serverid
+from ipaserver.install import dsinstance
 
 import ldap
 from ldap import LDAPError
@@ -78,7 +78,6 @@ class KpasswdInstance(service.SimpleServiceInstance):
 class KrbInstance(service.Service):
     def __init__(self, fstore=None):
         service.Service.__init__(self, "krb5kdc")
-        self.ds_user = None
         self.fqdn = None
         self.realm = None
         self.domain = None
@@ -124,8 +123,7 @@ class KrbInstance(service.Service):
         host_entry.setValue('managedby', host_dn)
         self.admin_conn.addEntry(host_entry)
 
-    def __common_setup(self, ds_user, realm_name, host_name, domain_name, admin_password):
-        self.ds_user = ds_user
+    def __common_setup(self, realm_name, host_name, domain_name, admin_password):
         self.fqdn = host_name
         self.realm = realm_name.upper()
         self.host = host_name.split(".")[0]
@@ -152,13 +150,13 @@ class KrbInstance(service.Service):
         self.step("starting the KDC", self.__start_instance)
         self.step("configuring KDC to start on boot", self.__enable)
 
-    def create_instance(self, ds_user, realm_name, host_name, domain_name, admin_password, master_password, setup_pkinit=False, pkcs12_info=None, self_signed_ca=False, subject_base=None):
+    def create_instance(self, realm_name, host_name, domain_name, admin_password, master_password, setup_pkinit=False, pkcs12_info=None, self_signed_ca=False, subject_base=None):
         self.master_password = master_password
         self.pkcs12_info = pkcs12_info
         self.self_signed_ca = self_signed_ca
         self.subject_base = subject_base
 
-        self.__common_setup(ds_user, realm_name, host_name, domain_name, admin_password)
+        self.__common_setup(realm_name, host_name, domain_name, admin_password)
 
         self.step("setting KDC account password", self.__configure_kdc_account_password)
         self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
@@ -183,7 +181,7 @@ class KrbInstance(service.Service):
         self.kpasswd = KpasswdInstance()
         self.kpasswd.create_instance('KPASSWD', self.fqdn, self.admin_password, self.suffix)
 
-    def create_replica(self, ds_user, realm_name,
+    def create_replica(self, realm_name,
                        master_fqdn, host_name,
                        domain_name, admin_password,
                        ldap_passwd_filename, kpasswd_filename,
@@ -196,7 +194,7 @@ class KrbInstance(service.Service):
         self.__copy_kpasswd_keytab(kpasswd_filename)
         self.master_fqdn = master_fqdn
 
-        self.__common_setup(ds_user, realm_name, host_name, domain_name, admin_password)
+        self.__common_setup(realm_name, host_name, domain_name, admin_password)
 
         self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
         self.step("writing stash file from DS", self.__write_stash_from_ds)
@@ -256,7 +254,7 @@ class KrbInstance(service.Service):
                              SUFFIX=self.suffix,
                              DOMAIN=self.domain,
                              HOST=self.host,
-                             SERVER_ID=realm_to_serverid(self.realm),
+                             SERVER_ID=dsinstance.realm_to_serverid(self.realm),
                              REALM=self.realm)
 
     def __configure_sasl_mappings(self):
@@ -492,7 +490,7 @@ class KrbInstance(service.Service):
         installutils.create_keytab("/etc/dirsrv/ds.keytab", ldap_principal)
 
         update_key_val_in_file("/etc/sysconfig/dirsrv", "export KRB5_KTNAME", "/etc/dirsrv/ds.keytab")
-        pent = pwd.getpwnam(self.ds_user)
+        pent = pwd.getpwnam(dsinstance.DS_USER)
         os.chown("/etc/dirsrv/ds.keytab", pent.pw_uid, pent.pw_gid)
 
     def __create_host_keytab(self):

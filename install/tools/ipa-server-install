@@ -31,7 +31,7 @@ import os
 import socket
 import errno
 import logging
-import pwd
+import grp
 import subprocess
 import signal
 import shutil
@@ -58,8 +58,6 @@ from ipapython.ipautil import *
 from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
 
-DEF_DS_USER = 'dirsrv'
-
 pw_name = None
 uninstalling = False
 
@@ -68,8 +66,6 @@ def parse_options():
     # Guaranteed to give a random 200k range below the 2G mark (uint32_t limit)
     namespace = random.randint(1, 10000) * 200000
     parser = IPAOptionParser(version=version.VERSION)
-    parser.add_option("-u", "--user", dest="ds_user",
-                      help="ds user")
     parser.add_option("-r", "--realm", dest="realm_name",
                       help="realm name")
     parser.add_option("-n", "--domain", dest="domain_name",
@@ -151,12 +147,10 @@ def parse_options():
         parser.error("You cannot specify a --forwarder option together with --no-forwarders")
 
     if options.uninstall:
-        if (options.ds_user or options.realm_name or
+        if (options.realm_name or
             options.admin_password or options.master_password):
-            parser.error("In uninstall mode, -u, r and -P options are not allowed")
+            parser.error("In uninstall mode, -a, -r and -P options are not allowed")
     elif options.unattended:
-        if not options.ds_user:
-            options.ds_user = DEF_DS_USER
         if (not options.realm_name or
             not options.dm_password or not options.admin_password):
             parser.error("In unattended mode you need to provide at least -r, -p and -a options")
@@ -306,32 +300,6 @@ def resolve_host(host_name):
         print "Unable to lookup the IP address of the provided host"
     return ip
 
-def read_ds_user():
-    print "The server must run as a specific user in a specific group."
-    print "It is strongly recommended that this user should have no privileges"
-    print "on the computer (i.e. a non-root user).  The set up procedure"
-    print "will give this user/group some permissions in specific paths/files"
-    print "to perform server-specific operations."
-    print ""
-
-    ds_user = ""
-    try:
-        pwd.getpwnam(DEF_DS_USER)
-
-        print "A user account named %s already exists." % DEF_DS_USER
-        print "This is the user id that the Directory Server will run as."
-        print ""
-        if user_input("Do you want to use the existing %s account?" % DEF_DS_USER, True):
-            ds_user = DEF_DS_USER
-        else:
-            print ""
-            ds_user = user_input_plain("Which account name do you want to use for the DS instance?", allow_empty = False, allow_spaces = False)
-        print ""
-    except KeyError:
-        ds_user = DEF_DS_USER
-
-    return ds_user
-
 def read_domain_name(domain_name, unattended):
     print "The domain name has been calculated based on the host name."
     print ""
@@ -447,6 +415,18 @@ def uninstall():
         os.remove("/etc/httpd/conf.d/ipa.conf")
     except:
         pass
+
+    group_exists = sstore.restore_state("install", "group_exists")
+    if group_exists == False:
+        try:
+            grp.getgrnam(dsinstance.DS_GROUP)
+            try:
+                ipautil.run(["/usr/sbin/groupdel", dsinstance.DS_GROUP])
+            except ipautil.CalledProcessError, e:
+                logging.critical("failed to delete group %s" % e)
+        except KeyError:
+            logging.info("Group %s already removed", dsinstance.DS_GROUP)
+
     return 0
 
 
@@ -492,6 +472,8 @@ def main():
 
     global fstore
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+    global sstore
+    sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
 
     # Configuration for ipalib, we will bootstrap and finalize later, after
     # we are sure we have the configuration file ready.
@@ -544,7 +526,6 @@ def main():
     if not options.external_ca:
         check_dirsrv(options.unattended)
 
-    ds_user = ""
     realm_name = ""
     host_name = ""
     domain_name = ""
@@ -629,14 +610,6 @@ def main():
     print "Domain name: " + domain_name
     print ""
 
-    if not options.ds_user:
-        ds_user = read_ds_user()
-        if ds_user == "":
-            sys.exit(1)
-        logging.debug("read ds_user: %s\n" % ds_user)
-    else:
-        ds_user = options.ds_user
-
     if not options.realm_name:
         realm_name = read_realm_name(domain_name, options.unattended)
         logging.debug("read realm_name: %s\n" % realm_name)
@@ -695,6 +668,21 @@ def main():
         print "Please wait until the prompt is returned."
         print ""
 
+    # Create DS group if it doesn't exist yet
+    try:
+        grp.getgrnam(dsinstance.DS_GROUP)
+        logging.debug("ds group %s exists" % dsinstance.DS_GROUP)
+        group_exists = True
+    except KeyError:
+        group_exists = False
+        args = ["/usr/sbin/groupadd", "-r", dsinstance.DS_GROUP]
+        try:
+            ipautil.run(args)
+            logging.debug("done adding DS group")
+        except ipautil.CalledProcessError, e:
+            logging.critical("failed to add DS group: %s" % e)
+    sstore.backup_state("install", "group_exists", group_exists)
+
     # Configure ntpd
     if options.conf_ntp:
         ntp = ntpinstance.NTPInstance(fstore)
@@ -730,21 +718,26 @@ def main():
 
         if options.external_cert_file is None:
             cs = cainstance.CADSInstance()
-            cs.create_instance("pkisrv", realm_name, host_name, domain_name, dm_password)
+            cs.create_instance(realm_name, host_name, domain_name, dm_password)
         ca = cainstance.CAInstance(realm_name, certs.NSS_DIR)
         if external == 0:
-            ca.configure_instance("pkiuser", host_name, dm_password, dm_password, subject_base=options.subject)
+            ca.configure_instance(host_name, dm_password, dm_password,
+                                  subject_base=options.subject)
         elif external == 1:
             options.realm_name = realm_name
             options.domain_name = domain_name
-            options.ds_user = ds_user
             options.master_password = master_password
             options.host_name = host_default
             options.unattended = True
             write_cache(options)
-            ca.configure_instance("pkiuser", host_name, dm_password, dm_password, csr_file="/root/ipa.csr", subject_base=options.subject)
+            ca.configure_instance(host_name, dm_password, dm_password,
+                                  csr_file="/root/ipa.csr",
+                                  subject_base=options.subject)
         else:
-            ca.configure_instance("pkiuser", host_name, dm_password, dm_password, cert_file=options.external_cert_file, cert_chain_file=options.external_ca_file, subject_base=options.subject)
+            ca.configure_instance(host_name, dm_password, dm_password,
+                                  cert_file=options.external_cert_file,
+                                  cert_chain_file=options.external_ca_file,
+                                  subject_base=options.subject)
 
     # Now put the CA cert where other instances exepct it
     ca.publish_ca_cert("/etc/ipa/ca.crt")
@@ -762,11 +755,14 @@ def main():
     if options.dirsrv_pkcs12:
         pkcs12_info = (options.dirsrv_pkcs12, pw_name)
         try:
-            ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info, subject_base=options.subject, hbac_allow=not options.hbac_allow)
+            ds.create_instance(realm_name, host_name, domain_name,
+                               dm_password, pkcs12_info,
+                               subject_base=options.subject,
+                               hbac_allow=not options.hbac_allow)
         finally:
             os.remove(pw_name)
     else:
-        ds.create_instance(ds_user, realm_name, host_name, domain_name,
+        ds.create_instance(realm_name, host_name, domain_name,
                            dm_password, self_signed_ca=options.selfsign,
                            idstart=options.idstart, idmax=options.idmax,
                            subject_base=options.subject,
@@ -786,13 +782,13 @@ def main():
     krb = krbinstance.KrbInstance(fstore)
     if options.pkinit_pkcs12:
         pkcs12_info = (options.pkinit_pkcs12, pw_name)
-        krb.create_instance(ds_user, realm_name, host_name, domain_name,
+        krb.create_instance(realm_name, host_name, domain_name,
                             dm_password, master_password,
                             setup_pkinit=options.setup_pkinit,
                             pkcs12_info=pkcs12_info,
                             subject_base=options.subject)
     else:
-        krb.create_instance(ds_user, realm_name, host_name, domain_name,
+        krb.create_instance(realm_name, host_name, domain_name,
                             dm_password, master_password,
                             setup_pkinit=options.setup_pkinit,
                             self_signed_ca=options.selfsign,
