@@ -8,8 +8,10 @@
                 "cn"
             ],
             "filter": "(memberOf=cn=ipausers,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com)",
-            "group": "muppets",
-            "membergroup": "cn=ipausers,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "group": "admins",
+            "membergroup": [
+                "admins"
+            ],
             "permissions": [
                 "write"
             ]

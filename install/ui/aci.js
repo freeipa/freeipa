@@ -81,35 +81,27 @@ IPA.attribute_table_widget= function (spec){
     };
 
     that.save = function(){
-        var attrs_boxes  =  $('table#'+id+" td :checked");
-        if (!attrs_boxes.length){
-            return [];
-        }
-        var retval = "";
-        for (var i = 0; i < attrs_boxes.length; i += 1){
-            if (i > 0){
-                retval += ',';
-            }
-            retval += attrs_boxes[i].id.substring("aciattr-".length);
+        var values = [];
+
+        var attrs_boxes =  $('table#'+id+" td :checked");
+
+        for (var i = 0; i < attrs_boxes.length; i += 1) {
+            var value = attrs_boxes[i].id.substring("aciattr-".length);
+            values.push(value);
         }
 
-        return [retval];
+        return values;
     };
 
-    var attrs = [];
     that.reset =function(){
         $('input[type=checkbox]', table).attr('checked','');
-        for (var i = 0; i < attrs.length; i+=1){
-            $(attrs[i], table).attr('checked','checked');
+        for (var i = 0; i < that.values.length; i+=1){
+            $('#aciattr-'+that.values[i], table).attr('checked','checked');
         }
     };
 
     that.load = function(record){
-        if (!record.attrs) return;
-        attrs = [];
-        for (var i = 0; i < record.attrs.length; i+=1){
-            attrs.push('#aciattr-' +record.attrs[i]);
-        }
+        that.values = record[that.name] || [];
         that.reset();
     };
 
@@ -122,7 +114,6 @@ IPA.entity_select_widget = function(spec){
     var entity = spec.entity || 'group';
 
     function populate_select(value){
-        var selected = value;
         function find_success(result){
             $('option', that.entity_select).remove();
             var entities = result.result.result;
@@ -132,7 +123,7 @@ IPA.entity_select_widget = function(spec){
                         text:entities[i].cn[0],
                         value:entities[i].cn[0]
                     }));
-                if (selected === entities[i].cn[0]){
+                if (value === entities[i].cn[0]){
                     option.attr('selected','selected');
                 }
             }
@@ -180,14 +171,18 @@ IPA.entity_select_widget = function(spec){
         }).appendTo(dd);
         populate_select();
     };
-    var value = '';
     that.reset = function(){
-        that.entity_filter.val(value );
-        populate_select(value);
+        that.entity_filter.val(that.values[0]);
+        populate_select(that.values[0]);
 
     };
     that.load = function(record){
-        value = record[that.name];
+        var value = record[that.name];
+        if (value instanceof Array) {
+            that.values = value;
+        } else {
+            that.values = value ? [value] : [''];
+        }
         that.reset();
     };
 
@@ -735,13 +730,13 @@ IPA.entity_factories.delegation =  function() {
                         custom_input(IPA.entity_select_widget(
                             {name:'group', entity:'group'})).
                         custom_input(IPA.entity_select_widget(
-                            {name:'memberof', entity:'group'})).
+                            {name:'memberof', entity:'group', join: true})).
                         custom_input(
                             IPA.rights_widget({
                                 id:'delegation_rights'})).
                         custom_input(
                             IPA.attribute_table_widget({
-                                name:'attrs'})))).
+                                name:'attrs', join: true})))).
         add_dialog(IPA.add_dialog({
             name: 'add',
             title: 'Add Delegation'
@@ -750,8 +745,8 @@ IPA.entity_factories.delegation =  function() {
                    field(IPA.entity_select_widget({name:'group',
                                                    entity:'group'})).
                    field(IPA.entity_select_widget({name:'memberof',
-                                                   entity:'group'})).
-                   field(IPA.attribute_table_widget({ name: 'attrs'}))).
+                                                   entity:'group', join: true})).
+                   field(IPA.attribute_table_widget({ name: 'attrs', join: true}))).
         standard_associations();
     return that;
 

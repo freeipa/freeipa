@@ -36,7 +36,8 @@ IPA.add_dialog = function (spec) {
     that.init = function() {
 
         that.add_button('Add', function() {
-            var record = that.get_record();
+            var record = {};
+            that.save(record);
             that.add(
                 record,
                 function() {
@@ -51,7 +52,8 @@ IPA.add_dialog = function (spec) {
 
 
         that.add_button('Add and Add Another', function() {
-            var record = that.get_record();
+            var record = {};
+            that.save(record);
             that.add(
                 record,
                 function() {
@@ -65,7 +67,8 @@ IPA.add_dialog = function (spec) {
         });
 
         that.add_button('Add and Edit', function() {
-            var record = that.get_record();
+            var record = {};
+            that.save(record);
             that.add(
                 record,
                 function() {
@@ -112,6 +115,8 @@ IPA.add_dialog = function (spec) {
                 command.set_option(field.name, value);
             }
         }
+
+        //alert(JSON.stringify(command.to_json()));
 
         command.execute();
     };

@@ -38,6 +38,7 @@ IPA.widget = function(spec) {
     that.height = spec.height;
 
     that.undo = typeof spec.undo == 'undefined' ? true : spec.undo;
+    that.join = spec.join;
 
     that.init = spec.init || init;
     that.create = spec.create || create;
@@ -110,6 +111,7 @@ IPA.widget = function(spec) {
 
     function load(record) {
         that.record = record;
+        that.values = record[that.name];
         that.reset();
     }
 
@@ -126,36 +128,39 @@ IPA.widget = function(spec) {
     }
 
     that.is_dirty = function() {
+
         if (that.read_only) {
             return false;
         }
+
         var values = that.save();
 
-        if (!that.values){
+        if (!that.values) {
+
             if (!values) {
                 return false;
             }
-            if ( values === "" ){
-                return false;
-            }
-            if ((values instanceof Array) &&
-                (values.length ===1) &&
-                (values[0] === "")){
+
+            if (values === '') {
                 return false;
             }
 
-            if ((values instanceof Array) &&
-                (values.length === 0)){
-                return false;
+            if (values instanceof Array) {
+
+                if ((values.length === 0) ||
+                    (values.length === 1) &&
+                    (values[0] === '')) {
+                    return false;
+                }
             }
 
-            if (values) {
-                return true;
-            }
+            return true;
         }
+
         if (values.length != that.values.length) {
             return true;
         }
+
         for (var i=0; i<values.length; i++) {
             if (values[i] != that.values[i]) {
                 return true;
@@ -1017,14 +1022,12 @@ IPA.dialog = function(spec) {
         that.container.dialog('option', name, value);
     };
 
-    that.get_record = function() {
-        var record = {};
+    that.save = function(record) {
         for (var i=0; i<that.fields.length; i++) {
             var field = that.fields[i];
             var values = field.save();
-            record[field.name] = values[0];
+            record[field.name] = values.join(',');
         }
-        return record;
     };
 
     that.close = function() {

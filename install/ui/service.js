@@ -163,8 +163,7 @@ IPA.service_add_dialog = function (spec) {
         field.create(span);
     };
 
-    that.get_record = function() {
-        var record = {};
+    that.save = function(record) {
 
         var field = that.get_field('service');
         var service = field.save()[0];
@@ -175,11 +174,7 @@ IPA.service_add_dialog = function (spec) {
         record['krbprincipalname'] = service+'/'+host;
 
         field = that.get_field('force');
-        var force = field.save()[0];
-
-        record['force'] = force;
-
-        return record;
+        record['force'] = field.save()[0];
     };
 
     return that;

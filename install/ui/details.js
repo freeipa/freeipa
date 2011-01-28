@@ -781,7 +781,7 @@ IPA.details_update = function (on_win, on_fail)
     var that = this;
     var entity_name = that.entity_name;
 
-    function update_on_win(data, text_status, xhr) {
+    function on_success(data, text_status, xhr) {
         if (on_win)
             on_win(data, text_status, xhr);
         if (data.error)
@@ -791,7 +791,7 @@ IPA.details_update = function (on_win, on_fail)
         that.load(result);
     }
 
-    function update_on_fail(xhr, text_status, error_thrown) {
+    function on_error(xhr, text_status, error_thrown) {
         if (on_fail)
             on_fail(xhr, text_status, error_thrown);
     }
@@ -822,8 +822,12 @@ IPA.details_update = function (on_win, on_fail)
                 if (param_info['primary_key']) continue;
                 if (values.length === 1) {
                     modlist[field.name] = values[0];
-                }else if (values.length > 1){
-                    modlist[field.name] = values;
+                } else if (values.length > 1){
+                    if (field.join) {
+                        modlist[field.name] = values.join(',');
+                    } else {
+                        modlist[field.name] = values;
+                    }
                 } else if (param_info['multivalue']){
                     modlist[field.name] = [];
                 }
@@ -841,14 +845,21 @@ IPA.details_update = function (on_win, on_fail)
         }
     }
 
-    var pkey = that.get_primary_key() ;
-    if (pkey){
-        pkey = [pkey];
-    }else{
-        pkey = [];
-    }
+    var pkey = that.get_primary_key();
 
-    IPA.cmd('mod', pkey, modlist, update_on_win, null, entity_name);
+    var args = pkey ? [pkey] : [];
+
+    var command = IPA.command({
+        method: entity_name+'_mod',
+        args: args,
+        options: modlist,
+        on_success: on_success,
+        on_error: on_error
+    });
+
+    //alert(JSON.stringify(command.to_json()));
+
+    command.execute();
 };
 
 
