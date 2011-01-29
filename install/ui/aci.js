@@ -602,6 +602,8 @@ IPA.target_section = function () {
             record.filter = filter;
         }
     };
+    that.is_dirty = function (){ return false; }
+
     return that;
 };
 
