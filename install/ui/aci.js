@@ -2,6 +2,7 @@
 
 /*  Authors:
  *    Adam Young <ayoung@redhat.com>
+ *    Endi S. Dewata <edewata@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -23,49 +24,35 @@
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
 
-/*TODO Merge this code into  the attribtue table widget */
-IPA.populate_attribute_table = function (table, entity){
-    var attr_per_col = 400;
-    var aciattrs =  IPA.metadata[entity].aciattrs;
-    var col_span = aciattrs.length / attr_per_col + 1;
+IPA.attribute_table_widget = function(spec) {
 
-    $('tbody tr', table).remove();
+    spec = spec || {};
 
-    var tbody = $('tbody',table);
-    var td;
-    for (var a = 0; a < aciattrs.length ; a += 1){
-        var aci_tr =  $('<tr/>').appendTo(tbody);
+    var that = IPA.checkboxes_widget(spec);
 
-        td =  $('<td/>').appendTo(aci_tr);
-        td.append($('<input/>',{
-            type:"checkbox",
-            id:'aciattr-'+aciattrs[a].toLowerCase(),
-            "class":'aci-attribute'
-        }));
-        td =  $('<td/>').appendTo(aci_tr);
-        td.append($('<label/>',{
-            text:aciattrs[a].toLowerCase()}));
-    }
-};
+    that.object_type = spec.object_type;
 
-IPA.attribute_table_widget= function (spec){
     var id = spec.name;
-    var that = IPA.widget(spec);
-    var object_type = spec.objecttype || 'user';
-    var table;
     var dd_class = "other";
 
     that.create = function(container){
 
-        var dd  = $('<dd/>',{"class":dd_class}).appendTo(container);
-        table =   $('<table/>',{
+        var dd = $('<dd/>', {
+            'class': dd_class
+        }).appendTo(container);
+
+        var span = $('<span/>', {
+            name: 'attrs'
+        }).appendTo(dd);
+
+        that.table = $('<table/>', {
             id:id,
             'class':'search-table aci-attribute-table'}).
             append('<thead/>').
             append($('<tbody/>')).
-            appendTo(dd);
+            appendTo(span);
 
-        var tr = $('<tr></tr>').appendTo($('thead', table));
+        var tr = $('<tr></tr>').appendTo($('thead', that.table));
         tr.append($('<th/>',{
             style:"height:2em; vertical-align:bottom;",
             html:$('<input/>',{
@@ -76,34 +63,168 @@ IPA.attribute_table_widget= function (spec){
                 }})
         })).
             append('<th class="aci-attribute-column">Attribute</th>');
-
-        IPA.populate_attribute_table(table, object_type);
-        that.table = table;
     };
 
-    that.save = function(){
-        var values = [];
+    that.load = function(record) {
 
-        var attrs_boxes =  $('table#'+id+" td :checked");
+        that.record = record;
+        that.values = [];
 
-        for (var i = 0; i < attrs_boxes.length; i += 1) {
-            var value = attrs_boxes[i].id.substring("aciattr-".length);
-            values.push(value);
+        var values = record[that.name] || [];
+        for (var i=0; i<values.length; i++) {
+            var value = values[i].toLowerCase();
+            that.values.push(value);
         }
 
-        return values;
-    };
-
-    that.reset =function(){
-        $('input[type=checkbox]', table).attr('checked','');
-        for (var i = 0; i < that.values.length; i+=1){
-            $('#aciattr-'+that.values[i], table).attr('checked','checked');
-        }
-    };
-
-    that.load = function(record){
-        that.values = record[that.name] || [];
         that.reset();
+    };
+
+    that.update = function() {
+        that.populate(that.object_type);
+        that.checkboxes_update();
+        that.append();
+    };
+
+    that.populate = function(object_type){
+
+        $('tbody tr', that.table).remove();
+
+        if (!object_type || object_type === '') return;
+
+        var metadata = IPA.metadata[object_type];
+        if (!metadata) return;
+
+        var aciattrs = metadata.aciattrs;
+
+        var attr_per_col = 400;
+        var col_span = aciattrs.length / attr_per_col + 1;
+
+        var tbody = $('tbody', that.table);
+        var td;
+        for (var a = 0; a < aciattrs.length ; a += 1){
+            var value = aciattrs[a].toLowerCase();
+            var aci_tr =  $('<tr/>').appendTo(tbody);
+
+            td =  $('<td/>').appendTo(aci_tr);
+            td.append($('<input/>',{
+                type: 'checkbox',
+                id: 'aciattr-'+value,
+                name: 'attrs',
+                value: value,
+                'class': 'aci-attribute'
+            }));
+            td =  $('<td/>').appendTo(aci_tr);
+            td.append($('<label/>',{
+                text:value}));
+        }
+    };
+
+    that.append = function() {
+
+        if (!that.values) return;
+
+        var unmatched = [];
+
+        for (var i=0; i<that.values.length; i++) {
+            var cb = $('#aciattr-'+that.values[i]);
+            if (!cb.length){
+                unmatched.push(that.values[i]);
+            }
+            cb.attr('checked',true);
+        }
+
+        if (unmatched.length > 0){
+            var tbody = $('tbody', that.table);
+
+            for (var j=0; j<unmatched.length; j++) {
+                var value = unmatched[j].toLowerCase();
+                var tr = $('<tr/>').appendTo(tbody);
+
+                var td = $('<td/>').appendTo(tr);
+                td.append($('<input/>', {
+                    type: 'checkbox',
+                    checked: true,
+                    id: 'aciattr-'+value,
+                    name: 'attrs',
+                    value: value,
+                    'class': 'aci-attribute'
+                }));
+
+                td = $('<td/>').appendTo(tr);
+                td.append($('<label/>', {
+                    text: value
+                }));
+            }
+        }
+    };
+
+    return that;
+};
+
+IPA.targetgroup_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.select_widget(spec);
+
+    that.filter = spec.filter || '';
+
+    that.create = function(container) {
+        that.select = $('<select/>', {
+            name: that.name,
+            id: 'aci_target_group_select'
+        }).appendTo(container);
+    };
+
+    that.load = function(record) {
+
+        that.empty();
+
+        that.select.append($('<option/>', {
+            text: '',
+            value: ''
+        }));
+
+        var command = IPA.command({
+            method: 'group_find',
+            args: [that.filter],
+            options: {}
+        });
+
+        command.on_success = function(data, text_status, xhr) {
+
+            var groups = data.result.result;
+
+            for (var i=0; i<data.result.count; i++) {
+                var option = groups[i].cn[0];
+                that.select.append($('<option/>', {
+                    text: groups[i].cn[0],
+                    value: groups[i].cn[0]
+                }));
+            }
+
+            that.select_load(record);
+        };
+
+        command.execute();
+    };
+
+    return that;
+};
+
+IPA.type_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.select_widget(spec);
+
+    that.filter = spec.filter || '';
+
+    that.create = function(container) {
+        that.select = $('<select/>', {
+            name: that.name,
+            id: 'object_type_select'
+        }).appendTo(container);
     };
 
     return that;
@@ -311,7 +432,7 @@ IPA.hidden_widget = function(spec){
 
 
 IPA.rights_section = function () {
-    var    spec =  {
+    var spec =  {
         'name':'rights',
         'label': 'Rights'
     };
@@ -351,142 +472,149 @@ IPA.target_section = function () {
     }
 
     function display_filter_target(dl){
-        $("<dt/>").
-            append($('<input/>',{
-                type:"radio",
-                name:"type",
-                checked:"true",
-                id:"aci_by_filter"
-            })).
-            append($("<label/>",{
-                text:  "Filter" })).
-            appendTo(dl);
+        $('<dt/>').
+        append($('<input/>', {
+            type: 'radio',
+            name: 'aci_type',
+            checked: 'true',
+            id: 'aci_by_filter'
+        })).
+        append($('<label/>', {
+            text: 'Filter'
+        })).
+        appendTo(dl);
 
-        $('<dd/>',{
-            'class': 'aci_by_filter first'}).
-            append($('<input />',{
-
-                disabled:'true',
-                type:'text',
-                id:'aci_filter'
-            })).
-            appendTo(dl);
+        $('<dd/>', {
+            'class': 'aci_by_filter first'
+        }).
+        append(
+            $('<span/>', {
+                name: 'filter'
+            }).
+            append(
+                $('<input/>', {
+                    name: 'filter',
+                    disabled: 'true',
+                    type: 'text',
+                    id: 'aci_filter'
+                }))).
+        appendTo(dl);
     }
 
 
     function display_type_target(dl){
-        $("<dt/>").
-            append($('<input/>',{
-                type:"radio",
-                name:"type",
-                checked:"true",
-                id:"aci_by_type" })).
-            append($("<label/>",{
-                text:  "Object By Type " })).
-            appendTo(dl);
+        $('<dt/>').
+        append($('<input/>', {
+            type: 'radio',
+            name: 'aci_type',
+            checked: 'true',
+            id: 'aci_by_type'
+        })).
+        append($('<label/>', {
+            text: 'Object By Type'
+        })).
+        appendTo(dl);
 
-        var dd = $('<dd/>',{
-            "class":"aci_by_type first" }).
-            appendTo(dl);
+        var dd = $('<dd/>', {
+            'class': 'aci_by_type first'
+        }).appendTo(dl);
 
-        var type_select = $('<select/>', {
-            id: 'object_type_select',
-            change: function(){
-                var attribute_table = $('#aci_attributes_table');
-                IPA.populate_attribute_table(
-                    attribute_table, this.options[this.selectedIndex].value);
-            }
+        var span = $('<span/>', {
+            name: 'type'
         }).appendTo(dd);
-        var type_params=IPA.get_param_info("permission","type");
+
+        that.type_select.create(span);
+
+        var select = that.type_select.select;
+        select.change(function() {
+            that.attribute_table.object_type = this.options[this.selectedIndex].value;
+            that.attribute_table.reset();
+        });
+
+        select.append($('<option/>', {
+            value: '',
+            text: ''
+        }));
+
+        var type_params = IPA.get_param_info('permission', 'type');
         for (var pc =0; pc <  type_params.values.length; pc += 1){
-            type_select.append($('<option/>',{
-                value:  type_params.values[pc],
-                text:  type_params.values[pc]
+            select.append($('<option/>', {
+                value: type_params.values[pc],
+                text: type_params.values[pc]
             }));
         }
 
-        that.attribute_table = IPA.attribute_table_widget(
-            {name:'aci_attributes_table',object_type:'user'});
+        that.attribute_table = that.get_field('attrs');
 
         that.attribute_table.create(dl);
-
-
     }
 
     function display_query_target(dl){
         $('<dt/>').
-            append($('<input />',{
-                type:"radio",
-                name:"type",
-            id:"aci_by_query" })).
-            append($('<label />',{ html: 'By Subtree'} )).
-            appendTo(dl);
+        append($('<input/>', {
+            type: 'radio',
+            name: 'aci_type',
+            id: 'aci_by_query'
+        })).
+        append($('<label/>', {
+            text: 'By Subtree'
+        })).
+        appendTo(dl);
 
-        $("<dd/>",{
-            "class":'aci_by_query first'}).append($('<textarea />',{
-                id: 'aci_query_text',
-                cols:'30',
-                rows:'1'})) .appendTo(dl);
-    }
-
-    function populate_target_group_select(){
-        function find_success(result){
-            var groups = result.result.result;
-            for (var i =0; i < result.result.count; i +=1){
-                var option = groups[i].cn[0];
-                that.group_select.append($('<option/>',{
-                    text:groups[i].cn[0],
-                    value:groups[i].cn[0]
-                }));
-            }
-        }
-        function find_error(err){
-        }
-
-        $('option', that.group_select).remove();
-        IPA.command({
-            method:'group_find',
-            args:[that.group_filter.val()],
-            options:{},
-            on_success:find_success,
-            on_error:find_error}).execute();
+        $('<dd/>', {
+            'class': 'aci_by_query first'
+        }).append(
+            $('<span/>', {
+                name: 'subtree'
+            }).append(
+                $('<textarea/>', {
+                    name: 'subtree',
+                    id: 'aci_query_text',
+                    cols: '30',
+                    rows: '1'
+                }))).
+        appendTo(dl);
     }
 
     function display_group_target(dl){
         $('<dt/>' ).
-            append($('<input />',{
-                type:"radio",
-                name:"type",
-                id:"aci_by_group" })).
-            append($('<label />',{
-                html: 'Target Group'} )).
+            append($('<input />', {
+                type: 'radio',
+                name: 'aci_type',
+                id: 'aci_by_group'
+            })).
+            append($('<label/>', {
+                text: 'Target Group'
+            })).
             appendTo(dl);
 
         that.group_filter = $('<input/>',{
             type: 'text',
             id: 'group_filter' });
-        that.group_select = $('<select/>', {
-            id: 'aci_target_group_select',
-            change: function(){
-            }
-        });
 
-        $("<dd/>",{
-            'class':'aci_by_group first'
-        }).
-            append(that.group_filter).
-            append($('<label>Group Filter</label>')).
-            appendTo(dl);
+        var span = $('<span/>', {
+            name: 'targetgroup'
+        }).appendTo(dl);
 
-        $("<dd/>",{
-            'class':'aci_by_group other'
+        $('<dd/>', {
+            'class': 'aci_by_group first'
         }).
-            append(that.group_select).
-            appendTo(dl);
+        append(that.group_filter).
+        append($('<label>Group Filter</label>')).
+        appendTo(span);
+
+        var dd = $('<dd/>', {
+            'class': 'aci_by_group other'
+        }).appendTo(span);
+
+        that.group_select.create(dd);
     }
 
     that.create = function(container) {
-        var dl =  $('<dl class="aci-target"/>').appendTo(container);
+        var dl =  $('<dl/>', {
+            'class': 'aci-target'
+        }).appendTo(container);
+
         display_filter_target(dl);
         display_query_target(dl);
         display_group_target(dl);
@@ -510,88 +638,70 @@ IPA.target_section = function () {
         $('#aci_by_group', dl).click(function (){
             disable_inputs();
             enable_by(groupings[2]);
-            populate_target_group_select();
         });
 
-        $('#aci_by_query', dl).click();
-
-
+        $('#aci_by_type', dl).click();
     };
 
     that.setup = function(container) {
+        that.section_setup(container);
     };
 
-    that.load = function(result) {
-        that.result = result;
-        that.reset();
+    function set_aci_type(record) {
+        if (record.filter) {
+            $('#aci_by_filter').click();
+
+        } else if (record.subtree) {
+            $('#aci_by_query').click();
+
+        } else if (record.targetgroup) {
+            $('#aci_by_group').click();
+
+        } else if (record.type) {
+            $('#aci_by_type').click();
+
+        } else {
+            alert('permission with invalid target specification');
+        }
+    }
+
+    that.load = function(record) {
+
+        set_aci_type(record);
+        that.group_select.filter = that.group_filter.val();
+        that.attribute_table.object_type = record.type;
+
+        that.section_load(record);
     };
 
     that.reset = function() {
-        var result = that.result;
-        if(result.subtree){
-            $('#aci_query_text').val(result.subtree);
-            $('#aci_by_query').click();
-        }else if(result.type){
-            $('#aci_by_type').click();
-            $('#object_type_select').val(result.type);
-            IPA.populate_attribute_table($('#aci_attributes_table'),
-                                         result.type);
-            if (result.attrs){
-                var unmatched = [];
 
-                for (var a = 0; a < result.attrs.length; a += 1){
-                    var cb =  $('#aciattr-'+result.attrs[a]);
-                    if (!cb.length){
-                        unmatched.push(result.attrs[a]);
-                    }
-                    cb.attr('checked',true);
-                }
-                if (unmatched.length > 0){
-                    var tbody = $('tbody',that.attribute_table.table);
-                    var td;
-                    for (var u = 0; u < unmatched.length ; u += 1){
-                        var aci_tr =  $('<tr/>').appendTo(tbody);
-                        td =  $('<td/>').appendTo(aci_tr);
-                        td.append($('<input/>',{
-                            type:"checkbox",
-                            checked: true,
-                            id:'aciattr-'+unmatched[u].toLowerCase(),
-                            "class":'aci-attribute'
-                        }));
-                        td =  $('<td/>').appendTo(aci_tr);
-                        td.append($('<label/>',{
-                            text:unmatched[u].toLowerCase()}));
-                    }
-                }
-            }
-        }else if (result.targetgroup){
-            var segments =    result.targetgroup.split(/,/);
-            var targetgroup=segments[0].split(/=/)[1];
-            that.group_filter.val( targetgroup);
-            $('#aci_by_group').click();
-        }else if (result.filter){
-            $('#aci_by_filter').click();
-            $('#aci_filter').val(result.filter);
-        }else{
-            alert('permission with invalid target specification');
-        }
+        set_aci_type(that.record);
+        that.attribute_table.object_type = that.record.type;
+
+        that.section_reset();
     };
 
     that.init = function() {
-        that.create_text({'name': 'targetgroup'});
-        that.create_textarea({'name': 'subtree'});
-        that.create_text({'name': 'type'});
-        that.create_text({'name': 'attrs'});
-        that.create_text({'name': 'filter'});
+        that.add_field(IPA.text_widget({name: 'filter'}));
+        that.add_field(IPA.textarea_widget({name: 'subtree'}));
+
+        that.group_select = IPA.targetgroup_widget({name: 'targetgroup'});
+        that.add_field(that.group_select);
+
+        that.type_select = IPA.type_widget({name: 'type'});
+        that.add_field(that.type_select);
+
+        that.attribute_table = IPA.attribute_table_widget({name: 'attrs'});
+        that.add_field(that.attribute_table);
     };
 
     that.save = function (record){
 
-        var record_type = $("input[name='type']:checked").attr('id');
+        var record_type = $("input[name='aci_type']:checked").attr('id');
 
         if (record_type === 'aci_by_group'){
-            record.targetgroup =
-                $('#aci_target_group_select option:selected').val();
+            record.targetgroup = that.group_select.save()[0];
         }else if (record_type === 'aci_by_type'){
             record.type = $('#object_type_select option:selected').val();
             record.attrs =   that.attribute_table.save().join(',');
@@ -602,11 +712,43 @@ IPA.target_section = function () {
             record.filter = filter;
         }
     };
-    that.is_dirty = function (){ return false; }
 
     return that;
 };
 
+IPA.permission_details_facet = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.details_facet(spec);
+
+    that.refresh = function() {
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+
+        var command = IPA.command({
+            'name': that.entity_name+'_show_'+pkey,
+            'method': that.entity_name+'_show',
+            'args': [pkey],
+            'options': { 'all': true, 'rights': true }
+        });
+
+        command.on_success = function(data, text_status, xhr) {
+            that.load(data.result.result);
+        };
+
+        command.on_error = function(xhr, text_status, error_thrown) {
+            var details = $('.details', that.container).empty();
+            details.append('<p>Error: '+error_thrown.name+'</p>');
+            details.append('<p>'+error_thrown.title+'</p>');
+            details.append('<p>'+error_thrown.message+'</p>');
+        };
+
+        command.execute();
+    };
+
+    return that;
+};
 
 IPA.entity_factories.permission = function () {
 
@@ -631,7 +773,7 @@ IPA.entity_factories.permission = function () {
         facet(IPA.search_facet().
               column({name:'cn'}).
               column({name:'description'})).
-        facet(IPA.details_facet({ name: 'details' }).
+        facet(IPA.permission_details_facet({ name: 'details' }).
               section(
                   IPA.stanza({
                 name:'identity',label:'Identity'  }).
@@ -758,7 +900,7 @@ IPA.entity_factories.delegation =  function() {
                                 id:'delegation_rights'})).
                         custom_input(
                             IPA.attribute_table_widget({
-                                name:'attrs', join: true})))).
+                                name:'attrs', object_type:'user', join: true})))).
         add_dialog(IPA.add_dialog({
             name: 'add',
             title: 'Add Delegation'
@@ -768,7 +910,7 @@ IPA.entity_factories.delegation =  function() {
                                                    entity:'group'})).
                    field(IPA.entity_select_widget({name:'memberof',
                                                    entity:'group', join: true})).
-                   field(IPA.attribute_table_widget({ name: 'attrs', join: true}))).
+                   field(IPA.attribute_table_widget({ name: 'attrs', object_type:'user', join: true}))).
         standard_associations();
     return that;
 

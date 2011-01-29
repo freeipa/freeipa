@@ -161,6 +161,9 @@ IPA.widget = function(spec) {
             return true;
         }
 
+        values.sort();
+        that.values.sort();
+
         for (var i=0; i<values.length; i++) {
             if (values[i] != that.values[i]) {
                 return true;
@@ -267,7 +270,12 @@ IPA.text_widget = function(spec) {
 
     that.load = function(record) {
 
-        that.values = record[that.name] || [''];
+        var value = record[that.name];
+        if (value instanceof Array) {
+            that.values = value;
+        } else {
+            that.values = value ? [value] : [''];
+        }
 
         if (that.read_only) {
             var input = $('input[name="'+that.name+'"]', that.container);
@@ -306,15 +314,16 @@ IPA.text_widget = function(spec) {
 IPA.checkbox_widget = function (spec) {
 
     spec = spec || {};
-    var is_checked = spec.checked || '';
     var that = IPA.widget(spec);
+
+    that.checked = spec.checked || '';
 
     that.create = function(container) {
 
         $('<input/>', {
             type: 'checkbox',
             name: that.name,
-            checked : is_checked,
+            checked : that.checked,
             title: that.tooltip
         }).appendTo(container);
 
@@ -356,6 +365,86 @@ IPA.checkbox_widget = function (spec) {
         var value = that.values && that.values.length ? that.values[0] : false;
         $('input[name="'+that.name+'"]', that.container).get(0).checked = value;
     };
+
+    return that;
+};
+
+IPA.checkboxes_widget = function (spec) {
+
+    spec = spec || {};
+    var that = IPA.widget(spec);
+
+    that.options = spec.options || [];
+
+    that.create = function(container) {
+
+        for (var i=0; i<that.options.length; i++) {
+            var option = that.options[i];
+            $('<input/>', {
+                type: 'checkbox',
+                name: that.name,
+                text: option.label,
+                value: option.value,
+                title: that.tooltip
+            }).appendTo(container);
+        }
+
+        if (that.undo) {
+            $('<span/>', {
+                'name': 'undo',
+                'style': 'display: none;',
+                'html': 'undo'
+            }).appendTo(container);
+        }
+    };
+
+    that.setup = function(container) {
+
+        that.widget_setup(container);
+
+        var input = $('input[name="'+that.name+'"]', that.container);
+        input.change(function() {
+            that.show_undo();
+        });
+
+        var undo = that.get_undo();
+        undo.click(function() {
+            that.reset();
+        });
+    };
+
+    that.load = function(record) {
+        that.values = record[that.name] || [];
+        that.reset();
+    };
+
+    that.save = function() {
+        var values = [];
+
+        $('input[name="'+that.name+'"]:checked', that.container).each(function() {
+            values.push($(this).val());
+        });
+
+        return values;
+    };
+
+    that.update = function() {
+        var inputs = $('input[name="'+that.name+'"]', that.container);
+
+        for (var i=0; i<inputs.length; i++) {
+            inputs.get(i).checked = false;
+        }
+
+        for (var j=0; j<that.values.length; j++) {
+            var value = that.values[j];
+            var input = $('input[name="'+that.name+'"][value="'+value+'"]', that.container);
+            if (!input.length) continue;
+            input.get(0).checked = true;
+        }
+    };
+
+    // methods that should be invoked by subclasses
+    that.checkboxes_update = that.update;
 
     return that;
 };
@@ -438,6 +527,86 @@ IPA.radio_widget = function(spec) {
     return that;
 };
 
+IPA.select_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.widget(spec);
+
+    that.options = spec.options || [];
+
+    that.create = function(container) {
+
+        var select = $('<select/>', {
+            name: that.name
+        }).appendTo(container);
+
+        for (var i=0; i<that.options.length; i++) {
+            var option = that.options[i];
+
+            $('<option/>', {
+                text: option.label,
+                value: option.value
+            }).appendTo(select);
+        }
+
+        if (that.undo) {
+            $('<span/>', {
+                'name': 'undo',
+                'style': 'display: none;',
+                'html': 'undo'
+            }).appendTo(container);
+        }
+    };
+
+    that.setup = function(container) {
+
+        that.widget_setup(container);
+
+        that.select = $('select[name="'+that.name+'"]', that.container);
+        that.select.change(function() {
+            that.show_undo();
+        });
+
+        var undo = that.get_undo();
+        undo.click(function() {
+            that.reset();
+        });
+    };
+
+    that.load = function(record) {
+        var value = record[that.name];
+        if (value instanceof Array) {
+            that.values = value;
+        } else {
+            that.values = value ? [value] : [''];
+        }
+        that.reset();
+    };
+
+    that.save = function() {
+        var value = that.select.val() || '';
+        return [value];
+    };
+
+    that.update = function() {
+        var value = that.values[0];
+        var option = $('option[value="'+value+'"]', that.select);
+        if (!option.length) return;
+        option.attr('selected', 'selected');
+    };
+
+    that.empty = function() {
+        $('option', that.select).remove();
+    };
+
+    // methods that should be invoked by subclasses
+    that.select_load = that.load;
+    that.select_save = that.save;
+
+    return that;
+};
+
 IPA.textarea_widget = function (spec) {
 
     spec = spec || {};
@@ -481,7 +650,12 @@ IPA.textarea_widget = function (spec) {
     };
 
     that.load = function(record) {
-        that.values = record[that.name] || [''];
+        var value = record[that.name];
+        if (value instanceof Array) {
+            that.values = value;
+        } else {
+            that.values = value ? [value] : [''];
+        }
         that.reset();
     };
 

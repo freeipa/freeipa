@@ -1,6 +1,6 @@
 {
     "error": null,
-    "id": 6,
+    "id": 0,
     "result": {
         "result": {
             "attributelevelrights": {
@@ -17,31 +17,27 @@
                 "seealso": "rscwo"
             },
             "attrs": [
+                "unmatched",
                 "cn",
-                "description",
-                "unmatched"
+                "description"
             ],
             "cn": [
-                "test"
+                "type"
             ],
             "description": [
-                "Test Permission"
+                "Type Permission"
             ],
-            "dn": "cn=test,cn=permissions,cn=hbac,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
-            "member": [
-                "cn=useradmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
-            ],
+            "dn": "cn=type,cn=permissions,cn=pbac,dc=ipa",
             "objectclass": [
                 "groupofnames",
                 "top"
             ],
             "permissions": [
-                "add",
-                "delete"
+                "write"
             ],
             "type": "group"
         },
         "summary": null,
-        "value": "addusers"
+        "value": "type"
     }
 }

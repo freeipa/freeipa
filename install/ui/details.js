@@ -294,6 +294,11 @@ IPA.details_section = function (spec){
         return field;
     };
 
+    that.field = function(field) {
+        that.add_field(field);
+        return that;
+    };
+
     that.create_field = function(spec) {
 
         //TODO: replace IPA.details_field with class-specific implementation
@@ -309,8 +314,20 @@ IPA.details_section = function (spec){
         return field;
     };
 
+    that.create_checkbox = function(spec) {
+        var field = IPA.checkbox_widget(spec);
+        that.add_field(field);
+        return field;
+    };
+
     that.create_radio = function(spec) {
         var field = IPA.radio_widget(spec);
+        that.add_field(field);
+        return field;
+    };
+
+    that.create_select = function(spec) {
+        var field = IPA.select_widget(spec);
         that.add_field(field);
         return field;
     };
@@ -364,6 +381,8 @@ IPA.details_section = function (spec){
 
     that.load = function(record) {
 
+        that.record = record;
+
         var fields = that.fields;
 
         if (that.template) {
@@ -412,6 +431,7 @@ IPA.details_section = function (spec){
     that.section_create = that.create;
     that.section_setup = that.setup;
     that.section_load = that.load;
+    that.section_reset = that.reset;
 
     return that;
 };
@@ -759,22 +779,24 @@ IPA.details_refresh =  function () {
 
     that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 
-    function on_success(data, text_status, xhr) {
-        that.load(data.result.result);
-    }
+    var command = IPA.command({
+        'method': that.entity_name+'_show',
+        'args': [that.pkey],
+        'options': { 'all': true, 'rights': true }
+    });
 
-    function on_failure(xhr, text_status, error_thrown) {
+    command.on_success = function(data, text_status, xhr) {
+        that.load(data.result.result);
+    };
+
+    command.on_error = function(xhr, text_status, error_thrown) {
         var details = $('.details', that.container).empty();
         details.append('<p>Error: '+error_thrown.name+'</p>');
         details.append('<p>'+error_thrown.title+'</p>');
         details.append('<p>'+error_thrown.message+'</p>');
-    }
+    };
 
-    var params = [];
-    if (that.pkey) params.push(that.pkey);
-
-    IPA.cmd( 'show', params, {all: true, rights: true}, on_success, on_failure,
-        that.entity_name );
+    command.execute();
 };
 
 IPA.details_update = function (on_win, on_fail)
