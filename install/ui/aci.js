@@ -63,6 +63,10 @@ IPA.attribute_table_widget = function(spec) {
                 }})
         })).
             append('<th class="aci-attribute-column">Attribute</th>');
+        if (that.object_type){
+            that.populate (that.object_type);
+        }
+
     };
 
     that.load = function(record) {
