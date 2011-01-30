@@ -245,10 +245,11 @@ IPA.entity_select_widget = function(spec){
             var entities = result.result.result;
             for (var i =0; i < result.result.count; i +=1){
                 var option =
-                    that.entity_select.append($('<option/>',{
+                    $('<option/>',{
                         text:entities[i].cn[0],
                         value:entities[i].cn[0]
-                    }));
+                    }).
+                    appendTo(that.entity_select);
                 if (value === entities[i].cn[0]){
                     option.attr('selected','selected');
                 }
@@ -302,6 +303,11 @@ IPA.entity_select_widget = function(spec){
         populate_select(that.values[0]);
 
     };
+
+    that.is_dirty = function(){
+        return (that.save()[0] !== that.values[0]);
+    };
+
     that.load = function(record){
         var value = record[that.name];
         if (value instanceof Array) {
@@ -898,7 +904,8 @@ IPA.entity_factories.delegation =  function() {
                         custom_input(IPA.entity_select_widget(
                             {name:'group', entity:'group'})).
                         custom_input(IPA.entity_select_widget(
-                            {name:'memberof', entity:'group', join: true})).
+                            {name:'membergroup', label:"Member Group",
+                             entity:'group', join: true})).
                         custom_input(
                             IPA.rights_widget({
                                 id:'delegation_rights'})).
