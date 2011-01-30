@@ -109,9 +109,20 @@ IPA.widget = function(spec) {
         that.container = container;
     }
 
+    /**
+     * This function stores the entire record and the values
+     * of the field, then invoke reset() to update the UI.
+     */
     function load(record) {
         that.record = record;
-        that.values = record[that.name];
+
+        var value = record[that.name];
+        if (value instanceof Array) {
+            that.values = value;
+        } else {
+            that.values = value ? [value] : [];
+        }
+
         that.reset();
     }
 
@@ -123,10 +134,20 @@ IPA.widget = function(spec) {
     function update() {
     }
 
+    /**
+     * This function saves the values entered in the UI.
+     * It returns the values in an array, or null if
+     * the field should not be saved.
+     */
     function save() {
-        return [];
+        return that.values;
     }
 
+    /**
+     * This function compares the original values and the
+     * values entered in the UI. If the values have changed
+     * it will return true.
+     */
     that.is_dirty = function() {
 
         if (that.read_only) {
@@ -135,15 +156,11 @@ IPA.widget = function(spec) {
 
         var values = that.save();
 
+        if (!values) { // ignore null values
+            return false;
+        }
+
         if (!that.values) {
-
-            if (!values) {
-                return false;
-            }
-
-            if (values === '') {
-                return false;
-            }
 
             if (values instanceof Array) {
 
