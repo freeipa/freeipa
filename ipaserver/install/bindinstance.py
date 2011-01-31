@@ -116,7 +116,7 @@ def dns_zone_exists(name):
     else:
         return True
 
-def add_zone(name, update_policy=None, zonemgr=None, dns_backup=None):
+def add_zone(name, zonemgr=None, dns_backup=None, nsaddr=None, update_policy=None):
     if not update_policy:
         update_policy = "grant %s krb5-self * A;" % api.env.realm
 
@@ -124,16 +124,16 @@ def add_zone(name, update_policy=None, zonemgr=None, dns_backup=None):
         api.Command.dnszone_add(unicode(name),
                                 idnssoamname=unicode(api.env.host+"."),
                                 idnssoarname=unicode(zonemgr),
+                                ip_address=unicode(nsaddr),
                                 idnsallowdynupdate=True,
                                 idnsupdatepolicy=unicode(update_policy))
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
 
-    add_rr(name, "@", "NS", api.env.host+".", dns_backup)
-
+    add_rr(name, "@", "NS", api.env.host+'.', dns_backup, force=True)
     return name
 
-def add_reverze_zone(ip_address, update_policy=None, dns_backup=None):
+def add_reverse_zone(ip_address, update_policy=None, dns_backup=None):
     zone, name = get_reverse_zone(ip_address)
     if not update_policy:
         update_policy = "grant %s krb5-subdomain %s. PTR;" % (api.env.realm, zone)
@@ -141,16 +141,18 @@ def add_reverze_zone(ip_address, update_policy=None, dns_backup=None):
         api.Command.dnszone_add(unicode(zone),
                                 idnssoamname=unicode(api.env.host+"."),
                                 idnsallowdynupdate=True,
+                                ip_address=unicode(ip_address),
                                 idnsupdatepolicy=unicode(update_policy))
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
 
-    add_rr(zone, "@", "NS", api.env.host+".", dns_backup)
+    add_rr(zone, "@", "NS", api.env.host+".", dns_backup, force=True)
 
     return zone
 
-def add_rr(zone, name, type, rdata, dns_backup=None):
+def add_rr(zone, name, type, rdata, dns_backup=None, **kwargs):
     addkw = { '%srecord' % unicode(type.lower()) : unicode(rdata) }
+    addkw.update(kwargs)
     try:
         api.Command.dnsrecord_add(unicode(zone), unicode(name), **addkw)
     except (errors.DuplicateEntry, errors.EmptyModlist):
@@ -348,7 +350,9 @@ class BindInstance(service.Service):
         self._ldap_mod("dns.ldif", self.sub_dict)
 
     def __setup_zone(self):
-        zone = add_zone(self.domain, zonemgr=self.zonemgr, dns_backup=self.dns_backup)
+        zone = add_zone(self.domain, self.zonemgr,
+                        self.dns_backup, self.ip_address)
+
 
     def __add_self(self):
         zone = self.domain
@@ -376,7 +380,7 @@ class BindInstance(service.Service):
             add_ptr_rr(self.ip_address, self.fqdn)
 
     def __setup_reverse_zone(self):
-        add_reverze_zone(self.ip_address, dns_backup=self.dns_backup)
+        add_reverse_zone(self.ip_address, dns_backup=self.dns_backup)
 
     def __setup_principal(self):
         dns_principal = "DNS/" + self.fqdn + "@" + self.realm

@@ -28,7 +28,7 @@ from optparse import OptionParser
 
 from ipapython import ipautil
 from ipaserver.install import bindinstance, dsinstance, installutils, certs
-from ipaserver.install.bindinstance import add_zone, add_reverze_zone, add_rr, add_ptr_rr
+from ipaserver.install.bindinstance import add_zone, add_reverse_zone, add_rr, add_ptr_rr
 from ipaserver.install.replication import check_replication_plugin
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
@@ -417,9 +417,9 @@ def main():
         name = domain.pop(0)
         domain = ".".join(domain)
 
-        zone = add_zone(domain)
+        zone = add_zone(domain, nsaddr=options.ip_address)
         add_rr(zone, name, "A", options.ip_address)
-        add_reverze_zone(options.ip_address)
+        add_reverse_zone(options.ip_address)
         add_ptr_rr(options.ip_address, replica_fqdn)
 
 try:

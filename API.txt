@@ -486,13 +486,14 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnsrecord_add
-args: 2,45,3
+args: 2,46,3
 arg: Str('dnszoneidnsname', cli_name='dnszone', label=Gettext('Zone name', domain='ipa', localedir=None), query=True, required=True)
 arg: Str('idnsname', attribute=True, cli_name='name', label=Gettext('Record name', domain='ipa', localedir=None), multivalue=False, primary_key=True, required=True)
 option: Int('dnsttl', attribute=True, cli_name='ttl', label=Gettext('Time to live', domain='ipa', localedir=None), multivalue=False, required=False)
 option: StrEnum('dnsclass', attribute=True, cli_name='class', label=Gettext('Class', domain='ipa', localedir=None), multivalue=False, required=False, values=(u'IN', u'CS', u'CH', u'HS'))
 option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
 option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
+option: Flag('force', autofill=True, default=False, flags=['no_option', 'no_output'])
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -723,7 +724,7 @@ option: Str('idnsupdatepolicy', attribute=True, cli_name='update_policy', label=
 option: Flag('idnsallowdynupdate', attribute=True, autofill=True, cli_name='allow_dynupdate', default=False, label=Gettext('Dynamic update', domain='ipa', localedir=None), multivalue=False, required=True)
 option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
 option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
-option: Flag('force', autofill=True, default=False,lag('force', autofill=True, default=False, doc=Gettext('force DNS zone even if name server not in DNS', domain='ipa', localedir=None))
+option: Flag('force', autofill=True, default=False,lag('force', autofill=True, default=False, doc=Gettext('force DNS zone creation even if name server not in DNS', domain='ipa', localedir=None))
 option: Str('ip_address?', _validate_ipaddr,tr('ip_address?', _validate_ipaddr, doc=Gettext('Add the nameserver to DNS with this IP address', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])

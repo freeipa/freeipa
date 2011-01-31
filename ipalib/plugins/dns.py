@@ -286,7 +286,7 @@ class dnszone_add(LDAPCreate):
     """
     takes_options = LDAPCreate.takes_options + (
         Flag('force',
-             doc=_('force DNS zone even if name server not in DNS'),
+             doc=_('force DNS zone creation even if name server not in DNS'),
         ),
         Str('ip_address?', _validate_ipaddr,
             doc=_('Add the nameserver to DNS with this IP address'),
@@ -577,6 +577,12 @@ class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
     Add new DNS resource record.
     """
     no_option_msg = 'No options to add a specific record provided.'
+    takes_options = LDAPCreate.takes_options + (
+        Flag('force',
+             flags=['no_option', 'no_output'],
+             doc=_('force NS record creation even if its hostname is not in DNS'),
+        ),
+    )
 
     def get_options(self):
         for option in super(dnsrecord_add, self).get_options():
@@ -589,6 +595,9 @@ class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
         return super(dnsrecord_add, self).args_options_2_entry(*keys, **options)
 
     def _nsrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if options.get('force', False):
+            return dn
+
         for ns in options['nsrecord']:
             is_ns_rec_resolvable(ns)
         return dn
