@@ -189,6 +189,17 @@ def _parse_aci_name(aciname):
 
     return (aciparts[0], aciparts[2])
 
+def _group_from_memberof(memberof):
+    """
+    Pull the group name out of a memberOf filter
+    """
+    st = memberof.find('memberOf=')
+    if st == -1:
+        # We have a raw group name, use that
+        return api.Object['group'].get_dn(memberof)
+    en = memberof.find(')', st)
+    return memberof[st+9:en]
+
 def _make_aci(ldap, current, aciname, kw):
     """
     Given a name and a set of keywords construct an ACI.
@@ -208,6 +219,9 @@ def _make_aci(ldap, current, aciname, kw):
 
     if t1 + t2 + t3 + t4 + t5 + t6 == 0:
         raise errors.ValidationError(name='target', error=_('at least one of: type, filter, subtree, targetgroup, attrs or memberof are required'))
+
+    if t2 + t6 > 1:
+        raise errors.ValidationError(name='target', error=_('filter and memberof are mutually exclusive'))
 
     group = 'group' in kw
     permission = 'permission' in kw
@@ -248,8 +262,8 @@ def _make_aci(ldap, current, aciname, kw):
         if 'attrs' in kw:
             a.set_target_attr(kw['attrs'])
         if 'memberof' in kw:
-            entry_attrs = api.Command['group_show'](kw['memberof'])['result']
-            a.set_target_filter('memberOf=%s' % entry_attrs['dn'])
+            groupdn = _group_from_memberof(kw['memberof'])
+            a.set_target_filter('memberOf=%s' % groupdn)
         if 'filter' in kw:
             # Test the filter by performing a simple search on it. The
             # filter is considered valid if either it returns some entries
@@ -298,7 +312,7 @@ def _aci_to_kw(ldap, a, test=False):
         kw['attrs'] = tuple(kw['attrs'])
     if 'targetfilter' in a.target:
         target = a.target['targetfilter']['expression']
-        if target.startswith('memberOf'):
+        if target.startswith('(memberOf') or target.startswith('memberOf'):
             kw['memberof'] = unicode(target)
         else:
             kw['filter'] = unicode(target)
@@ -707,10 +721,7 @@ class aci_find(crud.Search):
 
         if 'memberof' in kw:
             try:
-                result = self.api.Command['group_show'](
-                    kw['memberof']
-                )['result']
-                dn = result['dn']
+                dn = _group_from_memberof(kw['memberof'])
             except errors.NotFound:
                 pass
             else:

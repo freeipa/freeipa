@@ -57,7 +57,7 @@ def convert_delegation(ldap, aci):
     memberOf is in filter but we want to pull out the group for easier
     displaying.
     """
-    filter = aci['filter']
+    filter = aci['memberof']
     st = filter.find('memberOf=')
     if st == -1:
         raise errors.NotFound(reason=_('Delegation \'%(permission)s\' not found') % dict(permission=aci['aciname']))
@@ -69,9 +69,8 @@ def convert_delegation(ldap, aci):
         # Uh oh, the group we're granting access to has an error
         msg = _('Error retrieving member group %(group)s: %(error)s') % (membergroup, str(e))
         raise errors.NonFatalError(reason=msg)
-    aci['membergroup'] = entry_attrs['cn']
+    aci['memberof'] = entry_attrs['cn'][0]
 
-    del aci['filter']
     del aci['aciprefix']     # do not include prefix in result
 
     return aci
@@ -85,7 +84,7 @@ def is_delegation(ldap, aciname):
     membergroup.
     """
     result = api.Command['aci_show'](aciname, aciprefix=ACI_PREFIX)['result']
-    if 'filter' in result:
+    if 'memberof' in result:
         result = convert_delegation(ldap, result)
     else:
         raise errors.NotFound(reason=_('Delegation \'%(permission)s\' not found') % dict(permission=aciname))
@@ -162,7 +161,7 @@ class delegation_add(crud.Create):
             kw['permissions'] = (u'write',)
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_add'](aciname, **kw)['result']
-        if 'filter' in result:
+        if 'memberof' in result:
             result = convert_delegation(ldap, result)
 
         return dict(
@@ -206,7 +205,7 @@ class delegation_mod(crud.Update):
         is_delegation(ldap, aciname)
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_mod'](aciname, **kw)['result']
-        if 'filter' in result:
+        if 'memberof' in result:
             result = convert_delegation(ldap, result)
         return dict(
             result=result,
@@ -232,7 +231,7 @@ class delegation_find(crud.Search):
         results = []
         for aci in acis:
             try:
-                if 'filter' in aci:
+                if 'memberof' in aci:
                     aci = convert_delegation(ldap, aci)
                     results.append(aci)
             except errors.NotFound:
