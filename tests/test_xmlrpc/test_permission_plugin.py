@@ -68,7 +68,7 @@ class test_permission(Declarative):
 
         dict(
             desc='Try to update non-existent %r' % permission1,
-            command=('permission_mod', [permission1], dict(description=u'Foo')),
+            command=('permission_mod', [permission1], dict(permissions=u'all')),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
@@ -96,7 +96,6 @@ class test_permission(Declarative):
             desc='Create %r' % permission1,
             command=(
                 'permission_add', [permission1], dict(
-                     description=u'Test desc 1',
                      type=u'user',
                      permissions=u'write',
                 )
@@ -107,7 +106,6 @@ class test_permission(Declarative):
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
-                    description=[u'Test desc 1'],
                     objectclass=objectclasses.permission,
                     type=u'user',
                     permissions=[u'write'],
@@ -120,7 +118,6 @@ class test_permission(Declarative):
             desc='Try to create duplicate %r' % permission1,
             command=(
                 'permission_add', [permission1], dict(
-                     description=u'Test desc 1',
                      type=u'user',
                      permissions=u'write',
                 ),
@@ -178,7 +175,6 @@ class test_permission(Declarative):
                 result={
                     'dn': permission1_dn,
                     'cn': [permission1],
-                    'description': [u'Test desc 1'],
                     'member_privilege': [privilege1],
                     'type': u'user',
                     'permissions': [u'write'],
@@ -198,7 +194,6 @@ class test_permission(Declarative):
                     {
                         'dn': permission1_dn,
                         'cn': [permission1],
-                        'description': [u'Test desc 1'],
                         'member_privilege': [privilege1],
                         'type': u'user',
                         'permissions': [u'write'],
@@ -219,7 +214,6 @@ class test_permission(Declarative):
                     {
                         'dn': permission1_dn,
                         'cn': [permission1],
-                        'description': [u'Test desc 1'],
                         'member_privilege': [privilege1],
                         'type': u'user',
                         'permissions': [u'write'],
@@ -233,7 +227,6 @@ class test_permission(Declarative):
             desc='Create %r' % permission2,
             command=(
                 'permission_add', [permission2], dict(
-                     description=u'Test desc 2',
                      type=u'user',
                      permissions=u'write',
                 )
@@ -244,7 +237,6 @@ class test_permission(Declarative):
                 result=dict(
                     dn=permission2_dn,
                     cn=[permission2],
-                    description=[u'Test desc 2'],
                     objectclass=objectclasses.permission,
                     type=u'user',
                     permissions=[u'write'],
@@ -264,7 +256,6 @@ class test_permission(Declarative):
                     {
                         'dn': permission1_dn,
                         'cn': [permission1],
-                        'description': [u'Test desc 1'],
                         'member_privilege': [privilege1],
                         'type': u'user',
                         'permissions': [u'write'],
@@ -272,7 +263,6 @@ class test_permission(Declarative):
                     {
                         'dn': permission2_dn,
                         'cn': [permission2],
-                        'description': [u'Test desc 2'],
                         'type': u'user',
                         'permissions': [u'write'],
                     },
@@ -303,7 +293,7 @@ class test_permission(Declarative):
         dict(
             desc='Update %r' % permission1,
             command=(
-                'permission_mod', [permission1], dict(description=u'New desc 1')
+                'permission_mod', [permission1], dict(permissions=u'read')
             ),
             expected=dict(
                 value=permission1,
@@ -311,10 +301,9 @@ class test_permission(Declarative):
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
-                    description=[u'New desc 1'],
                     member_privilege=[privilege1],
                     type=u'user',
-                    permissions=[u'write'],
+                    permissions=[u'read'],
                 ),
             ),
         ),
@@ -329,10 +318,9 @@ class test_permission(Declarative):
                 result={
                     'dn': permission1_dn,
                     'cn': [permission1],
-                    'description': [u'New desc 1'],
                     'member_privilege': [privilege1],
                     'type': u'user',
-                    'permissions': [u'write'],
+                    'permissions': [u'read'],
                 },
             ),
         ),

@@ -89,7 +89,6 @@ class test_privilege(Declarative):
             desc='Create %r' % permission1,
             command=(
                 'permission_add', [permission1], dict(
-                     description=u'Test desc 1',
                      type=u'user',
                      permissions=u'add, delete',
                 )
@@ -100,7 +99,6 @@ class test_privilege(Declarative):
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
-                    description=[u'Test desc 1'],
                     objectclass=objectclasses.permission,
                     type=u'user',
                     permissions=[u'add', u'delete'],
@@ -207,7 +205,6 @@ class test_privilege(Declarative):
             desc='Create %r' % permission2,
             command=(
                 'permission_add', [permission2], dict(
-                     description=u'Test desc 2',
                      type=u'user',
                      permissions=u'write',
                 )
@@ -218,7 +215,6 @@ class test_privilege(Declarative):
                 result=dict(
                     dn=permission2_dn,
                     cn=[permission2],
-                    description=[u'Test desc 2'],
                     objectclass=objectclasses.permission,
                     type=u'user',
                     permissions=[u'write'],

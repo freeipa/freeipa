@@ -33,9 +33,8 @@ A permission may not be members of other permissions.
 A permission is made up of a number of different parts:
 
 1. The name of the permission.
-2. The description of the permission.
-3. The target of the permission.
-4. The permissions granted by the permission.
+2. The target of the permission.
+3. The permissions granted by the permission.
 
 The permissions define what operations are allowed and are one or more of:
 1. write - write one or more attributes
@@ -44,24 +43,29 @@ The permissions define what operations are allowed and are one or more of:
 4. delete - delete an existing entry
 5. all - all permissions are granted
 
+Read permission is granted for most attributes by default so the read
+permission is not expected to be used very often.
+
 Note the distinction between attributes and entries. The permissions are
 independent, so being able to add a user does not mean that the user will
 be editabe.
 
 There are a number of allowed targets:
 1. type: a type of object (user, group, etc).
-2. memberof: a memberof a group or hostgroup
+2. memberof: a member of a group or hostgroup
 3. filter: an LDAP filter
-4. subtree: an LDAP filter specifying part of the LDAP DIT
-5. targetgroup
+4. subtree: an LDAP filter specifying part of the LDAP DIT. This is a
+   super-set of the type option.
+5. targetgroup: grant access to modify a specific group (such as granting
+   the rights to manage group membership)
 
 EXAMPLES:
 
  Add a permission that grants the creation of users:
-   ipa permission-add --desc="Add a User" --type=user --permissions=add adduser
+   ipa permission-add --type=user --permissions=add "Add Users"
 
  Add a permission that grants the ability to manage group membership:
-   ipa permission-add --desc='Manage group members' --attrs=member --permissions=write --type=group manage_group_members
+   ipa permission-add --attrs=member --permissions=write --type=group "Manage Group Members"
 """
 
 import copy
@@ -80,7 +84,7 @@ class permission(LDAPObject):
     object_name = 'permission'
     object_name_plural = 'permissions'
     object_class = ['groupofnames']
-    default_attributes = ['cn', 'description', 'member', 'memberof',
+    default_attributes = ['cn', 'member', 'memberof',
         'memberindirect',
     ]
     aci_attributes = ['group', 'permissions', 'attrs', 'type',
@@ -88,7 +92,6 @@ class permission(LDAPObject):
     ]
     attribute_members = {
         'member': ['privilege'],
-#        'memberindirect': ['user', 'group', 'role'],
     }
     rdnattr='cn'
 
@@ -100,11 +103,6 @@ class permission(LDAPObject):
             label=_('Permission name'),
             primary_key=True,
             normalizer=lambda value: value.lower(),
-        ),
-        Str('description',
-            cli_name='desc',
-            label=_('Description'),
-            doc=_('Permission description'),
         ),
         List('permissions',
             cli_name='permissions',
@@ -165,7 +163,6 @@ class permission_add(LDAPCreate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         # Test the ACI before going any further
         opts = copy.copy(options)
-        del opts['description']
         opts['test'] = True
         opts['permission'] = keys[-1]
         opts['aciprefix'] = ACI_PREFIX
@@ -177,7 +174,7 @@ class permission_add(LDAPCreate):
         # Clear the aci attributes out of the permission entry
         for o in options:
             try:
-                if o not in ['description', 'objectclass']:
+                if o not in ['objectclass']:
                     del entry_attrs[o]
             except:
                 pass
@@ -186,7 +183,6 @@ class permission_add(LDAPCreate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         # Now actually add the aci.
         opts = copy.copy(options)
-        del opts['description']
         opts['test'] = False
         opts['permission'] = keys[-1]
         opts['aciprefix'] = ACI_PREFIX
@@ -263,7 +259,7 @@ class permission_mod(LDAPUpdate):
                 pass    # permission may be renamed, continue
 
         opts = copy.copy(options)
-        for o in ['all', 'raw', 'rights', 'description', 'rename']:
+        for o in ['all', 'raw', 'rights', 'rename']:
             if o in opts:
                 del opts[o]
         setattr(context, 'aciupdate', False)
@@ -389,7 +385,7 @@ class permission_show(LDAPRetrieve):
                 if attr in aci:
                     entry_attrs[attr] = aci[attr]
         except errors.NotFound:
-            self.debug('ACI not found for %s' % entry_attrs['description'][0])
+            self.debug('ACI not found for %s' % entry_attrs['cn'][0])
         return dn
 
 api.register(permission_show)

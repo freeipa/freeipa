@@ -1586,9 +1586,8 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: permission_add
-args: 1,13,3
+args: 1,12,3
 arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=True)
-option: Str('description', attribute=True, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, required=True)
 option: List('permissions', attribute=True, cli_name='permissions', label=Gettext('Permissions', domain='ipa', localedir=None), multivalue=True, required=True)
 option: List('attrs', alwaysask=True, attribute=True, autofill=False, cli_name='attrs', flags=('ask_create', 'ask_update'), label=Gettext('Attributes', domain='ipa', localedir=None), multivalue=True, normalizer=<lambda>, query=True, required=False)
 option: StrEnum('type', alwaysask=True, attribute=True, autofill=False, cli_name='type', flags=('ask_create', 'ask_update'), label=Gettext('Type', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'user', u'group', u'host', u'service', u'hostgroup', u'netgroup', u'dns'))
@@ -1622,10 +1621,9 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: permission_find
-args: 1,14,4
+args: 1,13,4
 arg: Str('criteria?')
 option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
-option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: List('permissions', attribute=True, autofill=False, cli_name='permissions', label=Gettext('Permissions', domain='ipa', localedir=None), multivalue=True, query=True, required=False)
 option: List('attrs', attribute=True, autofill=False, cli_name='attrs', flags=('ask_create', 'ask_update'), label=Gettext('Attributes', domain='ipa', localedir=None), multivalue=True, normalizer=<lambda>, query=True, required=False)
 option: StrEnum('type', attribute=True, autofill=False, cli_name='type', flags=('ask_create', 'ask_update'), label=Gettext('Type', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'user', u'group', u'host', u'service', u'hostgroup', u'netgroup', u'dns'))
@@ -1643,9 +1641,8 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, 'Number of entries returned')
 output: Output('truncated', <type 'bool'>, 'True if not all results were returned')
 command: permission_mod
-args: 1,15,3
+args: 1,14,3
 arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
-option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, required=False)
 option: List('permissions', attribute=True, autofill=False, cli_name='permissions', label=Gettext('Permissions', domain='ipa', localedir=None), multivalue=True, required=False)
 option: List('attrs', alwaysask=True, attribute=True, autofill=False, cli_name='attrs', flags=('ask_create', 'ask_update'), label=Gettext('Attributes', domain='ipa', localedir=None), multivalue=True, normalizer=<lambda>, query=True, required=False)
 option: StrEnum('type', alwaysask=True, attribute=True, autofill=False, cli_name='type', flags=('ask_create', 'ask_update'), label=Gettext('Type', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'user', u'group', u'host', u'service', u'hostgroup', u'netgroup', u'dns'))
