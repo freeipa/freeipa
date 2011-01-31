@@ -1,4 +1,7 @@
 options {
+	// turns on IPv6 for port 53, IPv4 is on by default for all ifaces
+	listen-on-v6 {any;};
+
 	// Put files that named is allowed to write in the data/ directory:
 	directory "/var/named"; // the default
 	dump-file		"data/cache_dump.db";

@@ -133,12 +133,12 @@ def verify_fqdn(host_name,no_host_dns=False):
 
     # Verify that it is a DNS A or AAAA record
     rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
-    if len(rs) > 0:
+    if len([ rec for rec in rs if rec.dns_type is not dnsclient.DNS_T_SOA ]) > 0:
         verify_dns_records(host_name, rs, resaddr, 'ipv4')
         return
 
     rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_AAAA)
-    if len(rs) > 0:
+    if len([ rec for rec in rs if rec.dns_type is not dnsclient.DNS_T_SOA ]) > 0:
         verify_dns_records(host_name, rs, resaddr, 'ipv6')
         return
     else:

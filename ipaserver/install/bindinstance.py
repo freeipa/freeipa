@@ -21,6 +21,7 @@ import tempfile
 import os
 import pwd
 import logging
+import netaddr
 
 import installutils
 import ldap
@@ -97,11 +98,15 @@ def dns_container_exists(fqdn, suffix):
 
     return ret
 
-def get_reverse_zone(ip_address):
-    tmp = ip_address.split(".")
-    tmp.reverse()
-    name = tmp.pop(0)
-    zone = ".".join(tmp) + ".in-addr.arpa"
+def get_reverse_zone(ip_address_str):
+    ip = netaddr.IPAddress(ip_address_str)
+    if ip.version == 4:
+        name, dot, zone = ip.reverse_dns.partition('.')
+    elif ip.version == 6:
+        name = '.'.join(ip.reverse_dns.split('.')[:8])
+        zone = '.'.join(ip.reverse_dns.split('.')[8:])
+    else:
+        raise ValueError('Bad address format?')
 
     return zone, name
 
@@ -118,7 +123,7 @@ def dns_zone_exists(name):
 
 def add_zone(name, zonemgr=None, dns_backup=None, nsaddr=None, update_policy=None):
     if not update_policy:
-        update_policy = "grant %s krb5-self * A;" % api.env.realm
+        update_policy = "grant %(realm)s krb5-self * A; grant %(realm)s krb5-self * AAAA;" % dict(realm=api.env.realm)
 
     try:
         api.Command.dnszone_add(unicode(name),
@@ -159,6 +164,13 @@ def add_rr(zone, name, type, rdata, dns_backup=None, **kwargs):
         pass
     if dns_backup:
         dns_backup.add(zone, type, name, rdata)
+
+def add_fwd_rr(zone, host, ip_address):
+    addr = netaddr.IPAddress(ip_address)
+    if addr.version == 4:
+        add_rr(zone, host, "A", ip_address)
+    elif addr.version == 6:
+        add_rr(zone, host, "AAAA", ip_address)
 
 def add_ptr_rr(ip_address, fqdn, dns_backup=None):
     zone, name = get_reverse_zone(ip_address)
@@ -264,11 +276,7 @@ class BindInstance(service.Service):
         else:
             self.zonemgr = 'root.%s.%s' % (self.host, self.domain)
 
-        tmp = ip_address.split(".")
-        tmp.reverse()
-
-        self.reverse_host = tmp.pop(0)
-        self.reverse_subnet = ".".join(tmp)
+        self.reverse_subnet, self.reverse_host = get_reverse_zone(ip_address)
 
         self.__setup_sub_dict()
 
@@ -357,7 +365,6 @@ class BindInstance(service.Service):
     def __add_self(self):
         zone = self.domain
         resource_records = (
-            (self.host, "A", self.ip_address),
             ("_ldap._tcp", "SRV", "0 100 389 %s" % self.host),
             ("_kerberos", "TXT", self.realm),
             ("_kerberos._tcp", "SRV", "0 100 88 %s" % self.host),
@@ -376,6 +383,8 @@ class BindInstance(service.Service):
         if self.ntp:
             add_rr(zone, "_ntp._udp", "SRV", "0 100 123 %s" % self.host)
 
+        # Add forward and reverse records to self
+        add_fwd_rr(zone, self.host, self.ip_address)
         if dns_zone_exists(get_reverse_zone(self.ip_address)[0]):
             add_ptr_rr(self.ip_address, self.fqdn)
 

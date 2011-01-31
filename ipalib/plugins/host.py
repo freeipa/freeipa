@@ -85,6 +85,7 @@ from ipalib.plugins.service import set_certificate_attrs
 from ipalib.plugins.service import make_pem, check_writable_file
 from ipalib.plugins.service import write_certificate
 from ipalib.plugins.dns import dns_container_exists, _record_types
+from ipalib.plugins.dns import add_forward_record
 from ipalib import _, ngettext
 from ipalib import x509
 from ipapython.ipautil import ipa_generate_password
@@ -102,6 +103,32 @@ def validate_host(ugettext, fqdn):
     if fqdn.find('.') == -1:
         return _('Fully-qualified hostname required')
     return None
+
+def is_forward_record(zone, str_address):
+    addr = netaddr.IPAddress(str_address)
+    if addr.version == 4:
+        result = api.Command['dnsrecord_find'](zone, arecord=str_address)
+    elif addr.version == 6:
+        result = api.Command['dnsrecord_find'](zone, aaarecord=str_address)
+    else:
+        raise ValueError('Invalid address family')
+
+    return result['count'] > 0
+
+def remove_fwd_ptr(ipaddr, host, domain, recordtype):
+    api.log.debug('deleting ipaddr %s' % ipaddr)
+    revzone, revname = get_reverse_zone(ipaddr)
+    try:
+        delkw = { 'ptrrecord' : "%s.%s." % (host, domain) }
+        api.Command['dnsrecord_del'](revzone, revname, **delkw)
+    except errors.NotFound:
+        pass
+
+    try:
+        delkw = { recordtype : ipaddr }
+        api.Command['dnsrecord_del'](domain, host, **delkw)
+    except errors.NotFound:
+        pass
 
 host_output_params = (
     Flag('has_keytab',
@@ -309,8 +336,7 @@ class host_add(LDAPCreate):
                 except errors.NotFound:
                     pass
             else:
-                result = api.Command['dnsrecord_find'](domain, arecord=options['ip_address'])
-                if result['count'] > 0:
+                if is_forward_record(domain, options['ip_address']):
                     raise errors.DuplicateEntry(message=u'This IP address is already assigned.')
         if not options.get('force', False) and not 'ip_address' in options:
             util.validate_host_dns(self.log, keys[-1])
@@ -347,15 +373,8 @@ class host_add(LDAPCreate):
             if 'ip_address' in options and dns_container_exists(ldap):
                 parts = keys[-1].split('.')
                 domain = unicode('.'.join(parts[1:]))
-                if ':' in options['ip_address']:
-                    addkw = { 'aaaarecord' : options['ip_address'] }
-                else:
-                    addkw = { 'arecord' : options['ip_address'] }
-                try:
-                    api.Command['dnsrecord_add'](domain, parts[0], **addkw)
-                except errors.EmptyModlist:
-                    # the entry already exists and matches
-                    pass
+
+                add_forward_record(domain, parts[0], options['ip_address'])
 
                 if not options.get('no_reverse', False):
                     revzone, revname = get_reverse_zone(options['ip_address'])
@@ -444,24 +463,16 @@ class host_del(LDAPDelete):
             records = api.Command['dnsrecord_find'](domain, idnsname=parts[0])['result']
             for record in records:
                 if 'arecord' in record:
-                    ipaddr = record['arecord'][0]
-                    self.debug('deleting ipaddr %s' % ipaddr)
-                    revzone, revname = get_reverse_zone(ipaddr)
-                    try:
-                        delkw = { 'ptrrecord' : fqdn+'.' }
-                        api.Command['dnsrecord_del'](revzone, revname, **delkw)
-                    except errors.NotFound:
-                        pass
-                    try:
-                        delkw = { 'arecord' : ipaddr }
-                        api.Command['dnsrecord_del'](domain, parts[0], **delkw)
-                    except errors.NotFound:
-                        pass
+                    remove_fwd_ptr(record['arecord'][0], parts[0],
+                                   domain, 'arecord')
+                if 'aaaarecord' in record:
+                    remove_fwd_ptr(record['aaaarecord'][0], parts[0],
+                                   domain, 'aaaarecord')
                 else:
                     # Try to delete all other record types too
                     _attribute_types = [str('%srecord' % t.lower()) for t in _record_types]
                     for attr in _attribute_types:
-                        if attr != 'arecord' and attr in record:
+                        if attr not in ['arecord', 'aaaarecord'] and attr in record:
                             for i in xrange(len(record[attr])):
                                 if (record[attr][i].endswith(parts[0]) or
                                     record[attr][i].endswith(fqdn+'.')):
