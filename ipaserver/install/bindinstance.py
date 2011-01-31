@@ -401,7 +401,7 @@ class BindInstance(service.Service):
         # it can host the memberof attribute, then also add it to the
         # dnsserver role group, this way the DNS is allowed to perform
         # DNS Updates
-        dns_group = "cn=dnsserver,cn=privileges,cn=pbac,%s" % self.suffix
+        dns_group = "cn=DNS Servers,cn=privileges,cn=pbac,%s" % self.suffix
         if isinstance(dns_principal, unicode):
             dns_principal = dns_principal.encode('utf-8')
         mod = [(ldap.MOD_ADD, 'member', dns_principal)]
