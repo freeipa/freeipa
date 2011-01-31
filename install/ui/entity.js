@@ -204,7 +204,14 @@ IPA.entity = function (spec) {
         };
 
         if (config){
-            spec.associator = config.associator;
+            for (var key in config){
+                /*name is special, as iut has already been munged 
+                  into the association name */
+                if (key === "name"){
+                    continue;
+                }
+                spec[key] = config[key] ;
+            }
         }
 
         facet =  IPA.association_facet(spec);

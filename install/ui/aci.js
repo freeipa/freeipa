@@ -791,42 +791,33 @@ IPA.entity_factories.permission = function () {
 IPA.entity_factories.privilege =  function() {
     var that = IPA.entity({
         'name': 'privilege'
-    });
-    that.init = function() {
+    }).
+        facet(
+            IPA.search_facet().
+                column({name:'cn'}).
+                column({name:'description'})).
+        facet(
+            IPA.details_facet({name:'details'}).
+                section(
+                    IPA.stanza({name:'identity', label:'Privilege Settings'}).
+                        input({name:'cn'}).
+                        input({name: 'description'}))).
+        add_dialog(
+            IPA.add_dialog({
+                name: 'add',
+                title: 'Add Privilege'}).
+                field(IPA.text_widget({ name: 'cn', undo: false})).
+                field(IPA.text_widget({ name: 'description', undo: false}))).
+    association({
+        name: 'permission',
+        other_entity: 'privilege',
+        add_method: 'add_permission',
+        remove_method: 'remove_permission'
+    }).
 
-        var search_facet = IPA.search_facet({
-            name: 'search',
-            label: 'Search',
-            entity_name: that.name
-        });
-        search_facet.create_column({name:'cn'});
-        search_facet.create_column({name:'description'});
-        that.add_facet(search_facet);
-
-        that.add_facet(function() {
-            var that = IPA.details_facet({name:'details'});
-            that.add_section(
-                IPA.stanza({name:'identity', label:'Privilege Settings'}).
-                    input({name:'cn'}).
-                    input({name: 'description'}));
-            return that;
-        }());
+    standard_associations();
 
 
-        var dialog = IPA.add_dialog({
-            name: 'add',
-            title: 'Add Privilege',
-            entity_name: that.entity
-        });
-        that.add_dialog(dialog);
-
-        dialog.add_field(IPA.text_widget({ name: 'cn', undo: false}));
-        dialog.add_field(IPA.text_widget({ name: 'description', undo: false}));
-        dialog.init();
-
-        that.create_association_facets();
-        that.entity_init();
-    };
     return that;
 };
 
@@ -851,6 +842,11 @@ IPA.entity_factories.role =  function() {
             }).
                 field(IPA.text_widget({ name: 'cn', undo: false})).
                 field(IPA.text_widget({ name: 'description', undo: false}))).
+        association({
+            name: 'privilege',
+            add_method: 'add_privilege',
+            remove_method: 'remove_privilege'
+        }).
         standard_associations();
 };
 

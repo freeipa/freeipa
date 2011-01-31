@@ -454,7 +454,8 @@ IPA.association_table_widget = function (spec) {
             'entity_name': that.entity_name,
             'pkey': pkey,
             'other_entity': that.other_entity,
-            'attribute_member': that.attribute_member
+            'attribute_member': that.attribute_member,
+            method:that.add_method
         });
     };
 
@@ -518,7 +519,8 @@ IPA.association_table_widget = function (spec) {
             'entity_name': that.entity_name,
             'pkey': pkey,
             'other_entity': that.other_entity,
-            'values': selected_values
+            'values': selected_values,
+            method:remove_method
         });
 
         dialog.remove = function() {
