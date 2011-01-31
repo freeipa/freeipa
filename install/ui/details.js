@@ -129,6 +129,40 @@ IPA.details_field =  function (spec) {
         }
     };
 
+
+    /* creates a Remove link for deleting attribute values */
+    function create_remove_link(attr, param_info){
+        function remove_on_click(obj){
+            var jobj = $(obj);
+            var attr = jobj.attr('title');
+            var par = jobj.parent();
+            var input = par.find('input');
+            if (input.is('.strikethrough')){
+                input.removeClass('strikethrough');
+                jobj.text("Remove");
+            }else{
+                input.addClass('strikethrough');
+                jobj.text("Undo");
+            }
+            return (false);
+        }
+
+        if (param_info){
+            /* check if the param is required or of the Password type
+             * if it is, then we don't want people to be able to remove it */
+            if ((param_info['required']) ||
+                (param_info['class'] == 'Password')){
+                return ('');
+            }
+        }
+        return $('<a/>',{
+            href:"jslink",
+            click: function (){return (remove_on_click(this));},
+            title: attr,
+            text: 'Remove'});
+    }
+
+
     /* create an HTML element for displaying/editing an attribute
      * arguments:
      *   attr - LDAP attribute name
@@ -155,7 +189,7 @@ IPA.details_field =  function (spec) {
         var input = that.create_input(value, param_info, rights, index);
         if (param_info) {
             if (param_info['multivalue'] || param_info['class'] == 'List') {
-                input.append(_ipa_create_remove_link(that.name, param_info));
+                input.append(create_remove_link(that.name, param_info));
             }
         }
 
@@ -903,23 +937,6 @@ IPA.create_other_dd = function (field_name, content){
 };
 
 
-/* creates a Remove link for deleting attribute values */
-function _ipa_create_remove_link(attr, param_info)
-{
-    if (param_info){
-        /* check if the param is required or of the Password type
-         * if it is, then we don't want people to be able to remove it */
-        if ((param_info['required']) || (param_info['class'] == 'Password')){
-            return ('');
-        }
-    }
-    return $('<a/>',{
-        href:"jslink",
-        click: function (){return (_ipa_remove_on_click(this));},
-        title: attr,
-        text: 'Remove'});
-
-}
 
 IPA.details_field_create_add_link = function (title, rights, index) {
 
@@ -947,22 +964,3 @@ IPA.details_field_create_add_link = function (title, rights, index) {
 
     return link;
 };
-
-
-function _ipa_remove_on_click(obj)
-{
-    var jobj = $(obj);
-    var attr = jobj.attr('title');
-    var par = jobj.parent();
-
-    var input = par.find('input');
-
-    if (input.is('.strikethrough')){
-        input.removeClass('strikethrough');
-        jobj.text("Remove");
-    }else{
-        input.addClass('strikethrough');
-        jobj.text("Undo");
-    }
-    return (false);
-}
