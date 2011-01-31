@@ -190,6 +190,15 @@ IPA.widget = function(spec) {
         return false;
     };
 
+    that.create_undo = function(container) {
+        $('<span/>', {
+            name: 'undo',
+            style: 'display: none;',
+            'class': 'ui-state-highlight ui-corner-all undo',
+            html: 'undo'
+        }).appendTo(container);
+    };
+
     that.get_undo = function() {
         return $('span[name="undo"]', that.container);
     };
@@ -251,11 +260,9 @@ IPA.text_widget = function(spec) {
             title: that.tooltip
         }).appendTo(container);
 
-        $('<span/>', {
-            'name': 'undo',
-            'style': 'display: none;',
-            'html': 'undo'
-        }).appendTo(container);
+        if (that.undo) {
+            that.create_undo(container);
+        }
 
         $("<span/>",{
             name:'error_link',
@@ -345,11 +352,7 @@ IPA.checkbox_widget = function (spec) {
         }).appendTo(container);
 
         if (that.undo) {
-            $('<span/>', {
-                'name': 'undo',
-                'style': 'display: none;',
-                'html': 'undo'
-            }).appendTo(container);
+            that.create_undo(container);
         }
     };
 
@@ -407,11 +410,7 @@ IPA.checkboxes_widget = function (spec) {
         }
 
         if (that.undo) {
-            $('<span/>', {
-                'name': 'undo',
-                'style': 'display: none;',
-                'html': 'undo'
-            }).appendTo(container);
+            that.create_undo(container);
         }
     };
 
@@ -489,11 +488,7 @@ IPA.radio_widget = function(spec) {
         }
 
         if (that.undo) {
-            $('<span/>', {
-                'name': 'undo',
-                'style': 'display: none;',
-                'html': 'undo'
-            }).appendTo(container);
+            that.create_undo(container);
         }
     };
 
@@ -568,11 +563,7 @@ IPA.select_widget = function(spec) {
         }
 
         if (that.undo) {
-            $('<span/>', {
-                'name': 'undo',
-                'style': 'display: none;',
-                'html': 'undo'
-            }).appendTo(container);
+            that.create_undo(container);
         }
     };
 
@@ -643,11 +634,7 @@ IPA.textarea_widget = function (spec) {
         }).appendTo(container);
 
         if (that.undo) {
-            $('<span/>', {
-                'name': 'undo',
-                'style': 'display: none;',
-                'html': 'undo'
-            }).appendTo(container);
+            that.create_undo(container);
         }
     };
 

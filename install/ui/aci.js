@@ -328,89 +328,30 @@ IPA.entity_select_widget = function(spec){
 IPA.rights_widget = function(spec){
     var rights = ['write','add','delete'];
 
-    var that = IPA.widget({name:'permissions',label:'Permissions'});
+    var that = IPA.checkboxes_widget(spec);
     that.id = spec.id;
 
     that.create = function(container){
-        for (var i =0; i < rights.length; i += 1){
-            $("<dd/>").
-                append($('<input/>',{
-                    type:'checkbox',
-                    'class':that.entity_name +"_"+ that.name,
-                    'id':rights[i],
-                    value:rights[i]
-                })).
-                append($('<label/>',{
-                    text:rights[i]
-                })).
-                appendTo(container);
+
+        for (var i = 0; i < rights.length; i++){
+            $('<dd/>').
+            append($('<input/>', {
+                type: 'checkbox',
+                id: rights[i],
+                name: that.name,
+                value: rights[i],
+                'class': that.entity_name +'_'+ that.name
+            })).
+            append($('<label/>', {
+                text: rights[i]
+            })).
+            appendTo(container);
         }
 
-    };
-    var values = [];
-
-    function get_selector(){
-        return  '.'+ that.entity_name +"_"+ that.name;
-    }
-
-    that.is_dirty = function(){
-
-        var checkboxes = $(get_selector());
-        var checked = {};
-
-        checkboxes.each(function (){
-            checked[this.id] = this.checked;
-        });
-
-        for (var i = 0; i < values.length; i +=1){
-            var key = values[i];
-
-            if ( !checked[key] ){
-                return true;
-            }
-            checked[key] = false;
+        if (that.undo) {
+            var dd = $('<dd/>').appendTo(container);
+            that.create_undo(dd);
         }
-
-        for (key in checked){
-            if (checked[key] ){
-                return true;
-            }
-        }
-
-        return false;
-    };
-
-    that.reset = function(){
-
-        var checkboxes = $(get_selector());
-
-        for (var i = 0; i < checkboxes.length; i +=1){
-            checkboxes.attr('checked','');
-        }
-
-        for (var j = 0; j < values.length; j +=1){
-            var value = values[j];
-            var cb = $('#'+value+ get_selector());
-            cb.attr('checked', 'checked');
-        }
-
-    };
-
-    that.load = function(record) {
-        values = record[that.name] || [];
-        that.reset();
-    };
-
-    that.save = function(){
-        var rights_input =  $(get_selector()+":checked");
-        var retval = "";
-        for (var i =0; i < rights_input.length; i+=1){
-            if (i > 0) {
-                retval += ',';
-            }
-            retval += rights_input[i].value;
-        }
-        return [retval];
     };
 
     return that;
@@ -447,7 +388,7 @@ IPA.rights_section = function () {
         'label': 'Rights'
     };
     var that = IPA.details_section(spec);
-    that.add_field(IPA.rights_widget({name:'permissions'}));
+    that.add_field(IPA.rights_widget({name: 'permissions', label: 'Permissions', join: true}));
 
     return that;
 };
@@ -774,7 +715,7 @@ IPA.entity_factories.permission = function () {
                 name: 'cn',
                 undo: false
             })).
-            field(IPA.rights_widget({name:'permissions'})).
+            field(IPA.rights_widget({name: 'permissions', label: 'Permissions', join: true, undo: false})).
             section(IPA.target_section())).
         facet(IPA.search_facet().
               column({name:'cn'})).
@@ -896,8 +837,8 @@ IPA.entity_factories.delegation =  function() {
                             {name:'membergroup', label:"Member Group",
                              entity:'group', join: true})).
                         custom_input(
-                            IPA.rights_widget({
-                                id:'delegation_rights'})).
+                            IPA.rights_widget({name: 'permissions', label: 'Permissions',
+                                id:'delegation_rights', join: true})).
                         custom_input(
                             IPA.attribute_table_widget({
                                 name:'attrs', object_type:'user', join: true})))).
