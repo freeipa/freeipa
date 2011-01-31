@@ -653,20 +653,14 @@ class ReplicationManager:
         # First off make sure servers are in sync so that both KDCs
         # have all princiapls and their passwords and can release
         # the right tickets. We do this by force pushing all our changes
-        filter = "(&(nsDS5ReplicaHost=%s)(objectclass=nsds5ReplicationAgreement))" % r_hostname
-        entry = self.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
-        if len(entry) == 0:
-            raise RuntimeError("Missing %s -> %s replication agreement" %
-                               (self.hostname, r_hostname))
-        if len(entry) > 1:
-            logging.info("Found multiple agreements for %s." % r_hostname)
-            logging.info("Syncing only the first one: %s" % entry[0].dn)
-
-        self.force_synch(entry[0].dn, entry[0].nsds5replicaupdateschedule)
-
-        # now wait until we are sure replication has succeeded.
+        self.force_sync(self.conn, r_hostname)
         cn, dn = self.agreement_dn(r_hostname)
         self.wait_for_repl_update(self.conn, dn, 30)
+
+        # now in the opposite direction
+        self.force_sync(r_conn, self.hostname)
+        cn, dn = self.agreement_dn(self.hostname)
+        self.wait_for_repl_update(r_conn, dn, 30)
 
         # now that directories are in sync,
         # change the agreements to use GSSAPI
@@ -700,8 +694,24 @@ class ReplicationManager:
         except ldap.ALREADY_EXISTS:
             return
 
-    def force_synch(self, dn, schedule):
+    def force_sync(self, conn, hostname):
+
         newschedule = '2358-2359 0'
+
+        filter = '(&(nsDS5ReplicaHost=%s)' \
+                   '(|(objectclass=nsDSWindowsReplicationAgreement)' \
+                     '(objectclass=nsds5ReplicationAgreement)))' % hostname
+        entry = conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
+        if len(entry) == 0:
+            logging.error("Unable to find replication agreement for %s" %
+                          (hostname))
+            raise RuntimeError("Unable to proceed")
+        if len(entry) > 1:
+            logging.error("Found multiple agreements for %s" % hostname)
+            logging.error("Using the first one only (%s)" % entry[0].dn)
+
+        dn = entry[0].dn
+        schedule = entry[0].nsds5replicaupdateschedule
 
         # On the remote chance of a match. We force a synch to happen right
         # now by changing the schedule to something else and quickly changing
@@ -711,12 +721,12 @@ class ReplicationManager:
         logging.info("Changing agreement %s schedule to %s to force synch" %
                      (dn, newschedule))
         mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaUpdateSchedule', [ newschedule ])]
-        self.conn.modify_s(dn, mod)
+        conn.modify_s(dn, mod)
         time.sleep(1)
         logging.info("Changing agreement %s to restore original schedule %s" %
                      (dn, schedule))
         mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaUpdateSchedule', [ schedule ])]
-        self.conn.modify_s(dn, mod)
+        conn.modify_s(dn, mod)
 
     def get_agreement_type(self, hostname):
         cn, dn = self.agreement_dn(hostname)

@@ -358,15 +358,7 @@ def re_initialize(realm, options):
 def force_sync(realm, thishost, fromhost, dirman_passwd):
 
     repl = replication.ReplicationManager(realm, fromhost, dirman_passwd)
-
-    filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % thishost
-    entry = repl.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
-    if len(entry) == 0:
-        logging.error("Unable to find %s -> %s replication agreement" % (fromhost, thishost))
-        sys.exit(1)
-    if len(entry) > 1:
-        logging.error("Found multiple agreements for %s. Only initializing the first one returned: %s" % (thishost, entry[0].dn))
-    repl.force_synch(entry[0].dn, entry[0].nsds5replicaupdateschedule)
+    repl.force_sync(repl.conn, thishost)
 
 def main():
     options, args = parse_options()
