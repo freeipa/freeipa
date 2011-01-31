@@ -774,21 +774,14 @@ IPA.entity_factories.permission = function () {
                 name: 'cn',
                 undo: false
             })).
-            field(IPA.text_widget({
-                name: 'description',
-                undo: false
-            })).
             field(IPA.rights_widget({name:'permissions'})).
             section(IPA.target_section())).
         facet(IPA.search_facet().
-              column({name:'cn'}).
-              column({name:'description'})).
+              column({name:'cn'})).
         facet(IPA.permission_details_facet({ name: 'details' }).
               section(
-                  IPA.stanza({
-                name:'identity',label:'Identity'  }).
-                      input({ name: 'cn', 'read_only': true }).
-                      input({ name: 'description'})).
+                  IPA.stanza({name:'identity', label:'Identity'}).
+                      input({name: 'cn', 'read_only': true})).
               section(IPA.rights_section()).
               section(IPA.target_section()));
 
