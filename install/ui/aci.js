@@ -834,7 +834,7 @@ IPA.entity_factories.delegation =  function() {
                         custom_input(IPA.entity_select_widget(
                             {name:'group', entity:'group'})).
                         custom_input(IPA.entity_select_widget(
-                            {name:'membergroup', label:"Member Group",
+                            {name:'memberof', label: 'Member Group',
                              entity:'group', join: true})).
                         custom_input(
                             IPA.rights_widget({name: 'permissions', label: 'Permissions',
