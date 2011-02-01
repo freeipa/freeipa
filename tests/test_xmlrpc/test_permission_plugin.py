@@ -332,8 +332,7 @@ class test_permission(Declarative):
                                                                  permission2),
             command=(
                 'permission_mod', [permission1], dict(rename=permission2,
-                                                      description=u"Renamed Desc",
-                                                      permissions=u'read',)
+                                                      permissions=u'all',)
             ),
             expected=errors.DuplicateEntry(),
         ),
@@ -348,10 +347,9 @@ class test_permission(Declarative):
                 result={
                     'dn': permission1_dn,
                     'cn': [permission1],
-                    'description': [u'New desc 1'],
                     'member_privilege': [privilege1],
                     'type': u'user',
-                    'permissions': [u'write'],
+                    'permissions': [u'read'],
                 },
             ),
         ),
@@ -362,8 +360,7 @@ class test_permission(Declarative):
                                                  permission1_renamed),
             command=(
                 'permission_mod', [permission1], dict(rename=permission1_renamed,
-                                                      description=u"Renamed Desc",
-                                                      permissions= u'read',)
+                                                      permissions= u'all',)
             ),
             expected=dict(
                 value=permission1,
@@ -371,10 +368,9 @@ class test_permission(Declarative):
                 result={
                     'dn': permission1_renamed_dn,
                     'cn': [permission1_renamed],
-                    'description': [u'Renamed Desc'],
                     'member_privilege': [privilege1],
                     'type': u'user',
-                    'permissions': [u'read'],
+                    'permissions': [u'all'],
                 },
             ),
         ),
@@ -407,7 +403,7 @@ class test_permission(Declarative):
 
         dict(
             desc='Try to update non-existent %r' % permission1,
-            command=('permission_mod', [permission1], dict(description=u'Foo')),
+            command=('permission_mod', [permission1], dict(rename=u'Foo')),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
