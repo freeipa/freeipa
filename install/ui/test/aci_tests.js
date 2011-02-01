@@ -50,7 +50,7 @@ test("Testing aci grouptarget.", function() {
     var sample_data_filter_only = {"targetgroup":"ipausers"};
     target_section.load(sample_data_filter_only);
     ok($('#aci_by_group')[0].checked, 'aci_by_group control selected');
-    ok ($('#aci_target_group_select option').length > 2,'group select populated');
+    ok ($('#targetgroup-entity-select option').length > 2,'group select populated');
 
 });
 

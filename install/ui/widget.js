@@ -1,6 +1,7 @@
 /*jsl:import ipa.js */
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
+ *    Adam Young <ayoung@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -1058,6 +1059,96 @@ IPA.table_widget = function (spec) {
     that.table_create = that.create;
     that.table_setup = that.setup;
     that.table_set_enabled = that.set_enabled;
+
+    return that;
+};
+IPA.entity_select_widget = function(spec){
+
+    var that = IPA.widget(spec);
+    var entity = spec.entity || 'group';
+
+    function populate_select(value){
+        function find_success(result){
+            $('option', that.entity_select).remove();
+            var entities = result.result.result;
+            for (var i =0; i < result.result.count; i +=1){
+                var option =
+                    $('<option/>',{
+                        text:entities[i].cn[0],
+                        value:entities[i].cn[0]
+                    }).
+                    appendTo(that.entity_select);
+                if (value === entities[i].cn[0]){
+                    option.attr('selected','selected');
+                }
+            }
+        }
+        function find_error(err){
+        }
+        IPA.command({
+            method: entity+'_find',
+            args:[that.entity_filter.val()],
+            options:{},
+            on_success:find_success,
+            on_error:find_error
+        }).execute();
+    }
+
+    that.create = function(container){
+        var dd = $('<dd/>').appendTo(container);
+
+        that.entity_select = $('<select/>', {
+            id: that.name + '-entity-select',
+            change: function(){
+
+            }
+        }).appendTo(dd);
+
+
+        that.entity_filter = $('<input/>',{
+            size:10,
+            type: 'text',
+            id: 'entity_filter',
+            style: 'display: none;',
+            keypress: function(){
+                populate_select();
+            }
+        }).appendTo(dd);
+
+        $('<a />',{
+            href:"",
+            text: 'add ' +entity + ' filter: ',
+            click:function(){
+                that.entity_filter.css('display','inline');
+                $(this).css('display','none');
+                return false;
+            }
+        }).appendTo(dd);
+        populate_select();
+    };
+    that.reset = function(){
+        that.entity_filter.val(that.values[0]);
+        populate_select(that.values[0]);
+
+    };
+
+    that.is_dirty = function(){
+        return (that.save()[0] !== that.values[0]);
+    };
+
+    that.load = function(record){
+        var value = record[that.name];
+        if (value instanceof Array) {
+            that.values = value;
+        } else {
+            that.values = value ? [value] : [''];
+        }
+        that.reset();
+    };
+
+    that.save = function(){
+        return [$('option:selected', that.entity_select).val()];
+    };
 
     return that;
 };
