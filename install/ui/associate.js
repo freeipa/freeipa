@@ -455,7 +455,7 @@ IPA.association_table_widget = function (spec) {
             'pkey': pkey,
             'other_entity': that.other_entity,
             'attribute_member': that.attribute_member,
-            method:that.add_method
+            method: that.add_method
         });
     };
 
@@ -520,7 +520,7 @@ IPA.association_table_widget = function (spec) {
             'pkey': pkey,
             'other_entity': that.other_entity,
             'values': selected_values,
-            method:remove_method
+            method: that.remove_method
         });
 
         dialog.remove = function() {
