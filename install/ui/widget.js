@@ -282,7 +282,7 @@ IPA.text_widget = function(spec) {
             if(that.undo){
                 that.show_undo();
             }
-            var value = $('input[name="'+that.name+'"]', that.container).val();
+            var value = $(this).val();
             that.validate_input(value);
         });
 
@@ -520,10 +520,21 @@ IPA.radio_widget = function(spec) {
     };
 
     that.update = function() {
-        if (that.values && that.values.length) {
-            var input = $('input[name="'+that.name+'"][value="'+that.values[0]+'"]', that.container);
+
+
+
+        if (that.values) {
+            var value;
+            if ((that.values instanceof Array ) && that.values.length){
+                value = that.values[0]
+            }else{
+                value = that.values;
+            }
+
+            var input = $('input[name="'+that.name+'"][value="'+value+'"]',
+                          that.container);
             if (input.length) {
-                input.get(0).checked = true;
+                input.attr('checked', true);
                 return;
             }
         }
@@ -637,6 +648,13 @@ IPA.textarea_widget = function (spec) {
         if (that.undo) {
             that.create_undo(container);
         }
+
+        $("<span/>",{
+            name:'error_link',
+            html:"Text does not match field pattern",
+            "class":"ui-state-error ui-corner-all",
+            style:"display:none"
+        }).appendTo(container);
     };
 
     that.setup = function(container) {
@@ -646,6 +664,10 @@ IPA.textarea_widget = function (spec) {
         var input = $('textarea[name="'+that.name+'"]', that.container);
         input.keyup(function() {
             undo.css('display', 'inline');
+
+            var value = $(this).val();
+            that.validate_input(value);
+
         });
 
         var undo = that.get_undo();
@@ -677,35 +699,6 @@ IPA.textarea_widget = function (spec) {
     return that;
 };
 
-IPA.button_widget = function (spec) {
-
-    spec = spec || {};
-
-    spec.setup = spec.setup || setup;
-    spec.load = spec.load || load;
-    spec.save = spec.save || save;
-
-    var that = IPA.widget(spec);
-
-    that.click = spec.click;
-
-    function setup(container) {
-
-        that.widget_setup(container);
-
-        var input = $('[name="'+that.name+'"]', that.container);
-        input.replaceWith(IPA.button({ 'label': that.label, 'click': that.click }));
-    }
-
-    function load(record) {
-    }
-
-    function save() {
-        return [];
-    }
-
-    return that;
-};
 
 IPA.column = function (spec) {
 
@@ -1066,19 +1059,23 @@ IPA.entity_select_widget = function(spec){
 
     var that = IPA.widget(spec);
     var entity = spec.entity || 'group';
+    var field_name = spec.field_name || 'cn';
 
     function populate_select(value){
         function find_success(result){
             $('option', that.entity_select).remove();
             var entities = result.result.result;
             for (var i =0; i < result.result.count; i +=1){
+                var entity = entities[i];
+                var field_array = entity[field_name];
+                var field_value = field_array[0];
                 var option =
                     $('<option/>',{
-                        text:entities[i].cn[0],
-                        value:entities[i].cn[0]
+                        text:field_value,
+                        value:field_value
                     }).
                     appendTo(that.entity_select);
-                if (value === entities[i].cn[0]){
+                if (value === field_value){
                     option.attr('selected','selected');
                 }
             }

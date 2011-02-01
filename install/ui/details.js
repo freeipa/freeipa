@@ -372,12 +372,6 @@ IPA.details_section = function (spec){
         return field;
     };
 
-    that.create_button = function(spec) {
-        var field = IPA.button_widget(spec);
-        that.add_field(field);
-        return field;
-    };
-
     that.init = function() {
         for (var i=0; i<that.fields.length; i++) {
             var field = that.fields[i];

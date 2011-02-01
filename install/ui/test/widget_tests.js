@@ -29,7 +29,6 @@ module('widget',{
                "data",
                true,
                function(data, text_status, xhr) {
-                   ok(true, "ipa_init() succeeded.");
                },
                function(xhr, text_status, error_thrown) {
                    ok(false, "ipa_init() failed: "+error_thrown);
@@ -42,9 +41,8 @@ module('widget',{
        }}
 );
 
-
-
-function base_widget_test(widget,entity_name, field_name,value){
+function base_widget_test(widget,entity_name, value){
+    var field_name = widget.name;
     ok (widget, "Created Widget");
     widget.init();
     ok(!widget.label,'widget with no entity has no label');
@@ -85,29 +83,10 @@ function widget_string_test(widget, value){
 
 }
 
-test("Testing base widget.", function() {
-    var update_called = false;
-    var spec = {
-        update:function(){
-            update_called = true;
-        }
-    };
-
-    var widget = IPA.widget(spec);
-    base_widget_test(widget,'user','title','test_value');
-    widget_string_test(widget);
-    ok (update_called, 'Update called');
-
-});
 
 
-test("Testing text widget.", function() {
-    var widget = IPA.text_widget({undo:true});
-    base_widget_test(widget,'user','title','test_value');
-    widget_string_test(widget);
+function text_tests(widget,input){
 
-
-    var input = $('input[type=text]',widget_container);
     input.val('changed');
     input.keyup();
     same(widget.save(),['changed'], "Setting Value");
@@ -136,11 +115,85 @@ test("Testing text widget.", function() {
 
     widget.param_info.pattern = old_pattern;
 
+}
+
+test("IPA.table_widget" ,function(){
+    var widget = IPA.table_widget({undo:true,name:'users'});
+
+    widget.add_column(IPA.column({
+        name:'uid',
+        label:'User ID',
+        primary_key:'uid',
+        width:'20em',
+        entity_name:'user'
+    }));
+    widget.add_column(IPA.column({
+        name:'title',
+        lable:'Title',
+        primary_key:'uid',
+        width:'20em',
+        entity_name:'user'
+    }));
+
+    widget.init();
+ 
+    ok(!widget.container,'widget has no container before setup');
+    widget.create(widget_container);
+    widget.setup(widget_container);
+
+    ok(widget.container,'widget has container after setup');
+
+
+    var mock_results = {
+        users:[{ uid: 'kfrog', title:'reporter' },
+               { uid: 'grover',title:'waiter' }]
+    };
+
+    widget.load(mock_results);
+
+    same ($('tr' ,widget_container).length, 4, 'four rows after load');
+
+
+});
+
+
+test("Testing base widget.", function() {
+    var update_called = false;
+    var spec = {
+        name:'title',
+        update:function(){
+            update_called = true;
+        }
+    };
+
+    var widget = IPA.widget(spec);
+    base_widget_test(widget,'user','test_value');
+    widget_string_test(widget);
+    ok (update_called, 'Update called');
+
+});
+
+
+test("IPA.textarea_widget" ,function(){
+    var widget = IPA.textarea_widget({undo:true,name:'title'});
+    base_widget_test(widget,'user','test_value');
+    widget_string_test(widget);
+    text_tests(widget, $('textarea',widget_container));
+
+});
+
+
+test("Testing text widget.", function() {
+    var widget = IPA.text_widget({undo:true,name:'title'});
+    base_widget_test(widget,'user','test_value');
+    widget_string_test(widget);
+    text_tests(widget, $('input[type=text]',widget_container));
+
 });
 
 test("Testing checkbox widget.", function() {
-    var widget = IPA.checkbox_widget();
-    base_widget_test(widget,'user','title','test_value');
+    var widget = IPA.checkbox_widget({name:'title'});
+    base_widget_test(widget,'user','test_value');
 
     mock_record = {'title':'something'};
 
@@ -163,4 +216,64 @@ test("Testing checkbox widget.", function() {
 
 
 });
+
+
+test("IPA.checkboxes_widget" ,function(){
+    var widget = IPA.checkboxes_widget({undo:true, name:'title' });
+    base_widget_test(widget,'user','test_value');
+
+});
+test("IPA.select_widget" ,function(){
+
+    var widget = IPA.select_widget({undo:true,name:'title'});
+    base_widget_test(widget,'user','test_value');
+
+});
+
+
+test("IPA.entity_select_widget" ,function(){
+    var widget = IPA.entity_select_widget({
+        name: 'uid', entity:'user',field_name:'uid'});
+    base_widget_test(widget,'user','test_value');
+    ok( $('#uid-entity-select option').length > 1,"options populatedfrom AJAX");
+    mock_record = {'uid':'kfrog'};
+    widget.load(mock_record);
+    same(widget.values[0],'kfrog','select set from values');
+});
+
+
+
+
+test("IPA.radio_widget" ,function(){
+    var options = [{label:"Engineer",value:"engineer"},
+                   {label:"Manager", value:"manager"},
+                   {label:"Director",value:"director"},
+                   {label:"Vice President",value:"VP"}];
+    var widget = IPA.radio_widget({undo:true, name: 'title',options:options});
+    base_widget_test(widget,'user','test_value');
+    var mock_record = {'title':["director"]};
+    widget.load(mock_record);
+    var values = widget.save();
+    same(values[0],'director','Options set correctly');
+
+    mock_record = {'title':"VP"};
+    widget.load(mock_record);
+    values = widget.save();
+    same(values[0],'VP','Options set correctly');
+
+    var i =0;
+    $('label', widget_container).each( function(){
+        same( $(this).text(),options[i].label, 'labels match');
+        i += 1;
+    });
+
+});
+
+
+
+
+
+
+
+
 

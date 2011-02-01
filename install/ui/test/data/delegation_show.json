@@ -1,22 +1,19 @@
 {
     "error": null,
-    "id": 0,
+    "id": 4,
     "result": {
         "result": {
-            "aciname": "delegme",
+            "aciname": "test-deleg",
             "attrs": [
-                "cn"
+                "audio"
             ],
-            "filter": "(memberOf=cn=ipausers,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com)",
-            "group": "admins",
-            "membergroup": [
-                "admins"
-            ],
+            "group": "ipausers",
+            "memberof": "editors",
             "permissions": [
                 "write"
             ]
         },
         "summary": null,
-        "value": "delegme"
+        "value": "test-deleg"
     }
 }
