@@ -1100,7 +1100,7 @@ IPA.entity_select_widget = function(spec){
         that.entity_select = $('<select/>', {
             id: that.name + '-entity-select',
             change: function(){
-
+                that.show_undo();
             }
         }).appendTo(dd);
 
@@ -1110,8 +1110,9 @@ IPA.entity_select_widget = function(spec){
             type: 'text',
             id: 'entity_filter',
             style: 'display: none;',
-            keypress: function(){
+            keyup: function(){
                 populate_select();
+                that.show_undo();
             }
         }).appendTo(dd);
 
@@ -1124,10 +1125,20 @@ IPA.entity_select_widget = function(spec){
                 return false;
             }
         }).appendTo(dd);
+
+        if (that.undo) {
+            that.create_undo(dd);
+        }
+        var undo = that.get_undo();
+        undo.click(function() {
+            that.reset();
+        });
+
         populate_select();
     };
     that.reset = function(){
         that.entity_filter.val(that.values[0]);
+        that.hide_undo();
         populate_select(that.values[0]);
 
     };
