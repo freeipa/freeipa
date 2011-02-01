@@ -180,13 +180,36 @@ IPA.entity = function (spec) {
                 that.entity_name, other_entity);
         }
 
-        return IPA.association_facet({
-            'name': attribute_member+'_'+other_entity,
+        var association_name= attribute_member+'_'+other_entity;
+
+        //TODO remove from the facets and facets_by_name collections
+        var facet = that.get_facet(association_name);
+        if (facet){
+            facet.facet_group = facet_group;
+            facet.attribute_member =  attribute_member;
+            return;
+        }
+
+        var config = that.get_association(other_entity);
+        if (!config){
+            config = that.get_association(association_name);
+        }
+
+        var spec ={
+            'name': association_name,
             'label': label,
             'other_entity': other_entity,
             'facet_group': facet_group,
             'attribute_member': attribute_member
-        });
+        };
+
+        if (config){
+            spec.associator = config.associator;
+        }
+
+        facet =  IPA.association_facet(spec);
+
+        that.add_facet(facet);
     };
 
     that.create_association_facets = function() {
@@ -214,12 +237,8 @@ IPA.entity = function (spec) {
                     relationship = ['Member', '', 'no_'];
                 var facet_group = relationship[0];
 
-                var facet = that.create_association_facet(
+                that.create_association_facet(
                     attribute_member, other_entity, label, facet_group);
-
-                if (that.get_facet(facet.name)) continue;
-
-                that.add_facet(facet);
             }
         }
         return that;

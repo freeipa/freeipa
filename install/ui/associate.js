@@ -699,8 +699,9 @@ IPA.association_facet = function (spec) {
 
         var relationships = IPA.metadata[that.entity_name].relationships;
         var relationship = relationships[that.attribute_member];
-        if (!relationship)
+        if (!relationship){
             relationship = ['', '', ''];
+        }
 
         /* TODO: I18N and some generic handling of different relationships */
         var header_message = '';
