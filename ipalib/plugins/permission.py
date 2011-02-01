@@ -73,8 +73,15 @@ from ipalib.plugins.baseldap import *
 from ipalib import api, _, ngettext
 from ipalib import Flag, Str, StrEnum
 from ipalib.request import context
+from ipalib import errors
 
 ACI_PREFIX=u"permission"
+
+output_params = (
+    Str('ipapermissiontype',
+        label=_('Permission Type'),
+    ),
+)
 
 class permission(LDAPObject):
     """
@@ -83,9 +90,9 @@ class permission(LDAPObject):
     container_dn = api.env.container_permission
     object_name = 'permission'
     object_name_plural = 'permissions'
-    object_class = ['groupofnames']
+    object_class = ['groupofnames', 'ipapermission']
     default_attributes = ['cn', 'member', 'memberof',
-        'memberindirect',
+        'memberindirect', 'ipapermissiontype',
     ]
     aci_attributes = ['group', 'permissions', 'attrs', 'type',
         'filter', 'subtree', 'targetgroup',
@@ -149,6 +156,17 @@ class permission(LDAPObject):
             flags=('ask_create', 'ask_update'),
         ),
     )
+
+    # Don't allow SYSTEM permissions to be modified or removed
+    def check_system(self, ldap, dn, *keys):
+        try:
+            (dn, entry_attrs) = ldap.get_entry(dn, ['ipapermissiontype'])
+        except errors.NotFound:
+            self.handle_not_found(*keys)
+        if 'ipapermissiontype' in entry_attrs:
+            if 'SYSTEM' in entry_attrs['ipapermissiontype']:
+                return False
+        return True
 
 api.register(permission)
 
@@ -220,6 +238,8 @@ class permission_del(LDAPDelete):
     msg_summary = _('Deleted permission "%(value)s"')
 
     def pre_callback(self, ldap, dn, *keys, **options):
+        if not self.obj.check_system(ldap, dn, *keys):
+            raise errors.ACIError(info='A SYSTEM permission may not be removed')
         # remove permission even when the underlying ACI is missing
         try:
             self.api.Command.aci_del(keys[-1], aciprefix=ACI_PREFIX)
@@ -236,8 +256,12 @@ class permission_mod(LDAPUpdate):
     """
 
     msg_summary = _('Modified permission "%(value)s"')
+    has_output_params = LDAPUpdate.has_output_params + output_params
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        if not self.obj.check_system(ldap, dn, *keys):
+            raise errors.ACIError(info='A SYSTEM permission may not be modified')
+
         # check if permission is in LDAP
         try:
             (dn, attrs) = ldap.get_entry(
@@ -330,6 +354,7 @@ class permission_find(LDAPSearch):
     msg_summary = ngettext(
         '%(count)d permission matched', '%(count)d permissions matched'
     )
+    has_output_params = LDAPSearch.has_output_params + output_params
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         for entry in entries:
@@ -378,6 +403,7 @@ class permission_show(LDAPRetrieve):
     """
     Display information about a permission.
     """
+    has_output_params = LDAPRetrieve.has_output_params + output_params
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         try:
             aci = self.api.Command.aci_show(keys[-1], aciprefix=ACI_PREFIX)['result']

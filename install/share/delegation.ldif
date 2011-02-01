@@ -147,6 +147,7 @@ dn: cn=Add Users,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Add Users
 member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -154,6 +155,7 @@ dn: cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Change a user password
 member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -161,6 +163,7 @@ dn: cn=Add user to default group,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Add user to default group
 member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -168,6 +171,7 @@ dn: cn=Unlock user accounts,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectclass: top
 objectclass: groupofnames
+objectClass: ipapermission
 cn: Unlock user accounts
 member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
 member: cn=admins,cn=groups,cn=accounts,$SUFFIX
@@ -176,6 +180,7 @@ dn: cn=Remove Users,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Remove Users
 member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -183,6 +188,7 @@ dn: cn=Modify Users,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Modify Users
 member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -192,6 +198,7 @@ dn: cn=Add Groups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Add Groups
 member: cn=Group Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -199,6 +206,7 @@ dn: cn=Remove Groups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Remove Groups
 member: cn=Group Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -206,6 +214,7 @@ dn: cn=Modify Groups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Modify Groups
 member: cn=Group Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -213,6 +222,7 @@ dn: cn=Modify Group membership,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Modify Group membership
 member: cn=Group Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -222,6 +232,7 @@ dn: cn=Add Hosts,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Add Hosts
 member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -229,6 +240,7 @@ dn: cn=Remove Hosts,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Remove Hosts
 member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -236,6 +248,7 @@ dn: cn=Modify Hosts,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Modify Hosts
 member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -245,6 +258,7 @@ dn: cn=Add Hostgroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Add Hostgroups
 member: cn=Host Group Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -252,6 +266,7 @@ dn: cn=Remove Hostgroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Remove Hostgroups
 member: cn=Host Group Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -259,6 +274,7 @@ dn: cn=Modify Hostgroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Modify Hostgroups
 member: cn=Host Group Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -266,6 +282,7 @@ dn: cn=Modify Hostgroup membership,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Modify Hostgroup membership
 member: cn=Host Group Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -275,6 +292,7 @@ dn: cn=Add Services,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Add Services
 member: cn=Service Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -282,6 +300,7 @@ dn: cn=Remove Services,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Remove Services
 member: cn=Service Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -289,6 +308,7 @@ dn: cn=Modify Services,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Modify Services
 member: cn=Service Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -298,6 +318,7 @@ dn: cn=Add Roles,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Add Roles
 member: cn=Delegation Administrator,cn=privileges,cn=pbac,$SUFFIX
 
@@ -305,6 +326,7 @@ dn: cn=Remove Roles,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Remove Roles
 member: cn=Delegation Administrator,cn=privileges,cn=pbac,$SUFFIX
 
@@ -312,6 +334,7 @@ dn: cn=Modify Roles,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Modify Roles
 member: cn=Delegation Administrator,cn=privileges,cn=pbac,$SUFFIX
 
@@ -319,6 +342,7 @@ dn: cn=Modify Role membership,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Modify Role membership
 member: cn=Delegation Administrator,cn=privileges,cn=pbac,$SUFFIX
 
@@ -326,6 +350,7 @@ dn: cn=Modify privilege membership,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Modify privilege membership
 member: cn=Delegation Administrator,cn=privileges,cn=pbac,$SUFFIX
 
@@ -335,6 +360,7 @@ dn: cn=Add Automount maps,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Add Automount maps
 member: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -342,6 +368,7 @@ dn: cn=Remove Automount maps,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Remove Automount maps
 member: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -349,6 +376,7 @@ dn: cn=Add Automount keys,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Add Automount keys
 member: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -356,6 +384,7 @@ dn: cn=Remove Automount keys,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Remove Automount keys
 member: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -365,6 +394,7 @@ dn: cn=Add netgroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Add netgroups
 member: cn=Netgroups Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -372,6 +402,7 @@ dn: cn=Remove netgroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Remove netgroups
 member: cn=Netgroups Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -379,6 +410,7 @@ dn: cn=Modify netgroups,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Modify netgroups
 member: cn=Netgroups Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -386,6 +418,7 @@ dn: cn=Modify netgroup membership,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Modify netgroup membership
 member: cn=Netgroups Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -395,6 +428,7 @@ dn: cn=Manage host keytab,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Manage host keytab
 member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
 member: cn=Host Enrollment,cn=privileges,cn=pbac,$SUFFIX
@@ -403,6 +437,7 @@ dn: cn=Manage service keytab,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Manage service keytab
 member: cn=Service Administrators,cn=privileges,cn=pbac,$SUFFIX
 member: cn=admins,cn=groups,cn=accounts,$SUFFIX
@@ -415,6 +450,7 @@ dn: cn=Enroll a host,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Enroll a host
 member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
 member: cn=Host Enrollment,cn=privileges,cn=pbac,$SUFFIX
@@ -425,21 +461,27 @@ dn: cn=Add Replication Agreements,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Add Replication Agreements
+ipapermissiontype: SYSTEM
 member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 
 dn: cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Modify Replication Agreements
+ipapermissiontype: SYSTEM
 member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 
 dn: cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Remove Replication Agreements
+ipapermissiontype: SYSTEM
 member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 
 # Entitlement management
@@ -448,6 +490,7 @@ dn: cn=addentitlements,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: addentitlements
 description: Add Entitlements
 member: cn=entitlementadmin,cn=privileges,cn=pbac,$SUFFIX
@@ -619,6 +662,7 @@ dn: cn=Retrieve Certificates from the CA,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Retrieve Certificates from the CA
 member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -638,6 +682,7 @@ dn: cn=Request Certificate,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Request Certificate
 member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -657,6 +702,7 @@ dn: cn=Request Certificates from a different host,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Request Certificates from a different host
 member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -676,6 +722,7 @@ dn: cn=Get Certificates status from the CA,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Get Certificates status from the CA
 member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -695,6 +742,7 @@ dn: cn=Revoke Certificate,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Revoke Certificate
 member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
 
@@ -714,6 +762,7 @@ dn: cn=Certificate Remove Hold,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: ipapermission
 cn: Certificate Remove Hold
 member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
 

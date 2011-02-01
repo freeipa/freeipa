@@ -68,6 +68,7 @@ role = [
 
 permission = [
     u'groupofnames',
+    u'ipapermission',
     u'top'
 ]
 
