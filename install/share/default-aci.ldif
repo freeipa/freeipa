@@ -3,7 +3,7 @@
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey")(version 3.0; acl "Enable Anonymous access"; allow (read, search, compare) userdn = "ldap:///anyone";)
+aci: (targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || userPKCS12")(version 3.0; acl "Enable Anonymous access"; allow (read, search, compare) userdn = "ldap:///anyone";)
 aci: (targetattr = "memberOf || memberHost || memberUser")(version 3.0; acl "No anonymous access to member information"; deny (read,search,compare) userdn != "ldap:///all";)
 aci: (targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || krbPrincipalName || krbCanonicalName || krbUPEnabled || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount || krbTicketFlags || ipaUniqueId || memberOf || serverHostName || enrolledBy")(version 3.0; acl "Admin can manage any entry"; allow (all) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 aci: (targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword")(version 3.0; acl "selfservice:Self can write own password"; allow (write) userdn="ldap:///self";)

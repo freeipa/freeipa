@@ -177,6 +177,11 @@ def normalize_certificate(cert):
     if not cert:
         return cert
 
+    s = cert.find('-----BEGIN CERTIFICATE-----')
+    if s > -1:
+        e = cert.find('-----END CERTIFICATE-----')
+        cert = cert[s+27:e]
+
     if util.isvalid_base64(cert):
         try:
             cert = base64.b64decode(cert)

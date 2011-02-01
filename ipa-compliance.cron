@@ -1,0 +1,5 @@
+SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO=root
+HOME=/
+0 0-23/4 * * * root /usr/sbin/ipa-compliance

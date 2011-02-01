@@ -1406,7 +1406,7 @@ class CertificateFormatError(CertificateError):
 
 class MutuallyExclusiveError(ExecutionError):
     """
-    **4302** Raised when an operation would result in setting two attributes which are mutually exlusive.
+    **4303** Raised when an operation would result in setting two attributes which are mutually exlusive.
 
     For example:
 
@@ -1417,13 +1417,13 @@ class MutuallyExclusiveError(ExecutionError):
 
     """
 
-    errno = 4302
+    errno = 4303
     format = _('%(reason)s')
 
 
 class NonFatalError(ExecutionError):
     """
-    **4303** Raised when part of an operation succeeds and the part that failed isn't critical.
+    **4304** Raised when part of an operation succeeds and the part that failed isn't critical.
 
     For example:
 
@@ -1434,8 +1434,41 @@ class NonFatalError(ExecutionError):
 
     """
 
-    errno = 4303
+    errno = 4304
     format = _('%(reason)s')
+
+
+class AlreadyRegisteredError(ExecutionError):
+    """
+    **4305** Raised when registering a user that is already registered.
+
+    For example:
+
+    >>> raise AlreadyRegisteredError()
+    Traceback (most recent call last):
+      ...
+    AlreadyRegisteredError: Already registered
+
+    """
+
+    errno = 4305
+    format = _('Already registered')
+
+
+class NotRegisteredError(ExecutionError):
+    """
+    **4306** Raised when not registered and a registration is required
+
+    For example:
+    >>> raise NotRegisteredError()
+    Traceback (most recent call last):
+      ...
+    NotRegisteredError: Not registered yet
+
+    """
+
+    errno = 4306
+    format = _('Not registered yet')
 
 
 ##############################################################################

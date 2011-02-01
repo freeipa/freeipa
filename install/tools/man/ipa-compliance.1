@@ -1,0 +1,45 @@
+.\" A man page for ipa-compliance
+.\" Copyright (C) 2010 Red Hat, Inc.
+.\"
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; version 2 only
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\"
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\"
+.TH "ipa-compliance" "1" "Dec 14 2010" "freeipa" ""
+.SH "NAME"
+ipa\-compliance \- Check entitlement compliance
+.SH "SYNOPSIS"
+ipa\-compliance [\fIOPTION\fR]
+.SH "DESCRIPTION"
+Verify that the IPA installation is in compliance with the number of client entitlements it has.
+
+Entitlements are managed using the ipa entitle command.
+
+An enrolled host is an machine that has a host keytab in the IPA system.
+
+The entitlements take the form of x509v3 certificates. The certificates are examined and the quantities summed. This is compared to the number of enrolled hosts to determine compliance.
+
+The command logs to syslog and if run from a tty will log to the terminal as well.
+
+The IPA server provides 25 entitlements of its own.
+.SH "OPTIONS"
+.TP
+\fB\-\-\-debug\fR
+Enable debugging output in the command
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred
+.SH "NOTES"
+Entitlements are not checked if the python\-rhsm package is not installed.

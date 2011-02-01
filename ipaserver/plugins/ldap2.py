@@ -683,6 +683,20 @@ class ldap2(CrudBackend, Encoder):
 
         return False
 
+    @encode_args(1, 2)
+    def can_read(self, dn, attr):
+        """Returns True/False if the currently bound user has read permissions
+           on the attribute. This only operates on a single attribute at a time.
+        """
+        (dn, attrs) = self.get_effective_rights(dn, [attr])
+        if 'attributelevelrights' in attrs:
+            attr_rights = attrs.get('attributelevelrights')[0].decode('UTF-8')
+            (attr, rights) = attr_rights.split(':')
+            if 'r' in rights:
+                return True
+
+        return False
+
     #
     # Entry-level effective rights
     #

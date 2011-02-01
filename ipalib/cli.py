@@ -1022,15 +1022,21 @@ class cli(backend.Executioner):
         """
         for p in cmd.params():
             if isinstance(p, File):
+                # FIXME: this only reads the first file
+                raw = None
                 if p.name in kw:
+                    if type(kw[p.name]) in (tuple, list):
+                        fname = kw[p.name][0]
+                    else:
+                        fname = kw[p.name]
                     try:
-                        f = open(kw[p.name], 'r')
+                        f = open(fname, 'r')
                         raw = f.read()
                         f.close()
                     except IOError, e:
                         raise ValidationError(
                             name=to_cli(p.cli_name),
-                            error='%s: %s:' % (kw[p.name], e[1])
+                            error='%s: %s:' % (fname, e[1])
                         )
                 elif p.stdin_if_missing:
                     try:
@@ -1038,6 +1044,10 @@ class cli(backend.Executioner):
                     except IOError, e:
                         raise ValidationError(
                             name=to_cli(p.cli_name), error=e[1]
+                        )
+                if not raw:
+                        raise ValidationError(
+                            name=to_cli(p.cli_name), error=_('No file to read')
                         )
                 kw[p.name] = self.Backend.textui.decode(raw)
 

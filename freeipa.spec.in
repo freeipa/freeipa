@@ -266,6 +266,8 @@ mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
 %if ! %{ONLY_CLIENT}
 mkdir -p %{buildroot}%{_sysconfdir}/bash_completion.d
 install -pm 644 contrib/completion/ipa.bash_completion %{buildroot}%{_sysconfdir}/bash_completion.d/ipa
+mkdir -p %{buildroot}%{_sysconfdir}/cron.d
+install -pm 644 ipa-compliance.cron %{buildroot}%{_sysconfdir}/cron.d/ipa-compliance
 %endif
 
 %clean
@@ -348,6 +350,8 @@ fi
 %{_sbindir}/ipa_kpasswd
 %{_sbindir}/ipactl
 %{_sbindir}/ipa-upgradeconfig
+%{_sbindir}/ipa-compliance
+%{_sysconfdir}/cron.d/ipa-compliance
 %attr(755,root,root) %{_initrddir}/ipa
 %attr(755,root,root) %{_initrddir}/ipa_kpasswd
 %dir %{python_sitelib}/ipaserver
@@ -410,6 +414,7 @@ fi
 %{_mandir}/man1/ipa-dns-install.1.gz
 %{_mandir}/man8/ipa_kpasswd.8.gz
 %{_mandir}/man8/ipactl.8.gz
+%{_mandir}/man1/ipa-compliance.1.gz
 
 %files server-selinux
 %defattr(-,root,root,-)

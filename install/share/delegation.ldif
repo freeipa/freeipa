@@ -37,6 +37,23 @@ objectClass: nestedgroup
 cn: helpdesk
 description: Helpdesk
 
+dn: cn=Entitlement Management,cn=roles,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: entitlements
+description: Entitlements administrator
+
+dn: cn=Entitlement Compliance,cn=roles,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Entitlement Compliance
+description: Verify entitlement compliance
+member: fqdn=$FQHN,cn=computers,cn=accounts,$SUFFIX
+
 ############################################
 # Add the default privileges
 ############################################
@@ -129,13 +146,23 @@ objectClass: nestedgroup
 cn: Host Enrollment
 description: Host Enrollment
 
-dn: cn=entitlementadmin,cn=privileges,cn=pbac,$SUFFIX
+dn: cn=Register and Write Entitlements,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 objectClass: nestedgroup
-cn: entitlementadmin
-description: Entitlement Administrators
+cn: Register and Write Entitlements
+member: cn=Entitlement Management,cn=roles,cn=accounts,$SUFFIX
+
+dn: cn=Read Entitlements,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Read Entitlements
+member: cn=Entitlement Management,cn=roles,cn=accounts,$SUFFIX
+member: cn=Entitlement Compliance,cn=roles,cn=accounts,$SUFFIX
+
 
 ############################################
 # Default permissions.
@@ -486,30 +513,28 @@ member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 
 # Entitlement management
 
-dn: cn=addentitlements,cn=permissions,cn=pbac,$SUFFIX
+dn: cn=Register Entitlements,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
 objectClass: ipapermission
-cn: addentitlements
-description: Add Entitlements
-member: cn=entitlementadmin,cn=privileges,cn=pbac,$SUFFIX
+member: cn=Register and Write Entitlements,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=removeentitlements,cn=permissions,cn=pbac,$SUFFIX
+dn: cn=Read Entitlements,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
-cn: removeentitlements
-description: Remove Entitlements
-member: cn=entitlementadmin,cn=privileges,cn=pbac,$SUFFIX
+objectClass: ipapermission
+cn: Read Entitlements
+member: cn=Read Entitlements,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=modifyentitlements,cn=permissions,cn=pbac,$SUFFIX
+dn: cn=Write Entitlements,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
-cn: modifyentitlements
-description: Modify Entitlements
-member: cn=entitlementadmin,cn=privileges,cn=pbac,$SUFFIX
+objectClass: ipapermission
+cn: Write Entitlements
+member: cn=Register and Write Entitlements,cn=privileges,cn=pbac,$SUFFIX
 
 ############################################
 # Default permissions (ACIs)
@@ -631,17 +656,17 @@ aci: (targetattr = "enrolledby || objectclass")(target = "ldap:///fqdn=*,cn=comp
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "permission:addentitlements";allow (add) groupdn = "ldap:///cn=addentitlements,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (target = "ldap:///ipaentitlementid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Register Entitlements";allow (add) groupdn = "ldap:///cn=Register Entitlements,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "usercertificate")(target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "permission:modifyentitlements";allow (write) groupdn = "ldap:///cn=modifyentitlements,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "usercertificate")(target = "ldap:///ipaentitlement=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Write Entitlements";allow (write) groupdn = "ldap:///cn=Write entitlements,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "permission:removeentitlements";allow (delete) groupdn = "ldap:///cn=removeentitlements,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "userpkcs12")(target = "ldap:///ipaentitlementid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Read Entitlements";allow (read) groupdn = "ldap:///cn=Read Entitlements,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Create virtual operations entry. This is used to control access to
 # operations that don't rely on LDAP directly.

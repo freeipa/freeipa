@@ -17,6 +17,7 @@ sbin_SCRIPTS =			\
 	ipa-host-net-manage     \
 	ipa-ldap-updater	\
 	ipa-upgradeconfig	\
+	ipa-compliance		\
 	$(NULL)
 
 EXTRA_DIST =			\
