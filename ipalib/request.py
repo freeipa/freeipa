@@ -23,8 +23,6 @@ Per-request thread-local data.
 """
 
 import threading
-import locale
-import gettext
 from base import ReadOnly, lock
 from constants import OVERRIDE_ERROR, CALLABLE_ERROR
 
@@ -58,41 +56,3 @@ def destroy_context():
             value.disconnect()
     context.__dict__.clear()
 
-
-def ugettext(message):
-    if hasattr(context, 'ugettext'):
-        return context.ugettext(message)
-    return message.decode('UTF-8')
-
-
-def ungettext(singular, plural, n):
-    if hasattr(context, 'ungettext'):
-        return context.ungettext(singular, plural, n)
-    if n == 1:
-        return singular.decode('UTF-8')
-    return plural.decode('UTF-8')
-
-
-def set_languages(*languages):
-    if hasattr(context, 'languages'):
-        raise StandardError(OVERRIDE_ERROR %
-            ('context', 'languages', context.languages, languages)
-        )
-    if len(languages) == 0:
-        languages = locale.getdefaultlocale()[:1]
-    context.languages = languages
-    assert type(context.languages) is tuple
-
-
-def create_translation(domain, localedir, *languages):
-    if hasattr(context, 'ugettext') or hasattr(context, 'ungettext'):
-        raise StandardError(
-            'create_translation() already called in thread %r' %
-            threading.currentThread().getName()
-        )
-    set_languages(*languages)
-    translation = gettext.translation(domain,
-        localedir=localedir, languages=context.languages, fallback=True
-    )
-    context.ugettext = translation.ugettext
-    context.ungettext = translation.ungettext

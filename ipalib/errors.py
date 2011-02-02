@@ -101,7 +101,7 @@ current block assignments:
 """
 
 from inspect import isclass
-from request import ugettext, ungettext
+from text import _ as ugettext, ngettext as ungettext
 from constants import TYPE_ERROR
 
 

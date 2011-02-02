@@ -102,7 +102,7 @@ a more detailed description for clarity.
 import re
 from types import NoneType
 from util import make_repr
-from request import ugettext
+from text import _ as ugettext
 from plugable import ReadOnly, lock, check_name
 from errors import ConversionError, RequirementError, ValidationError
 from errors import PasswordMismatch
