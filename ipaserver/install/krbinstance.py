@@ -204,7 +204,7 @@ class KrbInstance(service.Service):
         self.step("adding the password extension to the directory", self.__add_pwd_extop_module)
         if setup_pkinit:
             self.step("installing X509 Certificate for PKINIT", self.__setup_pkinit)
-        self.step("Enable GSSAPI for replication", self.__convert_to_gssapi_replication)
+        self.step("enable GSSAPI for replication", self.__convert_to_gssapi_replication)
 
         self.__common_post_setup()
 

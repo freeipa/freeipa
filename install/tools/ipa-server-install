@@ -856,14 +856,14 @@ def main():
     ds.apply_updates()
 
     # Restart ds and krb after configurations have been changed
-    service.print_msg("restarting the directory server")
+    service.print_msg("Restarting the directory server")
     ds.restart()
 
-    service.print_msg("restarting the KDC")
+    service.print_msg("Restarting the KDC")
     krb.restart()
 
     # Restart httpd to pick up the new IPA configuration
-    service.print_msg("restarting the web server")
+    service.print_msg("Restarting the web server")
     http.restart()
 
     # Create a BIND instance

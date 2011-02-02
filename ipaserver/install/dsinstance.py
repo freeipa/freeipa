@@ -280,7 +280,7 @@ class DsInstance(service.Service):
         self.__setup_sub_dict()
         self.__common_setup()
 
-        self.step("Setting up initial replication", self.__setup_replica)
+        self.step("setting up initial replication", self.__setup_replica)
         self.step("adding replication acis", self.__add_replication_acis)
 
         self.__common_post_setup()

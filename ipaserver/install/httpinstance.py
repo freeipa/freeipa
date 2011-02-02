@@ -73,13 +73,13 @@ class HTTPInstance(service.Service):
 
 
         self.step("disabling mod_ssl in httpd", self.__disable_mod_ssl)
-        self.step("Setting mod_nss port to 443", self.__set_mod_nss_port)
-        self.step("Setting mod_nss password file", self.__set_mod_nss_passwordfile)
-        self.step("Adding URL rewriting rules", self.__add_include)
+        self.step("setting mod_nss port to 443", self.__set_mod_nss_port)
+        self.step("setting mod_nss password file", self.__set_mod_nss_passwordfile)
+        self.step("adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
-        self.step("Setting up ssl", self.__setup_ssl)
+        self.step("setting up ssl", self.__setup_ssl)
         if autoconfig:
-            self.step("Setting up browser autoconfig", self.__setup_autoconfig)
+            self.step("setting up browser autoconfig", self.__setup_autoconfig)
         self.step("publish CA cert", self.__publish_ca_cert)
         self.step("creating a keytab for httpd", self.__create_http_keytab)
         self.step("configuring SELinux for httpd", self.__selinux_config)
