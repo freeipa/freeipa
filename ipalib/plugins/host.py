@@ -323,9 +323,9 @@ class host_add(LDAPCreate):
             entry_attrs['krbprincipalname'] = 'host/%s@%s' % (
                 keys[-1], self.api.env.realm
             )
-            if 'krbprincipalaux' not in entry_attrs:
+            if 'krbprincipalaux' not in entry_attrs['objectclass']:
                 entry_attrs['objectclass'].append('krbprincipalaux')
-            if 'krbprincipal' not in entry_attrs:
+            if 'krbprincipal' not in entry_attrs['objectclass']:
                 entry_attrs['objectclass'].append('krbprincipal')
         else:
             if 'krbprincipalaux' in entry_attrs['objectclass']:
