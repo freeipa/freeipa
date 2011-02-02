@@ -609,7 +609,7 @@ class help(frontend.Local):
     Display help for a command or topic.
     """
 
-    takes_args = (Bytes('command?'),)
+    takes_args = (Str('command?'),)
 
     has_output = tuple()
 
