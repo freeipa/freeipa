@@ -294,7 +294,10 @@ class group_detach(LDAPQuery):
         group_dn = self.obj.get_dn(*keys, **options)
         user_dn = self.api.Object['user'].get_dn(*keys)
 
-        (user_dn, user_attrs) = ldap.get_entry(user_dn)
+        try:
+            (user_dn, user_attrs) = ldap.get_entry(user_dn)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
         is_managed = self.obj.has_objectclass(user_attrs['objectclass'], 'mepmanagedentry')
         if (not ldap.can_write(user_dn, "objectclass") or
             not (ldap.can_write(user_dn, "mepManagedEntry")) and is_managed):
