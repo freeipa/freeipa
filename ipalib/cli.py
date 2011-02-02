@@ -730,19 +730,6 @@ class help(frontend.Local):
         for t in topics:
             topic = self._topics[t]
             print '  %s  %s' % (to_cli(t).ljust(self._mtl), topic[0])
-
-            if False:
-                topic_commands = self._topics[t][2]
-                mod_list = [self._get_command_module(c.module) for c in topic_commands]
-                mod_list = list(set(mod_list))
-
-                for mod in mod_list:
-                    m = '%s.%s' % (self._PLUGIN_BASE_MODULE, mod)
-                    if 'topic' in dir(sys.modules[m]):
-                        doc = sys.modules[m].topic[1]
-                    else:
-                        doc = (sys.modules[m].__doc__ or '').strip().split('\n', 1)[0]
-                    print '  %s  %s' % (to_cli(t).ljust(self._mtl), doc)
         print ''
         print 'Try `ipa --help` for a list of global options.'
 
@@ -759,6 +746,7 @@ class help(frontend.Local):
                 mcl = self._topics[topic][1]
                 commands = self._topics[topic][2]
             else:
+                commands = []
                 for t in self._topics:
                     if type(self._topics[t][2]) is not dict:
                         continue
@@ -772,8 +760,8 @@ class help(frontend.Local):
             doc = (sys.modules[m].__doc__ or '').strip()
 
             print doc
-            print ''
             if len(commands) > 1:
+                print ''
                 print 'Topic commands:'
                 for c in commands:
                     print '  %s  %s' % (to_cli(c.name).ljust(mcl), c.summary)
