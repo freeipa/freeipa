@@ -333,6 +333,12 @@ IPA.details_section = function (spec){
         return that;
     };
 
+    that.multivalued_text = function(spec) {
+        var field = IPA.multivalued_text_widget(spec);
+        that.add_field(field);
+        return that;
+    };
+
     that.create_field = function(spec) {
 
         //TODO: replace IPA.details_field with class-specific implementation
@@ -510,17 +516,14 @@ IPA.details_list_section = function (spec){
         for (var i = 0; i < fields.length; ++i) {
             var field = fields[i];
 
-            var label = field.label;
+            var label = field.label || '';
 
             // no need to get i18n label from metadata
             // because it's already done by field.init()
 
-            if (label !== '') {
-                label += ':';
-            }
-
             $('<dt/>', {
-                html: label
+                html: label+':',
+                title: label
             }).appendTo(dl);
 
             var span = $('<span/>', { 'name': field.name }).appendTo(dl);

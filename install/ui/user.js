@@ -64,11 +64,11 @@ IPA.entity_factories.user = function (){
                     input({name:'homedirectory'})).
             section(
                 IPA.stanza({name: 'contact', label: IPA.messages.details.contact}).
-                    input({name:'mail'}).
-                    input({name:'telephonenumber'}).
-                    input({name:'pager'}).
-                    input({name:'mobile'}).
-                    input({name:'facsimiletelephonenumber'})).
+                    multivalued_text({name:'mail'}).
+                    multivalued_text({name:'telephonenumber'}).
+                    multivalued_text({name:'pager'}).
+                    multivalued_text({name:'mobile'}).
+                    multivalued_text({name:'facsimiletelephonenumber'})).
             section(
                 IPA.stanza({name: 'mailing', label: IPA.messages.details.mailing}).
                     input({name:'street'}).

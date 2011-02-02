@@ -2,6 +2,7 @@
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
  *    Adam Young <ayoung@redhat.com>
+ *    Pavel Zuna <pzuna@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -34,7 +35,12 @@ IPA.widget = function(spec) {
     that.tooltip = spec.tooltip;
 
     that.disabled = spec.disabled;
+
+    // read_only is set during initialization
     that.read_only = spec.read_only;
+
+    // writable is set during load
+    that.writable = true;
 
     that._entity_name = spec.entity_name;
 
@@ -80,7 +86,7 @@ IPA.widget = function(spec) {
         if ( !text || text.match(regex) ) {
             error_link.css('display', 'none');
             that.valid = true;
-        }else{
+        } else {
             error_link.css('display', 'block');
             if (that.param_info.pattern_errmsg) {
                 error_link.html(that.param_info.pattern_errmsg);
@@ -125,6 +131,23 @@ IPA.widget = function(spec) {
             that.values = value;
         } else {
             that.values = value ? [value] : [];
+        }
+
+        that.writable = true;
+
+        if (that.param_info.primary_key) {
+            that.writable = false;
+        }
+
+        if ('no_update' in that.param_info.flags) {
+            that.writable = false;
+        }
+
+        if (that.record.attributelevelrights) {
+            var rights = that.record.attributelevelrights[that.name];
+            if (!rights || rights.indexOf('w') < 0) {
+                that.writable = false;
+            }
         }
 
         that.reset();
@@ -272,21 +295,21 @@ IPA.text_widget = function(spec) {
 
         container.append(' ');
 
-        $("<span/>",{
-            name:'error_link',
-            html:"Text does not match field pattern",
-            "class":"ui-state-error ui-corner-all",
-            style:"display:none"
+        $('<span/>', {
+            name: 'error_link',
+            html: 'Text does not match field pattern',
+            'class': 'ui-state-error ui-corner-all',
+            style: 'display:none'
         }).appendTo(container);
     };
 
     that.setup = function(container) {
 
-        this.widget_setup(container);
+        that.widget_setup(container);
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.keyup(function() {
-            if(that.undo){
+            if (that.undo) {
                 that.show_undo();
             }
             var value = $(this).val();
@@ -337,6 +360,269 @@ IPA.text_widget = function(spec) {
             $('label[name="'+that.name+'"]', that.container).val(value);
         } else {
             $('input[name="'+that.name+'"]', that.container).val(value);
+        }
+    };
+
+    return that;
+};
+
+IPA.multivalued_text_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.widget(spec);
+
+    that.size = spec.size || 30;
+
+    that.get_undo = function(index) {
+        if (index === undefined) {
+            return $('span[name="undo_all"]', that.container);
+
+        } else {
+            var row = that.get_row(index);
+            return $('span[name="undo"]', row);
+        }
+    };
+
+    that.show_undo = function(index) {
+        var undo = that.get_undo(index);
+        undo.css('display', 'inline');
+    };
+
+    that.hide_undo = function(index) {
+        var undo = that.get_undo(index);
+        undo.css('display', 'none');
+    };
+
+    that.create = function(container) {
+
+        var dd = $('<dd/>', {
+            'class': 'first'
+        }).appendTo(container);
+
+        var div = $('<div/>', {
+            name: 'value'
+        }).appendTo(dd);
+
+        $('<input/>', {
+            type: 'text',
+            name: that.name,
+            disabled: that.disabled,
+            size: that.size,
+            title: that.tooltip
+        }).appendTo(div);
+
+        div.append(' ');
+
+        $('<a/>', {
+            name: 'remove',
+            href: 'jslink',
+            title: 'Remove',
+            html: 'Remove'
+        }).appendTo(div);
+
+        if (that.undo) {
+            div.append(' ');
+            that.create_undo(div);
+        }
+
+        div.append(' ');
+
+        $('<span/>', {
+            name: 'error_link',
+            html: 'Text does not match field pattern',
+            'class': 'ui-state-error ui-corner-all',
+            style: 'display:none'
+        }).appendTo(div);
+
+        $('<a/>', {
+            name: 'add',
+            href: 'jslink',
+            title: 'Add',
+            html: 'Add'
+        }).appendTo(dd);
+
+        dd.append(' ');
+
+        $('<span/>', {
+            name: 'undo_all',
+            style: 'display: none;',
+            'class': 'ui-state-highlight ui-corner-all undo',
+            html: 'undo all'
+        }).appendTo(dd);
+    };
+
+    that.setup = function(container) {
+
+        that.widget_setup(container);
+
+        that.template = $('div[name=value]', that.container);
+        that.template.detach();
+
+        var undo = that.get_undo();
+        undo.click(function() {
+            that.reset();
+        });
+
+        var add_link = $('a[name=add]', that.container);
+        add_link.click(function() {
+            that.add_row('');
+            var input = $('input[name="'+that.name+'"]:last', that.container);
+            input.focus();
+            return false;
+        });
+    };
+
+    that.save = function() {
+        var values = [];
+        if (that.read_only || !that.writable) {
+            $('label[name="'+that.name+'"]', that.container).each(function() {
+                var input = $(this);
+                var value = $.trim(input.html());
+                values.push(value);
+            });
+
+        } else {
+            $('input[name="'+that.name+'"]', that.container).each(function() {
+                var input = $(this);
+                if (input.is('.strikethrough')) return;
+
+                var value = $.trim(input.val());
+                values.push(value);
+            });
+        }
+        return values;
+    };
+
+    that.add_row = function(value) {
+
+        var add_link = $('a[name=add]', that.container);
+
+        var row = that.template.clone();
+        row.insertBefore(add_link);
+
+        var input = $('input[name="'+that.name+'"]', row);
+        var remove_link = $('a[name=remove]', row);
+        var undo_link = $('span[name=undo]', row);
+
+        if (that.read_only || !that.writable) {
+            var label = $('<label/>', {
+                'name': that.name,
+                'html': value
+            });
+            input.replaceWith(label);
+
+            remove_link.css('display', 'none');
+
+        } else {
+            input.val(value);
+
+            var index = that.row_index(row);
+            if (index >= that.values.length) {
+                // show undo/remove link for new value
+                if (that.undo) {
+                    that.show_undo(index);
+                    that.show_undo();
+                    remove_link.css('display', 'none');
+                } else {
+                    remove_link.css('display', 'inline');
+                }
+            }
+
+            input.keyup(function() {
+                var index = that.row_index(row);
+                // uncross removed value
+                input.removeClass('strikethrough');
+                if (that.undo) {
+                    that.show_undo(index);
+                    that.show_undo();
+                    if (index < that.values.length) {
+                        remove_link.css('display', 'inline');
+                    }
+                }
+                var value = $(this).val();
+                that.validate_input(value);
+            });
+
+            remove_link.click(function() {
+                var index = that.row_index(row);
+                if (index < that.values.length) {
+                    // restore old value then cross it out
+                    that.update(index);
+                    input.addClass('strikethrough');
+                    if (that.undo) {
+                        that.show_undo(index);
+                        that.show_undo();
+                    }
+                    remove_link.css('display', 'none');
+                } else {
+                    // remove new value
+                    row.remove();
+                }
+                return false;
+            });
+
+            undo_link.click(function() {
+                var index = that.row_index(row);
+                if (index < that.values.length) {
+                    // restore old value
+                    that.reset(index);
+                    input.removeClass('strikethrough');
+                    remove_link.css('display', 'inline');
+                } else {
+                    // remove new value
+                    row.remove();
+                }
+            });
+        }
+    };
+
+    that.remove_row = function(index) {
+        that.get_row(index).remove();
+    };
+
+    that.get_row = function(index) {
+        return $('div[name=value]:eq('+index+')', that.container);
+    };
+
+    that.get_rows = function() {
+        return $('div[name=value]', that.container);
+    };
+
+    that.row_index = function(row) {
+        return that.get_rows().index(row);
+    };
+
+    that.reset = function(index) {
+        that.hide_undo(index);
+        that.update(index);
+    };
+
+    that.update = function(index) {
+
+        var value;
+
+        if (index === undefined) {
+            $('div[name=value]', that.container).remove();
+
+            for (var i=0; i<that.values.length; i++) {
+                value = that.values[i];
+                that.add_row(value);
+            }
+
+            var add_link = $('a[name=add]', that.container);
+
+            if (that.read_only || !that.writable) {
+                add_link.css('display', 'none');
+            } else {
+                add_link.css('display', 'inline');
+            }
+
+        } else {
+            value = that.values[index];
+            var row = that.get_row(index);
+            var input = $('input[name="'+that.name+'"]', row);
+            input.val(value);
         }
     };
 

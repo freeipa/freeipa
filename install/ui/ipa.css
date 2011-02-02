@@ -246,7 +246,7 @@ dl.entryattrs dd {
 dl.entryattrs dd.first {
     margin-left: 0;
     margin-top: 0.5em;
-        font-weight: bold;
+    font-weight: bold;
 }
 
 dl.entryattrs dd.other {
@@ -256,7 +256,7 @@ dl.entryattrs dd.other {
 
 dl.entryattrs input {
     margin-right: 0.5em;
-    margin-top: -1.2em;
+    margin-bottom: 1em;
 }
 
 dl.entryattrs input.otp {

@@ -21,12 +21,24 @@
 
 module('details', {
     setup: function() {
+        IPA.ajax_options.async = false;
+
+        IPA.init(
+            "data",
+            true,
+            function(data, text_status, xhr) {
+            },
+            function(xhr, text_status, error_thrown) {
+                ok(false, "ipa_init() failed: "+error_thrown);
+            }
+        );
+
         var obj_name = 'user';
         IPA.entity_factories.user=  
             function(){
                 return IPA.entity({name:obj_name});
             };
-    IPA.start_entities();
+        IPA.start_entities();
     },
     teardown: function() {
     }
@@ -35,24 +47,13 @@ module('details', {
 
 test("Testing IPA.details_section.create().", function() {
 
-    IPA.ajax_options.async = false;
-
-    IPA.init(
-        "data",
-        true,
-        function(data, text_status, xhr) {
-            ok(true, "ipa_init() succeeded.");
-        },
-        function(xhr, text_status, error_thrown) {
-            ok(false, "ipa_init() failed: "+error_thrown);
-        }
-    );
-
     var section = IPA.stanza({name:'IDIDID', label:'NAMENAMENAME'}).
         input({name:'cn'}).
-        input({name:'description'}).
-        input({name:'number'});
+        input({name:'uid'}).
+        input({name:'mail'});
 
+    section.entity_name = 'user';
+    section.init();
 
     var fields = section.fields;
     var container = $("<div/>");
@@ -104,19 +105,6 @@ test("Testing IPA.details_section.create().", function() {
 
 
 test("Testing details lifecycle: create, setup, load.", function(){
-
-    IPA.ajax_options.async = false;
-
-    IPA.init(
-        "data",
-        true,
-        function(data, text_status, xhr) {
-            ok(true, "ipa_init() succeeded.");
-        },
-        function(xhr, text_status, error_thrown) {
-            ok(false, "ipa_init() failed: "+error_thrown);
-        }
-    );
 
     var result = {};
 

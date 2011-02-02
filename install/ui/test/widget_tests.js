@@ -67,7 +67,7 @@ function base_widget_test(widget,entity_name, value){
 }
 
 
-function widget_string_test(widget, value){
+function widget_string_test(widget) {
    var value = 'test_title';
     var mock_record = {'title': value};
 
@@ -115,6 +115,31 @@ function text_tests(widget,input){
 
     widget.param_info.pattern = old_pattern;
 
+}
+
+function multivalued_text_tests(widget) {
+
+    var values = ['val1', 'val2', 'val3'];
+
+    var record = {};
+    record[widget.name] = values;
+
+    widget.load(record);
+
+    same(widget.save(), values, "All values loaded");
+    same(widget.is_dirty(), false, "Field initially clean");
+
+    values = ['val1', 'val2', 'val3', 'val4'];
+    widget.add_row('val4');
+
+    same(widget.save(), values, "Value added");
+    same(widget.is_dirty(), true, "Field is dirty");
+
+    values = ['val1', 'val3', 'val4'];
+    widget.remove_row(1);
+
+    same(widget.save(), values, "Value removed");
+    same(widget.is_dirty(), true, "Field is dirty");
 }
 
 test("IPA.table_widget" ,function(){
@@ -189,6 +214,13 @@ test("Testing text widget.", function() {
     widget_string_test(widget);
     text_tests(widget, $('input[type=text]',widget_container));
 
+});
+
+test("Testing multi-valued text widget.", function() {
+    var widget = IPA.multivalued_text_widget({undo:true,name:'title'});
+    base_widget_test(widget,'user','test_value');
+    widget_string_test(widget);
+    multivalued_text_tests(widget);
 });
 
 test("Testing checkbox widget.", function() {
