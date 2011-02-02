@@ -72,8 +72,8 @@ IPA.entity_factories.user = function (){
             section(
                 IPA.stanza({label: IPA.messages.details.mailing}).
                     input({name:'street'}).
-                    input({name:'location'}).
-                    input({name:'state', load:user_state_load}).
+                    input({name:'l',label:'City'}).
+                    input({name:'st',label:'State/Province'}).
                     input({name:'postalcode'})).
             section(
                 IPA.stanza({label:IPA.messages.details.employee}).
@@ -227,39 +227,8 @@ function user_password_load(result) {
     });
     link.appendTo(dd);
 
-}
+};
 
 var select_temp = '<select title="st"></select>';
 var option_temp = '<option value="V">V</option>';
-var states = [
-    'AL', 'AK', 'AS', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FM',
-    'FL', 'GA', 'GU', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA',
-    'ME', 'MH', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV',
-    'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'MP', 'OH', 'OK', 'OR', 'PW',
-    'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VI', 'VA',
-    'WA', 'WV', 'WI', 'WY', ''
-];
-function user_state_load(result) {
 
-    var that = this;
-
-    $('dd', that.container).remove();
-
-    //var next = dt.next();
-    //next.css('clear', 'none');
-    //next.css('width', '70px');
-
-    var dd = IPA.create_first_dd(this.name);
-    dd.append(select_temp);
-    dd.appendTo(that.container);
-
-    var sel = dd.children().first();
-    for (var i = 0; i < states.length; ++i)
-        sel.append(option_temp.replace(/V/g, states[i]));
-
-    var st = result['st'];
-    if (st)
-        sel.val(st);
-    else
-        sel.val('');
-}
