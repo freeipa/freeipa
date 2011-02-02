@@ -308,12 +308,6 @@ dl.aci-target input {
 
 }
 
-#aci_target_group_select {
-	display: block;
-	margin-left: 32em !important;
-	margin-top: -4em;
-}
-
 #group_filter {
 	margin-right: 2em;
 }

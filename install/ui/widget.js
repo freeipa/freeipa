@@ -32,7 +32,10 @@ IPA.widget = function(spec) {
     that.name = spec.name;
     that.label = spec.label;
     that.tooltip = spec.tooltip;
+
+    that.disabled = spec.disabled;
     that.read_only = spec.read_only;
+
     that._entity_name = spec.entity_name;
 
     that.width = spec.width;
@@ -257,13 +260,17 @@ IPA.text_widget = function(spec) {
         $('<input/>', {
             type: 'text',
             name: that.name,
+            disabled: that.disabled,
             size: that.size,
             title: that.tooltip
         }).appendTo(container);
 
         if (that.undo) {
+            container.append(' ');
             that.create_undo(container);
         }
+
+        container.append(' ');
 
         $("<span/>",{
             name:'error_link',
@@ -452,11 +459,11 @@ IPA.checkboxes_widget = function (spec) {
             inputs.get(i).checked = false;
         }
 
-        for (var j=0; j<that.values.length; j++) {
+        for (var j=0; that.values && j<that.values.length; j++) {
             var value = that.values[j];
             var input = $('input[name="'+that.name+'"][value="'+value+'"]', that.container);
             if (!input.length) continue;
-            input.get(0).checked = true;
+            input.attr('checked', true);
         }
     };
 
@@ -521,13 +528,11 @@ IPA.radio_widget = function(spec) {
 
     that.update = function() {
 
-
-
         if (that.values) {
             var value;
-            if ((that.values instanceof Array ) && that.values.length){
-                value = that.values[0]
-            }else{
+            if ((that.values instanceof Array) && that.values.length) {
+                value = that.values[0];
+            } else {
                 value = that.values;
             }
 
@@ -575,6 +580,7 @@ IPA.select_widget = function(spec) {
         }
 
         if (that.undo) {
+            container.append(' ');
             that.create_undo(container);
         }
     };
@@ -623,6 +629,7 @@ IPA.select_widget = function(spec) {
     // methods that should be invoked by subclasses
     that.select_load = that.load;
     that.select_save = that.save;
+    that.select_update = that.update;
 
     return that;
 };
@@ -639,13 +646,15 @@ IPA.textarea_widget = function (spec) {
     that.create = function(container) {
 
         $('<textarea/>', {
+            name: that.name,
             rows: that.rows,
             cols: that.cols,
-            name: that.name,
+            disabled: that.disabled,
             title: that.tooltip
         }).appendTo(container);
 
         if (that.undo) {
+            container.append(' ');
             that.create_undo(container);
         }
 
@@ -663,7 +672,7 @@ IPA.textarea_widget = function (spec) {
 
         var input = $('textarea[name="'+that.name+'"]', that.container);
         input.keyup(function() {
-            undo.css('display', 'inline');
+            that.show_undo();
 
             var value = $(this).val();
             that.validate_input(value);
@@ -1055,6 +1064,7 @@ IPA.table_widget = function (spec) {
 
     return that;
 };
+
 IPA.entity_select_widget = function(spec){
 
     var that = IPA.widget(spec);
@@ -1064,6 +1074,14 @@ IPA.entity_select_widget = function(spec){
     function populate_select(value){
         function find_success(result){
             $('option', that.entity_select).remove();
+
+            // add default empty value
+            $('<option/>', {
+                text: '',
+                value: ''
+            }).
+            appendTo(that.entity_select);
+
             var entities = result.result.result;
             for (var i =0; i < result.result.count; i +=1){
                 var entity = entities[i];
@@ -1155,7 +1173,8 @@ IPA.entity_select_widget = function(spec){
     };
 
     that.save = function(){
-        return [$('option:selected', that.entity_select).val()];
+        var value = $('option:selected', that.entity_select).val();
+        return [value];
     };
 
     return that;

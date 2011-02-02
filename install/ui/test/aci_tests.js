@@ -19,8 +19,8 @@
  */
 
 
+var target_container;
 var target_section;
-var aci_container;
 
 module('aci',{
        setup: function() {
@@ -29,22 +29,103 @@ module('aci',{
                "data",
                true,
                function(data, text_status, xhr) {
-                   ok(true, "ipa_init() succeeded.");
                },
                function(xhr, text_status, error_thrown) {
                    ok(false, "ipa_init() failed: "+error_thrown);
                }
            );
-           aci_container = $('<div id="aci"/>').appendTo(document.body);
-           target_section = IPA.target_section();
+
+           target_container = $('<div id="target"/>').appendTo(document.body);
+           target_section = IPA.target_section({name: 'target', label: 'Target'});
            target_section.init();
-           target_section.create(aci_container);
+           target_section.create(target_container);
        },
        teardown: function() {
-           aci_container.remove();
+           target_container.remove();
        }}
 );
 
+
+test("IPA.attributes_widget.", function() {
+
+    var aciattrs = IPA.metadata['user'].aciattrs;
+
+    var container = $('<span/>', {
+        name: 'attrs'
+    });
+
+    var widget = IPA.attributes_widget({
+        name: 'attrs',
+        object_type: 'user'
+    });
+
+    widget.init();
+    widget.create(container);
+    widget.setup(container);
+
+    var table = $('table', container);
+
+    ok(
+        table,
+        'Widget contains table'
+    );
+
+    var tr = $('tbody tr', table);
+
+    same(
+        tr.length, aciattrs.length,
+        'Widget contains all user ACI attributes'
+    );
+
+    var record = {
+        'attrs': [
+            "unmatched",
+            "cn",
+            "description"
+        ]
+    };
+
+    same(
+        widget.save(), [],
+        'Widget has no initial values'
+    );
+
+    widget.load(record);
+
+    tr = $('tbody tr', table);
+
+    same(
+        tr.length, aciattrs.length+1,
+        'Widget contains all user ACI attributes plus 1 unmatched attribute'
+    );
+
+    same(
+        widget.save(), record.attrs.sort(),
+        'All loaded values are saved and sorted'
+    );
+});
+
+test("IPA.rights_widget.", function() {
+
+    var container = $('<span/>', {
+        name: 'permissions'
+    });
+
+    var widget = IPA.rights_widget({
+        name: 'permissions'
+    });
+
+    widget.init();
+    widget.create(container);
+    widget.setup(container);
+
+    var inputs = $('input', container);
+
+    same(
+        inputs.length, widget.rights.length,
+        'Widget displays all permissions'
+    );
+});
 
 test("Testing aci grouptarget.", function() {
     var sample_data_filter_only = {"targetgroup":"ipausers"};
@@ -59,7 +140,7 @@ test("Testing aci grouptarget.", function() {
 test("Testing aci object type.", function() {
     var sample_data_filter_only = {"type":"hostgroup"};
     target_section.load(sample_data_filter_only);
-    ok($('.aci-attribute', aci_container).length > 4);
+    ok($('.aci-attribute', target_container).length > 4);
     ok($('#aci_by_type')[0].checked, 'aci_by_type control selected');
 
 });

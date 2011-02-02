@@ -157,7 +157,7 @@ IPA.dialog = function(spec) {
             field.setup(span);
         }
 
-        for (var j = 0; i<that.sections.length; j++) {
+        for (var j=0; j<that.sections.length; j++) {
             var section = that.sections[j];
 
             var div = $('#'+that.entity_name+'-'+that.name+'-'+section.name,
