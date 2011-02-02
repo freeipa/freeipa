@@ -309,7 +309,7 @@ class migrate_ds(Command):
             autofill=True,
         ),
         Flag('continue?',
-            doc=_('Continous operation mode. Errors are reported but the process continues'),
+            doc=_('Continuous operation mode. Errors are reported but the process continues'),
             default=False,
         ),
     )
@@ -334,7 +334,7 @@ class migrate_ds(Command):
     truncated_err_msg = _('''\
 search results for objects to be migrated
 have been truncated by the server;
-migration process might be uncomplete\n''')
+migration process might be incomplete\n''')
 
     migration_disabled_msg = _('''\
 Migration mode is disabled. Use \'ipa config-mod\' to enable it.''')

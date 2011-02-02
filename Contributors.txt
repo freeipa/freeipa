@@ -4,18 +4,22 @@ The following people have contributed to the FreeIPA project.
 (Listed in alphabetical order within category)
 
 Developers:
+	Jr Aquino
 	Rob Crittenden
 	Nalin Dahyabhai
 	John Dennis
 	Jason DeRose
 	Endi Dewata
+	Jakub Hrozek
+	Martin Kosek
 	Nathan Kinder
 	Rich Megginson
 	Martin Nagy
 	Simo Sorce
 	Andrew Wnuk
+	Adam Young
+	Jan Zeleny
 	Pavel Zůna
-	Jr Aquino
 
 Documentation:
 	David O'Brien
@@ -54,16 +58,16 @@ Managment:
 	Karl Wirth
 
 Past and Occasional Contributors:
+	Yuri Chornoivan
 	Frank Cusack
 	Don Davis
 	Gunther Deschner
 	Stephen Gallagher
-	Jakub Hrozek
+	Ian Kumlien
 	Karl MacMillan
 	Jon McCann
 	Kevin McCarthy
 	Jim Meyering
 	Pete Rowley
 	Andreas Schneider
-	Ian Kumlien
 

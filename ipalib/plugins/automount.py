@@ -67,7 +67,7 @@ Locations:
     ipa automountlocation-import baltimore /etc/auto.master
 
     The import will fail if any duplicate entries are found. For
-    continous operation where errors are ignored use the --continue
+    continuous operation where errors are ignored use the --continue
     option.
 
 Maps:
@@ -318,7 +318,7 @@ class automountlocation_import(LDAPQuery):
     takes_options = (
         Flag('continue?',
              cli_name='continue',
-             doc=_('Continous operation mode. Errors are reported but the process continues'),
+             doc=_('Continuous operation mode. Errors are reported but the process continues'),
         ),
     )
 

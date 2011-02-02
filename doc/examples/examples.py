@@ -366,7 +366,7 @@ class exuser_find(Method):
     # standard_list_of_entries is an output pattern that
     # define a dict with a list of entries, their count
     # and a truncated flag. The truncated flag is used to mark
-    # truncated (uncomplete) search results - for example due to
+    # truncated (incomplete) search results - for example due to
     # timeouts.
     has_output = output.standard_list_of_entries
 

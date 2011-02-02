@@ -204,7 +204,7 @@ command: automountlocation_import
 args: 2,1,1
 arg: Str('cn', attribute=True, cli_name='location', label=Gettext('Location', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('masterfile', label=Gettext('Master file', domain='ipa', localedir=None))
-option: Flag('continue?', autofill=True, cli_name='continue', default=False,lag('continue?', autofill=True, cli_name='continue', default=False, doc=Gettext('Continous operation mode. Errors are reported but the process continues', domain='ipa', localedir=None))
+option: Flag('continue?', autofill=True, cli_name='continue', default=False,lag('continue?', autofill=True, cli_name='continue', default=False, doc=Gettext('Continuous operation mode. Errors are reported but the process continues', domain='ipa', localedir=None))
 output: Output('result', None, None)
 command: automountlocation_show
 args: 1,4,3
@@ -1467,7 +1467,7 @@ option: Str('groupcontainer?', autofill=True, cli_name='group_container', defaul
 option: List('userobjectclass?', autofill=True, cli_name='user_objectclass', default=(u'person',), label=Gettext('User object class', domain='ipa', localedir=None), multivalue=True)
 option: List('groupobjectclass?', autofill=True, cli_name='group_objectclass', default=(u'groupOfUniqueNames', u'groupOfNames'), label=Gettext('Group object class', domain='ipa', localedir=None), multivalue=True)
 option: StrEnum('schema?', autofill=True, cli_name='schema', default=u'RFC2307bis', label=Gettext('LDAP schema', domain='ipa', localedir=None), values=(u'RFC2307bis', u'RFC2307'))
-option: Flag('continue?', autofill=True, default=False,lag('continue?', autofill=True, default=False, doc=Gettext('Continous operation mode. Errors are reported but the process continues', domain='ipa', localedir=None))
+option: Flag('continue?', autofill=True, default=False,lag('continue?', autofill=True, default=False, doc=Gettext('Continuous operation mode. Errors are reported but the process continues', domain='ipa', localedir=None))
 option: List('exclude_groups?', autofill=True, cli_name='exclude_groups', default=(), multivalue=True)
 option: List('exclude_users?', autofill=True, cli_name='exclude_users', default=(), multivalue=True)
 output: Output('result', <type 'dict'>, Gettext('Lists of objects migrated; categorized by type.', domain='ipa', localedir=None))
