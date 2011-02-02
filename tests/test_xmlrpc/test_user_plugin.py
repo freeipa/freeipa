@@ -506,4 +506,49 @@ class test_user(Declarative):
         ),
 
 
+        dict(
+            desc='Create %r with a full address' % user1,
+            command=(
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
+                street='123 Maple Rd', locality='Anytown', st='MD',
+                telephonenumber='410-555-1212',)
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "tuser1"',
+                result=dict(
+                    gecos=[user1],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    krbprincipalname=[u'tuser1@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    displayname=[u'Test User1'],
+                    cn=[u'Test User1'],
+                    initials=[u'TU'],
+                    street=[u'123 Maple Rd'],
+                    locality=[u'Anytown'],
+                    st=[u'MD'],
+                    telephonenumber=[u'410-555-1212'],
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Delete %r' % user1,
+            command=('user_del', [user1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                summary=u'Deleted user "tuser1"',
+                value=user1,
+            ),
+        ),
+
+
     ]
