@@ -294,9 +294,8 @@ dl.aci-target dd.first {
 
 }
 
-dl.entryattrs dd.other {
+dl.aci-target dd.other {
 	padding-left: 0.7em;
-	margin-top: -3.5em;
 }
 
 
