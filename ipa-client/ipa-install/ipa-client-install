@@ -684,7 +684,11 @@ def main():
             (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env)
 
             if returncode != 0:
-                print >>sys.stderr, "Joining realm failed: %s" % stderr,
+                if returncode == 17:    # XML-RPC fault - possible IPA v1/v2 incompatibility
+                    print "Joining realm failed because of failing XML-RPC request."
+                    print "  This error may be caused by incompatible server/client major versions."
+                else:
+                    print >>sys.stderr, "Joining realm failed: %s" % stderr,
                 if not options.force:
                     return 1
                 print "  Use ipa-getkeytab to obtain a host principal for this server."
