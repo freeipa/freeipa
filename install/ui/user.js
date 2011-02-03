@@ -46,15 +46,15 @@ IPA.entity_factories.user = function (){
                 column({name:'title'})).
         facet(IPA.details_facet().
             section(
-                IPA.stanza({label:IPA.messages.details.identity}).
-                input({name:'title'}).
-                input({name:'givenname'}).
-                input({name:'sn'}).
-                input({name:'cn'}).
-                input({name:'displayname'}).
-                input({name:'initials'})).
+                IPA.stanza({name: 'identity', label: IPA.messages.details.identity}).
+                    input({name:'title'}).
+                    input({name:'givenname'}).
+                    input({name:'sn'}).
+                    input({name:'cn'}).
+                    input({name:'displayname'}).
+                    input({name:'initials'})).
             section(
-                IPA.stanza({label:IPA.messages.details.account}).
+                IPA.stanza({name: 'account', label: IPA.messages.details.account}).
                     custom_input(user_status_widget({name:'nsaccountlock'})).
                     input({name:'uid'}).
                     input({name:'userpassword', load: user_password_load}).
@@ -63,24 +63,24 @@ IPA.entity_factories.user = function (){
                     input({name:'loginshell'}).
                     input({name:'homedirectory'})).
             section(
-                IPA.stanza({label:IPA.messages.details.contact}).
+                IPA.stanza({name: 'contact', label: IPA.messages.details.contact}).
                     input({name:'mail'}).
                     input({name:'telephonenumber'}).
                     input({name:'pager'}).
                     input({name:'mobile'}).
                     input({name:'facsimiletelephonenumber'})).
             section(
-                IPA.stanza({label: IPA.messages.details.mailing}).
+                IPA.stanza({name: 'mailing', label: IPA.messages.details.mailing}).
                     input({name:'street'}).
                     input({name:'l',label:'City'}).
                     input({name:'st',label:'State/Province'}).
                     input({name:'postalcode'})).
             section(
-                IPA.stanza({label:IPA.messages.details.employee}).
+                IPA.stanza({name: 'employee', label: IPA.messages.details.employee}).
                     input({name:'ou', label:'Org. Unit'}).
                     input({name:'manager'})).
             section(
-                IPA.stanza({label:IPA.messages.details.misc}).
+                IPA.stanza({name: 'misc', label: IPA.messages.details.misc}).
                     input({name:'carlicense'}))).
         standard_associations().
         add_dialog(
@@ -227,7 +227,7 @@ function user_password_load(result) {
     });
     link.appendTo(dd);
 
-};
+}
 
 var select_temp = '<select title="st"></select>';
 var option_temp = '<option value="V">V</option>';
