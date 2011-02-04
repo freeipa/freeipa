@@ -135,19 +135,19 @@ IPA.service_details_facet = function (spec) {
             name: 'details',
             label: 'Service Settings'
         }).
-        input({
-            name: 'krbprincipalname'
-        }).
-        input({
-            name: 'service',
-            label: 'Service',
-            load: service_service_load
-        }).
-        input({
-            name: 'host',
-            label: 'Host Name',
-            load: service_host_load
-        })).
+            input({
+                name: 'krbprincipalname'
+            }).
+            custom_input(IPA.service_name_widget({
+                name: 'service',
+                label: 'Service',
+                read_only: true
+            })).
+            custom_input(IPA.service_host_widget({
+                name: 'host',
+                label: 'Host Name',
+                read_only: true
+            }))).
         section(
             IPA.stanza({
                 name: 'provisioning',
@@ -171,34 +171,45 @@ IPA.service_details_facet = function (spec) {
     return that;
 };
 
+IPA.service_name_widget = function(spec) {
 
-function service_service_load(result) {
+    spec = spec || {};
 
-    var that = this;
+    var that = IPA.text_widget(spec);
 
-    $('dd', that.container).remove();
+    that.load = function(record) {
 
-    var dd = IPA.create_first_dd(this.name);
-    dd.appendTo(that.container);
+        that.text_load(record);
 
-    var krbprincipalname = result['krbprincipalname'][0];
-    var service = krbprincipalname.replace(/\/.*$/, '');
-    dd.append(service);
-}
+        var krbprincipalname = record['krbprincipalname'][0];
+        var value = krbprincipalname.replace(/\/.*$/, '');
+        that.values = [value];
 
-function service_host_load(result) {
+        that.reset();
+    };
 
-    var that = this;
+    return that;
+};
 
-    $('dd', that.container).remove();
+IPA.service_host_widget = function(spec) {
 
-    var dd = IPA.create_first_dd(this.name);
-    dd.appendTo(that.container);
+    spec = spec || {};
 
-    var krbprincipalname = result['krbprincipalname'][0];
-    var host = krbprincipalname.replace(/^.*\//, '').replace(/@.*$/, '');
-    dd.append(host);
-}
+    var that = IPA.text_widget(spec);
+
+    that.load = function(record) {
+
+        that.text_load(record);
+
+        var krbprincipalname = record['krbprincipalname'][0];
+        var value = krbprincipalname.replace(/^.*\//, '').replace(/@.*$/, '');
+        that.values = [value];
+
+        that.reset();
+    };
+
+    return that;
+};
 
 
 function service_provisioning_status_widget(spec) {
@@ -211,13 +222,9 @@ function service_provisioning_status_widget(spec) {
 
         that.widget_create(container);
 
-        var dd = $('<dd/>', {
-            'class': 'first'
-        }).appendTo(container);
-
         var div = $('<div/>', {
             'class': 'kerberos-key-valid'
-        }).appendTo(dd);
+        }).appendTo(container);
 
         $('<img/>', {
             src: 'check.png',
@@ -241,7 +248,7 @@ function service_provisioning_status_widget(spec) {
 
         div = $('<div/>', {
             name: 'kerberos-key-missing'
-        }).appendTo(dd);
+        }).appendTo(container);
 
         $('<img/>', {
             src: 'caution.png',

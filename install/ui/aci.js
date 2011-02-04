@@ -33,13 +33,8 @@ IPA.attributes_widget = function(spec) {
     that.object_type = spec.object_type;
 
     var id = spec.name;
-    var dd_class = "other";
 
     that.create = function(container) {
-
-        var dd = $('<dd/>', {
-            'class': dd_class
-        }).appendTo(container);
 
         that.table = $('<table/>', {
             id:id,
@@ -47,7 +42,7 @@ IPA.attributes_widget = function(spec) {
         }).
             append('<thead/>').
             append('<tbody/>').
-            appendTo(dd);
+            appendTo(container);
 
         var tr = $('<tr></tr>').appendTo($('thead', that.table));
         tr.append($('<th/>', {
@@ -66,7 +61,7 @@ IPA.attributes_widget = function(spec) {
             append('<th class="aci-attribute-column">Attribute</th>');
 
         if (that.undo) {
-            that.create_undo(dd);
+            that.create_undo(container);
         }
 
         if (that.object_type){
@@ -175,31 +170,15 @@ IPA.rights_widget = function(spec) {
 
     that.rights = ['write', 'add', 'delete'];
 
-    that.create = function(container){
-
-        for (var i = 0; i<that.rights.length; i++) {
-            $('<dd/>').
-            append($('<input/>', {
-                type: 'checkbox',
-                name: that.name,
-                value: that.rights[i],
-                'class': that.entity_name +'_'+ that.name
-            })).
-            append($('<label/>', {
-                text: that.rights[i]
-            })).
-            appendTo(container);
-        }
-
-        if (that.undo) {
-            var dd = $('<dd/>').appendTo(container);
-            that.create_undo(dd);
+    that.init = function() {
+        for (var i=0; i<that.rights.length; i++) {
+            var right = that.rights[i];
+            that.add_option({label: right, value: right});
         }
     };
 
     return that;
 };
-
 
 IPA.hidden_widget = function(spec) {
     spec.label = '';
@@ -277,17 +256,15 @@ IPA.target_section = function(spec) {
         })).
         appendTo(dl);
 
-        var span = $('<span/>', {
-            name: 'filter'
-        }).
-        appendTo(dl);
-
         var dd = $('<dd/>', {
             'class': 'aci_by_filter first'
-        }).
-        appendTo(span);
+        }).appendTo(dl);
 
-        that.filter_text.create(dd);
+        var span = $('<span/>', {
+            name: 'filter'
+        }).appendTo(dd);
+
+        that.filter_text.create(span);
     }
 
 
@@ -333,15 +310,15 @@ IPA.target_section = function(spec) {
         })).
         appendTo(dl);
 
-        var span = $('<span/>', {
-            name: 'subtree'
-        }).appendTo(dl);
-
         var dd = $('<dd/>', {
             'class': 'aci_by_query first'
-        }).appendTo(span);
+        }).appendTo(dl);
 
-        that.subtree_textarea.create(dd);
+        var span = $('<span/>', {
+            name: 'subtree'
+        }).appendTo(dd);
+
+        that.subtree_textarea.create(span);
     }
 
     function display_group_target(dl) {
@@ -356,16 +333,15 @@ IPA.target_section = function(spec) {
             })).
             appendTo(dl);
 
-        var span = $('<span/>', {
-            name: 'targetgroup'
-        }).appendTo(dl);
-
         var dd = $('<dd/>', {
             'class': 'aci_by_group first'
-        }).
-        appendTo(span);
+        }).appendTo(dl);
 
-        that.group_select.create(dd);
+        var span = $('<span/>', {
+            name: 'targetgroup'
+        }).appendTo(dd);
+
+        that.group_select.create(span);
     }
 
     that.create = function(container) {
@@ -680,7 +656,7 @@ IPA.entity_factories.delegation = function() {
                              entity:'group', join: true})).
                         custom_input(
                             IPA.rights_widget({name: 'permissions', label: 'Permissions',
-                                join: true})).
+                                direction: 'horizontal', join: true})).
                         custom_input(
                             IPA.attributes_widget({
                                 name:'attrs', object_type:'user', join: true})))).

@@ -121,63 +121,52 @@ test("Testing details lifecycle: create, setup, load.", function(){
         }
     );
 
-    var setup_status_called = false;
-    var save_password_called= false;
-    var load_manager_called = false;
+    var setup_called = false;
+    var save_called= false;
+    var load_called = false;
+
     var load_success_called = false;
     var load_failure_called = false;
     var update_success_called = false;
     var update_failure_called = false;
 
     function setup_status(){
-        setup_status_called = true;
+        setup_called = true;
     }
 
     function save_password(){
-        save_password_called = true;
+        save_called = true;
         return [];
     }
 
     function load_manager(){
-        load_manager_called = true;
-    }
-
-    function setup_st(){
+        load_called = true;
     }
 
     var container = $("<div/>");
 
     var obj_name = 'user';
 
+    var widget = IPA.widget({name: 'cn'});
+
+    widget.setup = function(container) {
+        setup_called = true;
+        widget.widget_setup(container);
+    };
+
+    widget.load = function(record) {
+        load_called = true;
+        widget.widget_load(record);
+    };
+
+    widget.save = function() {
+        save_called = true;
+        widget.widget_save();
+    };
 
     IPA.entity_set_details_definition(obj_name, [
         IPA.stanza({name:'identity', label:'Identity Details'}).
-            input({name:'title'}).
-            input({name:'givenname'}).
-            input({name:'sn'}).
-            input({name:'cn'}).
-            input({name:'displayname'}).
-            input({name:'initials'}),
-        IPA.stanza({name:'account', label:'Account Details'}).
-            input({name:'status', setup: setup_status}).
-            input({name:'uid'}).
-            input({name:'userpassword', save: save_password}).
-            input({name:'uidnumber'}).
-            input({name:'gidnumber'}).
-            input({name:'homedirectory'}),
-        IPA.stanza({name:'contact', label:'Contact Details'}).
-            input({name:'mail'}).
-            input({name:'telephonenumber'}),
-        IPA.stanza({name:'address'}).
-            input({name:'street'}).
-            input({name:'location'}).
-            input({name:'state', setup: setup_st}).
-            input({name:'postalcode'}),
-        IPA.stanza({name:'employee', label:'Employee Information'}).
-            input({name:'ou'}).
-            input({name:'manager', load: load_manager}),
-        IPA.stanza({name:'misc', label:'Misc. Information'}).
-            input({name:'carlicense'})
+            custom_input(widget)
     ]);
 
     var entity = IPA.fetch_entity(obj_name);
@@ -203,18 +192,18 @@ test("Testing details lifecycle: create, setup, load.", function(){
     var dts = identity.find('dt');
 
     same(
-        dts.length, 6,
+        dts.length, 1,
         'Checking dt tags for identity'
     );
 
     container.attr('id','user');
 
     ok (
-        setup_status_called,
+        setup_called,
         'Setup status called'
     );
 
-    ok (load_manager_called, 'load manager called');
+    ok (load_called, 'load manager called');
 
     facet.update(
         function(){update_success_called = true},
@@ -223,7 +212,7 @@ test("Testing details lifecycle: create, setup, load.", function(){
 
     ok (update_success_called,'update success called');
     ok (!update_failure_called,'update failure not called');
-    ok (save_password_called, 'save password called');
+    ok (save_called, 'save called');
 
 });
 
@@ -300,21 +289,15 @@ test("Testing IPA.details_section_setup again()",function(){
         'dl is created'
     );
 
+    same(
+        dl[0].id, section.name,
+        'checking section name'
+    );
+
     var dt = $('dt', dl);
     same(
         dt.length, 3,
         '3 dt'
-    );
-
-    var span = dt.next();
-    same(
-        span.length, 3,
-        '3 span'
-    );
-
-    same(
-        dl[0].id, section.name,
-        'checking section name'
     );
 
     same(
@@ -322,9 +305,15 @@ test("Testing IPA.details_section_setup again()",function(){
         'inner HTML matches label'
     );
 
-    var dd = $('dd', span[0]);
+    var dd = $('dd', dl);
     same(
-        dd.length, 1,
-        '1 dd'
+        dd.length, 3,
+        '3 dd'
+    );
+
+    var span = $('span[name="cn"]', dd[0]);
+    same(
+        span.length, 1,
+        '1 span'
     );
 });

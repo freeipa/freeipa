@@ -140,21 +140,21 @@ IPA.host_details_facet = function (spec) {
         that.add_section(section);
 
         //TODO: use i18n labels
-        section.create_field({
+        section.text({
             name: 'fqdn',
             label: 'Fully Qualified Host Name'
         });
 
-        section.create_field({'name': 'krbprincipalname'});
+        section.text({'name': 'krbprincipalname'});
 
         //TODO: add this to the host plugin
         //TODO: use i18n labels
-        section.create_field({
+        section.text({
             'name': 'serverhostname',
             'label': 'Host Name'
         });
 
-        section.create_field({'name': 'description'});
+        section.text({'name': 'description'});
 
         //TODO: use i18n labels
         section = IPA.details_list_section({
@@ -225,13 +225,9 @@ function host_provisioning_status_widget(spec) {
 
         that.widget_create(container);
 
-        var dd = $('<dd/>', {
-            'class': 'first'
-        }).appendTo(container);
-
         var div = $('<div/>', {
             name: 'kerberos-key-valid'
-        }).appendTo(dd);
+        }).appendTo(container);
 
         $('<img/>', {
             src: 'check.png',
@@ -255,7 +251,7 @@ function host_provisioning_status_widget(spec) {
 
         div = $('<div/>', {
             name: 'kerberos-key-missing'
-        }).appendTo(dd);
+        }).appendTo(container);
 
         $('<img/>', {
             src: 'caution.png',

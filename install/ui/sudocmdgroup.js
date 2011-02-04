@@ -110,8 +110,8 @@ IPA.sudocmdgroup_details_facet = function (spec) {
         });
         that.add_section(section);
 
-        section.create_field({'name': 'cn'});
-        section.create_field({'name': 'description'});
+        section.text({'name': 'cn'});
+        section.text({'name': 'description'});
 
         section = IPA.details_section({
             'name': 'commands',

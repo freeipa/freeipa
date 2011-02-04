@@ -115,9 +115,9 @@ IPA.sudorule_details_facet = function (spec) {
             that.add_section(section);
         }
 
-        section.create_text({ 'name': 'cn', 'read_only': true });
-        section.create_textarea({ 'name': 'description' });
-        section.create_radio({ 'name': 'ipaenabledflag' });
+        section.text({name: 'cn', read_only: true});
+        section.textarea({name: 'description'});
+        section.radio({name: 'ipaenabledflag'});
 
         section = IPA.rule_details_section({
             'name': 'user',
@@ -134,7 +134,7 @@ IPA.sudorule_details_facet = function (spec) {
         });
         that.add_section(section);
 
-        var category = section.create_radio({ name: 'usercategory', label: 'User category' });
+        var category = section.radio({ name: 'usercategory', label: 'User category' });
         section.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-memberuser_user',
             'name': 'memberuser_user', 'label': 'Users', 'category': category,
@@ -162,7 +162,7 @@ IPA.sudorule_details_facet = function (spec) {
         });
         that.add_section(section);
 
-        category = section.create_radio({ 'name': 'hostcategory', 'label': 'Host category' });
+        category = section.radio({ 'name': 'hostcategory', 'label': 'Host category' });
         section.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-memberhost_host',
             'name': 'memberhost_host', 'label': 'Host', 'category': category,
@@ -407,6 +407,11 @@ IPA.sudorule_details_general_section = function (spec){
             title: param_info ? param_info.doc : 'cn'
         }).appendTo(td);
 
+        $('<label/>', {
+            name: 'cn',
+            style: 'display: none;'
+        }).appendTo(span);
+
         $('<input/>', {
             'type': 'text',
             'name': 'cn',
@@ -518,7 +523,7 @@ IPA.sudorule_details_command_section = function (spec){
 
     that.init = function() {
 
-        var category = that.create_radio({'name': 'cmdcategory'});
+        var category = that.radio({'name': 'cmdcategory'});
 
         that.add_field(IPA.sudorule_command_table_widget({
             'id': that.entity_name+'-memberallowcmd_sudocmd',
@@ -690,7 +695,7 @@ IPA.sudorule_details_runas_section = function (spec){
 
     that.init = function() {
 
-        var category = that.create_radio({ name: 'ipasudorunasusercategory', label: 'Run as User category' });
+        var category = that.radio({ name: 'ipasudorunasusercategory', label: 'Run as User category' });
         that.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-runasruser_user',
             'name': 'ipasudorunas_user', 'label': 'Users', 'category': category,
@@ -702,7 +707,7 @@ IPA.sudorule_details_runas_section = function (spec){
             'other_entity': 'group', 'add_method': 'add_runasuser', 'remove_method': 'remove_runasuser'
         }));
 
-        category = that.create_radio({ name: 'ipasudorunasgroupcategory', label: 'Run as Group category' });
+        category = that.radio({ name: 'ipasudorunasgroupcategory', label: 'Run as Group category' });
         that.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-runasgroup_group',
             'name': 'ipasudorunasgroup_group', 'label': 'Groups', 'category': category,

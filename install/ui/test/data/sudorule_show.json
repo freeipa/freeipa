@@ -38,6 +38,9 @@
             "externaluser": [
                 "external"
             ],
+            "ipaenabledflag": [
+                "TRUE"
+            ],
             "ipasudorunas_user": [
                 "admin"
             ],

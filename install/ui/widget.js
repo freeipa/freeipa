@@ -135,12 +135,14 @@ IPA.widget = function(spec) {
 
         that.writable = true;
 
-        if (that.param_info.primary_key) {
-            that.writable = false;
-        }
+        if (that.param_info) {
+            if (that.param_info.primary_key) {
+                that.writable = false;
+            }
 
-        if ('no_update' in that.param_info.flags) {
-            that.writable = false;
+            if (that.param_info.flags && 'no_update' in that.param_info.flags) {
+                that.writable = false;
+            }
         }
 
         if (that.record.attributelevelrights) {
@@ -264,7 +266,9 @@ IPA.widget = function(spec) {
     that.widget_init = that.init;
     that.widget_create = that.create;
     that.widget_setup = that.setup;
+    that.widget_load = that.load;
     that.widget_reset = that.reset;
+    that.widget_save = that.save;
 
     return that;
 };
@@ -279,6 +283,11 @@ IPA.text_widget = function(spec) {
     that.size = spec.size || 30;
 
     that.create = function(container) {
+
+        $('<label/>', {
+            name: that.name,
+            style: 'display: none;'
+        }).appendTo(container);
 
         $('<input/>', {
             type: 'text',
@@ -323,45 +332,36 @@ IPA.text_widget = function(spec) {
         that.input = input;
     };
 
-    that.load = function(record) {
+    that.update = function() {
+        var value = that.values && that.values.length ? that.values[0] : '';
 
-        var value = record[that.name];
-        if (value instanceof Array) {
-            that.values = value;
-        } else {
-            that.values = value ? [value] : [''];
-        }
+        var label = $('label[name="'+that.name+'"]', that.container);
+        var input = $('input[name="'+that.name+'"]', that.container);
 
-        if (that.read_only) {
-            var input = $('input[name="'+that.name+'"]', that.container);
-            var label = $('<label/>', {
-                'name': that.name,
-                'html': that.values[0]
-            });
-            input.replaceWith(label);
+        if (that.read_only || !that.writable) {
+            label.html(value);
+            label.css('display', 'inline');
+            input.css('display', 'none');
 
         } else {
-            that.reset();
+            $('input[name="'+that.name+'"]', that.container).val(value);
+            label.css('display', 'none');
+            input.css('display', 'inline');
         }
     };
 
     that.save = function() {
-        if (that.read_only) {
+        if (that.read_only || !that.writable) {
             return that.values;
         } else {
-            var value = $('input[name="'+that.name+'"]', that.container).val();
-            return [value];
+            var input = $('input[name="'+that.name+'"]', that.container);
+            var value = $.trim(input.val());
+            return value === '' ? [] : [value];
         }
     };
 
-    that.update = function() {
-        var value = that.values && that.values.length ? that.values[0] : '';
-        if (that.read_only) {
-            $('label[name="'+that.name+'"]', that.container).val(value);
-        } else {
-            $('input[name="'+that.name+'"]', that.container).val(value);
-        }
-    };
+    // methods that should be invoked by subclasses
+    that.text_load = that.load;
 
     return that;
 };
@@ -396,13 +396,9 @@ IPA.multivalued_text_widget = function(spec) {
 
     that.create = function(container) {
 
-        var dd = $('<dd/>', {
-            'class': 'first'
-        }).appendTo(container);
-
         var div = $('<div/>', {
             name: 'value'
-        }).appendTo(dd);
+        }).appendTo(container);
 
         $('<input/>', {
             type: 'text',
@@ -440,16 +436,16 @@ IPA.multivalued_text_widget = function(spec) {
             href: 'jslink',
             title: 'Add',
             html: 'Add'
-        }).appendTo(dd);
+        }).appendTo(container);
 
-        dd.append(' ');
+        container.append(' ');
 
         $('<span/>', {
             name: 'undo_all',
             style: 'display: none;',
             'class': 'ui-state-highlight ui-corner-all undo',
             html: 'undo all'
-        }).appendTo(dd);
+        }).appendTo(container);
     };
 
     that.setup = function(container) {
@@ -686,21 +682,37 @@ IPA.checkbox_widget = function (spec) {
 IPA.checkboxes_widget = function (spec) {
 
     spec = spec || {};
+
     var that = IPA.widget(spec);
 
+    that.direction = spec.direction || 'vertical';
     that.options = spec.options || [];
 
+    that.add_option = function(option) {
+        that.options.push(option);
+    };
+
     that.create = function(container) {
+
+        var vertical = that.direction === 'vertical';
 
         for (var i=0; i<that.options.length; i++) {
             var option = that.options[i];
             $('<input/>', {
                 type: 'checkbox',
                 name: that.name,
-                text: option.label,
                 value: option.value,
                 title: that.tooltip
             }).appendTo(container);
+
+            $('<label/>', {
+                text: option.label,
+                title: that.tooltip
+            }).appendTo(container);
+
+            if (vertical) {
+                $('<br/>').appendTo(container);
+            }
         }
 
         if (that.undo) {
@@ -802,7 +814,10 @@ IPA.radio_widget = function(spec) {
     };
 
     that.load = function(record) {
-        that.values = record[that.name] || [''];
+        that.widget_load(record);
+        if (!that.values.length) {
+            that.values = [''];
+        }
         that.reset();
     };
 
@@ -814,26 +829,16 @@ IPA.radio_widget = function(spec) {
 
     that.update = function() {
 
-        if (that.values) {
-            var value;
-            if ((that.values instanceof Array) && that.values.length) {
-                value = that.values[0];
-            } else {
-                value = that.values;
-            }
-
-            var input = $('input[name="'+that.name+'"][value="'+value+'"]',
-                          that.container);
-            if (input.length) {
-                input.attr('checked', true);
-                return;
-            }
-        }
-
         $('input[name="'+that.name+'"]', that.container).each(function() {
             var input = this;
             input.checked = false;
         });
+
+        var value = that.values && that.values.length ? that.values[0] : '';
+        var input = $('input[name="'+that.name+'"][value="'+value+'"]', that.container);
+        if (input.length) {
+            input.attr('checked', true);
+        }
     };
 
     // methods that should be invoked by subclasses
@@ -1351,14 +1356,14 @@ IPA.table_widget = function (spec) {
     return that;
 };
 
-IPA.entity_select_widget = function(spec){
+IPA.entity_select_widget = function(spec) {
 
     var that = IPA.widget(spec);
     var entity = spec.entity || 'group';
     var field_name = spec.field_name || 'cn';
 
-    function populate_select(value){
-        function find_success(result){
+    function populate_select(value) {
+        function find_success(result) {
             $('option', that.entity_select).remove();
 
             // add default empty value
@@ -1395,18 +1400,16 @@ IPA.entity_select_widget = function(spec){
         }).execute();
     }
 
-    that.create = function(container){
-        var dd = $('<dd/>').appendTo(container);
+    that.create = function(container) {
 
         that.entity_select = $('<select/>', {
             id: that.name + '-entity-select',
             change: function(){
                 that.show_undo();
             }
-        }).appendTo(dd);
+        }).appendTo(container);
 
-
-        that.entity_filter = $('<input/>',{
+        that.entity_filter = $('<input/>', {
             size:10,
             type: 'text',
             id: 'entity_filter',
@@ -1415,20 +1418,20 @@ IPA.entity_select_widget = function(spec){
                 populate_select();
                 that.show_undo();
             }
-        }).appendTo(dd);
+        }).appendTo(container);
 
-        $('<a />',{
-            href:"",
+        $('<a/>', {
+            href: '',
             text: 'add ' +entity + ' filter: ',
-            click:function(){
+            click: function() {
                 that.entity_filter.css('display','inline');
                 $(this).css('display','none');
                 return false;
             }
-        }).appendTo(dd);
+        }).appendTo(container);
 
         if (that.undo) {
-            that.create_undo(dd);
+            that.create_undo(container);
         }
         var undo = that.get_undo();
         undo.click(function() {
@@ -1437,18 +1440,18 @@ IPA.entity_select_widget = function(spec){
 
         populate_select();
     };
-    that.reset = function(){
+
+    that.reset = function() {
         that.entity_filter.val(that.values[0]);
         that.hide_undo();
         populate_select(that.values[0]);
-
     };
 
-    that.is_dirty = function(){
+    that.is_dirty = function() {
         return (that.save()[0] !== that.values[0]);
     };
 
-    that.load = function(record){
+    that.load = function(record) {
         var value = record[that.name];
         if (value instanceof Array) {
             that.values = value;
@@ -1458,7 +1461,7 @@ IPA.entity_select_widget = function(spec){
         that.reset();
     };
 
-    that.save = function(){
+    that.save = function() {
         var value = $('option:selected', that.entity_select).val();
         return [value];
     };

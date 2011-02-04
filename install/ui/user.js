@@ -55,9 +55,9 @@ IPA.entity_factories.user = function (){
                     input({name:'initials'})).
             section(
                 IPA.stanza({name: 'account', label: IPA.messages.details.account}).
-                    custom_input(user_status_widget({name:'nsaccountlock'})).
+                    custom_input(IPA.user_status_widget({name:'nsaccountlock'})).
                     input({name:'uid'}).
-                    input({name:'userpassword', load: user_password_load}).
+                    custom_input(IPA.user_password_widget({name:'userpassword'})).
                     input({name:'uidnumber'}).
                     input({name:'gidnumber'}).
                     input({name:'loginshell'}).
@@ -96,7 +96,7 @@ IPA.entity_factories.user = function (){
 /* ATTRIBUTE CALLBACKS */
 
 
-function user_status_widget(spec) {
+IPA.user_status_widget = function(spec) {
 
     spec = spec || {};
 
@@ -106,10 +106,7 @@ function user_status_widget(spec) {
 
         if (!that.record) return;
 
-        $('dd', that.container).remove();
-
-        var dd = IPA.create_first_dd(this.name);
-        dd.appendTo(that.container);
+        that.container.empty();
 
         var lock_field = 'nsaccountlock';
 
@@ -154,81 +151,77 @@ function user_status_widget(spec) {
                       return (false);
                   }
               });
-        status_field.appendTo(dd);
+        status_field.appendTo(that.container);
     };
 
     return that;
-}
+};
 
-function resetpwd_on_click(){
+IPA.user_password_widget = function(spec) {
 
-    function reset_password(new_password){
-        var dialog =  resetpwd_dialog;
+    spec = spec || {};
 
-        var user_pkey = $.bbq.getState('user-pkey');
-        var pw_pkey;
-        if (user_pkey === IPA.whoami.uid[0]){
-            pw_pkey = [];
-        }else{
-            pw_pkey = [user_pkey];
+    var that = IPA.widget(spec);
+
+    that.create = function(container) {
+        $('<a/>', {
+            href: 'jslink',
+            title: 'userpassword',
+            text: 'reset password',
+            click: resetpwd_on_click
+        }).appendTo(container);
+    };
+
+    function resetpwd_on_click() {
+
+        function reset_password(new_password) {
+
+            var user_pkey = $.bbq.getState('user-pkey');
+            var pw_pkey;
+            if (user_pkey === IPA.whoami.uid[0]){
+                pw_pkey = [];
+            }else{
+                pw_pkey = [user_pkey];
+            }
+
+            IPA.cmd('passwd',
+                    pw_pkey, {"password":new_password},
+                    function(){
+                        alert("Password change complete");
+                        dialog.dialog("close");
+                    },
+                    function(){});
         }
 
-        IPA.cmd('passwd',
-                pw_pkey, {"password":new_password},
-                function(){
-                    alert("Password change complete");
-                    dialog.dialog("close");
+        var dialog =
+            $('<div ><dl class="modal">'+
+              '<dt>New Password</dt>'+
+              '<dd class="first" ><input id="password_1" type="password"/></dd>'+
+              '<dt>Repeat Password</dt>'+
+              '<dd class="first"><input id="password_2" type="password"/></dd>'+
+              '</dl></div>');
+
+        dialog.dialog({
+            modal: true,
+            minWidth:400,
+            buttons: {
+                'Reset Password': function(){
+                     var p1 = $("#password_1").val();
+                     var p2 = $("#password_2").val();
+                     if (p1 != p2){
+                          alert("passwords must match");
+                          return;
+                     }
+                     reset_password(p1);
                 },
-                function(){});
+                'Cancel':function(){
+                     dialog.dialog('close');
+                }
+            }
+        });
+
+        return false;
     }
 
-
-    var resetpwd_dialog =
-        $('<div ><dl class="modal">'+
-          '<dt>New Password</dt>'+
-          '<dd class="first" ><input id="password_1" type="password"/></dd>'+
-          '<dt>Repeat Password</dt>'+
-          '<dd class="first"><input id="password_2" type="password"/></dd>'+
-          '</dl></div>');
-    resetpwd_dialog.dialog(
-        { modal: true,
-          minWidth:400,
-          buttons: {
-              'Reset Password': function(){
-                  var p1 = $("#password_1").val();
-                  var p2 = $("#password_2").val();
-                  if (p1 != p2){
-                      alert("passwords must match");
-                      return;
-                  }
-                  reset_password(p1);
-              },
-              'Cancel':function(){
-                  resetpwd_dialog.dialog('close');
-              }
-          }});
-    return false;
-}
-
-function user_password_load(result) {
-
-    var that = this;
-
-    $('dd', that.container).remove();
-
-    var dd = IPA.create_first_dd(this.name);
-    dd.appendTo(that.container);
-
-    var link = $('<a/>',{
-        href:"jslink",
-        click:resetpwd_on_click,
-        title:'userpassword',
-        text: 'reset password'
-    });
-    link.appendTo(dd);
-
-}
-
-var select_temp = '<select title="st"></select>';
-var option_temp = '<option value="V">V</option>';
-
+    return that;
+};

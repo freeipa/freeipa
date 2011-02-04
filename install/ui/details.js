@@ -333,19 +333,28 @@ IPA.details_section = function (spec){
         return that;
     };
 
+    that.text = function(spec) {
+        var field = IPA.text_widget(spec);
+        that.add_field(field);
+        return that;
+    };
+
     that.multivalued_text = function(spec) {
         var field = IPA.multivalued_text_widget(spec);
         that.add_field(field);
         return that;
     };
 
-    that.create_field = function(spec) {
-
-        //TODO: replace IPA.details_field with class-specific implementation
-        //Valid field classes: Str, IA5Str, Int, Bool and List
-        var field = IPA.details_field(spec);
+    that.textarea = function(spec) {
+        var field = IPA.textarea_widget(spec);
         that.add_field(field);
-        return field;
+        return that;
+    };
+
+    that.radio = function(spec) {
+        var field = IPA.radio_widget(spec);
+        that.add_field(field);
+        return that;
     };
 
     that.create_text = function(spec) {
@@ -526,7 +535,11 @@ IPA.details_list_section = function (spec){
                 title: label
             }).appendTo(dl);
 
-            var span = $('<span/>', { 'name': field.name }).appendTo(dl);
+            var dd = $('<dd/>', {
+                'class': 'first'
+            }).appendTo(dl);
+
+            var span = $('<span/>', { 'name': field.name }).appendTo(dd);
             field.create(span);
         }
     };
@@ -544,7 +557,7 @@ IPA.stanza =  function (spec) {
 
     // This is to allow declarative style programming for details
     that.input = function(spec) {
-        that.create_field(spec);
+        that.text(spec);
         return that;
     };
 

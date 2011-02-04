@@ -155,10 +155,10 @@ IPA.hbacrule_details_facet = function (spec) {
             that.add_section(section);
         }
 
-        section.create_text({ 'name': 'cn', 'label': 'Name', 'read_only': true });
-        section.create_radio({ 'name': 'accessruletype', 'label': 'Rule Type' });
-        section.create_textarea({ 'name': 'description', 'label': 'Description' });
-        section.create_radio({ 'name': 'ipaenabledflag', 'label': 'Enabled' });
+        section.text({name: 'cn', label: 'Name', read_only: true});
+        section.radio({name: 'accessruletype', label: 'Rule Type'});
+        section.textarea({name: 'description', label: 'Description'});
+        section.radio({name: 'ipaenabledflag', label: 'Enabled'});
 
         if (IPA.layout) {
             section = that.create_section({
@@ -185,7 +185,7 @@ IPA.hbacrule_details_facet = function (spec) {
             that.add_section(section);
         }
 
-        var category = section.create_radio({ name: 'usercategory', label: 'User category' });
+        var category = section.radio({ name: 'usercategory', label: 'User category' });
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberuser_user',
             'name': 'memberuser_user', 'label': 'Users', 'category': category,
@@ -222,7 +222,7 @@ IPA.hbacrule_details_facet = function (spec) {
             that.add_section(section);
         }
 
-        category = section.create_radio({ 'name': 'hostcategory', 'label': 'Host category' });
+        category = section.radio({ 'name': 'hostcategory', 'label': 'Host category' });
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberhost_host',
             'name': 'memberhost_host', 'label': 'Hosts', 'category': category,
@@ -259,7 +259,7 @@ IPA.hbacrule_details_facet = function (spec) {
             that.add_section(section);
         }
 
-        category = section.create_radio({ 'name': 'servicecategory', 'label': 'Service category' });
+        category = section.radio({ 'name': 'servicecategory', 'label': 'Service category' });
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberservice_hbacsvc',
             'name': 'memberservice_hbacsvc', 'label': 'Services', 'category': category,
@@ -296,7 +296,7 @@ IPA.hbacrule_details_facet = function (spec) {
             that.add_section(section);
         }
 
-        category = section.create_radio({ 'name': 'sourcehostcategory', 'label': 'Source host category' });
+        category = section.radio({ 'name': 'sourcehostcategory', 'label': 'Source host category' });
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-sourcehost_host',
             'name': 'sourcehost_host', 'label': 'Host', 'category': category,
@@ -564,6 +564,11 @@ IPA.hbacrule_details_general_section = function (spec){
         td = $('<td/>').appendTo(tr);
 
         var span = $('<span/>', { 'name': 'cn' }).appendTo(td);
+
+        $('<label/>', {
+            name: 'cn',
+            style: 'display: none;'
+        }).appendTo(span);
 
         $('<input/>', {
             'type': 'text',
