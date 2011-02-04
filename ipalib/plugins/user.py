@@ -214,6 +214,22 @@ class user(LDAPObject):
         ),
     )
 
+    def _normalize_email(self, email, config=None):
+        if not config:
+            config = self.backend.get_ipa_config()[1]
+
+        # check if default email domain should be added
+        if email and 'ipadefaultemaildomain' in config:
+            norm_email = []
+            for m in email:
+                if m.find('@') == -1:
+                    norm_email.append(m + u'@' + config['ipadefaultemaildomain'][0])
+                else:
+                    norm_email.append(m)
+            return norm_email
+        
+        return email
+
 api.register(user)
 
 
@@ -274,6 +290,9 @@ class user_add(LDAPCreate):
                 error_msg = 'Default group for new users not found.'
                 raise errors.NotFound(reason=error_msg)
             entry_attrs['gidnumber'] = group_attrs['gidnumber']
+        
+        if 'mail' in entry_attrs:
+            entry_attrs['mail'] = self.obj._normalize_email(entry_attrs['mail'], config)
 
         return dn
 
@@ -307,6 +326,11 @@ class user_mod(LDAPUpdate):
     """
 
     msg_summary = _('Modified user "%(value)s"')
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        if 'mail' in entry_attrs:
+            entry_attrs['mail'] = self.obj._normalize_email(entry_attrs['mail'])
+        return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if not 'nsaccountlock' in entry_attrs:
