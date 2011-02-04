@@ -61,7 +61,7 @@ class hbacsvcgroup(LDAPObject):
         'member': ['hbacsvc'],
     }
 
-    label = _('HBAC Service Groups')
+    label = _('HBAC service Groups')
 
     takes_params = (
         Str('cn',
@@ -84,7 +84,7 @@ class hbacsvcgroup_add(LDAPCreate):
     """
     Add a new HBAC services group.
     """
-    msg_summary = _('Added HBAC Service group "%(value)s"')
+    msg_summary = _('Added HBAC service group "%(value)s"')
 
 api.register(hbacsvcgroup_add)
 
@@ -93,7 +93,7 @@ class hbacsvcgroup_del(LDAPDelete):
     """
     Delete an HBAC services group.
     """
-    msg_summary = _('Deleted HBAC Service group "%(value)s"')
+    msg_summary = _('Deleted HBAC service group "%(value)s"')
 
 api.register(hbacsvcgroup_del)
 
@@ -102,7 +102,7 @@ class hbacsvcgroup_mod(LDAPUpdate):
     """
     Modify an HBAC services group.
     """
-    msg_summary = _('Modified HBAC Service group "%(value)s"')
+    msg_summary = _('Modified HBAC service group "%(value)s"')
 
 api.register(hbacsvcgroup_mod)
 
@@ -112,7 +112,7 @@ class hbacsvcgroup_find(LDAPSearch):
     Search for an HBAC services group.
     """
     msg_summary = ngettext(
-        '%(count)d group matched', '%(count)d groups matched', 0
+        '%(count)d HBAC service group matched', '%(count)d HBAC service groups matched', 0
     )
 
 api.register(hbacsvcgroup_find)

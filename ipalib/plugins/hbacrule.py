@@ -211,6 +211,9 @@ class hbacrule_add(LDAPCreate):
     """
     Create a new HBAC rule.
     """
+
+    msg_summary = _('Added HBAC rule "%(value)s"')
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         # HBAC rules are enabled by default
         entry_attrs['ipaenabledflag'] = 'TRUE'
@@ -224,6 +227,8 @@ class hbacrule_del(LDAPDelete):
     Delete an HBAC rule.
     """
 
+    msg_summary = _('Deleted HBAC rule "%(value)s"')
+
 api.register(hbacrule_del)
 
 
@@ -231,6 +236,8 @@ class hbacrule_mod(LDAPUpdate):
     """
     Modify an HBAC rule.
     """
+
+    msg_summary = _('Modified HBAC rule "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         try:
@@ -256,6 +263,10 @@ class hbacrule_find(LDAPSearch):
     Search for HBAC rules.
     """
 
+    msg_summary = ngettext(
+        '%(count)d HBAC rule matched', '%(count)d HBAC rules matched', 0
+    )
+
 api.register(hbacrule_find)
 
 
@@ -271,6 +282,10 @@ class hbacrule_enable(LDAPQuery):
     """
     Enable an HBAC rule.
     """
+
+    msg_summary = _('Enabled HBAC rule "%(value)s"')
+    has_output = output.standard_value
+
     def execute(self, cn):
         ldap = self.obj.backend
 
@@ -284,11 +299,10 @@ class hbacrule_enable(LDAPQuery):
         except errors.NotFound:
             self.obj.handle_not_found(cn)
 
-        return dict(result=True)
-
-    def output_for_cli(self, textui, result, cn):
-        textui.print_name(self.name)
-        textui.print_dashed('Enabled HBAC rule "%s".' % cn)
+        return dict(
+            result=True,
+            value=cn,
+        )
 
 api.register(hbacrule_enable)
 
@@ -297,6 +311,10 @@ class hbacrule_disable(LDAPQuery):
     """
     Disable an HBAC rule.
     """
+
+    msg_summary = _('Disabled HBAC rule "%(value)s"')
+    has_output = output.standard_value
+
     def execute(self, cn):
         ldap = self.obj.backend
 
@@ -310,11 +328,10 @@ class hbacrule_disable(LDAPQuery):
         except errors.NotFound:
             self.obj.handle_not_found(cn)
 
-        return dict(result=True)
-
-    def output_for_cli(self, textui, result, cn):
-        textui.print_name(self.name)
-        textui.print_dashed('Disabled HBAC rule "%s".' % cn)
+        return dict(
+            result=True,
+            value=cn,
+        )
 
 api.register(hbacrule_disable)
 

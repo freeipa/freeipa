@@ -1035,13 +1035,17 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: hbacrule_disable
-args: 1,0,1
+args: 1,0,3
 arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Rule name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
-output: Output('result', None, None)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
+output: Output('result', <type 'bool'>, 'True means the operation was successful')
+output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: hbacrule_enable
-args: 1,0,1
+args: 1,0,3
 arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Rule name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
-output: Output('result', None, None)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
+output: Output('result', <type 'bool'>, 'True means the operation was successful')
+output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: hbacrule_find
 args: 1,12,4
 arg: Str('criteria?')

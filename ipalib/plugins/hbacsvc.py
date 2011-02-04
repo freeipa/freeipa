@@ -64,14 +64,14 @@ class hbacsvc(LDAPObject):
         Str('cn',
             cli_name='service',
             label=_('Service name'),
-            doc=_('HBAC Service'),
+            doc=_('HBAC service'),
             primary_key=True,
             normalizer=lambda value: value.lower(),
         ),
         Str('description?',
             cli_name='desc',
             label=_('Description'),
-            doc=_('Description of service'),
+            doc=_('HBAC service description'),
         ),
     )
 
@@ -82,7 +82,7 @@ class hbacsvc_add(LDAPCreate):
     """
     Add a new HBAC service.
     """
-    msg_summary = _('Added service "%(value)s"')
+    msg_summary = _('Added HBAC service "%(value)s"')
 
 api.register(hbacsvc_add)
 
@@ -91,7 +91,7 @@ class hbacsvc_del(LDAPDelete):
     """
     Delete an existing HBAC service.
     """
-    msg_summary = _('Deleted service "%(value)s"')
+    msg_summary = _('Deleted HBAC service "%(value)s"')
 
 api.register(hbacsvc_del)
 
@@ -101,6 +101,8 @@ class hbacsvc_mod(LDAPUpdate):
     Modify an HBAC service.
     """
 
+    msg_summary = _('Modified HBAC service "%(value)s"')
+
 api.register(hbacsvc_mod)
 
 
@@ -108,6 +110,10 @@ class hbacsvc_find(LDAPSearch):
     """
     Search for HBAC services.
     """
+
+    msg_summary = ngettext(
+        '%(count)d HBAC service matched', '%(count)d HBAC services matched', 0
+    )
 
 api.register(hbacsvc_find)
 

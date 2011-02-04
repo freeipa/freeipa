@@ -71,7 +71,7 @@ class test_hbacsvcgroup(Declarative):
             ),
             expected=dict(
                 value=hbacsvcgroup1,
-                summary=u'Added HBAC Service group "testhbacsvcgroup1"',
+                summary=u'Added HBAC service group "testhbacsvcgroup1"',
                 result=dict(
                     dn=dn1,
                     cn=[hbacsvcgroup1],
@@ -101,7 +101,7 @@ class test_hbacsvcgroup(Declarative):
             ),
             expected=dict(
                 value=hbacsvc1,
-                summary=u'Added service "%s"' % hbacsvc1,
+                summary=u'Added HBAC service "%s"' % hbacsvc1,
                 result=dict(
                     dn=hbacsvc_dn1,
                     cn=[hbacsvc1],
@@ -157,7 +157,7 @@ class test_hbacsvcgroup(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 group matched',
+                summary=u'1 HBAC service group matched',
                 result=[
                     {
                         'dn': dn1,
@@ -177,7 +177,7 @@ class test_hbacsvcgroup(Declarative):
             ),
             expected=dict(
                 value=hbacsvcgroup1,
-                summary=u'Modified HBAC Service group "testhbacsvcgroup1"',
+                summary=u'Modified HBAC service group "testhbacsvcgroup1"',
                 result=dict(
                     cn=[hbacsvcgroup1],
                     description=[u'Updated hbacsvcgroup 1'],
@@ -229,7 +229,7 @@ class test_hbacsvcgroup(Declarative):
             command=('hbacsvcgroup_del', [hbacsvcgroup1], {}),
             expected=dict(
                 value=hbacsvcgroup1,
-                summary=u'Deleted HBAC Service group "testhbacsvcgroup1"',
+                summary=u'Deleted HBAC service group "testhbacsvcgroup1"',
                 result=dict(failed=u''),
             ),
         ),
@@ -240,7 +240,7 @@ class test_hbacsvcgroup(Declarative):
             command=('hbacsvc_del', [hbacsvc1], {}),
             expected=dict(
                 value=hbacsvc1,
-                summary=u'Deleted service "%s"' % hbacsvc1,
+                summary=u'Deleted HBAC service "%s"' % hbacsvc1,
                 result=dict(failed=u''),
             ),
         )
