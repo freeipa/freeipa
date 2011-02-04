@@ -28,7 +28,7 @@ of attributes of members of another group.
 
 EXAMPLES:
 
- Add a delegation rule to allow editos to edit admin's addresses:
+ Add a delegation rule to allow editors to edit admin's addresses:
    ipa delegation-add --attrs=street --membergroup=admins --group=editors 'editors edit admins street'
 
  When managing the list of attributes you need to include all attributes
