@@ -217,51 +217,6 @@ test("Testing details lifecycle: create, setup, load.", function(){
 });
 
 
-test("Testing create_input().", function() {
-
-    var field = IPA.details_field({
-        'name': "name"
-    });
-
-    var name = "name";
-    var value="value";
-    var rights = 'rscwo'
-    var input = field.create_input(value, null, rights);
-    ok(input,"input not null");
-
-    var text = input.find('input');
-    ok(text);
-
-    same(text[0].name,name );
-    same(text[0].value,value );
-    same(text[0].type,"text" );
-});
-
-test("Testing create_input() read only .", function() {
-
-    var field = IPA.details_field({
-        'name': "name"
-    });
-
-    var name = "name";
-    var value="value";
-    var rights = 'rsc'
-    var input = field.create_input(value, null, rights);
-    ok(input,"input not null");
-
-    var text = input.find('input');
-    ok(text);
-
-    same(text[0].name,name );
-    same(text[0].value,value );
-    same(text[0].type,"text" );
-    ok(text[0].disabled);
-
-});
-
-
-
-
 test("Testing IPA.details_section_setup again()",function(){
 
     var section = IPA.stanza({name: 'IDIDID', label: 'NAMENAMENAME'}).

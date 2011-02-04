@@ -29,269 +29,7 @@
 IPA.expand_icon = 'ui-icon-minus';
 IPA.collapse_icon = 'ui-icon-plus';
 
-IPA.is_field_writable = function(rights){
-    if (!rights){
-        alert('no right');
-    }
-    return rights.indexOf('w') > -1;
-};
-
-IPA.details_field =  function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.widget(spec);
-
-    that.load = spec.load || load;
-    that.save = spec.save || save;
-
-    function load(record) {
-        that.record = record;
-        that.values = record[that.name];
-        that.reset();
-
-        var param_info = IPA.get_param_info(that.entity_name, that.name);
-        if (param_info) {
-            if (param_info['primary_key']) {
-                that.read_only = true;
-            }
-            if ('no_update' in param_info['flags']) {
-                that.read_only = true;
-            }
-        }
-    }
-
-    that.update = function() {
-
-        if (!that.record) return;
-
-        /* remove all <dd> tags i.e. all attribute values */
-        $('dd', that.container).remove();
-
-        var multivalue = false;
-        var hint_span = null;
-        var dd;
-
-        var param_info = IPA.get_param_info(that.entity_name, that.name);
-        if (param_info) {
-            if (param_info['multivalue'] || param_info['class'] == 'List')
-                multivalue = true;
-            var hint = param_info['doc'];
-            if (hint){
-                hint_span = $('<span />',{
-                    'class': 'attrhint',
-                    'html': 'Hint: ' + hint});
-            }
-        }
-
-        var rights = 'rsc';
-
-        if (that.record.attributelevelrights){
-            rights = that.record.attributelevelrights[this.name] || rights ;
-        }
-
-        if (that.values) {
-            /*
-              Too much logic currently assumes an array.
-              This is true everywhere but ACIs. */
-
-            if (!(that.values instanceof Array)){
-                that.values = [that.values];
-            }
-
-            dd = IPA.create_first_dd(that.name);
-            dd.append(that.create_value(that.values[0], hint_span, rights, 0));
-            dd.appendTo(that.container);
-
-            for (var i = 1; i < that.values.length; ++i) {
-                dd = IPA.create_other_dd(that.name);
-                dd.append(that.create_value(that.values[i], hint_span, rights, i));
-                dd.appendTo(that.container);
-            }
-
-            if (multivalue && IPA.is_field_writable(rights) ) {
-                dd = IPA.create_other_dd(that.name);
-                dd.append(IPA.details_field_create_add_link.call(that, that.name, rights, that.values.length));
-                dd.appendTo(that.container);
-            }
-
-        } else {
-            if (multivalue  && IPA.is_field_writable(rights)) {
-                dd = IPA.create_first_dd(that.name);
-                dd.append(IPA.details_field_create_add_link.call(that, that.name, rights, 0));
-                dd.appendTo(that.container);
-
-            } else {
-                dd = IPA.create_first_dd(that.name);
-                dd.append(that.create_value('', hint_span, rights, 0));
-                dd.appendTo(that.container);
-            }
-        }
-    };
-
-
-    /* creates a Remove link for deleting attribute values */
-    function create_remove_link(attr, param_info){
-        function remove_on_click(obj){
-            var jobj = $(obj);
-            var attr = jobj.attr('title');
-            var par = jobj.parent();
-            var input = par.find('input');
-            if (input.is('.strikethrough')){
-                input.removeClass('strikethrough');
-                jobj.text("Remove");
-            }else{
-                input.addClass('strikethrough');
-                jobj.text("Undo");
-            }
-            return (false);
-        }
-
-        if (param_info){
-            /* check if the param is required or of the Password type
-             * if it is, then we don't want people to be able to remove it */
-            if ((param_info['required']) ||
-                (param_info['class'] == 'Password')){
-                return ('');
-            }
-        }
-        return $('<a/>',{
-            href:"jslink",
-            click: function (){return (remove_on_click(this));},
-            title: attr,
-            text: 'Remove'});
-    }
-
-
-    /* create an HTML element for displaying/editing an attribute
-     * arguments:
-     *   attr - LDAP attribute name
-     *   value - the attributes value */
-    that.create_value = function(value, hint, rights, index) {
-
-        // if field is primary key or non-writable, return a label
-
-        var label = $('<label/>', { html:value.toString() });
-
-        if (!IPA.is_field_writable(rights)) {
-            that.read_only = true;
-            return label;
-        }
-
-        var param_info = IPA.get_param_info(that.entity_name, that.name);
-        if (param_info) {
-            if (param_info['primary_key']) return label;
-            if ('no_update' in param_info['flags']) return label;
-        }
-
-        // otherwise, create input field
-
-        var input = that.create_input(value, param_info, rights, index);
-        if (param_info) {
-            if (param_info['multivalue'] || param_info['class'] == 'List') {
-                input.append(create_remove_link(that.name, param_info));
-            }
-        }
-
-        if (hint) input.after(hint);
-
-        return input;
-    };
-
-    /* creates a input box for editing a string attribute */
-    that.create_input = function(value, param_info, rights, index) {
-
-        index = index || 0;
-
-        function validate_input(text, param_info, error_link) {
-            if (param_info && param_info.pattern) {
-                var regex = new RegExp( param_info.pattern );
-                if (!text.match(regex)) {
-                    error_link.style.display = "block";
-                    if (param_info.pattern_errmsg) {
-                        error_link.innerHTML =  param_info.pattern_errmsg;
-                    }
-                } else {
-                    error_link.style.display = "none";
-                }
-            }
-        }
-
-        var doc = that.name;
-        if (param_info && param_info.doc) {
-            doc = param_info.doc;
-        }
-        var span = $("<Span />");
-        var input = $("<input/>", {
-            type: "text",
-            name: that.name,
-            value: value.toString(),
-            title: doc,
-            keyup: function(){
-                var undo_link = this.nextElementSibling;
-                undo_link.style.display = "inline";
-                var error_link = undo_link.nextElementSibling;
-
-                var text = $(this).val();
-                validate_input(text, param_info,error_link);
-            }
-        }).appendTo(span) ;
-
-        if (!IPA.is_field_writable(rights)) {
-            that.read_only = true;
-            input.attr('disabled', 'disabled');
-        }
-
-        span.append($("<a/>", {
-            html:"undo",
-            "class":"ui-state-highlight ui-corner-all undo",
-            style:"display:none",
-            click: function(){
-                var previous_value = that.values || '';
-                if (index >= previous_value.length){
-                    previous_value = '';
-                }else{
-                    previous_value= previous_value[index];
-                }
-
-                this.previousElementSibling.value =  previous_value;
-                this.style.display = "none";
-                var error_link = this.nextElementSibling;
-                validate_input(previous_value, param_info,error_link);
-            }
-        }));
-        span.append($("<span/>", {
-            html:"Does not match pattern",
-            "class":"ui-state-error ui-corner-all",
-            style:"display:none"
-        }));
-        return span;
-    };
-
-    function save() {
-        var values = [];
-
-        $('dd', that.container).each(function () {
-
-            var input = $('input', $(this));
-            if (!input.length) return;
-
-            if (input.is('.strikethrough')) return;
-
-            var value = $.trim(input.val());
-            if (!value) value = '';
-
-            values.push(value);
-        });
-
-        return values;
-    }
-
-    return that;
-};
-
-
-IPA.details_section = function (spec){
+IPA.details_section = function(spec) {
 
     spec = spec || {};
 
@@ -305,11 +43,11 @@ IPA.details_section = function (spec){
     that.fields = [];
     that.fields_by_name = {};
 
-    that.__defineGetter__("entity_name", function(){
+    that.__defineGetter__('entity_name', function() {
         return that._entity_name;
     });
 
-    that.__defineSetter__("entity_name", function(entity_name){
+    that.__defineSetter__('entity_name', function(entity_name) {
         that._entity_name = entity_name;
 
         for (var i=0; i<that.fields.length; i++) {
@@ -355,36 +93,6 @@ IPA.details_section = function (spec){
         var field = IPA.radio_widget(spec);
         that.add_field(field);
         return that;
-    };
-
-    that.create_text = function(spec) {
-        var field = IPA.text_widget(spec);
-        that.add_field(field);
-        return field;
-    };
-
-    that.create_checkbox = function(spec) {
-        var field = IPA.checkbox_widget(spec);
-        that.add_field(field);
-        return field;
-    };
-
-    that.create_radio = function(spec) {
-        var field = IPA.radio_widget(spec);
-        that.add_field(field);
-        return field;
-    };
-
-    that.create_select = function(spec) {
-        var field = IPA.select_widget(spec);
-        that.add_field(field);
-        return field;
-    };
-
-    that.create_textarea = function(spec) {
-        var field = IPA.textarea_widget(spec);
-        that.add_field(field);
-        return field;
     };
 
     that.init = function() {
@@ -459,10 +167,10 @@ IPA.details_section = function (spec){
         }
     };
 
-    that.is_dirty = function(){
+    that.is_dirty = function() {
         for (var i=0; i<that.fields.length; i++) {
             var field = that.fields[i];
-            if (field.is_dirty()){
+            if (field.is_dirty()) {
                 return true;
             }
         }
@@ -482,29 +190,33 @@ IPA.details_section = function (spec){
 
 /**
  * This class creates a details section formatted as a list of
- * attributes names and values. The list is defined using <dl> tag.
+ * attributes names and values. The list is defined using a <dl> tag.
  * The attribute name is defined inside a <dt> tag. The attribute
- * value is defined using a <dd> tag inside a <span> tag. If the
- * attribute has multiple values the content inside <span> will
- * be duplicated to display each value.
+ * value is specified within a <span> inside a <dd> tag. If the
+ * attribute has multiple values the <span> will contain be
+ * duplicated to display each value.
  *
  * Example:
  *   <dl class="entryattrs">
  *
  *     <dt title="givenname">First Name:</dt>
- *     <span name="givenname">
- *       <dd><input type="text" size="20"/></dd>
- *     </span>
+ *     <dd>
+ *       <span name="givenname">
+ *         John Smith
+ *       </span>
+ *     </dd>
  *
  *     <dt title="telephonenumber">Telephone Number:</dt>
- *     <span name="telephonenumber">
- *       <dd><input type="text" size="20"/></dd>
- *       <dd><input type="text" size="20"/></dd>
- *     </span>
+ *     <dd>
+ *       <span name="telephonenumber">
+ *         <div name="value">111-1111</div>
+ *         <div name="value">222-2222</div>
+ *       </span>
+ *     </dd>
  *
  *   </dl>
  */
-IPA.details_list_section = function (spec){
+IPA.details_list_section = function(spec) {
 
     spec = spec || {};
 
@@ -549,7 +261,7 @@ IPA.details_list_section = function (spec){
 
 
 /* shorthand notation used for declarative definitions of details pages */
-IPA.stanza =  function (spec) {
+IPA.stanza =  function(spec) {
 
     spec = spec || {};
 
@@ -570,7 +282,7 @@ IPA.stanza =  function (spec) {
 };
 
 
-IPA.details_facet = function (spec) {
+IPA.details_facet = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'details';
@@ -817,7 +529,7 @@ IPA.button = function(spec) {
     return button;
 };
 
-IPA.details_refresh =  function () {
+IPA.details_refresh = function() {
 
     var that = this;
 
@@ -843,8 +555,7 @@ IPA.details_refresh =  function () {
     command.execute();
 };
 
-IPA.details_update = function (on_win, on_fail)
-{
+IPA.details_update = function(on_win, on_fail) {
     var that = this;
     var entity_name = that.entity_name;
 
@@ -927,50 +638,4 @@ IPA.details_update = function (on_win, on_fail)
     //alert(JSON.stringify(command.to_json()));
 
     command.execute();
-};
-
-
-IPA.create_first_dd = function (field_name, content){
-    var dd = $('<dd/>', {
-        'class': 'first',
-        'title': field_name
-    });
-    if (content) dd.append(content);
-    return dd;
-};
-
-IPA.create_other_dd = function (field_name, content){
-    return $('<dd/>', {
-        'class': 'other',
-        'title': field_name
-    }).append(content);
-};
-
-
-
-IPA.details_field_create_add_link = function (title, rights, index) {
-
-    var that = this;
-
-    var link = $('<a/>', {
-        'href': 'jslink',
-        'title': title,
-        'html': 'Add',
-        'click': function () {
-
-            var param_info = IPA.get_param_info(that.entity_name, '');
-            var input = that.create_input('', param_info, rights, index);
-
-            link.replaceWith(input);
-            input.focus();
-
-            var dd = IPA.create_other_dd(that.name);
-            dd.append(IPA.details_field_create_add_link.call(that, that.name, rights, index+1));
-            dd.appendTo(that.container);
-
-            return false;
-        }
-    });
-
-    return link;
 };
