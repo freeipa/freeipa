@@ -352,7 +352,8 @@ IPA.text_widget = function(spec) {
 
     that.save = function() {
         if (that.read_only || !that.writable) {
-            return that.values;
+            return null;
+
         } else {
             var input = $('input[name="'+that.name+'"]', that.container);
             var value = $.trim(input.val());
