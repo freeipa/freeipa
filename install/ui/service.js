@@ -223,7 +223,8 @@ function service_provisioning_status_widget(spec) {
         that.widget_create(container);
 
         var div = $('<div/>', {
-            'class': 'kerberos-key-valid'
+            name: 'kerberos-key-valid',
+            style: 'display: none;'
         }).appendTo(container);
 
         $('<img/>', {
@@ -247,7 +248,8 @@ function service_provisioning_status_widget(spec) {
         }).appendTo(content_div);
 
         div = $('<div/>', {
-            name: 'kerberos-key-missing'
+            name: 'kerberos-key-missing',
+            style: 'display: none;'
         }).appendTo(container);
 
         $('<img/>', {

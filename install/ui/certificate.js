@@ -414,7 +414,8 @@ function certificate_status_widget(spec) {
         that.widget_create(container);
 
         var div = $('<div/>', {
-            name: 'certificate-valid'
+            name: 'certificate-valid',
+            style: 'display: none;'
         }).appendTo(container);
 
         $('<img/>', {
@@ -465,7 +466,8 @@ function certificate_status_widget(spec) {
 
         if (!that.is_selfsign()) {
             div = $('<div/>', {
-                name: 'certificate-revoked'
+                name: 'certificate-revoked',
+                style: 'display: none;'
             }).appendTo(container);
 
             $('<img/>', {
@@ -504,7 +506,8 @@ function certificate_status_widget(spec) {
         }
 
         div = $('<div/>', {
-            name: 'certificate-missing'
+            name: 'certificate-missing',
+            style: 'display: none;'
         }).appendTo(container);
 
         $('<img/>', {
