@@ -42,7 +42,7 @@ User management options:
 Search tuning options. These impact how much data is searched through and
 how many records may be returned on a given search.
 
-  --searchtimelimit=INT Max. amount of time (sec.) for a search (-1 is
+  --searchtimelimit=INT Max. amount of time (sec.) for a search (> 0, or -1 for
                         unlimited)
   --searchrecordslimit=INT Max. number of records to search (-1 is unlimited)
 
@@ -119,7 +119,7 @@ class config(LDAPObject):
         Int('ipasearchtimelimit?', validate_searchtimelimit,
             cli_name='searchtimelimit',
             label=_('Search time limit'),
-            doc=_('Max. amount of time (sec.) for a search (-1 is unlimited)'),
+            doc=_('Max. amount of time (sec.) for a search (> 0, or -1 for unlimited)'),
             minvalue=-1,
         ),
         Int('ipasearchrecordslimit?',
