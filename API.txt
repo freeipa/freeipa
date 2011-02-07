@@ -809,6 +809,69 @@ option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
+command: entitle_consume
+args: 1,4,3
+arg: Int('quantity', label=Gettext('Quantity', domain='ipa', localedir=None), minvalue=1)
+option: Int('hidden', autofill=True, default=1, flags=['no_option', 'no_output'], label=Gettext('Quantity', domain='ipa', localedir=None), minvalue=1)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
+option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
+command: entitle_find
+args: 1,5,4
+arg: Str('criteria?')
+option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
+option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('Size Limit', domain='ipa', localedir=None), minvalue=0)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
+option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
+output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
+output: Output('count', <type 'int'>, 'Number of entries returned')
+output: Output('truncated', <type 'bool'>, 'True if not all results were returned')
+command: entitle_get
+args: 0,3,4
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
+option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
+output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
+output: Output('count', <type 'int'>, 'Number of entries returned')
+output: Output('truncated', <type 'bool'>, 'True if not all results were returned')
+command: entitle_import
+args: 1,3,1
+arg: File('usercertificate*', validate_certificate, cli_name='certificate_file')
+option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
+option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
+option: Str('uuid?', autofill=True, default=u'IMPORTED', flags=['no_create', 'no_update'], label=Gettext('UUID', domain='ipa', localedir=None))
+output: Output('result', <type 'dict'>, Gettext('Dictionary mapping variable name to value', domain='ipa', localedir=None))
+command: entitle_register
+args: 1,7,3
+arg: Str('username', label=Gettext('Username', domain='ipa', localedir=None))
+option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
+option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
+option: Str('ipaentitlementid?', flags=['no_create', 'no_update'], label='UUID')
+option: Password('password', label=Gettext('Password', domain='ipa', localedir=None))
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
+option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
+command: entitle_status
+args: 0,0,1
+output: Output('result', <type 'dict'>, Gettext('Dictionary mapping variable name to value', domain='ipa', localedir=None))
+command: entitle_sync
+args: 0,4,3
+option: Int('hidden', autofill=True, default=1, flags=['no_option', 'no_output'], label=Gettext('Quantity', domain='ipa', localedir=None), minvalue=1)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
+option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: env
 args: 1,2,4
 arg: Str('variables*')

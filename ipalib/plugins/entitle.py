@@ -55,13 +55,12 @@ from ipalib import api, SkipPluginModule
 try:
     from rhsm.connection import *
     from rhsm.certificate import EntitlementCertificate
-    from ipapython import ipautil
-    import base64
-    from ipalib.plugins.service import validate_certificate, normalize_certificate
+    import M2Crypto
     if api.env.in_server and api.env.context in ['lite', 'server']:
         from ipaserver.install.certs import NSS_DIR
 except ImportError, e:
-    raise SkipPluginModule(reason=str(e))
+    if not api.env.validate_api:
+        raise SkipPluginModule(reason=str(e))
 
 import os
 from ipalib import api, errors
@@ -71,13 +70,15 @@ from ipalib.plugins.virtual import *
 from ipalib import _, ngettext
 from ipalib.output import Output, standard_list_of_entries
 from ipalib.request import context
+from ipapython import ipautil
 import tempfile
 import shutil
 import socket
+import base64
 from OpenSSL import crypto
-import M2Crypto
 from ipapython.ipautil import run
 from ipalib.request import context
+from ipalib.plugins.service import validate_certificate, normalize_certificate
 
 import locale
 
