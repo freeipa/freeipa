@@ -156,7 +156,7 @@ def add_reverse_zone(ip_address, update_policy=None, dns_backup=None):
     return zone
 
 def add_rr(zone, name, type, rdata, dns_backup=None, **kwargs):
-    addkw = { '%srecord' % unicode(type.lower()) : unicode(rdata) }
+    addkw = { '%srecord' % str(type.lower()) : unicode(rdata) }
     addkw.update(kwargs)
     try:
         api.Command.dnsrecord_add(unicode(zone), unicode(name), **addkw)
@@ -177,7 +177,7 @@ def add_ptr_rr(ip_address, fqdn, dns_backup=None):
     add_rr(zone, name, "PTR", fqdn+".", dns_backup)
 
 def del_rr(zone, name, type, rdata):
-    delkw = { '%srecord' % unicode(type.lower()) : unicode(rdata) }
+    delkw = { '%srecord' % str(type.lower()) : unicode(rdata) }
     try:
         api.Command.dnsrecord_del(unicode(zone), unicode(name), **delkw)
     except (errors.NotFound, errors.EmptyModlist):
@@ -232,7 +232,7 @@ class DnsBackup(object):
                 if have_ldap:
                     type, host, rdata = dns_record.split(" ", 2)
                     try:
-                        delkw = { '%srecord' % unicode(type.lower()) : unicode(rdata) }
+                        delkw = { '%srecord' % str(type.lower()) : unicode(rdata) }
                         api.Command.dnsrecord_del(unicode(zone), unicode(host), **delkw)
                     except:
                         pass
