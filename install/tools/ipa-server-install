@@ -429,6 +429,7 @@ def uninstall():
     except:
         pass
 
+    sstore._load()
     group_exists = sstore.restore_state("install", "group_exists")
     if group_exists == False:
         try:
