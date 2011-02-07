@@ -196,7 +196,11 @@ class LanguageAwareTransport(Transport):
     def get_host_info(self, host):
         (host, extra_headers, x509) = Transport.get_host_info(self, host)
 
-        lang = locale.setlocale(locale.LC_ALL, '').split('.')[0].lower()
+        try:
+            lang = locale.setlocale(locale.LC_ALL, '').split('.')[0].lower()
+        except locale.Error:
+            # fallback to default locale
+            lang = 'en_us'
 
         if not isinstance(extra_headers, list):
             extra_headers = []
