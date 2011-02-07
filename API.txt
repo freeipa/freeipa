@@ -1427,8 +1427,8 @@ output: Output('metadata', <type 'dict'>, Gettext('Dict of JSON encoded IPA Obje
 command: krbtpolicy_mod
 args: 1,8,3
 arg: Str('uid', attribute=True, cli_name='user', label=Gettext('User name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
-option: Int('krbmaxticketlife', attribute=True, autofill=False, cli_name='maxlife', label=Gettext('Max life', domain='ipa', localedir=None), multivalue=False, required=False)
-option: Int('krbmaxrenewableage', attribute=True, autofill=False, cli_name='maxrenew', label=Gettext('Max renew', domain='ipa', localedir=None), multivalue=False, required=False)
+option: Int('krbmaxticketlife', attribute=True, autofill=False, cli_name='maxlife', label=Gettext('Max life', domain='ipa', localedir=None), minvalue=1, multivalue=False, required=False)
+option: Int('krbmaxrenewableage', attribute=True, autofill=False, cli_name='maxrenew', label=Gettext('Max renew', domain='ipa', localedir=None), minvalue=1, multivalue=False, required=False)
 option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
 option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False, label=Gettext('Rights', domain='ipa', localedir=None))

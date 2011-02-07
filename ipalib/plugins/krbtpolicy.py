@@ -69,11 +69,13 @@ class krbtpolicy(LDAPObject):
             cli_name='maxlife',
             label=_('Max life'),
             doc=_('Maximum ticket life (seconds)'),
+            minvalue=1,
         ),
         Int('krbmaxrenewableage?',
             cli_name='maxrenew',
             label=_('Max renew'),
             doc=_('Maximum renewable age (seconds)'),
+            minvalue=1,
         ),
     )
 
