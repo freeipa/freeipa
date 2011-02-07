@@ -23,6 +23,16 @@ There is a single Kerberos ticket policy. This policy defines the
 maximum ticket lifetime and the maximum renewal age, the period during
 which the ticket is renewable.
 
+You can also create a per-user ticket policy by specifying the user login.
+
+For changes to the global policy to take effect, restarting the KDC service
+is required, which can be achieved using:
+
+service krb5kdc restart
+
+Changes to per-user policies take effect immediatly for newly requested
+tickets.
+
 EXAMPLES:
 
  Display the current Kerberos ticket policy:
@@ -33,6 +43,15 @@ EXAMPLES:
 
  Modify the policy to 8 hours max life, 1-day max renewal:
   ipa krbtpolicy-mod --maxlife=28800 --maxrenew=86400
+
+ Display effective Kerberos ticket policy for user 'admin':
+  ipa krbtpolicy-show admin
+
+ Reset per-user policy for user 'admin':
+  ipa krbtpolicy-reset admin
+
+ Modify per-user policy for user 'admin':
+  ipa krbtpolicy-mod admin --maxlife=3600
 """
 
 from ipalib import api
