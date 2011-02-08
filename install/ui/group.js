@@ -29,21 +29,38 @@ IPA.entity_factories.group =  function () {
     return IPA.entity({
         'name': 'group'
     }).
-        facet(IPA.search_facet().
-              column({name:'cn'}).
-              column({name:'gidnumber'}).
-              column({name:'description'})).
         facet(
-            IPA.details_facet().section(
-                IPA.stanza({label: 'Group Settings' }).
-                    input({name: 'cn' }).
-                    input({name: 'description'}).
-                    input({name: 'gidnumber' }))).
-        facet( IPA.group_member_user_facet({
-            'name': 'member_user',
-            'label': 'Users',
-            'other_entity': 'user'
-        })).
+            IPA.search_facet().
+                column({name: 'cn'}).
+                column({name: 'gidnumber'}).
+                column({name: 'description'}).
+                dialog(
+                    IPA.add_dialog({
+                        'name': 'add',
+                        'title': 'Add New Group'
+                    }).
+                        field(IPA.text_widget({name: 'cn', undo: false})).
+                        field(IPA.text_widget({name: 'description', undo: false})).
+                        // TODO: Replace with i18n label
+                        field(IPA.checkbox_widget({
+                            name: 'posix',
+                            label: 'Is this a POSIX group?',
+                            undo: false,
+                            checked: 'checked'})).
+                        field(IPA.text_widget({name: 'gidnumber', undo: false})))).
+        facet(
+            IPA.details_facet().
+                section(
+                    IPA.stanza({label: 'Group Settings' }).
+                        input({name: 'cn' }).
+                        input({name: 'description'}).
+                        input({name: 'gidnumber' }))).
+        facet(
+            IPA.group_member_user_facet({
+                'name': 'member_user',
+                'label': 'Users',
+                'other_entity': 'user'
+            })).
         association({
             name: 'netgroup',
             associator: 'serial'
@@ -56,20 +73,6 @@ IPA.entity_factories.group =  function () {
             name: 'taskgroup',
             associator: 'serial'
         }).
-        add_dialog(
-            IPA.add_dialog({
-                'name': 'add',
-                'title': 'Add New Group'
-            }).
-                field(IPA.text_widget({name:'cn', undo: false})).
-                field(IPA.text_widget({name:'description', undo: false})).
-                // TODO: Replace with i18n label
-                field(IPA.checkbox_widget({
-                    name:'posix',
-                    label:'Is this a POSIX group?',
-                    undo: false,
-                    checked:'checked'})).
-                field(IPA.text_widget({name:'gidnumber', undo: false}))).
         standard_associations();
 };
 

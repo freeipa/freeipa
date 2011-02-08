@@ -30,16 +30,17 @@ IPA.entity_factories.hbacsvc = function () {
 
     that.init = function() {
 
-        var dialog = IPA.hbacsvc_add_dialog({
-            'name': 'add',
-            'title': 'Add New HBAC Service'
-        });
-        that.add_dialog(dialog);
-
         var facet = IPA.hbacsvc_search_facet({
             'name': 'search',
             'label': 'Search'
         });
+
+        var dialog = IPA.hbacsvc_add_dialog({
+            'name': 'add',
+            'title': 'Add New HBAC Service'
+        });
+        facet.dialog(dialog);
+
         that.add_facet(facet);
 
         facet = IPA.hbacsvc_details_facet({

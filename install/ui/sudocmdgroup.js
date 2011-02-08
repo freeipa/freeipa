@@ -36,16 +36,17 @@ IPA.entity_factories.sudocmdgroup = function () {
             'remove_method': 'remove_member'
         });
 
-        var dialog = IPA.sudocmdgroup_add_dialog({
-            'name': 'add',
-            'title': 'Add New SUDO Command Group'
-        });
-        that.add_dialog(dialog);
-        
         var facet = IPA.sudocmdgroup_search_facet({
             'name': 'search',
             'label': 'Search'
         });
+
+        var dialog = IPA.sudocmdgroup_add_dialog({
+            'name': 'add',
+            'title': 'Add New SUDO Command Group'
+        });
+        facet.dialog(dialog);
+
         that.add_facet(facet);
 
         facet = IPA.sudocmdgroup_details_facet({

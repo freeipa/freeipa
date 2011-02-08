@@ -36,16 +36,17 @@ IPA.entity_factories.hbacsvcgroup = function () {
             'remove_method': 'remove_member'
         });
 
-        var dialog = IPA.hbacsvcgroup_add_dialog({
-            'name': 'add',
-            'title': 'Add New HBAC Service Group'
-        });
-        that.add_dialog(dialog);
-
         var facet = IPA.hbacsvcgroup_search_facet({
             'name': 'search',
             'label': 'Search'
         });
+
+        var dialog = IPA.hbacsvcgroup_add_dialog({
+            'name': 'add',
+            'title': 'Add New HBAC Service Group'
+        });
+        facet.dialog(dialog);
+
         that.add_facet(facet);
 
         facet = IPA.hbacsvcgroup_details_facet({

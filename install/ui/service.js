@@ -33,13 +33,14 @@ IPA.entity_factories.service = function () {
             'add_method': 'add_host',
             'remove_method': 'remove_host'
         }).
-        dialog(
-            IPA.service_add_dialog({
-                'name': 'add',
-                'title': 'Add New Service'
-            })).
-        facet( IPA.search_facet().
-               column({name:'krbprincipalname'})).
+        facet(
+            IPA.search_facet().
+                column({name: 'krbprincipalname'}).
+                dialog(
+                    IPA.service_add_dialog({
+                        'name': 'add',
+                        'title': 'Add New Service'
+                    }))).
         facet( IPA.service_details_facet()).
         facet( IPA.service_managedby_host_facet({
             'name': 'managedby_host',

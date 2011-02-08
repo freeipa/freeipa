@@ -42,17 +42,17 @@ IPA.entity_factories.host = function () {
             'associator': 'serial'
         });
 
-        var dialog = IPA.host_add_dialog({
-            'name': 'add',
-            'title': 'Add New Host'
-        });
-        that.add_dialog(dialog);
-
         var facet = IPA.host_search_facet({
             'name': 'search',
             'label': 'Search'
         });
         that.add_facet(facet);
+
+        var dialog = IPA.host_add_dialog({
+            'name': 'add',
+            'title': 'Add New Host'
+        });
+        facet.dialog(dialog);
 
         facet = IPA.host_details_facet({
             'name': 'details'

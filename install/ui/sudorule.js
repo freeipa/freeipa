@@ -30,16 +30,17 @@ IPA.entity_factories.sudorule = function () {
 
     that.init = function() {
 
-        var dialog = IPA.sudorule_add_dialog({
-            'name': 'add',
-            'title': 'Add New Rule'
-        });
-        that.add_dialog(dialog);
-
         var facet = IPA.sudorule_search_facet({
             'name': 'search',
             'label': 'Search'
         });
+
+        var dialog = IPA.sudorule_add_dialog({
+            'name': 'add',
+            'title': 'Add New Rule'
+        });
+        facet.dialog(dialog);
+
         that.add_facet(facet);
 
         facet = IPA.sudorule_details_facet({

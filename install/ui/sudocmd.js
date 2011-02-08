@@ -30,16 +30,17 @@ IPA.entity_factories.sudocmd = function () {
 
     that.init = function() {
 
-        var dialog = IPA.sudocmd_add_dialog({
-            'name': 'add',
-            'title': 'Add New SUDO Command'
-        });
-        that.add_dialog(dialog);
-
         var facet = IPA.sudocmd_search_facet({
             'name': 'search',
             'label': 'Search'
         });
+
+        var dialog = IPA.sudocmd_add_dialog({
+            'name': 'add',
+            'title': 'Add New SUDO Command'
+        });
+        facet.dialog(dialog);
+
         that.add_facet(facet);
 
         facet = IPA.sudocmd_details_facet({

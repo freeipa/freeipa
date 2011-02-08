@@ -330,6 +330,9 @@ IPA.details_facet = function(spec) {
     };
 
     that.init = function() {
+
+        that.facet_init();
+
         for (var i=0; i<that.sections.length; i++) {
             var section = that.sections[i];
             section.init();

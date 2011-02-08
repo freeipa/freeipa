@@ -40,17 +40,35 @@ IPA.facet = function (spec) {
     that.setup = spec.setup || setup;
     that.load = spec.load || load;
 
-    that.__defineGetter__("entity_name", function(){
+    that.dialogs = [];
+    that.dialogs_by_name = {};
+
+    that.__defineGetter__('entity_name', function() {
         return that._entity_name;
     });
 
-    that.__defineSetter__("entity_name", function(entity_name){
+    that.__defineSetter__('entity_name', function(entity_name) {
         that._entity_name = entity_name;
     });
 
     that.create_action_panel = IPA.facet_create_action_panel;
 
+    that.get_dialog = function(name) {
+        return that.dialogs_by_name[name];
+    };
+
+    that.dialog = function(dialog) {
+        that.dialogs.push(dialog);
+        that.dialogs_by_name[dialog.name] = dialog;
+        return that;
+    };
+
     function init() {
+        for (var i=0; i<that.dialogs.length; i++){
+            var dialog = that.dialogs[i];
+            dialog.entity_name = that._entity_name;
+            dialog.init();
+        }
     }
 
     function create(container) {
@@ -75,6 +93,7 @@ IPA.facet = function (spec) {
         return $('.action-panel', that.container);
     };
 
+    // methods that should be invoked by subclasses
     that.facet_init = that.init;
     that.facet_create = that.create;
     that.facet_setup = that.setup;

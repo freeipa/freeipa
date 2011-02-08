@@ -23,7 +23,7 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.entity_factories.user = function (){
+IPA.entity_factories.user = function() {
 
     return IPA.entity({
         name: 'user'
@@ -43,7 +43,15 @@ IPA.entity_factories.user = function (){
                 column({name:'uidnumber'}).
                 column({name:'mail'}).
                 column({name:'telephonenumber'}).
-                column({name:'title'})).
+                column({name:'title'}).
+                dialog(
+                    IPA.add_dialog({
+                        'name': 'add',
+                        'title': 'Add User'
+                    }).
+                        field(IPA.text_widget({ name: 'uid', undo: false })).
+                        field(IPA.text_widget({ name: 'givenname', undo: false })).
+                        field(IPA.text_widget({ name: 'sn', undo: false })))).
         facet(IPA.details_facet().
             section(
                 IPA.stanza({name: 'identity', label: IPA.messages.details.identity}).
@@ -82,15 +90,7 @@ IPA.entity_factories.user = function (){
             section(
                 IPA.stanza({name: 'misc', label: IPA.messages.details.misc}).
                     input({name:'carlicense'}))).
-        standard_associations().
-        add_dialog(
-            IPA.add_dialog({
-                'name': 'add',
-                'title': 'Add User'
-            }).
-                field(IPA.text_widget({ name: 'uid', undo: false })).
-                field(IPA.text_widget({ name: 'givenname', undo: false })).
-                field(IPA.text_widget({ name: 'sn', undo: false })));
+        standard_associations();
 };
 
 /* ATTRIBUTE CALLBACKS */

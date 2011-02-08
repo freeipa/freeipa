@@ -523,26 +523,26 @@ IPA.entity_factories.permission = function() {
 
     return IPA.entity({
         'name': 'permission'
-    }).add_dialog(
-        IPA.add_dialog({
-            name: 'add',
-            title: 'Add New Permission',
-            width: '700px'
-        }).
-            field(IPA.text_widget({
-                name: 'cn',
-                undo: false
-            })).
-            field(IPA.rights_widget({name: 'permissions', label: 'Permissions', join: true, undo: false})).
-            section(IPA.target_section({name: 'target', label: 'Target', undo: false}))).
-        facet(IPA.search_facet().
-              column({name:'cn'})).
-        facet(IPA.permission_details_facet({ name: 'details' }).
-              section(
-                  IPA.stanza({name:'identity', label:'Identity'}).
-                      input({name: 'cn', 'read_only': true})).
-              section(IPA.rights_section()).
-              section(IPA.target_section({name: 'target', label: 'Target'})));
+    }).
+        facet(
+            IPA.search_facet().
+                column({name:'cn'}).
+                dialog(
+                    IPA.add_dialog({
+                        name: 'add',
+                        title: 'Add New Permission',
+                        width: '700px'
+                    }).
+                        field(IPA.text_widget({name: 'cn', undo: false})).
+                        field(IPA.rights_widget({name: 'permissions', label: 'Permissions', join: true, undo: false})).
+                        section(IPA.target_section({name: 'target', label: 'Target', undo: false})))).
+        facet(
+            IPA.permission_details_facet({ name: 'details' }).
+                section(
+                    IPA.stanza({name:'identity', label:'Identity'}).
+                        input({name: 'cn', 'read_only': true})).
+                section(IPA.rights_section()).
+                section(IPA.target_section({name: 'target', label: 'Target'})));
 
 };
 
@@ -554,19 +554,20 @@ IPA.entity_factories.privilege = function() {
         facet(
             IPA.search_facet().
                 column({name:'cn'}).
-                column({name:'description'})).
+                column({name:'description'}).
+                dialog(
+                    IPA.add_dialog({
+                        name: 'add',
+                        title: 'Add Privilege'
+                    }).
+                        field(IPA.text_widget({ name: 'cn', undo: false})).
+                        field(IPA.text_widget({ name: 'description', undo: false})))).
         facet(
             IPA.details_facet({name:'details'}).
                 section(
                     IPA.stanza({name:'identity', label:'Privilege Settings'}).
                         input({name:'cn'}).
                         input({name: 'description'}))).
-        add_dialog(
-            IPA.add_dialog({
-                name: 'add',
-                title: 'Add Privilege'}).
-                field(IPA.text_widget({ name: 'cn', undo: false})).
-                field(IPA.text_widget({ name: 'description', undo: false}))).
     association({
         name: 'permission',
         other_entity: 'privilege',
@@ -585,22 +586,23 @@ IPA.entity_factories.role = function() {
     return  IPA.entity({
         'name': 'role'
     }).
-        facet(IPA.search_facet().
-              column({name:'cn'}).
-              column({name:'description'})).
+        facet(
+            IPA.search_facet().
+                column({name:'cn'}).
+                column({name:'description'}).
+                dialog(
+                    IPA.add_dialog({
+                        name: 'add',
+                        title: 'Add Role'
+                    }).
+                        field(IPA.text_widget({ name: 'cn', undo: false})).
+                        field(IPA.text_widget({ name: 'description', undo: false})))).
         facet(
             IPA.details_facet({name:'details'}).
                 section(
                     IPA.stanza({name:'identity', label:'Role Settings'}).
                         input({name:'cn'}).
                         input({name: 'description'}))).
-        add_dialog(
-            IPA.add_dialog({
-                name: 'add',
-                title: 'Add Role'
-            }).
-                field(IPA.text_widget({ name: 'cn', undo: false})).
-                field(IPA.text_widget({ name: 'description', undo: false}))).
         association({
             name: 'privilege',
             add_method: 'add_privilege',
@@ -614,8 +616,19 @@ IPA.entity_factories.selfservice = function() {
     return IPA.entity({
         'name': 'selfservice'
     }).
-        facet(IPA.search_facet().
-              column({name:'aciname'})).
+        facet(
+            IPA.search_facet().
+                column({name:'aciname'}).
+                dialog(
+                    IPA.add_dialog({
+                        name: 'add',
+                        title: 'Add Self Service Definition'
+                    }).
+                        field(IPA.text_widget({ name: 'aciname', undo: false})).
+                        field(IPA.attributes_widget({
+                            object_type:'user',
+                            name:'attrs'
+                        })))).
         facet(
             IPA.details_facet({'name':'details'}).
                 section(
@@ -624,26 +637,30 @@ IPA.entity_factories.selfservice = function() {
                         custom_input(IPA.attributes_widget({
                             object_type:'user',
                             name:'attrs'
-                        })))).
-        add_dialog(
-            IPA.add_dialog({
-                name: 'add',
-                title: 'Add Self Service Definition'
-            }).
-                field(IPA.text_widget({ name: 'aciname', undo: false})).
-                field(IPA.attributes_widget({
-                    object_type:'user',
-                    name:'attrs'
-                })));
+                        }))));
 };
 
 
 IPA.entity_factories.delegation = function() {
     var that = IPA.entity({
         'name': 'delegation'
-    }).facet(
-        IPA.search_facet().
-            column({name:'aciname'})).
+    }).
+        facet(
+            IPA.search_facet().
+                column({name:'aciname'}).
+                dialog(
+                    IPA.add_dialog({
+                        name: 'add',
+                        title: 'Add Delegation',
+                        width: '700px'
+                    }).
+                        field(IPA.text_widget({name: 'aciname', undo: false})).
+                        field(IPA.entity_select_widget({name: 'group',
+                            entity: 'group', undo: false})).
+                        field(IPA.entity_select_widget({name: 'memberof', entity: 'group',
+                            join: true, undo: false})).
+                        field(IPA.attributes_widget({name: 'attrs', object_type: 'user',
+                            join: true, undo: false})))).
         facet(
             IPA.details_facet().
                 section(
@@ -660,18 +677,6 @@ IPA.entity_factories.delegation = function() {
                         custom_input(
                             IPA.attributes_widget({
                                 name:'attrs', object_type:'user', join: true})))).
-        add_dialog(IPA.add_dialog({
-            name: 'add',
-            title: 'Add Delegation',
-            width: '700px'
-        }).
-            field(IPA.text_widget({ name: 'aciname', undo: false})).
-            field(IPA.entity_select_widget({name:'group',
-                entity:'group', undo: false})).
-            field(IPA.entity_select_widget({name:'memberof', entity:'group',
-                join: true, undo: false})).
-            field(IPA.attributes_widget({ name: 'attrs', object_type:'user',
-                join: true, undo: false}))).
         standard_associations();
     return that;
 

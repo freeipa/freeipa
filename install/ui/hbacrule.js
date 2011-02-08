@@ -30,17 +30,17 @@ IPA.entity_factories.hbacrule = function () {
 
     that.init = function() {
 
-        var dialog = IPA.hbacrule_add_dialog({
-            'name': 'add',
-            'title': 'Add New Rule'
-        });
-        that.add_dialog(dialog);
-
-
         var facet = IPA.hbacrule_search_facet({
             'name': 'search',
             'label': 'Search'
         });
+
+        var dialog = IPA.hbacrule_add_dialog({
+            'name': 'add',
+            'title': 'Add New Rule'
+        });
+        facet.dialog(dialog);
+
         that.add_facet(facet);
 
         facet = IPA.hbacrule_details_facet({

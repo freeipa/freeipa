@@ -23,42 +23,41 @@
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
 IPA.entity_factories.netgroup = function() {
+
     var that = IPA.entity({
         'name': 'netgroup'
     });
+
     that.init = function() {
-        var search_facet = IPA.search_facet({
-            name: 'search',
-            label: 'Search',
-            entity_name: that.name
-        });
-        search_facet.create_column({name:'cn'});
-        search_facet.create_column({name:'description'});
-        that.add_facet(search_facet);
 
-        that.add_facet(function() {
-            var that = IPA.details_facet({name:'details'});
-            that.add_section(
-                IPA.stanza({name:'identity', label:'Netgroup Settings'}).
-                    input({name:'cn'}).
-                    input({name: 'description'}).
-                    input({name:'nisdomainname'}));
-            return that;
-        }());
+        that.facet(
+            IPA.search_facet({
+                name: 'search',
+                label: 'Search',
+                entity_name: that.name
+            }).
+                column({name:'cn'}).
+                column({name:'description'}).
+                dialog(
+                    IPA.add_dialog({
+                        name: 'add',
+                        title: 'Add Netgroup'
+                    }).
+                        field(IPA.text_widget({ name: 'cn', undo: false})).
+                        field(IPA.text_widget({ name: 'description', undo: false}))));
 
-
-        var dialog = IPA.add_dialog({
-            name: 'add',
-            title: 'Add Netgroup'
-        });
-        that.add_dialog(dialog);
-
-        dialog.add_field(IPA.text_widget({ name: 'cn', undo: false}));
-        dialog.add_field(IPA.text_widget({ name: 'description', undo: false}));
+        that.facet(
+            IPA.details_facet({name: 'details'}).
+                section(
+                    IPA.stanza({name: 'identity', label: 'Netgroup Settings'}).
+                        input({name: 'cn'}).
+                        input({name: 'description'}).
+                        input({name: 'nisdomainname'})));
 
         that.create_association_facets();
         that.entity_init();
     };
+
     return that;
 };
 
