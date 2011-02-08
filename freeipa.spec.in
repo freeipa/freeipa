@@ -29,10 +29,8 @@ BuildRequires:  svrcore-devel
 BuildRequires:  nspr-devel
 BuildRequires:  openssl-devel
 BuildRequires:  openldap-devel
-BuildRequires:  e2fsprogs-devel
 BuildRequires:  krb5-devel
 BuildRequires:  nss-devel
-BuildRequires:  libcap-devel
 BuildRequires:  python-devel
 BuildRequires:  autoconf
 BuildRequires:  automake
