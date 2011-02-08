@@ -234,6 +234,9 @@ IPA.dialog = function(spec) {
             var field = that.fields[i];
             field.reset();
         }
+        for (var j=0; j<that.sections.length; j++) {
+            that.sections[j].reset();
+        }
     };
 
     that.dialog_init = that.init;

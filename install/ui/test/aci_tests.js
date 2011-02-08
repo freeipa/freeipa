@@ -130,33 +130,54 @@ test("IPA.rights_widget.", function() {
 test("Testing aci grouptarget.", function() {
     var sample_data_filter_only = {"targetgroup":"ipausers"};
     target_section.load(sample_data_filter_only);
-    ok($('#aci_by_group')[0].checked, 'aci_by_group control selected');
-    ok ($('#targetgroup-entity-select option').length > 2,'group select populated');
+
+    var selected = $(target_section.type_select+":selected");
+
+    same(selected.val(), 'targetgroup' , 'group control selected');
+    ok ($('#targetgroup-entity-select option').length > 2,
+        'group select populated');
 
 });
 
-
-
-test("Testing aci object type.", function() {
+test("Testing type target.", function() {
     var sample_data_filter_only = {"type":"hostgroup"};
+
     target_section.load(sample_data_filter_only);
-    ok($('.aci-attribute', target_container).length > 4);
-    ok($('#aci_by_type')[0].checked, 'aci_by_type control selected');
+    var selected = $(target_section.type_select+":selected");
+    same(selected.val(), 'type', 'type selected');
+
+    $("input[type=checkbox]").attr("checked",true);
+    var response_record = {};
+    target_section.save(response_record);
+    same(response_record.type, sample_data_filter_only.type,
+         "saved type matches sample data");
+    ok((response_record.attrs.length > 10),
+       "response length shows some attrs set");
 
 });
 
 
-test("Testing aci filter only.", function() {
+test("Testing filter target.", function() {
 
     var sample_data_filter_only = {"filter":"somevalue"};
 
     target_section.load(sample_data_filter_only);
 
-    var filter_radio = $('#aci_by_filter');
+    var selected = $(target_section.type_select+":selected");
+    same(selected.val(), 'filter', 'filter selected');
+});
 
-    ok(filter_radio.length,'find "filter_only_radio" control');
-    ok(filter_radio[0].checked,'filter_only_radio control is checked');
 
+
+test("Testing subtree target.", function() {
+
+    var sample_data = {
+        subtree:"ldap:///cn=*,cn=roles,cn=accounts,dc=example,dc=co"};
+
+    target_section.load(sample_data);
+    var record = {};
+    target_section.save(record);
+    same(record.subtree, sample_data.subtree, 'subtree set correctly');
 });
 
 

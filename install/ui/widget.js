@@ -59,6 +59,7 @@ IPA.widget = function(spec) {
     that.validate_input = spec.validate_input || validate_input;
     that.valid = true;
     that.param_info = spec.param_info;
+    that.values = [];
 
     that.__defineGetter__("entity_name", function(){
         return that._entity_name;
@@ -220,26 +221,25 @@ IPA.widget = function(spec) {
     };
 
     that.create_undo = function(container) {
-        $('<span/>', {
-            name: 'undo',
-            style: 'display: none;',
-            'class': 'ui-state-highlight ui-corner-all undo',
-            html: 'undo'
-        }).appendTo(container);
+        that.undo_span =
+            $('<span/>', {
+                name: 'undo',
+                style: 'display: none;',
+                'class': 'ui-state-highlight ui-corner-all undo',
+                html: 'undo'
+            }).appendTo(container);
     };
 
     that.get_undo = function() {
-        return $('span[name="undo"]', that.container);
+        return $(that.undo_span);
     };
 
     that.show_undo = function() {
-        var undo = that.get_undo();
-        undo.css('display', 'inline');
+        $(that.undo_span).css('display', 'inline');
     };
 
     that.hide_undo = function() {
-        var undo = that.get_undo();
-        undo.css('display', 'none');
+        $(that.undo_span).css('display', 'none');
     };
 
     that.get_error_link = function() {
@@ -876,9 +876,7 @@ IPA.select_widget = function(spec) {
             that.create_undo(container);
         }
     };
-
     that.setup = function(container) {
-
         that.widget_setup(container);
 
         that.select = $('select[name="'+that.name+'"]', that.container);
