@@ -134,7 +134,7 @@ Requires: authconfig
 Requires: pam_krb5
 Requires: wget
 Requires: xmlrpc-c
-Requires: sssd >= 1.2.1
+Requires: sssd >= 1.5.1
 Requires: certmonger >= 0.26
 Requires: nss-tools
 
@@ -475,6 +475,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Wed Feb  9 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-44
+- Set minimum version of sssd to 1.5.1
+
 * Thu Feb  2 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-43
 - Set min version of 389-ds-base to 1.2.8
 - Set min version of mod_nss 1.0.8-10
