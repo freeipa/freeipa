@@ -50,6 +50,7 @@ body{
 
 .input_link span.ui-icon {
     -moz-border-radius: 0.3em;
+	-webkit-border-radius: 0.3em;
     border: 1px solid #B8B8B8;
     margin: -0.9em 0.4em 0em -0.3em;
     position: absolute;
@@ -59,6 +60,7 @@ body{
 
 .input_link_disabled span.ui-icon {
     -moz-border-radius: 0.3em;
+	-webkit-border-radius: 0.3em;
     border: 1px solid #B8B8B8;
     margin: -0.9em 0.4em 0em -0.3em;
     position: absolute;
@@ -169,11 +171,14 @@ h1 {
 
 .entity-container h1{
     -moz-border-radius: 0.5em 0.5em 0 0;
-        background: -moz-linear-gradient(center top , #EEEEEE, #DFDFDF) repeat scroll 0 0 transparent;
-        margin-top: 1.5em;
-        padding: 0.5em 0.9em;
-        position: relative;
-        width: 40.5em;
+	-webkit-border-radius: 0.5em 0.5em 0 0;
+    background: -moz-linear-gradient(center top , #EEEEEE, #DFDFDF) repeat scroll 0 0 transparent;
+    background: -webkit-gradient(linear, left top, left bottom, from(#EEEEEE), to(#DFDFDF));
+	margin-top: 1.5em;
+    padding: 0.5em 0.9em;
+    position: relative;
+    width: 40.5em;
+	margin-left: 1.9em;
 }
 
 h2 {
@@ -190,7 +195,9 @@ h2 {
 .section-expand{
     float:left;
     -moz-border-radius: 0.3em;
+	-webkit-border-radius: 0.3em;
     background-color: -moz-linear-gradient(top,  #959595,  #5e5e5e);
+	background: -webkit-gradient(linear, left top, left bottom, from(#959595), to(#5e5e5e));
     border: 1px solid #b8b8b8;
     color: #fff;
     margin-right: 0.5em;
@@ -358,7 +365,8 @@ span.attrhint {
     border: none;
     background-image: url("Mainnav-background.png");
     -moz-border-radius: 0;
-        height: 3.5em;
+	-webkit-border-radius: 0;
+    height: 3.5em;
 }
 
 .ui-tabs {
@@ -434,7 +442,9 @@ span.attrhint {
 
 .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default {
     -moz-border-radius: .3em;
+	-webkit-border-radius: .3em;
      background: -moz-linear-gradient(top,  #959595,  #5e5e5e);
+	 background: -webkit-gradient(linear, left top, left bottom, from(#959595), to(#5e5e5e));
      border: 1px solid #777777;
      color: #fff;
      font-weight: normal;
@@ -476,6 +486,7 @@ span.ui-icon-search {
 
 .tabs1 .ui-tabs-nav li {
     -moz-border-radius: 0 !important;
+	-webkit-border-radius: 0 !important;
     background-image: url("Mainnav-offtab.png");
     margin: 0;
     border-width: 0;
@@ -492,10 +503,11 @@ span.ui-icon-search {
 
 .tabs1 .ui-tabs-nav li a{
     -moz-border-radius: 0 !important;
+	-webkit-border-radius: 0 !important;
     font-family: "FreeWayBold", "Liberation Sans", Arial, Sans;
     width: 5em;
     padding: none;
-    color: #7E7E7E;
+    color: #FFFFFF;
     margin: 0 auto;
     text-align:center;
     font-size:1.5em;
@@ -544,6 +556,7 @@ span.ui-icon-search {
     width:auto;
     padding: 0.3em 0.8em ;
     -moz-border-radius: 2em !important;
+	-webkit-border-radius: 2em !important;
     border-radius: 2em !important;
     color: white;
     font-size: 1em;
@@ -580,9 +593,8 @@ span.main-separator{
 
 .entity-container{
     position: relative;
-    left: 21.5em;
     width: 80%;
-    margin: 0.06em;
+    margin: 0.06em 0.06em 0.06em 18.5em;
     padding: 0.06em;
     background: #e8e8e8;
 }
@@ -594,7 +606,7 @@ span.main-separator{
     border: none;
     float: none;
     margin-top: 2.2em;
-    margin-left: -19.5em;
+    margin-left: -16.5em;
     margin-right: 0;
     padding-left: 0;
     width: 18em;
@@ -725,6 +737,7 @@ a.action-button-disabled {
     margin-top: 0.4em;
     float: left;
     min-width: 70em;
+	margin-left: 3em;
 }
 
 
@@ -732,8 +745,10 @@ a.action-button-disabled {
 
 .search-controls {
     -moz-border-radius: .7em .7em 0 0;
+	-webkit-border-radius: .7em .7em 0 0;
     height:2.5em;
     background: -moz-linear-gradient(top,  #eeeeee,  #dfdfdf);
+	background: -webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#dfdfdf));
     position: relative;
     padding: 1em 1.5em;
     margin-top: 1.5em;
