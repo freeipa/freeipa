@@ -29,7 +29,7 @@ from optparse import OptionParser
 from ipapython import ipautil
 from ipaserver.install import bindinstance, dsinstance, installutils, certs
 from ipaserver.install.bindinstance import add_zone, add_reverse_zone, add_rr, add_ptr_rr
-from ipaserver.install.replication import check_replication_plugin
+from ipaserver.install.replication import check_replication_plugin, enable_replication_version_checking
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
 from ipalib import api, errors, util
@@ -296,6 +296,8 @@ def main():
         sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
 
     print "Preparing replica for %s from %s" % (replica_fqdn, api.env.host)
+    enable_replication_version_checking(api.env.host, api.env.realm,
+        dirman_password)
 
     subject_base = get_subject_base(api.env.host, dirman_password, util.realm_to_suffix(api.env.realm))
 

@@ -22,6 +22,7 @@ import time, logging
 import os
 import ldap
 from ipaserver import ipaldap
+from ipaserver.install.service import restart
 from ldap import modlist
 from ipalib import util
 from ipalib import errors
@@ -52,6 +53,26 @@ def check_replication_plugin():
         return False
 
     return True
+
+def enable_replication_version_checking(hostname, realm, dirman_passwd):
+    """
+    Check the replication version checking plugin. If it is not
+    enabled then enable it and restart 389-ds. If it is enabled
+    the do nothing.
+    """
+    conn = ipaldap.IPAdmin(hostname, port=PORT, cacert=CACERT)
+    if dirman_passwd:
+        conn.do_simple_bind(bindpw=dirman_passwd)
+    else:
+        conn.sasl_interactive_bind_s('', SASL_AUTH)
+    entry = conn.search_s('cn=IPA Version Replication,cn=plugins,cn=config', ldap.SCOPE_BASE, 'objectclass=*')
+    if entry[0].getValue('nsslapd-pluginenabled') == 'off':
+        conn.modify_s(entry[0].dn, [(ldap.MOD_REPLACE, 'nsslapd-pluginenabled', 'on')])
+        conn.unbind()
+        serverid = "-".join(realm.split("."))
+        restart("dirsrv", instance_name=serverid)
+    else:
+        conn.unbind()
 
 class ReplicationManager:
     """Manage replication agreements between DS servers, and sync

@@ -289,6 +289,10 @@ class DsInstance(service.Service):
 
 
     def __setup_replica(self):
+        replication.enable_replication_version_checking(self.fqdn,
+            self.realm_name,
+            self.dm_password)
+
         repl = replication.ReplicationManager(self.realm_name,
                                               self.fqdn,
                                               self.dm_password)

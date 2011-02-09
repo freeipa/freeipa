@@ -7,7 +7,7 @@ cn: IPA Version Replication
 nsslapd-pluginpath: libipa_repl_version
 nsslapd-plugininitfunc: repl_version_plugin_init
 nsslapd-plugintype: preoperation
-nsslapd-pluginenabled: on
+nsslapd-pluginenabled: off
 nsslapd-pluginid: ipa_repl_version
 nsslapd-pluginversion: 1.0
 nsslapd-pluginvendor: Red Hat, Inc.
