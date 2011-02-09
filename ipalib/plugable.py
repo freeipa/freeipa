@@ -44,6 +44,17 @@ from constants import DEFAULT_CONFIG, FORMAT_STDERR, FORMAT_FILE
 # FIXME: Updated constants.TYPE_ERROR to use this clearer format from wehjit:
 TYPE_ERROR = '%s: need a %r; got a %r: %r'
 
+def is_production_mode(obj):
+    """
+    If the object has self.env.mode defined and that mode is
+    production return True, otherwise return False.
+    """
+    if getattr(obj, 'env', None) is None:
+        return False
+    if getattr(obj.env, 'mode', None) is None:
+        return False
+    return obj.env.mode == 'production'
+
 
 class SetProxy(ReadOnly):
     """
@@ -207,9 +218,8 @@ class Plugin(ReadOnly):
     def finalize(self):
         """
         """
-        if self.env.mode == 'production':
-            return
-        lock(self)
+        if not is_production_mode(self):
+            lock(self)
 
     def set_api(self, api):
         """
@@ -597,13 +607,14 @@ class API(DictProxy):
                 p.bases.append(base)
                 yield p.instance
 
+        production_mode = is_production_mode(self)
         for name in self.register:
             base = self.register[name]
             magic = getattr(self.register, name)
             namespace = NameSpace(
                 plugin_iter(base, (magic[k] for k in magic))
             )
-	    if self.env.mode != 'production':
+	    if not production_mode:
                 assert not (
                     name in self.__d or hasattr(self, name)
                 )
@@ -612,12 +623,12 @@ class API(DictProxy):
 
         for p in plugins.itervalues():
             p.instance.set_api(self)
-            if self.env.mode != 'production':
+	    if not production_mode:
                 assert p.instance.api is self
 
         for p in plugins.itervalues():
             p.instance.finalize()
-            if self.env.mode != 'production':
+	    if not production_mode:
                 assert islocked(p.instance) is True
         object.__setattr__(self, '_API__finalized', True)
         tuple(PluginInfo(p) for p in plugins.itervalues())

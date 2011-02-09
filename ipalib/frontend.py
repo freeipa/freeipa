@@ -24,7 +24,7 @@ Base classes for all front-end plugins.
 import re
 import inspect
 from base import lock, check_name, NameSpace
-from plugable import Plugin
+from plugable import Plugin, is_production_mode
 from parameters import create_param, parse_param_spec, Param, Str, Flag, Password
 from util import make_repr
 from output import Output, Entry, ListOfEntries
@@ -351,7 +351,7 @@ class HasParam(Plugin):
             self._filter_param_by_context(name, env),
             sort=False
         )
-        if self.env.mode != 'production':
+        if not is_production_mode(self):
             check = getattr(self, 'check_' + name, None)
             if callable(check):
                 check(namespace)

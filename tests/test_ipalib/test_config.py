@@ -568,6 +568,8 @@ class test_Env(ClassChecker):
         for (key, value) in defaults.items():
             if value is object:
                 continue
+            if key == 'mode':
+                continue
             assert o[key] == value, '%r is %r; should be %r' % (key, o[key], value)
 
     def test_finalize(self):
