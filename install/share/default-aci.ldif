@@ -15,10 +15,10 @@ aci: (targetattr = "krbPrincipalName || krbCanonicalName || krbUPEnabled || krbM
 aci: (targetfilter = "(objectClass=krbPwdPolicy)")(targetattr = "krbMaxPwdLife || krbMinPwdLife || krbPwdMinDiffChars || krbPwdMinLength || krbPwdHistoryLength")(version 3.0;acl "Admins can write password policies"; allow (read, search, compare, write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 aci: (targetattr = "*")(target = "ldap:///cn=*,ou=SUDOers,$SUFFIX")(version 3.0; acl "No anonymous access to sudo"; deny (read,search,compare) userdn != "ldap:///all";)
 
-dn: cn=users,cn=accounts,$SUFFIX
+dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeeType  || businesscategory || ou")(version 3.0;acl "Self service";allow (write) userdn = "ldap:///self";)
+aci: (targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype  || businesscategory || ou")(version 3.0;acl "selfservice:User Self service";allow (write) userdn = "ldap:///self";)
 
 dn: cn=etc,$SUFFIX
 changetype: modify
