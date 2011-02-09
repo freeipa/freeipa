@@ -23,35 +23,36 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.entity_factories.service = function () {
+IPA.entity_factories.service = function() {
 
     return  IPA.entity({
-        'name': 'service'
+        name: 'service'
     }).
         association({
-            'name': 'host',
-            'add_method': 'add_host',
-            'remove_method': 'remove_host'
+            name: 'host',
+            add_method: 'add_host',
+            remove_method: 'remove_host'
         }).
         facet(
             IPA.search_facet().
                 column({name: 'krbprincipalname'}).
                 dialog(
                     IPA.service_add_dialog({
-                        'name': 'add',
-                        'title': 'Add New Service'
+                        name: 'add',
+                        title: 'Add New Service',
+                        width: '450px'
                     }))).
-        facet( IPA.service_details_facet()).
-        facet( IPA.service_managedby_host_facet({
-            'name': 'managedby_host',
-            'label': IPA.messages.association.managedby +
+        facet(IPA.service_details_facet()).
+        facet(IPA.service_managedby_host_facet({
+            name: 'managedby_host',
+            label: IPA.messages.association.managedby +
                 ' '+IPA.metadata['host'].label,
-            'other_entity': 'host'
+            other_entity: 'host'
         }));
 };
 
 
-IPA.service_select_widget = function (spec){
+IPA.service_select_widget = function(spec) {
 
     var that = IPA.text_widget(spec);
     var known_services = ["", "cifs", "DNS", "ftp", "HTTP","imap", "ldap",
@@ -81,25 +82,26 @@ IPA.service_select_widget = function (spec){
 
 /*TODO: the following labels etc. all need to be replaced with I18N strings */
 
-IPA.service_add_dialog = function (spec) {
+IPA.service_add_dialog = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.add_dialog(spec).
         field(IPA.widget({
-            name: 'krbprincipalname'
+            name: 'krbprincipalname',
+            hidden: true
         })).
         field(IPA.service_select_widget({
-            'name': 'service',
-            'label': 'Service',
-            'size': 20,
-            'undo': false
+            name: 'service',
+            label: 'Service',
+            size: 20,
+            undo: false
         })).
         field(IPA.text_widget({
-            'name': 'host',
-            'label': 'Host Name',
-            'size': 40,
-            'undo': false
+            name: 'host',
+            label: 'Host Name',
+            size: 40,
+            undo: false
         })).
         field(IPA.checkbox_widget({
             name: 'force',
@@ -127,7 +129,7 @@ IPA.service_add_dialog = function (spec) {
 };
 
 
-IPA.service_details_facet = function (spec) {
+IPA.service_details_facet = function(spec) {
 
     spec = spec || {};
 
@@ -360,7 +362,7 @@ function service_certificate_status_widget(spec) {
     return that;
 }
 
-IPA.service_managedby_host_facet = function (spec) {
+IPA.service_managedby_host_facet = function(spec) {
 
     spec = spec || {};
 

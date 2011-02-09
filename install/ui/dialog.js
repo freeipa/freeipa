@@ -117,6 +117,7 @@ IPA.dialog = function(spec) {
 
         for (var i=0; i<that.fields.length; i++) {
             var field = that.fields[i];
+            if (field.hidden) continue;
 
             var tr = $('<tr/>').appendTo(table);
 

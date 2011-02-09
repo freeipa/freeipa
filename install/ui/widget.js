@@ -35,6 +35,7 @@ IPA.widget = function(spec) {
     that.tooltip = spec.tooltip;
 
     that.disabled = spec.disabled;
+    that.hidden = spec.hidden;
 
     // read_only is set during initialization
     that.read_only = spec.read_only;
