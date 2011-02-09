@@ -733,6 +733,28 @@ def main():
 
         configure_certmonger(fstore, subject_base, cli_realm, options)
 
+    if options.sssd:
+        nscd_action = "stop"
+        nscd_status = "off"
+    else:
+        nscd_action = "restart"
+        nscd_status = "on"
+
+    #Name Server Caching Daemon. Disable for SSSD, use otherwise
+    try:
+        service('nscd', nscd_action)
+    except:
+        print >>sys.stderr, "Failed to %s the NSCD daemon" % nscd_action
+        if not options.sssd:
+            print >>sys.stderr, "Caching of users/groups will not be available"
+
+    try:
+        chkconfig('nscd', nscd_status)
+    except:
+        print >>sys.stderr, "Failed to configure automatic startup of the NSCD daemon"
+        if not options.sssd:
+            print >>sys.stderr, "Caching of users/groups will not be available after reboot"
+
     # Modify nsswitch/pam stack
     if options.sssd:
         cmd = ["/usr/sbin/authconfig", "--enablesssd", "--enablesssdauth", "--update"]
@@ -781,28 +803,6 @@ def main():
             ntp_server = cli_server
         ipaclient.ntpconf.config_ntp(ntp_server, fstore)
         print "NTP enabled"
-
-    if options.sssd:
-        nscd_action = "stop"
-        nscd_status = "off"
-    else:
-        nscd_action = "restart"
-        nscd_status = "on"
-
-    #Name Server Caching Daemon. Disable for SSSD, use otherwise
-    try:
-        service('nscd', nscd_action)
-    except:
-        print >>sys.stderr, "Failed to %s the NSCD daemon" % nscd_action
-        if not options.sssd:
-            print >>sys.stderr, "Caching of users/groups will not be available"
-
-    try:
-        chkconfig('nscd', nscd_status)
-    except:
-        print >>sys.stderr, "Failed to configure automatic startup of the NSCD daemon"
-        if not options.sssd:
-            print >>sys.stderr, "Caching of users/groups will not be available after reboot"
 
     print "Client configuration complete."
 
