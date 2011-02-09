@@ -593,7 +593,7 @@ def main():
         print "If you proceed with the installation, services will be configured to always"
         print "access the discovered server for all operation and will not fail over to"
         print "other servers in case of failure.\n"
-        if not user_input("Do you want to proceed and configure the system with fixed values with no DNS discovery?", False):
+        if not user_input("Proceed with fixed values and no DNS discovery?", False):
             return ret
 
     if options.realm_name and options.realm_name != ds.getRealmName():
