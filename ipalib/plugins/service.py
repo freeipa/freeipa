@@ -295,6 +295,7 @@ class service(LDAPObject):
             cli_name='certificate',
             label=_('Certificate'),
             doc=_('Base-64 encoded server certificate'),
+            flags=['no_search',],
         )
     )
 
