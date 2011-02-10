@@ -103,6 +103,32 @@ IPA.host_add_dialog = function (spec) {
     return that;
 };
 
+/* Take an LDAP format date in UTC and format it */
+IPA.utc_date_column_format = function(value){
+    if (!value) {
+        return "";
+    }
+    if (value.length  != "20101119025910Z".length){
+        return value;
+    }
+    /* We only handle GMT */
+    if (value.charAt(value.length -1) !== 'Z'){
+        return value;
+    }
+
+    var date = new Date();
+
+    date.setUTCFullYear(
+        value.substring(0, 4),
+        value.substring(4, 6),
+        value.substring(6, 8));
+    date.setUTCHours(
+        value.substring(8, 10),
+        value.substring(10, 12),
+        value.substring(12, 14));
+    var formated = date.toString();
+    return  formated;
+};
 
 IPA.host_search_facet = function (spec) {
 
@@ -115,7 +141,9 @@ IPA.host_search_facet = function (spec) {
         that.create_column({name:'fqdn'});
         that.create_column({name:'description'});
         //TODO use the value of this field to set enrollment status
-        that.create_column({name:'krblastpwdchange', label:'Enrolled?'});
+        that.create_column({name:'krblastpwdchange', label:'Enrolled?',
+                            format:IPA.utc_date_column_format
+                           });
         that.create_column({name:'nshostlocation'});
 
         that.search_facet_init();

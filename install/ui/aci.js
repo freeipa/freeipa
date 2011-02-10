@@ -227,21 +227,28 @@ IPA.target_section = function(spec) {
     that.add_field(that.attribute_table);
 
 
+    /*TODO these next two functions are work arounds for missing attribute
+      permissions for the filter text.  Remove them once that has been fixed */
     that.filter_text.update = function(){
         var value = that.filter_text.values && that.filter_text.values.length ?
             that.filter_text.values[0] : '';
-        $('input[name="'+that.filter_text.name+'"]', that.filter_text.container).val(value);
+        $('input[name="'+that.filter_text.name+'"]',
+          that.filter_text.container).val(value);
 
         var label = $('label[name="'+that.filter_text.name+'"]',
                       that.filter_text.container);
         var input = $('input[name="'+that.filter_text.name+'"]',
                       that.filter_text.container);
-
-            label.css('display', 'none');
-            input.css('display', 'inline');
-
+        label.css('display', 'none');
+        input.css('display', 'inline');
     };
 
+    that.filter_text.save = function(){
+        var input = $('input[name="'+that.filter_text.name+'"]',
+                      that.filter_text.container);
+        var value = $.trim(input.val());
+        return value === '' ? [] : [value];
+    };
 
     var target_types = [
         {

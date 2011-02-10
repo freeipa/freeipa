@@ -1005,6 +1005,9 @@ IPA.column = function (spec) {
 
     var that = {};
 
+    if (spec.format){
+        that.format = spec.format;
+    }
     that.name = spec.name;
     that.label = spec.label;
     that.primary_key = spec.primary_key;
@@ -1025,7 +1028,12 @@ IPA.column = function (spec) {
         container.empty();
 
         var value = record[that.name];
+        if (that.format && value){
+            value = that.format(value);
+        }
+
         value = value ? value.toString() : '';
+
 
         container.append(value);
     }
