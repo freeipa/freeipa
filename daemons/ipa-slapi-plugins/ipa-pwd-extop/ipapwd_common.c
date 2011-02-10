@@ -1230,6 +1230,7 @@ free_and_return:
     return ret;
 }
 
+
 Slapi_Value **ipapwd_setPasswordHistory(Slapi_Mods *smods,
                                         struct ipapwd_data *data)
 {
@@ -1379,6 +1380,63 @@ int ipapwd_apply_mods(const char *dn, Slapi_Mods *mods)
     }
 
     slapi_pblock_destroy(pb);
+
+    return ret;
+}
+
+int ipapwd_set_extradata(const char *dn,
+                         const char *principal,
+                         time_t unixtime)
+{
+    Slapi_Mods *smods;
+    Slapi_Value *va[3] = { NULL };
+    struct berval bv;
+    char mkvno[4] = { 0x00, 0x08, 0x01, 0x00 };
+    char *xdata;
+    int xd_len;
+    int p_len;
+    int ret;
+
+    p_len = strlen(principal);
+    xd_len = 2 + 4 + p_len + 1;
+    xdata = malloc(xd_len);
+    if (!xdata) {
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    smods = slapi_mods_new();
+
+    /* always append a master key kvno of 1 for now */
+    bv.bv_val = mkvno;
+    bv.bv_len = 4;
+    va[0] = slapi_value_new_berval(&bv);
+
+    /* data type id */
+    xdata[0] = 0x00;
+    xdata[1] = 0x02;
+
+    /* unix timestamp in Little Endian */
+    xdata[2] = unixtime & 0xff;
+    xdata[3] = (unixtime & 0xff00) >> 8;
+    xdata[4] = (unixtime & 0xff0000) >> 16;
+    xdata[5] = (unixtime & 0xff000000) >> 24;
+
+    /* append the principal name */
+    strncpy(&xdata[6], principal, p_len);
+
+    xdata[xd_len -1] = 0;
+
+    bv.bv_val = xdata;
+    bv.bv_len = xd_len;
+    va[1] = slapi_value_new_berval(&bv);
+
+    slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE, "krbExtraData", va);
+
+    ret = ipapwd_apply_mods(dn, smods);
+
+    slapi_value_free(&va[1]);
+    slapi_value_free(&va[0]);
+    slapi_mods_free(&smods);
 
     return ret;
 }

@@ -786,6 +786,9 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
     struct tm utctime;
     char timestr[GENERALIZED_TIME_LENGTH+1];
     int ret;
+    char *errMsg = "Internal operations error\n";
+    struct ipapwd_krbcfg *krbcfg = NULL;
+    char *principal = NULL;
 
     LOG_TRACE("=>\n");
 
@@ -809,6 +812,12 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
 
     if ( ! (pwdop->is_krb)) {
         LOG("Not a kerberos user, ignore krb attributes\n");
+        return 0;
+    }
+
+    ret = ipapwd_gen_checks(pb, &errMsg, &krbcfg, 0);
+    if (ret != 0) {
+        LOG_FATAL("ipapwd_gen_checks failed!?\n");
         return 0;
     }
 
@@ -860,9 +869,19 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
     if (ret)
         LOG("Failed to set additional password attributes in the post-op!\n");
 
+    if (pwdop->pwdata.changetype == IPA_CHANGETYPE_NORMAL) {
+        principal = slapi_entry_attr_get_charptr(pwdop->pwdata.target,
+                                                 "krbPrincipalName");
+    } else {
+        principal = slapi_ch_smprintf("root/admin@%s", krbcfg->realm);
+    }
+    ipapwd_set_extradata(pwdop->pwdata.dn, principal, pwdop->pwdata.timeNow);
+
 done:
     if (pwdop && pwdop->pwdata.target) slapi_entry_free(pwdop->pwdata.target);
     slapi_mods_free(&smods);
+    slapi_ch_free_string(&principal);
+    free_ipapwd_krbcfg(&krbcfg);
     return 0;
 }
 

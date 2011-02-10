@@ -129,6 +129,9 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
 Slapi_Value **ipapwd_setPasswordHistory(Slapi_Mods *smods,
                                         struct ipapwd_data *data);
 int ipapwd_apply_mods(const char *dn, Slapi_Mods *mods);
+int ipapwd_set_extradata(const char *dn,
+                         const char *principal,
+                         time_t unixtime);
 void ipapwd_free_slapi_value_array(Slapi_Value ***svals);
 void free_ipapwd_krbcfg(struct ipapwd_krbcfg **cfg);
 

@@ -144,6 +144,7 @@ static int ipapwd_chpwop(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	char *attrlist[] = {"*", "passwordHistory", NULL };
 	struct ipapwd_data pwdata;
 	int is_krb, is_smb;
+    char *principal = NULL;
 
 	/* Get the ber value of the extended operation */
 	slapi_pblock_get(pb, SLAPI_EXT_OP_REQ_VALUE, &extop_value);
@@ -384,6 +385,14 @@ parse_req_done:
 
 	LOG_TRACE("<= result: %d\n", rc);
 
+    if (pwdata.changetype == IPA_CHANGETYPE_NORMAL) {
+        principal = slapi_entry_attr_get_charptr(pwdata.target,
+                                                 "krbPrincipalName");
+    } else {
+        principal = slapi_ch_smprintf("root/admin@%s", krbcfg->realm);
+    }
+    ipapwd_set_extradata(pwdata.dn, principal, pwdata.timeNow);
+
 	/* Free anything that we allocated above */
 free_and_return:
 	slapi_ch_free_string(&oldPasswd);
@@ -395,6 +404,7 @@ free_and_return:
 	slapi_ch_free_string(&dn);
 	slapi_pblock_set(pb, SLAPI_ORIGINAL_TARGET, NULL);
 	slapi_ch_free_string(&authmethod);
+    slapi_ch_free_string(&principal);
 
 	if (targetEntry) slapi_entry_free(targetEntry);
 	if (ber) ber_free(ber, 1);
@@ -883,6 +893,9 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 
 	}
 	slapi_mods_free(&smods);
+
+    ipapwd_set_extradata(slapi_entry_get_dn_const(targetEntry),
+                         serviceName, time_now);
 
 	/* Format of response
 	 *
