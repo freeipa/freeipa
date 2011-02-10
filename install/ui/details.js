@@ -348,18 +348,6 @@ IPA.details_facet = function(spec) {
         }
     };
 
-    that.get_section_header_prefix = function(visible) {
-        if (visible) {
-            return '<span class="ui-icon '+
-                IPA.collapse_icon +
-                ' section-expand" ></span>';
-        } else {
-            return '<span class="ui-icon '+
-                IPA.expand_icon +
-                ' section-expand" />';
-        }
-    };
-
     function create(container) {
 
         container.attr('title', that.entity_name);
@@ -372,6 +360,21 @@ IPA.details_facet = function(spec) {
         var details = $('<div/>', {
             'class': 'content'
         }).appendTo(container);
+
+        $('<a/>', {
+            name: 'expand_all',
+            href: 'expand_all',
+            text: 'Expand All',
+            style: 'display: none;'
+        }).appendTo(details);
+
+        $('<a/>', {
+            name: 'collapse_all',
+            href: 'collapse_all',
+            text: 'Collapse All'
+        }).appendTo(details);
+
+        details.append('<br/>');
 
         var action_panel = that.get_action_panel();
 
@@ -392,14 +395,22 @@ IPA.details_facet = function(spec) {
         for (var i = 0; i < that.sections.length; ++i) {
             var section = that.sections[i];
 
-            $('<h2/>', {
+            var header = $('<h2/>', {
                 name: section.name,
-                title: section.label,
-                html: that.get_section_header_prefix(true) + ' ' + section.label
+                title: section.label
             }).appendTo(details);
 
+            var icon = $('<span/>', {
+                name: 'icon',
+                'class': 'ui-icon section-expand '+IPA.expand_icon
+            }).appendTo(header);
+
+            header.append(' ');
+
+            header.append(section.label);
+
             var div = $('<div/>', {
-                'id': that.entity_name+'-'+that.name+'-'+section.name,
+                name: section.name,
                 'class': 'details-section'
             }).appendTo(details);
 
@@ -437,23 +448,62 @@ IPA.details_facet = function(spec) {
         });
         button.replaceWith(that.update_button);
 
+        var details = $('div.content', that.container);
+
+        var expand_all = $('a[name=expand_all]', details);
+        expand_all.click(function() {
+            expand_all.css('display', 'none');
+            collapse_all.css('display', 'inline');
+
+            for (var i=0; i<that.sections.length; i++) {
+                var section = that.sections[i];
+                toggle(section, true);
+            }
+
+            return false;
+        });
+
+        var collapse_all = $('a[name=collapse_all]', details);
+        collapse_all.click(function() {
+            expand_all.css('display', 'inline');
+            collapse_all.css('display', 'none');
+
+            for (var i=0; i<that.sections.length; i++) {
+                var section = that.sections[i];
+                toggle(section, false);
+            }
+
+            return false;
+        });
+
         for (var i = 0; i < that.sections.length; ++i) {
             var section = that.sections[i];
 
             var header = $('h2[name='+section.name+']', that.container);
+            var div = $('div.details-section[name='+section.name+']', that.container);
 
-            var div = $('#'+that.entity_name+'-'+that.name+'-'+section.name,
-                that.container);
-
-            header.click(function(section, header, div) {
+            header.click(function(section, div) {
                 return function() {
                     var visible = div.is(":visible");
-                    header.html(that.get_section_header_prefix(!visible) + ' ' + section.label);
-                    div.slideToggle();
+                    toggle(section, !visible);
                 };
-            }(section, header, div));
+            }(section, div));
 
             section.setup(div);
+        }
+    }
+
+    function toggle(section, visible) {
+        var header = $('h2[name='+section.name+']', that.container);
+
+        var icon = $('span[name=icon]', header);
+        icon.toggleClass(IPA.expand_icon, visible);
+        icon.toggleClass(IPA.collapse_icon, !visible);
+
+        var div = section.container;
+
+        if (visible != div.is(":visible")) {
+            div.slideToggle();
         }
     }
 
@@ -593,12 +643,10 @@ IPA.details_update = function(on_win, on_fail) {
             continue;
         }
 
-        var div = $('#'+that.entity_name+'-'+that.name+'-'+section.name, that.container);
-
         for (var j=0; j<section.fields.length; j++) {
             var field = section.fields[j];
 
-            var span = $('span[name='+field.name+']', div).first();
+            var span = $('span[name='+field.name+']', section.container).first();
             values = field.save();
             if (!values) continue;
 

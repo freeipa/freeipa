@@ -139,7 +139,7 @@ IPA.dialog = function(spec) {
             var section = that.sections[j];
 
             var div = $('<div/>', {
-                'id': that.entity_name+'-'+that.name+'-'+section.name,
+                name: section.name,
                 'class': 'details-section'
             }).appendTo(that.container);
 
@@ -161,7 +161,7 @@ IPA.dialog = function(spec) {
         for (var j=0; j<that.sections.length; j++) {
             var section = that.sections[j];
 
-            var div = $('#'+that.entity_name+'-'+that.name+'-'+section.name,
+            var div = $('div.details-section[name='+section.name+']',
                 that.container);
 
             section.setup(div);

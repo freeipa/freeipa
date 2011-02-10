@@ -282,12 +282,10 @@ IPA.sudorule_details_facet = function (spec) {
         for (var i=0; i<that.sections.length; i++) {
             var section = that.sections[i];
 
-            var div = $('#'+that.entity_name+'-'+that.name+'-'+section.name, that.container);
-
             for (var j=0; j<section.fields.length; j++) {
                 var field = section.fields[j];
 
-                var span = $('span[name='+field.name+']', div).first();
+                var span = $('span[name='+field.name+']', section.container).first();
                 var values = field.save();
                 if (!values) continue;
 
