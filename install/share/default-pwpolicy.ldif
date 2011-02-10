@@ -8,7 +8,7 @@ krbPwdMinDiffChars: 0
 krbPwdMinLength: 8
 krbPwdHistoryLength: 0
 krbMaxPwdLife: 7776000
-krbPwdMaxFailure: 3
+krbPwdMaxFailure: 6
 krbPwdFailureCountInterval: 60
-krbPwdLockoutDuration: 10
+krbPwdLockoutDuration: 600
 
