@@ -101,6 +101,8 @@ def main():
             )
         except errors.LDAPError, lde:
             sys.exit("An error occurred while connecting to the server.\n%s\n" % str(lde))
+        except errors.ACIError, e:
+            sys.exit("Authentication failed: %s" % e.info)
 
         if args[0] == "status":
             try:
@@ -165,7 +167,7 @@ def main():
             retval = 1
 
     finally:
-        if conn:
+        if conn.isconnected():
             conn.disconnect()
 
     return retval
