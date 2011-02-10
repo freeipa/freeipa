@@ -2094,7 +2094,7 @@ output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e
 command: service_add
 args: 1,5,3
 arg: Str('krbprincipalname', validate_principal, attribute=True, cli_name='principal', label=Gettext('Principal', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=True)
-option: Bytes('usercertificate', validate_certificate, attribute=True, cli_name='certificate', label=Gettext('Certificate', domain='ipa', localedir=None), multivalue=False, required=False)
+option: Bytes('usercertificate', validate_certificate, attribute=True, cli_name='certificate', flags=['no_search'], label=Gettext('Certificate', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Flag('force', autofill=True, default=False,lag('force', autofill=True, default=False, doc=Gettext('force principal name even if not in DNS', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
@@ -2126,10 +2126,9 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: service_find
-args: 1,9,4
+args: 1,8,4
 arg: Str('criteria?')
 option: Str('krbprincipalname', validate_principal, attribute=True, autofill=False, cli_name='principal', label=Gettext('Principal', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
-option: Bytes('usercertificate', validate_certificate, attribute=True, autofill=False, cli_name='certificate', label=Gettext('Certificate', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
 option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('Size Limit', domain='ipa', localedir=None), minvalue=0)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
@@ -2144,7 +2143,7 @@ output: Output('truncated', <type 'bool'>, 'True if not all results were returne
 command: service_mod
 args: 1,7,3
 arg: Str('krbprincipalname', validate_principal, attribute=True, cli_name='principal', label=Gettext('Principal', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
-option: Bytes('usercertificate', validate_certificate, attribute=True, autofill=False, cli_name='certificate', label=Gettext('Certificate', domain='ipa', localedir=None), multivalue=False, required=False)
+option: Bytes('usercertificate', validate_certificate, attribute=True, autofill=False, cli_name='certificate', flags=['no_search'], label=Gettext('Certificate', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
 option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False, label=Gettext('Rights', domain='ipa', localedir=None))
