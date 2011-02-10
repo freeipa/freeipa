@@ -423,7 +423,6 @@ class jsonserver(WSGIExecutioner):
                 code=error.errno,
                 message=error.strerror,
                 name=error.__class__.__name__,
-                kw=dict(error.kw),
             )
         response = dict(
             result=result,
