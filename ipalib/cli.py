@@ -663,12 +663,16 @@ class help(frontend.Local):
                         self._topics[topic_name][2].append(c)
                     else:
                         m = '%s.%s' % (self._PLUGIN_BASE_MODULE, topic_name)
-                        doc = (sys.modules[m].__doc__ or '').strip().split('\n', 1)[0]
+                        doc = (
+                            unicode(_(sys.modules[m].__doc__)) or ''
+                        ).strip().split('\n', 1)[0]
                         self._topics[topic_name] = [doc, 0, [c]]
                     mcl = max((self._topics[topic_name][1], len(c.name)))
                     self._topics[topic_name][1] = mcl
                 else: # a module grouped in a topic
-                    doc = (sys.modules[c.module].__doc__ or '').strip().split('\n', 1)[0]
+                    doc = (
+                        unicode(_(sys.modules[c.module].__doc__)) or ''
+                    ).strip().split('\n', 1)[0]
                     mod_name = c.module.rsplit('.',1)[1]
                     if topic_name in self._topics:
                         if mod_name in self._topics[topic_name][2]:
@@ -757,7 +761,7 @@ class help(frontend.Local):
                     break
 
             m = '%s.%s' % (self._PLUGIN_BASE_MODULE, topic)
-            doc = (sys.modules[m].__doc__ or '').strip()
+            doc = (unicode(_(sys.modules[m].__doc__)) or '').strip()
 
             print doc
             if len(commands) > 1:

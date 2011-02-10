@@ -181,7 +181,7 @@ class Plugin(ReadOnly):
         self.bases = tuple(
             '%s.%s' % (b.__module__, b.__name__) for b in cls.__bases__
         )
-        self.doc = inspect.getdoc(cls)
+        self.doc = _(inspect.getdoc(cls))
         if self.doc is None:
             self.summary = '<%s>' % self.fullname
         else:
