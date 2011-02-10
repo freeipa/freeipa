@@ -53,7 +53,7 @@ def parse_options():
     return safe_options, options, args
 
 def emit_err(err):
-    sys.stderr.write(err)
+    sys.stderr.write(err + '\n')
 
 def get_config():
     base = "cn=%s,cn=masters,cn=ipa,cn=etc,%s" % (socket.gethostname(),
@@ -71,7 +71,7 @@ def get_config():
                             timeout=10)
     except Exception, e:
         print "Error retrieving list of services %s" % e
-        print "Is IPA installed ?"
+        print "Is IPA installed?"
         raise
 
     svc_list = []
@@ -91,8 +91,7 @@ def ipa_start():
         print "Starting Directory Service"
         service.start('dirsrv', capture_output=False)
     except:
-        emit_err("Failed to start Directory Service")
-        return
+        raise RuntimeError("Failed to start Directory Service")
 
     svc_list = []
     try:
@@ -123,7 +122,7 @@ def ipa_start():
                 service.stop('dirsrv', capture_output=False)
             except:
                 pass
-            return
+            raise RuntimeError("Aborting ipactl")
 
 def ipa_stop():
 
@@ -157,8 +156,7 @@ def ipa_stop():
         print "Stopping Directory Service"
         service.stop('dirsrv', capture_output=False)
     except:
-        emit_err("Failed to stop Directory Service")
-        return
+        raise RuntimeError("Failed to stop Directory Service")
 
 
 def ipa_restart():
@@ -166,8 +164,7 @@ def ipa_restart():
         print "Restarting Directory Service"
         service.restart('dirsrv', capture_output=False)
     except:
-        emit_err("Failed to restart Directory Service")
-        return
+        raise RuntimeError("Failed to restart Directory Service")
 
     svc_list = []
     try:
@@ -198,7 +195,7 @@ def ipa_restart():
                 service.stop('dirsrv', capture_output=False)
             except:
                 pass
-            return
+            raise RuntimeError("Aborting ipactl")
 
 def ipa_status():
     try:
@@ -207,14 +204,13 @@ def ipa_status():
         else:
             print "Directory Service: STOPPED"
     except:
-        print "Failed to get Directory Service status"
-        return
+        raise RuntimeError("Failed to get Directory Service status")
 
     svc_list = []
     try:
         svc_list = get_config()
     except:
-        print "Failed to get list of services to probe status"
+        raise RuntimeError("Failed to get list of services to probe status")
 
     if len(svc_list) == 0:
         return
@@ -254,7 +250,7 @@ try:
     if __name__ == "__main__":
         sys.exit(main())
 except RuntimeError, e:
-    print "%s" % e
+    emit_err("%s" % e)
     sys.exit(1)
 except SystemExit, e:
     sys.exit(e)
