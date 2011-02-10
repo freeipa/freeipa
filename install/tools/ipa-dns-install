@@ -67,19 +67,24 @@ def resolve_host(host_name):
     try:
         addrinfos = socket.getaddrinfo(host_name, None,
                                        socket.AF_UNSPEC, socket.SOCK_DGRAM)
-        for ai in addrinfos:
-            ip = ai[4][0]
-            if ip == "127.0.0.1" or ip == "::1":
-                print "The hostname resolves to the localhost address (127.0.0.1/::1)"
-                print "Please change your /etc/hosts file so that the hostname"
-                print "resolves to the ip address of your network interface."
-                print ""
-                print "Please fix your /etc/hosts file and restart the setup program"
-                return None
-
-        ip = addrinfos[0][4][0]
     except:
         print "Unable to lookup the IP address of the provided host"
+        return None
+
+    for ai in addrinfos:
+        ip = ai[4][0]
+        if ip == "127.0.0.1" or ip == "::1":
+            print "The hostname resolves to the localhost address (127.0.0.1/::1)"
+            print "Please change your /etc/hosts file so that the hostname."
+            print "resolves to the ip address of your network interface."
+            print ""
+            print "Please fix your /etc/hosts file and restart the setup program."
+            print ""
+            sys.exit("Aborting installation.")
+
+    if addrinfos:
+        ip = addrinfos[0][4][0]
+
     return ip
 
 def main():
@@ -108,7 +113,7 @@ def main():
 
     # Check bind packages are installed
     if not bindinstance.check_inst(options.unattended):
-        sys.exit("Aborting installation")
+        sys.exit("Aborting installation.")
 
     # Initialize the ipalib api
     cfg = dict(
