@@ -5,7 +5,7 @@ Dependencies
 
 The quickest way to get the dependencies needed for building is:
 
-# yum install rpm-build `grep "^BuildRequires" ipa.spec.in | awk '{ print $2 }' | grep -v "^/"`
+# yum install rpm-build `grep "^BuildRequires" freeipa.spec.in | awk '{ print $2 }' | grep -v "^/"`
 
 This is currently (01/05/11):
 
