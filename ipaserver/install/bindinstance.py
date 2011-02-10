@@ -297,6 +297,9 @@ class BindInstance(service.Service):
         # get a connection to the DS
         self.ldap_connect()
 
+        if not installutils.record_in_hosts(self.ip_address, self.fqdn):
+            installutils.add_record_to_hosts(self.ip_address, self.fqdn)
+
         if not dns_container_exists(self.fqdn, self.suffix):
             self.step("adding DNS container", self.__setup_dns_container)
         if not dns_zone_exists(self.domain):

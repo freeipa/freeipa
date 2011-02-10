@@ -408,6 +408,7 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
     else:
         libopts.append({'name':'dns_lookup_realm', 'type':'option', 'value':'true'})
         libopts.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'true'})
+    libopts.append({'name':'rdns', 'type':'option', 'value':'false'})
     libopts.append({'name':'ticket_lifetime', 'type':'option', 'value':'24h'})
     libopts.append({'name':'forwardable', 'type':'option', 'value':'yes'})
 

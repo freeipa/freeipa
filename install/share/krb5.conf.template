@@ -5,8 +5,9 @@
 
 [libdefaults]
  default_realm = $REALM
- dns_lookup_realm = true
- dns_lookup_kdc = true
+ dns_lookup_realm = false
+ dns_lookup_kdc = false
+ rdns = false
  ticket_lifetime = 24h
  forwardable = yes
 

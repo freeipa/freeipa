@@ -156,6 +156,25 @@ def verify_ip_address(ip):
             is_ok = False
     return is_ok
 
+def record_in_hosts(ip, host_name, file="/etc/hosts"):
+    hosts = open(file, 'r').readlines()
+    for line in hosts:
+        hosts_ip = line.split()[0]
+        if hosts_ip != ip:
+            continue
+
+        names = line.split()[1:]
+        if host_name in names:
+            return True
+
+    return False
+
+def add_record_to_hosts(ip, host_name, file="/etc/hosts"):
+    hosts_fd = open(file, 'r+')
+    hosts_fd.seek(0, 2)
+    hosts_fd.write(ip+'\t'+host_name+' '+host_name.split('.')[0]+'\n')
+    hosts_fd.close()
+
 def read_ip_address(host_name, fstore):
     while True:
         ip = ipautil.user_input("Please provide the IP address to be used for this host name", allow_empty = False)
@@ -169,10 +188,7 @@ def read_ip_address(host_name, fstore):
 
     print "Adding ["+ip+" "+host_name+"] to your /etc/hosts file"
     fstore.backup_file("/etc/hosts")
-    hosts_fd = open('/etc/hosts', 'r+')
-    hosts_fd.seek(0, 2)
-    hosts_fd.write(ip+'\t'+host_name+' '+host_name.split('.')[0]+'\n')
-    hosts_fd.close()
+    add_record_to_hosts(ip, host_name)
 
     return ip
 
