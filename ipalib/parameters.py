@@ -1021,7 +1021,7 @@ class Int(Number):
         """
         if type(value) in (int, long):
             return value
-        if type(value) in (str, unicode):
+        if type(value) is unicode:
             # permit floating point strings
             if value.find(u'.') >= 0:
                 try:
@@ -1254,14 +1254,6 @@ class Str(Data):
         """
         if type(value) is self.type:
             return value
-        if type(value) is str:
-            try:
-                return value.decode('utf-8')
-            except UnicodeDecodeError:
-                raise ConversionError(
-                    name=self.name, index=index,
-                    error=ugettext(self.scalar_error)
-                )
         if type(value) in (int, float):
             return self.type(value)
         if type(value) in (tuple, list):
@@ -1384,24 +1376,6 @@ class StrEnum(Enum):
     """
 
     type = unicode
-
-    def _convert_scalar(self, value, index=None):
-        """
-        Convert a single scalar value.
-        """
-        if type(value) is self.type:
-            return value
-        if type(value) is str:
-            try:
-                return value.decode('utf-8')
-            except UnicodeDecodeError:
-                raise ConversionError(
-                    name=self.name, index=index,
-                    error=ugettext(self.scalar_error)
-                )
-        raise ConversionError(name=self.name, index=index,
-            error=ugettext(self.type_error),
-        )
 
 
 class List(Param):

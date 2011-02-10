@@ -510,8 +510,8 @@ class test_user(Declarative):
             desc='Create %r with a full address' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
-                street='123 Maple Rd', locality='Anytown', st='MD',
-                telephonenumber='410-555-1212',)
+                street=u'123 Maple Rd', locality=u'Anytown', st=u'MD',
+                telephonenumber=u'410-555-1212',)
             ),
             expected=dict(
                 value=user1,

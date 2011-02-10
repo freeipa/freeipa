@@ -27,7 +27,7 @@ from cgi import parse_qs
 from xml.sax.saxutils import escape
 from xmlrpclib import Fault
 from ipalib.backend import Executioner
-from ipalib.errors import PublicError, InternalError, CommandError, JSONError
+from ipalib.errors import PublicError, InternalError, CommandError, JSONError, ConversionError
 from ipalib.request import context, Connection, destroy_context
 from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import make_repr
@@ -402,7 +402,16 @@ def json_decode_binary(val):
         del val
         return new_list
     else:
-        return val
+        if isinstance(val, basestring):
+            try:
+                return val.decode('utf-8')
+            except UnicodeDecodeError:
+                raise ConversionError(
+                    name=val,
+                    error='incorrect type'
+                )
+        else:
+            return val
 
 class jsonserver(WSGIExecutioner):
     """

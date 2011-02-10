@@ -922,7 +922,7 @@ class test_Str(ClassChecker):
         mthd = o._convert_scalar
         for value in (u'Hello', 42, 1.2, unicode_str):
             assert mthd(value) == unicode(value)
-        bad = [True, dict(one=1)]
+        bad = [True, 'Hello', dict(one=1), utf8_bytes]
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
