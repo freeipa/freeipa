@@ -218,7 +218,7 @@ class LDAPUpdate:
     def parse_update_file(self, data, all_updates, dn_list):
         """Parse the update file into a dictonary of lists and apply the update
            for each DN in the file."""
-        valid_keywords = ["default", "add", "remove", "only", "deleteentry"]
+        valid_keywords = ["default", "add", "remove", "only", "deleteentry", "replace"]
         update = {}
         d = ""
         index = ""
@@ -441,6 +441,19 @@ class LDAPUpdate:
                 elif utype == 'deleteentry':
                     # skip this update type, it occurs in  __delete_entries()
                     return None
+                elif utype == 'replace':
+                    # v has the format "old: new"
+                    try:
+                        (old, new) = v.split(':', 1)
+                    except ValueError:
+                        raise BadSyntax, "bad syntax in replace, needs to be in the format old: new in %s" % new_entry.dn
+                    try:
+                        e.remove(old)
+                        e.append(new)
+                        logging.debug('replace: updated value %s', e)
+                        entry.setValues(k, e)
+                    except ValueError:
+                        logging.debug('replace: %s not found, skipping', old)
 
                 self.print_entity(entry)
 
