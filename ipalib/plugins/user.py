@@ -296,7 +296,6 @@ class user_del(LDAPDelete):
     msg_summary = _('Deleted user "%(value)s"')
 
     def post_callback(self, ldap, dn, *keys, **options):
-        self.log.info('IPA: %s "%s"' % (self.name, keys[-1]))
         return True
 
 api.register(user_del)

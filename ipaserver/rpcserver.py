@@ -166,7 +166,7 @@ class session(Executioner):
             raise StandardError('%s.mount(): cannot replace %r with %r at %r' % (
                 self.name, self.__apps[key], app, key)
             )
-        self.info('Mounting %r at %r', app, key)
+        self.debug('Mounting %r at %r', app, key)
         self.__apps[key] = app
 
 
@@ -218,6 +218,11 @@ class WSGIExecutioner(Executioner):
             error = InternalError()
         finally:
             os.environ['LANG']=lang
+        params = self.Command[name].args_options_2_params(*args, **options)
+        if error:
+            self.info('%s: %s(%s): %s', context.principal, name, ', '.join(self.Command[name]._repr_iter(**params)), e.__class__.__name__)
+        else:
+            self.info('%s: %s(%s): SUCCESS', context.principal, name, ', '.join(self.Command[name]._repr_iter(**params)))
         return self.marshal(result, error, _id)
 
     def simple_unmarshal(self, environ):
@@ -288,7 +293,7 @@ class xmlserver(WSGIExecutioner):
                 (args, options) = params_2_args_options(params)
                 response = (self.execute(name, *args, **options),)
         except PublicError, e:
-            self.info('response: %s: %s', e.__class__.__name__, str(e))
+            self.debug('response: %s: %s', e.__class__.__name__, str(e))
             response = Fault(e.errno, e.strerror)
         return xml_dumps(response, methodresponse=True)
 
@@ -299,11 +304,11 @@ class xmlserver(WSGIExecutioner):
 
     def marshal(self, result, error, _id=None):
         if error:
-            self.info('response: %s: %s', error.__class__.__name__, str(error))
+            self.debug('response: %s: %s', error.__class__.__name__, str(error))
             response = Fault(error.errno, error.strerror)
         else:
             if isinstance(result, dict):
-                self.info('response: entries returned %d', result.get('count', 1))
+                self.debug('response: entries returned %d', result.get('count', 1))
             response = (result,)
         return xml_dumps(response, methodresponse=True)
 

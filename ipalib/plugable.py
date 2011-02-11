@@ -409,10 +409,14 @@ class API(DictProxy):
         stderr = logging.StreamHandler()
         if self.env.debug:
             stderr.setLevel(logging.DEBUG)
-        elif self.env.verbose > 0:
-            stderr.setLevel(logging.INFO)
         else:
-            stderr.setLevel(logging.WARNING)
+            if self.env.context == 'cli':
+                if self.env.verbose > 0:
+                    stderr.setLevel(logging.INFO)
+                else:
+                    stderr.setLevel(logging.WARNING)
+            else:
+                stderr.setLevel(logging.INFO)
         stderr.setFormatter(util.LogFormatter(FORMAT_STDERR))
         log.addHandler(stderr)
 
@@ -549,7 +553,7 @@ class API(DictProxy):
             try:
                 __import__(fullname)
             except errors.SkipPluginModule, e:
-                self.log.info(
+                self.log.debug(
                     'skipping plugin module %s: %s', fullname, e.reason
                 )
             except StandardError, e:

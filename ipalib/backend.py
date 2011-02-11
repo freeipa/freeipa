@@ -62,7 +62,7 @@ class Connectible(Backend):
         conn = self.create_connection(*args, **kw)
         setattr(context, self.id, Connection(conn, self.disconnect))
         assert self.conn is conn
-        self.info('Created connection context.%s' % self.id)
+        self.debug('Created connection context.%s' % self.id)
 
     def create_connection(self, *args, **kw):
         raise NotImplementedError('%s.create_connection()' % self.id)
@@ -76,7 +76,7 @@ class Connectible(Backend):
             )
         self.destroy_connection()
         delattr(context, self.id)
-        self.info('Destroyed connection context.%s' % self.id)
+        self.debug('Destroyed connection context.%s' % self.id)
 
     def destroy_connection(self):
         raise NotImplementedError('%s.destroy_connection()' % self.id)

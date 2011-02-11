@@ -412,7 +412,7 @@ class Command(HasParam):
         params.update(self.get_default(**params))
         params = self.normalize(**params)
         params = self.convert(**params)
-        self.info(
+        self.debug(
             '%s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
         if not self.api.env.in_server and 'version' not in params:

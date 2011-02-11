@@ -53,7 +53,7 @@ class VirtualCommand(Command):
             operation = self.operation
 
         ldap = self.api.Backend.ldap2
-        self.log.info("IPA: virtual verify %s" % operation)
+        self.log.debug("IPA: virtual verify %s" % operation)
 
         operationdn = "cn=%s,%s,%s" % (operation, self.api.env.container_virtual, self.api.env.basedn)
 

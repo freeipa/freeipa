@@ -145,10 +145,10 @@ def run(args, stdin=None, raiseonerr=True,
         args = args.replace(quoted, 'XXXXXXXX')
         stdout = stdout.replace(quoted, 'XXXXXXXX')
         stderr = stderr.replace(quoted, 'XXXXXXXX')
-    logging.info('args=%s' % args)
+    logging.debug('args=%s' % args)
     if capture_output:
-        logging.info('stdout=%s' % stdout)
-        logging.info('stderr=%s' % stderr)
+        logging.debug('stdout=%s' % stdout)
+        logging.debug('stderr=%s' % stderr)
 
     if p.returncode != 0 and raiseonerr:
         raise CalledProcessError(p.returncode, args)
