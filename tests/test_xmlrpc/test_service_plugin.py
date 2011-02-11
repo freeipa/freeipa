@@ -29,11 +29,13 @@ import base64
 
 fqdn1 = u'testhost1.%s' % api.env.domain
 fqdn2 = u'testhost2.%s' % api.env.domain
+fqdn3 = u'TestHost3.%s' % api.env.domain
 service1 = u'HTTP/%s@%s' % (fqdn1, api.env.realm)
 hostprincipal1 = u'host/%s@%s'  % (fqdn1, api.env.realm)
 service1dn = u'krbprincipalname=%s,cn=services,cn=accounts,%s' % (service1.lower(), api.env.basedn)
 host1dn = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn1, api.env.basedn)
 host2dn = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn2, api.env.basedn)
+host3dn = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn3.lower(), api.env.basedn)
 
 servercert = 'MIICbzCCAdigAwIBAgICA/4wDQYJKoZIhvcNAQEFBQAwKTEnMCUGA1UEAxMeSVBBIFRlc3QgQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTEwMDgwOTE1MDIyN1oXDTIwMDgwOTE1MDIyN1owKTEMMAoGA1UEChMDSVBBMRkwFwYDVQQDExBwdW1hLmdyZXlvYWsuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwYbfEOQPgGenPn9vt1JFKvWm/Je3y2tawGWA3LXDuqfFJyYtZ8ib3TcBUOnLk9WK5g2qCwHaNlei7bj8ggIfr5hegAVe10cun+wYErjnYo7hsHYd+57VZezeipWrXu+7NoNd4+c4A5lk4A/xJay9j3bYx2oOM8BEox4xWYoWge1ljPrc5JK46f0X7AGW4F2VhnKPnf8rwSuzI1U8VGjutyM9TWNy3m9KMWeScjyG/ggIpOjUDMV7HkJL0Di61lznR9jXubpiEC7gWGbTp84eGl/Nn9bgK1AwHfJ2lHwfoY4uiL7ge1gyP6EvuUlHoBzdb7pekiX28iePjW3iEG9IawIDAQABoyIwIDARBglghkgBhvhCAQEEBAMCBkAwCwYDVR0PBAQDAgUgMA0GCSqGSIb3DQEBBQUAA4GBACRESLemRV9BPxfEgbALuxH5oE8jQm8WZ3pm2pALbpDlAd9wQc3yVf6RtkfVthyDnM18bg7IhxKpd77/p3H8eCnS8w5MLVRda6ktUC6tGhFTS4QKAf0WyDGTcIgkXbeDw0OPAoNHivoXbIXIIRxlw/XgaSaMzJQDBG8iROsN4kCv'
 
@@ -43,6 +45,7 @@ class test_host(Declarative):
     cleanup_commands = [
         ('host_del', [fqdn1], {}),
         ('host_del', [fqdn2], {}),
+        ('host_del', [fqdn3], {}),
         ('service_del', [service1], {}),
     ]
 
@@ -115,6 +118,32 @@ class test_host(Declarative):
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[u'%s' % fqdn2],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Create %r' % fqdn3,
+            command=('host_add', [fqdn3],
+                dict(
+                    description=u'Test host 3',
+                    l=u'Undisclosed location 3',
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=fqdn3.lower(),
+                summary=u'Added host "%s"' % fqdn3.lower(),
+                result=dict(
+                    dn=host3dn,
+                    fqdn=[fqdn3.lower()],
+                    description=[u'Test host 3'],
+                    l=[u'Undisclosed location 3'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn3.lower(), api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[u'%s' % fqdn3.lower()],
                 ),
             ),
         ),
@@ -222,6 +251,96 @@ class test_host(Declarative):
                         managedby_host=[fqdn1],
                     ),
                 ],
+            ),
+        ),
+
+
+        dict(
+            desc='Add non-existent host to %r' % service1,
+            command=('service_add_host', [service1], dict(host='notfound')),
+            expected=dict(
+                failed=dict(managedby=dict(host=[(u'notfound', u'no such entry')])),
+                completed=0,
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Remove non-existent host from %r' % service1,
+            command=('service_remove_host', [service1], dict(host='notfound')),
+            expected=dict(
+                failed=dict(managedby=dict(host=[(u'notfound', u'This entry is not a member')])),
+                completed=0,
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Add host to %r' % service1,
+            command=('service_add_host', [service1], dict(host=fqdn2)),
+            expected=dict(
+                failed=dict(managedby=dict(host=[])),
+                completed=1,
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1, fqdn2],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Remove host from %r' % service1,
+            command=('service_remove_host', [service1], dict(host=fqdn2)),
+            expected=dict(
+                failed=dict(managedby=dict(host=[])),
+                completed=1,
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Add mixed-case host to %r' % service1,
+            command=('service_add_host', [service1], dict(host=fqdn3)),
+            expected=dict(
+                failed=dict(managedby=dict(host=[])),
+                completed=1,
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1, fqdn3.lower()],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Remove mixed-case host from %r' % service1,
+            command=('service_remove_host', [service1], dict(host=fqdn3)),
+            expected=dict(
+                failed=dict(managedby=dict(host=[])),
+                completed=1,
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
             ),
         ),
 
