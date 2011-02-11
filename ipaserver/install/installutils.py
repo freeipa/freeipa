@@ -282,6 +282,7 @@ def read_password(user, confirm=True, validate=True):
 
 def update_file(filename, orig, subst):
     if os.path.exists(filename):
+        st = os.stat(filename)
         pattern = "%s" % re.escape(orig)
         p = re.compile(pattern)
         for line in fileinput.input(filename, inplace=1):
@@ -290,6 +291,7 @@ def update_file(filename, orig, subst):
             else:
                 sys.stdout.write(p.sub(subst, line))
         fileinput.close()
+        os.chown(filename, st.st_uid, st.st_gid) # reset perms
         return 0
     else:
         print "File %s doesn't exist." % filename
@@ -301,6 +303,7 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
        This has only been tested with nss.conf
     """
     valueset = False
+    st = os.stat(filename)
     fd = open(filename)
     newfile = []
     for line in fd:
@@ -322,6 +325,7 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
     fd = open(filename, "w")
     fd.write("".join(newfile))
     fd.close()
+    os.chown(filename, st.st_uid, st.st_gid) # reset perms
 
 def get_directive(filename, directive, separator=' '):
     """
