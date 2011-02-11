@@ -1069,7 +1069,10 @@ static int ipapwd_start( Slapi_PBlock *pb )
     krberr = krb5_init_context(&krbctx);
     if (krberr) {
         LOG_FATAL("krb5_init_context failed\n");
-        return LDAP_OPERATIONS_ERROR;
+        /* Yes, we failed, but it is because /etc/krb5.conf doesn't exist
+         * or is misconfigured. Start up in a degraded mode.
+         */
+        return LDAP_SUCCESS;
     }
 
     if (slapi_pblock_get(pb, SLAPI_TARGET_DN, &config_dn) != 0) {
@@ -1079,8 +1082,8 @@ static int ipapwd_start( Slapi_PBlock *pb )
     }
 
     if (ipapwd_getEntry(config_dn, &config_entry, NULL) != LDAP_SUCCESS) {
-        LOG_FATAL("No config Entry?\n");
-        ret = LDAP_OPERATIONS_ERROR;
+        LOG_FATAL("No config Entry extop?\n");
+        ret = LDAP_SUCCESS;
         goto done;
     }
 

@@ -68,6 +68,12 @@ class LDAPUpdate:
         self.pw_name = pwd.getpwuid(os.geteuid()).pw_name
 
         krbctx = krbV.default_context()
+        try:
+            self.realm = krbctx.default_realm
+            suffix = util.realm_to_suffix(self.realm)
+        except krbV.Krb5Error:
+            self.realm = None
+            suffix = None
 
         fqdn = installutils.get_fqdn()
         if fqdn is None:
@@ -75,16 +81,14 @@ class LDAPUpdate:
 
         domain = ipautil.get_domain_name()
         libarch = self.__identify_arch()
-        suffix = util.realm_to_suffix(krbctx.default_realm)
-        self.realm = krbctx.default_realm
 
-        if not self.sub_dict.get("REALM"):
-            self.sub_dict["REALM"] = krbctx.default_realm
+        if not self.sub_dict.get("REALM") and self.realm is not None:
+            self.sub_dict["REALM"] = self.realm
         if not self.sub_dict.get("FQDN"):
             self.sub_dict["FQDN"] = fqdn
         if not self.sub_dict.get("DOMAIN"):
             self.sub_dict["DOMAIN"] = domain
-        if not self.sub_dict.get("SUFFIX"):
+        if not self.sub_dict.get("SUFFIX") and suffix is not None:
             self.sub_dict["SUFFIX"] = suffix
         if not self.sub_dict.get("ESCAPED_SUFFIX"):
             self.sub_dict["ESCAPED_SUFFIX"] = escape_dn_chars(suffix)

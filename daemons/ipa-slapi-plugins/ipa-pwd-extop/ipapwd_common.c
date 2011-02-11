@@ -311,6 +311,7 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     ret = ipapwd_getEntry(ipa_etc_config_dn, &config_entry, NULL);
     if (ret != LDAP_SUCCESS) {
         LOG_FATAL("No config Entry?\n");
+        goto free_and_error;
     } else {
         tmparray = slapi_entry_attr_get_charray(config_entry,
                                                 "ipaConfigString");

@@ -101,6 +101,13 @@ ipaenrollement_secure(Slapi_PBlock *pb, char **errMesg)
         goto done;
     }
 
+    if (NULL == realm) {
+        *errMesg = "Kerberos realm is not set.\n";
+        LOG_FATAL("%s", errMesg);
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
     if ((0 == is_ssl) && (sasl_ssf <= 1)) {
         *errMesg = "Operation requires a secure connection.\n";
         rc = LDAP_CONFIDENTIALITY_REQUIRED;
@@ -143,6 +150,13 @@ ipa_join(Slapi_PBlock *pb)
     int scope = LDAP_SCOPE_SUBTREE;
     char *principal = NULL;
     struct berval retbval;
+
+    if (NULL == realm) {
+        errMesg = "Kerberos realm is not set.\n";
+        LOG_FATAL("%s", errMesg);
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
 
     /* Get Bind DN */
     slapi_pblock_get(pb, SLAPI_CONN_DN, &bindDN);
@@ -363,18 +377,21 @@ ipaenrollment_start(Slapi_PBlock *pb)
     krberr = krb5_init_context(&krbctx);
     if (krberr) {
         LOG_FATAL("krb5_init_context failed\n");
-        return LDAP_OPERATIONS_ERROR;
+        /* Yes, we failed, but it is because /etc/krb5.conf doesn't exist
+         * or is misconfigured. Start up in a degraded mode.
+         */
+        goto done;
     }
 
-    ret = krb5_get_default_realm(krbctx, &realm);
-    if (ret) {
+    krberr = krb5_get_default_realm(krbctx, &realm);
+    if (krberr) {
+        realm = NULL;
         LOG_FATAL("Failed to get default realm?!\n");
-        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
     }
 
     if (slapi_pblock_get(pb, SLAPI_TARGET_DN, &config_dn) != 0) {
         LOG_FATAL("No config DN?\n");
-        ret = LDAP_OPERATIONS_ERROR;
         goto done;
     }
     sdn = slapi_sdn_new_dn_byref(config_dn);
