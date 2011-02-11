@@ -659,6 +659,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
         goto done;
     }
 
+    pwdop->is_krb = is_krb;
     pwdop->pwd_op = IPAPWD_OP_MOD;
     pwdop->pwdata.password = slapi_ch_strdup(unhashedpw);
     pwdop->pwdata.changetype = IPA_CHANGETYPE_NORMAL;
