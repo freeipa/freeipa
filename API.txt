@@ -320,7 +320,7 @@ output: Output('result', None, None)
 command: cert_show
 args: 1,1,1
 arg: Str('serial_number', label=Gettext('Serial number', domain='ipa', localedir=None))
-option: Str('out?',tr('out?', doc=Gettext('file to store certificate in', domain='ipa', localedir=None))
+option: Str('out?', exclude='webui', label=Gettext('Output filename', domain='ipa', localedir=None))
 output: Output('result', None, None)
 command: cert_status
 args: 1,0,1

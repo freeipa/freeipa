@@ -231,6 +231,8 @@ def check_writable_file(filename):
     Determine if the file is writable. If the file doesn't exist then
     open the file to test writability.
     """
+    if filename is None:
+        raise errors.FileError(reason='Filename is empty')
     try:
         if file_exists(filename):
             if not os.access(filename, os.W_OK):
@@ -255,6 +257,12 @@ def write_certificate(cert, filename):
     """
     Check to see if the certificate should be written to a file and do so.
     """
+    if cert and util.isvalid_base64(cert):
+        try:
+            cert = base64.b64decode(cert)
+        except Exception, e:
+            raise errors.Base64DecodeError(reason=str(e))
+
     try:
         fp = open(filename, 'w')
         fp.write(make_pem(base64.b64encode(cert)))

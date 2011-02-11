@@ -418,13 +418,15 @@ class cert_show(VirtualCommand):
 
     takes_options = (
         Str('out?',
+            label=_('Output filename'),
             doc=_('file to store certificate in'),
+            exclude='webui',
         ),
     )
 
     operation="retrieve certificate"
 
-    def execute(self, serial_number):
+    def execute(self, serial_number, **options):
         hostname = None
         try:
             self.check_access()
@@ -455,9 +457,8 @@ class cert_show(VirtualCommand):
         if 'out' in options:
             check_writable_file(options['out'])
             result = super(cert_show, self).forward(*keys, **options)
-            if 'usercertificate' in result['result']:
-                write_certificate(result['result']['usercertificate'][0], options['out'])
-                result['summary'] = _('Certificate stored in file \'%(file)s\'') % dict(file=options['out'])
+            if 'certificate' in result['result']:
+                write_certificate(result['result']['certificate'], options['out'])
                 return result
             else:
                 raise errors.NoCertificateError(entry=keys[-1])
