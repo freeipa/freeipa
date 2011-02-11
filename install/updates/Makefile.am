@@ -9,6 +9,7 @@ app_DATA =				\
 	20-nss_ldap.update		\
 	20-replication.update		\
 	20-winsync_index.update		\
+	40-delegation.update		\
 	$(NULL)
 
 EXTRA_DIST =				\
