@@ -51,6 +51,7 @@ BuildRequires:  libcurl-devel
 BuildRequires:  gettext
 BuildRequires:  authconfig
 BuildRequires:  libuuid-devel
+BuildRequires:  pyOpenSSL
 %endif
 
 %description
