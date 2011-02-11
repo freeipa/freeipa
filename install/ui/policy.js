@@ -89,9 +89,9 @@ IPA.records_facet = function (spec){
     that.record = null;
 
     var record_types =[ 'a', 'aaaa', 'dname', 'cname', 'mx', 'ns', 'ptr',
-                        'srv', 'txt', 'a6', 'afsdb', 'cert', 'ds', 'hinfo',
-                        'key', 'kx', 'loc', 'md', 'minfo', 'naptr', 'nsec',
-                        'nxt', 'rrsig', 'sshfp'];
+                        'srv', 'txt', 'a6', 'afsdb', 'cert', 'ds',
+                        'key', 'kx', 'loc',  'naptr', 'nsec',
+                        'rrsig', 'sshfp'];
 
     function create_type_select(id,add_none) {
         var type_select = $('<select/>',{
