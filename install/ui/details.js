@@ -536,13 +536,17 @@ IPA.details_refresh = function() {
 
     var that = this;
 
-    that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+    that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) ;
 
     var command = IPA.command({
-        'method': that.entity_name+'_show',
-        'args': [that.pkey],
-        'options': { 'all': true, 'rights': true }
+        method: that.entity_name+'_show',
+        args:  [],
+        options: { 'all': true, 'rights': true }
     });
+
+    if (that.pkey){
+        command.args =  [that.pkey];
+    }
 
     command.on_success = function(data, text_status, xhr) {
         that.load(data.result.result);
