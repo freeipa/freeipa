@@ -292,6 +292,9 @@ class service(LDAPObject):
         'managedby': ['host'],
     }
     bindable = True
+    relationships = {
+        'managedby': ('Managed by', 'man_by_', 'not_man_by_'),
+    }
 
     label = _('Services')
 

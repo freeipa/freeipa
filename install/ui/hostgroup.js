@@ -54,6 +54,12 @@ IPA.entity_factories.hostgroup = function() {
                         input({name:'cn'}).
                         input({name: 'description'})));
 
+        that.facet(
+            IPA.association_facet({
+                name: 'memberof_hostgroup',
+                associator: IPA.serial_associator
+            }));
+
         that.create_association_facets();
         that.entity_init();
     };

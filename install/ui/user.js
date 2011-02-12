@@ -28,14 +28,6 @@ IPA.entity_factories.user = function() {
     return IPA.entity({
         name: 'user'
     }).
-        association({
-            'name': 'group',
-            'associator': 'serial'
-        }).
-        association({
-            'name': 'netgroup',
-            'associator': 'serial'
-        }).
         facet(
             IPA.search_facet().
                 column({name:'cn'}).
@@ -90,6 +82,21 @@ IPA.entity_factories.user = function() {
             section(
                 IPA.stanza({name: 'misc', label: IPA.messages.details.misc}).
                     input({name:'carlicense'}))).
+        facet(
+            IPA.association_facet({
+                name: 'memberof_group',
+                associator: IPA.serial_associator
+            })).
+        facet(
+            IPA.association_facet({
+                name: 'memberof_netgroup',
+                associator: IPA.serial_associator
+            })).
+        facet(
+            IPA.association_facet({
+                name: 'memberof_role',
+                associator: IPA.serial_associator
+            })).
         standard_associations();
 };
 

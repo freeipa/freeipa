@@ -57,22 +57,23 @@ IPA.entity_factories.group =  function () {
                         input({name: 'gidnumber' }))).
         facet(
             IPA.group_member_user_facet({
-                'name': 'member_user',
-                'label': 'Users',
-                'other_entity': 'user'
+                'name': 'member_user'
             })).
-        association({
-            name: 'netgroup',
-            associator: 'serial'
-        }).
-        association({
-            name: 'rolegroup',
-            associator: 'serial'
-        }).
-        association({
-            name: 'taskgroup',
-            associator: 'serial'
-        }).
+        facet(
+            IPA.association_facet({
+                name: 'memberof_group',
+                associator: IPA.serial_associator
+            })).
+        facet(
+            IPA.association_facet({
+                name: 'memberof_netgroup',
+                associator: IPA.serial_associator
+            })).
+        facet(
+            IPA.association_facet({
+                name: 'memberof_role',
+                associator: IPA.serial_associator
+            })).
         standard_associations();
 };
 

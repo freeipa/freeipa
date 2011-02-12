@@ -30,12 +30,6 @@ IPA.entity_factories.hbacsvcgroup = function () {
 
     that.init = function() {
 
-        that.create_association({
-            'name': 'hbacsvc',
-            'add_method': 'add_member',
-            'remove_method': 'remove_member'
-        });
-
         var facet = IPA.hbacsvcgroup_search_facet({
             'name': 'search',
             'label': 'Search'

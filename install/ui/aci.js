@@ -559,8 +559,8 @@ IPA.entity_factories.permission = function() {
                     IPA.stanza({name:'identity', label:'Identity'}).
                         input({name: 'cn', 'read_only': true})).
                 section(IPA.rights_section()).
-                section(IPA.target_section({name: 'target', label: 'Target'})));
-
+                section(IPA.target_section({name: 'target', label: 'Target'}))).
+        standard_associations();
 };
 
 
@@ -586,15 +586,21 @@ IPA.entity_factories.privilege = function() {
                     IPA.stanza({name:'identity', label:'Privilege Settings'}).
                         input({name:'cn'}).
                         input({name: 'description'}))).
-    association({
-        name: 'permission',
-        other_entity: 'privilege',
-        add_method: 'add_permission',
-        remove_method: 'remove_permission'
-    }).
+        facet(
+            IPA.association_facet({
+                name: 'member_role',
+                add_method: 'add_privilege',
+                remove_method: 'remove_privilege',
+                associator: IPA.serial_associator
+            })).
+        facet(
+            IPA.association_facet({
+                name: 'memberof_permission',
+                add_method: 'add_permission',
+                remove_method: 'remove_permission'
+            })).
 
-    standard_associations();
-
+        standard_associations();
 
     return that;
 };
@@ -622,11 +628,13 @@ IPA.entity_factories.role = function() {
                     IPA.stanza({name:'identity', label:'Role Settings'}).
                         input({name:'cn'}).
                         input({name: 'description'}))).
-        association({
-            name: 'privilege',
-            add_method: 'add_privilege',
-            remove_method: 'remove_privilege'
-        }).
+        facet(
+            IPA.association_facet({
+                name: 'memberof_privilege',
+                add_method: 'add_privilege',
+                remove_method: 'remove_privilege'
+            })).
+
         standard_associations();
 };
 

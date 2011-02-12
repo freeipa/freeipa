@@ -28,11 +28,6 @@ IPA.entity_factories.service = function() {
     return  IPA.entity({
         name: 'service'
     }).
-        association({
-            name: 'host',
-            add_method: 'add_host',
-            remove_method: 'remove_host'
-        }).
         facet(
             IPA.search_facet().
                 column({name: 'krbprincipalname'}).
@@ -44,11 +39,11 @@ IPA.entity_factories.service = function() {
                     }))).
         facet(IPA.service_details_facet()).
         facet(IPA.service_managedby_host_facet({
-            name: 'managedby_host',
-            label: IPA.messages.association.managedby +
-                ' '+IPA.metadata['host'].label,
-            other_entity: 'host'
-        }));
+                name: 'managedby_host',
+                add_method: 'add_host',
+                remove_method: 'remove_host'
+            })).
+        standard_associations();
 };
 
 

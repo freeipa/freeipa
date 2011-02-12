@@ -30,12 +30,6 @@ IPA.entity_factories.sudocmdgroup = function () {
 
     that.init = function() {
 
-        that.create_association({
-            'name': 'sudocmd',
-            'add_method': 'add_member',
-            'remove_method': 'remove_member'
-        });
-
         var facet = IPA.sudocmdgroup_search_facet({
             'name': 'search',
             'label': 'Search'

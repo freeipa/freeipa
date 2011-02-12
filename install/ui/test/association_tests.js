@@ -23,7 +23,7 @@ module('associate');
 
 test("Testing serial_associator().", function() {
 
-    expect(10);
+    expect(7);
 
     var orig_ipa_cmd = IPA.cmd;
 
@@ -42,13 +42,8 @@ test("Testing serial_associator().", function() {
         counter++;
 
         equals(
-            name, params.method,
+            name, params.other_entity+'_'+params.method,
             "Checking IPA.cmd() parameter: method"
-        );
-
-        equals(
-            objname, params.other_entity,
-            "Checking IPA.cmd() parameter: object name"
         );
 
         equals(
@@ -65,7 +60,7 @@ test("Testing serial_associator().", function() {
         ok(true, "on_success() is invoked.");
     };
 
-    var associator = serial_associator(params);
+    var associator = IPA.serial_associator(params);
     associator.execute();
 
     IPA.cmd = orig_ipa_cmd;
@@ -73,7 +68,7 @@ test("Testing serial_associator().", function() {
 
 test("Testing bulk_associator().", function() {
 
-    expect(5);
+    expect(4);
 
     var orig_ipa_cmd = IPA.cmd;
 
@@ -92,13 +87,8 @@ test("Testing bulk_associator().", function() {
         counter++;
 
         equals(
-            name, params.method,
+            name, params.entity_name+'_'+params.method,
             "Checking IPA.cmd() parameter: method"
-        );
-
-        equals(
-            objname, params.entity_name,
-            "Checking IPA.cmd() parameter: object name"
         );
 
         equals(
@@ -120,7 +110,7 @@ test("Testing bulk_associator().", function() {
         ok(true, "on_success() is invoked.");
     };
 
-    var associator = bulk_associator(params);
+    var associator = IPA.bulk_associator(params);
     associator.execute();
 
     IPA.cmd = orig_ipa_cmd;

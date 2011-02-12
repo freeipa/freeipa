@@ -54,6 +54,12 @@ IPA.entity_factories.netgroup = function() {
                         input({name: 'description'}).
                         input({name: 'nisdomainname'})));
 
+        that.facet(
+            IPA.association_facet({
+                name: 'memberof_netgroup',
+                associator: IPA.serial_associator
+            }));
+
         that.create_association_facets();
         that.entity_init();
     };

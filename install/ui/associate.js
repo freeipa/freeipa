@@ -51,7 +51,7 @@ IPA.associator = function (spec) {
 /**
 *This associator is built for the case where each association requires a separate rpc
 */
-function serial_associator(spec) {
+IPA.serial_associator = function(spec) {
 
     spec = spec || {};
 
@@ -74,23 +74,27 @@ function serial_associator(spec) {
         var options = {};
         options[that.entity_name] = that.pkey;
 
-        IPA.cmd(
-            that.method,
-            args,
-            options,
-            that.execute,
-            that.on_error,
-            that.other_entity);
+        var command = IPA.command({
+            method: that.other_entity+'_'+that.method,
+            args: args,
+            options: options,
+            on_success: that.execute,
+            on_error: that.on_error
+        });
+
+        //alert(JSON.stringify(command.to_json()));
+
+        command.execute();
     };
 
     return that;
-}
+};
 
 /**
 *This associator is for the common case where all the asociations can be sent
 in a single rpc
 */
-function bulk_associator(spec) {
+IPA.bulk_associator = function(spec) {
 
     spec = spec || {};
 
@@ -117,17 +121,21 @@ function bulk_associator(spec) {
         var options = { 'all': true };
         options[that.other_entity] = value;
 
-        IPA.cmd(
-            that.method,
-            args,
-            options,
-            that.on_success,
-            that.on_error,
-            that.entity_name);
+        var command = IPA.command({
+            method: that.entity_name+'_'+that.method,
+            args: args,
+            options: options,
+            on_success: that.on_success,
+            on_error: that.on_error
+        });
+
+        //alert(JSON.stringify(command.to_json()));
+
+        command.execute();
     };
 
     return that;
-}
+};
 
 /**
  * This dialog is used for adding associations between two entities.
@@ -228,7 +236,7 @@ IPA.association_deleter_dialog = function (spec) {
     that.on_success = spec.on_success;
     that.on_error = spec.on_error;
 
-    that.remove = function() {
+    that.execute = function() {
 
         var associator = that.associator({
             'entity_name': that.entity_name,
@@ -271,7 +279,7 @@ IPA.association_table_widget = function (spec) {
     that.other_entity = spec.other_entity;
     that.attribute_member = spec.attribute_member;
 
-    that.associator = spec.associator || bulk_associator;
+    that.associator = spec.associator || IPA.bulk_associator;
     that.add_method = spec.add_method || 'add_member';
     that.remove_method = spec.remove_method || 'remove_member';
 
@@ -296,16 +304,7 @@ IPA.association_table_widget = function (spec) {
     that.init = function() {
 
         var entity = IPA.get_entity(that.entity_name);
-        var association = entity.get_association(that.other_entity);
         var column;
-        if (association) {
-            if (association.associator) {
-                that.associator = association.associator == 'serial' ? serial_associator : bulk_associator;
-            }
-
-            if (association.add_method) that.add_method = association.add_method;
-            if (association.remove_method) that.remove_method = association.remove_method;
-        }
 
         // create a column if none defined
         if (!that.columns.length) {
@@ -523,7 +522,7 @@ IPA.association_table_widget = function (spec) {
             method: that.remove_method
         });
 
-        dialog.remove = function() {
+        dialog.execute = function() {
             that.remove(
                 selected_values,
                 function() {
@@ -571,11 +570,14 @@ IPA.association_facet = function (spec) {
 
     var that = IPA.facet(spec);
 
-    that.other_entity = spec.other_entity;
-    that.facet_group = spec.facet_group;
-    that.attribute_member = spec.attribute_member;
+    var index = that.name.indexOf('_');
+    that.attribute_member = spec.attribute_member || that.name.substring(0, index);
+    that.other_entity = spec.other_entity || that.name.substring(index+1);
 
-    that.associator = spec.associator || bulk_associator;
+    that.facet_group = spec.facet_group;
+    that.label = that.label ? that.label : (IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity);
+
+    that.associator = spec.associator || IPA.bulk_associator;
     that.add_method = spec.add_method || 'add_member';
     that.remove_method = spec.remove_method || 'remove_member';
 
@@ -620,18 +622,8 @@ IPA.association_facet = function (spec) {
         that.facet_init();
 
         var entity = IPA.get_entity(that.entity_name);
-        var association = entity.get_association(that.other_entity);
         var column;
         var i;
-
-        if (association) {
-            if (association.associator) {
-                that.associator = association.associator == 'serial' ? serial_associator : bulk_associator;
-            }
-
-            if (association.add_method) that.add_method = association.add_method;
-            if (association.remove_method) that.remove_method = association.remove_method;
-        }
 
         var label = IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity;
         var pkey_name = IPA.metadata[that.other_entity].primary_key;
@@ -734,14 +726,11 @@ IPA.association_facet = function (spec) {
             'value': IPA.messages.button.remove
         }).appendTo(li);
 
-        /* TODO: genering handling of different relationships */
-        if ((relationship[0] == 'Member')||(relationship[0] == 'Member Of')) {
-            $('<input/>', {
-                'type': 'button',
-                'name': 'add',
-                'value': IPA.messages.button.enroll
-            }).appendTo(li);
-        }
+        $('<input/>', {
+            'type': 'button',
+            'name': 'add',
+            'value': IPA.messages.button.enroll
+        }).appendTo(li);
     };
 
     that.setup = function(container) {
@@ -830,22 +819,33 @@ IPA.association_facet = function (spec) {
         var title = 'Remove '+label+' from '+that.entity_name+' '+pkey;
 
         var dialog = IPA.association_deleter_dialog({
-            'title': title,
-            'entity_name': that.entity_name,
-            'pkey': pkey,
-            'other_entity': that.other_entity,
-            'values': values,
-            'associator': that.associator,
-            'method': that.remove_method,
-            'on_success': function() {
-                that.refresh();
-                dialog.close();
-            },
-            'on_error': function() {
-                that.refresh();
-                dialog.close();
-            }
+            title: title,
+            entity_name: that.entity_name,
+            pkey: pkey,
+            other_entity: that.other_entity,
+            values: values
         });
+
+        dialog.execute = function() {
+
+            var associator = that.associator({
+                entity_name: that.entity_name,
+                pkey: pkey,
+                other_entity: that.other_entity,
+                values: values,
+                method: that.remove_method,
+                on_success: function() {
+                    that.refresh();
+                    dialog.close();
+                },
+                on_error: function() {
+                    that.refresh();
+                    dialog.close();
+                }
+            });
+
+            associator.execute();
+        };
 
         dialog.init();
 
@@ -919,7 +919,7 @@ IPA.association_facet = function (spec) {
         }
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        IPA.cmd('show', [pkey], {'rights': true}, on_success, on_error, that.entity_name);
+        IPA.cmd('show', [pkey], {'all': true, 'rights': true}, on_success, on_error, that.entity_name);
     };
 
     that.association_facet_init = that.init;

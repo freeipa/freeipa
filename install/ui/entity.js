@@ -122,9 +122,6 @@ IPA.entity = function (spec) {
 
     that.autogenerate_associations = false;
 
-    that.associations = [];
-    that.associations_by_name = {};
-
     that.get_dialog = function(name) {
         return that.dialogs_by_name[name];
     };
@@ -166,74 +163,25 @@ IPA.entity = function (spec) {
         return that;
     };
 
-    that.get_associations = function() {
-        return that.associations;
-    };
-
-    that.get_association = function(name) {
-        return that.associations_by_name[name];
-    };
-
-    that.add_association = function(config) {
-        that.associations.push(config);
-        that.associations_by_name[config.name] = config;
-    };
-
-    that.create_association = function(spec) {
-        var config = IPA.association_config(spec);
-        that.add_association(config);
-        return config;
-    };
-
-    that.association = function(spec) {
-        var config = IPA.association_config(spec);
-        that.add_association(config);
-        return that;
-    };
-
-
     that.create_association_facet = function(attribute_member, other_entity, label, facet_group) {
 
-        if (!attribute_member) {
-            attribute_member = IPA.get_member_attribute(
-                that.entity_name, other_entity);
-        }
-
-        var association_name= attribute_member+'_'+other_entity;
+        var association_name = attribute_member+'_'+other_entity;
 
         //TODO remove from the facets and facets_by_name collections
         var facet = that.get_facet(association_name);
-        if (facet){
+        if (facet) {
             facet.facet_group = facet_group;
             facet.attribute_member =  attribute_member;
             return;
         }
 
-        var config = that.get_association(other_entity);
-        if (!config){
-            config = that.get_association(association_name);
-        }
-
-        var spec ={
-            'name': association_name,
-            'label': label,
-            'other_entity': other_entity,
-            'facet_group': facet_group,
-            'attribute_member': attribute_member
-        };
-
-        if (config){
-            for (var key in config){
-                /*name is special, as iut has already been munged 
-                  into the association name */
-                if (key === "name"){
-                    continue;
-                }
-                spec[key] = config[key] ;
-            }
-        }
-
-        facet =  IPA.association_facet(spec);
+        facet = IPA.association_facet({
+            name: association_name,
+            label: label,
+            attribute_member: attribute_member,
+            other_entity: other_entity,
+            facet_group: facet_group
+        });
 
         that.add_facet(facet);
     };
@@ -252,9 +200,7 @@ IPA.entity = function (spec) {
 
             for (var j = 0; j < other_entities.length; j++) {
                 var other_entity = other_entities[j];
-                var other_entity_name = IPA.metadata[other_entity].label;
-
-                var label = other_entity_name;
+                var label = IPA.metadata[other_entity].label;
 
                 var relationships = IPA.metadata[that.name].relationships;
 
@@ -380,25 +326,6 @@ IPA.entity_set_details_definition = function (entity_name, sections) {
         facet.add_section(section);
     }
 };
-
-
-IPA.entity_set_association_definition = function (entity_name, data) {
-
-    var entity = IPA.fetch_entity(entity_name);
-
-    entity.autogenerate_associations = true;
-
-    for (var other_entity in data) {
-        var config = data[other_entity];
-        entity.create_association({
-            'name': other_entity,
-            'associator': config.associator,
-            'add_method': config.add_method,
-            'remove_method': config.remove_method
-        });
-    }
-};
-
 
 IPA.entity_set_facet_definition = function (entity_name, list) {
 

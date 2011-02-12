@@ -4713,7 +4713,6 @@
                         ], 
                         "attribute_members": {
                             "member": [
-                                "permission", 
                                 "role"
                             ], 
                             "memberof": [
@@ -5434,22 +5433,12 @@
                         "primary_key": "krbprincipalname", 
                         "rdn_attribute": "", 
                         "relationships": {
-                            "member": [
-                                "Member", 
-                                "", 
-                                "no_"
-                            ], 
-                            "memberindirect": [
-                                "Indirect Member", 
-                                null, 
-                                "no_indirect_"
-                            ], 
-                            "memberof": [
-                                "Member Of", 
-                                "in_", 
-                                "not_in_"
+                            "managedby": [
+                                "Managed by",
+                                "man_by_",
+                                "not_man_by_"
                             ]
-                        }, 
+                        },
                         "takes_params": [
                             {
                                 "alwaysask": false, 

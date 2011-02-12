@@ -189,7 +189,7 @@ IPA.search_widget = function (spec) {
             'values': values
         });
 
-        dialog.remove = function() {
+        dialog.execute = function() {
 
             var batch = IPA.batch_command({
                 'on_success': function() {

@@ -32,16 +32,6 @@ IPA.entity_factories.host = function () {
 
     that.init = function() {
 
-        that.create_association({
-            'name': 'hostgroup',
-            'associator': 'serial'
-        });
-
-        that.create_association({
-            'name': 'rolegroup',
-            'associator': 'serial'
-        });
-
         var facet = IPA.host_search_facet({
             'name': 'search',
             'label': 'Search'
@@ -60,9 +50,25 @@ IPA.entity_factories.host = function () {
         that.add_facet(facet);
 
         facet = IPA.host_managedby_host_facet({
-            'name': 'managedby_host',
-            'label': IPA.messages.association.managedby+' '+IPA.metadata['host'].label,
-            'other_entity': 'host'
+            'name': 'managedby_host'
+        });
+        that.add_facet(facet);
+
+        facet = IPA.association_facet({
+            name: 'memberof_hostgroup',
+            associator: IPA.serial_associator
+        });
+        that.add_facet(facet);
+
+        facet = IPA.association_facet({
+            name: 'memberof_netgroup',
+            associator: IPA.serial_associator
+        });
+        that.add_facet(facet);
+
+        facet = IPA.association_facet({
+            name: 'memberof_role',
+            associator: IPA.serial_associator
         });
         that.add_facet(facet);
 

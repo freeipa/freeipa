@@ -512,7 +512,6 @@ IPA.deleter_dialog =  function (spec) {
     var that = IPA.dialog(spec);
 
     that.title = spec.title || IPA.messages.button.remove;
-    that.remove = spec.remove;
 
     that.values = spec.values || [];
 
@@ -546,7 +545,7 @@ IPA.deleter_dialog =  function (spec) {
 
     that.open = function(container) {
         that.buttons = {
-            'Delete': that.remove,
+            'Delete': that.execute,
             'Cancel': that.close
         };
 
