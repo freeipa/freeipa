@@ -810,6 +810,9 @@ def main():
 
 try:
     if __name__ == "__main__":
+        if not os.getegid() == 0:
+            sys.exit("\nYou must be root to run ipa-client-install.\n")
+
         sys.exit(main())
 except SystemExit, e:
     sys.exit(e)
