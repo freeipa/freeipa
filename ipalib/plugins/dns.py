@@ -146,7 +146,7 @@ _record_validators = {
 def has_cli_options(entry, no_option_msg):
     entry = dict((t, entry.get(t, [])) for t in _record_attributes)
     numattr = reduce(lambda x,y: x+y,
-                     map(lambda x: len(x), entry.values()))
+                     map(lambda x: len(x), [ v for v in entry.values() if v is not None ]))
     if numattr == 0:
         raise errors.OptionError(no_option_msg)
     return entry
