@@ -293,11 +293,16 @@ IPA.records_facet = function (spec){
             name: 'search-' + that.entity_name + '-filter'
         }));
 
-        control_span.append('Type');
+        /*
+          THe OLD DNS plugin allowed for search based on record type.
+          This one does not.  If the plugin gets modified to support
+          Record type searches, uncomment the followin lines and
+          adjust the code that modifies the search parameters.
 
-        create_type_select('dns-record-type-filter',true).
-            appendTo(control_span);
-
+          control_span.append('Type');
+          create_type_select('dns-record-type-filter',true).
+          appendTo(control_span);
+        */
 
         IPA.button({
             'label': IPA.messages.button.find,
@@ -399,9 +404,9 @@ IPA.records_facet = function (spec){
 
         var resource_filter = that.container.
             find("#dns-record-resource-filter").val();
-        if (resource_filter){
-            options.idnsname = resource_filter;
-        }
+//        if (resource_filter){
+//            options.idnsname = resource_filter;
+//        }
 
         var type_filter = that.container.find("#dns-record-type-filter").val();
         if (type_filter){
@@ -413,8 +418,12 @@ IPA.records_facet = function (spec){
             options.data = data_filter;
         }
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true);
-        IPA.cmd('dnsrecord_find',[pkey],options,load_on_win, load_on_fail);
+        var pkey = [$.bbq.getState(that.entity_name + '-pkey', true)];
+
+        if (resource_filter){
+            pkey.push(resource_filter);
+        }
+        IPA.cmd('dnsrecord_find',pkey,options,load_on_win, load_on_fail);
 
     }
 
