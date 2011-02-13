@@ -28,6 +28,8 @@ A replica can only be created on an IPA server installed with ipa\-server\-insta
 
 You must provide the fully\-qualified hostname of the machine you want to install the replica on and a host\-specific replica_file will be created. It is host\-specific because SSL server certificates are generated as part of the process and they are specific to a particular hostname.
 
+If IPA manages the DNS for your domain, you should either use the \fB\-\-ip-address\fR option or add the forward and reverse records manually using IPA plugins.
+
 Once the file has been created it will be named replica\-hostname. This file can then be moved across the network to the target machine and a new IPA replica setup by running ipa\-replica\-install replica\-hostname.
 .SH "OPTIONS"
 .TP
