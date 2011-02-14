@@ -94,6 +94,7 @@ if api.env.context in ['lite', 'server']:
     from ipaserver.install.bindinstance import get_reverse_zone
 import base64
 import nss.nss as nss
+import netaddr
 
 
 def validate_host(ugettext, fqdn):
