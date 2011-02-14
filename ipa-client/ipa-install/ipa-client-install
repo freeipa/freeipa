@@ -658,8 +658,10 @@ def main():
                     stdin = options.password
                 else:
                     if not options.unattended:
-                        print "Password for %s: " % principal,
-                        sys.stdout.flush()
+                        stdin = getpass.getpass("Password for %s: " % principal)
+                        if not stdin:
+                            sys.exit("Password must be provided for %s. " %
+                                principal)
                     else:
                         if sys.stdin.isatty():
                             sys.exit("Password must be provided in non-interactive mode.\nThis can be done via echo password | ipa-client-install ... or\nwith the -w option.")
