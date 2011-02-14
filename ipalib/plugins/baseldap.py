@@ -416,6 +416,14 @@ def _check_single_value_attrs(params, entry_attrs):
             if a in params and not params[a].multivalue:
                 raise errors.OnlyOneValueAllowed(attr=a)
 
+# setattr or --option='' can cause parameters to be empty that are otherwise
+# required, make sure we enforce that.
+def _check_empty_attrs(params, entry_attrs):
+    for (a, v) in entry_attrs.iteritems():
+        if v is None or (isinstance(v, basestring) and len(v) == 0):
+            if a in params and params[a].required:
+                raise errors.RequirementError(name=a)
+
 
 class CallbackInterface(Method):
     """
@@ -799,6 +807,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 )
 
         _check_single_value_attrs(self.params, entry_attrs)
+        _check_empty_attrs(self.obj.params, entry_attrs)
 
         rdnupdate = False
         try:

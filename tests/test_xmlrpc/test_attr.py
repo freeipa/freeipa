@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Test --setattr and --addattr
+Test --setattr and --addattr and other attribute-specific issues
 """
 
 from ipalib import api, errors
@@ -158,6 +158,68 @@ class test_attr(Declarative):
             desc='Add two more phone numbers %r' % user1,
             command=(
                 'user_mod', [user1], dict(addattr=(u'telephoneNumber=703-555-1212', u'telephoneNumber=202-888-9833'))
+            ),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Finkle'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    memberof_group=[u'ipausers'],
+                    telephonenumber=[u'301-555-1212', u'202-888-9833', u'703-555-1212'],
+                    nsaccountlock=[u'False'],
+                ),
+                summary=u'Modified user "tuser1"',
+                value=user1,
+            ),
+        ),
+
+
+        dict(
+            desc='Try setting givenname to None with setattr in %r' % user1,
+            command=(
+                'user_mod', [user1], dict(setattr=(u'givenname='))
+            ),
+            expected=errors.RequirementError(name='givenname'),
+        ),
+
+
+        dict(
+            desc='Try setting givenname to None with option in %r' % user1,
+            command=(
+                'user_mod', [user1], dict(givenname=None)
+            ),
+            expected=errors.RequirementError(name='givenname'),
+        ),
+
+
+        dict(
+            desc='Make sure setting givenname works with option in %r' % user1,
+            command=(
+                'user_mod', [user1], dict(givenname=u'Fred')
+            ),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Fred'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    memberof_group=[u'ipausers'],
+                    telephonenumber=[u'301-555-1212', u'202-888-9833', u'703-555-1212'],
+                    nsaccountlock=[u'False'],
+                ),
+                summary=u'Modified user "tuser1"',
+                value=user1,
+            ),
+        ),
+
+
+        dict(
+            desc='Make sure setting givenname works with setattr in %r' % user1,
+            command=(
+                'user_mod', [user1], dict(setattr=u'givenname=Finkle')
             ),
             expected=dict(
                 result=dict(
