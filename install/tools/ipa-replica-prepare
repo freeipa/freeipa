@@ -267,7 +267,7 @@ def main():
 
     if not options.ip_address:
         try:
-            api.Command['dns_resolve'](replica_fqdn)
+            api.Command['dns_resolve'](replica_fqdn.decode('utf-8'))
         except errors.NotFound:
             sys.exit("Neither an A nor AAAA record for host '%s' does not exist in DNS.\nUse the --ip-address option to add DNS entries for the replica." % replica_fqdn)
 
