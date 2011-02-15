@@ -35,6 +35,7 @@ import threading
 import sys
 import os
 import errno
+import locale
 from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, Transport, ProtocolError
 import kerberos
 from ipalib.backend import Connectible
@@ -190,7 +191,23 @@ def xml_loads(data, encoding='UTF-8'):
         raise decode_fault(e)
 
 
-class SSLTransport(Transport):
+class LanguageAwareTransport(Transport):
+    """Transport sending Accept-Language header"""
+    def get_host_info(self, host):
+        (host, extra_headers, x509) = Transport.get_host_info(self, host)
+
+        lang = locale.setlocale(locale.LC_ALL, '').split('.')[0].lower()
+
+        if not isinstance(extra_headers, list):
+            extra_headers = []
+
+        extra_headers.append(
+            ('Accept-Language', lang.replace('_', '-'))
+        )
+
+        return (host, extra_headers, x509)
+
+class SSLTransport(LanguageAwareTransport):
     """Handles an HTTPS transaction to an XML-RPC server."""
 
     def make_connection(self, host):
@@ -247,9 +264,17 @@ class KerbTransport(SSLTransport):
         except kerberos.GSSError, e:
             self._handle_exception(e, service=service)
 
-        extra_headers = [
+        if not isinstance(extra_headers, list):
+            extra_headers = []
+
+        for (h, v) in extra_headers:
+            if h == 'Authorization':
+                extra_headers.remove((h, v))
+                break
+
+        extra_headers.append(
             ('Authorization', 'negotiate %s' % kerberos.authGSSClientResponse(vc))
-        ]
+        )
 
         return (host, extra_headers, x509)
 
@@ -307,6 +332,8 @@ class xmlclient(Connectible):
             kw['verbose'] = verbose
             if server.startswith('https://'):
                 kw['transport'] = KerbTransport()
+            else:
+                kw['transport'] = LanguageAwareTransport()
             self.log.info('trying %s' % server)
             serverproxy = ServerProxy(server, **kw)
             if len(servers) == 1 or not fallback:

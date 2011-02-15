@@ -193,11 +193,17 @@ class WSGIExecutioner(Executioner):
         result = None
         error = None
         _id = None
-        lang= os.environ['LANG']
+        lang = os.environ['LANG']
         try:
             if ('HTTP_ACCEPT_LANGUAGE' in environ):
-                os.environ['LANG']=string.split(
-                    environ['HTTP_ACCEPT_LANGUAGE'],",")[0].split(';')[0]
+                lang_reg_w_q = environ['HTTP_ACCEPT_LANGUAGE'].split(',')[0]
+                lang_reg = lang_reg_w_q.split(';')[0]
+                lang_ = lang_reg.split('-')[0]
+                if '-' in lang_reg:
+                    reg = lang_reg.split('-')[1].upper();
+                else:
+                    reg = lang_.upper()
+                os.environ['LANG'] = '%s_%s' % (lang_, reg)
             if (
                 environ.get('CONTENT_TYPE', '').startswith(self.content_type)
                 and environ['REQUEST_METHOD'] == 'POST'
@@ -217,7 +223,7 @@ class WSGIExecutioner(Executioner):
             )
             error = InternalError()
         finally:
-            os.environ['LANG']=lang
+            os.environ['LANG'] = lang
         params = self.Command[name].args_options_2_params(*args, **options)
         if error:
             self.info('%s: %s(%s): %s', context.principal, name, ', '.join(self.Command[name]._repr_iter(**params)), e.__class__.__name__)
