@@ -221,6 +221,8 @@ class user(LDAPObject):
         # check if default email domain should be added
         if email and 'ipadefaultemaildomain' in config:
             norm_email = []
+            if not isinstance(email, (list, tuple)):
+                email = [email]
             for m in email:
                 if m.find('@') == -1:
                     norm_email.append(m + u'@' + config['ipadefaultemaildomain'][0])
