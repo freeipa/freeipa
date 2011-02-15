@@ -44,10 +44,8 @@ class privilege(LDAPObject):
         'memberindirect'
     ]
     attribute_members = {
-        'member': ['permission', 'role'],
+        'member': ['role'],
         'memberof': ['permission'],
-#        'memberindirect': ['permission'],
-        # FIXME: privilege can be member of ???
     }
     reverse_members = {
         'member': ['permission'],
