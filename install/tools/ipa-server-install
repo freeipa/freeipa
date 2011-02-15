@@ -444,13 +444,15 @@ def uninstall():
     return 0
 
 
-def set_subject_in_config(host_name, dm_password, suffix, subject_base):
-        ldapuri = 'ldap://%s' % host_name
+def set_subject_in_config(realm_name, dm_password, suffix, subject_base):
+        ldapuri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % (
+            dsinstance.realm_to_serverid(realm_name)
+        )
         try:
             conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn=suffix)
             conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
         except errors.ExecutionError, e:
-            logging.critical("Could not connect to the Directory Server on %s" % host_name)
+            logging.critical("Could not connect to the Directory Server on %s" % realm_name)
             raise e
         (dn, entry_attrs) = conn.get_ipa_config()
         if 'ipacertificatesubjectbase' not in entry_attrs:
@@ -851,7 +853,7 @@ def main():
         http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=True, self_signed_ca=options.selfsign, subject_base=options.subject)
     ipautil.run(["/sbin/restorecon", "/var/cache/ipa/sessions"])
 
-    set_subject_in_config(host_name, dm_password, util.realm_to_suffix(realm_name), options.subject)
+    set_subject_in_config(realm_name, dm_password, util.realm_to_suffix(realm_name), options.subject)
     if not options.selfsign:
         service.print_msg("Setting the certificate subject base")
         ca.set_subject_in_config(util.realm_to_suffix(realm_name))

@@ -107,16 +107,15 @@ def main():
 
     conn = None
     try:
-        ldapuri = 'ldap://%s' % installutils.get_fqdn()
         try:
-            conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
+            conn = ldap2(shared_instance=False, base_dn='')
             conn.connect(
                 bind_dn='cn=directory manager', bind_pw=dirman_password
             )
-        except errors.ACIError:
-            sys.exit("Incorrect password")
-        except errors.LDAPError, lde:
+        except errors.ExecutionError, lde:
             sys.exit("An error occurred while connecting to the server: %s" % str(lde))
+        except errors.AuthorizationError:
+            sys.exit("Incorrect password")
 
         if args[0] == "enable":
             compat = get_entry(compat_dn, conn)
@@ -125,7 +124,7 @@ def main():
             entry = None
             try:
                 entry = get_entry(nis_config_dn, conn)
-            except errors.LDAPError, lde:
+            except errors.ExecutionError, lde:
                 print "An error occurred while talking to the server."
                 print lde
                 retval = 1
@@ -149,7 +148,7 @@ def main():
               entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'off'):
                 # Already configured, just enable the plugin
                 print "Enabling plugin"
-                ld = LDAPUpdate(dm_password=dirman_password, sub_dict={})
+                ld = LDAPUpdate(dm_password=dirman_password, sub_dict={}, ldapi=True)
                 if ld.update(files) != True:
                     retval = 1
                 mod = {'nsslapd-pluginenabled': 'on'}
@@ -186,7 +185,7 @@ def main():
                 print "An error occurred while talking to the server."
                 print dbe
                 retval = 1
-            except errors.LDAPError, lde:
+            except errors.ExecutionError, lde:
                 print "An error occurred while talking to the server."
                 print lde
                 retval = 1

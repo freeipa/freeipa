@@ -20,13 +20,14 @@
 Password migration script
 """
 
-import errno
-import ldap
 import cgi
+import errno
+import glob
+import ldap
 import wsgiref
 
 BASE_DN = ''
-LDAP_URI = 'ldap://localhost:389'
+LDAP_URI = 'ldaps://localhost:636'
 
 def wsgi_redirect(start_response, loc):
     start_response('302 Found', [('Location', loc)])
@@ -82,6 +83,10 @@ def application(environ, start_response):
     form_data = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
     if not form_data.has_key('username') or not form_data.has_key('password'):
         return wsgi_redirect(start_response, 'invalid.html')
+
+    slapd_sockets = glob.glob('/var/run/slapd-*.socket')
+    if slapd_sockets:
+        LDAP_URI = 'ldapi://%s' % slapd_sockets[0].replace('/', '%2f')
 
     try:
         bind(form_data['username'].value, form_data['password'].value)

@@ -75,12 +75,17 @@ class LDAPUpdate:
             self.realm = None
             suffix = None
 
-        fqdn = installutils.get_fqdn()
-        if fqdn is None:
-            raise RuntimeError("Unable to determine hostname")
-
         domain = ipautil.get_domain_name()
         libarch = self.__identify_arch()
+
+        if not self.ldapi:
+            fqdn = installutils.get_fqdn()
+            if fqdn is None:
+                raise RuntimeError("Unable to determine hostname")
+        else:
+            fqdn = "ldapi://%%2fvar%%2frun%%2fslapd-%s.socket" % "-".join(
+                domain.upper().split(".")
+            )
 
         if not self.sub_dict.get("REALM") and self.realm is not None:
             self.sub_dict["REALM"] = self.realm
@@ -96,13 +101,15 @@ class LDAPUpdate:
             self.sub_dict["LIBARCH"] = libarch
         if not self.sub_dict.get("TIME"):
             self.sub_dict["TIME"] = int(time.time())
+        if not self.sub_dict.get("DOMAIN") and domain is not None:
+            self.sub_dict["DOMAIN"] = domain
 
         if online:
             # Try out the password
-            if not self.ldapi:
+            #if not self.ldapi:
                 try:
-                    conn = ipaldap.IPAdmin(fqdn)
-                    conn.do_simple_bind(bindpw=self.dm_password)
+                    conn = ipaldap.IPAdmin(fqdn, ldapi=True, realm=domain.upper())
+                    conn.do_simple_bind(binddn="cn=directory manager", bindpw=self.dm_password)
                     conn.unbind()
                 except ldap.CONNECT_ERROR:
                     raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
@@ -110,9 +117,13 @@ class LDAPUpdate:
                     raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
                 except ldap.INVALID_CREDENTIALS:
                     raise RuntimeError("The password provided is incorrect for LDAP server %s" % fqdn)
-            else:
-                conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
-                conn.do_external_bind(self.pw_name)
+            # THIS IS COMMENTED OUT, BECAUSE:
+            # external_bind does work, but even as root, you don't always have
+            # enought power to do everything we need due to strict ACI rules
+            #
+            #else:
+            #    conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
+            #    conn.do_external_bind(self.pw_name)
         else:
             raise RuntimeError("Offline updates are not supported.")
 
@@ -640,11 +651,15 @@ class LDAPUpdate:
 
         try:
             if self.online:
-                if self.ldapi:
-                    self.conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
-                    self.conn.do_external_bind(self.pw_name)
-                else:
-                    self.conn = ipaldap.IPAdmin(self.sub_dict['FQDN'])
+                # THIS IS COMMENTED OUT, BECAUSE:
+                # external_bind does work, but even as root, you don't always have
+                # enought power to do everything we need due to strict ACI rules
+                #
+                #if self.ldapi:
+                #    self.conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
+                #    self.conn.do_external_bind(self.pw_name)
+                #else:
+                    self.conn = ipaldap.IPAdmin(self.sub_dict['FQDN'], ldapi=self.ldapi, realm=self.sub_dict['DOMAIN'].upper())
                     self.conn.do_simple_bind(bindpw=self.dm_password)
             else:
                 raise RuntimeError("Offline updates are not supported.")

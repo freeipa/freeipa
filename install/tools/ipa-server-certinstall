@@ -64,8 +64,7 @@ def parse_options():
     return options, args[0]
 
 def set_ds_cert_name(cert_name, dm_password):
-    ldapuri = 'ldap://127.0.0.1'
-    conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
+    conn = ldap2(shared_instance=False, base_dn='')
     conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
     mod = {'nssslpersonalityssl': cert_name}
     conn.update_entry('cn=RSA,cn=encryption,cn=config', mod)

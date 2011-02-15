@@ -93,13 +93,12 @@ def main():
 
     conn = None
     try:
-        ldapuri = 'ldap://%s' % installutils.get_fqdn()
         try:
-            conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
+            conn = ldap2(shared_instance=False, base_dn='')
             conn.connect(
                 bind_dn='cn=directory manager', bind_pw=dirman_password
             )
-        except errors.LDAPError, lde:
+        except errors.ExecutionError, lde:
             sys.exit("An error occurred while connecting to the server.\n%s\n" % str(lde))
         except errors.ACIError, e:
             sys.exit("Authentication failed: %s" % e.info)
@@ -122,7 +121,7 @@ def main():
                 retval = 2
             except errors.NotFound:
                 print "Enabling plugin"
-            except errors.LDAPError, lde:
+            except errors.ExecutionError, lde:
                 print "An error occurred while talking to the server."
                 print lde
                 retval = 1
@@ -158,7 +157,7 @@ def main():
                 print "An error occurred while talking to the server."
                 print dbe
                 retval = 1
-            except errors.LDAPError, lde:
+            except errors.ExecutionError, lde:
                 print "An error occurred while talking to the server."
                 print lde
                 retval = 1
@@ -167,7 +166,7 @@ def main():
             retval = 1
 
     finally:
-        if conn.isconnected():
+        if conn and conn.isconnected():
             conn.disconnect()
 
     return retval

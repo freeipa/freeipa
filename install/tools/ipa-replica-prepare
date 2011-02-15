@@ -88,9 +88,8 @@ def parse_options():
     return options, args
 
 def get_subject_base(host_name, dm_password, suffix):
-    ldapuri = 'ldap://%s:389' % host_name
     try:
-        conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn=suffix)
+        conn = ldap2(shared_instance=False, base_dn=suffix)
         conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
     except errors.ExecutionError, e:
         logging.critical("Could not connect to the Directory Server on %s" % host_name)
@@ -285,9 +284,8 @@ def main():
             sys.exit(0)
 
     # Try out the password
-    ldapuri = 'ldap://%s:389' % api.env.host
     try:
-        conn = ldap2(shared_instance=False, ldap_uri=ldapuri)
+        conn = ldap2(shared_instance=False)
         conn.connect(bind_dn='cn=directory manager', bind_pw=dirman_password)
         conn.disconnect()
     except errors.ACIError:

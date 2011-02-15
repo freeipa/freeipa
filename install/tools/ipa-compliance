@@ -106,8 +106,7 @@ def check_compliance(tmpdir, debug=False):
         # Even if not registered they have some default entitlements
         pass
 
-    ldapuri = 'ldap://%s' % api.env.host
-    conn = ldap2(shared_instance=False, ldap_uri=ldapuri)
+    conn = ldap2(shared_instance=False)
 
     # Bind using GSSAPI
     conn.connect(ccache=ccache_file)
