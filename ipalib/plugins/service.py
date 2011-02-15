@@ -125,6 +125,10 @@ def split_principal(principal):
         raise errors.MalformedServicePrincipal(reason='missing service')
 
     service = sp[0]
+    if len(service) == 0:
+        raise errors.MalformedServicePrincipal(
+            reason='blank service'
+        )
     sr = sp[1].split('@')
     if len(sr) > 2:
         raise errors.MalformedServicePrincipal(
