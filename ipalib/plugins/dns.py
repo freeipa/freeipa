@@ -30,6 +30,9 @@ EXAMPLES:
  Add second nameserver for example.com:
    ipa dnsrecord-add example.com @ --ns-rec nameserver2.example.com
 
+ Add a mail server for example.com:
+   ipa dnsrecord-add example.com @ --mx-rec="10 mail2"
+
  Delete previously added nameserver from example.com:
    ipa dnsrecord-del example.com @ --ns-rec nameserver2.example.com
 
@@ -136,11 +139,28 @@ def _validate_srv(ugettext, srv):
 
     return None
 
+def _validate_mx(ugettext, mx):
+    try:
+        prio, host = mx.split()
+    except ValueError:
+        return u'format must be specified as "priority mailserver"'
+
+    try:
+        prio = int(prio)
+    except ValueError:
+        return u'the value of priority must be integer'
+
+    if prio < 0 or prio > 65535:
+        return u'the value of priority must be between 0 and 65535'
+
+    return None
+
 _record_validators = {
     u'A': _validate_ipaddr,
     u'AAAA': _validate_ipaddr,
     u'APL': _validate_ipnet,
     u'SRV': _validate_srv,
+    u'MX': _validate_mx,
 }
 
 def has_cli_options(entry, no_option_msg):
