@@ -159,13 +159,22 @@ def verify_ip_address(ip):
 def record_in_hosts(ip, host_name, file="/etc/hosts"):
     hosts = open(file, 'r').readlines()
     for line in hosts:
-        hosts_ip = line.split()[0]
-        if hosts_ip != ip:
+        line = line.rstrip('\n')
+        fields = line.partition('#')[0].split()
+        if len(fields) == 0:
             continue
 
-        names = line.split()[1:]
-        if host_name in names:
-            return True
+        try:
+            hosts_ip = fields[0]
+            names = fields[1:]
+
+            if hosts_ip != ip:
+                continue
+            if host_name in names:
+                return True
+        except IndexError:
+            print "Warning: Erroneous line '%s' in %s" % (line, file)
+            continue
 
     return False
 
