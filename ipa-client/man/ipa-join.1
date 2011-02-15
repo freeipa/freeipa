@@ -20,7 +20,7 @@
 .SH "NAME"
 ipa\-join \- Join a machine to an IPA realm and get a keytab for the host service principal
 .SH "SYNOPSIS"
-ipa\-join [ \fB\-h\fR hostname ] [ \fB\-k\fR keytab\-file ] [ \fB\-s\fR server ] [ \fB\-w\fR bulk\-bind\-password ] [\fB\-u\fR] [ \fB\-d\fR ] [ \fB\-q\fR ]
+ipa\-join [\fB\-d\fR|\fB\-\-debug\fR] [\fB\-q\fR|\fB\-\-quiet\fR] [\fB\-u\fR|\fB\-\-unenroll\fR] [\fB\-h\fR|\fB\-\-hostname\fR hostname] [\fB\-s\fR|\fB\-\-server\fR hostame] [\fB\-k\fR|\fB\-\-keytab\fR filename] [\fB\-w\fR|\fB\-\-bindpw\fR password] [\fB\-?\fR|\fB\-\-help\fR] [\fB\-\-usage\fR]
 
 .SH "DESCRIPTION"
 Joins a host to an IPA realm and retrieves a kerberos \fIkeytab\fR for the host service principal, or unenrolls an enrolled host from an IPA server.
@@ -48,13 +48,13 @@ The reverse is unenrollment. Unenrolling a host removes the Kerberos key on the 
 The hostname of this server (FQDN). By default of nodename from uname(2) is used.
 .TP
 \fB\-s,\-\-server server\fR
-The hostname of this server (FQDN). By default of nodename from uname(2) is used.
+The hostname of the IPA server (FQDN). Note that by default there is no /etc/ipa/default.conf, in most cases it needs to be supplied.
 .TP
 \fB\-k,\-\-keytab keytab\-file\fR
 The keytab file where to append the new key (will be created if it does not exist). Default: /etc/krb5.keytab
 .TP
 \fB\-w,\-\-bindpw password\fR
-The password to use if not using kerberos to authenticate
+The password to use if not using Kerberos to authenticate. Use a password of this particular host (one time password created on IPA server)
 .TP
 \fB\-u,\-\-unenroll\fR
 Unenroll this host from the IPA server
@@ -63,7 +63,7 @@ Unenroll this host from the IPA server
 Quiet mode. Only errors are displayed.
 .TP
 \fB\-d,\-\-debug\fR
-Debug mode.
+Print the raw XML-RPC output in GSSAPI mode.
 .SH "EXAMPLES"
 Join IPA domain and retrieve a keytab with kerberos credentials.
 

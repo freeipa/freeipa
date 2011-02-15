@@ -1035,19 +1035,19 @@ main(int argc, const char **argv) {
     int unenroll = 0;
     struct poptOption options[] = {
         { "debug", 'd', POPT_ARG_NONE, &debug, 0,
-          _("Print the raw XML-RPC output"), _("XML-RPC debugging Output") },
+          _("Print the raw XML-RPC output in GSSAPI mode"), NULL },
         { "quiet", 'q', POPT_ARG_NONE, &quiet, 0,
-          _("Print as little as possible"), _("Output only on errors") },
+          _("Quiet mode. Only errors are displayed."), NULL },
         { "unenroll", 'u', POPT_ARG_NONE, &unenroll, 0,
-          _("Unenroll this host"), _("Unenroll this host from IPA server") },
+          _("Unenroll this host from IPA server"), NULL },
         { "hostname", 'h', POPT_ARG_STRING, &hostname, 0,
-          _("Use this hostname instead of the node name"), _("Host Name") },
+          _("Hostname of this server"), _("hostname") },
         { "server", 's', POPT_ARG_STRING, &server, 0,
-          _("IPA Server to use"), _("IPA Server Name") },
+          _("IPA Server to use"), _("hostname") },
         { "keytab", 'k', POPT_ARG_STRING, &keytab, 0,
-          _("File were to store the keytab information"), _("Keytab File Name") },
+          _("Specifies where to store keytab information."), _("filename") },
         { "bindpw", 'w', POPT_ARG_STRING, &bindpw, 0,
-          _("LDAP password"), _("password to use if not using kerberos") },
+          _("LDAP password (if not using Kerberos)"), _("password") },
         POPT_AUTOHELP
         POPT_TABLEEND
     };
