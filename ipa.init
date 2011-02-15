@@ -7,6 +7,8 @@
 # configdir:   /etc/ipa/
 #
 
+export SYSTEMCTL_SKIP_REDIRECT=1
+
 # Source function library.
 if [ -f /etc/rc.d/init.d/functions ] ; then
 . /etc/rc.d/init.d/functions
