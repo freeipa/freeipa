@@ -80,7 +80,7 @@ def test_gettext():
     # language not associated with any real language, but the
     # setlocale function demands the locale be a valid known locale,
     # U.S. English is a reasonable choice.
-    request.set_languages('en_US.UTF-8')
+    # request.set_languages('en_US.UTF-8')
 
     # Tell gettext that our domain is 'ipa', that locale_dir is
     # 'test_locale' (i.e. where to look for the message catalog)
@@ -117,7 +117,6 @@ def test_gettext():
     
     # Reset the language and assure we don't get the test values
     context.__dict__.clear()
-    request.set_languages('fr_FR')
     translated = unicode(localized)
 
     assert(translated[0] != prefix)

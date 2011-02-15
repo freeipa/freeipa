@@ -29,7 +29,7 @@ from inspect import isclass
 from tests.util import raises, ClassChecker, read_only
 from tests.util import dummy_ugettext, assert_equal
 from tests.data import binary_bytes, utf8_bytes, unicode_str
-from ipalib import parameters, request, errors, config
+from ipalib import parameters, text, errors, config
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, NULLS
 from ipalib.errors import ValidationError
 from ipalib import _
@@ -482,8 +482,8 @@ class test_Param(ClassChecker):
         o = Example('example', pass1, pass2)
         assert o.multivalue is False
         assert o.validate(11, 'cli') is None
-        assert pass1.calls == [(request.ugettext, 11)]
-        assert pass2.calls == [(request.ugettext, 11)]
+        assert pass1.calls == [(text.ugettext, 11)]
+        assert pass2.calls == [(text.ugettext, 11)]
         pass1.reset()
         pass2.reset()
         o = Example('example', pass1, pass2, fail)
@@ -491,9 +491,9 @@ class test_Param(ClassChecker):
         assert e.name == 'example'
         assert e.error == u'no good'
         assert e.index is None
-        assert pass1.calls == [(request.ugettext, 42)]
-        assert pass2.calls == [(request.ugettext, 42)]
-        assert fail.calls == [(request.ugettext, 42)]
+        assert pass1.calls == [(text.ugettext, 42)]
+        assert pass2.calls == [(text.ugettext, 42)]
+        assert fail.calls == [(text.ugettext, 42)]
 
         # Test with some rules and multivalue=True
         pass1 = DummyRule()
@@ -503,12 +503,12 @@ class test_Param(ClassChecker):
         assert o.multivalue is True
         assert o.validate((3, 9), 'cli') is None
         assert pass1.calls == [
-            (request.ugettext, 3),
-            (request.ugettext, 9),
+            (text.ugettext, 3),
+            (text.ugettext, 9),
         ]
         assert pass2.calls == [
-            (request.ugettext, 3),
-            (request.ugettext, 9),
+            (text.ugettext, 3),
+            (text.ugettext, 9),
         ]
         pass1.reset()
         pass2.reset()
@@ -518,9 +518,9 @@ class test_Param(ClassChecker):
         assert e.name == 'multi_example'
         assert e.error == u'this one is not good'
         assert e.index == 0
-        assert pass1.calls == [(request.ugettext, 3)]
-        assert pass2.calls == [(request.ugettext, 3)]
-        assert fail.calls == [(request.ugettext, 3)]
+        assert pass1.calls == [(text.ugettext, 3)]
+        assert pass2.calls == [(text.ugettext, 3)]
+        assert fail.calls == [(text.ugettext, 3)]
 
     def test_validate_scalar(self):
         """
@@ -543,8 +543,8 @@ class test_Param(ClassChecker):
         assert o._validate_scalar(True, index=None) is None
         assert o._validate_scalar(False, index=None) is None
         assert okay.calls == [
-            (request.ugettext, True),
-            (request.ugettext, False),
+            (text.ugettext, True),
+            (text.ugettext, False),
         ]
 
         # Test with a failing rule:
@@ -560,12 +560,12 @@ class test_Param(ClassChecker):
         assert e.error == u'this describes the error'
         assert e.index == 2
         assert okay.calls == [
-            (request.ugettext, True),
-            (request.ugettext, False),
+            (text.ugettext, True),
+            (text.ugettext, False),
         ]
         assert fail.calls == [
-            (request.ugettext, True),
-            (request.ugettext, False),
+            (text.ugettext, True),
+            (text.ugettext, False),
         ]
 
     def test_get_default(self):
@@ -927,17 +927,17 @@ class test_Str(ClassChecker):
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
             assert e.index is None
-            assert_equal(e.error, u'must be Unicode text')
+            assert_equal(unicode(e.error), u'must be Unicode text')
             e = raises(errors.ConversionError, mthd, value, index=18)
             assert e.name == 'my_str'
             assert e.index == 18
-            assert_equal(e.error, u'must be Unicode text')
+            assert_equal(unicode(e.error), u'must be Unicode text')
         bad = [(u'Hello',), [42.3]]
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
             assert e.index is None
-            assert_equal(e.error, u'Only one value is allowed')
+            assert_equal(unicode(e.error), u'Only one value is allowed')
         assert o.convert(None) is None
 
     def test_rule_minlength(self):

@@ -25,7 +25,7 @@ import inspect
 from tests.util import raises, no_set, no_del, read_only
 from tests.util import getitem, setitem, delitem
 from tests.util import ClassChecker, create_test_api
-from ipalib import plugable, errors
+from ipalib import plugable, errors, text
 
 
 class test_SetProxy(ClassChecker):
@@ -219,7 +219,7 @@ class test_Plugin(ClassChecker):
         assert o.name == 'Plugin'
         assert o.module == 'ipalib.plugable'
         assert o.fullname == 'ipalib.plugable.Plugin'
-        assert o.doc == inspect.getdoc(self.cls)
+        assert isinstance(o.doc, text.Gettext)
         class some_subclass(self.cls):
             """
             Do sub-classy things.
@@ -234,12 +234,11 @@ class test_Plugin(ClassChecker):
         assert o.name == 'some_subclass'
         assert o.module == __name__
         assert o.fullname == '%s.some_subclass' % __name__
-        assert o.doc == inspect.getdoc(some_subclass)
         assert o.summary == 'Do sub-classy things.'
+        assert isinstance(o.doc, text.Gettext)
         class another_subclass(self.cls):
             pass
         o = another_subclass()
-        assert o.doc is None
         assert o.summary == '<%s>' % o.fullname
 
         # Test that Plugin makes sure the subclass hasn't defined attributes

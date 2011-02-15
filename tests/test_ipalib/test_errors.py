@@ -23,8 +23,8 @@ Test the `ipalib.errors` module.
 
 import re
 import inspect
-from tests.util import assert_equal, raises, dummy_ugettext
-from ipalib import errors, request
+from tests.util import assert_equal, raises
+from ipalib import errors, text
 from ipalib.constants import TYPE_ERROR
 
 
@@ -229,7 +229,6 @@ class test_PublicError(PublicExceptionTester):
         """
         Test the `ipalib.errors.PublicError.__init__` method.
         """
-        context = request.context
         message = u'The translated, interpolated message'
         format = 'key=%(key1)r and key2=%(key2)r'
         uformat = u'Translated key=%(key1)r and key2=%(key2)r'
@@ -237,25 +236,16 @@ class test_PublicError(PublicExceptionTester):
         val2 = 'Value 2'
         kw = dict(key1=val1, key2=val2)
 
-        assert not hasattr(context, 'ugettext')
-
         # Test with format=str, message=None
-        dummy = dummy_ugettext(uformat)
-        context.ugettext = dummy
         inst = self.klass(format, **kw)
-        assert dummy.message is format  # Means ugettext() called
         assert inst.format is format
         assert_equal(inst.message, format % kw)
-        assert_equal(inst.strerror, uformat % kw)
         assert inst.forwarded is False
         assert inst.key1 is val1
         assert inst.key2 is val2
 
         # Test with format=None, message=unicode
-        dummy = dummy_ugettext(uformat)
-        context.ugettext = dummy
         inst = self.klass(message=message, **kw)
-        assert not hasattr(dummy, 'message')  # Means ugettext() not called
         assert inst.format is None
         assert inst.message is message
         assert inst.strerror is message
@@ -277,24 +267,17 @@ class test_PublicError(PublicExceptionTester):
         # Test via PublicExceptionTester.new()
 
         # Test with format=str, message=None
-        dummy = dummy_ugettext(uformat)
-        context.ugettext = dummy
         inst = self.new(format, **kw)
         assert isinstance(inst, self.klass)
-        assert dummy.message is format  # Means ugettext() called
         assert inst.format is format
         assert_equal(inst.message, format % kw)
-        assert_equal(inst.strerror, uformat % kw)
         assert inst.forwarded is False
         assert inst.key1 is val1
         assert inst.key2 is val2
 
         # Test with format=None, message=unicode
-        dummy = dummy_ugettext(uformat)
-        context.ugettext = dummy
         inst = self.new(message=message, **kw)
         assert isinstance(inst, self.klass)
-        assert not hasattr(dummy, 'message')  # Means ugettext() not called
         assert inst.format is None
         assert inst.message is message
         assert inst.strerror is message
@@ -311,9 +294,6 @@ class test_PublicError(PublicExceptionTester):
         uformat = u'Translated %(true)r %(text)r %(number)r'
         kw = dict(true=True, text='Hello!', number=18)
 
-        dummy = dummy_ugettext(uformat)
-        context.ugettext = dummy
-
         # Test with format=str, message=None
         e = raises(ValueError, subclass, format, **kw)
         assert str(e) == 'non-generic %r needs format=None; got format=%r' % (
@@ -321,20 +301,15 @@ class test_PublicError(PublicExceptionTester):
 
         # Test with format=None, message=None:
         inst = subclass(**kw)
-        assert dummy.message is subclass.format  # Means ugettext() called
         assert inst.format is subclass.format
         assert_equal(inst.message, subclass.format % kw)
-        assert_equal(inst.strerror, uformat % kw)
         assert inst.forwarded is False
         assert inst.true is True
         assert inst.text is kw['text']
         assert inst.number is kw['number']
 
         # Test with format=None, message=unicode:
-        dummy = dummy_ugettext(uformat)
-        context.ugettext = dummy
         inst = subclass(message=message, **kw)
-        assert not hasattr(dummy, 'message')  # Means ugettext() not called
         assert inst.format is subclass.format
         assert inst.message is message
         assert inst.strerror is message
@@ -342,7 +317,6 @@ class test_PublicError(PublicExceptionTester):
         assert inst.true is True
         assert inst.text is kw['text']
         assert inst.number is kw['number']
-        del context.ugettext
 
 
 def test_public_errors():

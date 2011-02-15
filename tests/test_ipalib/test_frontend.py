@@ -1091,4 +1091,4 @@ class test_Property(ClassChecker):
         param = o.param
         assert isinstance(param, parameters.Str)
         assert param.name == 'givenname'
-        assert param.doc == 'User first name'
+        assert unicode(param.doc) == u'User first name'
