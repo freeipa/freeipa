@@ -7,13 +7,13 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
 "POT-Creation-Date: 2010-10-13 14:22-0400\n"
-"PO-Revision-Date: 2010-10-14 19:33+0200\n"
+"PO-Revision-Date: 2011-01-25 10:48+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
-"Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: pl\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
@@ -35,8 +35,8 @@ msgstr "Anulowano."
 #, python-format
 msgid "%(cver)s client incompatible with %(sver)s server at %(server)r"
 msgstr ""
-"klient w wersji %(cver)s nie jest zgodny z serwerem w wersji %(sver)s na "
-"%(server)r"
+"klient w wersji %(cver)s nie jest zgodny z serwerem w wersji %(sver)s na %"
+"(server)r"
 
 #: ipalib/errors.py:315
 #, python-format
@@ -169,8 +169,8 @@ msgstr "Należy zapisać się do komputera, aby utworzyć jego usługę"
 #: ipalib/errors.py:831
 #, python-format
 msgid ""
-"Service principal is not of the form: service/fully-qualified host name: "
-"%(reason)s"
+"Service principal is not of the form: service/fully-qualified host name: %"
+"(reason)s"
 msgstr ""
 "Naczelnik usługi nie jest w formacie: usługa/w pełni kwalifikowana nazwa "
 "komputera: %(reason)s"
@@ -1634,8 +1634,8 @@ msgstr "Unikalny identyfikator IPA"
 #, python-format
 msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
 msgstr ""
-"priorytet musi być unikalną wartością (%(prio)d jest już używane przez "
-"%(gname)s)"
+"priorytet musi być unikalną wartością (%(prio)d jest już używane przez %"
+"(gname)s)"
 
 #: ipalib/plugins/pwpolicy.py:170
 msgid "Password Policy"
@@ -1818,8 +1818,8 @@ msgid "Sudo Command Groups"
 msgstr "Grupy polecenia sudo"
 
 #: ipalib/plugins/sudocmdgroup.py:71
-msgid "Sudo Command Group"
-msgstr "Nazwa grupy polecenia sudo"
+msgid "Sudo Command Group name"
+msgstr "Grupa polecenia sudo"
 
 #: ipalib/plugins/sudocmdgroup.py:81
 msgid "Commands"
@@ -2053,11 +2053,11 @@ msgstr "System operacyjny komputera i jego wersja (np. Fedora 9)"
 #: ipaserver/plugins/selfsign.py:98
 #, python-format
 msgid ""
-"Request subject \"%(request_subject)s\" does not match the form "
-"\"%(subject_base)s\""
+"Request subject \"%(request_subject)s\" does not match the form \"%"
+"(subject_base)s\""
 msgstr ""
-"Temat żądania \"%(request_subject)s\" nie pasuje do formatu "
-"\"%(subject_base)s\""
+"Temat żądania \"%(request_subject)s\" nie pasuje do formatu \"%(subject_base)"
+"s\""
 
 #: ipaserver/plugins/selfsign.py:103
 #, python-format
@@ -2230,8 +2230,8 @@ msgstr "Nazwa serwera"
 #: ipa-client/ipa-getkeytab.c:784 ipa-client/ipa-rmkeytab.c:188
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 msgstr ""
-"Naczelnik, dla którego uzyskać tablicę kluczy (np.: ftp/ftp.przykład.pl@"
-"PRZYKŁAD.PL)"
+"Naczelnik, dla którego uzyskać tablicę kluczy (np.: ftp/ftp.przykład."
+"pl@PRZYKŁAD.PL)"
 
 #: ipa-client/ipa-getkeytab.c:785 ipa-client/ipa-rmkeytab.c:189
 msgid "Kerberos Service Principal Name"
