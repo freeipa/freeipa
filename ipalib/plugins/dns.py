@@ -622,6 +622,22 @@ class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
             is_ns_rec_resolvable(ns)
         return dn
 
+    def _ptrrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        components = dn.split(',',2)
+        addr = components[0].split('=')[1]
+        zone = components[1].split('=')[1]
+        if zone.find('ip6') != -1:
+            zone = zone.replace('.ip6.arpa.','')
+            zone_len = 32
+        else:
+            zone = zone.replace('.in-addr.arpa.','')
+            zone_len = 4
+
+        if len(addr.split('.'))+len(zone.split('.')) != zone_len:
+            raise errors.ValidationError(name='cn', error=unicode('IP address must have exactly '+str(zone_len)+' components'))
+
+        return dn
+
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         for rtype in options:
             rtype_cb = '_%s_pre_callback' % rtype
