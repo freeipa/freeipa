@@ -32,8 +32,8 @@ Disabling a user account prevents that user from obtaining new Kerberos
 credentials. It does not invalidate any credentials that have already
 been issued.
 
-The password management is not a part of this modules. For more information
-about this topic please see 'ipa help passwd'.
+Password management is not a part of this module. For more information
+about this topic please see: ipa help passwd
 
 EXAMPLES:
 
@@ -232,7 +232,7 @@ class user(LDAPObject):
                 else:
                     norm_email.append(m)
             return norm_email
-        
+
         return email
 
 api.register(user)
@@ -295,7 +295,7 @@ class user_add(LDAPCreate):
                 error_msg = 'Default group for new users not found.'
                 raise errors.NotFound(reason=error_msg)
             entry_attrs['gidnumber'] = group_attrs['gidnumber']
-        
+
         if 'mail' in entry_attrs:
             entry_attrs['mail'] = self.obj._normalize_email(entry_attrs['mail'], config)
 
