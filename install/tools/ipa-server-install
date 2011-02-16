@@ -128,7 +128,7 @@ def parse_options():
     parser.add_option("--idstart", dest="idstart", default=namespace, type=int,
                       help="The starting value for the IDs range (default random)")
     parser.add_option("--idmax", dest="idmax", default=0, type=int,
-                      help="The max value value for the IDs range (default random)")
+                      help="The max value value for the IDs range (default: idstart+199999)")
     parser.add_option("--subject", dest="subject",
                       help="The certificate subject base (default O=<realm-name>)")
     parser.add_option("--no_hbac_allow", dest="hbac_allow", default=False,

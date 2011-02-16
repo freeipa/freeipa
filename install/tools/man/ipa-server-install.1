@@ -72,7 +72,7 @@ the \fB\-\-no\-forwarders\fR option is specified.
 Do not add any DNS forwarders. Root DNS servers will be used instead.
 .TP
 \fB\-\-zonemgr\fR
-The e\-mail address of the DNS zone manager. Defaults too root@host.domain
+The e\-mail address of the DNS zone manager. Defaults to root@host.domain
 .TP
 \fB\-\-no\-host\-dns\fR
 Do not use DNS for hostname lookup during installation
@@ -97,6 +97,9 @@ The password of the Apache Server PKCS#12 file
 .TP
 \fB\-\-idstart\fR=\fIIDSTART\fR
 The starting user and group id number (default random)
+.TP
+\fB\-\-idmax\fR=\fIIDMAX\fR
+The maximum user and group id number (default: idstart+199999). If set to zero, the default value will be used.
 .TP
 \fB\-\-subject\fR=\fISUBJECT\fR
  The certificate subject base (default O=REALM.NAME)
