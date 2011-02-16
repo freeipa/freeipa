@@ -63,7 +63,7 @@ EXAMPLES:
  Modify information about a host:
    ipa host-mod --os='Fedora 12' test.example.com
 
- Disable the host kerberos key:
+ Disable the host Kerberos key, SSL certificate and all of its services:
    ipa host-disable test.example.com
 
  Add a host that can manage this host's keytab and certificate:
@@ -659,10 +659,10 @@ api.register(host_show)
 
 class host_disable(LDAPQuery):
     """
-    Disable the kerberos key of a host.
+    Disable the Kerberos key, SSL certificate and all services of a host.
     """
     has_output = output.standard_value
-    msg_summary = _('Removed kerberos key and disabled all services for "%(value)s"')
+    msg_summary = _('Disabled host "%(value)s"')
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend

@@ -58,7 +58,7 @@ EXAMPLES:
  Find all HTTP services:
    ipa service-find HTTP
 
- Disable a service Kerberos key:
+ Disable the service Kerberos key and SSL certificate:
    ipa service-disable HTTP/web.example.com
 
  Request a certificate for an IPA service:
@@ -524,10 +524,10 @@ api.register(service_remove_host)
 
 class service_disable(LDAPQuery):
     """
-    Disable the Kerberos key of a service.
+    Disable the Kerberos key and SSL certificate of a service.
     """
     has_output = output.standard_value
-    msg_summary = _('Removed kerberos key from "%(value)s"')
+    msg_summary = _('Disabled service "%(value)s"')
     has_output_params = LDAPQuery.has_output_params + output_params
 
     def execute(self, *keys, **options):
