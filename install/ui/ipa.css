@@ -15,7 +15,7 @@ body{
     background-image:url("outer-bg.png");
     background-repeat:repeat-x;
     background-position:left top;
-    background-color:#ededed;
+    background-color:#F3F2F2;
     border-width: 0;
     font-family:"Liberation Sans",Arial,Sans;
     font-size:11px;
@@ -79,7 +79,7 @@ body{
 div.header {
     background: url("top-bg.png") #0C3B00;
     width: 100%;
-    height: 4em;
+    height: 3.8em;
 }
 
 div.header a {
@@ -175,7 +175,6 @@ h1 {
 	-webkit-border-radius: 0.5em 0.5em 0 0;
     background: -moz-linear-gradient(center top , #EEEEEE, #DFDFDF) repeat scroll 0 0 transparent;
     background: -webkit-gradient(linear, left top, left bottom, from(#EEEEEE), to(#DFDFDF));
-	margin-top: 1.5em;
     padding: 0.5em 0.9em;
     position: relative;
     width: 40.5em;
@@ -247,7 +246,7 @@ dl.entryattrs dt {
 
 dl.entryattrs dd {
     float: left;
-    padding-bottom: 1.8em;
+    padding-bottom: 0.8em;
 	margin-left: 0;
 }
 
@@ -359,8 +358,8 @@ span.attrhint {
 
 
 /*Navigation */
-.tabs1 .ui-tabs-nav{
-    padding-left: .7em;
+.tabs1 .ui-tabs-nav {
+    padding-left: 4px;
     padding-top: 2.3em;
     margin: 0;
     border: none;
@@ -485,42 +484,45 @@ span.ui-icon-search {
 		margin-top: 1em !important;
 }
 
+
 .tabs1 .ui-tabs-nav li {
     -moz-border-radius: 0 !important;
 	-webkit-border-radius: 0 !important;
     background-image: url("Mainnav-offtab.png");
-    margin: 0;
+    margin: 0 0.2em;
     border-width: 0;
     text-align: center;
     vertical-align:baseline;
+	border: 1px solid #A0A0A0;
  }
 
 .tabs1 .ui-tabs-nav li.ui-tabs-selected {
     padding: 0 0;
     background-image: url("Mainnav-ontab.png");
     text-align: center;
-    margin: 0;
+    margin: 0 0.2em;
 }
 
-.tabs1 .ui-tabs-nav li a{
+.tabs1 .ui-tabs-nav li a {
     -moz-border-radius: 0 !important;
 	-webkit-border-radius: 0 !important;
     font-family: "FreeWayBold", "Liberation Sans", Arial, Sans;
     width: 5em;
     padding: none;
-    color: #FFFFFF;
+    color: #858585;
     margin: 0 auto;
     text-align:center;
     font-size:1.5em;
+	text-shadow: 1px 1px 0 #FFFFFF;
 }
 
 
 .tabs1 .ui-tabs-nav li > a:link, span.main-nav-off >  a:visited{
-    color: #FFFFFF;
+    color: #858585;
 }
 
 .tabs1 .ui-tabs-nav li.ui-tabs-selected a{
-    color: #045E01;
+    color: #1e5e05;
 }
 
 .tabs1 .ui-tabs-panel {
@@ -532,24 +534,25 @@ span.ui-icon-search {
 }
 
 .tabs2 .ui-tabs-nav {
-    padding:  0.3em 6em 0  1.5em;
+    padding:  0.2em 6em 0.1em 2em;
     margin-top: 0em;
-    height:  26px;
+    height:  25px;
     background-image: url("Subnav-background.png");
 }
 
 .tabs2 .ui-tabs-nav li {
     width:auto;
-    padding-left: 1em;
     margin: 0;
     background: none repeat scroll 0 0 transparent !important;
     color: white;
+	border: none;
 }
 
 .tabs2 .ui-tabs-nav li.ui-tabs-selected  {
-    padding-left: 1em;
-    height: 1em;
-    background: none;
+    background: url("nav-arrow.png") no-repeat scroll center 2.2em transparent !important;
+    height: 3.1em;
+	border: none;
+	margin: 0;
 }
 
 
@@ -562,16 +565,18 @@ span.ui-icon-search {
     color: white;
     font-size: 1em;
     font-family: "Liberation Sans", Arial, Sans;
+	margin: 0 0.3em;
 }
 
 .tabs2 .ui-tabs-nav li > a:link, span.main-nav-off >  a:visited {
-    color: #ffffff;
+    color: #333333;
 }
 
 .tabs2 .ui-tabs-nav li.ui-tabs-selected a,
 .tabs2 .ui-tabs-nav li a:hover {
-    background-color:#045E01;
-    color: #ffffff;
+    background-color:#EEEEEE;
+    color: #164304;
+	text-shadow: 1px 1px 0 #FFFFFF;
 
 }
 
@@ -606,7 +611,7 @@ span.main-separator{
     left: auto;
     border: none;
     float: none;
-    margin-top: 2.2em;
+    margin-top: 1.6em;
     margin-left: -16.5em;
     margin-right: 0;
     padding-left: 0;
@@ -752,7 +757,7 @@ a.action-button-disabled {
 	background: -webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#dfdfdf));
     position: relative;
     padding: 1em 1.5em;
-    margin-top: 1.5em;
+    margin-top: .8em;
 }
 
 .search-table > a:link,a:visted{
@@ -793,7 +798,7 @@ a.action-button-disabled {
 .aci-attribute-table th.aci-attribute-column{
     float: left;
 	width: 46.5em;
-	padding: 0.4em 0.5em;
+	padding: 0.8em 0.5em;
 }
 
 .entity-views{
@@ -881,7 +886,7 @@ dl.modal dd {
 }
 
 .ui-widget-content {
-border:0;
+	border:0;
 }
 
 table.scrollable thead {
@@ -905,24 +910,24 @@ table.scrollable tbody {
 
 .adder-dialog-available {
     background-color: #ffffff;
-        border: none;
+    border: none;
     position: absolute;
     top: 0;
     left: 0;
     bottom: 0;
     width: 23em;
-        padding-top: 1em;
+    padding-top: 1em;
 }
 
 .adder-dialog-selected {
     background-color: #ffffff;
-        border: none;
+    border: none;
     position: absolute;
     top: 0;
     right: 0;
     bottom: 0;
     width: 23em;
-        padding-top: 1em;
+    padding-top: 1em;
 }
 
 .adder-dialog-buttons {
