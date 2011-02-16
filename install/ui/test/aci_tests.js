@@ -48,7 +48,7 @@ module('aci',{
 
 test("IPA.attributes_widget.", function() {
 
-    var aciattrs = IPA.metadata['user'].aciattrs;
+    var aciattrs = IPA.metadata.objects['user'].aciattrs;
 
     var container = $('<span/>', {
         name: 'attrs'

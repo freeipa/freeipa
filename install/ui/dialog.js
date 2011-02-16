@@ -349,7 +349,7 @@ IPA.adder_dialog = function (spec) {
             style: 'margin-left: 3px'
         });
 
-        label.text('Hide already enrolled.');
+        label.text(IPA.messages.dialogs.hide_already_enrolled);
 
         label.appendTo(search_panel);
 
@@ -365,7 +365,7 @@ IPA.adder_dialog = function (spec) {
         }).appendTo(results_panel);
 
         $('<div/>', {
-            html: 'Available',
+            html: IPA.messages.dialogs.available,
             'class': 'ui-widget-header'
         }).appendTo(available_panel);
 
@@ -396,7 +396,7 @@ IPA.adder_dialog = function (spec) {
         }).appendTo(results_panel);
 
         $('<div/>', {
-            html: 'Prospective',
+            html: IPA.messages.dialogs.prospective,
             'class': 'ui-widget-header'
         }).appendTo(selected_panel);
 
@@ -511,7 +511,7 @@ IPA.deleter_dialog =  function (spec) {
 
     var that = IPA.dialog(spec);
 
-    that.title = spec.title || IPA.messages.button.remove;
+    that.title = spec.title || IPA.messages.buttons.remove;
 
     that.values = spec.values || [];
 

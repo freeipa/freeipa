@@ -34,13 +34,13 @@ IPA.entity_factories.host = function () {
 
         var facet = IPA.host_search_facet({
             'name': 'search',
-            'label': 'Search'
+            'label': IPA.messages.facets.search
         });
         that.add_facet(facet);
 
         var dialog = IPA.host_add_dialog({
             'name': 'add',
-            'title': 'Add New Host'
+            'title': IPA.messages.objects.host.add
         });
         facet.dialog(dialog);
 
@@ -95,11 +95,12 @@ IPA.host_add_dialog = function (spec) {
             undo: false
         }));
 
-        // TODO: Replace with i18n label
+        var param_info = IPA.get_method_param('host_add', 'force');
+
         that.add_field(IPA.checkbox_widget({
             name: 'force',
-            label: 'Force',
-            tooltip: 'force host name even if not in DNS',
+            label: param_info.label,
+            tooltip: param_info.doc,
             undo: false
         }));
 
@@ -147,9 +148,11 @@ IPA.host_search_facet = function (spec) {
         that.create_column({name:'fqdn'});
         that.create_column({name:'description'});
         //TODO use the value of this field to set enrollment status
-        that.create_column({name:'krblastpwdchange', label:'Enrolled?',
-                            format:IPA.utc_date_column_format
-                           });
+        that.create_column({
+            name: 'krblastpwdchange',
+            label: IPA.messages.objects.host.enrolled,
+            format: IPA.utc_date_column_format
+        });
         that.create_column({name:'nshostlocation'});
 
         that.search_facet_init();
@@ -168,51 +171,47 @@ IPA.host_details_facet = function (spec) {
     that.init = function() {
 
         var section = IPA.details_list_section({
-            'name': 'details',
-            'label': 'Host Settings'
+            name: 'details',
+            label: IPA.messages.objects.host.details
         });
         that.add_section(section);
 
-        //TODO: use i18n labels
         section.text({
             name: 'fqdn',
-            label: 'Fully Qualified Host Name'
+            label: IPA.messages.objects.host.fqdn
         });
 
         section.text({'name': 'krbprincipalname'});
 
-        //TODO: add this to the host plugin
-        //TODO: use i18n labels
         section.text({
-            'name': 'serverhostname',
-            'label': 'Host Name'
+            name: 'cn',
+            label: IPA.messages.objects.host.cn,
+            read_only: true
         });
 
         section.text({'name': 'description'});
 
-        //TODO: use i18n labels
         section = IPA.details_list_section({
-            'name': 'enrollment',
-            'label': 'Enrollment'
+            name: 'enrollment',
+            label: IPA.messages.objects.host.enrollment
         });
         that.add_section(section);
 
-        //TODO add label to messages
         section.add_field(IPA.host_provisioning_status_widget({
             'name': 'provisioning_status',
-            'label': 'Status',
+            label: IPA.messages.objects.host.status,
             'facet': that
         }));
 
         section = IPA.details_list_section({
-            'name': 'certificate',
-            'label': 'Host Certificate'
+            name: 'certificate',
+            label: IPA.messages.objects.host.status
         });
         that.add_section(section);
 
         section.add_field(IPA.host_certificate_status_widget({
             'name': 'certificate_status',
-            'label': 'Status'
+            label: IPA.messages.objects.host.status
         }));
 
         that.details_facet_init();
@@ -274,14 +273,14 @@ IPA.host_provisioning_status_widget = function (spec) {
             style: 'float: left;'
         }).appendTo(div);
 
-        content_div.append('<b>Kerberos Key Present, Host Provisioned:</b>');
+        content_div.append('<b>'+IPA.messages.objects.host.valid+':</b>');
 
         content_div.append(' ');
 
         $('<input/>', {
             'type': 'button',
             'name': 'unprovision',
-            'value': 'Delete Key, Unprovision'
+            'value': IPA.messages.objects.host.delete_key_unprovision
         }).appendTo(content_div);
 
         div = $('<div/>', {
@@ -299,11 +298,11 @@ IPA.host_provisioning_status_widget = function (spec) {
             style: 'float: left;'
         }).appendTo(div);
 
-        content_div.append('<b>Kerberos Key Not Present</b>');
+        content_div.append('<b>'+IPA.messages.objects.host.missing+'</b>');
 
         content_div.append('<br/>');
 
-        content_div.append('Enroll via One-Time-Password:');
+        content_div.append(IPA.messages.objects.host.enroll_otp+':');
 
         content_div.append('<br/>');
         content_div.append('<br/>');
@@ -319,7 +318,7 @@ IPA.host_provisioning_status_widget = function (spec) {
         $('<input/>', {
             'type': 'button',
             'name': 'enroll',
-            'value': 'Set OTP'
+            'value': IPA.messages.objects.host.set_otp
         }).appendTo(content_div);
     };
 
@@ -332,7 +331,7 @@ IPA.host_provisioning_status_widget = function (spec) {
 
         var button = $('input[name=unprovision]', that.container);
         that.unprovision_button = IPA.button({
-            'label': 'Delete Key, Unprovision',
+            'label': IPA.messages.objects.host.delete_key_unprovision,
             'click': that.show_unprovision_dialog
         });
         button.replaceWith(that.unprovision_button);
@@ -341,7 +340,7 @@ IPA.host_provisioning_status_widget = function (spec) {
 
         that.enroll_button = $('input[name=enroll]', that.container);
         button = IPA.button({
-            'label': 'Set OTP',
+            'label': IPA.messages.objects.host.set_otp,
             'click': that.set_otp
         });
 
@@ -351,17 +350,19 @@ IPA.host_provisioning_status_widget = function (spec) {
 
     that.show_unprovision_dialog = function() {
 
-        var label = IPA.metadata[that.entity_name].label;
+        var label = IPA.metadata.objects[that.entity_name].label;
+        var title = IPA.messages.objects.host.unprovision_title;
+        title = title.replace('${entity}', label);
+
         var dialog = IPA.dialog({
-            'title': 'Unprovisioning '+label
+            'title': title
         });
 
         dialog.create = function() {
-            dialog.container.append(
-                'Are you sure you want to unprovision this host?');
+            dialog.container.append(IPA.messages.objects.host.unprovision_confirmation);
         };
 
-        dialog.add_button('Unprovision', function() {
+        dialog.add_button(IPA.messages.objects.host.unprovision, function() {
             that.unprovision(
                 function(data, text_status, xhr) {
                     set_status('missing');
@@ -411,7 +412,7 @@ IPA.host_provisioning_status_widget = function (spec) {
                 'userpassword': otp
             },
             'on_success': function(data, text_status, xhr) {
-                alert('One-Time-Password has been set.');
+                alert(IPA.messages.objects.host.otp_confirmation);
             }
         });
 
@@ -436,11 +437,11 @@ IPA.host_certificate_status_widget = function (spec) {
 
     spec = spec || {};
 
-    var that = IPA.certificate_status_widget(spec);
+    var that = IPA.cert.status_widget(spec);
 
     that.init = function() {
 
-        that.entity_label = IPA.metadata[that.entity_name].label;
+        that.entity_label = IPA.metadata.objects[that.entity_name].label;
 
         that.get_entity_pkey = function(result) {
             var values = result['fqdn'];

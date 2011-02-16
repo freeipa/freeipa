@@ -32,12 +32,12 @@ IPA.entity_factories.hbacsvc = function () {
 
         var facet = IPA.hbacsvc_search_facet({
             'name': 'search',
-            'label': 'Search'
+            'label': IPA.messages.facets.search
         });
 
         var dialog = IPA.hbacsvc_add_dialog({
             'name': 'add',
-            'title': 'Add New HBAC Service'
+            'title': IPA.messages.objects.hbacsvc.add
         });
         facet.dialog(dialog);
 
@@ -102,7 +102,7 @@ IPA.hbacsvc_details_facet = function (spec) {
 
         var section = IPA.details_list_section({
             'name': 'general',
-            'label': 'General'
+            'label': IPA.messages.details.general
         });
         that.add_section(section);
 

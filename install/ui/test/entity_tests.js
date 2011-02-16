@@ -135,7 +135,7 @@ test('Testing ipa_facet_setup_views().', function() {
     li = li.next(); // skip action controls
     li = li.next(); // skip the header line for Member of
 
-    var attribute_members = IPA.metadata['user'].attribute_members;
+    var attribute_members = IPA.metadata.objects['user'].attribute_members;
     for (var attribute_member in attribute_members) {
         var objects = attribute_members[attribute_member];
         for (var i = 0; i < objects.length; i++) {

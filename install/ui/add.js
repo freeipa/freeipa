@@ -35,7 +35,7 @@ IPA.add_dialog = function (spec) {
 
     that.init = function() {
 
-        that.add_button('Add', function() {
+        that.add_button(IPA.messages.buttons.add, function() {
             var record = {};
             that.save(record);
             that.add(
@@ -51,7 +51,7 @@ IPA.add_dialog = function (spec) {
         });
 
 
-        that.add_button('Add and Add Another', function() {
+        that.add_button(IPA.messages.buttons.add_and_add_another, function() {
             var record = {};
             that.save(record);
             that.add(
@@ -66,7 +66,7 @@ IPA.add_dialog = function (spec) {
             );
         });
 
-        that.add_button('Add and Edit', function() {
+        that.add_button(IPA.messages.buttons.add_and_edit, function() {
             var record = {};
             that.save(record);
             that.add(
@@ -74,7 +74,7 @@ IPA.add_dialog = function (spec) {
                 function() {
                     that.close();
 
-                    var pkey_name = IPA.metadata[that.entity_name].primary_key;
+                    var pkey_name = IPA.metadata.objects[that.entity_name].primary_key;
                     var pkey = record[pkey_name];
 
                     var state = {};
@@ -85,7 +85,7 @@ IPA.add_dialog = function (spec) {
             );
         });
 
-        that.add_button('Cancel', function() {
+        that.add_button(IPA.messages.buttons.cancel, function() {
             that.close();
         });
 
@@ -94,7 +94,7 @@ IPA.add_dialog = function (spec) {
 
     that.add = function(record, on_success, on_error) {
 
-        var pkey_name = IPA.metadata[that.entity_name].primary_key;
+        var pkey_name = IPA.metadata.objects[that.entity_name].primary_key;
 
         var command = IPA.command({
             method: that.entity_name+'_add',

@@ -53,7 +53,7 @@ IPA.search_widget = function (spec) {
         $('<input/>', {
             'type': 'button',
             'name': 'find',
-            'value': 'Find'
+            'value': IPA.messages.buttons.find
         }).appendTo(search_filter);
 
         var action_panel = that.facet.get_action_panel();
@@ -66,13 +66,13 @@ IPA.search_widget = function (spec) {
         $('<input/>', {
             'type': 'button',
             'name': 'remove',
-            'value': 'Remove'
+            'value': IPA.messages.buttons.remove
         }).appendTo(search_buttons);
 
         $('<input/>', {
             'type': 'button',
             'name': 'add',
-            'value': 'Add'
+            'value': IPA.messages.buttons.add
         }).appendTo(search_buttons);
 
         $('<div/>', {
@@ -90,7 +90,7 @@ IPA.search_widget = function (spec) {
 
         var button = $('input[name=find]', search_filter);
         that.find_button = IPA.button({
-            'label': IPA.messages.button.find,
+            'label': IPA.messages.buttons.find,
             'icon': 'ui-icon-search',
             'click': function() { that.find(); }
         });
@@ -101,7 +101,7 @@ IPA.search_widget = function (spec) {
 
         button = $('input[name=remove]', search_buttons);
         that.remove_button = IPA.action_button({
-            'label': IPA.messages.button.remove,
+            'label': IPA.messages.buttons.remove,
             'icon': 'ui-icon-trash'
         });
         that.remove_button.addClass('input_link_disabled');
@@ -111,7 +111,7 @@ IPA.search_widget = function (spec) {
 
         button = $('input[name=add]', search_buttons);
         that.add_button = IPA.action_button({
-            'label': IPA.messages.button.add,
+            'label': IPA.messages.buttons.add,
             'icon': 'ui-icon-plus',
             'click': function() { that.add(); }
         });
@@ -176,12 +176,16 @@ IPA.search_widget = function (spec) {
 
         var values = that.get_selected_values();
 
+        var title;
         if (!values.length) {
-            alert('Select '+that.label+' to be removed.');
+            title = IPA.messages.dialogs.remove_empty;
+            title = title.replace('${entity}', that.label);
+            alert(title);
             return;
         }
 
-        var title = 'Remove '+that.label;
+        title = IPA.messages.dialogs.remove_title;
+        title = title.replace('${entity}', that.label);
 
         var dialog = IPA.deleter_dialog({
             'title': title,
@@ -237,10 +241,9 @@ IPA.search_widget = function (spec) {
 
             var summary = $('span[name=summary]', that.tfoot);
             if (data.result.truncated) {
-                summary.text(
-                    'Query returned more results than configured size limit '+
-                        'will show.  First ' +
-                        data.result.count + ' results shown.');
+                var message = IPA.messages.search.truncated;
+                message = message.replace('${counter}', data.result.count);
+                summary.text(message);
             } else {
                 summary.text(data.result.summary);
             }
@@ -342,7 +345,7 @@ IPA.search_facet = function(spec) {
 
         that.table = IPA.search_widget({
             'id': that.entity_name+'-search',
-            'name': 'search', 'label': IPA.metadata[that.entity_name].label,
+            'name': 'search', 'label': IPA.metadata.objects[that.entity_name].label,
             'entity_name': that.entity_name,
             'facet': that
         });
@@ -350,7 +353,7 @@ IPA.search_facet = function(spec) {
         for (var i=0; i<that.columns.length; i++) {
             var column = that.columns[i];
 
-            var param_info = IPA.get_param_info(that.entity_name, column.name);
+            var param_info = IPA.get_entity_param(that.entity_name, column.name);
             column.primary_key = param_info && param_info['primary_key'];
 
             if (column.primary_key) {

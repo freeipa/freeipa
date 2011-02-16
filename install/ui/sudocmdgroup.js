@@ -32,12 +32,12 @@ IPA.entity_factories.sudocmdgroup = function () {
 
         var facet = IPA.sudocmdgroup_search_facet({
             'name': 'search',
-            'label': 'Search'
+            'label': IPA.messages.facets.search
         });
 
         var dialog = IPA.sudo.cmdgroup_add_dialog({
             'name': 'add',
-            'title': 'Add New SUDO Command Group'
+            'title': IPA.messages.objects.sudocmdgroup.add
         });
         facet.dialog(dialog);
 
@@ -101,7 +101,7 @@ IPA.sudocmdgroup_details_facet = function (spec) {
 
         var section = IPA.details_list_section({
             'name': 'general',
-            'label': 'General'
+            'label': IPA.messages.dialogs.general
         });
         that.add_section(section);
 
@@ -110,13 +110,13 @@ IPA.sudocmdgroup_details_facet = function (spec) {
 
         section = IPA.details_section({
             'name': 'commands',
-            'label': 'Commands'
+            'label': IPA.messages.objects.sudocmdgroup.commands
         });
         that.add_section(section);
 
         var field = IPA.sudocmdgroup_member_sudocmd_table_widget({
             'name': 'member_sudocmd',
-            'label': 'Commands',
+            'label': IPA.messages.objects.sudocmdgroup.commands,
             'other_entity': 'sudocmd',
             'save_values': false
         });
@@ -166,7 +166,6 @@ IPA.sudocmdgroup_member_sudocmd_table_widget = function (spec) {
 
         that.create_column({
             name: 'description',
-            label: 'Description',
             width: '150px'
         });
 

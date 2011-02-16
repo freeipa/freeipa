@@ -153,10 +153,10 @@ IPA.association_adder_dialog = function (spec) {
 
     that.init = function() {
         if (!that.columns.length) {
-            var pkey_name = IPA.metadata[that.other_entity].primary_key;
+            var pkey_name = IPA.metadata.objects[that.other_entity].primary_key;
             that.create_column({
                 name: pkey_name,
-                label: IPA.metadata[that.other_entity].label,
+                label: IPA.metadata.objects[that.other_entity].label,
                 primary_key: true,
                 width: '200px'
             });
@@ -173,7 +173,7 @@ IPA.association_adder_dialog = function (spec) {
             var results = data.result;
             that.clear_available_values();
 
-            var pkey_attr = IPA.metadata[that.entity_name].primary_key;
+            var pkey_attr = IPA.metadata.objects[that.entity_name].primary_key;
 
             for (var i=0; i<results.count; i++){
                 var result = results.result[i];
@@ -186,7 +186,7 @@ IPA.association_adder_dialog = function (spec) {
 
         var options = {'all': true};
         if (hide_checkbox.attr('checked')) {
-            var relationships = IPA.metadata[that.other_entity].relationships;
+            var relationships = IPA.metadata.objects[that.other_entity].relationships;
 
             /* TODO: better generic handling of different relationships! */
             var other_attribute_member = '';
@@ -310,7 +310,7 @@ IPA.association_table_widget = function (spec) {
         if (!that.columns.length) {
             that.create_column({
                 'name': that.name,
-                'label': IPA.metadata[that.other_entity].label,
+                'label': IPA.metadata.objects[that.other_entity].label,
                 'primary_key': true
             });
         }
@@ -337,13 +337,13 @@ IPA.association_table_widget = function (spec) {
         $('<input/>', {
             'type': 'button',
             'name': 'remove',
-            'value': 'Remove'
+            'value': IPA.messages.buttons.remove
         }).appendTo(buttons);
 
         $('<input/>', {
             'type': 'button',
             'name': 'add',
-            'value': 'Add'
+            'value': IPA.messages.buttons.add
         }).appendTo(buttons);
     };
 
@@ -445,8 +445,12 @@ IPA.association_table_widget = function (spec) {
 
     that.create_add_dialog = function() {
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        var label = IPA.metadata[that.other_entity].label;
-        var title = 'Add '+label+' to '+that.entity_name+' '+pkey;
+        var label = IPA.metadata.objects[that.other_entity].label;
+        var title = IPA.messages.association.add;
+
+        title = title.replace('${entity}', that.entity_name);
+        title = title.replace('${primary_key}', pkey);
+        title = title.replace('${other_entity}', label);
 
         return IPA.association_adder_dialog({
             'title': title,
@@ -505,13 +509,19 @@ IPA.association_table_widget = function (spec) {
         var selected_values = that.get_selected_values();
 
         if (!selected_values.length) {
-            alert('Select '+that.label+' to be removed.');
+            var message = IPA.messages.dialogs.remove_empty;
+            message = message.replace('${entity}', that.label);
+            alert(message);
             return;
         }
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        var label = IPA.metadata[that.other_entity].label;
-        var title = 'Remove '+label+' from '+that.entity_name+' '+pkey;
+        var label = IPA.metadata.objects[that.other_entity].label;
+        var title = IPA.messages.association.remove;
+
+        title = title.replace('${entity}', that.entity_name);
+        title = title.replace('${primary_key}', pkey);
+        title = title.replace('${other_entity}', label);
 
         var dialog = IPA.association_deleter_dialog({
             'title': title,
@@ -575,7 +585,7 @@ IPA.association_facet = function (spec) {
     that.other_entity = spec.other_entity || that.name.substring(index+1);
 
     that.facet_group = spec.facet_group;
-    that.label = that.label ? that.label : (IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity);
+    that.label = that.label ? that.label : (IPA.metadata.objects[that.other_entity] ? IPA.metadata.objects[that.other_entity].label : that.other_entity);
 
     that.associator = spec.associator || IPA.bulk_associator;
     that.add_method = spec.add_method || 'add_member';
@@ -625,8 +635,8 @@ IPA.association_facet = function (spec) {
         var column;
         var i;
 
-        var label = IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity;
-        var pkey_name = IPA.metadata[that.other_entity].primary_key;
+        var label = IPA.metadata.objects[that.other_entity] ? IPA.metadata.objects[that.other_entity].label : that.other_entity;
+        var pkey_name = IPA.metadata.objects[that.other_entity].primary_key;
 
         that.table = IPA.table_widget({
             'id': that.entity_name+'-'+that.other_entity,
@@ -643,7 +653,7 @@ IPA.association_facet = function (spec) {
 
             column = that.table.create_column({
                 name: that.table.name,
-                label: IPA.metadata[that.other_entity].label,
+                label: IPA.metadata.objects[that.other_entity].label,
                 primary_key: true
             });
 
@@ -691,21 +701,26 @@ IPA.association_facet = function (spec) {
 
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 
-        var relationships = IPA.metadata[that.entity_name].relationships;
+        var relationships = IPA.metadata.objects[that.entity_name].relationships;
         var relationship = relationships[that.attribute_member];
-        if (!relationship){
+        if (!relationship) {
             relationship = ['', '', ''];
         }
 
-        /* TODO: I18N and some generic handling of different relationships */
+        var other_label = IPA.metadata.objects[that.other_entity].label;
+
+        /* TODO: generic handling of different relationships */
         var header_message = '';
         if (relationship[0] == 'Member') {
-            header_message = that.other_entity + '(s) enrolled in ' +
-                that.entity_name + ' ' + that.pkey;
+            header_message = IPA.messages.association.member;
+
         } else if (relationship[0] == 'Parent') {
-            header_message = that.entity_name + ' ' + that.pkey +
-                ' is enrolled in the following ' + that.other_entity + '(s)';
+            header_message = IPA.messages.association.parent;
         }
+
+        header_message = header_message.replace('${entity}', that.entity_name);
+        header_message = header_message.replace('${primary_key}', that.pkey);
+        header_message = header_message.replace('${other_entity}', other_label);
 
         $('<div/>', {
             'id': that.entity_name+'-'+that.other_entity,
@@ -723,13 +738,13 @@ IPA.association_facet = function (spec) {
         $('<input/>', {
             'type': 'button',
             'name': 'remove',
-            'value': IPA.messages.button.remove
+            'value': IPA.messages.buttons.remove
         }).appendTo(li);
 
         $('<input/>', {
             'type': 'button',
             'name': 'add',
-            'value': IPA.messages.button.enroll
+            'value': IPA.messages.buttons.enroll
         }).appendTo(li);
     };
 
@@ -762,8 +777,12 @@ IPA.association_facet = function (spec) {
     that.show_add_dialog = function() {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        var label = IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity;
-        var title = 'Enroll ' + label + ' in ' + that.entity_name + ' ' + pkey;
+        var label = IPA.metadata.objects[that.other_entity] ? IPA.metadata.objects[that.other_entity].label : that.other_entity;
+        var title = IPA.messages.association.add;
+
+        title = title.replace('${entity}', that.entity_name);
+        title = title.replace('${primary_key}', pkey);
+        title = title.replace('${other_entity}', label);
 
         var dialog = IPA.association_adder_dialog({
             'title': title,
@@ -807,16 +826,22 @@ IPA.association_facet = function (spec) {
 
     that.show_remove_dialog = function() {
 
-        var label = IPA.metadata[that.other_entity] ? IPA.metadata[that.other_entity].label : that.other_entity;
+        var label = IPA.metadata.objects[that.other_entity] ? IPA.metadata.objects[that.other_entity].label : that.other_entity;
         var values = that.table.get_selected_values();
 
         if (!values.length) {
-            alert('Select '+label+' to be removed.');
+            var message = IPA.messages.dialogs.remove_empty;
+            message = message.replace('${entity}', label);
+            alert(message);
             return;
         }
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        var title = 'Remove '+label+' from '+that.entity_name+' '+pkey;
+        var title = IPA.messages.association.remove;
+
+        title = title.replace('${entity}', that.entity_name);
+        title = title.replace('${primary_key}', pkey);
+        title = title.replace('${other_entity}', label);
 
         var dialog = IPA.association_deleter_dialog({
             title: title,

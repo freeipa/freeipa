@@ -35,14 +35,14 @@ IPA.entity_factories.dnszone = function() {
         that.facet(
             IPA.search_facet({
                 name: 'search',
-                label: 'Search',
+                label: IPA.messages.facets.search,
                 entity_name: that.name
             }).
                 column({name:'idnsname'}).
                 dialog(
                     IPA.add_dialog({
                         name: 'add',
-                        title: 'Add DNS Zone'
+                        title: IPA.messages.objects.dnszone.add
                     }).
                         field(IPA.text_widget({ name: 'idnsname', undo: false})).
                         field(IPA.text_widget({ name: 'idnssoamname', undo: false})).
@@ -51,7 +51,10 @@ IPA.entity_factories.dnszone = function() {
         that.facet(
             IPA.details_facet({name:'details'}).
                 section(
-                    IPA.stanza({name:'identity', label:'DNS Zone Settings'}).
+                    IPA.stanza({
+                        name: 'identity',
+                        label: IPA.messages.objects.dnszone.identity
+                    }).
                         input({name:'idnsname'}).
                         input({name:'idnszoneactive'}).
                         input({name:'idnssoamname'}).
@@ -69,7 +72,7 @@ IPA.entity_factories.dnszone = function() {
         that.facet(
             IPA.records_facet({
                 'name': 'records',
-                'label': IPA.metadata.dnsrecord.label
+                'label': IPA.metadata.objects.dnsrecord.label
             }));
 
         that.create_association_facets();
@@ -123,15 +126,15 @@ IPA.records_facet = function (spec){
 
         var add_dialog = $('<div/>',{
             id: 'add_dns_resource_record',
-            title: 'Add DNS Resource Record'
+            title: IPA.messages.objects.dnsrecord.add
         });
         var dl = $('<dl></dl>').appendTo(add_dialog);
-        dl.append('<dt>Resource</dt>');
+        dl.append('<dt>'+IPA.messages.objects.dnsrecord.resource+'</dt>');
         dl.append( $('<dd/>').
                    append($('<input type="text" id="dns-record-resource" />')));
-        dl.append('<dt>Type</dt>');
+        dl.append('<dt>'+IPA.messages.objects.dnsrecord.type+'</dt>');
         dl.append(  $('<dd/>').append(create_type_select('dns-record-type')));
-        dl.append('<dt>Data</dt>');
+        dl.append('<dt>'+IPA.messages.objects.dnsrecord.data+'</dt>');
         dl.append($('<dd/>').append($('<textarea/>',{
             id: 'dns-record-data',
             rows:"8",
@@ -197,7 +200,7 @@ IPA.records_facet = function (spec){
 
 
         var delete_dialog = $('<div/>', {
-            title: IPA.messages.button.remove
+            title: IPA.messages.buttons.remove
         });
         var to_delete_table =
             $('<table class="search-table" >'+
@@ -286,7 +289,7 @@ IPA.records_facet = function (spec){
             appendTo(details);
 
         var control_span =$('<span class="record-filter"></span>').appendTo(div);
-        control_span.append('Resource');
+        control_span.append(IPA.messages.objects.dnsrecord.resource);
         control_span.append($('<input />',{
             type: "text",
             id: 'dns-record-resource-filter',
@@ -305,7 +308,7 @@ IPA.records_facet = function (spec){
         */
 
         IPA.button({
-            'label': IPA.messages.button.find,
+            'label': IPA.messages.buttons.find,
             'icon': 'ui-icon-search',
             'click': function(){refresh();}
         }).appendTo(control_span);
@@ -318,13 +321,13 @@ IPA.records_facet = function (spec){
 
 
         IPA.action_button({
-            'label': IPA.messages.button.add,
+            'label': IPA.messages.buttons.add,
             'icon': 'ui-icon-plus',
             'click': add_click
         }).appendTo(action_controls);
 
         IPA.action_button({
-            'label': IPA.messages.button.remove,
+            'label': IPA.messages.buttons.remove,
             'icon': 'ui-icon-trash',
             'click': function(){delete_records(records_table);}
         }).appendTo(action_controls);
@@ -353,7 +356,7 @@ IPA.records_facet = function (spec){
                 }
             })));
         tr.append($('<th/>',{
-            text: IPA.get_param_info("dnsrecord", "idnsname").label  }));
+            text: IPA.get_entity_param("dnsrecord", "idnsname").label  }));
          tr.append($('<th>Record Type</th>'));
         tr.append($('<th>Data</th>'));
 
@@ -368,7 +371,7 @@ IPA.records_facet = function (spec){
 
 
         $('h1',container).
-            html("<span id='headerpkey' />Records for DNS Zone:" + that.pkey);
+            html("<span id='headerpkey' />"+IPA.messages.objects.dnsrecord.title+":" + that.pkey);
 
 
         //commented out until data is searchable
@@ -496,9 +499,9 @@ IPA.records_facet = function (spec){
         }
 
         if (data.result.truncated) {
-            tfoot.text(
-                'Query returned results than configured size limit will show.' +
-                    'First ' + data.result.count + ' results shown.' );
+            var message = IPA.messages.search.truncated;
+            message = message.replace('${counter}', data.result.count);
+            tfoot.text(message);
         } else {
             tfoot.text(data.result.summary);
         }
@@ -526,21 +529,24 @@ IPA.entity_factories.automountlocation = function() {
         that.facet(
             IPA.search_facet({
                 name: 'search',
-                label: 'Search',
+                label: IPA.messages.facets.search,
                 entity_name: that.name
             }).
                 column({name:'cn'}).
                 dialog(
                     IPA.add_dialog({
                         name: 'add',
-                        title: 'Add Automount Location'
+                        title: IPA.messages.objects.automountlocation.add
                     }).
                         field(IPA.text_widget({ name: 'cn', undo: false}))));
 
         that.facet(
             IPA.details_facet({name:'details'}).
                 section(
-                    IPA.stanza({name:'identity', label:'Automount Location Settings'}).
+                    IPA.stanza({
+                        name: 'identity',
+                        label: IPA.messages.objects.automountlocation.identity
+                    }).
                         input({name:'cn'})));
 
         that.create_association_facets();
@@ -565,14 +571,14 @@ IPA.entity_factories.pwpolicy = function() {
         that.facet(
             IPA.search_facet({
                 name: 'search',
-                label: 'Search',
+                label: IPA.messages.facets.search,
                 entity_name: that.name
             }).
                 column({name:'cn'}).
                 dialog(
                     IPA.add_dialog({
                         name: 'add',
-                        title: 'Add Password Policy',
+                        title: IPA.messages.objects.pwpolicy.add,
                         entity_name:'pwpolicy'
                     }).
                         field(IPA.text_widget({name: 'cn', undo: false}))));
@@ -580,7 +586,10 @@ IPA.entity_factories.pwpolicy = function() {
         that.facet(
             IPA.details_facet({name:'details'}).
                 section(
-                    IPA.stanza({name:'identity', label:'Password Policy'}).
+                    IPA.stanza({
+                        name: 'identity',
+                        label: IPA.messages.objects.pwpolicy.identity
+                    }).
                         input({name:'krbmaxpwdlife'}).
                         input({name:'krbminpwdlife'}).
                         input({name:'krbpwdhistorylength'}).
@@ -612,7 +621,10 @@ IPA.entity_factories.krbtpolicy =  function() {
             name: 'details'
         }).
             section(
-                IPA.stanza({name: 'identity', label: 'Kerberos ticket policy'}).
+                IPA.stanza({
+                    name: 'identity',
+                    label: IPA.messages.objects.krbtpolicy.identity
+                }).
                     //input({name: 'uid',label:' '}).
                     input({name: 'krbmaxrenewableage'}).
                     input({name: 'krbmaxticketlife'})));

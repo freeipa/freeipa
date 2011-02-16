@@ -37,21 +37,23 @@ IPA.entity_factories.group =  function () {
                 dialog(
                     IPA.add_dialog({
                         'name': 'add',
-                        'title': 'Add New Group'
+                        'title': IPA.messages.objects.group.add
                     }).
                         field(IPA.text_widget({name: 'cn', undo: false})).
                         field(IPA.text_widget({name: 'description', undo: false})).
-                        // TODO: Replace with i18n label
                         field(IPA.checkbox_widget({
                             name: 'posix',
-                            label: 'Is this a POSIX group?',
+                            label: IPA.messages.objects.group.posix,
                             undo: false,
                             checked: 'checked'})).
                         field(IPA.text_widget({name: 'gidnumber', undo: false})))).
         facet(
             IPA.details_facet().
                 section(
-                    IPA.stanza({label: 'Group Settings' }).
+                    IPA.stanza({
+                        name: 'details',
+                        label: IPA.messages.objects.group.details
+                    }).
                         input({name: 'cn' }).
                         input({name: 'description'}).
                         input({name: 'gidnumber' }))).

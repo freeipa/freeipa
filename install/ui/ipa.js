@@ -43,8 +43,8 @@ var IPA = ( function () {
         processData: false
     };
 
-    that.messages = {};
     that.metadata = {};
+    that.messages = {};
     that.whoami = {};
 
     that.entities = [];
@@ -92,11 +92,12 @@ var IPA = ( function () {
 
         IPA.cmd('batch', startup_batch, {},
             function (data, text_status, xhr) {
-                that.metadata = data.result.results[0].metadata;
+                that.metadata = data.result.results[0];
                 that.messages = data.result.results[1].messages;
                 that.whoami  = data.result.results[2].result[0];
                 that.env = data.result.results[3].result;
                 that.dns_enabled = data.result.results[4].result;
+
                 if (on_success) {
                     on_success(data, text_status, xhr);
                 }
@@ -129,7 +130,6 @@ var IPA = ( function () {
             entity.init();
         }
     };
-
 
     that.test_dirty = function(){
         if (IPA.current_entity){
@@ -186,7 +186,7 @@ var IPA = ( function () {
     return that;
 }());
 
-IPA.command = function (spec) {
+IPA.command = function(spec) {
 
     spec = spec || {};
 
@@ -395,7 +395,7 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
                 error_thrown.message = IPA.messages.ajax["401"];
             } else {
                 error_thrown.message =
-                    "Your kerberos ticket no longer valid. "+
+                    "Your kerberos ticket is no longer valid. "+
                     "Please run kinit and then click 'retry'. "+
                     "If this is your first time running the IPA Web UI "+
                     "<a href='/ipa/config/unauthorized.html'>"+
@@ -488,32 +488,56 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
 
 
 /* helper function used to retrieve information about an attribute */
-IPA.get_param_info = function(obj_name, attr) {
-    var obj = IPA.metadata[obj_name];
-    if (!obj) {
+IPA.get_entity_param = function(entity_name, name) {
+
+    var metadata = IPA.metadata.objects[entity_name];
+    if (!metadata) {
         return null;
     }
 
-    var takes_params = obj.takes_params;
-    if (!takes_params) {
-        return (null);
-
+    var params = metadata.takes_params;
+    if (!params) {
+        return null;
     }
-    for (var i = 0; i < takes_params.length; i += 1) {
-        if (takes_params[i].name === attr){
-            return (takes_params[i]);
+
+    for (var i=0; i<params.length; i++) {
+        if (params[i].name === name) {
+            return params[i];
         }
     }
 
-    return (null);
+    return null;
+};
+
+IPA.get_method_param = function(method_name, name) {
+
+    var metadata = IPA.metadata.methods[method_name];
+    if (!metadata) {
+        return null;
+    }
+
+    var options = metadata.takes_options;
+    if (!options) {
+        return null;
+    }
+
+    for (var i=0; i<options.length; i++) {
+        if (options[i].name === name) {
+            return options[i];
+        }
+    }
+
+    return null;
 };
 
 /* helper function used to retrieve attr name with members of type `member` */
-IPA.get_member_attribute = function (obj_name, member) {
-    var obj = IPA.metadata[obj_name];
+IPA.get_member_attribute = function(obj_name, member) {
+
+    var obj = IPA.metadata.objects[obj_name];
     if (!obj) {
         return null;
     }
+
     var attribute_members = obj.attribute_members;
     for (var a in attribute_members) {
         var objs = attribute_members[a];
@@ -523,10 +547,9 @@ IPA.get_member_attribute = function (obj_name, member) {
             }
         }
     }
+
     return null;
-
 };
-
 
 IPA.create_network_spinner = function(){
     return $('<span />',{

@@ -99,7 +99,7 @@ IPA.widget = function(spec) {
 
     function init() {
         if (that.entity_name) {
-            that.param_info = IPA.get_param_info(that.entity_name, that.name);
+            that.param_info = IPA.get_entity_param(that.entity_name, that.name);
 
             if (that.param_info) {
 
@@ -307,7 +307,7 @@ IPA.text_widget = function(spec) {
 
         $('<span/>', {
             name: 'error_link',
-            html: 'Text does not match field pattern',
+            html: IPA.messages.widget.validation_error,
             'class': 'ui-state-error ui-corner-all',
             style: 'display:none'
         }).appendTo(container);
@@ -415,8 +415,8 @@ IPA.multivalued_text_widget = function(spec) {
         $('<a/>', {
             name: 'remove',
             href: 'jslink',
-            title: 'Remove',
-            html: 'Remove'
+            title: IPA.messages.buttons.remove,
+            html: IPA.messages.buttons.remove
         }).appendTo(div);
 
         if (that.undo) {
@@ -428,7 +428,7 @@ IPA.multivalued_text_widget = function(spec) {
 
         $('<span/>', {
             name: 'error_link',
-            html: 'Text does not match field pattern',
+            html: IPA.messages.widget.validation_error,
             'class': 'ui-state-error ui-corner-all',
             style: 'display:none'
         }).appendTo(div);
@@ -436,8 +436,8 @@ IPA.multivalued_text_widget = function(spec) {
         $('<a/>', {
             name: 'add',
             href: 'jslink',
-            title: 'Add',
-            html: 'Add'
+            title: IPA.messages.buttons.add,
+            html: IPA.messages.buttons.add
         }).appendTo(container);
 
         container.append(' ');
@@ -951,7 +951,7 @@ IPA.textarea_widget = function (spec) {
 
         $("<span/>",{
             name:'error_link',
-            html:"Text does not match field pattern",
+            html: IPA.messages.widget.validation_error,
             "class":"ui-state-error ui-corner-all",
             style:"display:none"
         }).appendTo(container);
@@ -1019,7 +1019,7 @@ IPA.column = function (spec) {
 
     that.init = function() {
         if (that.entity_name && !that.label) {
-            var param_info = IPA.get_param_info(that.entity_name, that.name);
+            var param_info = IPA.get_entity_param(that.entity_name, that.name);
             if (param_info) that.label = param_info.label;
         }
     };
@@ -1206,11 +1206,11 @@ IPA.table_widget = function (spec) {
         that.tfoot = $('tfoot', that.table);
 
         var select_all_checkbox = $('input[name=select]', that.thead);
-        select_all_checkbox.attr('title', 'Select All');
+        select_all_checkbox.attr('title', IPA.messages.search.select_all);
 
         select_all_checkbox.change(function() {
             var checked = select_all_checkbox.is(':checked');
-            select_all_checkbox.attr('title', checked ? 'Unselect All' : 'Select All');
+            select_all_checkbox.attr('title', checked ? IPA.messages.search.unselect_all : IPA.messages.search.select_all);
             var checkboxes = $('input[name=select]', that.tbody).get();
             for (var i=0; i<checkboxes.length; i++) {
                 checkboxes[i].checked = checked;

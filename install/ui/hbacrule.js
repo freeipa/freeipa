@@ -32,12 +32,12 @@ IPA.entity_factories.hbacrule = function () {
 
         var facet = IPA.hbacrule_search_facet({
             'name': 'search',
-            'label': 'Search'
+            'label': IPA.messages.facets.search
         });
 
         var dialog = IPA.hbacrule_add_dialog({
             'name': 'add',
-            'title': 'Add New Rule'
+            'title': IPA.messages.objects.hbacrule.add
         });
         facet.dialog(dialog);
 
@@ -73,8 +73,8 @@ IPA.hbacrule_add_dialog = function (spec) {
         that.add_field(IPA.radio_widget({
             'name': 'accessruletype',
             'options': [
-                { 'value': 'allow', 'label': 'Allow' },
-                { 'value': 'deny', 'label': 'Deny' }
+                { 'value': 'allow', 'label': IPA.messages.objects.hbacrule.allow },
+                { 'value': 'deny', 'label': IPA.messages.objects.hbacrule.deny }
             ],
             'undo': false
         }));
@@ -143,39 +143,41 @@ IPA.hbacrule_details_facet = function (spec) {
         if (IPA.layout) {
             section = that.create_section({
                 'name': 'general',
-                'label': 'General',
+                'label': IPA.messages.details.general,
                 'template': 'hbacrule-details-general.html #contents'
             });
 
         } else {
             section = IPA.hbacrule_details_general_section({
                 'name': 'general',
-                'label': 'General'
+                'label': IPA.messages.details.general
             });
             that.add_section(section);
         }
 
-        section.text({name: 'cn', label: 'Name', read_only: true});
-        section.radio({name: 'accessruletype', label: 'Rule Type'});
-        section.textarea({name: 'description', label: 'Description'});
-        section.radio({name: 'ipaenabledflag', label: 'Enabled'});
+        section.text({name: 'cn', read_only: true});
+        section.radio({name: 'accessruletype'});
+        section.textarea({name: 'description'});
+        section.radio({name: 'ipaenabledflag'});
+
+        var param_info = IPA.get_entity_param('hbacrule', 'usercategory');
 
         if (IPA.layout) {
             section = that.create_section({
                 'name': 'user',
-                'label': 'Who',
+                'label': IPA.messages.objects.hbacrule.user,
                 'template': 'hbacrule-details-user.html #contents'
             });
 
         } else {
             section = IPA.rule_details_section({
                 'name': 'user',
-                'label': 'Who',
-                'text': 'Rule applies when access is requested by:',
+                'label': IPA.messages.objects.hbacrule.user,
+                'text': param_info.doc+':',
                 'field_name': 'usercategory',
                 'options': [
-                    { 'value': 'all', 'label': 'Anyone' },
-                    { 'value': '', 'label': 'Specified Users and Groups' }
+                    { 'value': 'all', 'label': IPA.messages.objects.hbacrule.anyone },
+                    { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_users }
                 ],
                 'tables': [
                     { 'field_name': 'memberuser_user' },
@@ -185,34 +187,36 @@ IPA.hbacrule_details_facet = function (spec) {
             that.add_section(section);
         }
 
-        var category = section.radio({ name: 'usercategory', label: 'User category' });
+        var category = section.radio({ name: 'usercategory' });
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberuser_user',
-            'name': 'memberuser_user', 'label': 'Users', 'category': category,
+            'name': 'memberuser_user', 'category': category,
             'other_entity': 'user', 'add_method': 'add_user', 'remove_method': 'remove_user'
         }));
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberuser_group',
-            'name': 'memberuser_group', 'label': 'Groups', 'category': category,
+            'name': 'memberuser_group', 'category': category,
             'other_entity': 'group', 'add_method': 'add_user', 'remove_method': 'remove_user'
         }));
+
+        param_info = IPA.get_entity_param('hbacrule', 'hostcategory');
 
         if (IPA.layout) {
             section = that.create_section({
                 'name': 'host',
-                'label': 'Accessing',
+                'label': IPA.messages.objects.hbacrule.host,
                 'template': 'hbacrule-details-host.html #contents'
             });
 
         } else {
             section = IPA.rule_details_section({
                 'name': 'host',
-                'label': 'Accessing',
-                'text': 'Rule applies when access is requested to:',
+                'label': IPA.messages.objects.hbacrule.host,
+                'text': param_info.doc+':',
                 'field_name': 'hostcategory',
                 'options': [
-                    { 'value': 'all', 'label': 'Any Host' },
-                    { 'value': '', 'label': 'Specified Hosts and Groups' }
+                    { 'value': 'all', 'label': IPA.messages.objects.hbacrule.any_host },
+                    { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_hosts }
                 ],
                 'tables': [
                     { 'field_name': 'memberhost_host' },
@@ -222,34 +226,36 @@ IPA.hbacrule_details_facet = function (spec) {
             that.add_section(section);
         }
 
-        category = section.radio({ 'name': 'hostcategory', 'label': 'Host category' });
+        category = section.radio({ 'name': 'hostcategory' });
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberhost_host',
-            'name': 'memberhost_host', 'label': 'Hosts', 'category': category,
+            'name': 'memberhost_host', 'category': category,
             'other_entity': 'host', 'add_method': 'add_host', 'remove_method': 'remove_host'
         }));
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberhost_hostgroup',
-            'name': 'memberhost_hostgroup', 'label': 'Host Groups', 'category': category,
+            'name': 'memberhost_hostgroup', 'category': category,
             'other_entity': 'hostgroup', 'add_method': 'add_host', 'remove_method': 'remove_host'
         }));
+
+        param_info = IPA.get_entity_param('hbacrule', 'servicecategory');
 
         if (IPA.layout) {
             section = that.create_section({
                 'name': 'service',
-                'label': 'Via Service',
+                'label': IPA.messages.objects.hbacrule.service,
                 'template': 'hbacrule-details-service.html #contents'
             });
 
         } else {
             section = IPA.rule_details_section({
                 'name': 'service',
-                'label': 'Via Service',
-                'text': 'Rule applies when access is requested via:',
+                'label': IPA.messages.objects.hbacrule.service,
+                'text': param_info.doc+':',
                 'field_name': 'servicecategory',
                 'options': [
-                    { 'value': 'all', 'label': 'Any Service' },
-                    { 'value': '', 'label': 'Specified Services and Groups' }
+                    { 'value': 'all', 'label': IPA.messages.objects.hbacrule.any_service },
+                    { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_services }
                 ],
                 'tables': [
                     { 'field_name': 'memberservice_hbacsvc' },
@@ -259,34 +265,36 @@ IPA.hbacrule_details_facet = function (spec) {
             that.add_section(section);
         }
 
-        category = section.radio({ 'name': 'servicecategory', 'label': 'Service category' });
+        category = section.radio({ 'name': 'servicecategory' });
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberservice_hbacsvc',
-            'name': 'memberservice_hbacsvc', 'label': 'Services', 'category': category,
+            'name': 'memberservice_hbacsvc', 'category': category,
             'other_entity': 'hbacsvc', 'add_method': 'add_service', 'remove_method': 'remove_service'
         }));
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberservice_hbacsvcgroup',
-            'name': 'memberservice_hbacsvcgroup', 'label': 'Service Groups', 'category': category,
+            'name': 'memberservice_hbacsvcgroup', 'category': category,
             'other_entity': 'hbacsvcgroup', 'add_method': 'add_service', 'remove_method': 'remove_service'
         }));
+
+        param_info = IPA.get_entity_param('hbacrule', 'sourcehostcategory');
 
         if (IPA.layout) {
             section = that.create_section({
                 'name': 'sourcehost',
-                'label': 'From',
+                'label': IPA.messages.objects.hbacrule.sourcehost,
                 'template': 'hbacrule-details-sourcehost.html #contents'
             });
 
         } else {
             section = IPA.rule_details_section({
                 'name': 'sourcehost',
-                'label': 'From',
-                'text': 'Rule applies when access is being initiated from:',
+                'label': IPA.messages.objects.hbacrule.sourcehost,
+                'text': param_info.doc+':',
                 'field_name': 'sourcehostcategory',
                 'options': [
-                    { 'value': 'all', 'label': 'Any Host' },
-                    { 'value': '', 'label': 'Specified Hosts and Groups' }
+                    { 'value': 'all', 'label': IPA.messages.objects.hbacrule.any_host },
+                    { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_hosts }
                 ],
                 'tables': [
                     { 'field_name': 'sourcehost_host' },
@@ -296,15 +304,15 @@ IPA.hbacrule_details_facet = function (spec) {
             that.add_section(section);
         }
 
-        category = section.radio({ 'name': 'sourcehostcategory', 'label': 'Source host category' });
+        category = section.radio({ 'name': 'sourcehostcategory' });
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-sourcehost_host',
-            'name': 'sourcehost_host', 'label': 'Host', 'category': category,
+            'name': 'sourcehost_host', 'category': category,
             'other_entity': 'host', 'add_method': 'add_sourcehost', 'remove_method': 'remove_sourcehost'
         }));
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-sourcehost_hostgroup',
-            'name': 'sourcehost_hostgroup', 'label': 'Host Groups', 'category': category,
+            'name': 'sourcehost_hostgroup', 'category': category,
             'other_entity': 'hostgroup', 'add_method': 'add_sourcehost', 'remove_method': 'remove_sourcehost'
         }));
 /*
@@ -430,7 +438,7 @@ IPA.hbacrule_details_facet = function (spec) {
                 var values = field.save();
                 if (!values) continue;
 
-                var param_info = IPA.get_param_info(that.entity_name, field.name);
+                var param_info = IPA.get_entity_param(that.entity_name, field.name);
 
                 // skip primary key
                 if (param_info && param_info['primary_key']) continue;
@@ -555,12 +563,15 @@ IPA.hbacrule_details_general_section = function (spec){
         var tr = $('<tr/>').appendTo(table);
 
         var td = $('<td/>', {
-            'style': 'width: 100px; text-align: right;',
-            'html': 'Name:'
+            'style': 'width: 100px; text-align: right;'
         }).appendTo(tr);
+
+        var param_info = IPA.get_entity_param('hbacrule', 'cn');
+        td.append(param_info.label+':');
 
         td = $('<td/>').appendTo(tr);
 
+        var field = that.get_field('cn');
         var span = $('<span/>', { 'name': 'cn' }).appendTo(td);
 
         $('<label/>', {
@@ -576,19 +587,16 @@ IPA.hbacrule_details_general_section = function (spec){
 
         span.append(' ');
 
-        $('<span/>', {
-            'name': 'undo',
-            'class': 'ui-state-highlight ui-corner-all',
-            'style': 'display: none;',
-            'html': 'undo'
-        }).appendTo(span);
+        field.create_undo(span);
 
         td = $('<td/>', {
             'style': 'text-align: right;'
         }).appendTo(tr);
 
-        td.append('Rule type:');
+        param_info = IPA.get_entity_param('hbacrule', 'accessruletype');
+        td.append(param_info.label+':');
 
+        field = that.get_field('accessruletype');
         span = $('<span/>', { 'name': 'accessruletype' }).appendTo(td);
 
         $('<input/>', {
@@ -599,8 +607,7 @@ IPA.hbacrule_details_general_section = function (spec){
 
         span.append(' ');
 
-        // TODO: i18n
-        span.append('Allow');
+        span.append(IPA.messages.objects.hbacrule.allow);
 
         span.append(' ');
 
@@ -612,29 +619,26 @@ IPA.hbacrule_details_general_section = function (spec){
 
         span.append(' ');
 
-        // TODO: i18n
-        span.append('Deny');
+        span.append(IPA.messages.objects.hbacrule.deny);
 
         span.append(' ');
 
-        $('<span/>', {
-            'name': 'undo',
-            'class': 'ui-state-highlight ui-corner-all',
-            'style': 'display: none;',
-            'html': 'undo'
-        }).appendTo(span);
+        field.create_undo(span);
 
         tr = $('<tr/>').appendTo(table);
 
         td = $('<td/>', {
-            'style': 'text-align: right; vertical-align: top;',
-            'html': 'Description:'
+            'style': 'text-align: right; vertical-align: top;'
         }).appendTo(tr);
+
+        param_info = IPA.get_entity_param('hbacrule', 'description');
+        td.append(param_info.label+':');
 
         td = $('<td/>', {
             'colspan': 2
         }).appendTo(tr);
 
+        field = that.get_field('description');
         span = $('<span/>', { 'name': 'description' }).appendTo(td);
 
         $('<textarea/>', {
@@ -645,24 +649,21 @@ IPA.hbacrule_details_general_section = function (spec){
 
         span.append(' ');
 
-        $('<span/>', {
-            'name': 'undo',
-            'class': 'ui-state-highlight ui-corner-all',
-            'style': 'display: none;',
-            'html': 'undo'
-        }).appendTo(span);
+        field.create_undo(span);
 
         tr = $('<tr/>').appendTo(table);
 
         td = $('<td/>', {
-            'style': 'text-align: right; vertical-align: top;',
-            'html': 'Rule status:'
+            'style': 'text-align: right; vertical-align: top;'
         }).appendTo(tr);
+
+        td.append(IPA.messages.objects.hbacrule.ipaenabledflag+':');
 
         td = $('<td/>', {
             'colspan': 2
         }).appendTo(tr);
 
+        field = that.get_field('ipaenabledflag');
         span = $('<span/>', { 'name': 'ipaenabledflag' }).appendTo(td);
 
         $('<input/>', {
@@ -673,8 +674,7 @@ IPA.hbacrule_details_general_section = function (spec){
 
         span.append(' ');
 
-        // TODO: i18n
-        span.append('Active');
+        span.append(IPA.messages.objects.hbacrule.active);
 
         span.append(' ');
 
@@ -686,17 +686,11 @@ IPA.hbacrule_details_general_section = function (spec){
 
         span.append(' ');
 
-        // TODO: i18n
-        span.append('Inactive');
+        span.append(IPA.messages.objects.hbacrule.inactive);
 
         span.append(' ');
 
-        $('<span/>', {
-            'name': 'undo',
-            'class': 'ui-state-highlight ui-corner-all',
-            'style': 'display: none;',
-            'html': 'undo'
-        }).appendTo(span);
+        field.create_undo(span);
     };
 
     return that;
@@ -753,12 +747,7 @@ IPA.hbacrule_accesstime_widget = function (spec) {
             container.append(' ');
         }
 
-        $('<span/>', {
-            'name': 'undo',
-            'class': 'ui-state-highlight ui-corner-all',
-            'style': 'display: none;',
-            'html': 'undo'
-        }).appendTo(container);
+        that.create_undo(container);
 
         container.append('<br/>');
 
@@ -771,13 +760,13 @@ IPA.hbacrule_accesstime_widget = function (spec) {
         $('<input/>', {
             'type': 'button',
             'name': 'remove',
-            'value': 'Remove '+that.label
+            'value': IPA.messages.buttons.remove
         }).appendTo(buttons);
 
         $('<input/>', {
             'type': 'button',
             'name': 'add',
-            'value': 'Add '+that.label
+            'value': IPA.messages.buttons.add
         }).appendTo(buttons);
     };
 
@@ -847,7 +836,10 @@ IPA.hbacrule_accesstime_widget = function (spec) {
     that.add = function() {
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        var title = 'Add '+that.label+' to '+that.entity_name+' '+pkey;
+        var title = IPA.messages.association.add;
+        title = title.replace('${entity}', IPA.metadata.objects[that.entity_name].label);
+        title = title.replace('${primary_key}', pkey);
+        title = title.replace('${other_entity}', that.label);
 
         var dialog = IPA.dialog({
             'title': title
@@ -917,20 +909,20 @@ IPA.hbacrule_accesstime_widget = function (spec) {
             command.execute();
         }
 
-        dialog.add_button('Add', function() {
+        dialog.add_button(IPA.messages.buttons.add, function() {
             add(
                 function() { dialog.reset(); }
             );
         });
 
-        dialog.add_button('Add and Close', function() {
+        dialog.add_button(IPA.messages.buttons.add_and_close, function() {
             add(
                 function() { dialog.close(); },
                 function() { dialog.close(); }
             );
         });
 
-        dialog.add_button('Cancel', function() {
+        dialog.add_button(IPA.messages.buttons.cancel, function() {
             dialog.close();
         });
 
@@ -943,13 +935,19 @@ IPA.hbacrule_accesstime_widget = function (spec) {
 
         var values = that.table.get_selected_values();
 
+        var title;
         if (!values.length) {
-            alert('Select '+that.label+' to be removed.');
+            title = IPA.messages.dialogs.remove_empty;
+            title = title.replace('${entity}', that.label);
+            alert(title);
             return;
         }
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        var title = 'Remove '+that.label+' from '+that.entity_name+' '+pkey;
+        title = IPA.messages.association.remove;
+        title = title.replace('${entity}', IPA.metadata.objects[that.entity_name].label);
+        title = title.replace('${primary_key}', pkey);
+        title = title.replace('${other_entity}', that.label);
 
         var dialog = IPA.deleter_dialog({
             'title': title,

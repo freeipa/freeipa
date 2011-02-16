@@ -33,7 +33,7 @@ IPA.entity_factories.netgroup = function() {
         that.facet(
             IPA.search_facet({
                 name: 'search',
-                label: 'Search',
+                label: IPA.messages.facets.search,
                 entity_name: that.name
             }).
                 column({name:'cn'}).
@@ -41,7 +41,7 @@ IPA.entity_factories.netgroup = function() {
                 dialog(
                     IPA.add_dialog({
                         name: 'add',
-                        title: 'Add Netgroup'
+                        title: IPA.messages.objects.netgroup.add
                     }).
                         field(IPA.text_widget({ name: 'cn', undo: false})).
                         field(IPA.text_widget({ name: 'description', undo: false}))));
@@ -49,7 +49,10 @@ IPA.entity_factories.netgroup = function() {
         that.facet(
             IPA.details_facet({name: 'details'}).
                 section(
-                    IPA.stanza({name: 'identity', label: 'Netgroup Settings'}).
+                    IPA.stanza({
+                        name: 'identity',
+                        label: IPA.messages.objects.netgroup.identity
+                    }).
                         input({name: 'cn'}).
                         input({name: 'description'}).
                         input({name: 'nisdomainname'})));

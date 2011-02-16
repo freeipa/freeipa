@@ -32,12 +32,12 @@ IPA.entity_factories.hbacsvcgroup = function () {
 
         var facet = IPA.hbacsvcgroup_search_facet({
             'name': 'search',
-            'label': 'Search'
+            'label': IPA.messages.facets.search
         });
 
         var dialog = IPA.hbacsvcgroup_add_dialog({
             'name': 'add',
-            'title': 'Add New HBAC Service Group'
+            'title': IPA.messages.objects.hbacsvcgroup.add
         });
         facet.dialog(dialog);
 
@@ -102,7 +102,7 @@ IPA.hbacsvcgroup_details_facet = function (spec) {
 
         var section = IPA.details_list_section({
             'name': 'general',
-            'label': 'General'
+            'label': IPA.messages.details.general
         });
         that.add_section(section);
 
@@ -111,13 +111,13 @@ IPA.hbacsvcgroup_details_facet = function (spec) {
 
         section = IPA.details_section({
             'name': 'services',
-            'label': 'Services'
+            'label': IPA.messages.objects.hbacsvcgroup.services
         });
         that.add_section(section);
 
         var field = IPA.hbacsvcgroup_member_hbacsvc_table_widget({
             'name': 'member_hbacsvc',
-            'label': 'Services',
+            'label': IPA.messages.objects.hbacsvcgroup.services,
             'other_entity': 'hbacsvc',
             'save_values': false
         });

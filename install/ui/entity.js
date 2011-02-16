@@ -188,7 +188,7 @@ IPA.entity = function (spec) {
 
     that.create_association_facets = function() {
 
-        var attribute_members = IPA.metadata[that.name].attribute_members;
+        var attribute_members = IPA.metadata.objects[that.name].attribute_members;
 
         for (var attribute_member in attribute_members) {
 
@@ -200,9 +200,9 @@ IPA.entity = function (spec) {
 
             for (var j = 0; j < other_entities.length; j++) {
                 var other_entity = other_entities[j];
-                var label = IPA.metadata[other_entity].label;
+                var label = IPA.metadata.objects[other_entity].label;
 
-                var relationships = IPA.metadata[that.name].relationships;
+                var relationships = IPA.metadata.objects[that.name].relationships;
 
                 var relationship = relationships[attribute_member];
                 if (!relationship)
@@ -222,7 +222,7 @@ IPA.entity = function (spec) {
     that.init = function() {
 
         if (!that.label) {
-            that.label = IPA.metadata[that.name].label;
+            that.label = IPA.metadata.objects[that.name] ? IPA.metadata.objects[that.name].label : that.name;
         }
 
         if (that.autogenerate_associations) {
@@ -268,7 +268,7 @@ IPA.entity_get_search_facet  = function (entity_name) {
 
     facet = IPA.search_facet({
         'name': 'search',
-        'label': 'Search'
+        'label': IPA.messages.facets.search
     });
     entity.add_facet(facet);
 
@@ -488,7 +488,7 @@ IPA. facet_create_action_panel = function(container) {
 
     var that = this;
     var entity_name = that.entity_name;
-    var panel_title = IPA.metadata[entity_name].label;
+    var panel_title = IPA.metadata.objects[entity_name].label;
     var nested_tabs = IPA.nested_tabs(entity_name);
 
 
@@ -527,7 +527,7 @@ IPA. facet_create_action_panel = function(container) {
                 if ( entity.facets[0].name === IPA.current_facet( entity)){
                     if (nested_tabs.length > 1 ){
                         main_facet.html(IPA.selected_icon +
-                                IPA.metadata[nested_tabs[nested_index]].label);
+                                IPA.metadata.objects[nested_tabs[nested_index]].label);
 
                         main_facet.addClass('entity-facet-selected');
                         main_facet.appendTo(ul);
@@ -538,7 +538,7 @@ IPA. facet_create_action_panel = function(container) {
                             $('<span />',{
                                 "class":"input_link"
                             }).
-                                append(IPA.back_icon + '  Back to List '));
+                                append(IPA.back_icon + '  '+IPA.messages.buttons.back_to_list+' '));
                     main_facet.addClass('back-to-search');
                     main_facet.appendTo(ul);
                 }
@@ -600,7 +600,7 @@ IPA. facet_create_action_panel = function(container) {
         }else{
             $('<li/>', {
                 title: nested_tabs[nested_index],
-                text: IPA.metadata[nested_tabs[nested_index]].label,
+                text: IPA.metadata.objects[nested_tabs[nested_index]].label,
                 "class": "search-facet",
                 click: function() {
                     var state = {};

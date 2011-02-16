@@ -39,7 +39,7 @@ IPA.entity_factories.user = function() {
                 dialog(
                     IPA.add_dialog({
                         'name': 'add',
-                        'title': 'Add User'
+                        'title': IPA.messages.objects.user.add
                     }).
                         field(IPA.text_widget({ name: 'uid', undo: false })).
                         field(IPA.text_widget({ name: 'givenname', undo: false })).
@@ -54,7 +54,7 @@ IPA.entity_factories.user = function() {
                     input({name:'displayname'}).
                     input({name:'initials'})).
             section(
-                IPA.stanza({name: 'account', label: IPA.messages.details.account}).
+                IPA.stanza({name: 'account', label: IPA.messages.objects.user.account}).
                     custom_input(IPA.user_status_widget({name:'nsaccountlock'})).
                     input({name:'uid'}).
                     custom_input(IPA.user_password_widget({name:'userpassword'})).
@@ -63,24 +63,24 @@ IPA.entity_factories.user = function() {
                     input({name:'loginshell'}).
                     input({name:'homedirectory'})).
             section(
-                IPA.stanza({name: 'contact', label: IPA.messages.details.contact}).
+                IPA.stanza({name: 'contact', label: IPA.messages.objects.user.contact}).
                     multivalued_text({name:'mail'}).
                     multivalued_text({name:'telephonenumber'}).
                     multivalued_text({name:'pager'}).
                     multivalued_text({name:'mobile'}).
                     multivalued_text({name:'facsimiletelephonenumber'})).
             section(
-                IPA.stanza({name: 'mailing', label: IPA.messages.details.mailing}).
+                IPA.stanza({name: 'mailing', label: IPA.messages.objects.user.mailing}).
                     input({name:'street'}).
-                    input({name:'l',label:'City'}).
-                    input({name:'st',label:'State/Province'}).
+                    input({name:'l'}).
+                    input({name:'st'}).
                     input({name:'postalcode'})).
             section(
-                IPA.stanza({name: 'employee', label: IPA.messages.details.employee}).
-                    input({name:'ou', label:'Org. Unit'}).
+                IPA.stanza({name: 'employee', label: IPA.messages.objects.user.employee}).
+                    input({name:'ou'}).
                     input({name:'manager'})).
             section(
-                IPA.stanza({name: 'misc', label: IPA.messages.details.misc}).
+                IPA.stanza({name: 'misc', label: IPA.messages.objects.user.misc}).
                     input({name:'carlicense'}))).
         facet(
             IPA.association_facet({
@@ -119,11 +119,11 @@ IPA.user_status_widget = function(spec) {
 
         var locked  = that.record[lock_field] &&
             that.record[lock_field][0].toLowerCase() === 'true';
-        var title = "Active";
-        var text = "Active:  Click to Deactivate";
+        var title = IPA.messages.objects.user.active;
+        var text = title+":  "+IPA.messages.objects.user.deactivate;
         if (locked) {
-            title = "Inactive";
-            text = "Inactive:  Click to Activate";
+            title = IPA.messages.objects.user.inactive;
+            text = title+":  "+IPA.messages.objects.user.activate;
         }
 
         function on_lock_win(data, textStatus, xhr){
@@ -134,7 +134,7 @@ IPA.user_status_widget = function(spec) {
         }
 
         function on_lock_fail(data, textStatus, xhr){
-            $("#userstatuslink").text = "Error changing account status";
+            $("#userstatuslink").text = IPA.messages.objects.user.error_changing_status;
             return false;
         }
 
@@ -150,7 +150,7 @@ IPA.user_status_widget = function(spec) {
                       var val = jobj.attr('title');
                       var pkey =  $.bbq.getState('user-pkey');
                       var command = 'user_enable';
-                      if (val == 'Active') {
+                      if (val == IPA.messages.objects.user.active) {
                           command = 'user_disable';
                       }
                       IPA.cmd(command, [pkey], {}, on_lock_win,on_lock_fail);
@@ -174,7 +174,7 @@ IPA.user_password_widget = function(spec) {
         $('<a/>', {
             href: 'jslink',
             title: 'userpassword',
-            text: 'reset password',
+            text: IPA.messages.objects.user.reset_password,
             click: resetpwd_on_click
         }).appendTo(container);
     };
@@ -194,7 +194,7 @@ IPA.user_password_widget = function(spec) {
             IPA.cmd('passwd',
                     pw_pkey, {"password":new_password},
                     function(){
-                        alert("Password change complete");
+                        alert(IPA.messages.objects.user.password_change_complete);
                         dialog.dialog("close");
                     },
                     function(){});
@@ -202,9 +202,9 @@ IPA.user_password_widget = function(spec) {
 
         var dialog =
             $('<div ><dl class="modal">'+
-              '<dt>New Password</dt>'+
+              '<dt>'+IPA.messages.objects.user.new_password+'</dt>'+
               '<dd class="first" ><input id="password_1" type="password"/></dd>'+
-              '<dt>Repeat Password</dt>'+
+              '<dt>'+IPA.messages.objects.user.repeat_password+'</dt>'+
               '<dd class="first"><input id="password_2" type="password"/></dd>'+
               '</dl></div>');
 
@@ -216,7 +216,7 @@ IPA.user_password_widget = function(spec) {
                      var p1 = $("#password_1").val();
                      var p2 = $("#password_2").val();
                      if (p1 != p2){
-                          alert("passwords must match");
+                          alert(IPA.messages.objects.user.password_must_match);
                           return;
                      }
                      reset_password(p1);

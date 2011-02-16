@@ -34,7 +34,7 @@ IPA.entity_factories.hostgroup = function() {
         that.facet(
             IPA.search_facet({
                 name: 'search',
-                label: 'Search',
+                label: IPA.messages.facets.search,
                 entity_name: that.name
             }).
                 column({name:'cn'}).
@@ -42,7 +42,7 @@ IPA.entity_factories.hostgroup = function() {
                 dialog(
                     IPA.add_dialog({
                         name: 'add',
-                        title: 'Add Hostgroup'
+                        title: IPA.messages.objects.hostgroup.add
                     }).
                         field(IPA.text_widget({name: 'cn', undo: false})).
                         field(IPA.text_widget({name: 'description', undo: false}))));
@@ -50,7 +50,10 @@ IPA.entity_factories.hostgroup = function() {
         that.facet(
             IPA.details_facet({name:'details'}).
                 section(
-                    IPA.stanza({name:'identity', label:'Hostgroup Settings'}).
+                    IPA.stanza({
+                        name: 'identity',
+                        label: IPA.messages.objects.hostgroup.identity
+                    }).
                         input({name:'cn'}).
                         input({name: 'description'})));
 

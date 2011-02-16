@@ -34,7 +34,7 @@ IPA.entity_factories.service = function() {
                 dialog(
                     IPA.service_add_dialog({
                         name: 'add',
-                        title: 'Add New Service',
+                        title: IPA.messages.objects.service.add,
                         width: '450px'
                     }))).
         facet(IPA.service_details_facet()).
@@ -75,8 +75,6 @@ IPA.service_select_widget = function(spec) {
 };
 
 
-/*TODO: the following labels etc. all need to be replaced with I18N strings */
-
 IPA.service_add_dialog = function(spec) {
 
     spec = spec || {};
@@ -88,20 +86,24 @@ IPA.service_add_dialog = function(spec) {
         })).
         field(IPA.service_select_widget({
             name: 'service',
-            label: 'Service',
+            label: IPA.messages.objects.service.service,
             size: 20,
             undo: false
         })).
         field(IPA.text_widget({
             name: 'host',
-            label: 'Host Name',
+            label: IPA.messages.objects.service.host,
             size: 40,
             undo: false
-        })).
-        field(IPA.checkbox_widget({
+        }));
+
+    var param_info = IPA.get_method_param('service_add', 'force');
+
+    that.field(
+        IPA.checkbox_widget({
             name: 'force',
-            label: 'Force',
-            tooltip: 'force principal name even if not in DNS',
+            label: param_info.label,
+            tooltip: param_info.doc,
             undo: false
         }));
 
@@ -131,38 +133,38 @@ IPA.service_details_facet = function(spec) {
     var that = IPA.details_facet(spec).
         section(IPA.stanza({
             name: 'details',
-            label: 'Service Settings'
+            label: IPA.messages.objects.service.details
         }).
             input({
                 name: 'krbprincipalname'
             }).
             custom_input(IPA.service_name_widget({
                 name: 'service',
-                label: 'Service',
+                label: IPA.messages.objects.service.service,
                 read_only: true
             })).
             custom_input(IPA.service_host_widget({
                 name: 'host',
-                label: 'Host Name',
+                label: IPA.messages.objects.service.host,
                 read_only: true
             }))).
         section(
             IPA.stanza({
                 name: 'provisioning',
-                label: 'Provisioning'
+                label: IPA.messages.objects.service.provisioning
             }).
                 custom_input(IPA.service_provisioning_status_widget({
                     name: 'provisioning_status',
-                    label: 'Status'
+                    label: IPA.messages.objects.service.status
                 }))).
         section(
             IPA.stanza({
                 name: 'certificate',
-                label: 'Service Certificate'
+                label: IPA.messages.objects.service.certificate
             }).
                 custom_input((IPA.service_certificate_status_widget({
                     name: 'certificate_status',
-                    label: 'Status'
+                    label: IPA.messages.objects.service.status
                 }))));
 
 
@@ -235,14 +237,14 @@ IPA.service_provisioning_status_widget = function (spec) {
             style: 'float: left;'
         }).appendTo(div);
 
-        content_div.append('<b>Kerberos Key Present, Service Provisioned:</b>');
+        content_div.append('<b>'+IPA.messages.objects.service.valid+':</b>');
 
         content_div.append(' ');
 
         $('<input/>', {
             'type': 'button',
             'name': 'unprovision',
-            'value': 'Delete Key, Unprovision'
+            'value': IPA.messages.objects.service.delete_key_unprovision
         }).appendTo(content_div);
 
         div = $('<div/>', {
@@ -260,7 +262,7 @@ IPA.service_provisioning_status_widget = function (spec) {
             style: 'float: left;'
         }).appendTo(div);
 
-        content_div.append('<b>Kerberos Key Not Present</b>');
+        content_div.append('<b>'+IPA.messages.objects.service.missing+'</b>');
     };
 
     that.setup = function(container) {
@@ -272,7 +274,7 @@ IPA.service_provisioning_status_widget = function (spec) {
 
         var button = $('input[name=unprovision]', that.container);
         that.unprovision_button = IPA.button({
-            'label': 'Delete Key, Unprovision',
+            'label': IPA.messages.objects.service.delete_key_unprovision,
             'click': that.unprovision
         });
         button.replaceWith(that.unprovision_button);
@@ -280,17 +282,19 @@ IPA.service_provisioning_status_widget = function (spec) {
 
     that.unprovision = function() {
 
-        var label = IPA.metadata[that.entity_name].label;
+        var label = IPA.metadata.objects[that.entity_name].label;
+        var title = IPA.messages.objects.service.unprovision_title;
+        title = title.replace('${entity}', label);
+
         var dialog = IPA.dialog({
-            'title': 'Unprovisioning '+label
+            'title': title
         });
 
         dialog.create = function() {
-            dialog.container.append(
-                'Are you sure you want to unprovision this service?');
+            dialog.container.append(IPA.messages.objects.service.unprovision_confirmation);
         };
 
-        dialog.add_button('Unprovision', function() {
+        dialog.add_button(IPA.messages.objects.service.unprovision, function() {
             var pkey = that.result['krbprincipalname'][0];
             IPA.cmd(that.entity_name+'_disable', [pkey], {},
                 function(data, text_status, xhr) {
@@ -328,11 +332,11 @@ IPA.service_certificate_status_widget = function (spec) {
 
     spec = spec || {};
 
-    var that = IPA.certificate_status_widget(spec);
+    var that = IPA.cert.status_widget(spec);
 
     that.init = function() {
 
-        that.entity_label = IPA.metadata[that.entity_name].label;
+        that.entity_label = IPA.metadata.objects[that.entity_name].label;
 
         that.get_entity_pkey = function(result) {
             var values = result['krbprincipalname'];

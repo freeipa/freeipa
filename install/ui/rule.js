@@ -40,7 +40,8 @@ IPA.rule_details_section = function (spec){
 
         if (that.text) container.append(that.text);
 
-        var param_info = IPA.get_param_info(that.entity_name, that.field_name);
+        var field = that.get_field(that.field_name);
+        var param_info = IPA.get_entity_param(that.entity_name, that.field_name);
 
         var span = $('<span/>', {
             name: that.field_name,
@@ -64,12 +65,7 @@ IPA.rule_details_section = function (spec){
                 span.append(' ');
             }
 
-            $('<span/>', {
-                'name': 'undo',
-                'class': 'ui-state-highlight ui-corner-all',
-                'style': 'display: none;',
-                'html': 'undo'
-            }).appendTo(span);
+            field.create_undo(span);
 
             span.append('<br/>');
         }
@@ -77,14 +73,14 @@ IPA.rule_details_section = function (spec){
         for (var j=0; j<that.tables.length; j++) {
             var table = that.tables[j];
 
-            param_info = IPA.get_param_info(that.entity_name, table.field_name);
+            param_info = IPA.get_entity_param(that.entity_name, table.field_name);
 
             var table_span = $('<span/>', {
                 name: table.field_name,
                 title: param_info ? param_info.doc : table.field_name
             }).appendTo(span);
 
-            var field = that.get_field(table.field_name);
+            field = that.get_field(table.field_name);
             field.create(table_span);
         }
     };

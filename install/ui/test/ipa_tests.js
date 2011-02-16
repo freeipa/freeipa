@@ -40,7 +40,7 @@ test("Testing ipa_init().", function() {
 
 test("Testing IPA.get_param_info().", function() {
 
-    var param_info = IPA.get_param_info("user", "uid");
+    var param_info = IPA.get_entity_param("user", "uid");
     ok(
         param_info,
         "IPA.get_param_info(\"user\", \"uid\") not null"
@@ -52,22 +52,22 @@ test("Testing IPA.get_param_info().", function() {
     );
 
     equals(
-        IPA.get_param_info("user", "wrong_attribute"), null,
+        IPA.get_entity_param("user", "wrong_attribute"), null,
         "IPA.get_param_info(\"user\", \"wrong_attribute\")"
     );
 
     equals(
-        IPA.get_param_info("user", null), null,
+        IPA.get_entity_param("user", null), null,
         "IPA.get_param_info(\"user\", null)"
     );
 
     equals(
-        IPA.get_param_info("wrong_entity", "uid"), null,
+        IPA.get_entity_param("wrong_entity", "uid"), null,
         "IPA.get_param_info(\"wrong_entity\", \"uid\")"
     );
 
     equals(
-        IPA.get_param_info(null, "uid"), null,
+        IPA.get_entity_param(null, "uid"), null,
         "IPA.get_param_info(null, \"uid\")"
     );
 });

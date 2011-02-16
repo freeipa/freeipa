@@ -34,7 +34,7 @@ IPA.attributes_widget = function(spec) {
 
     var id = spec.name;
 
-    that.setup = function (){
+    that.setup = function() {
     };
 
     that.create = function(container) {
@@ -49,6 +49,7 @@ IPA.attributes_widget = function(spec) {
             appendTo(container);
 
         var tr = $('<tr></tr>').appendTo($('thead', that.table));
+
         tr.append($('<th/>', {
             style:"height:2em; vertical-align:bottom;",
             html:$('<input/>',{
@@ -59,8 +60,10 @@ IPA.attributes_widget = function(spec) {
                     that.show_undo();
                 }
             })
-        })).
-            append('<th class="aci-attribute-column">Attribute</th>');
+        })).append($('<th/>', {
+            'class': 'aci-attribute-column',
+            html: IPA.messages.objects.aci.attribute
+        }));
 
         if (that.undo) {
             that.create_undo(container);
@@ -101,7 +104,7 @@ IPA.attributes_widget = function(spec) {
 
         if (!object_type || object_type === '') return;
 
-        var metadata = IPA.metadata[object_type];
+        var metadata = IPA.metadata.objects[object_type];
         if (!metadata) return;
 
         var aciattrs = metadata.aciattrs;
@@ -189,13 +192,18 @@ IPA.rights_widget = function(spec) {
 
 
 IPA.rights_section = function() {
-    var spec =  {
-        'name':'rights',
-        'label': 'Rights'
+
+    var spec = {
+        name: 'rights',
+        label: IPA.messages.objects.permission.rights
     };
+
     var that = IPA.details_section(spec);
-    that.add_field(IPA.rights_widget(
-        {name: 'permissions', label: 'Permissions', join: true}));
+
+    that.add_field(IPA.rights_widget({
+        name: 'permissions',
+        join: true
+    }));
 
     return that;
 };
@@ -257,7 +265,7 @@ IPA.target_section = function(spec) {
 
                 $('<dt/>').
                     append($('<label/>', {
-                        text: 'Filter:'
+                        text: IPA.messages.objects.permission.filter+':'
                     })).
                     appendTo(dl);
 
@@ -283,7 +291,7 @@ IPA.target_section = function(spec) {
             create:function(dl) {
                 $('<dt/>').
                     append($('<label/>', {
-                        text: 'By Subtree:'
+                        text: IPA.messages.objects.permission.subtree+':'
                     })).
                     appendTo(dl);
                 var dd = $('<dd/>', {
@@ -306,7 +314,7 @@ IPA.target_section = function(spec) {
             create:  function (dl) {
                 $('<dt/>').
                     append($('<label/>', {
-                        text: 'Target Group:'
+                        text: IPA.messages.objects.permission.targetgroup+':'
                     })).
                     appendTo(dl);
                 var dd = $('<dd/>', {
@@ -329,7 +337,7 @@ IPA.target_section = function(spec) {
             create:   function(dl) {
                 $('<dt/>').
                     append($('<label/>', {
-                        text: 'Object By Type:'
+                        text: IPA.messages.objects.permission.type+':'
                     })).
                     appendTo(dl);
                 var dd = $('<dd/>', {
@@ -359,7 +367,7 @@ IPA.target_section = function(spec) {
                     value: '',
                     text: ''
                 }));
-                var type_params = IPA.get_param_info('permission', 'type');
+                var type_params = IPA.get_entity_param('permission', 'type');
                 for (var i=0; i<type_params.values.length; i++){
                     select.append($('<option/>', {
                         value: type_params.values[i],
@@ -466,7 +474,7 @@ IPA.target_section = function(spec) {
             }
         }
         if (!target_type_name){
-            alert('permission with invalid target specification');
+            alert(IPA.messages.objects.permission.invalid_target);
             return;
         }
 
@@ -544,22 +552,31 @@ IPA.entity_factories.permission = function() {
                 dialog(
                     IPA.add_dialog({
                         name: 'add',
-                        title: 'Add New Permission',
+                        title: IPA.messages.objects.permission.add,
                         width: '700px'
                     }).
                         field(IPA.text_widget({name: 'cn', undo: false})).
-                        field(IPA.rights_widget(
-                            {name: 'permissions', label: 'Permissions',
-                             join: true, undo: false})).
-                        section(IPA.target_section(
-                            {name: 'target', label: 'Target', undo: false})))).
+                        field(IPA.rights_widget({
+                            name: 'permissions',
+                            join: true, undo: false})).
+                        section(IPA.target_section({
+                            name: 'target',
+                            label: IPA.messages.objects.permission.target,
+                            undo: false
+                        })))).
         facet(
             IPA.permission_details_facet({ name: 'details' }).
                 section(
-                    IPA.stanza({name:'identity', label:'Identity'}).
-                        input({name: 'cn', 'read_only': true})).
+                    IPA.stanza({
+                        name:'identity',
+                        label: IPA.messages.objects.permission.identity
+                    }).
+                        input({name: 'cn', read_only: true})).
                 section(IPA.rights_section()).
-                section(IPA.target_section({name: 'target', label: 'Target'}))).
+                section(IPA.target_section({
+                    name: 'target',
+                    label: IPA.messages.objects.permission.target
+                }))).
         standard_associations();
 };
 
@@ -575,7 +592,7 @@ IPA.entity_factories.privilege = function() {
                 dialog(
                     IPA.add_dialog({
                         name: 'add',
-                        title: 'Add Privilege'
+                        title: IPA.messages.objects.privilege.add
                     }).
                         field(IPA.text_widget({ name: 'cn', undo: false})).
                         field(IPA.text_widget(
@@ -583,8 +600,11 @@ IPA.entity_factories.privilege = function() {
         facet(
             IPA.details_facet({name:'details'}).
                 section(
-                    IPA.stanza({name:'identity', label:'Privilege Settings'}).
-                        input({name:'cn'}).
+                    IPA.stanza({
+                        name:'identity',
+                        label: IPA.messages.objects.privilege.identity
+                    }).
+                        input({name: 'cn'}).
                         input({name: 'description'}))).
         facet(
             IPA.association_facet({
@@ -617,7 +637,7 @@ IPA.entity_factories.role = function() {
                 dialog(
                     IPA.add_dialog({
                         name: 'add',
-                        title: 'Add Role'
+                        title: IPA.messages.objects.role.add
                     }).
                         field(IPA.text_widget({ name: 'cn', undo: false})).
                         field(IPA.text_widget(
@@ -625,8 +645,11 @@ IPA.entity_factories.role = function() {
         facet(
             IPA.details_facet({name:'details'}).
                 section(
-                    IPA.stanza({name:'identity', label:'Role Settings'}).
-                        input({name:'cn'}).
+                    IPA.stanza({
+                        name:'identity',
+                        label:IPA.messages.objects.role.identity
+                    }).
+                        input({name: 'cn'}).
                         input({name: 'description'}))).
         facet(
             IPA.association_facet({
@@ -649,17 +672,20 @@ IPA.entity_factories.selfservice = function() {
                 dialog(
                     IPA.add_dialog({
                         name: 'add',
-                        title: 'Add Self Service Definition'
+                        title: IPA.messages.objects.selfservice.add
                     }).
                         field(IPA.text_widget({ name: 'aciname', undo: false})).
                         field(IPA.attributes_widget({
                             object_type:'user',
-                            name:'attrs'
+                            name:'attrs', undo: false
                         })))).
         facet(
             IPA.details_facet({'name':'details'}).
                 section(
-                    IPA.stanza({name:'general', label:'General'}).
+                    IPA.stanza({
+                        name: 'general',
+                        label: IPA.messages.details.general
+                    }).
                         input({name:'aciname'}).
                         custom_input(IPA.attributes_widget({
                             object_type:'user',
@@ -678,36 +704,46 @@ IPA.entity_factories.delegation = function() {
                 dialog(
                     IPA.add_dialog({
                         name: 'add',
-                        title: 'Add Delegation',
+                        title: IPA.messages.objects.delegation.add,
                         width: '700px'
                     }).
-                        field(IPA.text_widget({name: 'aciname', undo: false})).
-                        field(IPA.entity_select_widget({name: 'group',
-                            entity: 'group', undo: false})).
-                        field(IPA.entity_select_widget(
-                            {name: 'memberof', entity: 'group',
-                            join: true, undo: false})).
-                        field(IPA.attributes_widget(
-                            {name: 'attrs', object_type: 'user',
-                            join: true, undo: false})))).
+                        field(IPA.text_widget({
+                            name: 'aciname', undo: false
+                        })).
+                        field(IPA.entity_select_widget({
+                            name: 'group', entity: 'group', undo: false
+                        })).
+                        field(IPA.entity_select_widget({
+                            name: 'memberof', entity: 'group',
+                            join: true, undo: false
+                        })).
+                        field(IPA.attributes_widget({
+                            name: 'attrs', object_type: 'user',
+                            join: true, undo: false
+                        })))).
         facet(
             IPA.details_facet().
                 section(
-                    IPA.stanza({name:'general', label:'General'}).
+                    IPA.stanza({
+                        name: 'general',
+                        label: IPA.messages.details.general
+                    }).
                         input({name:'aciname'}).
-                        custom_input(IPA.entity_select_widget(
-                            {name:'group', entity:'group'})).
-                        custom_input(IPA.entity_select_widget(
-                            {name:'memberof', label: 'Member Group',
-                             entity:'group', join: true})).
-                        custom_input(
-                            IPA.rights_widget(
-                                {name: 'permissions', label: 'Permissions',
-                                direction: 'horizontal', join: true})).
-                        custom_input(
-                            IPA.attributes_widget({
-                                name:'attrs', object_type:'user',
-                                join: true})))).
+                        custom_input(IPA.entity_select_widget({
+                            name:'group', entity:'group'
+                        })).
+                        custom_input(IPA.entity_select_widget({
+                            name:'memberof',
+                            entity:'group', join: true
+                        })).
+                        custom_input(IPA.rights_widget({
+                            name: 'permissions',
+                            direction: 'horizontal', join: true
+                        })).
+                        custom_input(IPA.attributes_widget({
+                            name:'attrs', object_type:'user',
+                            join: true
+                        })))).
         standard_associations();
     return that;
 

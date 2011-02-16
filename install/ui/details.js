@@ -239,9 +239,6 @@ IPA.details_list_section = function(spec) {
 
             var label = field.label || '';
 
-            // no need to get i18n label from metadata
-            // because it's already done by field.init()
-
             $('<dt/>', {
                 html: label+':',
                 title: label
@@ -340,7 +337,7 @@ IPA.details_facet = function(spec) {
     };
 
     that.get_primary_key = function() {
-        var pkey_name = IPA.metadata[that.entity_name].primary_key;
+        var pkey_name = IPA.metadata.objects[that.entity_name].primary_key;
         if (that.record[pkey_name] instanceof Array){
             return that.record[pkey_name][0];
         }else{
@@ -352,8 +349,13 @@ IPA.details_facet = function(spec) {
 
         container.attr('title', that.entity_name);
 
+        var label = IPA.metadata.objects[that.entity_name].label;
+
+        var title = IPA.messages.details.settings;
+        title = title.replace('${entity}', label);
+
         $('<h1/>',{
-            html: "<span id='headerpkey' />"+that.entity_name + ' Settings'
+            html: "<span id='headerpkey' />"+title
         }).append(IPA.create_network_spinner()).
             appendTo(container);
 
@@ -650,7 +652,7 @@ IPA.details_update = function(on_win, on_fail) {
             values = field.save();
             if (!values) continue;
 
-            var param_info = IPA.get_param_info(entity_name, field.name);
+            var param_info = IPA.get_entity_param(entity_name, field.name);
             if (param_info) {
                 if (param_info['primary_key']) continue;
                 if (values.length === 1) {

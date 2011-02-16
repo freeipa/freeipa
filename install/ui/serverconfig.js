@@ -34,8 +34,14 @@ IPA.entity_factories.config = function(){
     }).facet(
         IPA.details_facet().
             section(
-                IPA.stanza({name:'ipaserver', label:'Configuration'}).
-                    input({name:'cn', label:'Name'}).
+                IPA.stanza({
+                    name: 'ipaserver',
+                    label: IPA.messages.objects.config.ipaserver
+                }).
+                    input({
+                        name: 'cn',
+                        label: IPA.messages.objects.config.cn
+                    }).
                     input({name:'ipacertificatesubjectbase'}).
                     input({name:'ipadefaultloginshell'}).
                     input({name:'ipadefaultprimarygroup'}).

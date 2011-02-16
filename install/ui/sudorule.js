@@ -34,12 +34,12 @@ IPA.entity_factories.sudorule = function () {
 
         var facet = IPA.sudorule_search_facet({
             'name': 'search',
-            'label': 'Search'
+            'label': IPA.messages.facets.search
         });
 
         var dialog = IPA.sudo.rule_add_dialog({
             'name': 'add',
-            'title': 'Add New Rule'
+            'title': IPA.messages.objects.sudorule.add
         });
         facet.dialog(dialog);
 
@@ -106,14 +106,14 @@ IPA.sudorule_details_facet = function (spec) {
         if (IPA.layout) {
             section = that.create_section({
                 'name': 'general',
-                'label': 'General',
+                'label': IPA.messages.dialogs.general,
                 'template': 'sudorule-details-general.html #contents'
             });
 
         } else {
             section = IPA.sudo.rule_details_general_section({
                 'name': 'general',
-                'label': 'General'
+                'label': IPA.messages.dialogs.general
             });
             that.add_section(section);
         }
@@ -124,11 +124,11 @@ IPA.sudorule_details_facet = function (spec) {
 
         section = IPA.rule_details_section({
             'name': 'user',
-            'label': 'Who',
+            'label': IPA.messages.objects.sudorule.user,
             'field_name': 'usercategory',
             'options': [
-                { 'value': 'all', 'label': 'Anyone' },
-                { 'value': '', 'label': 'Specified Users and Groups' }
+                { 'value': 'all', 'label': IPA.messages.objects.sudorule.anyone },
+                { 'value': '', 'label': IPA.messages.objects.sudorule.specified_users }
             ],
             'tables': [
                 { 'field_name': 'memberuser_user' },
@@ -137,26 +137,26 @@ IPA.sudorule_details_facet = function (spec) {
         });
         that.add_section(section);
 
-        var category = section.radio({ name: 'usercategory', label: 'User category' });
+        var category = section.radio({ name: 'usercategory' });
         section.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-memberuser_user',
-            'name': 'memberuser_user', 'label': 'Users', 'category': category,
+            'name': 'memberuser_user', 'category': category,
             'other_entity': 'user', 'add_method': 'add_user', 'remove_method': 'remove_user',
             'external': 'externaluser'
         }));
         section.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-memberuser_group',
-            'name': 'memberuser_group', 'label': 'Groups', 'category': category,
+            'name': 'memberuser_group', 'category': category,
             'other_entity': 'group', 'add_method': 'add_user', 'remove_method': 'remove_user'
         }));
 
         section = IPA.rule_details_section({
             'name': 'host',
-            'label': 'Access this host',
+            'label': IPA.messages.objects.sudorule.host,
             'field_name': 'hostcategory',
             'options': [
-                { 'value': 'all', 'label': 'Any Host' },
-                { 'value': '', 'label': 'Specified Hosts and Groups' }
+                { 'value': 'all', 'label': IPA.messages.objects.sudorule.any_host },
+                { 'value': '', 'label': IPA.messages.objects.sudorule.specified_hosts }
             ],
             'tables': [
                 { 'field_name': 'memberhost_host' },
@@ -165,28 +165,28 @@ IPA.sudorule_details_facet = function (spec) {
         });
         that.add_section(section);
 
-        category = section.radio({ 'name': 'hostcategory', 'label': 'Host category' });
+        category = section.radio({ 'name': 'hostcategory' });
         section.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-memberhost_host',
-            'name': 'memberhost_host', 'label': 'Host', 'category': category,
+            'name': 'memberhost_host', 'category': category,
             'other_entity': 'host', 'add_method': 'add_host', 'remove_method': 'remove_host',
             'external': 'externalhost'
         }));
         section.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-memberhost_hostgroup',
-            'name': 'memberhost_hostgroup', 'label': 'Groups', 'category': category,
+            'name': 'memberhost_hostgroup', 'category': category,
             'other_entity': 'hostgroup', 'add_method': 'add_host', 'remove_method': 'remove_host'
         }));
 
         section = IPA.sudo.rule_details_command_section({
             'name': 'command',
-            'label': 'Run Commands'
+            'label': IPA.messages.objects.sudorule.command
         });
         that.add_section(section);
 
         section = IPA.sudo.rule_details_runas_section({
             'name': 'runas',
-            'label': 'As Whom'
+            'label': IPA.messages.objects.sudorule.runas
         });
         that.add_section(section);
 
@@ -291,7 +291,7 @@ IPA.sudorule_details_facet = function (spec) {
                 var values = field.save();
                 if (!values) continue;
 
-                var param_info = IPA.get_param_info(that.entity_name, field.name);
+                var param_info = IPA.get_entity_param(that.entity_name, field.name);
 
                 // skip primary key
                 if (param_info && param_info['primary_key']) continue;
@@ -391,7 +391,7 @@ IPA.sudo.rule_details_general_section = function (spec){
             'style': 'width: 100%;'
         }).appendTo(container);
 
-        var param_info = IPA.get_param_info(that.entity_name, 'cn');
+        var param_info = IPA.get_entity_param(that.entity_name, 'cn');
 
         var tr = $('<tr/>').appendTo(table);
 
@@ -402,6 +402,8 @@ IPA.sudo.rule_details_general_section = function (spec){
         }).appendTo(tr);
 
         td = $('<td/>').appendTo(tr);
+
+        var field = that.get_field('cn');
 
         var span = $('<span/>', {
             name: 'cn',
@@ -421,14 +423,9 @@ IPA.sudo.rule_details_general_section = function (spec){
 
         span.append(' ');
 
-        $('<span/>', {
-            'name': 'undo',
-            'class': 'ui-state-highlight ui-corner-all',
-            'style': 'display: none;',
-            'html': 'undo'
-        }).appendTo(span);
+        field.create_undo(span);
 
-        param_info = IPA.get_param_info(that.entity_name, 'description');
+        param_info = IPA.get_entity_param(that.entity_name, 'description');
 
         tr = $('<tr/>').appendTo(table);
 
@@ -439,6 +436,8 @@ IPA.sudo.rule_details_general_section = function (spec){
         }).appendTo(tr);
 
         td = $('<td/>').appendTo(tr);
+
+        field = that.get_field('description');
 
         span = $('<span/>', {
             name: 'description',
@@ -453,29 +452,26 @@ IPA.sudo.rule_details_general_section = function (spec){
 
         span.append(' ');
 
-        $('<span/>', {
-            'name': 'undo',
-            'class': 'ui-state-highlight ui-corner-all',
-            'style': 'display: none;',
-            'html': 'undo'
-        }).appendTo(span);
+        field.create_undo(span);
 
-        param_info = IPA.get_param_info(that.entity_name, 'ipaenabledflag');
+        param_info = IPA.get_entity_param(that.entity_name, 'ipaenabledflag');
+        var label = IPA.messages.objects.sudorule.ipaenabledflag;
 
         tr = $('<tr/>').appendTo(table);
 
-        // TODO: Use i18n label
         td = $('<td/>', {
             style: 'text-align: right; vertical-align: top;',
-            html: 'Rule status:',
-            title: 'Rule status'
+            html: label+':',
+            title: label
         }).appendTo(tr);
 
         td = $('<td/>').appendTo(tr);
 
+        field = that.get_field('ipaenabledflag');
+
         span = $('<span/>', {
             name: 'ipaenabledflag',
-            title: 'Rule status'
+            title: label
         }).appendTo(td);
 
         $('<input/>', {
@@ -486,8 +482,7 @@ IPA.sudo.rule_details_general_section = function (spec){
 
         span.append(' ');
 
-        // TODO: i18n
-        span.append('Active');
+        span.append(IPA.messages.objects.sudorule.active);
 
         span.append(' ');
 
@@ -499,17 +494,11 @@ IPA.sudo.rule_details_general_section = function (spec){
 
         span.append(' ');
 
-        // TODO: i18n
-        span.append('Inactive');
+        span.append(IPA.messages.objects.sudorule.inactive);
 
         span.append(' ');
 
-        $('<span/>', {
-            'name': 'undo',
-            'class': 'ui-state-highlight ui-corner-all',
-            'style': 'display: none;',
-            'html': 'undo'
-        }).appendTo(span);
+        field.create_undo(span);
     };
 
     return that;
@@ -559,17 +548,17 @@ IPA.sudo.rule_details_command_section = function (spec){
 
         if (that.template) return;
 
-        var param_info = IPA.get_param_info(that.entity_name, 'cmdcategory');
+        var field = that.get_field('cmdcategory');
+        var param_info = IPA.get_entity_param(that.entity_name, 'cmdcategory');
 
         var span = $('<span/>', {
             name: 'cmdcategory',
             title: param_info ? param_info.doc : 'cmdcategory'
         }).appendTo(container);
 
-        // TODO: replace with i18n label
         $('<h3/>', {
-            text: 'Allow',
-            title: 'Allow'
+            text: IPA.messages.objects.sudorule.allow,
+            title: IPA.messages.objects.sudorule.allow
         }).appendTo(span);
 
         $('<input/>', {
@@ -580,8 +569,7 @@ IPA.sudo.rule_details_command_section = function (spec){
 
         span.append(' ');
 
-        // TODO: replace with i18n label
-        span.append('Any Command');
+        span.append(IPA.messages.objects.sudorule.any_command);
 
         span.append(' ');
 
@@ -593,29 +581,23 @@ IPA.sudo.rule_details_command_section = function (spec){
 
         span.append(' ');
 
-        // TODO: replace with i18n label
-        span.append('Specified Commands and Groups');
+        span.append(IPA.messages.objects.sudorule.specified_commands);
 
         span.append(' ');
 
-        var undo = $('<span/>', {
-            'name': 'undo',
-            'class': 'ui-state-highlight ui-corner-all',
-            'style': 'display: none;',
-            'html': 'undo'
-        }).appendTo(span);
+        field.create_undo(span);
 
-        param_info = IPA.get_param_info(that.entity_name, 'memberallowcmd_sudocmd');
+        param_info = IPA.get_entity_param(that.entity_name, 'memberallowcmd_sudocmd');
 
         var table_span = $('<span/>', {
             name: 'memberallowcmd_sudocmd',
             title: param_info ? param_info.doc : 'memberallowcmd_sudocmd'
         }).appendTo(span);
 
-        var field = that.get_field('memberallowcmd_sudocmd');
+        field = that.get_field('memberallowcmd_sudocmd');
         field.create(table_span);
 
-        param_info = IPA.get_param_info(that.entity_name, 'memberallowcmd_sudocmdgroup');
+        param_info = IPA.get_entity_param(that.entity_name, 'memberallowcmd_sudocmdgroup');
 
         table_span = $('<span/>', {
             name: 'memberallowcmd_sudocmdgroup',
@@ -625,13 +607,12 @@ IPA.sudo.rule_details_command_section = function (spec){
         field = that.get_field('memberallowcmd_sudocmdgroup');
         field.create(table_span);
 
-        // TODO: replace with i18n label
         $('<h3/>', {
-            text: 'Deny',
-            title: 'Deny'
+            text: IPA.messages.objects.sudorule.deny,
+            title: IPA.messages.objects.sudorule.deny
         }).appendTo(span);
 
-        param_info = IPA.get_param_info(that.entity_name, 'memberdenycmd_sudocmd');
+        param_info = IPA.get_entity_param(that.entity_name, 'memberdenycmd_sudocmd');
 
         table_span = $('<span/>', {
             name: 'memberdenycmd_sudocmd',
@@ -641,7 +622,7 @@ IPA.sudo.rule_details_command_section = function (spec){
         field = that.get_field('memberdenycmd_sudocmd');
         field.create(table_span);
 
-        param_info = IPA.get_param_info(that.entity_name, 'memberdenycmd_sudocmdgroup');
+        param_info = IPA.get_entity_param(that.entity_name, 'memberdenycmd_sudocmdgroup');
 
         table_span = $('<span/>', {
             name: 'memberdenycmd_sudocmdgroup',
@@ -722,7 +703,8 @@ IPA.sudo.rule_details_runas_section = function (spec){
 
         if (that.template) return;
 
-        var param_info = IPA.get_param_info(that.entity_name, 'ipasudorunasusercategory');
+        var field = that.get_field('ipasudorunasusercategory');
+        var param_info = IPA.get_entity_param(that.entity_name, 'ipasudorunasusercategory');
 
         var span = $('<span/>', {
             name: 'ipasudorunasusercategory',
@@ -737,8 +719,7 @@ IPA.sudo.rule_details_runas_section = function (spec){
 
         span.append(' ');
 
-        // TODO: i18n
-        span.append('Anyone');
+        span.append(IPA.messages.objects.sudorule.anyone);
 
         span.append(' ');
 
@@ -750,31 +731,25 @@ IPA.sudo.rule_details_runas_section = function (spec){
 
         span.append(' ');
 
-        // TODO: i18n
-        span.append('Specified Users and Groups');
+        span.append(IPA.messages.objects.sudorule.specified_users);
 
         span.append(' ');
 
-        $('<span/>', {
-            'name': 'undo',
-            'class': 'ui-state-highlight ui-corner-all',
-            'style': 'display: none;',
-            'html': 'undo'
-        }).appendTo(span);
+        field.create_undo(span);
 
         span.append('<br/>');
 
-        param_info = IPA.get_param_info(that.entity_name, 'ipasudorunas_user');
+        param_info = IPA.get_entity_param(that.entity_name, 'ipasudorunas_user');
 
         var table_span = $('<span/>', {
             name: 'ipasudorunas_user',
             title: param_info ? param_info.doc : 'ipasudorunas_user'
         }).appendTo(span);
 
-        var field = that.get_field('ipasudorunas_user');
+        field = that.get_field('ipasudorunas_user');
         field.create(table_span);
 
-        param_info = IPA.get_param_info(that.entity_name, 'ipasudorunas_group');
+        param_info = IPA.get_entity_param(that.entity_name, 'ipasudorunas_group');
 
         table_span = $('<span/>', {
             name: 'ipasudorunas_group',
@@ -784,7 +759,8 @@ IPA.sudo.rule_details_runas_section = function (spec){
         field = that.get_field('ipasudorunas_group');
         field.create(table_span);
 
-        param_info = IPA.get_param_info(that.entity_name, 'ipasudorunasgroupcategory');
+        field = that.get_field('ipasudorunasgroupcategory');
+        param_info = IPA.get_entity_param(that.entity_name, 'ipasudorunasgroupcategory');
 
         span = $('<span/>', {
             name: 'ipasudorunasgroupcategory',
@@ -799,8 +775,7 @@ IPA.sudo.rule_details_runas_section = function (spec){
 
         span.append(' ');
 
-        // TODO: i18n
-        span.append('Any Group');
+        span.append(IPA.messages.objects.sudorule.any_group);
 
         span.append(' ');
 
@@ -812,21 +787,15 @@ IPA.sudo.rule_details_runas_section = function (spec){
 
         span.append(' ');
 
-        // TODO: i18n
-        span.append('Specified Groups');
+        span.append(IPA.messages.objects.sudorule.specified_groups);
 
         span.append(' ');
 
-        $('<span/>', {
-            'name': 'undo',
-            'class': 'ui-state-highlight ui-corner-all',
-            'style': 'display: none;',
-            'html': 'undo'
-        }).appendTo(span);
+        field.create_undo(span);
 
         span.append('<br/>');
 
-        param_info = IPA.get_param_info(that.entity_name, 'ipasudorunasgroup_group');
+        param_info = IPA.get_entity_param(that.entity_name, 'ipasudorunasgroup_group');
 
         table_span = $('<span/>', {
             name: 'ipasudorunasgroup_group',
@@ -907,7 +876,7 @@ IPA.sudorule_association_table_widget = function (spec) {
 
     that.create_add_dialog = function() {
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        var label = IPA.metadata[that.other_entity].label;
+        var label = IPA.metadata.objects[that.other_entity].label;
         var title = 'Add '+label+' to '+that.entity_name+' '+pkey;
 
         var template;
@@ -949,10 +918,10 @@ IPA.sudo.rule_association_adder_dialog = function (spec) {
     that.init = function() {
 
         if (!that.columns.length) {
-            var pkey_name = IPA.metadata[that.other_entity].primary_key;
+            var pkey_name = IPA.metadata.objects[that.other_entity].primary_key;
             that.create_column({
                 name: pkey_name,
-                label: IPA.metadata[that.other_entity].label,
+                label: IPA.metadata.objects[that.other_entity].label,
                 primary_key: true,
                 width: '200px'
             });
@@ -996,7 +965,7 @@ IPA.sudo.rule_association_adder_dialog = function (spec) {
         $('<input/>', {
             type: 'button',
             name: 'find',
-            value: 'Find'
+            value: IPA.messages.buttons.find
         }).appendTo(search_panel);
 
         var results_panel = $('<div/>', {
@@ -1011,7 +980,7 @@ IPA.sudo.rule_association_adder_dialog = function (spec) {
         }).appendTo(results_panel);
 
         $('<div/>', {
-            html: 'Available',
+            html: IPA.messages.dialogs.available,
             'class': 'ui-widget-header'
         }).appendTo(available_panel);
 
@@ -1042,7 +1011,7 @@ IPA.sudo.rule_association_adder_dialog = function (spec) {
         }).appendTo(results_panel);
 
         $('<div/>', {
-            html: 'Prospective',
+            html: IPA.messages.dialogs.prospective,
             'class': 'ui-widget-header'
         }).appendTo(selected_panel);
 
@@ -1055,7 +1024,7 @@ IPA.sudo.rule_association_adder_dialog = function (spec) {
             }).appendTo(results_panel);
 
             $('<div/>', {
-                html: 'External',
+                html: IPA.messages.objects.sudorule.external,
                 'class': 'ui-widget-header'
             }).appendTo(external_panel);
 
@@ -1077,7 +1046,7 @@ IPA.sudo.rule_association_adder_dialog = function (spec) {
         that.selected_table.add_rows(rows);
 
         if (that.external) {
-            var pkey_name = IPA.metadata[that.other_entity].primary_key;
+            var pkey_name = IPA.metadata.objects[that.other_entity].primary_key;
             var value = that.external_field.val();
             if (!value) return;
 
