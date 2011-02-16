@@ -32,6 +32,9 @@ Disabling a user account prevents that user from obtaining new Kerberos
 credentials. It does not invalidate any credentials that have already
 been issued.
 
+The password management is not a part of this modules. For more information
+about this topic please see 'ipa help passwd'.
+
 EXAMPLES:
 
  Add a new user:
