@@ -151,7 +151,7 @@ IPA.service_details_facet = function(spec) {
                 name: 'provisioning',
                 label: 'Provisioning'
             }).
-                custom_input(service_provisioning_status_widget({
+                custom_input(IPA.service_provisioning_status_widget({
                     name: 'provisioning_status',
                     label: 'Status'
                 }))).
@@ -160,7 +160,7 @@ IPA.service_details_facet = function(spec) {
                 name: 'certificate',
                 label: 'Service Certificate'
             }).
-                custom_input((service_certificate_status_widget({
+                custom_input((IPA.service_certificate_status_widget({
                     name: 'certificate_status',
                     label: 'Status'
                 }))));
@@ -210,7 +210,7 @@ IPA.service_host_widget = function(spec) {
 };
 
 
-function service_provisioning_status_widget(spec) {
+IPA.service_provisioning_status_widget = function (spec) {
 
     spec = spec || {};
 
@@ -322,13 +322,13 @@ function service_provisioning_status_widget(spec) {
     }
 
     return that;
-}
+};
 
-function service_certificate_status_widget(spec) {
+IPA.service_certificate_status_widget = function (spec) {
 
     spec = spec || {};
 
-    var that = certificate_status_widget(spec);
+    var that = IPA.certificate_status_widget(spec);
 
     that.init = function() {
 
@@ -355,7 +355,7 @@ function service_certificate_status_widget(spec) {
     };
 
     return that;
-}
+};
 
 IPA.service_managedby_host_facet = function(spec) {
 

@@ -23,42 +23,42 @@ module('certificate');
 test("Testing certificate_parse_dn().", function() {
 
     same(
-        certificate_parse_dn(), {},
-        "Checking certificate_parse_dn()"
+        IPA.cert.parse_dn(), {},
+        "Checking IPA.cert.parse_dn()"
     );
 
     same(
-        certificate_parse_dn(''), {},
-        "Checking certificate_parse_dn('')"
+        IPA.cert.parse_dn(''), {},
+        "Checking IPA.cert.parse_dn('')"
     );
 
     same(
-        certificate_parse_dn('c=US'), {'c': 'US'},
-        "Checking certificate_parse_dn('c=US')"
+        IPA.cert.parse_dn('c=US'), {'c': 'US'},
+        "Checking IPA.cert.parse_dn('c=US')"
     );
 
     same(
-        certificate_parse_dn('st=TX,c=US'), {'st': 'TX','c': 'US'},
-        "Checking certificate_parse_dn('st=TX,c=US')"
+        IPA.cert.parse_dn('st=TX,c=US'), {'st': 'TX','c': 'US'},
+        "Checking IPA.cert.parse_dn('st=TX,c=US')"
     );
 
     same(
-        certificate_parse_dn('c=US,st=TX'), {'st': 'TX','c': 'US'},
-        "Checking certificate_parse_dn('c=US,st=TX')"
+        IPA.cert.parse_dn('c=US,st=TX'), {'st': 'TX','c': 'US'},
+        "Checking IPA.cert.parse_dn('c=US,st=TX')"
     );
 
     same(
-        certificate_parse_dn(' st = New Mexico , c = US '), {'st': 'New Mexico','c': 'US'},
-        "Checking certificate_parse_dn(' st = New Mexico , c = US ')"
+        IPA.cert.parse_dn(' st = New Mexico , c = US '), {'st': 'New Mexico','c': 'US'},
+        "Checking IPA.cert.parse_dn(' st = New Mexico , c = US ')"
     );
 
     same(
-        certificate_parse_dn('ST=TX,C=US'), {'st': 'TX','c': 'US'},
-        "Checking certificate_parse_dn('ST=TX,C=US')"
+        IPA.cert.parse_dn('ST=TX,C=US'), {'st': 'TX','c': 'US'},
+        "Checking IPA.cert.parse_dn('ST=TX,C=US')"
     );
 
     same(
-        certificate_parse_dn('cn=dev.example.com,ou=Engineering,o=Example,l=Austin,ST=TX,C=US'),
+        IPA.cert.parse_dn('cn=dev.example.com,ou=Engineering,o=Example,l=Austin,ST=TX,C=US'),
         {   'cn': 'dev.example.com',
             'ou': 'Engineering',
             'o': 'Example',
@@ -66,16 +66,16 @@ test("Testing certificate_parse_dn().", function() {
             'st': 'TX',
             'c': 'US'
         },
-        "Checking certificate_parse_dn('cn=dev.example.com,ou=Engineering,o=Example,l=Austin,ST=TX,C=US')"
+        "Checking IPA.cert.parse_dn('cn=dev.example.com,ou=Engineering,o=Example,l=Austin,ST=TX,C=US')"
     );
 
     same(
-        certificate_parse_dn('cn=John Smith,ou=Developers,ou=Users,dc=example,dc=com'),
+        IPA.cert.parse_dn('cn=John Smith,ou=Developers,ou=Users,dc=example,dc=com'),
         {
             'cn': 'John Smith',
             'ou': ['Developers','Users'],
             'dc': ['example', 'com']
         },
-        "Checking certificate_parse_dn('cn=John Smith,ou=Developers,ou=Users,dc=example,dc=com')"
+        "Checking IPA.cert.parse_dn('cn=John Smith,ou=Developers,ou=Users,dc=example,dc=com')"
     );
 });

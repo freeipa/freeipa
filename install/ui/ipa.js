@@ -47,7 +47,6 @@ var IPA = ( function () {
     that.metadata = {};
     that.whoami = {};
 
-
     that.entities = [];
     that.entity_factories = {};
 
@@ -332,8 +331,7 @@ IPA.batch_command = function (spec) {
  *   win_callback - function to call if the JSON request succeeds
  *   fail_callback - function to call if the JSON request fails
  *   objname - name of an IPA object (optional) */
-IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, command_name)
-{
+IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, command_name) {
     var default_json_url = '/ipa/json';
 
     var network_call_count = 0;
@@ -490,8 +488,7 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
 
 
 /* helper function used to retrieve information about an attribute */
-IPA.get_param_info = function(obj_name, attr)
-{
+IPA.get_param_info = function(obj_name, attr) {
     var obj = IPA.metadata[obj_name];
     if (!obj) {
         return null;
@@ -512,8 +509,7 @@ IPA.get_param_info = function(obj_name, attr)
 };
 
 /* helper function used to retrieve attr name with members of type `member` */
-IPA.get_member_attribute = function (obj_name, member)
-{
+IPA.get_member_attribute = function (obj_name, member) {
     var obj = IPA.metadata[obj_name];
     if (!obj) {
         return null;

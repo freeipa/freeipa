@@ -429,9 +429,22 @@ IPA.records_facet = function (spec){
 
 
     function generate_tr(thead, tbody, result){
+        function generate_checkbox_td(tr, pkey) {
+            var checkbox = $('<input />', {
+                name: pkey,
+                title: pkey,
+                type: 'checkbox',
+                'class': 'search-selector'
+            });
+            var td = $('<td></td>');
+
+            td.append(checkbox);
+            tr.append(td);
+        }
+
         var tr = $('<tr></tr>').appendTo(tbody);
 
-        search_generate_checkbox_td(tr, /*pkey_value*/ '');
+        generate_checkbox_td(tr, /*pkey_value*/ '');
 
         //TODO get this fixed on the back end.  For now, workaround
 

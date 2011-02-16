@@ -242,9 +242,6 @@ IPA.entity = function (spec) {
 };
 
 
-/* use this to track individual changes between two hashchange events */
-var window_hash_cache = {};
-
 /*renamed to avoid clash with IPA.get_entity*/
 IPA.fetch_entity = function (entity_name) {
 
@@ -609,7 +606,7 @@ IPA. facet_create_action_panel = function(container) {
                     var state = {};
                     state[nested_tabs[0]+'-entity'] =
                         this.title;
-                    nav_push_state(state);
+                    IPA.nav.push_state(state);
                     return false;
                 }
             }).appendTo(ul);

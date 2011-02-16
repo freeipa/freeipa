@@ -118,7 +118,7 @@ $(function() {
 
     /* main loop (hashchange event handler) */
     function window_hashchange(evt){
-        nav_update_tabs();
+        IPA.nav.update_tabs();
     }
 
 
@@ -148,10 +148,10 @@ $(function() {
 
         if (should_show_all_ui()){
             IPA.tab_set = IPA.admin_tab_set();
-            nav_create(IPA.tab_set, navigation, 'tabs');
+            IPA.nav.create(IPA.tab_set, navigation, 'tabs');
         } else {
             IPA.tab_set = IPA.self_serv_tab_set();
-            nav_create(IPA.tab_set, navigation, 'tabs');
+            IPA.nav.create(IPA.tab_set, navigation, 'tabs');
 
             var state = {'user-pkey':IPA.whoami_pkey ,
                          'user-facet': $.bbq.getState('user-facet') ||

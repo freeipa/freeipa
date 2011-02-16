@@ -20,7 +20,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
+/* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js, sudorule.js */
 
 IPA.entity_factories.sudocmdgroup = function () {
 
@@ -35,7 +35,7 @@ IPA.entity_factories.sudocmdgroup = function () {
             'label': 'Search'
         });
 
-        var dialog = IPA.sudocmdgroup_add_dialog({
+        var dialog = IPA.sudo.cmdgroup_add_dialog({
             'name': 'add',
             'title': 'Add New SUDO Command Group'
         });
@@ -55,7 +55,7 @@ IPA.entity_factories.sudocmdgroup = function () {
 };
 
 
-IPA.sudocmdgroup_add_dialog = function (spec) {
+IPA.sudo.cmdgroup_add_dialog = function (spec) {
 
     spec = spec || {};
 

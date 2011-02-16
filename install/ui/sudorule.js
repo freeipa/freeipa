@@ -22,6 +22,8 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
+IPA.sudo = {};
+
 IPA.entity_factories.sudorule = function () {
 
     var that = IPA.entity({
@@ -35,7 +37,7 @@ IPA.entity_factories.sudorule = function () {
             'label': 'Search'
         });
 
-        var dialog = IPA.sudorule_add_dialog({
+        var dialog = IPA.sudo.rule_add_dialog({
             'name': 'add',
             'title': 'Add New Rule'
         });
@@ -55,7 +57,7 @@ IPA.entity_factories.sudorule = function () {
 };
 
 
-IPA.sudorule_add_dialog = function (spec) {
+IPA.sudo.rule_add_dialog = function (spec) {
 
     spec = spec || {};
 
@@ -109,7 +111,7 @@ IPA.sudorule_details_facet = function (spec) {
             });
 
         } else {
-            section = IPA.sudorule_details_general_section({
+            section = IPA.sudo.rule_details_general_section({
                 'name': 'general',
                 'label': 'General'
             });
@@ -176,13 +178,13 @@ IPA.sudorule_details_facet = function (spec) {
             'other_entity': 'hostgroup', 'add_method': 'add_host', 'remove_method': 'remove_host'
         }));
 
-        section = IPA.sudorule_details_command_section({
+        section = IPA.sudo.rule_details_command_section({
             'name': 'command',
             'label': 'Run Commands'
         });
         that.add_section(section);
 
-        section = IPA.sudorule_details_runas_section({
+        section = IPA.sudo.rule_details_runas_section({
             'name': 'runas',
             'label': 'As Whom'
         });
@@ -377,7 +379,7 @@ IPA.sudorule_details_facet = function (spec) {
 };
 
 
-IPA.sudorule_details_general_section = function (spec){
+IPA.sudo.rule_details_general_section = function (spec){
 
     spec = spec || {};
 
@@ -514,7 +516,7 @@ IPA.sudorule_details_general_section = function (spec){
 };
 
 
-IPA.sudorule_details_command_section = function (spec){
+IPA.sudo.rule_details_command_section = function (spec){
 
     spec = spec || {};
 
@@ -686,7 +688,7 @@ IPA.sudorule_details_command_section = function (spec){
 };
 
 
-IPA.sudorule_details_runas_section = function (spec){
+IPA.sudo.rule_details_runas_section = function (spec){
 
     spec = spec || {};
 
@@ -913,7 +915,7 @@ IPA.sudorule_association_table_widget = function (spec) {
             template = 'sudorule-'+that.other_entity+'-dialog.html #contents';
         }
 
-        return IPA.sudorule_association_adder_dialog({
+        return IPA.sudo.rule_association_adder_dialog({
             'title': title,
             'entity_name': that.entity_name,
             'pkey': pkey,
@@ -936,7 +938,7 @@ IPA.sudorule_association_table_widget = function (spec) {
 };
 
 
-IPA.sudorule_association_adder_dialog = function (spec) {
+IPA.sudo.rule_association_adder_dialog = function (spec) {
 
     spec = spec || {};
 

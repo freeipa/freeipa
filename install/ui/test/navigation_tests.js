@@ -21,7 +21,7 @@
 
 module('navigation');
 
-test("Testing nav_create().", function() {
+test("Testing IPA.nav.create().", function() {
 
     var mock_tabs_lists =  [
         { name:'identity', label:'IDENTITY', children: [
@@ -56,7 +56,7 @@ test("Testing nav_create().", function() {
     var navigation = $('<div id="navigation"/>').appendTo(document.body);
     var user_mock_called = false;
     var group_mock_called = false;
-    nav_create(mock_tabs_lists, navigation, 'tabs');
+    IPA.nav.create(mock_tabs_lists, navigation, 'tabs');
     ok(user_mock_called, "mock user setup was called");
     ok(!group_mock_called, "mock group setup was not called because the tab is inactive");
     same( navigation[0].children.length, 2, "Two Child tabs");
@@ -66,21 +66,21 @@ test("Testing nav_create().", function() {
     navigation.remove();
 });
 
-test("Testing nav_update_tabs() with valid index.", function() {
+test("Testing IPA.nav.update_tabs() with valid index.", function() {
 
-    var orig_push_state = nav_push_state;
-    var orig_get_state = nav_get_state;
-    var orig_remove_state = nav_remove_state;
+    var orig_push_state = IPA.nav.push_state;
+    var orig_get_state = IPA.nav.get_state;
+    var orig_remove_state = IPA.nav.remove_state;
 
     var state = {};
 
-    nav_push_state = function(params) {
+    IPA.nav.push_state = function(params) {
         $.extend(state, params);
     };
-    nav_get_state = function(key) {
+    IPA.nav.get_state = function(key) {
         return state[key];
     };
-    nav_remove_state = function(key) {
+    IPA.nav.remove_state = function(key) {
         delete state[key];
     };
 
@@ -93,10 +93,10 @@ test("Testing nav_update_tabs() with valid index.", function() {
 
     var navigation = $('<div id="navigation"/>').appendTo(document.body);
 
-    nav_create(mock_tabs_lists, navigation, 'tabs');
+    IPA.nav.create(mock_tabs_lists, navigation, 'tabs');
 
-    nav_push_state({"identity":1});
-    nav_update_tabs();
+    IPA.nav.push_state({"identity":1});
+    IPA.nav.update_tabs();
 
     same(
         navigation.tabs('option', 'selected'), 0,
@@ -108,30 +108,30 @@ test("Testing nav_update_tabs() with valid index.", function() {
         "Active tab at level 2"
     );
 
-    nav_remove_state("identity");
+    IPA.nav.remove_state("identity");
 
     navigation.remove();
 
-    nav_push_state = orig_push_state;
-    nav_get_state = orig_get_state;
-    nav_remove_state = orig_remove_state;
+    IPA.nav.push_state = orig_push_state;
+    IPA.nav.get_state = orig_get_state;
+    IPA.nav.remove_state = orig_remove_state;
 });
 
-test("Testing nav_update_tabs() with out-of-range index.", function() {
+test("Testing IPA.nav.update_tabs() with out-of-range index.", function() {
 
-    var orig_push_state = nav_push_state;
-    var orig_get_state = nav_get_state;
-    var orig_remove_state = nav_remove_state;
+    var orig_push_state = IPA.nav.push_state;
+    var orig_get_state = IPA.nav.get_state;
+    var orig_remove_state = IPA.nav.remove_state;
 
     var state = {};
 
-    nav_push_state = function(params) {
+    IPA.nav.push_state = function(params) {
         $.extend(state, params);
     };
-    nav_get_state = function(key) {
+    IPA.nav.get_state = function(key) {
         return state[key];
     };
-    nav_remove_state = function(key) {
+    IPA.nav.remove_state = function(key) {
         delete state[key];
     };
 
@@ -144,10 +144,10 @@ test("Testing nav_update_tabs() with out-of-range index.", function() {
 
     var navigation = $('<div id="navigation"/>').appendTo(document.body);
 
-    nav_create(mock_tabs_lists, navigation, 'tabs');
+    IPA.nav.create(mock_tabs_lists, navigation, 'tabs');
 
-    nav_push_state({"identity":2});
-    nav_update_tabs();
+    IPA.nav.push_state({"identity":2});
+    IPA.nav.update_tabs();
 
     same(
         navigation.tabs('option', 'selected'), 0,
@@ -159,11 +159,11 @@ test("Testing nav_update_tabs() with out-of-range index.", function() {
         "Active tab at level 2"
     );
 
-    nav_remove_state("identity");
+    IPA.nav.remove_state("identity");
 
     navigation.remove();
 
-    nav_push_state = orig_push_state;
-    nav_get_state = orig_get_state;
-    nav_remove_state = orig_remove_state;
+    IPA.nav.push_state = orig_push_state;
+    IPA.nav.get_state = orig_get_state;
+    IPA.nav.remove_state = orig_remove_state;
 });

@@ -198,7 +198,7 @@ IPA.host_details_facet = function (spec) {
         that.add_section(section);
 
         //TODO add label to messages
-        section.add_field(host_provisioning_status_widget({
+        section.add_field(IPA.host_provisioning_status_widget({
             'name': 'provisioning_status',
             'label': 'Status',
             'facet': that
@@ -210,7 +210,7 @@ IPA.host_details_facet = function (spec) {
         });
         that.add_section(section);
 
-        section.add_field(host_certificate_status_widget({
+        section.add_field(IPA.host_certificate_status_widget({
             'name': 'certificate_status',
             'label': 'Status'
         }));
@@ -247,7 +247,7 @@ IPA.host_details_facet = function (spec) {
 };
 
 
-function host_provisioning_status_widget(spec) {
+IPA.host_provisioning_status_widget = function (spec) {
 
     spec = spec || {};
 
@@ -430,13 +430,13 @@ function host_provisioning_status_widget(spec) {
     }
 
     return that;
-}
+};
 
-function host_certificate_status_widget(spec) {
+IPA.host_certificate_status_widget = function (spec) {
 
     spec = spec || {};
 
-    var that = certificate_status_widget(spec);
+    var that = IPA.certificate_status_widget(spec);
 
     that.init = function() {
 
@@ -463,7 +463,7 @@ function host_certificate_status_widget(spec) {
     };
 
     return that;
-}
+};
 
 IPA.host_managedby_host_facet = function (spec) {
 

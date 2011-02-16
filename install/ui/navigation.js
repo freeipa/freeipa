@@ -20,138 +20,129 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var nav_tabs_lists;
-var nav_container;
+IPA.nav = {
+    tabs_lists : {},
+    nav_container : {},
 
+    push_state : function (params) {
+        if (!IPA.test_dirty()){
+            return false;
+        }
+        $.bbq.pushState(params);
+        return true;
+    },
 
+    get_state : function (key) {
+        return $.bbq.getState(key, true);
+    },
 
-function nav_push_state(params)
-{
-    if (!IPA.test_dirty()){
-        return false;
+    remove_state : function (key) {
+        $.bbq.removeState(key);
+    },
+
+    create : function (nls, container, tabclass) {
+        if (!container)
+            container = $('#navigation');
+        if (!tabclass)
+            tabclass = 'tabs';
+
+        IPA.nav.tabs_lists = nls;
+        IPA.nav.nav_container = container;
+
+        IPA.nav.generate_tabs(nls, container, tabclass, 1);
+
+        var tabs = $('.' + tabclass);
+        tabs.tabs({
+            select: function(event, ui) {
+                var panel = $(ui.panel);
+                var parent = panel.parent();
+                var id = parent.attr('id');
+                var state = {};
+                state[id] = ui.index;
+                return IPA.nav.push_state(state);
+            }
+        });
+
+        IPA.nav.update_tabs();
+    },
+
+    generate_tabs : function (nls, container, tabclass, depth) {
+        container.addClass(tabclass);
+        container.addClass('tabs'+depth);
+
+        var ul = $('<ul/>');
+        container.append(ul);
+
+        for (var i = 0; i < nls.length; ++i) {
+            var tab = nls[i];
+
+            var label = tab.name;
+            if (tab.entity) {
+                var entity = IPA.get_entity(tab.entity);
+                label = entity.label;
+            }
+            if (tab.label){
+                label = tab.label;
+            }
+
+            var li = IPA.nav.create_tab_li(tab.name, label);
+            ul.append(li);
+
+            var div = IPA.nav.create_tab_div(tab.name);
+            container.append(div);
+
+            if (tab.entity) {
+                div.addClass('entity-container');
+            }
+
+            if (tab.children && depth === 1) {
+                IPA.nav.generate_tabs(tab.children, div, tabclass, depth +1 );
+            }
+        }
+    },
+
+    create_tab_li : function (id, name) {
+        return $('<li/>').append($('<a/>', {
+            href: '#'+id,
+            title: id,
+            html: name
+        }));
+    },
+
+    create_tab_div : function (id) {
+        return $('<div/>', {
+            id: id
+        });
+    },
+
+    update_tabs : function () {
+        IPA.nav._update_tabs(IPA.nav.tabs_lists, IPA.nav.nav_container,1);
+    },
+
+    _update_tabs : function (nls, container,depth) {
+        var id = container.attr('id');
+        var index = IPA.nav.get_state(id);
+        if (!index || index >= nls.length) index = 0;
+
+        container.tabs('select', index);
+
+        var tab = nls[index];
+        var container2 = $('#' + tab.name);
+
+        if (tab.children   && depth === 1 ) {
+            IPA.nav._update_tabs(tab.children, container2,depth+1);
+
+        } else if (tab.entity) {
+            var entity_name = tab.entity;
+
+            var nested_entity = IPA.nav.get_state(entity_name+'-entity');
+
+            if (nested_entity){
+                entity_name = nested_entity;
+            }
+
+            var entity = IPA.get_entity(entity_name);
+            entity.setup(container2);
+        }
     }
-    $.bbq.pushState(params);
-    return true;
-}
-
-function nav_get_state(key)
-{
-    return $.bbq.getState(key, true);
-}
-
-function nav_remove_state(key)
-{
-    $.bbq.removeState(key);
-}
-
-function nav_create(nls, container, tabclass)
-{
-    if (!container)
-        container = $('#navigation');
-    if (!tabclass)
-        tabclass = 'tabs';
-
-    nav_tabs_lists = nls;
-    nav_container = container;
-
-    nav_generate_tabs(nls, container, tabclass, 1);
-
-    var tabs = $('.' + tabclass);
-    tabs.tabs({
-        select: function(event, ui) {
-            var panel = $(ui.panel);
-            var parent = panel.parent();
-            var id = parent.attr('id');
-            var state = {};
-            state[id] = ui.index;
-            return nav_push_state(state);
-        }
-    });
-
-    nav_update_tabs();
-}
-
-function nav_generate_tabs(nls, container, tabclass, depth)
-{
-    container.addClass(tabclass);
-    container.addClass('tabs'+depth);
-
-    var ul = $('<ul/>');
-    container.append(ul);
-
-    for (var i = 0; i < nls.length; ++i) {
-        var tab = nls[i];
-
-        var label = tab.name;
-        if (tab.entity) {
-            var entity = IPA.get_entity(tab.entity);
-            label = entity.label;
-        }
-        if (tab.label){
-            label = tab.label;
-        }
-
-        var li = nav_create_tab_li(tab.name, label);
-        ul.append(li);
-
-        var div = nav_create_tab_div(tab.name);
-        container.append(div);
-
-        if (tab.entity) {
-            div.addClass('entity-container');
-        }
-
-        if (tab.children && depth === 1) {
-            nav_generate_tabs(tab.children, div, tabclass, depth +1 );
-        }
-    }
-}
-
-function nav_create_tab_li(id, name)
-{
-    return $('<li/>').append($('<a/>', {
-        href: '#'+id,
-        title: id,
-        html: name
-    }));
-}
-
-function nav_create_tab_div(id)
-{
-    return $('<div/>', {
-        id: id
-    });
-}
-
-function nav_update_tabs()
-{
-    _nav_update_tabs(nav_tabs_lists, nav_container,1);
-}
-
-function _nav_update_tabs(nls, container,depth)
-{
-    var id = container.attr('id');
-    var index = nav_get_state(id);
-    if (!index || index >= nls.length) index = 0;
-
-    container.tabs('select', index);
-
-    var tab = nls[index];
-    var container2 = $('#' + tab.name);
-
-    if (tab.children   && depth === 1 ) {
-        _nav_update_tabs(tab.children, container2,depth+1);
-
-    } else if (tab.entity) {
-        var entity_name = tab.entity;
-
-        var nested_entity = nav_get_state(entity_name+'-entity');
-
-        if (nested_entity){
-            entity_name = nested_entity;
-        }
-
-        var entity = IPA.get_entity(entity_name);
-        entity.setup(container2);
-    }
-}
+};
