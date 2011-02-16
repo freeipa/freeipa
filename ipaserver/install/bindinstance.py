@@ -108,7 +108,7 @@ def get_reverse_zone(ip_address_str):
     else:
         raise ValueError('Bad address format?')
 
-    return zone, name
+    return unicode(zone), unicode(name)
 
 def dns_zone_exists(name):
     try:
@@ -275,8 +275,6 @@ class BindInstance(service.Service):
             self.zonemgr = zonemgr.replace('@','.')
         else:
             self.zonemgr = 'root.%s.%s' % (self.host, self.domain)
-
-        self.reverse_subnet, self.reverse_host = get_reverse_zone(ip_address)
 
         self.__setup_sub_dict()
 
