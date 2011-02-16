@@ -42,7 +42,7 @@
 #define NAME "ipa-join"
 #define VERSION "1.0"
 
-#define JOIN_OID "2.16.840.1.113730.3.8.3.53"
+#define JOIN_OID "2.16.840.1.113730.3.8.10.3"
 
 #define CAFILE "/etc/ipa/ca.crt"
 

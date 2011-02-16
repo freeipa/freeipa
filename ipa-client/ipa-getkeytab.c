@@ -50,8 +50,8 @@
 #define KRB5_KDB_SALTTYPE_SPECIAL       4
 #define KRB5_KDB_SALTTYPE_AFS3          5
 
-#define KEYTAB_SET_OID "2.16.840.1.113730.3.8.3.1"
-#define KEYTAB_RET_OID "2.16.840.1.113730.3.8.3.2"
+#define KEYTAB_SET_OID "2.16.840.1.113730.3.8.10.1"
+#define KEYTAB_RET_OID "2.16.840.1.113730.3.8.10.2"
 
 struct krb_key_salt {
     krb5_enctype enctype;

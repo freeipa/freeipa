@@ -64,8 +64,8 @@
 #define EXOP_PASSWD_OID	"1.3.6.1.4.1.4203.1.11.1"
 
 /* OID to retrieve keytabs */
-#define KEYTAB_SET_OID "2.16.840.1.113730.3.8.3.1"
-#define KEYTAB_RET_OID "2.16.840.1.113730.3.8.3.2"
+#define KEYTAB_SET_OID "2.16.840.1.113730.3.8.10.1"
+#define KEYTAB_RET_OID "2.16.840.1.113730.3.8.10.2"
 
 
 

@@ -53,7 +53,7 @@
 #define IPA_PLUGIN_NAME "ipa-enrollment"
 
 /* OID of the extended operation handled by this plug-in */
-#define JOIN_OID    "2.16.840.1.113730.3.8.3.53"
+#define JOIN_OID    "2.16.840.1.113730.3.8.10.3"
 
 Slapi_PluginDesc pdesc = {
     IPA_PLUGIN_NAME,
