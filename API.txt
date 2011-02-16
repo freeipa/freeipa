@@ -303,7 +303,7 @@ output: Output('count', <type 'int'>, Gettext('', domain='ipa', localedir=None))
 output: Output('results', <type 'list'>, Gettext('', domain='ipa', localedir=None))
 command: cert_remove_hold
 args: 1,0,1
-arg: Str('serial_number', label=Gettext('Serial number', domain='ipa', localedir=None))
+arg: Str('serial_number', validate_serial_number, label=Gettext('Serial number', domain='ipa', localedir=None), normalizer=normalize_serial_number)
 output: Output('result', None, None)
 command: cert_request
 args: 1,3,1
@@ -314,12 +314,12 @@ option: Flag('add', autofill=True, default=False,lag('add', autofill=True, defau
 output: Output('result', <type 'dict'>, Gettext('Dictionary mapping variable name to value', domain='ipa', localedir=None))
 command: cert_revoke
 args: 1,1,1
-arg: Str('serial_number', label=Gettext('Serial number', domain='ipa', localedir=None))
+arg: Str('serial_number', validate_serial_number, label=Gettext('Serial number', domain='ipa', localedir=None), normalizer=normalize_serial_number)
 option: Int('revocation_reason?', default=0, label=Gettext('Reason', domain='ipa', localedir=None), maxvalue=10, minvalue=0)
 output: Output('result', None, None)
 command: cert_show
 args: 1,1,1
-arg: Str('serial_number', label=Gettext('Serial number', domain='ipa', localedir=None))
+arg: Str('serial_number', validate_serial_number, label=Gettext('Serial number', domain='ipa', localedir=None), normalizer=normalize_serial_number)
 option: Str('out?', exclude='webui', label=Gettext('Output filename', domain='ipa', localedir=None))
 output: Output('result', None, None)
 command: cert_status

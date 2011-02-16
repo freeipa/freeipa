@@ -141,6 +141,32 @@ def normalize_csr(csr):
 
     return csr
 
+def _convert_serial_number(num):
+    """
+    Convert a SN given in decimal or hexadecimal.
+    Returns the number or None if conversion fails.
+    """
+    # plain decimal or hexa with radix prefix
+    try:
+        num = int(num, 0)
+    except ValueError:
+        try:
+            # hexa without prefix
+            num = int(num, 16)
+        except ValueError:
+            num = None
+
+    return num
+
+def validate_serial_number(ugettext, num):
+    if _convert_serial_number(num) == None:
+        return u"Decimal or hexadecimal number is required for serial number"
+    return None
+
+def normalize_serial_number(num):
+    # It's been already validated
+    return unicode(_convert_serial_number(num))
+
 def get_host_from_principal(principal):
     """
     Given a principal with or without a realm return the
@@ -378,8 +404,10 @@ api.register(cert_status)
 
 
 _serial_number = Str('serial_number',
+    validate_serial_number,
     label=_('Serial number'),
     doc=_('Serial number in decimal or if prefixed with 0x in hexadecimal'),
+    normalizer=normalize_serial_number,
 )
 
 class cert_show(VirtualCommand):
