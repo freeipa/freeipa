@@ -57,7 +57,7 @@ changetype: add
 objectClass: top
 objectClass: nsSlapdPlugin
 objectClass: extensibleObject
-cn: netgroup uniqueness
+cn: ipaUniqueID uniqueness
 nsslapd-pluginPath: libattr-unique-plugin
 nsslapd-pluginInitfunc: NSUniqueAttr_Init
 nsslapd-pluginType: preoperation
