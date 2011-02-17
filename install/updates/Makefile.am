@@ -4,13 +4,14 @@ appdir = $(IPA_DATA_DIR)/updates
 app_DATA =				\
 	10-RFC2307bis.update		\
 	10-RFC4876.update		\
+	20-aci.update			\
 	20-dna.update			\
 	20-indices.update		\
 	20-nss_ldap.update		\
 	20-replication.update		\
 	20-winsync_index.update		\
 	40-delegation.update		\
-	50-lockout-policy.update		\
+	50-lockout-policy.update	\
 	$(NULL)
 
 EXTRA_DIST =				\

@@ -1,0 +1,4 @@
+# Don't allow managed netgroups to be modified
+dn: cn=ng,cn=alt,$SUFFIX
+add:aci: '(targetfilter = "(objectClass=mepManagedEntry)")(targetattr = "*")(version 3.0; acl "Managed netgroups cannot be modified"; deny (write) userdn = "ldap:///all";)'
+
