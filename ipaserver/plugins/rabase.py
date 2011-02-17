@@ -109,5 +109,5 @@ class rabase(Backend):
 
         :param serial_number: Certificate serial number.
         """
-        raise errors.NotImplementedError('%s.take_certificate_off_hold' % self.name)
+        raise errors.NotImplementedError(name='%s.take_certificate_off_hold' % self.name)
 
