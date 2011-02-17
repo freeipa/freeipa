@@ -566,7 +566,7 @@ span.ui-icon-search {
     -moz-border-radius: 2em !important;
 	-webkit-border-radius: 2em !important;
     border-radius: 2em !important;
-    color: white;
+    color: #333333;
     font-size: 1em;
     font-family: "Liberation Sans", Arial, Sans;
 	margin: 0 0.3em;
