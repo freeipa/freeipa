@@ -401,6 +401,10 @@ span.attrhint {
 .ui-widget-content {
 }
 
+.ui-dialog .ui-dialog-titlebar {
+	padding: 0.5em 1em;
+	position: relative;
+}
 
 .ui-widget-content a {
     text-decoration: none;
@@ -410,9 +414,9 @@ span.attrhint {
 }
 
 .ui-widget-header {
-    background: url("modal-background.png")     repeat scroll 50% 50% #1f9123;
-    border: 1px solid #244c16;
-    color: #EEEEEE;
+    background: -moz-linear-gradient(center top , #225314, #1c400a) repeat scroll 0 0 transparent;
+    background: -webkit-gradient(linear, left top, left bottom, from(#225314), to(#1c400a));
+	border: 1px solid #319016;
     font-weight: bold;
 }
 
