@@ -52,7 +52,6 @@ app_DATA =                              \
 	Mainnav-background.png		\
 	Mainnav-offtab.png  		\
 	Mainnav-ontab.png  		\
-	modal-background.png		\
         outer-bg.png			\
 	panel-background.png		\
 	Subnav-background.png		\
