@@ -38,7 +38,7 @@ about this topic please see: ipa help passwd
 EXAMPLES:
 
  Add a new user:
-   ipa user-add --first=Tim --last=User --passwd tuser1
+   ipa user-add --first=Tim --last=User --password tuser1
 
  Find all users whose entries include the string "Tim":
    ipa user-find Tim
