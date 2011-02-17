@@ -63,6 +63,12 @@ from ipalib import _, ngettext
 from ipalib.request import context
 from time import gmtime, strftime
 
+def validate_nsaccountlock(entry_attrs):
+    if 'nsaccountlock' in entry_attrs:
+        if not isinstance(entry_attrs['nsaccountlock'], basestring):
+            raise errors.OnlyOneValueAllowed(attr='nsaccountlock')
+        if entry_attrs['nsaccountlock'].lower() not in ('true','false'):
+            raise errors.ValidationError(name='nsaccountlock', error='must be TRUE or FALSE')
 
 class user(LDAPObject):
     """
@@ -258,6 +264,7 @@ class user_add(LDAPCreate):
                 raise errors.ManagedGroupExistsError(group=keys[-1])
         except errors.NotFound:
             pass
+        validate_nsaccountlock(entry_attrs)
         config = ldap.get_ipa_config()[1]
         if 'ipamaxusernamelength' in config:
             if len(keys[-1]) > int(config.get('ipamaxusernamelength')[0]):
@@ -335,6 +342,7 @@ class user_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         if 'mail' in entry_attrs:
             entry_attrs['mail'] = self.obj._normalize_email(entry_attrs['mail'])
+        validate_nsaccountlock(entry_attrs)
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
