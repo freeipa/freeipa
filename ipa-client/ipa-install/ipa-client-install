@@ -32,6 +32,8 @@ try:
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
     from ipapython.ipautil import run, user_input, CalledProcessError, file_exists
+    from ipapython import ipautil
+    from ipapython import dnsclient
     from ipapython import sysrestore
     from ipapython import version
     from ipapython import certmonger
@@ -83,6 +85,8 @@ def parse_options():
                       default=False, help="uninstall an existing installation")
     parser.add_option("", "--hostname", dest="hostname",
                       help="The hostname of this server (FQDN). By default of nodename from uname(2) is used.")
+    parser.add_option("", "--enable-dns-updates", dest="dns_updates", action="store_true", default=False,
+                      help="Configures the machine to attempt dns updates when the ip address changes.")
 
     options, args = parser.parse_args()
     safe_opts = parser.get_safe_opts(options)
@@ -496,12 +500,110 @@ def configure_sssd_conf(fstore, cli_domain, cli_server, options):
 
     domain.set_option('cache_credentials', True)
 
+    if options.dns_updates:
+        domain.set_option('ipa_dyndns_update', True)
+
     domain.set_active(True)
 
     sssdconfig.save_domain(domain)
     sssdconfig.write("/etc/sssd/sssd.conf")
 
     return 0
+
+def resolve_ipaddress(server):
+    """ Connect to the server's ldap port in order to determine what ip
+        address this machine uses as "public" ip (relative to the server).
+    """
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
+    s.connect((server, 389))
+    addr, port = s.getsockname()
+    s.close()
+
+    return addr
+
+UPDATE_TEMPLATE_A = """
+zone $ZONE.
+update delete $HOSTNAME. IN A
+send
+update add $HOSTNAME. $TTL IN A $IPADDRESS
+send
+"""
+
+UPDATE_TEMPLATE_AAAA = """
+zone $ZONE.
+update delete $HOSTNAME. IN AAAA
+send
+update add $HOSTNAME. $TTL IN AAAA $IPADDRESS
+send
+"""
+
+UPDATE_FILE = "/etc/ipa/.dns_update.txt"
+CCACHE_FILE = "/etc/ipa/.dns_ccache"
+
+def update_dns(server, hostname):
+
+    ip = resolve_ipaddress(server)
+
+    sub_dict = dict(HOSTNAME=hostname,
+                    IPADDRESS=ip,
+                    TTL=1200,
+                    ZONE='.'.join(hostname.split('.')[1:])
+                )
+
+    template = None
+    if len(ip.split('.')) == 4:
+        template = UPDATE_TEMPLATE_A
+    elif len(ip.split(':')) > 1:
+        template = UPDATE_TEMPLATE_AAAA
+
+    if template is None:
+        print >>sys.stderr, "Failed to determine machine's ip address."
+        print >>sys.stderr, "Failed to update DNS A record."
+        return
+
+    update_txt = ipautil.template_str(template, sub_dict)
+    update_fd = file(UPDATE_FILE, "w")
+    update_fd.write(update_txt)
+    update_fd.flush()
+    update_fd.close()
+
+    try:
+        ipautil.run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab'],
+                    env={'KRB5CCNAME':CCACHE_FILE})
+    except CalledProcessError, e:
+        print >>sys.stderr, "Failed to obtain host TGT."
+
+    try:
+        ipautil.run(['/usr/bin/nsupdate', '-g', "/etc/ipa/.dns_update.txt"],
+                    env={'KRB5CCNAME':CCACHE_FILE})
+        print "DNS server record set to: %s -> %s" % (hostname, ip)
+    except CalledProcessError, e:
+        print >>sys.stderr, "Failed to update DNS A record. (%s)" % str(e)
+
+    try:
+        os.remove(UPDATE_FILE)
+        os.remove(CCACHE_FILE)
+    except:
+        pass
+
+def client_dns(server, hostname, dns_updates=False):
+
+    dns_ok = False
+
+    # Check if the client has an A record registered in its name.
+    rs = dnsclient.query(hostname+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
+    if len([ rec for rec in rs if rec.dns_type is not dnsclient.DNS_T_SOA ]) > 0:
+        dns_ok = True
+    else:
+        rs = dnsclient.query(hostname+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_AAAA)
+        if len([ rec for rec in rs if rec.dns_type is not dnsclient.DNS_T_SOA ]) > 0:
+            dns_ok = True
+        else:
+            print "Warning: Hostname (%s) not found in DNS" % hostname
+
+    if dns_updates or not dns_ok:
+        update_dns(server, hostname)
 
 def main():
     safe_options, options = parse_options()
@@ -739,6 +841,15 @@ def main():
         print "Configured /etc/krb5.conf for IPA realm " + cli_realm
 
         configure_certmonger(fstore, subject_base, cli_realm, options)
+
+    #Try to update the DNS records, failure is not fatal
+    if not options.on_master:
+        if options.hostname:
+            hostname = options.hostname
+        else:
+            hostname = socket.gethostname()
+
+        client_dns(cli_server, hostname, options.dns_updates)
 
     if options.sssd:
         nscd_action = "stop"

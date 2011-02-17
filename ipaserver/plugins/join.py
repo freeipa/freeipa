@@ -110,7 +110,7 @@ class join(Command):
             attrs_list = api.Command['host_show'](**kw)['result']
             dn = attrs_list['dn']
         except errors.NotFound:
-            attrs_list = api.Command['host_add'](hostname)['result']
+            attrs_list = api.Command['host_add'](hostname, force=True)['result']
             dn = attrs_list['dn']
 
         config = api.Command['config_show']()['result']

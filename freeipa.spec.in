@@ -138,6 +138,7 @@ Requires: xmlrpc-c
 Requires: sssd >= 1.5.1
 Requires: certmonger >= 0.26
 Requires: nss-tools
+Requires: bind-utils
 
 Obsoletes: ipa-client >= 1.0
 
