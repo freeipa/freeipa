@@ -9,24 +9,44 @@
 </form>
 
 <script type="text/javascript">
-function setPreferences() {
-  try {
-    netscape.security.PrivilegeManager.enablePrivilege("UniversalPreferencesWrite");
+  function setPreferences() {
+    if (typeof navigator.preference == 'undefined') {
+      // From Firefox 4 and SeaMonkey 2.1, navigator.preference intefrace is dropped
+      // Use new Gecko2 Services.jsm JavaScript code module instead.
+      var privilege = 'UniversalXPConnect';
+      netscape.security.PrivilegeManager.enablePrivilege(privilege);
+      Components.utils.import("resource://gre/modules/Services.jsm");
+      var prefFuncChar = function(par, val) {Services.prefs.setCharPref(par, val)};
+      var prefFuncBool = function(par, val) {Services.prefs.setBoolPref(par, val)};
+    } else {
+      var privilege = 'UniversalPreferencesWrite';
+      netscape.security.PrivilegeManager.enablePrivilege(privilege);
+      var prefFuncChar = function(par, val) {navigator.preference(par, val)};
+      var prefFuncBool = prefFuncChar;  // same function for bool and char
+    }
+
+    try {
+
       try {
-        navigator.preference("network.negotiate-auth.using-native-gsslib", true)
-        navigator.preference("network.negotiate-auth.delegation-uris", ".$DOMAIN")
-        navigator.preference("network.negotiate-auth.trusted-uris", ".$DOMAIN")
-        navigator.preference("network.negotiate-auth.allow-proxies", true)
+        prefFuncBool('network.negotiate-auth.using-native-gsslib', true);
+        prefFuncChar('network.negotiate-auth.delegation-uris', '.$DOMAIN');
+        prefFuncChar('network.negotiate-auth.trusted-uris', '.$DOMAIN');
+        prefFuncBool('network.negotiate-auth.allow-proxies', true);
       } catch (e) {
-        alert("Unable to store preferences: " + e)
+        alert("Unable to store preferences: " + e);
+        return;
       }
-      netscape.security.PrivilegeManager.disablePrivilege("UniversalPreferencesWrite");
-      alert("Successfully configured Firefox for single sign on.")
+
+      netscape.security.PrivilegeManager.disablePrivilege(privilege);
+
+      alert("Successfully configured Firefox for single sign-on.");
     } catch (e) {
-      alert("Unable to apply recommended settings.\n\nClick on the Certificate Authority link and select trust for all, then reload this page and try again.\n\nThe error returned was: " + e);
+      alert("Unable to apply recommended settings.\n\n" +
+            "Click on the Certificate Authority link and select trust for all, " +
+            "then reload this page and try again.\n\nThe error returned was: " + e);
       return;
+    }
   }
-}
 </script>
 
 </body>
