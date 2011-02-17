@@ -106,13 +106,26 @@ The above types of commands take the objects primary key as their only positiona
 
 For some types of objects, these commands might need to take more than one primary key. This applies to IPA objects organized in hierarchies where the parent object needs to be identified first. Parent primary keys are always aligned to the left (higher in the hierarchy = more to the left). For example the automount IPA plugin enables users to manage automount maps per location, as a result all automount commands take an automountlocation primary key as their first positional argument.
 
-All commands that display objects have two special options for controlling output:
+All commands that display objects have three special options for controlling output:
 .TP
 \fB\-\-all\fR
 Dispaly all attributes. Without this option only the most relevant attributes are displayed.
 .TP
 \fB\-\-raw\fR
 Display objects as they are stored in the backing store. Disables formatting and attribute labels.
+.TP
+\fB\-\-rights\fR
+Display effective rights on all attributes of the entry. You also have to specify \fB\-\-all\fR for this to work. User rights are returned as Python dictionary where index is the name of an attribute and value is a unicode string composed (hence the u'xxxx' format) of letters specified below. Note that user rights are primarily used for internal purposes of CLI and WebUI.
+
+.ad l
+r - read\p
+s - search\p
+w - write\p
+o - obliterate (delete)\p
+c - compare\p
+W - self-write\p
+O - self-obliterate
+
 .SH "EXAMPLES"
 .TP
 \fBipa help commands\fR

@@ -666,7 +666,7 @@ class LDAPRetrieve(LDAPQuery):
     takes_options = (
         Flag('rights',
             label=_('Rights'),
-            doc=_('Display the access rights to modify this entry (requires --all)'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
         ),
     )
 
@@ -732,7 +732,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     takes_options = _attr_options + (
         Flag('rights',
             label=_('Rights'),
-            doc=_('Display the access rights to modify this entry (requires --all)'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
         ),
     )
 
