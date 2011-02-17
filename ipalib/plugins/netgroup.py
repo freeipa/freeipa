@@ -197,11 +197,13 @@ class netgroup_find(LDAPSearch):
         # Do not display private mepManagedEntry netgroups by default
         # If looking for private groups, we need to omit the negation search filter
 
+        search_kw = {}
+        search_kw['objectclass'] = ['mepManagedEntry']
         if not options['private']:
-            search_kw = self.args_options_2_entry(**options)
-            search_kw['objectclass'] = ['mepManagedEntry']
-            negation = ldap.make_filter(search_kw, rules=ldap.MATCH_NONE)
-            filter = ldap.combine_filters((negation, filter), rules='&')
+            local_filter = ldap.make_filter(search_kw, rules=ldap.MATCH_NONE)
+        else:
+            local_filter = ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
+        filter = ldap.combine_filters((local_filter, filter), rules=ldap.MATCH_ALL)
         return (filter, base_dn, scope)
 
 api.register(netgroup_find)
