@@ -6,31 +6,281 @@
             "ajax": {
                 "401": "Your kerberos ticket no longer valid.Please run KInit and then click 'retry'If this is your first time running the IPA Web UI<a href='/ipa/errors/ssbrowser.html'> Follow these directions</a> to configure your browser."
             },
-            "button": {
+            "association": {
+                "add": "Add ${other_entity} into ${entity} ${primary_key}",
+                "member": "${other_entity} enrolled in ${entity} ${primary_key}",
+                "parent": "${entity} ${primary_key} is enrolled in the following ${other_entity}",
+                "remove": "Remove ${other_entity} from ${entity} ${primary_key}"
+            },
+            "buttons": {
                 "add": "Add",
+                "add_and_add_another": "Add and Add Another",
+                "add_and_close": "Add and Close",
+                "add_and_edit": "Add and Edit",
+                "back_to_list": "Back to List",
+                "cancel": "Cancel",
                 "enroll": "Enroll",
                 "find": "Find",
+                "get": "Get",
                 "remove": "Delete",
                 "reset": "Reset",
-                "update": "Update"
+                "restore": "Restore",
+                "revoke": "Revoke",
+                "update": "Update",
+                "view": "View"
             },
             "details": {
-                "account": "Account Details",
-                "contact": "Contact Details",
-                "employee": "      Employee Information",
-                "identity": "Identity Details",
-                "mailing": "Mailing Address",
-                "misc": "Misc. Information",
+                "general": "General",
+                "identity": "Identity Settings",
+                "settings": "${entity} Settings",
                 "to_top": "Back to Top"
+            },
+            "dialogs": {
+                "available": "Available",
+                "hide_already_enrolled": "Hide already enrolled.",
+                "prospective": "Prospective",
+                "remove_empty": "Select ${entity} to be removed.",
+                "remove_title": "Remove ${entity}."
+            },
+            "dirty": "This page has unsaved changes. Please save or revert.",
+            "facets": {
+                "details": "Settings",
+                "search": "Search"
             },
             "login": {
                 "header": "Logged In As"
+            },
+            "objects": {
+                "aci": {
+                    "attribute": "Attribute"
+                },
+                "automountlocation": {
+                    "add": "Add Automount Location",
+                    "identity": "Automount Location Settings"
+                },
+                "cert": {
+                    "aa_compromise": "AA Compromise",
+                    "affiliation_changed": "Affiliation Changed",
+                    "ca_compromise": "CA Compromise",
+                    "certificate_hold": "Certificate Hold",
+                    "cessation_of_operation": "Cessation of Operation",
+                    "common_name": "Common Name",
+                    "enter_csr": "Enter the Base64-encoded CSR below",
+                    "expires_on": "Expires On",
+                    "fingerprints": "Fingerprints",
+                    "issue_certificate": "Issue New Certificate for ${entity} ${primary_key}",
+                    "issued_by": "Issued By",
+                    "issued_on": "Issued On",
+                    "issued_to": "Issued To",
+                    "key_compromise": "Key Compromise",
+                    "md5_fingerprint": "MD5 Fingerprint",
+                    "missing": "No Valid Certificate",
+                    "new_certificate": "New Certificate",
+                    "note": "Note",
+                    "organization": "Organization",
+                    "organizational_unit": "Organizational Unit",
+                    "privilege_withdrawn": "Privilege Withdrawn",
+                    "reason": "Reason for Revocation",
+                    "remove_from_crl": "Remove from CRL",
+                    "restore_certificate": "Restore Certificate for ${entity} ${primary_key}",
+                    "restore_confirmation": "To confirm your intention to restore this certificate, click the \"Restore\" button.",
+                    "revoke_certificate": "Revoke Certificate for ${entity} ${primary_key}",
+                    "revoke_confirmation": "To confirm your intention to revoke this certificate, select a reason from the pull-down list, and click the \"Revoke\" button.",
+                    "revoked": "Certificate Revoked",
+                    "serial_number": "Serial Number",
+                    "sha1_fingerprint": "SHA1 Fingerprint",
+                    "superseded": "Superseded",
+                    "unspecified": "Unspecified",
+                    "valid": "Valid Certificate Present",
+                    "validity": "Validity",
+                    "view_certificate": "Certificate for ${entity} ${primary_key}"
+                },
+                "config": {
+                    "cn": "Name",
+                    "ipaserver": "Configuration"
+                },
+                "delegation": {
+                    "add": "Add Delegation"
+                },
+                "dnsrecord": {
+                    "add": "Add DNS Resource Record",
+                    "data": "Data",
+                    "resource": "Resource",
+                    "title": "Records for DNS Zone",
+                    "type": "Type"
+                },
+                "dnszone": {
+                    "add": "Add DNS Zone",
+                    "identity": "DNS Zone Settings"
+                },
+                "group": {
+                    "add": "Add New Group",
+                    "details": "Group Settings",
+                    "posix": "Is this a POSIX group?"
+                },
+                "hbacrule": {
+                    "active": "Active",
+                    "add": "Add New Rule",
+                    "allow": "Allow",
+                    "any_host": "Any Host",
+                    "any_service": "Any Service",
+                    "anyone": "Anyone",
+                    "deny": "Deny",
+                    "host": "Accessing",
+                    "inactive": "Inactive",
+                    "ipaenabledflag": "Rule status",
+                    "service": "Via Service",
+                    "sourcehost": "From",
+                    "specified_hosts": "Specified Hosts and Groups",
+                    "specified_services": "Specified Services and Groups",
+                    "specified_users": "Specified Users and Groups",
+                    "user": "Who"
+                },
+                "hbacsvc": {
+                    "add": "Add New HBAC Service"
+                },
+                "hbacsvcgroup": {
+                    "add": "Add New HBAC Service Group",
+                    "services": "Services"
+                },
+                "host": {
+                    "add": "Add New Host",
+                    "certificate": "Host Certificate",
+                    "cn": "Host Name",
+                    "delete_key_unprovision": "Delete Key, Unprovision",
+                    "details": "Host Settings",
+                    "enroll_otp": "Enroll via One-Time-Password",
+                    "enrolled": "Enrolled?",
+                    "enrollment": "Enrollment",
+                    "fqdn": "Fully Qualified Host Name",
+                    "missing": "Kerberos Key Not Present",
+                    "otp_confirmation": "One-Time-Password has been set.",
+                    "posix": "Is this a POSIX group?",
+                    "set_otp": "Set OTP",
+                    "status": "Status",
+                    "unprovision": "Unprovision",
+                    "unprovision_confirmation": "Are you sure you want to unprovision this host?",
+                    "unprovision_title": "Unprovisioning ${entity}",
+                    "valid": "Kerberos Key Present, Host Provisioned"
+                },
+                "hostgroup": {
+                    "add": "Add Hostgroup",
+                    "identity": "Hostgroup Settings"
+                },
+                "krbtpolicy": {
+                    "identity": "Kerberos ticket policy"
+                },
+                "netgroup": {
+                    "add": "Add Netgroup",
+                    "identity": "Netgroup Settings"
+                },
+                "permission": {
+                    "add": "Add Permission",
+                    "filter": "Filter",
+                    "identity": "Identity",
+                    "invalid_target": "Permission with invalid target specification",
+                    "rights": "Rights",
+                    "subtree": "By Subtree",
+                    "target": "Target",
+                    "targetgroup": "Target Group",
+                    "type": "Object By Type"
+                },
+                "privilege": {
+                    "add": "Add Privilege",
+                    "identity": "Privilege Settings"
+                },
+                "pwpolicy": {
+                    "add": "Add Password Policy",
+                    "identity": "Password Policy"
+                },
+                "role": {
+                    "add": "Add Role",
+                    "identity": "Role Settings"
+                },
+                "selfservice": {
+                    "add": "Add Self Service Definition"
+                },
+                "service": {
+                    "add": "Add New Service",
+                    "certificate": "Service Certificate",
+                    "delete_key_unprovision": "Delete Key, Unprovision",
+                    "details": "Service Settings",
+                    "host": "Host Name",
+                    "missing": "Kerberos Key Not Present",
+                    "provisioning": "Provisioning",
+                    "service": "Service",
+                    "status": "Status",
+                    "unprovision": "Unprovision",
+                    "unprovision_confirmation": "Are you sure you want to unprovision this service?",
+                    "unprovision_title": "Unprovisioning ${entity}",
+                    "valid": "Kerberos Key Present, Service Provisioned"
+                },
+                "sudocmd": {
+                    "add": "Add New SUDO Command",
+                    "groups": "Groups"
+                },
+                "sudocmdgroup": {
+                    "add": "Add New SUDO Command Group",
+                    "commands": "Commands"
+                },
+                "sudorule": {
+                    "active": "Active",
+                    "add": "Add New Rule",
+                    "allow": "Allow",
+                    "any_command": "Any Command",
+                    "any_group": "Any Group",
+                    "any_host": "Any Host",
+                    "anyone": "Anyone",
+                    "command": "Run Commands",
+                    "deny": "Deny",
+                    "external": "External",
+                    "host": "Access this host",
+                    "inactive": "Inactive",
+                    "ipaenabledflag": "Rule status",
+                    "runas": "As Whom",
+                    "specified_commands": "Specified Commands and Groups",
+                    "specified_groups": "Specified Groups",
+                    "specified_hosts": "Specified Hosts and Groups",
+                    "specified_users": "Specified Users and Groups",
+                    "user": "Who"
+                },
+                "user": {
+                    "account": "Account Settings",
+                    "activate": "Click to Activate",
+                    "active": "Active",
+                    "add": "Add User",
+                    "contact": "Contact Settings",
+                    "deactivate": "Click to Deactivate",
+                    "employee": "Employee Information",
+                    "error_changing_status": "Error changing account status",
+                    "inactive": "Inactive",
+                    "mailing": "Mailing Address",
+                    "misc": "Misc. Information",
+                    "new_password": "New Password",
+                    "password_change_complete": "Password change complete",
+                    "password_must_match": "Passwords must match",
+                    "repeat_password": "Repeat Password",
+                    "reset_password": "Reset password"
+                }
             },
             "search": {
                 "delete_confirm": "Are you sure you want to delete selected entries?",
                 "quick_links": "Quick Links",
                 "select_all": "Select All",
+                "truncated": "Query returned results than configured size limit will show. First ${counter} results shown.",
                 "unselect_all": "Unselect All"
+            },
+            "tabs": {
+                "audit": "Audit",
+                "hbac": "HBAC",
+                "identity": "Identity",
+                "ipaserver": "IPA Server",
+                "policy": "Policy",
+                "role": "Role Based Access Control",
+                "sudo": "SUDO"
+            },
+            "widget": {
+                "validation_error": "Text does not match field pattern"
             }
         }
     }
