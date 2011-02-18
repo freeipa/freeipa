@@ -326,6 +326,7 @@ class service_add(LDAPCreate):
     has_output_params = LDAPCreate.has_output_params + output_params
     takes_options = (
         Flag('force',
+            label=_('Force'),
             doc=_('force principal name even if not in DNS'),
         ),
     )

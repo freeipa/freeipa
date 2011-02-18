@@ -1280,7 +1280,7 @@ option: Str('nsosversion', attribute=True, cli_name='os', label=Gettext('Operati
 option: Str('userpassword', attribute=True, cli_name='password', label=Gettext('User password', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Flag('random', attribute=True, autofill=True, cli_name='random', default=False, flags=['no_search'], label=FixMe('random'), multivalue=False, required=False)
 option: Bytes('usercertificate', validate_certificate, attribute=True, cli_name='certificate', label=Gettext('Certificate', domain='ipa', localedir=None), multivalue=False, required=False)
-option: Flag('force', autofill=True, default=False,lag('force', autofill=True, default=False, doc=Gettext('force host name even if not in DNS', domain='ipa', localedir=None))
+option: Flag('force', autofill=True, default=False, label=Gettext('Force', domain='ipa', localedir=None))
 option: Flag('no_reverse', autofill=True, default=False,lag('no_reverse', autofill=True, default=False, doc=Gettext('skip reverse DNS detection', domain='ipa', localedir=None))
 option: Str('ip_address?', validate_ipaddr,tr('ip_address?', validate_ipaddr, doc=Gettext('Add the host to DNS with this IP address', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
@@ -1472,9 +1472,11 @@ command: i18n_messages
 args: 0,0,1
 output: Output('messages', <type 'dict'>, Gettext('Dict of I18N messages', domain='ipa', localedir=None))
 command: json_metadata
-args: 1,0,1
+args: 2,0,2
 arg: Str('objname?',tr('objname?', doc=Gettext('Name of object to export', domain='ipa', localedir=None))
-output: Output('metadata', <type 'dict'>, Gettext('Dict of JSON encoded IPA Objects', domain='ipa', localedir=None))
+arg: Str('methodname?',tr('methodname?', doc=Gettext('Name of method to export', domain='ipa', localedir=None))
+output: Output('objects', <type 'dict'>, Gettext('Dict of JSON encoded IPA Objects', domain='ipa', localedir=None))
+output: Output('methods', <type 'dict'>, Gettext('Dict of JSON encoded IPA Methods', domain='ipa', localedir=None))
 command: krbtpolicy_mod
 args: 1,8,3
 arg: Str('uid', attribute=True, cli_name='user', label=Gettext('User name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
@@ -2082,7 +2084,7 @@ command: service_add
 args: 1,5,3
 arg: Str('krbprincipalname', validate_principal, attribute=True, cli_name='principal', label=Gettext('Principal', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=True)
 option: Bytes('usercertificate', validate_certificate, attribute=True, cli_name='certificate', flags=['no_search'], label=Gettext('Certificate', domain='ipa', localedir=None), multivalue=False, required=False)
-option: Flag('force', autofill=True, default=False,lag('force', autofill=True, default=False, doc=Gettext('force principal name even if not in DNS', domain='ipa', localedir=None))
+option: Flag('force', autofill=True, default=False, label=Gettext('Force', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])

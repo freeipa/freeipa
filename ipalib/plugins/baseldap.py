@@ -620,6 +620,16 @@ class LDAPCreate(CallbackInterface, crud.Create):
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
 
+    # list of attributes we want exported to JSON
+    json_friendly_attributes = (
+        'takes_options',
+    )
+
+    def __json__(self):
+        json_dict = dict(
+            (a, getattr(self, a)) for a in self.json_friendly_attributes
+        )
+        return json_dict
 
 class LDAPQuery(CallbackInterface, crud.PKQuery):
     """

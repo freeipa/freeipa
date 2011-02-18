@@ -293,6 +293,7 @@ class host_add(LDAPCreate):
     member_attributes = ['managedby']
     takes_options = (
         Flag('force',
+            label=_('Force'),
             doc=_('force host name even if not in DNS'),
         ),
         Flag('no_reverse',

@@ -42,29 +42,44 @@ class json_metadata(Command):
         Str('objname?',
             doc=_('Name of object to export'),
         ),
+        Str('methodname?',
+            doc=_('Name of method to export'),
+        ),
     )
 
     has_output = (
-        Output('metadata', dict, doc=_('Dict of JSON encoded IPA Objects')),
+        Output('objects', dict, doc=_('Dict of JSON encoded IPA Objects')),
+        Output('methods', dict, doc=_('Dict of JSON encoded IPA Methods')),
     )
 
-    def execute(self, objname):
+    def execute(self, objname, methodname):
 
         if objname and objname in self.api.Object:
 
-            meta = dict(
-                result=dict(
-                    ((objname, json_serialize(self.api.Object[objname])), )
-                )
+            objects = dict(
+                (objname, json_serialize(self.api.Object[objname]))
             )
-            retval= dict([("metadata",meta)])
 
         else:
-            meta=dict(
+            objects = dict(
                 (o.name, json_serialize(o)) for o in self.api.Object()
-                )
+            )
 
-            retval= dict([("metadata",meta)])
+        if methodname and methodname in self.api.Method:
+
+            methods = dict(
+                (methodname, json_serialize(self.api.Method[methodname]))
+            )
+
+        else:
+            methods = dict(
+                (m.name, json_serialize(m)) for m in self.api.Method()
+            )
+
+        retval = dict([
+            ("objects", objects),
+            ("methods", methods),
+        ])
 
         return retval
 
@@ -78,13 +93,247 @@ class i18n_messages(Command):
 
     messages={
         "login": {"header" :_("Logged In As")},
-        "button":{
+        "objects": {
+            "aci": {
+                "attribute":_("Attribute"),
+                },
+            "automountlocation": {
+                "add":_("Add Automount Location"),
+                "identity":_("Automount Location Settings"),
+                },
+            "cert": {
+                "unspecified":_("Unspecified"),
+                "key_compromise":_("Key Compromise"),
+                "ca_compromise":_("CA Compromise"),
+                "affiliation_changed":_("Affiliation Changed"),
+                "superseded":_("Superseded"),
+                "cessation_of_operation":_("Cessation of Operation"),
+                "certificate_hold":_("Certificate Hold"),
+                "remove_from_crl":_("Remove from CRL"),
+                "privilege_withdrawn":_("Privilege Withdrawn"),
+                "aa_compromise":_("AA Compromise"),
+                "revoke_confirmation":_(
+                    "To confirm your intention to revoke this certificate, "+
+                    "select a reason from the pull-down list, and click "+
+                    "the \"Revoke\" button."),
+                "note":_("Note"),
+                "reason":_("Reason for Revocation"),
+                "restore_confirmation":_(
+                    "To confirm your intention to restore this certificate, "+
+                    "click the \"Restore\" button."),
+                "issued_to":_("Issued To"),
+                "common_name":_("Common Name"),
+                "organization":_("Organization"),
+                "organizational_unit":_("Organizational Unit"),
+                "serial_number":_("Serial Number"),
+                "issued_by":_("Issued By"),
+                "validity":_("Validity"),
+                "issued_on":_("Issued On"),
+                "expires_on":_("Expires On"),
+                "fingerprints":_("Fingerprints"),
+                "sha1_fingerprint":_("SHA1 Fingerprint"),
+                "md5_fingerprint":_("MD5 Fingerprint"),
+                "enter_csr":_("Enter the Base64-encoded CSR below"),
+                "valid":_("Valid Certificate Present"),
+                "new_certificate":_("New Certificate"),
+                "revoked":_("Certificate Revoked"),
+                "missing":_("No Valid Certificate"),
+                "view_certificate":_("Certificate for ${entity} ${primary_key}"),
+                "issue_certificate":_("Issue New Certificate for ${entity} ${primary_key}"),
+                "revoke_certificate":_("Revoke Certificate for ${entity} ${primary_key}"),
+                "restore_certificate":_("Restore Certificate for ${entity} ${primary_key}"),
+                },
+            "config": {
+                "ipaserver":_("Configuration"),
+                "cn":_("Name"),
+                },
+            "delegation": {
+                "add":_("Add Delegation"),
+                },
+            "dnszone": {
+                "add":_("Add DNS Zone"),
+                "identity":_("DNS Zone Settings"),
+                },
+            "dnsrecord": {
+                "add":_("Add DNS Resource Record"),
+                "resource":_("Resource"),
+                "type":_("Type"),
+                "data":_("Data"),
+                "title":_("Records for DNS Zone"),
+                },
+            "group": {
+                "add":_("Add New Group"),
+                "details":_("Group Settings"),
+                "posix":_("Is this a POSIX group?"),
+                },
+            "hbacrule": {
+                "add":_("Add New Rule"),
+                "active":_("Active"),
+                "allow":_("Allow"),
+                "deny":_("Deny"),
+                "inactive":_("Inactive"),
+                "ipaenabledflag":_("Rule status"),
+                "user":_("Who"),
+                "anyone":_("Anyone"),
+                "specified_users":_("Specified Users and Groups"),
+                "host":_("Accessing"),
+                "any_host":_("Any Host"),
+                "specified_hosts":_("Specified Hosts and Groups"),
+                "service":_("Via Service"),
+                "any_service":_("Any Service"),
+                "specified_services":_("Specified Services and Groups"),
+                "sourcehost":_("From"),
+                },
+            "hbacsvc": {
+                "add":_("Add New HBAC Service"),
+                },
+            "hbacsvcgroup": {
+                "add":_("Add New HBAC Service Group"),
+                "services":_("Services"),
+                },
+            "host": {
+                "add":_("Add New Host"),
+                "certificate":_("Host Certificate"),
+                "cn":_("Host Name"),
+                "details":_("Host Settings"),
+                "enrolled":_("Enrolled?"),
+                "enrollment":_("Enrollment"),
+                "fqdn":_("Fully Qualified Host Name"),
+                "posix":_("Is this a POSIX group?"),
+                "status":_("Status"),
+                "valid":_("Kerberos Key Present, Host Provisioned"),
+                "delete_key_unprovision":_("Delete Key, Unprovision"),
+                "missing":_("Kerberos Key Not Present"),
+                "enroll_otp":_("Enroll via One-Time-Password"),
+                "set_otp":_("Set OTP"),
+                "otp_confirmation":_("One-Time-Password has been set."),
+                "unprovision_title":_("Unprovisioning ${entity}"),
+                "unprovision_confirmation":_("Are you sure you want to unprovision this host?"),
+                "unprovision":_("Unprovision"),
+                },
+            "hostgroup": {
+                "add":_("Add Hostgroup"),
+                "identity":_("Hostgroup Settings"),
+                },
+            "krbtpolicy": {
+                "identity":_("Kerberos ticket policy"),
+                },
+            "netgroup": {
+                "add":_("Add Netgroup"),
+                "identity":_("Netgroup Settings"),
+                },
+            "permission": {
+                "add":_("Add Permission"),
+                "identity":_("Identity"),
+                "rights":_("Rights"),
+                "target":_("Target"),
+                "filter":_("Filter"),
+                "subtree":_("By Subtree"),
+                "targetgroup":_("Target Group"),
+                "type":_("Object By Type"),
+                "invalid_target":_("Permission with invalid target specification"),
+                },
+            "privilege": {
+                "add":_("Add Privilege"),
+                "identity":_("Privilege Settings"),
+                },
+            "pwpolicy": {
+                "add":_("Add Password Policy"),
+                "identity":_("Password Policy"),
+                },
+            "role": {
+                "add":_("Add Role"),
+                "identity":_("Role Settings"),
+                },
+            "selfservice": {
+                "add":_("Add Self Service Definition"),
+                },
+            "service": {
+                "add":_("Add New Service"),
+                "certificate":_("Service Certificate"),
+                "details":_("Service Settings"),
+                "host":_("Host Name"),
+                "provisioning":_("Provisioning"),
+                "service":_("Service"),
+                "status":_("Status"),
+                "valid":_("Kerberos Key Present, Service Provisioned"),
+                "delete_key_unprovision":_("Delete Key, Unprovision"),
+                "missing":_("Kerberos Key Not Present"),
+                "unprovision_title":_("Unprovisioning ${entity}"),
+                "unprovision_confirmation":_("Are you sure you want to unprovision this service?"),
+                "unprovision":_("Unprovision"),
+                },
+            "sudocmd": {
+                "add":_("Add New SUDO Command"),
+                "groups":_("Groups"),
+                },
+            "sudocmdgroup": {
+                "add":_("Add New SUDO Command Group"),
+                "commands":_("Commands"),
+                },
+            "sudorule": {
+                "add":_("Add New Rule"),
+                "active":_("Active"),
+                "inactive":_("Inactive"),
+                "allow":_("Allow"),
+                "deny":_("Deny"),
+                "user":_("Who"),
+                "anyone":_("Anyone"),
+                "specified_users":_("Specified Users and Groups"),
+                "host":_("Access this host"),
+                "any_host":_("Any Host"),
+                "specified_hosts":_("Specified Hosts and Groups"),
+                "command":_("Run Commands"),
+                "any_command":_("Any Command"),
+                "specified_commands":_("Specified Commands and Groups"),
+                "runas":_("As Whom"),
+                "any_group":_("Any Group"),
+                "specified_groups":_("Specified Groups"),
+                "ipaenabledflag":_("Rule status"),
+                "external":_("External"),
+                },
+            "user": {
+                "add":_("Add User"),
+                "account":_("Account Settings"),
+                "contact":_("Contact Settings"),
+                "mailing":_("Mailing Address"),
+                "employee":_("Employee Information"),
+                "misc":_("Misc. Information"),
+                "active":_("Active"),
+                "deactivate":_("Click to Deactivate"),
+                "inactive":_("Inactive"),
+                "activate":_("Click to Activate"),
+                "error_changing_status":_("Error changing account status"),
+                "reset_password":_("Reset password"),
+                "new_password":_("New Password"),
+                "repeat_password":_("Repeat Password"),
+                "password_change_complete":_("Password change complete"),
+                "password_must_match":_("Passwords must match"),
+                },
+            },
+        "buttons":{
             "add":_("Add"),
+            "add_and_add_another":_("Add and Add Another"),
+            "add_and_edit":_("Add and Edit"),
+            "add_and_close":_("Add and Close"),
+            "cancel": _("Cancel"),
             "find": _("Find"),
+            "get": _("Get"),
             "reset":_("Reset"),
             "update":_("Update"),
             "enroll":_("Enroll"),
             "remove":_("Delete"),
+            "restore":_("Restore"),
+            "revoke":_("Revoke"),
+            "view":_("View"),
+            "back_to_list":_("Back to List"),
+            },
+        "dialogs":{
+            "remove_empty":_("Select ${entity} to be removed."),
+            "remove_title":_("Remove ${entity}."),
+            "hide_already_enrolled":_("Hide already enrolled."),
+            "available":_("Available"),
+            "prospective":_("Prospective"),
             },
         "facets":{
             "search":_("Search"),
@@ -95,15 +344,16 @@ class i18n_messages(Command):
             "select_all":_("Select All"),
             "unselect_all":_("Unselect All"),
             "delete_confirm":_("Are you sure you want to delete selected entries?"),
+            "truncated":_(
+                "Query returned results than configured size limit will show. " +
+                "First ${counter} results shown."),
             },
         "details":{
+            "general":_("General"),
+            "settings":_("${entity} Settings"),
             "identity":_("Identity Settings"),
-            "account":_("Account Settings"),
-            "contact":_("Contact Settings"),
-            "mailing":_("Mailing Address"),
-            "employee":_("Employee Information"),
-            "misc":_("Misc. Information"),
-            "to_top":_("Back to Top")},
+            "to_top":_("Back to Top")
+            },
         "tabs": {
             "identity":_("Identity"),
             "policy":_("Policy"),
@@ -111,11 +361,17 @@ class i18n_messages(Command):
             "ipaserver":_("IPA Server"),
             "sudo":_("SUDO"),
             "hbac":_("HBAC"),
-            "role":_("Role Based Access Control")},
+            "role":_("Role Based Access Control")
+            },
         "association":{
-            "managedby":_("Managed by"),
-            "members":_("Members"),
-            "membershipin":_("Membership in")},
+            "add":_("Add ${other_entity} into ${entity} ${primary_key}"),
+            "member":_("${other_entity} enrolled in ${entity} ${primary_key}"),
+            "parent":_("${entity} ${primary_key} is enrolled in the following ${other_entity}"),
+            "remove":_("Remove ${other_entity} from ${entity} ${primary_key}"),
+            },
+        "widget":{
+            "validation_error":_("Text does not match field pattern"),
+            },
         "ajax":{
             "401":_("Your kerberos ticket no longer valid."+
                 "Please run KInit and then click 'retry'"+
