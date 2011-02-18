@@ -238,6 +238,15 @@ ipa_winsync_validate_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore, Slapi_E
         goto done2;
     }
 
+    /* get login_shell_attr */
+    if (slapi_entry_attr_find(e, IPA_WINSYNC_LOGIN_SHELL_ATTR,
+                              &testattr) ||
+        (NULL == testattr)) {
+        PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
+                    "Warning: no value given for %s",
+                    IPA_WINSYNC_LOGIN_SHELL_ATTR);
+    }
+
     /* get default_group_attr */
     if (slapi_entry_attr_find(e, IPA_WINSYNC_DEFAULTGROUP_ATTR,
                               &testattr) ||
@@ -372,6 +381,7 @@ ipa_winsync_apply_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore,
     char *new_entry_filter = NULL;
     char *new_user_oc_attr = NULL; /* don't care about groups for now */
     char *homedir_prefix_attr = NULL;
+    char *login_shell_attr = NULL;
     char *default_group_attr = NULL;
     char *default_group_filter = NULL;
     char *acct_disable = NULL;
@@ -434,6 +444,15 @@ ipa_winsync_apply_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore,
                     "Error: no value given for %s",
                     IPA_WINSYNC_HOMEDIR_PREFIX_ATTR);
         goto done3;
+    }
+
+    /* get login_shell_attr */
+    login_shell_attr = slapi_entry_attr_get_charptr(e,
+                                                IPA_WINSYNC_LOGIN_SHELL_ATTR);
+    if (!login_shell_attr) {
+        PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
+                    "Warning: no value given for %s",
+                    IPA_WINSYNC_LOGIN_SHELL_ATTR);
     }
 
     /* get default_group_attr */
@@ -567,6 +586,11 @@ ipa_winsync_apply_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore,
     slapi_ch_free_string(&theConfig.homedir_prefix_attr);
     theConfig.homedir_prefix_attr = homedir_prefix_attr;
     homedir_prefix_attr = NULL;
+    if (login_shell_attr) {
+        slapi_ch_free_string(&theConfig.login_shell_attr);
+        theConfig.login_shell_attr = login_shell_attr;
+        login_shell_attr = NULL;
+    }
     slapi_ch_free_string(&theConfig.default_group_attr);
     theConfig.default_group_attr = default_group_attr;
     default_group_attr = NULL;
@@ -594,6 +618,7 @@ done3:
     slapi_ch_free_string(&new_entry_filter);
     slapi_ch_free_string(&new_user_oc_attr);
     slapi_ch_free_string(&homedir_prefix_attr);
+    slapi_ch_free_string(&login_shell_attr);
     slapi_ch_free_string(&default_group_attr);
     slapi_ch_free_string(&default_group_filter);
     slapi_ch_array_free(attrsvals);
@@ -636,6 +661,7 @@ ipa_winsync_config_destroy_domain(
     iwdc->domain_e = NULL;
     slapi_ch_free_string(&iwdc->realm_name);
     slapi_ch_free_string(&iwdc->homedir_prefix);
+    slapi_ch_free_string(&iwdc->login_shell);
     slapi_ch_free_string(&iwdc->inactivated_group_dn);
     slapi_ch_free_string(&iwdc->activated_group_dn);
     slapi_ch_free((void **)&iwdc);
@@ -752,6 +778,7 @@ ipa_winsync_config_refresh_domain(
     char *new_entry_filter = NULL;
     char *new_user_oc_attr = NULL; /* don't care about groups for now */
     char *homedir_prefix_attr = NULL;
+    char *login_shell_attr = NULL;
     char *default_group_attr = NULL;
     char *default_group_filter = NULL;
     char *default_group_name = NULL;
@@ -774,6 +801,9 @@ ipa_winsync_config_refresh_domain(
     new_entry_filter = slapi_ch_strdup(theConfig.new_entry_filter);
     new_user_oc_attr = slapi_ch_strdup(theConfig.new_user_oc_attr);
     homedir_prefix_attr = slapi_ch_strdup(theConfig.homedir_prefix_attr);
+    if (theConfig.login_shell_attr) {
+        login_shell_attr = slapi_ch_strdup(theConfig.login_shell_attr);
+    }
     default_group_attr = slapi_ch_strdup(theConfig.default_group_attr);
     default_group_filter = slapi_ch_strdup(theConfig.default_group_filter);
     acct_disable = theConfig.acct_disable;
@@ -838,6 +868,27 @@ ipa_winsync_config_refresh_domain(
                   "ds subtree [%s] filter [%s] attr [%s]\n",
                   slapi_sdn_get_dn(ds_subtree), new_entry_filter, homedir_prefix_attr);
         goto out;
+    }
+
+    /* get the login shell value */
+    /* note - this is in the same entry as the new entry template, so
+       use the same filter */
+    slapi_ch_free_string(&iwdc->login_shell);
+    if (login_shell_attr) {
+        ret = internal_find_entry_get_attr_val(config_dn, search_scope,
+                                               new_entry_filter,
+                                               login_shell_attr,
+                                               NULL, &iwdc->login_shell);
+        if (!iwdc->login_shell) {
+            LOG("Warning: could not find the entry containing the login shell "
+                "attribute for ds subtree [%s] filter [%s] attr [%s]\n",
+                slapi_sdn_get_dn(ds_subtree), new_entry_filter,
+                login_shell_attr);
+        }
+    }
+    if (!iwdc->login_shell) {
+        /* could not find the login shell or was not configured */
+        LOG("Warning: no login shell configured!");
     }
 
     /* find the default group - the entry above contains the group name, but
@@ -939,6 +990,7 @@ out:
     slapi_ch_free_string(&new_entry_filter);
     slapi_ch_free_string(&new_user_oc_attr);
     slapi_ch_free_string(&homedir_prefix_attr);
+    slapi_ch_free_string(&login_shell_attr);
     slapi_ch_free_string(&default_group_attr);
     slapi_ch_free_string(&default_group_filter);
     slapi_ch_free_string(&default_group_name);
@@ -952,6 +1004,7 @@ out:
     if (LDAP_SUCCESS != ret) {
         slapi_ch_free_string(&iwdc->realm_name);
         slapi_ch_free_string(&iwdc->homedir_prefix);
+        slapi_ch_free_string(&iwdc->login_shell);
         slapi_entry_free(iwdc->domain_e);
         iwdc->domain_e = NULL;
     }

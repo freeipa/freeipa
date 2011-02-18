@@ -350,6 +350,12 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
         }
     }
 
+    /* add a loginShell if we have a default */
+    if (ipaconfig->login_shell) {
+        slapi_entry_attr_set_charptr(ds_entry, "loginShell",
+                                     ipaconfig->login_shell);
+    }
+
     sync_acct_disable(cbdata, rawentry, ds_entry, ACCT_DISABLE_TO_DS,
                       ds_entry, NULL, NULL);
     LOG("<-- ipa_winsync_pre_ds_add_user_cb -- end\n");

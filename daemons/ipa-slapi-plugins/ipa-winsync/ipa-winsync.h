@@ -68,6 +68,7 @@ typedef struct ipa_winsync_config_struct {
     char *new_entry_filter;
     char *new_user_oc_attr; /* don't care about groups for now */
     char *homedir_prefix_attr;
+    char *login_shell_attr;
     char *default_group_attr;
     char *default_group_filter;
     int acct_disable; /* see below for possible values */
@@ -84,6 +85,7 @@ typedef struct ipa_winsync_domain_config {
     Slapi_Entry *domain_e; /* info is stored in this entry */
     char *realm_name; /* realm name */
     char *homedir_prefix;
+    char *login_shell;
     char *inactivated_group_dn; /* DN of inactivated group */
     char *activated_group_dn; /* DN of activated group */
 } IPA_WinSync_Domain_Config;
@@ -124,7 +126,10 @@ void ipa_winsync_config_destroy_domain(void *cbdata, const Slapi_DN *ds_subtree,
 #define IPA_WINSYNC_NEW_USER_ATTRS_VALS "ipaWinSyncUserAttr"
 /* name of attribute holding the name of the attribute which
    has the homeDirectory prefix - suffix is the uid */
-#define IPA_WINSYNC_HOMEDIR_PREFIX_ATTR "ipaWinsyncHomeDirAttr"
+#define IPA_WINSYNC_HOMEDIR_PREFIX_ATTR "ipaWinSyncHomeDirAttr"
+/* name of attribute holding the name of the attribute which
+   has the loginShell value */
+#define IPA_WINSYNC_LOGIN_SHELL_ATTR "ipaWinSyncLoginShellAttr"
 /* name of attribute holding the name of the attribute which is
    used to get the default posix gidNumber */
 #define IPA_WINSYNC_DEFAULTGROUP_ATTR "ipaWinSyncDefaultGroupAttr"

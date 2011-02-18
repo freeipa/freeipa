@@ -19,6 +19,7 @@ ipaWinSyncNewEntryFilter: (cn=ipaConfig)
 ipaWinSyncNewUserOCAttr: ipauserobjectclasses
 ipaWinSyncUserFlatten: true
 ipaWinsyncHomeDirAttr: ipaHomesRootDir
+ipaWinsyncLoginShellAttr: ipaDefaultLoginShell
 ipaWinSyncDefaultGroupAttr: ipaDefaultPrimaryGroup
 ipaWinSyncDefaultGroupFilter: (gidNumber=*)(objectclass=posixGroup)(objectclass=groupOfNames)
 ipaWinSyncAcctDisable: both
