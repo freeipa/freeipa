@@ -510,7 +510,7 @@ class test_user(Declarative):
             desc='Create %r with a full address' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
-                street=u'123 Maple Rd', locality=u'Anytown', st=u'MD',
+                street=u'123 Maple Rd', l=u'Anytown', st=u'MD',
                 telephonenumber=u'410-555-1212',)
             ),
             expected=dict(
@@ -530,7 +530,7 @@ class test_user(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     street=[u'123 Maple Rd'],
-                    locality=[u'Anytown'],
+                    l=[u'Anytown'],
                     st=[u'MD'],
                     telephonenumber=[u'410-555-1212'],
                     ipauniqueid=[fuzzy_uuid],
