@@ -60,7 +60,7 @@ def enable_replication_version_checking(hostname, realm, dirman_passwd):
     enabled then enable it and restart 389-ds. If it is enabled
     the do nothing.
     """
-    conn = ipaldap.IPAdmin(hostname, port=PORT, cacert=CACERT)
+    conn = ipaldap.IPAdmin(hostname, realm=realm, ldapi=True)
     if dirman_passwd:
         conn.do_simple_bind(bindpw=dirman_passwd)
     else:

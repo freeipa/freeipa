@@ -126,11 +126,7 @@ class NSSConnection(httplib.HTTPConnection):
         if nss.nss_is_initialized():
             # close any open NSS database and use the new one
             ssl.clear_session_cache()
-            try:
-                nss.nss_shutdown()
-            except NSPRError, e:
-                # FIXME: errors shouldn't be raised here
-                logging.debug('nss_shutdown: %s', str(e))
+            nss.nss_shutdown()
         nss.nss_init(dbdir)
         ssl.set_domestic_policy()
         nss.set_password_callback(self.password_callback)
