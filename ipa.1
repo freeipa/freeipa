@@ -118,13 +118,13 @@ Display objects as they are stored in the backing store. Disables formatting and
 Display effective rights on all attributes of the entry. You also have to specify \fB\-\-all\fR for this to work. User rights are returned as Python dictionary where index is the name of an attribute and value is a unicode string composed (hence the u'xxxx' format) of letters specified below. Note that user rights are primarily used for internal purposes of CLI and WebUI.
 
 .ad l
-r - read\p
-s - search\p
-w - write\p
-o - obliterate (delete)\p
-c - compare\p
-W - self-write\p
-O - self-obliterate
+r \- read\p
+s \- search\p
+w \- write\p
+o \- obliterate (delete)\p
+c \- compare\p
+W \- self\-write\p
+O \- self\-obliterate
 
 .SH "EXAMPLES"
 .TP
@@ -184,10 +184,16 @@ If a kerberos error is raised by any of the requests then it will stop processin
 .TP
 \fB/etc/ipa/default.conf\fR
 IPA default configuration file.
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred
+
+2 If an entry is not found
 .SH "SEE ALSO"
-ipa-client-install(1), ipa-compat-manage(1), ipactl(1), ipa-dns-install(1),
-ipa-getcert(1), ipa-getkeytab(1), ipa-join(1), ipa_kpasswd(1), ipa-ldap-updater(1),
-ipa-nis-manage(1), ipa-replica-install(1), ipa-replica-manage(1), ipa-replica-prepare(1),
-ipa-rmkeytab(1), ipa-server-certinstall(2), ipa-server-install(1), ipa-upgradeconfig(1),
-ipa-host-net-manage(1)
+ipa\-client\-install(1), ipa\-compat\-manage(1), ipactl(1), ipa\-dns\-install(1),
+ipa\-getcert(1), ipa\-getkeytab(1), ipa\-join(1), ipa_kpasswd(1), ipa\-ldap\-updater(1),
+ipa\-nis\-manage(1), ipa\-replica\-install(1), ipa\-replica\-manage(1), ipa\-replica\-prepare(1),
+ipa\-rmkeytab(1), ipa\-server\-certinstall(2), ipa\-server\-install(1), ipa\-upgradeconfig(1),
+ipa\-host\-net\-manage(1)
 
