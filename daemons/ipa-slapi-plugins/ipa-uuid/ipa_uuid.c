@@ -1109,6 +1109,10 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
                     slapi_ch_free_string(&nrdn);
                     slapi_sdn_set_rdn(sdn, rdn);
                     slapi_entry_set_sdn(e, sdn);
+
+                    /* reset the target DN since we've changed it. */
+                    slapi_pblock_set(pb, SLAPI_ADD_TARGET,
+                                         (char*)slapi_sdn_get_ndn(slapi_entry_get_sdn_const(e)));
                 }
                 slapi_rdn_free(&rdn);
                 slapi_sdn_free(&sdn);
