@@ -155,12 +155,38 @@ def _validate_mx(ugettext, mx):
 
     return None
 
+def _validate_naptr(ugettext, naptr):
+    "see RFC 2915 "
+    try:
+        order, pref, flags, svc, regexp, replacement = naptr.split()
+    except ValueError:
+        return u'format must be specified as "order preference flags service regexp replacement"'
+
+    try:
+        order = int(order)
+        pref = int(pref)
+    except ValueError:
+        return u'order and preference must be integers'
+
+    if order < 0 or order > 65535 or pref < 0 or pref > 65535:
+        return u'the value of order and preference must be between 0 and 65535'
+
+    flags = flags.replace('"','')
+    flags = flags.replace('\'','')
+    if len(flags) != 1:
+        return u'flag must be a single character (quotation is allowed)'
+    if flags.upper() not in "SAUP":
+        return u'flag must be one of "S", "A", "U", or "P"'
+
+    return None
+
 _record_validators = {
     u'A': _validate_ipaddr,
     u'AAAA': _validate_ipaddr,
     u'APL': _validate_ipnet,
     u'SRV': _validate_srv,
     u'MX': _validate_mx,
+    u'NAPTR': _validate_naptr,
 }
 
 def has_cli_options(entry, no_option_msg):
