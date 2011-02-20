@@ -84,10 +84,12 @@ class user(LDAPObject):
     default_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell', 'ou',
         'telephonenumber', 'title', 'memberof', 'nsaccountlock',
+        'memberofindirect',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'memberof': ['group', 'netgroup', 'role'],
+        'memberofindirect': ['group', 'netgroup', 'role'],
     }
     rdnattr = 'uid'
     bindable = True

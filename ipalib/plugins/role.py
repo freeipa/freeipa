@@ -67,12 +67,12 @@ class role(LDAPObject):
     object_name_plural = 'roles'
     object_class = ['groupofnames', 'nestedgroup']
     default_attributes = ['cn', 'description', 'member', 'memberof',
-        'memberindirect'
+        'memberindirect', 'memberofindirect',
     ]
     attribute_members = {
         'member': ['user', 'group', 'host', 'hostgroup'],
-        'memberof': ['privilege'],
-#        'memberindirect': ['user', 'group', 'host', 'hostgroup'],
+        'memberof': ['privilege', 'role'],
+        'memberofindirect': ['role'],
     }
     reverse_members = {
         'member': ['privilege'],

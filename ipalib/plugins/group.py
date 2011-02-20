@@ -85,13 +85,14 @@ class group(LDAPObject):
     search_attributes_config = 'ipagroupsearchfields'
     default_attributes = [
         'cn', 'description', 'gidnumber', 'member', 'memberof',
-        'memberindirect',
+        'memberindirect', 'memberofindirect',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'member': ['user', 'group'],
         'memberof': ['group', 'netgroup', 'role',],
         'memberindirect': ['user', 'group', 'netgroup', 'role'],
+        'memberofindirect': ['group', 'netgroup', 'role'],
     }
     rdnattr = 'cn'
 

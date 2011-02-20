@@ -41,11 +41,12 @@ class privilege(LDAPObject):
     object_name_plural = 'privileges'
     object_class = ['nestedgroup', 'groupofnames']
     default_attributes = ['cn', 'description', 'member', 'memberof',
-        'memberindirect'
+        'memberindirect', 'memberofindirect',
     ]
     attribute_members = {
         'member': ['role'],
         'memberof': ['permission'],
+        'memberofindirect': ['permission'],
     }
     reverse_members = {
         'member': ['permission'],

@@ -30,6 +30,14 @@ group3 = u'testgroup3'
 user1 = u'tuser1'
 user2 = u'tuser2'
 
+hostgroup1 = u'testhostgroup1'
+hgdn1 = u'cn=%s,cn=hostgroups,cn=accounts,%s' % (hostgroup1, api.env.basedn)
+hostgroup2 = u'testhostgroup2'
+hgdn2 = u'cn=%s,cn=hostgroups,cn=accounts,%s' % (hostgroup2, api.env.basedn)
+
+fqdn1 = u'testhost1.%s' % api.env.domain
+host_dn1 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn1, api.env.basedn)
+
 
 class test_group(Declarative):
     cleanup_commands = [
@@ -38,6 +46,9 @@ class test_group(Declarative):
         ('group_del', [group3], {}),
         ('user_del', [user1], {}),
         ('user_del', [user2], {}),
+        ('host_del', [fqdn1], {}),
+        ('hostgroup_del', [hostgroup1], {}),
+        ('hostgroup_del', [hostgroup2], {}),
     ]
 
     tests = [
@@ -287,7 +298,8 @@ class test_group(Declarative):
                 result={
                         'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group3, api.env.basedn),
                         'member_user': (u'tuser2',),
-                        'memberof_group': (u'testgroup2', u'testgroup1'),
+                        'memberof_group': [u'testgroup2'],
+                        'memberofindirect_group': [u'testgroup1'],
                         'gidnumber': [fuzzy_digits],
                         'cn': [group3],
                         'description': [u'Test desc 3'],
@@ -306,7 +318,7 @@ class test_group(Declarative):
                     cn=[group1],
                     description=[u'Test desc 1'],
                     gidnumber= [fuzzy_digits],
-                    memberindirect_group = (u'testgroup3',),
+                    memberindirect_group = [u'testgroup3'],
                     member_group = (u'testgroup2',),
                     memberindirect_user = (u'tuser1',u'tuser2',),
                     dn=u'cn=testgroup1,cn=groups,cn=accounts,' + api.env.basedn,
@@ -345,12 +357,159 @@ class test_group(Declarative):
                     cn=[group3],
                     description=[u'Test desc 3'],
                     gidnumber= [fuzzy_digits],
-                    memberof_group = (u'testgroup2', u'testgroup1',),
+                    memberof_group = (u'testgroup2',),
                     member_user = (u'tuser2',),
+                    memberofindirect_group = (u'testgroup1',),
                     dn=u'cn=testgroup3,cn=groups,cn=accounts,' + api.env.basedn,
                 ),
             ),
         ),
 
+        # Now do something similar with hosts and hostgroups
+        dict(
+            desc='Create host %r' % fqdn1,
+            command=('host_add', [fqdn1],
+                dict(
+                    description=u'Test host 1',
+                    l=u'Undisclosed location 1',
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=fqdn1,
+                summary=u'Added host "%s"' % fqdn1,
+                result=dict(
+                    dn=host_dn1,
+                    fqdn=[fqdn1],
+                    description=[u'Test host 1'],
+                    l=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Create %r' % hostgroup1,
+            command=('hostgroup_add', [hostgroup1],
+                dict(description=u'Test hostgroup 1')
+            ),
+            expected=dict(
+                value=hostgroup1,
+                summary=u'Added hostgroup "testhostgroup1"',
+                result=dict(
+                    dn=hgdn1,
+                    cn=[hostgroup1],
+                    objectclass=objectclasses.hostgroup,
+                    description=[u'Test hostgroup 1'],
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Create %r' % hostgroup2,
+            command=('hostgroup_add', [hostgroup2],
+                dict(description=u'Test hostgroup 2')
+            ),
+            expected=dict(
+                value=hostgroup2,
+                summary=u'Added hostgroup "testhostgroup2"',
+                result=dict(
+                    dn=hgdn2,
+                    cn=[hostgroup2],
+                    objectclass=objectclasses.hostgroup,
+                    description=[u'Test hostgroup 2'],
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc=u'Add host %r to %r' % (fqdn1, hostgroup2),
+            command=(
+                'hostgroup_add_member', [hostgroup2], dict(host=fqdn1)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        host=tuple(),
+                        hostgroup=tuple(),
+                    ),
+                ),
+                result={
+                    'dn': hgdn2,
+                    'cn': [hostgroup2],
+                    'description': [u'Test hostgroup 2'],
+                    'member_host': [fqdn1],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc=u'Add hostgroup %r to %r' % (hostgroup2, hostgroup1),
+            command=(
+                'hostgroup_add_member', [hostgroup1], dict(hostgroup=hostgroup2)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        host=tuple(),
+                        hostgroup=tuple(),
+                    ),
+                ),
+                result={
+                    'dn': hgdn1,
+                    'cn': [hostgroup1],
+                    'description': [u'Test hostgroup 1'],
+                    'member_hostgroup': [hostgroup2],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Retrieve %r' % hostgroup1,
+            command=('hostgroup_show', [hostgroup1], {}),
+            expected=dict(
+                value=hostgroup1,
+                summary=None,
+                result={
+                    'dn': hgdn1,
+                    'memberindirect_host': [u'testhost1.%s' % api.env.domain],
+                    'member_hostgroup': [hostgroup2],
+                    'cn': [hostgroup1],
+                    'description': [u'Test hostgroup 1'],
+                },
+            ),
+        ),
+
+        dict(
+            desc='Retrieve %r' % fqdn1,
+            command=('host_show', [fqdn1], {}),
+            expected=dict(
+                value=fqdn1,
+                summary=None,
+                result=dict(
+                    dn=host_dn1,
+                    fqdn=[fqdn1],
+                    description=[u'Test host 1'],
+                    l=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    has_keytab=False,
+                    managedby_host=[fqdn1],
+                    memberof_hostgroup = [u'testhostgroup2'],
+                    memberofindirect_hostgroup = [u'testhostgroup1'],
+                    memberofindirect_netgroup = [u'testhostgroup1', u'testhostgroup2'],
+                ),
+            ),
+        ),
 
     ]

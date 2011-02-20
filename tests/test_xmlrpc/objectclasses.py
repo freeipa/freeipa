@@ -58,6 +58,7 @@ hostgroup = [
     u'nestedGroup',
     u'groupOfNames',
     u'top',
+    u'mepOriginEntry',
 ]
 
 role = [

@@ -50,6 +50,9 @@ global_output_params = (
     Str('member_host?',
         label=_('Member hosts'),
     ),
+    Str('member_hostgroup?',
+        label=_('Member host-groups'),
+    ),
     Str('memberof_hostgroup?',
         label=_('Member of host-groups'),
     ),
@@ -127,6 +130,18 @@ global_output_params = (
     ),
     Str('memberindirect_sudocmd?',
         label='Indirect Member SUDO commands',
+    ),
+    Str('memberofindirect_group?',
+        label='Indirect Member of group',
+    ),
+    Str('memberofindirect_netgroup?',
+        label='Indirect Member of netgroup',
+    ),
+    Str('memberofindirect_hostgroup?',
+        label='Indirect Member of host-group',
+    ),
+    Str('memberofindirect_role?',
+        label='Indirect Member of role',
     ),
     Str('externalhost?',
         label=_('External host'),
@@ -1183,6 +1198,9 @@ class LDAPRemoveMember(LDAPModMember):
             attrs_list = list(
                 set(self.obj.default_attributes + member_dns.keys())
             )
+
+        # Give memberOf a chance to update entries
+        time.sleep(.3)
 
         try:
             (dn, entry_attrs) = ldap.get_entry(

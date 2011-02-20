@@ -32,6 +32,7 @@ import socket
 import string
 import shutil
 import tempfile
+import time
 
 import krbV
 import ldap as _ldap
@@ -583,6 +584,21 @@ class ldap2(CrudBackend, Encoder):
                     time_limit=time_limit, size_limit=size_limit, normalize=normalize)
                 if len(indirect) > 0:
                     r[1]['memberindirect'] = indirect
+        if attrs_list and ('memberofindirect' in attrs_list or '*' in attrs_list):
+            for r in res:
+                if 'memberof' in r[1]:
+                    memberof = r[1]['memberof']
+                    del r[1]['memberof']
+                elif 'memberOf' in r[1]:
+                    memberof = r[1]['memberOf']
+                    del r[1]['memberOf']
+                else:
+                    continue
+                (direct, indirect) = self.get_memberof(r[0], memberof, time_limit=time_limit, size_limit=size_limit, normalize=normalize)
+                if len(direct) > 0:
+                    r[1]['memberof'] = direct
+                if len(indirect) > 0:
+                    r[1]['memberofindirect'] = indirect
 
         return (res, truncated)
 
@@ -745,6 +761,7 @@ class ldap2(CrudBackend, Encoder):
             raise errors.EmptyModlist()
         try:
             self.conn.rename_s(dn, new_rdn, delold=int(del_old))
+            time.sleep(.3) # Give memberOf plugin a chance to work
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
 
@@ -941,6 +958,60 @@ class ldap2(CrudBackend, Encoder):
                     entries.append(e[0])
 
         return entries
+
+    def get_memberof(self, entry_dn, memberof, time_limit=None, size_limit=None, normalize=True):
+        """
+        Examine the objects that an entry is a member of and determine if they
+        are a direct or indirect member of that group.
+
+        entry_dn: dn of the entry we want the direct/indirect members of
+        memberof: the memberOf attribute for entry_dn
+
+        Returns two memberof lists: (direct, indirect)
+        """
+
+        if not type(memberof) in (list, tuple):
+            return ([], [])
+        if len(memberof) == 0:
+            return ([], [])
+
+        attr_list = ["dn", "memberof"]
+        searchfilter = "(|(member=%s)(memberhost=%s)(memberuser=%s))" % (
+            entry_dn, entry_dn, entry_dn)
+
+        # We have to do three searches because netgroups and pbac are not
+        # within the accounts container.
+        try:
+            (results, truncated) = self.find_entries(searchfilter, attr_list,
+                api.env.container_accounts, time_limit=time_limit,
+                size_limit=size_limit, normalize=normalize)
+        except errors.NotFound:
+            results = []
+        try:
+            (netresults, truncated) = self.find_entries(searchfilter, attr_list,
+                api.env.container_netgroup, time_limit=time_limit,
+                size_limit=size_limit, normalize=normalize)
+        except errors.NotFound:
+            netresults = []
+        results = results + netresults
+        try:
+            (pbacresults, truncated) = self.find_entries(searchfilter,
+                attr_list, 'cn=pbac,%s' % api.env.basedn,
+                time_limit=time_limit, size_limit=size_limit,
+                normalize=normalize)
+        except errors.NotFound:
+            pbacresults = []
+        results = results + pbacresults
+
+        direct = []
+        indirect = []
+        for m in memberof:
+            indirect.append(m.lower())
+        for r in results:
+            direct.append(r[0])
+            indirect.remove(r[0].lower())
+
+        return (direct, indirect)
 
     def set_entry_active(self, dn, active):
         """Mark entry active/inactive."""

@@ -189,13 +189,14 @@ class host(LDAPObject):
     default_attributes = [
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
-        'krblastpwdchange', 'managedby'
+        'krblastpwdchange', 'managedby', 'memberindirect', 'memberofindirect',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'enrolledby': ['user'],
         'memberof': ['hostgroup', 'netgroup', 'role'],
         'managedby': ['host'],
+        'memberofindirect': ['hostgroup', 'netgroup', 'role'],
     }
     bindable = True
     relationships = {
