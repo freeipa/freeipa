@@ -18,10 +18,13 @@
 #
 
 import socket
+import os
 import logging
 import ipapython.dnsclient
+import tempfile
 import ldap
 from ldap import LDAPError
+from ipapython.ipautil import run, CalledProcessError
 
 class IPADiscovery:
 
@@ -172,10 +175,27 @@ class IPADiscovery:
 
         i = 0
 
+        # Get the CA certificate
+        try:
+            # Create TempDir
+            temp_ca_dir = tempfile.mkdtemp()
+        except OSError, e:
+            raise RuntimeError("Creating temporary directory failed: %s" % str(e))
+
+        try:
+            run(["/usr/bin/wget", "-O", "%s/ca.crt" % temp_ca_dir, "http://%s/ipa/config/ca.crt" % thost])
+        except CalledProcessError, e:
+            raise RuntimeError('Retrieving CA from %s failed.\n%s' % (thost, str(e)))
+
         #now verify the server is really an IPA server
         try:
             logging.debug("Init ldap with: ldap://"+thost+":389")
             lh = ldap.initialize("ldap://"+thost+":389")
+            ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, True)
+            ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, "%s/ca.crt" % temp_ca_dir)
+            lh.set_option(ldap.OPT_PROTOCOL_VERSION, 3)
+            lh.set_option(ldap.OPT_X_TLS_DEMAND, True)
+            lh.start_tls_s()
             lh.simple_bind_s("","")
 
             logging.debug("Search rootdse")
@@ -235,6 +255,10 @@ class IPADiscovery:
             else:
                 logging.error("LDAP Error: timeout")
             return []
+
+        finally:
+            os.remove("%s/ca.crt" % temp_ca_dir)
+            os.removedirs(temp_ca_dir)
 
 
     def ipadnssearchldap(self, tdomain):
