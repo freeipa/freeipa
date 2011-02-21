@@ -477,7 +477,7 @@ def configure_certmonger(fstore, subject_base, cli_realm, options):
         except:
             print "certmonger request for host certificate failed"
 
-def configure_sssd_conf(fstore, cli_domain, cli_server, options):
+def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
     fstore.backup_file("/etc/sssd/sssd.conf")
     sssdconfig = SSSDConfig.SSSDConfig()
     sssdconfig.new_config()
@@ -487,6 +487,8 @@ def configure_sssd_conf(fstore, cli_domain, cli_server, options):
 
     domain.set_option('ipa_server', '_srv_, %s' % cli_server)
     domain.set_option('ipa_domain', cli_domain)
+    if cli_domain.lower() != cli_realm.lower():
+        domain.set_option('krb5_realm', cli_realm)
 
     # Might need this if /bin/hostname doesn't return a FQDN
     #domain.set_option('ipa_hostname', 'client.example.com')
@@ -817,7 +819,7 @@ def main():
         print "Created /etc/ipa/default.conf"
 
     if options.sssd:
-        if configure_sssd_conf(fstore, cli_domain, cli_server, options):
+        if configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
             return 1
         print "Configured /etc/sssd/sssd.conf"
     else:
