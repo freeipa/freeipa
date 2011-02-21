@@ -571,7 +571,10 @@ IPA.button = function(spec) {
         'class': 'ui-state-default ui-corner-all'
     });
 
-    if (spec.click) button.click(spec.click);
+    if (spec.click) {
+        button.click(spec.click);
+    }
+
     if (spec['class']) button.addClass(spec['class']);
 
     if (spec.icon) {

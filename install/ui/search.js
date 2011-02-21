@@ -88,11 +88,20 @@ IPA.search_widget = function (spec) {
 
         var search_filter = $('span[name=search-filter]', that.container);
 
+        $('input[type=text]',search_filter).keypress(
+            function(e) {
+                /* if the key pressed is the enter key */
+                if (e.which == 13) {
+                    that.find();
+                }
+            });
         var button = $('input[name=find]', search_filter);
         that.find_button = IPA.button({
             'label': IPA.messages.buttons.find,
             'icon': 'ui-icon-search',
-            'click': function() { that.find(); }
+            'click': function() {
+                that.find();
+            }
         });
         button.replaceWith(that.find_button);
 
@@ -247,6 +256,7 @@ IPA.search_widget = function (spec) {
             } else {
                 summary.text(data.result.summary);
             }
+            $('.search-filter input[type=text]', that.container).focus();
         }
 
         function on_error(xhr, text_status, error_thrown) {
