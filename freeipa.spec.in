@@ -26,33 +26,33 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 %if ! %{ONLY_CLIENT}
 BuildRequires:  389-ds-base-devel >= 1.2.8
 BuildRequires:  svrcore-devel
+BuildRequires:  /usr/share/selinux/devel/Makefile
+BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
+%endif
 BuildRequires:  nspr-devel
+BuildRequires:  nss-devel
 BuildRequires:  openssl-devel
 BuildRequires:  openldap-devel
 BuildRequires:  krb5-devel
-BuildRequires:  nss-devel
-BuildRequires:  python-devel
+BuildRequires:  krb5-workstation
+BuildRequires:  libuuid-devel
+BuildRequires:  xmlrpc-c-devel
+BuildRequires:  libcurl-devel
+BuildRequires:  popt-devel
 BuildRequires:  autoconf
 BuildRequires:  automake
-BuildRequires:  libtool
-BuildRequires:  popt-devel
-BuildRequires:  /usr/share/selinux/devel/Makefile
 BuildRequires:  m4
-BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
+BuildRequires:  libtool
+BuildRequires:  gettext
+BuildRequires:  python-devel
+BuildRequires:  authconfig
+BuildRequires:  python-ldap
 BuildRequires:  python-setuptools
 BuildRequires:  python-krbV
 BuildRequires:  python-nss
 BuildRequires:  python-netaddr
 BuildRequires:  python-kerberos
-BuildRequires:  python-ldap
-BuildRequires:  krb5-workstation
-BuildRequires:  xmlrpc-c-devel
-BuildRequires:  libcurl-devel
-BuildRequires:  gettext
-BuildRequires:  authconfig
-BuildRequires:  libuuid-devel
 BuildRequires:  pyOpenSSL
-%endif
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
