@@ -706,7 +706,7 @@ class help(frontend.Local):
             self.print_commands(name)
         elif name in self.Command:
             cmd = self.Command[name]
-            print 'Purpose: %s' % cmd.doc
+            print 'Purpose: %s' % unicode(cmd.doc).strip()
             self.Backend.cli.build_parser(cmd).print_help()
         elif mod_name in sys.modules:
             self.print_commands(name)

@@ -182,9 +182,8 @@ class Plugin(ReadOnly):
         self.bases = tuple(
             '%s.%s' % (b.__module__, b.__name__) for b in cls.__bases__
         )
-        doc = inspect.getdoc(cls)
-        self.doc = _(doc)
-        if doc is None:
+        self.doc = _(cls.__doc__)
+        if self.doc is None:
             self.summary = '<%s>' % self.fullname
         else:
             self.summary = unicode(self.doc).split('\n\n', 1)[0]

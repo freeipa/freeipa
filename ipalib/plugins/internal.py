@@ -114,14 +114,11 @@ class i18n_messages(Command):
                 "privilege_withdrawn":_("Privilege Withdrawn"),
                 "aa_compromise":_("AA Compromise"),
                 "revoke_confirmation":_(
-                    "To confirm your intention to revoke this certificate, "+
-                    "select a reason from the pull-down list, and click "+
-                    "the \"Revoke\" button."),
+                    "To confirm your intention to revoke this certificate, select a reason from the pull-down list, and click the \"Revoke\" button."),
                 "note":_("Note"),
                 "reason":_("Reason for Revocation"),
                 "restore_confirmation":_(
-                    "To confirm your intention to restore this certificate, "+
-                    "click the \"Restore\" button."),
+                    "To confirm your intention to restore this certificate, click the \"Restore\" button."),
                 "issued_to":_("Issued To"),
                 "common_name":_("Common Name"),
                 "organization":_("Organization"),
@@ -351,8 +348,7 @@ class i18n_messages(Command):
             "unselect_all":_("Unselect All"),
             "delete_confirm":_("Are you sure you want to delete selected entries?"),
             "truncated":_(
-                "Query returned results than configured size limit will show. " +
-                "First ${counter} results shown."),
+                "Query returned results than configured size limit will show. First ${counter} results shown."),
             },
         "details":{
             "general":_("General"),

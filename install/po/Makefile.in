@@ -10,6 +10,7 @@ AWK = @AWK@
 SED = @SED@
 MKDIR_P = @MKDIR_P@
 XGETTEXT = @XGETTEXT@
+PYGETTEXT = install/po/pygettext.py
 MSGFMT = @MSGFMT@
 MSGINIT = @MSGINIT@
 MSGMERGE = @MSGMERGE@
@@ -26,13 +27,16 @@ XGETTEXT_OPTIONS = \
 --copyright-holder="$(COPYRIGHT_HOLDER)" \
 --package-name="$(PACKAGE_NAME)" \
 --msgid-bugs-address="$(PACKAGE_BUGREPORT)"
+PYGETTEXT_OPTIONS = \
+--docstrings
 
 languages = $(shell $(SED) 's/\#.*//' LINGUAS) # The sed command removes comments
 po_files = $(patsubst %, %.po, $(languages))
 mo_files = $(patsubst %.po, %.mo, $(po_files))
 po_count=$(words $(po_files))
 
-PY_FILES = $(shell cd ../..; git ls-files | grep -v -e "^tests/" -e "^doc/" -e "^install/po/" -e "^ipapython/test/" -e "setup.py" -e "setup-client.py" | grep "\.py$$" | tr '\n' ' '; cd install/po)
+PY_FILES = $(shell cd ../..; git ls-files | grep -v -e "^tests/" -e "^doc/" -e "^install/po/" -e "^ipapython/test/" -e "setup.py" -e "setup-client.py" -e "^ipalib/plugins/" | grep "\.py$$" | tr '\n' ' '; cd install/po)
+PY_PLUGIN_FILES = $(shell cd ../..; git ls-files | grep -e "^ipalib/plugins/" | grep "\.py$$" | tr '\n' ' '; cd install/po)
 C_FILES = $(shell cd ../..; git ls-files | grep "\.c$$" | tr '\n' ' '; cd install/po)
 H_FILES = $(shell cd ../..; git ls-files | grep "\.h$$" | tr '\n' ' '; cd install/po)
 
@@ -90,8 +94,13 @@ update-po: update-pot
 update-pot:
 	@rm -f $(DOMAIN).pot.update
 	@pushd ../.. ; \
+	$(PYGETTEXT) $(PYGETTEXT_OPTIONS) \
+	--output install/po/$(DOMAIN).pot.update \
+	$(PY_PLUGIN_FILES) \
+	&& \
 	$(XGETTEXT) $(XGETTEXT_OPTIONS) \
 	--output install/po/$(DOMAIN).pot.update \
+	--join-existing \
 	--language="python" \
 	$(PYTHON_POTFILES) \
 	&& \
