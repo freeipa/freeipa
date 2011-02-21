@@ -80,6 +80,8 @@ class batch(Command):
 
     def execute(self, *args, **options):
         results=[]
+        if len(args[0]) > 256:
+            raise errors.BatchRequestLimitError(limit=256)
         for arg in args[0]:
             try:
                 a = arg['params'][0]
