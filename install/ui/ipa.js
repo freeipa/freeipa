@@ -353,6 +353,7 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
 
         IPA.error_dialog.dialog({
             modal: true,
+            title: error_thrown.title,
             width: 400,
             buttons: {
                 'Retry': function () {
@@ -373,8 +374,6 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
 
     function ajax_error_handler(xhr, text_status, error_thrown) {
         IPA.error_dialog.empty();
-        IPA.error_dialog.attr('title', error_thrown.title);
-
         IPA.error_dialog.append('<p>'+error_thrown.message+'</p>');
 
         dialog_open.call(this, xhr, text_status, error_thrown);
@@ -403,32 +402,19 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
             }
         }
 
-        error_thrown.title = 'AJAX Error: '+error_thrown.name;
+        if (!error_thrown.title) {
+            error_thrown.title = 'AJAX Error: '+error_thrown.name;
+        }
         ajax_error_handler.call(this, xhr, text_status, error_thrown);
     }
 
-
     function http_error_handler(xhr, text_status, error_thrown) {
         IPA.error_dialog.empty();
-        IPA.error_dialog.attr('title', error_thrown.title);
-
         IPA.error_dialog.append('<p>URL: '+this.url+'</p>');
         IPA.error_dialog.append('<p>'+error_thrown.message+'</p>');
 
         dialog_open.call(this, xhr, text_status, error_thrown);
     }
-
-    //Think this should be removed
-    function alt_error_handler(xhr, text_status, error_thrown) {
-        hide_activity_icon();
-        IPA.error_dialog.empty();
-        IPA.error_dialog.attr('title', error_thrown.title);
-
-        IPA.error_dialog.append('<p>'+error_thrown.message+'</p>');
-
-        dialog_open.call(this, xhr, text_status, error_thrown);
-    }
-
 
     function success_handler(data, text_status, xhr) {
         hide_activity_icon();
