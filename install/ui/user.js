@@ -30,8 +30,8 @@ IPA.entity_factories.user = function() {
     }).
         facet(
             IPA.search_facet().
-                column({name:'cn'}).
                 column({name:'uid'}).
+                column({name:'cn'}).
                 column({name:'uidnumber'}).
                 column({name:'mail'}).
                 column({name:'telephonenumber'}).
