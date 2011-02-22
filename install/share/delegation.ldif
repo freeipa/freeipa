@@ -152,6 +152,7 @@ objectClass: top
 objectClass: groupofnames
 objectClass: nestedgroup
 cn: Register and Write Entitlements
+description: Register and Write Entitlements
 member: cn=Entitlement Management,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=Read Entitlements,cn=privileges,cn=pbac,$SUFFIX
@@ -160,6 +161,7 @@ objectClass: top
 objectClass: groupofnames
 objectClass: nestedgroup
 cn: Read Entitlements
+description: Read Entitlements
 member: cn=Entitlement Management,cn=roles,cn=accounts,$SUFFIX
 member: cn=Entitlement Compliance,cn=roles,cn=accounts,$SUFFIX
 
@@ -518,6 +520,7 @@ changetype: add
 objectClass: top
 objectClass: groupofnames
 objectClass: ipapermission
+cn: Register Entitlements
 member: cn=Register and Write Entitlements,cn=privileges,cn=pbac,$SUFFIX
 
 dn: cn=Read Entitlements,cn=permissions,cn=pbac,$SUFFIX
@@ -656,17 +659,17 @@ aci: (targetattr = "enrolledby || objectclass")(target = "ldap:///fqdn=*,cn=comp
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (target = "ldap:///ipaentitlementid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Register Entitlements";allow (add) groupdn = "ldap:///cn=Register Entitlements,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (target = "ldap:///ipaentitlementid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "permission:Register Entitlements";allow (add) groupdn = "ldap:///cn=Register Entitlements,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "usercertificate")(target = "ldap:///ipaentitlement=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Write Entitlements";allow (write) groupdn = "ldap:///cn=Write entitlements,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "usercertificate")(target = "ldap:///ipaentitlement=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "permission:Write Entitlements";allow (write) groupdn = "ldap:///cn=Write Entitlements,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "userpkcs12")(target = "ldap:///ipaentitlementid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "Read Entitlements";allow (read) groupdn = "ldap:///cn=Read Entitlements,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "userpkcs12")(target = "ldap:///ipaentitlementid=*,cn=entitlements,cn=etc,$SUFFIX")(version 3.0;acl "permission:Read Entitlements";allow (read) groupdn = "ldap:///cn=Read Entitlements,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Create virtual operations entry. This is used to control access to
 # operations that don't rely on LDAP directly.
