@@ -944,19 +944,22 @@ table.scrollable tbody {
 }
 
 .adder-dialog-internal {
-    border: 1px solid black;
+    background-color: #ffffff;
+    border: none;
     position: absolute;
     top: 0;
     left: 0;
-    bottom: 4.5em;
-    width: 25em;
+    bottom: 0;
+    width: 23em;
+    padding-top: 1em;
+
 }
 
 .adder-dialog-external {
-    border: 1px solid black;
+    border: none;
     position: absolute;
     left: 0;
     bottom: 0;
-    width: 25em;
+    width: 23em;
     height: 4em;
 }
