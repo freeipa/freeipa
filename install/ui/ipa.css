@@ -789,6 +789,7 @@ a.action-button-disabled {
 
 .search-table tfoot tr td span{
     border-top: 1px solid #dfdfdf;
+    margin-top: 1em;
     padding: 0.9em 0 0 1em;
     display: block;
 }
