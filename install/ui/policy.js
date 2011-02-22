@@ -174,14 +174,15 @@ IPA.records_facet = function (spec){
             add_dialog.dialog('close');
         }
 
+        var buttons = {};
+
+        buttons[IPA.messages.buttons.add_many] = add;
+        buttons[IPA.messages.buttons.add_and_close] = add_and_close;
+        buttons[IPA.messages.buttons.cancel] = cancel;
 
         add_dialog.dialog({
             modal: true,
-            buttons: {
-                'Add many': add,
-                'Add and Close': add_and_close,
-                'Cancel': cancel
-            }
+            buttons: buttons
         });
     }
 
@@ -256,12 +257,14 @@ IPA.records_facet = function (spec){
         delete_dialog.append($('<P/>',
                                {text: IPA.messages.search.delete_confirm}));
 
+        var buttons = {};
+
+        buttons[IPA.messages.buttons.remove] = delete_on_click;
+        buttons[IPA.messages.buttons.cancel] = cancel_on_click;
+
         delete_dialog.dialog({
             modal: true,
-            buttons: {
-                'Delete': delete_on_click,
-                'Cancel': cancel_on_click
-            }
+            buttons: buttons
         });
 
 

@@ -305,7 +305,7 @@ class i18n_messages(Command):
                 "inactive":_("Inactive"),
                 "activate":_("Click to Activate"),
                 "error_changing_status":_("Error changing account status"),
-                "reset_password":_("Reset password"),
+                "reset_password":_("Reset Password"),
                 "new_password":_("New Password"),
                 "repeat_password":_("Repeat Password"),
                 "password_change_complete":_("Password change complete"),
@@ -317,17 +317,22 @@ class i18n_messages(Command):
             "add_and_add_another":_("Add and Add Another"),
             "add_and_edit":_("Add and Edit"),
             "add_and_close":_("Add and Close"),
+            "add_many":_("Add Many"),
+            "back_to_list":_("Back to List"),
             "cancel": _("Cancel"),
+            "close": _("Close"),
+            "enroll":_("Enroll"),
             "find": _("Find"),
             "get": _("Get"),
+            "issue": _("Issue"),
+            "ok": _("OK"),
             "reset":_("Reset"),
-            "update":_("Update"),
-            "enroll":_("Enroll"),
             "remove":_("Delete"),
             "restore":_("Restore"),
+            "retry":_("Retry"),
             "revoke":_("Revoke"),
+            "update":_("Update"),
             "view":_("View"),
-            "back_to_list":_("Back to List"),
             },
         "dialogs":{
             "remove_empty":_("Select ${entity} to be removed."),
@@ -375,7 +380,7 @@ class i18n_messages(Command):
             },
         "ajax":{
             "401":_("Your kerberos ticket is no longer valid. "+
-                "Please run kinit and then click 'retry'. "+
+                "Please run kinit and then click 'Retry'. "+
                 "If this is your first time running the IPA Web UI "+
                 "<a href='/ipa/config/unauthorized.html'>"+
                 "follow these directions</a> to configure your browser.")

@@ -445,14 +445,9 @@ IPA.adder_dialog = function (spec) {
     };
 
     that.open = function(container) {
-        that.buttons = {
-            'Enroll': function() {
-                that.execute();
-            },
-            'Cancel': function() {
-                that.close();
-            }
-        };
+
+        that.buttons[IPA.messages.buttons.enroll] = that.execute;
+        that.buttons[IPA.messages.buttons.cancel] = that.close;
 
         that.dialog_open(container);
     };
@@ -544,10 +539,9 @@ IPA.deleter_dialog =  function (spec) {
     };
 
     that.open = function(container) {
-        that.buttons = {
-            'Delete': that.execute,
-            'Cancel': that.close
-        };
+
+        that.buttons[IPA.messages.buttons.remove] = that.execute;
+        that.buttons[IPA.messages.buttons.cancel] = that.close;
 
         that.dialog_open(container);
     };

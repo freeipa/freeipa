@@ -140,15 +140,18 @@ var IPA = ( function () {
                     html: IPA.messages.dirty
                 }).
                     appendTo($("#navigation"));
+
+                var buttons = {};
+
+                buttons[IPA.messages.buttons.ok] = function() {
+                    $(this).dialog("close");
+                };
+
                 message_box.dialog({
                     title: 'Dirty',
                     modal:true,
                     width: '20em',
-                    buttons: {
-		        Ok: function() {
-			    $( this ).dialog( "close" );
-		        }
-		    }
+                    buttons: buttons
                 });
                 return false;
             }
@@ -351,24 +354,33 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
     function dialog_open(xhr, text_status, error_thrown) {
         var that = this;
 
+        var buttons = {};
+
+        /**
+         * When a user initially opens the Web UI without a Kerberos
+         * ticket, the messages including the button labels have not
+         * been loaded yet, so the button labels need default values.
+         */
+        var label = IPA.messages.buttons ? IPA.messages.buttons.retry : 'Retry';
+        buttons[label] = function() {
+            IPA.error_dialog.dialog('close');
+            IPA.cmd(name, args, options, win_callback, fail_callback,
+                    objname, command_name);
+        };
+
+        label = IPA.messages.buttons ? IPA.messages.buttons.cancel : 'Cancel';
+        buttons[label] = function() {
+            IPA.error_dialog.dialog('close');
+            if (fail_callback) {
+                fail_callback.call(that, xhr, text_status, error_thrown);
+            }
+        };
+
         IPA.error_dialog.dialog({
             modal: true,
             title: error_thrown.title,
             width: 400,
-            buttons: {
-                'Retry': function () {
-                    IPA.error_dialog.dialog('close');
-                    IPA.cmd(name, args, options, win_callback, fail_callback,
-                            objname, command_name);
-                },
-                'Cancel': function () {
-                    IPA.error_dialog.dialog('close');
-                    if (fail_callback) {
-                        fail_callback.call(that, xhr, text_status,
-                                           error_thrown);
-                    }
-                }
-            }
+            buttons: buttons
         });
     }
 
@@ -395,7 +407,7 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
             } else {
                 error_thrown.message =
                     "Your kerberos ticket is no longer valid. "+
-                    "Please run kinit and then click 'retry'. "+
+                    "Please run kinit and then click 'Retry'. "+
                     "If this is your first time running the IPA Web UI "+
                     "<a href='/ipa/config/unauthorized.html'>"+
                     "follow these directions</a> to configure your browser.";

@@ -98,15 +98,18 @@ IPA.cert.get_dialog = function(spec) {
         IPA.cert.END_CERTIFICATE);
 
     that.open = function() {
+
+        var buttons = {};
+
+        buttons[IPA.messages.buttons.close] = function() {
+            dialog.dialog('destroy');
+        };
+
         dialog.dialog({
             modal: true,
             width: 500,
             height: 400,
-            buttons: {
-                'Close': function() {
-                    dialog.dialog('destroy');
-                }
-            }
+            buttons: buttons
         });
     };
 
@@ -153,23 +156,27 @@ IPA.cert.revoke_dialog = function(spec) {
     }
 
     that.open = function() {
+
+        var buttons = {};
+
+        buttons[IPA.messages.buttons.revoke] = function() {
+            var values = {};
+            values['reason'] = select.val();
+            if (that.revoke) {
+                that.revoke(values);
+            }
+            dialog.dialog('destroy');
+        };
+
+        buttons[IPA.messages.buttons.cancel] = function() {
+            dialog.dialog('destroy');
+        };
+
         dialog.dialog({
             modal: true,
             width: 500,
             height: 300,
-            buttons: {
-                'Revoke': function() {
-                    var values = {};
-                    values['reason'] = select.val();
-                    if (that.revoke) {
-                        that.revoke(values);
-                    }
-                    dialog.dialog('destroy');
-                },
-                'Cancel': function() {
-                    dialog.dialog('destroy');
-                }
-            }
+            buttons: buttons
         });
     };
 
@@ -193,22 +200,26 @@ IPA.cert.restore_dialog = function(spec) {
         IPA.messages.objects.cert.restore_confirmation);
 
     that.open = function() {
+
+        var buttons = {};
+
+        buttons[IPA.messages.buttons.restore] = function() {
+            var values = {};
+            if (that.restore) {
+                that.restore(values);
+            }
+            dialog.dialog('destroy');
+        };
+
+        buttons[IPA.messages.buttons.cancel] = function() {
+            dialog.dialog('destroy');
+        };
+
         dialog.dialog({
             modal: true,
             width: 400,
             height: 200,
-            buttons: {
-                'Restore': function() {
-                    var values = {};
-                    if (that.restore) {
-                        that.restore(values);
-                    }
-                    dialog.dialog('destroy');
-                },
-                'Cancel': function() {
-                    dialog.dialog('destroy');
-                }
-            }
+            buttons: buttons
         });
     };
 
@@ -327,15 +338,18 @@ IPA.cert.view_dialog = function(spec) {
     }).appendTo(tr);
 
     that.open = function() {
+
+        var buttons = {};
+
+        buttons[IPA.messages.buttons.close] = function() {
+            dialog.dialog('destroy');
+        };
+
         dialog.dialog({
             modal: true,
             width: 600,
             height: 500,
-            buttons: {
-                'Close': function() {
-                    dialog.dialog('destroy');
-                }
-            }
+            buttons: buttons
         });
     };
 
@@ -370,28 +384,32 @@ IPA.cert.request_dialog = function(spec) {
     dialog.append(IPA.cert.END_CERTIFICATE_REQUEST);
 
     that.open = function() {
+
+        var buttons = {};
+
+        buttons[IPA.messages.buttons.issue] = function() {
+            var values = {};
+            var request = textarea.val();
+            request =
+                IPA.cert.BEGIN_CERTIFICATE_REQUEST+'\n'+
+                $.trim(request)+'\n'+
+                IPA.cert.END_CERTIFICATE_REQUEST+'\n';
+            values['request'] = request;
+            if (that.request) {
+                that.request(values);
+            }
+            dialog.dialog('destroy');
+        };
+
+        buttons[IPA.messages.buttons.cancel] = function() {
+            dialog.dialog('destroy');
+        };
+
         dialog.dialog({
             modal: true,
             width: 500,
             height: 400,
-            buttons: {
-                'Issue': function() {
-                    var values = {};
-                    var request = textarea.val();
-                    request =
-                        IPA.cert.BEGIN_CERTIFICATE_REQUEST+'\n'+
-                        $.trim(request)+'\n'+
-                        IPA.cert.END_CERTIFICATE_REQUEST+'\n';
-                    values['request'] = request;
-                    if (that.request) {
-                        that.request(values);
-                    }
-                    dialog.dialog('destroy');
-                },
-                'Cancel': function() {
-                    dialog.dialog('destroy');
-                }
-            }
+            buttons: buttons
         });
     };
 

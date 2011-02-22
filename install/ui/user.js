@@ -208,23 +208,27 @@ IPA.user_password_widget = function(spec) {
               '<dd class="first"><input id="password_2" type="password"/></dd>'+
               '</dl></div>');
 
+        var buttons = {};
+
+        buttons[IPA.messages.objects.user.reset_password] = function() {
+            var p1 = $("#password_1").val();
+            var p2 = $("#password_2").val();
+            if (p1 != p2) {
+                alert(IPA.messages.objects.user.password_must_match);
+                return;
+            }
+            reset_password(p1);
+        };
+
+        buttons[IPA.messages.buttons.cancel] = function() {
+            dialog.dialog('close');
+        };
+
         dialog.dialog({
             modal: true,
-            minWidth:400,
-            buttons: {
-                'Reset Password': function(){
-                     var p1 = $("#password_1").val();
-                     var p2 = $("#password_2").val();
-                     if (p1 != p2){
-                          alert(IPA.messages.objects.user.password_must_match);
-                          return;
-                     }
-                     reset_password(p1);
-                },
-                'Cancel':function(){
-                     dialog.dialog('close');
-                }
-            }
+            title: IPA.messages.objects.user.reset_password,
+            minWidth: 400,
+            buttons: buttons
         });
 
         return false;
