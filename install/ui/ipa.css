@@ -963,3 +963,8 @@ table.scrollable tbody {
     width: 23em;
     height: 4em;
 }
+
+.expand-collapse-all {
+    float: right;
+    padding-right: 1.5em;
+}

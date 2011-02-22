@@ -367,13 +367,15 @@ IPA.details_facet = function(spec) {
             name: 'expand_all',
             href: 'expand_all',
             text: 'Expand All',
+            'class': 'expand-collapse-all',
             style: 'display: none;'
         }).appendTo(details);
 
         $('<a/>', {
             name: 'collapse_all',
             href: 'collapse_all',
-            text: 'Collapse All'
+            text: 'Collapse All',
+            'class': 'expand-collapse-all'
         }).appendTo(details);
 
         details.append('<br/>');
