@@ -5,6 +5,7 @@ default:objectClass: top
 default:objectClass: groupofnames
 default:objectClass: nestedgroup
 default:cn: Write IPA Configuration
+default:description: Write IPA Configuration
 
 dn: cn=Write IPA Configuration,cn=permissions,cn=pbac,$SUFFIX
 default:objectClass: top
@@ -16,3 +17,226 @@ default:member: cn=Write IPA Configuration,cn=privileges,cn=pbac,$SUFFIX
 dn: $SUFFIX
 add:aci: '(targetattr = "ipausersearchfields || ipagroupsearchfields || ipasearchtimelimit || ipasearchrecordslimit || ipacustomfields || ipahomesrootdir || ipadefaultloginshell || ipadefaultprimarygroup || ipamaxusernamelength || ipapwdexpadvnotify || ipauserobjectclasses || ipagroupobjectclasses || ipadefaultemaildomain || ipamigrationenabled || ipacertificatesubjectbase || ipaconfigstring")(target = "ldap:///cn=ipaconfig,cn=etc,$SUFFIX" )(version 3.0 ; acl "permission:Write IPA Configuration"; allow (write) groupdn = "ldap:///cn=Write IPA Configuration,cn=permissions,cn=pbac,$SUFFIX";)'
 
+# Host-Based Access Control
+
+dn: cn=Add HBAC rule,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Add HBAC rule
+default:member: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Delete HBAC rule,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Delete HBAC rule
+default:member: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Modify HBAC rule,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Modify HBAC rule
+default:member: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Manage HBAC rule membership,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Manage HBAC rule membership
+default:member: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Add HBAC services,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Add HBAC services
+default:member: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Delete HBAC services,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Delete HBAC services
+default:member: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Add HBAC service groups,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Add HBAC service groups
+default:member: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Delete HBAC service groups,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Delete HBAC service groups
+default:member: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Manage HBAC service group membership,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Manage HBAC service group membership
+default:member: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: nestedgroup
+default:objectClass: groupofnames
+default:objectClass: top
+default:cn: HBAC Administrator
+default:description: HBAC Administrator
+
+dn: $SUFFIX
+add:aci: '(target = "ldap:///ipauniqueid=*,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Add HBAC rule";allow (add) groupdn = "ldap:///cn=Add HBAC rule,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(target = "ldap:///ipauniqueid=*,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Delete HBAC rule";allow (delete) groupdn = "ldap:///cn=Delete HBAC rule,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(targetattr = "servicecategory || sourcehostcategory || cn || description || ipaenabledflag || accesstime || usercategory || hostcategory || accessruletype || sourcehost")(target = "ldap:///ipauniqueid=*,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Modify HBAC rule";allow (write) groupdn = "ldap:///cn=Modify HBAC rule,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(targetattr = "memberuser || externalhost || memberservice || memberhost")(target = "ldap:///ipauniqueid=*,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Manage HBAC rule membership";allow (write) groupdn = "ldap:///cn=Manage HBAC rule membership,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(target = "ldap:///cn=*,cn=hbacservices,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Add HBAC services";allow (add) groupdn = "ldap:///cn=Add HBAC services,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(target = "ldap:///cn=*,cn=hbacservices,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Delete HBAC services";allow (delete) groupdn = "ldap:///cn=Delete HBAC services,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(target = "ldap:///cn=*,cn=hbacservicegroups,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Add HBAC service groups";allow (add) groupdn = "ldap:///cn=Add HBAC service groups,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(target = "ldap:///cn=*,cn=hbacservicegroups,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Delete HBAC service groups";allow (delete) groupdn = "ldap:///cn=Delete HBAC service groups,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(targetattr = "member")(target = "ldap:///cn=*,cn=hbacservicegroups,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Manage HBAC service group membership";allow (write) groupdn = "ldap:///cn=Manage HBAC service group membership,cn=permissions,cn=pbac,$SUFFIX";)'
+
+# SUDO
+
+dn: cn=Add SUDO rule,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Add SUDO rule
+default:member: cn=SUDO Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Delete SUDO rule,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Delete SUDO rule
+default:member: cn=SUDO Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Modify SUDO rule,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Modify SUDO rule
+default:member: cn=SUDO Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Add SUDO command,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Add SUDO command
+default:member: cn=SUDO Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Delete SUDO command,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Delete SUDO command
+default:member: cn=SUDO Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Modify SUDO command,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Modify SUDO command
+default:member: cn=SUDO Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Add SUDO command group,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Add SUDO command group
+default:member: cn=SUDO Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Delete SUDO command group,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Delete SUDO command group
+default:member: cn=SUDO Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Manage SUDO command group membership,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Manage SUDO command group membership
+default:member: cn=SUDO Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=SUDO Administrator,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: nestedgroup
+default:objectClass: groupofnames
+default:objectClass: top
+default:cn: SUDO Administrator
+default:description: SUDO Administrator
+
+dn: $SUFFIX
+add:aci: '(target = "ldap:///ipauniqueid=*,cn=sudorules,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Add SUDO rule";allow (add) groupdn = "ldap:///cn=Add SUDO rule,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(target = "ldap:///ipauniqueid=*,cn=sudorules,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Delete SUDO rule";allow (delete) groupdn = "ldap:///cn=Delete SUDO rule,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(targetattr = "description || ipaenabledflag || usercategory || hostcategory || cmdcategory || ipasudorunasusercategory || ipasudorunasgroupcategory || externaluser || ipasudorunasextuser || ipasudorunasextgroup || memberdenycmd || memberallowcmd || memberuser")(target = "ldap:///ipauniqueid=*,cn=sudorules,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Modify SUDO rule";allow (write) groupdn = "ldap:///cn=Modify SUDO rule,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(targetattr = "description")(target = "ldap:///sudocmd=*,cn=sudocmds,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Modify SUDO command";allow (write) groupdn = "ldap:///cn=Modify SUDO command,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(target = "ldap:///sudocmd=*,cn=sudocmds,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Delete SUDO command";allow (delete) groupdn = "ldap:///cn=Delete SUDO command,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(target = "ldap:///sudocmd=*,cn=sudocmds,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Add SUDO command";allow (add) groupdn = "ldap:///cn=Add SUDO command,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(target = "ldap:///cn=*,cn=sudocmdgroups,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Add SUDO command group";allow (add) groupdn = "ldap:///cn=Add SUDO command group,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(target = "ldap:///cn=*,cn=sudocmdgroups,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Delete SUDO command group";allow (delete) groupdn = "ldap:///cn=Delete SUDO command group,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(targetattr = "member")(target = "ldap:///cn=*,cn=sudocmdgroups,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Manage SUDO command group membership";allow (write) groupdn = "ldap:///cn=Manage SUDO command group membership,cn=permissions,cn=pbac,$SUFFIX";)'
+
+# Password Policy
+dn: cn=Add Group Password Policy costemplate,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Add Group Password Policy costemplate
+default:member: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Delete Group Password Policy costemplate,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Delete Group Password Policy costemplate
+default:member: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Modify Group Password Policy costemplate,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Modify Group Password Policy costemplate
+default:member: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Add Group Password Policy,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Add Group Password Policy
+default:member: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Delete Group Password Policy,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Delete Group Password Policy
+default:member: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Modify Group Password Policy,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Modify Group Password Policy
+default:member: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: nestedgroup
+default:objectClass: groupofnames
+default:objectClass: top
+default:cn: Password Policy Administrator
+default:description: Password Policy Administrator
+
+dn: $SUFFIX
+add:aci: '(target = "ldap:///cn=*,cn=costemplates,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Group Password Policy costemplate";allow (add) groupdn = "ldap:///cn=Add Group Password Policy costemplate,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(target = "ldap:///cn=*,cn=costemplates,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Delete Group Password Policy costemplate";allow (delete) groupdn = "ldap:///cn=Delete Group Password Policy costemplate,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(targetattr = "cospriority")(target = "ldap:///cn=*,cn=costemplates,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Group Password Policy costemplate";allow (write) groupdn = "ldap:///cn=Modify Group Password Policy costemplate,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(target = "ldap:///cn=*,cn=$REALM,cn=kerberos,$SUFFIX")(version 3.0;acl "permission:Add Group Password Policy";allow (add) groupdn = "ldap:///cn=Add Group Password Policy,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(target = "ldap:///cn=*,cn=$REALM,cn=kerberos,$SUFFIX")(version 3.0;acl "permission:Delete Group Password Policy";allow (delete) groupdn = "ldap:///cn=Delete Group Password Policy,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: '(targetattr = "krbmaxpwdlife || krbminpwdlife || krbpwdhistorylength || krbpwdmindiffchars || krbpwdminlength || krbpwdmaxfailure || krbpwdfailurecountinterval || krbpwdlockoutduration")(target = "ldap:///cn=*,cn=$REALM,cn=kerberos,$SUFFIX")(version 3.0;acl "permission:Modify Group Password Policy";allow (write) groupdn = "ldap:///cn=Modify Group Password Policy,cn=permissions,cn=pbac,$SUFFIX";)'

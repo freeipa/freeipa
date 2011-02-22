@@ -11,7 +11,8 @@ app_DATA =				\
 	20-replication.update		\
 	20-winsync_index.update		\
 	40-delegation.update		\
-	50-lockout-policy.update	\
+	50-lockout-policy.update		\
+	45-roles.update			\
 	$(NULL)
 
 EXTRA_DIST =				\

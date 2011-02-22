@@ -213,7 +213,18 @@ class LDAPUpdate:
             return all_updates
 
         e = all_updates[dn]
-        e['updates'] = e['updates'] + update['updates']
+        if 'default' in update:
+            if 'default' in e:
+                e['default'] = e['default'] + update['default']
+            else:
+                e['default'] = update['default']
+        elif 'updates' in update:
+            if 'updates' in e:
+                e['updates'] = e['updates'] + update['updates']
+            else:
+                e['updates'] = update['updates']
+        else:
+            logging.debug("Unknown key in updates %s" % update.keys())
 
         all_updates[dn] = e
 
@@ -289,7 +300,8 @@ class LDAPUpdate:
         """Create a task to update an index for an attribute"""
 
         # Sleep a bit to ensure previous operations are complete
-        time.sleep(5)
+        if self.live_run:
+            time.sleep(5)
 
         r = random.SystemRandom()
 

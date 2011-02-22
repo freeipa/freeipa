@@ -42,7 +42,7 @@ changetype: add
 objectClass: top
 objectClass: groupofnames
 objectClass: nestedgroup
-cn: entitlements
+cn: Entitlement Management
 description: Entitlements administrator
 
 dn: cn=Entitlement Compliance,cn=roles,cn=accounts,$SUFFIX
