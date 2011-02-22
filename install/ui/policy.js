@@ -324,15 +324,15 @@ IPA.records_facet = function (spec){
 
 
         IPA.action_button({
-            'label': IPA.messages.buttons.add,
-            'icon': 'ui-icon-plus',
-            'click': add_click
+            label: IPA.messages.buttons.remove,
+            icon: 'ui-icon-trash',
+            click: function(){ delete_records(records_table); }
         }).appendTo(action_controls);
 
         IPA.action_button({
-            'label': IPA.messages.buttons.remove,
-            'icon': 'ui-icon-trash',
-            'click': function(){delete_records(records_table);}
+            label: IPA.messages.buttons.add,
+            icon: 'ui-icon-plus',
+            click: add_click
         }).appendTo(action_controls);
 
         div.append('<span class="records-buttons"></span>');
