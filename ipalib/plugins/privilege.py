@@ -19,11 +19,20 @@
 """
 Privileges
 
-A privilege enables fine-grained delegation of permissions. Access Control
-Rules, or instructions (ACIs), grant permission to privileges to perform
-given tasks such as adding a user, modifying a group, etc.
+A privilege combines permissions into a logical task. A permission provides
+the rights to do a single task. There are some IPA operations that require
+multiple permissions to succeed. A privilege is where permissions are
+combined in order to perform a specific task.
 
-A privilege may not be members of other privileges.
+For example, adding a user requires the following permissions:
+ * Creating a new user entry
+ * Resetting a user password
+ * Adding the new user to the default IPA users group
+
+Combining these three low-level tasks into a higher level task in the
+form of a privilege named "Add User" makes it easier to manage Roles.
+
+A privilege may not contain other privileges.
 
 See role and permission for additional information.
 """

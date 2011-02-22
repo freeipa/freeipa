@@ -19,11 +19,12 @@
 """
 Permissions
 
-A permission enables fine-grained delegation of permissions. Access Control
-Rules, or instructions (ACIs), grant permission to permissions to perform
-given tasks such as adding a user, modifying a group, etc.
+A permission enables fine-grained delegation of rights. A permission is
+a human-readable form of a 389-ds Access Control Rule, or instruction (ACI).
+A permission grants the right to perform a specific task such as adding a
+user, modifying a group, etc.
 
-A permission may not be members of other permissions.
+A permission may not contain other permissions.
 
 * A permissions grants access to read, write, add or delete.
 * A privilege combines similar permissions (for example all the permissions
