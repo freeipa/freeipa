@@ -249,6 +249,7 @@ class DsInstance(service.Service):
         self.step("adding replication acis", self.__add_replication_acis)
         self.step("configuring user private groups", self.__user_private_groups)
         self.step("configuring netgroups from hostgroups", self.__host_nis_groups)
+        self.step("creating default SUDO bind user", self.__add_sudo_binduser)
         if hbac_allow:
             self.step("creating default HBAC rule allow_all", self.add_hbac)
 
@@ -311,6 +312,7 @@ class DsInstance(service.Service):
         server_root = find_server_root()
         self.sub_dict = dict(FQHN=self.fqdn, SERVERID=self.serverid,
                              PASSWORD=self.dm_password,
+                             RANDOM_PASSWORD=self.generate_random(),
                              SUFFIX=self.suffix.lower(),
                              REALM=self.realm_name, USER=DS_USER,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
@@ -474,6 +476,9 @@ class DsInstance(service.Service):
 
     def __add_enrollment_module(self):
         self._ldap_mod("enrollment-conf.ldif", self.sub_dict)
+
+    def generate_random(self):
+        return ipautil.ipa_generate_password()
 
     def __enable_ssl(self):
         dirname = config_dirname(self.serverid)
@@ -734,6 +739,9 @@ class DsInstance(service.Service):
 
     def __root_autobind(self):
         self._ldap_mod("root-autobind.ldif")
+
+    def __add_sudo_binduser(self):
+        self._ldap_mod("sudobind.ldif", self.sub_dict)
 
     def replica_populate(self):
         self.ldap_connect()

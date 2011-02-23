@@ -17,7 +17,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Sudo Rule
+Sudo (su "do") allows a system administrator to delegate authority to
+give certain users (or groups of users) the ability to run some (or all)
+commands as root or another user while providing an audit trail of the
+commands and their arguments.
+
+FreeIPA provides a designated binddn to use with SUDO located at:
+uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com
+
+To enable the binddn run the following command to set the password:
+LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W \
+-h ipa.example.com -ZZ -D "cn=Directory Manager" \
+uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com
+
+For more information, see the FreeIPA Documentation to Sudo.
 """
 
 from ipalib import api, errors

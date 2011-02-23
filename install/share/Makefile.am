@@ -48,6 +48,7 @@ app_DATA =				\
 	modrdn-krbprinc.ldif		\
 	entryusn.ldif			\
 	root-autobind.ldif		\
+	sudobind.ldif			\
 	$(NULL)
 
 EXTRA_DIST =				\

@@ -127,7 +127,7 @@ class Service:
         fd = None
         path = ipautil.SHARE_DIR + ldif
         hostname = installutils.get_fqdn()
-        nologlist=()
+        nologlist=[]
 
         if sub_dict is not None:
             txt = ipautil.template_file(path, sub_dict)
@@ -136,7 +136,9 @@ class Service:
 
             # do not log passwords
             if sub_dict.has_key('PASSWORD'):
-                nologlist = sub_dict['PASSWORD'],
+                nologlist.append(sub_dict['PASSWORD'])
+            if sub_dict.has_key('RANDOM_PASSWORD'):
+                nologlist.append(sub_dict['RANDOM_PASSWORD'])
 
         if self.dm_password:
             [pw_fd, pw_name] = tempfile.mkstemp()

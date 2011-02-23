@@ -1,0 +1,9 @@
+#SUDO bind user
+dn: uid=sudo,cn=sysaccounts,cn=etc,$SUFFIX
+changetype: add
+objectclass: account
+objectclass: simplesecurityobject
+uid: sudo
+userPassword: $RANDOM_PASSWORD
+passwordExpirationTime: 20380119031407Z
+nsIdleTimeout: 0
