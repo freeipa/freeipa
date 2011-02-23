@@ -332,10 +332,12 @@ class i18n_messages(Command):
             "view":_("View"),
             },
         "dialogs":{
+            "available":_("Available"),
+            "dirty_message":_("This page has unsaved changes. Please save or revert."),
+            "dirty_title":_("Dirty"),
+            "hide_already_enrolled":_("Hide already enrolled."),
             "remove_empty":_("Select ${entity} to be removed."),
             "remove_title":_("Remove ${entity}."),
-            "hide_already_enrolled":_("Hide already enrolled."),
-            "available":_("Available"),
             "prospective":_("Prospective"),
             },
         "facets":{
@@ -377,7 +379,6 @@ class i18n_messages(Command):
         "ajax":{
             "401":_("Your kerberos ticket is no longer valid. Please run kinit and then click 'Retry'. If this is your first time running the IPA Web UI <a href='/ipa/config/unauthorized.html'>follow these directions</a> to configure your browser.")
             },
-        "dirty":_("This page has unsaved changes. Please save or revert."),
         }
     has_output = (
         Output('messages', dict, doc=_('Dict of I18N messages')),

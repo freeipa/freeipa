@@ -42,12 +42,13 @@
             },
             "dialogs": {
                 "available": "Available",
+                "dirty_message": "This page has unsaved changes. Please save or revert.",
+                "dirty_title": "Dirty",
                 "hide_already_enrolled": "Hide already enrolled.",
                 "prospective": "Prospective",
                 "remove_empty": "Select ${entity} to be removed.",
                 "remove_title": "Remove ${entity}."
             },
-            "dirty": "This page has unsaved changes. Please save or revert.",
             "facets": {
                 "details": "Settings",
                 "search": "Search"

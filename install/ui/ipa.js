@@ -137,7 +137,7 @@ var IPA = ( function () {
             var facet = IPA.current_entity.facets_by_name[facet_name];
             if (facet.is_dirty()){
                 var message_box =  $("<div/>",{
-                    html: IPA.messages.dirty
+                    html: IPA.messages.dialogs.dirty_message
                 }).
                     appendTo($("#navigation"));
 
@@ -148,7 +148,7 @@ var IPA = ( function () {
                 };
 
                 message_box.dialog({
-                    title: 'Dirty',
+                    title: IPA.messages.dialogs.dirty_title,
                     modal:true,
                     width: '20em',
                     buttons: buttons

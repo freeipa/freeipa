@@ -351,6 +351,28 @@ IPA.association_table_widget = function (spec) {
 
         that.table_setup(container);
 
+        var dialog = $('<div/>', {
+            html: IPA.messages.dialogs.dirty_message
+        }).appendTo(container);
+
+        var buttons = {};
+
+        buttons[IPA.messages.buttons.ok] = function() {
+            dialog.dialog('close');
+        };
+
+        dialog.dialog({
+            autoOpen: false,
+            title: IPA.messages.dialogs.dirty_title,
+            modal: true,
+            width: '20em',
+            buttons: buttons
+        });
+
+        var entity = IPA.get_entity(that.entity_name);
+        var facet_name = IPA.current_facet(entity);
+        var facet = entity.get_facet(facet_name);
+
         var button = $('input[name=remove]', container);
         button.replaceWith(IPA.action_button({
             'label': button.val(),
@@ -359,7 +381,13 @@ IPA.association_table_widget = function (spec) {
                 if ($(this).hasClass('action-button-disabled')) {
                     return false;
                 }
-                that.show_remove_dialog();
+
+                if (facet.is_dirty()) {
+                    dialog.dialog('open');
+                } else {
+                    that.show_remove_dialog();
+                }
+
                 return false;
             }
         }));
@@ -369,8 +397,16 @@ IPA.association_table_widget = function (spec) {
             'label': button.val(),
             'icon': 'ui-icon-plus',
             'click': function() {
-                if ($(this).hasClass('action-button-disabled')) return false;
-                that.show_add_dialog();
+                if ($(this).hasClass('action-button-disabled')) {
+                    return false;
+                }
+
+                if (facet.is_dirty()) {
+                    dialog.dialog('open');
+                } else {
+                    that.show_add_dialog();
+                }
+
                 return false;
             }
         }));
