@@ -42,7 +42,7 @@ class test_sudocmdgroup(Declarative):
         dict(
             desc='Create %r' % sudocmd1,
             command=(
-                'sudocmd_add', [], dict(sudocmd=sudocmd1,)
+                'sudocmd_add', [], dict(sudocmd=sudocmd1, description=u'Test sudo command 1')
             ),
             expected=dict(
                 value=sudocmd1,
@@ -51,6 +51,7 @@ class test_sudocmdgroup(Declarative):
                     objectclass=objectclasses.sudocmd,
                     sudocmd=[u'/usr/bin/sudotestcmd1'],
                     ipauniqueid=[fuzzy_uuid],
+                    description=[u'Test sudo command 1'],
                     dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
                         api.env.basedn),
                 ),
@@ -66,6 +67,7 @@ class test_sudocmdgroup(Declarative):
                 summary=None,
                 result=dict(
                     sudocmd=[sudocmd1],
+                    description=[u'Test sudo command 1'],
                     dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
                         api.env.basedn),
                 ),
@@ -373,7 +375,22 @@ class test_sudocmdgroup(Declarative):
         ),
 
         dict(
-            # FIXME: Shouldn't this raise a NotFound instead?
+            desc='Retrieve %r to show membership' % sudocmd1,
+            command=('sudocmd_show', [sudocmd1], {}),
+            expected=dict(
+                value=sudocmd1,
+                summary=None,
+                result=dict(
+                    dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
+                        api.env.basedn),
+                    sudocmd=[sudocmd1],
+                    description=[u'Test sudo command 1'],
+                    memberof_sudocmdgroup = [u'testsudocmdgroup1'],
+                ),
+            ),
+        ),
+
+        dict(
             desc='Try to add non-existent member to %r' % sudocmdgroup1,
             command=(
                 'sudocmdgroup_add_member', [sudocmdgroup1],

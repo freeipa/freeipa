@@ -1002,6 +1002,14 @@ class ldap2(CrudBackend, Encoder):
         except errors.NotFound:
             pbacresults = []
         results = results + pbacresults
+        try:
+            (sudoresults, truncated) = self.find_entries(searchfilter,
+                attr_list, 'cn=sudo,%s' % api.env.basedn,
+                time_limit=time_limit, size_limit=size_limit,
+                normalize=normalize)
+        except errors.NotFound:
+            sudoresults = []
+        results = results + sudoresults
 
         direct = []
         indirect = []

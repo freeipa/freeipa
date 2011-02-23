@@ -55,8 +55,11 @@ class sudocmd(LDAPObject):
         'sudocmd', 'description',
     ]
     default_attributes = [
-        'sudocmd', 'description',
+        'sudocmd', 'description', 'memberof',
     ]
+    attribute_members = {
+        'memberof': ['sudocmdgroup'],
+    }
     uuid_attribute = 'ipauniqueid'
     label = _('SUDO Commands')
 
