@@ -21,8 +21,10 @@
 Test the `ipalib.text` module.
 """
 
+import os
 import re
 import nose
+import locale
 from tests.util import raises, assert_equal
 from ipalib.request import context
 from ipalib import request
@@ -75,12 +77,8 @@ def test_gettext():
     localedir='install/po/test_locale'
     test_file='install/po/test.po'
 
-    # The test installs the test message catalog under the en_US
-    # (e.g. U.S. English) language. It would be nice to use a dummy
-    # language not associated with any real language, but the
-    # setlocale function demands the locale be a valid known locale,
-    # U.S. English is a reasonable choice.
-    # request.set_languages('en_US.UTF-8')
+    lang = os.environ['LANG']
+    os.environ['LANG'] = 'xh_ZA'
 
     # Tell gettext that our domain is 'ipa', that locale_dir is
     # 'test_locale' (i.e. where to look for the message catalog)
@@ -117,6 +115,8 @@ def test_gettext():
     
     # Reset the language and assure we don't get the test values
     context.__dict__.clear()
+    os.environ['LANG'] = lang
+
     translated = unicode(localized)
 
     assert(translated[0] != prefix)

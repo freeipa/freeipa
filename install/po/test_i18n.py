@@ -23,6 +23,7 @@ import sys
 import gettext
 import locale
 import re
+import os
 
 def get_msgid(po_file):
     'Get the first non-empty msgid from the po file'
@@ -62,11 +63,11 @@ def main():
 
     try:
 
-        # The test installs the test message catalog under the en_US (e.g. U.S. English)
+        # The test installs the test message catalog under the xh_ZA (e.g. Zambia Xhosa)
         # language. It would be nice to use a dummy language not associated with any
         # real language, but the setlocale function demands the locale be a valid known
-        # locale, U.S. English is a reasonable choice.
-        locale.setlocale(locale.LC_MESSAGES, 'en_US.UTF-8')
+        # locale, Zambia Xhosa is a reasonable choice :)
+        os.environ['LANG'] = 'xh_ZA'
 
         # Tell gettext that our domain is 'ipa', that locale_dir is 'test_locale'
         # (i.e. where to look for the message catalog) and that we want the translations

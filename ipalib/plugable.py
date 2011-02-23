@@ -183,10 +183,10 @@ class Plugin(ReadOnly):
             '%s.%s' % (b.__module__, b.__name__) for b in cls.__bases__
         )
         self.doc = _(cls.__doc__)
-        if self.doc is None:
+        if not self.doc.msg:
             self.summary = '<%s>' % self.fullname
         else:
-            self.summary = unicode(self.doc).split('\n\n', 1)[0]
+            self.summary = unicode(self.doc).split('\n\n', 1)[0].strip()
         log = logging.getLogger(self.fullname)
         for name in ('debug', 'info', 'warning', 'error', 'critical', 'exception'):
             if hasattr(self, name):
