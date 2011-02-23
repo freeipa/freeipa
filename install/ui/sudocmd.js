@@ -115,7 +115,7 @@ IPA.sudocmd_details_facet = function (spec) {
         that.add_section(section);
 
         var field = IPA.sudocmd_member_sudocmdgroup_table_widget({
-            'name': 'memberof',
+            'name': 'memberof_sudocmdgroup',
             'label': IPA.messages.objects.sudocmd.groups,
             'other_entity': 'sudocmdgroup',
             'save_values': false
@@ -194,10 +194,7 @@ IPA.sudocmd_member_sudocmdgroup_table_widget = function (spec) {
         });
 
         for (var i=0; i<that.values.length; i++) {
-            var dn = that.values[i];
-            var j = dn.indexOf('=');
-            var k = dn.indexOf(',');
-            var value = dn.substring(j+1, k);
+            var value = that.values[i];
 
             var command = IPA.command({
                 'method': that.other_entity+'_show',
