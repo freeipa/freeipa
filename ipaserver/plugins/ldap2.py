@@ -798,7 +798,7 @@ class ldap2(CrudBackend, Encoder):
                 force_replace = False
                 if k in self._FORCE_REPLACE_ON_UPDATE_ATTRS or is_single_value:
                     force_replace = True
-                elif len(adds) == 1 and len(rems) == 1:
+                elif len(v) > 0 and len(v.intersection(old_v)) == 0:
                     force_replace = True
 
                 if adds:
