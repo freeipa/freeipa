@@ -1,0 +1,181 @@
+.\" A man page for default.conf
+.\" Copyright (C) 2011 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Rob Crittenden <rcritten@@redhat.com>
+.\"
+.TH "default.conf" "5" "02/21/2011" "freeipa" ""
+.SH "NAME"
+default.conf \- IPA configuration file
+.SH "SYNOPSIS"
+/etc/ipa/default.conf, ~/.ipa/default.conf, /etc/ipa/server.conf, /etc/ipa/cli.conf
+.SH "DESCRIPTION"
+The \fIdefault.conf \fRconfiguration file is used to set system\-wide defaults to be applied when running IPA clients and servers.
+
+Users may create an optional configuration file in \fI~/.ipa/default.conf\fR which will be merged into the system\-wide defaults file.
+
+The following files are read, in order:
+.nf
+    ~/.ipa/default.conf
+    /etc/ipa/<context>.conf
+    /etc/ipa/default.conf
+    built\-in constants
+.fi
+
+The IPA server does not read ~/.ipa/default.conf.
+
+The first setting wins.
+.SH "SYNTAX"
+The configuration options are not case sensitive. The values may be case sensitive, depending on the option.
+
+Blank lines are ignored.
+Lines beginning with # are comments and are ignored.
+
+Valid lines consist of an option name, an equals sign and a value. Spaces surrounding equals sign are ignored. An option terminates at the end of a line.
+
+Values should not be quoted, the quotes will not be stripped.
+
+.np
+    # Wrong \- don't include quotes
+    verbose = "9"
+
+    # Right \- Properly formatted options
+    verbose = 9
+    verbose=9
+.fi
+
+Options must appear in the section named [global]. There are no other sections defined or used currently.
+
+Options may be defined that are not used by IPA. Be careful of misspellings, they will not be rejected.
+.SH "OPTIONS"
+The following options are relevant for the server:
+.TP
+.B basedn\fR <base>
+Specifies the base DN to use when performing LDAP operations. The base must be in DN format (dc=example,dc=com).
+.TP
+.B ca_agent_port <port>
+Specifies the secure CA agent port. The default is 9443.
+.TP
+.B ca_ee_port <port>
+Specifies the secure CA end user port. The default is 9444.
+.TP
+.B ca_port <port>
+Specifies the insecure CA end user port. The default is 9180.
+.TP
+.B ca_host <hostname>
+Specifies the hostname of the dogtag CA server. The default is the hostname of the IPA server.
+.TP
+.B context <context>
+Specifies the context that IPA is being executed in. IPA may operate differently depending on the context. The current defined contexts are cli and server. Additionally this value is used to load /etc/ipa/\fBcontext\fR.conf to provide context\-specific configuration. For example, if you want to always perform client requests in verbose mode but do not want to have verbose enabled on the server, add the verbose option to \fI/etc/ipa/cli.conf\fR.
+.TP
+.B debug <boolean>
+If True then logging will be much more verbose. Default is False.
+.TP
+.B domain <domain>
+The domain of the IPA server e.g. example.com.
+.TP
+.B enable_ra <boolean>
+Specifies whether the CA is acting as an RA agent, such as when dogtag is being used as the Certificate Authority. This setting only applies to the IPA server configuration.
+.TP
+.B fallback <boolean>
+Specifies whether an IPA client should attempt to fall back and try other services if the first connection fails.
+.TP
+.B host <hostname>
+Specifies the hostname of the IPA server. This value is used to construct URL values on the client and server.
+.TP
+.B in_server <boolean>
+Specifies whether requests should be forwarded to an IPA server or handled locally. This is used internally by IPA in a similar way as context. The same IPA framework is used by the ipa command\-line tool and the server. This setting tells the framework whether it should execute the command as if on the server or forward it via XML\-RPC to a remote server.
+.TP
+.B in_tree  <boolean>
+This is used in development and is generally a detected value. It means that the code is being executed within a source tree.
+.TP
+.B interactive <boolean>
+Specifies whether values should be prompted for or not. The default is True.
+.TP
+.B ldap_uri <URI>
+Specifies the URI of the IPA LDAP server to connect to. The URI scheme may be one of \fBldap\fR or \fBldapi\fR. The default is to use ldapi, e.g. ldapi://%2fvar%2frun%2fslapd\-EXAMPLE\-COM.socket
+.TP
+.B mode <mode>
+Specifies the mode the server is running in. The currently support values are \fBpr\fRoduction and \fBdevelopment\fR. When running in production mode some self\-tests are skipped to improve performance.
+.TP
+.B mount_ipa <URI>
+Specifies the mount point that the development server will register. The default is /ipa/
+.TP
+.B prompt_all <boolean>
+Specifies that all options should be prompted for in the IPA client, even optional values. Default is False.
+.TP
+.B ra_plugin <name>
+Specifies the name of the CA back end to use. The current options are \fBselfsign\fR and \fBdogtag\fR. This is a server\-side setting. Changing this value is not recommended as the CA back end is only set up during initial installation.
+.TP
+.B realm <realm>
+Specifies the Kerberos realm.
+.TP
+.B startup_traceback <boolean>
+If the IPA server fails to start and this value is True the server will attempt to generate a python traceback to make identifying the underlying problem easier.
+.TP
+.B validate_api <boolean>
+Used internally in the IPA source package to verify that the API has not changed. This is used to prevent regressions. If it is true then some errors are ignored so enough of the IPA framework can be loaded to verify all of the API, even if optional components are not installed. The default is False.
+.TP
+.B verbose <integer>
+Generates more output. The default is 0 which generates no additional output. On the client a setting of 1 will provide more information on the command and show the servers the client contacts. A setting of 2 or higher will display the XML\-RPC request. This value has no effect on the server.
+.TP
+.B xmlrpc_uri <URI>
+Specifies the URI of the XML\-RPC server for a client. This is used by IPA and some external tools as well, such as ipa\-getcert. e.g. https://ipa.example.com/ipa/xml
+.TP
+The following define the containers for the IPA server. Containers define where in the DIT that objects can be found. The full location is the value of container + basedn.
+  container_accounts: cn=accounts
+  container_applications: cn=applications,cn=configs,cn=policies
+  container_automount: cn=automount
+  container_configs: cn=configs,cn=policies
+  container_dns: cn=dns
+  container_entitlements: cn=entitlements,cn=etc
+  container_group: cn=groups,cn=accounts
+  container_hbac: cn=hbac
+  container_hbacservice: cn=hbacservices,cn=hbac
+  container_hbacservicegroup: cn=hbacservicegroups,cn=hbac
+  container_host: cn=computers,cn=accounts
+  container_hostgroup: cn=hostgroups,cn=accounts
+  container_netgroup: cn=ng,cn=alt
+  container_permission: cn=permissions,cn=pbac
+  container_policies: cn=policies
+  container_policygroups: cn=policygroups,cn=configs,cn=policies
+  container_policylinks: cn=policylinks,cn=configs,cn=policies
+  container_privilege: cn=privileges,cn=pbac
+  container_rolegroup: cn=roles,cn=accounts
+  container_roles: cn=roles,cn=policies
+  container_service: cn=services,cn=accounts
+  container_sudocmd: cn=sudocmds,cn=sudo
+  container_sudocmdgroup: cn=sudocmdgroups,cn=sudo
+  container_sudorule: cn=sudorules,cn=sudo
+  container_user: cn=users,cn=accounts
+  container_virtual: cn=virtual operations,cn=etc
+
+.SH "FILES"
+.TP
+.I /etc/ipa/default.conf
+system\-wide IPA configuration file
+.TP
+.I $HOME/.ipa/default.conf
+user IPA configuration file
+.TP
+It is also possible to define context\-specific configuration files. The \fBcontext\fR is set when the IPA api is initialized. The two currently defined contexts in IPA are \fBcli\fR and \fBserver\fR. This is helpful, for example, if you only want \fBdebug\fR enabled on the server and not in the client. If this is set to True in \fIdefault.conf\fR it will affect both the ipa client tool and the IPA server. If it is only set in \fIserver.conf\fR then only the server will have \fBdebug\fR set. These files will be loaded if they exist:
+.TP
+.I /etc/ipa/cli.conf
+system\-wide IPA client configuration file
+.TP
+.I /etc/ipa/server.conf
+system\-wide IPA server configuration file
+.SH "SEE ALSO"
+.BR ipa (1)
