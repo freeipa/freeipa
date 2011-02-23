@@ -48,6 +48,7 @@ app_DATA =                              \
 	widget.js 			\
 	user.js 			\
 	ipalogo.png			\
+	ipabanner.png			\
 	gray-fade-line.png		\
 	Mainnav-background.png		\
 	Mainnav-offtab.png  		\
