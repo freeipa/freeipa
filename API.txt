@@ -2232,13 +2232,12 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: sudocmdgroup_add_member
-args: 1,5,3
+args: 1,4,3
 arg: Str('cn', attribute=True, cli_name='sudocmdgroup_name', label=Gettext('Sudo Command Group', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
 option: List('sudocmd?', alwaysask=True, cli_name='sudocmds',ist('sudocmd?', alwaysask=True, cli_name='sudocmds', doc='comma-separated list of sudocmds to add', label='sudocmd', multivalue=True)
-option: List('sudocmdgroup?', alwaysask=True, cli_name='sudocmdgroups',ist('sudocmdgroup?', alwaysask=True, cli_name='sudocmdgroups', doc='comma-separated list of sudocmdgroups to add', label='sudocmdgroup', multivalue=True)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('failed', <type 'dict'>, Gettext('Members that could not be added', domain='ipa', localedir=None))
 output: Output('completed', <type 'int'>, Gettext('Number of members added', domain='ipa', localedir=None))
@@ -2277,13 +2276,12 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: sudocmdgroup_remove_member
-args: 1,5,3
+args: 1,4,3
 arg: Str('cn', attribute=True, cli_name='sudocmdgroup_name', label=Gettext('Sudo Command Group', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
 option: List('sudocmd?', alwaysask=True, cli_name='sudocmds',ist('sudocmd?', alwaysask=True, cli_name='sudocmds', doc='comma-separated list of sudocmds to remove', label='sudocmd', multivalue=True)
-option: List('sudocmdgroup?', alwaysask=True, cli_name='sudocmdgroups',ist('sudocmdgroup?', alwaysask=True, cli_name='sudocmdgroups', doc='comma-separated list of sudocmdgroups to remove', label='sudocmdgroup', multivalue=True)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('failed', <type 'dict'>, Gettext('Members that could not be removed', domain='ipa', localedir=None))
 output: Output('completed', <type 'int'>, Gettext('Number of members removed', domain='ipa', localedir=None))
