@@ -30,8 +30,8 @@ is required, which can be achieved using:
 
 service krb5kdc restart
 
-Changes to per-user policies take effect immediatly for newly requested
-tickets.
+Changes to per-user policies take effect immediately for newly requested
+tickets (e.g. when the user next runs kinit).
 
 EXAMPLES:
 
