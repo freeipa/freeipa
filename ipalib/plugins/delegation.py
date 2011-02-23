@@ -221,7 +221,7 @@ class delegation_find(crud.Search):
     """
 
     msg_summary = ngettext(
-        '%(count)d delegation matched', '%(count)d delegations matched'
+        '%(count)d delegation matched', '%(count)d delegations matched', 0
     )
 
     def execute(self, term, **kw):

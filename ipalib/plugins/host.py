@@ -316,7 +316,9 @@ class host_add(LDAPCreate):
                     match = True
                     break
             if not match:
-                raise errors.NotFound(reason=_('DNS zone %(zone)s not found' % dict(zone=domain)))
+                raise errors.NotFound(
+                    reason=_('DNS zone %(zone)s not found') % dict(zone=domain)
+                )
             if not options.get('no_reverse', False):
                 # we prefer lookup of the IP through the reverse zone
                 revzone, revname = get_reverse_zone(options['ip_address'])
@@ -327,7 +329,9 @@ class host_add(LDAPCreate):
                         match = True
                         break
                 if not match:
-                    raise errors.NotFound(reason=_('Reverse DNS zone %(zone)s not found' % dict(zone=revzone)))
+                    raise errors.NotFound(
+                        reason=_('Reverse DNS zone %(zone)s not found') % dict(zone=revzone)
+                    )
                 try:
                     reverse = api.Command['dnsrecord_find'](revzone, idnsname=revname)
                     if reverse['count'] > 0:
@@ -395,7 +399,9 @@ class host_add(LDAPCreate):
                 # context, don't crash.
                 pass
         if exc:
-            raise errors.NonFatalError(reason=_('The host was added but the DNS update failed with: %(exc)s' % dict(exc=exc)))
+            raise errors.NonFatalError(
+                reason=_('The host was added but the DNS update failed with: %(exc)s') % dict(exc=exc)
+            )
         set_certificate_attrs(entry_attrs)
         return dn
 
@@ -457,7 +463,9 @@ class host_del(LDAPDelete):
                     match = True
                     break
             if not match:
-                raise errors.NotFound(reason=_('DNS zone %(zone)s not found' % dict(zone=domain)))
+                raise errors.NotFound(
+                    reason=_('DNS zone %(zone)s not found') % dict(zone=domain)
+                )
             # Get all forward resources for this host
             records = api.Command['dnsrecord_find'](domain, idnsname=parts[0])['result']
             for record in records:
@@ -602,7 +610,7 @@ class host_find(LDAPSearch):
 
     has_output_params = LDAPSearch.has_output_params + host_output_params
     msg_summary = ngettext(
-        '%(count)d host matched', '%(count)d hosts matched'
+        '%(count)d host matched', '%(count)d hosts matched', 0
     )
     member_attributes = ['memberof', 'enrolledby', 'managedby']
 

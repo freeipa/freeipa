@@ -302,7 +302,7 @@ class Param(ReadOnly):
         ('cli_name', str, None),
         ('cli_short_name', str, None),
         ('label', (str, Gettext), None),
-        ('doc', (str, Gettext), None),
+        ('doc', (basestring, Gettext), None),
         ('required', bool, True),
         ('multivalue', bool, False),
         ('primary_key', bool, False),
@@ -384,7 +384,7 @@ class Param(ReadOnly):
                     elif type(value) is str:
                         value = frozenset([value])
                 if (
-                    type(kind) is type and type(value) is not kind
+                    type(kind) is type and not isinstance(value, kind)
                     or
                     type(kind) is tuple and not isinstance(value, kind)
                 ):

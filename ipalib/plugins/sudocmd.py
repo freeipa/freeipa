@@ -127,7 +127,7 @@ class sudocmd_find(LDAPSearch):
     """
 
     msg_summary = ngettext(
-        '%(count)d sudo command matched', '%(count)d sudo command matched'
+        '%(count)d sudo command matched', '%(count)d sudo command matched', 0
     )
 
 api.register(sudocmd_find)

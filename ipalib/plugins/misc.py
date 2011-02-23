@@ -106,7 +106,7 @@ class plugins(LocalOrRemote):
     """Show all loaded plugins"""
 
     msg_summary = ngettext(
-        '%(count)d plugin loaded', '%(count)d plugins loaded'
+        '%(count)d plugin loaded', '%(count)d plugins loaded', 0
     )
 
     takes_options = LocalOrRemote.takes_options + (

@@ -118,7 +118,7 @@ False
 >>> hasattr(api.Command, 'my_command')
 True
 >>> api.Command.my_command.doc
-'My example plugin.'
+Gettext('My example plugin.', domain='ipa', localedir=None)
 
 Notice that your plugin instance is accessed through an attribute named
 ``my_command``, the same name as your plugin class name.

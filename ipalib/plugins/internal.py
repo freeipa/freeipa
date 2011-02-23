@@ -379,11 +379,7 @@ class i18n_messages(Command):
             "validation_error":_("Text does not match field pattern"),
             },
         "ajax":{
-            "401":_("Your kerberos ticket is no longer valid. "+
-                "Please run kinit and then click 'Retry'. "+
-                "If this is your first time running the IPA Web UI "+
-                "<a href='/ipa/config/unauthorized.html'>"+
-                "follow these directions</a> to configure your browser.")
+            "401":_("Your kerberos ticket is no longer valid. Please run kinit and then click 'Retry'. If this is your first time running the IPA Web UI <a href='/ipa/config/unauthorized.html'>follow these directions</a> to configure your browser.")
             },
         "dirty":_("This page has unsaved changes. Please save or revert."),
         }

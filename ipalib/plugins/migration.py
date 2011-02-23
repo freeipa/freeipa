@@ -413,7 +413,9 @@ can use their Kerberos accounts.''')
                 )
             except errors.NotFound:
                 if not options.get('continue',False):
-                    raise errors.NotFound(reason=_('Container for %(container)s not found' % {'container':ldap_obj_name}))
+                    raise errors.NotFound(
+                        reason=_('Container for %(container)s not found') % {'container': ldap_obj_name}
+                    )
                 else:
                     truncated = False
                     entries = []

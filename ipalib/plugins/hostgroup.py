@@ -126,7 +126,7 @@ class hostgroup_find(LDAPSearch):
     """
     member_attributes = ['member', 'memberof']
     msg_summary = ngettext(
-        '%(count)d hostgroup matched', '%(count)d hostgroups matched'
+        '%(count)d hostgroup matched', '%(count)d hostgroups matched', 0
     )
 
 api.register(hostgroup_find)

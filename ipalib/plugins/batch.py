@@ -74,8 +74,8 @@ class batch(Command):
     )
 
     has_output = (
-        Output('count', int, doc=_('')),
-        Output('results', list, doc=_(''))
+        Output('count', int, doc=''),
+        Output('results', list, doc='')
     )
 
     def execute(self, *args, **options):

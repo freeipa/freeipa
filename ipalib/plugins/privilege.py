@@ -117,7 +117,7 @@ class privilege_find(LDAPSearch):
     """
 
     msg_summary = ngettext(
-        '%(count)d privilege matched', '%(count)d privileges matched'
+        '%(count)d privilege matched', '%(count)d privileges matched', 0
     )
 
 api.register(privilege_find)

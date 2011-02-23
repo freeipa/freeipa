@@ -134,7 +134,7 @@ class role_find(LDAPSearch):
     """
 
     msg_summary = ngettext(
-        '%(count)d role matched', '%(count)d roles matched'
+        '%(count)d role matched', '%(count)d roles matched', 0
     )
 
 api.register(role_find)

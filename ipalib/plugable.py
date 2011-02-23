@@ -38,6 +38,7 @@ import errors
 from config import Env
 import util
 import text
+from text import _
 from base import ReadOnly, NameSpace, lock, islocked, check_name
 from constants import DEFAULT_CONFIG, FORMAT_STDERR, FORMAT_FILE
 
@@ -181,11 +182,12 @@ class Plugin(ReadOnly):
         self.bases = tuple(
             '%s.%s' % (b.__module__, b.__name__) for b in cls.__bases__
         )
-        self.doc = _(inspect.getdoc(cls))
-        if self.doc is None:
+        doc = inspect.getdoc(cls)
+        self.doc = _(doc)
+        if doc is None:
             self.summary = '<%s>' % self.fullname
         else:
-            self.summary = self.doc.split('\n\n', 1)[0]
+            self.summary = unicode(self.doc).split('\n\n', 1)[0]
         log = logging.getLogger(self.fullname)
         for name in ('debug', 'info', 'warning', 'error', 'critical', 'exception'):
             if hasattr(self, name):

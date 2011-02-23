@@ -201,7 +201,9 @@ def is_ns_rec_resolvable(name):
     try:
         return api.Command['dns_resolve'](name)
     except errors.NotFound:
-        raise errors.NotFound(reason=_('Nameserver \'%(host)s\' does not have a corresponding A/AAAA record' % {'host':name}))
+        raise errors.NotFound(
+            reason=_('Nameserver \'%(host)s\' does not have a corresponding A/AAAA record') % {'host': name}
+        )
 
 def add_forward_record(zone, name, str_address):
     addr = netaddr.IPAddress(str_address)
@@ -816,7 +818,9 @@ class dns_resolve(Command):
                 break
 
         if not found:
-            raise errors.NotFound(reason=_('Host \'%(host)s\' not found' % {'host':query}))
+            raise errors.NotFound(
+                reason=_('Host \'%(host)s\' not found') % {'host': query}
+            )
 
         return dict(result=True, value=query)
 

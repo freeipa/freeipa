@@ -183,7 +183,7 @@ class selfservice_find(crud.Search):
     """
 
     msg_summary = ngettext(
-        '%(count)d selfservice matched', '%(count)d selfservices matched'
+        '%(count)d selfservice matched', '%(count)d selfservices matched', 0
     )
 
     def execute(self, term, **kw):

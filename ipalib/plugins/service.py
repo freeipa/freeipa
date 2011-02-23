@@ -432,7 +432,7 @@ class service_find(LDAPSearch):
     Search for IPA services.
     """
     msg_summary = ngettext(
-        '%(count)d service matched', '%(count)d services matched'
+        '%(count)d service matched', '%(count)d services matched', 0
     )
     member_attributes = ['managedby']
     takes_options = LDAPSearch.takes_options

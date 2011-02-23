@@ -271,10 +271,9 @@ class user_add(LDAPCreate):
         if 'ipamaxusernamelength' in config:
             if len(keys[-1]) > int(config.get('ipamaxusernamelength')[0]):
                 raise errors.ValidationError(
-                    name=self.obj.primary_key.cli_name, error=_(
-                        'can be at most %(len)d characters' % dict(
-                            len = int(config.get('ipamaxusernamelength')[0])
-                        )
+                    name=self.obj.primary_key.cli_name,
+                    error=_('can be at most %(len)d characters') % dict(
+                        len = int(config.get('ipamaxusernamelength')[0])
                     )
                 )
         entry_attrs.setdefault('loginshell', config.get('ipadefaultloginshell'))

@@ -353,7 +353,7 @@ class permission_find(LDAPSearch):
     """
 
     msg_summary = ngettext(
-        '%(count)d permission matched', '%(count)d permissions matched'
+        '%(count)d permission matched', '%(count)d permissions matched', 0
     )
     has_output_params = LDAPSearch.has_output_params + output_params
 

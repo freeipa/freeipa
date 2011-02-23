@@ -488,10 +488,11 @@ class NGettextFactory(GettextFactory):
     *domain* (likely needed for 3rd-party plugins).
     """
 
-    def __call__(self, singular, plural, count=0):
+    def __call__(self, singular, plural, count):
         return NGettext(singular, plural, self.domain, self.localedir)
 
 
 # Process wide factories:
 _ = GettextFactory()
 ngettext = NGettextFactory()
+ugettext = _

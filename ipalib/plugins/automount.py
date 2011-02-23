@@ -329,7 +329,9 @@ class automountlocation_import(LDAPQuery):
             fp.close()
         except IOError, e:
             if e.errno == 2:
-                raise errors.NotFound(reason=_('File %(file)s not found' % {'file':filename}))
+                raise errors.NotFound(
+                    reason=_('File %(file)s not found') % {'file': filename}
+                )
             else:
                 raise e
         return map
