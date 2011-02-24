@@ -363,7 +363,7 @@ class ReplicationManager:
 
     def setup_winsync_agmt(self, entry, win_subtree=None):
         if win_subtree is None:
-            win_subtree = WIN_USER_CONTAINER + "," + self.suffix
+            win_subtree = WIN_USER_CONTAINER + "," + self.ad_suffix
         ds_subtree = IPA_USER_CONTAINER + "," + self.suffix
         windomain = '.'.join(ldap.explode_dn(self.suffix, 1))
 
@@ -381,12 +381,12 @@ class ReplicationManager:
 
         return (cn, dn)
 
-    def setup_agreement(self, a, b,
+    def setup_agreement(self, a_conn, b_hostname,
                         repl_man_dn=None, repl_man_passwd=None,
                         iswinsync=False, win_subtree=None, isgssapi=False):
-        cn, dn = self.agreement_dn(b.host)
+        cn, dn = self.agreement_dn(b_hostname)
         try:
-            a.getEntry(dn, ldap.SCOPE_BASE)
+            a_conn.getEntry(dn, ldap.SCOPE_BASE)
             return
         except errors.NotFound:
             pass
@@ -402,14 +402,14 @@ class ReplicationManager:
         entry = ipaldap.Entry(dn)
         entry.setValues('objectclass', "nsds5replicationagreement")
         entry.setValues('cn', cn)
-        entry.setValues('nsds5replicahost', b.host)
+        entry.setValues('nsds5replicahost', b_hostname)
         entry.setValues('nsds5replicaport', str(port))
         entry.setValues('nsds5replicatimeout', str(TIMEOUT))
         entry.setValues('nsds5replicaroot', self.suffix)
         entry.setValues('nsds5replicaupdateschedule', '0000-2359 0123456')
         entry.setValues('nsDS5ReplicatedAttributeList',
                         '(objectclass=*) $ EXCLUDE %s' % " ".join(excludes))
-        entry.setValues('description', "me to %s" % b.host)
+        entry.setValues('description', "me to %s" % b_hostname)
         if isgssapi:
             entry.setValues('nsds5replicatransportinfo', 'LDAP')
             entry.setValues('nsds5replicabindmethod', 'SASL/GSSAPI')
@@ -422,9 +422,9 @@ class ReplicationManager:
         if iswinsync:
             self.setup_winsync_agmt(entry, win_subtree)
 
-        a.add_s(entry)
+        a_conn.add_s(entry)
 
-        entry = a.waitForEntry(entry)
+        entry = a_conn.waitForEntry(entry)
 
     def setup_krb_princs_as_replica_binddns(self, a, b):
         """
@@ -582,16 +582,16 @@ class ReplicationManager:
             haserror = 1
         return haserror
 
-    def start_replication(self, other_conn, conn=None):
+    def start_replication(self, conn, hostname=None):
         print "Starting replication, please wait until this has completed."
-        if conn == None:
-            conn = self.conn
-        cn, dn = self.agreement_dn(conn.host)
+        if hostname == None:
+            hostname = self.conn.host
+        cn, dn = self.agreement_dn(hostname)
 
         mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start')]
-        other_conn.modify_s(dn, mod)
+        conn.modify_s(dn, mod)
 
-        return self.wait_for_repl_init(other_conn, dn)
+        return self.wait_for_repl_init(conn, dn)
 
     def basic_replication_setup(self, conn, replica_id, repldn, replpw):
         self.add_replication_manager(conn, repldn, replpw)
@@ -617,10 +617,10 @@ class ReplicationManager:
         self.basic_replication_setup(r_conn, r_id,
                                      self.repl_man_dn, self.repl_man_passwd)
 
-        self.setup_agreement(r_conn, self.conn,
+        self.setup_agreement(r_conn, self.conn.host,
                              repl_man_dn=self.repl_man_dn,
                              repl_man_passwd=self.repl_man_passwd)
-        self.setup_agreement(self.conn, r_conn,
+        self.setup_agreement(self.conn, r_hostname,
                              repl_man_dn=self.repl_man_dn,
                              repl_man_passwd=self.repl_man_passwd)
 
@@ -633,14 +633,29 @@ class ReplicationManager:
                                   ad_dc_name, ad_binddn, ad_pwd,
                                   passsync_pw, ad_subtree,
                                   cacert=CACERT):
+        self.ad_suffix = ""
         try:
             # Validate AD connection
-            ad_conn = ipaldap.IPAdmin(ad_dc_name, port=636, cacert=cacert)
-            ad_conn.do_simple_bind(binddn=ad_binddn, bindpw=ad_pwd)
+            ad_conn = ldap.initialize('ldap://%s' % ad_dc_name)
+            #the next one is to workaround bugs arounf opendalp libs+NSS db
+            ad_conn.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
+            ad_conn.set_option(ldap.OPT_X_TLS_CACERTFILE, cacert)
+            ad_conn.start_tls_s()
+            ad_conn.simple_bind_s(ad_binddn, ad_pwd)
+            res = ad_conn.search_s("", ldap.SCOPE_BASE, '(objectClass=*)',
+                                   ['defaultNamingContext'])
+            for dn,entry in res:
+                if dn == "":
+                    self.ad_suffix = entry['defaultNamingContext'][0]
+                    logging.info("AD Suffix is: %s" % self.ad_suffix)
+            if self.ad_suffix == "":
+                raise RuntimeError("Failed to lookup AD's Ldap suffix")
+            ad_conn.unbind_s()
+            del ad_conn
         except Exception, e:
             logging.info("Failed to connect to AD server %s" % ad_dc_name)
             logging.info("The error was: %s" % e)
-            logging.info("Continuning ...")
+            raise RuntimeError("Failed to setup winsync replication")
 
         # Setup the only half.
         # there is no other side to get a replica ID from
@@ -651,7 +666,7 @@ class ReplicationManager:
 
         #now add a passync user allowed to access the AD server
         self.add_passsync_user(self.conn, passsync_pw)
-        self.setup_agreement(self.conn, ad_conn,
+        self.setup_agreement(self.conn, ad_dc_name,
                              repl_man_dn=ad_binddn, repl_man_passwd=ad_pwd,
                              iswinsync=True, win_subtree=ad_subtree)
         logging.info("Added new sync agreement, waiting for it to become ready . . .")
@@ -660,7 +675,7 @@ class ReplicationManager:
         logging.info("Agreement is ready, starting replication . . .")
 
         #Finally start replication
-        ret = self.start_replication(ad_conn)
+        ret = self.start_replication(self.conn, ad_dc_name)
         if ret != 0:
             raise RuntimeError("Failed to start replication")
 
@@ -705,8 +720,8 @@ class ReplicationManager:
         self.setup_krb_princs_as_replica_binddns(self.conn, r_conn)
 
         # Create mutual replication agreementsausiung SASL/GSSAPI
-        self.setup_agreement(self.conn, r_conn, isgssapi=True)
-        self.setup_agreement(r_conn, self.conn, isgssapi=True)
+        self.setup_agreement(self.conn, r_hostname, isgssapi=True)
+        self.setup_agreement(r_conn, self.conn.host, isgssapi=True)
 
     def initialize_replication(self, dn, conn):
         mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start')]
