@@ -481,6 +481,11 @@ def main():
         if (dsinstance.DsInstance().is_configured() or cainstance.CADSInstance().is_configured()) and not options.external_cert_file:
             sys.exit("IPA server is already configured on this system.")
 
+        client_fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
+        if client_fstore.has_files():
+            sys.exit("IPA client is already configured on this system.\n"
+                     + "Please uninstall it first before configuring the IPA server.")
+
     logging.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
     logging.debug("missing options might be asked for interactively later\n")
 

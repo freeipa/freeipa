@@ -343,6 +343,11 @@ def main():
     if not ipautil.file_exists(filename):
         sys.exit("Replica file %s does not exist" % filename)
 
+    client_fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
+    if client_fstore.has_files():
+        sys.exit("IPA client is already configured on this system.\n"
+                 + "Please uninstall it first before configuring the replica.")
+
     global sstore
     sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
 
