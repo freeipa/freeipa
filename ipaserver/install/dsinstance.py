@@ -149,6 +149,7 @@ INF_TEMPLATE = """
 [General]
 FullMachineName=   $FQHN
 SuiteSpotUserID=   $USER
+SuiteSpotGroup=    $GROUP
 ServerRoot=    $SERVER_ROOT
 [slapd]
 ServerPort=   389
@@ -319,6 +320,7 @@ class DsInstance(service.Service):
                              TIME=int(time.time()), IDSTART=self.idstart,
                              IDMAX=self.idmax, HOST=self.fqdn,
                              ESCAPED_SUFFIX= escape_dn_chars(self.suffix.lower()),
+                             GROUP=DS_GROUP,
                          )
 
     def __create_ds_user(self):

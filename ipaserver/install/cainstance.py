@@ -72,6 +72,7 @@ INF_TEMPLATE = """
 [General]
 FullMachineName=   $FQHN
 SuiteSpotUserID=   $USER
+SuiteSpotGroup=    $GROUP
 ServerRoot=    $SERVER_ROOT
 [slapd]
 ServerPort=   $DSPORT
@@ -255,7 +256,8 @@ class CADSInstance(service.Service):
                              PASSWORD=self.dm_password, SUFFIX=self.suffix.lower(),
                              REALM=self.realm_name, USER=PKI_DS_USER,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
-                             TIME=int(time.time()), DSPORT=self.ds_port)
+                             TIME=int(time.time()), DSPORT=self.ds_port,
+                             GROUP=dsinstance.DS_GROUP)
 
     def __create_ds_user(self):
         user_exists = True
