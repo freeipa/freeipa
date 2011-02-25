@@ -26,3 +26,5 @@ ipaWinSyncAcctDisable: both
 ipaWinSyncInactivatedFilter: (&(cn=inactivated)(objectclass=groupOfNames))
 ipaWinSyncActivatedFilter: (&(cn=activated)(objectclass=groupOfNames))
 ipaWinSyncForceSync: true
+ipaWinSyncUserAttr: uidNumber 999
+ipaWinSyncUserAttr: gidNumber 999
