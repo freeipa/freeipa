@@ -36,7 +36,7 @@ from ipaserver import ipautil
 from ipalib import errors
 
 # Global variable to define SASL auth
-sasl_auth = ldap.sasl.sasl({},'GSSAPI')
+SASL_AUTH = ldap.sasl.sasl({},'GSSAPI')
 
 class Entry:
     """
@@ -338,7 +338,7 @@ class IPAdmin(SimpleLDAPObject):
         try:
             if krbccache is not None:
                 os.environ["KRB5CCNAME"] = krbccache
-                self.sasl_interactive_bind_s("", sasl_auth)
+                self.sasl_interactive_bind_s("", SASL_AUTH)
                 self.principal = principal
             self.proxydn = None
         except ldap.LDAPError, e:
@@ -348,6 +348,10 @@ class IPAdmin(SimpleLDAPObject):
         self.binddn = binddn
         self.bindpwd = bindpw
         self.simple_bind_s(binddn, bindpw)
+        self.__lateinit()
+
+    def do_sasl_gssapi_bind(self):
+        self.sasl_interactive_bind_s('', SASL_AUTH)
         self.__lateinit()
 
     def do_external_bind(self, user_name=None):

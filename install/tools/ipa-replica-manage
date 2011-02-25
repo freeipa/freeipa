@@ -142,7 +142,7 @@ def list_masters(realm, host, replica, dirman_passwd, verbose):
             if dirman_passwd:
                 conn.do_simple_bind(bindpw=dirman_passwd)
             else:
-                conn.sasl_interactive_bind_s('', ipaldap.sasl_auth)
+                conn.do_sasl_gssapi_bind()
 
             dn = 'cn=masters,cn=ipa,cn=etc,%s' % util.realm_to_suffix(realm)
             entries = conn.search_s(dn, ldap.SCOPE_ONELEVEL)

@@ -39,8 +39,6 @@ TIMEOUT = 120
 IPA_REPLICA = 1
 WINSYNC = 2
 
-SASL_AUTH = ldap.sasl.sasl({}, 'GSSAPI')
-
 def check_replication_plugin():
     """
     Confirm that the 389-ds replication is installed.
@@ -64,7 +62,7 @@ def enable_replication_version_checking(hostname, realm, dirman_passwd):
     if dirman_passwd:
         conn.do_simple_bind(bindpw=dirman_passwd)
     else:
-        conn.sasl_interactive_bind_s('', SASL_AUTH)
+        conn.do_sasl_gssapi_bind()
     entry = conn.search_s('cn=IPA Version Replication,cn=plugins,cn=config', ldap.SCOPE_BASE, 'objectclass=*')
     if entry[0].getValue('nsslapd-pluginenabled') == 'off':
         conn.modify_s(entry[0].dn, [(ldap.MOD_REPLACE, 'nsslapd-pluginenabled', 'on')])
@@ -90,7 +88,7 @@ class ReplicationManager:
         if dirman_passwd:
             self.conn.do_simple_bind(bindpw=dirman_passwd)
         else:
-            self.conn.sasl_interactive_bind_s('', SASL_AUTH)
+            self.conn.do_sasl_gssapi_bind()
 
         self.repl_man_passwd = dirman_passwd
 
@@ -605,7 +603,7 @@ class ReplicationManager:
         if r_bindpw:
             r_conn.do_simple_bind(binddn=r_binddn, bindpw=r_bindpw)
         else:
-            r_conn.sasl_interactive_bind_s('', SASL_AUTH)
+            r_conn.do_sasl_gssapi_bind()
 
         #Setup the first half
         l_id = self._get_replica_id(self.conn, r_conn)
@@ -684,7 +682,7 @@ class ReplicationManager:
         if r_bindpw:
             r_conn.do_simple_bind(binddn=r_binddn, bindpw=r_bindpw)
         else:
-            r_conn.sasl_interactive_bind_s('', SASL_AUTH)
+            r_conn.do_sasl_gssapi_bind()
 
         # First off make sure servers are in sync so that both KDCs
         # have all princiapls and their passwords and can release
@@ -714,7 +712,7 @@ class ReplicationManager:
         if r_bindpw:
             r_conn.do_simple_bind(binddn=r_binddn, bindpw=r_bindpw)
         else:
-            r_conn.sasl_interactive_bind_s('', SASL_AUTH)
+            r_conn.do_sasl_gssapi_bind()
 
         # Allow krb principals to act as replicas
         self.setup_krb_princs_as_replica_binddns(self.conn, r_conn)

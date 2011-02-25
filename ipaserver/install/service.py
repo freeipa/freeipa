@@ -31,7 +31,6 @@ import datetime
 from ipaserver.install import installutils
 
 CACERT = "/etc/ipa/ca.crt"
-SASL_AUTH = ldap.sasl.sasl({}, 'GSSAPI')
 
 SERVICE_LIST = {
     'KDC':('krb5kdc', 10),
@@ -299,7 +298,7 @@ class Service:
             if dm_password:
                 conn.do_simple_bind(bindpw=dm_password)
             else:
-                conn.sasl_interactive_bind_s('', SASL_AUTH)
+                conn.do_sasl_gssapi_bind_()
         except Exception, e:
             logging.debug("Could not connect to the Directory Server on %s: %s" % (fqdn, str(e)))
             raise e
