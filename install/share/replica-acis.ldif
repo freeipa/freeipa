@@ -1,5 +1,10 @@
 # Replica administration
 
+dn: cn=config
+changetype: modify
+add: aci
+aci: (targetattr != aci)(version 3.0; aci "replica admins read access"; allow (read, search, compare) groupdn = "ldap:///cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
+
 dn: cn="$SUFFIX",cn=mapping tree,cn=config
 changetype: modify
 add: aci

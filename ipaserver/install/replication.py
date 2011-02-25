@@ -592,7 +592,8 @@ class ReplicationManager:
         return self.wait_for_repl_init(conn, dn)
 
     def basic_replication_setup(self, conn, replica_id, repldn, replpw):
-        self.add_replication_manager(conn, repldn, replpw)
+        if replpw is not None:
+            self.add_replication_manager(conn, repldn, replpw)
         self.replica_config(conn, replica_id, repldn)
         self.setup_changelog(conn)
 
