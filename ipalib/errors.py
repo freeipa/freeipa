@@ -1471,23 +1471,6 @@ class NotRegisteredError(ExecutionError):
     format = _('Not registered yet')
 
 
-class BatchRequestLimitError(ExecutionError):
-    """
-    **4307** Raised when a batch request contains too many commands
-
-    For example:
-    >>> raise BatchRequestLimitError(limit=128)
-    Traceback (most recent call last):
-      ...
-    BatchRequestLimitError: Too many commands in request, limit is 128
-
-    """
-
-    errno = 4307
-    format = _('Too many commands in request, limit is %(limit)s')
-
-
-
 ##############################################################################
 # 5000 - 5999: Generic errors
 
