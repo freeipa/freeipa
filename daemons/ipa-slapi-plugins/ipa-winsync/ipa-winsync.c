@@ -885,7 +885,9 @@ sync_acct_disable(
     }
 
     if (direction == ACCT_DISABLE_TO_DS) {
-        if (!isvirt) {
+        if (!isvirt ||
+            (ad_is_enabled && (ipaconfig->activated_group_dn == NULL)) ||
+            (!ad_is_enabled && (ipaconfig->inactivated_group_dn == NULL))) {
             char *attrtype = NULL;
             char *attrval = NULL;
             attrtype = "nsAccountLock";

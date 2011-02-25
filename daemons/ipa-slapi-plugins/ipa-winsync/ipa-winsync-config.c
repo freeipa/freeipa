@@ -339,19 +339,17 @@ ipa_winsync_validate_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore, Slapi_E
                                   &testattr) ||
             (NULL == testattr)) {
             PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
-                        "Error: no value given for %s - "
-                        "required for account disable sync",
+                        "No value given for %s - required for account "
+                        "disable sync, ignoring",
                         IPA_WINSYNC_INACTIVATED_FILTER);
-            goto done2;
         }
         if (slapi_entry_attr_find(e, IPA_WINSYNC_ACTIVATED_FILTER,
                                   &testattr) ||
             (NULL == testattr)) {
             PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
-                        "Error: no value given for %s - "
-                        "required for account disable sync",
+                        "No value given for %s - required for account "
+                        "disable sync, ignoring",
                         IPA_WINSYNC_ACTIVATED_FILTER);
-            goto done2;
         }
     }
 
@@ -507,17 +505,17 @@ ipa_winsync_apply_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore,
         if (!(inactivated_filter = slapi_entry_attr_get_charptr(
                   e, IPA_WINSYNC_INACTIVATED_FILTER))) {
             PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
-                        "Error: no value given for %s - required for account disable sync",
+                        "No value given for %s - required for account "
+                        "disable sync, ignoring",
                         IPA_WINSYNC_INACTIVATED_FILTER);
-            goto done3;
         }
         /* get activated group filter */
         if (!(activated_filter = slapi_entry_attr_get_charptr(
                   e, IPA_WINSYNC_ACTIVATED_FILTER))) {
             PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
-                        "Error: no value given for %s - required for account disable sync",
+                        "No value given for %s - required for account "
+                        "disable sync, ignoring",
                         IPA_WINSYNC_ACTIVATED_FILTER);
-            goto done3;
         }
     }
 
@@ -808,8 +806,12 @@ ipa_winsync_config_refresh_domain(
     default_group_filter = slapi_ch_strdup(theConfig.default_group_filter);
     acct_disable = theConfig.acct_disable;
     if (acct_disable != ACCT_DISABLE_NONE) {
-        inactivated_filter = slapi_ch_strdup(theConfig.inactivated_filter);
-        activated_filter = slapi_ch_strdup(theConfig.activated_filter);
+        if (theConfig.inactivated_filter) {
+            inactivated_filter = slapi_ch_strdup(theConfig.inactivated_filter);
+        }
+        if (theConfig.activated_filter) {
+            activated_filter = slapi_ch_strdup(theConfig.activated_filter);
+        }
     }
     slapi_unlock_mutex(theConfig.lock);
 
@@ -930,25 +932,29 @@ ipa_winsync_config_refresh_domain(
 
     */
     if (acct_disable != ACCT_DISABLE_NONE) {
-        ret = internal_find_entry_get_attr_val(config_dn, search_scope,
-                                               inactivated_filter, "dn",
-                                               NULL, &inactivated_group_dn);
-        if (!inactivated_group_dn) {
-            /* error - could not find the inactivated group dn */
-            LOG_FATAL("Error: could not find the DN of the inactivated users group "
-                      "ds subtree [%s] filter [%s]\n",
-                      slapi_sdn_get_dn(ds_subtree), inactivated_filter);
-            goto out;
+        if (inactivated_filter) {
+            ret = internal_find_entry_get_attr_val(config_dn, search_scope,
+                                                   inactivated_filter, "dn",
+                                                   NULL, &inactivated_group_dn);
+            if (!inactivated_group_dn) {
+                /* error - could not find the inactivated group dn */
+                LOG("Could not find the DN of the inactivated users group ds "
+                    "subtree [%s] filter [%s]. Ignoring\n",
+                    slapi_sdn_get_dn(ds_subtree), inactivated_filter);
+                goto out;
+            }
         }
-        ret = internal_find_entry_get_attr_val(config_dn, search_scope,
-                                               activated_filter, "dn",
-                                               NULL, &activated_group_dn);
-        if (!activated_group_dn) {
-            /* error - could not find the activated group dn */
-            LOG_FATAL("Error: could not find the DN of the activated users group "
-                      "ds subtree [%s] filter [%s]\n",
-                      slapi_sdn_get_dn(ds_subtree), activated_filter);
-            goto out;
+        if (activated_filter) {
+            ret = internal_find_entry_get_attr_val(config_dn, search_scope,
+                                                   activated_filter, "dn",
+                                                   NULL, &activated_group_dn);
+            if (!activated_group_dn) {
+                /* error - could not find the activated group dn */
+                LOG("Could not find the DN of the activated users group ds "
+                    "subtree [%s] filter [%s]. Ignoring\n",
+                    slapi_sdn_get_dn(ds_subtree), activated_filter);
+                goto out;
+            }
         }
     }
 
@@ -981,7 +987,7 @@ ipa_winsync_config_refresh_domain(
     slapi_ch_free_string(&iwdc->activated_group_dn);
     iwdc->activated_group_dn = activated_group_dn;
     activated_group_dn = NULL;
-  
+
 out:
     slapi_valueset_free(new_user_objclasses);
     slapi_sdn_free(&config_dn);
