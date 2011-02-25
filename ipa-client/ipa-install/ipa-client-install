@@ -546,6 +546,7 @@ CCACHE_FILE = "/etc/ipa/.dns_ccache"
 def update_dns(server, hostname):
 
     ip = resolve_ipaddress(server)
+    princ = 'host/%s' % hostname
 
     sub_dict = dict(HOSTNAME=hostname,
                     IPADDRESS=ip,
@@ -571,7 +572,7 @@ def update_dns(server, hostname):
     update_fd.close()
 
     try:
-        ipautil.run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab'],
+        ipautil.run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab', princ],
                     env={'KRB5CCNAME':CCACHE_FILE})
     except CalledProcessError, e:
         print >>sys.stderr, "Failed to obtain host TGT."
