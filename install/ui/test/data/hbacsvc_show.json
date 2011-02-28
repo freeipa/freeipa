@@ -22,7 +22,7 @@
                 "676e92a1-ec7611df-b3f78f4b-11cc007b"
             ],
             "memberof": [
-                "cn=SUDO,cn=hbacservicegroups,cn=hbac,dc=dev,dc=example,dc=com"
+                "cn=Sudo,cn=hbacservicegroups,cn=hbac,dc=dev,dc=example,dc=com"
             ],
             "objectclass": [
                 "ipahbacservice",

@@ -19,10 +19,10 @@
                 "seealso": "rscwo"
             },
             "cn": [
-                "SUDO"
+                "Sudo"
             ],
             "description": [
-                "Default group of SUDO related services"
+                "Default group of Sudo related services"
             ],
             "dn": "cn=sudo,cn=hbacservicegroups,cn=hbac,dc=dev,dc=example,dc=com",
             "ipauniqueid": [

@@ -14,7 +14,7 @@
                 "group1"
             ],
             "description": [
-                "SUDO Group 1"
+                "Sudo Group 1"
             ],
             "dn": "cn=group1,cn=sudocmdgroups,cn=sudo,dc=dev,dc=example,dc=com"
         }

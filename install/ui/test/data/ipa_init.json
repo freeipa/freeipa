@@ -7612,7 +7612,7 @@
                             "objectclass",
                             "aci"
                         ],
-                        "label": "SUDO Commands",
+                        "label": "Sudo Commands",
                         "methods": [
                             "add",
                             "del",
@@ -7743,7 +7743,7 @@
                             "objectclass",
                             "aci"
                         ],
-                        "label": "SUDO Command Groups",
+                        "label": "Sudo Command Groups",
                         "methods": [
                             "add",
                             "add_member",
@@ -7964,7 +7964,7 @@
                             "objectclass",
                             "aci"
                         ],
-                        "label": "SUDO",
+                        "label": "Sudo",
                         "methods": [
                             "add",
                             "add_allow_command",
@@ -9684,11 +9684,11 @@
                             "valid": "Kerberos Key Present, Service Provisioned"
                         },
                         "sudocmd": {
-                            "add": "Add New SUDO Command",
+                            "add": "Add New Sudo Command",
                             "groups": "Groups"
                         },
                         "sudocmdgroup": {
-                            "add": "Add New SUDO Command Group",
+                            "add": "Add New Sudo Command Group",
                             "commands": "Commands"
                         },
                         "sudorule": {
@@ -9745,7 +9745,7 @@
                         "ipaserver": "IPA Server",
                         "policy": "Policy",
                         "role": "Role Based Access Control",
-                        "sudo": "SUDO"
+                        "sudo": "Sudo"
                     },
                     "widget": {
                         "validation_error": "Text does not match field pattern"

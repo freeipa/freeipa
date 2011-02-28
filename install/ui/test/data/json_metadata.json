@@ -7609,7 +7609,7 @@
                     "objectclass",
                     "aci"
                 ],
-                "label": "SUDO Commands",
+                "label": "Sudo Commands",
                 "methods": [
                     "add",
                     "del",
@@ -7740,7 +7740,7 @@
                     "objectclass",
                     "aci"
                 ],
-                "label": "SUDO Command Groups",
+                "label": "Sudo Command Groups",
                 "methods": [
                     "add",
                     "add_member",
@@ -7961,7 +7961,7 @@
                     "objectclass",
                     "aci"
                 ],
-                "label": "SUDO",
+                "label": "Sudo",
                 "methods": [
                     "add",
                     "add_allow_command",

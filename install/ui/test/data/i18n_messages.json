@@ -221,11 +221,11 @@
                     "valid": "Kerberos Key Present, Service Provisioned"
                 },
                 "sudocmd": {
-                    "add": "Add New SUDO Command",
+                    "add": "Add New Sudo Command",
                     "groups": "Groups"
                 },
                 "sudocmdgroup": {
-                    "add": "Add New SUDO Command Group",
+                    "add": "Add New Sudo Command Group",
                     "commands": "Commands"
                 },
                 "sudorule": {
@@ -282,7 +282,7 @@
                 "ipaserver": "IPA Server",
                 "policy": "Policy",
                 "role": "Role Based Access Control",
-                "sudo": "SUDO"
+                "sudo": "Sudo"
             },
             "widget": {
                 "validation_error": "Text does not match field pattern"

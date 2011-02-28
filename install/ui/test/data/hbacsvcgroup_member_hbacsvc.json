@@ -18,7 +18,7 @@
                         "42927a86-f46d-11df-8cc1-00163e72f2d9"
                     ],
                     "memberof": [
-                        "cn=SUDO,cn=hbacservicegroups,cn=hbac,dc=dev,dc=example,dc=com"
+                        "cn=Sudo,cn=hbacservicegroups,cn=hbac,dc=dev,dc=example,dc=com"
                     ],
                     "objectclass": [
                         "ipahbacservice",
@@ -42,7 +42,7 @@
                         "42970a6a-f46d-11df-8cc1-00163e72f2d9"
                     ],
                     "memberof": [
-                        "cn=SUDO,cn=hbacservicegroups,cn=hbac,dc=dev,dc=example,dc=com"
+                        "cn=Sudo,cn=hbacservicegroups,cn=hbac,dc=dev,dc=example,dc=com"
                     ],
                     "objectclass": [
                         "ipahbacservice",
