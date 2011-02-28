@@ -673,6 +673,18 @@ class ReplicationManager:
         self.wait_for_repl_update(self.conn, dn, 30)
         logging.info("Agreement is ready, starting replication . . .")
 
+        # Add winsync replica to the public DIT
+        dn = 'cn=%s,cn=replicas,cn=ipa,cn=etc,%s' % (ad_dc_name, self.suffix)
+        entry = ipaldap.Entry(dn)
+        entry.setValues("objectclass", ["nsContainer", "ipaConfigObject"])
+        entry.setValues("cn", ad_dc_name)
+        entry.setValues("ipaConfigString", "winsync:%s" % self.hostname)
+
+        try:
+            self.conn.add_s(entry)
+        except Exception, e:
+            logging.info("Failed to create public entry for winsync replica")
+
         #Finally start replication
         ret = self.start_replication(self.conn, ad_dc_name)
         if ret != 0:

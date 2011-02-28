@@ -117,42 +117,77 @@ def test_connection(realm, host):
     except ldap.LOCAL_ERROR:
         return False
 
-def list_masters(realm, host, replica, dirman_passwd, verbose):
+def list_replicas(realm, host, replica, dirman_passwd, verbose):
 
-    if replica:
-        try:
-            repl = replication.ReplicationManager(realm, replica, dirman_passwd)
-        except Exception, e:
-            print "Failed to get data from '%s': %s" % (replica, str(e))
-            return
+    is_replica = False
+    winsync_peer = None
+    peers = {}
 
-        entries = repl.find_replication_agreements()
+    try:
+        conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
+        if dirman_passwd:
+            conn.do_simple_bind(bindpw=dirman_passwd)
+        else:
+            conn.do_sasl_gssapi_bind()
 
-        for entry in entries:
-            print entry.nsds5replicahost
+        dn = 'cn=masters,cn=ipa,cn=etc,%s' % util.realm_to_suffix(realm)
+        entries = conn.search_s(dn, ldap.SCOPE_ONELEVEL)
 
-            if verbose:
-                print "  last init status: %s" % entry.nsds5replicalastinitstatus
-                print "  last init ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastinitend))
-                print "  last update status: %s" % entry.nsds5replicalastupdatestatus
-                print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastupdateend))
-    else:
-        try:
-            conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
-            if dirman_passwd:
-                conn.do_simple_bind(bindpw=dirman_passwd)
-            else:
-                conn.do_sasl_gssapi_bind()
+        for ent in entries:
+            peers[ent.cn] = ['master', '']
 
-            dn = 'cn=masters,cn=ipa,cn=etc,%s' % util.realm_to_suffix(realm)
-            entries = conn.search_s(dn, ldap.SCOPE_ONELEVEL)
+        dn = 'cn=replicas,cn=ipa,cn=etc,%s' % util.realm_to_suffix(realm)
+        entries = conn.search_s(dn, ldap.SCOPE_ONELEVEL)
 
-            for ent in entries:
-                print ent.cn
+        for ent in entries:
+            peers[ent.cn] = ent.ipaconfigstring.split(':')
 
-        except Exception, e:
-            print "Failed to get data from '%s': %s" % (host, str(e))
-            return
+    except Exception, e:
+        print "Failed to get data from '%s': %s" % (host, str(e))
+        return
+
+
+    if not replica:
+        for k, p in peers.iteritems():
+            print '%s: %s' % (k, p[0])
+        return
+
+    # ok we are being ask for info about a specific replica
+    for k, p in peers.iteritems():
+        if replica == k:
+            is_replica = True
+            if p[0] == 'winsync':
+                winsync_peer = p[1]
+
+    if not is_replica:
+        print "Cannot find %s in public server list" % replica
+        return
+
+    try:
+        if winsync_peer:
+            repl = replication.ReplicationManager(realm, winsync_peer,
+                                                  dirman_passwd)
+            cn, dn = repl.agreement_dn(replica)
+            entries = repl.conn.search_s(dn, ldap.SCOPE_BASE,
+                                         "(objectclass=nsDSWindowsReplicationAgreement)")
+            ent_type = 'winsync'
+        else:
+            repl = replication.ReplicationManager(realm, replica,
+                                                  dirman_passwd)
+            entries = repl.find_replication_agreements()
+            ent_type = 'replica'
+    except Exception, e:
+        print "Failed to get data from '%s': %s" % (replica, str(e))
+        return
+
+    for entry in entries:
+        print '%s: %s' % (entry.nsds5replicahost, ent_type)
+
+        if verbose:
+            print "  last init status: %s" % entry.nsds5replicalastinitstatus
+            print "  last init ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastinitend))
+            print "  last update status: %s" % entry.nsds5replicalastupdatestatus
+            print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastupdateend))
 
 def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
@@ -227,6 +262,21 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
     repl1.delete_agreement(replica2)
     repl1.delete_referral(replica2)
+
+    if type1 == replication.WINSYNC:
+        try:
+            dn = 'cn=%s,cn=replicas,cn=ipa,cn=etc,%s' % (replica2,
+                                                         util.realm_to_suffix(realm))
+            entries = repl1.conn.search_s(dn, ldap.SCOPE_SUBTREE)
+            if len(entries) != 0:
+                dnset = repl1.conn.get_dns_sorted_by_length(entries,
+                                                            reverse=True)
+                for dns in dnset:
+                    for dn in dns:
+                        repl1.conn.deleteEntry(dn)
+        except Exception, e:
+            print "Error deleting winsync replica shared info: %s" % str(e)
+
 
 def del_master(realm, hostname, options):
 
@@ -390,7 +440,7 @@ def main():
         replica = None
         if len(args) == 2:
             replica = args[1]
-        list_masters(realm, host, replica, dirman_passwd, options.verbose)
+        list_replicas(realm, host, replica, dirman_passwd, options.verbose)
     elif args[0] == "del":
         del_master(realm, args[1], options)
     elif args[0] == "re-initialize":

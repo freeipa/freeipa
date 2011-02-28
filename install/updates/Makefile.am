@@ -10,6 +10,7 @@ app_DATA =				\
 	20-nss_ldap.update		\
 	20-replication.update		\
 	20-winsync_index.update		\
+	21-replicas_container.update	\
 	40-delegation.update		\
 	50-lockout-policy.update		\
 	45-roles.update			\
