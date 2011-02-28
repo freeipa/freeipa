@@ -262,11 +262,11 @@ class i18n_messages(Command):
                 "unprovision":_("Unprovision"),
                 },
             "sudocmd": {
-                "add":_("Add New SUDO Command"),
+                "add":_("Add New Sudo Command"),
                 "groups":_("Groups"),
                 },
             "sudocmdgroup": {
-                "add":_("Add New SUDO Command Group"),
+                "add":_("Add New Sudo Command Group"),
                 "commands":_("Commands"),
                 },
             "sudorule": {
@@ -361,7 +361,7 @@ class i18n_messages(Command):
             "policy":_("Policy"),
             "audit": _("Audit"),
             "ipaserver":_("IPA Server"),
-            "sudo":_("SUDO"),
+            "sudo":_("Sudo"),
             "hbac":_("HBAC"),
             "role":_("Role Based Access Control")
             },

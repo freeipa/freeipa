@@ -63,7 +63,7 @@ class sudocmdgroup(LDAPObject):
         'member': ['sudocmd'],
     }
 
-    label = _('SUDO Command Groups')
+    label = _('Sudo Command Groups')
 
     takes_params = (
         Str('cn',

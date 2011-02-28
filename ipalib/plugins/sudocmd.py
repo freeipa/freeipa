@@ -61,7 +61,7 @@ class sudocmd(LDAPObject):
         'memberof': ['sudocmdgroup'],
     }
     uuid_attribute = 'ipauniqueid'
-    label = _('SUDO Commands')
+    label = _('Sudo Commands')
 
     takes_params = (
         Str('sudocmd',

@@ -250,7 +250,7 @@ class DsInstance(service.Service):
         self.step("adding replication acis", self.__add_replication_acis)
         self.step("configuring user private groups", self.__user_private_groups)
         self.step("configuring netgroups from hostgroups", self.__host_nis_groups)
-        self.step("creating default SUDO bind user", self.__add_sudo_binduser)
+        self.step("creating default Sudo bind user", self.__add_sudo_binduser)
         if hbac_allow:
             self.step("creating default HBAC rule allow_all", self.add_hbac)
 

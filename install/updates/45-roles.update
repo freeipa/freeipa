@@ -66,7 +66,7 @@ add:member: 'cn=IT Security Specialist,cn=roles,cn=accounts,$SUFFIX'
 dn: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
 add:member: 'cn=IT Security Specialist,cn=roles,cn=accounts,$SUFFIX'
 
-dn: cn=SUDO administrator,cn=privileges,cn=pbac,$SUFFIX
+dn: cn=Sudo administrator,cn=privileges,cn=pbac,$SUFFIX
 add:member: 'cn=IT Security Specialist,cn=roles,cn=accounts,$SUFFIX'
 
 dn: cn=Security Architect,cn=roles,cn=accounts,$SUFFIX

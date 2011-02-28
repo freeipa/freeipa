@@ -22,7 +22,7 @@ give certain users (or groups of users) the ability to run some (or all)
 commands as root or another user while providing an audit trail of the
 commands and their arguments.
 
-FreeIPA provides a designated binddn to use with SUDO located at:
+FreeIPA provides a designated binddn to use with Sudo located at:
 uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com
 
 To enable the binddn run the following command to set the password:
@@ -65,7 +65,7 @@ class sudorule(LDAPObject):
         'ipasudorunasgroup': ['group'],
     }
 
-    label = _('SUDO')
+    label = _('Sudo')
 
     takes_params = (
         Str('cn',
@@ -607,7 +607,7 @@ class sudorule_add_option(LDAPQuery):
         dn = self.obj.get_dn(cn)
 
         (dn, entry_attrs) = ldap.get_entry(dn, ['ipasudoopt'])
-        
+
         entry_attrs.setdefault('ipasudoopt', []).append(
             options['ipasudoopt']
         )

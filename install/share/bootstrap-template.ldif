@@ -289,16 +289,16 @@ cn: kdm
 description: kdm
 ipauniqueid:autogenerate
 
-dn: cn=SUDO,cn=hbacservicegroups,cn=hbac,$SUFFIX
+dn: cn=Sudo,cn=hbacservicegroups,cn=hbac,$SUFFIX
 changetype: add
 objectClass: ipaobject
 objectClass: ipahbacservicegroup
 objectClass: nestedGroup
 objectClass: groupOfNames
 objectClass: top
-cn: SUDO
+cn: Sudo
 ipauniqueid:autogenerate
-description: Default group of SUDO related services
+description: Default group of Sudo related services
 member: cn=sudo,cn=hbacservices,cn=hbac,$SUFFIX
 member: cn=sudo-i,cn=hbacservices,cn=hbac,$SUFFIX
 
