@@ -194,6 +194,7 @@ IPA.entity = function (spec) {
 
             // skip non-assignable associations
             if (attribute_member === 'memberindirect') continue;
+            if (attribute_member === 'memberofindirect') continue;
             if (attribute_member === 'enrolledby') continue;
 
             var other_entities = attribute_members[attribute_member];
