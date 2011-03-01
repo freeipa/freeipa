@@ -190,6 +190,7 @@ class FileStore:
             backup_path = os.path.join(self._path, filename)
             if not os.path.exists(backup_path):
                 logging.debug("  -> Not restoring - '%s' doesn't exist", backup_path)
+                continue
 
             shutil.move(backup_path, path)
             os.chown(path, int(uid), int(gid))

@@ -416,7 +416,7 @@ def uninstall():
     bindinstance.BindInstance(fstore).uninstall()
     httpinstance.HTTPInstance(fstore).uninstall()
     krbinstance.KrbInstance(fstore).uninstall()
-    dsinstance.DsInstance().uninstall()
+    dsinstance.DsInstance(fstore=fstore).uninstall()
     fstore.restore_all_files()
     try:
         os.remove(ANSWER_CACHE)
@@ -779,7 +779,7 @@ def main():
     service.start('messagebus')
 
     # Create a directory server instance
-    ds = dsinstance.DsInstance()
+    ds = dsinstance.DsInstance(fstore=fstore)
 
     if options.dirsrv_pin:
         [pw_fd, pw_name] = tempfile.mkstemp()
