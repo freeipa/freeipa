@@ -50,7 +50,7 @@ IPA.entity_factories.host = function () {
         that.add_facet(facet);
 
         facet = IPA.host_managedby_host_facet({
-            'name': 'managedby_host'
+            name: 'managedby_host'
         });
         that.add_facet(facet);
 
@@ -503,18 +503,12 @@ IPA.host_managedby_host_facet = function (spec) {
             }).appendTo(container);
         };
 
-        that.create_column({name: 'description'});
-
         that.create_adder_column({
             name: 'fqdn',
             primary_key: true,
-            width: '100px'
+            width: '200px'
         });
 
-        that.create_adder_column({
-            name: 'description',
-            width: '100px'
-        });
 
         that.association_facet_init();
     };

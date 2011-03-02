@@ -430,8 +430,12 @@ IPA.association_table_widget = function (spec) {
             'on_success': on_success,
             'on_error': on_error
         });
+        var length = that.values.length;
+        if (length > 100){
+            length = 100;
+        }
 
-        for (var i=0; i<that.values.length; i++) {
+        for (var i=0; i< length; i++) {
             var value = that.values[i];
 
             var command = IPA.command({
@@ -917,28 +921,29 @@ IPA.association_facet = function (spec) {
 
         if (!pkeys.length) return;
 
-        var batch = IPA.batch_command({
-            'name': that.entity_name+'_'+that.name,
+
+        var options = {
+            'all': true,
+            'rights': true
+        };
+
+        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var args =[];
+        /* TODO: make a general solution to generate this value */
+        var relationship_filter = 'in_' + that.entity_name;
+        options[relationship_filter] = pkey;
+
+        var command = IPA.command({
             'on_success': on_success,
-            'on_error': on_error
+            'on_error': on_error,
+            'method': that.other_entity+'_find',
+            'args': args,
+            options: options
         });
 
-        for (var i=0; i<pkeys.length; i++) {
-            var pkey = pkeys[i];
+        command.execute();
 
-            var command = IPA.command({
-                'method': that.other_entity+'_show',
-                'args': [pkey],
-                'options': {
-                    'all': true,
-                    'rights': true
-                }
-            });
 
-            batch.add_command(command);
-        }
-
-        batch.execute();
     };
 
     that.refresh = function() {
@@ -962,9 +967,9 @@ IPA.association_facet = function (spec) {
                 that.get_records(
                     pkeys,
                     function(data, text_status, xhr) {
-                        var results = data.result.results;
+                        var results = data.result.result;
                         for (var i=0; i<results.length; i++) {
-                            var record = results[i].result;
+                            var record = results[i];
                             that.table.add_record(record);
                         }
                     }
