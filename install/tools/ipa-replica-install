@@ -176,6 +176,23 @@ def install_ca(config):
                           master_host=config.master_host_name,
                           subject_base=config.subject_base)
 
+    # The dogtag DS instance needs to be restarted after installation.
+    # The procedure for this is: stop dogtag, stop DS, start DS, start
+    # dogtag
+    #
+    # The service_name trickery is due to the service naming we do
+    # internally. In the case of the dogtag DS the name doesn't match the
+    # unix service.
+
+    service_name = cs.service_name
+    service.print_msg("Restarting the directory and certificate servers")
+    cs.service_name = "dirsrv"
+    cs.stop("PKI-IPA")
+    ca.stop()
+    cs.start("PKI-IPA")
+    ca.start()
+    cs.service_name = service_name
+
     return ca
 
 def install_replica_ds(config):
