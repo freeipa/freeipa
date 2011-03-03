@@ -350,7 +350,7 @@ class i18n_messages(Command):
             "unselect_all":_("Unselect All"),
             "delete_confirm":_("Are you sure you want to delete selected entries?"),
             "truncated":_(
-                "Query returned results than configured size limit will show. First ${counter} results shown."),
+                "Query returned more results than the configured size limit will show. First ${counter} results shown."),
             },
         "details":{
             "general":_("General"),
