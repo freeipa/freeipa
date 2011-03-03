@@ -501,12 +501,17 @@ IPA.records_facet = function (spec){
             generate_tr(thead, tbody, result[i]);
         }
 
+        tfoot.find('td').remove();
         if (data.result.truncated) {
             var message = IPA.messages.search.truncated;
             message = message.replace('${counter}', data.result.count);
-            tfoot.text(message);
+            tfoot.append($('<td />',{
+                colspan:2,
+                text:message}));
         } else {
-            tfoot.text(data.result.summary);
+            tfoot.append($('<td/>',{
+                colspan:2,
+                text:data.result.summary}));
         }
 
     }
