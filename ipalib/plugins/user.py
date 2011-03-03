@@ -235,7 +235,7 @@ class user(LDAPObject):
             if not isinstance(email, (list, tuple)):
                 email = [email]
             for m in email:
-                if m.find('@') == -1:
+                if isinstance(m, basestring) and m.find('@') == -1:
                     norm_email.append(m + u'@' + config['ipadefaultemaildomain'][0])
                 else:
                     norm_email.append(m)
