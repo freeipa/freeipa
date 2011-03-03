@@ -565,6 +565,10 @@ def main():
         if not bindinstance.check_inst(options.unattended):
             sys.exit("Aborting installation")
 
+        # Don't require an external DNS to say who we are if we are
+        # setting up a local DNS server.
+        options.no_host_dns = True
+
     # check the hostname is correctly configured, it must be as the kldap
     # utilities just use the hostname as returned by getaddrinfo to set
     # up some of the standard entries
