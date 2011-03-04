@@ -351,23 +351,20 @@ IPA.association_table_widget = function (spec) {
 
         that.table_setup(container);
 
-        var dialog = $('<div/>', {
-            html: IPA.messages.dialogs.dirty_message
-        }).appendTo(container);
+        var dialog = IPA.dialog({
+            title: IPA.messages.dialogs.dirty_title,
+            width: '20em'
+        });
 
-        var buttons = {};
-
-        buttons[IPA.messages.buttons.ok] = function() {
-            dialog.dialog('close');
+        dialog.create = function() {
+            dialog.container.append(IPA.messages.dialogs.dirty_message);
         };
 
-        dialog.dialog({
-            autoOpen: false,
-            title: IPA.messages.dialogs.dirty_title,
-            modal: true,
-            width: '20em',
-            buttons: buttons
+        dialog.add_button(IPA.messages.buttons.ok, function() {
+            dialog.close();
         });
+
+        dialog.init();
 
         var entity = IPA.get_entity(that.entity_name);
         var facet_name = IPA.current_facet(entity);
@@ -383,7 +380,7 @@ IPA.association_table_widget = function (spec) {
                 }
 
                 if (facet.is_dirty()) {
-                    dialog.dialog('open');
+                    dialog.open(that.container);
                 } else {
                     that.show_remove_dialog();
                 }
@@ -402,7 +399,7 @@ IPA.association_table_widget = function (spec) {
                 }
 
                 if (facet.is_dirty()) {
-                    dialog.dialog('open');
+                    dialog.open(that.container);
                 } else {
                     that.show_add_dialog();
                 }

@@ -135,24 +135,26 @@ var IPA = ( function () {
         if (IPA.current_entity){
             var facet_name =   IPA.current_facet(IPA.current_entity);
             var facet = IPA.current_entity.facets_by_name[facet_name];
+
             if (facet.is_dirty()){
-                var message_box =  $("<div/>",{
-                    html: IPA.messages.dialogs.dirty_message
-                }).
-                    appendTo($("#navigation"));
 
-                var buttons = {};
+                var dialog = IPA.dialog({
+                    title: IPA.messages.dialogs.dirty_title,
+                    width: '20em'
+                });
 
-                buttons[IPA.messages.buttons.ok] = function() {
-                    $(this).dialog("close");
+                dialog.create = function() {
+                    dialog.container.append(IPA.messages.dialogs.dirty_message);
                 };
 
-                message_box.dialog({
-                    title: IPA.messages.dialogs.dirty_title,
-                    modal:true,
-                    width: '20em',
-                    buttons: buttons
+                dialog.add_button(IPA.messages.buttons.ok, function() {
+                    dialog.close();
                 });
+
+                dialog.init();
+
+                dialog.open($('#navigation'));
+
                 return false;
             }
         }
