@@ -124,68 +124,82 @@ IPA.records_facet = function (spec){
 
     function add_click(){
 
-        var add_dialog = $('<div/>',{
-            id: 'add_dns_resource_record',
+        var dialog = IPA.dialog({
             title: IPA.messages.objects.dnsrecord.add
         });
-        var dl = $('<dl></dl>').appendTo(add_dialog);
-        dl.append('<dt>'+IPA.messages.objects.dnsrecord.resource+'</dt>');
-        dl.append( $('<dd/>').
-                   append($('<input type="text" id="dns-record-resource" />')));
-        dl.append('<dt>'+IPA.messages.objects.dnsrecord.type+'</dt>');
-        dl.append(  $('<dd/>').append(create_type_select('dns-record-type')));
-        dl.append('<dt>'+IPA.messages.objects.dnsrecord.data+'</dt>');
-        dl.append($('<dd/>').append($('<textarea/>',{
-            id: 'dns-record-data',
-            rows:"8",
-            cols:"20"
-        })));
 
+        dialog.create = function() {
 
-        function add(evt, called_from_add_and_edit) {
-            var params = [];
-            var options = {};
-            function add_win(data, text_status, xhr) {
-                reload();
-            }
+            var dl = $('<dl/>').appendTo(dialog.container);
 
-            function add_fail(data, text_status, xhr) {
-            }
+            $('<dt/>', {
+                html: IPA.messages.objects.dnsrecord.resource
+            }).appendTo(dl);
 
-            params.push(  $.bbq.getState(that.entity_name+'-pkey', true));
-            params.push(add_dialog.find('#dns-record-resource').val());
+            var dd = $('<dd/>').appendTo(dl);
 
-            var key =  add_dialog.find('#dns-record-type').val().toLowerCase()+
-                "record";
-            var value = add_dialog.find('#dns-record-data').val();
-            options[key] = value;
+            dialog.resource = $('<input/>', {
+                type: 'text'
+            }).appendTo(dd);
 
+            $('<dt/>', {
+                html: IPA.messages.objects.dnsrecord.type
+            }).appendTo(dl);
 
-            IPA.cmd('dnsrecord_add', params, options, add_win, add_fail);
-            //add_dialog.dialog('close');
-        }
+            dd = $('<dd/>').appendTo(dl);
 
-        function add_and_close(evt) {
-            add(evt, true);
-            add_dialog.dialog('close');
-        }
+            dialog.type = create_type_select('dns-record-type').appendTo(dd);
 
-        function cancel() {
-            add_dialog.dialog('close');
-        }
+            $('<dt/>', {
+                html: IPA.messages.objects.dnsrecord.data
+            }).appendTo(dl);
 
-        var buttons = {};
+            dd = $('<dd/>').appendTo(dl);
 
-        buttons[IPA.messages.buttons.add_many] = add;
-        buttons[IPA.messages.buttons.add_and_close] = add_and_close;
-        buttons[IPA.messages.buttons.cancel] = cancel;
+            dialog.data = $('<textarea/>', {
+                rows: 8,
+                cols: 20
+            }).appendTo(dd);
+        };
 
-        add_dialog.dialog({
-            modal: true,
-            buttons: buttons
+        dialog.add_button(IPA.messages.buttons.add_many, function() {
+            dialog.add();
         });
-    }
 
+        dialog.add_button(IPA.messages.buttons.add_and_close, function() {
+            dialog.add();
+            dialog.close();
+        });
+
+        dialog.add_button(IPA.messages.buttons.cancel, function() {
+            dialog.close();
+        });
+
+        dialog.add = function() {
+
+            var pkey = $.bbq.getState(that.entity_name+'-pkey', true);
+            var resource = dialog.resource.val();
+
+            var options = {};
+            var key =  dialog.type.val().toLowerCase()+'record';
+            options[key] = dialog.data.val();
+
+            var command = IPA.command({
+                method: 'dnsrecord_add',
+                args: [pkey, resource],
+                options: options,
+                on_success: function(data, text_status, xhr) {
+                    reload();
+                }
+            });
+
+            command.execute();
+        };
+
+        dialog.init();
+
+        dialog.open(that.container);
+    }
 
     function delete_records(records_table){
 
