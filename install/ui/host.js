@@ -126,13 +126,13 @@ IPA.utc_date_column_format = function(value){
     var date = new Date();
 
     date.setUTCFullYear(
-        value.substring(0, 4),
-        value.substring(4, 6),
-        value.substring(6, 8));
+        value.substring(0, 4),    // YYYY
+        value.substring(4, 6)-1,  // MM (0-11)
+        value.substring(6, 8));   // DD (1-31)
     date.setUTCHours(
-        value.substring(8, 10),
-        value.substring(10, 12),
-        value.substring(12, 14));
+        value.substring(8, 10),   // HH (0-23)
+        value.substring(10, 12),  // MM (0-59)
+        value.substring(12, 14)); // SS (0-59)
     var formated = date.toString();
     return  formated;
 };
