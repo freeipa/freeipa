@@ -209,79 +209,97 @@ IPA.records_facet = function (spec){
         thead.find("INPUT[type='checkbox']").
             attr('checked', false);
 
-        var i = 0;
-
         var tbody = records_table.find('tbody');
 
+        var records = [];
 
-        var delete_dialog = $('<div/>', {
-            title: IPA.messages.buttons.remove
-        });
-        var to_delete_table =
-            $('<table class="search-table" >'+
-              '<thead><tr><th>Resource</th><th>Type</th></tr></thead>'+
-              '<tbody></tbody></table>').appendTo(delete_dialog);
+        $('input[type=checkbox]:checked', tbody).each(
+            function(index, input){
+                var tr = $(input).parents('tr');
+                var resource = $('[title=idnsname]', tr).text();
+                var type = $('[title=type]', tr).text().toLowerCase();
+                var data = $('[title=data]', tr).text();
 
-        var to_delete_body =  to_delete_table.find('tbody');
-        var delete_list = [];
-        tbody.find("INPUT[type='checkbox']").each(
-            function(index, box){
-                if (box.checked){
-                    var tr = $(box).parents('tr');
-                    var resource = $(tr).find('[title="idnsname"]').text();
-                    var type = $(tr).find('[title="type"]').
-                        text().toLowerCase();
-                    var data = $(tr).find('[title="data"]').text();
-                    var rectype=type+"record";
-
-                    var options = {};
-                    options[rectype]=data;
-
-                    var command = {
-                        "method":"dnsrecord_del",
-                        "params":[[zone,resource], options]};
-                    delete_list.push(command);
-                    to_delete_body.append(
-                        $('<tr></tr>').
-                            append($('<td></td>',{html:resource}).
-                                   after($('<td></td>',{html:type}))));
-                }
+                records.push({
+                    resource: resource,
+                    type: type,
+                    data: data
+                });
             }
         );
 
-        function delete_on_click() {
-            var delete_count = delete_list.length;
-            function delete_complete(){
-                    reload();
-                    delete_dialog.dialog('close');
-            }
-
-            IPA.cmd('batch', delete_list, {},
-                    delete_complete,delete_complete);
-        }
-
-        function cancel_on_click() {
-            delete_dialog.dialog('close');
-        }
-
-
-        if (delete_list.length === 0){
+        if (records.length === 0){
             return;
         }
-        delete_dialog.append($('<P/>',
-                               {text: IPA.messages.search.delete_confirm}));
 
-        var buttons = {};
-
-        buttons[IPA.messages.buttons.remove] = delete_on_click;
-        buttons[IPA.messages.buttons.cancel] = cancel_on_click;
-
-        delete_dialog.dialog({
-            modal: true,
-            buttons: buttons
+        var dialog = IPA.dialog({
+            title: IPA.messages.buttons.remove
         });
 
+        dialog.create = function() {
 
+            var to_delete_table =
+                $('<table class="search-table" >'+
+                  '<thead><tr><th>Resource</th><th>Type</th></tr></thead>'+
+                  '<tbody></tbody></table>').appendTo(dialog.container);
+
+            var to_delete_body =  to_delete_table.find('tbody');
+
+            for (var i=0; i<records.length; i++) {
+                var record = records[i];
+
+                var tr = $('<tr></tr>').appendTo(to_delete_body);
+
+                $('<td/>', {
+                    html: record.resource
+                }).appendTo(tr);
+
+                $('<td/>', {
+                    html: record.type
+                }).appendTo(tr);
+            }
+
+            $('<p/>', {
+                text: IPA.messages.search.delete_confirm
+            }).appendTo(dialog.container);
+        };
+
+        dialog.add_button(IPA.messages.buttons.remove, function() {
+
+            var batch = IPA.batch_command({
+                on_success: function() {
+                    reload();
+                    dialog.close();
+                },
+                on_error: function() {
+                    reload();
+                    dialog.close();
+                }
+            });
+
+            for (var i=0; i<records.length; i++) {
+                var record = records[i];
+
+                var command = IPA.command({
+                    method: 'dnsrecord_del',
+                    args: [zone, record.resource]
+                });
+
+                command.set_option(record.type+'record', record.data);
+
+                batch.add_command(command);
+            }
+
+            batch.execute();
+        });
+
+        dialog.add_button(IPA.messages.buttons.cancel, function() {
+            dialog.close();
+        });
+
+        dialog.init();
+
+        dialog.open(that.container);
     }
 
     that.is_dirty = function() {
