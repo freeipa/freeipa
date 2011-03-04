@@ -708,7 +708,7 @@ option: Str('idnsupdatepolicy', attribute=True, cli_name='update_policy', label=
 option: Flag('idnsallowdynupdate', attribute=True, autofill=True, cli_name='allow_dynupdate', default=False, label=Gettext('Dynamic update', domain='ipa', localedir=None), multivalue=False, required=True)
 option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
 option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
-option: Flag('force', autofill=True, default=False,lag('force', autofill=True, default=False, doc=Gettext('Force DNS zone creation even if name server not in DNS.', domain='ipa', localedir=None))
+option: Flag('force', autofill=True, default=False,lag('force', autofill=True, default=False, doc=Gettext('Force DNS zone creation even if nameserver not in DNS.', domain='ipa', localedir=None))
 option: Str('ip_address?', _validate_ipaddr,tr('ip_address?', _validate_ipaddr, doc=Gettext('Add the nameserver to DNS with this IP address', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
