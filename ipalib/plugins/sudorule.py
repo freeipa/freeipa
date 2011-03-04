@@ -38,11 +38,11 @@ from ipalib import Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
-topic = ('sudo', 'commands for controlling sudo configuration')
+topic = ('sudo', 'Commands for controlling sudo configuration')
 
 class sudorule(LDAPObject):
     """
-    Sudo Rule.
+    Sudo Rule management
     """
     container_dn = api.env.container_sudorule
     object_name = 'Sudo Rule'

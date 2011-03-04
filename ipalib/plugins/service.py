@@ -28,7 +28,7 @@ An IPA service can be managed directly from a machine, provided that
 machine has been given the correct permission. This is true even for
 machines other than the one the service is associated with. For example,
 requesting an SSL certificate using the host service principal credentials
-of the host. To manage a services using a host credentials you need to
+of the host. To manage a service using host credentials you need to
 kinit as the host:
 
  # kinit -kt /etc/krb5.keytab host/ipa.example.com@EXAMPLE.COM

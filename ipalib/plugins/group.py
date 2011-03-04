@@ -21,15 +21,15 @@
 Groups of users
 
 Manage groups of users. By default, new groups are POSIX groups. You
-can add the --nonposix to the group-add command to mark a new group
+can add the --nonposix option to the group-add command to mark a new group
 as non-POSIX, and you can use the same argument to the group-mod command
 to convert a non-POSIX group to a POSIX group. POSIX groups cannot be
 converted to non-POSIX groups.
 
 Every group must have a description.
 
-POSIX groups must have a Group ID number (GID). Changing a GID is
-supported but can have impact on your file permissions. It is not necessary
+POSIX groups must have a Group ID (GID) number. Changing a GID is
+supported but can have an impact on your file permissions. It is not necessary
 to supply a GID when creating a group. IPA will generate one automatically
 if it is not provided.
 
@@ -133,7 +133,7 @@ class group_add(LDAPCreate):
     takes_options = LDAPCreate.takes_options + (
         Flag('nonposix',
              cli_name='nonposix',
-             doc=_('Create as a non-POSIX group?'),
+             doc=_('Create as a non-POSIX group'),
              default=False,
         ),
     )

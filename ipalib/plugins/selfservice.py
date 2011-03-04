@@ -17,29 +17,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Self-Service Permissions
+Self-service Permissions
 
 A permission enables fine-grained delegation of permissions. Access Control
 Rules, or instructions (ACIs), grant permission to permissions to perform
 given tasks such as adding a user, modifying a group, etc.
 
-A Self-Service permission defines what an object can change in its own entry.
+A Self-service permission defines what an object can change in its own entry.
 
 
 EXAMPLES:
 
  Add a self-service rule to allow users to manage their address:
-   ipa selfservice-add --permissions=write --attrs=street,postalCode,l,c,st "User's manage their own address"
+   ipa selfservice-add --permissions=write --attrs=street,postalCode,l,c,st "Users manage their own address"
 
  When managing the list of attributes you need to include all attributes
  in the list, including existing ones. Add telephoneNumber to the list:
-   ipa selfservice-mod --attrs=street,postalCode,l,c,st,telephoneNumber "User's manage their own address"
+   ipa selfservice-mod --attrs=street,postalCode,l,c,st,telephoneNumber "Users manage their own address"
 
  Display our updated rule:
-   ipa selfservice-show "User's manage their own address"
+   ipa selfservice-show "Users manage their own address"
 
  Delete a rule:
-   ipa selfservice-del "User's manage their own address"
+   ipa selfservice-del "Users manage their own address"
 """
 
 import copy
@@ -54,7 +54,7 @@ ACI_PREFIX=u"selfservice"
 
 def is_selfservice(aciname):
     """
-    Determine if the ACI is a Self-Service ACI and raise an exception if it
+    Determine if the ACI is a Self-service ACI and raise an exception if it
     isn't.
 
     Return the result if it is a self-service ACI.
@@ -77,8 +77,8 @@ class selfservice(Object):
     takes_params = (
         Str('aciname',
             cli_name='name',
-            label=_('Self-Service name'),
-            doc=_('Self-Service name'),
+            label=_('Self-service name'),
+            doc=_('Self-service name'),
             primary_key=True,
         ),
         List('permissions?',
@@ -112,7 +112,7 @@ api.register(selfservice)
 
 class selfservice_add(crud.Create):
     """
-    Add a new selfservice permission.
+    Add a new self-service permission.
     """
 
     msg_summary = _('Added selfservice "%(value)s"')
@@ -135,7 +135,7 @@ api.register(selfservice_add)
 
 class selfservice_del(crud.Delete):
     """
-    Delete a selfservice.
+    Delete a self-service permission.
     """
 
     has_output = output.standard_boolean
@@ -156,7 +156,7 @@ api.register(selfservice_del)
 
 class selfservice_mod(crud.Update):
     """
-    Modify a selfservice.
+    Modify a self-service permission.
     """
 
     msg_summary = _('Modified selfservice "%(value)s"')
@@ -179,7 +179,7 @@ api.register(selfservice_mod)
 
 class selfservice_find(crud.Search):
     """
-    Search for selfservices.
+    Search for a self-service permission.
     """
 
     msg_summary = ngettext(
@@ -205,7 +205,7 @@ api.register(selfservice_find)
 
 class selfservice_show(crud.Retrieve):
     """
-    Display information about a selfservice.
+    Display information about a self-service permission.
     """
     has_output_params = (
         Str('aci',

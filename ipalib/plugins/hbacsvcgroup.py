@@ -24,20 +24,20 @@ or "members". Every group must have a description.
 
 EXAMPLES:
 
- Add a new HBAC services group:
+ Add a new HBAC service group:
    ipa hbacsvcgroup-add --desc="login services" login
 
- Add members to an HBAC services group:
+ Add members to an HBAC service group:
    ipa hbacsvcgroup-add-member --hbacsvcs=sshd,login login
 
  Display information about a named group:
    ipa hbacsvcgroup-show login
 
  Add a new group to the "login" group:
-   ipa hbacsvcgroup-add --desc="switch users" suers
-   ipa hbacsvcgroup-add-member --hbacsvcs=su,su-l suers
+   ipa hbacsvcgroup-add --desc="switch users" login
+   ipa hbacsvcgroup-add-member --hbacsvcs=su,su-l login
 
- Delete an HBAC services group:
+ Delete an HBAC service group:
    ipa hbacsvcgroup-del login
 """
 
@@ -82,7 +82,7 @@ api.register(hbacsvcgroup)
 
 class hbacsvcgroup_add(LDAPCreate):
     """
-    Add a new HBAC services group.
+    Add a new HBAC service group.
     """
     msg_summary = _('Added HBAC service group "%(value)s"')
 
@@ -91,7 +91,7 @@ api.register(hbacsvcgroup_add)
 
 class hbacsvcgroup_del(LDAPDelete):
     """
-    Delete an HBAC services group.
+    Delete an HBAC service group.
     """
     msg_summary = _('Deleted HBAC service group "%(value)s"')
 
@@ -100,7 +100,7 @@ api.register(hbacsvcgroup_del)
 
 class hbacsvcgroup_mod(LDAPUpdate):
     """
-    Modify an HBAC services group.
+    Modify an HBAC service group.
     """
     msg_summary = _('Modified HBAC service group "%(value)s"')
 
@@ -109,7 +109,7 @@ api.register(hbacsvcgroup_mod)
 
 class hbacsvcgroup_find(LDAPSearch):
     """
-    Search for an HBAC services group.
+    Search for an HBAC service group.
     """
     msg_summary = ngettext(
         '%(count)d HBAC service group matched', '%(count)d HBAC service groups matched', 0
@@ -120,7 +120,7 @@ api.register(hbacsvcgroup_find)
 
 class hbacsvcgroup_show(LDAPRetrieve):
     """
-    Display information about an HBAC services group.
+    Display information about an HBAC service group.
     """
 
 api.register(hbacsvcgroup_show)
@@ -128,7 +128,7 @@ api.register(hbacsvcgroup_show)
 
 class hbacsvcgroup_add_member(LDAPAddMember):
     """
-    Add members to an HBAC services group.
+    Add members to an HBAC service group.
     """
 
 api.register(hbacsvcgroup_add_member)
@@ -136,7 +136,7 @@ api.register(hbacsvcgroup_add_member)
 
 class hbacsvcgroup_remove_member(LDAPRemoveMember):
     """
-    Remove members from an HBAC services group.
+    Remove members from an HBAC service group.
     """
 
 api.register(hbacsvcgroup_remove_member)

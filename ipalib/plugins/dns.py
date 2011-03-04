@@ -52,7 +52,7 @@ EXAMPLES:
  Show zone example.com:
    ipa dnszone-show example.com
 
- Find zone with "example" in it's domain name:
+ Find zone with "example" in its domain name:
    ipa dnszone-find example
 
  Find records for resources with "www" in their name in zone example.com:
@@ -249,8 +249,8 @@ class dnszone(LDAPObject):
         ),
         Str('idnssoamname',
             cli_name='name_server',
-            label=_('Authoritative name server'),
-            doc=_('Authoritative name server'),
+            label=_('Authoritative nameserver'),
+            doc=_('Authoritative nameserver.'),
         ),
         Str('idnssoarname',
             cli_name='admin_email',
@@ -326,7 +326,7 @@ class dnszone(LDAPObject):
         Flag('idnsallowdynupdate',
             cli_name='allow_dynupdate',
             label=_('Dynamic update'),
-            doc=_('Allow dynamic update?'),
+            doc=_('Allow dynamic updates.'),
             attribute=True,
         ),
     )
@@ -340,7 +340,7 @@ class dnszone_add(LDAPCreate):
     """
     takes_options = LDAPCreate.takes_options + (
         Flag('force',
-             doc=_('force DNS zone creation even if name server not in DNS'),
+             doc=_('Force DNS zone creation even if nameserver not in DNS.'),
         ),
         Str('ip_address?', _validate_ipaddr,
             doc=_('Add the nameserver to DNS with this IP address'),

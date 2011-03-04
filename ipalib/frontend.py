@@ -848,13 +848,13 @@ class Command(HasParam):
             if isinstance(o, (Entry, ListOfEntries)):
                 yield Flag('all',
                     cli_name='all',
-                    doc=_('retrieve and print all attributes from the server. Affects command output.'),
+                    doc=_('Retrieve and print all attributes from the server. Affects command output.'),
                     exclude='webui',
                     flags=['no_output'],
                 )
                 yield Flag('raw',
                     cli_name='raw',
-                    doc=_('print entries as stored on the server. Only affects output format.'),
+                    doc=_('Print entries as stored on the server. Only affects output format.'),
                     exclude='webui',
                     flags=['no_output'],
                 )

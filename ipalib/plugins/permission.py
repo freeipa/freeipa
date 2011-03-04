@@ -26,7 +26,7 @@ user, modifying a group, etc.
 
 A permission may not contain other permissions.
 
-* A permissions grants access to read, write, add or delete.
+* A permission grants access to read, write, add or delete.
 * A privilege combines similar permissions (for example all the permissions
   needed to add a user).
 * A role grants a set of privileges to users, groups, hosts or hostgroups.
@@ -35,9 +35,10 @@ A permission is made up of a number of different parts:
 
 1. The name of the permission.
 2. The target of the permission.
-3. The permissions granted by the permission.
+3. The rights granted by the permission.
 
-The permissions define what operations are allowed and are one or more of:
+Rights define what operations are allowed, and may be one or more
+of the following:
 1. write - write one or more attributes
 2. read - read one or more attributes
 3. add - add a new entry to the tree
@@ -49,14 +50,14 @@ permission is not expected to be used very often.
 
 Note the distinction between attributes and entries. The permissions are
 independent, so being able to add a user does not mean that the user will
-be editabe.
+be editable.
 
 There are a number of allowed targets:
 1. type: a type of object (user, group, etc).
 2. memberof: a member of a group or hostgroup
 3. filter: an LDAP filter
 4. subtree: an LDAP filter specifying part of the LDAP DIT. This is a
-   super-set of the type option.
+   super-set of the "type" target.
 5. targetgroup: grant access to modify a specific group (such as granting
    the rights to manage group membership)
 

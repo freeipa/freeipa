@@ -17,26 +17,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Groups of sudo commands
+Groups of Sudo commands
 
-Manage groups of sudo commands.
-Every group must have a description.
+Manage groups of Sudo commands.
 
 EXAMPLES:
 
- Add a new sudo command group:
+ Add a new Sudo command group:
    ipa sudocmdgroup-add --desc='administrators commands' admincmds
 
- Remove a sudo command group:
+ Remove a Sudo command group:
    ipa sudocmdgroup-del admincmds
 
- Manage sudo command group membership, commands:
+ Manage Sudo command group membership, commands:
    ipa sudocmdgroup-add-member --sudocmds=/usr/bin/less,/usr/bin/vim admincmds
 
- Manage sudo command group membership, commands:
+ Manage Sudo command group membership, commands:
    ipa group-remove-member --sudocmds=/usr/bin/less admincmds
 
- Show a sudo command group:
+ Show a Sudo command group:
    ipa group-show localadmins
 """
 

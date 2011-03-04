@@ -34,12 +34,12 @@ A location defines a set of maps anchored in auto.master. This allows you
 to store multiple automount configurations. A location in itself isn't
 very interesting, it is just a point to start a new automount map.
 
-A map is roughly equivalent to discrete automount files. It is storage
-location for keys.
+A map is roughly equivalent to a discrete automount file and provides
+storage for keys.
 
-A key is a mount point associated to a map.
+A key is a mount point associated with a map.
 
-When a new location is created two maps are automatically created for
+When a new location is created, two maps are automatically created for
 it: auto.master and auto.direct. auto.master is the root map for all
 automount maps for the location. auto.direct is the default map for
 direct mounts and is mounted on /-.
@@ -51,7 +51,7 @@ Locations:
   Create a named location, "Baltimore":
     ipa automountlocation-add baltimore
 
-  Display the new locations:
+  Display the new location:
     ipa automountlocation-show baltimore
 
   Find available locations:
@@ -67,7 +67,7 @@ Locations:
     ipa automountlocation-import baltimore /etc/auto.master
 
     The import will fail if any duplicate entries are found. For
-    continuous operation where errors are ignored use the --continue
+    continuous operation where errors are ignored, use the --continue
     option.
 
 Maps:
@@ -193,7 +193,7 @@ class automountlocation(LDAPObject):
         Str('cn',
             cli_name='location',
             label=_('Location'),
-            doc=_('Automount location name'),
+            doc=_('Automount location name.'),
             primary_key=True,
         ),
     )
@@ -203,7 +203,7 @@ api.register(automountlocation)
 
 class automountlocation_add(LDAPCreate):
     """
-    Create new automount location.
+    Create a new automount location.
     """
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         # create auto.master for the new location
@@ -218,7 +218,7 @@ api.register(automountlocation_add)
 
 class automountlocation_del(LDAPDelete):
     """
-    Delete automount location.
+    Delete an automount location.
     """
 
 api.register(automountlocation_del)
@@ -226,7 +226,7 @@ api.register(automountlocation_del)
 
 class automountlocation_show(LDAPRetrieve):
     """
-    Display automount location.
+    Display an automount location.
     """
 
 api.register(automountlocation_show)
@@ -234,7 +234,7 @@ api.register(automountlocation_show)
 
 class automountlocation_find(LDAPSearch):
     """
-    Search for automount locations.
+    Search for an automount location.
     """
 
 api.register(automountlocation_find)
@@ -311,14 +311,14 @@ class automountlocation_import(LDAPQuery):
     takes_args = (
         Str('masterfile',
             label=_('Master file'),
-            doc=_('Automount master file'),
+            doc=_('Automount master file.'),
         ),
     )
 
     takes_options = (
         Flag('continue?',
              cli_name='continue',
-             doc=_('Continuous operation mode. Errors are reported but the process continues'),
+             doc=_('Continuous operation mode. Errors are reported but the process continues.'),
         ),
     )
 
@@ -502,7 +502,7 @@ class automountmap(LDAPObject):
         IA5Str('automountmapname',
                cli_name='map',
                label=_('Map'),
-               doc=_('Automount map name'),
+               doc=_('Automount map name.'),
                primary_key=True,
         ),
         Str('description?',
@@ -518,7 +518,7 @@ api.register(automountmap)
 
 class automountmap_add(LDAPCreate):
     """
-    Create new automount map.
+    Create a new automount map.
     """
 
 api.register(automountmap_add)
@@ -526,7 +526,7 @@ api.register(automountmap_add)
 
 class automountmap_del(LDAPDelete):
     """
-    Delete automount map.
+    Delete an automount map.
     """
     def post_callback(self, ldap, dn, *keys, **options):
         # delete optional parental connection (direct maps may not have this)
@@ -545,7 +545,7 @@ api.register(automountmap_del)
 
 class automountmap_mod(LDAPUpdate):
     """
-    Modify automount map.
+    Modify an automount map.
     """
 
 api.register(automountmap_mod)
@@ -553,7 +553,7 @@ api.register(automountmap_mod)
 
 class automountmap_find(LDAPSearch):
     """
-    Search for automount maps.
+    Search for an automount map.
     """
 
 api.register(automountmap_find)
@@ -561,7 +561,7 @@ api.register(automountmap_find)
 
 class automountmap_show(LDAPRetrieve):
     """
-    Display automount map.
+    Display an automount map.
     """
 
 api.register(automountmap_show)
@@ -586,7 +586,7 @@ class automountkey(LDAPObject):
         IA5Str('automountkey',
                cli_name='key',
                label=_('Key'),
-               doc=_('Automount key name'),
+               doc=_('Automount key name.'),
         ),
         IA5Str('automountinformation',
                cli_name='info',
@@ -665,7 +665,7 @@ api.register(automountkey)
 
 class automountkey_add(LDAPCreate):
     """
-    Create new automount key.
+    Create a new automount key.
     """
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         self.obj.check_key_uniqueness(keys[-2], keys[-1], **options)
@@ -686,7 +686,7 @@ api.register(automountkey_add)
 
 class automountmap_add_indirect(LDAPCreate):
     """
-    Create new indirect mount point.
+    Create a new indirect mount point.
     """
     takes_options = LDAPCreate.takes_options + (
         Str('key',
@@ -696,7 +696,7 @@ class automountmap_add_indirect(LDAPCreate):
         Str('parentmap?',
             cli_name='parentmap',
             label=_('Parent map'),
-            doc=_('Name of parent automount map (default: auto.master)'),
+            doc=_('Name of parent automount map (default: auto.master).'),
             default=u'auto.master',
             autofill=True,
         ),
@@ -716,13 +716,13 @@ api.register(automountmap_add_indirect)
 
 class automountkey_del(LDAPDelete):
     """
-    Delete automount key.
+    Delete an automount key.
     """
     takes_options = LDAPDelete.takes_options + (
         IA5Str('automountkey',
                cli_name='key',
                label=_('Key'),
-               doc=_('Automount key name'),
+               doc=_('Automount key name.'),
         ),
         IA5Str('automountinformation',
                cli_name='info',
@@ -747,7 +747,7 @@ api.register(automountkey_del)
 
 class automountkey_mod(LDAPUpdate):
     """
-    Modify automount key.
+    Modify an automount key.
     """
     takes_options = LDAPUpdate.takes_options + (
         IA5Str('newautomountinformation',
@@ -780,7 +780,7 @@ api.register(automountkey_mod)
 
 class automountkey_find(LDAPSearch):
     """
-    Modify automount key.
+    Search for an automount key.
     """
 
 api.register(automountkey_find)
@@ -788,13 +788,13 @@ api.register(automountkey_find)
 
 class automountkey_show(LDAPRetrieve):
     """
-    Display automount key.
+    Display an automount key.
     """
     takes_options = LDAPRetrieve.takes_options + (
         IA5Str('automountkey',
                cli_name='key',
                label=_('Key'),
-               doc=_('Automount key name'),
+               doc=_('Automount key name.'),
         ),
         IA5Str('automountinformation',
                cli_name='info',

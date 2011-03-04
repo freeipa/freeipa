@@ -19,16 +19,21 @@
 """
 Kerberos pkinit options
 
-Right now it enables only to control whether Anonymous PKINIT is enabled
-or not based on whether the wellknown principal is active or not.
+Enable or disable anonymous pkinit using the principal
+WELLKNOWN/ANONYMOUS@REALM. The server must have been installed with
+pkinit support.
 
 EXAMPLES:
 
- Enable Anonymous pkinit:
+ Enable anonymous pkinit:
   ipa pkinit-anonymous enable
 
- Disable Anonymous pkinit:
+ Disable anonymous pkinit:
   ipa pkinit-anonymous disable
+
+For more information on anonymous pkinit see:
+
+http://k5wiki.kerberos.org/wiki/Projects/Anonymous_pkinit
 """
 
 from ipalib import api, errors

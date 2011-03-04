@@ -19,9 +19,9 @@
 """
 Set a user's password
 
-If someone other than user changes their password (e.g., Helpdesk resets it)
-then the password will need to be changed the first time it is used.
-This is so the end-user is the only one that knows the password.
+If someone other than a user changes that user's password (e.g., Helpdesk
+resets it) then the password will need to be changed the first time it
+is used. This is so the end-user is the only one who knows the password.
 
 The IPA password policy controls how often a password may be changed,
 what strength requirements exist, and the length of the password history.

@@ -24,10 +24,10 @@ IPA certificate operations
 
 Implements a set of commands for managing server SSL certificates.
 
-Certificate request exist in the form of a Certificate Signing Request (CSR)
+Certificate requests exist in the form of a Certificate Signing Request (CSR)
 in PEM format.
 
-If using the selfsign backend then the subject in the CSR needs to match
+If using the selfsign back end then the subject in the CSR needs to match
 the subject configured in the server. The dogtag CA uses just the CN
 value of the CSR and forces the rest of the subject.
 
@@ -57,8 +57,26 @@ EXAMPLES:
    ipa cert-status 10
 
 IPA currently immediately issues (or declines) all certificate requests so
-the status of a request is not normally useful. This is for future-use
+the status of a request is not normally useful. This is for future use
 or the case where a CA does not immediately issue a certificate.
+
+The following revocation reasons are supported:
+
+    * 0 - unspecified
+    * 1 - keyCompromise
+    * 2 - cACompromise
+    * 3 - affiliationChanged
+    * 4 - superseded
+    * 5 - cessationOfOperation
+    * 6 - certificateHold
+    * 8 - removeFromCRL
+    * 9 - privilegeWithdrawn
+    * 10 - aACompromise
+
+Note that reason code 7 is not used.  See RFC 5280 for more details:
+
+http://www.ietf.org/rfc/rfc5280.txt
+
 """
 
 from ipalib import api, SkipPluginModule
@@ -377,7 +395,7 @@ api.register(cert_request)
 
 class cert_status(VirtualCommand):
     """
-    Check status of a certificate signing request.
+    Check the status of a certificate signing request.
     """
 
     takes_args = (
@@ -447,7 +465,7 @@ class cert_show(VirtualCommand):
     takes_options = (
         Str('out?',
             label=_('Output filename'),
-            doc=_('file to store certificate in'),
+            doc=_('File to store the certificate in.'),
             exclude='webui',
         ),
     )

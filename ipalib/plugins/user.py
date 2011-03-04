@@ -24,7 +24,7 @@ Manage user entries. All users are POSIX users.
 
 IPA supports a wide range of username formats, but you need to be aware of any
 restrictions that may apply to your particular environment. For example,
-usernames that starts with a digit or usernames that exceed a certain length
+usernames that start with a digit or usernames that exceed a certain length
 may cause problems for some UNIX systems.
 Use 'ipa config-mod' to change the username format allowed by IPA tools.
 
@@ -401,7 +401,7 @@ api.register(user_show)
 
 class user_disable(LDAPQuery):
     """
-    Disable user account.
+    Disable a user account.
     """
 
     has_output = output.standard_value
@@ -424,7 +424,7 @@ api.register(user_disable)
 
 class user_enable(LDAPQuery):
     """
-    Enable user account.
+    Enable a user account.
     """
 
     has_output = output.standard_value
@@ -446,10 +446,12 @@ api.register(user_enable)
 
 class user_unlock(LDAPQuery):
     """
-    Lock user account
+    Unlock a user account
 
-    - locked account can't log in against Kerberos and must be unlocked by admin
-    - account can be locked e.g. by inputting wrong password too many times
+    An account may become locked if the password is entered incorrectly too
+    many times within a specific time period as controlled by password
+    policy. A locked account is a temporary condition and may be unlocked by
+    an administrator.
     """
     has_output = output.standard_value
     msg_summary = _('Unlocked account "%(value)s"')

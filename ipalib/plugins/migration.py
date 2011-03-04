@@ -38,11 +38,12 @@ RFC2307bis. RFC2307bis uses member and uniquemember to specify group
 members, RFC2307 uses memberUid. The default schema is RFC2307bis.
 
 Migrated users do not have Kerberos credentials, they have only their
-LDAP password. To complete the migration process users need to go
+LDAP password. To complete the migration process, users need to go
 to http://ipa.example.com/ipa/migration and authenticate using their
 LDAP password in order to generate their Kerberos credentials.
 
-Migration is disabled by default. To configure it use config-mod:
+Migration is disabled by default. Use the command ipa config-mod to
+enable it:
 
  ipa config-mod --enable-migration=TRUE
 

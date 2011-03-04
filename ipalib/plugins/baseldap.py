@@ -411,8 +411,8 @@ _attr_options = (
     ),
     Str('setattr*', validate_set_attribute,
         cli_name='setattr',
-        doc=_("""Set an attribute to an name/value pair. Format is attr=value.
-For multivalued attributes, the command replaces the values already present."""),
+        doc=_("""Set an attribute to a name/value pair. Format is attr=value.
+For multi-valued attributes, the command replaces the values already present."""),
         exclude='webui',
     ),
 )
@@ -1247,8 +1247,8 @@ class LDAPSearch(CallbackInterface, crud.Search):
     Retrieve all LDAP entries matching the given criteria.
     """
     member_attributes = []
-    member_param_incl_doc = 'only %s with %s %s'
-    member_param_excl_doc = 'only %s with no %s %s'
+    member_param_incl_doc = 'Search for %s with these %s %s.'
+    member_param_excl_doc = 'Search for %s without these %s %s.'
 
     takes_options = (
         Int('timelimit?',

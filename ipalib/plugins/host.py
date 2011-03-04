@@ -23,7 +23,7 @@ Hosts/Machines
 A host represents a machine. It can be used in a number of contexts:
 - service entries are associated with a host
 - a host stores the host/ service principal
-- a host can be used in Host-Based Access Control (HBAC) rules
+- a host can be used in Host-based Access Control (HBAC) rules
 - every enrolled client generates a host entry
 
 ENROLLMENT:
@@ -34,7 +34,8 @@ There are three enrollment scenarios when enrolling a new client:
    or not. A full administrator is a member of the hostadmin role
    or the admins group.
 2. You are enrolling as a limited administrator. The host must already
-   exist. A limited administrator is a member of the enrollhost role.
+   exist. A limited administrator is a member a role with the
+   Host Enrollment privilege.
 3. The host has been created with a one-time password.
 
 A host can only be enrolled once. If a client has enrolled and needs to

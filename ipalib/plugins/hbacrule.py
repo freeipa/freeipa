@@ -49,7 +49,7 @@ EXAMPLES:
    ipa hbacrule-add-service --hbacsvcs=sshd john_sshd
 
  Create a rule for a new service group. This lets the user john access
- the any FTP service on any machine from any machine:
+ the FTP service on any machine from any machine:
    ipa hbacsvcgroup-add ftpers
    ipa hbacsvc-add sftp
    ipa hbacsvcgroup-add-member --hbacsvcs=ftp,sftp ftpers
@@ -85,7 +85,7 @@ from ipalib import AccessTime, Password, Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
-topic = ('hbac', 'Host based access control commands')
+topic = ('hbac', 'Host-based access control commands')
 
 def is_all(options, attribute):
     """
@@ -467,7 +467,7 @@ api.register(hbacrule_add_host)
 
 class hbacrule_remove_host(LDAPRemoveMember):
     """
-    Remove target hosts and hostgroups from a HBAC rule.
+    Remove target hosts and hostgroups from an HBAC rule.
     """
     member_attributes = ['memberhost']
     member_count_out = ('%i object removed.', '%i objects removed.')
@@ -521,7 +521,7 @@ api.register(hbacrule_add_service)
 
 class hbacrule_remove_service(LDAPRemoveMember):
     """
-    Remove source hosts and hostgroups from an HBAC rule.
+    Remove service and service groups from an HBAC rule.
     """
     member_attributes = ['memberservice']
     member_count_out = ('%i object removed.', '%i objects removed.')

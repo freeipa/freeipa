@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Misc plugins
+Misc plug-ins
 """
 
 import re
