@@ -171,68 +171,101 @@ IPA.user_password_widget = function(spec) {
     var that = IPA.widget(spec);
 
     that.create = function(container) {
+
         $('<a/>', {
             href: 'jslink',
             title: 'userpassword',
             text: IPA.messages.objects.user.reset_password,
-            click: resetpwd_on_click
+            click: function() {
+                that.show_dialog();
+                return false;
+            }
         }).appendTo(container);
     };
 
-    function resetpwd_on_click() {
+    that.show_dialog = function() {
 
-        function reset_password(new_password) {
+        var dialog = IPA.dialog({
+            title: IPA.messages.objects.user.reset_password,
+            width: 400
+        });
 
-            var user_pkey = $.bbq.getState('user-pkey');
-            var pw_pkey;
-            if (user_pkey === IPA.whoami.uid[0]){
-                pw_pkey = [];
-            }else{
-                pw_pkey = [user_pkey];
-            }
+        dialog.create = function() {
 
-            IPA.cmd('passwd',
-                    pw_pkey, {"password":new_password},
-                    function(){
-                        alert(IPA.messages.objects.user.password_change_complete);
-                        dialog.dialog("close");
-                    },
-                    function(){});
-        }
+            var dl = $('<dl/>', {
+                'class': 'modal'
+            }).appendTo(dialog.container);
 
-        var dialog =
-            $('<div ><dl class="modal">'+
-              '<dt>'+IPA.messages.objects.user.new_password+'</dt>'+
-              '<dd class="first" ><input id="password_1" type="password"/></dd>'+
-              '<dt>'+IPA.messages.objects.user.repeat_password+'</dt>'+
-              '<dd class="first"><input id="password_2" type="password"/></dd>'+
-              '</dl></div>');
+            $('<dt/>', {
+                html: IPA.messages.objects.user.new_password
+            }).appendTo(dl);
 
-        var buttons = {};
+            var dd = $('<dd/>', {
+                'class': 'first'
+            }).appendTo(dl);
 
-        buttons[IPA.messages.objects.user.reset_password] = function() {
-            var p1 = $("#password_1").val();
-            var p2 = $("#password_2").val();
-            if (p1 != p2) {
+            dialog.password1 = $('<input/>', {
+                type: 'password'
+            }).appendTo(dd);
+
+            $('<dt/>', {
+                html: IPA.messages.objects.user.repeat_password
+            }).appendTo(dl);
+
+            dd = $('<dd/>', {
+                'class': 'first'
+            }).appendTo(dl);
+
+            dialog.password2 = $('<input/>', {
+                type: 'password'
+            }).appendTo(dd);
+        };
+
+        dialog.add_button(IPA.messages.objects.user.reset_password, function() {
+
+            var new_password = dialog.password1.val();
+            var repeat_password = dialog.password2.val();
+
+            if (new_password != repeat_password) {
                 alert(IPA.messages.objects.user.password_must_match);
                 return;
             }
-            reset_password(p1);
-        };
 
-        buttons[IPA.messages.buttons.cancel] = function() {
-            dialog.dialog('close');
-        };
+            var user_pkey = $.bbq.getState('user-pkey');
 
-        dialog.dialog({
-            modal: true,
-            title: IPA.messages.objects.user.reset_password,
-            minWidth: 400,
-            buttons: buttons
+            var args;
+            if (user_pkey === IPA.whoami.uid[0]) {
+                args = [];
+            } else {
+                args = [user_pkey];
+            }
+
+            var command = IPA.command({
+                method: 'passwd',
+                args: args,
+                options: {
+                    password: new_password
+                },
+                on_success: function(data, text_status, xhr) {
+                    alert(IPA.messages.objects.user.password_change_complete);
+                    dialog.close();
+                },
+                on_error: function(xhr, text_status, error_thrown) {
+                    dialog.close();
+                }
+            });
+
+            command.execute();
         });
 
-        return false;
-    }
+        dialog.add_button(IPA.messages.buttons.cancel, function() {
+            dialog.close();
+        });
+
+        dialog.init();
+
+        dialog.open(that.container);
+    };
 
     return that;
 };
