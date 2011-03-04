@@ -186,7 +186,10 @@ IPA.dialog = function(spec) {
                         'modal': true,
                         'width': that.width,
                         'height': that.height,
-                        'buttons': that.buttons
+                        'buttons': that.buttons,
+                        close: function(event, ui) {
+                            that.close();
+                        }
                     });
                 }
             );
@@ -200,7 +203,10 @@ IPA.dialog = function(spec) {
                 'modal': true,
                 'width': that.width,
                 'height': that.height,
-                'buttons': that.buttons
+                'buttons': that.buttons,
+                close: function(event, ui) {
+                    that.close();
+                }
             });
         }
     };
@@ -484,10 +490,6 @@ IPA.adder_dialog = function (spec) {
 
     that.get_selected_values = function() {
         return that.selected_table.save();
-    };
-
-    that.close = function() {
-        that.container.dialog('close');
     };
 
     that.adder_dialog_init = that.init;
