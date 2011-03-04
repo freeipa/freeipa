@@ -192,17 +192,18 @@ def uninstall(options, env):
             run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", "IPA CA"])
         except Exception, e:
             print "Failed to remove IPA CA from /etc/pki/nssdb: %s" % str(e)
+
+    # Always start certmonger. We can't untrack something if it isn't
+    # running
+    try:
+        service('certmonger', 'start')
+    except:
+        pass
+    try:
+        certmonger.stop_tracking('/etc/pki/nssdb', nickname=client_nss_nickname)
+    except (CalledProcessError, RuntimeError), e:
+        logging.error("certmonger failed to stop tracking certificate: %s" % str(e))
     if nickname_exists(client_nss_nickname):
-        # Always start certmonger. We can't untrack something if it isn't
-        # running
-        try:
-            service('certmonger', 'start')
-        except:
-            pass
-        try:
-            certmonger.stop_tracking('/etc/pki/nssdb', nickname=client_nss_nickname)
-        except (CalledProcessError, RuntimeError), e:
-            logging.error("certmonger failed to stop tracking certificate: %s" % str(e))
         try:
             run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", client_nss_nickname])
         except Exception, e:
@@ -939,3 +940,5 @@ except SystemExit, e:
     sys.exit(e)
 except KeyboardInterrupt:
     sys.exit(1)
+except RuntimeError, e:
+    sys.exit(e)
