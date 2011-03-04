@@ -27,6 +27,7 @@ import time
 from ipapython import ipautil
 
 REQUEST_DIR='/var/lib/certmonger/requests/'
+CA_DIR='/var/lib/certmonger/cas/'
 
 def find_request_value(filename, directive):
     """
@@ -34,7 +35,7 @@ def find_request_value(filename, directive):
 
     It tries to do this a number of times because sometimes there is a delay
     when ipa-getcert returns and the file is fully updated, particularly
-    when doing a request. Genrerating a CSR is fast but not instantaneous.
+    when doing a request. Generating a CSR is fast but not instantaneous.
     """
     tries = 1
     value = None
@@ -126,7 +127,7 @@ def add_request_value(request_id, directive, value):
 
 def add_principal(request_id, principal):
     """
-    In order for a certmonger request to be renwable it needs a principal.
+    In order for a certmonger request to be renewable it needs a principal.
 
     When an existing certificate is added via start-tracking it won't have
     a principal.
@@ -240,6 +241,81 @@ def stop_tracking(secdir, request_id=None, nickname=None):
     (stdout, stderr, returncode) = ipautil.run(args)
 
     return (stdout, stderr, returncode)
+
+def _find_IPA_ca():
+    """
+    Look through all the certmonger CA files to find the one that
+    has id=IPA
+
+    We can use find_request_value because the ca files have the
+    same file format.
+    """
+    fileList=os.listdir(CA_DIR)
+    for file in fileList:
+        value = find_request_value('%s/%s' % (CA_DIR, file), 'id')
+        if value is not None and value.strip() == 'IPA':
+            return '%s/%s' % (CA_DIR, file)
+
+    return None
+
+def add_principal_to_cas(principal):
+    """
+    If the hostname we were passed to use in ipa-client-install doesn't
+    match the value of gethostname() then we need to append
+    -k host/HOSTNAME@REALM to the ca helper defined for
+    /usr/libexec/certmonger/ipa-submit.
+
+    We also need to restore this on uninstall.
+
+    The certmonger service MUST be stopped in order for this to work.
+    """
+    cafile = _find_IPA_ca()
+    if cafile is None:
+        return
+
+    update = False
+    fp = open(cafile, 'r')
+    lines = fp.readlines()
+    fp.close()
+
+    for i in xrange(len(lines)):
+        if lines[i].startswith('ca_external_helper') and \
+            lines[i].find('-k') == -1:
+            lines[i] = '%s -k %s\n' % (lines[i].strip(), principal)
+            update = True
+
+    if update:
+        fp = open(cafile, 'w')
+        for line in lines:
+            fp.write(line)
+        fp.close()
+
+def remove_principal_from_cas():
+    """
+    Remove any -k principal options from the ipa_submit helper.
+
+    The certmonger service MUST be stopped in order for this to work.
+    """
+    cafile = _find_IPA_ca()
+    if cafile is None:
+        return
+
+    update = False
+    fp = open(cafile, 'r')
+    lines = fp.readlines()
+    fp.close()
+
+    for i in xrange(len(lines)):
+        if lines[i].startswith('ca_external_helper') and \
+            lines[i].find('-k') > 0:
+            lines[i] = lines[i].strip().split(' ')[0] + '\n'
+            update = True
+
+    if update:
+        fp = open(cafile, 'w')
+        for line in lines:
+            fp.write(line)
+        fp.close()
 
 if __name__ == '__main__':
     request_id = request_cert("/etc/httpd/alias", "Test", "cn=tiger.example.com,O=IPA", "HTTP/tiger.example.com@EXAMPLE.COM")

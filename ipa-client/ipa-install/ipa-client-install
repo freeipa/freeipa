@@ -49,7 +49,7 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-client_nss_nickname = 'IPA Machine Certificate - %s' % socket.getfqdn()
+client_nss_nickname_format = 'IPA Machine Certificate - %s'
 
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
@@ -186,6 +186,28 @@ def uninstall(options, env):
         print "IPA client is not configured on this system."
         return 2
 
+    sssdconfig = SSSDConfig.SSSDConfig()
+    sssdconfig.import_config()
+    domains = sssdconfig.list_active_domains()
+
+    hostname = None
+    for name in domains:
+        domain = sssdconfig.get_domain(name)
+        try:
+            provider = domain.get_option('id_provider')
+        except SSSDConfig.NoOptionError:
+            continue
+        if provider == "ipa":
+            try:
+                hostname = domain.get_option('ipa_hostname')
+            except SSSDConfig.NoOptionError:
+                continue
+
+    if hostname is None:
+        hostname = socket.getfqdn()
+
+    client_nss_nickname = client_nss_nickname_format % hostname
+
     # Remove our host cert and CA cert
     if nickname_exists("IPA CA"):
         try:
@@ -214,6 +236,9 @@ def uninstall(options, env):
     except:
         pass
 
+    # Remove any special principal names we added to the IPA CA helper
+    certmonger.remove_principal_from_cas()
+
     try:
         chkconfig('certmonger', 'off')
     except:
@@ -221,7 +246,7 @@ def uninstall(options, env):
 
     if not options.on_master:
         print "Unenrolling client from IPA server"
-        join_args = ["/usr/sbin/ipa-join", "--unenroll"]
+        join_args = ["/usr/sbin/ipa-join", "--unenroll", "-h", hostname]
         (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env)
         if returncode != 0:
             print "Unenrolling host failed: %s" % stderr
@@ -453,8 +478,27 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
 
     return 0
 
-def configure_certmonger(fstore, subject_base, cli_realm, options):
+def configure_certmonger(fstore, subject_base, cli_realm, hostname, options):
     started = True
+    principal = 'host/%s@%s' % (hostname, cli_realm)
+
+    # Ensure that certmonger has been started at least once to generate the
+    # cas files in /var/lib/certmonger/cas.
+    try:
+        service('certmonger', 'restart')
+    except:
+        pass
+
+
+    if options.hostname:
+        # It needs to be stopped if we touch them
+        try:
+            service('certmonger', 'stop')
+        except:
+            pass
+        # If the hostname is explicitly set then we need to tell certmonger
+        # which principal name to use when requesting certs.
+        certmonger.add_principal_to_cas(principal)
 
     try:
         service('certmonger', 'restart')
@@ -471,8 +515,8 @@ def configure_certmonger(fstore, subject_base, cli_realm, options):
 
     # Request our host cert
     if started:
-        subject = 'CN=%s,%s' % (socket.getfqdn(), subject_base)
-        principal = 'host/%s@%s' % (socket.getfqdn(), cli_realm)
+        client_nss_nickname = client_nss_nickname_format % hostname
+        subject = 'CN=%s,%s' % (hostname, subject_base)
         try:
             run(["ipa-getcert", "request", "-d", "/etc/pki/nssdb", "-n", client_nss_nickname, "-N", subject, "-K", principal])
         except:
@@ -488,6 +532,8 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
 
     domain.set_option('ipa_server', '_srv_, %s' % cli_server)
     domain.set_option('ipa_domain', cli_domain)
+    if options.hostname:
+        domain.set_option('ipa_hostname', options.hostname)
     if cli_domain.lower() != cli_realm.lower():
         domain.set_option('krb5_realm', cli_realm)
 
@@ -834,6 +880,10 @@ def main():
     # Add the CA to the default NSS database and trust it
     run(["/usr/bin/certutil", "-A", "-d", "/etc/pki/nssdb", "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", "/etc/ipa/ca.crt"])
 
+    if options.hostname:
+        hostname = options.hostname
+    else:
+        hostname = socket.getfqdn()
 
     # If on master assume kerberos is already configured properly.
     if not options.on_master:
@@ -844,15 +894,10 @@ def main():
 
         print "Configured /etc/krb5.conf for IPA realm " + cli_realm
 
-        configure_certmonger(fstore, subject_base, cli_realm, options)
+        configure_certmonger(fstore, subject_base, cli_realm, hostname, options)
 
     #Try to update the DNS records, failure is not fatal
     if not options.on_master:
-        if options.hostname:
-            hostname = options.hostname
-        else:
-            hostname = socket.gethostname()
-
         client_dns(cli_server, hostname, options.dns_updates)
 
     if options.sssd:
