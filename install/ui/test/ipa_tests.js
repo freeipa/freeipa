@@ -155,10 +155,8 @@ test("Testing successful IPA.cmd().", function() {
         "Checking ajax invocation counter"
     );
 
-    var dialog = IPA.error_dialog.parent('.ui-dialog');
-
     ok(
-        !dialog.length,
+        !IPA.error_dialog,
         "The dialog box is not created."
     );
 
@@ -284,7 +282,7 @@ test("Testing unsuccessful IPA.cmd().", function() {
     );
 
     ok(
-        !IPA.error_dialog.dialog('isOpen'),
+        !IPA.error_dialog,
         "After cancel, the dialog box is closed."
     );
 

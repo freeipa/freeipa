@@ -52,10 +52,6 @@ var IPA = ( function () {
 
     that.entities_by_name = {};
 
-    that.error_dialog = $('<div/>', {
-        id: 'error_dialog'
-    });
-
     that.layout = $.bbq.getState('layout');
     that.layouts_dir = 'layouts';
 
@@ -356,6 +352,25 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
     function dialog_open(xhr, text_status, error_thrown) {
         var that = this;
 
+        IPA.error_dialog = $('<div/>', {
+            id: 'error_dialog'
+        });
+
+        if (error_thrown.url) {
+            $('<p/>', {
+                text: 'URL: '+error_thrown.url
+            }).appendTo(IPA.error_dialog);
+        }
+        $('<p/>', {
+            html: error_thrown.message
+        }).appendTo(IPA.error_dialog);
+
+        function close() {
+            IPA.error_dialog.dialog('destroy');
+            IPA.error_dialog.remove();
+            IPA.error_dialog = null;
+        }
+
         var buttons = {};
 
         /**
@@ -365,14 +380,14 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
          */
         var label = IPA.messages.buttons ? IPA.messages.buttons.retry : 'Retry';
         buttons[label] = function() {
-            IPA.error_dialog.dialog('close');
+            close();
             IPA.cmd(name, args, options, win_callback, fail_callback,
                     objname, command_name);
         };
 
         label = IPA.messages.buttons ? IPA.messages.buttons.cancel : 'Cancel';
         buttons[label] = function() {
-            IPA.error_dialog.dialog('close');
+            close();
             if (fail_callback) {
                 fail_callback.call(that, xhr, text_status, error_thrown);
             }
@@ -382,15 +397,11 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
             modal: true,
             title: error_thrown.title,
             width: 400,
-            buttons: buttons
+            buttons: buttons,
+            close: function() {
+                close();
+            }
         });
-    }
-
-    function ajax_error_handler(xhr, text_status, error_thrown) {
-        IPA.error_dialog.empty();
-        IPA.error_dialog.append('<p>'+error_thrown.message+'</p>');
-
-        dialog_open.call(this, xhr, text_status, error_thrown);
     }
 
     function error_handler(xhr, text_status, error_thrown) {
@@ -419,14 +430,6 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
         if (!error_thrown.title) {
             error_thrown.title = 'AJAX Error: '+error_thrown.name;
         }
-        ajax_error_handler.call(this, xhr, text_status, error_thrown);
-    }
-
-    function http_error_handler(xhr, text_status, error_thrown) {
-        IPA.error_dialog.empty();
-        IPA.error_dialog.append('<p>URL: '+this.url+'</p>');
-        IPA.error_dialog.append('<p>'+error_thrown.message+'</p>');
-
         dialog_open.call(this, xhr, text_status, error_thrown);
     }
 
@@ -435,9 +438,10 @@ IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, c
         if (!data) {
             var error_thrown = {
                 title: 'HTTP Error '+xhr.status,
+                url: this.url,
                 message: data ? xhr.statusText : "No response"
             };
-            http_error_handler.call(this, xhr, text_status, error_thrown);
+            dialog_open.call(this, xhr, text_status, error_thrown);
 
         } else if (data.error) {
             error_handler.call(this, xhr, text_status,  /* error_thrown */ {
