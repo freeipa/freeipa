@@ -22,7 +22,7 @@ import sys
 try:
     import os
     from ipaserver.install import service
-    from ipaserver.install import dsinstance
+    from ipapython import sysrestore
     from ipapython import config
     from ipalib import api, errors
     import logging
@@ -39,6 +39,20 @@ error was:
     sys.exit(1)
 
 SASL_EXTERNAL = ldap.sasl.sasl({}, 'EXTERNAL')
+
+class IpactlError(StandardError):
+    def __init__(self, msg = '', rval = 1):
+        self.msg = msg
+        self.rval = rval
+
+    def __str__(self):
+        return self.msg
+
+def check_IPA_configuration():
+    if not sysrestore.FileStore('/var/lib/ipa/sysrestore').has_files():
+        # LSB status code 6: program is not configured
+        raise IpactlError("IPA is not configured " +
+                          "(see man pages of ipa-server-install for help)", 6)
 
 def parse_options():
     usage = "%prog start|stop|restart|status\n"
@@ -70,10 +84,12 @@ def get_config():
                             filterstr=srcfilter,
                             attrlist=attrs,
                             timeout=10)
+    except ldap.SERVER_DOWN, e:
+        # LSB status code 3: program is not running
+        raise IpactlError("Failed to get list of services to probe status:\n" +
+                          "Directory Server is stopped", 3)
     except Exception, e:
-        print "Error retrieving list of services %s" % e
-        print "Is IPA installed?"
-        raise
+        raise IpactlError("Unknown error when retrieving list of services from LDAP: " + str(e))
 
     svc_list = []
 
@@ -87,22 +103,30 @@ def get_config():
     return svc_list
 
 def ipa_start():
-
     try:
         print "Starting Directory Service"
         service.start('dirsrv', capture_output=False)
-    except:
-        raise RuntimeError("Failed to start Directory Service")
+    except Exception, e:
+        raise IpactlError("Failed to start Directory Service: " + str(e))
 
     svc_list = []
     try:
         svc_list = get_config()
-    except:
-        emit_err("Failed to read data from Directory Service")
+    except Exception, e:
+        emit_err("Failed to read data from Directory Service: " + str(e))
         emit_err("Shutting down")
-        service.stop('dirsrv', capture_output=False)
+        try:
+            service.stop('dirsrv', capture_output=False)
+        except:
+            pass
+        if isinstance(e, IpactlError):
+            # do not display any other error message
+            raise IpactlError(None, e.rval)
+        else:
+            raise IpactlError(None)
 
     if len(svc_list) == 0:
+        # no service to stop
         return
 
     for (order, svc) in sorted(svc_list):
@@ -123,26 +147,30 @@ def ipa_start():
                 service.stop('dirsrv', capture_output=False)
             except:
                 pass
-            raise RuntimeError("Aborting ipactl")
+            raise IpactlError("Aborting ipactl")
 
 def ipa_stop():
-
     svc_list = []
     try:
         svc_list = get_config()
-    except:
+    except Exception, e:
         # ok if dirsrv died this may fail, so let's try to quickly restart it
         # and see if we can get anything. If not throw our hands up and just
         # exit
         try:
             service.start('dirsrv', capture_output=False)
             svc_list = get_config()
-        except:
-            emit_err("Failed to read data from Directory Service")
+        except Exception, e:
+            emit_err("Failed to read data from Directory Service: " + str(e))
             emit_err("Shutting down")
-            service.stop('dirsrv', capture_output=False)
+            try:
+                # just try to stop it, do not read a result
+                service.stop('dirsrv')
+            finally:
+                raise IpactlError(None)
 
     if len(svc_list) == 0:
+        # no service to stop
         return
 
     for (order, svc) in sorted(svc_list, reverse=True):
@@ -157,25 +185,34 @@ def ipa_stop():
         print "Stopping Directory Service"
         service.stop('dirsrv', capture_output=False)
     except:
-        raise RuntimeError("Failed to stop Directory Service")
+        raise IpactlError("Failed to stop Directory Service")
 
 
 def ipa_restart():
     try:
         print "Restarting Directory Service"
         service.restart('dirsrv', capture_output=False)
-    except:
-        raise RuntimeError("Failed to restart Directory Service")
+    except Exception, e:
+        raise IpactlError("Failed to restart Directory Service: " + str(e))
 
     svc_list = []
     try:
         svc_list = get_config()
-    except:
-        emit_err("Failed to read data from Directory Service")
+    except Exception, e:
+        emit_err("Failed to read data from Directory Service: " + str(e))
         emit_err("Shutting down")
-        service.stop('dirsrv', capture_output=False)
+        try:
+            service.stop('dirsrv', capture_output=False)
+        except:
+            pass
+        if isinstance(e, IpactlError):
+            # do not display any other error message
+            raise IpactlError(None, e.rval)
+        else:
+            raise IpactlError(None)
 
     if len(svc_list) == 0:
+        # no service to stop
         return
 
     for (order, svc) in sorted(svc_list):
@@ -196,7 +233,7 @@ def ipa_restart():
                 service.stop('dirsrv', capture_output=False)
             except:
                 pass
-            raise RuntimeError("Aborting ipactl")
+            raise IpactlError("Aborting ipactl")
 
 def ipa_status():
     try:
@@ -205,13 +242,15 @@ def ipa_status():
         else:
             print "Directory Service: STOPPED"
     except:
-        raise RuntimeError("Failed to get Directory Service status")
+        raise IpactlError("Failed to get Directory Service status")
 
     svc_list = []
     try:
         svc_list = get_config()
-    except:
-        raise RuntimeError("Failed to get list of services to probe status")
+    except IpactlError, e:
+        raise e
+    except Exception, e:
+        raise IpactlError("Failed to get list of services to probe status: " + str(e))
 
     if len(svc_list) == 0:
         return
@@ -224,18 +263,34 @@ def ipa_status():
             else:
                 print "%s Service: STOPPED" % svc
         except:
-            print "Failed to get %s Service status" % svc
+            emit_err("Failed to get %s Service status" % svc)
 
 def main():
     if not os.getegid() == 0:
-        sys.exit("\nYou must be root to run ipactl.\n")
+        # LSB status code 4: user had insufficient privilege
+        raise IpactlError("You must be root to run ipactl.", 4)
 
     safe_options, options, args = parse_options()
 
     if len(args) != 1:
-        sys.exit("You must specify one action")
+        # LSB status code 2: invalid or excess argument(s)
+        raise IpactlError("You must specify one action", 2)
     elif args[0] != "start" and args[0] != "stop" and args[0] != "restart" and args[0] != "status":
-        sys.exit("Unrecognized action [" + args[0] + "]")
+        raise IpactlError("Unrecognized action [" + args[0] + "]", 2)
+
+    # check if IPA is configured at all
+    try:
+        check_IPA_configuration()
+    except IpactlError, e:
+        if args[0].lower() == "status":
+            # Different LSB return code for status command:
+            # 4 - program or service status is unknown
+            # This should differentiate uninstalled IPA from status
+            # code 3 - program is not running
+            e.rval = 4
+            raise e
+        else:
+            raise e
 
     api.bootstrap(context='cli', debug=options.debug)
     api.finalize()
@@ -252,6 +307,10 @@ def main():
 try:
     if __name__ == "__main__":
         sys.exit(main())
+except IpactlError, e:
+    if e.msg:
+        emit_err(e.msg)
+    sys.exit(e.rval)
 except RuntimeError, e:
     emit_err("%s" % e)
     sys.exit(1)
