@@ -1,0 +1,8 @@
+[main]
+host = https://www.transifex.net
+
+[freeipa.ipa]
+file_filter = install/po/<lang>.po
+source_file = install/po/ipa.pot
+source_lang = en
+
