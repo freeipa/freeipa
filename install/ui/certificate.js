@@ -78,39 +78,27 @@ IPA.cert.get_dialog = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.dialog(spec);
 
-    that.title = spec.title || '';
+    that.width = spec.width || 500;
+    that.height = spec.height || 400;
+
     that.usercertificate = spec.usercertificate || '';
 
-    var dialog = $('<div/>', {
-        'title': that.title
+    that.add_button(IPA.messages.buttons.close, function() {
+        that.close();
     });
 
-    var textarea = $('<textarea/>', {
-        readonly: 'yes',
-        style: 'width: 100%; height: 275px;'
-    }).appendTo(dialog);
+    that.create = function() {
+        var textarea = $('<textarea/>', {
+            readonly: 'yes',
+            style: 'width: 100%; height: 275px;'
+        }).appendTo(that.container);
 
-    textarea.val(
-        IPA.cert.BEGIN_CERTIFICATE+'\n'+
-        that.usercertificate+'\n'+
-        IPA.cert.END_CERTIFICATE);
-
-    that.open = function() {
-
-        var buttons = {};
-
-        buttons[IPA.messages.buttons.close] = function() {
-            dialog.dialog('destroy');
-        };
-
-        dialog.dialog({
-            modal: true,
-            width: 500,
-            height: 400,
-            buttons: buttons
-        });
+        textarea.val(
+            IPA.cert.BEGIN_CERTIFICATE+'\n'+
+            that.usercertificate+'\n'+
+            IPA.cert.END_CERTIFICATE);
     };
 
     return that;
@@ -120,64 +108,53 @@ IPA.cert.revoke_dialog = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.dialog(spec);
 
-    that.title = spec.title || '';
+    that.width = spec.width || 500;
+    that.height = spec.height || 300;
+
     that.revoke = spec.revoke;
 
-    var dialog = $('<div/>', {
-        'title': that.title
+    that.add_button(IPA.messages.buttons.revoke, function() {
+        var values = {};
+        values['reason'] = that.select.val();
+        if (that.revoke) {
+            that.revoke(values);
+        }
+        that.close();
     });
 
-    var table = $('<table/>').appendTo(dialog);
+    that.add_button(IPA.messages.buttons.cancel, function() {
+        that.close();
+    });
 
-    var tr = $('<tr/>').appendTo(table);
+    that.create = function() {
 
-    var td = $('<td/>').appendTo(tr);
-    td.append(IPA.messages.objects.cert.note+':');
+        var table = $('<table/>').appendTo(that.container);
 
-    td = $('<td/>').appendTo(tr);
-    td.append(IPA.messages.objects.cert.revoke_confirmation);
+        var tr = $('<tr/>').appendTo(table);
 
-    tr = $('<tr/>').appendTo(table);
+        var td = $('<td/>').appendTo(tr);
+        td.append(IPA.messages.objects.cert.note+':');
 
-    td = $('<td/>').appendTo(tr);
-    td.append(IPA.messages.objects.cert.reason+':');
+        td = $('<td/>').appendTo(tr);
+        td.append(IPA.messages.objects.cert.revoke_confirmation);
 
-    td = $('<td/>').appendTo(tr);
+        tr = $('<tr/>').appendTo(table);
 
-    var select = $('<select/>').appendTo(td);
-    for (var i=0; i<IPA.cert.CRL_REASON.length; i++) {
-        if (!IPA.cert.CRL_REASON[i]) continue;
-        $('<option/>', {
-            'value': i,
-            'html': IPA.cert.CRL_REASON[i]
-        }).appendTo(select);
-    }
+        td = $('<td/>').appendTo(tr);
+        td.append(IPA.messages.objects.cert.reason+':');
 
-    that.open = function() {
+        td = $('<td/>').appendTo(tr);
 
-        var buttons = {};
-
-        buttons[IPA.messages.buttons.revoke] = function() {
-            var values = {};
-            values['reason'] = select.val();
-            if (that.revoke) {
-                that.revoke(values);
-            }
-            dialog.dialog('destroy');
-        };
-
-        buttons[IPA.messages.buttons.cancel] = function() {
-            dialog.dialog('destroy');
-        };
-
-        dialog.dialog({
-            modal: true,
-            width: 500,
-            height: 300,
-            buttons: buttons
-        });
+        that.select = $('<select/>').appendTo(td);
+        for (var i=0; i<IPA.cert.CRL_REASON.length; i++) {
+            if (!IPA.cert.CRL_REASON[i]) continue;
+            $('<option/>', {
+                'value': i,
+                'html': IPA.cert.CRL_REASON[i]
+            }).appendTo(that.select);
+        }
     };
 
     return that;
@@ -187,40 +164,28 @@ IPA.cert.restore_dialog = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.dialog(spec);
 
-    that.title = spec.title || '';
+    that.width = spec.width || 400;
+    that.height = spec.height || 200;
+
     that.restore = spec.restore;
 
-    var dialog = $('<div/>', {
-        'title': that.title
+    that.add_button(IPA.messages.buttons.restore, function() {
+        var values = {};
+        if (that.restore) {
+            that.restore(values);
+        }
+        that.close();
     });
 
-    dialog.append(
-        IPA.messages.objects.cert.restore_confirmation);
+    that.add_button(IPA.messages.buttons.cancel, function() {
+        that.close();
+    });
 
-    that.open = function() {
-
-        var buttons = {};
-
-        buttons[IPA.messages.buttons.restore] = function() {
-            var values = {};
-            if (that.restore) {
-                that.restore(values);
-            }
-            dialog.dialog('destroy');
-        };
-
-        buttons[IPA.messages.buttons.cancel] = function() {
-            dialog.dialog('destroy');
-        };
-
-        dialog.dialog({
-            modal: true,
-            width: 400,
-            height: 200,
-            buttons: buttons
-        });
+    that.create = function() {
+        that.container.append(
+            IPA.messages.objects.cert.restore_confirmation);
     };
 
     return that;
@@ -230,9 +195,11 @@ IPA.cert.view_dialog = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.dialog(spec);
 
-    that.title = spec.title || '';
+    that.width = spec.width || 600;
+    that.height = spec.height || 500;
+
     that.subject = IPA.cert.parse_dn(spec.subject);
     that.serial_number = spec.serial_number || '';
     that.issuer = IPA.cert.parse_dn(spec.issuer);
@@ -241,116 +208,103 @@ IPA.cert.view_dialog = function(spec) {
     that.md5_fingerprint = spec.md5_fingerprint || '';
     that.sha1_fingerprint = spec.sha1_fingerprint || '';
 
-    var dialog = $('<div/>', {
-        'title': that.title
+    that.add_button(IPA.messages.buttons.close, function() {
+        that.close();
     });
 
-    var table = $('<table/>').appendTo(dialog);
+    that.create = function() {
 
-    var tr = $('<tr/>').appendTo(table);
-    $('<td/>', {
-        'colspan': 2,
-        'html': '<h3>'+IPA.messages.objects.cert.issued_to+'</h3>'
-    }).appendTo(tr);
+        var table = $('<table/>').appendTo(that.container);
 
-    tr = $('<tr/>').appendTo(table);
-    $('<td>'+IPA.messages.objects.cert.common_name+':</td>').appendTo(tr);
-    $('<td/>', {
-        'html': that.subject.cn
-    }).appendTo(tr);
+        var tr = $('<tr/>').appendTo(table);
+        $('<td/>', {
+            'colspan': 2,
+            'html': '<h3>'+IPA.messages.objects.cert.issued_to+'</h3>'
+        }).appendTo(tr);
 
-    tr = $('<tr/>').appendTo(table);
-    $('<td>'+IPA.messages.objects.cert.organization+':</td>').appendTo(tr);
-    $('<td/>', {
-        'html': that.subject.o
-    }).appendTo(tr);
+        tr = $('<tr/>').appendTo(table);
+        $('<td>'+IPA.messages.objects.cert.common_name+':</td>').appendTo(tr);
+        $('<td/>', {
+            'html': that.subject.cn
+        }).appendTo(tr);
 
-    tr = $('<tr/>').appendTo(table);
-    $('<td>'+IPA.messages.objects.cert.organizational_unit+':</td>').appendTo(tr);
-    $('<td/>', {
-        'html': that.subject.ou
-    }).appendTo(tr);
+        tr = $('<tr/>').appendTo(table);
+        $('<td>'+IPA.messages.objects.cert.organization+':</td>').appendTo(tr);
+        $('<td/>', {
+            'html': that.subject.o
+        }).appendTo(tr);
 
-    tr = $('<tr/>').appendTo(table);
-    $('<td>'+IPA.messages.objects.cert.serial_number+':</td>').appendTo(tr);
-    $('<td/>', {
-        'html': that.serial_number
-    }).appendTo(tr);
+        tr = $('<tr/>').appendTo(table);
+        $('<td>'+IPA.messages.objects.cert.organizational_unit+':</td>').appendTo(tr);
+        $('<td/>', {
+            'html': that.subject.ou
+        }).appendTo(tr);
 
-    tr = $('<tr/>').appendTo(table);
-    $('<td/>', {
-        'colspan': 2,
-        'html': '<h3>'+IPA.messages.objects.cert.issued_by+'</h3>'
-    }).appendTo(tr);
+        tr = $('<tr/>').appendTo(table);
+        $('<td>'+IPA.messages.objects.cert.serial_number+':</td>').appendTo(tr);
+        $('<td/>', {
+            'html': that.serial_number
+        }).appendTo(tr);
 
-    tr = $('<tr/>').appendTo(table);
-    $('<td>'+IPA.messages.objects.cert.common_name+':</td>').appendTo(tr);
-    $('<td/>', {
-        'html': that.issuer.cn
-    }).appendTo(tr);
+        tr = $('<tr/>').appendTo(table);
+        $('<td/>', {
+            'colspan': 2,
+            'html': '<h3>'+IPA.messages.objects.cert.issued_by+'</h3>'
+        }).appendTo(tr);
 
-    tr = $('<tr/>').appendTo(table);
-    $('<td>'+IPA.messages.objects.cert.organization+':</td>').appendTo(tr);
-    $('<td/>', {
-        'html': that.issuer.o
-    }).appendTo(tr);
+        tr = $('<tr/>').appendTo(table);
+        $('<td>'+IPA.messages.objects.cert.common_name+':</td>').appendTo(tr);
+        $('<td/>', {
+            'html': that.issuer.cn
+        }).appendTo(tr);
 
-    tr = $('<tr/>').appendTo(table);
-    $('<td>'+IPA.messages.objects.cert.organizational_unit+':</td>').appendTo(tr);
-    $('<td/>', {
-        'html': that.issuer.ou
-    }).appendTo(tr);
+        tr = $('<tr/>').appendTo(table);
+        $('<td>'+IPA.messages.objects.cert.organization+':</td>').appendTo(tr);
+        $('<td/>', {
+            'html': that.issuer.o
+        }).appendTo(tr);
 
-    tr = $('<tr/>').appendTo(table);
-    $('<td/>', {
-        'colspan': 2,
-        'html': '<h3>'+IPA.messages.objects.cert.validity+'</h3>'
-    }).appendTo(tr);
+        tr = $('<tr/>').appendTo(table);
+        $('<td>'+IPA.messages.objects.cert.organizational_unit+':</td>').appendTo(tr);
+        $('<td/>', {
+            'html': that.issuer.ou
+        }).appendTo(tr);
 
-    tr = $('<tr/>').appendTo(table);
-    $('<td>'+IPA.messages.objects.cert.issued_on+':</td>').appendTo(tr);
-    $('<td/>', {
-        'html': that.issued_on
-    }).appendTo(tr);
+        tr = $('<tr/>').appendTo(table);
+        $('<td/>', {
+            'colspan': 2,
+            'html': '<h3>'+IPA.messages.objects.cert.validity+'</h3>'
+        }).appendTo(tr);
 
-    tr = $('<tr/>').appendTo(table);
-    $('<td>'+IPA.messages.objects.cert.expires_on+':</td>').appendTo(tr);
-    $('<td/>', {
-        'html': that.expires_on
-    }).appendTo(tr);
+        tr = $('<tr/>').appendTo(table);
+        $('<td>'+IPA.messages.objects.cert.issued_on+':</td>').appendTo(tr);
+        $('<td/>', {
+            'html': that.issued_on
+        }).appendTo(tr);
 
-    tr = $('<tr/>').appendTo(table);
-    $('<td/>', {
-        'colspan': 2,
-        'html': '<h3>'+IPA.messages.objects.cert.fingerprints+'</h3>'
-    }).appendTo(tr);
+        tr = $('<tr/>').appendTo(table);
+        $('<td>'+IPA.messages.objects.cert.expires_on+':</td>').appendTo(tr);
+        $('<td/>', {
+            'html': that.expires_on
+        }).appendTo(tr);
 
-    tr = $('<tr/>').appendTo(table);
-    $('<td>'+IPA.messages.objects.cert.sha1_fingerprint+':</td>').appendTo(tr);
-    $('<td/>', {
-        'html': that.sha1_fingerprint
-    }).appendTo(tr);
+        tr = $('<tr/>').appendTo(table);
+        $('<td/>', {
+            'colspan': 2,
+            'html': '<h3>'+IPA.messages.objects.cert.fingerprints+'</h3>'
+        }).appendTo(tr);
 
-    tr = $('<tr/>').appendTo(table);
-    $('<td>'+IPA.messages.objects.cert.md5_fingerprint+':</td>').appendTo(tr);
-    $('<td/>', {
-        'html': that.md5_fingerprint
-    }).appendTo(tr);
+        tr = $('<tr/>').appendTo(table);
+        $('<td>'+IPA.messages.objects.cert.sha1_fingerprint+':</td>').appendTo(tr);
+        $('<td/>', {
+            'html': that.sha1_fingerprint
+        }).appendTo(tr);
 
-    that.open = function() {
-
-        var buttons = {};
-
-        buttons[IPA.messages.buttons.close] = function() {
-            dialog.dialog('destroy');
-        };
-
-        dialog.dialog({
-            modal: true,
-            width: 600,
-            height: 500,
-            buttons: buttons
-        });
+        tr = $('<tr/>').appendTo(table);
+        $('<td>'+IPA.messages.objects.cert.md5_fingerprint+':</td>').appendTo(tr);
+        $('<td/>', {
+            'html': that.md5_fingerprint
+        }).appendTo(tr);
     };
 
     return that;
@@ -360,57 +314,45 @@ IPA.cert.request_dialog = function(spec) {
 
     spec = spec || {};
 
-    var that = {};
+    var that = IPA.dialog(spec);
 
-    that.title = spec.title || '';
+    that.width = spec.width || 500;
+    that.height = spec.height || 400;
+
     that.request = spec.request;
 
-    var dialog = $('<div/>', {
-        'title': that.title
+    that.add_button(IPA.messages.buttons.issue, function() {
+        var values = {};
+        var request = that.textarea.val();
+        request =
+            IPA.cert.BEGIN_CERTIFICATE_REQUEST+'\n'+
+            $.trim(request)+'\n'+
+            IPA.cert.END_CERTIFICATE_REQUEST+'\n';
+        values['request'] = request;
+        if (that.request) {
+            that.request(values);
+        }
+        that.close();
     });
 
-    dialog.append(IPA.messages.objects.cert.enter_csr+':');
-    dialog.append('<br/>');
-    dialog.append('<br/>');
+    that.add_button(IPA.messages.buttons.cancel, function() {
+        that.close();
+    });
 
-    dialog.append(IPA.cert.BEGIN_CERTIFICATE_REQUEST);
-    dialog.append('<br/>');
+    that.create = function() {
+        that.container.append(IPA.messages.objects.cert.enter_csr+':');
+        that.container.append('<br/>');
+        that.container.append('<br/>');
 
-    var textarea = $('<textarea/>', {
-        style: 'width: 100%; height: 225px;'
-    }).appendTo(dialog);
+        that.container.append(IPA.cert.BEGIN_CERTIFICATE_REQUEST);
+        that.container.append('<br/>');
 
-    dialog.append('<br/>');
-    dialog.append(IPA.cert.END_CERTIFICATE_REQUEST);
+        that.textarea = $('<textarea/>', {
+            style: 'width: 100%; height: 225px;'
+        }).appendTo(that.container);
 
-    that.open = function() {
-
-        var buttons = {};
-
-        buttons[IPA.messages.buttons.issue] = function() {
-            var values = {};
-            var request = textarea.val();
-            request =
-                IPA.cert.BEGIN_CERTIFICATE_REQUEST+'\n'+
-                $.trim(request)+'\n'+
-                IPA.cert.END_CERTIFICATE_REQUEST+'\n';
-            values['request'] = request;
-            if (that.request) {
-                that.request(values);
-            }
-            dialog.dialog('destroy');
-        };
-
-        buttons[IPA.messages.buttons.cancel] = function() {
-            dialog.dialog('destroy');
-        };
-
-        dialog.dialog({
-            modal: true,
-            width: 500,
-            height: 400,
-            buttons: buttons
-        });
+        that.container.append('<br/>');
+        that.container.append(IPA.cert.END_CERTIFICATE_REQUEST);
     };
 
     return that;
@@ -703,6 +645,7 @@ IPA.cert.status_widget = function(spec) {
             'sha1_fingerprint': result['sha1_fingerprint']
         });
 
+        dialog.init();
         dialog.open();
     }
 
@@ -725,6 +668,7 @@ IPA.cert.status_widget = function(spec) {
             'usercertificate': entity_certificate
         });
 
+        dialog.init();
         dialog.open();
     }
 
@@ -755,6 +699,7 @@ IPA.cert.status_widget = function(spec) {
             }
         });
 
+        dialog.init();
         dialog.open();
     }
 
@@ -791,6 +736,7 @@ IPA.cert.status_widget = function(spec) {
             }
         });
 
+        dialog.init();
         dialog.open();
     }
 
@@ -823,6 +769,7 @@ IPA.cert.status_widget = function(spec) {
             }
         });
 
+        dialog.init();
         dialog.open();
     }
 

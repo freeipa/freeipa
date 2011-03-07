@@ -36,6 +36,7 @@ IPA.dialog = function(spec) {
     that._entity_name = spec.entity_name;
 
     that.width = spec.width || '400px';
+    that.height = spec.height;
 
     that.buttons = {};
 
@@ -173,7 +174,11 @@ IPA.dialog = function(spec) {
      */
     that.open = function(container) {
 
-        that.container = $('<div/>').appendTo(container);
+        that.container = $('<div/>');
+
+        if (container) {
+            container.append(that.container);
+        }
 
         if (that.template) {
             var template = IPA.get_template(that.template);
