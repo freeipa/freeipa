@@ -298,7 +298,7 @@ class Service:
             if dm_password:
                 conn.do_simple_bind(bindpw=dm_password)
             else:
-                conn.do_sasl_gssapi_bind_()
+                conn.do_sasl_gssapi_bind()
         except Exception, e:
             logging.debug("Could not connect to the Directory Server on %s: %s" % (fqdn, str(e)))
             raise e
