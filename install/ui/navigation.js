@@ -62,8 +62,6 @@ IPA.nav = {
                 return IPA.nav.push_state(state);
             }
         });
-
-        IPA.nav.update_tabs();
     },
 
     generate_tabs : function (nls, container, tabclass, depth) {

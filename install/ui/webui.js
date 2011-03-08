@@ -149,14 +149,25 @@ $(function() {
         if (should_show_all_ui()){
             IPA.tab_set = IPA.admin_tab_set();
             IPA.nav.create(IPA.tab_set, navigation, 'tabs');
+            IPA.nav.update_tabs();
+
         } else {
             IPA.tab_set = IPA.self_serv_tab_set();
             IPA.nav.create(IPA.tab_set, navigation, 'tabs');
 
-            var state = {'user-pkey':IPA.whoami_pkey ,
-                         'user-facet': $.bbq.getState('user-facet') ||
-                         'details'};
-            $.bbq.pushState(state);
+            var pkey = $.bbq.getState('user-pkey');
+            var facet = $.bbq.getState('user-facet');
+
+            if (pkey && facet) {
+                IPA.nav.update_tabs();
+
+            } else {
+                var state = {
+                    'user-pkey': pkey || IPA.whoami_pkey,
+                    'user-facet': facet || 'details'
+                };
+                $.bbq.pushState(state);
+            }
         }
 
 

@@ -19,7 +19,20 @@
  */
 
 
-module('navigation');
+module('navigation', {
+    setup: function() {
+        IPA.ajax_options.async = false;
+        IPA.init(
+            'data',
+            true,
+            function(data, text_status, xhr) {
+            },
+            function(xhr, text_status, error_thrown) {
+                ok(false, 'ipa_init() failed: '+error_thrown);
+            }
+        );
+    }
+});
 
 test("Testing IPA.nav.create().", function() {
 
@@ -37,7 +50,7 @@ test("Testing IPA.nav.create().", function() {
             user_mock_called = true;
             same(container[0].id,'user','user id');
             same(container[0].nodeName,'DIV','user div');
-        }
+        };
         return that;
     };
     IPA.entity_factories.group = function(){
@@ -57,6 +70,7 @@ test("Testing IPA.nav.create().", function() {
     var user_mock_called = false;
     var group_mock_called = false;
     IPA.nav.create(mock_tabs_lists, navigation, 'tabs');
+    IPA.nav.update_tabs();
     ok(user_mock_called, "mock user setup was called");
     ok(!group_mock_called, "mock group setup was not called because the tab is inactive");
     same( navigation[0].children.length, 2, "Two Child tabs");
