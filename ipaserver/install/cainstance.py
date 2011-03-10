@@ -47,9 +47,11 @@ import nss.nss as nss
 from ipapython import ipautil
 from ipapython import nsslib
 
+from ipaserver import ipaldap
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
+from ipaserver.install import certs
 from ipalib import util
 
 DEFAULT_DSPORT=7389
@@ -226,6 +228,7 @@ class CADSInstance(service.Service):
         self.pkcs12_info = None
         self.ds_port = None
         self.master_host = None
+        self.nickname = 'Server-Cert'
         if realm_name:
             self.suffix = util.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()
@@ -246,7 +249,7 @@ class CADSInstance(service.Service):
 
         self.step("creating directory server user", self.__create_ds_user)
         self.step("creating directory server instance", self.__create_instance)
-        self.step("restarting directory server", self.__restart_instance)
+        self.step("restarting directory server", self.restart_instance)
 
         self.start_creation("Configuring directory server for the CA", 30)
 
@@ -302,7 +305,48 @@ class CADSInstance(service.Service):
             logging.critical("failed to restart ds instance %s" % e)
         inf_fd.close()
 
-    def __restart_instance(self):
+    def load_pkcs12(self):
+        dirname = dsinstance.config_dirname(self.serverid)
+        dsdb = certs.CertDB(self.realm_name, nssdir=dirname)
+        if self.pkcs12_info:
+            dsdb.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1])
+            server_certs = dsdb.find_server_certs()
+            if len(server_certs) == 0:
+                raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])
+
+            # We only handle one server cert
+            self.nickname = server_certs[0][0]
+            self.dercert = dsdb.get_cert_from_db(self.nickname)
+
+    def enable_ssl(self):
+        conn = ipaldap.IPAdmin("127.0.0.1", port=DEFAULT_DSPORT)
+        conn.simple_bind_s("cn=directory manager", self.dm_password)
+
+        mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
+               (ldap.MOD_REPLACE, "nsSSL3Ciphers",
+                "-rsa_null_md5,+rsa_rc4_128_md5,+rsa_rc4_40_md5,+rsa_rc2_40_md5,\
++rsa_des_sha,+rsa_fips_des_sha,+rsa_3des_sha,+rsa_fips_3des_sha,+fortezza,\
++fortezza_rc4_128_sha,+fortezza_null,+tls_rsa_export1024_with_rc4_56_sha,\
++tls_rsa_export1024_with_des_cbc_sha")]
+        conn.modify_s("cn=encryption,cn=config", mod)
+
+        mod = [(ldap.MOD_ADD, "nsslapd-security", "on"),
+               (ldap.MOD_ADD, "nsslapd-secureport", str(DEFAULT_DSPORT+1))]
+        conn.modify_s("cn=config", mod)
+
+        entry = ipaldap.Entry("cn=RSA,cn=encryption,cn=config")
+
+        entry.setValues("objectclass", "top", "nsEncryptionModule")
+        entry.setValues("cn", "RSA")
+        entry.setValues("nsSSLPersonalitySSL", self.nickname)
+        entry.setValues("nsSSLToken", "internal (software)")
+        entry.setValues("nsSSLActivation", "on")
+
+        conn.addEntry(entry)
+
+        conn.unbind()
+
+    def restart_instance(self):
         try:
             # Have to trick the base class to use the right service name
             sav_name = self.service_name
@@ -454,8 +498,8 @@ class CAInstance(service.Service):
                 self.step("creating CA agent PKCS#12 file in /root", self.__create_ca_agent_pkcs12)
             self.step("creating RA agent certificate database", self.__create_ra_agent_db)
             self.step("importing CA chain to RA certificate database", self.__import_ca_chain)
-            self.step("restarting certificate server", self.__restart_instance)
             if not self.clone:
+                self.step("restarting certificate server", self.__restart_instance)
                 self.step("requesting RA certificate from CA", self.__request_ra_certificate)
                 self.step("issuing RA agent certificate", self.__issue_ra_cert)
                 self.step("adding RA agent as a trusted user", self.__configure_ra)
@@ -463,7 +507,9 @@ class CAInstance(service.Service):
             self.step("setting up signing cert profile", self.__setup_sign_profile)
             self.step("set up CRL publishing", self.__enable_crl_publish)
             self.step("configuring certificate server to start on boot", self.__enable)
-            self.step("restarting certificate server", self.__restart_instance)
+            if not self.clone:
+                # A clone will be restarted in ipa-replica-install
+                self.step("restarting certificate server", self.__restart_instance)
 
         self.start_creation("Configuring certificate server", 360)
 
@@ -590,6 +636,8 @@ class CAInstance(service.Service):
                 args.append("admin")
                 args.append("-sd_admin_password")
                 args.append("'%s'" % self.admin_password)
+                args.append("-clone_start_tls")
+                args.append("true")
                 args.append("-clone_uri")
                 args.append("https://%s:%d" % (self.master_host, EE_SECURE_PORT))
             else:

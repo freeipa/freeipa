@@ -760,6 +760,7 @@ def main():
             ca.configure_instance(host_name, dm_password, dm_password,
                                   subject_base=options.subject)
         elif external == 1:
+            # stage 2 of external CA installation
             options.realm_name = realm_name
             options.domain_name = domain_name
             options.master_password = master_password
@@ -776,6 +777,7 @@ def main():
                 # This can happen if someone passes external_ca_file without
                 # already having done the first stage of the CA install.
                 sys.exit('CA is not installed yet. To install with an external CA is a two-stage process.\nFirst run the installer with --external-ca.')
+            cs = cainstance.CADSInstance(dm_password=dm_password)
             ca.configure_instance(host_name, dm_password, dm_password,
                                   cert_file=options.external_cert_file,
                                   cert_chain_file=options.external_ca_file,
@@ -810,10 +812,22 @@ def main():
                            subject_base=options.subject,
                            hbac_allow=not options.hbac_allow)
 
-    # We ned to ldap_enable the CA now that DS is up and running
+    # We need to ldap_enable the CA now that DS is up and running
     if not options.selfsign:
         ca.ldap_enable('CA', host_name, dm_password,
                        util.realm_to_suffix(realm_name))
+
+        # Symlink the IPA LDAP server NSS database to this one.
+        caconfigdir = dsinstance.config_dirname(dsinstance.realm_to_serverid('PKI-IPA'))
+        for filename in ['cert8.db', 'key3.db', 'secmod.db']:
+            os.unlink('%s%s' % (caconfigdir, filename))
+        dsconfigdir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
+        for filename in ['cert8.db', 'key3.db', 'secmod.db', 'pin.txt']:
+            os.symlink('%s%s' % (dsconfigdir, filename), '%s%s' % (caconfigdir, filename))
+
+        # Turn on SSL in the dogtag LDAP instance. This will get restarted
+        # later, we don't need SSL now.
+        cs.enable_ssl()
 
     # Create a kerberos instance
     if options.pkinit_pin:

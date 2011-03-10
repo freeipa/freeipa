@@ -167,9 +167,22 @@ def install_ca(config):
         print "Please install dogtag and restart the setup program"
         sys.exit(1)
 
+    # We replicate to the master using TLS. In order for this to work we
+    # need an SSL server cert. To make things easier we'll re-use the
+    # IPA 389-ds instance certificate loaded directly into the
+    # dogtag 389-ds instance. Later we will replace the NSS databases with
+    # symbolic links.
+    pkcs12_info = None
+    if ipautil.file_exists(config.dir + "/dscert.p12"):
+        pkcs12_info = (config.dir + "/dscert.p12",
+                       config.dir + "/dirsrv_pin.txt")
     cs = cainstance.CADSInstance()
     cs.create_instance(config.realm_name, config.host_name,
-                       config.domain_name, config.dirman_password)
+                       config.domain_name, config.dirman_password,
+                       pkcs12_info)
+    cs.load_pkcs12()
+    cs.enable_ssl()
+    cs.restart_instance()
     ca = cainstance.CAInstance(config.realm_name, certs.NSS_DIR)
     ca.configure_instance(config.host_name, config.dirman_password,
                           config.dirman_password, pkcs12_info=(cafile,),
@@ -187,8 +200,8 @@ def install_ca(config):
     service_name = cs.service_name
     service.print_msg("Restarting the directory and certificate servers")
     cs.service_name = "dirsrv"
-    cs.stop("PKI-IPA")
     ca.stop()
+    cs.stop("PKI-IPA")
     cs.start("PKI-IPA")
     ca.start()
     cs.service_name = service_name
@@ -486,6 +499,15 @@ def main():
     if CA:
         CA.ldap_enable('CA', config.host_name, config.dirman_password,
                        util.realm_to_suffix(config.realm_name))
+
+        # Now we will replace the existing dogtag 389-ds instance NSS
+        # database with a symbolic link to the IPA 389-ds NSS database.
+        caconfigdir = dsinstance.config_dirname(dsinstance.realm_to_serverid('PKI-IPA'))
+        for filename in ['cert8.db', 'key3.db', 'secmod.db', 'pin.txt']:
+            os.unlink('%s%s' % (caconfigdir, filename))
+        dsconfigdir = dsinstance.config_dirname(dsinstance.realm_to_serverid(config.realm_name))
+        for filename in ['cert8.db', 'key3.db', 'secmod.db', 'pin.txt']:
+            os.symlink('%s%s' % (dsconfigdir, filename), '%s%s' % (caconfigdir, filename))
 
     install_krb(config, setup_pkinit=options.setup_pkinit)
     install_http(config)
