@@ -58,6 +58,7 @@ Managment:
 	Karl Wirth
 
 Past and Occasional Contributors:
+	Sylvain Baubeau
 	Yuri Chornoivan
 	Frank Cusack
 	Don Davis

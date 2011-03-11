@@ -156,7 +156,7 @@ class NSSAddressFamilyFallback(object):
                 net_addr.port = port
                 logging.debug("connecting: %s", net_addr)
                 try:
-                    self.sock.connect(net_addr, family)
+                    self.sock.connect(net_addr)
                 except Exception, e:
                     logging.debug("Could not connect socket to %s, error: %s, retrying..",
                                   net_addr, str(e))
