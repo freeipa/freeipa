@@ -412,6 +412,7 @@ class DsInstance(service.Service):
             if not is_ds_running():
                 logging.critical("Failed to restart the directory server. See the installation log for details.")
                 sys.exit(1)
+            installutils.wait_for_open_ports('localhost', [389, 636], 300)
         except SystemExit, e:
             raise e
         except Exception, e:

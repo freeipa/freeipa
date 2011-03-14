@@ -733,18 +733,7 @@ class CAInstance(service.Service):
     def __restart_instance(self):
         try:
             self.restart()
-            # Wait until the dogtag webapp responds
-            while True:
-                try:
-                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    s.connect(('localhost', 9180))
-                    s.close()
-                    break
-                except socket.error, e:
-                    if e.errno == 111: # Connection refused
-                        time.sleep(1)
-                    else:
-                        raise e
+            installutils.wait_for_open_ports('localhost', 9180, 300)
         except Exception:
             # TODO: roll back here?
             logging.critical("Failed to restart the certificate server. See the installation log for details.")
