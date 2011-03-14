@@ -224,11 +224,13 @@ class CADSInstance(service.Service):
         self.sub_dict = None
         self.domain = domain_name
         self.serverid = None
-        self.host_name = None
+        self.fqdn = None
+        self.dercert = None
         self.pkcs12_info = None
         self.ds_port = None
         self.master_host = None
         self.nickname = 'Server-Cert'
+        self.subject_base = None
         if realm_name:
             self.suffix = util.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()
@@ -236,15 +238,18 @@ class CADSInstance(service.Service):
             self.suffix = None
 
     def create_instance(self, realm_name, host_name, domain_name,
-                        dm_password, pkcs12_info=None, ds_port=DEFAULT_DSPORT):
+                        dm_password, pkcs12_info=None, ds_port=DEFAULT_DSPORT,
+                        subject_base=None):
         self.ds_port = ds_port
         self.realm_name = realm_name.upper()
         self.serverid = "PKI-IPA"
         self.suffix = util.realm_to_suffix(self.realm_name)
-        self.host_name = host_name
+        self.fqdn = host_name
         self.dm_password = dm_password
         self.domain = domain_name
         self.pkcs12_info = pkcs12_info
+        self.subject_base = subject_base
+        self.principal = "dogtagldap/%s@%s" % (self.fqdn, self.realm_name)
         self.__setup_sub_dict()
 
         self.step("creating directory server user", self.__create_ds_user)
@@ -255,7 +260,7 @@ class CADSInstance(service.Service):
 
     def __setup_sub_dict(self):
         server_root = dsinstance.find_server_root()
-        self.sub_dict = dict(FQHN=self.host_name, SERVERID=self.serverid,
+        self.sub_dict = dict(FQHN=self.fqdn, SERVERID=self.serverid,
                              PASSWORD=self.dm_password, SUFFIX=self.suffix.lower(),
                              REALM=self.realm_name, USER=PKI_DS_USER,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
@@ -317,8 +322,32 @@ class CADSInstance(service.Service):
             # We only handle one server cert
             self.nickname = server_certs[0][0]
             self.dercert = dsdb.get_cert_from_db(self.nickname)
+            dsdb.track_server_cert(self.nickname, self.principal, dsdb.passwd_fname)
+
+    def create_certdb(self):
+        """
+        Create the dogtag 389-ds instance NSS certificate database. This needs
+        to be done after dogtag is installed and configured.
+        """
+        dirname = dsinstance.config_dirname(self.serverid)
+        dsdb = certs.CertDB(self.realm_name, nssdir=dirname, subject_base=self.subject_base)
+        cadb = certs.CertDB(self.realm_name, host_name=self.fqdn, subject_base=self.subject_base)
+        cadb.export_ca_cert('ipaCert', False)
+        dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
+        self.dercert = dsdb.create_server_cert("Server-Cert", self.fqdn, cadb)
+        dsdb.track_server_cert("Server-Cert", self.principal, dsdb.passwd_fname)
+        dsdb.create_pin_file()
 
     def enable_ssl(self):
+        (stdout, stderr, rc) = ipautil.run(["/usr/sbin/semanage",
+             "port", "-a",
+             "-t", "ldap_port_t",
+             "-p", "tcp",
+             "7390"], raiseonerr=False)
+        if rc != 0:
+            if stderr.find('already defined') == -1:
+                logging.critical("Failed to add SELinux rule for port 7390")
+
         conn = ipaldap.IPAdmin("127.0.0.1", port=DEFAULT_DSPORT)
         conn.simple_bind_s("cn=directory manager", self.dm_password)
 
@@ -377,6 +406,11 @@ class CADSInstance(service.Service):
             self.chkconfig_off()
 
         if not serverid is None:
+            # drop the trailing / off the config_dirname so the directory
+            # will match what is in certmonger
+            dirname = dsinstance.config_dirname(serverid)[:-1]
+            dsdb = certs.CertDB(self.realm_name, nssdir=dirname)
+            dsdb.untrack_server_cert("Server-Cert")
             dsinstance.erase_ds_instance_data(serverid)
 
         self.service_name="pkids"
@@ -388,6 +422,15 @@ class CADSInstance(service.Service):
             except ipautil.CalledProcessError, e:
                 logging.critical("failed to delete user %s" % e)
         self.service_name = sav_name
+
+        (stdout, stderr, rc) = ipautil.run(["/usr/sbin/semanage",
+             "port", "-d",
+             "-t", "ldap_port_t",
+             "-p", "tcp",
+             "7390"], raiseonerr=False)
+        if rc != 0:
+            if stderr.find('not defined') == -1:
+                logging.critical("Failed to remove SELinux rule for port 7390")
 
 class CAInstance(service.Service):
     """
@@ -412,7 +455,7 @@ class CAInstance(service.Service):
         self.realm = realm
         self.dm_password = None
         self.admin_password = None
-        self.host_name = None
+        self.fqdn = None
         self.pkcs12_info = None
         self.clone = False
         # for external CAs
@@ -462,7 +505,7 @@ class CAInstance(service.Service):
            chain and actually proceed to create the CA. For step 1 set
            csr_file. For step 2 set cert_file and cert_chain_file.
         """
-        self.host_name = host_name
+        self.fqdn = host_name
         self.dm_password = dm_password
         self.admin_password = admin_password
         self.ds_port = ds_port
@@ -566,7 +609,7 @@ class CAInstance(service.Service):
 
         try:
             args = ["/usr/bin/perl", "/usr/bin/pkisilent",  "ConfigureCA",
-                    "-cs_hostname", self.host_name,
+                    "-cs_hostname", self.fqdn,
                     "-cs_port", str(ADMIN_SECURE_PORT),
                     "-client_certdb_dir", self.ca_agent_db,
                     "-client_certdb_pwd", "'%s'" % self.admin_password,
@@ -579,7 +622,7 @@ class CAInstance(service.Service):
                     "-agent_key_size", "2048",
                     "-agent_key_type", "rsa",
                     "-agent_cert_subject", "\"CN=ipa-ca-agent,%s\"" % self.subject_base,
-                    "-ldap_host", self.host_name,
+                    "-ldap_host", self.fqdn,
                     "-ldap_port", str(self.ds_port),
                     "-bind_dn", "\"cn=Directory Manager\"",
                     "-bind_password", "'%s'" % self.dm_password,
@@ -594,7 +637,7 @@ class CAInstance(service.Service):
                     "-token_name", "internal",
                     "-ca_subsystem_cert_subject_name", "\"CN=CA Subsystem,%s\"" % self.subject_base,
                     "-ca_ocsp_cert_subject_name", "\"CN=OCSP Subsystem,%s\"" % self.subject_base,
-                    "-ca_server_cert_subject_name", "\"CN=%s,%s\"" % (self.host_name, self.subject_base),
+                    "-ca_server_cert_subject_name", "\"CN=%s,%s\"" % (self.fqdn, self.subject_base),
                     "-ca_audit_signing_cert_subject_name", "\"CN=CA Audit,%s\"" % self.subject_base,
                     "-ca_sign_cert_subject_name", "\"CN=Certificate Authority,%s\"" % self.subject_base ]
             if self.external == 1:
@@ -757,7 +800,7 @@ class CAInstance(service.Service):
             '-p', self.admin_password,
             '-d', self.ca_agent_db,
             '-r', '/ca/agent/ca/profileReview?requestId=%s' % self.requestId,
-            '%s:%d' % (self.host_name, AGENT_SECURE_PORT),
+            '%s:%d' % (self.fqdn, AGENT_SECURE_PORT),
         ]
         (stdout, stderr, returncode) = ipautil.run(args, nolog=(self.admin_password,))
 
@@ -777,7 +820,7 @@ class CAInstance(service.Service):
             '-d', self.ca_agent_db,
             '-e', params,
             '-r', '/ca/agent/ca/profileProcess',
-            '%s:%d' % (self.host_name, AGENT_SECURE_PORT),
+            '%s:%d' % (self.fqdn, AGENT_SECURE_PORT),
         ]
         (stdout, stderr, returncode) = ipautil.run(args, nolog=(self.admin_password,))
 
@@ -821,7 +864,7 @@ class CAInstance(service.Service):
         # Create an RA user in the CA LDAP server and add that user to
         # the appropriate groups so it can issue certificates without
         # manual intervention.
-        ld = ldap.initialize("ldap://%s:%d" % (self.host_name, self.ds_port))
+        ld = ldap.initialize("ldap://%s:%d" % (self.fqdn, self.ds_port))
         ld.protocol_version=ldap.VERSION3
         ld.simple_bind_s("cn=Directory Manager", self.dm_password)
 
@@ -880,7 +923,7 @@ class CAInstance(service.Service):
 
     def __get_ca_chain(self):
         try:
-            return dogtag.get_ca_certchain(ca_host=self.host_name)
+            return dogtag.get_ca_certchain(ca_host=self.fqdn)
         except Exception, e:
             raise RuntimeError("Unable to retrieve CA chain: %s" % str(e))
 
@@ -959,7 +1002,7 @@ class CAInstance(service.Service):
         csr = pkcs10.strip_header(stdout)
 
         # Send the request to the CA
-        conn = httplib.HTTPConnection(self.host_name, 9180)
+        conn = httplib.HTTPConnection(self.fqdn, 9180)
         params = urllib.urlencode({'profileId': 'caServerCert',
                 'cert_request_type': 'pkcs10',
                 'requestor_name': 'IPA Installer',
@@ -1044,7 +1087,7 @@ class CAInstance(service.Service):
         installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapXCertRule.enable', 'false', quotes=False, separator='=')
 
         # Fix the CRL URI in the profile
-        installutils.set_directive('/var/lib/%s/profiles/ca/caIPAserviceCert.cfg' % PKI_INSTANCE_NAME, 'policyset.serverCertSet.9.default.params.crlDistPointsPointName_0', 'https://%s/ipa/crl/MasterCRL.bin' % self.host_name, quotes=False, separator='=')
+        installutils.set_directive('/var/lib/%s/profiles/ca/caIPAserviceCert.cfg' % PKI_INSTANCE_NAME, 'policyset.serverCertSet.9.default.params.crlDistPointsPointName_0', 'https://%s/ipa/crl/MasterCRL.bin' % self.fqdn, quotes=False, separator='=')
 
         ipautil.run(["/sbin/restorecon", publishdir])
 

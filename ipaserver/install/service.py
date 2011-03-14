@@ -187,6 +187,25 @@ class Service:
         self.admin_conn.addEntry(entry)
         return newdn
 
+    def add_simple_service(self, principal):
+        """
+        Add a very basic IPA service.
+
+        The principal needs to be fully-formed: service/host@REALM
+        """
+        if not self.admin_conn:
+            self.ldap_connect()
+
+        dn = "krbprincipalname=%s,cn=services,cn=accounts,%s" % (principal, self.suffix)
+        hostdn = "fqdn=%s,cn=computers,cn=accounts,%s" % (self.fqdn, self.suffix)
+        entry = ipaldap.Entry(dn)
+        entry.setValues("objectclass", ["krbprincipal", "krbprincipalaux", "krbticketpolicyaux", "ipaobject", "ipaservice", "pkiuser"])
+        entry.setValue("krbprincipalname", principal)
+        entry.setValue("ipauniqueid", 'autogenerate')
+        entry.setValue("managedby", hostdn)
+        self.admin_conn.addEntry(entry)
+        return dn
+
     def add_cert_to_service(self):
         """
         Add a certificate to a service

@@ -338,6 +338,14 @@ def main():
             print "%s" % e
             sys.exit(1)
 
+    if not certs.ipa_self_signed():
+        print "Creating SSL certificate for the dogtag Directory Server"
+        try:
+            export_certdb(api.env.realm, ds_dir, dir, passwd_fname, "dogtagcert", replica_fqdn, subject_base)
+        except errors.CertificateOperationError, e:
+            print "%s" % e
+            sys.exit(1)
+
     if options.http_pin:
         passwd = options.http_pin
     else:
