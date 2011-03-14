@@ -67,13 +67,16 @@ class LDAPUpdate:
 
         self.pw_name = pwd.getpwuid(os.geteuid()).pw_name
 
-        krbctx = krbV.default_context()
-        try:
-            self.realm = krbctx.default_realm
-            suffix = util.realm_to_suffix(self.realm)
-        except krbV.Krb5Error:
-            self.realm = None
-            suffix = None
+        if sub_dict.get("REALM"):
+            self.realm = sub_dict["REALM"]
+        else:
+            krbctx = krbV.default_context()
+            try:
+                self.realm = krbctx.default_realm
+                suffix = util.realm_to_suffix(self.realm)
+            except krbV.Krb5Error:
+                self.realm = None
+                suffix = None
 
         domain = ipautil.get_domain_name()
         libarch = self.__identify_arch()
@@ -84,7 +87,7 @@ class LDAPUpdate:
                 raise RuntimeError("Unable to determine hostname")
         else:
             fqdn = "ldapi://%%2fvar%%2frun%%2fslapd-%s.socket" % "-".join(
-                domain.upper().split(".")
+                self.realm.split(".")
             )
 
         if not self.sub_dict.get("REALM") and self.realm is not None:
@@ -108,7 +111,7 @@ class LDAPUpdate:
             # Try out the password
             #if not self.ldapi:
                 try:
-                    conn = ipaldap.IPAdmin(fqdn, ldapi=True, realm=domain.upper())
+                    conn = ipaldap.IPAdmin(fqdn, ldapi=True, realm=self.realm)
                     conn.do_simple_bind(binddn="cn=directory manager", bindpw=self.dm_password)
                     conn.unbind()
                 except ldap.CONNECT_ERROR:
@@ -659,7 +662,9 @@ class LDAPUpdate:
                 #    self.conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
                 #    self.conn.do_external_bind(self.pw_name)
                 #else:
-                    self.conn = ipaldap.IPAdmin(self.sub_dict['FQDN'], ldapi=self.ldapi, realm=self.sub_dict['DOMAIN'].upper())
+                    self.conn = ipaldap.IPAdmin(self.sub_dict['FQDN'],
+                                                ldapi=self.ldapi,
+                                                realm=self.realm)
                     self.conn.do_simple_bind(bindpw=self.dm_password)
             else:
                 raise RuntimeError("Offline updates are not supported.")
