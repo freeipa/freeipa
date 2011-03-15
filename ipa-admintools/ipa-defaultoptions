@@ -108,7 +108,7 @@ def update_policy(client, options):
             new.setValue('ipahomesrootdir', options.homedir)
         if options.defaultshell:
             validate.is_string(options.defaultshell)
-            new.setValue('ipadefaultloginshell', options.history)
+            new.setValue('ipadefaultloginshell', options.defaultshell)
         if options.defaultgroup:
             new.setValue('ipadefaultprimarygroup', options.defaultgroup)
         if options.emaildomain:
