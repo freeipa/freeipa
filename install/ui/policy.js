@@ -621,7 +621,9 @@ IPA.entity_factories.pwpolicy = function() {
                         title: IPA.messages.objects.pwpolicy.add,
                         entity_name:'pwpolicy'
                     }).
-                        field(IPA.text_widget({name: 'cn', undo: false}))));
+                        field(IPA.text_widget({name: 'cn', undo: false})).
+                        field(IPA.text_widget({name: 'cospriority',
+                                               undo: false}))));
 
         that.facet(
             IPA.details_facet({name:'details'}).
@@ -635,7 +637,6 @@ IPA.entity_factories.pwpolicy = function() {
                         input({name:'krbpwdhistorylength'}).
                         input({name:'krbpwdmindiffchars'}).
                         input({name:'krbpwdminlength'})));
-
         that.create_association_facets();
         that.entity_init();
 
