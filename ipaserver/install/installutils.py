@@ -101,6 +101,9 @@ def verify_fqdn(host_name,no_host_dns=False):
     if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":
         raise RuntimeError("Invalid hostname '%s', must be fully-qualified." % host_name)
 
+    if host_name != host_name.lower():
+        raise RuntimeError("Invalid hostname '%s', must be lower-case." % host_name)
+
     try:
         hostaddr = socket.getaddrinfo(host_name, None)
     except:

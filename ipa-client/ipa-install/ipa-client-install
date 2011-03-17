@@ -681,6 +681,13 @@ def main():
     if options.unattended and (options.password is None and options.principal is None and options.prompt_password is False) and not options.on_master:
         sys.exit("One of password and principal are required.")
 
+    if options.hostname:
+        hostname = options.hostname
+    else:
+        hostname = socket.getfqdn()
+    if hostname != hostname.lower():
+        sys.exit('Invalid hostname \'%s\', must be lower-case.' % hostname)
+
     # Create the discovery instance
     ds = ipaclient.ipadiscovery.IPADiscovery()
 
@@ -756,6 +763,7 @@ def main():
     logging.debug("will use cli_basedn: %s\n", cli_basedn)
     subject_base = "O=%s" % ds.getRealmName()
 
+    print "Hostname: "+hostname
     print "Realm: "+cli_realm
     print "DNS Domain: "+cli_domain
     print "IPA Server: "+cli_server
@@ -875,11 +883,6 @@ def main():
 
     # Add the CA to the default NSS database and trust it
     run(["/usr/bin/certutil", "-A", "-d", "/etc/pki/nssdb", "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", "/etc/ipa/ca.crt"])
-
-    if options.hostname:
-        hostname = options.hostname
-    else:
-        hostname = socket.getfqdn()
 
     # If on master assume kerberos is already configured properly.
     if not options.on_master:
