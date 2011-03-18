@@ -79,6 +79,15 @@ IPA.dialog = function(spec) {
         return that;
     };
 
+    that.text = function(name){
+        that.field(IPA.text_widget({
+            name: name,
+            undo: false,
+            entity_name : that.entity_name
+        }));
+        return that;
+    };
+
     that.add_section = function(section) {
         that.sections.push(section);
         return that;

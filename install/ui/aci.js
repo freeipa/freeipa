@@ -23,6 +23,170 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
+IPA.entity_factories.permission = function() {
+
+    return IPA.entity_builder().
+        entity('permission').
+        search_facet({
+            columns:['cn'],
+            add_fields:[
+                'cn',
+                {
+                    factory:IPA.rights_widget,
+                    name: 'permissions',
+                    join: true, undo: false
+                },
+                {
+                    factory: IPA.target_section,
+                    section: 'target',
+                    label: IPA.messages.objects.permission.target,
+                    undo: false
+                }]}).
+        details_facet([
+            {
+                section:'identity',
+                fields: [{
+                    factory: IPA.text_widget,
+                    name: 'cn',
+                    read_only: true
+                }]
+            },
+            {
+                section:'rights',
+                factory:IPA.rights_section
+            },
+            {
+                section:'target',
+                factory:IPA.target_section,
+                label: IPA.messages.objects.permission.target
+            }]).
+        standard_associations().
+        build();
+};
+
+
+IPA.entity_factories.privilege = function() {
+    return IPA.entity_builder().
+        entity('privilege').
+        search_facet({
+            columns:['cn','description'],
+            add_fields:['cn', 'description']}).
+        details_facet([
+            {
+                section:'identity',
+                label: IPA.messages.details.identity,
+                fields:['cn','description']
+            }]).
+        association_facet({
+            name: 'member_role',
+            add_method: 'add_privilege',
+            remove_method: 'remove_privilege',
+            associator: IPA.serial_associator
+        }).
+        association_facet({
+                name: 'memberof_permission',
+                add_method: 'add_permission',
+                remove_method: 'remove_permission'
+        }).
+        standard_associations().
+        build();
+
+};
+
+
+IPA.entity_factories.role = function() {
+    return  IPA.entity_builder().
+        entity('role').
+        search_facet({
+            columns:['cn','description'],
+            add_fields:['cn', 'description']}).
+        details_facet([
+            {
+                section:'identity',
+                label:IPA.messages.objects.role.identity,
+                fields:['cn','description']}]).
+        association_facet({
+                name: 'memberof_privilege',
+                add_method: 'add_privilege',
+                remove_method: 'remove_privilege'
+        }).
+        standard_associations().
+        build();
+};
+
+
+IPA.entity_factories.selfservice = function() {
+    return IPA.entity_builder().
+        entity('selfservice').
+        search_facet({
+            columns:['aciname'],
+            add_fields:[
+                'aciname',
+                {factory:IPA.attributes_widget,
+                 object_type:'user',
+                 name:'attrs',
+                 undo: false
+                }]}).
+        details_facet([
+            {
+                section:'general',
+                label: IPA.messages.details.general,
+                fields: [
+                    'aciname',
+                    {
+                        factory:IPA.attributes_widget,
+                        object_type:'user',
+                        name:'attrs'
+                    }]}]).
+        build();
+};
+
+
+IPA.entity_factories.delegation = function() {
+    return IPA.entity_builder().
+        entity('delegation').
+        search_facet({
+            columns:['aciname'],
+            add_fields:[
+                'aciname',
+                {
+                    factory:IPA.entity_select_widget,
+                    name: 'group', entity: 'group', undo: false
+                },
+                {
+                    factory:IPA.entity_select_widget,
+                    name: 'memberof', entity: 'group',
+                    join: true, undo: false
+                },
+                {
+                    factory:IPA.attributes_widget,
+                    name: 'attrs', object_type: 'user',
+                    join: true, undo: false
+                }]}).
+        details_facet([
+            {
+                section:'general',
+                label: IPA.messages.details.general,
+                fields:[
+                    'aciname',
+                    {
+                        factory:IPA.entity_select_widget,
+                        name: 'group', entity: 'group'
+                    },
+                    {
+                        factory:IPA.entity_select_widget,
+                        name: 'memberof', entity: 'group',
+                        join: true
+                    },
+                    {
+                        factory:IPA.attributes_widget,
+                        name: 'attrs', object_type: 'user',
+                        join: true
+                    }]}]).
+        standard_associations().
+        build();
+};
+
 
 IPA.attributes_widget = function(spec) {
 
@@ -516,238 +680,5 @@ IPA.permission_details_facet = function(spec) {
 
     var that = IPA.details_facet(spec);
 
-    that.refresh = function() {
-
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-
-        var command = IPA.command({
-            'name': that.entity_name+'_show_'+pkey,
-            'method': that.entity_name+'_show',
-            'args': [pkey],
-            'options': { 'all': true, 'rights': true }
-        });
-
-        command.on_success = function(data, text_status, xhr) {
-            that.load(data.result.result);
-        };
-
-        command.on_error = function(xhr, text_status, error_thrown) {
-            var details = $('.details', that.container).empty();
-            details.append('<p>Error: '+error_thrown.name+'</p>');
-            details.append('<p>'+error_thrown.title+'</p>');
-            details.append('<p>'+error_thrown.message+'</p>');
-        };
-
-        command.execute();
-    };
-
     return that;
-};
-
-IPA.entity_factories.permission = function() {
-
-    return IPA.entity({
-        'name': 'permission'
-    }).
-        facet(
-            IPA.search_facet().
-                column({name:'cn'}).
-                dialog(
-                    IPA.add_dialog({
-                        name: 'add',
-                        title: IPA.messages.objects.permission.add,
-                        width: '700px'
-                    }).
-                        field(IPA.text_widget({name: 'cn', undo: false})).
-                        field(IPA.rights_widget({
-                            name: 'permissions',
-                            join: true, undo: false})).
-                        section(IPA.target_section({
-                            name: 'target',
-                            label: IPA.messages.objects.permission.target,
-                            undo: false
-                        })))).
-        facet(
-            IPA.permission_details_facet({ name: 'details' }).
-                section(
-                    IPA.stanza({
-                        name:'identity',
-                        label: IPA.messages.objects.permission.identity
-                    }).
-                        input({name: 'cn', read_only: true})).
-                section(IPA.rights_section()).
-                section(IPA.target_section({
-                    name: 'target',
-                    label: IPA.messages.objects.permission.target
-                }))).
-        standard_associations();
-};
-
-
-IPA.entity_factories.privilege = function() {
-    var that = IPA.entity({
-        'name': 'privilege'
-    }).
-        facet(
-            IPA.search_facet().
-                column({name:'cn'}).
-                column({name:'description'}).
-                dialog(
-                    IPA.add_dialog({
-                        name: 'add',
-                        title: IPA.messages.objects.privilege.add
-                    }).
-                        field(IPA.text_widget({ name: 'cn', undo: false})).
-                        field(IPA.text_widget(
-                            { name: 'description', undo: false})))).
-        facet(
-            IPA.details_facet({name:'details'}).
-                section(
-                    IPA.stanza({
-                        name:'identity',
-                        label: IPA.messages.objects.privilege.identity
-                    }).
-                        input({name: 'cn'}).
-                        input({name: 'description'}))).
-        facet(
-            IPA.association_facet({
-                name: 'member_role',
-                add_method: 'add_privilege',
-                remove_method: 'remove_privilege',
-                associator: IPA.serial_associator
-            })).
-        facet(
-            IPA.association_facet({
-                name: 'memberof_permission',
-                add_method: 'add_permission',
-                remove_method: 'remove_permission'
-            })).
-
-        standard_associations();
-
-    return that;
-};
-
-
-IPA.entity_factories.role = function() {
-    return  IPA.entity({
-        'name': 'role'
-    }).
-        facet(
-            IPA.search_facet().
-                column({name:'cn'}).
-                column({name:'description'}).
-                dialog(
-                    IPA.add_dialog({
-                        name: 'add',
-                        title: IPA.messages.objects.role.add
-                    }).
-                        field(IPA.text_widget({ name: 'cn', undo: false})).
-                        field(IPA.text_widget(
-                            { name: 'description', undo: false})))).
-        facet(
-            IPA.details_facet({name:'details'}).
-                section(
-                    IPA.stanza({
-                        name:'identity',
-                        label:IPA.messages.objects.role.identity
-                    }).
-                        input({name: 'cn'}).
-                        input({name: 'description'}))).
-        facet(
-            IPA.association_facet({
-                name: 'memberof_privilege',
-                add_method: 'add_privilege',
-                remove_method: 'remove_privilege'
-            })).
-
-        standard_associations();
-};
-
-
-IPA.entity_factories.selfservice = function() {
-    return IPA.entity({
-        'name': 'selfservice'
-    }).
-        facet(
-            IPA.search_facet().
-                column({name:'aciname'}).
-                dialog(
-                    IPA.add_dialog({
-                        name: 'add',
-                        title: IPA.messages.objects.selfservice.add
-                    }).
-                        field(IPA.text_widget({ name: 'aciname', undo: false})).
-                        field(IPA.attributes_widget({
-                            object_type:'user',
-                            name:'attrs', undo: false
-                        })))).
-        facet(
-            IPA.details_facet({'name':'details'}).
-                section(
-                    IPA.stanza({
-                        name: 'general',
-                        label: IPA.messages.details.general
-                    }).
-                        input({name:'aciname'}).
-                        custom_input(IPA.attributes_widget({
-                            object_type:'user',
-                            name:'attrs'
-                        }))));
-};
-
-
-IPA.entity_factories.delegation = function() {
-    var that = IPA.entity({
-        'name': 'delegation'
-    }).
-        facet(
-            IPA.search_facet().
-                column({name:'aciname'}).
-                dialog(
-                    IPA.add_dialog({
-                        name: 'add',
-                        title: IPA.messages.objects.delegation.add,
-                        width: '700px'
-                    }).
-                        field(IPA.text_widget({
-                            name: 'aciname', undo: false
-                        })).
-                        field(IPA.entity_select_widget({
-                            name: 'group', entity: 'group', undo: false
-                        })).
-                        field(IPA.entity_select_widget({
-                            name: 'memberof', entity: 'group',
-                            join: true, undo: false
-                        })).
-                        field(IPA.attributes_widget({
-                            name: 'attrs', object_type: 'user',
-                            join: true, undo: false
-                        })))).
-        facet(
-            IPA.details_facet().
-                section(
-                    IPA.stanza({
-                        name: 'general',
-                        label: IPA.messages.details.general
-                    }).
-                        input({name:'aciname'}).
-                        custom_input(IPA.entity_select_widget({
-                            name:'group', entity:'group'
-                        })).
-                        custom_input(IPA.entity_select_widget({
-                            name:'memberof',
-                            entity:'group', join: true
-                        })).
-                        custom_input(IPA.rights_widget({
-                            name: 'permissions',
-                            direction: 'horizontal', join: true
-                        })).
-                        custom_input(IPA.attributes_widget({
-                            name:'attrs', object_type:'user',
-                            join: true
-                        })))).
-        standard_associations();
-    return that;
-
 };

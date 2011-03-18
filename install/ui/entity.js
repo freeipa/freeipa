@@ -243,99 +243,6 @@ IPA.entity = function (spec) {
 };
 
 
-/*renamed to avoid clash with IPA.get_entity*/
-IPA.fetch_entity = function (entity_name) {
-
-    var entity = IPA.get_entity(entity_name);
-/*
-    if (entity) return entity;
-
-    entity = IPA.entity({
-        'name': entity_name
-    });
-
-    IPA.add_entity(entity);
-*/
-    return entity;
-};
-
-
-IPA.entity_get_search_facet  = function (entity_name) {
-
-    var entity = IPA.fetch_entity(entity_name);
-
-    var facet = entity.get_facet('search');
-    if (facet) return facet;
-
-    facet = IPA.search_facet({
-        'name': 'search',
-        'label': IPA.messages.facets.search
-    });
-    entity.add_facet(facet);
-
-    return facet;
-};
-
-
-IPA.entity_set_search_definition =  function (entity_name, data) {
-
-    var facet = IPA.entity_get_search_facet(entity_name);
-
-    for (var i=0; i<data.length; i++) {
-        var defn = data[i];
-        facet.create_column({
-            'name': defn[0],
-            'label': defn[1],
-            'setup': defn[2]
-        });
-    }
-};
-
-
-IPA.entity_get_add_dialog = function (entity_name) {
-
-    var entity = IPA.fetch_entity(entity_name);
-    return entity.get_add_dialog();
-};
-
-
-IPA.entity_get_details_facet = function (entity_name) {
-
-    var entity = IPA.fetch_entity(entity_name);
-
-    var facet = entity.get_facet('details');
-    if (facet) return facet;
-
-    facet = IPA.details_facet({
-        'name': 'details'
-    });
-    entity.add_facet(facet);
-
-    return facet;
-};
-
-
-IPA.entity_set_details_definition = function (entity_name, sections) {
-
-    var facet = IPA.entity_get_details_facet(entity_name);
-
-    for (var i=0; i<sections.length; i++) {
-        var section = sections[i];
-        facet.add_section(section);
-    }
-};
-
-IPA.entity_set_facet_definition = function (entity_name, list) {
-
-    var entity = IPA.fetch_entity(entity_name);
-
-    for (var i=0; i<list.length; i++) {
-        var facet = list[i];
-        entity.add_facet(facet);
-    }
-};
-
-
 IPA.current_facet =  function (entity){
     var facet_name = $.bbq.getState(entity.name + '-facet', true);
     if (!facet_name && entity.facets.length) {
@@ -463,7 +370,6 @@ IPA.selected_icon = '<span class="ipa-icon">&#x25B6;</span>';
 IPA.back_icon = '<span class="ipa-icon">&#x25C0;</span>';
 
 IPA. facet_create_action_panel = function(container) {
-
 
     function build_link(other_facet,label){
         var li = $('<li/>', {
@@ -619,4 +525,161 @@ IPA. facet_create_action_panel = function(container) {
         $('.entity-facet', action_panel).addClass('entity-facet-disabled');
     }
     return action_panel;
+};
+
+IPA.entity_builder = function(){
+
+    var that = {};
+
+    var entity_name ;
+    var entity = null;
+    var current_facet = null;
+
+
+    function section(spec){
+        var current_section = null;
+        spec.entity_name = entity_name;
+
+        if (spec.section){
+            spec.name = spec.section;
+            if (!spec.label){
+                var obj_messages = IPA.messages.objects[entity_name];
+                spec.label =  obj_messages[spec.section];
+            }
+        }
+
+        if (spec.factory){
+            current_section =  spec.factory(spec);
+        }else{
+            current_section = IPA.details_list_section(spec);
+        }
+
+        var fields = spec.fields;
+        if (fields){
+            var i;
+            var field;
+            for (i =0; i < fields.length; i += 1){
+                field =  fields[i];
+                if (field instanceof Object){
+                    field.entity_name = entity_name;
+                    current_section.add_field(field.factory(field));
+                }else{
+                    field = IPA.text_widget({
+                        name:field,
+                        entity_name:entity_name
+                    });
+                    current_section.add_field(field);
+                }
+            }
+        }
+        current_facet.add_section(current_section);
+    }
+
+    that.entity = function(name){
+        entity_name = name;
+        that.entity_name = name;
+        entity = IPA.entity({name: name});
+        return that;
+    };
+
+    that.dialog = function(value){
+        current_facet.dialog(value);
+        return that;
+    };
+
+    that.details_facet = function (sections){
+        current_facet =IPA.details_facet({entity_name:entity_name});
+        entity.facet(current_facet);
+
+        var i;
+        for ( i =0; i < sections.length; i += 1){
+            section(sections[i]);
+        }
+
+        return that;
+    };
+
+    that.get_current_facet = function(){
+        return current_facet;
+    };
+
+    that.facet = function (facet){
+        current_facet = facet;
+        entity.facet(facet);
+        return that;
+    };
+
+    that.search_facet = function (spec){
+        current_facet = IPA.search_facet({entity_name:that.entity_name});
+        //once everything usese this mechanism, inline the init code
+        current_facet.init();
+
+        var columns = spec.columns;
+        var i;
+        for (i = 0; i < columns.length; i +=1){
+            if(columns[i] instanceof Object){
+                current_facet.column(columns[i]);
+            }else{
+                current_facet.column({name:columns[i]});
+            }
+        }
+        var current_dialog =
+            IPA.add_dialog({
+                'name': 'add',
+                'title': IPA.messages.objects.user.add,
+                entity_name: entity_name
+            });
+
+        current_facet.dialog(current_dialog);
+
+        var add_fields = spec.add_fields;
+        for (i = 0; i < add_fields.length; i += 1){
+            var field = add_fields[i];
+            if (field instanceof Object){
+                /* This is a bit of a hack ,and is here to support ACI
+                   permissions.  The target section is a group of secveral
+                   widgets together.  It makes more sense to do them as a
+                   seciont than as a widgit. However, since they can  be mixed
+                   into the flow with the other widgets, the section needs to
+                   be definied here with the fields to get the order correct.*/
+                var factory;
+                if (field.section){
+                    factory = field.factory;
+                    field.factory = null;
+                    field.name = field.section;
+                    field.section = null;
+                    current_dialog.add_section(factory(field));
+                }else{
+                    field.entity_name = entity_name;
+                    factory = field.factory;
+                    current_dialog.field(factory(field));
+                }
+            }else{
+                current_dialog.text(add_fields[i]);
+            }
+        }
+
+        entity.facet(current_facet);
+        return that;
+    };
+
+
+    that.association_facet = function(spec){
+        spec.entity_name = entity_name;
+        entity.facet(IPA.association_facet(spec));
+        return that;
+    };
+
+    that.standard_associations = function(){
+        entity.standard_associations();
+        return that;
+    };
+
+    that.build = function(){
+        var item = entity;
+        entity = null;
+        return item;
+    };
+
+    return that;
 };

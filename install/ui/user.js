@@ -23,81 +23,67 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.entity_factories.user = function() {
 
-    return IPA.entity({
-        name: 'user'
-    }).
-        facet(
-            IPA.search_facet().
-                column({name:'uid'}).
-                column({name:'cn'}).
-                column({name:'uidnumber'}).
-                column({name:'mail'}).
-                column({name:'telephonenumber'}).
-                column({name:'title'}).
-                dialog(
-                    IPA.add_dialog({
-                        'name': 'add',
-                        'title': IPA.messages.objects.user.add
-                    }).
-                        field(IPA.text_widget({ name: 'uid', undo: false })).
-                        field(IPA.text_widget({ name: 'givenname', undo: false })).
-                        field(IPA.text_widget({ name: 'sn', undo: false })))).
-        facet(IPA.details_facet().
-            section(
-                IPA.stanza({name: 'identity', label: IPA.messages.details.identity}).
-                    input({name:'title'}).
-                    input({name:'givenname'}).
-                    input({name:'sn'}).
-                    input({name:'cn'}).
-                    input({name:'displayname'}).
-                    input({name:'initials'})).
-            section(
-                IPA.stanza({name: 'account', label: IPA.messages.objects.user.account}).
-                    custom_input(IPA.user_status_widget({name:'nsaccountlock'})).
-                    input({name:'uid'}).
-                    custom_input(IPA.user_password_widget({name:'userpassword'})).
-                    input({name:'uidnumber'}).
-                    input({name:'gidnumber'}).
-                    input({name:'loginshell'}).
-                    input({name:'homedirectory'})).
-            section(
-                IPA.stanza({name: 'contact', label: IPA.messages.objects.user.contact}).
-                    multivalued_text({name:'mail'}).
-                    multivalued_text({name:'telephonenumber'}).
-                    multivalued_text({name:'pager'}).
-                    multivalued_text({name:'mobile'}).
-                    multivalued_text({name:'facsimiletelephonenumber'})).
-            section(
-                IPA.stanza({name: 'mailing', label: IPA.messages.objects.user.mailing}).
-                    input({name:'street'}).
-                    input({name:'l'}).
-                    input({name:'st'}).
-                    input({name:'postalcode'})).
-            section(
-                IPA.stanza({name: 'employee', label: IPA.messages.objects.user.employee}).
-                    input({name:'ou'}).
-                    input({name:'manager'})).
-            section(
-                IPA.stanza({name: 'misc', label: IPA.messages.objects.user.misc}).
-                    input({name:'carlicense'}))).
-        facet(
-            IPA.association_facet({
-                name: 'memberof_group',
-                associator: IPA.serial_associator
-            })).
-        facet(
-            IPA.association_facet({
-                name: 'memberof_netgroup',
-                associator: IPA.serial_associator
-            })).
-        facet(
-            IPA.association_facet({
-                name: 'memberof_role',
-                associator: IPA.serial_associator
-            })).
+IPA.entity_factories.user = function() {
+    var builder =  IPA.entity_builder();
+    builder.
+        entity('user').
+        search_facet({
+            columns:['uid','cn','uidnumber','mail','telephonenumber','title'],
+            add_fields: ['uid','givenname','sn']
+        }).
+        details_facet([
+            {
+                section: 'identity',
+                label: IPA.messages.details.identity,
+                fields:['title','givenname','sn','cn','displayname', 'initials']
+            },
+            {
+                section: 'account',
+                fields:[{factory:IPA.user_status_widget,name:'nsaccountlock'},
+                        'uid',
+                        {factory: IPA.user_password_widget,name:'userpassword'},
+                        'uidnumber','gidnumber','loginshell','homedirectory']
+            },
+            {
+                section: 'contact',
+                fields:
+                [  {factory: IPA.multivalued_text_widget, name:'mail'},
+                   {factory: IPA.multivalued_text_widget, name:'telephonenumber'},
+                   {factory: IPA.multivalued_text_widget, name:'pager'},
+                   {factory: IPA.multivalued_text_widget, name:'mobile'},
+                   {factory: IPA.multivalued_text_widget, name:'facsimiletelephonenumber'}]
+            },
+            {
+                section: 'mailing',
+                fields: ['street','l','st','postalcode']
+            },
+            {
+                section: 'employee',
+                fields: ['ou','manager']
+            },
+            {
+                section: 'misc',
+                fields:['carlicense']
+            }]).
+        association_facet({
+            name: 'memberof_group',
+            associator: IPA.serial_associator
+        }).
+        association_facet({
+            name: 'memberof_netgroup',
+            associator: IPA.serial_associator
+        }).
+        association_facet({
+            name: 'memberof_role',
+            associator: IPA.serial_associator
+        }).
         standard_associations();
+
+
+    var entity = builder.build();
+
+    return entity;
 };
 
 /* ATTRIBUTE CALLBACKS */

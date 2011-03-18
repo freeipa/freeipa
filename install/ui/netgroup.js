@@ -23,52 +23,18 @@
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
 IPA.entity_factories.netgroup = function() {
-
-    var that = IPA.entity({
-        'name': 'netgroup'
-    });
-
-    that.init = function() {
-
-        that.facet(
-            IPA.search_facet({
-                name: 'search',
-                label: IPA.messages.facets.search,
-                entity_name: that.name
-            }).
-                column({name:'cn'}).
-                column({name:'description'}).
-                dialog(
-                    IPA.add_dialog({
-                        name: 'add',
-                        title: IPA.messages.objects.netgroup.add
-                    }).
-                        field(IPA.text_widget({ name: 'cn', undo: false})).
-                        field(IPA.text_widget({ name: 'description', undo: false}))));
-
-        that.facet(
-            IPA.details_facet({name: 'details'}).
-                section(
-                    IPA.stanza({
-                        name: 'identity',
-                        label: IPA.messages.objects.netgroup.identity
-                    }).
-                        input({name: 'cn'}).
-                        input({name: 'description'}).
-                        input({name: 'nisdomainname'})));
-
-        that.facet(
-            IPA.association_facet({
-                name: 'memberof_netgroup',
-                associator: IPA.serial_associator
-            }));
-
-        that.create_association_facets();
-        that.entity_init();
-    };
-
-    return that;
+    return IPA.entity_builder().
+        entity('netgroup').
+        search_facet({
+            columns:['cn','description'],
+            add_fields:['cn', 'description']}).
+        details_facet([{
+            section:'identity',
+            fields:['cn','description','nisdomainname']}]).
+        association_facet({
+            name: 'memberof_netgroup',
+            associator: IPA.serial_associator
+        }).
+        standard_associations().
+        build();
 };
-
-
-

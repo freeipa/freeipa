@@ -28,29 +28,21 @@
 /* Configuration */
 
 IPA.entity_factories.config = function(){
-
-    var that = IPA.entity({
-        name: 'config'
-    }).facet(
-        IPA.details_facet().
-            section(
-                IPA.stanza({
-                    name: 'ipaserver',
-                    label: IPA.messages.objects.config.ipaserver
-                }).
-                    input({
-                        name: 'cn',
-                        label: IPA.messages.objects.config.cn
-                    }).
-                    input({name:'ipacertificatesubjectbase'}).
-                    input({name:'ipadefaultloginshell'}).
-                    input({name:'ipadefaultprimarygroup'}).
-                    input({name:'ipagroupsearchfields'}).
-                    input({name:'ipahomesrootdir'}).
-                    input({name:'ipamaxusernamelength'}).
-                    input({name:'ipamigrationenabled'}).
-                    input({name:'ipasearchrecordslimit'}).
-                    input({name:'ipasearchtimelimit'}).
-                    input({name:'ipausersearchfields'})));
-    return that;
+    return IPA.entity_builder().
+        entity('config').
+        details_facet([{
+            section: 'ipaserver',
+            label: IPA.messages.objects.config.ipaserver,
+            fields:
+            [{
+                factory: IPA.text_widget,
+                name: 'cn',
+                label: IPA.messages.objects.config.cn
+            },
+             'ipacertificatesubjectbase','ipadefaultloginshell',
+             'ipadefaultprimarygroup','ipagroupsearchfields',
+             'ipahomesrootdir','ipamaxusernamelength',
+             'ipamigrationenabled','ipasearchrecordslimit',
+             'ipasearchtimelimit','ipausersearchfields']}]).
+        build();
 };

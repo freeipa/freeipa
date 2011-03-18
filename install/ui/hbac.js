@@ -23,111 +23,128 @@
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
 IPA.entity_factories.hbacrule = function () {
-
-    var that = IPA.entity({
-        'name': 'hbacrule'
-    });
-
-    that.init = function() {
-
-        var facet = IPA.hbacrule_search_facet({
-            'name': 'search',
-            'label': IPA.messages.facets.search
-        });
-
-        var dialog = IPA.hbacrule_add_dialog({
-            'name': 'add',
-            'title': IPA.messages.objects.hbacrule.add
-        });
-        facet.dialog(dialog);
-
-        that.add_facet(facet);
-
-        facet = IPA.hbacrule_details_facet({
+    return IPA.entity_builder().
+        entity('hbacrule').
+        search_facet({
+            columns:['cn','usercategory','hostcategory','ipaenabledflag',
+                     'servicecategory','sourcehostcategory'],
+            add_fields:[
+                'cn',
+                {
+                    factory: IPA.radio_widget,
+                    'name': 'accessruletype',
+                    'options': [
+                        { 'value': 'allow',
+                          'label': IPA.messages.objects.hbacrule.allow
+                        },
+                        { 'value': 'deny',
+                          'label': IPA.messages.objects.hbacrule.deny
+                        }],
+                    'undo': false
+                }]}).
+        facet(IPA.hbacrule_details_facet({
             'name': 'details'
+        })).
+        build();
+};
+
+IPA.entity_factories.hbacsvc = function () {
+    return IPA.entity_builder().
+        entity('hbacsvc').
+        search_facet({
+            columns:['cn','description'],
+            add_fields:['cn','description']}).
+        details_facet([{
+            section : 'general',
+            label: IPA.messages.details.general,
+            fields:[ 'cn', 'description']}]).
+        build();
+};
+
+
+IPA.entity_factories.hbacsvcgroup = function () {
+    return IPA.entity_builder().
+        entity('hbacsvcgroup').
+        search_facet({
+            columns:['cn', 'description'],
+            add_fields:['cn', 'description']}).
+        details_facet([
+            {
+                section: 'general',
+                label: IPA.messages.details.general,
+                fields:['cn','description']
+            },
+            {
+                section: 'services',
+                label: IPA.messages.objects.hbacsvcgroup.services,
+                fields:[{
+                    factory: IPA.hbacsvcgroup_member_hbacsvc_table_widget,
+                    name: 'member_hbacsvc',
+                    label: IPA.messages.objects.hbacsvcgroup.services,
+                    other_entity: 'hbacsvc',
+                    save_values: false
+                }]
+            }]).
+        build();
+};
+
+IPA.hbacsvcgroup_member_hbacsvc_table_widget = function (spec) {
+
+    spec = spec || {};
+
+    var that = IPA.association_table_widget(spec);
+
+    that.init = function() {
+
+        var column = that.create_column({
+            name: 'cn',
+            primary_key: true,
+            width: '150px'
         });
-        that.add_facet(facet);
 
-        that.entity_init();
+        column.setup = function(container, record) {
+            container.empty();
+
+            var value = record[column.name];
+            value = value ? value.toString() : '';
+
+            $('<a/>', {
+                'href': '#'+value,
+                'html': value,
+                'click': function (value) {
+                    return function() {
+                        var state = IPA.tab_state(that.other_entity);
+                        state[that.other_entity + '-facet'] = 'details';
+                        state[that.other_entity + '-pkey'] = value;
+                        $.bbq.pushState(state);
+                        return false;
+                    };
+                }(value)
+            }).appendTo(container);
+        };
+
+        that.create_column({
+            name: 'description',
+            width: '350px'
+        });
+
+        that.create_adder_column({
+            name: 'cn',
+            primary_key: true,
+            width: '100px'
+        });
+
+        that.create_adder_column({
+            name: 'description',
+            width: '100px'
+        });
+
+        that.association_table_widget_init();
     };
 
     return that;
 };
 
-
-
-
-IPA.hbacrule_add_dialog = function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.add_dialog(spec);
-
-    that.init = function() {
-
-        that.add_field(IPA.text_widget({
-            'name': 'cn',
-            'undo': false
-        }));
-
-        that.add_field(IPA.radio_widget({
-            'name': 'accessruletype',
-            'options': [
-                { 'value': 'allow', 'label': IPA.messages.objects.hbacrule.allow },
-                { 'value': 'deny', 'label': IPA.messages.objects.hbacrule.deny }
-            ],
-            'undo': false
-        }));
-
-        that.add_dialog_init();
-    };
-
-    return that;
-};
-
-
-IPA.hbacrule_search_facet = function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.search_facet(spec);
-
-    that.init = function() {
-
-        that.create_column({name:'cn'});
-        that.create_column({name:'usercategory'});
-        that.create_column({name:'hostcategory'});
-        that.create_column({name:'ipaenabledflag'});
-        that.create_column({name:'servicecategory'});
-        that.create_column({name:'sourcehostcategory'});
-
-        that.search_facet_init();
-    };
-
-    that.create = function(container) {
-
-/*
-        // Not yet implemented
-
-        var left_buttons = $('<span/>', {
-            'style': 'float: left;'
-        }).appendTo(container);
-
-        left_buttons.append(IPA.button({
-            'label': 'Troubleshoot Rules'
-        }));
-
-        left_buttons.append(IPA.button({
-            'label': 'Cull Disabled Rules'
-        }));
-*/
-
-        that.search_facet_create(container);
-
-    };
-
-    return that;
-};
 
 
 IPA.hbacrule_details_facet = function (spec) {
@@ -315,31 +332,6 @@ IPA.hbacrule_details_facet = function (spec) {
             'name': 'sourcehost_hostgroup', 'category': category,
             'other_entity': 'hostgroup', 'add_method': 'add_sourcehost', 'remove_method': 'remove_sourcehost'
         }));
-/*
-        if (IPA.layout) {
-            section = that.create_section({
-                'name': 'accesstime',
-                'label': 'When',
-                'template': 'hbacrule-details-accesstime.html #contents'
-            });
-
-        } else {
-            section = that.create_section({
-                'name': 'accesstime',
-                'label': 'When'
-            });
-        }
-
-        section.add_field(ipa_hbacrule_accesstime_widget({
-            'id': 'accesstime',
-            'name': 'accesstime', 'label': 'Access Time',
-            'text': 'Rule applies when access is being requested at:',
-            'options': [
-                { 'value': 'all', 'label': 'Any Time' },
-                { 'value': '', 'label': 'Specified Times' }
-            ]
-        }));
-*/
         that.details_facet_init();
     };
 
@@ -531,8 +523,6 @@ IPA.hbacrule_details_facet = function (spec) {
             that.refresh();
             return;
         }
-
-        //alert(JSON.stringify(batch.to_json()));
 
         batch.execute();
     };

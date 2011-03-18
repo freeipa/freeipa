@@ -1,7 +1,8 @@
 /*jsl:import ipa.js */
+/*jsl:import search.js */
 
 /*  Authors:
- *    Pavel Zuna <pzuna@redhat.com>
+ *    Adam Young <ayoung@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -23,24 +24,22 @@
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
 
-IPA.entity_factories.hostgroup = function() {
+/**Automount*/
 
+IPA.entity_factories.automountlocation = function() {
     return IPA.entity_builder().
-        entity('hostgroup').
-        search_facet({columns:['cn','description'],
-                      add_fields:['cn','description']}).
+        entity('automountlocation').
+        search_facet({
+            columns:['cn'],
+            add_fields:['cn']
+        }).
         details_facet([{
             section:'identity',
-            label: IPA.messages.objects.hostgroup.identity,
-            fields:['cn','description']
+            label: IPA.messages.objects.automountlocation.identity,
+            fields:['cn']
         }]).
-        association_facet({
-            name: 'memberof_hostgroup',
-            associator: IPA.serial_associator
-        }).
         standard_associations().
         build();
 };
-
 
 

@@ -11,10 +11,12 @@ app_DATA =                              \
 	aci.js				\
 	add.js				\
 	associate.js			\
+	automount.js			\
 	caution.png			\
 	centered-bg.png                 \
 	check.png			\
 	dialog.js 			\
+	dns.js				\
 	ipa_logo_180x50.png		\
 	ipa.js				\
 	ipa.css				\
@@ -25,9 +27,7 @@ app_DATA =                              \
 	jquery-ui.css			\
 	certificate.js 			\
 	group.js 			\
-	hbacrule.js 			\
-	hbacsvc.js 			\
-	hbacsvcgroup.js 		\
+	hbac.js 			\
 	host.js 			\
 	hostgroup.js 			\
 	index.html 			\
@@ -36,9 +36,7 @@ app_DATA =                              \
 	netgroup.js 			\
 	service.js 			\
 	serverconfig.js			\
-	sudorule.js			\
-	sudocmd.js			\
-	sudocmdgroup.js			\
+	sudo.js				\
 	policy.js			\
 	search.js 			\
 	rule.js 			\

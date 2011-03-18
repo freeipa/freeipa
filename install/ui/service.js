@@ -25,9 +25,8 @@
 
 IPA.entity_factories.service = function() {
 
-    return  IPA.entity({
-        name: 'service'
-    }).
+    return  IPA.entity_builder().
+        entity('service').
         facet(
             IPA.search_facet().
                 column({name: 'krbprincipalname'}).
@@ -37,13 +36,45 @@ IPA.entity_factories.service = function() {
                         title: IPA.messages.objects.service.add,
                         width: '450px'
                     }))).
-        facet(IPA.service_details_facet()).
+        details_facet([
+            {
+                section: 'details',
+                fields:['krbprincipalname',
+                        {
+                            factory:IPA.service_name_widget,
+                            name: 'service',
+                            label: IPA.messages.objects.service.service,
+                            read_only: true
+                        },
+                        {
+                            factory:IPA.service_host_widget,
+                            name: 'host',
+                            label: IPA.messages.objects.service.host,
+                            read_only: true
+                        }]
+            },
+            {
+                section : 'provisioning',
+                fields:[{
+                    factory:IPA.service_provisioning_status_widget,
+                    name: 'provisioning_status',
+                    label: IPA.messages.objects.service.status
+                }]
+            },
+            {
+                section: 'certificate',
+                fields:[{
+                    factory:IPA.service_certificate_status_widget,
+                    name: 'certificate_status',
+                    label: IPA.messages.objects.service.status
+                }]
+            }]).
         facet(IPA.service_managedby_host_facet({
                 name: 'managedby_host',
                 add_method: 'add_host',
                 remove_method: 'remove_host'
-            })).
-        standard_associations();
+        })).
+        standard_associations().build();
 };
 
 
@@ -69,11 +100,8 @@ IPA.service_select_widget = function(spec) {
         container.append(select_widget);
         that.parent_create(container);
     };
-
     return that;
-
 };
-
 
 IPA.service_add_dialog = function(spec) {
 
@@ -95,15 +123,12 @@ IPA.service_add_dialog = function(spec) {
             label: IPA.messages.objects.service.host,
             size: 40,
             undo: false
-        }));
-
-    var param_info = IPA.get_method_param('service_add', 'force');
-
-    that.field(
+        })).
+        field(
         IPA.checkbox_widget({
             name: 'force',
-            label: param_info.label,
-            tooltip: param_info.doc,
+            label: IPA.get_method_param('service_add', 'force').label,
+            tooltip: IPA.get_method_param('service_add', 'force').doc,
             undo: false
         }));
 
@@ -126,50 +151,6 @@ IPA.service_add_dialog = function(spec) {
 };
 
 
-IPA.service_details_facet = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.details_facet(spec).
-        section(IPA.stanza({
-            name: 'details',
-            label: IPA.messages.objects.service.details
-        }).
-            input({
-                name: 'krbprincipalname'
-            }).
-            custom_input(IPA.service_name_widget({
-                name: 'service',
-                label: IPA.messages.objects.service.service,
-                read_only: true
-            })).
-            custom_input(IPA.service_host_widget({
-                name: 'host',
-                label: IPA.messages.objects.service.host,
-                read_only: true
-            }))).
-        section(
-            IPA.stanza({
-                name: 'provisioning',
-                label: IPA.messages.objects.service.provisioning
-            }).
-                custom_input(IPA.service_provisioning_status_widget({
-                    name: 'provisioning_status',
-                    label: IPA.messages.objects.service.status
-                }))).
-        section(
-            IPA.stanza({
-                name: 'certificate',
-                label: IPA.messages.objects.service.certificate
-            }).
-                custom_input((IPA.service_certificate_status_widget({
-                    name: 'certificate_status',
-                    label: IPA.messages.objects.service.status
-                }))));
-
-
-    return that;
-};
 
 IPA.service_name_widget = function(spec) {
 

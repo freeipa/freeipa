@@ -18,13 +18,46 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+var entities_container;
+
 module('entity',{
     setup: function() {
-        IPA.entity_factories.user = function(){
-            return IPA.entity({name:'user'})};
-        IPA.start_entities();
+
+        IPA.ajax_options.async = false;
+
+        IPA.init(
+            "data",
+            true,
+            function(data, text_status, xhr) {
+                IPA.metadata = data.result.results[0];
+                IPA.messages = data.result.results[1].messages;
+                IPA.whoami  = data.result.results[2].result[0];
+                IPA.env = data.result.results[3].result;
+                IPA.dns_enabled = data.result.results[4].result;
+
+                IPA.entity_factories.user = function(){
+                    return IPA.
+                        entity_builder().
+                        entity('user').
+                        search_facet({
+                            columns:['uid'],
+                            add_fields:[]}).
+                        build();
+                };
+                IPA.start_entities();
+            },
+            function(xhr, text_status, error_thrown) {
+                ok(false, "ipa_init() failed: "+error_thrown);
+            }
+        );
+
+        entities_container = $('<div id="entities"/>').appendTo(document.body);
+
     },
     teardown: function() {
+        entities_container.remove();
+
     }
 });
 
@@ -34,15 +67,21 @@ test('Testing IPA.entity_set_search_definition().', function() {
         return true;
     };
 
-    IPA.entity_set_search_definition('user', [
-        ['uid', 'Login', uid_callback]
-    ]);
 
-    var facet = IPA.entity_get_search_facet('user');
-    ok(
-        facet,
-        'IPA.entity_get_search_facet(\'user\') is not null'
-    );
+    var entity =   IPA.
+        entity_builder().
+        entity('user').
+        search_facet({
+            columns:['uid'],
+            add_fields:[]}).
+        build();
+    entity.init();
+
+    var facet = entity.get_facet('search');
+    facet.init();
+    facet.create(entities_container);
+    facet.setup(entities_container);
+
 
     var column = facet.get_columns()[0];
     ok(
@@ -56,7 +95,7 @@ test('Testing IPA.entity_set_search_definition().', function() {
     );
 
     equals(
-        column.label, 'Login',
+        column.label, 'User login',
         'column.label'
     );
 
@@ -65,111 +104,5 @@ test('Testing IPA.entity_set_search_definition().', function() {
         'column.setup not null'
     );
 
-    ok(
-        column.setup(),
-        'column.setup() works'
-    );
 });
 
-test('Testing ipa_facet_setup_views().', function() {
-
-    var orig_switch_and_show_page = IPA.switch_and_show_page;
-    IPA.ajax_options.async = false;
-
-    IPA.init(
-        'data',
-        true,
-        function(data, text_status, xhr) {
-            ok(true, 'ipa_init() succeeded.');
-        },
-        function(xhr, text_status, error_thrown) {
-            ok(false, 'ipa_init() failed: '+error_thrown);
-        }
-    );
-
-
-    IPA.start_entities();
-
-    var entity = IPA.get_entity('user');
-       var facet = IPA.search_facet({
-            'name': 'search',
-            'label': 'Search'
-        });
-        entity.add_facet(facet);
-        entity.create_association_facets();
-
-
-    var container = $('<div/>');
-
-    entity.init();
-    entity.setup(container);
-
-    var counter = 0;
-    IPA.switch_and_show_page = function(entity_name, facet_name, pkey) {
-        counter++;
-    };
-
-    //Container now has two divs, one for the action panel one for content
-    var action_panel = facet.get_action_panel();
-    ok(action_panel.length, 'action panel exists');
-
-    var ul = $('ul', action_panel);
-
-    var views = ul.children();
-
-    /*6 Views:
-      one for each of 3 associations
-      one for search
-      one for details
-      a blank one for the action controls*/
-    equals(
-        views.length, 6,
-        'Checking number of views'
-    );
-
-    var li = views.first();
-    ok(  li.children().first().hasClass('action-controls'),
-        'Checking that first item in list is placement for controls'
-    );
-
-    li = li.next(); // skip action controls
-    li = li.next(); // skip the header line for Member of
-
-    var attribute_members = IPA.metadata.objects['user'].attribute_members;
-    for (var attribute_member in attribute_members) {
-        var objects = attribute_members[attribute_member];
-        for (var i = 0; i < objects.length; i++) {
-            var object = objects[i];
-            var title = attribute_member+'_'+object;
-
-            li = li.next();
-            var value = li.attr('title');
-            equals(
-                value, title,
-                'Checking the '+title+' facet'
-            );
-        }
-    }
-
-    var pkey_input =  $('input[name=pkey]', action_panel);
-    ok(pkey_input.length,'pkey input exists');
-    var search_facets = $('li.search-facet', action_panel);
-    equals(search_facets.length,0,'search facet should not show up  in action panel');
-    var entity_facets = $('li.entity-facet', action_panel);
-    /*No longer automatically adding details, so ony the assoc. facets */
-    equals(entity_facets.length,4,'4 hidden entity facets in action panel');
-    entity_facets.each(function() {
-        ok( $(this).hasClass('entity-facet-disabled'),
-            'entity facets are disabled');
-    });
-
-    for ( var entity_facet = entity_facets.first();
-          entity_facet.length;
-          entity_facet = entity_facet.next()){
-        entity_facet.click();
-    }
-
-    equals(counter, 0, 'links are disabled');
-
-    IPA.switch_and_show_page = orig_switch_and_show_page;
-});

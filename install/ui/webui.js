@@ -47,6 +47,7 @@ IPA.admin_tab_set = function () {
                 {name:'sudocmd', entity:'sudocmd'},
                 {name:'sudocmdgroup', entity:'sudocmdgroup'}
             ]},
+//            {name:'automount', entity:'automountlocation'},
             {name:'pwpolicy', entity:'pwpolicy'},
             {name:'krbtpolicy', entity:'krbtpolicy'}
         ]},

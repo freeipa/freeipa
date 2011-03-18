@@ -26,89 +26,69 @@
 
 IPA.entity_factories.host = function () {
 
-    var that = IPA.entity({
-        'name': 'host'
-    });
-
-    that.init = function() {
-
-        var facet = IPA.host_search_facet({
-            'name': 'search',
-            'label': IPA.messages.facets.search
-        });
-        that.add_facet(facet);
-
-        var dialog = IPA.host_add_dialog({
-            'name': 'add',
-            'title': IPA.messages.objects.host.add
-        });
-        facet.dialog(dialog);
-
-        facet = IPA.host_details_facet({
-            'name': 'details'
-        });
-        that.add_facet(facet);
-
-        facet = IPA.host_managedby_host_facet({
+    return IPA.entity_builder().
+        entity('host').
+        search_facet({
+            columns:['fqdn','description',{
+                name: 'krblastpwdchange',
+                label: IPA.messages.objects.host.enrolled,
+                format: IPA.utc_date_column_format
+            }],
+            add_fields: ['fqdn', {factory:IPA.force_host_add_checkbox_widget}]
+        }).
+        details_facet([
+            {
+                section:'details',
+                fields: [
+                    'fqdn',
+                    'krbprincipalname',
+                    {
+                        factory: IPA.text_widget,
+                        name: 'cn',
+                        label: IPA.messages.objects.host.cn,
+                        read_only: true
+                    },
+                    'description' ]
+            },
+            {
+                section:'enrollment',
+                fields:[
+                    {
+                        factory: IPA.host_provisioning_status_widget,
+                        'name': 'provisioning_status',
+                        label: IPA.messages.objects.host.status
+                    }
+                ]
+            },
+            {
+                section :'certificate',
+                fields:[
+                    {
+                        factory: IPA.host_certificate_status_widget,
+                        'name': 'certificate_status',
+                        label: IPA.messages.objects.host.status
+                    }
+                ]
+            }]).
+        facet(IPA.host_managedby_host_facet({
             name: 'managedby_host'
-        });
-        that.add_facet(facet);
-
-        facet = IPA.association_facet({
+        })).
+        association_facet({
             name: 'memberof_hostgroup',
             associator: IPA.serial_associator
-        });
-        that.add_facet(facet);
-
-        facet = IPA.association_facet({
+        }).
+        association_facet({
             name: 'memberof_netgroup',
             associator: IPA.serial_associator
-        });
-        that.add_facet(facet);
-
-        facet = IPA.association_facet({
+        }).
+        association_facet({
             name: 'memberof_role',
             associator: IPA.serial_associator
-        });
-        that.add_facet(facet);
-
-        that.create_association_facets();
-
-        that.entity_init();
-    };
-
-    return that;
+        }).
+        standard_associations().
+        build();
 };
 
-
-IPA.host_add_dialog = function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.add_dialog(spec);
-
-    that.init = function() {
-
-        that.add_field(IPA.text_widget({
-            name: 'fqdn',
-            size: 40,
-            undo: false
-        }));
-
-        var param_info = IPA.get_method_param('host_add', 'force');
-
-        that.add_field(IPA.checkbox_widget({
-            name: 'force',
-            label: param_info.label,
-            tooltip: param_info.doc,
-            undo: false
-        }));
-
-        that.add_dialog_init();
-    };
-
-    return that;
-};
 
 /* Take an LDAP format date in UTC and format it */
 IPA.utc_date_column_format = function(value){
@@ -137,114 +117,15 @@ IPA.utc_date_column_format = function(value){
     return  formated;
 };
 
-IPA.host_search_facet = function (spec) {
 
-    spec = spec || {};
-
-    var that = IPA.search_facet(spec);
-
-    that.init = function() {
-
-        that.create_column({name:'fqdn'});
-        that.create_column({name:'description'});
-        //TODO use the value of this field to set enrollment status
-        that.create_column({
-            name: 'krblastpwdchange',
-            label: IPA.messages.objects.host.enrolled,
-            format: IPA.utc_date_column_format
-        });
-        that.create_column({name:'nshostlocation'});
-
-        that.search_facet_init();
-    };
-
-    return that;
+IPA.force_host_add_checkbox_widget = function (spec){
+    var param_info = IPA.get_method_param('host_add', 'force');
+    spec.name = 'force';
+    spec.label = param_info.label;
+    spec.tooltip = param_info.doc;
+    spec.undo = false;
+    return  IPA.checkbox_widget(spec);
 };
-
-
-IPA.host_details_facet = function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.details_facet(spec);
-
-    that.init = function() {
-
-        var section = IPA.details_list_section({
-            name: 'details',
-            label: IPA.messages.objects.host.details
-        });
-        that.add_section(section);
-
-        section.text({
-            name: 'fqdn',
-            label: IPA.messages.objects.host.fqdn
-        });
-
-        section.text({'name': 'krbprincipalname'});
-
-        section.text({
-            name: 'cn',
-            label: IPA.messages.objects.host.cn,
-            read_only: true
-        });
-
-        section.text({'name': 'description'});
-
-        section = IPA.details_list_section({
-            name: 'enrollment',
-            label: IPA.messages.objects.host.enrollment
-        });
-        that.add_section(section);
-
-        section.add_field(IPA.host_provisioning_status_widget({
-            'name': 'provisioning_status',
-            label: IPA.messages.objects.host.status,
-            'facet': that
-        }));
-
-        section = IPA.details_list_section({
-            name: 'certificate',
-            label: IPA.messages.objects.host.status
-        });
-        that.add_section(section);
-
-        section.add_field(IPA.host_certificate_status_widget({
-            'name': 'certificate_status',
-            label: IPA.messages.objects.host.status
-        }));
-
-        that.details_facet_init();
-    };
-
-    that.refresh = function() {
-
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-
-        var command = IPA.command({
-            'name': that.entity_name+'_show_'+pkey,
-            'method': that.entity_name+'_show',
-            'args': [pkey],
-            'options': { 'all': true, 'rights': true }
-        });
-
-        command.on_success = function(data, text_status, xhr) {
-            that.load(data.result.result);
-        };
-
-        command.on_error = function(xhr, text_status, error_thrown) {
-            var details = $('.details', that.container).empty();
-            details.append('<p>Error: '+error_thrown.name+'</p>');
-            details.append('<p>'+error_thrown.title+'</p>');
-            details.append('<p>'+error_thrown.message+'</p>');
-        };
-
-        command.execute();
-    };
-
-    return that;
-};
-
 
 IPA.host_provisioning_status_widget = function (spec) {
 

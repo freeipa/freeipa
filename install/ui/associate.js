@@ -270,6 +270,26 @@ IPA.association_config = function (spec) {
 };
 
 
+IPA.association_pkey_setup = function  (container, record) {
+        container.empty();
+        var value = record[this.name];
+        value = value ? value.toString() : '';
+        $('<a/>', {
+            'href': '#'+value,
+            'html': value,
+            'click': function (value) {
+                return function() {
+                    var state = IPA.tab_state(this.other_entity);
+                    state[this.other_entity + '-facet'] = 'details';
+                    state[this.other_entity + '-pkey'] = value;
+                    $.bbq.pushState(state);
+                    return false;
+                };
+            }(value)
+        }).appendTo(container);
+    };
+
+
 IPA.association_table_widget = function (spec) {
 
     spec = spec || {};
@@ -301,7 +321,28 @@ IPA.association_table_widget = function (spec) {
         return column;
     };
 
-    that.init = function() {
+    that.super_create_column =  that.create_column;
+
+    that.create_column = function(spec){
+        if (spec.link_entity){
+            spec.setup = IPA.association_pkey_setup;
+        }
+        return that.super_create_column(spec);
+    };
+    /*this is duplicated in the facet... should be unified*/
+    var i;
+    if (spec.columns){
+        for (i = 0; i < spec.columns.length; i+= 1){
+            that.create_column(spec.columns[i]);
+        }
+    }
+    if (spec.adder_columns){
+        for (i = 0; i < spec.adder_columns.length; i+= 1){
+            that.create_adder_column(spec.adder_columns[i]);
+        }
+    }
+
+    that.create = function(container) {
 
         var entity = IPA.get_entity(that.entity_name);
         var column;
@@ -326,9 +367,6 @@ IPA.association_table_widget = function (spec) {
         }
 
         that.table_init();
-    };
-
-    that.create = function(container) {
 
         that.table_create(container);
 
@@ -634,6 +672,7 @@ IPA.association_facet = function (spec) {
     that.adder_columns = [];
     that.adder_columns_by_name = {};
 
+
     that.get_column = function(name) {
         return that.columns_by_name[name];
     };
@@ -645,6 +684,9 @@ IPA.association_facet = function (spec) {
 
     that.create_column = function(spec) {
         var column = IPA.column(spec);
+        if (spec.link_entity){
+            column.setup = IPA.association_pkey_setup;
+        }
         that.add_column(column);
         return column;
     };
@@ -663,6 +705,18 @@ IPA.association_facet = function (spec) {
         that.add_adder_column(column);
         return column;
     };
+
+    var i;
+    if (spec.columns){
+        for (i = 0; i < spec.columns.length; i+= 1){
+            that.create_column(spec.columns[i]);
+        }
+    }
+    if (spec.adder_columns){
+        for (i = 0; i < spec.adder_columns.length; i+= 1){
+            that.create_adder_column(spec.adder_columns[i]);
+        }
+    }
 
     that.init = function() {
 

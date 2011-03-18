@@ -30,6 +30,7 @@ IPA.search_widget = function (spec) {
 
     var that = IPA.table_widget(spec);
 
+    that.entity_name = spec.entity_name;
     that.facet = spec.facet;
 
     that.create = function(container) {
@@ -286,6 +287,7 @@ IPA.search_facet = function(spec) {
 
     var that = IPA.facet(spec);
 
+    that.entity_name = spec.entity_name;
     that.columns = [];
     that.columns_by_name = {};
 
@@ -406,6 +408,7 @@ IPA.search_facet = function(spec) {
     that.search_facet_create = that.create;
     that.search_facet_setup = that.setup;
 
+   
     return that;
 };
 

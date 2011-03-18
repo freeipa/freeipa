@@ -18,6 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+var details_container;
+
 
 module('details', {
     setup: function() {
@@ -27,30 +29,39 @@ module('details', {
             "data",
             true,
             function(data, text_status, xhr) {
+                IPA.metadata = data.result.results[0];
+                IPA.messages = data.result.results[1].messages;
+                IPA.whoami  = data.result.results[2].result[0];
+                IPA.env = data.result.results[3].result;
+                IPA.dns_enabled = data.result.results[4].result;
             },
             function(xhr, text_status, error_thrown) {
                 ok(false, "ipa_init() failed: "+error_thrown);
             }
         );
 
+        details_container = $('<div id="details"/>').appendTo(document.body);
+
         var obj_name = 'user';
-        IPA.entity_factories.user=  
+        IPA.entity_factories.user=
             function(){
                 return IPA.entity({name:obj_name});
             };
         IPA.start_entities();
     },
     teardown: function() {
+        details_container.remove();
     }
 });
 
 
 test("Testing IPA.details_section.create().", function() {
 
-    var section = IPA.stanza({name:'IDIDID', label:'NAMENAMENAME'}).
-        input({name:'cn'}).
-        input({name:'uid'}).
-        input({name:'mail'});
+    var section = IPA.details_list_section({
+        name:'IDIDID', label:'NAMENAMENAME'}).
+        text({name:'cn'}).
+        text({name:'uid'}).
+        text({name:'mail'});
 
     section.entity_name = 'user';
     section.init();
@@ -143,34 +154,57 @@ test("Testing details lifecycle: create, setup, load.", function(){
         load_called = true;
     }
 
-    var container = $("<div/>");
+    var container = details_container;
 
     var obj_name = 'user';
 
-    var widget = IPA.widget({name: 'cn'});
+    function test_widget(){
+        var widget = IPA.widget({name: 'cn'});
 
-    widget.setup = function(container) {
-        setup_called = true;
-        widget.widget_setup(container);
-    };
+        widget.setup = function(container) {
+            setup_called = true;
+            widget.widget_setup(container);
+        };
+        
+        widget.load = function(record) {
+            load_called = true;
+            widget.widget_load(record);
+        };
+        
+        widget.save = function() {
+            save_called = true;
+            widget.widget_save();
+        };
+        return widget;
+    }
 
-    widget.load = function(record) {
-        load_called = true;
-        widget.widget_load(record);
-    };
+    var entity =   IPA.
+        entity_builder().
+        entity('user').
+        details_facet([
+            {
+                section: 'identity',
+                label: IPA.messages.details.identity,
+                fields:['title','givenname','sn','cn','displayname', 'initials']
+            },
+            {
+                section: 'contact',
+                label:'contact',
+                fields:
+                [  {factory: test_widget,name:'test'},
+                   {factory: IPA.multivalued_text_widget, name:'mail'},
+                   {factory: IPA.multivalued_text_widget,
+                    name:'telephonenumber'},
+                   {factory: IPA.multivalued_text_widget, name:'pager'},
+                   {factory: IPA.multivalued_text_widget, name:'mobile'},
+                   {factory: IPA.multivalued_text_widget,
+                    name:'facsimiletelephonenumber'}]
+            },
+        ]).build();
+    entity.init();
 
-    widget.save = function() {
-        save_called = true;
-        widget.widget_save();
-    };
-
-    IPA.entity_set_details_definition(obj_name, [
-        IPA.stanza({name:'identity', label:'Identity Details'}).
-            custom_input(widget)
-    ]);
-
-    var entity = IPA.fetch_entity(obj_name);
     var facet = entity.get_facet('details');
+    facet.init();
     facet.create(container);
     facet.setup(container);
     facet.load(result);
@@ -192,7 +226,7 @@ test("Testing details lifecycle: create, setup, load.", function(){
     var dts = identity.find('dt');
 
     same(
-        dts.length, 1,
+        dts.length, 6,
         'Checking dt tags for identity'
     );
 
@@ -219,10 +253,11 @@ test("Testing details lifecycle: create, setup, load.", function(){
 
 test("Testing IPA.details_section_setup again()",function(){
 
-    var section = IPA.stanza({name: 'IDIDID', label: 'NAMENAMENAME'}).
-        input({name:'cn', label:'Entity Name'}).
-        input({name:'description', label:'Description'}).
-        input({name:'number', label:'Entity ID'});
+    var section = IPA.details_list_section({
+        name: 'IDIDID', label: 'NAMENAMENAME'}).
+        text({name:'cn', label:'Entity Name'}).
+        text({name:'description', label:'Description'}).
+        text({name:'number', label:'Entity ID'});
     var fields = section.fields;
     var container = $("<div title='entity'/>");
     var details = $("<div/>");

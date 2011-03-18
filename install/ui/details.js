@@ -78,6 +78,7 @@ IPA.details_section = function(spec) {
     };
 
     that.multivalued_text = function(spec) {
+        spec.entity_name = that.entity_name;
         var field = IPA.multivalued_text_widget(spec);
         that.add_field(field);
         return that;
@@ -255,29 +256,6 @@ IPA.details_list_section = function(spec) {
 
     return that;
 };
-
-
-/* shorthand notation used for declarative definitions of details pages */
-IPA.stanza =  function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.details_list_section(spec);
-
-    // This is to allow declarative style programming for details
-    that.input = function(spec) {
-        that.text(spec);
-        return that;
-    };
-
-    that.custom_input = function(input) {
-        that.add_field(input);
-        return that;
-    };
-
-    return that;
-};
-
 
 IPA.details_facet = function(spec) {
 
@@ -600,6 +578,11 @@ IPA.details_refresh = function() {
         args:  [],
         options: { 'all': true, 'rights': true }
     });
+    
+    if (IPA.refresh_devel_hook){
+        IPA.refresh_devel_hook(that.entity_name,command,that.pkey);
+    }
+
 
     if (that.pkey){
         command.args =  [that.pkey];
