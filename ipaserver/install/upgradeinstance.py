@@ -19,6 +19,8 @@
 
 import os
 import sys
+import shutil
+import random
 
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
@@ -41,12 +43,19 @@ class IPAUpgrade(service.Service):
         live_run: boolean that defines if we are in test or live mode.
         """
 
+        ext = ''
+        rand = random.Random()
+        for i in range(8):
+            h = "%02x" % rand.randint(0,255)
+            ext += h
         service.Service.__init__(self, "dirsrv")
         serverid = dsinstance.realm_to_serverid(realm_name)
         self.filename = '%s%s/%s' % (DSBASE, serverid, DSE)
+        self.savefilename = '%s%s/%s.ipa.%s' % (DSBASE, serverid, DSE, ext)
         self.live_run = live_run
         self.files = files
         self.modified = False
+        self.badsyntax = False
 
     def create_instance(self):
         self.step("stopping directory server", self.stop)
@@ -61,21 +70,26 @@ class IPAUpgrade(service.Service):
         self.start_creation("Upgrading IPA:")
 
     def __save_config(self):
+        shutil.copy2(self.filename, self.savefilename)
         port = installutils.get_directive(self.filename, 'nsslapd-port',
                separator=':')
         security = installutils.get_directive(self.filename, 'nsslapd-security',
                    separator=':')
         autobind = installutils.get_directive(self.filename,
                    'nsslapd-ldapiautobind', separator=':')
+        searchbase = installutils.get_directive(self.filename,
+                   'nsslapd-ldapientrysearchbase', separator=':')
 
         self.backup_state('nsslapd-port', port)
         self.backup_state('nsslapd-security', security)
         self.backup_state('nsslapd-ldapiautobind', autobind)
+        self.backup_state('nsslapd-ldapientrysearchbase', searchbase)
 
     def __restore_config(self):
         port = self.restore_state('nsslapd-port')
         security = self.restore_state('nsslapd-security')
         autobind = self.restore_state('nsslapd-ldapiautobind')
+        searchbase = self.restore_state('nsslapd-ldapientrysearchbase')
 
         installutils.set_directive(self.filename, 'nsslapd-port',
             port, quotes=False, separator=':')
@@ -83,6 +97,9 @@ class IPAUpgrade(service.Service):
             security, quotes=False, separator=':')
         installutils.set_directive(self.filename, 'nsslapd-ldapiautobind',
             autobind, quotes=False, separator=':')
+        installutils.set_directive(self.filename,
+            'nsslapd-ldapientrysearchbase',
+            searchbase, quotes=False, separator=':')
 
     def __disable_listeners(self):
         installutils.set_directive(self.filename, 'nsslapd-port',
@@ -91,12 +108,18 @@ class IPAUpgrade(service.Service):
             'off', quotes=False, separator=':')
         installutils.set_directive(self.filename, 'nsslapd-ldapiautobind',
             'on', quotes=False, separator=':')
+        installutils.set_directive(self.filename, 'nsslapd-ldapientrysearchbase',
+            '', quotes=False, separator=':')
 
     def __upgrade(self):
-        ld = ldapupdate.LDAPUpdate(dm_password='', ldapi=True, live_run=self.live_run)
-        if len(self.files) == 0:
-            self.files = ld.get_all_files(ldapupdate.UPDATES_DIR)
-        self.modified = ld.update(self.files)
+        try:
+            ld = ldapupdate.LDAPUpdate(dm_password='', ldapi=True, live_run=self.live_run)
+            if len(self.files) == 0:
+                self.files = ld.get_all_files(ldapupdate.UPDATES_DIR)
+            self.modified = ld.update(self.files)
+        except ldapupdate.BadSyntax:
+            self.modified = False
+            self.badsyntax = True
 
 def main():
     if os.getegid() != 0:

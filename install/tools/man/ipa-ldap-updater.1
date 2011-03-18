@@ -1,21 +1,21 @@
 .\" A man page for ipa-ldap-updater
 .\" Copyright (C) 2008 Red Hat, Inc.
-.\" 
+.\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
 .\" the Free Software Foundation, either version 3 of the License, or
 .\" (at your option) any later version.
-.\" 
+.\"
 .\" This program is distributed in the hope that it will be useful, but
 .\" WITHOUT ANY WARRANTY; without even the implied warranty of
 .\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 .\" General Public License for more details.
-.\" 
+.\"
 .\" You should have received a copy of the GNU General Public License
 .\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
-.\" 
+.\"
 .\" Author: Rob Crittenden <rcritten@redhat.com>
-.\" 
+.\"
 .TH "ipa-ldap-updater" "1" "Sep 12 2008" "freeipa" ""
 .SH "NAME"
 ipa\-ldap\-updater \- Update the IPA LDAP configuration
@@ -34,7 +34,9 @@ There are 4 keywords:
     * default: the starting value
     * add: add a value (or values) to an attribute
     * remove: remove a value (or values) from an attribute
-    * only: set an attribute to this 
+    * only: set an attribute to this
+    * deleteentry: remove the entry
+    * replace: replace an existing value, format is old: new
 
 Values is a comma\-separated field so multi\-values may be added at one time. Double or single quotes may be put around individual values that contain embedded commas.
 
@@ -48,8 +50,9 @@ The available template variables are:
     * $FQDN \- the fully\-qualified domain name of the IPA server being updated (ipa.example.com)
     * $DOMAIN \- the domain name (example.com)
     * $SUFFIX \- the IPA LDAP suffix (dc=example,dc=com)
+    * $ESCAPED_SUFFIX \- the ldap-escaped IPA LDAP suffix
     * $LIBARCH \- set to 64 on x86_64 systems to be used for plugin paths
-    * $TIME \- an integer representation of current time 
+    * $TIME \- an integer representation of current time
 
 A few rules:
 
@@ -59,17 +62,23 @@ A few rules:
    4. removing a value that doesn't exist is ok. It is simply ignored.
    5. If a DN doesn't exist it is created from the 'default' entry and all updates are applied
    6. If a DN does exist the default values are skipped
-   7. Only the first rule on a line is respected 
+   7. Only the first rule on a line is respected
 .SH "OPTIONS"
-.TP 
+.TP
 \fB\-d\fR, \fB\-\-debug
 Enable debug logging when more verbose output is needed
-.TP 
+.TP
 \fB\-t\fR, \fB\-\-test\fR
 Run through the update without changing anything. If changes are available then the command returns 2. If no updates are available it returns 0.
-.TP 
+.TP
 \fB\-y\fR
 File containing the Directory Manager password
+.TP
+\fB\-l\fR, \fB\-\-ldapi\fR
+Connect to the LDAP server using the ldapi socket
+.TP
+\fB\-u\fR, \fB\-\-\-upgrade\fR
+Upgrade an installed server in offline mode (implies \-\-ldapi)
 .SH "EXIT STATUS"
 0 if the command was successful
 

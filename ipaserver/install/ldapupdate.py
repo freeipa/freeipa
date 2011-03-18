@@ -109,7 +109,7 @@ class LDAPUpdate:
 
         if online:
             # Try out the password
-            #if not self.ldapi:
+            if not self.ldapi:
                 try:
                     conn = ipaldap.IPAdmin(fqdn, ldapi=True, realm=self.realm)
                     conn.do_simple_bind(binddn="cn=directory manager", bindpw=self.dm_password)
@@ -120,13 +120,16 @@ class LDAPUpdate:
                     raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
                 except ldap.INVALID_CREDENTIALS:
                     raise RuntimeError("The password provided is incorrect for LDAP server %s" % fqdn)
-            # THIS IS COMMENTED OUT, BECAUSE:
-            # external_bind does work, but even as root, you don't always have
-            # enought power to do everything we need due to strict ACI rules
-            #
-            #else:
-            #    conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
-            #    conn.do_external_bind(self.pw_name)
+            else:
+                conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
+                try:
+                    if os.getegid() == 0:
+                        # autobind
+                        conn.do_external_bind(self.pw_name)
+                    else:
+                        conn.do_sasl_gssapi_bind()
+                except ldap.LOCAL_ERROR, e:
+                    raise RuntimeError('%s' % e.args[0].get('info', '').strip())
         else:
             raise RuntimeError("Offline updates are not supported.")
 
@@ -476,7 +479,7 @@ class LDAPUpdate:
                     try:
                         (old, new) = v.split(':', 1)
                     except ValueError:
-                        raise BadSyntax, "bad syntax in replace, needs to be in the format old: new in %s" % new_entry.dn
+                        raise BadSyntax, "bad syntax in replace, needs to be in the format old: new in %s" % v
                     try:
                         e.remove(old)
                         e.append(new)
@@ -596,6 +599,9 @@ class LDAPUpdate:
             except errors.DatabaseError, e:
                 logging.error("Update failed: %s", e)
                 updated = False
+            except errors.ACIError, e:
+                logging.error("Update failed: %s", e)
+                updated = False
 
             if ("cn=index" in entry.dn and
                 "cn=userRoot" in entry.dn):
@@ -654,14 +660,17 @@ class LDAPUpdate:
 
         try:
             if self.online:
-                # THIS IS COMMENTED OUT, BECAUSE:
-                # external_bind does work, but even as root, you don't always have
-                # enought power to do everything we need due to strict ACI rules
-                #
-                #if self.ldapi:
-                #    self.conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
-                #    self.conn.do_external_bind(self.pw_name)
-                #else:
+                if self.ldapi:
+                    self.conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
+                    try:
+                        if os.getegid() == 0:
+                            # autobind
+                            self.conn.do_external_bind(self.pw_name)
+                        else:
+                            self.conn.do_sasl_gssapi_bind()
+                    except ldap.LOCAL_ERROR, e:
+                        raise RuntimeError('%s' % e.args[0].get('info', '').strip())
+                else:
                     self.conn = ipaldap.IPAdmin(self.sub_dict['FQDN'],
                                                 ldapi=self.ldapi,
                                                 realm=self.realm)
