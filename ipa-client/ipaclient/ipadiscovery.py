@@ -68,6 +68,9 @@ class IPADiscovery:
     def getRealmName(self):
         return self.realm
 
+    def getKDCName(self):
+        return self.kdc
+
     def getBaseDN(self):
         return self.basedn
 
@@ -139,19 +142,19 @@ class IPADiscovery:
                 else:
                     return -2 #no ldap server found
 
-
-            #search for kerberos TODO: move this after ipacheckldap()
-            logging.debug("[ipadnssearchkrb]")
-            krbret = self.ipadnssearchkrb(self.domain)
-            if not krbret:
-                return -3 #no krb server found
-
-            self.realm = krbret[0]
-
         else: #server forced on us, this means DNS doesn't work :/
 
             self.domain = domain
             self.server = server
+
+        #search for kerberos
+        logging.debug("[ipadnssearchkrb]")
+        krbret = self.ipadnssearchkrb(self.domain)
+        if not server and not krbret[0]:
+            return -3 # realm for autodiscovery not found
+
+        self.realm = krbret[0]
+        self.kdc = krbret[1]
 
         logging.debug("[ipacheckldap]")
         # check ldap now
@@ -303,7 +306,7 @@ class IPADiscovery:
 
         if realm:
             # now fetch server information for the realm
-            qname = "_kerberos._udp." + tdomain
+            qname = "_kerberos._udp." + realm.lower()
             # terminate the name
             if not qname.endswith("."):
                 qname += "."
@@ -318,4 +321,7 @@ class IPADiscovery:
                     else:
                         kdc = qname
 
+            if not kdc:
+                logging.debug("SRV record for KDC not found! Realm: %s, SRV record: %s" % (realm, qname))
+        
         return [realm, kdc]

@@ -386,7 +386,7 @@ def hardcode_ldap_server(cli_server):
 
     return
 
-def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options, filename):
+def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, filename):
 
     krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
     krbconf.setOptionAssignment(" = ")
@@ -399,7 +399,7 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
 
     #[libdefaults]
     libopts = [{'name':'default_realm', 'type':'option', 'value':cli_realm}]
-    if not dnsok or options.force:
+    if not dnsok or not cli_kdc or options.force:
         libopts.append({'name':'dns_lookup_realm', 'type':'option', 'value':'false'})
         libopts.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'false'})
     else:
@@ -413,7 +413,7 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
     opts.append({'name':'empty', 'type':'empty'})
 
     #the following are necessary only if DNS discovery does not work
-    if not dnsok or options.force:
+    if not dnsok or not cli_kdc or options.force:
         #[realms]
         kropts =[{'name':'kdc', 'type':'option', 'value':cli_server+':88'},
                  {'name':'admin_server', 'type':'option', 'value':cli_server+':749'},
@@ -716,6 +716,11 @@ def main():
         print >>sys.stderr, "due to network or firewall settings."
         return ret
 
+    cli_kdc = ds.getKDCName()
+    if dnsok and not cli_kdc:
+        print >>sys.stderr, "DNS domain '%s' is not configured for automatic KDC address lookup." % ds.getRealmName().lower()
+        print >>sys.stderr, "KDC address will be set to fixed value.\n"
+
     if dnsok:
         print "Discovery was successful!"
     elif not options.unattended:
@@ -772,7 +777,7 @@ def main():
         try:
             (krb_fd, krb_name) = tempfile.mkstemp()
             os.close(krb_fd)
-            if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options, krb_name):
+            if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, krb_name):
                 sys.exit("Test kerberos configuration failed")
             env['KRB5_CONFIG'] = krb_name
             join_args = ["/usr/sbin/ipa-join", "-s", cli_server]
@@ -864,7 +869,7 @@ def main():
     if not options.on_master:
         # Configure krb5.conf
         fstore.backup_file("/etc/krb5.conf")
-        if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options, "/etc/krb5.conf"):
+        if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, "/etc/krb5.conf"):
             return 1
 
         print "Configured /etc/krb5.conf for IPA realm " + cli_realm
