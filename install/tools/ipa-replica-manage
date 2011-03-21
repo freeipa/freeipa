@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import sys
+import os
 
 import getpass, ldap, re, krbV
 import traceback, logging
@@ -415,7 +416,13 @@ def main():
 
     # Just initialize the environment. This is so the installer can have
     # access to the plugin environment
-    api.bootstrap(in_server=True)
+    api_env = {}
+    api_env['in_server'] = True
+
+    if os.getegid() != 0:
+        api_env['log'] = None # turn off logging for non-root
+
+    api.bootstrap(**api_env)
     api.finalize()
 
     dirman_passwd = None
