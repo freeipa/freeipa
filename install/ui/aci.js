@@ -181,6 +181,9 @@ IPA.rights_widget = function(spec) {
     that.rights = ['write', 'add', 'delete'];
 
     that.init = function() {
+
+        that.widget_init();
+
         for (var i=0; i<that.rights.length; i++) {
             var right = that.rights[i];
             that.add_option({label: right, value: right});
