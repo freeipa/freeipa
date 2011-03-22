@@ -113,7 +113,7 @@ def _create_zone_serial(**kwargs):
 def _validate_ipaddr(ugettext, ipaddr):
     try:
         ip = netaddr.IPAddress(ipaddr)
-    except netaddr.AddrFormatError:
+    except (netaddr.AddrFormatError, ValueError):
         return u'invalid address format'
     return None
 
