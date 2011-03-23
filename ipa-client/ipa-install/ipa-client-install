@@ -477,6 +477,9 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
     appopts = [{'name':'pam', 'type':'subsection', 'value':pamopts}]
     opts.append({'name':'appdefaults', 'type':'section', 'value':appopts})
 
+    logging.debug("Writing Kerberos configuration to %s:\n%s"
+            % (filename, krbconf.dump(opts)))
+
     krbconf.newConf(filename, opts);
 
     return 0
@@ -616,6 +619,10 @@ def update_dns(server, hostname):
         return
 
     update_txt = ipautil.template_str(template, sub_dict)
+
+    logging.debug("Writing nsupdate commands to %s:\n%s"
+            % (UPDATE_FILE, update_txt))
+
     update_fd = file(UPDATE_FILE, "w")
     update_fd.write(update_txt)
     update_fd.flush()
@@ -628,7 +635,7 @@ def update_dns(server, hostname):
         print >>sys.stderr, "Failed to obtain host TGT."
 
     try:
-        ipautil.run(['/usr/bin/nsupdate', '-g', "/etc/ipa/.dns_update.txt"],
+        ipautil.run(['/usr/bin/nsupdate', '-g', UPDATE_FILE],
                     env={'KRB5CCNAME':CCACHE_FILE})
         print "DNS server record set to: %s -> %s" % (hostname, ip)
     except CalledProcessError, e:
