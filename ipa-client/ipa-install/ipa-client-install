@@ -189,6 +189,12 @@ def uninstall(options, env):
         print "IPA client is not configured on this system."
         return 2
 
+    server_fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+    if server_fstore.has_files():
+        print "IPA client is configured as a part of IPA server on this system."
+        print "Please refer to ipa-server-install for uninstallation."
+        return 2
+
     sssdconfig = SSSDConfig.SSSDConfig()
     sssdconfig.import_config()
     domains = sssdconfig.list_active_domains()
