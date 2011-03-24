@@ -603,6 +603,7 @@ static int encode_ntlm_keys(char *newPasswd,
         /* the lanman password is upper case */
         upperPasswd = (char *)slapi_utf8StrToUpper((unsigned char *)newPasswd);
         if (!upperPasswd) {
+            iconv_close(cd);
             ret = -1;
             goto done;
         }
@@ -614,6 +615,7 @@ static int encode_ntlm_keys(char *newPasswd,
         asciiPasswd = calloc(ol+1, 1);
         if (!asciiPasswd) {
             slapi_ch_free_string(&upperPasswd);
+            iconv_close(cd);
             ret = -1;
             goto done;
         }
