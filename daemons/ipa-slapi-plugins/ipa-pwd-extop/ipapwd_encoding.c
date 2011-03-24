@@ -260,7 +260,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
     int krbTicketFlags;
     struct berval *bval = NULL;
     Slapi_Value **svals = NULL;
-    krb5_principal princ;
+    krb5_principal princ = NULL;
     krb5_error_code krberr;
     krb5_data pwd;
     struct ipapwd_keyset *kset = NULL;
