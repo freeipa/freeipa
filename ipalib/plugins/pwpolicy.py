@@ -156,7 +156,8 @@ class cosentry_find(LDAPSearch):
 api.register(cosentry_find)
 
 
-global_policy_dn = 'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn)
+global_policy_name = 'global_policy'
+global_policy_dn = 'cn=%s,cn=%s,cn=kerberos,%s' % (global_policy_name, api.env.realm, api.env.basedn)
 
 class pwpolicy(LDAPObject):
     """
@@ -304,6 +305,18 @@ class pwpolicy(LDAPObject):
                     error=_('Maximum password life must be greater than minimum.'),
                 )
 
+    def add_cospriority(self, entry, pwpolicy_name, rights=True):
+        if pwpolicy_name and pwpolicy_name != global_policy_name:
+            cos_entry = self.api.Command.cosentry_show(
+                pwpolicy_name,
+                rights=rights, all=rights
+            )['result']
+            if cos_entry.get('cospriority') is not None:
+                entry['cospriority'] = cos_entry['cospriority']
+                if rights:
+                    entry['attributelevelrights']['cospriority'] = \
+                        cos_entry['attributelevelrights']['cospriority']
+
 api.register(pwpolicy)
 
 
@@ -327,9 +340,8 @@ class pwpolicy_add(LDAPCreate):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         self.log.info('%r' % entry_attrs)
-        if not options.get('raw', False):
-            if options.get('cospriority') is not None:
-                entry_attrs['cospriority'] = [unicode(options['cospriority'])]
+        # attribute rights are not allowed for pwpolicy_add
+        self.obj.add_cospriority(entry_attrs, keys[-1], rights=False)
         self.obj.convert_time_for_output(entry_attrs, **options)
         return dn
 
@@ -381,9 +393,8 @@ class pwpolicy_mod(LDAPUpdate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        if not options.get('raw', False):
-            if options.get('cospriority') is not None:
-                entry_attrs['cospriority'] = [unicode(options['cospriority'])]
+        rights = options.get('all', False) and options.get('rights', False)
+        self.obj.add_cospriority(entry_attrs, keys[-1], rights)
         self.obj.convert_time_for_output(entry_attrs, **options)
         return dn
 
@@ -418,20 +429,8 @@ class pwpolicy_show(LDAPRetrieve):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        if not options.get('raw', False):
-            if keys[-1] is not None and keys[-1] != 'global_policy':
-                try:
-                    cos_entry = self.api.Command.cosentry_show(
-                        keys[-1]
-                    )['result']
-                    if cos_entry.get('cospriority') is not None:
-                        entry_attrs['cospriority'] = cos_entry['cospriority']
-                except errors.NotFound:
-                    pass
-        if options.get('rights', False) and options.get('all', False) and \
-            (keys[-1] is not None and keys[-1] != 'global_policy'):
-            cos_entry = self.api.Command.cosentry_show(keys[-1], rights=True, all=True)['result']
-            entry_attrs['attributelevelrights']['cospriority'] = cos_entry['attributelevelrights']['cospriority']
+        rights = options.get('all', False) and options.get('rights', False)
+        self.obj.add_cospriority(entry_attrs, keys[-1], rights)
         self.obj.convert_time_for_output(entry_attrs, **options)
         return dn
 
@@ -443,17 +442,10 @@ class pwpolicy_find(LDAPSearch):
     Search for group password policies.
     """
     def post_callback(self, ldap, entries, truncated, *args, **options):
-        if not options.get('raw', False):
-            for e in entries:
-                try:
-                    cos_entry = self.api.Command.cosentry_show(
-                        e[1]['cn'][0]
-                    )['result']
-                    if cos_entry.get('cospriority') is not None:
-                        e[1]['cospriority'] = cos_entry['cospriority']
-                except errors.NotFound:
-                    pass
-                self.obj.convert_time_for_output(e[1], **options)
+        for e in entries:
+            # attribute rights are not allowed for pwpolicy_find
+            self.obj.add_cospriority(e[1], e[1]['cn'][0], rights=False)
+            self.obj.convert_time_for_output(e[1], **options)
 
 api.register(pwpolicy_find)
 
