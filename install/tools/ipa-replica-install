@@ -153,7 +153,8 @@ def install_ca(config):
     cafile = config.dir + "/cacert.p12"
 
     if not ipautil.file_exists(cafile):
-        return None
+        # CA not used on the server, return empty instances
+        return (None, None)
 
     try:
         from ipaserver.install import cainstance
