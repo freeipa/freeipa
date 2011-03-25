@@ -123,7 +123,7 @@ class hbacrule(LDAPObject):
         'memberservice': ['hbacsvc', 'hbacsvcgroup'],
     }
 
-    label = _('HBAC')
+    label = _('HBAC Rule')
 
     takes_params = (
         Str('cn',

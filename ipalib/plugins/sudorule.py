@@ -65,7 +65,7 @@ class sudorule(LDAPObject):
         'ipasudorunasgroup': ['group'],
     }
 
-    label = _('Sudo')
+    label = _('Sudo Rule')
 
     takes_params = (
         Str('cn',
