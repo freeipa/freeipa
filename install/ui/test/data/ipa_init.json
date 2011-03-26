@@ -1,10 +1,11 @@
 {
-    "error": null, 
-    "id": 1, 
+    "error": null,
+    "id": 1,
     "result": {
-        "count": 5, 
+        "count": 5,
         "results": [
             {
+                "error": null,
                 "methods": {
                     "aci_add": {
                         "__base64__": ""
@@ -62,7 +63,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -134,7 +135,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -209,7 +210,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -269,7 +270,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -323,7 +324,7 @@
                                 "cli_name": "parentmap",
                                 "cli_short_name": null,
                                 "default": "auto.master",
-                                "doc": "Name of parent automount map (default: auto.master)",
+                                "doc": "Name of parent automount map (default: auto.master).",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -399,7 +400,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -486,7 +487,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -595,7 +596,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -623,7 +624,7 @@
                                 "cli_name": "force",
                                 "cli_short_name": null,
                                 "default": false,
-                                "doc": "force DNS zone creation even if name server not in DNS",
+                                "doc": "Force DNS zone creation even if nameserver not in DNS.",
                                 "exclude": null,
                                 "falsehoods": [
                                     0,
@@ -730,7 +731,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -758,7 +759,7 @@
                                 "cli_name": "nonposix",
                                 "cli_short_name": null,
                                 "default": false,
-                                "doc": "Create as a non-POSIX group?",
+                                "doc": "Create as a non-POSIX group",
                                 "exclude": null,
                                 "falsehoods": [
                                     0,
@@ -842,7 +843,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -944,7 +945,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -1016,7 +1017,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -1207,7 +1208,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -1294,7 +1295,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -1372,7 +1373,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -1450,7 +1451,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -1534,7 +1535,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -1606,7 +1607,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -1761,7 +1762,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -1833,7 +1834,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -1911,7 +1912,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -2031,7 +2032,7 @@
                                 "cli_name": "setattr",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Set an attribute to an name/value pair. Format is attr=value.\nFor multivalued attributes, the command replaces the values already present.",
+                                "doc": "Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.",
                                 "exclude": [
                                     "webui"
                                 ],
@@ -2142,7 +2143,7 @@
                                 "cli_name": "key",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Automount key name",
+                                "doc": "Automount key name.",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -2282,7 +2283,7 @@
                                 "cli_name": "location",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Automount location name",
+                                "doc": "Automount location name.",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -2365,7 +2366,7 @@
                                 "cli_name": "map",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Automount map name",
+                                "doc": "Automount map name.",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -2472,12 +2473,12 @@
                                 "cli_name": "maxusername",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Max username length",
+                                "doc": "Max. username length",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
                                 "include": null,
-                                "label": "Max username length",
+                                "label": "Max. username length",
                                 "maxvalue": 2147483647,
                                 "minvalue": 1,
                                 "multivalue": false,
@@ -2495,7 +2496,7 @@
                                 "cli_name": "homedirectory",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Default location of home directories",
+                                "doc": "Default location of home directories.",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -2521,7 +2522,7 @@
                                 "cli_name": "defaultshell",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Default shell for new users",
+                                "doc": "Default shell for new users.",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -2547,7 +2548,7 @@
                                 "cli_name": "defaultgroup",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Default group for new users",
+                                "doc": "Default group for new users.",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -2573,12 +2574,12 @@
                                 "cli_name": "emaildomain",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Default e-mail domain new users",
+                                "doc": "Default e-mail domain new users.",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
                                 "include": null,
-                                "label": "Default e-mail domain",
+                                "label": "Default e-mail domain for new users",
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
@@ -2599,7 +2600,7 @@
                                 "cli_name": "searchtimelimit",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Max. amount of time (sec.) for a search (> 0, or -1 for unlimited)",
+                                "doc": "Max. amount of time (sec.) for a search (> 0, or -1 for unlimited).",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -2622,7 +2623,7 @@
                                 "cli_name": "searchrecordslimit",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Max. number of records to search (-1 is unlimited)",
+                                "doc": "Max. number of records to search (-1 is unlimited).",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -2645,7 +2646,7 @@
                                 "cli_name": "usersearch",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "A comma-separated list of fields to search when searching for users",
+                                "doc": "A comma-separated list of fields to search when searching for users.",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -2671,7 +2672,7 @@
                                 "cli_name": "groupsearch",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "A comma-separated list of fields to search when searching for groups",
+                                "doc": "A comma-separated list of fields to search when searching for groups.",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -2697,7 +2698,7 @@
                                 "cli_name": "enable_migration",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Enable migration mode",
+                                "doc": "Enable migration mode.",
                                 "exclude": null,
                                 "falsehoods": [
                                     0,
@@ -2728,7 +2729,7 @@
                                 "cli_name": "subject",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Base for certificate subjects (OU=Test,O=Example)",
+                                "doc": "Base for certificate subjects (OU=Test,O=Example).",
                                 "exclude": null,
                                 "flags": [
                                     "no_update"
@@ -2756,7 +2757,7 @@
                                 "cli_name": "groupobjectclasses",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Default group objectclassses (comma-separated list)",
+                                "doc": "Default group objectclassses (comma-separated list).",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -2779,7 +2780,7 @@
                                 "cli_name": "userobjectclasses",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Default user objectclassses (comma-separated list)",
+                                "doc": "Default user objectclassses (comma-separated list).",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -2802,7 +2803,7 @@
                                 "cli_name": "pwdexpnotify",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Password Expiration Notification (days)",
+                                "doc": "Number of days's notice of impending password expiration.",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -2825,7 +2826,7 @@
                                 "cli_name": "ipaconfigstring",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Extra hashes to generate in password plugin",
+                                "doc": "Extra hashes to generate in password plug-in.",
                                 "exclude": null,
                                 "flags": [
                                     "no_update"
@@ -4321,12 +4322,12 @@
                                 "cli_name": "name_server",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Authoritative name server",
+                                "doc": "Authoritative nameserver.",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
                                 "include": null,
-                                "label": "Authoritative name server",
+                                "label": "Authoritative nameserver",
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
@@ -4380,7 +4381,7 @@
                                 "include": null,
                                 "label": "SOA serial",
                                 "maxvalue": 2147483647,
-                                "minvalue": null,
+                                "minvalue": 1,
                                 "multivalue": false,
                                 "name": "idnssoaserial",
                                 "primary_key": false,
@@ -4403,7 +4404,7 @@
                                 "include": null,
                                 "label": "SOA refresh",
                                 "maxvalue": 2147483647,
-                                "minvalue": null,
+                                "minvalue": 0,
                                 "multivalue": false,
                                 "name": "idnssoarefresh",
                                 "primary_key": false,
@@ -4426,7 +4427,7 @@
                                 "include": null,
                                 "label": "SOA retry",
                                 "maxvalue": 2147483647,
-                                "minvalue": null,
+                                "minvalue": 0,
                                 "multivalue": false,
                                 "name": "idnssoaretry",
                                 "primary_key": false,
@@ -4449,7 +4450,7 @@
                                 "include": null,
                                 "label": "SOA expire",
                                 "maxvalue": 2147483647,
-                                "minvalue": null,
+                                "minvalue": 0,
                                 "multivalue": false,
                                 "name": "idnssoaexpire",
                                 "primary_key": false,
@@ -4465,14 +4466,14 @@
                                 "cli_name": "minimum",
                                 "cli_short_name": null,
                                 "default": 3600,
-                                "doc": "SOA record minimum value",
+                                "doc": "How long should negative responses be cached",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
                                 "include": null,
                                 "label": "SOA minimum",
-                                "maxvalue": 2147483647,
-                                "minvalue": null,
+                                "maxvalue": 10800,
+                                "minvalue": 0,
                                 "multivalue": false,
                                 "name": "idnssoaminimum",
                                 "primary_key": false,
@@ -4598,7 +4599,7 @@
                                 "cli_name": "allow_dynupdate",
                                 "cli_short_name": null,
                                 "default": false,
-                                "doc": "Allow dynamic update?",
+                                "doc": "Allow dynamic updates.",
                                 "exclude": null,
                                 "falsehoods": [
                                     0,
@@ -4657,6 +4658,11 @@
                                 "group",
                                 "netgroup",
                                 "role"
+                            ],
+                            "memberofindirect": [
+                                "group",
+                                "netgroup",
+                                "role"
                             ]
                         },
                         "bindable": false,
@@ -4667,7 +4673,8 @@
                             "gidnumber",
                             "member",
                             "memberof",
-                            "memberindirect"
+                            "memberindirect",
+                            "memberofindirect"
                         ],
                         "hidden_attributes": [
                             "objectclass",
@@ -4848,7 +4855,7 @@
                             "objectclass",
                             "aci"
                         ],
-                        "label": "HBAC",
+                        "label": "HBAC Rule",
                         "methods": [
                             "add",
                             "add_host",
@@ -5611,6 +5618,11 @@
                                 "hostgroup",
                                 "netgroup",
                                 "role"
+                            ],
+                            "memberofindirect": [
+                                "hostgroup",
+                                "netgroup",
+                                "role"
                             ]
                         },
                         "bindable": true,
@@ -5626,7 +5638,9 @@
                             "usercertificate",
                             "memberof",
                             "krblastpwdchange",
-                            "managedby"
+                            "managedby",
+                            "memberindirect",
+                            "memberofindirect"
                         ],
                         "hidden_attributes": [
                             "objectclass",
@@ -6004,6 +6018,10 @@
                             ],
                             "memberof": [
                                 "hostgroup"
+                            ],
+                            "memberofindirect": [
+                                "host",
+                                "hostgroup"
                             ]
                         },
                         "bindable": false,
@@ -6013,7 +6031,8 @@
                             "description",
                             "member",
                             "memberof",
-                            "memberindirect"
+                            "memberindirect",
+                            "memberofindirect"
                         ],
                         "hidden_attributes": [
                             "objectclass",
@@ -6117,7 +6136,7 @@
                         "aciattrs": [],
                         "attribute_members": {},
                         "bindable": false,
-                        "container_dn": "cn=IPA,cn=kerberos",
+                        "container_dn": "cn=AYOUNG.BOSTON.DEVEL.REDHAT.COM,cn=kerberos",
                         "default_attributes": [
                             "krbmaxticketlife",
                             "krbmaxrenewableage"
@@ -6286,7 +6305,7 @@
                             "objectclass",
                             "aci"
                         ],
-                        "label": "Net Groups",
+                        "label": "Netgroups",
                         "methods": [
                             "add",
                             "add_member",
@@ -6813,6 +6832,9 @@
                             ],
                             "memberof": [
                                 "permission"
+                            ],
+                            "memberofindirect": [
+                                "permission"
                             ]
                         },
                         "bindable": false,
@@ -6822,7 +6844,8 @@
                             "description",
                             "member",
                             "memberof",
-                            "memberindirect"
+                            "memberindirect",
+                            "memberofindirect"
                         ],
                         "hidden_attributes": [
                             "objectclass",
@@ -6939,7 +6962,7 @@
                         ],
                         "attribute_members": {},
                         "bindable": false,
-                        "container_dn": "cn=IPA,cn=kerberos",
+                        "container_dn": "cn=AYOUNG.BOSTON.DEVEL.REDHAT.COM,cn=kerberos",
                         "default_attributes": [
                             "cn",
                             "cospriority",
@@ -7251,7 +7274,11 @@
                                 "hostgroup"
                             ],
                             "memberof": [
-                                "privilege"
+                                "privilege",
+                                "role"
+                            ],
+                            "memberofindirect": [
+                                "role"
                             ]
                         },
                         "bindable": false,
@@ -7261,7 +7288,8 @@
                             "description",
                             "member",
                             "memberof",
-                            "memberindirect"
+                            "memberindirect",
+                            "memberofindirect"
                         ],
                         "hidden_attributes": [
                             "objectclass",
@@ -7390,12 +7418,12 @@
                                 "cli_name": "name",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Self-Service name",
+                                "doc": "Self-service name",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
                                 "include": null,
-                                "label": "Self-Service name",
+                                "label": "Self-service name",
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
@@ -7601,12 +7629,17 @@
                             "objectclass",
                             "sudocmd"
                         ],
-                        "attribute_members": {},
+                        "attribute_members": {
+                            "memberof": [
+                                "sudocmdgroup"
+                            ]
+                        },
                         "bindable": false,
                         "container_dn": "cn=sudocmds,cn=sudo",
                         "default_attributes": [
                             "sudocmd",
-                            "description"
+                            "description",
+                            "memberof"
                         ],
                         "hidden_attributes": [
                             "objectclass",
@@ -7719,15 +7752,7 @@
                         ],
                         "attribute_members": {
                             "member": [
-                                "sudocmd",
-                                "sudocmdgroup"
-                            ],
-                            "memberindirect": [
-                                "sudocmd",
-                                "sudocmdgroup"
-                            ],
-                            "memberof": [
-                                "sudocmdgroup"
+                                "sudocmd"
                             ]
                         },
                         "bindable": false,
@@ -7735,9 +7760,7 @@
                         "default_attributes": [
                             "cn",
                             "description",
-                            "member",
-                            "memberof",
-                            "memberindirect"
+                            "member"
                         ],
                         "hidden_attributes": [
                             "objectclass",
@@ -7964,7 +7987,7 @@
                             "objectclass",
                             "aci"
                         ],
-                        "label": "Sudo",
+                        "label": "Sudo Rule",
                         "methods": [
                             "add",
                             "add_allow_command",
@@ -8694,6 +8717,11 @@
                                 "group",
                                 "netgroup",
                                 "role"
+                            ],
+                            "memberofindirect": [
+                                "group",
+                                "netgroup",
+                                "role"
                             ]
                         },
                         "bindable": true,
@@ -8708,7 +8736,8 @@
                             "telephonenumber",
                             "title",
                             "memberof",
-                            "nsaccountlock"
+                            "nsaccountlock",
+                            "memberofindirect"
                         ],
                         "hidden_attributes": [
                             "objectclass",
@@ -9465,9 +9494,10 @@
                 }
             },
             {
+                "error": null,
                 "messages": {
                     "ajax": {
-                        "401": "Your kerberos ticket is no longer valid. Please run kinit and then click 'Retry'. If this is your first time running the IPA Web UI <a href='/ipa/config/unauthorized.html'>follow these directions</a> to configure your browser."
+                        "401": "Your Kerberos ticket is no longer valid. Please run kinit and then click 'Retry'. If this is your first time running the IPA Web UI <a href='/ipa/config/unauthorized.html'>follow these directions</a> to configure your browser."
                     },
                     "association": {
                         "add": "Add ${other_entity} into ${entity} ${primary_key}",
@@ -9736,7 +9766,7 @@
                         "delete_confirm": "Are you sure you want to delete selected entries?",
                         "quick_links": "Quick Links",
                         "select_all": "Select All",
-                        "truncated": "Query returned results than configured size limit will show. First ${counter} results shown.",
+                        "truncated": "Query returned more results than the configured size limit. Displaying the first ${counter} results.",
                         "unselect_all": "Unselect All"
                     },
                     "tabs": {
@@ -9754,148 +9784,157 @@
                 }
             },
             {
-                "count": 1, 
-                "error": null, 
+                "count": 1,
+                "error": null,
                 "result": [
                     {
                         "cn": [
                             "Administrator"
-                        ], 
-                        "dn": "uid=admin,cn=users,cn=accounts,dc=ipa14,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                        ],
+                        "dn": "uid=admin,cn=users,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                         "gecos": [
                             "Administrator"
-                        ], 
+                        ],
                         "gidnumber": [
-                            "1420800000"
-                        ], 
+                            "11400000"
+                        ],
                         "homedirectory": [
                             "/home/admin"
-                        ], 
+                        ],
                         "ipauniqueid": [
-                            "d9a55ece-2e2a-11e0-87ba-52540029a798"
-                        ], 
+                            "7db304be-5728-11e0-859f-52540029a798"
+                        ],
+                        "krbextradata": [
+                            {
+                                "__base64__": "AAKIDI1Ncm9vdC9hZG1pbkBBWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
+                            },
+                            {
+                                "__base64__": "AAgBAA=="
+                            }
+                        ],
                         "krblastpwdchange": [
-                            "20110201174537Z"
-                        ], 
+                            "20110325214336Z"
+                        ],
                         "krblastsuccessfulauth": [
-                            "20110201174706Z"
-                        ], 
+                            "20110326005032Z"
+                        ],
                         "krbpasswordexpiration": [
-                            "20110502174537Z"
-                        ], 
+                            "20110623214336Z"
+                        ],
                         "krbprincipalname": [
-                            "admin@IPA14.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
-                        ], 
+                            "admin@AYOUNG.BOSTON.DEVEL.REDHAT.COM"
+                        ],
                         "loginshell": [
                             "/bin/bash"
-                        ], 
+                        ],
                         "memberof_group": [
                             "admins"
-                        ], 
+                        ],
                         "nsaccountlock": [
                             "False"
-                        ], 
+                        ],
                         "objectclass": [
-                            "top", 
-                            "person", 
-                            "posixaccount", 
-                            "krbprincipalaux", 
-                            "krbticketpolicyaux", 
-                            "inetuser", 
+                            "top",
+                            "person",
+                            "posixaccount",
+                            "krbprincipalaux",
+                            "krbticketpolicyaux",
+                            "inetuser",
                             "ipaobject"
-                        ], 
+                        ],
                         "sn": [
                             "Administrator"
-                        ], 
+                        ],
                         "uid": [
                             "admin"
-                        ], 
+                        ],
                         "uidnumber": [
-                            "1420800000"
+                            "11400000"
                         ]
                     }
-                ], 
-                "summary": "1 user matched", 
+                ],
+                "summary": "1 user matched",
                 "truncated": false
-            }, 
+            },
             {
-                "count": 66, 
-                "error": null, 
+                "count": 67,
+                "error": null,
                 "result": {
-                    "basedn": "dc=ipa14,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
-                    "bin": "/var/www", 
-                    "ca_agent_port": 9443, 
-                    "ca_ee_port": 9444, 
-                    "ca_host": "ipa14.ayoung.boston.devel.redhat.com", 
-                    "ca_port": 9180, 
-                    "conf": "/etc/ipa/server.conf", 
-                    "conf_default": "/etc/ipa/default.conf", 
-                    "confdir": "/etc/ipa", 
-                    "config_loaded": true, 
-                    "container_accounts": "cn=accounts", 
-                    "container_applications": "cn=applications,cn=configs,cn=policies", 
-                    "container_automount": "cn=automount", 
-                    "container_configs": "cn=configs,cn=policies", 
-                    "container_dns": "cn=dns", 
-                    "container_group": "cn=groups,cn=accounts", 
-                    "container_hbac": "cn=hbac", 
-                    "container_hbacservice": "cn=hbacservices,cn=hbac", 
-                    "container_hbacservicegroup": "cn=hbacservicegroups,cn=hbac", 
-                    "container_host": "cn=computers,cn=accounts", 
-                    "container_hostgroup": "cn=hostgroups,cn=accounts", 
-                    "container_netgroup": "cn=ng,cn=alt", 
-                    "container_permission": "cn=permissions,cn=pbac", 
-                    "container_policies": "cn=policies", 
-                    "container_policygroups": "cn=policygroups,cn=configs,cn=policies", 
-                    "container_policylinks": "cn=policylinks,cn=configs,cn=policies", 
-                    "container_privilege": "cn=privileges,cn=pbac", 
-                    "container_rolegroup": "cn=roles,cn=accounts", 
-                    "container_roles": "cn=roles,cn=policies", 
-                    "container_service": "cn=services,cn=accounts", 
-                    "container_sudocmd": "cn=sudocmds,cn=sudo", 
-                    "container_sudocmdgroup": "cn=sudocmdgroups,cn=sudo", 
-                    "container_sudorule": "cn=sudorules,cn=sudo", 
-                    "container_user": "cn=users,cn=accounts", 
-                    "container_virtual": "cn=virtual operations,cn=etc", 
-                    "context": "server", 
-                    "debug": false, 
-                    "domain": "ayoung.boston.devel.redhat.com", 
-                    "dot_ipa": "/var/www/.ipa", 
-                    "enable_ra": true, 
-                    "fallback": true, 
-                    "home": "/var/www", 
-                    "host": "ipa14.ayoung.boston.devel.redhat.com", 
-                    "in_server": true, 
-                    "in_tree": false, 
-                    "interactive": true, 
-                    "ipalib": "/usr/lib/python2.7/site-packages/ipalib", 
-                    "ldap_uri": "ldapi://%2fvar%2frun%2fslapd-IPA14-AYOUNG-BOSTON-DEVEL-REDHAT-COM.socket", 
-                    "log": null, 
-                    "logdir": "/var/log/ipa", 
-                    "mode": "production", 
-                    "mount_ipa": "/ipa/", 
-                    "mount_jsonserver": "json", 
-                    "mount_xmlserver": "xml", 
-                    "prompt_all": false, 
-                    "ra_plugin": "selfsign", 
-                    "realm": "IPA14.AYOUNG.BOSTON.DEVEL.REDHAT.COM", 
-                    "rpc_json_uri": "http://localhost:8888/ipa/json", 
-                    "script": "/var/www/mod_wsgi", 
-                    "site_packages": "/usr/lib/python2.7/site-packages", 
-                    "startup_traceback": false, 
-                    "validate_api": false, 
-                    "verbose": 0, 
-                    "webui_assets_dir": null, 
-                    "webui_prod": true, 
+                    "basedn": "dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                    "bin": "/var/www",
+                    "ca_agent_port": 9443,
+                    "ca_ee_port": 9444,
+                    "ca_host": "ipa14.ayoung.boston.devel.redhat.com",
+                    "ca_port": 9180,
+                    "conf": "/etc/ipa/server.conf",
+                    "conf_default": "/etc/ipa/default.conf",
+                    "confdir": "/etc/ipa",
+                    "config_loaded": true,
+                    "container_accounts": "cn=accounts",
+                    "container_applications": "cn=applications,cn=configs,cn=policies",
+                    "container_automount": "cn=automount",
+                    "container_configs": "cn=configs,cn=policies",
+                    "container_dns": "cn=dns",
+                    "container_entitlements": "cn=entitlements,cn=etc",
+                    "container_group": "cn=groups,cn=accounts",
+                    "container_hbac": "cn=hbac",
+                    "container_hbacservice": "cn=hbacservices,cn=hbac",
+                    "container_hbacservicegroup": "cn=hbacservicegroups,cn=hbac",
+                    "container_host": "cn=computers,cn=accounts",
+                    "container_hostgroup": "cn=hostgroups,cn=accounts",
+                    "container_netgroup": "cn=ng,cn=alt",
+                    "container_permission": "cn=permissions,cn=pbac",
+                    "container_policies": "cn=policies",
+                    "container_policygroups": "cn=policygroups,cn=configs,cn=policies",
+                    "container_policylinks": "cn=policylinks,cn=configs,cn=policies",
+                    "container_privilege": "cn=privileges,cn=pbac",
+                    "container_rolegroup": "cn=roles,cn=accounts",
+                    "container_roles": "cn=roles,cn=policies",
+                    "container_service": "cn=services,cn=accounts",
+                    "container_sudocmd": "cn=sudocmds,cn=sudo",
+                    "container_sudocmdgroup": "cn=sudocmdgroups,cn=sudo",
+                    "container_sudorule": "cn=sudorules,cn=sudo",
+                    "container_user": "cn=users,cn=accounts",
+                    "container_virtual": "cn=virtual operations,cn=etc",
+                    "context": "server",
+                    "debug": false,
+                    "domain": "ayoung.boston.devel.redhat.com",
+                    "dot_ipa": "/var/www/.ipa",
+                    "enable_ra": true,
+                    "fallback": true,
+                    "home": "/var/www",
+                    "host": "ipa14.ayoung.boston.devel.redhat.com",
+                    "in_server": true,
+                    "in_tree": false,
+                    "interactive": true,
+                    "ipalib": "/usr/lib/python2.7/site-packages/ipalib",
+                    "ldap_uri": "ldapi://%2fvar%2frun%2fslapd-AYOUNG-BOSTON-DEVEL-REDHAT-COM.socket",
+                    "log": null,
+                    "logdir": "/var/log/ipa",
+                    "mode": "production",
+                    "mount_ipa": "/ipa/",
+                    "mount_jsonserver": "json",
+                    "mount_xmlserver": "xml",
+                    "prompt_all": false,
+                    "ra_plugin": "dogtag",
+                    "realm": "AYOUNG.BOSTON.DEVEL.REDHAT.COM",
+                    "rpc_json_uri": "http://localhost:8888/ipa/json",
+                    "script": "/var/www/mod_wsgi",
+                    "site_packages": "/usr/lib/python2.7/site-packages",
+                    "startup_traceback": false,
+                    "validate_api": false,
+                    "verbose": 0,
+                    "webui_assets_dir": null,
+                    "webui_prod": true,
                     "xmlrpc_uri": "https://ipa14.ayoung.boston.devel.redhat.com/ipa/xml"
-                }, 
-                "summary": "66 variables", 
-                "total": 66
-            }, 
+                },
+                "summary": "67 variables",
+                "total": 67
+            },
             {
-                "error": null, 
-                "result": true, 
-                "summary": null, 
+                "error": null,
+                "result": true,
+                "summary": null,
                 "value": ""
             }
         ]
