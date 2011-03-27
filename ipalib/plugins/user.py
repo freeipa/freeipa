@@ -289,20 +289,22 @@ class user_add(LDAPCreate):
             entry_attrs['homedirectory'] = home_dir
         entry_attrs.setdefault('krbpwdpolicyreference', 'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn))
 
-        if ldap.has_upg():
-            # User Private Groups - uidNumber == gidNumber
-            entry_attrs['gidnumber'] = entry_attrs['uidnumber']
-        else:
-            # we're adding new users to a default group, get its gidNumber
-            # get default group name from config
-            def_primary_group = config.get('ipadefaultprimarygroup')
-            group_dn = self.api.Object['group'].get_dn(def_primary_group)
-            try:
-                (group_dn, group_attrs) = ldap.get_entry(group_dn, ['gidnumber'])
-            except errors.NotFound:
-                error_msg = 'Default group for new users not found.'
-                raise errors.NotFound(reason=error_msg)
-            entry_attrs['gidnumber'] = group_attrs['gidnumber']
+        if 'gidnumber' not in entry_attrs:
+            # gidNumber wasn't specified explicity, find out what it should be
+            if ldap.has_upg():
+                # User Private Groups - uidNumber == gidNumber
+                entry_attrs['gidnumber'] = entry_attrs['uidnumber']
+            else:
+                # we're adding new users to a default group, get its gidNumber
+                # get default group name from config
+                def_primary_group = config.get('ipadefaultprimarygroup')
+                group_dn = self.api.Object['group'].get_dn(def_primary_group)
+                try:
+                    (group_dn, group_attrs) = ldap.get_entry(group_dn, ['gidnumber'])
+                except errors.NotFound:
+                    error_msg = 'Default group for new users not found.'
+                    raise errors.NotFound(reason=error_msg)
+                entry_attrs['gidnumber'] = group_attrs['gidnumber']
 
         if 'mail' in entry_attrs:
             entry_attrs['mail'] = self.obj._normalize_email(entry_attrs['mail'], config)
