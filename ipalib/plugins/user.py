@@ -261,7 +261,7 @@ class user_add(LDAPCreate):
             self.api.Command['group_show'](keys[-1])
             try:
                 self.api.Command['user_show'](keys[-1])
-                raise errors.DuplicateEntry()
+                self.obj.handle_duplicate_entry(*keys)
             except errors.NotFound:
                 raise errors.ManagedGroupExistsError(group=keys[-1])
         except errors.NotFound:
