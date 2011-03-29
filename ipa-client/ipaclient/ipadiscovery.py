@@ -185,7 +185,8 @@ class IPADiscovery:
         try:
             run(["/usr/bin/wget", "-O", "%s/ca.crt" % temp_ca_dir, "http://%s/ipa/config/ca.crt" % thost])
         except CalledProcessError, e:
-            raise RuntimeError('Retrieving CA from %s failed.\n%s' % (thost, str(e)))
+            logging.debug('Retrieving CA from %s failed.\n%s' % (thost, str(e)))
+            return []
 
         #now verify the server is really an IPA server
         try:
