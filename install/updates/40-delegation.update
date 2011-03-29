@@ -240,3 +240,21 @@ add:aci: '(targetattr = "cospriority")(target = "ldap:///cn=*,cn=costemplates,cn
 add:aci: '(target = "ldap:///cn=*,cn=$REALM,cn=kerberos,$SUFFIX")(version 3.0;acl "permission:Add Group Password Policy";allow (add) groupdn = "ldap:///cn=Add Group Password Policy,cn=permissions,cn=pbac,$SUFFIX";)'
 add:aci: '(target = "ldap:///cn=*,cn=$REALM,cn=kerberos,$SUFFIX")(version 3.0;acl "permission:Delete Group Password Policy";allow (delete) groupdn = "ldap:///cn=Delete Group Password Policy,cn=permissions,cn=pbac,$SUFFIX";)'
 add:aci: '(targetattr = "krbmaxpwdlife || krbminpwdlife || krbpwdhistorylength || krbpwdmindiffchars || krbpwdminlength || krbpwdmaxfailure || krbpwdfailurecountinterval || krbpwdlockoutduration")(target = "ldap:///cn=*,cn=$REALM,cn=kerberos,$SUFFIX")(version 3.0;acl "permission:Modify Group Password Policy";allow (write) groupdn = "ldap:///cn=Modify Group Password Policy,cn=permissions,cn=pbac,$SUFFIX";)'
+
+# Allow an admin to enroll a host that has a one-time password.
+# When a host is created with a password no krbPrincipalName is set.
+# This will let it be added if the client ends up enrolling with
+# an administrator instead.
+dn: cn=Add krbPrincipalName to a host,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:cn: Add krbPrincipalName to a host
+default:member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:member: cn=Host Enrollment,cn=privileges,cn=pbac,$SUFFIX
+
+dn: $SUFFIX
+add:aci: '(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(targetfilter = "(!(krbprincipalname=*))")(targetattr = "krbprincipalname")(version 3.0;acl "permission:Add krbPrincipalName to a host"; allow (write) groupdn = "ldap:///cn=Add krbPrincipalName to a host,cn=permissions,cn=pbac,$SUFFIX";)'
+
+dn: cn=Host Enrollment,cn=privileges,cn=pbac,$SUFFIX
+add:member: 'cn=admins,cn=groups,cn=accounts,$SUFFIX'
