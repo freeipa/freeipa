@@ -358,7 +358,7 @@ IPA.text_widget = function(spec) {
 
         } else {
             var input = $('input[name="'+that.name+'"]', that.container);
-            var value = $.trim(input.val());
+            var value = input.val();
             return value === '' ? [] : [value];
         }
     };
@@ -477,7 +477,7 @@ IPA.multivalued_text_widget = function(spec) {
         if (that.read_only || !that.writable) {
             $('label[name="'+that.name+'"]', that.container).each(function() {
                 var input = $(this);
-                var value = $.trim(input.html());
+                var value = input.html();
                 values.push(value);
             });
 
@@ -486,7 +486,7 @@ IPA.multivalued_text_widget = function(spec) {
                 var input = $(this);
                 if (input.is('.strikethrough')) return;
 
-                var value = $.trim(input.val());
+                var value = input.val();
                 values.push(value);
             });
         }

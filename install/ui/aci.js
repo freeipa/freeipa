@@ -422,7 +422,7 @@ IPA.target_section = function(spec) {
     that.filter_text.save = function(){
         var input = $('input[name="'+that.filter_text.name+'"]',
                       that.filter_text.container);
-        var value = $.trim(input.val());
+        var value = input.val();
         return value === '' ? [] : [value];
     };
 
