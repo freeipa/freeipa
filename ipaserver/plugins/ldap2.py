@@ -633,6 +633,12 @@ class ldap2(CrudBackend, Encoder):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
         cdn = "%s,%s" % (api.Object.config.get_dn(), api.env.basedn)
         try:
+            config_entry = getattr(context, 'config_entry')
+            return (cdn, config_entry)
+        except AttributeError:
+            # Not in our context yet
+            pass
+        try:
             (cdn, config_entry) = self.find_entries(
                 None, attrs_list, base_dn=cdn, scope=self.SCOPE_BASE,
                 time_limit=2, size_limit=10
@@ -642,6 +648,7 @@ class ldap2(CrudBackend, Encoder):
         for a in self.config_defaults:
             if a not in config_entry:
                 config_entry[a] = self.config_defaults[a]
+        setattr(context, 'config_entry', config_entry)
         return (cdn, config_entry)
 
     def get_schema(self):
