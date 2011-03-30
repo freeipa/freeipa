@@ -913,7 +913,8 @@ class ldap2(CrudBackend, Encoder):
         if membertype not in [MEMBERS_ALL, MEMBERS_DIRECT, MEMBERS_INDIRECT]:
             return None
 
-        searchfilter = "(memberof=%s)" % group_dn
+        search_group_dn = _ldap_filter.escape_filter_chars(group_dn)
+        searchfilter = "(memberof=%s)" % search_group_dn
 
         attr_list.append("member")
 
@@ -975,9 +976,10 @@ class ldap2(CrudBackend, Encoder):
         if len(memberof) == 0:
             return ([], [])
 
+        search_entry_dn = _ldap_filter.escape_filter_chars(entry_dn)
         attr_list = ["dn", "memberof"]
         searchfilter = "(|(member=%s)(memberhost=%s)(memberuser=%s))" % (
-            entry_dn, entry_dn, entry_dn)
+            search_entry_dn, search_entry_dn, search_entry_dn)
 
         # We have to do three searches because netgroups and pbac are not
         # within the accounts container.
