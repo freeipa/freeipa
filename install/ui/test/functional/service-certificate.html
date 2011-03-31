@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="https://localhost/" />
+<title>Host Certificate</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">Host Certificate</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/ipa/ui/#navigation=0&amp;identity=5</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>//div[@id='service']/span[@name='search']//input[@value='testservice/test.example.com@IDM.LAB.BOS.REDHAT.COM']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=testservice/test.example.com@IDM.LAB.BOS.REDHAT.COM</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>//div[@id='service']//span[@name='certificate_status']//div[@name='certificate-missing']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//dl[@id='certificate']/dd/span/div[3]/div/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>css=div.ui-dialog</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>//textarea</td>
+	<td>MIIBezCB5QIBADA8MR8wHQYDVQQKDBZJRE0uTEFCLkJPUy5SRURIQVQuQ09NMRkw<br />FwYDVQQDDBB0ZXN0LmV4YW1wbGUuY29tMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCB<br />iQKBgQDYOFeE6Y16kQ1gSvlnUU/LOaQlbsYnkfOCZ9UOaeg1RbKXFIJYB0s1DAa8<br />biI8gb6ZpzDjcAtNZHchOBtXnl0BBPOhkF6nD444SImz6eUBCmcCNeF4lgmNTxUS<br />W2AkWl4vgXGwWSlxSrBIcylIqsIMMdYg71mUeTyuJLit8bGQdwIDAQABoAAwDQYJ<br />KoZIhvcNAQEFBQADgYEAKb3/9gkJuOf3wRGe2n+FAfqBzStq8r5SLyVa5JyOxBhJ<br />nKGrTcv95X+2ch8RPqvOg8lgn12Js/Rm3ipb0MlCkBYeq8b0RQv4N0sG2dqJG8a1<br />yxhxxIjovisey6F09cOyZljAhpJ6Qeqd7GHr7HFCPTDWrYDIb8QpiRrgNFvBtIQ=</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//button[@type='button']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementNotPresent</td>
+	<td>css=div.ui-dialog</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>//div[@id='service']//span[@name='certificate_status']//div[@name='certificate-valid']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//div[@id='service']//span[@name='certificate_status']//div[@name='certificate-valid']//a[@title='Get']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>css=div.ui-dialog</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//button[@type='button']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementNotPresent</td>
+	<td>css=div.ui-dialog</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>1000</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=View</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>css=div.ui-dialog</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//button[@type='button']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementNotPresent</td>
+	<td>css=div.ui-dialog</td>
+	<td></td>
+</tr>
+</tbody></table>
+</body>
+</html>

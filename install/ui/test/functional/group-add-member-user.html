@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="https://localhost/" />
+<title>Add Member User</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">Add Member User</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/ipa/ui/#navigation=0&amp;identity=1</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForTextPresent</td>
+	<td>4 groups matched</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=testgroup</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForTextPresent</td>
+	<td>testgroup:</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//div[@id='group']/div[1]/ul/li[4]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Enroll</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>//div[1]/table/tbody/tr[2]/td[1]/input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//div[1]/table/tbody/tr[2]/td[1]/input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=&gt;&gt;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//button[@type='button']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>//div[@id='group']/span[@name='association']//input[@value='testuser']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//div[@id='group']/div[1]/ul/li[1]/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForTextPresent</td>
+	<td>4 groups matched</td>
+	<td></td>
+</tr>
+</tbody></table>
+</body>
+</html>

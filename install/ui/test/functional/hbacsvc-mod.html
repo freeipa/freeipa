@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="https://localhost/" />
+<title>Edit HBAC Service</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">Edit HBAC Service</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/ipa/ui/#navigation=1&amp;policy=1&amp;hbacrule-entity=hbacsvc</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>//div[@id='hbacrule']//span[@name='search']//input[@value='testhbacsvc']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=testhbacsvc</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForTextPresent</td>
+	<td>testhbacsvc:</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>description</td>
+	<td></td>
+</tr>
+<tr>
+	<td>typeKeys</td>
+	<td>description</td>
+	<td>xxx</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Update</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForTextNotPresent</td>
+	<td>undo</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>description</td>
+	<td></td>
+</tr>
+<tr>
+	<td>typeKeys</td>
+	<td>description</td>
+	<td>Test HBAC Service</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Update</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForTextNotPresent</td>
+	<td>undo</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>
