@@ -44,14 +44,14 @@ IPA.entity_factories.sudocmd = function () {
         search_facet({
             columns:['sudocmd','description'],
             add_fields:['sudocmd','description']}).
-        details_facet([
+        details_facet({sections:[
             {
-                section : 'general',
+                name: 'general',
                 label: IPA.messages.details.general,
                 fields:['sudocmd','description']
             },
             {
-                section: 'groups',
+                name: 'groups',
                 label: IPA.messages.objects.sudocmd.groups,
                 factory: IPA.details_section,
                 fields:[{
@@ -84,7 +84,7 @@ IPA.entity_factories.sudocmd = function () {
                         }
                     ]
                 }]
-            }]).
+            }]}).
         build();
 
 };
@@ -96,15 +96,15 @@ IPA.entity_factories.sudocmdgroup = function () {
             columns:['cn','description'],
             add_fields:['cn','description']
         }).
-        details_facet([
+        details_facet({sections:[
             {
 
-                section: 'general',
+                name: 'general',
                 label: IPA.messages.dialogs.general,
                 fields:['cn','description']
             },
             {
-                section: 'commands',
+                name: 'commands',
                 factory:  IPA.details_section,
                 fields: [{
                     factory: IPA.association_table_widget,
@@ -136,7 +136,7 @@ IPA.entity_factories.sudocmdgroup = function () {
                         }
                     ]
                 }]
-            }]).
+            }]}).
         build();
 };
 

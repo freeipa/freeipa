@@ -36,9 +36,9 @@ IPA.entity_factories.service = function() {
                         title: IPA.messages.objects.service.add,
                         width: '450px'
                     }))).
-        details_facet([
+        details_facet({sections:[
             {
-                section: 'details',
+                name: 'details',
                 fields:['krbprincipalname',
                         {
                             factory:IPA.service_name_widget,
@@ -54,7 +54,7 @@ IPA.entity_factories.service = function() {
                         }]
             },
             {
-                section : 'provisioning',
+                name: 'provisioning',
                 fields:[{
                     factory:IPA.service_provisioning_status_widget,
                     name: 'provisioning_status',
@@ -62,19 +62,20 @@ IPA.entity_factories.service = function() {
                 }]
             },
             {
-                section: 'certificate',
+                name: 'certificate',
                 fields:[{
                     factory:IPA.service_certificate_status_widget,
                     name: 'certificate_status',
                     label: IPA.messages.objects.service.status
                 }]
-            }]).
+            }]}).
         facet(IPA.service_managedby_host_facet({
                 name: 'managedby_host',
                 add_method: 'add_host',
                 remove_method: 'remove_host'
         })).
-        standard_associations().build();
+        standard_association_facets().
+        build();
 };
 
 

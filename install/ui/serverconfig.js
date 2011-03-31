@@ -30,8 +30,10 @@
 IPA.entity_factories.config = function(){
     return IPA.entity_builder().
         entity('config').
-        details_facet([{
-            section: 'ipaserver',
+        details_facet({
+            sections:
+            [{
+            name: 'ipaserver',
             label: IPA.messages.objects.config.ipaserver,
             fields:
             [{
@@ -43,6 +45,6 @@ IPA.entity_factories.config = function(){
              'ipadefaultprimarygroup','ipagroupsearchfields',
              'ipahomesrootdir','ipamaxusernamelength',
              'ipamigrationenabled','ipasearchrecordslimit',
-             'ipasearchtimelimit','ipausersearchfields']}]).
+             'ipasearchtimelimit','ipausersearchfields']}]}).
         build();
 };

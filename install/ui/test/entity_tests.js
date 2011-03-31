@@ -30,11 +30,6 @@ module('entity',{
             "data",
             true,
             function(data, text_status, xhr) {
-                IPA.metadata = data.result.results[0];
-                IPA.messages = data.result.results[1].messages;
-                IPA.whoami  = data.result.results[2].result[0];
-                IPA.env = data.result.results[3].result;
-                IPA.dns_enabled = data.result.results[4].result;
 
                 IPA.entity_factories.user = function(){
                     return IPA.

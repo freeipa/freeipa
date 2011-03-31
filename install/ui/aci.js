@@ -38,13 +38,13 @@ IPA.entity_factories.permission = function() {
                 },
                 {
                     factory: IPA.target_section,
-                    section: 'target',
+                    name: 'target',
                     label: IPA.messages.objects.permission.target,
                     undo: false
                 }]}).
-        details_facet([
+        details_facet({sections:[
             {
-                section:'identity',
+                name:'identity',
                 fields: [{
                     factory: IPA.text_widget,
                     name: 'cn',
@@ -52,15 +52,15 @@ IPA.entity_factories.permission = function() {
                 }]
             },
             {
-                section:'rights',
+                name:'rights',
                 factory:IPA.rights_section
             },
             {
-                section:'target',
+                name:'target',
                 factory:IPA.target_section,
                 label: IPA.messages.objects.permission.target
-            }]).
-        standard_associations().
+            }]}).
+        standard_association_facets().
         build();
 };
 
@@ -71,12 +71,13 @@ IPA.entity_factories.privilege = function() {
         search_facet({
             columns:['cn','description'],
             add_fields:['cn', 'description']}).
-        details_facet([
-            {
-                section:'identity',
+        details_facet({
+            sections:
+            [{
+                name:'identity',
                 label: IPA.messages.details.identity,
                 fields:['cn','description']
-            }]).
+            }]}).
         association_facet({
             name: 'member_role',
             add_method: 'add_privilege',
@@ -88,7 +89,7 @@ IPA.entity_factories.privilege = function() {
                 add_method: 'add_permission',
                 remove_method: 'remove_permission'
         }).
-        standard_associations().
+        standard_association_facets().
         build();
 
 };
@@ -100,17 +101,17 @@ IPA.entity_factories.role = function() {
         search_facet({
             columns:['cn','description'],
             add_fields:['cn', 'description']}).
-        details_facet([
+        details_facet({sections:[
             {
-                section:'identity',
+                name:'identity',
                 label:IPA.messages.objects.role.identity,
-                fields:['cn','description']}]).
+                fields:['cn','description']}]}).
         association_facet({
                 name: 'memberof_privilege',
                 add_method: 'add_privilege',
                 remove_method: 'remove_privilege'
         }).
-        standard_associations().
+        standard_association_facets().
         build();
 };
 
@@ -127,9 +128,9 @@ IPA.entity_factories.selfservice = function() {
                  name:'attrs',
                  undo: false
                 }]}).
-        details_facet([
-            {
-                section:'general',
+        details_facet({
+            sections:[{
+                name:'general',
                 label: IPA.messages.details.general,
                 fields: [
                     'aciname',
@@ -137,7 +138,7 @@ IPA.entity_factories.selfservice = function() {
                         factory:IPA.attributes_widget,
                         object_type:'user',
                         name:'attrs'
-                    }]}]).
+                    }]}]}).
         build();
 };
 
@@ -163,9 +164,9 @@ IPA.entity_factories.delegation = function() {
                     name: 'attrs', object_type: 'user',
                     join: true, undo: false
                 }]}).
-        details_facet([
+        details_facet({sections:[
             {
-                section:'general',
+                name:'general',
                 label: IPA.messages.details.general,
                 fields:[
                     'aciname',
@@ -182,8 +183,8 @@ IPA.entity_factories.delegation = function() {
                         factory:IPA.attributes_widget,
                         name: 'attrs', object_type: 'user',
                         join: true
-                    }]}]).
-        standard_associations().
+                    }]}]}).
+        standard_association_facets().
         build();
 };
 

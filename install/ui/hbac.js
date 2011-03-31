@@ -54,10 +54,10 @@ IPA.entity_factories.hbacsvc = function () {
         search_facet({
             columns:['cn','description'],
             add_fields:['cn','description']}).
-        details_facet([{
-            section : 'general',
+        details_facet({sections:[{
+            name: 'general',
             label: IPA.messages.details.general,
-            fields:[ 'cn', 'description']}]).
+            fields:[ 'cn', 'description']}]}).
         build();
 };
 
@@ -68,14 +68,14 @@ IPA.entity_factories.hbacsvcgroup = function () {
         search_facet({
             columns:['cn', 'description'],
             add_fields:['cn', 'description']}).
-        details_facet([
+        details_facet({sections:[
             {
-                section: 'general',
+                name: 'general',
                 label: IPA.messages.details.general,
                 fields:['cn','description']
             },
             {
-                section: 'services',
+                name: 'services',
                 label: IPA.messages.objects.hbacsvcgroup.services,
                 fields:[{
                     factory: IPA.hbacsvcgroup_member_hbacsvc_table_widget,
@@ -84,7 +84,7 @@ IPA.entity_factories.hbacsvcgroup = function () {
                     other_entity: 'hbacsvc',
                     save_values: false
                 }]
-            }]).
+            }]}).
         build();
 };
 

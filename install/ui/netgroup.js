@@ -28,13 +28,13 @@ IPA.entity_factories.netgroup = function() {
         search_facet({
             columns:['cn','description'],
             add_fields:['cn', 'description']}).
-        details_facet([{
-            section:'identity',
-            fields:['cn','description','nisdomainname']}]).
+        details_facet({sections:[{
+            name:'identity',
+            fields:['cn','description','nisdomainname']}]}).
         association_facet({
             name: 'memberof_netgroup',
             associator: IPA.serial_associator
         }).
-        standard_associations().
+        standard_association_facets().
         build();
 };

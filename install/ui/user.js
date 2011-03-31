@@ -33,21 +33,21 @@ IPA.entity_factories.user = function() {
             add_fields: ['uid','givenname','sn'],
             search_all: true
         }).
-        details_facet([
+        details_facet({sections:[
             {
-                section: 'identity',
+                name: 'identity',
                 label: IPA.messages.details.identity,
                 fields:['title','givenname','sn','cn','displayname', 'initials']
             },
             {
-                section: 'account',
+                name: 'account',
                 fields:[{factory:IPA.user_status_widget,name:'nsaccountlock'},
                         'uid',
                         {factory: IPA.user_password_widget,name:'userpassword'},
                         'uidnumber','gidnumber','loginshell','homedirectory']
             },
             {
-                section: 'contact',
+                name: 'contact',
                 fields:
                 [  {factory: IPA.multivalued_text_widget, name:'mail'},
                    {factory: IPA.multivalued_text_widget, name:'telephonenumber'},
@@ -56,17 +56,17 @@ IPA.entity_factories.user = function() {
                    {factory: IPA.multivalued_text_widget, name:'facsimiletelephonenumber'}]
             },
             {
-                section: 'mailing',
+                name: 'mailing',
                 fields: ['street','l','st','postalcode']
             },
             {
-                section: 'employee',
+                name: 'employee',
                 fields: ['ou','manager']
             },
             {
-                section: 'misc',
+                name: 'misc',
                 fields:['carlicense']
-            }]).
+            }]}).
         association_facet({
             name: 'memberof_group',
             associator: IPA.serial_associator
@@ -79,7 +79,7 @@ IPA.entity_factories.user = function() {
             name: 'memberof_role',
             associator: IPA.serial_associator
         }).
-        standard_associations();
+        standard_association_facets();
 
 
     var entity = builder.build();

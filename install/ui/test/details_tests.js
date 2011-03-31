@@ -29,11 +29,6 @@ module('details', {
             "data",
             true,
             function(data, text_status, xhr) {
-                IPA.metadata = data.result.results[0];
-                IPA.messages = data.result.results[1].messages;
-                IPA.whoami  = data.result.results[2].result[0];
-                IPA.env = data.result.results[3].result;
-                IPA.dns_enabled = data.result.results[4].result;
             },
             function(xhr, text_status, error_thrown) {
                 ok(false, "ipa_init() failed: "+error_thrown);
@@ -181,14 +176,14 @@ test("Testing details lifecycle: create, setup, load.", function(){
     var entity =   IPA.
         entity_builder().
         entity('user').
-        details_facet([
+        details_facet({sections:[
             {
-                section: 'identity',
+                name: 'identity',
                 label: IPA.messages.details.identity,
                 fields:['title','givenname','sn','cn','displayname', 'initials']
             },
             {
-                section: 'contact',
+                name: 'contact',
                 label:'contact',
                 fields:
                 [  {factory: test_widget,name:'test'},
@@ -200,7 +195,7 @@ test("Testing details lifecycle: create, setup, load.", function(){
                    {factory: IPA.multivalued_text_widget,
                     name:'facsimiletelephonenumber'}]
             },
-        ]).build();
+        ]}).build();
     entity.init();
 
     var facet = entity.get_facet('details');

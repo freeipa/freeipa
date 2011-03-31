@@ -36,9 +36,9 @@ IPA.entity_factories.host = function () {
             }],
             add_fields: ['fqdn', {factory:IPA.force_host_add_checkbox_widget}]
         }).
-        details_facet([
+        details_facet({sections:[
             {
-                section:'details',
+                name:'details',
                 fields: [
                     'fqdn',
                     'krbprincipalname',
@@ -51,7 +51,7 @@ IPA.entity_factories.host = function () {
                     'description' ]
             },
             {
-                section:'enrollment',
+                name:'enrollment',
                 fields:[
                     {
                         factory: IPA.host_provisioning_status_widget,
@@ -61,7 +61,7 @@ IPA.entity_factories.host = function () {
                 ]
             },
             {
-                section :'certificate',
+                name:'certificate',
                 fields:[
                     {
                         factory: IPA.host_certificate_status_widget,
@@ -69,7 +69,7 @@ IPA.entity_factories.host = function () {
                         label: IPA.messages.objects.host.status
                     }
                 ]
-            }]).
+            }]}).
         facet(IPA.host_managedby_host_facet({
             name: 'managedby_host'
         })).
@@ -85,7 +85,7 @@ IPA.entity_factories.host = function () {
             name: 'memberof_role',
             associator: IPA.serial_associator
         }).
-        standard_associations().
+        standard_association_facets().
         build();
 };
 

@@ -530,22 +530,16 @@ IPA. facet_create_action_panel = function(container) {
 IPA.entity_builder = function(){
 
     var that = {};
-
-    var entity_name ;
     var entity = null;
     var current_facet = null;
 
-
     function section(spec){
         var current_section = null;
-        spec.entity_name = entity_name;
+        spec.entity_name = entity.name;
 
-        if (spec.section){
-            spec.name = spec.section;
-            if (!spec.label){
-                var obj_messages = IPA.messages.objects[entity_name];
-                spec.label =  obj_messages[spec.section];
-            }
+        if (!spec.label){
+            var obj_messages = IPA.messages.objects[entity.name];
+            spec.label =  obj_messages[spec.name];
         }
 
         if (spec.factory){
@@ -553,7 +547,7 @@ IPA.entity_builder = function(){
         }else{
             current_section = IPA.details_list_section(spec);
         }
-
+        current_facet.add_section(current_section);
         var fields = spec.fields;
         if (fields){
             var i;
@@ -561,23 +555,20 @@ IPA.entity_builder = function(){
             for (i =0; i < fields.length; i += 1){
                 field =  fields[i];
                 if (field instanceof Object){
-                    field.entity_name = entity_name;
+                    field.entity_name = entity.name;
                     current_section.add_field(field.factory(field));
                 }else{
                     field = IPA.text_widget({
                         name:field,
-                        entity_name:entity_name
+                        entity_name:entity.name
                     });
                     current_section.add_field(field);
                 }
             }
         }
-        current_facet.add_section(current_section);
     }
 
     that.entity = function(name){
-        entity_name = name;
-        that.entity_name = name;
         entity = IPA.entity({name: name});
         return that;
     };
@@ -587,8 +578,11 @@ IPA.entity_builder = function(){
         return that;
     };
 
-    that.details_facet = function (sections){
-        current_facet =IPA.details_facet({entity_name:entity_name});
+    that.details_facet = function (spec){
+        var sections = spec.sections;
+        spec.sections = null;
+        spec.entity_name = entity.name;
+        current_facet =IPA.details_facet(spec);
         entity.facet(current_facet);
 
         var i;
@@ -599,10 +593,6 @@ IPA.entity_builder = function(){
         return that;
     };
 
-    that.get_current_facet = function(){
-        return current_facet;
-    };
-
     that.facet = function (facet){
         current_facet = facet;
         entity.facet(facet);
@@ -611,11 +601,9 @@ IPA.entity_builder = function(){
 
     that.search_facet = function (spec){
         current_facet = IPA.search_facet({
-            entity_name:that.entity_name,
+            entity_name:entity.name,
             search_all: spec.search_all || false
         });
-        //once everything usese this mechanism, inline the init code
-        current_facet.init();
 
         var columns = spec.columns;
         var i;
@@ -630,7 +618,7 @@ IPA.entity_builder = function(){
             IPA.add_dialog({
                 'name': 'add',
                 'title': IPA.messages.objects.user.add,
-                entity_name: entity_name
+                entity_name: entity.name
             });
 
         current_facet.dialog(current_dialog);
@@ -653,7 +641,7 @@ IPA.entity_builder = function(){
                     field.section = null;
                     current_dialog.add_section(factory(field));
                 }else{
-                    field.entity_name = entity_name;
+                    field.entity_name = entity.name;
                     factory = field.factory;
                     current_dialog.field(factory(field));
                 }
@@ -661,19 +649,18 @@ IPA.entity_builder = function(){
                 current_dialog.text(add_fields[i]);
             }
         }
-
         entity.facet(current_facet);
         return that;
     };
 
 
     that.association_facet = function(spec){
-        spec.entity_name = entity_name;
+        spec.entity_name = entity.name;
         entity.facet(IPA.association_facet(spec));
         return that;
     };
 
-    that.standard_associations = function(){
+    that.standard_association_facets = function(){
         entity.standard_associations();
         return that;
     };

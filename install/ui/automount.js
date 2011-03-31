@@ -33,12 +33,12 @@ IPA.entity_factories.automountlocation = function() {
             columns:['cn'],
             add_fields:['cn']
         }).
-        details_facet([{
-            section:'identity',
+        details_facet({sections:[{
+            name:'identity',
             label: IPA.messages.objects.automountlocation.identity,
             fields:['cn']
-        }]).
-        standard_associations().
+        }]}).
+        standard_association_facets().
         build();
 };
 

@@ -30,13 +30,14 @@ IPA.entity_factories.pwpolicy = function() {
         search_facet({
             columns:['cn'],
             add_fields:['cn', 'cospriority']}).
-        details_facet([
-            {
-                section : 'identity',
-                fields:['krbmaxpwdlife','krbminpwdlife','krbpwdhistorylength',
-                        'krbpwdmindiffchars','krbpwdminlength']
-            }]).
-        standard_associations().
+        details_facet({
+            sections:[
+                {
+                    name : 'identity',
+                    fields:['krbmaxpwdlife','krbminpwdlife','krbpwdhistorylength',
+                            'krbpwdmindiffchars','krbpwdminlength']
+                }]}).
+        standard_association_facets().
         build();
 };
 
@@ -47,9 +48,10 @@ IPA.entity_factories.pwpolicy = function() {
 IPA.entity_factories.krbtpolicy =  function() {
     return IPA.entity_builder().
         entity('krbtpolicy').
-        details_facet([{
-            section: 'identity',
-            fields:[ 'krbmaxrenewableage','krbmaxticketlife' ]
-        }]).
+        details_facet({
+            sections:[{
+                name: 'identity',
+                fields:[ 'krbmaxrenewableage','krbmaxticketlife' ]
+            }]}).
         build();
 };

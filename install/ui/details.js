@@ -579,8 +579,8 @@ IPA.details_refresh = function() {
         options: { 'all': true, 'rights': true }
     });
     
-    if (IPA.refresh_devel_hook){
-        IPA.refresh_devel_hook(that.entity_name,command,that.pkey);
+    if (IPA.details_refresh_devel_hook){
+        IPA.details_refresh_devel_hook(that.entity_name,command,that.pkey);
     }
 
 

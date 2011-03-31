@@ -29,16 +29,16 @@ IPA.entity_factories.hostgroup = function() {
         entity('hostgroup').
         search_facet({columns:['cn','description'],
                       add_fields:['cn','description']}).
-        details_facet([{
-            section:'identity',
+        details_facet({sections:[{
+            name:'identity',
             label: IPA.messages.objects.hostgroup.identity,
             fields:['cn','description']
-        }]).
+        }]}).
         association_facet({
             name: 'memberof_hostgroup',
             associator: IPA.serial_associator
         }).
-        standard_associations().
+        standard_association_facets().
         build();
 };
 

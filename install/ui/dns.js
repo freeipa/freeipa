@@ -32,8 +32,8 @@ IPA.entity_factories.dnszone = function() {
             columns:['idnsname'],
             add_fields: ['idnsname','idnssoamname','idnssoarname']
         }).
-        details_facet([{
-            section:'identity',
+        details_facet({sections:[{
+            name:'identity',
             fields:[
                 'idnsname',
                 'idnszoneactive',
@@ -47,12 +47,12 @@ IPA.entity_factories.dnszone = function() {
                 'dnsttl',
                 'dnsclass',
                 'idnsallowdynupdate',
-                'idnsupdatepolicy']}]).
+                'idnsupdatepolicy']}]}).
         facet(IPA.records_facet({
             'name': 'records',
             'label': IPA.metadata.objects.dnsrecord.label
         })).
-        standard_associations().
+        standard_association_facets().
         build();
 };
 

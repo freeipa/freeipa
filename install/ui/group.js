@@ -42,11 +42,11 @@ IPA.entity_factories.group =  function () {
                 },
                 'gidnumber']
         }).
-        details_facet(
+        details_facet({sections:
             [{
-                section:'details',
+                name:'details',
                 fields:['cn','description','gidnumber']
-            }]).
+            }]}).
         facet( IPA.association_facet({
             'name': 'member_user',
             columns:[
@@ -85,6 +85,6 @@ IPA.entity_factories.group =  function () {
             name: 'memberof_role',
             associator: IPA.serial_associator
         }).
-        standard_associations().
+        standard_association_facets().
         build();
 };
