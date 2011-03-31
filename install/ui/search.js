@@ -32,6 +32,7 @@ IPA.search_widget = function (spec) {
 
     that.entity_name = spec.entity_name;
     that.facet = spec.facet;
+    that.search_all = spec.search_all || false;
 
     that.create = function(container) {
 
@@ -269,7 +270,7 @@ IPA.search_widget = function (spec) {
 
         var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
         IPA.cmd(
-          'find', [filter], {all: true}, on_success, on_error,
+          'find', [filter], {all: that.search_all}, on_success, on_error,
             that.entity_name);
     };
 
@@ -290,6 +291,7 @@ IPA.search_facet = function(spec) {
     that.entity_name = spec.entity_name;
     that.columns = [];
     that.columns_by_name = {};
+    that.search_all = spec.search_all || false;
 
     that.__defineGetter__('entity_name', function() {
         return that._entity_name;
@@ -356,10 +358,12 @@ IPA.search_facet = function(spec) {
         that.facet_init();
 
         that.table = IPA.search_widget({
-            'id': that.entity_name+'-search',
-            'name': 'search', 'label': IPA.metadata.objects[that.entity_name].label,
-            'entity_name': that.entity_name,
-            'facet': that
+            id: that.entity_name+'-search',
+            name: 'search', 
+            label: IPA.metadata.objects[that.entity_name].label,
+            entity_name: that.entity_name,
+            facet: that,
+            search_all: that.search_all
         });
 
         for (var i=0; i<that.columns.length; i++) {

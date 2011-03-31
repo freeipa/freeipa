@@ -610,7 +610,10 @@ IPA.entity_builder = function(){
     };
 
     that.search_facet = function (spec){
-        current_facet = IPA.search_facet({entity_name:that.entity_name});
+        current_facet = IPA.search_facet({
+            entity_name:that.entity_name,
+            search_all: spec.search_all || false
+        });
         //once everything usese this mechanism, inline the init code
         current_facet.init();
 
