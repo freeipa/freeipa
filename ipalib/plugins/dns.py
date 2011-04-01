@@ -346,6 +346,7 @@ class dnszone_add(LDAPCreate):
     """
     takes_options = LDAPCreate.takes_options + (
         Flag('force',
+             label=_('Force'),
              doc=_('Force DNS zone creation even if nameserver not in DNS.'),
         ),
         Str('ip_address?', _validate_ipaddr,
@@ -639,6 +640,7 @@ class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
     no_option_msg = 'No options to add a specific record provided.'
     takes_options = LDAPCreate.takes_options + (
         Flag('force',
+             label=_('Force'),
              flags=['no_option', 'no_output'],
              doc=_('force NS record creation even if its hostname is not in DNS'),
         ),

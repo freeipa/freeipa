@@ -21,7 +21,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
+/* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js, widget.js */
 
 /* DNS */
 IPA.entity_factories.dnszone = function() {
@@ -30,7 +30,7 @@ IPA.entity_factories.dnszone = function() {
         entity('dnszone').
         search_facet({
             columns:['idnsname'],
-            add_fields: ['idnsname','idnssoamname','idnssoarname']
+            add_fields: ['idnsname','idnssoamname','idnssoarname', {factory:IPA.force_dnszone_add_checkbox_widget}]
         }).
         details_facet({sections:[{
             name:'identity',
@@ -57,6 +57,14 @@ IPA.entity_factories.dnszone = function() {
         build();
 };
 
+IPA.force_dnszone_add_checkbox_widget = function (spec){
+    var param_info = IPA.get_method_param('dnszone_add', 'force');
+    spec.name = 'force';
+    spec.label = param_info.label;
+    spec.tooltip = param_info.doc;
+    spec.undo = false;
+    return  IPA.checkbox_widget(spec);
+};
 
 IPA.records_facet = function (spec){
 
