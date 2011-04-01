@@ -137,7 +137,7 @@ class user(LDAPObject):
         ),
         Str('gecos?',
             label=_('GECOS field'),
-            default_from=lambda uid: uid,
+            default_from=lambda givenname, sn: '%s %s' % (givenname, sn),
             autofill=True,
         ),
         Str('loginshell?',

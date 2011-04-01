@@ -127,7 +127,7 @@ class test_group(Declarative):
                 value=user1,
                 summary=u'Added user "%s"' % user1,
                 result=dict(
-                    gecos=[user1],
+                    gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
@@ -155,7 +155,7 @@ class test_group(Declarative):
                 value=user2,
                 summary=u'Added user "%s"' % user2,
                 result=dict(
-                    gecos=[user2],
+                    gecos=[u'Test User2'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser2'],
                     krbprincipalname=[u'tuser2@' + api.env.realm],
