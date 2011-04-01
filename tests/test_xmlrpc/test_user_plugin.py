@@ -84,7 +84,7 @@ class test_user(Declarative):
                 value=user1,
                 summary=u'Added user "tuser1"',
                 result=dict(
-                    gecos=[user1],
+                    gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
@@ -144,7 +144,7 @@ class test_user(Declarative):
                     {
                         'dn': u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
                         'cn': [u'Test User1'],
-                        'gecos': [user1],
+                        'gecos': [u'Test User1'],
                         'givenname': [u'Test'],
                         'homedirectory': [u'/home/tuser1'],
                         'krbprincipalname': [u'tuser1@' + api.env.realm],
@@ -393,7 +393,7 @@ class test_user(Declarative):
                 value=user1,
                 summary=u'Added user "tuser1"',
                 result=dict(
-                    gecos=[user1],
+                    gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],
@@ -421,7 +421,7 @@ class test_user(Declarative):
                 value=user2,
                 summary=u'Added user "tuser2"',
                 result=dict(
-                    gecos=[user2],
+                    gecos=[u'Test User2'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser2'],
                     krbprincipalname=[u'tuser2@' + api.env.realm],
@@ -517,7 +517,7 @@ class test_user(Declarative):
                 value=user1,
                 summary=u'Added user "tuser1"',
                 result=dict(
-                    gecos=[user1],
+                    gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     krbprincipalname=[u'tuser1@' + api.env.realm],

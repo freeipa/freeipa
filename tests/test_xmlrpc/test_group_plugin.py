@@ -576,7 +576,7 @@ class test_group(Declarative):
                 value=user1,
                 summary=u'Added user "%s"' % user1,
                 result=dict(
-                    gecos=[user1],
+                    gecos=[u'Test User1'],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/%s' % user1],
                     krbprincipalname=[u'%s@%s' % (user1, api.env.realm)],
