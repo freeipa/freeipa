@@ -189,6 +189,12 @@ _record_validators = {
     u'NAPTR': _validate_naptr,
 }
 
+# dictionary of valid reverse zone -> number of address components
+_valid_reverse_zones = {
+    '.in-addr.arpa.' : 4,
+    '.ip6.arpa.' : 32,
+}
+
 def has_cli_options(entry, no_option_msg):
     entry = dict((t, entry.get(t, [])) for t in _record_attributes)
     numattr = reduce(lambda x,y: x+y,
@@ -660,15 +666,28 @@ class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
         components = dn.split(',',2)
         addr = components[0].split('=')[1]
         zone = components[1].split('=')[1]
-        if zone.find('ip6') != -1:
-            zone = zone.replace('.ip6.arpa.','')
-            zone_len = 32
-        else:
-            zone = zone.replace('.in-addr.arpa.','')
-            zone_len = 4
+        zone_len = 0
+        for valid_zone in _valid_reverse_zones:
+            if zone.find(valid_zone) != -1:
+                zone = zone.replace(valid_zone,'')
+                zone_name = valid_zone
+                zone_len = _valid_reverse_zones[valid_zone]
 
-        if len(addr.split('.'))+len(zone.split('.')) != zone_len:
-            raise errors.ValidationError(name='cn', error=unicode('IP address must have exactly '+str(zone_len)+' components'))
+        if not zone_len:
+            allowed_zones = ', '.join(_valid_reverse_zones)
+            raise errors.ValidationError(name='cn',
+                    error=unicode(_('Reverse zone for PTR record should be a sub-zone of one the following fully qualified domains: %s') % allowed_zones))
+
+        ip_addr_comp_count = len(addr.split('.')) + len(zone.split('.'))
+        if ip_addr_comp_count != zone_len:
+            raise errors.ValidationError(name='cn',
+                error=unicode(_('Reverse zone %s requires exactly %d IP address components, %d given')
+                % (zone_name, zone_len, ip_addr_comp_count)))
+
+        for ptr in options['ptrrecord']:
+            if not ptr.endswith('.'):
+                raise errors.ValidationError(name='ptr-rec',
+                        error=unicode(_('PTR record \'%s\' is not fully qualified (check traling \'.\')') % ptr))
 
         return dn
 
@@ -706,7 +725,7 @@ class dnsrecord_del(dnsrecord_mod_record):
     """
     Delete DNS resource record.
     """
-    no_option_msg = 'Neither --del-all nor options to delete a specific record provided.'
+    no_option_msg = _('Neither --del-all nor options to delete a specific record provided.')
     takes_options = (
             Flag('del_all',
                 default=False,
@@ -732,7 +751,7 @@ class dnsrecord_del(dnsrecord_mod_record):
                 try:
                     old_entry_attrs[a].remove(val)
                 except (KeyError, ValueError):
-                    raise errors.NotFound(reason='%s record with value %s not found' %
+                    raise errors.NotFound(reason=_('%s record with value %s not found') %
                                           (self.obj.attr_to_cli(a), val))
 
     def post_callback(self, keys, entry_attrs):
