@@ -47,6 +47,7 @@ install/config.status
 install/install-sh
 install/missing
 install/stamp-h1
+install/ui/test/results
 ipa-client/COPYING
 ipa-client/ChangeLog
 ipa-client/INSTALL
