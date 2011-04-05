@@ -68,7 +68,7 @@ Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
 Requires(post): %{name}-server-selinux = %{version}-%{release}
-Requires: 389-ds-base >= 1.2.8
+Requires(pre): 389-ds-base >= 1.2.8.0-1
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
@@ -481,10 +481,13 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
-* Thu Mar  17 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-46
+* Tue Apr  5 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-47
+- Set min version of 389-ds-base to 1.2.8.0-1 for fix in BZ 693466.
+
+* Thu Mar 17 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-46
 - Automatically apply updates when the package is upgraded.
 
-* Thu Feb  17 2011 Jakub Hrozek <jhrozek@redhat.com> - 1.99-45
+* Thu Feb 17 2011 Jakub Hrozek <jhrozek@redhat.com> - 1.99-45
 - Set minimum version of python-nss to 0.11 to make sure IPv6 support is in
 
 * Wed Feb  9 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-44

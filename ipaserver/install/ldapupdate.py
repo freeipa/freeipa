@@ -414,7 +414,7 @@ class LDAPUpdate:
            The return type is ipaldap.Entry
         """
         searchfilter="objectclass=*"
-        sattrs = ["*"]
+        sattrs = ["*", "aci", "attributeTypes", "objectClasses"]
         scope = ldap.SCOPE_BASE
 
         return self.conn.getList(dn, scope, searchfilter, sattrs)
