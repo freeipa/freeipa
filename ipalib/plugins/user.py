@@ -189,7 +189,7 @@ class user(LDAPObject):
             cli_name='state',
             label=_('State/Province'),
         ),
-        Int('postalcode?',
+        Str('postalcode?',
             label=_('ZIP'),
         ),
         Str('telephonenumber*',
