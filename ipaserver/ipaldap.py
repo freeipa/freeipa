@@ -523,10 +523,16 @@ class IPAdmin(SimpleLDAPObject):
             adds = list(new_values.difference(old_values))
             removes = list(old_values.difference(new_values))
 
-            if len(removes) > 0:
-                modlist.append((ldap.MOD_DELETE, key, removes))
-            if len(adds) > 0:
-                modlist.append((ldap.MOD_ADD, key, adds))
+            # You can't remove schema online. An add will automatically
+            # replace any existing schema.
+            if old_entry.get('dn') == 'cn=schema':
+                if len(adds) > 0:
+                    modlist.append((ldap.MOD_ADD, key, adds))
+            else:
+                if len(removes) > 0:
+                    modlist.append((ldap.MOD_DELETE, key, removes))
+                if len(adds) > 0:
+                    modlist.append((ldap.MOD_ADD, key, adds))
 
         return modlist
 

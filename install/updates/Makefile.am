@@ -2,6 +2,7 @@ NULL =
 
 appdir = $(IPA_DATA_DIR)/updates
 app_DATA =				\
+	10-60basev2.update		\
 	10-RFC2307bis.update		\
 	10-RFC4876.update		\
 	20-aci.update			\
