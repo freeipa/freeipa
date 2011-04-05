@@ -511,7 +511,7 @@ class test_user(Declarative):
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
                 street=u'123 Maple Rd', l=u'Anytown', st=u'MD',
-                telephonenumber=u'410-555-1212',)
+                telephonenumber=u'410-555-1212', postalcode=u'01234-5678')
             ),
             expected=dict(
                 value=user1,
@@ -532,6 +532,7 @@ class test_user(Declarative):
                     street=[u'123 Maple Rd'],
                     l=[u'Anytown'],
                     st=[u'MD'],
+                    postalcode=[u'01234-5678'],
                     telephonenumber=[u'410-555-1212'],
                     ipauniqueid=[fuzzy_uuid],
                     dn=u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
