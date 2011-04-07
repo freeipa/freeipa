@@ -183,7 +183,7 @@ def parse_options():
         options.idmax = int(options.idstart) + 200000 - 1
 
     if options.idmax < options.idstart:
-        parse.error("idmax (%u) cannot be smaller than idstart (%u)" %
+        parser.error("idmax (%u) cannot be smaller than idstart (%u)" %
                     (options.idmax, options.idstart))
 
     #Automatically disable pkinit w/ dogtag until that is supported
