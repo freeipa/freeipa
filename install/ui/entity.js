@@ -36,7 +36,7 @@ IPA.facet = function (spec) {
     that._entity_name = spec.entity_name;
 
     that.init = spec.init || init;
-    that.create = spec.create || create;
+    that.create_content = spec.create_content || create_content;
     that.setup = spec.setup || setup;
     that.load = spec.load || load;
 
@@ -71,7 +71,7 @@ IPA.facet = function (spec) {
         }
     }
 
-    function create(container) {
+    function create_content(container) {
     }
 
     function setup(container) {
@@ -85,8 +85,8 @@ IPA.facet = function (spec) {
         return false;
     };
 
-    that.get_client_area = function() {
-        return $('.client', that.container);
+    that.get_content = function() {
+        return $('.content', that.container);
     };
 
     that.get_action_panel = function() {
@@ -95,7 +95,8 @@ IPA.facet = function (spec) {
 
     // methods that should be invoked by subclasses
     that.facet_init = that.init;
-    that.facet_create = that.create;
+    that.facet_create_action_panel = that.create_action_panel;
+    that.facet_create_content = that.create_content;
     that.facet_setup = that.setup;
 
     return that;
@@ -275,9 +276,20 @@ IPA.entity_setup = function (container) {
 
     container.empty();
 
-    facet.create_action_panel(container);
-    facet.create(container);
-    container.children().last().addClass('client');
+    container.attr('title', entity.name);
+
+    var action_panel = $('<div/>', {
+        'class': 'action-panel'
+    }).appendTo(container);
+
+    facet.create_action_panel(action_panel);
+
+    var content = $('<div/>', {
+        'class': 'content'
+    }).appendTo(container);
+
+    facet.create_content(content);
+
     facet.setup(container);
     facet.refresh();
 };
@@ -381,7 +393,7 @@ IPA. facet_create_action_panel = function(container) {
                     if($(this).hasClass('entity-facet-disabled')){
                         return false;
                     }
-                    var this_pkey = $('input[id=pkey]', action_panel).val();
+                    var this_pkey = $('input[id=pkey]', container).val();
                     IPA.switch_and_show_page(
                         entity_name, other_facet_name,
                         this_pkey);
@@ -392,24 +404,18 @@ IPA. facet_create_action_panel = function(container) {
         return li;
     }
 
-
     var that = this;
     var entity_name = that.entity_name;
     var panel_title = IPA.metadata.objects[entity_name].label;
     var nested_tabs = IPA.nested_tabs(entity_name);
 
-
     if (nested_tabs.length > 1){
         panel_title = IPA.get_nested_tab_label(entity_name);
     }
 
-    var action_panel = $('<div/>', {
-        "class": "action-panel",
-        html: $('<h3>',{
-            text: panel_title
-        })
+    $('<h3>', {
+        text: panel_title
     }).appendTo(container);
-
 
     /*Note, for debugging purposes, it is useful to set var pkey_type = 'text';*/
     var pkey_type = 'hidden';
@@ -417,13 +423,15 @@ IPA. facet_create_action_panel = function(container) {
         'type': pkey_type,
         id:'pkey',
         name:'pkey'
-    }).appendTo(action_panel);
-    var ul = $('<ul/>', {'class': 'action'}).appendTo(action_panel);
+    }).appendTo(container);
+
+    var ul = $('<ul/>', {'class': 'action'}).appendTo(container);
     var entity = IPA.get_entity(entity_name);
     var facet_name =  IPA.current_facet(entity);
     var other_facet = entity.facets[0];
     var other_facet_name = other_facet.name;
     var main_facet = build_link(other_facet,other_facet.label);
+
     for (var nested_index = 0 ;
          nested_index < nested_tabs.length;
          nested_index += 1){
@@ -522,9 +530,9 @@ IPA. facet_create_action_panel = function(container) {
     /*When we land on the search page, disable all facets
           that require a pkey until one is selected*/
     if (facet_name === 'search'){
-        $('.entity-facet', action_panel).addClass('entity-facet-disabled');
+        $('.entity-facet', container).addClass('entity-facet-disabled');
     }
-    return action_panel;
+    return container;
 };
 
 IPA.entity_builder = function(){

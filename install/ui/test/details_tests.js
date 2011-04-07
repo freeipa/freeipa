@@ -200,7 +200,13 @@ test("Testing details lifecycle: create, setup, load.", function(){
 
     var facet = entity.get_facet('details');
     facet.init();
-    facet.create(container);
+
+    var content = $('<div/>', {
+        'class': 'content'
+    }).appendTo(container);
+
+    facet.create_content(content);
+
     facet.setup(container);
     facet.load(result);
 

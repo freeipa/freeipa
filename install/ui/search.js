@@ -387,9 +387,7 @@ IPA.search_facet = function(spec) {
         return filter != that.filter;
     };
 
-    that.create = function(container) {
-
-        container.attr('title', that.entity_name);
+    that.create_content = function(container) {
 
         var span = $('<span/>', { 'name': 'search' }).appendTo(container);
 
@@ -409,7 +407,7 @@ IPA.search_facet = function(spec) {
 
     // methods that should be invoked by subclasses
     that.search_facet_init = that.init;
-    that.search_facet_create = that.create;
+    that.search_facet_create_content = that.create_content;
     that.search_facet_setup = that.setup;
 
    

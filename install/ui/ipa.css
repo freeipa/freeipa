@@ -124,13 +124,6 @@ div.tabs {
         background: url("centered-bg.png") no-repeat scroll 0 8.4em transparent;
 }
 
-div#content {
-    margin-top: 0;
-    position: relative;
-    width: 100%;
-}
-
-
 ul#viewtype {
     padding-left: 2em;
 }
@@ -177,8 +170,7 @@ h1 {
     background: -webkit-gradient(linear, left top, left bottom, from(#EEEEEE), to(#DFDFDF));
     padding: 0.5em 0.9em;
     position: relative;
-    width: 40.5em;
-	margin-left: 1.9em;
+    margin-right: 0em;
 }
 
 h2 {
@@ -742,7 +734,7 @@ a.action-button-disabled {
     display:inline;
 }
 
-.client {
+.content {
     font-size: 10px;
     margin-top: 0.4em;
     float: left;

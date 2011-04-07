@@ -74,7 +74,13 @@ test('Testing IPA.entity_set_search_definition().', function() {
 
     var facet = entity.get_facet('search');
     facet.init();
-    facet.create(entities_container);
+
+    var content = $('<div/>', {
+        'class': 'content'
+    }).appendTo(entities_container);
+
+    facet.create_content(content);
+
     facet.setup(entities_container);
 
 

@@ -282,16 +282,14 @@ IPA.records_facet = function (spec){
         return pkey != that.pkey || record != that.record;
     };
 
-    function create(container) {
-
-        container.attr('title', that.entity_name);
+    function create_content(container) {
 
         $('<h1/>',{
         }).append(IPA.create_network_spinner()).
             appendTo(container);
 
         var details = $('<div/>', {
-            'class': 'content'
+            'name': 'details'
         }).appendTo(container);
 
         var div = $('<div class="search-controls"></div>').
@@ -522,7 +520,7 @@ IPA.records_facet = function (spec){
 
     }
 
-    that.create = create;
+    that.create_content = create_content;
     that.setup = setup;
     that.refresh = refresh;
 

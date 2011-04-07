@@ -266,7 +266,7 @@ IPA.details_facet = function(spec) {
 
     that.label =  ( IPA.messages && IPA.messages.facets &&  IPA.messages.facets.details)  || spec.label;
     that.is_dirty = spec.is_dirty || is_dirty;
-    that.create = spec.create || create;
+    that.create_content = spec.create_content || create_content;
     that.setup = spec.setup || setup;
     that.load = spec.load || load;
     that.update = spec.update || IPA.details_update;
@@ -323,9 +323,7 @@ IPA.details_facet = function(spec) {
         }
     };
 
-    function create(container) {
-
-        container.attr('title', that.entity_name);
+    function create_content(container) {
 
         var label = IPA.metadata.objects[that.entity_name].label;
 
@@ -338,7 +336,7 @@ IPA.details_facet = function(spec) {
             appendTo(container);
 
         var details = $('<div/>', {
-            'class': 'content'
+            'name': 'details'
         }).appendTo(container);
 
         $('<a/>', {
@@ -430,7 +428,7 @@ IPA.details_facet = function(spec) {
         });
         button.replaceWith(that.update_button);
 
-        var details = $('div.content', that.container);
+        var details = $('div[name=details]', that.container);
 
         var expand_all = $('a[name=expand_all]', details);
         expand_all.click(function() {
@@ -528,7 +526,7 @@ IPA.details_facet = function(spec) {
     }
 
     that.details_facet_init = that.init;
-    that.details_facet_create = that.create;
+    that.details_facet_create_content = that.create_content;
     that.details_facet_load = that.load;
 
     return that;

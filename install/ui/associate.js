@@ -788,7 +788,7 @@ IPA.association_facet = function (spec) {
         return pkey != that.pkey;
     };
 
-    that.create = function(container) {
+    that.create_content = function(container) {
 
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 
