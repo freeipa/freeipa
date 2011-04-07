@@ -27,15 +27,15 @@ IPA.entity_factories.service = function() {
 
     return  IPA.entity_builder().
         entity('service').
-        facet(
-            IPA.search_facet().
-                column({name: 'krbprincipalname'}).
-                dialog(
-                    IPA.service_add_dialog({
-                        name: 'add',
-                        title: IPA.messages.objects.service.add,
-                        width: '450px'
-                    }))).
+        search_facet({
+            columns: [ 'krbprincipalname' ]
+        }).
+            dialog({
+                factory: IPA.service_add_dialog,
+                name: 'add',
+                title: IPA.messages.objects.service.add,
+                width: '450px'
+            }).
         details_facet({sections:[
             {
                 name: 'details',
@@ -69,11 +69,12 @@ IPA.entity_factories.service = function() {
                     label: IPA.messages.objects.service.status
                 }]
             }]}).
-        facet(IPA.service_managedby_host_facet({
-                name: 'managedby_host',
-                add_method: 'add_host',
-                remove_method: 'remove_host'
-        })).
+        facet({
+            factory: IPA.service_managedby_host_facet,
+            name: 'managedby_host',
+            add_method: 'add_host',
+            remove_method: 'remove_host'
+        }).
         standard_association_facets().
         build();
 };

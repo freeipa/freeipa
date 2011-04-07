@@ -47,8 +47,8 @@ IPA.entity_factories.group =  function () {
                 name:'details',
                 fields:['cn','description','gidnumber']
             }]}).
-        facet( IPA.association_facet({
-            'name': 'member_user',
+        association_facet({
+            name: 'member_user',
             columns:[
                 {
                     name: 'uid',
@@ -72,7 +72,7 @@ IPA.entity_factories.group =  function () {
                 }
             ]
 
-        })).
+        }).
         association_facet({
                 name: 'memberof_group',
                 associator: IPA.serial_associator

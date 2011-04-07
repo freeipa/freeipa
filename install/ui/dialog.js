@@ -265,6 +265,25 @@ IPA.dialog = function(spec) {
     that.dialog_setup = that.setup;
     that.dialog_open = that.open;
 
+    var fields = spec.fields || [];
+    for (var i=0; i<fields.length; i++) {
+        var field_spec = fields[i];
+        var field;
+
+        if (field_spec instanceof Object) {
+            if (field_spec.factory) {
+                field = field_spec.factory(field_spec);
+            } else {
+                field = IPA.text_widget(field_spec);
+            }
+        } else {
+            var field_name = field_spec;
+            field = IPA.text_widget({ name: field_name, undo: false });
+        }
+
+        that.add_field(field);
+    }
+
     return that;
 };
 

@@ -48,10 +48,11 @@ IPA.entity_factories.dnszone = function() {
                 'dnsclass',
                 'idnsallowdynupdate',
                 'idnsupdatepolicy']}]}).
-        facet(IPA.records_facet({
+        facet({
+            factory: IPA.records_facet,
             'name': 'records',
             'label': IPA.metadata.objects.dnsrecord.label
-        })).
+        }).
         standard_association_facets().
         build();
 };

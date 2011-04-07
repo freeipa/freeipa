@@ -410,6 +410,16 @@ IPA.search_facet = function(spec) {
     that.search_facet_create_content = that.create_content;
     that.search_facet_setup = that.setup;
 
+    var columns = spec.columns || [];
+    for (var i=0; i<columns.length; i++) {
+        var column = columns[i];
+        if (column instanceof Object) {
+            var factory = column.factory || IPA.column;
+            that.add_column(factory(column));
+        } else {
+            that.create_column({ name: column });
+        }
+    }
    
     return that;
 };

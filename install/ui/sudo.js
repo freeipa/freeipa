@@ -31,9 +31,10 @@ IPA.entity_factories.sudorule = function () {
             columns:['cn','description','cmdcategory'],
             add_fields:['cn']
         }).
-        facet(IPA.sudorule_details_facet({
+        facet({
+            factory: IPA.sudorule_details_facet,
             'name': 'details'
-        })).
+        }).
         build();
 };
 

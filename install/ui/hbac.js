@@ -42,9 +42,10 @@ IPA.entity_factories.hbacrule = function () {
                         }],
                     'undo': false
                 }]}).
-        facet(IPA.hbacrule_details_facet({
+        facet({
+            factory: IPA.hbacrule_details_facet,
             'name': 'details'
-        })).
+        }).
         build();
 };
 
