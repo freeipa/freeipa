@@ -131,6 +131,7 @@ def run(args, stdin=None, raiseonerr=True,
     p = subprocess.Popen(args, stdin=p_in, stdout=p_out, stderr=p_err,
                          close_fds=True, env=env)
     stdout,stderr = p.communicate(stdin)
+    stdout,stderr = str(stdout), str(stderr)    # Make pylint happy
 
     # The command and its output may include passwords that we don't want
     # to log. Run through the nolog items.

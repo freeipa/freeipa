@@ -75,7 +75,7 @@ else:
     import simplejson as json
     from cgi import parse_qs
 try:
-    from hashlib import sha1, md5
+    from hashlib import sha1, md5   #pylint: disable=E0611
 except ImportError:
     from sha import new as sha1
     from md5 import new as md5

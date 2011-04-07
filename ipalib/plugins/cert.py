@@ -494,7 +494,7 @@ class cert_show(VirtualCommand):
         if hostname:
             # If we have a hostname we want to verify that the subject
             # of the certificate matches it, otherwise raise an error
-            if hostname != cert.subject.common_name:
+            if hostname != cert.subject.common_name:    #pylint: disable=E1101
                 raise acierr
 
         return dict(result=result)

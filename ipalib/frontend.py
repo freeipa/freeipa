@@ -383,15 +383,15 @@ class Command(HasParam):
 
     takes_options = tuple()
     takes_args = tuple()
-    args = None
-    options = None
+    args = lambda: None
+    options = lambda: None
     params = None
     obj = None
 
     use_output_validation = True
     output = None
     has_output = ('result',)
-    output_params = None
+    output_params = lambda: None
     has_output_params = tuple()
 
     msg_summary = None
@@ -1020,7 +1020,7 @@ class Object(HasParam):
     backend = None
     methods = None
     properties = None
-    params = None
+    params = lambda: None
     primary_key = None
     params_minus_pk = None
 

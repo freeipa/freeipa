@@ -139,4 +139,4 @@ class Executioner(Backend):
         if error is None:
             return result
         assert isinstance(error, PublicError)
-        raise error
+        raise error #pylint: disable=E0702

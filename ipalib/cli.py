@@ -587,9 +587,9 @@ class textui(backend.Backend):
             except EOFError:
                 return -2
 
-            if resp.lower() == "q":
+            if resp.lower() == "q": #pylint: disable=E1103
                 return -2
-            if resp.lower() == "a":
+            if resp.lower() == "a": #pylint: disable=E1103
                 return -1
             try:
                 selection = int(resp) - 1

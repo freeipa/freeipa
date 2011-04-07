@@ -439,6 +439,7 @@ class CallbackInterface(Method):
     Callback registration interface
     """
     def __init__(self):
+        #pylint: disable=E1003
         if not hasattr(self.__class__, 'PRE_CALLBACKS'):
             self.__class__.PRE_CALLBACKS = []
         if not hasattr(self.__class__, 'POST_CALLBACKS'):
@@ -512,6 +513,7 @@ class LDAPCreate(CallbackInterface, crud.Create):
     takes_options = _attr_options
 
     def get_args(self):
+        #pylint: disable=E1003
         for key in self.obj.get_ancestor_primary_keys():
             yield key
         if self.obj.primary_key:
@@ -645,6 +647,7 @@ class LDAPQuery(CallbackInterface, crud.PKQuery):
     Base class for commands that need to retrieve an existing entry.
     """
     def get_args(self):
+        #pylint: disable=E1003
         for key in self.obj.get_ancestor_primary_keys():
             yield key
         if self.obj.primary_key:
@@ -665,6 +668,7 @@ class LDAPMultiQuery(LDAPQuery):
     )
 
     def get_args(self):
+        #pylint: disable=E1003
         for key in self.obj.get_ancestor_primary_keys():
             yield key
         if self.obj.primary_key:
@@ -1268,6 +1272,7 @@ class LDAPSearch(CallbackInterface, crud.Search):
     )
 
     def get_args(self):
+        #pylint: disable=E1003
         for key in self.obj.get_ancestor_primary_keys():
             yield key
         yield Str('criteria?')
