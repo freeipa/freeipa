@@ -179,7 +179,7 @@ class IPAChangeConf:
 
         value = self.matchComment(line)
         if value:
-            return {'name':'comment', 'type':'comment', 'value':value.rstrip()}
+            return {'name':'comment', 'type':'comment', 'value':value.rstrip()} #pylint: disable=E1103
 
         parts = line.split(self.dassign, 1)
         if len(parts) < 2:

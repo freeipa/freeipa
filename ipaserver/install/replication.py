@@ -879,9 +879,9 @@ class ReplicationManager:
             pass
         except Exception, e:
             if force and err:
-                raise err
+                raise err   #pylint: disable=E0702
             else:
                 raise e
 
         if err:
-            raise err
+            raise err   #pylint: disable=E0702

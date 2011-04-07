@@ -329,7 +329,7 @@ def read_realm_name(domain_name, unattended):
     if unattended:
         return domain_name.upper()
     realm_name = user_input("Please provide a realm name", domain_name.upper())
-    upper_dom = realm_name.upper()
+    upper_dom = realm_name.upper()  #pylint: disable=E1103
     if upper_dom != realm_name:
         print "An upper-case realm name is required."
         if not user_input("Do you want to use " + upper_dom + " as realm name?", True):

@@ -479,7 +479,7 @@ class Param(ReadOnly):
         else:
             value = self.convert(self.normalize(value))
         if hasattr(self, 'env'):
-            self.validate(value, self.env.context)
+            self.validate(value, self.env.context)  #pylint: disable=E1101
         else:
             self.validate(value)
         return value
@@ -1007,6 +1007,7 @@ class Int(Number):
     )
 
     def __init__(self, name, *rules, **kw):
+        #pylint: disable=E1003
         super(Number, self).__init__(name, *rules, **kw)
 
         if (self.minvalue > self.maxvalue) and (self.minvalue is not None and self.maxvalue is not None):
@@ -1078,6 +1079,7 @@ class Float(Number):
     )
 
     def __init__(self, name, *rules, **kw):
+        #pylint: disable=E1003
         super(Number, self).__init__(name, *rules, **kw)
 
         if (self.minvalue > self.maxvalue) and (self.minvalue is not None and self.maxvalue is not None):
