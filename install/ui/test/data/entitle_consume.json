@@ -1,0 +1,24 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "result": {
+            "consumed": 13,
+            "ipaentitlementid": [
+                "b788ccee-4b09-48f0-8a9a-2c769f7b41e0"
+            ],
+            "ipauniqueid": [
+                "c63b1972-5ffe-11e0-8340-00163e2fe6de"
+            ],
+            "objectclass": [
+                "ipaobject",
+                "ipaentitlement"
+            ],
+            "product": "MKT-multiplier-client-50",
+            "quantity": 250,
+            "uuid": "b788ccee-4b09-48f0-8a9a-2c769f7b41e0"
+        },
+        "summary": "Consumed 1 entitlement(s).",
+        "value": "1"
+    }
+}

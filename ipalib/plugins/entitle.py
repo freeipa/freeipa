@@ -195,6 +195,8 @@ class entitle(LDAPObject):
     default_attributes = ['ipaentitlement']
     uuid_attribute = 'ipaentitlementid'
 
+    label = _('Entitlements')
+
     """
     def get_dn(self, *keys, **kwargs):
         try:

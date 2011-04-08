@@ -59,6 +59,7 @@ IPA.admin_tab_set = function () {
             ]},
             {name:'selfservice'  ,entity:'selfservice'},
             {name:'delegation'  ,entity:'delegation'},
+            {name:'entitle', entity:'entitle'},
             {name:'config', entity:'config'}
         ]}];
 

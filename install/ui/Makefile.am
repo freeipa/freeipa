@@ -26,6 +26,7 @@ app_DATA =                              \
 	jquery.ba-bbq.js		\
 	jquery-ui.css			\
 	certificate.js 			\
+	entitle.js 			\
 	group.js 			\
 	hbac.js 			\
 	host.js 			\
