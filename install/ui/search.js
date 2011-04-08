@@ -31,7 +31,6 @@ IPA.search_widget = function (spec) {
     var that = IPA.table_widget(spec);
 
     that.entity_name = spec.entity_name;
-    that.facet = spec.facet;
     that.search_all = spec.search_all || false;
 
     that.create = function(container) {
@@ -47,7 +46,7 @@ IPA.search_widget = function (spec) {
 
         search_controls.append(IPA.create_network_spinner());
 
-        this.filter = $('<input/>', {
+        that.filter = $('<input/>', {
             'type': 'text',
             'name': 'search-' + that.entity_name + '-filter'
         }).appendTo(search_filter);
@@ -57,25 +56,6 @@ IPA.search_widget = function (spec) {
             'name': 'find',
             'value': IPA.messages.buttons.find
         }).appendTo(search_filter);
-
-        var action_panel = that.facet.get_action_panel();
-        var li = $('.action-controls', action_panel);
-
-        var search_buttons = $('<span/>', {
-            'class': 'search-buttons'
-        }).appendTo(li);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'remove',
-            'value': IPA.messages.buttons.remove
-        }).appendTo(search_buttons);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'add',
-            'value': IPA.messages.buttons.add
-        }).appendTo(search_buttons);
 
         $('<div/>', {
             'class': 'search-results'
@@ -107,171 +87,15 @@ IPA.search_widget = function (spec) {
         });
         button.replaceWith(that.find_button);
 
-        var action_panel = that.facet.get_action_panel();
-        var search_buttons = $('.search-buttons', action_panel);
-
-        button = $('input[name=remove]', search_buttons);
-        that.remove_button = IPA.action_button({
-            'label': IPA.messages.buttons.remove,
-            'icon': 'ui-icon-trash'
-        });
-        that.remove_button.addClass('input_link_disabled');
-
-        button.replaceWith(that.remove_button);
-
-
-        button = $('input[name=add]', search_buttons);
-        that.add_button = IPA.action_button({
-            'label': IPA.messages.buttons.add,
-            'icon': 'ui-icon-plus',
-            'click': function() { that.add(); }
-        });
-        button.replaceWith(that.add_button);
-
         var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
-        this.filter.val(filter);
+        that.filter.val(filter);
     };
 
     that.find = function() {
-        var filter = this.filter.val();
+        var filter = that.filter.val();
         var state = {};
         state[that.entity_name + '-filter'] = filter;
         $.bbq.pushState(state);
-    };
-
-    that.add = function() {
-
-        var dialog = that.facet.get_dialog('add');
-        dialog.open(that.container);
-
-        return false;
-    };
-
-    that.select_changed = function(){
-        var count = 0;
-        var pkey;
-        $('input[name=select]:checked', that.tbody).each(function(input){
-            count += 1;
-            pkey = $(this).val();
-        });
-
-        var action_panel = that.facet.get_action_panel();
-        if(count == 1){
-            $('li.entity-facet', action_panel).
-                removeClass('entity-facet-disabled');
-            var state = {};
-             $('input[id=pkey]', action_panel).val(pkey);
-        }else{
-            $('li.entity-facet', action_panel).
-                addClass('entity-facet-disabled');
-            $('input', action_panel).val(null);
-
-        }
-        var remove_button;
-        if(count === 0){
-            remove_button =  $('a[title=Delete]', action_panel);
-            remove_button.addClass('input_link_disabled');
-            remove_button.unbind('click');
-
-        }else{
-            remove_button =  $('a[title=Delete]', action_panel);
-            remove_button.click(function() { that.remove(that.container); });
-            remove_button.removeClass('input_link_disabled');
-        }
-
-        return false;
-    };
-
-
-    that.remove = function(container) {
-
-        var values = that.get_selected_values();
-
-        var title;
-        if (!values.length) {
-            title = IPA.messages.dialogs.remove_empty;
-            title = title.replace('${entity}', that.label);
-            alert(title);
-            return;
-        }
-
-        title = IPA.messages.dialogs.remove_title;
-        title = title.replace('${entity}', that.label);
-
-        var dialog = IPA.deleter_dialog({
-            'title': title,
-            'parent': that.container,
-            'values': values
-        });
-
-        dialog.execute = function() {
-
-            var batch = IPA.batch_command({
-                'on_success': function() {
-                    that.refresh();
-                    dialog.close();
-                },
-                'on_error': function() {
-                    that.refresh();
-                    dialog.close();
-                }
-            });
-
-            for (var i=0; i<values.length; i++) {
-                var command = IPA.command({
-                    'method': that.entity_name+'_del'
-                });
-                command.add_arg(values[i]);
-                batch.add_command(command);
-            }
-
-            batch.execute();
-        };
-
-        dialog.init();
-
-        dialog.open(that.container);
-    };
-
-    that.refresh = function() {
-
-        function on_success(data, text_status, xhr) {
-
-            var action_panel = that.facet.get_action_panel();
-            $('li.entity-facet', action_panel).
-                addClass('entity-facet-disabled');
-            $('input', action_panel).val(null);
-
-            that.tbody.empty();
-
-            var result = data.result.result;
-            for (var i = 0; i<result.length; i++) {
-                var record = that.get_record(result[i], 0);
-                that.add_record(record);
-            }
-
-            var summary = $('span[name=summary]', that.tfoot);
-            if (data.result.truncated) {
-                var message = IPA.messages.search.truncated;
-                message = message.replace('${counter}', data.result.count);
-                summary.text(message);
-            } else {
-                summary.text(data.result.summary);
-            }
-            $('.search-filter input[type=text]', that.container).focus();
-        }
-
-        function on_error(xhr, text_status, error_thrown) {
-            var summary = $('span[name=summary]', that.tfoot).empty();
-            summary.append('<p>Error: '+error_thrown.name+'</p>');
-            summary.append('<p>'+error_thrown.title+'</p>');
-            summary.append('<p>'+error_thrown.message+'</p>');
-        }
-
-        var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
-        IPA.cmd(
-          'find', [filter], {all: that.search_all}, on_success, on_error,
-            that.entity_name);
     };
 
     return that;
@@ -362,7 +186,6 @@ IPA.search_facet = function(spec) {
             name: 'search', 
             label: IPA.metadata.objects[that.entity_name].label,
             entity_name: that.entity_name,
-            facet: that,
             search_all: that.search_all
         });
 
@@ -379,12 +202,38 @@ IPA.search_facet = function(spec) {
             that.table.add_column(column);
         }
 
+        that.table.select_changed = function() {
+            that.select_changed();
+        };
+
+        that.table.refresh = function() {
+            that.refresh();
+        };
+
         that.table.init();
     };
 
-    that.is_dirty = function() {
-        var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
-        return filter != that.filter;
+    that.create_action_panel = function(container) {
+
+        that.facet_create_action_panel(container);
+
+        var li = $('.action-controls', container);
+
+        var buttons = $('<span/>', {
+            'class': 'search-buttons'
+        }).appendTo(li);
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'remove',
+            'value': IPA.messages.buttons.remove
+        }).appendTo(buttons);
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'add',
+            'value': IPA.messages.buttons.add
+        }).appendTo(buttons);
     };
 
     that.create_content = function(container) {
@@ -395,14 +244,165 @@ IPA.search_facet = function(spec) {
     };
 
     that.setup = function(container) {
+
         that.facet_setup(container);
+
         var span = $('span[name=search]', that.container);
         that.table.setup(span);
+
+        var action_panel = that.get_action_panel();
+        var search_buttons = $('.search-buttons', action_panel);
+
+        var button = $('input[name=remove]', search_buttons);
+        that.remove_button = IPA.action_button({
+            'label': IPA.messages.buttons.remove,
+            'icon': 'ui-icon-trash',
+            'click': function() {
+                if (that.remove_button.hasClass('input_link_disabled')) return;
+                that.remove();
+            }
+        });
+        button.replaceWith(that.remove_button);
+        that.remove_button.addClass('input_link_disabled');
+
+        button = $('input[name=add]', search_buttons);
+        that.add_button = IPA.action_button({
+            'label': IPA.messages.buttons.add,
+            'icon': 'ui-icon-plus',
+            'click': function() { that.add(); }
+        });
+        button.replaceWith(that.add_button);
+    };
+
+    that.select_changed = function() {
+
+        var values = that.table.get_selected_values();
+
+        var action_panel = that.get_action_panel();
+        var links = $('li.entity-facet', action_panel);
+        var input = $('input[id=pkey]', action_panel);
+
+        if (values.length == 1) {
+            links.removeClass('entity-facet-disabled');
+            input.val(values[0]);
+
+        } else {
+            links.addClass('entity-facet-disabled');
+            input.val(null);
+        }
+
+        if (values.length === 0) {
+            that.remove_button.addClass('input_link_disabled');
+
+        } else {
+            that.remove_button.removeClass('input_link_disabled');
+        }
+    };
+
+    that.add = function() {
+        var dialog = that.get_dialog('add');
+        dialog.open(that.container);
+    };
+
+    that.remove = function() {
+
+        var values = that.table.get_selected_values();
+
+        var title;
+        if (!values.length) {
+            title = IPA.messages.dialogs.remove_empty;
+            title = title.replace('${entity}', that.label);
+            alert(title);
+            return;
+        }
+
+        title = IPA.messages.dialogs.remove_title;
+        title = title.replace('${entity}', that.label);
+
+        var dialog = IPA.deleter_dialog({
+            'title': title,
+            'parent': that.container,
+            'values': values
+        });
+
+        dialog.execute = function() {
+
+            var batch = IPA.batch_command({
+                'on_success': function() {
+                    that.refresh();
+                    dialog.close();
+                },
+                'on_error': function() {
+                    that.refresh();
+                    dialog.close();
+                }
+            });
+
+            for (var i=0; i<values.length; i++) {
+                var command = IPA.command({
+                    'method': that.entity_name+'_del'
+                });
+                command.add_arg(values[i]);
+                batch.add_command(command);
+            }
+
+            batch.execute();
+        };
+
+        dialog.init();
+
+        dialog.open(that.container);
     };
 
     that.refresh = function() {
+
+        function on_success(data, text_status, xhr) {
+
+            var action_panel = that.get_action_panel();
+            $('li.entity-facet', action_panel).
+                addClass('entity-facet-disabled');
+            $('input', action_panel).val(null);
+
+            that.table.empty();
+
+            var result = data.result.result;
+            for (var i = 0; i<result.length; i++) {
+                var record = that.table.get_record(result[i], 0);
+                that.table.add_record(record);
+            }
+
+            var summary = $('span[name=summary]', that.table.tfoot);
+            if (data.result.truncated) {
+                var message = IPA.messages.search.truncated;
+                message = message.replace('${counter}', data.result.count);
+                summary.text(message);
+            } else {
+                summary.text(data.result.summary);
+            }
+
+            $('.search-filter input[type=text]', that.container).focus();
+        }
+
+        function on_error(xhr, text_status, error_thrown) {
+            var summary = $('span[name=summary]', that.table.tfoot).empty();
+            summary.append('<p>Error: '+error_thrown.name+'</p>');
+            summary.append('<p>'+error_thrown.title+'</p>');
+            summary.append('<p>'+error_thrown.message+'</p>');
+        }
+
         that.filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
-        that.table.refresh();
+
+        var command = IPA.command({
+            method: that.entity_name+'_find',
+            args: [that.filter],
+            options: {
+                all: that.search_all
+            },
+            on_success: on_success,
+            on_error: on_error
+        });
+
+        command.execute();
     };
 
     // methods that should be invoked by subclasses
@@ -420,7 +420,7 @@ IPA.search_facet = function(spec) {
             that.create_column({ name: column });
         }
     }
-   
+
     return that;
 };
 
