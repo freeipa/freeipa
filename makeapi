@@ -45,13 +45,14 @@ def parse_options():
 
 def strip_doc(line):
     """
-    Remove the doc= part from the repr() of a Parameter.
+    Remove the doc= line from the repr() of a Paramter.
     """
+    s = line.find(' doc=')
+    if s >= 0:
+        e = line.find('), ', s)
+        line = '%s%s' % (line[0:s], line[e+2:])
 
-    # this pattern allows up to 2 nested parentheses in doc part
-    newline = re.sub(r', doc=([^(,]+)(\([^()]*(\([^()]+\)[^()]*)?\))?', '', line)
-
-    return newline
+    return line
 
 def make_api():
     """
