@@ -17,8 +17,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>1 hostgroup matched</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[@id='hostgroup']//span[@name='search']//input[@value='testhostgroup']</td>
 	<td></td>
 </tr>
 <tr>
@@ -67,11 +72,10 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>1 hostgroup matched</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
-
 </tbody></table>
 </body>
 </html>

@@ -22,6 +22,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>verifyElementNotPresent</td>
+	<td>//div[@id='role']//span[@name='search']//input[@value='testpermission']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>click</td>
 	<td>//div[@id='role']/div[@class='action-panel']//a[@title='Add']</td>
 	<td></td>
@@ -38,7 +43,7 @@
 </tr>
 <tr>
 	<td>select</td>
-	<td>//div[@name='target']//select</td>
+	<td>//span[@name='target']//select</td>
 	<td>label=type</td>
 </tr>
 <tr>
@@ -53,12 +58,17 @@
 </tr>
 <tr>
 	<td>click</td>
-	<td>//button[@type='button']</td>
+	<td>//div[@class='ui-dialog-buttonset']//button[@type='button']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>waitForElementPresent</td>
-	<td>//div[@id='role']/span[@name='search']//input[@value='testpermission']</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[@id='role']//span[@name='search']//input[@value='testpermission']</td>
 	<td></td>
 </tr>
 </tbody></table>

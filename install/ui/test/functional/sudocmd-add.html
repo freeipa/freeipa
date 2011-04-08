@@ -17,8 +17,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>0 sudo command matched</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementNotPresent</td>
+	<td>//div[@id='sudorule']//span[@name='search']//input[@value='testsudocmd']</td>
 	<td></td>
 </tr>
 <tr>
@@ -42,7 +47,12 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForElementPresent</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
 	<td>//div[@id='sudorule']//span[@name='search']//input[@value='testsudocmd']</td>
 	<td></td>
 </tr>

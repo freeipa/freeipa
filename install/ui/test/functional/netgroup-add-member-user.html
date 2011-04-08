@@ -17,8 +17,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>1 netgroup matched</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[@id='netgroup']//span[@name='search']//input[@value='testnetgroup']</td>
 	<td></td>
 </tr>
 <tr>
@@ -63,10 +68,9 @@
 </tr>
 <tr>
 	<td>waitForElementPresent</td>
-	<td>//div[@id='netgroup']/span[@name='association']//input[@value='testuser']</td>
+	<td>//div[@id='netgroup']//span[@name='association']//input[@value='testuser']</td>
 	<td></td>
 </tr>
-
 </tbody></table>
 </body>
 </html>

@@ -17,13 +17,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>2 users matched</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[@id='user']//span[@name='search']//input[@value='testuser']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>//input[@name='select' and @value='testuser']</td>
+	<td>//div[@id='user']//span[@name='search']//input[@value='testuser']</td>
 	<td></td>
 </tr>
 <tr>
@@ -37,8 +42,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>1 user matched</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementNotPresent</td>
+	<td>//div[@id='user']//span[@name='search']//input[@value='testuser']</td>
 	<td></td>
 </tr>
 </tbody></table>
