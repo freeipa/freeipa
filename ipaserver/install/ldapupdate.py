@@ -108,28 +108,27 @@ class LDAPUpdate:
             self.sub_dict["DOMAIN"] = domain
 
         if online:
-            # Try out the password
-            if not self.ldapi:
-                try:
-                    conn = ipaldap.IPAdmin(fqdn, ldapi=True, realm=self.realm)
+            # Try out the connection/password
+            try:
+                conn = ipaldap.IPAdmin(fqdn, ldapi=self.ldapi, realm=self.realm)
+                if self.dm_password:
                     conn.do_simple_bind(binddn="cn=directory manager", bindpw=self.dm_password)
-                    conn.unbind()
-                except ldap.CONNECT_ERROR:
-                    raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
-                except ldap.SERVER_DOWN:
-                    raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
-                except ldap.INVALID_CREDENTIALS:
-                    raise RuntimeError("The password provided is incorrect for LDAP server %s" % fqdn)
-            else:
-                conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
-                try:
-                    if os.getegid() == 0:
+                elif os.getegid() == 0:
+                    try:
                         # autobind
                         conn.do_external_bind(self.pw_name)
-                    else:
+                    except errors.NotFound:
+                        # Fall back
                         conn.do_sasl_gssapi_bind()
-                except ldap.LOCAL_ERROR, e:
-                    raise RuntimeError('%s' % e.args[0].get('info', '').strip())
+                else:
+                    conn.do_sasl_gssapi_bind()
+                conn.unbind()
+            except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN):
+                raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
+            except ldap.INVALID_CREDENTIALS:
+                raise RuntimeError("The password provided is incorrect for LDAP server %s" % fqdn)
+            except ldap.LOCAL_ERROR, e:
+                raise RuntimeError('%s' % e.args[0].get('info', '').strip())
         else:
             raise RuntimeError("Offline updates are not supported.")
 
@@ -662,19 +661,24 @@ class LDAPUpdate:
             if self.online:
                 if self.ldapi:
                     self.conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
-                    try:
-                        if os.getegid() == 0:
-                            # autobind
-                            self.conn.do_external_bind(self.pw_name)
-                        else:
-                            self.conn.do_sasl_gssapi_bind()
-                    except ldap.LOCAL_ERROR, e:
-                        raise RuntimeError('%s' % e.args[0].get('info', '').strip())
                 else:
                     self.conn = ipaldap.IPAdmin(self.sub_dict['FQDN'],
-                                                ldapi=self.ldapi,
+                                                ldapi=False,
                                                 realm=self.realm)
-                    self.conn.do_simple_bind(bindpw=self.dm_password)
+                try:
+                    if self.dm_password:
+                        self.conn.do_simple_bind(binddn="cn=directory manager", bindpw=self.dm_password)
+                    elif os.getegid() == 0:
+                        try:
+                            # autobind
+                            self.conn.do_external_bind(self.pw_name)
+                        except errors.NotFound:
+                            # Fall back
+                            self.conn.do_sasl_gssapi_bind()
+                    else:
+                        self.conn.do_sasl_gssapi_bind()
+                except ldap.LOCAL_ERROR, e:
+                    raise RuntimeError('%s' % e.args[0].get('info', '').strip())
             else:
                 raise RuntimeError("Offline updates are not supported.")
             all_updates = {}

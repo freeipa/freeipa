@@ -58,6 +58,9 @@ def parse_options():
                       default=False, help="Connect to the LDAP server using the ldapi socket")
     parser.add_option("-u", '--upgrade', action="store_true", dest="upgrade",
                       default=False, help="Upgrade an installed server in offline mode")
+    parser.add_option("-W", '--password', action="store_true",
+                      dest="ask_password",
+                      help="Prompt for the Directory Manager password")
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -92,7 +95,7 @@ def main():
         pw = ipautil.template_file(options.password, [])
         dirman_password = pw.strip()
     else:
-        if not options.ldapi and not options.upgrade:
+        if (options.ask_password or not options.ldapi) and not options.upgrade:
             dirman_password = get_dirman_password()
 
     files = []
@@ -112,8 +115,6 @@ def main():
         modified = upgrade.modified
         badsyntax = upgrade.badsyntax
     else:
-        if os.getegid() == 0 and options.ldapi:
-            sys.exit('ldapi cannot be used by root')
         # Clear all existing log handlers, this is need to log as root
         loggers = logging.getLogger()
         if loggers.handlers:
