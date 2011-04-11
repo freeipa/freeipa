@@ -136,6 +136,13 @@ def validate_api():
 
     rval = 0
 
+    expected_args = 0
+    expected_options = 0
+    expected_output = 0
+    found_args = []
+    found_options = []
+    found_output = []
+
     # First run through the file and compare it to the API
     existing_cmds = []
     cmd = None
