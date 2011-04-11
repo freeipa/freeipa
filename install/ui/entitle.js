@@ -259,11 +259,14 @@ IPA.entitle.search_facet = function(spec) {
 
     var that = IPA.search_facet(spec);
 
-    that.create_action_panel = function(container) {
+    that.setup = function(container) {
 
-        that.facet_create_action_panel(container);
 
-        var buttons = $('.action-controls', container);
+        that.search_facet_setup(container);
+
+        var buttons = that.entity_header.buttons;
+
+        $('a', buttons).remove();
 
         that.register_buttons = $('<span/>', {
             style: 'display: none;'
@@ -296,15 +299,8 @@ IPA.entitle.search_facet = function(spec) {
             name: 'import',
             value: 'Import'
         }).appendTo(that.consume_buttons);
-    };
 
-    that.setup = function(container) {
-
-        that.search_facet_setup(container);
-
-        var action_panel = that.get_action_panel();
-
-        var button = $('input[name=register_online]', action_panel);
+        var button = $('input[name=register_online]', that.entity_header.buttons);
         that.register_online_button = IPA.action_button({
             label: 'Register',
             icon: 'ui-icon-plus',
@@ -315,7 +311,7 @@ IPA.entitle.search_facet = function(spec) {
         });
         button.replaceWith(that.register_online_button);
 
-        button = $('input[name=register_offline]', action_panel);
+        button = $('input[name=register_offline]', that.entity_header.buttons);
         that.register_offline_button = IPA.action_button({
             label: 'Import',
             icon: 'ui-icon-plus',
@@ -326,7 +322,7 @@ IPA.entitle.search_facet = function(spec) {
         });
         button.replaceWith(that.register_offline_button);
 
-        button = $('input[name=consume]', action_panel);
+        button = $('input[name=consume]', that.entity_header.buttons);
         that.consume_button = IPA.action_button({
             label: 'Consume',
             icon: 'ui-icon-plus',
@@ -338,7 +334,7 @@ IPA.entitle.search_facet = function(spec) {
         });
         button.replaceWith(that.consume_button);
 
-        button = $('input[name=import]', action_panel);
+        button = $('input[name=import]', that.entity_header.buttons);
         that.import_button = IPA.action_button({
             label: 'Import',
             icon: 'ui-icon-plus',

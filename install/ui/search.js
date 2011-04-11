@@ -167,7 +167,7 @@ IPA.search_facet = function(spec) {
                 'click': function (value) {
                     return function() {
                         var state = IPA.tab_state(that.entity_name);
-                        state[that.entity_name + '-facet'] = 'details';
+                        state[that.entity_name + '-facet'] = 'default';
                         state[that.entity_name + '-pkey'] = value;
                         $.bbq.pushState(state);
                         return false;
@@ -183,7 +183,7 @@ IPA.search_facet = function(spec) {
 
         that.table = IPA.search_widget({
             id: that.entity_name+'-search',
-            name: 'search', 
+            name: 'search',
             label: IPA.metadata.objects[that.entity_name].label,
             entity_name: that.entity_name,
             search_all: that.search_all
@@ -211,25 +211,7 @@ IPA.search_facet = function(spec) {
         };
 
         that.table.init();
-    };
 
-    that.create_action_panel = function(container) {
-
-        that.facet_create_action_panel(container);
-
-        var buttons = $('.action-controls', container);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'remove',
-            'value': IPA.messages.buttons.remove
-        }).appendTo(buttons);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'add',
-            'value': IPA.messages.buttons.add
-        }).appendTo(buttons);
     };
 
     that.create_content = function(container) {
@@ -243,12 +225,38 @@ IPA.search_facet = function(spec) {
 
         that.facet_setup(container);
 
+        that.entity_header.title.empty();
+        that.entity_header.title.append(
+            $('<h3/>',{
+                text:that.entity.metadata.label
+            }));
+
+        that.entity_header.facet_tabs.css('visibility','hidden');
+        $('#back_to_search', that.entity_header.search_bar).
+            css('display','none');
+
+
+        var buttons =  that.entity_header.buttons;
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'remove',
+            'value': IPA.messages.buttons.remove
+        }).appendTo(buttons);
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'add',
+            'value': IPA.messages.buttons.add
+        }).appendTo(buttons);
+
+
         var span = $('span[name=search]', that.container);
         that.table.setup(span);
 
-        var action_panel = that.get_action_panel();
+        var search_buttons =   that.entity_header.buttons;
 
-        var button = $('input[name=remove]', action_panel);
+        var button = $('input[name=remove]', search_buttons);
         that.remove_button = IPA.action_button({
             'label': IPA.messages.buttons.remove,
             'icon': 'ui-icon-trash',
@@ -260,7 +268,7 @@ IPA.search_facet = function(spec) {
         button.replaceWith(that.remove_button);
         that.remove_button.addClass('input_link_disabled');
 
-        button = $('input[name=add]', action_panel);
+        button = $('input[name=add]', search_buttons);
         that.add_button = IPA.action_button({
             'label': IPA.messages.buttons.add,
             'icon': 'ui-icon-plus',
@@ -273,9 +281,8 @@ IPA.search_facet = function(spec) {
 
         var values = that.table.get_selected_values();
 
-        var action_panel = that.get_action_panel();
-        var links = $('li.entity-facet', action_panel);
-        var input = $('input[id=pkey]', action_panel);
+        var links = $('li', that.entity_header.tabs);
+        var input = $('input[id=pkey]', that.entity_header.buttons);
 
         if (values.length == 1) {
             links.removeClass('entity-facet-disabled');
@@ -354,10 +361,7 @@ IPA.search_facet = function(spec) {
 
         function on_success(data, text_status, xhr) {
 
-            var action_panel = that.get_action_panel();
-            $('li.entity-facet', action_panel).
-                addClass('entity-facet-disabled');
-            $('input', action_panel).val(null);
+            $("input id=[pkey]", that.entity_header.buttons).val(null);
 
             that.table.empty();
 
@@ -423,4 +427,3 @@ IPA.search_facet = function(spec) {
 
     return that;
 };
-

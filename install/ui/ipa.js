@@ -144,16 +144,21 @@ var IPA = ( function () {
         var name ;
         for (name in that.entity_factories){
             factory = that.entity_factories[name];
-            var entity = factory();
-            add_entity(entity);
-            entity.init();
+            try{
+                var entity = factory();
+                add_entity(entity);
+                entity.init();
+            }catch(e){
+                /*exceptions  thrown by builder just mean that entities
+                  are not to be registered. */
+            }
         }
     };
 
     that.test_dirty = function(){
         if (IPA.current_entity){
             var facet_name =   IPA.current_facet(IPA.current_entity);
-            var facet = IPA.current_entity.facets_by_name[facet_name];
+            var facet = IPA.current_entity.get_facet(facet_name);
 
             if (facet.is_dirty()){
 

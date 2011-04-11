@@ -40,7 +40,8 @@ module('details', {
         var obj_name = 'user';
         IPA.entity_factories.user=
             function(){
-                return IPA.entity({name:obj_name});
+                return IPA.entity({name:obj_name,
+                                   metadata:IPA.metadata.objects.user});
             };
         IPA.start_entities();
     },
@@ -160,12 +161,12 @@ test("Testing details lifecycle: create, setup, load.", function(){
             setup_called = true;
             widget.widget_setup(container);
         };
-        
+
         widget.load = function(record) {
             load_called = true;
             widget.widget_load(record);
         };
-        
+
         widget.save = function() {
             save_called = true;
             widget.widget_save();
@@ -201,13 +202,18 @@ test("Testing details lifecycle: create, setup, load.", function(){
     var facet = entity.get_facet('details');
     facet.init();
 
-    var content = $('<div/>', {
+    var container = $('<div/>', {
         'class': 'content'
     }).appendTo(container);
 
-    facet.create_content(content);
 
-    facet.setup(container);
+    entity.header = IPA.entity_header({entity:entity,container:container});
+    facet.entity_header = entity.header;
+    entity.header.reset();
+    facet.create_content(facet.entity_header.content);
+    facet.setup(facet.entity_header.content);
+
+
     facet.load(result);
 
     var contact = container.find('dl#contact.entryattrs');

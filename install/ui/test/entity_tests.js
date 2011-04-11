@@ -73,13 +73,12 @@ test('Testing IPA.entity_set_search_definition().', function() {
     var facet = entity.get_facet('search');
     facet.init();
 
-    var content = $('<div/>', {
-        'class': 'content'
-    }).appendTo(entities_container);
+    var container = $("<div/>");
 
-    facet.create_content(content);
-
-    facet.setup(entities_container);
+    entity.header = IPA.entity_header({entity:entity,container:container});
+    facet.entity_header = entity.header;
+    facet.create_content(facet.entity_header.content);
+    facet.setup(facet.entity_header.content);
 
 
     var column = facet.get_columns()[0];

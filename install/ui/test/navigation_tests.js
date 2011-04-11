@@ -45,7 +45,8 @@ test("Testing IPA.nav.create().", function() {
     var entity;
 
     IPA.entity_factories.user =  function() {
-        var that = IPA.entity({name: 'user'});
+        var that = IPA.entity({name: 'user',
+                               metadata:IPA.metadata.objects.user});
         that.setup = function(container){
             user_mock_called = true;
             same(container[0].id,'user','user id');
@@ -54,7 +55,8 @@ test("Testing IPA.nav.create().", function() {
         return that;
     };
     IPA.entity_factories.group = function(){
-        var that  = IPA.entity({name: 'group'});
+        var that  = IPA.entity({name: 'group',
+                               metadata:IPA.metadata.objects.group});
         that.setup = function(container){
             group_mock_called = true;
             same(container[0].id,'group','group id');

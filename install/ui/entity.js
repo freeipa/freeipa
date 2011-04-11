@@ -6,7 +6,7 @@
  *    Endi S. Dewata <edewata@redhat.com>
  *    Adam Young <ayoung@redhat.com>
  *
- * Copyright (C) 2010 Red Hat
+ * Copyright (C) 2010-2011 Red Hat
  * see file 'COPYING' for use and warranty information
  *
  * This program is free software; you can redistribute it and/or modify
@@ -43,6 +43,8 @@ IPA.facet = function (spec) {
     that.dialogs = [];
     that.dialogs_by_name = {};
 
+    that.facet_group = spec.facet_group;
+
     that.__defineGetter__('entity_name', function() {
         return that._entity_name;
     });
@@ -50,8 +52,6 @@ IPA.facet = function (spec) {
     that.__defineSetter__('entity_name', function(entity_name) {
         that._entity_name = entity_name;
     });
-
-    that.create_action_panel = IPA.facet_create_action_panel;
 
     that.get_dialog = function(name) {
         return that.dialogs_by_name[name];
@@ -79,6 +79,9 @@ IPA.facet = function (spec) {
 
     function setup(container) {
         that.container = container;
+        that.entity_header.facet_tabs.css('visibility','visible');
+        $('#back_to_search', that.entity_header.search_bar).
+            css('display','inline');
     }
 
     function load() {
@@ -92,17 +95,23 @@ IPA.facet = function (spec) {
         return $('.content', that.container);
     };
 
-    that.get_action_panel = function() {
-        return $('.action-panel', that.container);
-    };
-
     // methods that should be invoked by subclasses
     that.facet_init = that.init;
-    that.facet_create_action_panel = that.create_action_panel;
     that.facet_create_content = that.create_content;
     that.facet_setup = that.setup;
 
     return that;
+};
+
+
+IPA.fetch_facet_group = function (name,attribute_member){
+    var relationships = IPA.metadata.objects[name].relationships;
+    var relationship = relationships[attribute_member];
+    if (!relationship){
+        relationship = ['Member', '', 'no_'];
+    }
+    var facet_group = relationship[0];
+    return facet_group;
 };
 
 
@@ -111,8 +120,9 @@ IPA.entity = function (spec) {
     spec = spec || {};
 
     var that = {};
+    that.metadata = spec.metadata;
     that.name = spec.name;
-    that.label = spec.label;
+    that.label = spec.label || spec.metadata.label || spec.name;
 
     that.setup = spec.setup || IPA.entity_setup;
 
@@ -123,6 +133,10 @@ IPA.entity = function (spec) {
     that.facets_by_name = {};
 
     that.facet_name = null;
+    /*TODO:  Facet_groups are currently unordered.  If we need to
+     * maintain order, we will introduce a class that keeps the order
+     in an array, while maintaining the dictionary for direct access.*/
+    that.facet_groups = {};
 
     that.autogenerate_associations = false;
 
@@ -150,6 +164,24 @@ IPA.entity = function (spec) {
     }
 
     that.get_facet = function(name) {
+        if (name === 'default'){
+            var facet_group;
+            var facet;
+            if (that.facet_groups["Member"]){
+                facet_group = that.facet_groups["Member"];
+                facet =  facet_group[0];
+            } else if (that.facets_by_name.details){
+                facet= that.facets_by_name.details;
+            }else  if (that.facet_groups["Member Of"]){
+                facet_group = that.facet_groups["Member Of"];
+                facet =  facet_group[0];
+            }
+            if (facet){
+                name = facet.name;
+                return facet;
+            }
+        }
+
         return that.facets_by_name[name];
     };
 
@@ -157,14 +189,18 @@ IPA.entity = function (spec) {
         facet.entity_name = that.name;
         that.facets.push(facet);
         that.facets_by_name[facet.name] = facet;
+        
+        if (facet.facet_group){
+            if (!that.facet_groups[facet.facet_group]){
+                that.facet_groups[facet.facet_group] = [];
+            }
+            that.facet_groups[facet.facet_group].push(facet);
+        }
         return that;
     };
 
     that.facet = function(facet) {
-        facet.entity_name = that.name;
-        that.facets.push(facet);
-        that.facets_by_name[facet.name] = facet;
-        return that;
+        return that.add_facet(facet);
     };
 
     that.create_association_facet = function(attribute_member, other_entity, label, facet_group) {
@@ -192,7 +228,7 @@ IPA.entity = function (spec) {
 
     that.create_association_facets = function() {
 
-        var attribute_members = IPA.metadata.objects[that.name].attribute_members;
+        var attribute_members = that.metadata.attribute_members;
 
         for (var attribute_member in attribute_members) {
 
@@ -204,16 +240,12 @@ IPA.entity = function (spec) {
             var other_entities = attribute_members[attribute_member];
 
             for (var j = 0; j < other_entities.length; j++) {
+
                 var other_entity = other_entities[j];
                 var label = IPA.metadata.objects[other_entity].label;
 
-                var relationships = IPA.metadata.objects[that.name].relationships;
-
-                var relationship = relationships[attribute_member];
-                if (!relationship)
-                    relationship = ['Member', '', 'no_'];
-                var facet_group = relationship[0];
-
+                var facet_group =
+                    IPA.fetch_facet_group(that.name,attribute_member);
                 that.create_association_facet(
                     attribute_member, other_entity, label, facet_group);
             }
@@ -224,10 +256,6 @@ IPA.entity = function (spec) {
     that.standard_associations = that.create_association_facets;
 
     that.init = function() {
-
-        if (!that.label) {
-            that.label = IPA.metadata.objects[that.name] ? IPA.metadata.objects[that.name].label : that.name;
-        }
 
         if (that.autogenerate_associations) {
             that.create_association_facets();
@@ -262,37 +290,29 @@ IPA.entity_setup = function (container) {
     IPA.current_entity = this;
     var facet_name = IPA.current_facet(entity);
 
-
     var facet = entity.get_facet(facet_name);
     if (!facet) return;
 
     if (IPA.entity_name == entity.name) {
-        if (entity.facet_name == facet_name) {
+        if (entity.facet_name == facet.name) {
             if (facet.new_key   && (!facet.new_key())) return;
         } else {
-            entity.facet_name = facet_name;
+            entity.facet_name = facet.name;
         }
     } else {
         IPA.entity_name = entity.name;
     }
 
-    container.empty();
-
     container.attr('title', entity.name);
+    if (!entity.header){
+        entity.header = IPA.entity_header({entity:entity,container:container});
+    }
+    facet.entity_header = entity.header;
 
-    var action_panel = $('<div/>', {
-        'class': 'action-panel'
-    }).appendTo(container);
-
-    facet.create_action_panel(action_panel);
-
-    var content = $('<div/>', {
-        'class': 'content'
-    }).appendTo(container);
-
-    facet.create_content(content);
-
-    facet.setup(container);
+    entity.header.reset();
+    facet.create_content(facet.entity_header.content);
+    facet.setup(facet.entity_header.content);
+    entity.header.select_tab();
     facet.refresh();
 };
 
@@ -309,9 +329,6 @@ IPA.get_nested_tab_label = function(entity_name){
 
 };
 
-
-
-
 /*Returns the entity requested, as well as:
   any nested tabs underneath it or
   its parent tab and the others nested at the same level*/
@@ -319,57 +336,42 @@ IPA.get_nested_tab_label = function(entity_name){
 IPA.nested_tabs = function(entity_name){
 
     var siblings = [];
-    var nested_index;
+    var i;
+    var i2;
     var nested_entities;
-    var label;
+    var sub_i;
+    var sub_tab;
+
+    var key = entity_name;
+    function push_sibling(sibling){
+        siblings.push (sibling);
+        IPA.nested_tab_labels[key] = sub_tab;
+    }
+
+
     if (!IPA.tab_set) {
         siblings.push(entity_name);
         return siblings;
     }
 
-    for (var top_tab_index = 0;
-         top_tab_index < IPA.tab_set.length;
-         top_tab_index += 1){
-        var top_tab =  IPA.tab_set[top_tab_index];
-        for (var subtab_index = 0;
-             subtab_index < top_tab.children.length;
-             subtab_index += 1){
-            if(top_tab.children[subtab_index].name){
-                if (top_tab.children[subtab_index].name === entity_name){
-                    siblings.push(entity_name);
-                    IPA.nested_tab_labels[entity_name] =
-                        top_tab.children[subtab_index].label;
-                    if (top_tab.children[subtab_index].children){
-                        label = top_tab.children[subtab_index].label;
-                        nested_entities = top_tab.children[subtab_index].children;
-                        for ( nested_index = 0;
-                              nested_index < nested_entities.length;
-                              nested_index += 1){
-                            siblings.push (nested_entities[nested_index].name);
-                            IPA.nested_tab_labels[entity_name] =
-                                top_tab.children[subtab_index].label;
-                        }
-
-                    }
-                }else{
-                    if (top_tab.children[subtab_index].children){
-                        nested_entities = top_tab.children[subtab_index].children;
-                        for (nested_index = 0;
-                             nested_index < nested_entities.length;
-                             nested_index += 1){
-                            if (nested_entities[nested_index].name === entity_name){
-                                siblings.push(top_tab.children[subtab_index].name);
-                                IPA.nested_tab_labels[entity_name] =
-                                    top_tab.children[subtab_index].label;
-
-                                for (var nested_index2 = 0;
-                                     nested_index2 < nested_entities.length;
-                                     nested_index2 += 1){
-                                    siblings.push(nested_entities[nested_index2].name);
-                                IPA.nested_tab_labels[nested_entities[nested_index2].name] =
-                                    top_tab.children[subtab_index].label;
-
-                                }
+    for (var top_i = 0; top_i < IPA.tab_set.length; top_i += 1){
+        var top_tab =  IPA.tab_set[top_i];
+        for (sub_i = 0; sub_i < top_tab.children.length; sub_i += 1){
+            sub_tab = top_tab.children[sub_i];
+            nested_entities = sub_tab.children;
+            if (sub_tab.name === entity_name){
+                push_sibling(entity_name);
+            }
+            if (sub_tab.children){
+                for (i = 0; i < nested_entities.length; i += 1){
+                    if (sub_tab.name === entity_name){
+                        push_sibling(nested_entities[i].name);
+                    }else{
+                        if (nested_entities[i].name === entity_name){
+                            push_sibling(sub_tab.name);
+                            for (i2 = 0; i2 < nested_entities.length; i2 += 1){
+                                key = nested_entities[i].name;
+                                push_sibling(nested_entities[i2].name);
                             }
                         }
                     }
@@ -383,22 +385,109 @@ IPA.nested_tabs = function(entity_name){
 IPA.selected_icon = '<span class="ipa-icon">&#x25B6;</span>';
 IPA.back_icon = '<span class="ipa-icon">&#x25C0;</span>';
 
-IPA. facet_create_action_panel = function(container) {
 
-    function build_link(other_facet,label){
+IPA.entity_header = function(spec){
+    var entity = spec.entity;
+    var container = spec.container;
+
+    var that = {};
+    that.entity = entity;
+
+    function pkey(){
+        that.pkey_field = $("<input type='hidden' id='pkey' />");
+        return that.pkey_field;
+    }
+
+    function select_tab(){
+        $(that.facet_tabs).find('a').removeClass('selected');
+        var facet_name = $.bbq.getState(entity.name + '-facet', true);
+
+        if (!facet_name) return;
+
+        if (facet_name === 'default'){
+            that.facet_tabs.find('a:first').addClass('selected');
+        }else{
+            that.facet_tabs.find('a#' + facet_name ).addClass('selected');
+        }
+
+    }
+    that.select_tab = select_tab;
+
+    function set_pkey(val){
+        that.pkey_field.val(val);
+        that.title.empty();
+        var title = $('<h3/>',{ text: entity.metadata.label+": "});
+        title.append ($('<span/>',{text:val}));
+        that.title.append(title);
+    }
+    that.set_pkey = set_pkey;
+
+    function title(){
+        that.title =
+            $("<div/>",
+              {
+                  'class':'entity-title'
+              });
+
+        var title = $('<h3/>',{ text: entity.metadata.label});
+        that.title.append(title);
+
+        return that.title;
+    }
+
+    function buttons(){
+        that.buttons = $("<span class='action-controls' />");
+        return that.buttons;
+
+    }
+    function search_bar(){
+        that.search_bar =
+            $("<span class='entity-search'/>");
+
+        if (entity.facets_by_name.search){
+            that.search_bar.prepend(
+                $('<span />',{
+                    id:'back_to_search',
+                    "class":"input_link",
+                    click: function(){
+                        if($(this).hasClass('entity-facet-disabled')){
+                            return false;
+                        }
+
+                        IPA.switch_and_show_page(entity.name, 'search');
+                        $(that.facet_tabs).find('a').removeClass('selected');
+                        return false;
+
+                    }
+                }).
+                    append(IPA.back_icon + '  ' +
+                           IPA.messages.buttons.back_to_list+' '));
+        }
+
+        return that.search_bar;
+    }
+
+    function facet_link(other_facet){
+        var entity_name = that.entity.name;
+        var other_facet_name = other_facet.name;
         var li = $('<li/>', {
-            "class" : other_facet.display_class,
             title: other_facet.name,
-            text: label,
+            html: $('<a />',{
+                text: other_facet.label,
+                id: other_facet_name
+            }),
             click: function(entity_name, other_facet_name) {
                 return function() {
                     if($(this).hasClass('entity-facet-disabled')){
                         return false;
                     }
-                    var this_pkey = $('input[id=pkey]', container).val();
+                    var this_pkey = that.pkey_field.val();
                     IPA.switch_and_show_page(
                         entity_name, other_facet_name,
                         this_pkey);
+                    $(that.facet_tabs).find('a').removeClass('selected');
+                    $(this).find('a').addClass('selected');
+
                     return false;
                 };
             }(entity_name, other_facet_name)
@@ -406,135 +495,72 @@ IPA. facet_create_action_panel = function(container) {
         return li;
     }
 
-    var that = this;
-    var entity_name = that.entity_name;
-    var panel_title = IPA.metadata.objects[entity_name].label;
-    var nested_tabs = IPA.nested_tabs(entity_name);
 
-    if (nested_tabs.length > 1){
-        panel_title = IPA.get_nested_tab_label(entity_name);
-    }
-
-    $('<h3>', {
-        text: panel_title
-    }).appendTo(container);
-
-    /*Note, for debugging purposes, it is useful to set var pkey_type = 'text';*/
-    var pkey_type = 'hidden';
-    $('<input/>', {
-        'type': pkey_type,
-        id:'pkey',
-        name:'pkey'
-    }).appendTo(container);
-
-    var ul = $('<ul/>', {'class': 'action'}).appendTo(container);
-    var entity = IPA.get_entity(entity_name);
-    var facet_name =  IPA.current_facet(entity);
-    var other_facet = entity.facets[0];
-    var other_facet_name = other_facet.name;
-    var main_facet = build_link(other_facet,other_facet.label);
-
-    for (var nested_index = 0 ;
-         nested_index < nested_tabs.length;
-         nested_index += 1){
-        if (nested_tabs[nested_index] === entity_name){
-            /*assume for now that entities with only a single facet
-              do not have search*/
-            if (entity.facets.length > 0 ){
-                if ( entity.facets[0].name === IPA.current_facet( entity)){
-                    if (nested_tabs.length > 1 ){
-                        main_facet.html(IPA.selected_icon +
-                                IPA.metadata.objects[nested_tabs[nested_index]].label);
-
-                        main_facet.addClass('entity-facet-selected');
-                        main_facet.appendTo(ul);
-                    }
-                    ul.append($('<li><span class="action-controls"/></li>'));
-                } else {
-                        main_facet.html(
-                            $('<span />',{
-                                "class":"input_link"
-                            }).
-                                append(IPA.back_icon + '  '+IPA.messages.buttons.back_to_list+' '));
-                    main_facet.addClass('back-to-search');
-                    main_facet.appendTo(ul);
-                }
-                ul.append($('<li><hr/></li>'));
-            }
-            var facet_groups = {};
-            var li;
-            for (var i=1; i<entity.facets.length; i++) {
-                other_facet = entity.facets[i];
-                other_facet_name = other_facet.name;
-
-                if (other_facet.facet_group) {
-                    var facet_group = other_facet.facet_group;
-                    if (!facet_groups[facet_group]) {
-                        li = $('<li/>', {
-                            'class': 'entity-facet entity-facet-relation-label',
-                            'text': other_facet.facet_group,
-                            'title': other_facet.facet_group
-                        });
-                        ul.append(li);
-                        facet_groups[facet_group] = li;
-                    }
-                    li = facet_groups[facet_group];
-                    var link =  build_link(other_facet, other_facet.label);
-                    link.addClass('facet-group-member');
-                    li.after(link );
-                    /*
-                      If we are on the current facet, we make the text black, non-clickable,
-                      add an icon and make sure the action controls are positioned underneath it.
-                     */
-                    if ( other_facet.name === IPA.current_facet( entity)){
-                        var text = link.text();
-                        link.text('');
-                        link.append($('<ul>').
-                                    append($('<li />',{
-                                        'class': 'association-facet-selected',
-                                        html:  IPA.selected_icon +  text
-                                        })).
-                                    append($('<li/>',{
-                                        html:$('<span />',{
-                                            'class':"action-controls"
-                                        })
-                                    })));
-                    }
-                    facet_groups[facet_group] = li.next();
-                } else {
-                    var innerlist = $('<ul/>').appendTo(ul);
-                    var facet_link = build_link(other_facet, other_facet.label);
-                    innerlist.append(facet_link);
-                    if ( other_facet.name === IPA.current_facet( entity)){
-
-                        text = facet_link.text();
-                        facet_link.html(IPA.selected_icon +  text);
-                        facet_link.addClass('entity-facet-selected');
-                        innerlist.append($('<li class="entity-facet"><span class="action-controls"  /></li>'));
-                    }
-                }
-            }
-        }else{
-            $('<li/>', {
-                title: nested_tabs[nested_index],
-                text: IPA.metadata.objects[nested_tabs[nested_index]].label,
-                "class": "search-facet",
-                click: function() {
-                    var state = {};
-                    state[nested_tabs[0]+'-entity'] =
-                        this.title;
-                    IPA.nav.push_state(state);
-                    return false;
-                }
-            }).appendTo(ul);
+    function facet_group(label){
+        var facets= entity.facet_groups[label];
+        if (facets){
+            that.facet_tabs.append(tab_section(label,  facets));
         }
     }
-    /*When we land on the search page, disable all facets
-          that require a pkey until one is selected*/
-    if (facet_name === 'search'){
-        $('.entity-facet', container).addClass('entity-facet-disabled');
+
+    function tab_section(label, facets){
+        var tab_section = $("<span class='entity-tabs-section'/>").
+            append("<label>"+label+"</label>");
+
+        var ul = $("<ul class='entity-tabs'/>").appendTo(tab_section);
+
+        var i;
+        for (i = 0; i < facets.length; i += 1){
+            var other_facet = facets[i];
+            ul.append(facet_link(other_facet));
+        }
+        return tab_section;
     }
-    return container;
+
+    function facet_tabs(){
+        that.facet_tabs =   $("<div class='entity-tabs'/>");
+
+        facet_group("Member");
+
+        if (entity.facets_by_name.details){
+            that.facet_tabs.append(
+                tab_section('Settings',[entity.facets_by_name.details]));
+        }
+        facet_group("Member Of");
+        facet_group("Managed by");
+
+        return that.facet_tabs;
+    }
+    function content(){
+        that.content = $("<div class='content'/>");        return that.content;
+    }
+
+    function entity_container() {
+        that.entity_container =
+            $("<div/>",{
+                "class":'entity-container',
+                id: 'entity-container-' + entity.name
+            }).
+            append(facet_tabs()).
+            append(content());
+        return that.entity_container;
+    }
+
+    function reset(){
+        that.buttons.empty();
+        that.content.empty();
+    }
+    that.reset = reset;
+
+    that.header = $("<div class='entity-header'/>").
+        append(title(entity)).
+        append(buttons()).
+        append(pkey()).
+        append(search_bar()).
+        append(entity_container());
+    container.append(that.header);
+
+    return that;
 };
 
 IPA.entity_builder = function(){
@@ -579,13 +605,21 @@ IPA.entity_builder = function(){
         }
     }
 
-    that.entity = function(spec) {
-        if (spec instanceof Object) {
-            var factory = spec.factory || IPA.entity;
-            entity = factory(spec);
+    that.entity = function(param) {
+        var spec;
+        var factory = IPA.entity;
+        if (param instanceof Object) {
+            factory = param.factory || IPA.entity;
+            spec = param;
         } else {
-            entity = IPA.entity({ name: spec });
+            spec = { name: param  };
         }
+        spec.metadata = spec.metadata || IPA.metadata.objects[spec.name];
+        if (!spec.metadata){
+            throw "Entity not supported by server.";
+        }
+
+        entity = factory(spec);
         return that;
     };
 
@@ -624,6 +658,7 @@ IPA.entity_builder = function(){
     };
 
     that.facet = function(spec) {
+        spec.entity_name  = entity.name;
         facet = spec.factory(spec);
         entity.facet(facet);
         return that;

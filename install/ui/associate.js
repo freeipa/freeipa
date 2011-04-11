@@ -279,23 +279,24 @@ IPA.association_config = function (spec) {
 
 
 IPA.association_pkey_setup = function  (container, record) {
-        container.empty();
-        var value = record[this.name];
-        value = value ? value.toString() : '';
-        $('<a/>', {
-            'href': '#'+value,
-            'html': value,
-            'click': function (value) {
-                return function() {
-                    var state = IPA.tab_state(this.other_entity);
-                    state[this.other_entity + '-facet'] = 'details';
-                    state[this.other_entity + '-pkey'] = value;
-                    $.bbq.pushState(state);
-                    return false;
-                };
-            }(value)
-        }).appendTo(container);
-    };
+    var other_entity = this.entity_name;
+    container.empty();
+    var value = record[this.name];
+    value = value ? value.toString() : '';
+    $('<a/>', {
+        'href': '#'+value,
+        'html': value,
+        'click': function (value) {
+            return function() {
+                var state = IPA.tab_state(other_entity);
+                state[other_entity + '-facet'] = 'default';
+                state[other_entity + '-pkey'] = value;
+                $.bbq.pushState(state);
+                return false;
+            };
+        }(value)
+    }).appendTo(container);
+};
 
 
 IPA.association_table_widget = function (spec) {
@@ -670,7 +671,9 @@ IPA.association_facet = function (spec) {
     that.attribute_member = spec.attribute_member || that.name.substring(0, index);
     that.other_entity = spec.other_entity || that.name.substring(index+1);
 
-    that.facet_group = spec.facet_group;
+    that.facet_group = spec.facet_group ||
+        IPA.fetch_facet_group(that.entity_name,that.attribute_member);
+
     that.label = that.label ? that.label : (IPA.metadata.objects[that.other_entity] ? IPA.metadata.objects[that.other_entity].label : that.other_entity);
 
     that.associator = spec.associator || IPA.bulk_associator;
@@ -737,6 +740,9 @@ IPA.association_facet = function (spec) {
         var column;
         var i;
 
+
+
+
         var label = IPA.metadata.objects[that.other_entity] ? IPA.metadata.objects[that.other_entity].label : that.other_entity;
         var pkey_name = IPA.metadata.objects[that.other_entity].primary_key;
 
@@ -771,7 +777,7 @@ IPA.association_facet = function (spec) {
                     'click': function (value) {
                         return function() {
                             var state = IPA.tab_state(that.other_entity);
-                            state[that.other_entity + '-facet'] = 'details';
+                            state[that.other_entity + '-facet'] = 'default';
                             state[that.other_entity + '-pkey'] = value;
                             $.bbq.pushState(state);
                             return false;
@@ -834,7 +840,7 @@ IPA.association_facet = function (spec) {
         var header_message = '';
         if (relationship[0] == 'Member') {
             header_message = IPA.messages.association.member;
-
+            
         } else if (relationship[0] == 'Parent') {
             header_message = IPA.messages.association.parent;
         }
@@ -851,6 +857,21 @@ IPA.association_facet = function (spec) {
         var span = $('<span/>', { 'name': 'association' }).appendTo(container);
 
         that.table.create(span);
+
+        var li = that.entity_header.buttons;
+
+        // creating generic buttons for layout
+        $('<input/>', {
+            'type': 'button',
+            'name': 'remove',
+            'value': IPA.messages.buttons.remove
+        }).appendTo(li);
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'add',
+            'value': IPA.messages.buttons.enroll
+        }).appendTo(li);
     };
 
     that.setup = function(container) {
@@ -862,16 +883,15 @@ IPA.association_facet = function (spec) {
         that.table.setup(span);
 
         // replacing generic buttons with IPA.button and setting click handler
-        var action_panel = that.get_action_panel();
 
-        var button = $('input[name=remove]', action_panel);
+        var button = $('input[name=remove]', that.entity_header.buttons);
         button.replaceWith(IPA.action_button({
             'label': button.val(),
             'icon': 'ui-icon-trash',
             'click': function() { that.show_remove_dialog(); }
         }));
 
-        button = $('input[name=add]', action_panel);
+        button = $('input[name=add]', that.entity_header.buttons);
         button.replaceWith(IPA.action_button({
             'label': button.val(),
             'icon': 'ui-icon-plus',
@@ -1015,7 +1035,9 @@ IPA.association_facet = function (spec) {
     that.refresh = function() {
 
         function on_success(data, text_status, xhr) {
-
+            if (that.pkey){
+                that.entity_header.set_pkey(that.pkey);
+            }
             that.table.empty();
 
             var pkeys = data.result.result[that.name];

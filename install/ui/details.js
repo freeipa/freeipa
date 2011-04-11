@@ -405,7 +405,6 @@ IPA.details_facet = function(spec) {
 
         that.facet_setup(container);
 
-        var button = $('input[name=reset]', that.container);
         that.reset_button = IPA.action_button({
             'label': 'Reset',
             'icon': 'ui-icon-refresh',
@@ -414,10 +413,8 @@ IPA.details_facet = function(spec) {
                 that.reset();
                 return false;
             }
-        });
-        button.replaceWith(that.reset_button);
+        }).appendTo(that.entity_header.buttons);
 
-        button = $('input[name=update]', that.container);
         that.update_button = IPA.action_button({
             'label': 'Update',
             'icon': 'ui-icon-check',
@@ -426,8 +423,7 @@ IPA.details_facet = function(spec) {
                 that.update();
                 return false;
             }
-        });
-        button.replaceWith(that.update_button);
+        }).appendTo(that.entity_header.buttons);
 
         var details = $('div[name=details]', that.container);
 
@@ -514,7 +510,7 @@ IPA.details_facet = function(spec) {
             section.load(record);
         }
         if (that.pkey){
-            $('h1 #headerpkey',that.container).html(that.pkey+": ");
+            that.entity_header.set_pkey(that.pkey);
         }
     }
 

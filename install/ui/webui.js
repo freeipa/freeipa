@@ -29,90 +29,59 @@
 IPA.admin_tab_set = function () {
     var tabset = [
         {name:'identity', label: IPA.messages.tabs.identity,  children:[
-            {name:'user', entity:'user'},
-            {name:'group', entity:'group'},
-            {name:'host', entity:'host'},
-            {name:'hostgroup', entity:'hostgroup'},
-            {name:'netgroup', entity:'netgroup'},
-            {name:'service', entity:'service'}
+            {entity:'user'},
+            {entity:'group'},
+            {entity:'host'},
+            {entity:'hostgroup'},
+            {entity:'netgroup'},
+            {entity:'service'}
         ]},
         {name:'policy', label: IPA.messages.tabs.policy, children:[
-            {name:'hbacrule', label: IPA.messages.tabs.hbac ,
-             entity:'hbacrule', children:[
-                {name:'hbacsvc', entity:'hbacsvc'},
-                {name:'hbacsvcgroup', entity:'hbacsvcgroup'}
+            {entity:'dnszone'},
+            {name:'hbac', label: IPA.messages.tabs.hbac ,
+             children:[
+                 {entity:'hbacrule'},
+                 {entity:'hbacsvc'},
+                 {entity:'hbacsvcgroup'}
             ]},
-            {name:'sudorule', label: IPA.messages.tabs.sudo,
-             entity:'sudorule',children:[
-                {name:'sudocmd', entity:'sudocmd'},
-                {name:'sudocmdgroup', entity:'sudocmdgroup'}
+            {name:'sudo', label: IPA.messages.tabs.sudo,
+             children:[
+                 {entity:'sudorule'},
+                 {entity:'sudocmd'},
+                 {entity:'sudocmdgroup'}
             ]},
-//            {name:'automount', entity:'automountlocation'},
-            {name:'pwpolicy', entity:'pwpolicy'},
-            {name:'krbtpolicy', entity:'krbtpolicy'}
+//            {entity:'automountlocation'},
+            {entity:'pwpolicy'},
+            {entity:'krbtpolicy'}
         ]},
         {name:'ipaserver', label: IPA.messages.tabs.ipaserver, children: [
-            {name:'role',entity:'role', label: IPA.messages.tabs.role,
+            {name:'rolebased', label: IPA.messages.tabs.role,
              children:[
-                {name:'privilege',entity:'privilege' },
-                {name:'permission', entity:'permission'}
-            ]},
-            {name:'selfservice'  ,entity:'selfservice'},
-            {name:'delegation'  ,entity:'delegation'},
-            {name:'entitle', entity:'entitle'},
-            {name:'config', entity:'config'}
+                 {entity:'role'},
+                 {entity:'privilege'},
+                 {entity:'permission'}
+             ]},
+            {entity:'selfservice'},
+            {entity:'delegation'},
+            {entity:'entitle'},
+            {entity:'config'}
         ]}];
-
-    if (IPA.dns_enabled){
-        tabset[1].children.unshift(
-            {name:'dnszone', entity:'dnszone'}
-        );
-    }
 
     return tabset;
 };
 
 IPA.self_serv_tab_set = function(){
     return [ { name:'identity',
-               children: [ {name:'user', entity:'user'}]}];
+               children:
+               [
+                   {entity:'user'},
+                   {entity:'group'}
+               ]
+             }
+           ];
 };
 
 
-IPA.tab_state = function(entity_name){
-
-    var state = {};
-
-    for (var top_tab_index = 0;
-         top_tab_index < IPA.tab_set.length;
-         top_tab_index += 1){
-        var top_tab =  IPA.tab_set[top_tab_index];
-        for (var subtab_index = 0;
-             subtab_index < top_tab.children.length;
-             subtab_index += 1){
-            if(top_tab.children[subtab_index].name){
-                if (top_tab.children[subtab_index].name === entity_name){
-                    state.navigation =  top_tab_index;
-                    state[top_tab.name] =  subtab_index;
-                    return state;
-                }else if (top_tab.children[subtab_index].children){
-                    var  nested_entities = top_tab.children[subtab_index].children;
-                    for (var nested_index = 0;
-                         nested_index < nested_entities.length;
-                         nested_index += 1){
-                        if (nested_entities[nested_index].name === entity_name){
-                            state.navigation =  top_tab_index;
-                             state[top_tab.name] =  subtab_index;
-                             state[ top_tab.children[subtab_index].name+'-entity'] =  entity_name;
-                             return state;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    /*should never reach here*/
-    return null;
-};
 
 
 /* main (document onready event handler) */

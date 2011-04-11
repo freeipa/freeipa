@@ -34,7 +34,7 @@ IPA.entity_factories.automountlocation = function() {
         }).
         details_facet({sections:[{
             name:'identity',
-            label: IPA.messages.objects.automountlocation.identity,
+            label: IPA.messages.details.identity,
             fields:['cn']
         }]}).
         standard_association_facets().

@@ -26,6 +26,10 @@
 /* DNS */
 IPA.entity_factories.dnszone = function() {
 
+    if (!IPA.dns_enabled){
+        throw "DNS not enabled on server";
+    }
+
     return  IPA.entity_builder().
         entity('dnszone').
         search_facet({
@@ -50,6 +54,7 @@ IPA.entity_factories.dnszone = function() {
         facet({
             factory: IPA.records_facet,
             'name': 'records',
+            'facet_group':'Member',
             'label': IPA.metadata.objects.dnsrecord.label
         }).
         standard_association_facets().
@@ -356,23 +361,21 @@ IPA.records_facet = function (spec){
             'click': function(){refresh();}
         }).appendTo(control_span);
 
-        var action_panel = that.get_action_panel();
 
-        var button = $('input[name=remove]', action_panel);
+        var buttons =  that.entity_header.buttons;
+
+        var button = $('input[name=remove]', buttons);
         that.remove_button = IPA.action_button({
             label: IPA.messages.buttons.remove,
             icon: 'ui-icon-trash',
             click: function(){ delete_records(records_table); }
-        });
-        button.replaceWith(that.remove_button);
+        }).appendTo(buttons);
 
-        button = $('input[name=add]', action_panel);
         that.add_button = IPA.action_button({
             label: IPA.messages.buttons.add,
             icon: 'ui-icon-plus',
             click: add_click
-        });
-        button.replaceWith(that.add_button);
+        }).appendTo(buttons);
 
         div.append('<span class="records-buttons"></span>');
 
