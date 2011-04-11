@@ -72,6 +72,9 @@ client-install: client
 		python setup-client.py install --root $(DESTDIR); \
 	fi
 
+lint:
+	./make-lint
+
 test:
 	$(MAKE) -C install/po test_lang
 	./make-test

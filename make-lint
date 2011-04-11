@@ -1,0 +1,192 @@
+#!/usr/bin/python
+#
+# Authors:
+#   Jakub Hrozek <jhrozek@redhat.com>
+#   Jan Cholasta <jcholast@redhat.com>
+#
+# Copyright (C) 2011  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import os
+import sys
+from optparse import OptionParser
+from fnmatch import fnmatch, fnmatchcase
+
+from pylint import checkers
+from pylint.lint import PyLinter
+from pylint.reporters.text import ParseableTextReporter
+from pylint.checkers.typecheck import TypeChecker
+from logilab.astng import Class, Instance, InferenceError
+
+# File names to ignore when searching for python source files
+IGNORE_FILES = ('.*', '*~', '*.in', '*.pyc', '*.pyo')
+IGNORE_PATHS = ('build', 'tests')
+
+class IPATypeChecker(TypeChecker):
+    # 'class': ('generated', 'properties',)
+    ignore = {
+        'ipalib.base.NameSpace': ('find',),
+        'ipalib.cli.Collector': ('__options',),
+        'ipalib.config.Env': ('*'),
+        'ipalib.plugable.API': ('Command', 'Object', 'Method', 'Property',
+            'Backend', 'log', 'plugins'),
+        'ipalib.plugable.Plugin': ('Command', 'Object', 'Method', 'Property',
+            'Backend', 'env', 'debug', 'info', 'warning', 'error', 'critical',
+            'exception', 'context', 'log'),
+        'ipalib.plugins.baseldap.CallbackInterface': ('pre_callback',
+            'post_callback', 'exc_callback'),
+        'ipalib.plugins.misc.env': ('env',),
+        'ipalib.parameters.Param': ('cli_name', 'cli_short_name', 'label',
+            'doc', 'required', 'multivalue', 'primary_key', 'normalizer',
+            'default', 'default_from', 'create_default', 'autofill', 'query',
+            'attribute', 'include', 'exclude', 'flags', 'hint', 'alwaysask'),
+        'ipalib.parameters.Bool': ('truths', 'falsehoods'),
+        'ipalib.parameters.Int': ('minvalue', 'maxvalue'),
+        'ipalib.parameters.Float': ('minvalue', 'maxvalue'),
+        'ipalib.parameters.Data': ('minlength', 'maxlength', 'length',
+            'pattern', 'pattern_errmsg'),
+        'ipalib.parameters.Enum': ('values',),
+        'ipalib.parameters.List': ('separator', 'skipspace'),
+        'ipalib.parameters.File': ('stdin_if_missing'),
+        'urlparse.SplitResult': ('netloc',),
+    }
+
+    def _related_classes(self, klass):
+        yield klass
+        for base in klass.ancestors():
+            yield base
+
+    def _class_full_name(self, klass):
+        return klass.root().name + '.' + klass.name
+
+    def _find_ignored_attrs(self, owner):
+        attrs = []
+        for klass in self._related_classes(owner):
+            name = self._class_full_name(klass)
+            if name in self.ignore:
+                attrs += self.ignore[name]
+        return attrs
+
+    def visit_getattr(self, node):
+        try:
+            infered = list(node.expr.infer())
+        except InferenceError:
+            return
+
+        for owner in infered:
+            if not isinstance(owner, Class) and not isinstance(owner, Instance):
+                continue
+
+            ignored = self._find_ignored_attrs(owner)
+            for pattern in ignored:
+                if fnmatchcase(node.attrname, pattern):
+                    return
+
+        super(IPATypeChecker, self).visit_getattr(node)
+
+class IPALinter(PyLinter):
+    ignore = (TypeChecker,)
+
+    def register_checker(self, checker):
+        if type(checker) in self.ignore:
+            return
+        super(IPALinter, self).register_checker(checker)
+
+def find_files(path, basepath):
+    for pattern in IGNORE_PATHS:
+        if path == os.path.join(basepath, pattern):
+            return []
+
+    entries = os.listdir(path)
+
+    # If this directory is a python package, look no further
+    if '__init__.py' in entries:
+        return [path]
+
+    result = []
+    for filename in entries:
+        for pattern in IGNORE_FILES:
+            if fnmatch(filename, pattern):
+                filename = None
+                break
+        if not filename:
+            continue
+
+        filepath = os.path.join(path, filename)
+
+        if os.path.islink(filepath):
+            continue
+
+        # Recurse into subdirectories
+        if os.path.isdir(filepath):
+            result += find_files(filepath, basepath)
+            continue
+
+        # Add all *.py files
+        if filename.endswith('.py'):
+            result.append(filepath)
+            continue
+
+        # Add any other files beginning with a shebang and having
+        # the word "python" on the first line
+        file = open(filepath, 'r')
+        line = file.readline(128)
+        file.close()
+
+        if line[:2] == '#!' and line.find('python') >= 0:
+            result.append(filepath)
+
+    return result
+
+def main():
+    optparser = OptionParser()
+    optparser.add_option('--no-fail', help='report success even if errors were found',
+        dest='fail', default=True, action='store_false')
+    optparser.add_option('--enable-noerror', help='enable warnings and other non-error messages',
+        dest='errors_only', default=True, action='store_false')
+
+    options, args = optparser.parse_args()
+    cwd = os.getcwd()
+
+    if len(args) == 0:
+        files = find_files(cwd, cwd)
+    else:
+        files = args
+
+    for filename in files:
+        dirname = os.path.dirname(filename)
+        if dirname not in sys.path:
+            sys.path.insert(0, dirname)
+
+    linter = IPALinter()
+    checkers.initialize(linter)
+    linter.register_checker(IPATypeChecker(linter))
+
+    if options.errors_only:
+        linter.disable_noerror_messages()
+    linter.set_reporter(ParseableTextReporter())
+    linter.set_option('include-ids', True)
+    linter.set_option('reports', False)
+
+    linter.check(files)
+
+    if options.fail:
+        return linter.msg_status
+    else:
+        return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
