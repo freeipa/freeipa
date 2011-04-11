@@ -40,6 +40,7 @@ try:
     from ipapython.config import IPAOptionParser
     import SSSDConfig
     from ConfigParser import RawConfigParser
+    from optparse import SUPPRESS_HELP
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -75,8 +76,10 @@ def parse_options():
                       help="Prompt for a password to join the IPA realm"),
     parser.add_option("-p", "--principal", dest="principal",
                       help="principal to use to join the IPA realm"),
+    # --on-master is used in ipa-server-install and ipa-replica-install
+    # only, it isn't meant to be used on clients.
     parser.add_option("--on-master", dest="on_master", action="store_true",
-                      help="use this option when run on a master", default=False)
+                      help=SUPPRESS_HELP, default=False)
     parser.add_option("--permit", dest="permit", action="store_true",
                       help="disable access rules by default, permit all access.", default=False)
     parser.add_option("--mkhomedir", dest="mkhomedir", action="store_true",
