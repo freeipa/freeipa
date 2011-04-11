@@ -83,6 +83,9 @@ def main():
     files = ['/usr/share/ipa/nis.uldif']
     servicemsg = ""
 
+    if os.getegid() != 0:
+        sys.exit('Must be root to use this tool.')
+
     options, args = parse_options()
     if options.debug:
         loglevel = logging.DEBUG
