@@ -386,7 +386,6 @@ class Command(HasParam):
     args = None
     options = None
     params = None
-    output_for_cli = None
     obj = None
 
     use_output_validation = True
