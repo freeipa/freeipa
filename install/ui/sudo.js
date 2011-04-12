@@ -167,11 +167,12 @@ IPA.sudocmd_member_sudocmdgroup_table_widget = function (spec) {
             var value = that.values[i];
 
             var command = IPA.command({
-                'method': that.other_entity+'_show',
-                'args': [value],
-                'options': {
-                    'all': true,
-                    'rights': true
+                entity: that.other_entity,
+                method: 'show',
+                args: [value],
+                options: {
+                    all: true,
+                    rights: true
                 }
             });
 
@@ -197,8 +198,9 @@ IPA.sudocmd_member_sudocmdgroup_table_widget = function (spec) {
             var value = values[i];
 
             var command = IPA.command({
-                'method': that.other_entity+'_add_member',
-                'args': [value]
+                entity: that.other_entity,
+                method: 'add_member',
+                args: [value]
             });
 
             command.set_option('sudocmd', pkey);
@@ -225,8 +227,9 @@ IPA.sudocmd_member_sudocmdgroup_table_widget = function (spec) {
             var value = values[i];
 
             var command = IPA.command({
-                'method': that.other_entity+'_remove_member',
-                'args': [value]
+                entity: that.other_entity,
+                method: 'remove_member',
+                args: [value]
             });
 
             command.set_option('sudocmd', pkey);
@@ -351,9 +354,10 @@ IPA.sudorule_details_facet = function (spec) {
         var modify_operation = {
             'execute': false,
             'command': IPA.command({
-                'method': that.entity_name+'_mod',
-                'args': [pkey],
-                'options': {'all': true, 'rights': true}
+                entity: that.entity_name,
+                method: 'mod',
+                args: [pkey],
+                options: {all: true, rights: true}
             })
         };
 
@@ -380,45 +384,50 @@ IPA.sudorule_details_facet = function (spec) {
                 'category': 'usercategory',
                 'has_values': false,
                 'command': IPA.command({
-                    'method': that.entity_name+'_remove_user',
-                    'args': [pkey],
-                    'options': {'all': true, 'rights': true}
+                    entity: that.entity_name,
+                    method: 'remove_user',
+                    args: [pkey],
+                    options: {all: true, rights: true}
                 })
             },
             'memberhost': {
                 'category': 'hostcategory',
                 'has_values': false,
                 'command': IPA.command({
-                    'method': that.entity_name+'_remove_host',
-                    'args': [pkey],
-                    'options': {'all': true, 'rights': true}
+                    entity: that.entity_name,
+                    method: 'remove_host',
+                    args: [pkey],
+                    options: {all: true, rights: true}
                 })
             },
             'memberallowcmd': {
                 'category': 'cmdcategory',
                 'has_values': false,
                 'command': IPA.command({
-                    'method': that.entity_name+'_remove_allow_command',
-                    'args': [pkey],
-                    'options': {'all': true, 'rights': true}
+                    entity: that.entity_name,
+                    method: 'remove_allow_command',
+                    args: [pkey],
+                    options: {all: true, rights: true}
                 })
             },
             'ipasudorunas': {
                 'category': 'ipasudorunasusercategory',
                 'has_values': false,
                 'command': IPA.command({
-                    'method': that.entity_name+'_remove_runasuser',
-                    'args': [pkey],
-                    'options': {'all': true, 'rights': true}
+                    entity: that.entity_name,
+                    method: 'remove_runasuser',
+                    args: [pkey],
+                    options: {all: true, rights: true}
                 })
             },
             'ipasudorunasgroup': {
                 'category': 'ipasudorunasgroupcategory',
                 'has_values': false,
                 'command': IPA.command({
-                    'method': that.entity_name+'_remove_runasgroup',
-                    'args': [pkey],
-                    'options': {'all': true, 'rights': true}
+                    entity: that.entity_name,
+                    method: 'remove_runasgroup',
+                    args: [pkey],
+                    options: {all: true, rights: true}
                 })
             }
         };
@@ -426,9 +435,10 @@ IPA.sudorule_details_facet = function (spec) {
         var enable_operation = {
             'execute': false,
             'command': IPA.command({
-                'method': that.entity_name+'_enable',
-                'args': [pkey],
-                'options': {'all': true, 'rights': true}
+                entity: that.entity_name,
+                method: 'enable',
+                args: [pkey],
+                options: {all: true, rights: true}
             })
         };
 
@@ -1234,10 +1244,11 @@ IPA.sudorule_command_table_widget = function (spec) {
 
         if (that.category) {
             command = IPA.command({
-                'method': that.entity_name+'_mod',
-                'args': [pkey],
-                'options': {'all': true, 'rights': true},
-                'on_success': function() {
+                entity: that.entity_name,
+                method: 'mod',
+                args: [pkey],
+                options: {all: true, rights: true},
+                on_success: function() {
                     var record = {};
                     record[that.category.name] = [''];
                     that.category.load(record);
@@ -1248,8 +1259,9 @@ IPA.sudorule_command_table_widget = function (spec) {
         }
 
         command = IPA.command({
-            'method': that.entity_name+'_'+that.add_method,
-            'args': [pkey]
+            entity: that.entity_name,
+            method: that.add_method,
+            args: [pkey]
         });
         command.set_option(that.other_entity, values.join(','));
         batch.add_command(command);
@@ -1262,10 +1274,11 @@ IPA.sudorule_command_table_widget = function (spec) {
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 
         var command = IPA.command({
-            'method': that.entity_name+'_'+that.remove_method,
-            'args': [pkey],
-            'on_success': on_success,
-            'on_error': on_error
+            entity: that.entity_name,
+            method: that.remove_method,
+            args: [pkey],
+            on_success: on_success,
+            on_error: on_error
         });
 
         command.set_option(that.other_entity, values.join(','));

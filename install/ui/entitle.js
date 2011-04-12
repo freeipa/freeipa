@@ -150,7 +150,8 @@ IPA.entitle.search_facet = function(spec) {
         }
 
         var command = IPA.command({
-            method: 'entitle_get',
+            entity: 'entitle',
+            method: 'get',
             options: {
                 all: that.search_all
             },
@@ -175,7 +176,8 @@ IPA.entitle.consume_dialog = function(spec) {
         that.save(record);
 
         var command = IPA.command({
-            method: 'entitle_consume',
+            entity: 'entitle',
+            method: 'consume',
             args: [ record.quantity ],
             on_success: function() {
                 var entity = IPA.get_entity(that.entity_name);

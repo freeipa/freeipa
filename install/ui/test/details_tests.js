@@ -114,18 +114,18 @@ test("Testing details lifecycle: create, setup, load.", function(){
 
     var result = {};
 
-    IPA.cmd(
-        'user_show',
-        ['kfrog'],
-        {},
-        function(data, text_status, xhr) {
+    IPA.command({
+        entity: 'user',
+        method: 'show',
+        args: ['kfrog'],
+        on_success: function(data, text_status, xhr) {
             result = data.result.result;
-            ok(true, "IPA.cmd() succeeded.");
+            ok(true, "IPA.command() succeeded.");
         },
-        function(xhr, text_status, error_thrown) {
-            ok(false, "IPA.cmd() failed: "+error_thrown);
+        on_error: function(xhr, text_status, error_thrown) {
+            ok(false, "IPA.command() failed: "+error_thrown);
         }
-    );
+    }).execute();
 
     var setup_called = false;
     var save_called= false;

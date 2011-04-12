@@ -160,7 +160,8 @@ IPA.records_facet = function (spec){
             options[key] = dialog.data.val();
 
             var command = IPA.command({
-                method: 'dnsrecord_add',
+                entity: 'dnsrecord',
+                method: 'add',
                 args: [pkey, resource],
                 options: options,
                 on_success: function(data, text_status, xhr) {
@@ -256,7 +257,8 @@ IPA.records_facet = function (spec){
                 var record = records[i];
 
                 var command = IPA.command({
-                    method: 'dnsrecord_del',
+                    entity: 'dnsrecord',
+                    method: 'del',
                     args: [zone, record.resource]
                 });
 
@@ -434,8 +436,14 @@ IPA.records_facet = function (spec){
         if (resource_filter){
             pkey.push(resource_filter);
         }
-        IPA.cmd('dnsrecord_find',pkey,options,load_on_win, load_on_fail);
-
+        IPA.command({
+            entity: 'dnsrecord',
+            method: 'find',
+            args: pkey,
+            options: options,
+            on_success: load_on_win,
+            on_error:load_on_fail
+        }).execute();
     }
 
 

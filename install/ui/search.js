@@ -340,7 +340,8 @@ IPA.search_facet = function(spec) {
 
             for (var i=0; i<values.length; i++) {
                 var command = IPA.command({
-                    'method': that.entity_name+'_del'
+                    entity: that.entity_name,
+                    method: 'del'
                 });
                 command.add_arg(values[i]);
                 batch.add_command(command);
@@ -393,7 +394,8 @@ IPA.search_facet = function(spec) {
         that.filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
 
         var command = IPA.command({
-            method: that.entity_name+'_find',
+            entity: that.entity_name,
+            method: 'find',
             args: [that.filter],
             options: {
                 all: that.search_all

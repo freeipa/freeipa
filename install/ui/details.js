@@ -572,9 +572,9 @@ IPA.details_refresh = function() {
     that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) ;
 
     var command = IPA.command({
-        method: that.entity_name+'_show',
-        args:  [],
-        options: { 'all': true, 'rights': true }
+        entity: that.entity_name,
+        method: 'show',
+        options: { all: true, rights: true }
     });
     
     if (IPA.details_refresh_devel_hook){
@@ -671,7 +671,8 @@ IPA.details_update = function(on_win, on_fail) {
     var args = pkey ? [pkey] : [];
 
     var command = IPA.command({
-        method: entity_name+'_mod',
+        entity: entity_name,
+        method: 'mod',
         args: args,
         options: modlist,
         on_success: on_success,

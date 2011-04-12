@@ -95,7 +95,7 @@ test("Testing IPA.get_member_attribute().", function() {
     );
 });
 
-test("Testing successful IPA.cmd().", function() {
+test("Testing successful IPA.command().", function() {
 
     var method = 'method';
     var args = ['arg1', 'arg2', 'arg3'];
@@ -148,7 +148,14 @@ test("Testing successful IPA.cmd().", function() {
         request.success(xhr, text_status, error_thrown);
     };
 
-    IPA.cmd(method, args, options, success_handler, error_handler, object);
+    IPA.command({
+        entity: object,
+        method: method,
+        args: args,
+        options: options,
+        on_success: success_handler,
+        on_error: error_handler
+    }).execute();
 
     equals(
         ajax_counter, 1,
@@ -168,7 +175,7 @@ test("Testing successful IPA.cmd().", function() {
     $.ajax = orig;
 });
 
-test("Testing unsuccessful IPA.cmd().", function() {
+test("Testing unsuccessful IPA.command().", function() {
 
     var method = 'method';
     var args = ['arg1', 'arg2', 'arg3'];
@@ -221,7 +228,14 @@ test("Testing unsuccessful IPA.cmd().", function() {
         request.error(xhr, text_status, error_thrown);
     };
 
-    IPA.cmd(method, args, options, success_handler, error_handler, object);
+    IPA.command({
+        entity: object,
+        method: method,
+        args: args,
+        options: options,
+        on_success: success_handler,
+        on_error: error_handler
+    }).execute();
 
     var dialog = IPA.error_dialog.parent('.ui-dialog');
 

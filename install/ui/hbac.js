@@ -343,17 +343,19 @@ IPA.hbacrule_details_facet = function (spec) {
         var modify_operation = {
             'execute': false,
             'command': IPA.command({
-                'method': that.entity_name+'_mod',
-                'args': [pkey],
-                'options': {'all': true, 'rights': true}
+                entity: that.entity_name,
+                method: 'mod',
+                args: [pkey],
+                options: {all: true, rights: true}
             })
         };
 
         var remove_accesstime = {
             'template': IPA.command({
-                'method': that.entity_name+'_remove_accesstime',
-                'args': [pkey],
-                'options': {'all': true, 'rights': true}
+                entity: that.entity_name,
+                method: 'remove_accesstime',
+                args: [pkey],
+                options: {all: true, rights: true}
             }),
             'commands': []
         };
@@ -378,36 +380,40 @@ IPA.hbacrule_details_facet = function (spec) {
                 'category': 'usercategory',
                 'has_values': false,
                 'command': IPA.command({
-                    'method': that.entity_name+'_remove_user',
-                    'args': [pkey],
-                    'options': {'all': true, 'rights': true}
+                    entity: that.entity_name,
+                    method: 'remove_user',
+                    args: [pkey],
+                    options: {all: true, rights: true}
                 })
             },
             'memberhost': {
                 'category': 'hostcategory',
                 'has_values': false,
                 'command': IPA.command({
-                    'method': that.entity_name+'_remove_host',
-                    'args': [pkey],
-                    'options': {'all': true, 'rights': true}
+                    entity: that.entity_name,
+                    method: 'remove_host',
+                    args: [pkey],
+                    options: {all: true, rights: true}
                 })
             },
             'memberservice': {
                 'category': 'servicecategory',
                 'has_values': false,
                 'command': IPA.command({
-                    'method': that.entity_name+'_remove_service',
-                    'args': [pkey],
-                    'options': {'all': true, 'rights': true}
+                    entity: that.entity_name,
+                    method: 'remove_service',
+                    args: [pkey],
+                    options: {all: true, rights: true}
                 })
             },
             'sourcehost': {
                 'category': 'sourcehostcategory',
                 'has_values': false,
                 'command': IPA.command({
-                    'method': that.entity_name+'_remove_sourcehost',
-                    'args': [pkey],
-                    'options': {'all': true, 'rights': true}
+                    entity: that.entity_name,
+                    method: 'remove_sourcehost',
+                    args: [pkey],
+                    options: {all: true, rights: true}
                 })
             }
         };
@@ -415,9 +421,10 @@ IPA.hbacrule_details_facet = function (spec) {
         var enable_operation = {
             'execute': false,
             'command': IPA.command({
-                'method': that.entity_name+'_enable',
-                'args': [pkey],
-                'options': {'all': true, 'rights': true}
+                entity: that.entity_name,
+                method: 'enable',
+                args: [pkey],
+                options: {all: true, rights: true}
             })
         };
 
@@ -883,13 +890,14 @@ IPA.hbacrule_accesstime_widget = function (spec) {
             var value = field.save()[0];
 
             var command = IPA.command({
-                'method': that.entity_name+'_add_'+that.name,
-                'args': [pkey],
-                'on_success': function() {
+                entity: that.entity_name,
+                method: 'add_'+that.name,
+                args: [pkey],
+                on_success: function() {
                     that.refresh();
                     if (on_success) on_success();
                 },
-                'on_error': function() {
+                on_error: function() {
                     that.refresh();
                     if (on_error) on_error();
                 }
@@ -960,8 +968,9 @@ IPA.hbacrule_accesstime_widget = function (spec) {
 
             for (var i=0; i<values.length; i++) {
                 var command = IPA.command({
-                    'method': that.entity_name+'_remove_'+that.name,
-                    'args': [pkey]
+                    entity: that.entity_name,
+                    method: 'remove_'+that.name,
+                    args: [pkey]
                 });
 
                 command.set_option(that.name, values[i]);
@@ -991,7 +1000,14 @@ IPA.hbacrule_accesstime_widget = function (spec) {
         }
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        IPA.cmd('show', [pkey], {'rights': true}, on_success, on_error, that.entity_name);
+        IPA.command({
+            entity: that.entity_name,
+            method: 'show',
+            args: [pkey],
+            options: {'rights': true},
+            on_success: on_success,
+            on_error: on_error
+        }).execute();
     };
 
     return that;

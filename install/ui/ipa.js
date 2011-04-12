@@ -55,6 +55,8 @@ var IPA = ( function () {
     that.layout = $.bbq.getState('layout');
     that.layouts_dir = 'layouts';
 
+    that.network_call_count = 0;
+
     that.get_template = function(path) {
         var layout = that.layout || 'default';
         return that.layouts_dir+'/'+layout+'/'+path;
@@ -74,33 +76,54 @@ var IPA = ( function () {
 
         $.ajaxSetup(that.ajax_options);
 
+        var batch = IPA.batch_command({
+            name: 'ipa_init',
+            on_success: on_success,
+            on_error: on_error
+        });
 
-        var startup_batch =
-            [
-                {"method":"json_metadata","params":[[],{}]},
-                {"method":"i18n_messages","params":[[],{}]},
-                {"method":"user_find","params":[[],{
-                    "whoami":"true","all":"true"}]},
-                {"method":"env","params":[[],{}]},
-                {"method":"dns_is_enabled","params":[[],{}]}
-            ];
+        batch.add_command(IPA.command({
+            method: 'json_metadata',
+            on_success: function(data, text_status, xhr) {
+                that.metadata = data;
+            }
+        }));
 
+        batch.add_command(IPA.command({
+            method: 'i18n_messages',
+            on_success: function(data, text_status, xhr) {
+                that.messages = data.messages;
+            }
+        }));
 
-        IPA.cmd('batch', startup_batch, {},
-            function (data, text_status, xhr) {
-                that.metadata = data.result.results[0];
-                that.messages = data.result.results[1].messages;
-                that.whoami  = data.result.results[2].result[0];
-                that.env = data.result.results[3].result;
-                that.dns_enabled = data.result.results[4].result;
-
-                if (on_success) {
-                    on_success(data, text_status, xhr);
-                }
+        batch.add_command(IPA.command({
+            entity: 'user',
+            method: 'find',
+            options: {
+                whoami: true,
+                all: true
             },
-            on_error,
-            null,
-            'ipa_init');
+            on_success: function(data, text_status, xhr) {
+                that.whoami = data.result[0];
+            }
+        }));
+
+        batch.add_command(IPA.command({
+            method: 'env',
+            on_success: function(data, text_status, xhr) {
+                that.env = data.result;
+            }
+        }));
+
+        batch.add_command(IPA.command({
+            entity: 'dns',
+            method: 'is_enabled',
+            on_success: function(data, text_status, xhr) {
+                that.dns_enabled = data.result;
+            }
+        }));
+
+        batch.execute();
     };
 
     that.get_entities = function () {
@@ -184,9 +207,34 @@ var IPA = ( function () {
         return true;
     };
 
+    that.display_activity_icon = function() {
+        that.network_call_count++;
+        $('.network-activity-indicator').css('display','inline');
+    };
+
+    that.hide_activity_icon = function() {
+        that.network_call_count--;
+
+        if (0 === that.network_call_count) {
+            $('.network-activity-indicator').css('display','none');
+        }
+    };
+
     return that;
 }());
 
+/**
+ * Call an IPA command over JSON-RPC.
+ *
+ * Arguments:
+ *   name - command name (optional)
+ *   entity - command entity (optional)
+ *   method - command method
+ *   args - list of arguments, e.g. [username]
+ *   options - dict of options, e.g. {givenname: 'Pavel'}
+ *   on_success - callback function if command succeeds
+ *   on_error - callback function if command fails
+ */
 IPA.command = function(spec) {
 
     spec = spec || {};
@@ -194,6 +242,8 @@ IPA.command = function(spec) {
     var that = {};
 
     that.name = spec.name;
+
+    that.entity = spec.entity;
     that.method = spec.method;
 
     that.args = $.merge([], spec.args || []);
@@ -201,6 +251,10 @@ IPA.command = function(spec) {
 
     that.on_success = spec.on_success;
     that.on_error = spec.on_error;
+
+    that.get_command = function() {
+        return (that.entity ? that.entity+'_' : '') + that.method;
+    };
 
     that.add_arg = function(arg) {
         that.args.push(arg);
@@ -215,20 +269,143 @@ IPA.command = function(spec) {
     };
 
     that.execute = function() {
-        IPA.cmd(
-            that.method,
-            that.args,
-            that.options,
-            that.on_success,
-            that.on_error,
-            null,
-            that.name);
+
+        function dialog_open(xhr, text_status, error_thrown) {
+
+            IPA.error_dialog = $('<div/>', {
+                id: 'error_dialog'
+            });
+
+            if (error_thrown.url) {
+                $('<p/>', {
+                    text: 'URL: '+error_thrown.url
+                }).appendTo(IPA.error_dialog);
+            }
+
+            $('<p/>', {
+                html: error_thrown.message
+            }).appendTo(IPA.error_dialog);
+
+            function close() {
+                IPA.error_dialog.dialog('destroy');
+                IPA.error_dialog.remove();
+                IPA.error_dialog = null;
+            }
+
+            var buttons = {};
+
+            /**
+             * When a user initially opens the Web UI without a Kerberos
+             * ticket, the messages including the button labels have not
+             * been loaded yet, so the button labels need default values.
+             */
+            var label = IPA.messages.buttons ? IPA.messages.buttons.retry : 'Retry';
+            buttons[label] = function() {
+                close();
+                that.execute();
+            };
+
+            label = IPA.messages.buttons ? IPA.messages.buttons.cancel : 'Cancel';
+            buttons[label] = function() {
+                close();
+                if (that.on_error) {
+                    that.on_error.call(this, xhr, text_status, error_thrown);
+                }
+            };
+
+            IPA.error_dialog.dialog({
+                modal: true,
+                title: error_thrown.title,
+                width: 400,
+                buttons: buttons,
+                close: function() {
+                    close();
+                }
+            });
+        }
+
+        function error_handler(xhr, text_status, error_thrown) {
+
+            IPA.hide_activity_icon();
+
+            if (!error_thrown) {
+                error_thrown = {
+                    name: xhr.responseText || 'Unknown Error',
+                    message: xhr.statusText || 'Unknown Error'
+                };
+            }
+
+            if (xhr.status === 401) {
+                error_thrown.name = 'Kerberos ticket no longer valid.';
+                if (IPA.messages && IPA.messages.ajax) {
+                    error_thrown.message = IPA.messages.ajax["401"];
+                } else {
+                    error_thrown.message =
+                        "Your kerberos ticket is no longer valid. "+
+                        "Please run kinit and then click 'Retry'. "+
+                        "If this is your first time running the IPA Web UI "+
+                        "<a href='/ipa/config/unauthorized.html'>"+
+                        "follow these directions</a> to configure your browser.";
+                }
+            }
+
+            if (!error_thrown.title) {
+                error_thrown.title = 'AJAX Error: '+error_thrown.name;
+            }
+            dialog_open.call(this, xhr, text_status, error_thrown);
+        }
+
+        function success_handler(data, text_status, xhr) {
+
+            IPA.hide_activity_icon();
+
+            if (!data) {
+                var error_thrown = {
+                    title: 'HTTP Error '+xhr.status,
+                    url: this.url,
+                    message: data ? xhr.statusText : "No response"
+                };
+                dialog_open.call(this, xhr, text_status, error_thrown);
+
+            } else if (data.error) {
+                error_handler.call(this, xhr, text_status,  /* error_thrown */ {
+                    title: 'IPA Error '+data.error.code,
+                    message: data.error.message
+                });
+
+            } else if (that.on_success) {
+                that.on_success.call(this, data, text_status, xhr);
+            }
+        }
+
+        var url = IPA.json_url;
+
+        var command = that.get_command();
+
+        if (IPA.use_static_files) {
+            url += '/' + (that.name ? that.name : command) + '.json';
+        }
+
+        var data = {
+            method: command,
+            params: [that.args, that.options]
+        };
+
+        var request = {
+            url: url,
+            data: JSON.stringify(data),
+            success: success_handler,
+            error: error_handler
+        };
+
+        IPA.display_activity_icon();
+        $.ajax(request);
     };
 
     that.to_json = function() {
         var json = {};
 
-        json.method = that.method;
+        json.method = that.get_command();
 
         json.params = [];
         json.params[0] = that.args || [];
@@ -238,7 +415,7 @@ IPA.command = function(spec) {
     };
 
     that.to_string = function() {
-        var string = that.method.replace(/_/g, '-');
+        var string = that.get_command().replace(/_/g, '-');
 
         for (var i=0; i<that.args.length; i++) {
             string += ' '+that.args[i];
@@ -276,11 +453,14 @@ IPA.batch_command = function (spec) {
     };
 
     that.execute = function() {
-        IPA.cmd(
-            that.method,
-            that.args,
-            that.options,
-            function(data, text_status, xhr) {
+
+        IPA.command({
+            name: that.name,
+            entity: that.entity,
+            method: that.method,
+            args: that.args,
+            options: that.options,
+            on_success: function(data, text_status, xhr) {
 
                 for (var i=0; i<that.commands.length; i++) {
                     var command = that.commands[i];
@@ -311,185 +491,17 @@ IPA.batch_command = function (spec) {
                 }
                 if (that.on_success) that.on_success(data, text_status, xhr);
             },
-            function(xhr, text_status, error_thrown) {
+            on_error: function(xhr, text_status, error_thrown) {
                 // TODO: undefined behavior
                 if (that.on_error) {
                     that.on_error(xhr, text_status, error_thrown);
                 }
-            },
-            null,
-            that.name);
+            }
+        }).execute();
     };
 
     return that;
 };
-
-/* call an IPA command over JSON-RPC
- * arguments:
- *   name - name of the command or method if objname is set
- *   args - list of positional arguments, e.g. [username]
- *   options - dict of options, e.g. {givenname: 'Pavel'}
- *   win_callback - function to call if the JSON request succeeds
- *   fail_callback - function to call if the JSON request fails
- *   objname - name of an IPA object (optional) */
-IPA.cmd = function (name, args, options, win_callback, fail_callback, objname, command_name) {
-    var default_json_url = '/ipa/json';
-
-    var network_call_count = 0;
-    function display_activity_icon(){
-        network_call_count += 1;
-        $('.network-activity-indicator').css('display','inline');
-    }
-
-    function hide_activity_icon(){
-        network_call_count -= 1;
-
-        if (0 === network_call_count){
-            $('.network-activity-indicator').css('display','none');
-        }
-    }
-
-    function dialog_open(xhr, text_status, error_thrown) {
-        var that = this;
-
-        IPA.error_dialog = $('<div/>', {
-            id: 'error_dialog'
-        });
-
-        if (error_thrown.url) {
-            $('<p/>', {
-                text: 'URL: '+error_thrown.url
-            }).appendTo(IPA.error_dialog);
-        }
-        $('<p/>', {
-            html: error_thrown.message
-        }).appendTo(IPA.error_dialog);
-
-        function close() {
-            IPA.error_dialog.dialog('destroy');
-            IPA.error_dialog.remove();
-            IPA.error_dialog = null;
-        }
-
-        var buttons = {};
-
-        /**
-         * When a user initially opens the Web UI without a Kerberos
-         * ticket, the messages including the button labels have not
-         * been loaded yet, so the button labels need default values.
-         */
-        var label = IPA.messages.buttons ? IPA.messages.buttons.retry : 'Retry';
-        buttons[label] = function() {
-            close();
-            IPA.cmd(name, args, options, win_callback, fail_callback,
-                    objname, command_name);
-        };
-
-        label = IPA.messages.buttons ? IPA.messages.buttons.cancel : 'Cancel';
-        buttons[label] = function() {
-            close();
-            if (fail_callback) {
-                fail_callback.call(that, xhr, text_status, error_thrown);
-            }
-        };
-
-        IPA.error_dialog.dialog({
-            modal: true,
-            title: error_thrown.title,
-            width: 400,
-            buttons: buttons,
-            close: function() {
-                close();
-            }
-        });
-    }
-
-    function error_handler(xhr, text_status, error_thrown) {
-        hide_activity_icon();
-        if (!error_thrown) {
-            error_thrown = {
-                name: xhr.responseText || 'Unknown Error',
-                message: xhr.statusText || 'Unknown Error'
-            };
-        }
-
-        if (xhr.status === 401) {
-            error_thrown.name = 'Kerberos ticket no longer valid.';
-            if (IPA.messages && IPA.messages.ajax){
-                error_thrown.message = IPA.messages.ajax["401"];
-            } else {
-                error_thrown.message =
-                    "Your kerberos ticket is no longer valid. "+
-                    "Please run kinit and then click 'Retry'. "+
-                    "If this is your first time running the IPA Web UI "+
-                    "<a href='/ipa/config/unauthorized.html'>"+
-                    "follow these directions</a> to configure your browser.";
-            }
-        }
-
-        if (!error_thrown.title) {
-            error_thrown.title = 'AJAX Error: '+error_thrown.name;
-        }
-        dialog_open.call(this, xhr, text_status, error_thrown);
-    }
-
-    function success_handler(data, text_status, xhr) {
-        hide_activity_icon();
-        if (!data) {
-            var error_thrown = {
-                title: 'HTTP Error '+xhr.status,
-                url: this.url,
-                message: data ? xhr.statusText : "No response"
-            };
-            dialog_open.call(this, xhr, text_status, error_thrown);
-
-        } else if (data.error) {
-            error_handler.call(this, xhr, text_status,  /* error_thrown */ {
-                title: 'IPA Error '+data.error.code,
-                message: data.error.message
-            });
-
-        } else if (win_callback) {
-            win_callback.call(this, data, text_status, xhr);
-        }
-    }
-
-    IPA.jsonrpc_id += 1;
-    var id = IPA.jsonrpc_id;
-
-    var method_name = name;
-
-    if (objname){
-        method_name = objname + '_' + name;
-    }
-
-    var url = IPA.json_url;
-
-    if (IPA.use_static_files){
-        if (command_name) {
-            url += '/' + command_name + '.json';
-        } else {
-            url += '/' + method_name + '.json';
-        }
-    }
-    var data = {
-        method: method_name,
-        params: [args, options],
-        id: id
-    };
-
-    var request = {
-        url: url,
-        data: JSON.stringify(data),
-        success: success_handler,
-        error: error_handler
-    };
-    display_activity_icon();
-    $.ajax(request);
-
-    return (id);
-};
-
 
 /* helper function used to retrieve information about an attribute */
 IPA.get_entity_param = function(entity_name, name) {

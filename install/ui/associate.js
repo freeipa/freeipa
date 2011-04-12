@@ -75,7 +75,8 @@ IPA.serial_associator = function(spec) {
         options[that.entity_name] = that.pkey;
 
         var command = IPA.command({
-            method: that.other_entity+'_'+that.method,
+            entity: that.other_entity,
+            method: that.method,
             args: args,
             options: options,
             on_success: that.execute,
@@ -122,7 +123,8 @@ IPA.bulk_associator = function(spec) {
         options[that.other_entity] = value;
 
         var command = IPA.command({
-            method: that.entity_name+'_'+that.method,
+            entity: that.entity_name,
+            method: that.method,
             args: args,
             options: options,
             on_success: that.on_success,
@@ -206,7 +208,13 @@ IPA.association_adder_dialog = function (spec) {
             }
         }
 
-        IPA.cmd('find', [that.get_filter()], options, on_success, null, that.other_entity);
+        IPA.command({
+            entity: that.other_entity,
+            method: 'find',
+            args: [that.get_filter()],
+            options: options,
+            on_success: on_success
+        }).execute();
     };
 
     that.association_adder_dialog_init = that.init;
@@ -474,11 +482,12 @@ IPA.association_table_widget = function (spec) {
             var value = that.values[i];
 
             var command = IPA.command({
-                'method': that.other_entity+'_show',
-                'args': [value],
-                'options': {
-                    'all': true,
-                    'rights': true
+                entity: that.other_entity,
+                method: 'show',
+                args: [value],
+                options: {
+                    all: true,
+                    rights: true
                 }
             });
 
@@ -569,10 +578,11 @@ IPA.association_table_widget = function (spec) {
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 
         var command = IPA.command({
-            'method': that.entity_name+'_'+that.add_method,
-            'args': [pkey],
-            'on_success': on_success,
-            'on_error': on_error
+            entity: that.entity_name,
+            method: that.add_method,
+            args: [pkey],
+            on_success: on_success,
+            on_error: on_error
         });
         command.set_option(that.other_entity, values.join(','));
 
@@ -631,10 +641,11 @@ IPA.association_table_widget = function (spec) {
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 
         var command = IPA.command({
-            'method': that.entity_name+'_'+that.remove_method,
-            'args': [pkey],
-            'on_success': on_success,
-            'on_error': on_error
+            entity: that.entity_name,
+            method: that.remove_method,
+            args: [pkey],
+            on_success: on_success,
+            on_error: on_error
         });
 
         command.set_option(that.other_entity, values.join(','));
@@ -985,11 +996,12 @@ IPA.association_facet = function (spec) {
         options[relationship_filter] = pkey;
 
         var command = IPA.command({
-            'on_success': on_success,
-            'on_error': on_error,
-            'method': that.other_entity+'_find',
-            'args': args,
-            options: options
+            entity: that.other_entity,
+            method: 'find',
+            args: args,
+            options: options,
+            on_success: on_success,
+            on_error: on_error
         });
 
         command.execute();
@@ -1036,7 +1048,14 @@ IPA.association_facet = function (spec) {
         }
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        IPA.cmd('show', [pkey], {'all': true, 'rights': true}, on_success, on_error, that.entity_name);
+        IPA.command({
+            entity: that.entity_name,
+            method: 'show',
+            args: [pkey],
+            options: {'all': true, 'rights': true},
+            on_success: on_success,
+            on_error: on_error
+        }).execute();
     };
 
     that.association_facet_init = that.init;

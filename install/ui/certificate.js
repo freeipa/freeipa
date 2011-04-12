@@ -511,11 +511,14 @@ IPA.cert.status_widget = function(spec) {
         that.get_button = IPA.button({
             label: IPA.messages.buttons.get,
             'click': function() {
-                IPA.cmd(that.entity_name+'_show', [that.pkey], {},
-                    function(data, text_status, xhr) {
+                IPA.command({
+                    entity: that.entity_name,
+                    method: 'show',
+                    args: [that.pkey],
+                    on_success: function(data, text_status, xhr) {
                         get_certificate(data.result.result);
                     }
-                );
+                }).execute();
             }
         });
         button.replaceWith(that.get_button);
@@ -524,11 +527,14 @@ IPA.cert.status_widget = function(spec) {
         that.revoke_button = IPA.button({
             label: IPA.messages.buttons.revoke,
             'click': function() {
-                IPA.cmd(that.entity_name+'_show', [that.pkey], {},
-                    function(data, text_status, xhr) {
+                IPA.command({
+                    entity: that.entity_name,
+                    method: 'show',
+                    args: [that.pkey],
+                    on_success: function(data, text_status, xhr) {
                         revoke_certificate(data.result.result);
                     }
-                );
+                }).execute();
             }
         });
         button.replaceWith(that.revoke_button);
@@ -537,11 +543,14 @@ IPA.cert.status_widget = function(spec) {
         that.view_button = IPA.button({
             label: IPA.messages.buttons.view,
             'click': function() {
-                IPA.cmd(that.entity_name+'_show', [that.pkey], {},
-                    function(data, text_status, xhr) {
+                IPA.command({
+                    entity: that.entity_name,
+                    method: 'show',
+                    args: [that.pkey],
+                    on_success: function(data, text_status, xhr) {
                         view_certificate(data.result.result);
                     }
-                );
+                }).execute();
             }
         });
         button.replaceWith(that.view_button);
@@ -552,11 +561,14 @@ IPA.cert.status_widget = function(spec) {
         that.restore_button = IPA.button({
             label: IPA.messages.buttons.restore,
             'click': function() {
-                IPA.cmd(that.entity_name+'_show', [that.pkey], {},
-                    function(data, text_status, xhr) {
+                IPA.command({
+                    entity: that.entity_name,
+                    method: 'show',
+                    args: [that.pkey],
+                    on_success: function(data, text_status, xhr) {
                         restore_certificate(data.result.result);
                     }
-                );
+                }).execute();
             }
         });
         button.replaceWith(that.restore_button);
@@ -605,11 +617,11 @@ IPA.cert.status_widget = function(spec) {
             return;
         }
 
-        IPA.cmd(
-            'cert_show',
-            [serial_number],
-            { },
-            function(data, text_status, xhr) {
+        IPA.command({
+            entity: 'cert',
+            method: 'show',
+            args: [serial_number],
+            on_success: function(data, text_status, xhr) {
                 var revocation_reason = data.result.result.revocation_reason;
                 if (revocation_reason == undefined) {
                     set_status(IPA.cert.CERTIFICATE_STATUS_VALID);
@@ -617,7 +629,7 @@ IPA.cert.status_widget = function(spec) {
                     set_status(IPA.cert.CERTIFICATE_STATUS_REVOKED, revocation_reason);
                 }
             }
-        );
+        }).execute();
     }
 
     function view_certificate(result) {
@@ -686,16 +698,17 @@ IPA.cert.status_widget = function(spec) {
             'request': function(values) {
                 var request = values['request'];
 
-                IPA.cmd(
-                    'cert_request',
-                    [request],
-                    {
+                IPA.command({
+                    entity: 'cert',
+                    method: 'request',
+                    args: [request],
+                    options: {
                         'principal': entity_principal
                     },
-                    function(data, text_status, xhr) {
+                    on_success: function(data, text_status, xhr) {
                         check_status(data.result.result.serial_number);
                     }
-                );
+                }).execute();
             }
         });
 
@@ -723,16 +736,17 @@ IPA.cert.status_widget = function(spec) {
             'revoke': function(values) {
                 var reason = values['reason'];
 
-                IPA.cmd(
-                    'cert_revoke',
-                    [serial_number],
-                    {
+                IPA.command({
+                    entity: 'cert',
+                    method: 'revoke',
+                    args: [serial_number],
+                    options: {
                         'revocation_reason': reason
                     },
-                    function(data, text_status, xhr) {
+                    on_success: function(data, text_status, xhr) {
                         check_status(serial_number);
                     }
-                );
+                }).execute();
             }
         });
 
@@ -758,14 +772,14 @@ IPA.cert.status_widget = function(spec) {
         var dialog = IPA.cert.restore_dialog({
             'title': title,
             'restore': function(values) {
-                IPA.cmd(
-                    'cert_remove_hold',
-                    [serial_number],
-                    { },
-                    function(data, text_status, xhr) {
+                IPA.command({
+                    entity: 'cert',
+                    method: 'remove_hold',
+                    args: [serial_number],
+                    on_success: function(data, text_status, xhr) {
                         check_status(serial_number);
                     }
-                );
+                }).execute();
             }
         });
 

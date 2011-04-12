@@ -268,12 +268,13 @@ IPA.host_provisioning_status_widget = function (spec) {
         var pkey = that.facet.get_primary_key();
 
         var command = IPA.command({
-            'name': that.entity_name+'_disable_'+pkey,
-            'method': that.entity_name+'_disable',
-            'args': [pkey],
-            'options': { 'all': true, 'rights': true },
-            'on_success': on_success,
-            'on_error': on_error
+            name: that.entity_name+'_disable_'+pkey,
+            entity: that.entity_name,
+            method: 'disable',
+            args: [pkey],
+            options: { all: true, rights: true },
+            on_success: on_success,
+            on_error: on_error
         });
 
         command.execute();
@@ -286,14 +287,15 @@ IPA.host_provisioning_status_widget = function (spec) {
         that.otp_input.val('');
 
         var command = IPA.command({
-            'method': that.entity_name+'_mod',
-            'args': [pkey],
-            'options': {
-                'all': true,
-                'rights': true,
-                'userpassword': otp
+            entity: that.entity_name,
+            method: 'mod',
+            args: [pkey],
+            options: {
+                all: true,
+                rights: true,
+                userpassword: otp
             },
-            'on_success': function(data, text_status, xhr) {
+            on_success: function(data, text_status, xhr) {
                 alert(IPA.messages.objects.host.otp_confirmation);
             }
         });

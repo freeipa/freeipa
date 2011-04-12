@@ -1346,7 +1346,14 @@ IPA.table_widget = function (spec) {
         }
 
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        IPA.cmd('show', [pkey], {'all': true, 'rights': true}, on_success, on_error, that.entity_name);
+        IPA.command({
+            entity: that.entity_name,
+            method: 'show',
+            args: [pkey],
+            options: {'all': true, 'rights': true},
+            on_success: on_success,
+            on_error: on_error
+        }).execute();
     };
 
     if (spec.columns) {
@@ -1400,7 +1407,8 @@ IPA.entity_select_widget = function(spec) {
         function find_error(err){
         }
         IPA.command({
-            method: entity+'_find',
+            entity: entity,
+            method: 'find',
             args:[that.entity_filter.val()],
             options:{},
             on_success:find_success,

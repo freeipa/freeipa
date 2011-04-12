@@ -136,11 +136,17 @@ IPA.user_status_widget = function(spec) {
                       var jobj = $(this);
                       var val = jobj.attr('title');
                       var pkey =  $.bbq.getState('user-pkey');
-                      var command = 'user_enable';
+                      var method = 'enable';
                       if (val == IPA.messages.objects.user.active) {
-                          command = 'user_disable';
+                          method = 'disable';
                       }
-                      IPA.cmd(command, [pkey], {}, on_lock_win,on_lock_fail);
+                      IPA.command({
+                          entity: 'user',
+                          method: method,
+                          args: [pkey],
+                          on_success: on_lock_win,
+                          on_error: on_lock_fail
+                      }).execute();
 
                       return (false);
                   }

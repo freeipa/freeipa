@@ -145,10 +145,11 @@ IPA.rule_association_table_widget = function (spec) {
 
         if (that.category) {
             command = IPA.command({
-                'method': that.entity_name+'_mod',
-                'args': [pkey],
-                'options': {'all': true, 'rights': true},
-                'on_success': function() {
+                entity: that.entity_name,
+                method: 'mod',
+                args: [pkey],
+                options: {all: true, rights: true},
+                on_success: function() {
                     var record = {};
                     record[that.category.name] = [''];
                     that.category.load(record);
@@ -159,8 +160,9 @@ IPA.rule_association_table_widget = function (spec) {
         }
 
         command = IPA.command({
-            'method': that.entity_name+'_'+that.add_method,
-            'args': [pkey]
+            entity: that.entity_name,
+            method: that.add_method,
+            args: [pkey]
         });
         command.set_option(that.other_entity, values.join(','));
         batch.add_command(command);

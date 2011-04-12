@@ -97,7 +97,8 @@ IPA.add_dialog = function (spec) {
         var pkey_name = IPA.metadata.objects[that.entity_name].primary_key;
 
         var command = IPA.command({
-            method: that.entity_name+'_add',
+            entity: that.entity_name,
+            method: 'add',
             on_success: on_success,
             on_error: on_error
         });
