@@ -479,6 +479,10 @@ span.ui-icon-search {
         margin-left: 1em !important;
 }
 
+[title="Import"] {
+        margin-left: 1em !important;
+}
+
 [title="mail"] {
         margin-top: 0em !important;
 }

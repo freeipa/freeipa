@@ -26,7 +26,8 @@
 IPA.entitle = {};
 
 IPA.entitle.unregistered = 'unregistered';
-IPA.entitle.registered = 'registered';
+IPA.entitle.online = 'online';
+IPA.entitle.offline = 'offline';
 
 IPA.entity_factories.entitle = function() {
 
@@ -69,9 +70,9 @@ IPA.entity_factories.entitle = function() {
         }).
         standard_association_facets().
         dialog({
-            factory: IPA.entitle.register_dialog,
-            name: 'register',
-            title: 'Register Entitlements',
+            factory: IPA.entitle.register_online_dialog,
+            name: 'online_registration',
+            title: 'Registration',
             fields: [
                 {
                     name: 'username',
@@ -87,13 +88,41 @@ IPA.entity_factories.entitle = function() {
             ]
         }).
         dialog({
+            factory: IPA.entitle.register_offline_dialog,
+            name: 'offline_registration',
+            title: 'Import Certificate',
+            message: 'Enter the Base64-encoded entitlement certificate below:',
+            label: 'Import',
+            fields: [
+                {
+                    name: 'certificate',
+                    label: 'Certificate',
+                    undo: false
+                }
+            ]
+        }).
+        dialog({
             factory: IPA.entitle.consume_dialog,
             name: 'consume',
-            title: 'Consume Entitlements',
+            title: 'Consume Entitlement',
             fields: [
                 {
                     name: 'quantity',
                     label: 'Quantity',
+                    undo: false
+                }
+            ]
+        }).
+        dialog({
+            factory: IPA.entitle.import_dialog,
+            name: 'import',
+            title: 'Import Certificate',
+            message: 'Enter the Base64-encoded entitlement certificate below:',
+            label: 'Import',
+            fields: [
+                {
+                    name: 'certificate',
+                    label: 'Certificate',
                     undo: false
                 }
             ]
@@ -108,18 +137,44 @@ IPA.entitle.entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.get_certificates = function(on_success, on_error) {
+    that.status = IPA.entitle.unregistered;
+
+    that.get_status = function(on_success, on_error) {
 
         var command = IPA.command({
-            name: 'entitle_get' + (that.status == IPA.entitle.registered ? '' : '_unregistered'),
+            name: 'entitle_status_'+that.status,
             entity: 'entitle',
-            method: 'get',
+            method: 'status',
             on_success: function(data, text_status, xhr) {
-                that.status = IPA.entitle.registered;
+                if (data.result.result.uuid == 'IMPORTED') {
+                    that.status = IPA.entitle.offline;
+                } else {
+                    that.status = IPA.entitle.online;
+                }
+
                 if (on_success) {
                     on_success.call(this, data, text_status, xhr);
                 }
             },
+            on_error: function(xhr, text_status, error_thrown) {
+                that.status = IPA.entitle.unregistered;
+
+                if (on_error) {
+                    on_error.call(this, xhr, text_status, error_thrown);
+                }
+            },
+            retry: false
+        });
+
+        command.execute();
+    };
+
+    that.get_certificates = function(on_success, on_error) {
+
+        var command = IPA.command({
+            entity: 'entitle',
+            method: 'get',
+            on_success: on_success,
             on_error: on_error,
             retry: false
         });
@@ -127,7 +182,7 @@ IPA.entitle.entity = function(spec) {
         command.execute();
     };
 
-    that.register = function(username, password, on_success, on_error) {
+    that.register_online = function(username, password, on_success, on_error) {
 
         var command = IPA.command({
             entity: 'entitle',
@@ -135,7 +190,25 @@ IPA.entitle.entity = function(spec) {
             args: [ username ],
             options: { password: password },
             on_success: function(data, text_status, xhr) {
-                that.status = IPA.entitle.registered;
+                that.status = IPA.entitle.online;
+                if (on_success) {
+                    on_success.call(this, data, text_status, xhr);
+                }
+            },
+            on_error: on_error
+        });
+
+        command.execute();
+    };
+
+    that.register_offline = function(certificate, on_success, on_error) {
+
+        var command = IPA.command({
+            entity: 'entitle',
+            method: 'import',
+            args: [ certificate ],
+            on_success: function(data, text_status, xhr) {
+                that.status = IPA.entitle.offline;
                 if (on_success) {
                     on_success.call(this, data, text_status, xhr);
                 }
@@ -152,6 +225,19 @@ IPA.entitle.entity = function(spec) {
             entity: 'entitle',
             method: 'consume',
             args: [ quantity ],
+            on_success: on_success,
+            on_error: on_error
+        });
+
+        command.execute();
+    };
+
+    that.import_certificate = function(certificate, on_success, on_error) {
+
+        var command = IPA.command({
+            entity: 'entitle',
+            method: 'import',
+            args: [ certificate ],
             on_success: on_success,
             on_error: on_error
         });
@@ -178,17 +264,37 @@ IPA.entitle.search_facet = function(spec) {
             'class': 'search-buttons'
         }).appendTo(li);
 
+        that.register_buttons = $('<span/>', {
+            style: 'display: none;'
+        }).appendTo(buttons);
+
         $('<input/>', {
             type: 'button',
-            name: 'register',
+            name: 'register_online',
             value: 'Register'
+        }).appendTo(that.register_buttons);
+
+        $('<input/>', {
+            type: 'button',
+            name: 'register_offline',
+            value: 'Import'
+        }).appendTo(that.register_buttons);
+
+        that.consume_buttons = $('<span/>', {
+            style: 'display: none;'
         }).appendTo(buttons);
 
         $('<input/>', {
             type: 'button',
             name: 'consume',
             value: 'Consume'
-        }).appendTo(buttons);
+        }).appendTo(that.consume_buttons);
+
+        $('<input/>', {
+            type: 'button',
+            name: 'import',
+            value: 'Import'
+        }).appendTo(that.consume_buttons);
     };
 
     that.setup = function(container) {
@@ -197,17 +303,27 @@ IPA.entitle.search_facet = function(spec) {
 
         var action_panel = that.get_action_panel();
 
-        var button = $('input[name=register]', action_panel);
-        that.register_button = IPA.action_button({
+        var button = $('input[name=register_online]', action_panel);
+        that.register_online_button = IPA.action_button({
             label: 'Register',
             icon: 'ui-icon-plus',
             click: function() {
-                var dialog = that.entity.get_dialog('register');
+                var dialog = that.entity.get_dialog('online_registration');
                 dialog.open(that.container);
             }
         });
-        that.register_button.css('display', 'none');
-        button.replaceWith(that.register_button);
+        button.replaceWith(that.register_online_button);
+
+        button = $('input[name=register_offline]', action_panel);
+        that.register_offline_button = IPA.action_button({
+            label: 'Import',
+            icon: 'ui-icon-plus',
+            click: function() {
+                var dialog = that.entity.get_dialog('offline_registration');
+                dialog.open(that.container);
+            }
+        });
+        button.replaceWith(that.register_offline_button);
 
         button = $('input[name=consume]', action_panel);
         that.consume_button = IPA.action_button({
@@ -219,16 +335,35 @@ IPA.entitle.search_facet = function(spec) {
                 dialog.open(that.container);
             }
         });
-        that.consume_button.css('display', 'none');
         button.replaceWith(that.consume_button);
+
+        button = $('input[name=import]', action_panel);
+        that.import_button = IPA.action_button({
+            label: 'Import',
+            icon: 'ui-icon-plus',
+            style: 'display: none;',
+            click: function() {
+                var dialog = that.entity.get_dialog('import');
+                dialog.open(that.container);
+            }
+        });
+        button.replaceWith(that.import_button);
     };
 
     that.refresh = function() {
 
         function on_success(data, text_status, xhr) {
 
-            that.register_button.css('display', 'none');
-            that.consume_button.css('display', 'inline');
+            that.register_buttons.css('display', 'none');
+            that.consume_buttons.css('display', 'inline');
+
+            if (that.entity.status == IPA.entitle.online) {
+                that.consume_button.css('display', 'inline');
+                that.import_button.css('display', 'none');
+            } else {
+                that.consume_button.css('display', 'none');
+                that.import_button.css('display', 'inlnie');
+            }
 
             that.table.empty();
 
@@ -250,22 +385,63 @@ IPA.entitle.search_facet = function(spec) {
 
         function on_error(xhr, text_status, error_thrown) {
 
-            that.register_button.css('display', 'inline');
-            that.consume_button.css('display', 'none');
+            that.register_buttons.css('display', 'inline');
+            that.consume_buttons.css('display', 'none');
 
             var summary = $('span[name=summary]', that.table.tfoot).empty();
             summary.append(error_thrown.message);
         }
 
-        that.entity.get_certificates(
-            on_success,
+        that.entity.get_status(
+            function(data, text_status, xhr) {
+                that.entity.get_certificates(
+                    on_success,
+                    on_error);
+            },
             on_error);
     };
 
     return that;
 };
 
-IPA.entitle.register_dialog = function(spec) {
+IPA.entitle.certificate_dialog = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.dialog(spec);
+
+    that.width = spec.width || 500;
+    that.height = spec.height || 400;
+    that.message = spec.message;
+    that.label = spec.label;
+
+    that.get_certificate = function() {
+        var certificate = that.textarea.val();
+        return IPA.cert.BEGIN_CERTIFICATE+'\n'+
+            $.trim(certificate)+'\n'+
+            IPA.cert.END_CERTIFICATE+'\n';
+    };
+
+    that.create = function() {
+        that.container.append(that.message);
+        that.container.append('<br/>');
+        that.container.append('<br/>');
+
+        that.container.append(IPA.cert.BEGIN_CERTIFICATE);
+        that.container.append('<br/>');
+
+        that.textarea = $('<textarea/>', {
+            style: 'width: 100%; height: 225px;'
+        }).appendTo(that.container);
+
+        that.container.append('<br/>');
+        that.container.append(IPA.cert.END_CERTIFICATE);
+    };
+
+    return that;
+};
+
+IPA.entitle.register_online_dialog = function(spec) {
 
     spec = spec || {};
 
@@ -275,7 +451,7 @@ IPA.entitle.register_dialog = function(spec) {
         var record = {};
         that.save(record);
 
-        that.entity.register(
+        that.entity.register_online(
             record.username,
             record.password,
             function() {
@@ -287,6 +463,30 @@ IPA.entitle.register_dialog = function(spec) {
     });
 
     that.add_button('Cancel', function() {
+        that.close();
+    });
+
+    return that;
+};
+
+IPA.entitle.register_offline_dialog = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.entitle.certificate_dialog(spec);
+
+    that.add_button(that.label, function() {
+        that.entity.register_offline(
+            that.get_certificate(),
+            function() {
+                var facet = that.entity.get_facet('search');
+                facet.refresh();
+                that.close();
+            }
+        );
+    });
+
+    that.add_button(IPA.messages.buttons.cancel, function() {
         that.close();
     });
 
@@ -314,6 +514,30 @@ IPA.entitle.consume_dialog = function(spec) {
     });
 
     that.add_button('Cancel', function() {
+        that.close();
+    });
+
+    return that;
+};
+
+IPA.entitle.import_dialog = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.entitle.certificate_dialog(spec);
+
+    that.add_button(that.label, function() {
+        that.entity.import_certificate(
+            that.get_certificate(),
+            function() {
+                var facet = that.entity.get_facet('search');
+                facet.refresh();
+                that.close();
+            }
+        );
+    });
+
+    that.add_button(IPA.messages.buttons.cancel, function() {
         that.close();
     });
 

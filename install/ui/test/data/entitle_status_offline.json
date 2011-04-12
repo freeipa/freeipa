@@ -1,0 +1,12 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "result": {
+            "consumed": 2,
+            "product": "MKT-multiplier-client-50",
+            "quantity": 250,
+            "uuid": "IMPORTED"
+        }
+    }
+}
