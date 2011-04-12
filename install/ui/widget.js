@@ -282,6 +282,7 @@ IPA.text_widget = function(spec) {
     var that = IPA.widget(spec);
 
     that.size = spec.size || 30;
+    that.type = spec.type || 'text';
 
     that.create = function(container) {
 
@@ -291,7 +292,7 @@ IPA.text_widget = function(spec) {
         }).appendTo(container);
 
         $('<input/>', {
-            type: 'text',
+            type: that.type,
             name: that.name,
             disabled: that.disabled,
             size: that.size,

@@ -25,12 +25,18 @@
 
 IPA.entitle = {};
 
+IPA.entitle.unregistered = 'unregistered';
+IPA.entitle.registered = 'registered';
+
 IPA.entity_factories.entitle = function() {
 
     var builder = IPA.entity_builder();
 
     builder.
-        entity('entitle').
+        entity({
+            factory: IPA.entitle.entity,
+            name: 'entitle'
+        }).
         facet({
             factory: IPA.entitle.search_facet,
             columns: [
@@ -50,21 +56,8 @@ IPA.entity_factories.entitle = function() {
                     name: 'end',
                     label: 'End'
                 }
-            ],
-            search_all: true
+            ]
         }).
-            dialog({
-                factory: IPA.entitle.consume_dialog,
-                name: 'consume',
-                title: 'Consume Entitlements',
-                fields: [
-                    {
-                        name: 'quantity',
-                        label: 'Quantity',
-                        undo: false
-                    }
-                ]
-            }).
         details_facet({
             sections: [
                 {
@@ -74,9 +67,99 @@ IPA.entity_factories.entitle = function() {
                 }
             ]
         }).
-        standard_association_facets();
+        standard_association_facets().
+        dialog({
+            factory: IPA.entitle.register_dialog,
+            name: 'register',
+            title: 'Register Entitlements',
+            fields: [
+                {
+                    name: 'username',
+                    label: 'Username',
+                    undo: false
+                },
+                {
+                    name: 'password',
+                    label: IPA.get_method_param('entitle_register', 'password').label,
+                    type: 'password',
+                    undo: false
+                }
+            ]
+        }).
+        dialog({
+            factory: IPA.entitle.consume_dialog,
+            name: 'consume',
+            title: 'Consume Entitlements',
+            fields: [
+                {
+                    name: 'quantity',
+                    label: 'Quantity',
+                    undo: false
+                }
+            ]
+        });
 
     return builder.build();
+};
+
+IPA.entitle.entity = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.entity(spec);
+
+    that.get_certificates = function(on_success, on_error) {
+
+        var command = IPA.command({
+            name: 'entitle_get' + (that.status == IPA.entitle.registered ? '' : '_unregistered'),
+            entity: 'entitle',
+            method: 'get',
+            on_success: function(data, text_status, xhr) {
+                that.status = IPA.entitle.registered;
+                if (on_success) {
+                    on_success.call(this, data, text_status, xhr);
+                }
+            },
+            on_error: on_error,
+            retry: false
+        });
+
+        command.execute();
+    };
+
+    that.register = function(username, password, on_success, on_error) {
+
+        var command = IPA.command({
+            entity: 'entitle',
+            method: 'register',
+            args: [ username ],
+            options: { password: password },
+            on_success: function(data, text_status, xhr) {
+                that.status = IPA.entitle.registered;
+                if (on_success) {
+                    on_success.call(this, data, text_status, xhr);
+                }
+            },
+            on_error: on_error
+        });
+
+        command.execute();
+    };
+
+    that.consume = function(quantity, on_success, on_error) {
+
+        var command = IPA.command({
+            entity: 'entitle',
+            method: 'consume',
+            args: [ quantity ],
+            on_success: on_success,
+            on_error: on_error
+        });
+
+        command.execute();
+    };
+
+    return that;
 };
 
 IPA.entitle.search_facet = function(spec) {
@@ -97,6 +180,12 @@ IPA.entitle.search_facet = function(spec) {
 
         $('<input/>', {
             type: 'button',
+            name: 'register',
+            value: 'Register'
+        }).appendTo(buttons);
+
+        $('<input/>', {
+            type: 'button',
             name: 'consume',
             value: 'Consume'
         }).appendTo(buttons);
@@ -108,21 +197,38 @@ IPA.entitle.search_facet = function(spec) {
 
         var action_panel = that.get_action_panel();
 
-        var button = $('input[name=consume]', action_panel);
-        that.consume_button = IPA.action_button({
-            label: 'Consume',
+        var button = $('input[name=register]', action_panel);
+        that.register_button = IPA.action_button({
+            label: 'Register',
             icon: 'ui-icon-plus',
             click: function() {
-                var dialog = that.get_dialog('consume');
+                var dialog = that.entity.get_dialog('register');
                 dialog.open(that.container);
             }
         });
+        that.register_button.css('display', 'none');
+        button.replaceWith(that.register_button);
+
+        button = $('input[name=consume]', action_panel);
+        that.consume_button = IPA.action_button({
+            label: 'Consume',
+            icon: 'ui-icon-plus',
+            style: 'display: none;',
+            click: function() {
+                var dialog = that.entity.get_dialog('consume');
+                dialog.open(that.container);
+            }
+        });
+        that.consume_button.css('display', 'none');
         button.replaceWith(that.consume_button);
     };
 
     that.refresh = function() {
 
         function on_success(data, text_status, xhr) {
+
+            that.register_button.css('display', 'none');
+            that.consume_button.css('display', 'inline');
 
             that.table.empty();
 
@@ -132,7 +238,7 @@ IPA.entitle.search_facet = function(spec) {
                 that.table.add_record(record);
             }
 
-            var summary = $('span[name=summary]', that.table.tfoot);
+            var summary = $('span[name=summary]', that.table.tfoot).empty();
             if (data.result.truncated) {
                 var message = IPA.messages.search.truncated;
                 message = message.replace('${counter}', data.result.count);
@@ -143,24 +249,46 @@ IPA.entitle.search_facet = function(spec) {
         }
 
         function on_error(xhr, text_status, error_thrown) {
+
+            that.register_button.css('display', 'inline');
+            that.consume_button.css('display', 'none');
+
             var summary = $('span[name=summary]', that.table.tfoot).empty();
-            summary.append('<p>Error: '+error_thrown.name+'</p>');
-            summary.append('<p>'+error_thrown.title+'</p>');
-            summary.append('<p>'+error_thrown.message+'</p>');
+            summary.append(error_thrown.message);
         }
 
-        var command = IPA.command({
-            entity: 'entitle',
-            method: 'get',
-            options: {
-                all: that.search_all
-            },
-            on_success: on_success,
-            on_error: on_error
-        });
-
-        command.execute();
+        that.entity.get_certificates(
+            on_success,
+            on_error);
     };
+
+    return that;
+};
+
+IPA.entitle.register_dialog = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.dialog(spec);
+
+    that.add_button('Register', function() {
+        var record = {};
+        that.save(record);
+
+        that.entity.register(
+            record.username,
+            record.password,
+            function() {
+                var facet = that.entity.get_facet('search');
+                facet.refresh();
+                that.close();
+            }
+        );
+    });
+
+    that.add_button('Cancel', function() {
+        that.close();
+    });
 
     return that;
 };
@@ -175,19 +303,14 @@ IPA.entitle.consume_dialog = function(spec) {
         var record = {};
         that.save(record);
 
-        var command = IPA.command({
-            entity: 'entitle',
-            method: 'consume',
-            args: [ record.quantity ],
-            on_success: function() {
-                var entity = IPA.get_entity(that.entity_name);
-                var facet = entity.get_facet('search');
-                facet.table.refresh();
+        that.entity.consume(
+            record.quantity,
+            function() {
+                var facet = that.entity.get_facet('search');
+                facet.refresh();
                 that.close();
             }
-        });
-
-        command.execute();
+        );
     });
 
     that.add_button('Cancel', function() {

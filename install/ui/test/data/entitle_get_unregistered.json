@@ -1,0 +1,11 @@
+{
+    "error": {
+        "code": 4306,
+        "message": "Not registered yet",
+        "name": {
+            "__base64__": "Tm90UmVnaXN0ZXJlZEVycm9y"
+        }
+    },
+    "id": 0,
+    "result": null
+}

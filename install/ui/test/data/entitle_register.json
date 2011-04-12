@@ -1,0 +1,26 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "result": {
+            "dn": "ipaentitlementid=cf9d9755-7445-438c-a40c-23b1c60e1f9b,cn=entitlements,cn=etc,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
+            "ipaentitlementid": [
+                "cf9d9755-7445-438c-a40c-23b1c60e1f9b"
+            ],
+            "ipauniqueid": [
+                "50afc3cc-649c-11e0-ab97-00163e2fe6de"
+            ],
+            "objectclass": [
+                "ipaobject",
+                "ipaentitlement"
+            ],
+            "userpkcs12": [
+                {
+                    "__base64__": "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"
+                }
+            ]
+        },
+        "summary": "Registered to entitlement server.",
+        "value": ""
+    }
+}

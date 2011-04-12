@@ -252,6 +252,8 @@ IPA.command = function(spec) {
     that.on_success = spec.on_success;
     that.on_error = spec.on_error;
 
+    that.retry = typeof spec.retry == 'undefined' ? true : spec.retry;
+
     that.get_command = function() {
         return (that.entity ? that.entity+'_' : '') + that.method;
     };
@@ -352,14 +354,19 @@ IPA.command = function(spec) {
             if (!error_thrown.title) {
                 error_thrown.title = 'AJAX Error: '+error_thrown.name;
             }
-            dialog_open.call(this, xhr, text_status, error_thrown);
+
+            if (that.retry) {
+                dialog_open.call(this, xhr, text_status, error_thrown);
+
+            } else if (that.on_error) {
+                that.on_error.call(this, xhr, text_status, error_thrown);
+            }
         }
 
         function success_handler(data, text_status, xhr) {
 
-            IPA.hide_activity_icon();
-
             if (!data) {
+                IPA.hide_activity_icon();
                 var error_thrown = {
                     title: 'HTTP Error '+xhr.status,
                     url: this.url,
@@ -368,12 +375,14 @@ IPA.command = function(spec) {
                 dialog_open.call(this, xhr, text_status, error_thrown);
 
             } else if (data.error) {
+                // error_handler() calls IPA.hide_activity_icon()
                 error_handler.call(this, xhr, text_status,  /* error_thrown */ {
                     title: 'IPA Error '+data.error.code,
                     message: data.error.message
                 });
 
             } else if (that.on_success) {
+                IPA.hide_activity_icon();
                 that.on_success.call(this, data, text_status, xhr);
             }
         }

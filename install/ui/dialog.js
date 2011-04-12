@@ -105,6 +105,9 @@ IPA.dialog = function(spec) {
     };
 
     that.init = function() {
+
+        that.entity = IPA.get_entity(that.entity_name);
+
         for (var i=0; i<that.fields.length; i++) {
             var field = that.fields[i];
             field.entity_name = that.entity_name;
