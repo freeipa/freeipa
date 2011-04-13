@@ -336,16 +336,16 @@ class test_group(Declarative):
                         'description': [u'Account administrators group'],
                     },
                     {
-                        'dn': u'cn=ipausers,cn=groups,cn=accounts,%s' % api.env.basedn,
-                        'gidnumber': [fuzzy_digits],
-                        'cn': [u'ipausers'],
-                        'description': [u'Default group for all users'],
-                    },
-                    {
                         'dn': u'cn=editors,cn=groups,cn=accounts,%s' % api.env.basedn,
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'editors'],
                         'description': [u'Limited admins who can edit other users'],
+                    },
+                    {
+                        'dn': u'cn=ipausers,cn=groups,cn=accounts,%s' % api.env.basedn,
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [u'ipausers'],
+                        'description': [u'Default group for all users'],
                     },
                     dict(
                         dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
