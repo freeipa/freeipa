@@ -1418,6 +1418,10 @@ class LDAPSearch(CallbackInterface, crud.Search):
             else:
                 callback(self, ldap, entries, truncated, *args, **options)
 
+        if self.obj.primary_key:
+            sortfn=lambda x,y: cmp(x[1][self.obj.primary_key.name][0].lower(), y[1][self.obj.primary_key.name][0].lower())
+            entries.sort(sortfn)
+
         if not options.get('raw', False):
             for e in entries:
                 self.obj.convert_attribute_members(e[1], *args, **options)

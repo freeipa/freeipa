@@ -119,8 +119,8 @@ class test_automount(XMLRPC_test):
         res = api.Command['automountkey_find'](self.locname, self.mapname, raw=True)['result']
         assert res
         assert len(res) == 2
-        assert_attr_equal(res[1], 'automountkey', self.keyname)
-        assert_attr_equal(res[1], 'automountinformation', self.info)
+        assert_attr_equal(res[0], 'automountkey', self.keyname)
+        assert_attr_equal(res[0], 'automountinformation', self.info)
 
     def test_9_automountkey_mod(self):
         """
