@@ -1485,7 +1485,7 @@ class LDAPModReverseMember(LDAPQuery):
                 name = to_cli(ldap_obj_name)
                 doc = self.reverse_param_doc % ldap_obj.object_name_plural
                 yield List('%s?' % name, cli_name='%ss' % name, doc=doc,
-                           label=ldap_obj.object_name)
+                           label=ldap_obj.object_name, alwaysask=True)
 
 
 class LDAPAddReverseMember(LDAPModReverseMember):
