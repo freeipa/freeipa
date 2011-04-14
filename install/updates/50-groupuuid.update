@@ -1,0 +1,12 @@
+# The groups added in bootstrap-template.ldif didn't include ipaUniqueId
+dn: cn=admins,cn=groups,cn=accounts,$SUFFIX
+add:objectclass: ipaobject
+addifnew:ipaUniqueID: autogenerate
+
+dn: cn=ipausers,cn=groups,cn=accounts,$SUFFIX
+add:objectclass: ipaobject
+addifnew:ipaUniqueID: autogenerate
+
+dn: cn=editors,cn=groups,cn=accounts,$SUFFIX
+add:objectclass: ipaobject
+addifnew:ipaUniqueID: autogenerate
