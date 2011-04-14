@@ -280,29 +280,6 @@ class NSSHTTPS(httplib.HTTP):
             port = None
         self._setup(self._connection_class(host, port, strict, dbdir=dbdir))
 
-class NSPRConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
-    default_port = httplib.HTTPConnection.default_port
-
-    def __init__(self, host, port=None, strict=None, family=socket.AF_UNSPEC):
-        httplib.HTTPConnection.__init__(self, host, port, strict)
-        NSSAddressFamilyFallback.__init__(self, family)
-
-        logging.debug('%s init %s', self.__class__.__name__, host)
-        self._create_socket()
-
-    def _create_socket(self):
-        super(NSPRConnection, self)._create_socket()
-        self.sock.set_hostname(self.host)
-
-    def connect(self):
-        self.connect_socket(self.host, self.port)
-
-class NSPRHTTP(httplib.HTTP):
-    _http_vsn = 11
-    _http_vsn_str = 'HTTP/1.1'
-
-    _connection_class = NSPRConnection
-
 #------------------------------------------------------------------------------
 
 if __name__ == "__main__":
