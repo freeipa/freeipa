@@ -20,6 +20,7 @@
 #
 
 import sys
+import os
 try:
     from optparse import OptionParser
     from ipapython import ipautil, config
