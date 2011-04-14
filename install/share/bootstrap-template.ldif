@@ -188,11 +188,13 @@ objectClass: top
 objectClass: groupofnames
 objectClass: posixgroup
 objectClass: ipausergroup
+objectClass: ipaobject
 cn: admins
 description: Account administrators group
 gidNumber: $IDSTART
 member: uid=admin,cn=users,cn=accounts,$SUFFIX
 nsAccountLock: False
+ipaUniqueID: autogenerate
 
 dn: cn=ipausers,cn=groups,cn=accounts,$SUFFIX
 changetype: add
@@ -201,9 +203,11 @@ objectClass: groupofnames
 objectClass: nestedgroup
 objectClass: ipausergroup
 objectClass: posixgroup
+objectClass: ipaobject
 gidNumber: eval($IDSTART+1)
 description: Default group for all users
 cn: ipausers
+ipaUniqueID: autogenerate
 
 dn: cn=editors,cn=groups,cn=accounts,$SUFFIX
 changetype: add
@@ -211,9 +215,11 @@ objectClass: top
 objectClass: groupofnames
 objectClass: posixgroup
 objectClass: ipausergroup
+objectClass: ipaobject
 gidNumber: eval($IDSTART+2)
 description: Limited admins who can edit other users
 cn: editors
+ipaUniqueID: autogenerate
 
 dn: cn=sshd,cn=hbacservices,cn=hbac,$SUFFIX
 changetype: add

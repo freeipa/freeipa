@@ -249,7 +249,7 @@ class LDAPUpdate:
     def parse_update_file(self, data, all_updates, dn_list):
         """Parse the update file into a dictonary of lists and apply the update
            for each DN in the file."""
-        valid_keywords = ["default", "add", "remove", "only", "deleteentry", "replace"]
+        valid_keywords = ["default", "add", "remove", "only", "deleteentry", "replace", "addifnew"]
         update = {}
         d = ""
         index = ""
@@ -461,6 +461,14 @@ class LDAPUpdate:
                     e.append(v)
                     logging.debug('add: updated value %s', e)
                     entry.setValues(k, e)
+                elif utype == 'addifnew':
+                    logging.debug("addifnew: '%s' to %s, current value %s", v, k, e)
+                    # Only add the attribute if it doesn't exist. Only works
+                    # with single-value attributes.
+                    if len(e) == 0:
+                        e.append(v)
+                        logging.debug('addifnew: set %s to %s', (k, e))
+                        entry.setValues(k, e)
                 elif utype == 'only':
                     logging.debug("only: set %s to '%s', current value %s", k, v, e)
                     if only.get(k):
