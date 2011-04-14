@@ -80,7 +80,7 @@ def main():
         print "Using message string \"%s\" found in file \"%s\"" % (msgid, test_file)
 
         # Get the translated version of the msgid string by invoking _()
-        translated = _(msgid)
+        translated = _(msgid)   #pylint: disable=E0602
 
         # Verify the first character is the test prefix
         if translated[0] != prefix:
@@ -98,7 +98,7 @@ def main():
             raise ValueError("Translated string \"%s\" minus the first & last character is not equal to msgid \"%s\"" % \
                                  (translated.encode('utf-8'), msgid))
 
-        print "Success: message string \"%s\" maps to translated string \"%s\"" % (msgid, _(msgid).encode('utf-8'))
+        print "Success: message string \"%s\" maps to translated string \"%s\"" % (msgid, _(msgid).encode('utf-8')) #pylint: disable=E0602
     except Exception, e:
         print >> sys.stderr, "ERROR: %s" % e
         return 1
