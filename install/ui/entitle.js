@@ -56,6 +56,11 @@ IPA.entity_factories.entitle = function() {
                 {
                     name: 'end',
                     label: 'End'
+                },
+                {
+                    factory: IPA.entitle.certificate_column,
+                    name: 'certificate',
+                    label: 'Certificate'
                 }
             ]
         }).
@@ -399,6 +404,36 @@ IPA.entitle.search_facet = function(spec) {
                     on_error);
             },
             on_error);
+    };
+
+    return that;
+};
+
+IPA.entitle.certificate_column = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.column(spec);
+
+    that.setup = function(container, record) {
+        container.empty();
+
+        var certificate = record[that.name];
+
+        $('<a/>', {
+            'href': '#download',
+            'html': 'Download',
+            'click': function() {
+                var dialog = IPA.cert.download_dialog({
+                    title: 'Download Certificate',
+                    certificate: certificate,
+                    add_pem_delimiters: false
+                });
+                dialog.init();
+                dialog.open();
+                return false;
+            }
+        }).appendTo(container);
     };
 
     return that;

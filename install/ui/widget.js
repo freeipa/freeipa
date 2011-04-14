@@ -1007,14 +1007,12 @@ IPA.column = function (spec) {
 
     var that = {};
 
-    if (spec.format){
-        that.format = spec.format;
-    }
     that.name = spec.name;
     that.label = spec.label;
     that.primary_key = spec.primary_key;
     that.width = spec.width;
     that.entity_name = spec.entity_name;
+    that.format = spec.format;
 
     that.setup = spec.setup || setup;
 

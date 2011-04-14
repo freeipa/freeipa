@@ -74,7 +74,7 @@ IPA.cert.parse_dn = function(dn) {
     return result;
 };
 
-IPA.cert.get_dialog = function(spec) {
+IPA.cert.download_dialog = function(spec) {
 
     spec = spec || {};
 
@@ -82,8 +82,9 @@ IPA.cert.get_dialog = function(spec) {
 
     that.width = spec.width || 500;
     that.height = spec.height || 400;
+    that.add_pem_delimiters = typeof spec.add_pem_delimiters == 'undefined' ? true : spec.add_pem_delimiters;
 
-    that.usercertificate = spec.usercertificate || '';
+    that.certificate = spec.certificate || '';
 
     that.add_button(IPA.messages.buttons.close, function() {
         that.close();
@@ -95,10 +96,15 @@ IPA.cert.get_dialog = function(spec) {
             style: 'width: 100%; height: 275px;'
         }).appendTo(that.container);
 
-        textarea.val(
-            IPA.cert.BEGIN_CERTIFICATE+'\n'+
-            that.usercertificate+'\n'+
-            IPA.cert.END_CERTIFICATE);
+        var certificate = that.certificate;
+
+        if (that.add_pem_delimiters) {
+            certificate = IPA.cert.BEGIN_CERTIFICATE+'\n'+
+                that.certificate+'\n'+
+                IPA.cert.END_CERTIFICATE;
+        }
+
+        textarea.val(certificate);
     };
 
     return that;
@@ -675,9 +681,9 @@ IPA.cert.status_widget = function(spec) {
         title = title.replace('${entity}', that.entity_label);
         title = title.replace('${primary_key}', entity_name);
 
-        var dialog = IPA.cert.get_dialog({
-            'title': title,
-            'usercertificate': entity_certificate
+        var dialog = IPA.cert.download_dialog({
+            title: title,
+            certificate: entity_certificate
         });
 
         dialog.init();

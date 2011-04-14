@@ -559,42 +559,43 @@ IPA.entity_builder = function(){
         }
         facet.add_section(current_section);
         var fields = spec.fields;
-        if (fields){
-            var i;
-            var field;
-            for (i =0; i < fields.length; i += 1){
-                field =  fields[i];
-                if (field instanceof Object){
-                    field.entity_name = entity.name;
-                    current_section.add_field(field.factory(field));
-                }else{
+        if (fields) {
+            for (var i=0; i<fields.length; i++) {
+                var field_spec = fields[i];
+                var field;
+
+                if (field_spec instanceof Object) {
+                    field_spec.entity_name = entity.name;
+                    var factory = field_spec.factory || IPA.text_widget;
+                    field = factory(field_spec);
+                } else {
                     field = IPA.text_widget({
-                        name:field,
-                        entity_name:entity.name
+                        name: field_spec,
+                        entity_name: entity.name
                     });
-                    current_section.add_field(field);
                 }
+                current_section.add_field(field);
             }
         }
     }
 
     that.entity = function(spec) {
-        if (spec instanceof Object){
+        if (spec instanceof Object) {
             var factory = spec.factory || IPA.entity;
             entity = factory(spec);
         } else {
-            var name = spec;
-            entity = IPA.entity({name: name});
+            entity = IPA.entity({ name: spec });
         }
         return that;
     };
 
     that.dialog = function(spec) {
         var dialog;
-        if (spec.factory) {
-            dialog = spec.factory(spec);
+        if (spec instanceof Object){
+            var factory = spec.factory || IPA.dialog;
+            dialog = factory(spec);
         } else {
-            dialog = IPA.dialog(spec);
+            dialog = IPA.dialog({ name: spec });
         }
         entity.dialog(dialog);
         return that;

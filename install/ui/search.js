@@ -414,13 +414,16 @@ IPA.search_facet = function(spec) {
 
     var columns = spec.columns || [];
     for (var i=0; i<columns.length; i++) {
-        var column = columns[i];
-        if (column instanceof Object) {
-            var factory = column.factory || IPA.column;
-            that.add_column(factory(column));
+        var column_spec = columns[i];
+        var column;
+
+        if (column_spec instanceof Object) {
+            var factory = column_spec.factory || IPA.column;
+            column = factory(column_spec);
         } else {
-            that.create_column({ name: column });
+            column = IPA.column({ name: column_spec });
         }
+        that.add_column(column);
     }
 
     return that;
