@@ -28,8 +28,7 @@ IPA.entity_factories.pwpolicy = function() {
     return IPA.entity_builder().
         entity('pwpolicy').
         search_facet({
-            columns:['cn'],
-            add_fields:['cn', 'cospriority']}).
+            columns:['cn']}).
         details_facet({
             sections:[
                 {
@@ -38,6 +37,9 @@ IPA.entity_factories.pwpolicy = function() {
                             'krbpwdmindiffchars','krbpwdminlength']
                 }]}).
         standard_association_facets().
+        adder_dialog({
+            fields:['cn', 'cospriority']
+        }).
         build();
 };
 

@@ -27,8 +27,14 @@ IPA.entity_factories.hbacrule = function () {
         entity('hbacrule').
         search_facet({
             columns:['cn','usercategory','hostcategory','ipaenabledflag',
-                     'servicecategory','sourcehostcategory'],
-            add_fields:[
+                     'servicecategory','sourcehostcategory']
+        }).
+        facet({
+            factory: IPA.hbacrule_details_facet,
+            'name': 'details'
+        }).
+        adder_dialog({
+            fields:[
                 'cn',
                 {
                     factory: IPA.radio_widget,
@@ -41,10 +47,7 @@ IPA.entity_factories.hbacrule = function () {
                           'label': IPA.messages.objects.hbacrule.deny
                         }],
                     'undo': false
-                }]}).
-        facet({
-            factory: IPA.hbacrule_details_facet,
-            'name': 'details'
+                }]
         }).
         build();
 };
@@ -53,12 +56,14 @@ IPA.entity_factories.hbacsvc = function () {
     return IPA.entity_builder().
         entity('hbacsvc').
         search_facet({
-            columns:['cn','description'],
-            add_fields:['cn','description']}).
+            columns:['cn','description']}).
         details_facet({sections:[{
             name: 'general',
             label: IPA.messages.details.general,
             fields:[ 'cn', 'description']}]}).
+        adder_dialog({
+            fields:['cn','description']
+        }).
         build();
 };
 
@@ -67,8 +72,7 @@ IPA.entity_factories.hbacsvcgroup = function () {
     return IPA.entity_builder().
         entity('hbacsvcgroup').
         search_facet({
-            columns:['cn', 'description'],
-            add_fields:['cn', 'description']}).
+            columns:['cn', 'description']}).
         details_facet({sections:[
             {
                 name: 'general',
@@ -86,6 +90,9 @@ IPA.entity_factories.hbacsvcgroup = function () {
                     save_values: false
                 }]
             }]}).
+        adder_dialog({
+            fields:['cn', 'description']
+        }).
         build();
 };
 

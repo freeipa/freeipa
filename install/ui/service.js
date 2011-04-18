@@ -30,12 +30,6 @@ IPA.entity_factories.service = function() {
         search_facet({
             columns: [ 'krbprincipalname' ]
         }).
-            dialog({
-                factory: IPA.service_add_dialog,
-                name: 'add',
-                title: IPA.messages.objects.service.add,
-                width: '450px'
-            }).
         details_facet({sections:[
             {
                 name: 'details',
@@ -76,6 +70,10 @@ IPA.entity_factories.service = function() {
             remove_method: 'remove_host'
         }).
         standard_association_facets().
+        adder_dialog({
+            factory: IPA.service_add_dialog,
+            width: '450px'
+        }).
         build();
 };
 

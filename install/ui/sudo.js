@@ -28,12 +28,14 @@ IPA.entity_factories.sudorule = function () {
     return IPA.entity_builder().
         entity('sudorule').
         search_facet({
-            columns:['cn','description','cmdcategory'],
-            add_fields:['cn']
+            columns:['cn','description','cmdcategory']
         }).
         facet({
             factory: IPA.sudorule_details_facet,
             'name': 'details'
+        }).
+        adder_dialog({
+            fields:['cn']
         }).
         build();
 };
@@ -43,8 +45,7 @@ IPA.entity_factories.sudocmd = function () {
     return IPA.entity_builder().
         entity( 'sudocmd').
         search_facet({
-            columns:['sudocmd','description'],
-            add_fields:['sudocmd','description']}).
+            columns:['sudocmd','description']}).
         details_facet({sections:[
             {
                 name: 'general',
@@ -86,6 +87,9 @@ IPA.entity_factories.sudocmd = function () {
                     ]
                 }]
             }]}).
+        adder_dialog({
+            fields:['sudocmd','description']
+        }).
         build();
 
 };
@@ -94,8 +98,7 @@ IPA.entity_factories.sudocmdgroup = function () {
     return IPA.entity_builder().
         entity('sudocmdgroup').
         search_facet({
-            columns:['cn','description'],
-            add_fields:['cn','description']
+            columns:['cn','description']
         }).
         details_facet({sections:[
             {
@@ -138,6 +141,9 @@ IPA.entity_factories.sudocmdgroup = function () {
                     ]
                 }]
             }]}).
+        adder_dialog({
+            fields:['cn','description']
+        }).
         build();
 };
 

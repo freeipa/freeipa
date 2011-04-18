@@ -29,8 +29,7 @@ IPA.entity_factories.dnszone = function() {
     return  IPA.entity_builder().
         entity('dnszone').
         search_facet({
-            columns:['idnsname'],
-            add_fields: ['idnsname','idnssoamname','idnssoarname', {factory:IPA.force_dnszone_add_checkbox_widget}]
+            columns:['idnsname']
         }).
         details_facet({sections:[{
             name:'identity',
@@ -54,6 +53,13 @@ IPA.entity_factories.dnszone = function() {
             'label': IPA.metadata.objects.dnsrecord.label
         }).
         standard_association_facets().
+        adder_dialog({
+            fields: [
+                'idnsname',
+                'idnssoamname',
+                'idnssoarname',
+                {factory:IPA.force_dnszone_add_checkbox_widget}]
+        }).
         build();
 };
 

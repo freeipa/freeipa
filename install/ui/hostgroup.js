@@ -27,8 +27,7 @@ IPA.entity_factories.hostgroup = function() {
 
     return IPA.entity_builder().
         entity('hostgroup').
-        search_facet({columns:['cn','description'],
-                      add_fields:['cn','description']}).
+        search_facet({columns:['cn','description']}).
         details_facet({sections:[{
             name:'identity',
             label: IPA.messages.objects.hostgroup.identity,
@@ -39,6 +38,9 @@ IPA.entity_factories.hostgroup = function() {
             associator: IPA.serial_associator
         }).
         standard_association_facets().
+        adder_dialog({
+            fields:['cn','description']
+        }).
         build();
 };
 

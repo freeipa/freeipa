@@ -601,6 +601,13 @@ IPA.entity_builder = function(){
         return that;
     };
 
+    that.adder_dialog = function(spec) {
+        spec.factory = spec.factory || IPA.add_dialog;
+        spec.name = spec.name || 'add';
+        spec.title = spec.title || IPA.messages.objects.user.add;
+        return that.dialog(spec);
+    };
+
     that.details_facet = function (spec){
         var sections = spec.sections;
         spec.sections = null;
@@ -628,45 +635,6 @@ IPA.entity_builder = function(){
             search_all: spec.search_all || false,
             columns: spec.columns
         });
-
-        var current_dialog =
-            IPA.add_dialog({
-                'name': 'add',
-                'title': IPA.messages.objects.user.add,
-                entity_name: entity.name
-            });
-
-        facet.dialog(current_dialog);
-
-        var add_fields = spec.add_fields;
-        if (add_fields) {
-            for (var i = 0; i < add_fields.length; i += 1){
-                var field = add_fields[i];
-                if (field instanceof Object){
-                    /* This is a bit of a hack ,and is here to support ACI
-                       permissions.  The target section is a group of secveral
-                       widgets together.  It makes more sense to do them as a
-                       seciont than as a widgit. However, since they can  be mixed
-                       into the flow with the other widgets, the section needs to
-                       be definied here with the fields to get the order correct.*/
-                    var factory;
-                    if (field.section){
-                        factory = field.factory;
-                        field.factory = null;
-                        field.name = field.section;
-                        field.section = null;
-                        current_dialog.add_section(factory(field));
-                    }else{
-                        field.entity_name = entity.name;
-                        factory = field.factory || IPA.text_widget;
-                        current_dialog.field(factory(field));
-                    }
-                }else{
-                    current_dialog.text(add_fields[i]);
-                }
-            }
-        }
-
         entity.facet(facet);
         return that;
     };

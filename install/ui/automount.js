@@ -30,8 +30,7 @@ IPA.entity_factories.automountlocation = function() {
     return IPA.entity_builder().
         entity('automountlocation').
         search_facet({
-            columns:['cn'],
-            add_fields:['cn']
+            columns:['cn']
         }).
         details_facet({sections:[{
             name:'identity',
@@ -39,6 +38,9 @@ IPA.entity_factories.automountlocation = function() {
             fields:['cn']
         }]}).
         standard_association_facets().
+        adder_dialog({
+            fields:['cn']
+        }).
         build();
 };
 

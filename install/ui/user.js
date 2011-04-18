@@ -30,7 +30,6 @@ IPA.entity_factories.user = function() {
         entity('user').
         search_facet({
             columns:['uid','cn','uidnumber','mail','telephonenumber','title'],
-            add_fields: ['uid','givenname','sn'],
             search_all: true
         }).
         details_facet({sections:[
@@ -79,7 +78,10 @@ IPA.entity_factories.user = function() {
             name: 'memberof_role',
             associator: IPA.serial_associator
         }).
-        standard_association_facets();
+        standard_association_facets().
+        adder_dialog({
+            fields: ['uid','givenname','sn']
+        });
 
 
     var entity = builder.build();

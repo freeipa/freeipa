@@ -33,8 +33,7 @@ IPA.entity_factories.host = function () {
                 name: 'krblastpwdchange',
                 label: IPA.messages.objects.host.enrolled,
                 format: IPA.utc_date_column_format
-            }],
-            add_fields: ['fqdn', {factory:IPA.force_host_add_checkbox_widget}]
+            }]
         }).
         details_facet({sections:[
             {
@@ -87,6 +86,9 @@ IPA.entity_factories.host = function () {
             associator: IPA.serial_associator
         }).
         standard_association_facets().
+        adder_dialog({
+            fields: ['fqdn', {factory:IPA.force_host_add_checkbox_widget}]
+        }).
         build();
 };
 

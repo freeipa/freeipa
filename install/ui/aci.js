@@ -28,20 +28,8 @@ IPA.entity_factories.permission = function() {
     return IPA.entity_builder().
         entity('permission').
         search_facet({
-            columns:['cn'],
-            add_fields:[
-                'cn',
-                {
-                    factory:IPA.rights_widget,
-                    name: 'permissions',
-                    join: true, undo: false
-                },
-                {
-                    factory: IPA.target_section,
-                    name: 'target',
-                    label: IPA.messages.objects.permission.target,
-                    undo: false
-                }]}).
+            columns:['cn']
+        }).
         details_facet({sections:[
             {
                 name:'identity',
@@ -61,6 +49,21 @@ IPA.entity_factories.permission = function() {
                 label: IPA.messages.objects.permission.target
             }]}).
         standard_association_facets().
+        adder_dialog({
+            fields:[
+                'cn',
+                {
+                    factory:IPA.rights_widget,
+                    name: 'permissions',
+                    join: true, undo: false
+                },
+                {
+                    factory: IPA.target_section,
+                    name: 'target',
+                    label: IPA.messages.objects.permission.target,
+                    undo: false
+                }]
+        }).
         build();
 };
 
@@ -69,8 +72,7 @@ IPA.entity_factories.privilege = function() {
     return IPA.entity_builder().
         entity('privilege').
         search_facet({
-            columns:['cn','description'],
-            add_fields:['cn', 'description']}).
+            columns:['cn','description']}).
         details_facet({
             sections:
             [{
@@ -90,6 +92,9 @@ IPA.entity_factories.privilege = function() {
                 remove_method: 'remove_permission'
         }).
         standard_association_facets().
+        adder_dialog({
+            fields:['cn', 'description']
+        }).
         build();
 
 };
@@ -99,8 +104,7 @@ IPA.entity_factories.role = function() {
     return  IPA.entity_builder().
         entity('role').
         search_facet({
-            columns:['cn','description'],
-            add_fields:['cn', 'description']}).
+            columns:['cn','description']}).
         details_facet({sections:[
             {
                 name:'identity',
@@ -112,6 +116,9 @@ IPA.entity_factories.role = function() {
                 remove_method: 'remove_privilege'
         }).
         standard_association_facets().
+        adder_dialog({
+            fields:['cn', 'description']
+        }).
         build();
 };
 
@@ -120,14 +127,7 @@ IPA.entity_factories.selfservice = function() {
     return IPA.entity_builder().
         entity('selfservice').
         search_facet({
-            columns:['aciname'],
-            add_fields:[
-                'aciname',
-                {factory:IPA.attributes_widget,
-                 object_type:'user',
-                 name:'attrs',
-                 undo: false
-                }]}).
+            columns:['aciname']}).
         details_facet({
             sections:[{
                 name:'general',
@@ -139,6 +139,15 @@ IPA.entity_factories.selfservice = function() {
                         object_type:'user',
                         name:'attrs'
                     }]}]}).
+        adder_dialog({
+            fields:[
+                'aciname',
+                {factory:IPA.attributes_widget,
+                 object_type:'user',
+                 name:'attrs',
+                 undo: false
+                }]
+        }).
         build();
 };
 
@@ -147,23 +156,7 @@ IPA.entity_factories.delegation = function() {
     return IPA.entity_builder().
         entity('delegation').
         search_facet({
-            columns:['aciname'],
-            add_fields:[
-                'aciname',
-                {
-                    factory:IPA.entity_select_widget,
-                    name: 'group', entity: 'group', undo: false
-                },
-                {
-                    factory:IPA.entity_select_widget,
-                    name: 'memberof', entity: 'group',
-                    join: true, undo: false
-                },
-                {
-                    factory:IPA.attributes_widget,
-                    name: 'attrs', object_type: 'user',
-                    join: true, undo: false
-                }]}).
+            columns:['aciname']}).
         details_facet({sections:[
             {
                 name:'general',
@@ -185,6 +178,24 @@ IPA.entity_factories.delegation = function() {
                         join: true
                     }]}]}).
         standard_association_facets().
+        adder_dialog({
+            fields:[
+                'aciname',
+                {
+                    factory:IPA.entity_select_widget,
+                    name: 'group', entity: 'group', undo: false
+                },
+                {
+                    factory:IPA.entity_select_widget,
+                    name: 'memberof', entity: 'group',
+                    join: true, undo: false
+                },
+                {
+                    factory:IPA.attributes_widget,
+                    name: 'attrs', object_type: 'user',
+                    join: true, undo: false
+                }]
+        }).
         build();
 };
 

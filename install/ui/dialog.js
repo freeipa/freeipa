@@ -276,12 +276,23 @@ IPA.dialog = function(spec) {
         if (field_spec instanceof Object) {
             var factory = field_spec.factory || IPA.text_widget;
             field = factory(field_spec);
-        } else {
-            var field_name = field_spec;
-            field = IPA.text_widget({ name: field_name, undo: false });
-        }
 
-        that.add_field(field);
+            /* This is a bit of a hack, and is here to support ACI
+               permissions. The target section is a group of several
+               widgets together. It makes more sense to do them as a
+               section than as a widget. However, since they can be mixed
+               into the flow with the other widgets, the section needs to
+               be defined here with the fields to get the order correct.*/
+            if (field.section) {
+                that.add_section(field);
+            } else {
+                that.add_field(field);
+            }
+
+        } else {
+            field = IPA.text_widget({ name: field_spec, undo: false });
+            that.add_field(field);
+        }
     }
 
     return that;

@@ -29,18 +29,7 @@ IPA.entity_factories.group =  function () {
     return IPA.entity_builder().
         entity('group').
         search_facet({
-            columns:['cn','gidnumber','description'],
-            add_fields: [
-                'cn',
-                'description',
-                {
-                    factory:IPA.checkbox_widget,
-                    name: 'posix',
-                    label: IPA.messages.objects.group.posix,
-                    undo: false,
-                    checked: 'checked'
-                },
-                'gidnumber']
+            columns:['cn','gidnumber','description']
         }).
         details_facet({sections:
             [{
@@ -86,5 +75,18 @@ IPA.entity_factories.group =  function () {
             associator: IPA.serial_associator
         }).
         standard_association_facets().
+        adder_dialog({
+            fields: [
+                'cn',
+                'description',
+                {
+                    factory:IPA.checkbox_widget,
+                    name: 'posix',
+                    label: IPA.messages.objects.group.posix,
+                    undo: false,
+                    checked: 'checked'
+                },
+                'gidnumber']
+        }).
         build();
 };

@@ -300,7 +300,7 @@ IPA.search_facet = function(spec) {
     };
 
     that.add = function() {
-        var dialog = that.get_dialog('add');
+        var dialog = that.entity.get_dialog('add');
         dialog.open(that.container);
     };
 

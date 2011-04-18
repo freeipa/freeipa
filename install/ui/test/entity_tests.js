@@ -36,8 +36,7 @@ module('entity',{
                         entity_builder().
                         entity('user').
                         search_facet({
-                            columns:['uid'],
-                            add_fields:[]}).
+                            columns:['uid']}).
                         build();
                 };
                 IPA.start_entities();
@@ -67,8 +66,7 @@ test('Testing IPA.entity_set_search_definition().', function() {
         entity_builder().
         entity('user').
         search_facet({
-            columns:['uid'],
-            add_fields:[]}).
+            columns:['uid']}).
         build();
     entity.init();
 

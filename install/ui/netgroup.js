@@ -26,8 +26,7 @@ IPA.entity_factories.netgroup = function() {
     return IPA.entity_builder().
         entity('netgroup').
         search_facet({
-            columns:['cn','description'],
-            add_fields:['cn', 'description']}).
+            columns:['cn','description']}).
         details_facet({sections:[{
             name:'identity',
             fields:['cn','description','nisdomainname']}]}).
@@ -36,5 +35,8 @@ IPA.entity_factories.netgroup = function() {
             associator: IPA.serial_associator
         }).
         standard_association_facets().
+        adder_dialog({
+            fields:['cn', 'description']
+        }).
         build();
 };
