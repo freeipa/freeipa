@@ -799,6 +799,25 @@ IPA.association_facet = function (spec) {
         return pkey != that.pkey;
     };
 
+    that.create_action_panel = function(container) {
+
+        that.facet_create_action_panel(container);
+
+        var buttons = $('.action-controls', container);
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'remove',
+            'value': IPA.messages.buttons.remove
+        }).appendTo(buttons);
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'add',
+            'value': IPA.messages.buttons.enroll
+        }).appendTo(buttons);
+    };
+
     that.create_content = function(container) {
 
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
@@ -832,22 +851,6 @@ IPA.association_facet = function (spec) {
         var span = $('<span/>', { 'name': 'association' }).appendTo(container);
 
         that.table.create(span);
-
-        var action_panel = that.get_action_panel();
-        var li = $('.action-controls', action_panel);
-
-        // creating generic buttons for layout
-        $('<input/>', {
-            'type': 'button',
-            'name': 'remove',
-            'value': IPA.messages.buttons.remove
-        }).appendTo(li);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'add',
-            'value': IPA.messages.buttons.enroll
-        }).appendTo(li);
     };
 
     that.setup = function(container) {

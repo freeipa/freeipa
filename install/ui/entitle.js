@@ -263,11 +263,7 @@ IPA.entitle.search_facet = function(spec) {
 
         that.facet_create_action_panel(container);
 
-        var li = $('.action-controls', container);
-
-        var buttons = $('<span/>', {
-            'class': 'search-buttons'
-        }).appendTo(li);
+        var buttons = $('.action-controls', container);
 
         that.register_buttons = $('<span/>', {
             style: 'display: none;'

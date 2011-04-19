@@ -217,11 +217,7 @@ IPA.search_facet = function(spec) {
 
         that.facet_create_action_panel(container);
 
-        var li = $('.action-controls', container);
-
-        var buttons = $('<span/>', {
-            'class': 'search-buttons'
-        }).appendTo(li);
+        var buttons = $('.action-controls', container);
 
         $('<input/>', {
             'type': 'button',
@@ -251,9 +247,8 @@ IPA.search_facet = function(spec) {
         that.table.setup(span);
 
         var action_panel = that.get_action_panel();
-        var search_buttons = $('.search-buttons', action_panel);
 
-        var button = $('input[name=remove]', search_buttons);
+        var button = $('input[name=remove]', action_panel);
         that.remove_button = IPA.action_button({
             'label': IPA.messages.buttons.remove,
             'icon': 'ui-icon-trash',
@@ -265,7 +260,7 @@ IPA.search_facet = function(spec) {
         button.replaceWith(that.remove_button);
         that.remove_button.addClass('input_link_disabled');
 
-        button = $('input[name=add]', search_buttons);
+        button = $('input[name=add]', action_panel);
         that.add_button = IPA.action_button({
             'label': IPA.messages.buttons.add,
             'icon': 'ui-icon-plus',

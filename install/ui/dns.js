@@ -299,6 +299,25 @@ IPA.records_facet = function (spec){
         return pkey != that.pkey || record != that.record;
     };
 
+    that.create_action_panel = function(container) {
+
+        that.facet_create_action_panel(container);
+
+        var buttons = $('.action-controls', container);
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'remove',
+            'value': IPA.messages.buttons.remove
+        }).appendTo(buttons);
+
+        $('<input/>', {
+            'type': 'button',
+            'name': 'add',
+            'value': IPA.messages.buttons.add
+        }).appendTo(buttons);
+    };
+
     function create_content(container) {
 
         $('<h1/>',{
@@ -337,24 +356,23 @@ IPA.records_facet = function (spec){
             'click': function(){refresh();}
         }).appendTo(control_span);
 
-        var action_panel_ul = $('.action-panel .entity-facet', that.container).
-            last();
+        var action_panel = that.get_action_panel();
 
-        var action_controls =  $('<li/>',{
-            "class":"action-controls"}).appendTo(action_panel_ul);
-
-
-        IPA.action_button({
+        var button = $('input[name=remove]', action_panel);
+        that.remove_button = IPA.action_button({
             label: IPA.messages.buttons.remove,
             icon: 'ui-icon-trash',
             click: function(){ delete_records(records_table); }
-        }).appendTo(action_controls);
+        });
+        button.replaceWith(that.remove_button);
 
-        IPA.action_button({
+        button = $('input[name=add]', action_panel);
+        that.add_button = IPA.action_button({
             label: IPA.messages.buttons.add,
             icon: 'ui-icon-plus',
             click: add_click
-        }).appendTo(action_controls);
+        });
+        button.replaceWith(that.add_button);
 
         div.append('<span class="records-buttons"></span>');
 

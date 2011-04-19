@@ -323,6 +323,23 @@ IPA.details_facet = function(spec) {
         }
     };
 
+    that.create_action_panel = function(container) {
+
+        that.facet_create_action_panel(container);
+
+        var buttons = $('.action-controls', container);
+
+        $('<input/>', {
+            'type': 'text',
+            'name': 'reset'
+        }).appendTo(buttons);
+
+        $('<input/>', {
+            'type': 'text',
+            'name': 'update'
+        }).appendTo(buttons);
+    };
+
     function create_content(container) {
 
         var label = IPA.metadata.objects[that.entity_name].label;
@@ -355,22 +372,6 @@ IPA.details_facet = function(spec) {
         }).appendTo(details);
 
         details.append('<br/>');
-
-        var action_panel = that.get_action_panel();
-
-        var ul = $('ul', action_panel);
-        var buttons = $('.action-controls',action_panel);
-
-        $('<input/>', {
-            'type': 'text',
-            'name': 'reset'
-        }).appendTo(buttons);
-
-        $('<input/>', {
-            'type': 'text',
-            'name': 'update'
-        }).appendTo(buttons);
-
 
         for (var i = 0; i < that.sections.length; ++i) {
             var section = that.sections[i];
