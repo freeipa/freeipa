@@ -339,7 +339,7 @@ class permission_mod(LDAPUpdate):
 
             cn = options['rename']     # rename finished
 
-        result = self.api.Command.permission_show(cn)['result']
+        result = self.api.Command.permission_show(cn, **options)['result']
         for r in result:
             if not r.startswith('member'):
                 entry_attrs[r] = result[r]
@@ -414,6 +414,11 @@ class permission_show(LDAPRetrieve):
                     entry_attrs[attr] = aci[attr]
         except errors.NotFound:
             self.debug('ACI not found for %s' % entry_attrs['cn'][0])
+        if options.get('rights', False) and options.get('all', False):
+            # The ACI attributes are just broken-out components of aci so
+            # the rights should all match it.
+            for attr in self.obj.aci_attributes:
+                entry_attrs['attributelevelrights'][attr] = entry_attrs['attributelevelrights']['aci']
         return dn
 
 api.register(permission_show)
