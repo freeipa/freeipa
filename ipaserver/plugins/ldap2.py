@@ -35,6 +35,7 @@ import tempfile
 import time
 
 import krbV
+import logging
 import ldap as _ldap
 import ldap.filter as _ldap_filter
 import ldap.sasl as _ldap_sasl
@@ -580,10 +581,14 @@ class ldap2(CrudBackend, Encoder):
 
         if attrs_list and ('memberindirect' in attrs_list or '*' in attrs_list):
             for r in res:
-                indirect = self.get_members(r[0], membertype=MEMBERS_INDIRECT,
-                    time_limit=time_limit, size_limit=size_limit, normalize=normalize)
-                if len(indirect) > 0:
-                    r[1]['memberindirect'] = indirect
+                if not 'member' in r[1]:
+                    continue
+                else:
+                    members = r[1]['member']
+                    indirect = self.get_members(r[0], members, membertype=MEMBERS_INDIRECT,
+                        time_limit=time_limit, size_limit=size_limit, normalize=normalize)
+                    if len(indirect) > 0:
+                        r[1]['memberindirect'] = indirect
         if attrs_list and ('memberofindirect' in attrs_list or '*' in attrs_list):
             for r in res:
                 if 'memberof' in r[1]:
@@ -904,7 +909,7 @@ class ldap2(CrudBackend, Encoder):
         # update group entry
         self.update_entry(group_dn, group_entry_attrs)
 
-    def get_members(self, group_dn, attr_list=[], membertype=MEMBERS_ALL, time_limit=None, size_limit=None, normalize=True):
+    def get_members(self, group_dn, members, attr_list=[], membertype=MEMBERS_ALL, time_limit=None, size_limit=None, normalize=True):
         """Do a memberOf search of groupdn and return the attributes in
            attr_list (an empty list returns all attributes).
 
@@ -925,21 +930,17 @@ class ldap2(CrudBackend, Encoder):
 
         attr_list.append("member")
 
-        # We have to do two searches because netgroups are not within the
-        # accounts container.
-        try:
-            (results, truncated) = self.find_entries(searchfilter, attr_list,
-                api.env.container_accounts, time_limit=time_limit,
-                size_limit=size_limit, normalize=normalize)
-        except errors.NotFound:
-            results = []
-        try:
-            (netresults, truncated) = self.find_entries(searchfilter, attr_list,
-                api.env.container_netgroup, time_limit=time_limit,
-                size_limit=size_limit, normalize=normalize)
-        except errors.NotFound:
-            netresults = []
-        results = results + netresults
+        # Verify group membership
+
+        results = []
+        for member in members:
+            try:
+                (result, truncated) = self.find_entries(searchfilter, attr_list,
+                    member, time_limit=time_limit,
+                    size_limit=size_limit, normalize=normalize)
+                results.append(list(result[0]))
+            except errors.NotFound:
+                pass
 
         if membertype == MEMBERS_ALL:
             entries = []
@@ -988,45 +989,34 @@ class ldap2(CrudBackend, Encoder):
         searchfilter = "(|(member=%s)(memberhost=%s)(memberuser=%s))" % (
             search_entry_dn, search_entry_dn, search_entry_dn)
 
-        # We have to do three searches because netgroups and pbac are not
-        # within the accounts container.
-        try:
-            (results, truncated) = self.find_entries(searchfilter, attr_list,
-                api.env.container_accounts, time_limit=time_limit,
-                size_limit=size_limit, normalize=normalize)
-        except errors.NotFound:
-            results = []
-        try:
-            (netresults, truncated) = self.find_entries(searchfilter, attr_list,
-                api.env.container_netgroup, time_limit=time_limit,
-                size_limit=size_limit, normalize=normalize)
-        except errors.NotFound:
-            netresults = []
-        results = results + netresults
-        try:
-            (pbacresults, truncated) = self.find_entries(searchfilter,
-                attr_list, 'cn=pbac,%s' % api.env.basedn,
-                time_limit=time_limit, size_limit=size_limit,
-                normalize=normalize)
-        except errors.NotFound:
-            pbacresults = []
-        results = results + pbacresults
-        try:
-            (sudoresults, truncated) = self.find_entries(searchfilter,
-                attr_list, 'cn=sudo,%s' % api.env.basedn,
-                time_limit=time_limit, size_limit=size_limit,
-                normalize=normalize)
-        except errors.NotFound:
-            sudoresults = []
-        results = results + sudoresults
+        # Search only the groups for which the object is a member to
+        # determine if it is directly or indirectly associated.
+
+        results = []
+        for group in memberof:
+            try:
+                (result, truncated) = self.find_entries(searchfilter, attr_list,
+                    group, time_limit=time_limit,size_limit=size_limit,
+                    normalize=normalize)
+                results.extend(list(result))
+            except errors.NotFound:
+                pass
 
         direct = []
         indirect = []
+        # If there is an exception here, it is likely due to a failure in
+        # referential integrity. All members should have corresponding
+        # memberOf entries.
         for m in memberof:
             indirect.append(m.lower())
         for r in results:
             direct.append(r[0])
-            indirect.remove(r[0].lower())
+            try:
+                indirect.remove(r[0].lower())
+            except ValueError, e:
+                logging.info('Failed to remove'
+                    ' indirect entry %s from %s' % r[0], entry_dn)
+                raise e
 
         return (direct, indirect)
 
