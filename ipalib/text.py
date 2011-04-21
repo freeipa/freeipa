@@ -154,6 +154,7 @@ class LazyText(object):
         self.domain = domain
         self.localedir = localedir
         self.key = (domain, localedir)
+        self.args = None
 
     def __eq__(self, other):
         """

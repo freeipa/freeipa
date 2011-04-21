@@ -1125,6 +1125,9 @@ class Data(Param):
         ('pattern', (basestring,), None),
         ('pattern_errmsg', (basestring,), None),
     )
+    
+    re = None
+    re_errmsg = None
 
     def __init__(self, name, *rules, **kw):
         super(Data, self).__init__(name, *rules, **kw)

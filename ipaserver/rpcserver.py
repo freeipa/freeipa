@@ -178,6 +178,7 @@ class WSGIExecutioner(Executioner):
     Base class for execution backends with a WSGI application interface.
     """
 
+    content_type = None
     key = ''
 
     def set_api(self, api):
