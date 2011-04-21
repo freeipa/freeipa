@@ -23,6 +23,7 @@ import os
 import ldap
 from ipaserver import ipaldap
 from ipaserver.install.service import restart
+import installutils
 from ldap import modlist
 from ipalib import util
 from ipalib import errors
@@ -69,6 +70,7 @@ def enable_replication_version_checking(hostname, realm, dirman_passwd):
         conn.unbind()
         serverid = "-".join(realm.split("."))
         restart("dirsrv", instance_name=serverid)
+        installutils.wait_for_open_ports('localhost', [389, 636], 300)
     else:
         conn.unbind()
 
