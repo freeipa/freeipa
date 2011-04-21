@@ -66,7 +66,7 @@ def parse_options():
                       help="unattended installation never prompts the user")
     parser.add_option("--ntp-server", dest="ntp_server", help="ntp server to use")
     parser.add_option("-S", "--no-sssd", action="store_false",
-                      help="do not configure sssd", default=True, dest="sssd")
+                      help="Do not configure the client to use SSSD for authentication", default=True, dest="sssd")
     parser.add_option("-N", "--no-ntp", action="store_false",
                       help="do not configure ntp", default=True, dest="conf_ntp")
     parser.add_option("-w", "--password", dest="password", sensitive=True,
@@ -494,7 +494,6 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options):
             print "certmonger request for host certificate failed"
 
 def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
-    fstore.backup_file("/etc/sssd/sssd.conf")
     sssdconfig = SSSDConfig.SSSDConfig()
     sssdconfig.new_config()
 
@@ -851,6 +850,8 @@ def main():
         configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server)
         print "Created /etc/ipa/default.conf"
 
+    # Always back up sssd.conf. It gets updated by authconfig --enablekrb5.
+    fstore.backup_file("/etc/sssd/sssd.conf")
     if options.sssd:
         if configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
             return 1
@@ -913,7 +914,7 @@ def main():
         cmd = ["/usr/sbin/authconfig", "--enablesssd", "--enablesssdauth", "--update"]
         message = "SSSD enabled"
     else:
-        cmd = ["/usr/sbin/authconfig", "--enableldap", "--update"]
+        cmd = ["/usr/sbin/authconfig", "--enableldap", "--enableforcelegacy", "--update"]
         message = "LDAP enabled"
 
     if options.mkhomedir:
