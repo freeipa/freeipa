@@ -641,6 +641,29 @@ class IPAdmin(SimpleLDAPObject):
 
         return entry
 
+    def checkTask(self, dn, dowait=False, verbose=False):
+        """check task status - task is complete when the nsTaskExitCode attr
+           is set return a 2 tuple (true/false,code) first is false if task is
+           running, true if done - if true, second is the exit code - if dowait
+           is True, this function will block until the task is complete
+        """
+        attrlist = ['nsTaskLog', 'nsTaskStatus', 'nsTaskExitCode', 'nsTaskCurrentItem', 'nsTaskTotalItems']
+        done = False
+        exitCode = 0
+        while not done:
+            try:
+                entry = self.getEntry(dn, ldap.SCOPE_BASE, "(objectclass=*)", attrlist)
+            except errors.NotFound:
+                break
+            if verbose:
+                print entry
+            if entry.nsTaskExitCode:
+                exitCode = int(entry.nsTaskExitCode)
+                done = True
+            if dowait: time.sleep(1)
+            else: break
+        return (done, exitCode)
+
     def normalizeDN(dn):
         # not great, but will do until we use a newer version of python-ldap
         # that has DN utilities

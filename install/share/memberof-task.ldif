@@ -1,3 +1,5 @@
+# Note, if you change this dn also update the dn in
+# ipaserver/install/dsinstance.py
 dn: cn=IPA install $TIME, cn=memberof task, cn=tasks, cn=config
 changetype: add
 objectClass: top

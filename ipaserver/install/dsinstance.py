@@ -427,6 +427,13 @@ class DsInstance(service.Service):
 
     def init_memberof(self):
         self._ldap_mod("memberof-task.ldif", self.sub_dict)
+        # Note, keep dn in sync with dn in install/share/memberof-task.ldif
+        dn = "cn=IPA install %s,cn=memberof task,cn=tasks,cn=config" % self.sub_dict["TIME"]
+        logging.debug("Waiting for memberof task to complete.")
+        conn = ipaldap.IPAdmin("127.0.0.1")
+        conn.simple_bind_s("cn=directory manager", self.dm_password)
+        conn.checkTask(dn, dowait=True)
+        conn.unbind()
 
     def apply_updates(self):
         ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password, sub_dict=self.sub_dict)
