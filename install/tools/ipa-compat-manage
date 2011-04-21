@@ -147,6 +147,7 @@ def main():
             # Make a quick hack for now, directly delete the entries by name,
             # In future we should add delete capabilites to LDAPUpdate
             try:
+                conn.delete_entry('cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
                 conn.delete_entry('cn=groups,cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
                 conn.delete_entry('cn=users,cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
                 conn.delete_entry('cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
