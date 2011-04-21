@@ -113,6 +113,10 @@ class Service:
         else:
             self.sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
 
+        self.realm = None
+        self.suffix = None
+        self.principal = None
+
     def ldap_connect(self):
         self.admin_conn = self.__get_conn(self.fqdn, self.dm_password)
 

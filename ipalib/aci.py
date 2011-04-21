@@ -45,6 +45,8 @@ class ACI:
     """
     def __init__(self,acistr=None):
         self.name = None
+        self.source_group = None
+        self.dest_group = None
         self.orig_acistr = acistr
         self.target = {}
         self.action = "allow"
