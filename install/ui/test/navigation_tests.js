@@ -34,13 +34,7 @@ module('navigation', {
     }
 });
 
-test("Testing IPA.nav.create().", function() {
-
-    var mock_tabs_lists =  [
-        { name:'identity', label:'IDENTITY', children: [
-            {name:'user', entity:'user'},
-            {name:'group', entity:'group'}
-        ]}];
+test("Testing IPA.navigation.create().", function() {
 
     var entity;
 
@@ -68,54 +62,66 @@ test("Testing IPA.nav.create().", function() {
     IPA.start_entities();
 
     IPA.metadata = {};
-    var navigation = $('<div id="navigation"/>').appendTo(document.body);
+    var container = $('<div id="navigation"/>').appendTo(document.body);
     var user_mock_called = false;
     var group_mock_called = false;
-    IPA.nav.create(mock_tabs_lists, navigation, 'tabs');
-    IPA.nav.update_tabs();
+
+    var navigation = IPA.navigation({
+        container: container,
+        tabs: [
+            { name:'identity', label:'IDENTITY', children: [
+                {name:'user', entity:'user'},
+                {name:'group', entity:'group'}
+            ]}
+        ]
+    });
+
+    navigation.create();
+    navigation.update();
+
     ok(user_mock_called, "mock user setup was called");
     ok(!group_mock_called, "mock group setup was not called because the tab is inactive");
-    same( navigation[0].children.length, 2, "Two Child tabs");
-    same( navigation[0].children[1].id, 'identity', "Identity Tab");
-    same( navigation[0].children[1].children[1].id, 'user', "User Tab");
-    same( navigation[0].children[1].children[2].id, 'group', "User Tab");
-    navigation.remove();
+    same( container[0].children.length, 2, "Two Child tabs");
+    same( container[0].children[1].id, 'identity', "Identity Tab");
+    same( container[0].children[1].children[1].id, 'user', "User Tab");
+    same( container[0].children[1].children[2].id, 'group', "User Tab");
+    container.remove();
 });
 
-test("Testing IPA.nav.update_tabs() with valid index.", function() {
+test("Testing IPA.navigation.update() with valid index.", function() {
 
-    var orig_push_state = IPA.nav.push_state;
-    var orig_get_state = IPA.nav.get_state;
-    var orig_remove_state = IPA.nav.remove_state;
+    var container = $('<div id="navigation"/>').appendTo(document.body);
 
-    var state = {};
-
-    IPA.nav.push_state = function(params) {
-        $.extend(state, params);
-    };
-    IPA.nav.get_state = function(key) {
-        return state[key];
-    };
-    IPA.nav.remove_state = function(key) {
-        delete state[key];
-    };
-
-    var mock_tabs_lists =
-        [
+    var navigation = IPA.navigation({
+        container: container,
+        tabs: [
             { name:'identity', label:'IDENTITY', children: [
                 {name:'one', label:'One', setup: function (){}},
                 {name:'two', label:'Two', setup: function (){}}
-            ]}];
+            ]}
+        ]
+    });
 
-    var navigation = $('<div id="navigation"/>').appendTo(document.body);
+    var state = {};
 
-    IPA.nav.create(mock_tabs_lists, navigation, 'tabs');
+    navigation.push_state = function(params) {
+        $.extend(state, params);
+    };
 
-    IPA.nav.push_state({"identity":1});
-    IPA.nav.update_tabs();
+    navigation.get_state = function(key) {
+        return state[key];
+    };
+
+    navigation.remove_state = function(key) {
+        delete state[key];
+    };
+
+    navigation.create();
+    navigation.push_state({"identity":1});
+    navigation.update();
 
     same(
-        navigation.tabs('option', 'selected'), 0,
+        container.tabs('option', 'selected'), 0,
         "Active tab at level 1"
     );
 
@@ -124,49 +130,45 @@ test("Testing IPA.nav.update_tabs() with valid index.", function() {
         "Active tab at level 2"
     );
 
-    IPA.nav.remove_state("identity");
+    navigation.remove_state("identity");
 
-    navigation.remove();
-
-    IPA.nav.push_state = orig_push_state;
-    IPA.nav.get_state = orig_get_state;
-    IPA.nav.remove_state = orig_remove_state;
+    container.remove();
 });
 
-test("Testing IPA.nav.update_tabs() with out-of-range index.", function() {
+test("Testing IPA.navigation.update() with out-of-range index.", function() {
 
-    var orig_push_state = IPA.nav.push_state;
-    var orig_get_state = IPA.nav.get_state;
-    var orig_remove_state = IPA.nav.remove_state;
+    var container = $('<div id="navigation"/>').appendTo(document.body);
 
-    var state = {};
-
-    IPA.nav.push_state = function(params) {
-        $.extend(state, params);
-    };
-    IPA.nav.get_state = function(key) {
-        return state[key];
-    };
-    IPA.nav.remove_state = function(key) {
-        delete state[key];
-    };
-
-    var mock_tabs_lists =
-        [
+    var navigation = IPA.navigation({
+        container: container,
+        tabs: [
             { name:'identity', label:'IDENTITY', children: [
                 {name:'one', label:'One', setup: function (){}},
                 {name:'two', label:'Two', setup: function (){}}
-            ]}];
+            ]}
+        ]
+    });
 
-    var navigation = $('<div id="navigation"/>').appendTo(document.body);
+    var state = {};
 
-    IPA.nav.create(mock_tabs_lists, navigation, 'tabs');
+    navigation.push_state = function(params) {
+        $.extend(state, params);
+    };
 
-    IPA.nav.push_state({"identity":2});
-    IPA.nav.update_tabs();
+    navigation.get_state = function(key) {
+        return state[key];
+    };
+
+    navigation.remove_state = function(key) {
+        delete state[key];
+    };
+
+    navigation.create();
+    navigation.push_state({"identity":2});
+    navigation.update();
 
     same(
-        navigation.tabs('option', 'selected'), 0,
+        container.tabs('option', 'selected'), 0,
         "Active tab at level 1"
     );
 
@@ -175,11 +177,7 @@ test("Testing IPA.nav.update_tabs() with out-of-range index.", function() {
         "Active tab at level 2"
     );
 
-    IPA.nav.remove_state("identity");
+    navigation.remove_state("identity");
 
-    navigation.remove();
-
-    IPA.nav.push_state = orig_push_state;
-    IPA.nav.get_state = orig_get_state;
-    IPA.nav.remove_state = orig_remove_state;
+    container.remove();
 });

@@ -333,7 +333,7 @@ IPA.get_nested_tab_label = function(entity_name){
   any nested tabs underneath it or
   its parent tab and the others nested at the same level*/
 
-IPA.nested_tabs = function(entity_name){
+IPA.nested_tabs = function(entity_name) {
 
     var siblings = [];
     var i;
@@ -349,14 +349,14 @@ IPA.nested_tabs = function(entity_name){
     }
 
 
-    if (!IPA.tab_set) {
+    if (!IPA.nav.tabs) {
         siblings.push(entity_name);
         return siblings;
     }
 
-    for (var top_i = 0; top_i < IPA.tab_set.length; top_i += 1){
-        var top_tab =  IPA.tab_set[top_i];
-        for (sub_i = 0; sub_i < top_tab.children.length; sub_i += 1){
+    for (var top_i = 0; top_i < IPA.nav.tabs.length; top_i++) {
+        var top_tab = IPA.nav.tabs[top_i];
+        for (sub_i = 0; sub_i < top_tab.children.length; sub_i++) {
             sub_tab = top_tab.children[sub_i];
             nested_entities = sub_tab.children;
             if (sub_tab.name === entity_name){
@@ -379,6 +379,7 @@ IPA.nested_tabs = function(entity_name){
             }
         }
     }
+
     return siblings;
 };
 
@@ -454,7 +455,7 @@ IPA.entity_header = function(spec){
                             return false;
                         }
 
-                        IPA.switch_and_show_page(entity.name, 'search');
+                        IPA.show_page(entity.name, 'search');
                         $(that.facet_tabs).find('a').removeClass('selected');
                         return false;
 
@@ -482,7 +483,7 @@ IPA.entity_header = function(spec){
                         return false;
                     }
                     var this_pkey = that.pkey_field.val();
-                    IPA.switch_and_show_page(
+                    IPA.show_page(
                         entity_name, other_facet_name,
                         this_pkey);
                     $(that.facet_tabs).find('a').removeClass('selected');

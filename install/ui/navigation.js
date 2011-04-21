@@ -2,6 +2,7 @@
 
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
+ *    Endi S. Dewata <edewata@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -20,39 +21,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-IPA.nav = {
-    tabs_lists : {},
-    nav_container : {},
+IPA.navigation = function(spec) {
 
-    push_state : function (params) {
-        if (!IPA.test_dirty()){
+    spec = spec || {};
+
+    var that = {};
+
+    that.container = spec.container;
+    that.tab_class = spec.tab_class || 'tabs';
+
+    that.tabs = spec.tabs || [];
+
+    that.push_state = function(params) {
+        if (!IPA.test_dirty()) {
             return false;
         }
         $.bbq.pushState(params);
         return true;
-    },
+    };
 
-    get_state : function (key) {
+    that.get_state = function(key) {
         return $.bbq.getState(key, true);
-    },
+    };
 
-    remove_state : function (key) {
+    that.remove_state = function(key) {
         $.bbq.removeState(key);
-    },
+    };
 
-    create : function (nls, container, tabclass) {
-        if (!container){
-            container = $('#navigation');
-        }
-        if (!tabclass){
-            tabclass = 'tabs';
-        }
-        IPA.nav.tabs_lists = nls;
-        IPA.nav.nav_container = container;
+    that.create = function() {
 
-        IPA.nav.generate_tabs(nls, container, tabclass, 1);
+        that._create(that.tabs, that.container, 1);
 
-        var tabs = $('.' + tabclass);
+        var tabs = $('.' + that.tab_class);
         tabs.tabs({
             select: function(event, ui) {
                 var panel = $(ui.panel);
@@ -60,21 +60,22 @@ IPA.nav = {
                 var id = parent.attr('id');
                 var state = {};
                 state[id] = ui.index;
-                return IPA.nav.push_state(state);
+                return that.push_state(state);
             }
         });
-    },
+    };
 
-    generate_tabs : function (nls, container, tabclass, depth) {
-        container.addClass(tabclass);
+    that._create = function(tabs, container, depth) {
+
+        container.addClass(that.tab_class);
         container.addClass('tabs'+depth);
 
-        var ul = $('<ul/>');
-        container.append(ul);
+        var ul = $('<ul/>').appendTo(container);
 
-        for (var i = 0; i < nls.length; i += 1) {
-            var tab = nls[i];
-            if (tab.entity){
+        for (var i=0; i<tabs.length; i++) {
+            var tab = tabs[i];
+
+            if (!tab.name) {
                 tab.name = tab.entity;
             }
 
@@ -82,8 +83,8 @@ IPA.nav = {
             if (tab.entity) {
                 var entity = IPA.get_entity(tab.entity);
                 if (!entity){
-                    nls.splice(i,1);
-                    i -= 1;
+                    tabs.splice(i, 1);
+                    i--;
                     continue;
                 }
                 label = entity.label;
@@ -93,59 +94,64 @@ IPA.nav = {
                 label = tab.label;
             }
 
-            var li = IPA.nav.create_tab_li(tab.name, label);
+            var li = that.create_tab_li(tab.name, label);
             ul.append(li);
 
-            var div = IPA.nav.create_tab_div(tab.name);
+            var div = that.create_tab_div(tab.name);
             container.append(div);
 
             if (tab.entity) {
                 div.addClass('entity-container');
             }
 
-            if (tab.children) {
-                IPA.nav.generate_tabs(tab.children, div, tabclass, depth +1 );
+            if (tab.children && tab.children.length) {
+                that._create(tab.children, div, depth+1);
             }
         }
-    },
+    };
 
-    create_tab_li : function (id, name) {
+    that.create_tab_li = function(id, name) {
         return $('<li/>').append($('<a/>', {
             href: '#'+id,
             title: id,
             html: name
         }));
-    },
+    };
 
-    create_tab_div : function (id) {
+    that.create_tab_div = function(id) {
         return $('<div/>', {
             id: id
         });
-    },
+    };
 
-    update_tabs : function () {
-        IPA.nav._update_tabs(IPA.nav.tabs_lists, IPA.nav.nav_container,1);
-    },
+    that.update = function() {
+        that._update(that.tabs, that.container, 1);
+    };
 
-    _update_tabs : function (nls, container,depth) {
+    that._update = function(tabs, container, depth) {
+
         var id = container.attr('id');
-        var index = IPA.nav.get_state(id);
-        if (!index || index >= nls.length) index = 0;
+        var index = that.get_state(id);
+        if (!index || index >= tabs.length) index = 0;
 
         container.tabs('select', index);
 
-        var tab = nls[index];
+        var tab = tabs[index];
         var container2 = $('#' + tab.name);
 
-        if (tab.children) {
-            IPA.nav._update_tabs(tab.children, container2,depth+1);
+        if (tab.children && tab.children.length) {
+            that._update(tab.children, container2, depth+1);
+
         } else if (tab.entity) {
             tab.entity.setup(container2);
         }
-    }
+    };
+
+    // methods that should be invoked by subclasses
+    that.navigation_update = that.update;
+
+    return that;
 };
-
-
 
 IPA.tab_state = function(entity_name,tab){
     var state;
@@ -154,7 +160,7 @@ IPA.tab_state = function(entity_name,tab){
     var tab_name;
 
     if (!tab){
-        children = IPA.tab_set;
+        children = IPA.nav.tabs;
         tab_name = 'navigation';
     }else if (tab.children){
         children = tab.children;

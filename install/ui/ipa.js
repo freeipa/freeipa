@@ -134,22 +134,22 @@ var IPA = ( function () {
         return that.entities_by_name[name];
     };
 
-    function add_entity(entity) {
+    that.add_entity = function(entity) {
         that.entities.push(entity);
         that.entities_by_name[entity.name] = entity;
-    }
+    };
 
-    that.start_entities = function(){
+    that.start_entities = function() {
         var factory;
-        var name ;
-        for (name in that.entity_factories){
+        var name;
+        for (name in that.entity_factories) {
             factory = that.entity_factories[name];
-            try{
+            try {
                 var entity = factory();
-                add_entity(entity);
+                that.add_entity(entity);
                 entity.init();
-            }catch(e){
-                /*exceptions  thrown by builder just mean that entities
+            } catch (e) {
+                /*exceptions thrown by builder just mean that entities
                   are not to be registered. */
             }
         }
@@ -185,31 +185,19 @@ var IPA = ( function () {
         return true;
     };
 
-    that.show_page = function (entity_name, facet_name) {
-        if (!IPA.test_dirty()){
-            return false;
+    that.show_page = function(entity_name, facet_name, pkey) {
+        if (!IPA.test_dirty()) {
+            return;
         }
 
         var state = {};
+
+        if (pkey) {
+            state[entity_name + '-pkey'] = pkey;
+        }
+
         state[entity_name + '-facet'] = facet_name;
         $.bbq.pushState(state);
-        return true;
-    };
-
-    that.switch_and_show_page = function (this_entity,  facet_name, pkey) {
-        if (!IPA.test_dirty()){
-            return false;
-        }
-
-        if (!pkey){
-            that.show_page(this_entity,  facet_name);
-            return false;
-        }
-        var state = {};
-        state[this_entity+'-pkey'] = pkey;
-        state[this_entity + '-facet'] = facet_name;
-        $.bbq.pushState(state);
-        return true;
     };
 
     that.display_activity_icon = function() {
