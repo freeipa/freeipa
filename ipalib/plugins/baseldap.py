@@ -256,6 +256,7 @@ class LDAPObject(Object):
     search_attributes = []
     search_attributes_config = None
     default_attributes = []
+    search_display_attributes = [] # attributes displayed in LDAPSearch
     hidden_attributes = ['objectclass', 'aci']
     # set rdn_attribute only if RDN attribute differs from primary key!
     rdn_attribute = ''
@@ -1362,11 +1363,15 @@ class LDAPSearch(CallbackInterface, crud.Search):
 
         search_kw = self.args_options_2_entry(**options)
 
+        if self.obj.search_display_attributes:
+            defattrs = self.obj.search_display_attributes
+        else:
+            defattrs = self.obj.default_attributes
         if options.get('all', False):
-            attrs_list = ['*'] + self.obj.default_attributes
+            attrs_list = ['*'] + defattrs
         else:
             attrs_list = list(
-                set(self.obj.default_attributes + search_kw.keys())
+                set(defattrs + search_kw.keys())
             )
 
         if self.obj.search_attributes:

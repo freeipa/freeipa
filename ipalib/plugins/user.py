@@ -86,6 +86,11 @@ class user(LDAPObject):
         'telephonenumber', 'title', 'memberof', 'nsaccountlock',
         'memberofindirect',
     ]
+    search_display_attributes = [
+        'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
+        'mail', 'telephonenumber', 'title', 'nsaccountlock',
+        'uidnumber', 'gidnumber',
+    ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'memberof': ['group', 'netgroup', 'role'],
