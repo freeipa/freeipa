@@ -29,8 +29,7 @@ IPA.entity_factories.user = function() {
     builder.
         entity('user').
         search_facet({
-            columns:['uid','cn','uidnumber','mail','telephonenumber','title'],
-            search_all: true
+            columns:['uid','givenname','sn','uidnumber','mail','telephonenumber','title'],
         }).
         details_facet({sections:[
             {
