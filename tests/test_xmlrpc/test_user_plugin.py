@@ -441,6 +441,33 @@ class test_user(Declarative):
 
 
         dict(
+            desc='Make non-existent %r the manager of %r' % (renameduser1, user2),
+            command=('user_mod', [user2], dict(manager=renameduser1)),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Make %r the manager of %r' % (user1, user2),
+            command=('user_mod', [user2], dict(manager=user1)),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser2'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User2'],
+                    uid=[user2],
+                    memberof_group=[u'ipausers'],
+                    nsaccountlock=[u'False'],
+                    manager=user1,
+                ),
+                summary=u'Modified user "%s"' % user2,
+                value=user2,
+            ),
+        ),
+
+
+        dict(
             desc='Delete %r and %r at the same time' % (user1, user2),
             command=('user_del', [user1, user2], {}),
             expected=dict(

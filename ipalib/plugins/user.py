@@ -243,6 +243,40 @@ class user(LDAPObject):
 
         return email
 
+    def _normalize_manager(self, manager):
+        """
+        Given a userid verify the user's existence and return the dn.
+        """
+        if not manager:
+            return None
+
+        if isinstance(manager, basestring):
+            manager = [manager]
+        try:
+            for m in xrange(len(manager)):
+                if manager[m].endswith('%s,%s' % (self.container_dn, api.env.basedn)):
+                    continue
+                (dn, entry_attrs) = self.backend.find_entry_by_attr(
+                        self.primary_key.name, manager[m], self.object_class, [''],
+                        self.container_dn
+                    )
+                manager[m] = dn
+        except errors.NotFound:
+            raise errors.NotFound(reason=_('manager %(manager)s not found') % dict(manager=manager[m]))
+
+        return manager
+
+    def _convert_manager(self, entry_attrs, **options):
+        """
+        Convert a manager dn into a userid
+        """
+        if options.get('raw', False):
+             return
+
+        if 'manager' in entry_attrs:
+            for m in xrange(len(entry_attrs['manager'])):
+                entry_attrs['manager'][m] = self.get_primary_key_from_dn(entry_attrs['manager'][m])
+
 api.register(user)
 
 
@@ -309,6 +343,9 @@ class user_add(LDAPCreate):
         if 'mail' in entry_attrs:
             entry_attrs['mail'] = self.obj._normalize_email(entry_attrs['mail'], config)
 
+        if 'manager' in entry_attrs:
+            entry_attrs['manager'] = self.obj._normalize_manager(entry_attrs['manager'])
+
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -317,6 +354,7 @@ class user_add(LDAPCreate):
         def_primary_group = config.get('ipadefaultprimarygroup')
         group_dn = self.api.Object['group'].get_dn(def_primary_group)
         ldap.add_entry_to_group(dn, group_dn)
+        self.obj._convert_manager(entry_attrs, **options)
         return dn
 
 api.register(user_add)
@@ -345,12 +383,15 @@ class user_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         if 'mail' in entry_attrs:
             entry_attrs['mail'] = self.obj._normalize_email(entry_attrs['mail'])
+        if 'manager' in entry_attrs:
+            entry_attrs['manager'] = self.obj._normalize_manager(entry_attrs['manager'])
         validate_nsaccountlock(entry_attrs)
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if not 'nsaccountlock' in entry_attrs:
             entry_attrs['nsaccountlock'] = [u'False']
+        self.obj._convert_manager(entry_attrs, **options)
         return dn
 
 api.register(user_mod)
@@ -379,6 +420,7 @@ class user_find(LDAPSearch):
     def post_callback(self, ldap, entries, truncated, *args, **options):
         for entry in entries:
             (dn, attrs) = entry
+            self.obj._convert_manager(attrs, **options)
             if not 'nsaccountlock' in attrs:
                 attrs['nsaccountlock'] = [u'False']
 
@@ -396,6 +438,7 @@ class user_show(LDAPRetrieve):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if not 'nsaccountlock' in entry_attrs:
             entry_attrs['nsaccountlock'] = [u'False']
+        self.obj._convert_manager(entry_attrs, **options)
         return dn
 
 api.register(user_show)
