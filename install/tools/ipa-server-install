@@ -57,11 +57,21 @@ from ipaserver.plugins.ldap2 import ldap2
 from ipapython import sysrestore
 from ipapython.ipautil import *
 from ipalib import api, errors, util
+from ipalib.parameters import IA5Str
 from ipapython.config import IPAOptionParser
 
 pw_name = None
 uninstalling = False
 
+def zonemgr_callback(option, opt_str, value, parser):
+    """
+    Make sure the zonemgr is an IA5String.
+    """
+    name = opt_str.replace('--','')
+    v = unicode(value, 'utf-8')
+    ia = IA5Str(name)
+    ia._convert_scalar(v)
+    parser.values.zonemgr = value
 
 def parse_options():
     # Guaranteed to give a random 200k range below the 2G mark (uint32_t limit)
@@ -99,7 +109,8 @@ def parse_options():
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
     parser.add_option("--no-reverse", dest="no_reverse", action="store_true",
                       default=False, help="Do not create reverse DNS zone")
-    parser.add_option("--zonemgr", dest="zonemgr",
+    parser.add_option("--zonemgr", action="callback", callback=zonemgr_callback,
+                      type="string",
                       help="DNS zone manager e-mail address. Defaults to root")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
                       default=False, help="unattended installation never prompts the user")
