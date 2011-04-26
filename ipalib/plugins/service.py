@@ -206,6 +206,25 @@ def normalize_certificate(cert):
 
     return cert
 
+def verify_cert_subject(ldap, hostname, cert):
+    """
+    Verify that the certificate issuer we're adding matches the issuer
+    base of our installation.
+
+    This assumes the certificate has already been normalized.
+
+    This raises an exception on errors and returns nothing otherwise.
+    """
+    cert = x509.load_certificate(cert, datatype=x509.DER)
+    subject = str(cert.subject)
+    issuer = str(cert.issuer)
+
+    # Handle both supported forms of issuer, from selfsign and dogtag.
+    if ((issuer != 'CN=%s Certificate Authority' % api.env.realm) and
+        (issuer != 'CN=Certificate Authority,O=%s' % api.env.realm)):
+        raise errors.CertificateOperationError(error=_('Issuer "%(issuer)s" does not match the expected issuer') % \
+        {'issuer' : issuer})
+
 def set_certificate_attrs(entry_attrs):
     """
     Set individual attributes from some values from a certificate.
@@ -342,7 +361,9 @@ class service_add(LDAPCreate):
 
         cert = options.get('usercertificate')
         if cert:
-            entry_attrs['usercertificate'] = normalize_certificate(cert)
+            cert = normalize_certificate(cert)
+            verify_cert_subject(ldap, hostname, cert)
+            entry_attrs['usercertificate'] = cert
 
         if not options.get('force', False):
              # We know the host exists if we've gotten this far but we
@@ -406,9 +427,11 @@ class service_mod(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if 'usercertificate' in options:
+            (service, hostname, realm) = split_principal(keys[-1])
             cert = options.get('usercertificate')
-            cert = normalize_certificate(cert)
             if cert:
+                cert = normalize_certificate(cert)
+                verify_cert_subject(ldap, hostname, cert)
                 (dn, entry_attrs_old) = ldap.get_entry(dn, ['usercertificate'])
                 if 'usercertificate' in entry_attrs_old:
                     # FIXME: what to do here? do we revoke the old cert?
