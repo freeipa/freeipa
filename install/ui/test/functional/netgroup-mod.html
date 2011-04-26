@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=0&amp;identity=4</td>
+	<td>/ipa/ui/#navigation=identity&amp;identity=netgroup</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,7 +23,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='netgroup']//span[@name='search']//input[@value='testnetgroup']</td>
+	<td>css=.entity[name='netgroup'] .facet[name='search'] input[value='testnetgroup']</td>
 	<td></td>
 </tr>
 <tr>
@@ -32,8 +32,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>testnetgroup:</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=Settings</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
 <tr>
@@ -62,33 +72,23 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextNotPresent</td>
+	<td>verifyTextPresent</td>
 	<td>undo</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>//div[@id='netgroup']/div[1]/ul/li[1]/span</td>
+	<td>link=Update</td>
 	<td></td>
 </tr>
 <tr>
-	<td>waitForElementPresent</td>
-	<td>//div[@id='netgroup']//span[@name='search']//input[@value='testnetgroup']</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>waitForElementPresent</td>
-	<td>//div[@id='netgroup']//span[@name='search']//input[@value='testnetgroup']/ancestor::tr//span[@name='description' and text()='xxx']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>link=testnetgroup</td>
-	<td></td>
-</tr>
-<tr>
-	<td>waitForTextPresent</td>
-	<td>testnetgroup:</td>
+	<td>verifyTextNotPresent</td>
+	<td>undo</td>
 	<td></td>
 </tr>
 <tr>
@@ -112,18 +112,13 @@
 	<td>idm.lab.bos.redhat.com</td>
 </tr>
 <tr>
-	<td>click</td>
-	<td>link=Update</td>
-	<td></td>
-</tr>
-<tr>
-	<td>waitForTextNotPresent</td>
+	<td>verifyTextPresent</td>
 	<td>undo</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>//div[@id='netgroup']/div[1]/ul/li[1]/span</td>
+	<td>link=Update</td>
 	<td></td>
 </tr>
 <tr>
@@ -132,13 +127,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
-	<td>//div[@id='netgroup']//span[@name='search']//input[@value='testnetgroup']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>verifyElementPresent</td>
-	<td>//div[@id='netgroup']//span[@name='search']//input[@value='testnetgroup']/ancestor::tr//span[@name='description' and text()='Test Netgroup']</td>
+	<td>verifyTextNotPresent</td>
+	<td>undo</td>
 	<td></td>
 </tr>
 </tbody></table>

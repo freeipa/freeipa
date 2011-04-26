@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=0&amp;identity=3</td>
+	<td>/ipa/ui/#navigation=identity&amp;identity=hostgroup</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,7 +23,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='hostgroup']//span[@name='search']//input[@value='testhostgroup']</td>
+	<td>css=.entity[name='hostgroup'] .facet[name='search'] input[value='testhostgroup']</td>
 	<td></td>
 </tr>
 <tr>
@@ -32,28 +32,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>testhostgroup:</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>//div[@id='hostgroup']/div[1]/ul/li[6]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>waitForElementPresent</td>
-	<td>//div[@id='hostgroup']//span[@name='association']//input[@value='test.example.com']</td>
+	<td>css=.entity[name='hostgroup'] .facet[name='member_host'] input[value='test.example.com']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>//div[@id='hostgroup']//span[@name='association']//input[@value='test.example.com']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>//div[@id='hostgroup']/div[1]/ul/li[6]/ul/li[2]/span/a[1]</td>
+	<td>css=.entity[name='hostgroup'] .facet[name='member_host'] a[title='Delete']</td>
 	<td></td>
 </tr>
 <tr>
@@ -62,18 +52,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForElementNotPresent</td>
-	<td>//div[@id='hostgroup']//span[@name='association']//input[@value='test.example.com']</td>
-	<td></td>
-</tr>
-<tr>
 	<td>click</td>
-	<td>//div[@id='hostgroup']/div[1]/ul/li[1]/span</td>
+	<td>//div[@id='content']/div/div[2]/div[2]/div[1]/div[2]/a[1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>waitForNotVisible</td>
 	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementNotPresent</td>
+	<td>css=.entity[name='hostgroup'] .facet[name='member_host'] input[value='test.example.com']</td>
 	<td></td>
 </tr>
 </tbody></table>

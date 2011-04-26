@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=1&amp;policy=1</td>
+	<td>/ipa/ui/#navigation=policy&amp;policy=hbac</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,12 +23,12 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='hbacrule']//span[@name='search']//input[@value='testhbacrule']</td>
+	<td>css=.entity[name='hbacrule'] .facet[name='search'] input[value='testhbacrule']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>type</td>
-	<td>search-hbacrule-filter</td>
+	<td>filter</td>
 	<td>test</td>
 </tr>
 <tr>
@@ -43,12 +43,12 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='hbacrule']//span[@name='search']//input[@value='testhbacrule']</td>
+	<td>css=.entity[name='hbacrule'] .facet[name='search'] input[value='testhbacrule']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>type</td>
-	<td>search-hbacrule-filter</td>
+	<td>filter</td>
 	<td>xxx</td>
 </tr>
 <tr>
@@ -63,12 +63,12 @@
 </tr>
 <tr>
 	<td>verifyElementNotPresent</td>
-	<td>//div[@id='hbacrule']//span[@name='search']//input[@value='testhbacrule']</td>
+	<td>css=.entity[name='hbacrule'] .facet[name='search'] input[value='testhbacrule']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>type</td>
-	<td>search-hbacrule-filter</td>
+	<td>filter</td>
 	<td></td>
 </tr>
 <tr>
@@ -83,7 +83,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='hbacrule']//span[@name='search']//input[@value='testhbacrule']</td>
+	<td>css=.entity[name='hbacrule'] .facet[name='search'] input[value='testhbacrule']</td>
 	<td></td>
 </tr>
 </tbody></table>

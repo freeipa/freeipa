@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=0&amp;identity=4</td>
+	<td>/ipa/ui/#navigation=identity&amp;identity=netgroup</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,7 +23,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='netgroup']//span[@name='search']//input[@value='testnetgroup']</td>
+	<td>css=.entity[name='netgroup'] .facet[name='search'] input[value='testnetgroup']</td>
 	<td></td>
 </tr>
 <tr>
@@ -32,28 +32,28 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>testnetgroup:</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>//div[@id='netgroup']/div[1]/ul/li[9]</td>
+	<td>css=.entity[name='netgroup'] li[title='memberuser_user'] a</td>
 	<td></td>
 </tr>
 <tr>
-	<td>waitForElementPresent</td>
-	<td>//div[@id='netgroup']//span[@name='association']//input[@value='testuser']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>//div[@id='netgroup']//span[@name='association']//input[@value='testuser']</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>link=Delete</td>
+	<td>css=.entity[name='netgroup'] .facet[name='memberuser_user'] input[value='testuser']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=.entity[name='netgroup'] .facet[name='memberuser_user'] a[title='Delete']</td>
 	<td></td>
 </tr>
 <tr>
@@ -62,8 +62,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForElementNotPresent</td>
-	<td>//div[@id='netgroup']//span[@name='association']//input[@value='testuser']</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementNotPresent</td>
+	<td>css=.entity[name='netgroup'] .facet[name='memberuser_user'] input[value='testuser']</td>
 	<td></td>
 </tr>
 </tbody></table>

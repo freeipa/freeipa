@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=0&amp;identity=0</td>
+	<td>/ipa/ui/#navigation=identity&amp;identity=user</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,7 +23,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='user']//span[@name='search']//input[@value='testuser']</td>
+	<td>css=.entity[name='user'] .facet[name='search'] input[value='testuser']</td>
 	<td></td>
 </tr>
 <tr>
@@ -32,8 +32,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>testuser:</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
 <tr>
@@ -43,7 +43,7 @@
 </tr>
 <tr>
 	<td>click</td>
-	<td>link=Add</td>
+	<td>css=span[name=mail] a[name=add]</td>
 	<td></td>
 </tr>
 <!--BUG: typeKeys doesn't work with "."-->
@@ -58,18 +58,13 @@
 	<td>com</td>
 </tr>
 <tr>
-	<td>click</td>
-	<td>link=Update</td>
-	<td></td>
-</tr>
-<tr>
-	<td>waitForTextNotPresent</td>
+	<td>verifyTextPresent</td>
 	<td>undo</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>css=li.back-to-search span.input_link</td>
+	<td>link=Update</td>
 	<td></td>
 </tr>
 <tr>
@@ -78,9 +73,9 @@
 	<td></td>
 </tr>
 <tr>
-	<td>verifyText</td>
-	<td>css=table.search-table tbody tr:nth-child(2) span[name=mail]</td>
-	<td>testuser@example.com</td>
+	<td>verifyTextNotPresent</td>
+	<td>undo</td>
+	<td></td>
 </tr>
 </tbody></table>
 </body>

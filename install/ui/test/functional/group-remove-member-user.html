@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=0&amp;identity=1</td>
+	<td>/ipa/ui/#navigation=identity&amp;identity=group</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,7 +23,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='group']//span[@name='search']//input[@value='testgroup']</td>
+	<td>css=.entity[name='group'] .facet[name='search'] input[value='testgroup']</td>
 	<td></td>
 </tr>
 <tr>
@@ -32,28 +32,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>testgroup:</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>//div[@id='group']/div[1]/ul/li[@title='member_user']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>waitForElementPresent</td>
-	<td>//div[@id='group']//span[@name='association']//input[@value='testuser']</td>
+	<td>css=.entity[name='group'] .facet[name='member_user'] input[value='testuser']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>//div[@id='group']//span[@name='association']//input[@value='testuser']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>//div[@id='group']/div[1]/ul/li[4]/ul/li[2]/span/a[1]</td>
+	<td>css=.entity[name='group'] .facet[name='member_user'] a[title='Delete']</td>
 	<td></td>
 </tr>
 <tr>
@@ -62,18 +52,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForElementNotPresent</td>
-	<td>//div[@id='group']/span/table/tbody/tr</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>//div[@id='group']/div[1]/ul/li[1]/span</td>
-	<td></td>
-</tr>
-<tr>
 	<td>waitForNotVisible</td>
 	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementNotPresent</td>
+	<td>css=.entity[name='group'] .facet[name='member_user'] input[value='testuser']</td>
 	<td></td>
 </tr>
 </tbody></table>

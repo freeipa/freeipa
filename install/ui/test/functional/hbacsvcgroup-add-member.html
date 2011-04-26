@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=1&amp;policy=1&amp;hbacrule-entity=hbacsvcgroup</td>
+	<td>/ipa/ui/#navigation=policy&amp;policy=hbac&amp;hbac=hbacsvcgroup</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,7 +23,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='hbacrule']//span[@name='search']//input[@value='testhbacsvcgroup']</td>
+	<td>css=.entity[name='hbacsvcgroup'] .facet[name='search'] input[value='testhbacsvcgroup']</td>
 	<td></td>
 </tr>
 <tr>
@@ -32,13 +32,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>testhbacsvcgroup:</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>link=Add</td>
+	<td>css=.entity[name='hbacsvcgroup'] .facet[name='details'] span[name='member_hbacsvc'] a[title='Add']</td>
 	<td></td>
 </tr>
 <tr>
@@ -68,7 +68,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='hbacrule']//span[@name='member_hbacsvc']//input[@value='testhbacsvc']</td>
+	<td>css=.entity[name='hbacsvcgroup'] .facet[name='details'] span[name='member_hbacsvc'] input[value='testhbacsvc']</td>
 	<td></td>
 </tr>
 </tbody></table>

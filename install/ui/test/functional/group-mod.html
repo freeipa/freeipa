@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=0&amp;identity=1</td>
+	<td>/ipa/ui/#navigation=identity&amp;identity=group</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,7 +23,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='group']//span[@name='search']//input[@value='testgroup']</td>
+	<td>css=.entity[name='group'] .facet[name='search'] input[value='testgroup']</td>
 	<td></td>
 </tr>
 <tr>
@@ -32,8 +32,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>testgroup:</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>details</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
 <tr>
@@ -47,12 +57,22 @@
 	<td>Test Group 123</td>
 </tr>
 <tr>
+	<td>verifyTextPresent</td>
+	<td>undo</td>
+	<td></td>
+</tr>
+<tr>
 	<td>click</td>
 	<td>link=Update</td>
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextNotPresent</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextNotPresent</td>
 	<td>undo</td>
 	<td></td>
 </tr>
@@ -67,23 +87,23 @@
 	<td>Test Group</td>
 </tr>
 <tr>
-	<td>click</td>
-	<td>link=Update</td>
-	<td></td>
-</tr>
-<tr>
-	<td>waitForTextNotPresent</td>
+	<td>verifyTextPresent</td>
 	<td>undo</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>//div[@id='group']/div[1]/ul/li[1]/span</td>
+	<td>link=Update</td>
 	<td></td>
 </tr>
 <tr>
 	<td>waitForNotVisible</td>
 	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextNotPresent</td>
+	<td>undo</td>
 	<td></td>
 </tr>
 </tbody></table>

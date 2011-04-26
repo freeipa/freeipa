@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=0&amp;identity=5</td>
+	<td>/ipa/ui/#navigation=identity&amp;identity=service</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,7 +23,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='service']//span[@name='search']//input[@value='testservice/test.example.com@IDM.LAB.BOS.REDHAT.COM']</td>
+	<td>css=.entity[name='service'] .facet[name='search'] input[value='testservice/test.example.com@IDM.LAB.BOS.REDHAT.COM']</td>
 	<td></td>
 </tr>
 <tr>
@@ -32,8 +32,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForVisible</td>
-	<td>//div[@id='service']//span[@name='certificate_status']//div[@name='certificate-missing']</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
 <tr>
@@ -62,13 +62,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForVisible</td>
-	<td>//div[@id='service']//span[@name='certificate_status']//div[@name='certificate-valid']</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>//div[@id='service']//span[@name='certificate_status']//div[@name='certificate-valid']//a[@title='Get']</td>
+	<td>css=.entity[name='service'] span[name='certificate_status'] div[name='certificate-valid'] a[title='Get']</td>
 	<td></td>
 </tr>
 <tr>

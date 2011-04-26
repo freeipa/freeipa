@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=0&amp;identity=3</td>
+	<td>/ipa/ui/#navigation=identity&amp;identity=hostgroup</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,12 +23,12 @@
 </tr>
 <tr>
 	<td>verifyElementNotPresent</td>
-	<td>//div[@id='hostgroup']//span[@name='search']//input[@value='testhostgroup']</td>
+	<td>css=.entity[name='hostgroup'] .facet[name='search'] input[value='testhostgroup']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>//div[@id='hostgroup']/div/ul/li[1]/span/span/a[2]</td>
+	<td>link=Add</td>
 	<td></td>
 </tr>
 <tr>
@@ -53,7 +53,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='hostgroup']//span[@name='search']//input[@value='testhostgroup']</td>
+	<td>css=.entity[name='hostgroup'] .facet[name='search'] input[value='testhostgroup']</td>
 	<td></td>
 </tr>
 </tbody></table>

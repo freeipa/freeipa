@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=0&amp;identity=0</td>
+	<td>/ipa/ui/#navigation=identity&amp;identity=user</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,7 +23,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='user']//span[@name='search']//input[@value='testuser']</td>
+	<td>css=.entity[name='user'] .facet[name='search'] input[value='testuser']</td>
 	<td></td>
 </tr>
 <tr>
@@ -32,8 +32,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForElementPresent</td>
-	<td>css=span[name=nsaccountlock] a</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
 <tr>
@@ -70,16 +70,6 @@
 	<td>verifyText</td>
 	<td>css=span[name=nsaccountlock] a</td>
 	<td>regexp:Active:.*</td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>//div[@id='user']/div[1]/ul/li[1]/span</td>
-	<td></td>
-</tr>
-<tr>
-	<td>waitForNotVisible</td>
-	<td>//span[@id='header-network-activity-indicator']</td>
-	<td></td>
 </tr>
 </tbody></table>
 </body>

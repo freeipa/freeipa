@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=0&amp;identity=2</td>
+	<td>/ipa/ui/#navigation=identity&amp;identity=host</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,17 +23,17 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='host']//span[@name='search']//input[@value='test.example.com']</td>
+	<td>css=.entity[name='host'] .facet[name='search'] input[value='test.example.com']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>//div[@id='host']//span[@name='search']//input[@value='test.example.com']</td>
+	<td>css=.entity[name='host'] .facet[name='search'] input[value='test.example.com']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>//div[@id='host']/div/ul/li[1]/span/span/a[1]</td>
+	<td>link=Delete</td>
 	<td></td>
 </tr>
 <tr>
@@ -48,7 +48,7 @@
 </tr>
 <tr>
 	<td>verifyElementNotPresent</td>
-	<td>//div[@id='host']//span[@name='search']//input[@value='test.example.com']</td>
+	<td>css=.entity[name='host'] .facet[name='search'] input[value='test.example.com']</td>
 	<td></td>
 </tr>
 </tbody></table>
