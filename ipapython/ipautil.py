@@ -28,6 +28,7 @@ import logging
 import subprocess
 import random
 import os, sys, traceback, readline
+import copy
 import stat
 import shutil
 import urllib2
@@ -119,7 +120,9 @@ def run(args, stdin=None, raiseonerr=True,
     p_err = None
 
     if env is None:
-        env={"PATH": "/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
+        # copy default env
+        env = copy.deepcopy(os.environ)
+        env["PATH"] = "/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"
     if stdin:
         p_in = subprocess.PIPE
     if capture_output:
