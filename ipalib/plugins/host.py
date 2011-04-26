@@ -85,6 +85,7 @@ from ipalib.plugins.service import normalize_certificate
 from ipalib.plugins.service import set_certificate_attrs
 from ipalib.plugins.service import make_pem, check_writable_file
 from ipalib.plugins.service import write_certificate
+from ipalib.plugins.service import verify_cert_subject
 from ipalib.plugins.dns import dns_container_exists, _record_types
 from ipalib.plugins.dns import add_forward_record
 from ipalib import _, ngettext
@@ -400,6 +401,11 @@ class host_add(LDAPCreate):
                 # save the password so it can be displayed in post_callback
                 setattr(context, 'randompassword', entry_attrs['userpassword'])
             del entry_attrs['random']
+        cert = options.get('usercertificate')
+        if cert:
+            cert = normalize_certificate(cert)
+            verify_cert_subject(ldap, keys[-1], cert)
+            entry_attrs['usercertificate'] = cert
         entry_attrs['managedby'] = dn
         return dn
 
@@ -600,6 +606,7 @@ class host_mod(LDAPUpdate):
                 entry_attrs['objectclass'] = obj_classes
         cert = normalize_certificate(entry_attrs.get('usercertificate'))
         if cert:
+            verify_cert_subject(ldap, keys[-1], cert)
             (dn, entry_attrs_old) = ldap.get_entry(dn, ['usercertificate'])
             if 'usercertificate' in entry_attrs_old:
                 oldcert = normalize_certificate(entry_attrs_old.get('usercertificate')[0])

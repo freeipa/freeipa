@@ -44,6 +44,12 @@ fuzzy_netgroupdn = Fuzzy(
     'ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},cn=ng,cn=alt,%s' % api.env.basedn
 )
 
+# Matches a hash signature, not enforcing length
+fuzzy_hash = Fuzzy('^([a-f0-9][a-f0-9]:)+[a-f0-9][a-f0-9]$', type=basestring)
+
+# Matches a date, like Tue Apr 26 17:45:35 2016 UTC
+fuzzy_date = Fuzzy('^[a-zA-Z]{3} [a-zA-Z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4} UTC$')
+
 try:
     if not api.Backend.xmlclient.isconnected():
         api.Backend.xmlclient.connect(fallback=False)

@@ -82,6 +82,7 @@ lint:
 
 test:
 	$(MAKE) -C install/po test_lang
+	./make-testcert
 	./make-test
 
 release-update:

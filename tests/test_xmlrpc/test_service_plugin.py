@@ -21,8 +21,9 @@
 Test the `ipalib/plugins/service.py` module.
 """
 
-from ipalib import api, errors
-from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
+from ipalib import api, errors, x509
+from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid, fuzzy_hash
+from tests.test_xmlrpc.xmlrpc_test import fuzzy_digits, fuzzy_date
 from tests.test_xmlrpc import objectclasses
 import base64
 
@@ -37,7 +38,13 @@ host1dn = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn1, api.env.basedn)
 host2dn = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn2, api.env.basedn)
 host3dn = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn3.lower(), api.env.basedn)
 
-servercert = 'MIICbzCCAdigAwIBAgICA/4wDQYJKoZIhvcNAQEFBQAwKTEnMCUGA1UEAxMeSVBBIFRlc3QgQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTEwMDgwOTE1MDIyN1oXDTIwMDgwOTE1MDIyN1owKTEMMAoGA1UEChMDSVBBMRkwFwYDVQQDExBwdW1hLmdyZXlvYWsuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwYbfEOQPgGenPn9vt1JFKvWm/Je3y2tawGWA3LXDuqfFJyYtZ8ib3TcBUOnLk9WK5g2qCwHaNlei7bj8ggIfr5hegAVe10cun+wYErjnYo7hsHYd+57VZezeipWrXu+7NoNd4+c4A5lk4A/xJay9j3bYx2oOM8BEox4xWYoWge1ljPrc5JK46f0X7AGW4F2VhnKPnf8rwSuzI1U8VGjutyM9TWNy3m9KMWeScjyG/ggIpOjUDMV7HkJL0Di61lznR9jXubpiEC7gWGbTp84eGl/Nn9bgK1AwHfJ2lHwfoY4uiL7ge1gyP6EvuUlHoBzdb7pekiX28iePjW3iEG9IawIDAQABoyIwIDARBglghkgBhvhCAQEEBAMCBkAwCwYDVR0PBAQDAgUgMA0GCSqGSIb3DQEBBQUAA4GBACRESLemRV9BPxfEgbALuxH5oE8jQm8WZ3pm2pALbpDlAd9wQc3yVf6RtkfVthyDnM18bg7IhxKpd77/p3H8eCnS8w5MLVRda6ktUC6tGhFTS4QKAf0WyDGTcIgkXbeDw0OPAoNHivoXbIXIIRxlw/XgaSaMzJQDBG8iROsN4kCv'
+fd = open('tests/test_xmlrpc/service.crt', 'r')
+servercert = fd.readlines()
+servercert = ''.join(servercert)
+servercert = x509.strip_header(servercert)
+fd.close()
+
+badservercert = 'MIICbzCCAdigAwIBAgICA/4wDQYJKoZIhvcNAQEFBQAwKTEnMCUGA1UEAxMeSVBBIFRlc3QgQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTEwMDgwOTE1MDIyN1oXDTIwMDgwOTE1MDIyN1owKTEMMAoGA1UEChMDSVBBMRkwFwYDVQQDExBwdW1hLmdyZXlvYWsuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwYbfEOQPgGenPn9vt1JFKvWm/Je3y2tawGWA3LXDuqfFJyYtZ8ib3TcBUOnLk9WK5g2qCwHaNlei7bj8ggIfr5hegAVe10cun+wYErjnYo7hsHYd+57VZezeipWrXu+7NoNd4+c4A5lk4A/xJay9j3bYx2oOM8BEox4xWYoWge1ljPrc5JK46f0X7AGW4F2VhnKPnf8rwSuzI1U8VGjutyM9TWNy3m9KMWeScjyG/ggIpOjUDMV7HkJL0Di61lznR9jXubpiEC7gWGbTp84eGl/Nn9bgK1AwHfJ2lHwfoY4uiL7ge1gyP6EvuUlHoBzdb7pekiX28iePjW3iEG9IawIDAQABoyIwIDARBglghkgBhvhCAQEEBAMCBkAwCwYDVR0PBAQDAgUgMA0GCSqGSIb3DQEBBQUAA4GBACRESLemRV9BPxfEgbALuxH5oE8jQm8WZ3pm2pALbpDlAd9wQc3yVf6RtkfVthyDnM18bg7IhxKpd77/p3H8eCnS8w5MLVRda6ktUC6tGhFTS4QKAf0WyDGTcIgkXbeDw0OPAoNHivoXbIXIIRxlw/XgaSaMzJQDBG8iROsN4kCv'
 
 
 class test_host(Declarative):
@@ -346,6 +353,13 @@ class test_host(Declarative):
 
 
         dict(
+            desc='Update %r with a bad certificate' % service1,
+            command=('service_mod', [service1], dict(usercertificate=badservercert)),
+            expected=errors.CertificateOperationError(error='exact error msg not needed'),
+        ),
+
+
+        dict(
             desc='Update %r' % service1,
             command=('service_mod', [service1], dict(usercertificate=servercert)),
             expected=dict(
@@ -355,13 +369,13 @@ class test_host(Declarative):
                     usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
-                    valid_not_before=u'Mon Aug 09 15:02:27 2010 UTC',
-                    valid_not_after=u'Sun Aug 09 15:02:27 2020 UTC',
-                    subject=u'CN=puma.greyoak.com,O=IPA',
-                    serial_number=u'1022',
-                    md5_fingerprint=u'ef:63:31:e4:33:54:8d:fd:fe:c8:66:57:09:03:5f:09',
-                    sha1_fingerprint=u'e3:33:2c:d9:7c:e9:77:74:2a:ac:3b:b8:76:b0:86:29:98:43:58:11',
-                    issuer=u'CN=IPA Test Certificate Authority',
+                    valid_not_before=fuzzy_date,
+                    valid_not_after=fuzzy_date,
+                    subject=u'CN=%s,O=%s' % (api.env.host, api.env.realm),
+                    serial_number=fuzzy_digits,
+                    md5_fingerprint=fuzzy_hash,
+                    sha1_fingerprint=fuzzy_hash,
+                    issuer=u'CN=%s Certificate Authority' % api.env.realm,
                 ),
             ),
         ),
@@ -381,13 +395,13 @@ class test_host(Declarative):
                     managedby_host=[fqdn1],
                     # These values come from the servercert that is in this
                     # test case.
-                    valid_not_before=u'Mon Aug 09 15:02:27 2010 UTC',
-                    valid_not_after=u'Sun Aug 09 15:02:27 2020 UTC',
-                    subject=u'CN=puma.greyoak.com,O=IPA',
-                    serial_number=u'1022',
-                    md5_fingerprint=u'ef:63:31:e4:33:54:8d:fd:fe:c8:66:57:09:03:5f:09',
-                    sha1_fingerprint=u'e3:33:2c:d9:7c:e9:77:74:2a:ac:3b:b8:76:b0:86:29:98:43:58:11',
-                    issuer=u'CN=IPA Test Certificate Authority',
+                    valid_not_before=fuzzy_date,
+                    valid_not_after=fuzzy_date,
+                    subject=u'CN=%s,O=%s' % (api.env.host, api.env.realm),
+                    serial_number=fuzzy_digits,
+                    md5_fingerprint=fuzzy_hash,
+                    sha1_fingerprint=fuzzy_hash,
+                    issuer=u'CN=%s Certificate Authority' % api.env.realm,
                 ),
             ),
         ),
