@@ -533,6 +533,9 @@ def main():
     ds.replica_populate()
     ds.init_memberof()
 
+    #Everything installed properly, activate ipa service.
+    service.chkconfig_on('ipa')
+
 try:
     if not os.geteuid()==0:
         sys.exit("\nYou must be root to run this script.\n")
