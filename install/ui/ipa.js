@@ -539,7 +539,28 @@ IPA.get_entity_param = function(entity_name, name) {
     return null;
 };
 
-IPA.get_method_param = function(method_name, name) {
+IPA.get_method_arg = function(method_name, name) {
+
+    var metadata = IPA.metadata.methods[method_name];
+    if (!metadata) {
+        return null;
+    }
+
+    var args = metadata.takes_args;
+    if (!args) {
+        return null;
+    }
+
+    for (var i=0; i<args.length; i++) {
+        if (args[i].name === name) {
+            return args[i];
+        }
+    }
+
+    return null;
+};
+
+IPA.get_method_option = function(method_name, name) {
 
     var metadata = IPA.metadata.methods[method_name];
     if (!metadata) {

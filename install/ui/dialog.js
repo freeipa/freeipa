@@ -74,9 +74,17 @@ IPA.dialog = function(spec) {
         that.fields_by_name[field.name] = field;
     };
 
-    that.field = function(field){
+    that.field = function(field) {
         that.add_field(field);
         return that;
+    };
+
+    that.is_valid = function() {
+        for (var i=0; i<that.fields.length; i++) {
+            var field = that.fields[i];
+            if (!field.valid) return false;
+        }
+        return true;
     };
 
     that.text = function(name){

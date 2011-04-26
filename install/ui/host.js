@@ -122,7 +122,7 @@ IPA.utc_date_column_format = function(value){
 
 
 IPA.force_host_add_checkbox_widget = function (spec){
-    var param_info = IPA.get_method_param('host_add', 'force');
+    var param_info = IPA.get_method_option('host_add', 'force');
     spec.name = 'force';
     spec.label = param_info.label;
     spec.tooltip = param_info.doc;

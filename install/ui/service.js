@@ -127,8 +127,8 @@ IPA.service_add_dialog = function(spec) {
         field(
         IPA.checkbox_widget({
             name: 'force',
-            label: IPA.get_method_param('service_add', 'force').label,
-            tooltip: IPA.get_method_param('service_add', 'force').doc,
+            label: IPA.get_method_option('service_add', 'force').label,
+            tooltip: IPA.get_method_option('service_add', 'force').doc,
             undo: false
         }));
 

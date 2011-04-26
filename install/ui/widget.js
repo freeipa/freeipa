@@ -57,10 +57,12 @@ IPA.widget = function(spec) {
     that.load = spec.load || load;
     that.save = spec.save || save;
     that.update = spec.update || update;
-    that.validate_input = spec.validate_input || validate_input;
-    that.valid = true;
+
     that.param_info = spec.param_info;
+    that.metadata = spec.metadata;
+
     that.values = [];
+    that.valid = true;
 
     that.__defineGetter__("entity_name", function(){
         return that._entity_name;
@@ -73,29 +75,58 @@ IPA.widget = function(spec) {
     /*returns true and clears the error message if the field value  passes
       the validation pattern.  If the field value does not pass validation,
       displays the error message and returns false. */
-    function validate_input(text) {
-        if (!(that.param_info && that.param_info.pattern)) {
-            that.valid = true;
+    that.validate = function() {
+
+        that.hide_error();
+
+        that.valid = true;
+
+        var values = that.save();
+        if (!values || !values.length) {
             return;
         }
-        var error_link = that.get_error_link();
-        if (!error_link) {
-            that.valid = true;
+
+        var value = values[0];
+        if (!value) {
             return;
         }
-        var regex = new RegExp( that.param_info.pattern );
-        //If the field is empty, don't validate
-        if ( !text || text.match(regex) ) {
-            error_link.css('display', 'none');
-            that.valid = true;
-        } else {
-            error_link.css('display', 'block');
-            if (that.param_info.pattern_errmsg) {
-                error_link.html(that.param_info.pattern_errmsg);
+
+        if (that.metadata) {
+            if (that.metadata.type == 'int') {
+                if (!value.match(/^-?\d+$/)) {
+                    that.valid = false;
+                    // TODO: I18n
+                    that.show_error('must be an integer');
+                    return;
+                }
+
+                if (that.metadata.minvalue && value < that.metadata.minvalue) {
+                    that.valid = false;
+                    // TODO: I18n
+                    that.show_error('minimum value is '+that.metadata.minvalue);
+                    return;
+                }
+
+                if (that.metadata.maxvalue && value > that.metadata.maxvalue) {
+                    that.valid = false;
+                    // TODO: I18n
+                    that.show_error('maximum value is '+that.metadata.maxvalue);
+                    return;
+                }
             }
-            that.valid = false;
         }
-    }
+
+        if (that.param_info) {
+            if (that.param_info.pattern) {
+                var regex = new RegExp(that.param_info.pattern);
+                if (!value.match(regex)) {
+                    that.valid = false;
+                    that.show_error(that.param_info.pattern_errmsg);
+                    return;
+                }
+            }
+        }
+    };
 
     function init() {
         if (that.entity_name) {
@@ -247,12 +278,13 @@ IPA.widget = function(spec) {
         return $('span[name="error_link"]', that.container);
     };
 
-    that.show_error_link = function() {
+    that.show_error = function(message) {
         var error_link = that.get_error_link();
-        error_link.css('display', 'inline');
+        error_link.html(message);
+        error_link.css('display', 'block');
     };
 
-    that.hide_error_link = function() {
+    that.hide_error = function() {
         var error_link = that.get_error_link();
         error_link.css('display', 'none');
     };
@@ -323,8 +355,7 @@ IPA.text_widget = function(spec) {
             if (that.undo) {
                 that.show_undo();
             }
-            var value = $(this).val();
-            that.validate_input(value);
+            that.validate();
         });
 
         var undo = that.get_undo();
@@ -539,8 +570,7 @@ IPA.multivalued_text_widget = function(spec) {
                         remove_link.css('display', 'inline');
                     }
                 }
-                var value = $(this).val();
-                that.validate_input(value);
+                that.validate();
             });
 
             remove_link.click(function() {
@@ -965,9 +995,7 @@ IPA.textarea_widget = function (spec) {
         var input = $('textarea[name="'+that.name+'"]', that.container);
         input.keyup(function() {
             that.show_undo();
-
-            var value = $(this).val();
-            that.validate_input(value);
+            that.validate();
 
         });
 

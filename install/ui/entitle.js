@@ -86,7 +86,7 @@ IPA.entity_factories.entitle = function() {
                 },
                 {
                     name: 'password',
-                    label: IPA.get_method_param('entitle_register', 'password').label,
+                    label: IPA.get_method_option('entitle_register', 'password').label,
                     type: 'password',
                     undo: false
                 }
@@ -114,7 +114,8 @@ IPA.entity_factories.entitle = function() {
                 {
                     name: 'quantity',
                     label: 'Quantity',
-                    undo: false
+                    undo: false,
+                    metadata: IPA.get_method_arg('entitle_consume', 'quantity')
                 }
             ]
         }).
@@ -260,7 +261,6 @@ IPA.entitle.search_facet = function(spec) {
     var that = IPA.search_facet(spec);
 
     that.setup = function(container) {
-
 
         that.search_facet_setup(container);
 
@@ -408,6 +408,7 @@ IPA.entitle.certificate_column = function(spec) {
     var that = IPA.column(spec);
 
     that.setup = function(container, record) {
+
         container.empty();
 
         var certificate = record[that.name];
@@ -527,6 +528,11 @@ IPA.entitle.consume_dialog = function(spec) {
     var that = IPA.dialog(spec);
 
     that.add_button('Consume', function() {
+
+        if (!that.is_valid()) {
+            return;
+        }
+
         var record = {};
         that.save(record);
 
