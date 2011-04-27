@@ -98,7 +98,7 @@ def print_msg(message, output_fd=sys.stdout):
     output_fd.write("\n")
 
 
-class Service:
+class Service(object):
     def __init__(self, service_name, sstore=None, dm_password=None):
         self.service_name = service_name
         self.steps = []
