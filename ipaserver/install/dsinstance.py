@@ -183,6 +183,7 @@ class DsInstance(service.Service):
         self.idstart = None
         self.idmax = None
         self.subject_base = None
+        self.open_ports = []
         if realm_name:
             self.suffix = util.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()
@@ -376,9 +377,13 @@ class DsInstance(service.Service):
             logging.debug("completed creating ds instance")
         except ipautil.CalledProcessError, e:
             logging.critical("failed to restart ds instance %s" % e)
+        
+        # check for open port 389 from now on
+        self.open_ports.append(389)
+
         logging.debug("restarting ds instance")
         try:
-            self.restart(self.serverid)
+            self.__restart_instance()
             logging.debug("done restarting ds instance")
         except ipautil.CalledProcessError, e:
             print "failed to restart ds instance", e
@@ -406,18 +411,21 @@ class DsInstance(service.Service):
             # Does not apply with newer DS releases
             pass
 
-    def __restart_instance(self):
+    def restart(self, instance=''):
         try:
-            self.restart(self.serverid)
+            super(DsInstance, self).restart(instance)
             if not is_ds_running():
                 logging.critical("Failed to restart the directory server. See the installation log for details.")
                 sys.exit(1)
-            installutils.wait_for_open_ports('localhost', [389, 636], 300)
+            installutils.wait_for_open_ports('localhost', self.open_ports, 300)
         except SystemExit, e:
             raise e
         except Exception, e:
             # TODO: roll back here?
-            logging.critical("Failed to restart the directory server. See the installation log for details.")
+            logging.critical("Failed to restart the directory server (%s). See the installation log for details." % e)
+
+    def __restart_instance(self):
+        self.restart(self.serverid)
 
     def __enable_entryusn(self):
         self._ldap_mod("entryusn.ldif")
@@ -548,6 +556,9 @@ class DsInstance(service.Service):
         conn.addEntry(entry)
 
         conn.unbind()
+
+        # check for open secure port 636 from now on
+        self.open_ports.append(636)
 
     def __add_default_layout(self):
         self._ldap_mod("bootstrap-template.ldif", self.sub_dict)
