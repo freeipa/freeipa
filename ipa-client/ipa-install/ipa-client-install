@@ -58,7 +58,7 @@ def parse_options():
     parser.add_option("--server", dest="server", help="IPA server")
     parser.add_option("--realm", dest="realm_name", help="realm name")
     parser.add_option("-f", "--force", dest="force", action="store_true",
-                      default=False, help="force setting of ldap/kerberos conf")
+                      default=False, help="force setting of LDAP/Kerberos conf")
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="print debugging information")
     parser.add_option("-U", "--unattended", dest="unattended",
@@ -185,7 +185,7 @@ def chkconfig(name, status):
 
 def uninstall(options, env):
 
-    if not fstore.has_files() and not options.force:
+    if not fstore.has_files():
         print "IPA client is not configured on this system."
         return 2
 
@@ -271,11 +271,11 @@ def uninstall(options, env):
     except:
         print "Failed to clean up /etc/krb5.keytab"
 
-    print "Disabling client Kerberos and Ldap configurations"
+    print "Disabling client Kerberos and LDAP configurations"
     try:
         run(["/usr/sbin/authconfig", "--disableldap", "--disablekrb5", "--disablesssd", "--disablesssdauth", "--disablemkhomedir", "--update"])
     except Exception, e:
-        print "Failed to remove krb5/ldap configuration. " +str(e)
+        print "Failed to remove krb5/LDAP configuration. " +str(e)
         sys.exit(1)
 
     print "Restoring client configuration files"
@@ -572,7 +572,7 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
     return 0
 
 def resolve_ipaddress(server):
-    """ Connect to the server's ldap port in order to determine what ip
+    """ Connect to the server's LDAP port in order to determine what ip
         address this machine uses as "public" ip (relative to the server).
     """
 
@@ -685,8 +685,9 @@ def main():
     if options.uninstall:
         return uninstall(options, env)
 
-    if fstore.has_files() and not options.force:
-        sys.exit("IPA client is already configured on this system.")
+    if fstore.has_files():
+        sys.exit("IPA client is already configured on this system.\n"
+                + "If you want to reinstall the IPA client please uninstall it first.")
 
     cli_domain = None
     cli_server = None
