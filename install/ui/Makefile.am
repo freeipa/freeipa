@@ -32,7 +32,6 @@ app_DATA =                              \
 	host.js 			\
 	hostgroup.js 			\
 	index.html 			\
-	jquery.cookie.js 		\
 	navigation.js			\
 	netgroup.js 			\
 	service.js 			\
