@@ -494,7 +494,8 @@ def main():
         standard_logging_setup("/var/log/ipaserver-install.log", options.debug)
         print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
         if (dsinstance.DsInstance().is_configured() or cainstance.CADSInstance().is_configured()) and not options.external_cert_file:
-            sys.exit("IPA server is already configured on this system.")
+            sys.exit("IPA server is already configured on this system.\n"
+                     + "If you want to reinstall the IPA server please uninstall it first.")
 
         client_fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
         if client_fstore.has_files():
