@@ -51,6 +51,7 @@ IPA.entity_factories.krbtpolicy =  function() {
     return IPA.entity_builder().
         entity('krbtpolicy').
         details_facet({
+            title: IPA.metadata.objects.krbtpolicy.label,
             sections:[{
                 name: 'identity',
                 fields:[ 'krbmaxrenewableage','krbmaxticketlife' ]

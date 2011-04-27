@@ -995,8 +995,7 @@ IPA.hbacrule_accesstime_widget = function (spec) {
 
         function on_error(xhr, text_status, error_thrown) {
             var summary = $('span[name=summary]', that.table.tfoot).empty();
-            summary.append('<p>Error: '+error_thrown.name+'</p>');
-            summary.append('<p>'+error_thrown.message+'</p>');
+            summary.append(error_thrown.name+': '+error_thrown.message);
         }
 
         var pkey = $.bbq.getState(that.entity_name+'-pkey');

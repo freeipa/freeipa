@@ -38,8 +38,59 @@ IPA.entity_factories.entitle = function() {
             factory: IPA.entitle.entity,
             name: 'entitle'
         }).
+        facet_groups([
+            { name: 'account', label: 'Account' },
+            { name: 'certificates', label: 'Certificates' }
+        ]).
+        details_facet({
+            factory: IPA.entitle.details_facet,
+            label: 'Account',
+            facet_group: 'account',
+            sections: [
+                {
+                    name: 'general',
+                    label: IPA.messages.details.general,
+                    fields: [
+                        {
+                            name: 'uuid',
+                            label: 'UUID',
+                            read_only: true
+                        },
+                        {
+                            factory: IPA.entitle.download_widget,
+                            name: 'certificate',
+                            label: 'Certificate'
+                        }
+                    ]
+                },
+                {
+                    name: 'status',
+                    label: 'Status',
+                    fields: [
+                        {
+                            name: 'product',
+                            label: 'Product',
+                            read_only: true
+                        },
+                        {
+                            name: 'quantity',
+                            label: 'Quantity',
+                            read_only: true
+                        },
+                        {
+                            name: 'consumed',
+                            label: 'Consumed',
+                            read_only: true
+                        }
+                    ]
+                }
+            ]
+        }).
         search_facet({
             factory: IPA.entitle.search_facet,
+            name: 'certificates',
+            label: 'Certificates',
+            facet_group: 'certificates',
             columns: [
                 {
                     name: 'product',
@@ -61,15 +112,6 @@ IPA.entity_factories.entitle = function() {
                     factory: IPA.entitle.certificate_column,
                     name: 'certificate',
                     label: 'Certificate'
-                }
-            ]
-        }).
-        details_facet({
-            sections: [
-                {
-                    name: 'identity',
-                    label: IPA.messages.details.identity,
-                    fields: ['ipaentitlementid']
                 }
             ]
         }).
@@ -149,6 +191,20 @@ IPA.entitle.entity = function(spec) {
     var that = IPA.entity(spec);
 
     that.status = IPA.entitle.unregistered;
+
+    that.get_accounts = function(on_success, on_error) {
+
+        var command = IPA.command({
+            name: 'entitle_find_'+that.status,
+            entity: 'entitle',
+            method: 'find',
+            options: { all: true },
+            on_success: on_success,
+            on_error: on_error
+        });
+
+        command.execute();
+    };
 
     that.get_status = function(on_success, on_error) {
 
@@ -252,7 +308,12 @@ IPA.entitle.entity = function(spec) {
             entity: 'entitle',
             method: 'import',
             args: [ certificate ],
-            on_success: on_success,
+            on_success: function(data, text_status, xhr) {
+                that.status = IPA.entitle.offline;
+                if (on_success) {
+                    on_success.call(this, data, text_status, xhr);
+                }
+            },
             on_error: on_error
         });
 
@@ -262,18 +323,16 @@ IPA.entitle.entity = function(spec) {
     return that;
 };
 
-IPA.entitle.search_facet = function(spec) {
+IPA.entitle.details_facet = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.search_facet(spec);
+    var that = IPA.details_facet(spec);
 
-    that.create_header = function(container) {
-
-        that.facet_create_header(container);
+    that.create_controls = function() {
 
         that.register_buttons = $('<span/>', {
-            style: 'display: none;'
+            name: 'register_buttons'
         }).appendTo(that.controls);
 
         that.register_online_button = IPA.action_button({
@@ -285,6 +344,8 @@ IPA.entitle.search_facet = function(spec) {
             }
         }).appendTo(that.register_buttons);
 
+        that.register_online_button.css('display', 'none');
+/*
         that.register_offline_button = IPA.action_button({
             label: 'Import',
             icon: 'ui-icon-plus',
@@ -294,29 +355,8 @@ IPA.entitle.search_facet = function(spec) {
             }
         }).appendTo(that.register_buttons);
 
-        that.consume_buttons = $('<span/>', {
-            style: 'display: none;'
-        }).appendTo(that.controls);
-
-        that.consume_button = IPA.action_button({
-            label: 'Consume',
-            icon: 'ui-icon-plus',
-            style: 'display: none;',
-            click: function() {
-                var dialog = that.entity.get_dialog('consume');
-                dialog.open(that.container);
-            }
-        }).appendTo(that.consume_buttons);
-
-        that.import_button = IPA.action_button({
-            label: 'Import',
-            icon: 'ui-icon-plus',
-            style: 'display: none;',
-            click: function() {
-                var dialog = that.entity.get_dialog('import');
-                dialog.open(that.container);
-            }
-        }).appendTo(that.consume_buttons);
+        that.register_offline_button.css('display', 'none');
+*/
     };
 
     that.show = function() {
@@ -324,31 +364,118 @@ IPA.entitle.search_facet = function(spec) {
 
         that.entity.header.set_pkey(null);
         that.entity.header.back_link.css('visibility', 'hidden');
-        that.entity.header.facet_tabs.css('visibility', 'hidden');
+        that.entity.header.facet_tabs.css('visibility', 'visible');
+    };
+
+    that.refresh = function() {
+
+        var summary = $('span[name=summary]', that.container).empty();
+        summary.append('Loading...');
+
+        function on_success(data, text_status, xhr) {
+            if (that.entity.status == IPA.entitle.unregistered) {
+                that.register_online_button.css('display', 'inline');
+                // that.register_offline_button.css('display', 'inline');
+
+            } else {
+                that.register_online_button.css('display', 'none');
+                // that.register_offline_button.css('display', 'none');
+            }
+
+            that.load(data.result.result);
+
+            summary.empty();
+        }
+
+        function on_error(xhr, text_status, error_thrown) {
+
+            that.register_online_button.css('display', 'inline');
+            // that.register_offline_button.css('display', 'inline');
+
+            var result = {
+                uuid: '',
+                product: '',
+                quantity: 0,
+                consumed: 0
+            };
+            that.load(result);
+
+            summary.empty();
+            summary.append(error_thrown.name+': '+error_thrown.message);
+        }
+
+        that.entity.get_status(
+            on_success,
+            on_error);
+    };
+
+    return that;
+};
+
+IPA.entitle.search_facet = function(spec) {
+
+    spec = spec || {};
+    spec.selectable = false;
+
+    var that = IPA.search_facet(spec);
+
+    that.create_header = function(container) {
+
+        that.facet_create_header(container);
+
+        that.consume_buttons = $('<span/>', {
+            name: 'consume_buttons'
+        }).appendTo(that.controls);
+
+        that.consume_button = IPA.action_button({
+            label: 'Consume',
+            icon: 'ui-icon-plus',
+            click: function() {
+                var dialog = that.entity.get_dialog('consume');
+                dialog.open(that.container);
+            }
+        }).appendTo(that.consume_buttons);
+
+        that.consume_button.css('display', 'none');
+
+        that.import_button = IPA.action_button({
+            label: 'Import',
+            icon: 'ui-icon-plus',
+            click: function() {
+                var dialog = that.entity.get_dialog('import');
+                dialog.open(that.container);
+            }
+        }).appendTo(that.consume_buttons);
+
+        that.import_button.css('display', 'none');
+    };
+
+    that.show = function() {
+        that.facet_show();
+
+        that.entity.header.set_pkey(null);
+        that.entity.header.back_link.css('visibility', 'hidden');
+        that.entity.header.facet_tabs.css('visibility', 'visible');
     };
 
     that.refresh = function() {
 
         function on_success(data, text_status, xhr) {
 
-            that.register_buttons.css('display', 'none');
-            that.consume_buttons.css('display', 'inline');
-
             if (that.entity.status == IPA.entitle.online) {
                 that.consume_button.css('display', 'inline');
                 that.import_button.css('display', 'none');
+
+            } else if (that.entity.status == IPA.entitle.offline) {
+                that.consume_button.css('display', 'none');
+                that.import_button.css('display', 'inline');
+
             } else {
                 that.consume_button.css('display', 'none');
-                that.import_button.css('display', 'inlnie');
+                that.import_button.css('display', 'inline');
             }
 
-            that.table.empty();
-
-            var result = data.result.result;
-            for (var i = 0; i<result.length; i++) {
-                var record = that.table.get_record(result[i], 0);
-                that.table.add_record(record);
-            }
+            that.load(data.result.result);
 
             var summary = $('span[name=summary]', that.table.tfoot).empty();
             if (data.result.truncated) {
@@ -362,11 +489,11 @@ IPA.entitle.search_facet = function(spec) {
 
         function on_error(xhr, text_status, error_thrown) {
 
-            that.register_buttons.css('display', 'inline');
-            that.consume_buttons.css('display', 'none');
+            that.consume_button.css('display', 'none');
+            that.import_button.css('display', 'inline');
 
             var summary = $('span[name=summary]', that.table.tfoot).empty();
-            summary.append(error_thrown.message);
+            summary.append(error_thrown.name+': '+error_thrown.message);
         }
 
         that.entity.get_status(
@@ -464,7 +591,8 @@ IPA.entitle.register_online_dialog = function(spec) {
             record.password,
             record.ipaentitlementid,
             function() {
-                var facet = that.entity.get_facet('search');
+                var facet_name = IPA.current_facet(that.entity);
+                var facet = that.entity.get_facet(facet_name);
                 facet.refresh();
                 that.close();
             }
@@ -488,7 +616,8 @@ IPA.entitle.register_offline_dialog = function(spec) {
         that.entity.register_offline(
             that.get_certificate(),
             function() {
-                var facet = that.entity.get_facet('search');
+                var facet_name = IPA.current_facet(that.entity);
+                var facet = that.entity.get_facet(facet_name);
                 facet.refresh();
                 that.close();
             }
@@ -520,7 +649,8 @@ IPA.entitle.consume_dialog = function(spec) {
         that.entity.consume(
             record.quantity,
             function() {
-                var facet = that.entity.get_facet('search');
+                var facet_name = IPA.current_facet(that.entity);
+                var facet = that.entity.get_facet(facet_name);
                 facet.refresh();
                 that.close();
             }
@@ -544,7 +674,8 @@ IPA.entitle.import_dialog = function(spec) {
         that.entity.import_certificate(
             that.get_certificate(),
             function() {
-                var facet = that.entity.get_facet('search');
+                var facet_name = IPA.current_facet(that.entity);
+                var facet = that.entity.get_facet(facet_name);
                 facet.refresh();
                 that.close();
             }
@@ -554,6 +685,51 @@ IPA.entitle.import_dialog = function(spec) {
     that.add_button(IPA.messages.buttons.cancel, function() {
         that.close();
     });
+
+    return that;
+};
+
+IPA.entitle.download_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.widget(spec);
+
+    that.create = function(container) {
+        that.link = $('<a/>', {
+            'href': '#download',
+            'html': 'Download',
+            'click': function() {
+                that.entity.get_accounts(
+                    function(data, text_status, xhr) {
+                        var userpkcs12 = data.result.result[0].userpkcs12;
+                        if (!userpkcs12) {
+                            alert('No certificate.');
+                            return;
+                        }
+
+                        var dialog = IPA.cert.download_dialog({
+                            title: 'Download Certificate',
+                            certificate: userpkcs12[0].__base64__,
+                            add_pem_delimiters: false
+                        });
+
+                        dialog.init();
+                        dialog.open();
+                    }
+                );
+                return false;
+            }
+        }).appendTo(container);
+    };
+
+    that.update = function() {
+        if (that.entity.status == IPA.entitle.online) {
+            that.link.css('display', 'inline');
+        } else {
+            that.link.css('display', 'none');
+        }
+    };
 
     return that;
 };

@@ -666,8 +666,7 @@ IPA.association_table_widget = function (spec) {
 
         function on_error(xhr, text_status, error_thrown) {
             var summary = $('span[name=summary]', that.tfoot).empty();
-            summary.append('<p>Error: '+error_thrown.name+'</p>');
-            summary.append('<p>'+error_thrown.message+'</p>');
+            summary.append(error_thrown.name+': '+error_thrown.message);
         }
 
         var pkey = $.bbq.getState(that.entity_name+'-pkey');
@@ -1027,8 +1026,7 @@ IPA.association_facet = function (spec) {
                 function(xhr, text_status, error_thrown) {
                     that.table.empty();
                     var summary = that.table.summary.empty();
-                    summary.append('<p>Error: '+error_thrown.name+'</p>');
-                    summary.append('<p>'+error_thrown.message+'</p>');
+                    summary.append(error_thrown.name+': '+error_thrown.message);
                 }
             );
         }

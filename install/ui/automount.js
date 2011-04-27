@@ -31,6 +31,7 @@ IPA.entity_factories.automountlocation = function() {
         entity({name:'automountlocation',
                 title:IPA.messages.tabs.automount}).
         search_facet({
+            title: IPA.metadata.objects.automountlocation.label,
             columns:['cn']
         }).
         nested_search_facet({

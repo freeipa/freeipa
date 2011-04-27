@@ -156,8 +156,6 @@ IPA.sudocmd_member_sudocmdgroup_table_widget = function (spec) {
 
     var that = IPA.association_table_widget(spec);
 
-    that.association_table_widget_init();
-
     that.get_records = function(on_success, on_error) {
 
         var length = that.values.length;
@@ -352,12 +350,6 @@ IPA.sudorule_details_facet = function (spec) {
         'label': IPA.messages.objects.sudorule.runas
     });
     that.add_section(section);
-
-    that.details_facet_init();
-
-    that.init = function() {
-
-    };
 
     that.update = function() {
 

@@ -126,6 +126,7 @@ IPA.widget = function(spec) {
 
     that.init = function() {
         if (that.entity_name) {
+            that.entity = IPA.get_entity(that.entity_name);
             that.param_info = IPA.get_entity_param(that.entity_name, that.name);
 
             if (that.param_info) {

@@ -402,7 +402,7 @@ IPA.entity = function (spec) {
     return that;
 };
 
-IPA.current_facet =  function (entity){
+IPA.current_facet = function(entity) {
     var facet_name = $.bbq.getState(entity.name+'-facet');
     var facets = entity.facets.values;
     if (!facet_name  && facets.length) {
@@ -731,6 +731,7 @@ IPA.entity_builder = function(){
     that.search_facet = function(spec) {
 
         spec.entity_name = entity.name;
+        spec.title = spec.title || spec.label;
         spec.label = spec.label || IPA.messages.facets.search;
 
         var factory = spec.factory || IPA.search_facet;
@@ -758,7 +759,8 @@ IPA.entity_builder = function(){
         var sections = spec.sections;
         spec.sections = null;
         spec.entity_name = entity.name;
-        spec.label = IPA.messages.details.settings;
+        spec.title = spec.title || spec.label || IPA.messages.details.settings;
+        spec.label = spec.label || IPA.messages.facets.details;
 
         var factory = spec.factory || IPA.details_facet;
         facet = factory(spec);
@@ -900,7 +902,7 @@ IPA.entity_builder = function(){
 
     that.dialog = function(spec) {
         var dialog;
-        if (spec instanceof Object){
+        if (spec instanceof Object) {
             var factory = spec.factory || IPA.dialog;
             dialog = factory(spec);
         } else {

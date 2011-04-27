@@ -266,7 +266,7 @@ IPA.details_facet = function(spec) {
 
     var that = IPA.facet(spec);
 
-    that.label = (IPA.messages && IPA.messages.facets && IPA.messages.facets.details) || spec.label;
+    that.label = spec.label || IPA.messages && IPA.messages.facets && IPA.messages.facets.details;
     that.facet_group = spec.facet_group || 'settings';
 
     that.sections = $.ordered_map();
@@ -334,18 +334,7 @@ IPA.details_facet = function(spec) {
         return pkey;
     };
 
-    that.create_header = function(container) {
-
-        that.facet_create_header(container);
-
-        that.pkey = $.bbq.getState(that.entity_name+'-pkey');
-        var label = IPA.metadata.objects[that.entity_name].label;
-
-        var title = that.title;
-        title = title.replace('${entity}', label);
-        title = title.replace('${primary_key}', that.pkey);
-
-        that.set_title(container, title);
+    that.create_controls = function() {
 
         that.reset_button = IPA.action_button({
             label: IPA.messages.buttons.reset,
@@ -366,11 +355,27 @@ IPA.details_facet = function(spec) {
                 return false;
             }
         }).appendTo(that.controls);
+    };
 
-        that.expand_button = $('<a/>', {
+    that.create_header = function(container) {
+
+        that.facet_create_header(container);
+
+        that.pkey = $.bbq.getState(that.entity_name+'-pkey');
+        var label = IPA.metadata.objects[that.entity_name].label;
+
+        var title = that.title;
+        title = title.replace('${entity}', label);
+        title = title.replace('${primary_key}', that.pkey);
+
+        that.set_title(container, title);
+
+        that.create_controls();
+
+        that.expand_button = IPA.action_button({
             name: 'expand_all',
             href: 'expand_all',
-            text: 'Expand All',
+            label: 'Expand All',
             'class': 'expand-collapse-all',
             style: 'display: none;',
             click: function() {
@@ -386,10 +391,10 @@ IPA.details_facet = function(spec) {
             }
         }).appendTo(that.controls);
 
-        that.collapse_button = $('<a/>', {
+        that.collapse_button = IPA.action_button({
             name: 'collapse_all',
             href: 'collapse_all',
-            text: 'Collapse All',
+            label: 'Collapse All',
             'class': 'expand-collapse-all',
             click: function() {
                 that.expand_button.css('display', 'inline');
@@ -514,7 +519,7 @@ IPA.details_facet = function(spec) {
         return false;
     };
 
-    that.load = function (record) {
+    that.load = function(record) {
         that.record = record;
         var sections = that.sections.values;
         for (var i=0; i<sections.length; i++) {
@@ -651,6 +656,7 @@ IPA.details_facet = function(spec) {
     that.details_facet_init = that.init;
     that.details_facet_create_content = that.create_content;
     that.details_facet_load = that.load;
+    that.details_facet_setup = that.setup;
 
     return that;
 };
@@ -669,7 +675,8 @@ IPA.button = function(spec) {
         id: spec.id,
         html: spec.label,
         title: spec.title || spec.label,
-        'class': 'ui-state-default ui-corner-all'
+        'class': 'ui-state-default ui-corner-all',
+        style: spec.style
     });
 
     if (spec.click) {
@@ -677,10 +684,10 @@ IPA.button = function(spec) {
     }
 
     if (spec['class']) button.addClass(spec['class']);
+    button.addClass('input_link');
 
     if (spec.icon) {
-        button.addClass('input_link');
-        button.append('<span class="ui-icon '+spec.icon+'" ></span> ');
+        button.prepend('<span class="ui-icon '+spec.icon+'" ></span> ');
     } else {
         button.addClass('button-without-icon');
     }

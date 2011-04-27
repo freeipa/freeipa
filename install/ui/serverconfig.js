@@ -31,6 +31,7 @@ IPA.entity_factories.config = function(){
     return IPA.entity_builder().
         entity('config').
         details_facet({
+            title: IPA.metadata.objects.config.label,
             sections:
             [{
             name: 'ipaserver',

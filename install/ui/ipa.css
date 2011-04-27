@@ -101,7 +101,7 @@ body {
 }
 
 .input_link {
-    padding: .4em 1em .4em 2em;
+    padding: .4em 1em .4em 0em;
     text-decoration: none;
     position: relative;
     cursor: pointer;
@@ -116,20 +116,7 @@ body {
     -moz-border-radius: 0.3em;
         -webkit-border-radius: 0.3em;
     border: 1px solid #B8B8B8;
-    margin: -0.9em 0.4em 0em -0.3em;
-    position: absolute;
-    left: .2em;
-    top: 50%;
-}
-
-.input_link_disabled span.ui-icon {
-    -moz-border-radius: 0.3em;
-        -webkit-border-radius: 0.3em;
-    border: 1px solid #B8B8B8;
-    margin: -0.9em 0.4em 0em -0.3em;
-    position: absolute;
-    left: .2em;
-    top: 50%;
+    vertical-align: middle;
 }
 
 
@@ -507,6 +494,11 @@ div.tabs {
     background: -webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#dfdfdf));
 }
 
+.facet-controls {
+    position: relative;
+    min-height: 1.8em;
+}
+
 .facet-content {
     position: absolute;
     top: 75px;
@@ -843,11 +835,12 @@ span.attrhint {
 }
 
 .ui-icon {
-  //background-image: url("ui-icons_222222_256x240.png");
+    /* background-image: url("ui-icons_222222_256x240.png"); */
     background-color: #e2e2e2;
+    display: inline-block;
 }
 .ui-dialog .ui-dialog-content {
-    #this should go away once we can fix table scrolling
+    /* this should go away once we can fix table scrolling */
     overflow:auto;
 }
 
@@ -1127,6 +1120,7 @@ table.scrollable tbody {
 }
 
 .expand-collapse-all {
-    float: right;
+    position: absolute;
+    right: 0;
     padding-right: 1.5em;
 }

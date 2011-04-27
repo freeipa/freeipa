@@ -33,6 +33,7 @@ IPA.entity_factories.dnszone = function() {
     return IPA.entity_builder().
         entity('dnszone').
         search_facet({
+            title: IPA.metadata.objects.dnszone.label,
             columns:['idnsname']
         }).
         details_facet({
@@ -469,8 +470,7 @@ IPA.records_facet = function(spec) {
 
         function on_error(xhr, text_status, error_thrown) {
             var summary = $('span[name=summary]', that.table.tfoot).empty();
-            summary.append('<p>Error: '+error_thrown.name+'</p>');
-            summary.append('<p>'+error_thrown.message+'</p>');
+            summary.append(error_thrown.name+': '+error_thrown.message);
         }
 
         var options = {};

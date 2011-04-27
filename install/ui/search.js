@@ -35,6 +35,7 @@ IPA.search_facet = function(spec) {
     var that = IPA.table_facet(spec);
 
     that.search_all = spec.search_all || false;
+    that.selectable = spec.selectable;
 
     function get_values() {
         return that.table.get_selected_values();
@@ -77,7 +78,8 @@ IPA.search_facet = function(spec) {
             label: IPA.metadata.objects[entity.name].label,
             entity_name: entity.name,
             search_all: that.search_all,
-            scrollable: true
+            scrollable: true,
+            selectable: that.selectable
         });
 
         var columns = that.columns.values;
@@ -175,11 +177,12 @@ IPA.search_facet = function(spec) {
 
         var values = that.table.get_selected_values();
 
-        if (values.length === 0) {
-            that.remove_button.addClass('input_link_disabled');
-
-        } else {
-            that.remove_button.removeClass('input_link_disabled');
+        if (that.remove_button) {
+            if (values.length === 0) {
+                that.remove_button.addClass('input_link_disabled');
+            } else {
+                that.remove_button.removeClass('input_link_disabled');
+            }
         }
     };
 
@@ -269,6 +272,16 @@ IPA.search_facet = function(spec) {
         IPA.nav.push_state(state);
     };
 
+    that.load = function(result) {
+
+        that.table.empty();
+
+        for (var i = 0; i<result.length; i++) {
+            var record = that.table.get_record(result[i], 0);
+            that.table.add_record(record);
+        }
+    };
+
     that.refresh = function() {
         that.search_refresh(that.entity);
     };
@@ -279,13 +292,7 @@ IPA.search_facet = function(spec) {
 
         function on_success(data, text_status, xhr) {
 
-            that.table.empty();
-
-            var result = data.result.result;
-            for (var i = 0; i<result.length; i++) {
-                var record = that.table.get_record(result[i], 0);
-                that.table.add_record(record);
-            }
+            that.load(data.result.result);
 
             if (data.result.truncated) {
                 var message = IPA.messages.search.truncated;
