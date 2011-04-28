@@ -37,6 +37,11 @@ IPA_RPM_RELEASE=$(shell cat RELEASE)
 
 LIBDIR ?= /usr/lib
 
+DEVELOPER_MODE ?= 0
+ifneq ($(DEVELOPER_MODE),0)
+LINT_OPTIONS=--no-fail
+endif
+
 all: bootstrap-autogen server
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
@@ -73,7 +78,7 @@ client-install: client
 	fi
 
 lint:
-	./make-lint
+	./make-lint $(LINT_OPTIONS)
 
 test:
 	$(MAKE) -C install/po test_lang
@@ -148,21 +153,21 @@ rpmdistdir:
 	mkdir -p dist/rpms
 	mkdir -p dist/srpms
 
-rpms: rpmroot rpmdistdir version-update tarballs
+rpms: rpmroot rpmdistdir version-update lint tarballs
 	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" -ba freeipa.spec
 	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-*-$(IPA_VERSION)-*.rpm dist/rpms/
 	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
 	rm -rf rpmbuild
 
-client-rpms: rpmroot rpmdistdir version-update tarballs
+client-rpms: rpmroot rpmdistdir version-update lint tarballs
 	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" --define "ONLY_CLIENT 1" -ba freeipa.spec
 	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-*-$(IPA_VERSION)-*.rpm dist/rpms/
 	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
 	rm -rf rpmbuild
 
-srpms: rpmroot rpmdistdir version-update tarballs
+srpms: rpmroot rpmdistdir version-update lint tarballs
 	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" -bs freeipa.spec
 	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
