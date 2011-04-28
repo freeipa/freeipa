@@ -29,6 +29,7 @@
 
 # for selftesting
 try:
+    #pylint: disable=F0401
     import fintl
     _ = fintl.gettext
 except ImportError:
