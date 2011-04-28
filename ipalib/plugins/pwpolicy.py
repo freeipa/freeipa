@@ -1,5 +1,6 @@
 # Authors:
 #   Pavel Zuna <pzuna@redhat.com>
+#   Martin Kosek <mkosek@redhat.com>
 #
 # Copyright (C) 2010  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -63,6 +64,7 @@ from ipalib import api
 from ipalib import Int, Str
 from ipalib.plugins.baseldap import *
 from ipalib import _
+from ipalib.request import context
 from ipapython.ipautil import run
 from distutils import version
 
@@ -138,7 +140,14 @@ class cosentry_mod(LDAPUpdate):
     NO_CLI = True
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        self.obj.check_priority_uniqueness(*keys, **options)
+        new_cospriority = options.get('cospriority')
+        if new_cospriority is not None:
+            cos_entry = self.api.Command.cosentry_show(keys[-1])['result']
+            old_cospriority = int(cos_entry['cospriority'][0])
+
+            # check uniqueness only when the new priority differs
+            if old_cospriority != new_cospriority:
+                self.obj.check_priority_uniqueness(*keys, **options)
         return dn
 
 api.register(cosentry_mod)
@@ -374,6 +383,7 @@ class pwpolicy_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         self.obj.convert_time_on_input(entry_attrs)
         self.obj.validate_lifetime(entry_attrs, False, *keys)
+        setattr(context, 'cosupdate', False)
         if options.get('cospriority') is not None:
             if keys[-1] is None:
                 raise errors.ValidationError(
@@ -383,12 +393,12 @@ class pwpolicy_mod(LDAPUpdate):
             try:
                 self.api.Command.cosentry_mod(
                     keys[-1], cospriority=options['cospriority']
-                )
-            except errors.NotFound:
-                self.api.Command.cosentry_add(
-                    keys[-1], krbpwdpolicyreference=dn,
-                    cospriority=options['cospriority']
-                )
+                    )
+            except errors.EmptyModlist, e:
+                if len(entry_attrs) == 1:   # cospriority only was passed
+                    raise e
+            else:
+                setattr(context, 'cosupdate', True)
             del entry_attrs['cospriority']
         return dn
 
@@ -401,7 +411,8 @@ class pwpolicy_mod(LDAPUpdate):
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         if isinstance(exc, errors.EmptyModlist):
             entry_attrs = call_args[1]
-            if not entry_attrs and 'cospriority' in options:
+            cosupdate = getattr(context, 'cosupdate')
+            if not entry_attrs or cosupdate:
                 return
         raise exc
 
