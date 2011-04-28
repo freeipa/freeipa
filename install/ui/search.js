@@ -95,7 +95,7 @@ IPA.search_widget = function (spec) {
         var filter = that.filter.val();
         var state = {};
         state[that.entity_name + '-filter'] = filter;
-        $.bbq.pushState(state);
+        IPA.nav.push_state(state);
     };
 
     return that;
@@ -166,10 +166,7 @@ IPA.search_facet = function(spec) {
                 'html': value,
                 'click': function (value) {
                     return function() {
-                        var state = IPA.tab_state(that.entity_name);
-                        state[that.entity_name + '-facet'] = 'default';
-                        state[that.entity_name + '-pkey'] = value;
-                        $.bbq.pushState(state);
+                        IPA.nav.show_page(that.entity_name, 'default', value);
                         return false;
                     };
                 }(value)

@@ -85,8 +85,8 @@ IPA.self_serv_navigation = function(spec) {
     var that = IPA.navigation(spec);
 
     that.update = function() {
-        var pkey = $.bbq.getState('user-pkey');
-        var facet = $.bbq.getState('user-facet');
+        var pkey = that.get_state('user-pkey');
+        var facet = that.get_state('user-facet');
 
         if (pkey && facet) {
             that.navigation_update();
@@ -96,7 +96,7 @@ IPA.self_serv_navigation = function(spec) {
                 'user-pkey': pkey || IPA.whoami_pkey,
                 'user-facet': facet || 'details'
             };
-            $.bbq.pushState(state);
+            that.push_state(state);
         }
     };
 
@@ -110,7 +110,6 @@ $(function() {
     function window_hashchange(evt){
         IPA.nav.update();
     }
-
 
     function create_navigation() {
         var whoami = IPA.whoami;

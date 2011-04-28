@@ -30,7 +30,53 @@ IPA.navigation = function(spec) {
     that.container = spec.container;
     that.tab_class = spec.tab_class || 'tabs';
 
-    that.tabs = spec.tabs || [];
+    that.tabs = [];
+    that.tabs_by_name = {};
+
+    that.set_tabs = function(tabs) {
+        that.tabs = tabs;
+        that.tabs_by_name = {};
+
+        for (var i=0; i<tabs.length; i++) {
+            that.add_tab(tabs[i]);
+        }
+    };
+
+    that.add_tab = function(tab, parent) {
+        if (!tab.name) {
+            tab.name = tab.entity;
+        }
+        tab.parent = parent;
+
+        that.tabs_by_name[tab.name] = tab;
+
+        for (var i=0; tab.children && i<tab.children.length; i++) {
+            that.add_tab(tab.children[i], tab);
+        }
+    };
+
+    that.get_tab = function(name) {
+        return that.tabs_by_name[name];
+    };
+
+    that.get_path_state = function(name) {
+
+        var state = {};
+
+        var tab = that.get_tab(name);
+        var parent = tab.parent;
+
+        while (parent) {
+            state[parent.name] = tab.name;
+
+            tab = parent;
+            parent = tab.parent;
+        }
+
+        state[that.container.attr('id')] = tab.name;
+
+        return state;
+    };
 
     that.push_state = function(params) {
         if (!IPA.test_dirty()) {
@@ -48,6 +94,20 @@ IPA.navigation = function(spec) {
         $.bbq.removeState(key);
     };
 
+    that.show_page = function(entity_name, facet_name, pkey) {
+        var state = that.get_path_state(entity_name);
+
+        if (facet_name) {
+            state[entity_name + '-facet'] = facet_name;
+        }
+
+        if (pkey) {
+            state[entity_name + '-pkey'] = pkey;
+        }
+
+        that.push_state(state);
+    };
+
     that.create = function() {
 
         that._create(that.tabs, that.container, 1);
@@ -56,11 +116,9 @@ IPA.navigation = function(spec) {
         tabs.tabs({
             select: function(event, ui) {
                 var panel = $(ui.panel);
-                var parent = panel.parent();
-                var id = parent.attr('id');
-                var state = {};
-                state[id] = ui.index;
-                return that.push_state(state);
+                var name = panel.attr('id');
+
+                return that.show_page(name);
             }
         });
     };
@@ -74,10 +132,6 @@ IPA.navigation = function(spec) {
 
         for (var i=0; i<tabs.length; i++) {
             var tab = tabs[i];
-
-            if (!tab.name) {
-                tab.name = tab.entity;
-            }
 
             var label = tab.name;
             if (tab.entity) {
@@ -94,34 +148,24 @@ IPA.navigation = function(spec) {
                 label = tab.label;
             }
 
-            var li = that.create_tab_li(tab.name, label);
-            ul.append(li);
+            $('<li/>').append($('<a/>', {
+                href: '#'+tab.name,
+                title: tab.name,
+                html: label
+            })).appendTo(ul);
 
-            var div = that.create_tab_div(tab.name);
-            container.append(div);
+            tab.content = $('<div/>', {
+                id: tab.name
+            }).appendTo(container);
 
             if (tab.entity) {
-                div.addClass('entity-container');
+                tab.content.addClass('entity-container');
             }
 
             if (tab.children && tab.children.length) {
-                that._create(tab.children, div, depth+1);
+                that._create(tab.children, tab.content, depth+1);
             }
         }
-    };
-
-    that.create_tab_li = function(id, name) {
-        return $('<li/>').append($('<a/>', {
-            href: '#'+id,
-            title: id,
-            html: name
-        }));
-    };
-
-    that.create_tab_div = function(id) {
-        return $('<div/>', {
-            id: id
-        });
     };
 
     that.update = function() {
@@ -130,55 +174,29 @@ IPA.navigation = function(spec) {
 
     that._update = function(tabs, container, depth) {
 
-        var id = container.attr('id');
-        var index = that.get_state(id);
-        if (!index || index >= tabs.length) index = 0;
+        var parent_name = container.attr('id');
+        var tab_name = that.get_state(parent_name);
+
+        var index = 0;
+        while (index < tabs.length && tabs[index].name != tab_name) index++;
+        if (index >= tabs.length) index = 0;
 
         container.tabs('select', index);
 
         var tab = tabs[index];
-        var container2 = $('#' + tab.name);
 
         if (tab.children && tab.children.length) {
-            that._update(tab.children, container2, depth+1);
+            that._update(tab.children, tab.content, depth+1);
 
         } else if (tab.entity) {
-            tab.entity.setup(container2);
+            tab.entity.setup(tab.content);
         }
     };
 
     // methods that should be invoked by subclasses
     that.navigation_update = that.update;
 
+    that.set_tabs(spec.tabs);
+
     return that;
-};
-
-IPA.tab_state = function(entity_name,tab){
-    var state;
-    var i;
-    var children;
-    var tab_name;
-
-    if (!tab){
-        children = IPA.nav.tabs;
-        tab_name = 'navigation';
-    }else if (tab.children){
-        children = tab.children;
-        tab_name = tab.name;
-    }else if (tab.entity){
-        if (tab.entity.name === entity_name){
-            state = {};
-            state[entity_name] =  0;
-        }
-        return state;
-    }
-
-    for (i = 0; i < children.length; i +=1){
-        state = IPA.tab_state(entity_name,children[i]);
-        if (state){
-            state[tab_name] = i;
-            return state;
-        }
-    }
-    return null;
 };

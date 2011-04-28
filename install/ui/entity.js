@@ -455,7 +455,7 @@ IPA.entity_header = function(spec){
                             return false;
                         }
 
-                        IPA.show_page(entity.name, 'search');
+                        IPA.nav.show_page(entity.name, 'search');
                         $(that.facet_tabs).find('a').removeClass('selected');
                         return false;
 
@@ -483,7 +483,7 @@ IPA.entity_header = function(spec){
                         return false;
                     }
                     var this_pkey = that.pkey_field.val();
-                    IPA.show_page(
+                    IPA.nav.show_page(
                         entity_name, other_facet_name,
                         this_pkey);
                     $(that.facet_tabs).find('a').removeClass('selected');

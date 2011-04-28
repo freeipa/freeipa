@@ -117,7 +117,7 @@ test("Testing IPA.navigation.update() with valid index.", function() {
     };
 
     navigation.create();
-    navigation.push_state({"identity":1});
+    navigation.push_state({'identity': 'two'});
     navigation.update();
 
     same(
@@ -164,7 +164,7 @@ test("Testing IPA.navigation.update() with out-of-range index.", function() {
     };
 
     navigation.create();
-    navigation.push_state({"identity":2});
+    navigation.push_state({'identity': 'three'});
     navigation.update();
 
     same(

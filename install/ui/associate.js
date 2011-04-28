@@ -288,10 +288,7 @@ IPA.association_pkey_setup = function  (container, record) {
         'html': value,
         'click': function (value) {
             return function() {
-                var state = IPA.tab_state(other_entity);
-                state[other_entity + '-facet'] = 'default';
-                state[other_entity + '-pkey'] = value;
-                $.bbq.pushState(state);
+                IPA.nav.show_page(other_entity, 'default', value);
                 return false;
             };
         }(value)
@@ -776,10 +773,7 @@ IPA.association_facet = function (spec) {
                     'html': value,
                     'click': function (value) {
                         return function() {
-                            var state = IPA.tab_state(that.other_entity);
-                            state[that.other_entity + '-facet'] = 'default';
-                            state[that.other_entity + '-pkey'] = value;
-                            $.bbq.pushState(state);
+                            IPA.nav.show_page(that.other_entity, 'default', value);
                             return false;
                         };
                     }(value)

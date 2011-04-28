@@ -185,21 +185,6 @@ var IPA = ( function () {
         return true;
     };
 
-    that.show_page = function(entity_name, facet_name, pkey) {
-        if (!IPA.test_dirty()) {
-            return;
-        }
-
-        var state = {};
-
-        if (pkey) {
-            state[entity_name + '-pkey'] = pkey;
-        }
-
-        state[entity_name + '-facet'] = facet_name;
-        $.bbq.pushState(state);
-    };
-
     that.display_activity_icon = function() {
         that.network_call_count++;
         $('.network-activity-indicator').css('display','inline');

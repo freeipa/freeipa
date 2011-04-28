@@ -77,10 +77,7 @@ IPA.add_dialog = function (spec) {
                     var pkey_name = IPA.metadata.objects[that.entity_name].primary_key;
                     var pkey = record[pkey_name];
 
-                    var state = {};
-                    state[that.entity_name + '-facet'] = 'details';
-                    state[that.entity_name + '-pkey'] = pkey;
-                    $.bbq.pushState(state);
+                    IPA.nav.show_page(that.entity_name, 'details', pkey);
                 }
             );
         });

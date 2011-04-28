@@ -369,10 +369,7 @@ IPA.service_managedby_host_facet = function(spec) {
                 'html': value,
                 'click': function (value) {
                     return function() {
-                        var state = IPA.tab_state(that.other_entity);
-                        state[that.other_entity + '-facet'] = 'details';
-                        state[that.other_entity + '-pkey'] = value;
-                        $.bbq.pushState(state);
+                        IPA.nav.show_page(that.other_entity, 'details', value);
                         return false;
                     };
                 }(value)
