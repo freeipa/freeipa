@@ -441,6 +441,13 @@ class ReplicationManager:
         a_pn = b.search_s(self.suffix, ldap.SCOPE_SUBTREE, filterstr=filter_a)
         b_pn = a.search_s(self.suffix, ldap.SCOPE_SUBTREE, filterstr=filter_b)
 
+        if a_pn is None:
+            logging.critical('Unable to find entry for %s on %s' % (filter_a, str(b)))
+        if b_pn is None:
+            logging.critical('Unable to find entry for %s on %s' % (filter_b, str(a)))
+        if a_pn is None or b_pn is None:
+            raise RuntimeError('Replication agreement cannot be converted')
+
         # Add kerberos principal DNs as valid bindDNs for replication
         try:
             mod = [(ldap.MOD_ADD, "nsds5replicabinddn", b_pn[0].dn)]
