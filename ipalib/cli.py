@@ -33,6 +33,7 @@ import termios
 import struct
 import base64
 try:
+    #pylint: disable=F0401
     import default_encoding_utf8
 except ImportError:
     # This is a chicken-and-egg problem. The api can't be imported unless

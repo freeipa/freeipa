@@ -25,15 +25,20 @@ import sys
 from optparse import OptionParser
 from fnmatch import fnmatch, fnmatchcase
 
-from pylint import checkers
-from pylint.lint import PyLinter
-from pylint.reporters.text import ParseableTextReporter
-from pylint.checkers.typecheck import TypeChecker
-from logilab.astng import Class, Instance, InferenceError
+try:
+    from pylint import checkers
+    from pylint.lint import PyLinter
+    from pylint.reporters.text import ParseableTextReporter
+    from pylint.checkers.typecheck import TypeChecker
+    from logilab.astng import Class, Instance, InferenceError
+except ImportError:
+    print >> sys.stderr, "To use {0}, please install pylint.".format(sys.argv[0])
+    sys.exit(32)
 
 # File names to ignore when searching for python source files
 IGNORE_FILES = ('.*', '*~', '*.in', '*.pyc', '*.pyo')
-IGNORE_PATHS = ('build', 'tests')
+IGNORE_PATHS = ('build', 'dist', 'install/po/test_i18n.py', 'lite-server.py',
+    'make-lint', 'make-test', 'tests')
 
 class IPATypeChecker(TypeChecker):
     # 'class': ('generated', 'properties',)
@@ -82,11 +87,11 @@ class IPATypeChecker(TypeChecker):
 
     def visit_getattr(self, node):
         try:
-            infered = list(node.expr.infer())
+            inferred = list(node.expr.infer())
         except InferenceError:
-            return
+            inferred = []
 
-        for owner in infered:
+        for owner in inferred:
             if not isinstance(owner, Class) and not isinstance(owner, Instance):
                 continue
 
@@ -100,16 +105,27 @@ class IPATypeChecker(TypeChecker):
 class IPALinter(PyLinter):
     ignore = (TypeChecker,)
 
+    def __init__(self):
+        super(IPALinter, self).__init__()
+
+        self.missing = set()
+
     def register_checker(self, checker):
         if type(checker) in self.ignore:
             return
         super(IPALinter, self).register_checker(checker)
 
-def find_files(path, basepath):
-    for pattern in IGNORE_PATHS:
-        if path == os.path.join(basepath, pattern):
-            return []
+    def add_message(self, msg_id, line=None, node=None, args=None):
+        if line is None and node is not None:
+            line = node.fromlineno
 
+        # Record missing packages
+        if msg_id == 'F0401' and self.is_message_enabled(msg_id, line):
+            self.missing.add(args)
+
+        super(IPALinter, self).add_message(msg_id, line, node, args)
+
+def find_files(path, basepath):
     entries = os.listdir(path)
 
     # If this directory is a python package, look no further
@@ -118,14 +134,22 @@ def find_files(path, basepath):
 
     result = []
     for filename in entries:
+        filepath = os.path.join(path, filename)
+
         for pattern in IGNORE_FILES:
             if fnmatch(filename, pattern):
                 filename = None
                 break
-        if not filename:
+        if filename is None:
             continue
 
-        filepath = os.path.join(path, filename)
+        for pattern in IGNORE_PATHS:
+            patpath = os.path.join(basepath, pattern).replace(os.sep, '/')
+            if filepath == patpath:
+                filename = None
+                break
+        if filename is None:
+            continue
 
         if os.path.islink(filepath):
             continue
@@ -177,11 +201,34 @@ def main():
 
     if options.errors_only:
         linter.disable_noerror_messages()
+        linter.enable('F')
     linter.set_reporter(ParseableTextReporter())
     linter.set_option('include-ids', True)
     linter.set_option('reports', False)
+    linter.set_option('persistent', False)
 
     linter.check(files)
+
+    if linter.msg_status != 0:
+        print >> sys.stderr, """
+===============================================================================
+Errors were found during the static code check.
+"""
+
+        if len(linter.missing) > 0:
+            print >> sys.stderr, "There are some missing imports:"
+            for mod in sorted(linter.missing):
+                print >> sys.stderr, "    " + mod
+            print >> sys.stderr, """
+Please make sure all of the required and optional (python-krbV, python-rhsm)
+python packages are installed.
+"""
+
+        print >> sys.stderr, """\
+If you are certain that any of the reported errors are false positives, please
+mark them in the source code according to the pylint documentation.
+===============================================================================
+"""
 
     if options.fail:
         return linter.msg_status
