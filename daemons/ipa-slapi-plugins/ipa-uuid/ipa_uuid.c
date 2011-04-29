@@ -277,7 +277,7 @@ ipauuid_internal_preop_init(Slapi_PBlock *pb)
                          (void *) ipauuid_add_pre_op) != 0) {
         status = EFAIL;
     }
- 
+
     return status;
 }
 
@@ -1111,8 +1111,14 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
                     slapi_entry_set_sdn(e, sdn);
 
                     /* reset the target DN since we've changed it. */
-                    slapi_pblock_set(pb, SLAPI_ADD_TARGET,
-                                         (char*)slapi_sdn_get_ndn(slapi_entry_get_sdn_const(e)));
+                    if (slapi_pblock_set(pb, SLAPI_ADD_TARGET,
+                                             (char*)slapi_sdn_get_ndn(slapi_entry_get_sdn_const(e)))) {
+                        LOG_FATAL("slapi_block_set failed!\n");
+                        ret = LDAP_OPERATIONS_ERROR;
+                        slapi_rdn_free(&rdn);
+                        slapi_sdn_free(&sdn);
+                        goto done;
+                    }
                 }
                 slapi_rdn_free(&rdn);
                 slapi_sdn_free(&sdn);
@@ -1164,7 +1170,10 @@ done:
     if (smods != NULL) {
         /* Put the updated mods back into place. */
         mods = slapi_mods_get_ldapmods_passout(smods);
-        slapi_pblock_set(pb, SLAPI_MODIFY_MODS, mods);
+        if (slapi_pblock_set(pb, SLAPI_MODIFY_MODS, mods)) {
+            LOG_FATAL("slapi_pblock_set failed!\n");
+            ret = LDAP_OPERATIONS_ERROR;
+        }
         slapi_mods_free(&smods);
     }
 

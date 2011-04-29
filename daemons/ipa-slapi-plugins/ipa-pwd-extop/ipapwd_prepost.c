@@ -766,7 +766,10 @@ done:
     /* put back a, possibly modified, set of mods */
     if (smods) {
         mods = slapi_mods_get_ldapmods_passout(smods);
-        slapi_pblock_set(pb, SLAPI_MODIFY_MODS, mods);
+        if (slapi_pblock_set(pb, SLAPI_MODIFY_MODS, mods)) {
+            LOG_FATAL("slapi_pblock_set failed!\n");
+            rc = LDAP_OPERATIONS_ERROR;
+        }
         slapi_mods_free(&smods);
     }
 

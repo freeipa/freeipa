@@ -155,7 +155,7 @@ ipa_join(Slapi_PBlock *pb)
         errMesg = "Kerberos realm is not set.\n";
         LOG_FATAL("%s", errMesg);
         rc = LDAP_OPERATIONS_ERROR;
-        goto done;
+        goto free_and_return;
     }
 
     /* Get Bind DN */
@@ -234,7 +234,11 @@ ipa_join(Slapi_PBlock *pb)
      */
 
     is_root = slapi_dn_isroot(bindDN);
-    slapi_pblock_set(pb, SLAPI_REQUESTOR_ISROOT, &is_root);
+    if (slapi_pblock_set(pb, SLAPI_REQUESTOR_ISROOT, &is_root)) {
+        LOG_FATAL("slapi_pblock_set failed!\n");
+        rc = LDAP_OPERATIONS_ERROR;
+        goto free_and_return;
+    }
 
     /* In order to perform the access control check,
      * we need to select a backend (even though
@@ -242,7 +246,11 @@ ipa_join(Slapi_PBlock *pb)
      */
     sdn = slapi_sdn_new_dn_byval(bindDN);
     be = slapi_be_select(sdn);
-    slapi_pblock_set(pb, SLAPI_BACKEND, be);
+    if (slapi_pblock_set(pb, SLAPI_BACKEND, be)) {
+        LOG_FATAL("slapi_pblock_set failed!\n");
+        rc = LDAP_OPERATIONS_ERROR;
+        goto free_and_return;
+    }
 
     /* Access Strategy:
      * If the user has WRITE-ONLY access, a new keytab is set on the entry.

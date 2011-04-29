@@ -64,6 +64,10 @@ read_config_file(const char *filename)
     }
     left = st.st_size;
     data = malloc(st.st_size + 1);
+    if (data == NULL) {
+        fprintf(stderr, _("out of memory\n"));
+        return NULL;
+    }
     dest = data;
     while (left != 0) {
         ssize_t res;
