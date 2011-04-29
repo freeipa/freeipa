@@ -128,7 +128,8 @@ $(function() {
         }
 
         return factory({
-            container: $('#navigation')
+            container: $('#navigation'),
+            content: $('#content')
         });
     }
 
@@ -153,7 +154,7 @@ $(function() {
 
 
     function init_on_error(xhr, text_status, error_thrown) {
-        var container = $('#navigation').empty();
+        var container = $('#content').empty();
         container.append('<p>Error: '+error_thrown.name+'</p>');
         container.append('<p>'+error_thrown.title+'</p>');
         container.append('<p>'+error_thrown.message+'</p>');

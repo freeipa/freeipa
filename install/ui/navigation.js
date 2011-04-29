@@ -28,6 +28,7 @@ IPA.navigation = function(spec) {
     var that = {};
 
     that.container = spec.container;
+    that.content = spec.content;
     that.tab_class = spec.tab_class || 'tabs';
 
     that.tabs = [];
@@ -116,7 +117,7 @@ IPA.navigation = function(spec) {
         tabs.tabs({
             select: function(event, ui) {
                 var panel = $(ui.panel);
-                var name = panel.attr('id');
+                var name = panel.attr('name');
 
                 return that.show_page(name);
             }
@@ -128,11 +129,13 @@ IPA.navigation = function(spec) {
         container.addClass(that.tab_class);
         container.addClass('tabs'+depth);
 
+        var parent_id = container.attr('id');
+
         var ul = $('<ul/>').appendTo(container);
 
         for (var i=0; i<tabs.length; i++) {
             var tab = tabs[i];
-
+            var tab_id = parent_id+'-'+i;
             var label = tab.name;
             if (tab.entity) {
                 var entity = IPA.get_entity(tab.entity);
@@ -149,32 +152,37 @@ IPA.navigation = function(spec) {
             }
 
             $('<li/>').append($('<a/>', {
-                href: '#'+tab.name,
-                title: tab.name,
+                href: '#'+tab_id,
+                title: label,
                 html: label
             })).appendTo(ul);
 
-            tab.content = $('<div/>', {
-                id: tab.name
+            tab.container = $('<div/>', {
+                id: tab_id,
+                name: tab.name
             }).appendTo(container);
 
-            if (tab.entity) {
-                tab.content.addClass('entity-container');
-            }
-
             if (tab.children && tab.children.length) {
-                that._create(tab.children, tab.content, depth+1);
+                that._create(tab.children, tab.container, depth+1);
+
+            } else if (tab.entity) {
+                tab.content = $('<div/>', {
+                    name: tab.name,
+                    title: label,
+                    'class': 'entity-container'
+                }).appendTo(that.content);
             }
         }
     };
 
     that.update = function() {
+        $('.entity-container', that.content).css('display', 'none');
         that._update(that.tabs, that.container, 1);
     };
 
     that._update = function(tabs, container, depth) {
 
-        var parent_name = container.attr('id');
+        var parent_name = container.attr('name') || container.attr('id');
         var tab_name = that.get_state(parent_name);
 
         var index = 0;
@@ -186,9 +194,10 @@ IPA.navigation = function(spec) {
         var tab = tabs[index];
 
         if (tab.children && tab.children.length) {
-            that._update(tab.children, tab.content, depth+1);
+            that._update(tab.children, tab.container, depth+1);
 
         } else if (tab.entity) {
+            $('.entity-container[name="'+tab.entity.name+'"]', that.content).css('display', 'inline');
             tab.entity.setup(tab.content);
         }
     };

@@ -43,8 +43,8 @@ test("Testing IPA.navigation.create().", function() {
                                metadata:IPA.metadata.objects.user});
         that.setup = function(container){
             user_mock_called = true;
-            same(container[0].id,'user','user id');
-            same(container[0].nodeName,'DIV','user div');
+            same(container.attr('name'), 'user', 'user container name');
+            same(container[0].nodeName, 'DIV', 'user container element');
         };
         return that;
     };
@@ -53,8 +53,8 @@ test("Testing IPA.navigation.create().", function() {
                                metadata:IPA.metadata.objects.group});
         that.setup = function(container){
             group_mock_called = true;
-            same(container[0].id,'group','group id');
-            same(container[0].nodeName,'DIV','group Div');
+            same(container.attr('name'), 'group','user container name');
+            same(container[0].nodeName, 'DIV', 'user container element');
         };
         return that;
     };
@@ -62,12 +62,14 @@ test("Testing IPA.navigation.create().", function() {
     IPA.start_entities();
 
     IPA.metadata = {};
-    var container = $('<div id="navigation"/>').appendTo(document.body);
+    var navigation_container = $('<div id="navigation"/>').appendTo(document.body);
+    var entity_container = $('<div id="content"/>').appendTo(document.body);
     var user_mock_called = false;
     var group_mock_called = false;
 
     var navigation = IPA.navigation({
-        container: container,
+        container: navigation_container,
+        content: entity_container,
         tabs: [
             { name:'identity', label:'IDENTITY', children: [
                 {name:'user', entity:'user'},
@@ -81,19 +83,34 @@ test("Testing IPA.navigation.create().", function() {
 
     ok(user_mock_called, "mock user setup was called");
     ok(!group_mock_called, "mock group setup was not called because the tab is inactive");
-    same( container[0].children.length, 2, "Two Child tabs");
-    same( container[0].children[1].id, 'identity', "Identity Tab");
-    same( container[0].children[1].children[1].id, 'user', "User Tab");
-    same( container[0].children[1].children[2].id, 'group', "User Tab");
-    container.remove();
+
+    var level1_tabs = navigation_container.children('div');
+    same(level1_tabs.length, 1, "One level 1 tab");
+
+    var identity_tab = level1_tabs.first();
+    same(identity_tab.attr('name'), 'identity', "Identity Tab");
+
+    var level2_tabs = identity_tab.children('div');
+    same(level2_tabs.length, 2, "Two level 2 tabs");
+
+    var user_tab = level2_tabs.first();
+    same(user_tab.attr('name'), 'user', "User Tab");
+
+    var group_tab = user_tab.next();
+    same(group_tab.attr('name'), 'group', "Group Tab");
+
+    entity_container.remove();
+    navigation_container.remove();
 });
 
 test("Testing IPA.navigation.update() with valid index.", function() {
 
-    var container = $('<div id="navigation"/>').appendTo(document.body);
+    var navigation_container = $('<div id="navigation"/>').appendTo(document.body);
+    var entity_container = $('<div id="content"/>').appendTo(document.body);
 
     var navigation = IPA.navigation({
-        container: container,
+        container: navigation_container,
+        content: entity_container,
         tabs: [
             { name:'identity', label:'IDENTITY', children: [
                 {name:'one', label:'One', setup: function (){}},
@@ -121,26 +138,29 @@ test("Testing IPA.navigation.update() with valid index.", function() {
     navigation.update();
 
     same(
-        container.tabs('option', 'selected'), 0,
+        navigation_container.tabs('option', 'selected'), 0,
         "Active tab at level 1"
     );
 
     same(
-        $('#identity').tabs('option', 'selected'), 1,
+        $('.tabs[name=identity]', navigation_container).tabs('option', 'selected'), 1,
         "Active tab at level 2"
     );
 
     navigation.remove_state("identity");
 
-    container.remove();
+    entity_container.remove();
+    navigation_container.remove();
 });
 
 test("Testing IPA.navigation.update() with out-of-range index.", function() {
 
-    var container = $('<div id="navigation"/>').appendTo(document.body);
+    var navigation_container = $('<div id="navigation"/>').appendTo(document.body);
+    var entity_container = $('<div id="content"/>').appendTo(document.body);
 
     var navigation = IPA.navigation({
-        container: container,
+        container: navigation_container,
+        content: entity_container,
         tabs: [
             { name:'identity', label:'IDENTITY', children: [
                 {name:'one', label:'One', setup: function (){}},
@@ -168,16 +188,17 @@ test("Testing IPA.navigation.update() with out-of-range index.", function() {
     navigation.update();
 
     same(
-        container.tabs('option', 'selected'), 0,
+        navigation_container.tabs('option', 'selected'), 0,
         "Active tab at level 1"
     );
 
     same(
-        $('#identity').tabs('option', 'selected'), 0,
+        $('.tabs[name=identity]', navigation_container).tabs('option', 'selected'), 0,
         "Active tab at level 2"
     );
 
     navigation.remove_state("identity");
 
-    container.remove();
+    entity_container.remove();
+    navigation_container.remove();
 });

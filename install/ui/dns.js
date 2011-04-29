@@ -304,25 +304,6 @@ IPA.records_facet = function (spec){
         return pkey != that.pkey || record != that.record;
     };
 
-    that.create_action_panel = function(container) {
-
-        that.facet_create_action_panel(container);
-
-        var buttons = $('.action-controls', container);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'remove',
-            'value': IPA.messages.buttons.remove
-        }).appendTo(buttons);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'add',
-            'value': IPA.messages.buttons.add
-        }).appendTo(buttons);
-    };
-
     function create_content(container) {
 
         $('<h1/>',{
@@ -537,7 +518,7 @@ IPA.records_facet = function (spec){
 
     //TODO this is cut and pasted from search, we need to unify
     function display(obj_name, data){
-        var selector = '.entity-container[title=' + obj_name + ']';
+        var selector = '.entity-container[name=' + obj_name + ']';
         var thead = $(selector + ' thead');
         var tbody = $(selector + ' tbody');
         var tfoot = $(selector + ' tfoot');

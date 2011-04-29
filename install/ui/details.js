@@ -264,13 +264,9 @@ IPA.details_facet = function(spec) {
 
     var that = IPA.facet(spec);
 
-    that.label =  ( IPA.messages && IPA.messages.facets &&  IPA.messages.facets.details)  || spec.label;
-    that.is_dirty = spec.is_dirty || is_dirty;
-    that.create_content = spec.create_content || create_content;
-    that.setup = spec.setup || setup;
-    that.load = spec.load || load;
+    that.label = (IPA.messages && IPA.messages.facets && IPA.messages.facets.details) || spec.label;
+
     that.update = spec.update || IPA.details_update;
-    that.reset = spec.reset || reset;
     that.refresh = spec.refresh || IPA.details_refresh;
 
     that.sections = [];
@@ -323,24 +319,7 @@ IPA.details_facet = function(spec) {
         }
     };
 
-    that.create_action_panel = function(container) {
-
-        that.facet_create_action_panel(container);
-
-        var buttons = $('.action-controls', container);
-
-        $('<input/>', {
-            'type': 'text',
-            'name': 'reset'
-        }).appendTo(buttons);
-
-        $('<input/>', {
-            'type': 'text',
-            'name': 'update'
-        }).appendTo(buttons);
-    };
-
-    function create_content(container) {
+    that.create_content = function(container) {
 
         var label = IPA.metadata.objects[that.entity_name].label;
 
@@ -399,9 +378,9 @@ IPA.details_facet = function(spec) {
 
             details.append('<hr/>');
         }
-    }
+    };
 
-    function setup(container) {
+    that.setup = function(container) {
 
         that.facet_setup(container);
 
@@ -468,7 +447,7 @@ IPA.details_facet = function(spec) {
 
             section.setup(div);
         }
-    }
+    };
 
     function toggle(section, visible) {
         var header = $('h2[name='+section.name+']', that.container);
@@ -491,7 +470,7 @@ IPA.details_facet = function(spec) {
     that.new_key = new_key;
 
 
-    function is_dirty() {
+    that.is_dirty = function() {
 
         var i;
         for ( i =0; i <   that.sections.length; i +=1 ){
@@ -501,9 +480,9 @@ IPA.details_facet = function(spec) {
         }
 
         return false;
-    }
+    };
 
-    function load(record) {
+    that.load = function (record) {
         that.record = record;
         for (var i=0; i<that.sections.length; i++) {
             var section = that.sections[i];
@@ -512,15 +491,15 @@ IPA.details_facet = function(spec) {
         if (that.pkey){
             that.entity_header.set_pkey(that.pkey);
         }
-    }
+    };
 
-    function reset() {
+    that.reset = function() {
 
         for (var i=0; i<that.sections.length; i++) {
             var section = that.sections[i];
             section.reset();
         }
-    }
+    };
 
     that.details_facet_init = that.init;
     that.details_facet_create_content = that.create_content;

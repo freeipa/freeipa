@@ -282,8 +282,7 @@ IPA.current_facet =  function (entity){
     return facet_name;
 };
 
-
-IPA.entity_setup = function (container) {
+IPA.entity_setup = function(container) {
 
     var entity = this;
 
@@ -303,7 +302,6 @@ IPA.entity_setup = function (container) {
         IPA.entity_name = entity.name;
     }
 
-    container.attr('title', entity.name);
     if (!entity.header){
         entity.header = IPA.entity_header({entity:entity,container:container});
     }
@@ -315,7 +313,6 @@ IPA.entity_setup = function (container) {
     entity.header.select_tab();
     facet.refresh();
 };
-
 
 IPA.nested_tab_labels = {};
 
@@ -538,10 +535,7 @@ IPA.entity_header = function(spec){
 
     function entity_container() {
         that.entity_container =
-            $("<div/>",{
-                "class":'entity-container',
-                id: 'entity-container-' + entity.name
-            }).
+            $('<div/>').
             append(facet_tabs()).
             append(content());
         return that.entity_container;

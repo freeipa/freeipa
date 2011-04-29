@@ -799,25 +799,6 @@ IPA.association_facet = function (spec) {
         return pkey != that.pkey;
     };
 
-    that.create_action_panel = function(container) {
-
-        that.facet_create_action_panel(container);
-
-        var buttons = $('.action-controls', container);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'remove',
-            'value': IPA.messages.buttons.remove
-        }).appendTo(buttons);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'add',
-            'value': IPA.messages.buttons.enroll
-        }).appendTo(buttons);
-    };
-
     that.create_content = function(container) {
 
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
