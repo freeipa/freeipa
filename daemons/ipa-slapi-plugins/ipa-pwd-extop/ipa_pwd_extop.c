@@ -265,7 +265,11 @@ parse_req_done:
                           "using the bind DN instead.\n");
 	 }
 
-	 slapi_pblock_set( pb, SLAPI_ORIGINAL_TARGET, dn );
+	 if (slapi_pblock_set( pb, SLAPI_ORIGINAL_TARGET, dn )) {
+		LOG_FATAL("slapi_pblock_set failed!\n");
+		rc = LDAP_OPERATIONS_ERROR;
+		goto free_and_return;
+	 }
 
 	 /* Now we have the DN, look for the entry */
 	 ret = ipapwd_getEntry(dn, &targetEntry, attrlist);
@@ -292,7 +296,11 @@ parse_req_done:
 	  */
 
 	is_root = slapi_dn_isroot(bindDN);
-	slapi_pblock_set(pb, SLAPI_REQUESTOR_ISROOT, &is_root);
+	if (slapi_pblock_set(pb, SLAPI_REQUESTOR_ISROOT, &is_root)) {
+		LOG_FATAL("slapi_pblock_set failed!\n");
+		rc = LDAP_OPERATIONS_ERROR;
+		goto free_and_return;
+	}
 
 	/* In order to perform the access control check, we need to select a
 	 * backend (even though we don't actually need it otherwise).
@@ -306,7 +314,11 @@ parse_req_done:
 			rc = LDAP_OPERATIONS_ERROR;
 			goto free_and_return;
 		}
-		slapi_pblock_set(pb, SLAPI_BACKEND, be);
+		if (slapi_pblock_set(pb, SLAPI_BACKEND, be)) {
+			LOG_FATAL("slapi_pblock_set failed!\n");
+			rc = LDAP_OPERATIONS_ERROR;
+			goto free_and_return;
+		}
 	}
 
 	ret = slapi_access_allowed( pb, targetEntry, "krbPrincipalKey", NULL, SLAPI_ACL_WRITE );
@@ -613,13 +625,21 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	 */
 
 	is_root = slapi_dn_isroot(bindDN);
-	slapi_pblock_set(pb, SLAPI_REQUESTOR_ISROOT, &is_root);
+	if (slapi_pblock_set(pb, SLAPI_REQUESTOR_ISROOT, &is_root)) {
+		LOG_FATAL("slapi_pblock_set failed!\n");
+		rc = LDAP_OPERATIONS_ERROR;
+		goto free_and_return;
+	}
 
 	/* In order to perform the access control check,
 	 * we need to select a backend (even though
 	 * we don't actually need it otherwise).
 	 */
-	slapi_pblock_set(pb, SLAPI_BACKEND, be);
+	if (slapi_pblock_set(pb, SLAPI_BACKEND, be)) {
+		LOG_FATAL("slapi_pblock_set failed!\n");
+		rc = LDAP_OPERATIONS_ERROR;
+		goto free_and_return;
+	}
 
 	/* Access Strategy:
 	 * If the user has WRITE-ONLY access, a new keytab is set on the entry.
@@ -869,7 +889,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 				slapi_mods_free(&smods);
 				goto free_and_return;
 			}
-			
+
 			evals[0] = slapi_value_new_string(bindDN);
 			slapi_mods_add_mod_values(smods, LDAP_MOD_ADD, "enrolledBy", evals);
 		} else {

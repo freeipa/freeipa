@@ -139,6 +139,10 @@ callRPC(xmlrpc_env *            const envP,
     XMLRPC_ASSERT(xmlrpc_value_type(paramArrayP) == XMLRPC_TYPE_ARRAY);
 
     curlXportParmsP = malloc(sizeof(*curlXportParmsP));
+    if (curlXportParmsP == NULL) {
+        xmlrpc_env_set_fault(envP, XMLRPC_INTERNAL_ERROR, _("Out of memory!"));
+        return;
+    }
     memset(curlXportParmsP, 0, sizeof(*curlXportParmsP));
 
     /* Have curl do SSL certificate validation */
@@ -930,7 +934,7 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
             rval = 5;
             goto cleanup;
         }
-        
+
         krberr = krb5_cc_get_principal(krbctx, ccache, &uprinc);
         if (krberr) {
             fprintf(stderr, _("Unable to join host: Kerberos User Principal "
