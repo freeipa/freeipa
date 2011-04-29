@@ -112,11 +112,7 @@ IPA.records_facet = function (spec){
         return type_select;
     }
 
-
-    var  entry_attrs = {};
-
-
-    function add_click(){
+    that.add = function() {
 
         var dialog = IPA.dialog({
             title: IPA.messages.objects.dnsrecord.add
@@ -194,17 +190,17 @@ IPA.records_facet = function (spec){
         dialog.init();
 
         dialog.open(that.container);
-    }
+    };
 
-    function delete_records(records_table){
+    that.remove = function() {
 
         var zone = $.bbq.getState('dnszone-pkey', true);
 
-        var thead = records_table.find('thead');
+        var thead = that.records_table.find('thead');
         thead.find("INPUT[type='checkbox']").
             attr('checked', false);
 
-        var tbody = records_table.find('tbody');
+        var tbody = that.records_table.find('tbody');
 
         var records = [];
 
@@ -296,7 +292,7 @@ IPA.records_facet = function (spec){
         dialog.init();
 
         dialog.open(that.container);
-    }
+    };
 
     that.is_dirty = function() {
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
@@ -304,73 +300,76 @@ IPA.records_facet = function (spec){
         return pkey != that.pkey || record != that.record;
     };
 
-    function create_content(container) {
+    that.create_header = function(container) {
 
-        $('<h1/>',{
-        }).append(IPA.create_network_spinner()).
-            appendTo(container);
+        that.facet_create_header(container);
+
+        $('<input/>', {
+            type: 'text',
+            id: 'dns-record-resource-filter',
+            name: 'filter'
+        }).appendTo(that.controls);
+
+        /*
+          THe OLD DNS plugin allowed for search based on record type.
+          This one does not.  If the plugin gets modified to support
+          Record type searches, uncomment the following lines and
+          adjust the code that modifies the search parameters.
+
+          that.controls.append('Type');
+          create_type_select('dns-record-type-filter',true).
+          appendTo(that.controls);
+        */
+
+        that.find_button = IPA.button({
+            label: IPA.messages.buttons.find,
+            icon: 'ui-icon-search',
+            click: function(){
+                that.refresh();
+                return false;
+            }
+        }).appendTo(that.controls);
+
+        that.controls.append(IPA.create_network_spinner());
+
+        that.remove_button = IPA.action_button({
+            label: IPA.messages.buttons.remove,
+            icon: 'ui-icon-trash',
+            click: function() {
+                that.remove();
+                return false;
+            }
+        }).appendTo(that.controls);
+
+        that.add_button = IPA.action_button({
+            label: IPA.messages.buttons.add,
+            icon: 'ui-icon-plus',
+            click: function() {
+                that.add();
+                return false;
+            }
+        }).appendTo(that.controls);
+    };
+
+    that.create_content = function(container) {
 
         var details = $('<div/>', {
             'name': 'details'
         }).appendTo(container);
 
-        var div = $('<div class="search-controls"></div>').
-            appendTo(details);
-
-        var control_span =$('<span class="record-filter"></span>').appendTo(div);
-        control_span.append(IPA.messages.objects.dnsrecord.resource);
-        control_span.append($('<input />',{
-            type: "text",
-            id: 'dns-record-resource-filter',
-            name: 'search-' + that.entity_name + '-filter'
-        }));
-
-        /*
-          THe OLD DNS plugin allowed for search based on record type.
-          This one does not.  If the plugin gets modified to support
-          Record type searches, uncomment the followin lines and
-          adjust the code that modifies the search parameters.
-
-          control_span.append('Type');
-          create_type_select('dns-record-type-filter',true).
-          appendTo(control_span);
-        */
-
-        IPA.button({
-            'label': IPA.messages.buttons.find,
-            'icon': 'ui-icon-search',
-            'click': function(){refresh();}
-        }).appendTo(control_span);
-
-
-        var buttons =  that.entity_header.buttons;
-
-        var button = $('input[name=remove]', buttons);
-        that.remove_button = IPA.action_button({
-            label: IPA.messages.buttons.remove,
-            icon: 'ui-icon-trash',
-            click: function(){ delete_records(records_table); }
-        }).appendTo(buttons);
-
-        that.add_button = IPA.action_button({
-            label: IPA.messages.buttons.add,
-            icon: 'ui-icon-plus',
-            click: add_click
-        }).appendTo(buttons);
-
-        div.append('<span class="records-buttons"></span>');
+        details.append('<span class="records-buttons"></span>');
 
         var records_results = $('<div/>', {
             'class': 'records-results'
         }).appendTo(details);
 
-        var records_table = $('<table/>', {
+        that.records_table = $('<table/>', {
             'class': 'search-table'
         }).appendTo(records_results);
 
-        var thead = $('<thead><tr></tr></thead>').appendTo(records_table);
-        var tbody = $('<tbody></tbody>').appendTo(records_table);
-        var tfoot = $('<tfoot></tfoot>').appendTo(records_table);
+        var thead = $('<thead><tr></tr></thead>').appendTo(that.records_table);
+        var tbody = $('<tbody></tbody>').appendTo(that.records_table);
+        var tfoot = $('<tfoot></tfoot>').appendTo(that.records_table);
 
         var tr = thead.find('tr');
         tr.append($('<th style="width: 15px" />').append(
@@ -386,19 +385,17 @@ IPA.records_facet = function (spec){
          tr.append($('<th>Record Type</th>'));
         tr.append($('<th>Data</th>'));
 
-    }
+    };
 
-    function setup(container){
+    that.setup = function(container) {
 
         that.facet_setup(container);
 
-        that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         that.record = $.bbq.getState(that.entity_name + '-record', true) || '';
 
-
+        that.pkey = $.bbq.getState(that.entity_name+'-pkey', true) || '';
         $('h1',container).
             html("<span id='headerpkey' />"+IPA.messages.objects.dnsrecord.title+":" + that.pkey);
-
 
         //commented out until data is searchable
         //control_span.append('Data');
@@ -407,12 +404,17 @@ IPA.records_facet = function (spec){
         //    id: 'dns-record-data-filter',
         //    name: 'search-' + obj_name + '-filter'
         //}));
+    };
 
+    that.show = function() {
+        that.facet_show();
 
+        that.pkey = $.bbq.getState(that.entity_name+'-pkey', true) || '';
+        that.entity.header.set_pkey(that.pkey);
 
-        refresh();
-    }
-
+        that.entity.header.back_link.css('visibility', 'visible');
+        that.entity.header.facet_tabs.css('visibility', 'visible');
+    };
 
     function load_on_win(data){
         display(that.entity_name,data);
@@ -423,11 +425,11 @@ IPA.records_facet = function (spec){
     }
 
     function  reload(){
-        refresh();
+        that.refresh();
     }
 
 
-    function  refresh(){
+    that.refresh = function() {
 
         var options = {};
 
@@ -460,7 +462,7 @@ IPA.records_facet = function (spec){
             on_success: load_on_win,
             on_error:load_on_fail
         }).execute();
-    }
+    };
 
 
     function generate_tr(thead, tbody, result){
@@ -518,7 +520,7 @@ IPA.records_facet = function (spec){
 
     //TODO this is cut and pasted from search, we need to unify
     function display(obj_name, data){
-        var selector = '.entity-container[name=' + obj_name + ']';
+        var selector = '.entity[name=' + obj_name + ']';
         var thead = $(selector + ' thead');
         var tbody = $(selector + ' tbody');
         var tfoot = $(selector + ' tfoot');
@@ -544,10 +546,6 @@ IPA.records_facet = function (spec){
         }
 
     }
-
-    that.create_content = create_content;
-    that.setup = setup;
-    that.refresh = refresh;
 
     return that;
 };

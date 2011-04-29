@@ -354,8 +354,8 @@ class i18n_messages(Command):
             },
         "details":{
             "general":_("General"),
-            "settings":_("${entity} Settings"),
             "identity":_("Identity Settings"),
+            "settings":_("${entity} ${primary_key} Settings"),
             "to_top":_("Back to Top")
             },
         "tabs": {

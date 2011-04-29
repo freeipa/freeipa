@@ -136,7 +136,7 @@ IPA.navigation = function(spec) {
         for (var i=0; i<tabs.length; i++) {
             var tab = tabs[i];
             var tab_id = parent_id+'-'+i;
-            var label = tab.name;
+
             if (tab.entity) {
                 var entity = IPA.get_entity(tab.entity);
                 if (!entity){
@@ -144,17 +144,17 @@ IPA.navigation = function(spec) {
                     i--;
                     continue;
                 }
-                label = entity.label;
                 tab.entity = entity;
             }
-            if (tab.label){
-                label = tab.label;
+
+            if (!tab.label) {
+                tab.label = entity.label;
             }
 
             $('<li/>').append($('<a/>', {
                 href: '#'+tab_id,
-                title: label,
-                html: label
+                title: tab.label,
+                html: tab.label
             })).appendTo(ul);
 
             tab.container = $('<div/>', {
@@ -164,19 +164,12 @@ IPA.navigation = function(spec) {
 
             if (tab.children && tab.children.length) {
                 that._create(tab.children, tab.container, depth+1);
-
-            } else if (tab.entity) {
-                tab.content = $('<div/>', {
-                    name: tab.name,
-                    title: label,
-                    'class': 'entity-container'
-                }).appendTo(that.content);
             }
         }
     };
 
     that.update = function() {
-        $('.entity-container', that.content).css('display', 'none');
+        $('.entity', that.content).css('display', 'none');
         that._update(that.tabs, that.container, 1);
     };
 
@@ -197,7 +190,17 @@ IPA.navigation = function(spec) {
             that._update(tab.children, tab.container, depth+1);
 
         } else if (tab.entity) {
-            $('.entity-container[name="'+tab.entity.name+'"]', that.content).css('display', 'inline');
+            var entity_container = $('.entity[name="'+tab.entity.name+'"]', that.content);
+            if (!entity_container.length) {
+                tab.content = $('<div/>', {
+                    name: tab.name,
+                    title: tab.label,
+                    'class': 'entity'
+                }).appendTo(that.content);
+                tab.entity.create(tab.content);
+            }
+
+            entity_container.css('display', 'inline');
             tab.entity.setup(tab.content);
         }
     };

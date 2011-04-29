@@ -9986,7 +9986,7 @@
                     "details": {
                         "general": "General",
                         "identity": "Identity Settings",
-                        "settings": "${entity} Settings",
+                        "settings": "${entity} ${primary_key} Settings",
                         "to_top": "Back to Top"
                     },
                     "dialogs": {

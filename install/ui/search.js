@@ -24,135 +24,18 @@
 
 /* REQUIRES: ipa.js */
 
-IPA.search_widget = function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.table_widget(spec);
-
-    that.entity_name = spec.entity_name;
-    that.search_all = spec.search_all || false;
-
-    that.create = function(container) {
-
-        var search_controls = $('<div/>', {
-            'class': 'search-controls'
-        }).appendTo(container);
-
-        var search_filter = $('<span/>', {
-            'class': 'search-filter',
-            'name': 'search-filter'
-        }).appendTo(search_controls);
-
-        search_controls.append(IPA.create_network_spinner());
-
-        that.filter = $('<input/>', {
-            'type': 'text',
-            'name': 'search-' + that.entity_name + '-filter'
-        }).appendTo(search_filter);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'find',
-            'value': IPA.messages.buttons.find
-        }).appendTo(search_filter);
-
-        $('<div/>', {
-            'class': 'search-results'
-        }).appendTo(container);
-
-        that.table_create(container);
-    };
-
-    that.setup = function(container) {
-
-        that.table_setup(container);
-
-        var search_filter = $('span[name=search-filter]', that.container);
-
-        $('input[type=text]',search_filter).keypress(
-            function(e) {
-                /* if the key pressed is the enter key */
-                if (e.which == 13) {
-                    that.find();
-                }
-            });
-        var button = $('input[name=find]', search_filter);
-        that.find_button = IPA.button({
-            'label': IPA.messages.buttons.find,
-            'icon': 'ui-icon-search',
-            'click': function() {
-                that.find();
-            }
-        });
-        button.replaceWith(that.find_button);
-
-        var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
-        that.filter.val(filter);
-    };
-
-    that.find = function() {
-        var filter = that.filter.val();
-        var state = {};
-        state[that.entity_name + '-filter'] = filter;
-        IPA.nav.push_state(state);
-    };
-
-    return that;
-};
-
 IPA.search_facet = function(spec) {
 
     spec = spec || {};
 
     spec.name = spec.name || 'search';
-    spec.label = spec.label ||  IPA.messages.facets.search;
+    spec.label = spec.label || IPA.messages.facets.search;
 
     spec.display_class = 'search-facet';
 
-    var that = IPA.facet(spec);
+    var that = IPA.table_facet(spec);
 
-    that.entity_name = spec.entity_name;
-    that.columns = [];
-    that.columns_by_name = {};
     that.search_all = spec.search_all || false;
-
-    that.__defineGetter__('entity_name', function() {
-        return that._entity_name;
-    });
-
-    that.__defineSetter__('entity_name', function(entity_name) {
-        that._entity_name = entity_name;
-
-        for (var i=0; i<that.columns.length; i++) {
-            that.columns[i].entity_name = entity_name;
-        }
-    });
-
-    that.get_columns = function() {
-        return that.columns;
-    };
-
-    that.get_column = function(name) {
-        return that.columns_by_name[name];
-    };
-
-    that.add_column = function(column) {
-        column.entity_name = that.entity_name;
-        that.columns.push(column);
-        that.columns_by_name[column.name] = column;
-    };
-
-    that.create_column = function(spec) {
-        var column = IPA.column(spec);
-        that.add_column(column);
-        return column;
-    };
-
-    that.column = function(spec){
-        that.create_column(spec);
-        return that;
-    };
 
     that.setup_column = function(column) {
         column.setup = function(container, record) {
@@ -178,7 +61,7 @@ IPA.search_facet = function(spec) {
 
         that.facet_init();
 
-        that.table = IPA.search_widget({
+        that.table = IPA.table_widget({
             id: that.entity_name+'-search',
             name: 'search',
             label: IPA.metadata.objects[that.entity_name].label,
@@ -211,84 +94,83 @@ IPA.search_facet = function(spec) {
 
     };
 
+    that.create_header = function(container) {
+
+        that.facet_create_header(container);
+
+        that.filter = $('<input/>', {
+            type: 'text',
+            name: 'filter'
+        }).appendTo(that.controls);
+
+        that.filter.keypress(function(e) {
+            /* if the key pressed is the enter key */
+            if (e.which == 13) {
+                that.find();
+            }
+        });
+
+        that.find_button = IPA.button({
+            label: IPA.messages.buttons.find,
+            icon: 'ui-icon-search',
+            click: function() {
+                that.find();
+                return false;
+            }
+        }).appendTo(that.controls);
+
+        that.controls.append(IPA.create_network_spinner());
+
+        that.remove_button = IPA.action_button({
+            label: IPA.messages.buttons.remove,
+            icon: 'ui-icon-trash',
+            'class': 'input_link_disabled',
+            click: function() {
+                if (that.remove_button.hasClass('input_link_disabled')) return false;
+                that.remove();
+                return false;
+            }
+        }).appendTo(that.controls);
+
+        that.add_button = IPA.action_button({
+            label: IPA.messages.buttons.add,
+            icon: 'ui-icon-plus',
+            click: function() {
+                that.add();
+                return false;
+            }
+        }).appendTo(that.controls);
+    };
+
     that.create_content = function(container) {
 
         var span = $('<span/>', { 'name': 'search' }).appendTo(container);
 
         that.table.create(span);
+        that.table.setup(span);
     };
 
     that.setup = function(container) {
 
         that.facet_setup(container);
+    };
 
-        that.entity_header.title.empty();
-        that.entity_header.title.append(
-            $('<h3/>',{
-                text:that.entity.metadata.label
-            }));
+    that.show = function() {
+        that.facet_show();
 
-        that.entity_header.facet_tabs.css('visibility','hidden');
-        $('#back_to_search', that.entity_header.search_bar).
-            css('display','none');
+        that.entity.header.set_pkey(null);
+        that.entity.header.back_link.css('visibility', 'hidden');
+        that.entity.header.facet_tabs.css('visibility', 'hidden');
 
-
-        var buttons =  that.entity_header.buttons;
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'remove',
-            'value': IPA.messages.buttons.remove
-        }).appendTo(buttons);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'add',
-            'value': IPA.messages.buttons.add
-        }).appendTo(buttons);
-
-
-        var span = $('span[name=search]', that.container);
-        that.table.setup(span);
-
-        var search_buttons =   that.entity_header.buttons;
-
-        var button = $('input[name=remove]', search_buttons);
-        that.remove_button = IPA.action_button({
-            'label': IPA.messages.buttons.remove,
-            'icon': 'ui-icon-trash',
-            'click': function() {
-                if (that.remove_button.hasClass('input_link_disabled')) return;
-                that.remove();
-            }
-        });
-        button.replaceWith(that.remove_button);
-        that.remove_button.addClass('input_link_disabled');
-
-        button = $('input[name=add]', search_buttons);
-        that.add_button = IPA.action_button({
-            'label': IPA.messages.buttons.add,
-            'icon': 'ui-icon-plus',
-            'click': function() { that.add(); }
-        });
-        button.replaceWith(that.add_button);
+        if (that.filter) {
+            var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
+            that.filter.val(filter);
+        }
     };
 
     that.select_changed = function() {
 
         var values = that.table.get_selected_values();
-
-        var links = $('li', that.entity_header.tabs);
-        var input = $('input[id=pkey]', that.entity_header.buttons);
-
-        if (values.length == 1) {
-            links.removeClass('entity-facet-disabled');
-            input.val(values[0]);
-
-        } else {
-            links.addClass('entity-facet-disabled');
-            input.val(null);
-        }
 
         if (values.length === 0) {
             that.remove_button.addClass('input_link_disabled');
@@ -354,11 +236,16 @@ IPA.search_facet = function(spec) {
         dialog.open(that.container);
     };
 
+    that.find = function() {
+        var filter = that.filter.val();
+        var state = {};
+        state[that.entity_name + '-filter'] = filter;
+        IPA.nav.push_state(state);
+    };
+
     that.refresh = function() {
 
         function on_success(data, text_status, xhr) {
-
-            $("input id=[pkey]", that.entity_header.buttons).val(null);
 
             that.table.empty();
 
@@ -387,12 +274,12 @@ IPA.search_facet = function(spec) {
             summary.append('<p>'+error_thrown.message+'</p>');
         }
 
-        that.filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
+        var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
 
         var command = IPA.command({
             entity: that.entity_name,
             method: 'find',
-            args: [that.filter],
+            args: [filter],
             options: {
                 all: that.search_all
             },
@@ -407,20 +294,6 @@ IPA.search_facet = function(spec) {
     that.search_facet_init = that.init;
     that.search_facet_create_content = that.create_content;
     that.search_facet_setup = that.setup;
-
-    var columns = spec.columns || [];
-    for (var i=0; i<columns.length; i++) {
-        var column_spec = columns[i];
-        var column;
-
-        if (column_spec instanceof Object) {
-            var factory = column_spec.factory || IPA.column;
-            column = factory(column_spec);
-        } else {
-            column = IPA.column({ name: column_spec });
-        }
-        that.add_column(column);
-    }
 
     return that;
 };

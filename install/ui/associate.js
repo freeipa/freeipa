@@ -799,7 +799,9 @@ IPA.association_facet = function (spec) {
         return pkey != that.pkey;
     };
 
-    that.create_content = function(container) {
+    that.create_header = function(container) {
+
+        that.facet_create_header(container);
 
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 
@@ -812,41 +814,44 @@ IPA.association_facet = function (spec) {
         var other_label = IPA.metadata.objects[that.other_entity].label;
 
         /* TODO: generic handling of different relationships */
-        var header_message = '';
+        var title = '';
         if (relationship[0] == 'Member') {
-            header_message = IPA.messages.association.member;
-            
-        } else if (relationship[0] == 'Parent') {
-            header_message = IPA.messages.association.parent;
+            title = IPA.messages.association.member;
+
+        } else if (relationship[0] == 'Member Of') {
+            title = IPA.messages.association.parent;
         }
 
-        header_message = header_message.replace('${entity}', that.entity_name);
-        header_message = header_message.replace('${primary_key}', that.pkey);
-        header_message = header_message.replace('${other_entity}', other_label);
+        title = title.replace('${entity}', that.entity_name);
+        title = title.replace('${primary_key}', that.pkey);
+        title = title.replace('${other_entity}', other_label);
 
-        $('<div/>', {
-            'id': that.entity_name+'-'+that.other_entity,
-            html: $('<h2/>',{ html:  header_message })
-        }).appendTo(container);
+        that.set_title(container, title);
+
+        that.remove_button = IPA.action_button({
+            label: IPA.messages.buttons.remove,
+            icon: 'ui-icon-trash',
+            click: function() {
+                that.show_remove_dialog();
+                return false;
+            }
+        }).appendTo(that.controls);
+
+        that.add_button = IPA.action_button({
+            label: IPA.messages.buttons.enroll,
+            icon: 'ui-icon-plus',
+            click: function() {
+                that.show_add_dialog();
+                return false;
+            }
+        }).appendTo(that.controls);
+    };
+
+    that.create_content = function(container) {
 
         var span = $('<span/>', { 'name': 'association' }).appendTo(container);
 
         that.table.create(span);
-
-        var li = that.entity_header.buttons;
-
-        // creating generic buttons for layout
-        $('<input/>', {
-            'type': 'button',
-            'name': 'remove',
-            'value': IPA.messages.buttons.remove
-        }).appendTo(li);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'add',
-            'value': IPA.messages.buttons.enroll
-        }).appendTo(li);
     };
 
     that.setup = function(container) {
@@ -856,22 +861,16 @@ IPA.association_facet = function (spec) {
         var span = $('span[name=association]', that.container);
 
         that.table.setup(span);
+    };
 
-        // replacing generic buttons with IPA.button and setting click handler
+    that.show = function() {
+        that.facet_show();
 
-        var button = $('input[name=remove]', that.entity_header.buttons);
-        button.replaceWith(IPA.action_button({
-            'label': button.val(),
-            'icon': 'ui-icon-trash',
-            'click': function() { that.show_remove_dialog(); }
-        }));
+        that.pkey = $.bbq.getState(that.entity_name+'-pkey', true) || '';
+        that.entity.header.set_pkey(that.pkey);
 
-        button = $('input[name=add]', that.entity_header.buttons);
-        button.replaceWith(IPA.action_button({
-            'label': button.val(),
-            'icon': 'ui-icon-plus',
-            'click': function() { that.show_add_dialog(); }
-        }));
+        that.entity.header.back_link.css('visibility', 'visible');
+        that.entity.header.facet_tabs.css('visibility', 'visible');
     };
 
     that.show_add_dialog = function() {
@@ -1010,9 +1009,7 @@ IPA.association_facet = function (spec) {
     that.refresh = function() {
 
         function on_success(data, text_status, xhr) {
-            if (that.pkey){
-                that.entity_header.set_pkey(that.pkey);
-            }
+
             that.table.empty();
 
             var pkeys = data.result.result[that.name];

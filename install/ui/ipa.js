@@ -126,17 +126,28 @@ var IPA = ( function () {
         batch.execute();
     };
 
-    that.get_entities = function () {
+    that.get_entities = function() {
         return that.entities;
     };
 
-    that.get_entity = function (name) {
+    that.get_entity = function(name) {
         return that.entities_by_name[name];
     };
 
     that.add_entity = function(entity) {
         that.entities.push(entity);
         that.entities_by_name[entity.name] = entity;
+    };
+
+    that.remove_entity = function(name) {
+        for (var i=0; i<that.entities.length; i++) {
+            var entity = that.entities[i];
+            if (name == entity.name) {
+                that.entities.splice(i, 1);
+                break;
+            }
+        }
+        delete that.entities_by_name[entity.name];
     };
 
     that.start_entities = function() {
@@ -187,14 +198,14 @@ var IPA = ( function () {
 
     that.display_activity_icon = function() {
         that.network_call_count++;
-        $('.network-activity-indicator').css('display','inline');
+        $('.network-activity-indicator').css('visibility', 'visible');
     };
 
     that.hide_activity_icon = function() {
         that.network_call_count--;
 
         if (0 === that.network_call_count) {
-            $('.network-activity-indicator').css('display','none');
+            $('.network-activity-indicator').css('visibility', 'hidden');
         }
     };
 
@@ -316,6 +327,7 @@ IPA.command = function(spec) {
             }
 
             if (xhr.status === 401) {
+                error_thrown = {}; // error_thrown is string
                 error_thrown.name = 'Kerberos ticket no longer valid.';
                 if (IPA.messages && IPA.messages.ajax) {
                     error_thrown.message = IPA.messages.ajax["401"];

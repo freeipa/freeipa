@@ -150,10 +150,6 @@ test("Testing details lifecycle: create, setup, load.", function(){
         load_called = true;
     }
 
-    var container = details_container;
-
-    var obj_name = 'user';
-
     function test_widget(){
         var widget = IPA.widget({name: 'cn'});
 
@@ -195,35 +191,38 @@ test("Testing details lifecycle: create, setup, load.", function(){
                    {factory: IPA.multivalued_text_widget, name:'mobile'},
                    {factory: IPA.multivalued_text_widget,
                     name:'facsimiletelephonenumber'}]
-            },
+            }
         ]}).build();
     entity.init();
 
+    var entity_container = $('<div/>', {
+        name: 'user',
+        title: 'User',
+        'class': 'entity'
+    }).appendTo(entities_container);
+
+    entity.create(entity_container);
+
     var facet = entity.get_facet('details');
-    facet.init();
 
-    var container = $('<div/>', {
-        'class': 'content'
-    }).appendTo(container);
+    var facet_container = $('<div/>', {
+        name: facet.name,
+        'class': 'facet'
+    });
 
-
-    entity.header = IPA.entity_header({entity:entity,container:container});
-    facet.entity_header = entity.header;
-    entity.header.reset();
-    facet.create_content(facet.entity_header.content);
-    facet.setup(facet.entity_header.content);
-
+    facet.create(facet_container);
+    facet.setup(facet_container);
 
     facet.load(result);
 
-    var contact = container.find('dl#contact.entryattrs');
+    var contact = facet_container.find('dl#contact.entryattrs');
 
     ok(
         contact,
         'dl tag for contact is created'
     );
 
-    var identity = container.find('dl#identity.entryattrs');
+    var identity = facet_container.find('dl#identity.entryattrs');
 
     ok(
         identity,
@@ -237,7 +236,7 @@ test("Testing details lifecycle: create, setup, load.", function(){
         'Checking dt tags for identity'
     );
 
-    container.attr('id','user');
+    facet_container.attr('id','user');
 
     ok (
         setup_called,

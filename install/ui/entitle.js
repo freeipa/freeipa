@@ -260,47 +260,14 @@ IPA.entitle.search_facet = function(spec) {
 
     var that = IPA.search_facet(spec);
 
-    that.setup = function(container) {
+    that.create_header = function(container) {
 
-        that.search_facet_setup(container);
-
-        var buttons = that.entity_header.buttons;
-
-        $('a', buttons).remove();
+        that.facet_create_header(container);
 
         that.register_buttons = $('<span/>', {
             style: 'display: none;'
-        }).appendTo(buttons);
+        }).appendTo(that.controls);
 
-        $('<input/>', {
-            type: 'button',
-            name: 'register_online',
-            value: 'Register'
-        }).appendTo(that.register_buttons);
-
-        $('<input/>', {
-            type: 'button',
-            name: 'register_offline',
-            value: 'Import'
-        }).appendTo(that.register_buttons);
-
-        that.consume_buttons = $('<span/>', {
-            style: 'display: none;'
-        }).appendTo(buttons);
-
-        $('<input/>', {
-            type: 'button',
-            name: 'consume',
-            value: 'Consume'
-        }).appendTo(that.consume_buttons);
-
-        $('<input/>', {
-            type: 'button',
-            name: 'import',
-            value: 'Import'
-        }).appendTo(that.consume_buttons);
-
-        var button = $('input[name=register_online]', that.entity_header.buttons);
         that.register_online_button = IPA.action_button({
             label: 'Register',
             icon: 'ui-icon-plus',
@@ -308,10 +275,8 @@ IPA.entitle.search_facet = function(spec) {
                 var dialog = that.entity.get_dialog('online_registration');
                 dialog.open(that.container);
             }
-        });
-        button.replaceWith(that.register_online_button);
+        }).appendTo(that.register_buttons);
 
-        button = $('input[name=register_offline]', that.entity_header.buttons);
         that.register_offline_button = IPA.action_button({
             label: 'Import',
             icon: 'ui-icon-plus',
@@ -319,10 +284,12 @@ IPA.entitle.search_facet = function(spec) {
                 var dialog = that.entity.get_dialog('offline_registration');
                 dialog.open(that.container);
             }
-        });
-        button.replaceWith(that.register_offline_button);
+        }).appendTo(that.register_buttons);
 
-        button = $('input[name=consume]', that.entity_header.buttons);
+        that.consume_buttons = $('<span/>', {
+            style: 'display: none;'
+        }).appendTo(that.controls);
+
         that.consume_button = IPA.action_button({
             label: 'Consume',
             icon: 'ui-icon-plus',
@@ -331,10 +298,8 @@ IPA.entitle.search_facet = function(spec) {
                 var dialog = that.entity.get_dialog('consume');
                 dialog.open(that.container);
             }
-        });
-        button.replaceWith(that.consume_button);
+        }).appendTo(that.consume_buttons);
 
-        button = $('input[name=import]', that.entity_header.buttons);
         that.import_button = IPA.action_button({
             label: 'Import',
             icon: 'ui-icon-plus',
@@ -343,8 +308,15 @@ IPA.entitle.search_facet = function(spec) {
                 var dialog = that.entity.get_dialog('import');
                 dialog.open(that.container);
             }
-        });
-        button.replaceWith(that.import_button);
+        }).appendTo(that.consume_buttons);
+    };
+
+     that.show = function() {
+        that.facet_show();
+
+        that.entity.header.set_pkey(null);
+         that.entity.header.back_link.css('visibility', 'hidden');
+        that.entity.header.facet_tabs.css('visibility', 'hidden');
     };
 
     that.refresh = function() {

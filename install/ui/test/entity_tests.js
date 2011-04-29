@@ -61,7 +61,6 @@ test('Testing IPA.entity_set_search_definition().', function() {
         return true;
     };
 
-
     var entity =   IPA.
         entity_builder().
         entity('user').
@@ -70,16 +69,23 @@ test('Testing IPA.entity_set_search_definition().', function() {
         build();
     entity.init();
 
+    var entity_container = $('<div/>', {
+        name: 'user',
+        title: 'User',
+        'class': 'entity'
+    }).appendTo(entities_container);
+
+    entity.create(entity_container);
+
     var facet = entity.get_facet('search');
-    facet.init();
 
-    var container = $("<div/>");
+    var facet_container = $('<div/>', {
+        name: facet.name,
+        'class': 'facet'
+    });
 
-    entity.header = IPA.entity_header({entity:entity,container:container});
-    facet.entity_header = entity.header;
-    facet.create_content(facet.entity_header.content);
-    facet.setup(facet.entity_header.content);
-
+    facet.create(facet_container);
+    facet.setup(facet_container);
 
     var column = facet.get_columns()[0];
     ok(

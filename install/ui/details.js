@@ -266,9 +266,6 @@ IPA.details_facet = function(spec) {
 
     that.label = (IPA.messages && IPA.messages.facets && IPA.messages.facets.details) || spec.label;
 
-    that.update = spec.update || IPA.details_update;
-    that.refresh = spec.refresh || IPA.details_refresh;
-
     that.sections = [];
 
     that.__defineGetter__("entity_name", function(){
@@ -319,38 +316,82 @@ IPA.details_facet = function(spec) {
         }
     };
 
-    that.create_content = function(container) {
+    that.create_header = function(container) {
 
+        that.facet_create_header(container);
+
+        that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         var label = IPA.metadata.objects[that.entity_name].label;
 
         var title = IPA.messages.details.settings;
         title = title.replace('${entity}', label);
+        title = title.replace('${primary_key}', that.pkey);
 
-        $('<h1/>',{
-            html: "<span id='headerpkey' />"+title
-        }).append(IPA.create_network_spinner()).
-            appendTo(container);
+        that.set_title(container, title);
 
-        var details = $('<div/>', {
-            'name': 'details'
-        }).appendTo(container);
+        that.reset_button = IPA.action_button({
+            label: IPA.messages.buttons.reset,
+            icon: 'ui-icon-refresh',
+            'class': 'details-reset',
+            click: function() {
+                that.reset();
+                return false;
+            }
+        }).appendTo(that.controls);
 
-        $('<a/>', {
+        that.update_button = IPA.action_button({
+            label: IPA.messages.buttons.update,
+            icon: 'ui-icon-check',
+            'class': 'details-update',
+            click: function() {
+                that.update();
+                return false;
+            }
+        }).appendTo(that.controls);
+
+        that.expand_button = $('<a/>', {
             name: 'expand_all',
             href: 'expand_all',
             text: 'Expand All',
             'class': 'expand-collapse-all',
-            style: 'display: none;'
-        }).appendTo(details);
+            style: 'display: none;',
+            click: function() {
+                that.expand_button.css('display', 'none');
+                that.collapse_button.css('display', 'inline');
 
-        $('<a/>', {
+                for (var i=0; i<that.sections.length; i++) {
+                    var section = that.sections[i];
+                    that.toggle(section, true);
+                }
+
+                return false;
+            }
+        }).appendTo(that.controls);
+
+        that.collapse_button = $('<a/>', {
             name: 'collapse_all',
             href: 'collapse_all',
             text: 'Collapse All',
-            'class': 'expand-collapse-all'
-        }).appendTo(details);
+            'class': 'expand-collapse-all',
+            click: function() {
+                that.expand_button.css('display', 'inline');
+                that.collapse_button.css('display', 'none');
 
-        details.append('<br/>');
+                for (var i=0; i<that.sections.length; i++) {
+                    var section = that.sections[i];
+                    that.toggle(section, false);
+                }
+
+                return false;
+            }
+        }).appendTo(that.controls);
+    };
+
+    that.create_content = function(container) {
+
+        var details = $('<div/>', {
+            'name': 'details'
+        }).appendTo(container);
 
         for (var i = 0; i < that.sections.length; ++i) {
             var section = that.sections[i];
@@ -374,6 +415,13 @@ IPA.details_facet = function(spec) {
                 'class': 'details-section'
             }).appendTo(details);
 
+            header.click(function(section, div) {
+                return function() {
+                    var visible = div.is(":visible");
+                    that.toggle(section, !visible);
+                };
+            }(section, div));
+
             section.create(div);
 
             details.append('<hr/>');
@@ -384,72 +432,33 @@ IPA.details_facet = function(spec) {
 
         that.facet_setup(container);
 
-        that.reset_button = IPA.action_button({
-            'label': 'Reset',
-            'icon': 'ui-icon-refresh',
-            'class': 'details-reset',
-            'click': function() {
-                that.reset();
-                return false;
-            }
-        }).appendTo(that.entity_header.buttons);
-
-        that.update_button = IPA.action_button({
-            'label': 'Update',
-            'icon': 'ui-icon-check',
-            'class': 'details-update',
-            'click': function() {
-                that.update();
-                return false;
-            }
-        }).appendTo(that.entity_header.buttons);
-
         var details = $('div[name=details]', that.container);
-
-        var expand_all = $('a[name=expand_all]', details);
-        expand_all.click(function() {
-            expand_all.css('display', 'none');
-            collapse_all.css('display', 'inline');
-
-            for (var i=0; i<that.sections.length; i++) {
-                var section = that.sections[i];
-                toggle(section, true);
-            }
-
-            return false;
-        });
-
-        var collapse_all = $('a[name=collapse_all]', details);
-        collapse_all.click(function() {
-            expand_all.css('display', 'inline');
-            collapse_all.css('display', 'none');
-
-            for (var i=0; i<that.sections.length; i++) {
-                var section = that.sections[i];
-                toggle(section, false);
-            }
-
-            return false;
-        });
 
         for (var i = 0; i < that.sections.length; ++i) {
             var section = that.sections[i];
 
-            var header = $('h2[name='+section.name+']', that.container);
             var div = $('div.details-section[name='+section.name+']', that.container);
-
-            header.click(function(section, div) {
-                return function() {
-                    var visible = div.is(":visible");
-                    toggle(section, !visible);
-                };
-            }(section, div));
 
             section.setup(div);
         }
     };
 
-    function toggle(section, visible) {
+    that.show = function() {
+        that.facet_show();
+
+        that.pkey = $.bbq.getState(that.entity_name+'-pkey', true) || '';
+        that.entity.header.set_pkey(that.pkey);
+
+        if (that.entity.facets.length == 1) {
+            that.entity.header.back_link.css('visibility', 'hidden');
+            that.entity.header.facet_tabs.css('visibility', 'hidden');
+        } else {
+            that.entity.header.back_link.css('visibility', 'visible');
+            that.entity.header.facet_tabs.css('visibility', 'visible');
+        }
+    };
+
+    that.toggle = function(section, visible) {
         var header = $('h2[name='+section.name+']', that.container);
 
         var icon = $('span[name=icon]', header);
@@ -461,7 +470,7 @@ IPA.details_facet = function(spec) {
         if (visible != div.is(":visible")) {
             div.slideToggle();
         }
-    }
+    };
 
     function new_key(){
         var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
@@ -488,9 +497,6 @@ IPA.details_facet = function(spec) {
             var section = that.sections[i];
             section.load(record);
         }
-        if (that.pkey){
-            that.entity_header.set_pkey(that.pkey);
-        }
     };
 
     that.reset = function() {
@@ -499,6 +505,123 @@ IPA.details_facet = function(spec) {
             var section = that.sections[i];
             section.reset();
         }
+    };
+
+    that.update = function(on_win, on_fail) {
+
+        var entity_name = that.entity_name;
+
+        function on_success(data, text_status, xhr) {
+            if (on_win)
+                on_win(data, text_status, xhr);
+            if (data.error)
+                return;
+
+            var result = data.result.result;
+            that.load(result);
+        }
+
+        function on_error(xhr, text_status, error_thrown) {
+            if (on_fail)
+                on_fail(xhr, text_status, error_thrown);
+        }
+
+        var values;
+        var modlist = {'all': true, 'setattr': [], 'addattr': [], 'rights': true};
+        var attrs_wo_option = {};
+
+        for (var i=0; i<that.sections.length; i++) {
+            var section = that.sections[i];
+
+            if (section.save){
+                section.save(modlist);
+                continue;
+            }
+
+            for (var j=0; j<section.fields.length; j++) {
+                var field = section.fields[j];
+
+                var span = $('span[name='+field.name+']', section.container).first();
+                values = field.save();
+                if (!values) continue;
+
+                var param_info = IPA.get_entity_param(entity_name, field.name);
+                if (param_info) {
+                    if (param_info['primary_key']) continue;
+                    if (values.length === 1) {
+                        modlist[field.name] = values[0];
+                    } else if (values.length > 1){
+                        if (field.join) {
+                            modlist[field.name] = values.join(',');
+                        } else {
+                            modlist[field.name] = values;
+                        }
+                    } else if (param_info['multivalue']){
+                        modlist[field.name] = [];
+                    }
+                } else {
+                    if (values.length) attrs_wo_option[field.name] = values;
+                }
+            }
+        }
+
+        for (var attr in attrs_wo_option) {
+            values = attrs_wo_option[attr];
+            modlist['setattr'].push(attr + '=' + values[0]);
+            for (var k = 1; k < values.length; ++k){
+                modlist['addattr'].push(attr + '=' + values[k]);
+            }
+        }
+
+        var pkey = that.get_primary_key();
+
+        var args = pkey ? [pkey] : [];
+
+        var command = IPA.command({
+            entity: entity_name,
+            method: 'mod',
+            args: args,
+            options: modlist,
+            on_success: on_success,
+            on_error: on_error
+        });
+
+        //alert(JSON.stringify(command.to_json()));
+
+        command.execute();
+    };
+
+    that.refresh = function() {
+
+        that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) ;
+
+        var command = IPA.command({
+            entity: that.entity_name,
+            method: 'show',
+            options: { all: true, rights: true }
+        });
+
+        if (IPA.details_refresh_devel_hook){
+            IPA.details_refresh_devel_hook(that.entity_name,command,that.pkey);
+        }
+
+
+        if (that.pkey){
+            command.args =  [that.pkey];
+        }
+
+        command.on_success = function(data, text_status, xhr) {
+            that.load(data.result.result);
+        };
+
+        command.on_error = function(xhr, text_status, error_thrown) {
+            var details = $('.details', that.container).empty();
+            details.append('<p>Error: '+error_thrown.name+'</p>');
+            details.append('<p>'+error_thrown.title+'</p>');
+            details.append('<p>'+error_thrown.message+'</p>');
+        };
+
+        command.execute();
     };
 
     that.details_facet_init = that.init;
@@ -539,123 +662,4 @@ IPA.button = function(spec) {
     }
 
     return button;
-};
-
-IPA.details_refresh = function() {
-
-    var that = this;
-
-    that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) ;
-
-    var command = IPA.command({
-        entity: that.entity_name,
-        method: 'show',
-        options: { all: true, rights: true }
-    });
-    
-    if (IPA.details_refresh_devel_hook){
-        IPA.details_refresh_devel_hook(that.entity_name,command,that.pkey);
-    }
-
-
-    if (that.pkey){
-        command.args =  [that.pkey];
-    }
-
-    command.on_success = function(data, text_status, xhr) {
-        that.load(data.result.result);
-    };
-
-    command.on_error = function(xhr, text_status, error_thrown) {
-        var details = $('.details', that.container).empty();
-        details.append('<p>Error: '+error_thrown.name+'</p>');
-        details.append('<p>'+error_thrown.title+'</p>');
-        details.append('<p>'+error_thrown.message+'</p>');
-    };
-
-    command.execute();
-};
-
-IPA.details_update = function(on_win, on_fail) {
-    var that = this;
-    var entity_name = that.entity_name;
-
-    function on_success(data, text_status, xhr) {
-        if (on_win)
-            on_win(data, text_status, xhr);
-        if (data.error)
-            return;
-
-        var result = data.result.result;
-        that.load(result);
-    }
-
-    function on_error(xhr, text_status, error_thrown) {
-        if (on_fail)
-            on_fail(xhr, text_status, error_thrown);
-    }
-
-    var values;
-    var modlist = {'all': true, 'setattr': [], 'addattr': [], 'rights': true};
-    var attrs_wo_option = {};
-
-    for (var i=0; i<that.sections.length; i++) {
-        var section = that.sections[i];
-
-        if (section.save){
-            section.save(modlist);
-            continue;
-        }
-
-        for (var j=0; j<section.fields.length; j++) {
-            var field = section.fields[j];
-
-            var span = $('span[name='+field.name+']', section.container).first();
-            values = field.save();
-            if (!values) continue;
-
-            var param_info = IPA.get_entity_param(entity_name, field.name);
-            if (param_info) {
-                if (param_info['primary_key']) continue;
-                if (values.length === 1) {
-                    modlist[field.name] = values[0];
-                } else if (values.length > 1){
-                    if (field.join) {
-                        modlist[field.name] = values.join(',');
-                    } else {
-                        modlist[field.name] = values;
-                    }
-                } else if (param_info['multivalue']){
-                    modlist[field.name] = [];
-                }
-            } else {
-                if (values.length) attrs_wo_option[field.name] = values;
-            }
-        }
-    }
-
-    for (var attr in attrs_wo_option) {
-        values = attrs_wo_option[attr];
-        modlist['setattr'].push(attr + '=' + values[0]);
-        for (var k = 1; k < values.length; ++k){
-            modlist['addattr'].push(attr + '=' + values[k]);
-        }
-    }
-
-    var pkey = that.get_primary_key();
-
-    var args = pkey ? [pkey] : [];
-
-    var command = IPA.command({
-        entity: entity_name,
-        method: 'mod',
-        args: args,
-        options: modlist,
-        on_success: on_success,
-        on_error: on_error
-    });
-
-    //alert(JSON.stringify(command.to_json()));
-
-    command.execute();
 };
