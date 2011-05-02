@@ -19,6 +19,7 @@
 
 #define _GNU_SOURCE
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <krb5.h>
@@ -108,6 +109,7 @@ remove_realm(krb5_context context, krb5_keytab ktid, const char *realm, int debu
     krb5_kt_cursor kt_cursor;
     char * entry_princ_s = NULL;
     int rval = 0;
+    bool realm_found = false;
 
     krberr = krb5_kt_start_seq_get(context, ktid, &kt_cursor);
     memset(&entry, 0, sizeof(entry));
@@ -128,12 +130,18 @@ remove_realm(krb5_context context, krb5_keytab ktid, const char *realm, int debu
         krb5_kt_end_seq_get(context, ktid, &kt_cursor);
 
         if (strstr(entry_princ_s, realm) != NULL) {
+            realm_found = true;
             rval = remove_principal(context, ktid, entry_princ_s, debug);
             if (rval != 0)
                 goto done;
             /* Have to reset the cursor */
             krberr = krb5_kt_start_seq_get(context, ktid, &kt_cursor);
         }
+    }
+
+    if (!realm_found) {
+        fprintf(stderr, _("realm not found\n"));
+        return 5;
     }
 
 done:
