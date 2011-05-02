@@ -467,7 +467,7 @@ class LDAPUpdate:
                     # with single-value attributes.
                     if len(e) == 0:
                         e.append(v)
-                        logging.debug('addifnew: set %s to %s', (k, e))
+                        logging.debug('addifnew: set %s to %s', k, e)
                         entry.setValues(k, e)
                 elif utype == 'only':
                     logging.debug("only: set %s to '%s', current value %s", k, v, e)
