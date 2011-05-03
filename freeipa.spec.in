@@ -481,6 +481,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Tue May  3 2011 Rob Crittenden <rcritten@redhat.com> - 2.0.90-1
+- Bump version to 2.0.90
+
 * Tue Apr  5 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-47
 - Set min version of 389-ds-base to 1.2.8.0-1 for fix in BZ 693466.
 
