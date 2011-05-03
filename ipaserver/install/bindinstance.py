@@ -300,7 +300,9 @@ class BindInstance(service.Service):
 
         if not dns_container_exists(self.fqdn, self.suffix):
             self.step("adding DNS container", self.__setup_dns_container)
-        if not dns_zone_exists(self.domain):
+        if dns_zone_exists(self.domain):
+            self.step("adding NS record to the zone", self.__add_self_ns)
+        else:
             self.step("setting up our zone", self.__setup_zone)
         if self.create_reverse:
             self.step("setting up reverse zone", self.__setup_reverse_zone)
@@ -362,6 +364,8 @@ class BindInstance(service.Service):
         zone = add_zone(self.domain, self.zonemgr,
                         self.dns_backup, self.ip_address)
 
+    def __add_self_ns(self):
+        add_rr(self.domain, "@", "NS", api.env.host+'.', self.dns_backup, force=True)
 
     def __add_self(self):
         zone = self.domain
@@ -472,6 +476,7 @@ class BindInstance(service.Service):
             ("_kpasswd._tcp", "SRV", "0 100 464 %s" % host),
             ("_kpasswd._udp", "SRV", "0 100 464 %s" % host),
             ("_ntp._udp", "SRV", "0 100 123 %s" % host),
+            ("@", "NS", fqdn+"."),
         )
 
         for (record, type, rdata) in resource_records:
@@ -485,6 +490,8 @@ class BindInstance(service.Service):
                 rzone, record = get_reverse_zone(rdata)
                 if dns_zone_exists(rzone):
                     del_rr(rzone, record, "PTR", fqdn+".")
+                    # remove also master NS record from the reverse zone
+                    del_rr(rzone, "@", "NS", fqdn+".")
 
 
     def uninstall(self):
