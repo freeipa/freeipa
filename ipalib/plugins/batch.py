@@ -23,9 +23,9 @@ Plugin to make multiple ipa calls via one remote procedure call
 
 To run this code in the lite-server
 
-curl   -H "Content-Type:application/json"          -H "Acept:applicaton/json" -H "Accept-Language:en"        --negotiate -u :          --cacert /etc/ipa/ca.crt           -d  @batch_request.json -X POST       http://localhost:8888/ipa/json
+curl   -H "Content-Type:application/json"          -H "Accept:application/json" -H "Accept-Language:en"        --negotiate -u :          --cacert /etc/ipa/ca.crt           -d  @batch_request.json -X POST       http://localhost:8888/ipa/json
 
-where the contenst of the file batch_request.json follow the below example
+where the contents of the file batch_request.json follow the below example
 
 {"method":"batch","params":[[
         {"method":"group_find","params":[[],{}]},

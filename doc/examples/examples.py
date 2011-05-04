@@ -62,7 +62,7 @@ def validate_name(ugettext, name):
 
 class exhelloworld(Command):
     """
-    Example commnad: Hello world!
+    Example command: Hello world!
     """
     # takes_args is an attribute of Command. It's a tuple containing
     # instances of Param (or its subclasses such as Str) that define
