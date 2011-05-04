@@ -43,25 +43,28 @@ Manages the replication agreements of an IPA server.
 \- Immediately flush any data to be replicated from a server specified with the --from option
 .SH "OPTIONS"
 .TP
-\fB\-H HOST\fR, \fB\-\-host\fR=\fIHOST\fR
+\fB\-H\fR \fIHOST\fR, \fB\-\-host\fR=\fIHOST\fR
 The IPA server to manage.
 The default is the machine on which the command is run
 Not honoured by the re-initialize command.
 .TP
-\fB\-p DM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
+\fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 The Directory Manager password to use for authentication
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
 Provide additional information
 .TP
-\fB\-\-winsync\fR
-Specifies to create/use a Windows Sync Agreement
+\fB\-f\fR, \fB\-\-force\fR
+Ignore some types of errors
 .TP
 \fB\-\-binddn\fR=\fIADMIN_DN\fR
 Bind DN to use with remote server (default is cn=Directory Manager) \- Be careful to quote this value on the command line
 .TP
 \fB\-\-bindpw\fR=\fIADMIN_PWD\fR
 Password for Bind DN to use with remote server (default is the DM_PASSWORD above)
+.TP
+\fB\-\-winsync\fR
+Specifies to create/use a Windows Sync Agreement
 .TP
 \fB\-\-cacert\fR=\fI/path/to/cacertfile\fR
 Full path and filename of CA certificate to use with TLS/SSL to the remote server \- this CA certificate will be installed in the directory server's certificate database

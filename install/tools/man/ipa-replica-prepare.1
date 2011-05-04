@@ -45,8 +45,20 @@ The password of the Directory Server PKCS#12 file
 \fB\-\-http_pin\fR=\fIHTTP_PIN\fR
 The password of the Apache Server PKCS#12 file
 .TP
+\fB\-\-pkinit_pin\fR=\fIPKINIT_PIN\fR
+The password of the Apache Server PKCS#12 file
+.TP
+\fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
+Directory Manager (existing master) password
+.TP
 \fB\-\-ip\-address\fR=\fIIP_ADDRESS\fR
 IP address of the replica server. If you provide this option, the A and PTR records will be added to the DNS.
+.TP
+\fB\-\-ca\fR=\fICA_FILE\fR
+Location of CA PKCS#12 file, default /root/cacert.p12
+.TP
+\fB\-\-no\-pkinit\fR
+Disables pkinit setup steps
 .SH "EXIT STATUS"
 0 if the command was successful
 
