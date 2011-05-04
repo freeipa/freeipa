@@ -27,11 +27,11 @@ Configures a new IPA server that is a replica of the server that generated it. O
 The replica_file is created using the ipa\-replica\-prepare utility.
 .SH "OPTIONS"
 .TP
+\fB\-N\fR, \fB\-\-no\-ntp\fR
+Do not configure NTP
+.TP
 \fB\-d\fR, \fB\-\-debug
 Enable debug logging when more verbose output is needed
-.TP
-\fB\-n\fR, \fB\-\-no\-ntp\fR
-Do not configure NTP
 .TP
 \fB\-p\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 Directory Manager (existing master) password
@@ -49,8 +49,17 @@ the \fB\-\-no\-forwarders\fR option is specified.
 \fB\-\-no\-forwarders\fR
 Do not add any DNS forwarders. Root DNS servers will be used instead.
 .TP
+\fB\-\-no\-reverse\fR
+Do not create reverse DNS zone
+.TP
 \fB\-\-no\-host\-dns\fR
 Do not use DNS for hostname lookup during installation
+.TP
+\fB\-\-no\-pkinit\fR
+Disables pkinit setup steps
+.TP
+\fB\-U\fR, \fB\-\-unattended\fR
+An unattended installation that will never prompt for user input
 .SH "EXIT STATUS"
 0 if the command was successful
 
