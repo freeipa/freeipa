@@ -169,12 +169,6 @@ def chkconfig(name, status):
 
     chkconfig returns 1 if the service is unknown, 0 otherwise
     """
-    (sout, serr, returncode) = run(['/sbin/chkconfig', name, '--list'], raiseonerr=False)
-
-    # If the service isn't installed return with no error
-    if returncode == 1:
-        return
-
     args = ['/sbin/chkconfig', name, status]
     (sout, serr, returncode) = run(args, raiseonerr=False)
 
