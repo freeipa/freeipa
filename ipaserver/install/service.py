@@ -73,24 +73,8 @@ def chkconfig_del(service_name):
     ipautil.run(["/sbin/chkconfig", "--del", service_name])
 
 def is_enabled(service_name):
-    (stdout, stderr, returncode) = ipautil.run(["/sbin/chkconfig", "--list", service_name])
-
-    runlevels = {}
-    for runlevel in range(0, 7):
-        runlevels[runlevel] = False
-
-    for line in stdout.split("\n"):
-        parts = line.split()
-        if parts[0] == service_name:
-            for s in parts[1:]:
-                (runlevel, status) = s.split(":")[0:2]
-                try:
-                    runlevels[int(runlevel)] = status == "on"
-                except ValueError:
-                    pass
-            break
-
-    return (runlevels[3] and runlevels[4] and runlevels[5])
+    (stdout, stderr, returncode) = ipautil.run(["/sbin/chkconfig", service_name], raiseonerr=False)
+    return (returncode == 0)
 
 def print_msg(message, output_fd=sys.stdout):
     logging.debug(message)
