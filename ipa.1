@@ -38,7 +38,7 @@ Load configuration from \fIFILE\fR.
 Produce full debugging output.
 .TP
 \fB\-e\fR \fIKEY=VAL\fR
-Set enviromental variable \fIKEY\fR to the value \fIVAL\fR. This option overrides configuration files.
+Set environmental variable \fIKEY\fR to the value \fIVAL\fR. This option overrides configuration files.
 .TP
 \fB\-h\fR, \fB\-\-help\fR
 Display a help message with a list of options.
@@ -71,7 +71,7 @@ The \fBhelp\fR command invokes the built\-in documentation system. Without param
 .LP
 Plugin provided commands, as the name suggests, originate from IPA plugin modules. The available set may vary depending on your configuration and can be listed using the built\-in \fBhelp\fR command (see above).
 
-Most plugin provided commands are tied to a certain type of IPA object. IPA objects encompass common abstractions such as users (user identities/accounts), hosts (machine identities), services, password policies, etc. Commands associated with an object are easily identified thanks to the enforced naming convention; the command names are composed of two parts separated with a dash: the name of the corresponding IPA object type and the name of action performed on it. For example all commands used to manage user indentities start with "user\-" (e.g. user\-add, user\-del).
+Most plugin provided commands are tied to a certain type of IPA object. IPA objects encompass common abstractions such as users (user identities/accounts), hosts (machine identities), services, password policies, etc. Commands associated with an object are easily identified thanks to the enforced naming convention; the command names are composed of two parts separated with a dash: the name of the corresponding IPA object type and the name of action performed on it. For example all commands used to manage user identities start with "user\-" (e.g. user\-add, user\-del).
 
 The following actions are available for most IPA object types:
 .TP
@@ -109,7 +109,7 @@ For some types of objects, these commands might need to take more than one prima
 All commands that display objects have three special options for controlling output:
 .TP
 \fB\-\-all\fR
-Dispaly all attributes. Without this option only the most relevant attributes are displayed.
+Display all attributes. Without this option only the most relevant attributes are displayed.
 .TP
 \fB\-\-raw\fR
 Display objects as they are stored in the backing store. Disables formatting and attribute labels.
@@ -130,7 +130,7 @@ O \- self\-obliterate
 .TP
 \fBipa help commands\fR
 Display a list of available commands
-\fBipa help topoics\fR
+\fBipa help topics\fR
 Display a high\-level list of help topics
 \fBipa help user\fR
 Display documentation and list of commands in the "user" topic.

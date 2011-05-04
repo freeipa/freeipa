@@ -211,7 +211,7 @@ api.register(sudorule_find)
 
 class sudorule_show(LDAPRetrieve):
     """
-    Dispaly Sudo Rule.
+    Display Sudo Rule.
     """
 
 api.register(sudorule_show)

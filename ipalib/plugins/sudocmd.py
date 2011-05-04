@@ -23,7 +23,7 @@ Commands used as building blocks for sudo
 
 EXAMPLES:
 
- Create a new commnad
+ Create a new command
    ipa sudocmd-add --desc='For reading log files' /usr/bin/less
 
  Remove a command

@@ -34,7 +34,7 @@ EXAMPLES:
  Remove a member from the netgroup:
    ipa netgroup-remove-member --users=tuser2 admins
 
- Display infromation about a netgroup:
+ Display information about a netgroup:
    ipa netgroup-show admins
 
  Delete a netgroup:

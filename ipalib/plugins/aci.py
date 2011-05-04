@@ -72,7 +72,7 @@ more of:
 
 Note the distinction between attributes and entries. The permissions are
 independent, so being able to add a user does not mean that the user will
-be editabe.
+be editable.
 
 The bind rule defines who this ACI grants permissions to. The LDAP server
 allows this to be any valid LDAP entry but we encourage the use of
@@ -83,7 +83,7 @@ http://www.redhat.com/docs/manuals/dir-server/ag/8.0/Managing_Access_Control.htm
 
 EXAMPLES:
 
-NOTE: ACIs are now added via the permision plugin. These examples are to
+NOTE: ACIs are now added via the permission plugin. These examples are to
 demonstrate how the various options work but this is done via the permission
 command-line now (see last example).
 
