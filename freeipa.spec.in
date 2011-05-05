@@ -52,7 +52,9 @@ BuildRequires:  python-krbV
 BuildRequires:  python-nss
 BuildRequires:  python-netaddr
 BuildRequires:  python-kerberos
+BuildRequires:  python-rhsm
 BuildRequires:  pyOpenSSL
+BuildRequires:  pylint
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -481,6 +483,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Thu May  5 2011 Martin Kosek <mkosek@redhat.com> - 2.0.90-2
+- Add BuildRequires on pylint, python-rhsm to enable a build with enforced
+  pylint check
+
 * Tue May  3 2011 Rob Crittenden <rcritten@redhat.com> - 2.0.90-1
 - Bump version to 2.0.90
 
