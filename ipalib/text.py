@@ -138,7 +138,7 @@ class LazyText(object):
     subclasses.
     """
 
-    __slots__ = ('domain', 'localedir', 'key')
+    __slots__ = ('domain', 'localedir', 'key', 'args')
 
     def __init__(self, domain=None, localedir=None):
         """
@@ -220,7 +220,7 @@ class Gettext(LazyText):
     `NGettextFactory`.
     """
 
-    __slots__ = ('msg', 'args')
+    __slots__ = ('msg')
 
     def __init__(self, msg, domain=None, localedir=None):
         super(Gettext, self).__init__(domain, localedir)
@@ -366,7 +366,7 @@ class NGettext(LazyText):
     See `NGettextFactory` for additional details.
     """
 
-    __slots__ = ('singular', 'plural', 'args')
+    __slots__ = ('singular', 'plural')
 
     def __init__(self, singular, plural, domain=None, localedir=None):
         super(NGettext, self).__init__(domain, localedir)

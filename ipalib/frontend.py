@@ -383,15 +383,15 @@ class Command(HasParam):
 
     takes_options = tuple()
     takes_args = tuple()
-    args = lambda: None
-    options = lambda: None
+    args = None
+    options = None
     params = None
     obj = None
 
     use_output_validation = True
     output = None
     has_output = ('result',)
-    output_params = lambda: None
+    output_params = None
     has_output_params = tuple()
 
     msg_summary = None
@@ -464,10 +464,10 @@ class Command(HasParam):
         >>> list(c._repr_iter(login=u'Okay.', passwd=u'Private!'))
         ["u'Okay.'", "passwd=u'********'"]
         """
-        for arg in self.args():
+        for arg in self.args():         #pylint: disable=E1102
             value = params.get(arg.name, None)
             yield repr(arg.safe_value(value))
-        for option in self.options():
+        for option in self.options():   #pylint: disable=E1102
             if option.name not in params:
                 continue
             value = params[option.name]
@@ -492,7 +492,7 @@ class Command(HasParam):
 
     def __args_2_params(self, values):
         multivalue = False
-        for (i, arg) in enumerate(self.args()):
+        for (i, arg) in enumerate(self.args()): #pylint: disable=E1102
             assert not multivalue
             if len(values) > i:
                 if arg.multivalue:
@@ -771,7 +771,7 @@ class Command(HasParam):
                 return 1
             return 2
         self.params = NameSpace(
-            sorted(tuple(self.args()) + tuple(self.options()), key=get_key),
+            sorted(tuple(self.args()) + tuple(self.options()), key=get_key),    #pylint: disable=E1102
             sort=False
         )
         self.output = NameSpace(self._iter_output(), sort=False)
@@ -920,7 +920,7 @@ class Command(HasParam):
 
         rv = 0
 
-        order = [p.name for p in self.output_params()]
+        order = [p.name for p in self.output_params()]  #pylint: disable=E1102
         if options.get('all', False):
             order.insert(0, 'dn')
             print_all = True
@@ -930,8 +930,8 @@ class Command(HasParam):
         if options.get('raw', False):
             labels = None
         else:
-            labels = dict((p.name, unicode(p.label)) for p in self.output_params())
-        flags = dict((p.name, p.flags) for p in self.output_params())
+            labels = dict((p.name, unicode(p.label)) for p in self.output_params()) #pylint: disable=E1102
+        flags = dict((p.name, p.flags) for p in self.output_params())   #pylint: disable=E1102
 
         for o in self.output:
             outp = self.output[o]
@@ -1020,7 +1020,7 @@ class Object(HasParam):
     backend = None
     methods = None
     properties = None
-    params = lambda: None
+    params = None
     primary_key = None
     params_minus_pk = None
 
@@ -1037,7 +1037,7 @@ class Object(HasParam):
             self.__get_attrs('Property'), sort=False, name_attr='attr_name'
         )
         self._create_param_namespace('params')
-        pkeys = filter(lambda p: p.primary_key, self.params())
+        pkeys = filter(lambda p: p.primary_key, self.params())  #pylint: disable=E1102
         if len(pkeys) > 1:
             raise ValueError(
                 '%s (Object) has multiple primary keys: %s' % (
@@ -1048,7 +1048,7 @@ class Object(HasParam):
         if len(pkeys) == 1:
             self.primary_key = pkeys[0]
             self.params_minus_pk = NameSpace(
-                filter(lambda p: not p.primary_key, self.params()), sort=False
+                filter(lambda p: not p.primary_key, self.params()), sort=False  #pylint: disable=E1102
             )
         else:
             self.params_minus_pk = self.params
@@ -1063,7 +1063,7 @@ class Object(HasParam):
         if len(names) == 1 and not isinstance(names[0], (Param, str)):
             names = names[0]
         minus = frozenset(names)
-        for param in self.params():
+        for param in self.params(): #pylint: disable=E1102
             if param.name in minus or param in minus:
                 continue
             yield param
