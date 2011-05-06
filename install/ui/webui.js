@@ -77,7 +77,7 @@ IPA.self_serv_navigation = function(spec) {
     spec = spec || {};
 
     spec.tabs = [
-        {name: 'identity', children: [
+        {name: 'identity', label: IPA.messages.tabs.identity, children: [
             {entity: 'user'},
             {entity: 'group'}
         ]}];

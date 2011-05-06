@@ -145,10 +145,10 @@ IPA.navigation = function(spec) {
                     continue;
                 }
                 tab.entity = entity;
-            }
 
-            if (!tab.label) {
-                tab.label = entity.label;
+                if (!tab.label) {
+                    tab.label = entity.label;
+                }
             }
 
             $('<li/>').append($('<a/>', {
