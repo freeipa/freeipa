@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=1&amp;policy=2</td>
+	<td>/ipa/ui/#navigation=policy&amp;policy=sudo</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,7 +23,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='sudorule']//span[@name='search']//input[@value='testsudorule']</td>
+	<td>css=.entity[name='sudorule'] .facet[name='search'] input[value='testsudorule']</td>
 	<td></td>
 </tr>
 <tr>
@@ -32,8 +32,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>testsudorule:</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
 <tr>
@@ -42,12 +42,22 @@
 	<td></td>
 </tr>
 <tr>
+	<td>verifyTextPresent</td>
+	<td>undo</td>
+	<td></td>
+</tr>
+<tr>
 	<td>click</td>
 	<td>link=Update</td>
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextNotPresent</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextNotPresent</td>
 	<td>undo</td>
 	<td></td>
 </tr>
@@ -57,12 +67,22 @@
 	<td></td>
 </tr>
 <tr>
+	<td>verifyTextPresent</td>
+	<td>undo</td>
+	<td></td>
+</tr>
+<tr>
 	<td>click</td>
 	<td>link=Update</td>
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextNotPresent</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextNotPresent</td>
 	<td>undo</td>
 	<td></td>
 </tr>

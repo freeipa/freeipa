@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=1&amp;policy=2&amp;sudorule-entity=sudocmdgroup</td>
+	<td>/ipa/ui/#navigation=policy&amp;policy=sudo&amp;sudo=sudocmdgroup</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,7 +23,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[@id='sudorule']//span[@name='search']//input[@value='testsudocmdgroup']</td>
+	<td>css=.entity[name='sudocmdgroup'] .facet[name='search'] input[value='testsudocmdgroup']</td>
 	<td></td>
 </tr>
 <tr>
@@ -32,8 +32,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextPresent</td>
-	<td>testsudocmdgroup:</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
 	<td></td>
 </tr>
 <tr>
@@ -47,12 +47,22 @@
 	<td>xxx</td>
 </tr>
 <tr>
+	<td>verifyTextPresent</td>
+	<td>undo</td>
+	<td></td>
+</tr>
+<tr>
 	<td>click</td>
 	<td>link=Update</td>
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextNotPresent</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextNotPresent</td>
 	<td>undo</td>
 	<td></td>
 </tr>
@@ -67,12 +77,22 @@
 	<td>Test Sudo Command Group</td>
 </tr>
 <tr>
+	<td>verifyTextPresent</td>
+	<td>undo</td>
+	<td></td>
+</tr>
+<tr>
 	<td>click</td>
 	<td>link=Update</td>
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextNotPresent</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextNotPresent</td>
 	<td>undo</td>
 	<td></td>
 </tr>

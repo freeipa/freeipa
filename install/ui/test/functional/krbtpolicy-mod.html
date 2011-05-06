@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>/ipa/ui/#navigation=1&amp;identity=1&amp;policy=4</td>
+	<td>/ipa/ui/#navigation=policy&amp;policy=krbtpolicy</td>
 	<td></td>
 </tr>
 <tr>
@@ -24,12 +24,27 @@
 <tr>
 	<td>type</td>
 	<td>krbmaxrenewableage</td>
+	<td></td>
+</tr>
+<tr>
+	<td>typeKeys</td>
+	<td>krbmaxrenewableage</td>
 	<td>100</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>krbmaxticketlife</td>
+	<td></td>
+</tr>
+<tr>
+	<td>typeKeys</td>
+	<td>krbmaxticketlife</td>
 	<td>100</td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>undo</td>
+	<td></td>
 </tr>
 <tr>
 	<td>click</td>
@@ -37,19 +52,39 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextNotPresent</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextNotPresent</td>
 	<td>undo</td>
 	<td></td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>krbmaxrenewableage</td>
+	<td></td>
+</tr>
+<tr>
+	<td>typeKeys</td>
+	<td>krbmaxrenewableage</td>
 	<td>604800</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>krbmaxticketlife</td>
+	<td></td>
+</tr>
+<tr>
+	<td>typeKeys</td>
+	<td>krbmaxticketlife</td>
 	<td>86400</td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>undo</td>
+	<td></td>
 </tr>
 <tr>
 	<td>click</td>
@@ -57,7 +92,12 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTextNotPresent</td>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextNotPresent</td>
 	<td>undo</td>
 	<td></td>
 </tr>
