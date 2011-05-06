@@ -339,15 +339,6 @@ class CADSInstance(service.Service):
         dsdb.create_pin_file()
 
     def enable_ssl(self):
-        (stdout, stderr, rc) = ipautil.run(["/usr/sbin/semanage",
-             "port", "-a",
-             "-t", "ldap_port_t",
-             "-p", "tcp",
-             "7390"], raiseonerr=False)
-        if rc != 0:
-            if stderr.find('already defined') == -1:
-                logging.critical("Failed to add SELinux rule for port 7390")
-
         conn = ipaldap.IPAdmin("127.0.0.1", port=DEFAULT_DSPORT)
         conn.simple_bind_s("cn=directory manager", self.dm_password)
 
@@ -422,15 +413,6 @@ class CADSInstance(service.Service):
             except ipautil.CalledProcessError, e:
                 logging.critical("failed to delete user %s" % e)
         self.service_name = sav_name
-
-        (stdout, stderr, rc) = ipautil.run(["/usr/sbin/semanage",
-             "port", "-d",
-             "-t", "ldap_port_t",
-             "-p", "tcp",
-             "7390"], raiseonerr=False)
-        if rc != 0:
-            if stderr.find('not defined') == -1:
-                logging.critical("Failed to remove SELinux rule for port 7390")
 
 class CAInstance(service.Service):
     """
