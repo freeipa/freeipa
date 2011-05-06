@@ -147,20 +147,9 @@ IPA.table_facet = function(spec) {
 
     var that = IPA.facet(spec);
 
+    that.managed_entity_name = spec.managed_entity_name || that.entity_name;
+
     that.columns = $.ordered_map();
-
-    that.__defineGetter__('entity_name', function() {
-        return that._entity_name;
-    });
-
-    that.__defineSetter__('entity_name', function(entity_name) {
-        that._entity_name = entity_name;
-
-        var columns = that.columns.values;
-        for (var i=0; i<columns.length; i++) {
-            columns[i].entity_name = entity_name;
-        }
-    });
 
     that.get_columns = function() {
         return that.columns.values;
@@ -171,7 +160,7 @@ IPA.table_facet = function(spec) {
     };
 
     that.add_column = function(column) {
-        column.entity_name = that.entity_name;
+        column.entity_name = that.managed_entity_name;
         that.columns.put(column.name, column);
     };
 
@@ -233,6 +222,7 @@ IPA.entity = function (spec) {
     that.metadata = spec.metadata;
     that.name = spec.name;
     that.label = spec.label || spec.metadata.label || spec.name;
+    that.title = spec.title || that.label;
 
     that.header = spec.header || IPA.entity_header({entity: that});
 
@@ -244,6 +234,8 @@ IPA.entity = function (spec) {
     // current facet
     that.facet_name = null;
 
+    that.redirect_facet = spec.redirect_facet;
+    that.containing_entity = null;
     that.get_dialog = function(name) {
         return that.dialogs.get(name);
     };
@@ -367,6 +359,28 @@ IPA.entity = function (spec) {
         that.facet.refresh();
     };
 
+    that.get_primary_key_prefix = function() {
+        var pkey = [];
+        var current_entity = that;
+        current_entity = current_entity.containing_entity;
+        while(current_entity !== null){
+            pkey.unshift(
+                $.bbq.getState(current_entity.name + '-pkey', true) || '');
+            current_entity = current_entity.containing_entity;
+        }
+        return pkey;
+    };
+
+    /*gets the primary key for trhe current entity out of the URL parameters */
+    that.get_primary_key = function() {
+        var pkey = that.get_primary_key_prefix();
+        var current_entity = that;
+        pkey.unshift(
+            $.bbq.getState(current_entity.name + '-pkey', true) || '');
+        return pkey;
+    };
+
+
     that.entity_init = that.init;
 
     return that;
@@ -375,7 +389,7 @@ IPA.entity = function (spec) {
 IPA.current_facet =  function (entity){
     var facet_name = $.bbq.getState(entity.name + '-facet', true);
     var facets = entity.facets.values;
-    if (!facet_name && facets.length) {
+    if (!facet_name  && facets.length) {
         facet_name = facets[0].name;
     }
     return facet_name;
@@ -471,12 +485,47 @@ IPA.entity_header = function(spec) {
     that.set_pkey = function(value) {
 
         if (value) {
-            var span = $('.entity-pkey', that.pkey);
-            span.text(value);
-            that.pkey.css('display', 'inline');
+            var breadcrumb = [];
+            var current_entity = IPA.current_entity.containing_entity;
 
+            while(current_entity){
+                breadcrumb.unshift($('<a/>',{
+                    text:$.bbq.getState(current_entity.name + '-pkey', true) ||
+                        '',
+                    title: current_entity.name,
+                    click: function() {
+                        var entity = IPA.get_entity((this.title));
+                        IPA.nav.show_page(entity.name, 'default');
+                        $('a', that.facet_tabs).removeClass('selected');
+                        return false;
+                    }
+                }));
+
+                current_entity = current_entity.containing_entity;
+            }
+
+            that.title_container.empty();
+            var h3 =  $('<h3/>').appendTo(that.title_container);
+
+            h3.empty();
+            h3.append(IPA.current_entity.title);
+            h3.append(': ');
+
+            for (var i = 0; i < breadcrumb.length; i+=1){
+                h3.append(breadcrumb[i]);
+                h3.append(' > ');
+
+            }
+            h3.append(
+                $('<span/>', {
+                    'class': 'entity-pkey',
+                    text:value
+                }));
         } else {
-            that.pkey.css('display', 'none');
+            that.title_container.empty();
+            var span =  $('<h3/>',{
+                text:IPA.current_entity.metadata.label
+            }).appendTo(that.title_container);
         }
     };
 
@@ -554,7 +603,12 @@ IPA.entity_header = function(spec) {
                     return false;
                 }
 
-                IPA.nav.show_page(that.entity.name, 'search');
+                var current_entity = that.entity;
+                while(current_entity.containing_entity){
+                    current_entity = current_entity.containing_entity;
+                }
+
+                IPA.nav.show_page(current_entity.name, 'search');
                 $('a', that.facet_tabs).removeClass('selected');
                 return false;
             }
@@ -655,12 +709,9 @@ IPA.entity_builder = function(){
     };
 
     that.facet = function(spec) {
-
         spec.entity_name  = entity.name;
-
         facet = spec.factory(spec);
         entity.add_facet(facet);
-
         return that;
     };
 
@@ -670,6 +721,19 @@ IPA.entity_builder = function(){
         spec.label = spec.label || IPA.messages.facets.search;
 
         var factory = spec.factory || IPA.search_facet;
+        facet = factory(spec);
+        entity.add_facet(facet);
+        add_redirect_info();
+
+        return that;
+    };
+
+    that.nested_search_facet = function(spec) {
+
+        spec.entity_name = entity.name;
+        spec.label = spec.label || IPA.messages.facets.search;
+
+        var factory = spec.factory || IPA.nested_search_facet;
         facet = factory(spec);
         entity.add_facet(facet);
 
@@ -701,22 +765,29 @@ IPA.entity_builder = function(){
         spec.entity_name = entity.name;
 
         var index = spec.name.indexOf('_');
-        spec.attribute_member = spec.attribute_member || spec.name.substring(0, index);
-        spec.other_entity = spec.other_entity || spec.name.substring(index+1);
+        spec.attribute_member = spec.attribute_member ||
+            spec.name.substring(0, index);
+        spec.other_entity = spec.other_entity ||
+            spec.name.substring(index+1);
 
-        spec.facet_group = spec.facet_group || spec.attribute_member;
+        spec.facet_group = spec.facet_group ||
+            spec.attribute_member;
 
-        if (spec.facet_group == 'memberindirect' || spec.facet_group == 'memberofindirect') {
+        if (spec.facet_group == 'memberindirect' ||
+            spec.facet_group == 'memberofindirect') {
             spec.read_only = true;
         }
 
-        spec.label = spec.label || (IPA.metadata.objects[spec.other_entity] ? IPA.metadata.objects[spec.other_entity].label : spec.other_entity);
+        spec.label = spec.label ||
+            (IPA.metadata.objects[spec.other_entity] ?
+             IPA.metadata.objects[spec.other_entity].label : spec.other_entity);
 
         if (!spec.title) {
-            if (spec.facet_group == 'member' || spec.facet_group == 'memberindirect') {
+            if (spec.facet_group == 'member' ||
+                spec.facet_group == 'memberindirect') {
                 spec.title = IPA.messages.association.member;
-
-            } else if (spec.facet_group == 'memberof' || spec.facet_group == 'memberofindirect') {
+            } else if (spec.facet_group == 'memberof' ||
+                       spec.facet_group == 'memberofindirect') {
                 spec.title = IPA.messages.association.memberof;
             }
         }
@@ -792,6 +863,18 @@ IPA.entity_builder = function(){
                 section.add_field(field);
             }
         }
+    };
+
+    function add_redirect_info(facet_name){
+        if (!entity.redirect_facet){
+            entity.redirect_facet = 'search';
+        }
+    }
+
+    that.containing_entity = function(entity_name) {
+        add_redirect_info();
+        entity.containing_entity = IPA.get_entity(entity_name);
+        return that;
     };
 
     that.dialog = function(spec) {

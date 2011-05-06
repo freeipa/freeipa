@@ -826,9 +826,13 @@ table.scrollable tbody {
 }
 
 .entity-header .entity-title {
-    text-transform: uppercase;
     color:gray;
     padding-right:5em;
+}
+
+
+.entity-header .entity-title span{
+    display: inline;
 }
 
 .entity-header .entity-title .entity-pkey {

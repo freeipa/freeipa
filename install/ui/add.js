@@ -41,8 +41,8 @@ IPA.add_dialog = function (spec) {
             that.add(
                 record,
                 function(data, text_status, xhr) {
-                    var entity = IPA.get_entity(that.entity_name);
-                    var facet = entity.get_facet('search');
+                    var facet_name =   IPA.current_facet(IPA.current_entity);
+                    var facet = IPA.current_entity.get_facet(facet_name);
                     var table = facet.table;
                     table.refresh();
                     that.close();
@@ -57,8 +57,8 @@ IPA.add_dialog = function (spec) {
             that.add(
                 record,
                 function(data, text_status, xhr) {
-                    var entity = IPA.get_entity(that.entity_name);
-                    var facet = entity.get_facet('search');
+                    var facet_name =   IPA.current_facet(IPA.current_entity);
+                    var facet = IPA.current_entity.get_facet(facet_name);
                     var table = facet.table;
                     table.refresh();
                     that.reset();
@@ -97,6 +97,7 @@ IPA.add_dialog = function (spec) {
 
     that.add = function(record, on_success, on_error) {
 
+        var field, value, pkey_prefix;
         var pkey_name = IPA.metadata.objects[that.entity_name].primary_key;
 
         var command = IPA.command({
@@ -106,7 +107,11 @@ IPA.add_dialog = function (spec) {
             on_error: on_error
         });
 
-        var field, value;
+        pkey_prefix = IPA.get_entity(that.entity_name).get_primary_key_prefix();
+
+        for (var h=0; h<pkey_prefix.length; h++) {
+            command.add_arg(pkey_prefix[h]);
+        }
 
         var fields = that.fields.values;
         for (var i=0; i<fields.length; i++) {

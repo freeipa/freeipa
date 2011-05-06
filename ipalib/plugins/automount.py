@@ -186,7 +186,7 @@ class automountlocation(LDAPObject):
     object_name_plural = 'automount locations'
     object_class = ['nscontainer']
     default_attributes = ['cn']
-    label = _('Automount')
+    label = _('Automount Locations')
 
 
     takes_params = (

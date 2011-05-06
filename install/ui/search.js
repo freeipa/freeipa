@@ -30,40 +30,47 @@ IPA.search_facet = function(spec) {
 
     spec.name = spec.name || 'search';
     spec.display_class = 'search-facet';
+    spec.managed_entity_name = spec.managed_entity_name || spec.entity_name;
 
     var that = IPA.table_facet(spec);
 
     that.search_all = spec.search_all || false;
 
-    that.setup_column = function(column) {
-        column.setup = function(container, record) {
-            container.empty();
-
-            var value = record[column.name];
-            value = value ? value.toString() : '';
-
-            $('<a/>', {
-                'href': '#'+value,
-                'html': value,
-                'click': function (value) {
-                    return function() {
-                        IPA.nav.show_page(that.entity_name, 'default', value);
-                        return false;
-                    };
-                }(value)
-            }).appendTo(container);
-        };
-    };
 
     that.init = function() {
-
         that.facet_init();
+        that.managed_entity = IPA.get_entity(that.managed_entity_name);
+        that.init_table(that.managed_entity);
+    };
+
+    that.init_table = function(entity){
+
+        function setup_column(column,entity) {
+            column.setup = function(container, record) {
+                container.empty();
+
+                var value = record[column.name];
+                value = value ? value.toString() : '';
+
+                $('<a/>', {
+                    'href': '#'+value,
+                    'html': value,
+                    'click': function (value) {
+                        return function() {
+                            IPA.nav.show_page(entity.name, 'default', value);
+                            return false;
+                        };
+                    }(value)
+                }).appendTo(container);
+            };
+        }
+
 
         that.table = IPA.table_widget({
-            id: that.entity_name+'-search',
+            id: entity.name+'-search',
             name: 'search',
-            label: IPA.metadata.objects[that.entity_name].label,
-            entity_name: that.entity_name,
+            label: IPA.metadata.objects[entity.name].label,
+            entity_name: entity.name,
             search_all: that.search_all
         });
 
@@ -71,11 +78,11 @@ IPA.search_facet = function(spec) {
         for (var i=0; i<columns.length; i++) {
             var column = columns[i];
 
-            var param_info = IPA.get_entity_param(that.entity_name, column.name);
+            var param_info = IPA.get_entity_param(entity.name, column.name);
             column.primary_key = param_info && param_info['primary_key'];
 
             if (column.primary_key) {
-                that.setup_column(column);
+                setup_column(column,entity);
             }
 
             that.table.add_column(column);
@@ -148,7 +155,6 @@ IPA.search_facet = function(spec) {
     };
 
     that.setup = function(container) {
-
         that.facet_setup(container);
     };
 
@@ -178,11 +184,16 @@ IPA.search_facet = function(spec) {
     };
 
     that.add = function() {
-        var dialog = that.entity.get_dialog('add');
+        var dialog = that.managed_entity.get_dialog('add');
         dialog.open(that.container);
     };
 
+
     that.remove = function() {
+        that.remove_instances(that.managed_entity);
+    };
+
+    that.remove_instances = function(entity) {
 
         var values = that.table.get_selected_values();
 
@@ -200,7 +211,8 @@ IPA.search_facet = function(spec) {
         var dialog = IPA.deleter_dialog({
             'title': title,
             'parent': that.container,
-            'values': values
+            'values': values,
+            entity_name: entity.name
         });
 
         dialog.execute = function() {
@@ -216,11 +228,19 @@ IPA.search_facet = function(spec) {
                 }
             });
 
+            var pkeys =
+                entity.get_primary_key_prefix();
+
             for (var i=0; i<values.length; i++) {
                 var command = IPA.command({
-                    entity: that.entity_name,
+                    entity: entity.name,
                     method: 'del'
                 });
+
+                for (var k=0; k<pkeys.length; k++) {
+                    command.add_arg(pkeys[k]);
+                }
+
                 command.add_arg(values[i]);
                 batch.add_command(command);
             }
@@ -236,11 +256,15 @@ IPA.search_facet = function(spec) {
     that.find = function() {
         var filter = that.filter.val();
         var state = {};
-        state[that.entity_name + '-filter'] = filter;
+        state[that.managed_entity_name + '-filter'] = filter;
         IPA.nav.push_state(state);
     };
 
     that.refresh = function() {
+        that.search_refresh(that.entity);
+    };
+
+    that.search_refresh = function(entity){
 
         function on_success(data, text_status, xhr) {
 
@@ -271,12 +295,21 @@ IPA.search_facet = function(spec) {
             summary.append('<p>'+error_thrown.message+'</p>');
         }
 
-        var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
+        var filter = [];
+        var current_entity = entity;
+        filter.unshift($.bbq.getState(current_entity.name + '-filter', true) || '');
+        current_entity = current_entity.containing_entity;
+        while(current_entity !== null){
+            filter.unshift(
+                $.bbq.getState(current_entity.name + '-pkey', true) || '');
+            current_entity = current_entity.containing_entity;
+        }
+
 
         var command = IPA.command({
-            entity: that.entity_name,
+            entity: entity.name,
             method: 'find',
-            args: [filter],
+            args: filter,
             options: {
                 all: that.search_all
             },
@@ -291,6 +324,52 @@ IPA.search_facet = function(spec) {
     that.search_facet_init = that.init;
     that.search_facet_create_content = that.create_content;
     that.search_facet_setup = that.setup;
+
+    return that;
+};
+
+
+/*TODO.  this has much copied code from above.  Refactor the search_facet
+To either be nested or not nested. */
+IPA.nested_search_facet = function(spec){
+    spec.managed_entity_name = spec.nested_entity;
+    var that = IPA.search_facet(spec);
+
+    that.show = function() {
+        that.facet_show();
+
+        //that.entity.header.set_pkey(null);
+        that.entity.header.back_link.css('visibility', 'visible');
+        that.entity.header.facet_tabs.css('visibility', 'visible');
+
+        that.entity.header.set_pkey(
+            $.bbq.getState(IPA.current_entity.name + '-pkey', true) || '');
+        if (that.filter) {
+            var filter = 
+                $.bbq.getState(that.managed_entity_name + '-filter', true) || '';
+            that.filter.val(filter);
+        }
+    };
+
+    that.refresh = function(){
+
+        var pkey = $.bbq.getState(that.entity.name + '-pkey', true) || '';
+
+        if ((!pkey) && (that.entity.redirect_facet)) {
+
+            var current_entity = that.entity;
+            while (current_entity.containing_entity){
+                current_entity = current_entity.containing_entity;
+            }
+
+            IPA.nav.show_page(
+                current_entity.name,
+                that.entity.redirect_facet);
+            return;
+        }
+
+        that.search_refresh(that.managed_entity);
+    };
 
     return that;
 };

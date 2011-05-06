@@ -1047,7 +1047,12 @@ IPA.column = function (spec) {
     that.init = function() {
         if (that.entity_name && !that.label) {
             var param_info = IPA.get_entity_param(that.entity_name, that.name);
-            if (param_info) that.label = param_info.label;
+            if (param_info) {
+                that.label = param_info.label;
+            }else{
+                alert('cannot find label for ' + that.entity_name + ' ' +
+                      that.name);
+            }
         }
     };
 
@@ -1124,12 +1129,14 @@ IPA.table_widget = function (spec) {
         var table = $('<table/>', {
             'class': 'search-table'
         }).appendTo(container);
+        that.table = table;
 
         if (that.scrollable) {
             table.addClass('scrollable');
         }
 
         var thead = $('<thead/>').appendTo(table);
+        that.thead = thead;
 
         var tr = $('<tr/>').appendTo(thead);
 
@@ -1176,6 +1183,7 @@ IPA.table_widget = function (spec) {
         }
 
         var tbody = $('<tbody/>').appendTo(table);
+        that.tbody = tbody;
 
         if (that.height) {
             tbody.css('height', that.height);
@@ -1207,6 +1215,7 @@ IPA.table_widget = function (spec) {
         }
 
         var tfoot = $('<tfoot/>').appendTo(table);
+        that.tfoot = tfoot;
 
         tr = $('<tr/>').appendTo(tfoot);
 
@@ -1224,10 +1233,10 @@ IPA.table_widget = function (spec) {
 
         that.widget_setup(container);
 
-        that.table = $('table', that.container);
-        that.thead = $('thead', that.table);
-        that.tbody = $('tbody', that.table);
-        that.tfoot = $('tfoot', that.table);
+//        that.table = $('table', that.container);
+//        that.thead = $('thead', that.table);
+//        that.tbody = $('tbody', that.table);
+//        that.tfoot = $('tfoot', that.table);
 
         var select_all_checkbox = $('input[name=select]', that.thead);
         select_all_checkbox.attr('title', IPA.messages.search.select_all);

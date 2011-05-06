@@ -1,0 +1,18 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "result": {
+            "automountmapname": [
+                "auto.log"
+            ],
+            "dn": "automountmapname=auto.log,cn=mtv,cn=automount,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "objectclass": [
+                "automountmap",
+                "top"
+            ]
+        },
+        "summary": null,
+        "value": "auto.log"
+    }
+}

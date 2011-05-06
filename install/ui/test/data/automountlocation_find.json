@@ -1,17 +1,35 @@
 {
-    "error": null, 
-    "id": 6, 
+    "error": null,
+    "id": null,
     "result": {
-        "count": 1, 
+        "count": 4,
         "result": [
             {
                 "cn": [
+                    "BOS"
+                ],
+                "dn": "cn=bos,cn=automount,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+            },
+            {
+                "cn": [
+                    "BRNO"
+                ],
+                "dn": "cn=brno,cn=automount,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+            },
+            {
+                "cn": [
                     "default"
-                ], 
+                ],
                 "dn": "cn=default,cn=automount,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+            },
+            {
+                "cn": [
+                    "RDU"
+                ],
+                "dn": "cn=rdu,cn=automount,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
             }
-        ], 
-        "summary": null, 
+        ],
+        "summary": null,
         "truncated": false
     }
 }

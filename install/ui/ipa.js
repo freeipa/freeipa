@@ -159,6 +159,7 @@ var IPA = ( function () {
         if (IPA.current_entity){
             var facet_name =   IPA.current_facet(IPA.current_entity);
             var facet = IPA.current_entity.get_facet(facet_name);
+            if (!facet) return false;
 
             if (facet.is_dirty()){
 

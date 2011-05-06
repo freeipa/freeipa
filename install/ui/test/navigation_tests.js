@@ -41,10 +41,14 @@ test("Testing IPA.navigation.create().", function() {
     var entity;
     var user_mock_called = false;
     var group_mock_called = false;
+    //Force reset of entities
+    IPA.entities = $.ordered_map();
 
     IPA.entity_factories.user =  function() {
         var that = IPA.entity({name: 'user',
                                metadata:IPA.metadata.objects.user});
+        that.add_facet(IPA.search_facet({'entity_name':'user'}));
+
         that.setup = function(container){
             user_mock_called = true;
             same(container.attr('name'), 'user', 'user container name');

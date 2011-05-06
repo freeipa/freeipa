@@ -1024,11 +1024,12 @@ IPA.association_facet = function (spec) {
             summary.append('<p>'+error_thrown.message+'</p>');
         }
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = IPA.get_entity(that.entity_name).get_primary_key();
+
         IPA.command({
             entity: that.entity_name,
             method: 'show',
-            args: [pkey],
+            args: pkey,
             options: {'all': true, 'rights': true},
             on_success: on_success,
             on_error: on_error

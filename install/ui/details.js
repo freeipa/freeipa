@@ -310,13 +310,26 @@ IPA.details_facet = function(spec) {
         }
     };
 
-    that.get_primary_key = function() {
-        var pkey_name = IPA.metadata.objects[that.entity_name].primary_key;
-        if (that.record[pkey_name] instanceof Array){
-            return that.record[pkey_name][0];
+    /* the primary key used for show and update is built as an array.
+       for most entities, this will be a single element long, but for some
+       it requires the containing entities primary keys as well.*/
+    that.get_primary_key = function(from_url) {
+
+        var pkey = IPA.get_entity(that.entity_name).get_primary_key_prefix();
+
+        if (from_url){
+            pkey.push(that.pkey);
         }else{
-            return that.record[pkey_name];
+            var pkey_name = IPA.metadata.objects[that.entity_name].primary_key;
+            var pkey_val = that.record[pkey_name];
+            if (pkey_val instanceof Array){
+                pkey.push( pkey_val[0]);
+            }else{
+                pkey.push(pkey_val);
+            }
         }
+
+        return pkey;
     };
 
     that.create_header = function(container) {
@@ -577,9 +590,7 @@ IPA.details_facet = function(spec) {
             }
         }
 
-        var pkey = that.get_primary_key();
-
-        var args = pkey ? [pkey] : [];
+        var args = that.get_primary_key();
 
         var command = IPA.command({
             entity: entity_name,
@@ -597,7 +608,7 @@ IPA.details_facet = function(spec) {
 
     that.refresh = function() {
 
-        that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) ;
+        that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
 
         var command = IPA.command({
             entity: that.entity_name,
@@ -609,9 +620,17 @@ IPA.details_facet = function(spec) {
             IPA.details_refresh_devel_hook(that.entity_name,command,that.pkey);
         }
 
-
         if (that.pkey){
-            command.args =  [that.pkey];
+            command.args = that.get_primary_key(true);
+        }else if (that.entity.redirect_facet) {
+            var current_entity = that.entity;
+            while (current_entity.containing_entity){
+                current_entity = current_entity.containing_entity;
+            }
+            IPA.nav.show_page(
+                current_entity.name,
+                that.entity.redirect_facet);
+            return;
         }
 
         command.on_success = function(data, text_status, xhr) {

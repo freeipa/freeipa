@@ -273,7 +273,7 @@ IPA.host_provisioning_status_widget = function (spec) {
             name: that.entity_name+'_disable_'+pkey,
             entity: that.entity_name,
             method: 'disable',
-            args: [pkey],
+            args: pkey,
             options: { all: true, rights: true },
             on_success: on_success,
             on_error: on_error
@@ -291,7 +291,7 @@ IPA.host_provisioning_status_widget = function (spec) {
         var command = IPA.command({
             entity: that.entity_name,
             method: 'mod',
-            args: [pkey],
+            args: pkey,
             options: {
                 all: true,
                 rights: true,

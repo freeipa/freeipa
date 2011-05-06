@@ -1,0 +1,18 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "result": {
+            "cn": [
+                "YYZ"
+            ],
+            "dn": "cn=yyz,cn=automount,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "objectclass": [
+                "nscontainer",
+                "top"
+            ]
+        },
+        "summary": null,
+        "value": "YYZ"
+    }
+}

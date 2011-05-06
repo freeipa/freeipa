@@ -28,20 +28,74 @@
 
 IPA.entity_factories.automountlocation = function() {
     return IPA.entity_builder().
-        entity('automountlocation').
+        entity({name:'automountlocation',
+                title:IPA.messages.tabs.automount}).
         search_facet({
             columns:['cn']
         }).
-        details_facet({sections:[{
-            name:'identity',
-            label: IPA.messages.details.identity,
-            fields:['cn']
-        }]}).
-        standard_association_facets().
+        nested_search_facet({
+            facet_group: 'member',
+            nested_entity : 'automountmap',
+            label : IPA.metadata.objects.automountmap.label,
+            name: 'maps',
+            columns:['automountmapname']
+        }).
+        details_facet({
+            sections:[
+                {
+                    name:'identity',
+                    label: IPA.messages.details.identity,
+                    fields:['cn']
+                }
+            ]}).
         adder_dialog({
             fields:['cn']
         }).
         build();
 };
+IPA.entity_factories.automountmap = function() {
+    return IPA.entity_builder().
+        entity({name:'automountmap',
+                title:IPA.messages.tabs.automount}).
+        containing_entity('automountlocation').
+        nested_search_facet({
+            facet_group: 'member',
+            nested_entity : 'automountkey',
+            label : IPA.metadata.objects.automountkey.label,
+            name: 'keys',
+            columns:['description']
+        }).
+        details_facet({
+            sections:[
+                {
+                    name:'identity',
+                    label: IPA.messages.details.identity,
+                    fields:['automountmapname','description']
+                }
+            ]
+        }).
+        adder_dialog({
+            fields:['automountmapname','description']
+        }).
+        build();
+};
 
-
+IPA.entity_factories.automountkey = function() {
+    return IPA.entity_builder().
+        entity({name:'automountkey',
+                title:IPA.messages.tabs.automount}).
+        containing_entity('automountmap').
+        details_facet({
+            sections:[
+                {
+                    name:'identity',
+                    label: IPA.messages.details.identity,
+                    fields:['automountkey','automountinformation','description']
+                }
+            ]
+        }).
+        adder_dialog({
+            fields:['automountkey','automountinformation']
+        }).
+        build();
+};

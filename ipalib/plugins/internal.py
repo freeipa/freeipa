@@ -100,7 +100,13 @@ class i18n_messages(Command):
                 },
             "automountlocation": {
                 "add":_("Add Automount Location"),
-                "identity":_("Automount Location Settings"),
+                "identity":_("Automount Location Settings")
+                },
+            "automountmap": {
+                "add":_("Add Automount Map")
+                },
+            "automountkey": {
+                "add":_("Add Automount Key")
                 },
             "cert": {
                 "unspecified":_("Unspecified"),
@@ -372,8 +378,9 @@ class i18n_messages(Command):
             "audit": _("Audit"),
             "ipaserver":_("IPA Server"),
             "sudo":_("Sudo"),
-            "hbac":_("HBAC"),
-            "role":_("Role Based Access Control")
+            "hbac":_("Host Based Access Control"),
+            "role":_("Role Based Access Control"),
+            "automount":_("Automount")
             },
         "association":{
             "add":_("Add ${other_entity} into ${entity} ${primary_key}"),
