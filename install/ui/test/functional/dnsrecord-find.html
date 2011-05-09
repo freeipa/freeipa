@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="https://localhost/" />
+<title>Search DNS Record</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">Search DNS Record</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/ipa/ui/#navigation=policy&amp;policy=dnszone</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>css=.entity[name='dnszone'] .facet[name='search'] input[value='test.com']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>link=test.com</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>css=.entity[name='dnszone'] .facet[name='records'] input[value='testrecord']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>css=.entity[name='dnszone'] .facet[name='records'] input[name='filter']</td>
+	<td>testrecord</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=.entity[name='dnszone'] .facet[name='records'] a[title='Find']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>css=.entity[name='dnszone'] .facet[name='records'] input[value='testrecord']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>css=.entity[name='dnszone'] .facet[name='records'] input[name='filter']</td>
+	<td>xxx</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=.entity[name='dnszone'] .facet[name='records'] a[title='Find']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementNotPresent</td>
+	<td>css=.entity[name='dnszone'] .facet[name='records'] input[value='testrecord']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>css=.entity[name='dnszone'] .facet[name='records'] input[name='filter']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>css=.entity[name='dnszone'] .facet[name='records'] a[title='Find']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForNotVisible</td>
+	<td>//span[@id='header-network-activity-indicator']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>css=.entity[name='dnszone'] .facet[name='records'] input[value='testrecord']</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>
