@@ -1218,10 +1218,8 @@ IPA.table_widget = function (spec) {
         }).appendTo(td);
     };
 
-
     that.select_changed = function(){
     };
-
 
     that.setup = function(container) {
 
@@ -1292,6 +1290,10 @@ IPA.table_widget = function (spec) {
         return values;
     };
 
+    that.get_selected_rows = function() {
+        return $('input[name="select"]:checked', that.tbody).closest('tr');
+    };
+
     that.get_record = function(result, index) {
         var record = {};
         for (var i=0; i<that.columns.length; i++){
@@ -1325,7 +1327,6 @@ IPA.table_widget = function (spec) {
                 $('input[name="select"]', tr).click(function(){
                     that.select_changed();
                 });
-
             }
 
             var span = $('span[name="'+column.name+'"]', tr);

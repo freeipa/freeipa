@@ -311,11 +311,11 @@ IPA.entitle.search_facet = function(spec) {
         }).appendTo(that.consume_buttons);
     };
 
-     that.show = function() {
+    that.show = function() {
         that.facet_show();
 
         that.entity.header.set_pkey(null);
-         that.entity.header.back_link.css('visibility', 'hidden');
+        that.entity.header.back_link.css('visibility', 'hidden');
         that.entity.header.facet_tabs.css('visibility', 'hidden');
     };
 

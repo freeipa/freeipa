@@ -91,7 +91,6 @@ IPA.search_facet = function(spec) {
         };
 
         that.table.init();
-
     };
 
     that.create_header = function(container) {
@@ -124,7 +123,6 @@ IPA.search_facet = function(spec) {
         that.remove_button = IPA.action_button({
             label: IPA.messages.buttons.remove,
             icon: 'ui-icon-trash',
-            'class': 'input_link_disabled',
             click: function() {
                 if (that.remove_button.hasClass('input_link_disabled')) return false;
                 that.remove();
@@ -264,7 +262,8 @@ IPA.search_facet = function(spec) {
                 summary.text(data.result.summary);
             }
 
-            $('.search-filter input[type=text]', that.container).focus();
+            that.filter.focus();
+            that.select_changed();
         }
 
         function on_error(xhr, text_status, error_thrown) {

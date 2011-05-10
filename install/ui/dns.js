@@ -26,36 +26,53 @@
 /* DNS */
 IPA.entity_factories.dnszone = function() {
 
-    if (!IPA.dns_enabled){
+    if (!IPA.dns_enabled) {
         throw "DNS not enabled on server";
     }
 
-    return  IPA.entity_builder().
+    return IPA.entity_builder().
         entity('dnszone').
         search_facet({
             columns:['idnsname']
         }).
-        details_facet({sections:[{
-            name:'identity',
-            fields:[
-                'idnsname',
-                'idnszoneactive',
-                'idnssoamname',
-                'idnssoarname',
-                'idnssoaserial',
-                'idnssoarefresh',
-                'idnssoaretry',
-                'idnssoaexpire',
-                'idnssoaminimum',
-                'dnsttl',
-                'dnsclass',
-                'idnsallowdynupdate',
-                'idnsupdatepolicy']}]}).
+        details_facet({
+            sections:[{
+                name:'identity',
+                fields:[
+                    'idnsname',
+                    'idnszoneactive',
+                    'idnssoamname',
+                    'idnssoarname',
+                    'idnssoaserial',
+                    'idnssoarefresh',
+                    'idnssoaretry',
+                    'idnssoaexpire',
+                    'idnssoaminimum',
+                    'dnsttl',
+                    'dnsclass',
+                    'idnsallowdynupdate',
+                    'idnsupdatepolicy']}]
+        }).
         facet({
             factory: IPA.records_facet,
-            'name': 'records',
-            'facet_group':'Member',
-            'label': IPA.metadata.objects.dnsrecord.label
+            name: 'records',
+            facet_group:'Member',
+            label: IPA.metadata.objects.dnsrecord.label,
+            columns: [
+                {
+                    name: 'idnsname',
+                    label: IPA.get_entity_param('dnsrecord', 'idnsname').label,
+                    primary_key: true
+                },
+                {
+                    name: 'type',
+                    label: 'Record Type'
+                },
+                {
+                    name: 'data',
+                    label: 'Data'
+                }
+            ]
         }).
         standard_association_facets().
         adder_dialog({
@@ -68,7 +85,7 @@ IPA.entity_factories.dnszone = function() {
         build();
 };
 
-IPA.force_dnszone_add_checkbox_widget = function (spec){
+IPA.force_dnszone_add_checkbox_widget = function(spec) {
     var param_info = IPA.get_method_option('dnszone_add', 'force');
     spec.name = 'force';
     spec.label = param_info.label;
@@ -77,18 +94,44 @@ IPA.force_dnszone_add_checkbox_widget = function (spec){
     return  IPA.checkbox_widget(spec);
 };
 
-IPA.records_facet = function (spec){
+IPA.records_facet = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.facet(spec);
+    var that = IPA.search_facet(spec);
 
-    that.record = null;
+    var record_types = [
+        'a', 'aaaa', 'dname', 'cname', 'mx', 'ns', 'ptr',
+        'srv', 'txt', 'a6', 'afsdb', 'cert', 'ds',
+        'key', 'kx', 'loc',  'naptr', 'nsec',
+        'rrsig', 'sshfp'
+    ];
 
-    var record_types =[ 'a', 'aaaa', 'dname', 'cname', 'mx', 'ns', 'ptr',
-                        'srv', 'txt', 'a6', 'afsdb', 'cert', 'ds',
-                        'key', 'kx', 'loc',  'naptr', 'nsec',
-                        'rrsig', 'sshfp'];
+    that.init = function() {
+
+        that.facet_init();
+
+        that.table = IPA.table_widget({
+            name: 'search',
+            label: IPA.metadata.objects[that.entity_name].label,
+            entity_name: that.entity_name
+        });
+
+        for (var i=0; i<that.columns.length; i++) {
+            var column = that.columns[i];
+            that.table.add_column(column);
+        }
+
+        that.table.select_changed = function() {
+            that.select_changed();
+        };
+
+        that.table.refresh = function() {
+            that.refresh();
+        };
+
+        that.table.init();
+    };
 
     function create_type_select(id,add_none) {
         var type_select = $('<select/>',{
@@ -96,7 +139,7 @@ IPA.records_facet = function (spec){
         });
 
         if (add_none){
-            type_select.append($('<option/>',{
+            type_select.append($('<option/>', {
                 text: '(any)',
                 value: ''
             }));
@@ -152,13 +195,13 @@ IPA.records_facet = function (spec){
             }).appendTo(dd);
         };
 
-        dialog.add_button(IPA.messages.buttons.add_many, function() {
-            dialog.add();
-        });
-
-        dialog.add_button(IPA.messages.buttons.add_and_close, function() {
+        dialog.add_button(IPA.messages.buttons.add, function() {
             dialog.add();
             dialog.close();
+        });
+
+        dialog.add_button(IPA.messages.buttons.add_and_add_another, function() {
+            dialog.add();
         });
 
         dialog.add_button(IPA.messages.buttons.cancel, function() {
@@ -180,7 +223,7 @@ IPA.records_facet = function (spec){
                 args: [pkey, resource],
                 options: options,
                 on_success: function(data, text_status, xhr) {
-                    reload();
+                    that.refresh();
                 }
             });
 
@@ -194,34 +237,25 @@ IPA.records_facet = function (spec){
 
     that.remove = function() {
 
+        var values = that.table.get_selected_rows();
+
+        if (!values.length) {
+            return;
+        }
+
         var zone = $.bbq.getState('dnszone-pkey', true);
-
-        var thead = that.records_table.find('thead');
-        thead.find("INPUT[type='checkbox']").
-            attr('checked', false);
-
-        var tbody = that.records_table.find('tbody');
 
         var records = [];
 
-        $('input[type=checkbox]:checked', tbody).each(
-            function(index, input){
-                var tr = $(input).parents('tr');
-                var resource = $('[title=idnsname]', tr).text();
-                var type = $('[title=type]', tr).text().toLowerCase();
-                var data = $('[title=data]', tr).text();
+        values.each(function() {
+            var tr = $(this);
 
-                records.push({
-                    resource: resource,
-                    type: type,
-                    data: data
-                });
-            }
-        );
-
-        if (records.length === 0){
-            return;
-        }
+            records.push({
+                resource: $('span[name=idnsname]', tr).text(),
+                type: $('span[name=type]', tr).text().toLowerCase(),
+                data: $('span[name=data]', tr).text()
+            });
+        });
 
         var dialog = IPA.dialog({
             title: IPA.messages.buttons.remove
@@ -259,11 +293,11 @@ IPA.records_facet = function (spec){
 
             var batch = IPA.batch_command({
                 on_success: function() {
-                    reload();
+                    that.refresh();
                     dialog.close();
                 },
                 on_error: function() {
-                    reload();
+                    that.refresh();
                     dialog.close();
                 }
             });
@@ -304,15 +338,21 @@ IPA.records_facet = function (spec){
 
         that.facet_create_header(container);
 
-        $('<input/>', {
+        that.filter = $('<input/>', {
             type: 'text',
-            id: 'dns-record-resource-filter',
             name: 'filter'
         }).appendTo(that.controls);
 
+        that.filter.keypress(function(e) {
+            /* if the key pressed is the enter key */
+            if (e.which == 13) {
+                that.find();
+            }
+        });
+
         /*
-          THe OLD DNS plugin allowed for search based on record type.
-          This one does not.  If the plugin gets modified to support
+          The old DNS plugin allowed for search based on record type.
+          This one does not. If the plugin gets modified to support
           Record type searches, uncomment the following lines and
           adjust the code that modifies the search parameters.
 
@@ -325,7 +365,7 @@ IPA.records_facet = function (spec){
             label: IPA.messages.buttons.find,
             icon: 'ui-icon-search',
             click: function(){
-                that.refresh();
+                that.find();
                 return false;
             }
         }).appendTo(that.controls);
@@ -336,6 +376,7 @@ IPA.records_facet = function (spec){
             label: IPA.messages.buttons.remove,
             icon: 'ui-icon-trash',
             click: function() {
+                if (that.remove_button.hasClass('input_link_disabled')) return false;
                 that.remove();
                 return false;
             }
@@ -353,49 +394,13 @@ IPA.records_facet = function (spec){
 
     that.create_content = function(container) {
 
-        var details = $('<div/>', {
-            'name': 'details'
-        }).appendTo(container);
-
-        details.append('<span class="records-buttons"></span>');
-
-        var records_results = $('<div/>', {
-            'class': 'records-results'
-        }).appendTo(details);
-
-        that.records_table = $('<table/>', {
-            'class': 'search-table'
-        }).appendTo(records_results);
-
-        var thead = $('<thead><tr></tr></thead>').appendTo(that.records_table);
-        var tbody = $('<tbody></tbody>').appendTo(that.records_table);
-        var tfoot = $('<tfoot></tfoot>').appendTo(that.records_table);
-
-        var tr = thead.find('tr');
-        tr.append($('<th style="width: 15px" />').append(
-            $('<input />',{
-                type: 'checkbox',
-                click : function (evt){
-                    tbody.find("INPUT[type='checkbox']").
-                        attr('checked', this.checked);
-                }
-            })));
-        tr.append($('<th/>',{
-            text: IPA.get_entity_param("dnsrecord", "idnsname").label  }));
-         tr.append($('<th>Record Type</th>'));
-        tr.append($('<th>Data</th>'));
-
+        that.table.create(container);
+        that.table.setup(container);
     };
 
     that.setup = function(container) {
 
         that.facet_setup(container);
-
-        that.record = $.bbq.getState(that.entity_name + '-record', true) || '';
-
-        that.pkey = $.bbq.getState(that.entity_name+'-pkey', true) || '';
-        $('h1',container).
-            html("<span id='headerpkey' />"+IPA.messages.objects.dnsrecord.title+":" + that.pkey);
 
         //commented out until data is searchable
         //control_span.append('Data');
@@ -409,35 +414,78 @@ IPA.records_facet = function (spec){
     that.show = function() {
         that.facet_show();
 
+        that.record = $.bbq.getState(that.entity_name + '-record', true) || '';
         that.pkey = $.bbq.getState(that.entity_name+'-pkey', true) || '';
         that.entity.header.set_pkey(that.pkey);
 
         that.entity.header.back_link.css('visibility', 'visible');
         that.entity.header.facet_tabs.css('visibility', 'visible');
+
+        var title = IPA.messages.objects.dnsrecord.title+': '+that.pkey;
+        that.set_title(this.container, title);
     };
 
-    function load_on_win(data){
-        display(that.entity_name,data);
-    }
+    that.get_record = function(result, index) {
+        var record = {};
 
-    function load_on_fail(data){
-        display(that.entity_name,data);
-    }
+        if (result.idnsname) {
+            record.idnsname = result.idnsname[0];
+        } else {
+            record.idnsname = result.dn.split(',')[0].split('=')[1];
+        }
 
-    function  reload(){
-        that.refresh();
-    }
+        for (var i=0; i<record_types.length; i++){
+            var type = record_types[i];
+            var data = result[type+'record'];
+            if (data) {
+                record.type = type;
+                record.data = data[0];
+                break;
+            }
+        }
 
+        return record;
+    };
 
     that.refresh = function() {
 
+        function on_success(data, text_status, xhr) {
+
+            that.table.empty();
+
+            var result = data.result.result;
+            for (var i = 0; i<result.length; i++) {
+                var record = that.get_record(result[i], 0);
+                that.table.add_record(record);
+            }
+
+            var summary = $('span[name=summary]', that.table.tfoot);
+            if (data.result.truncated) {
+                var message = IPA.messages.search.truncated;
+                message = message.replace('${counter}', data.result.count);
+                summary.text(message);
+            } else {
+                summary.text(data.result.summary);
+            }
+
+            that.filter.focus();
+            that.select_changed();
+        }
+
+        function on_error(xhr, text_status, error_thrown) {
+            var summary = $('span[name=summary]', that.table.tfoot).empty();
+            summary.append('<p>Error: '+error_thrown.name+'</p>');
+            summary.append('<p>'+error_thrown.title+'</p>');
+            summary.append('<p>'+error_thrown.message+'</p>');
+        }
+
         var options = {};
 
-        var resource_filter = that.container.
-            find("#dns-record-resource-filter").val();
-//        if (resource_filter){
-//            options.idnsname = resource_filter;
-//        }
+        var filter = that.filter.val();
+/*
+        if (filter){
+            options.idnsname = filter;
+        }
 
         var type_filter = that.container.find("#dns-record-type-filter").val();
         if (type_filter){
@@ -448,104 +496,22 @@ IPA.records_facet = function (spec){
         if (data_filter){
             options.data = data_filter;
         }
+*/
+        var args = [$.bbq.getState(that.entity_name + '-pkey', true)];
 
-        var pkey = [$.bbq.getState(that.entity_name + '-pkey', true)];
-
-        if (resource_filter){
-            pkey.push(resource_filter);
+        if (filter) {
+            args.push(filter);
         }
+
         IPA.command({
             entity: 'dnsrecord',
             method: 'find',
-            args: pkey,
+            args: args,
             options: options,
-            on_success: load_on_win,
-            on_error:load_on_fail
+            on_success: on_success,
+            on_error: on_error
         }).execute();
     };
-
-
-    function generate_tr(thead, tbody, result){
-        function generate_checkbox_td(tr, pkey) {
-            var checkbox = $('<input />', {
-                name: pkey,
-                title: pkey,
-                type: 'checkbox',
-                'class': 'search-selector'
-            });
-            var td = $('<td></td>');
-
-            td.append(checkbox);
-            tr.append(td);
-        }
-
-        var tr = $('<tr></tr>').appendTo(tbody);
-
-        generate_checkbox_td(tr, /*pkey_value*/ '');
-
-        //TODO get this fixed on the back end.  For now, workaround
-
-        if (result.idnsname){
-        tr.append($('<td/>',{
-            title:'idnsname',
-            text: result.idnsname[0]
-        }));
-        }else{
-            tr.append($('<td/>',{
-                title:'idnsname',
-                text: result.dn.split(',')[0].split('=')[1]
-            }));
-
-        }
-
-        for (var i = 0; i < record_types.length; i += 1){
-            var field_name =  record_types[i];
-            var field = result[field_name+'record'];
-            if ( field ){
-                var record_type = field_name;
-                var record_data = field[0];
-                break;
-            }
-        }
-
-        tr.append($('<td/>',{
-            title:'type',
-            text: record_type
-        }));
-        tr.append($('<td/>',{
-            title:'data',
-            text: record_data
-        }));
-    }
-
-    //TODO this is cut and pasted from search, we need to unify
-    function display(obj_name, data){
-        var selector = '.entity[name=' + obj_name + ']';
-        var thead = $(selector + ' thead');
-        var tbody = $(selector + ' tbody');
-        var tfoot = $(selector + ' tfoot');
-
-        tbody.find('tr').remove();
-
-        var result = data.result.result;
-        for (var i = 0; i < result.length; ++i){
-            generate_tr(thead, tbody, result[i]);
-        }
-
-        tfoot.find('td').remove();
-        if (data.result.truncated) {
-            var message = IPA.messages.search.truncated;
-            message = message.replace('${counter}', data.result.count);
-            tfoot.append($('<td />',{
-                colspan:2,
-                text:message}));
-        } else {
-            tfoot.append($('<td/>',{
-                colspan:2,
-                text:data.result.summary}));
-        }
-
-    }
 
     return that;
 };
