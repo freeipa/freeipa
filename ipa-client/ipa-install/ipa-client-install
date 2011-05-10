@@ -133,50 +133,6 @@ def nickname_exists(nickname):
         else:
             return False
 
-def service(name, status):
-    """
-    Run a System V init script 'name' with the status 'status'
-
-    The return value of /sbin/service name start/stop/status is:
-
-    0 - Ok
-    1 - unrecognized service, bad usage
-    > 1 - generally command-specific
-
-    For status == 'status' it means:
-    0 - running
-    1 - dead but pid file exists
-    2 - dead but sybsys locked
-    3 - stopped
-    """
-    (sout, serr, returncode) = run(['/sbin/service', name, 'status'], raiseonerr=False)
-
-    # If the service isn't installed return with no error
-    if returncode == 1:
-        return
-
-    args = ['/sbin/service', name, status]
-    (sout, serr, returncode) = run(args, raiseonerr=False)
-
-    if returncode != 0:
-        raise CalledProcessError(returncode, ' '.join(args))
-
-    return
-
-def chkconfig(name, status):
-    """
-    Set startup of service 'name' to 'status' (on or off)
-
-    chkconfig returns 1 if the service is unknown, 0 otherwise
-    """
-    args = ['/sbin/chkconfig', name, status]
-    (sout, serr, returncode) = run(args, raiseonerr=False)
-
-    if returncode != 0:
-        raise CalledProcessError(returncode, ' '.join(args))
-
-    return
-
 def uninstall(options, env):
 
     if not fstore.has_files():
@@ -221,13 +177,15 @@ def uninstall(options, env):
     # Always start certmonger. We can't untrack something if it isn't
     # running
     try:
-        service('certmonger', 'start')
-    except:
-        pass
+        ipautil.service_start('certmonger')
+    except Exception, e:
+        logging.error("certmonger failed to start: %s" % str(e))
+
     try:
         certmonger.stop_tracking('/etc/pki/nssdb', nickname=client_nss_nickname)
     except (CalledProcessError, RuntimeError), e:
         logging.error("certmonger failed to stop tracking certificate: %s" % str(e))
+
     if nickname_exists(client_nss_nickname):
         try:
             run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", client_nss_nickname])
@@ -235,17 +193,18 @@ def uninstall(options, env):
             print "Failed to remove %s from /etc/pki/nssdb: %s" % (client_nss_nickname, str(e))
 
     try:
-        service('certmonger', 'stop')
-    except:
-        pass
+        ipautil.service_stop('certmonger')
+    except Exception, e:
+        logging.error("certmonger failed to stop: %s" % str(e))
 
     # Remove any special principal names we added to the IPA CA helper
     certmonger.remove_principal_from_cas()
 
     try:
-        chkconfig('certmonger', 'off')
-    except:
+        ipautil.chkconfig_off('certmonger')
+    except Exception, e:
         print "Failed to disable automatic startup of the certmonger daemon"
+        logging.error("Failed to disable automatic startup of the certmonger daemon: %s" % str(e))
 
     if not options.on_master:
         print "Unenrolling client from IPA server"
@@ -262,8 +221,9 @@ def uninstall(options, env):
         fp.close()
         realm = parser.get('global', 'realm')
         run(["/usr/sbin/ipa-rmkeytab", "-k", "/etc/krb5.keytab", "-r", realm])
-    except:
+    except Exception, e:
         print "Failed to clean up /etc/krb5.keytab"
+        logging.error("Failed to remove Kerberos service principals: %s" % str(e))
 
     print "Disabling client Kerberos and LDAP configurations"
     try:
@@ -275,15 +235,19 @@ def uninstall(options, env):
     print "Restoring client configuration files"
     fstore.restore_all_files()
 
-    try:
-        service('nscd', 'restart')
-    except:
-        print "Failed to restart start the NSCD daemon"
-
-    try:
-        chkconfig('nscd', 'on')
-    except:
-        print "Failed to configure automatic startup of the NSCD daemon"
+    if ipautil.service_is_installed('nscd'):
+        try:
+            ipautil.service_restart('nscd')
+        except:
+            print "Failed to restart start the NSCD daemon"
+    
+        try:
+            ipautil.chkconfig_on('nscd')
+        except:
+            print "Failed to configure automatic startup of the NSCD daemon"
+    else:
+        # this is optional service, just log
+        logging.info("NSCD daemon is not installed, skip configuration")
 
     if not options.unattended:
         print "The original nsswitch.conf configuration has been restored."
@@ -491,33 +455,34 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options):
     # Ensure that certmonger has been started at least once to generate the
     # cas files in /var/lib/certmonger/cas.
     try:
-        service('certmonger', 'restart')
-    except:
-        pass
-
+        ipautil.service_restart('certmonger')
+    except Exception, e:
+        logging.error("certmonger failed to restart: %s" % str(e))
 
     if options.hostname:
         # It needs to be stopped if we touch them
         try:
-            service('certmonger', 'stop')
-        except:
-            pass
+            ipautil.service_stop('certmonger')
+        except Exception, e:
+            logging.error("certmonger failed to stop: %s" % str(e))
         # If the hostname is explicitly set then we need to tell certmonger
         # which principal name to use when requesting certs.
         certmonger.add_principal_to_cas(principal)
 
     try:
-        service('certmonger', 'restart')
-    except:
+        ipautil.service_restart('certmonger')
+    except Exception, e:
         print "Failed to start the certmonger daemon"
         print "Automatic certificate management will not be available"
+        logging.error("certmonger failed to restart: %s" % str(e))
         started = False
 
     try:
-        chkconfig('certmonger', 'on')
-    except:
+        ipautil.chkconfig_on('certmonger')
+    except Exception, e:
         print "Failed to configure automatic startup of the certmonger daemon"
         print "Automatic certificate management will not be available"
+        logging.error("Failed to disable automatic startup of the certmonger daemon: %s" % str(e))
 
     # Request our host cert
     if started:
@@ -910,27 +875,33 @@ def main():
     if not options.on_master:
         client_dns(cli_server, hostname, options.dns_updates)
 
-    if options.sssd:
-        nscd_action = "stop"
-        nscd_status = "off"
+    #Name Server Caching Daemon. Disable for SSSD, use otherwise (if installed)
+    if ipautil.service_is_installed("nscd"):
+        if options.sssd:
+            nscd_service_action = "stop"
+            nscd_service_cmd = ipautil.service_stop
+            nscd_chkconfig_cmd = ipautil.chkconfig_off
+        else:
+            nscd_service_action = "restart"
+            nscd_service_cmd = ipautil.service_restart
+            nscd_chkconfig_cmd = ipautil.chkconfig_on
+
+        try:
+            nscd_service_cmd('nscd')
+        except:
+            print >>sys.stderr, "Failed to %s the NSCD daemon" % nscd_service_action
+            if not options.sssd:
+                print >>sys.stderr, "Caching of users/groups will not be available"
+    
+        try:
+            nscd_chkconfig_cmd('nscd')
+        except:
+            print >>sys.stderr, "Failed to configure automatic startup of the NSCD daemon"
+            if not options.sssd:
+                print >>sys.stderr, "Caching of users/groups will not be available after reboot"
     else:
-        nscd_action = "restart"
-        nscd_status = "on"
-
-    #Name Server Caching Daemon. Disable for SSSD, use otherwise
-    try:
-        service('nscd', nscd_action)
-    except:
-        print >>sys.stderr, "Failed to %s the NSCD daemon" % nscd_action
-        if not options.sssd:
-            print >>sys.stderr, "Caching of users/groups will not be available"
-
-    try:
-        chkconfig('nscd', nscd_status)
-    except:
-        print >>sys.stderr, "Failed to configure automatic startup of the NSCD daemon"
-        if not options.sssd:
-            print >>sys.stderr, "Caching of users/groups will not be available after reboot"
+        # this is optional service, just log
+        logging.info("NSCD daemon is not installed, skip configuration")
 
     # Modify nsswitch/pam stack
     if options.sssd:

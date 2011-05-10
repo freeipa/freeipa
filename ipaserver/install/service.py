@@ -41,40 +41,34 @@ SERVICE_LIST = {
 }
 
 def stop(service_name, instance_name="", capture_output=True):
-    ipautil.run(["/sbin/service", service_name, "stop", instance_name],
-                capture_output=capture_output)
+    ipautil.service_stop(service_name, instance_name, capture_output)
 
 def start(service_name, instance_name="", capture_output=True):
-    ipautil.run(["/sbin/service", service_name, "start", instance_name],
-                capture_output=capture_output)
+    ipautil.service_start(service_name, instance_name, capture_output)
 
 def restart(service_name, instance_name="", capture_output=True):
-    ipautil.run(["/sbin/service", service_name, "restart", instance_name],
-                capture_output=capture_output)
+    ipautil.service_restart(service_name, instance_name, capture_output)
 
 def is_running(service_name, instance_name=""):
-    ret = True
-    try:
-        ipautil.run(["/sbin/service", service_name, "status", instance_name])
-    except ipautil.CalledProcessError:
-        ret = False
-    return ret
+    return ipautil.service_is_running(service_name, instance_name)
+
+def is_installed(service_name):
+    return ipautil.service_is_installed(service_name)
 
 def chkconfig_on(service_name):
-    ipautil.run(["/sbin/chkconfig", service_name, "on"])
+    ipautil.chkconfig_on(service_name)
 
 def chkconfig_off(service_name):
-    ipautil.run(["/sbin/chkconfig", service_name, "off"])
+    ipautil.chkconfig_on(service_name)
 
 def chkconfig_add(service_name):
-    ipautil.run(["/sbin/chkconfig", "--add", service_name])
+    ipautil.chkconfig_on(service_name)
 
 def chkconfig_del(service_name):
-    ipautil.run(["/sbin/chkconfig", "--del", service_name])
+    ipautil.chkconfig_on(service_name)
 
 def is_enabled(service_name):
-    (stdout, stderr, returncode) = ipautil.run(["/sbin/chkconfig", service_name], raiseonerr=False)
-    return (returncode == 0)
+    return ipautil.service_is_enabled(service_name)
 
 def print_msg(message, output_fd=sys.stdout):
     logging.debug(message)
