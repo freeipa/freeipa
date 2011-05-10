@@ -89,6 +89,11 @@ IPA.entity_factories.entitle = function() {
                     label: IPA.get_method_option('entitle_register', 'password').label,
                     type: 'password',
                     undo: false
+                },
+                {
+                    name: 'ipaentitlementid',
+                    label: IPA.get_method_option('entitle_register', 'ipaentitlementid').label,
+                    undo: false
                 }
             ]
         }).
@@ -188,13 +193,16 @@ IPA.entitle.entity = function(spec) {
         command.execute();
     };
 
-    that.register_online = function(username, password, on_success, on_error) {
+    that.register_online = function(username, password, ipaentitlementid, on_success, on_error) {
 
         var command = IPA.command({
             entity: 'entitle',
             method: 'register',
             args: [ username ],
-            options: { password: password },
+            options: {
+                password: password,
+                ipaentitlementid: ipaentitlementid
+            },
             on_success: function(data, text_status, xhr) {
                 that.status = IPA.entitle.online;
                 if (on_success) {
@@ -454,6 +462,7 @@ IPA.entitle.register_online_dialog = function(spec) {
         that.entity.register_online(
             record.username,
             record.password,
+            record.ipaentitlementid,
             function() {
                 var facet = that.entity.get_facet('search');
                 facet.refresh();
