@@ -967,3 +967,51 @@ def get_gsserror(e):
        minor = e[0][1]
 
     return (major, minor)
+
+
+def service_stop(service_name, instance_name="", capture_output=True):
+    run(["/sbin/service", service_name, "stop", instance_name],
+                capture_output=capture_output)
+
+def service_start(service_name, instance_name="", capture_output=True):
+    run(["/sbin/service", service_name, "start", instance_name],
+                capture_output=capture_output)
+
+def service_restart(service_name, instance_name="", capture_output=True):
+    run(["/sbin/service", service_name, "restart", instance_name],
+                capture_output=capture_output)
+
+def service_is_running(service_name, instance_name=""):
+    ret = True
+    try:
+        run(["/sbin/service", service_name, "status", instance_name])
+    except CalledProcessError:
+        ret = False
+    return ret
+
+def service_is_installed(service_name):
+    installed = True
+    try:
+        run(["/sbin/service", service_name, "status"])
+    except CalledProcessError, e:
+        if e.returncode == 1:
+            # service is not installed or there is other serious issue
+            installed = False
+    return installed
+
+def service_is_enabled(service_name):
+    (stdout, stderr, returncode) = run(["/sbin/chkconfig", service_name], raiseonerr=False)
+    return (returncode == 0)
+
+def chkconfig_on(service_name):
+    run(["/sbin/chkconfig", service_name, "on"])
+
+def chkconfig_off(service_name):
+    run(["/sbin/chkconfig", service_name, "off"])
+
+def chkconfig_add(service_name):
+    run(["/sbin/chkconfig", "--add", service_name])
+
+def chkconfig_del(service_name):
+    run(["/sbin/chkconfig", "--del", service_name])
+
