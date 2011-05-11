@@ -908,9 +908,13 @@ def main():
         if options.unattended:
             # In unattended mode just use the cmdline flag
             create_reverse = not options.no_reverse
-        elif not options.no_reverse:
-            # In interactive mode, if the flag was not explicitly specified, ask the user
-            create_reverse = bindinstance.create_reverse()
+        else:
+            if options.no_reverse:
+                create_reverse = False
+            else:
+                # In interactive mode, if the flag was not explicitly
+                # specified, ask the user
+                create_reverse = bindinstance.create_reverse()
 
     bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders, options.conf_ntp, create_reverse, zonemgr=options.zonemgr)
     if options.setup_dns:

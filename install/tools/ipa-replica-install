@@ -290,9 +290,13 @@ def install_bind(config, options):
     if options.unattended:
         # In unattended mode just use the cmdline flag
         create_reverse = not options.no_reverse
-    elif not options.no_reverse:
-        # In interactive mode, if the flag was not explicitly specified, ask the user
-        create_reverse = bindinstance.create_reverse()
+    else:
+        if options.no_reverse:
+            create_reverse = False
+        else:
+            # In interactive mode, if the flag was not explicitly 
+            # specified, ask the user
+            create_reverse = bindinstance.create_reverse()
 
     bind.setup(config.host_name, ip_address, config.realm_name,
                config.domain_name, forwarders, options.conf_ntp, create_reverse)
