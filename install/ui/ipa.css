@@ -15,7 +15,7 @@ body{
     background-image:url("outer-bg.png");
     background-repeat:repeat-x;
     background-position:left top;
-    background-color:#F3F2F2;
+    background-color:#FFFFFF;
     border-width: 0;
     font-family:"Liberation Sans",Arial,Sans;
     font-size:11px;
@@ -81,7 +81,7 @@ body{
 div.header {
     background: url("top-bg.png") #0C3B00;
     width: 100%;
-    height: 3.8em;
+    height: 3.1em;
 }
 
 div.header a {
@@ -339,9 +339,15 @@ span.attrhint {
 
 
 /*Navigation */
+.tabs1 .ui-tabs-nav .ui-state-hover {
+	background: url("hover-tab.png");
+}
+
+
+
 .tabs1 .ui-tabs-nav {
     padding-left: 4px;
-    padding-top: 2.3em;
+    padding-top: 3em;
     margin: 0;
     border: none;
     background-image: url("Mainnav-background.png");
