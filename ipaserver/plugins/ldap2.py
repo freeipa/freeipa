@@ -639,7 +639,7 @@ class ldap2(CrudBackend, Encoder):
         cdn = "%s,%s" % (api.Object.config.get_dn(), api.env.basedn)
         try:
             config_entry = getattr(context, 'config_entry')
-            return (cdn, config_entry)
+            return (cdn, copy.deepcopy(config_entry))
         except AttributeError:
             # Not in our context yet
             pass
@@ -653,7 +653,7 @@ class ldap2(CrudBackend, Encoder):
         for a in self.config_defaults:
             if a not in config_entry:
                 config_entry[a] = self.config_defaults[a]
-        setattr(context, 'config_entry', config_entry)
+        setattr(context, 'config_entry', copy.deepcopy(config_entry))
         return (cdn, config_entry)
 
     def get_schema(self):
