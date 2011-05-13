@@ -898,6 +898,12 @@ class cli(backend.Executioner):
             return
         (key, argv) = (argv[0], argv[1:])
         name = from_cli(key)
+        if name not in self.Command and len(argv) == 0:
+            try:
+                self.Command.help(unicode(key))
+                return
+            except HelpError:
+                pass
         if name not in self.Command or self.Command[name].NO_CLI:
             raise CommandError(name=key)
         cmd = self.Command[name]
