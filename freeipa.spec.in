@@ -87,11 +87,20 @@ Requires: python-ldap
 Requires: python-krbV
 Requires: acl
 Requires: python-pyasn1 >= 0.0.9a
+%if 0%{?fedora} >= 15
+Requires: selinux-policy >= 3.9.16-18
+%else
 Requires: selinux-policy >= 3.9.7-27
+%endif
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.21
-Requires: pki-ca >= 9.0.0
-Requires: pki-silent >= 9.0.0
+%if 0%{?fedora} >= 15
+Requires: pki-ca >= 9.0.7
+Requires: pki-silent >= 9.0.7
+%else
+Requires: pki-ca >= 9.0.5
+Requires: pki-silent >= 9.0.5
+%endif
 Requires: dogtag-pki-common-theme
 Requires: dogtag-pki-ca-theme
 Requires(preun):  python initscripts chkconfig
@@ -483,6 +492,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Thu May 12 2011 Rob Crittenden <rcritten@redhat.com> - 2.0.90-3
+- Set min nvr of selinux-policy to 3.9.16-18 on F-15+
+- Set min nvr of pki-ca to 9.0.7 on F-15+
+
 * Thu May  5 2011 Martin Kosek <mkosek@redhat.com> - 2.0.90-2
 - Add BuildRequires on pylint, python-rhsm to enable a build with enforced
   pylint check
