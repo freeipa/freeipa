@@ -129,6 +129,9 @@
                 "ipausers",
                 "muppets"
             ],
+            "memberofindirect_group": [
+                "editors"
+            ],
             "mepmanagedentry": [
                 "cn=kfrog,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
             ],

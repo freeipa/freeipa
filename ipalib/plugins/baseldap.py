@@ -272,6 +272,9 @@ class LDAPObject(Object):
         'memberindirect': (
             'Indirect Member', None, 'no_indirect_'
         ),
+        'memberofindirect': (
+            'Indirect Member Of', None, 'not_in_indirect_'
+        ),
     }
     label = _('Entry')
 

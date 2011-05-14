@@ -664,14 +664,12 @@ IPA.association_facet = function (spec) {
 
     var that = IPA.facet(spec);
 
-    var index = that.name.indexOf('_');
-    that.attribute_member = spec.attribute_member || that.name.substring(0, index);
-    that.other_entity = spec.other_entity || that.name.substring(index+1);
-
-    that.facet_group = spec.facet_group ||
-        IPA.fetch_facet_group(that.entity_name,that.attribute_member);
+    that.attribute_member = spec.attribute_member;
+    that.other_entity = spec.other_entity;
+    that.facet_group = spec.facet_group;
 
     that.label = that.label ? that.label : (IPA.metadata.objects[that.other_entity] ? IPA.metadata.objects[that.other_entity].label : that.other_entity);
+    that.read_only = spec.read_only;
 
     that.associator = spec.associator || IPA.bulk_associator;
     that.add_method = spec.add_method || 'add_member';
@@ -682,7 +680,6 @@ IPA.association_facet = function (spec) {
 
     that.adder_columns = [];
     that.adder_columns_by_name = {};
-
 
     that.get_column = function(name) {
         return that.columns_by_name[name];

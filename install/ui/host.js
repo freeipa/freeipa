@@ -69,7 +69,7 @@ IPA.entity_factories.host = function () {
                     }
                 ]
             }]}).
-        facet({
+        association_facet({
             factory: IPA.host_managedby_host_facet,
             name: 'managedby_host'
         }).

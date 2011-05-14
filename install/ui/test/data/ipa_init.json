@@ -9235,6 +9235,11 @@
                                 "Member Of",
                                 "in_",
                                 "not_in_"
+                            ],
+                            "memberofindirect": [
+                                "Indirect Member Of",
+                                null,
+                                "not_in_indirect_"
                             ]
                         },
                         "takes_params": [
@@ -9997,6 +10002,14 @@
                         "prospective": "Prospective",
                         "remove_empty": "Select ${entity} to be removed.",
                         "remove_title": "Remove ${entity}."
+                    },
+                    "facet_groups": {
+                        "managedby": "Managed by",
+                        "member": "Member",
+                        "memberindirect": "Indirect Member",
+                        "memberof": "Member Of",
+                        "memberofindirect": "Indirect Member Of",
+                        "settings": "Settings"
                     },
                     "facets": {
                         "details": "Settings",

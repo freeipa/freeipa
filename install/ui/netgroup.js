@@ -23,20 +23,50 @@
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
 IPA.entity_factories.netgroup = function() {
+
     return IPA.entity_builder().
         entity('netgroup').
         search_facet({
-            columns:['cn','description']}).
-        details_facet({sections:[{
-            name:'identity',
-            fields:['cn','description','nisdomainname']}]}).
+            columns:[
+                'cn',
+                'description'
+            ]
+        }).
+        details_facet({
+            sections:[{
+                name:'identity',
+                fields:[
+                    'cn',
+                    'description',
+                    'nisdomainname']
+            }]
+        }).
+        association_facet({
+            name: 'memberhost_host',
+            facet_group: 'member'
+        }).
+        association_facet({
+            name: 'memberhost_hostgroup',
+            facet_group: 'member'
+        }).
+        association_facet({
+            name: 'memberuser_user',
+            facet_group: 'member'
+        }).
+        association_facet({
+            name: 'memberuser_group',
+            facet_group: 'member'
+        }).
         association_facet({
             name: 'memberof_netgroup',
             associator: IPA.serial_associator
         }).
         standard_association_facets().
         adder_dialog({
-            fields:['cn', 'description']
+            fields:[
+                'cn',
+                'description'
+            ]
         }).
         build();
 };

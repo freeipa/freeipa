@@ -340,6 +340,14 @@ class i18n_messages(Command):
             "remove_title":_("Remove ${entity}."),
             "prospective":_("Prospective"),
             },
+        "facet_groups":{
+            "managedby":_("Managed by"),
+            "member":_("Member"),
+            "memberindirect":_("Indirect Member"),
+            "memberof":_("Member Of"),
+            "memberofindirect":_("Indirect Member Of"),
+            "settings": _("Settings"),
+            },
         "facets":{
             "search":_("Search"),
             "details": _("Settings"),

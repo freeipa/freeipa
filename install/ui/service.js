@@ -63,7 +63,7 @@ IPA.entity_factories.service = function() {
                     label: IPA.messages.objects.service.status
                 }]
             }]}).
-        facet({
+        association_facet({
             factory: IPA.service_managedby_host_facet,
             name: 'managedby_host',
             add_method: 'add_host',

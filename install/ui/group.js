@@ -63,8 +63,8 @@ IPA.entity_factories.group =  function () {
 
         }).
         association_facet({
-                name: 'memberof_group',
-                associator: IPA.serial_associator
+            name: 'memberof_group',
+            associator: IPA.serial_associator
         }).
         association_facet({
             name: 'memberof_netgroup',

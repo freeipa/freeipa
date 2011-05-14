@@ -56,7 +56,7 @@ IPA.entity_factories.dnszone = function() {
         facet({
             factory: IPA.records_facet,
             name: 'records',
-            facet_group:'Member',
+            facet_group: 'member',
             label: IPA.metadata.objects.dnsrecord.label,
             columns: [
                 {

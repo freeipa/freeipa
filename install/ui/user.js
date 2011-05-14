@@ -25,45 +25,68 @@
 
 
 IPA.entity_factories.user = function() {
-    var builder =  IPA.entity_builder();
+
+    var builder = IPA.entity_builder();
+
     builder.
         entity('user').
         search_facet({
-            columns:['uid','givenname','sn','uidnumber','mail','telephonenumber','title']
+            columns: [
+                'uid',
+                'givenname',
+                'sn',
+                'uidnumber',
+                'mail',
+                'telephonenumber',
+                'title'
+            ]
         }).
-        details_facet({sections:[
+        details_facet({ sections: [
             {
                 name: 'identity',
                 label: IPA.messages.details.identity,
-                fields:['title','givenname','sn','cn','displayname', 'initials']
+                fields: [
+                    'title',
+                    'givenname',
+                    'sn',
+                    'cn',
+                    'displayname',
+                    'initials'
+                ]
             },
             {
                 name: 'account',
-                fields:[{factory:IPA.user_status_widget,name:'nsaccountlock'},
-                        'uid',
-                        {factory: IPA.user_password_widget,name:'userpassword'},
-                        'uidnumber','gidnumber','loginshell','homedirectory']
+                fields: [
+                    { factory: IPA.user_status_widget, name: 'nsaccountlock' },
+                    'uid',
+                    { factory: IPA.user_password_widget, name: 'userpassword' },
+                    'uidnumber',
+                    'gidnumber',
+                    'loginshell',
+                    'homedirectory'
+                ]
             },
             {
                 name: 'contact',
-                fields:
-                [  {factory: IPA.multivalued_text_widget, name:'mail'},
-                   {factory: IPA.multivalued_text_widget, name:'telephonenumber'},
-                   {factory: IPA.multivalued_text_widget, name:'pager'},
-                   {factory: IPA.multivalued_text_widget, name:'mobile'},
-                   {factory: IPA.multivalued_text_widget, name:'facsimiletelephonenumber'}]
+                fields: [
+                    { factory: IPA.multivalued_text_widget, name: 'mail' },
+                    { factory: IPA.multivalued_text_widget, name: 'telephonenumber' },
+                    { factory: IPA.multivalued_text_widget, name: 'pager' },
+                    { factory: IPA.multivalued_text_widget, name: 'mobile' },
+                    { factory: IPA.multivalued_text_widget, name: 'facsimiletelephonenumber' }
+                ]
             },
             {
                 name: 'mailing',
-                fields: ['street','l','st','postalcode']
+                fields: ['street', 'l', 'st', 'postalcode']
             },
             {
                 name: 'employee',
-                fields: ['ou','manager']
+                fields: ['ou', 'manager']
             },
             {
                 name: 'misc',
-                fields:['carlicense']
+                fields: ['carlicense']
             }]}).
         association_facet({
             name: 'memberof_group',
@@ -79,13 +102,10 @@ IPA.entity_factories.user = function() {
         }).
         standard_association_facets().
         adder_dialog({
-            fields: ['uid','givenname','sn']
+            fields: ['uid', 'givenname', 'sn']
         });
 
-
-    var entity = builder.build();
-
-    return entity;
+    return builder.build();
 };
 
 /* ATTRIBUTE CALLBACKS */

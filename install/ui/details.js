@@ -265,6 +265,7 @@ IPA.details_facet = function(spec) {
     var that = IPA.facet(spec);
 
     that.label = (IPA.messages && IPA.messages.facets && IPA.messages.facets.details) || spec.label;
+    that.facet_group = spec.facet_group || 'settings';
 
     that.sections = [];
 
