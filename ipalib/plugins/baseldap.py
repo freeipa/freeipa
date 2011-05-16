@@ -253,6 +253,8 @@ class LDAPObject(Object):
     # If an objectclass is possible but not default in an entry. Needed for
     # collecting attributes for ACI UI.
     possible_objectclasses = []
+    limit_object_classes = [] # Only attributes in these are allowed
+    disallow_object_classes = [] # Disallow attributes in these
     search_attributes = []
     search_attributes_config = None
     default_attributes = []
@@ -438,6 +440,36 @@ def _check_empty_attrs(params, entry_attrs):
                 raise errors.RequirementError(name=a)
 
 
+def _check_limit_object_class(attributes, attrs, allow_only):
+    """
+    If the set of objectclasses is limited enforce that only those
+    are updated in entry_attrs (plus dn)
+
+    allow_only tells us what mode to check in:
+
+    If True then we enforce that the attributes must be in the list of
+    allowed.
+
+    If False then those attributes are not allowed.
+    """
+    if len(attributes[0]) == 0 and len(attributes[1]) == 0:
+        return
+    limitattrs = deepcopy(attrs)
+    # Go through the MUST first
+    for (oid, attr) in attributes[0].iteritems():
+        if attr.names[0].lower() in limitattrs:
+            if not allow_only:
+                raise errors.ObjectclassViolation(info='attribute "%(attribute)s" not allowed' % dict(attribute=attr.names[0].lower()))
+            limitattrs.remove(attr.names[0].lower())
+    # And now the MAY
+    for (oid, attr) in attributes[1].iteritems():
+        if attr.names[0].lower() in limitattrs:
+            if not allow_only:
+                raise errors.ObjectclassViolation(info='attribute "%(attribute)s" not allowed' % dict(attribute=attr.names[0].lower()))
+            limitattrs.remove(attr.names[0].lower())
+    if len(limitattrs) > 0 and allow_only:
+        raise errors.ObjectclassViolation(info='attribute "%(attribute)s" not allowed' % dict(attribute=limitattrs[0]))
+
 class CallbackInterface(Method):
     """
     Callback registration interface
@@ -568,6 +600,8 @@ class LDAPCreate(CallbackInterface, crud.Create):
                 )
 
         _check_single_value_attrs(self.params, entry_attrs)
+        _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.limit_object_classes), entry_attrs.keys(), allow_only=True)
+        _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.disallow_object_classes), entry_attrs.keys(), allow_only=False)
 
         try:
             ldap.add_entry(dn, entry_attrs, normalize=self.obj.normalize_dn)
@@ -848,6 +882,8 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         _check_single_value_attrs(self.params, entry_attrs)
         _check_empty_attrs(self.obj.params, entry_attrs)
+        _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.limit_object_classes), entry_attrs.keys(), allow_only=True)
+        _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.disallow_object_classes), entry_attrs.keys(), allow_only=False)
 
         rdnupdate = False
         try:
