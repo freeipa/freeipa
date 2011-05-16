@@ -38,7 +38,7 @@ IPA.entity_factories.entitle = function() {
             factory: IPA.entitle.entity,
             name: 'entitle'
         }).
-        facet({
+        search_facet({
             factory: IPA.entitle.search_facet,
             columns: [
                 {

@@ -668,7 +668,6 @@ IPA.association_facet = function (spec) {
     that.other_entity = spec.other_entity;
     that.facet_group = spec.facet_group;
 
-    that.label = that.label ? that.label : (IPA.metadata.objects[that.other_entity] ? IPA.metadata.objects[that.other_entity].label : that.other_entity);
     that.read_only = spec.read_only;
 
     that.associator = spec.associator || IPA.bulk_associator;
@@ -734,18 +733,15 @@ IPA.association_facet = function (spec) {
         var column;
         var i;
 
-
-
-
         var label = IPA.metadata.objects[that.other_entity] ? IPA.metadata.objects[that.other_entity].label : that.other_entity;
         var pkey_name = IPA.metadata.objects[that.other_entity].primary_key;
 
         that.table = IPA.table_widget({
-            'id': that.entity_name+'-'+that.other_entity,
-            'name': pkey_name,
-            'label': label,
-            'entity_name': that.entity_name,
-            'other_entity': that.other_entity
+            id: that.entity_name+'-'+that.other_entity,
+            name: pkey_name,
+            label: label,
+            entity_name: that.entity_name,
+            other_entity: that.other_entity
         });
 
         if (that.columns.length) {
@@ -801,47 +797,34 @@ IPA.association_facet = function (spec) {
         that.facet_create_header(container);
 
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-
-        var relationships = IPA.metadata.objects[that.entity_name].relationships;
-        var relationship = relationships[that.attribute_member];
-        if (!relationship) {
-            relationship = ['', '', ''];
-        }
-
         var other_label = IPA.metadata.objects[that.other_entity].label;
 
-        /* TODO: generic handling of different relationships */
-        var title = '';
-        if (relationship[0] == 'Member') {
-            title = IPA.messages.association.member;
-
-        } else if (relationship[0] == 'Member Of') {
-            title = IPA.messages.association.parent;
-        }
-
+        var title = that.title;
         title = title.replace('${entity}', that.entity_name);
         title = title.replace('${primary_key}', that.pkey);
         title = title.replace('${other_entity}', other_label);
 
         that.set_title(container, title);
 
-        that.remove_button = IPA.action_button({
-            label: IPA.messages.buttons.remove,
-            icon: 'ui-icon-trash',
-            click: function() {
-                that.show_remove_dialog();
-                return false;
-            }
-        }).appendTo(that.controls);
+        if (!that.read_only) {
+            that.remove_button = IPA.action_button({
+                label: IPA.messages.buttons.remove,
+                icon: 'ui-icon-trash',
+                click: function() {
+                    that.show_remove_dialog();
+                    return false;
+                }
+            }).appendTo(that.controls);
 
-        that.add_button = IPA.action_button({
-            label: IPA.messages.buttons.enroll,
-            icon: 'ui-icon-plus',
-            click: function() {
-                that.show_add_dialog();
-                return false;
-            }
-        }).appendTo(that.controls);
+            that.add_button = IPA.action_button({
+                label: IPA.messages.buttons.enroll,
+                icon: 'ui-icon-plus',
+                click: function() {
+                    that.show_add_dialog();
+                    return false;
+                }
+            }).appendTo(that.controls);
+        }
     };
 
     that.create_content = function(container) {

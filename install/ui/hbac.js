@@ -29,9 +29,8 @@ IPA.entity_factories.hbacrule = function () {
             columns:['cn','usercategory','hostcategory','ipaenabledflag',
                      'servicecategory','sourcehostcategory']
         }).
-        facet({
-            factory: IPA.hbacrule_details_facet,
-            'name': 'details'
+        details_facet({
+            factory: IPA.hbacrule_details_facet
         }).
         adder_dialog({
             fields:[

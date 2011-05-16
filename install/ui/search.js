@@ -29,8 +29,6 @@ IPA.search_facet = function(spec) {
     spec = spec || {};
 
     spec.name = spec.name || 'search';
-    spec.label = spec.label || IPA.messages.facets.search;
-
     spec.display_class = 'search-facet';
 
     var that = IPA.table_facet(spec);

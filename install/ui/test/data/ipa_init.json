@@ -9963,7 +9963,7 @@
                     "association": {
                         "add": "Add ${other_entity} into ${entity} ${primary_key}",
                         "member": "${other_entity} enrolled in ${entity} ${primary_key}",
-                        "parent": "${entity} ${primary_key} is enrolled in the following ${other_entity}",
+                        "memberof": "${entity} ${primary_key} is enrolled in the following ${other_entity}",
                         "remove": "Remove ${other_entity} from ${entity} ${primary_key}"
                     },
                     "buttons": {

@@ -30,9 +30,8 @@ IPA.entity_factories.sudorule = function () {
         search_facet({
             columns:['cn','description','cmdcategory']
         }).
-        facet({
-            factory: IPA.sudorule_details_facet,
-            'name': 'details'
+        details_facet({
+            factory: IPA.sudorule_details_facet
         }).
         adder_dialog({
             fields:['cn']

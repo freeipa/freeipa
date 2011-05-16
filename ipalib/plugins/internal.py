@@ -378,7 +378,7 @@ class i18n_messages(Command):
         "association":{
             "add":_("Add ${other_entity} into ${entity} ${primary_key}"),
             "member":_("${other_entity} enrolled in ${entity} ${primary_key}"),
-            "parent":_("${entity} ${primary_key} is enrolled in the following ${other_entity}"),
+            "memberof":_("${entity} ${primary_key} is enrolled in the following ${other_entity}"),
             "remove":_("Remove ${other_entity} from ${entity} ${primary_key}"),
             },
         "widget":{

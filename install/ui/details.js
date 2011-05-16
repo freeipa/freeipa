@@ -324,7 +324,7 @@ IPA.details_facet = function(spec) {
         that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
         var label = IPA.metadata.objects[that.entity_name].label;
 
-        var title = IPA.messages.details.settings;
+        var title = that.title;
         title = title.replace('${entity}', label);
         title = title.replace('${primary_key}', that.pkey);
 
