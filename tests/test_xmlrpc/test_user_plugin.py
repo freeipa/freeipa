@@ -305,6 +305,15 @@ class test_user(Declarative):
 
 
         dict(
+            desc='Try updating the krb ticket policy of %r' % user1,
+            command=(
+                'user_mod', [user1], dict(setattr=u'krbmaxticketlife=88000')
+            ),
+            expected=errors.ObjectclassViolation(info='attribute "krbmaxticketlife" not allowed'),
+        ),
+
+
+        dict(
             desc='Retrieve %r to verify update' % user1,
             command=('user_show', [user1], {}),
             expected=dict(
@@ -386,6 +395,17 @@ class test_user(Declarative):
             command=('user_del', [user1], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
+
+
+        dict(
+            desc='Create user %r with krb ticket policy' % user1,
+            command=(
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
+                setattr=u'krbmaxticketlife=88000')
+            ),
+            expected=errors.ObjectclassViolation(info='attribute "krbmaxticketlife" not allowed'),
+        ),
+
 
 
         dict(

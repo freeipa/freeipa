@@ -62,6 +62,7 @@ from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.request import context
 from time import gmtime, strftime
+import copy
 
 def validate_nsaccountlock(entry_attrs):
     if 'nsaccountlock' in entry_attrs:
@@ -80,6 +81,7 @@ class user(LDAPObject):
     object_class = ['posixaccount']
     object_class_config = 'ipauserobjectclasses'
     possible_objectclasses = ['meporiginentry']
+    disallow_object_classes = ['krbticketpolicyaux']
     search_attributes_config = 'ipausersearchfields'
     default_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell', 'ou',
