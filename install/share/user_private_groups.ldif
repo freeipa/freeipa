@@ -15,7 +15,7 @@ changetype: add
 objectclass: extensibleObject
 cn: UPG Definition
 originScope: cn=users,cn=accounts,$SUFFIX
-originFilter: objectclass=posixAccount
+originFilter: (&(objectclass=posixAccount)(!(description=__no_upg__)))
 managedBase: cn=groups,cn=accounts,$SUFFIX
 managedTemplate: cn=UPG Template,cn=etc,$SUFFIX
 

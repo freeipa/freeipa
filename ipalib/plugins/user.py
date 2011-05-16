@@ -63,12 +63,16 @@ from ipalib import _, ngettext
 from ipalib.request import context
 from time import gmtime, strftime
 
+
+NO_UPG_MAGIC = '__no_upg__'
+
 def validate_nsaccountlock(entry_attrs):
     if 'nsaccountlock' in entry_attrs:
         if not isinstance(entry_attrs['nsaccountlock'], basestring):
             raise errors.OnlyOneValueAllowed(attr='nsaccountlock')
         if entry_attrs['nsaccountlock'].lower() not in ('true','false'):
             raise errors.ValidationError(name='nsaccountlock', error='must be TRUE or FALSE')
+
 
 class user(LDAPObject):
     """
@@ -289,22 +293,35 @@ class user_add(LDAPCreate):
     """
     Add a new user.
     """
-
     msg_summary = _('Added user "%(value)s"')
 
+    takes_options = LDAPCreate.takes_options + (
+        Flag('noprivate',
+            cli_name='noprivate',
+            doc=_('Don\'t create user private group'),
+        ),
+    )
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        try:
-            # The Managed Entries plugin will allow a user to be created
-            # even if a group has a duplicate name. This would leave a user
-            # without a private group. Check for both the group and the user.
-            self.api.Command['group_show'](keys[-1])
+        if not options.get('noprivate', False):
             try:
-                self.api.Command['user_show'](keys[-1])
-                self.obj.handle_duplicate_entry(*keys)
+                # The Managed Entries plugin will allow a user to be created
+                # even if a group has a duplicate name. This would leave a user
+                # without a private group. Check for both the group and the user.
+                self.api.Command['group_show'](keys[-1])
+                try:
+                    self.api.Command['user_show'](keys[-1])
+                    self.obj.handle_duplicate_entry(*keys)
+                except errors.NotFound:
+                    raise errors.ManagedGroupExistsError(group=keys[-1])
             except errors.NotFound:
-                raise errors.ManagedGroupExistsError(group=keys[-1])
-        except errors.NotFound:
-            pass
+                pass
+        else:
+            # we don't want an user private group to be created for this user
+            # add NO_UPG_MAGIC description attribute to let the DS plugin know
+            entry_attrs.setdefault('description', [])
+            entry_attrs['description'].append(NO_UPG_MAGIC)
+
         validate_nsaccountlock(entry_attrs)
         config = ldap.get_ipa_config()[1]
         if 'ipamaxusernamelength' in config:
@@ -330,7 +347,7 @@ class user_add(LDAPCreate):
 
         if 'gidnumber' not in entry_attrs:
             # gidNumber wasn't specified explicity, find out what it should be
-            if ldap.has_upg():
+            if not options.get('noprivate', False) and ldap.has_upg():
                 # User Private Groups - uidNumber == gidNumber
                 entry_attrs['gidnumber'] = entry_attrs['uidnumber']
             else:
@@ -360,6 +377,18 @@ class user_add(LDAPCreate):
         group_dn = self.api.Object['group'].get_dn(def_primary_group)
         ldap.add_entry_to_group(dn, group_dn)
         self.obj._convert_manager(entry_attrs, **options)
+        # delete description attribute NO_UPG_MAGIC if present
+        if options.get('noprivate', False):
+            if not options.get('all', False):
+                (dn, desc_attr) = ldap.get_entry(dn, ['description'])
+                entry_attrs.update(desc_attr)
+            if 'description' in entry_attrs and NO_UPG_MAGIC in entry_attrs['description']:
+                entry_attrs['description'].remove(NO_UPG_MAGIC)
+                kw = {'setattr': unicode('description=%s' % ','.join(entry_attrs['description']))}
+                try:
+                    self.api.Command['user_mod'](keys[-1], **kw)
+                except (errors.EmptyModlist, errors.NotFound):
+                    pass
         return dn
 
 api.register(user_add)

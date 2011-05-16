@@ -2524,7 +2524,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: user_add
-args: 1,30,3
+args: 1,31,3
 arg: Str('uid', attribute=True, cli_name='login', default_from=DefaultFrom(<lambda>, 'givenname', 'sn'), label=Gettext('User login', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, required=True)
 option: Str('givenname', attribute=True, cli_name='first', label=Gettext('First name', domain='ipa', localedir=None), multivalue=False, required=True)
 option: Str('sn', attribute=True, cli_name='last', label=Gettext('Last name', domain='ipa', localedir=None), multivalue=False, required=True)
@@ -2553,6 +2553,7 @@ option: Str('manager', attribute=True, cli_name='manager', label=Gettext('Manage
 option: Str('carlicense', attribute=True, cli_name='carlicense', label=Gettext('Car License', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
 option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
+option: Flag('noprivate', autofill=True, cli_name='noprivate', default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
