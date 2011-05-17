@@ -346,7 +346,19 @@ class xmlclient(Connectible):
                 return serverproxy
             try:
                 command = getattr(serverproxy, 'ping')
-                response = command()
+                try:
+                    response = command()
+                except Fault, e:
+                    e = decode_fault(e)
+                    if e.faultCode in self.__errors:
+                        error = self.__errors[e.faultCode]
+                        raise error(message=e.faultString)
+                    else:
+                        raise UnknownError(
+                            code=e.faultCode,
+                            error=e.faultString,
+                            server=server,
+                        )
                 # We don't care about the response, just that we got one
                 break
             except KerberosError, krberr:
