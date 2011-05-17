@@ -117,8 +117,9 @@ IPA.records_facet = function(spec) {
             entity_name: that.entity_name
         });
 
-        for (var i=0; i<that.columns.length; i++) {
-            var column = that.columns[i];
+        var columns = that.columns.values;
+        for (var i=0; i<columns.length; i++) {
+            var column = columns[i];
             that.table.add_column(column);
         }
 

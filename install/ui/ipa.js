@@ -1,3 +1,4 @@
+/*jsl:import jquery.ordered-map.js */
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Adam Young <ayoung@redhat.com>
@@ -21,6 +22,7 @@
 */
 
 
+/* REQUIRES: jquery.ordered-map.js */
 /*global $:true, location:true */
 
 var IPA = ( function () {
@@ -47,10 +49,8 @@ var IPA = ( function () {
     that.messages = {};
     that.whoami = {};
 
-    that.entities = [];
+    that.entities = $.ordered_map();
     that.entity_factories = {};
-
-    that.entities_by_name = {};
 
     that.layout = $.bbq.getState('layout');
     that.layouts_dir = 'layouts';
@@ -127,27 +127,19 @@ var IPA = ( function () {
     };
 
     that.get_entities = function() {
-        return that.entities;
+        return that.entities.values;
     };
 
     that.get_entity = function(name) {
-        return that.entities_by_name[name];
+        return that.entities.get(name);
     };
 
     that.add_entity = function(entity) {
-        that.entities.push(entity);
-        that.entities_by_name[entity.name] = entity;
+        that.entities.put(entity.name, entity);
     };
 
     that.remove_entity = function(name) {
-        for (var i=0; i<that.entities.length; i++) {
-            var entity = that.entities[i];
-            if (name == entity.name) {
-                that.entities.splice(i, 1);
-                break;
-            }
-        }
-        delete that.entities_by_name[entity.name];
+        that.entities.remove(name);
     };
 
     that.start_entities = function() {

@@ -40,8 +40,7 @@ IPA.details_section = function(spec) {
     that.template = spec.template;
     that._entity_name = spec.entity_name;
 
-    that.fields = [];
-    that.fields_by_name = {};
+    that.fields = $.ordered_map();
 
     that.__defineGetter__('entity_name', function() {
         return that._entity_name;
@@ -50,19 +49,19 @@ IPA.details_section = function(spec) {
     that.__defineSetter__('entity_name', function(entity_name) {
         that._entity_name = entity_name;
 
-        for (var i=0; i<that.fields.length; i++) {
-            that.fields[i].entity_name = entity_name;
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
+            fields[i].entity_name = entity_name;
         }
     });
 
     that.get_field = function(name) {
-        return that.fields_by_name[name];
+        return that.fields.get(name);
     };
 
     that.add_field = function(field) {
         field.entity_name = that.entity_name;
-        that.fields.push(field);
-        that.fields_by_name[field.name] = field;
+        that.fields.put(field.name, field);
         return field;
     };
 
@@ -97,8 +96,9 @@ IPA.details_section = function(spec) {
     };
 
     that.init = function() {
-        for (var i=0; i<that.fields.length; i++) {
-            var field = that.fields[i];
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
             field.init();
         }
     };
@@ -107,8 +107,8 @@ IPA.details_section = function(spec) {
 
         if (that.template) return;
 
-        var fields = that.fields;
-        for (var i = 0; i < fields.length; ++i) {
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
             var field = fields[i];
 
             var span = $('<span/>', { 'name': field.name }).appendTo(container);
@@ -122,8 +122,8 @@ IPA.details_section = function(spec) {
 
         if (that.template) return;
 
-        var fields = that.fields;
-        for (var i = 0; i < fields.length; ++i) {
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
             var field = fields[i];
 
             var span = $('span[name='+field.name+']', this.container).first();
@@ -135,14 +135,14 @@ IPA.details_section = function(spec) {
 
         that.record = record;
 
-        var fields = that.fields;
+        var fields = that.fields.values;
 
         if (that.template) {
             var template = IPA.get_template(that.template);
             this.container.load(
                 template,
                 function(data, text_status, xhr) {
-                    for (var i = 0; i < fields.length; ++i) {
+                    for (var i=0; i<fields.length; i++) {
                         var field = fields[i];
                         var span = $('span[name='+field.name+']', this.container).first();
                         field.setup(span);
@@ -161,16 +161,18 @@ IPA.details_section = function(spec) {
     };
 
     that.reset = function() {
-        for (var i=0; i<that.fields.length; i++) {
-            var field = that.fields[i];
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
             var span = $('span[name='+field.name+']', this.container).first();
             field.reset();
         }
     };
 
     that.is_dirty = function() {
-        for (var i=0; i<that.fields.length; i++) {
-            var field = that.fields[i];
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
             if (field.is_dirty()) {
                 return true;
             }
@@ -234,8 +236,8 @@ IPA.details_list_section = function(spec) {
             'class': 'entryattrs'
         }).appendTo(container);
 
-        var fields = that.fields;
-        for (var i = 0; i < fields.length; ++i) {
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
             var field = fields[i];
 
             var label = field.label || '';
@@ -539,8 +541,9 @@ IPA.details_facet = function(spec) {
                 continue;
             }
 
-            for (var j=0; j<section.fields.length; j++) {
-                var field = section.fields[j];
+            var section_fields = section.fields.values;
+            for (var j=0; j<section_fields.length; j++) {
+                var field = section_fields[j];
 
                 var span = $('span[name='+field.name+']', section.container).first();
                 values = field.save();

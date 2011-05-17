@@ -25,6 +25,7 @@ app_DATA =                              \
 	jquery-ui.js			\
 	jquery.ba-bbq.js		\
 	jquery-ui.css			\
+	jquery.ordered-map.js 		\
 	certificate.js 			\
 	entitle.js 			\
 	group.js 			\

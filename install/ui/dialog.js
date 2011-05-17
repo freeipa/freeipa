@@ -40,8 +40,7 @@ IPA.dialog = function(spec) {
 
     that.buttons = {};
 
-    that.fields = [];
-    that.fields_by_name = {};
+    that.fields = $.ordered_map();
 
     that.sections = [];
 
@@ -52,8 +51,9 @@ IPA.dialog = function(spec) {
     that.__defineSetter__("entity_name", function(entity_name){
         that._entity_name = entity_name;
 
-        for (var i=0; i<that.fields.length; i++) {
-            that.fields[i].entity_name = entity_name;
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
+            fields[i].entity_name = entity_name;
         }
 
         for (var j=0; j<that.sections.length; j++) {
@@ -66,12 +66,11 @@ IPA.dialog = function(spec) {
     };
 
     that.get_field = function(name) {
-        return that.fields_by_name[name];
+        return that.fields.get(name);
     };
 
     that.add_field = function(field) {
-        that.fields.push(field);
-        that.fields_by_name[field.name] = field;
+        that.fields.put(field.name, field);
     };
 
     that.field = function(field) {
@@ -80,8 +79,9 @@ IPA.dialog = function(spec) {
     };
 
     that.is_valid = function() {
-        for (var i=0; i<that.fields.length; i++) {
-            var field = that.fields[i];
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
             if (!field.valid) return false;
         }
         return true;
@@ -116,8 +116,9 @@ IPA.dialog = function(spec) {
 
         that.entity = IPA.get_entity(that.entity_name);
 
-        for (var i=0; i<that.fields.length; i++) {
-            var field = that.fields[i];
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
             field.entity_name = that.entity_name;
             field.init();
         }
@@ -136,8 +137,9 @@ IPA.dialog = function(spec) {
 
         var table = $('<table/>').appendTo(that.container);
 
-        for (var i=0; i<that.fields.length; i++) {
-            var field = that.fields[i];
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
             if (field.hidden) continue;
 
             var tr = $('<tr/>').appendTo(table);
@@ -172,8 +174,9 @@ IPA.dialog = function(spec) {
      * Setup behavior
      */
     that.setup = function() {
-        for (var i=0; i<that.fields.length; i++) {
-            var field = that.fields[i];
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
 
             var span = $('span[name="'+field.name+'"]', that.container);
             field.setup(span);
@@ -241,8 +244,9 @@ IPA.dialog = function(spec) {
     };
 
     that.save = function(record) {
-        for (var i=0; i<that.fields.length; i++) {
-            var field = that.fields[i];
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
             var values = field.save();
             record[field.name] = values.join(',');
         }
@@ -262,8 +266,9 @@ IPA.dialog = function(spec) {
     };
 
     that.reset = function() {
-        for (var i=0; i<that.fields.length; i++) {
-            var field = that.fields[i];
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
             field.reset();
         }
         for (var j=0; j<that.sections.length; j++) {
@@ -318,16 +323,14 @@ IPA.adder_dialog = function (spec) {
 
     that.width = spec.width || '600px';
 
-    that.columns = [];
-    that.columns_by_name = {};
+    that.columns = $.ordered_map();
 
     that.get_column = function(name) {
-        return that.columns_by_name[name];
+        return that.columns.get(name);
     };
 
     that.add_column = function(column) {
-        that.columns.push(column);
-        that.columns_by_name[column.name] = column;
+        that.columns.put(column.name, column);
     };
 
     that.set_columns = function(columns) {
@@ -338,8 +341,7 @@ IPA.adder_dialog = function (spec) {
     };
 
     that.clear_columns = function() {
-        that.columns = [];
-        that.columns_by_name = {};
+        that.columns.empty();
     };
 
     that.create_column = function(spec) {
@@ -355,7 +357,8 @@ IPA.adder_dialog = function (spec) {
             height: '151px'
         });
 
-        that.available_table.set_columns(that.columns);
+        var columns = that.columns.values;
+        that.available_table.set_columns(columns);
 
         that.available_table.init();
 
@@ -365,7 +368,7 @@ IPA.adder_dialog = function (spec) {
             height: '151px'
         });
 
-        that.selected_table.set_columns(that.columns);
+        that.selected_table.set_columns(columns);
 
         that.selected_table.init();
 

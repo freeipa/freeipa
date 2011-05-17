@@ -1078,20 +1078,18 @@ IPA.table_widget = function (spec) {
     that.scrollable = spec.scrollable;
     that.save_values = typeof spec.save_values == 'undefined' ? true : spec.save_values;
 
-    that.columns = [];
-    that.columns_by_name = {};
+    that.columns = $.ordered_map();
 
     that.get_columns = function() {
-        return that.columns;
+        return that.columns.values;
     };
 
     that.get_column = function(name) {
-        return that.columns_by_name[name];
+        return that.columns.get(name);
     };
 
     that.add_column = function(column) {
-        that.columns.push(column);
-        that.columns_by_name[column.name] = column;
+        that.columns.put(column.name, column);
     };
 
     that.set_columns = function(columns) {
@@ -1102,8 +1100,7 @@ IPA.table_widget = function (spec) {
     };
 
     that.clear_columns = function() {
-        that.columns = [];
-        that.columns_by_name = {};
+        that.columns.empty();
     };
 
     that.create_column = function(spec) {
@@ -1115,8 +1112,9 @@ IPA.table_widget = function (spec) {
     that.init = function() {
         that.widget_init();
 
-        for (var i=0; i<that.columns.length; i++) {
-            var column = that.columns[i];
+        var columns = that.columns.values;
+        for (var i=0; i<columns.length; i++) {
+            var column = columns[i];
             column.init();
         }
     };
@@ -1144,12 +1142,13 @@ IPA.table_widget = function (spec) {
             'name': 'select'
         }).appendTo(th);
 
-        for (var i=0; i<that.columns.length; i++) {
-            var column = that.columns[i];
+        var columns = that.columns.values;
+        for (var i=0; i<columns.length; i++) {
+            var column = columns[i];
 
             th = $('<th/>').appendTo(tr);
 
-            if (that.scrollable && (i == that.columns.length-1)) {
+            if (that.scrollable && (i == columns.length-1)) {
                 if (column.width) {
                     var width = parseInt(column.width.substring(0, column.width.length-2),10);
                     width += 16;
@@ -1168,7 +1167,7 @@ IPA.table_widget = function (spec) {
                 'html': label
             }).appendTo(th);
 
-            if (i == that.columns.length-1) {
+            if (i == columns.length-1) {
                 $('<span/>', {
                     'name': 'buttons',
                     'style': 'float: right;'
@@ -1194,8 +1193,8 @@ IPA.table_widget = function (spec) {
             'value': 'user'
         }).appendTo(td);
 
-        for (/* var */ i=0; i<that.columns.length; i++) {
-            /* var */ column = that.columns[i];
+        for (/* var */ i=0; i<columns.length; i++) {
+            /* var */ column = columns[i];
 
             td = $('<td/>').appendTo(tr);
             if (column.width) {
@@ -1211,7 +1210,7 @@ IPA.table_widget = function (spec) {
 
         tr = $('<tr/>').appendTo(tfoot);
 
-        td = $('<td/>', { colspan: that.columns.length+1 }).appendTo(tr);
+        td = $('<td/>', { colspan: columns.length+1 }).appendTo(tr);
 
         $('<span/>', {
             'name': 'summary'
@@ -1295,17 +1294,22 @@ IPA.table_widget = function (spec) {
     };
 
     that.get_record = function(result, index) {
+
         var record = {};
-        for (var i=0; i<that.columns.length; i++){
-            var name = that.columns[i].name;
+
+        var columns = that.columns.values;
+        for (var i=0; i<columns.length; i++){
+            var name = columns[i].name;
             var values = result[name];
             if (!values) continue;
+
             if (values instanceof Array){
                 record[name] = values[index];
             }else{
                 record[name] = values;
             }
         }
+
         return record;
     };
 
@@ -1314,8 +1318,9 @@ IPA.table_widget = function (spec) {
         var tr = that.row.clone();
         tr.appendTo(that.tbody);
 
-        for (var i=0; i<that.columns.length; i++){
-            var column = that.columns[i];
+        var columns = that.columns.values;
+        for (var i=0; i<columns.length; i++){
+            var column = columns[i];
 
             var value = record[column.name];
             value = value ? value.toString() : '';

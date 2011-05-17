@@ -434,8 +434,9 @@ IPA.hbacrule_details_facet = function (spec) {
         for (var i=0; i<that.sections.length; i++) {
             var section = that.sections[i];
 
-            for (var j=0; j<section.fields.length; j++) {
-                var field = section.fields[j];
+            var section_fields = section.fields.values;
+            for (var j=0; j<section_fields.length; j++) {
+                var field = section_fields[j];
 
                 var span = $('span[name='+field.name+']', section.container).first();
                 var values = field.save();

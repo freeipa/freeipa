@@ -67,8 +67,9 @@ IPA.search_facet = function(spec) {
             search_all: that.search_all
         });
 
-        for (var i=0; i<that.columns.length; i++) {
-            var column = that.columns[i];
+        var columns = that.columns.values;
+        for (var i=0; i<columns.length; i++) {
+            var column = columns[i];
 
             var param_info = IPA.get_entity_param(that.entity_name, column.name);
             column.primary_key = param_info && param_info['primary_key'];

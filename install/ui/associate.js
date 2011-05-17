@@ -309,16 +309,14 @@ IPA.association_table_widget = function (spec) {
     that.add_method = spec.add_method || 'add_member';
     that.remove_method = spec.remove_method || 'remove_member';
 
-    that.adder_columns = [];
-    that.adder_columns_by_name = {};
+    that.adder_columns = $.ordered_map();
 
     that.get_adder_column = function(name) {
-        return that.adder_columns_by_name[name];
+        return that.adder_columns.get(name);
     };
 
     that.add_adder_column = function(column) {
-        that.adder_columns.push(column);
-        that.adder_columns_by_name[column.name] = column;
+        that.adder_columns.put(column.name, column);
     };
 
     that.create_adder_column = function(spec) {
@@ -362,13 +360,15 @@ IPA.association_table_widget = function (spec) {
             });
         }
 
-        for (var i=0; i<that.columns.length; i++) {
-            column = that.columns[i];
+        var columns = that.columns.values;
+        for (var i=0; i<columns.length; i++) {
+            column = columns[i];
             column.entity_name = that.other_entity;
         }
 
-        for (var j=0; j<that.adder_columns.length; j++) {
-            column = that.adder_columns[j];
+        var adder_columns = that.adder_columns.values;
+        for (var j=0; j<adder_columns.length; j++) {
+            column = adder_columns[j];
             column.entity_name = that.other_entity;
         }
 
@@ -504,8 +504,9 @@ IPA.association_table_widget = function (spec) {
 
         that.empty();
 
-        if (that.columns.length == 1) { // show pkey only
-            var name = that.columns[0].name;
+        var columns = that.columns.values;
+        if (columns.length == 1) { // show pkey only
+            var name = columns[0].name;
             for (var i=0; i<that.values.length; i++) {
                 var record = {};
                 record[name] = that.values[i];
@@ -548,8 +549,9 @@ IPA.association_table_widget = function (spec) {
 
         var dialog = that.create_add_dialog();
 
-        if (that.adder_columns.length) {
-            dialog.set_columns(that.adder_columns);
+        var columns = that.adder_columns.values;
+        if (columns.length) {
+            dialog.set_columns(columns);
         }
 
         dialog.execute = function() {
@@ -674,19 +676,15 @@ IPA.association_facet = function (spec) {
     that.add_method = spec.add_method || 'add_member';
     that.remove_method = spec.remove_method || 'remove_member';
 
-    that.columns = [];
-    that.columns_by_name = {};
-
-    that.adder_columns = [];
-    that.adder_columns_by_name = {};
+    that.columns = $.ordered_map();
+    that.adder_columns = $.ordered_map();
 
     that.get_column = function(name) {
-        return that.columns_by_name[name];
+        return that.columns.get(name);
     };
 
     that.add_column = function(column) {
-        that.columns.push(column);
-        that.columns_by_name[column.name] = column;
+        that.columns.put(column.name, column);
     };
 
     that.create_column = function(spec) {
@@ -699,12 +697,11 @@ IPA.association_facet = function (spec) {
     };
 
     that.get_adder_column = function(name) {
-        return that.adder_columns_by_name[name];
+        return that.adder_columns.get(name);
     };
 
     that.add_adder_column = function(column) {
-        that.adder_columns.push(column);
-        that.adder_columns_by_name[column.name] = column;
+        that.adder_columns.put(column.name, column);
     };
 
     that.create_adder_column = function(spec) {
@@ -744,8 +741,9 @@ IPA.association_facet = function (spec) {
             other_entity: that.other_entity
         });
 
-        if (that.columns.length) {
-            that.table.set_columns(that.columns);
+        var columns = that.columns.values;
+        if (columns.length) {
+            that.table.set_columns(columns);
 
         } else {
 
@@ -774,13 +772,14 @@ IPA.association_facet = function (spec) {
             };
         }
 
-        for (i=0; i<that.columns.length; i++) {
-            column = that.columns[i];
+        for (i=0; i<columns.length; i++) {
+            column = columns[i];
             column.entity_name = that.other_entity;
         }
 
-        for (i=0; i<that.adder_columns.length; i++) {
-            column = that.adder_columns[i];
+        var adder_columns = that.adder_columns.values;
+        for (i=0; i<adder_columns.length; i++) {
+            column = adder_columns[i];
             column.entity_name = that.other_entity;
         }
 
@@ -871,8 +870,9 @@ IPA.association_facet = function (spec) {
             'attribute_member': that.attribute_member
         });
 
-        if (that.adder_columns.length) {
-            dialog.set_columns(that.adder_columns);
+        var adder_columns = that.adder_columns.values;
+        if (adder_columns.length) {
+            dialog.set_columns(adder_columns);
         }
 
         dialog.execute = function() {
@@ -995,8 +995,9 @@ IPA.association_facet = function (spec) {
             var pkeys = data.result.result[that.name];
             if (!pkeys) return;
 
-            if (that.table.columns.length == 1) { // show pkey only
-                var name = that.table.columns[0].name;
+            var columns = that.table.columns.values;
+            if (columns.length == 1) { // show pkey only
+                var name = columns[0].name;
                 for (var i=0; i<pkeys.length; i++) {
                     var record = {};
                     record[name] = pkeys[i];

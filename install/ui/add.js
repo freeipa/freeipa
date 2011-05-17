@@ -102,8 +102,9 @@ IPA.add_dialog = function (spec) {
 
         var field, value;
 
-        for (var i=0; i<that.fields.length; i++) {
-            field = that.fields[i];
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
+            field = fields[i];
             if (!field.valid) return;
 
             value = record[field.name];
@@ -119,8 +120,9 @@ IPA.add_dialog = function (spec) {
         for (var j=0; j<that.sections.length; j++) {
             var section = that.sections[j];
 
-            for (var k=0; k<section.fields.length; k++) {
-                field = section.fields[k];
+            var section_fields = section.fields.values;
+            for (var k=0; k<section_fields.length; k++) {
+                field = section_fields[k];
                 if (!field.valid) return;
 
                 value = record[field.name];
