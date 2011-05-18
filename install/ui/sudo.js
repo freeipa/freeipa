@@ -481,7 +481,7 @@ IPA.sudorule_details_facet = function (spec) {
 
                 // check enable/disable
                 if (field.name == 'ipaenabledflag') {
-                    if (values[0] == 'FALSE') enable_operation.command.method = that.entity_name+'_disable';
+                    if (values[0] == 'FALSE') enable_operation.command.method = 'disable';
                     enable_operation.execute = true;
                     continue;
                 }
