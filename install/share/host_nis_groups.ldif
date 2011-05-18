@@ -14,7 +14,7 @@ mepMappedAttr: description: ipaNetgroup $$cn
 dn: cn=NGP Definition,cn=Managed Entries,cn=plugins,cn=config
 changetype: add
 objectclass: extensibleObject
-cn: HGP Definition
+cn: NGP Definition
 originScope: cn=hostgroups,cn=accounts,$SUFFIX
 originFilter: objectclass=ipahostgroup
 managedBase: cn=ng,cn=alt,$SUFFIX
