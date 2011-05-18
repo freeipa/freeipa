@@ -8,9 +8,11 @@ app_DATA =				\
 	10-config.update		\
 	20-aci.update			\
 	20-dna.update			\
+	20-host_nis_groups.update	\
 	20-indices.update		\
 	20-nss_ldap.update		\
 	20-replication.update		\
+	20-user_private_groups.update	\
 	20-winsync_index.update		\
 	21-replicas_container.update	\
 	40-delegation.update		\

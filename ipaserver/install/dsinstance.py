@@ -289,6 +289,8 @@ class DsInstance(service.Service):
         self.step("setting up initial replication", self.__setup_replica)
         self.step("adding replication acis", self.__add_replication_acis)
 
+        # Managed Entries configuration is done via update files
+
         self.__common_post_setup()
 
         self.start_creation("Configuring directory server", 60)
