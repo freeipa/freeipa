@@ -1,0 +1,15 @@
+# This is a copy of the definition from host_nis_groups.ldif
+# This is required for replication. The template entry will get
+# replicated but the plugin configuration will not.
+
+dn: cn=NGP Definition,cn=Managed Entries,cn=plugins,cn=config
+default:objectclass: extensibleObject
+default:cn: NGP Definition
+default:originScope: cn=hostgroups,cn=accounts,$SUFFIX
+default:originFilter: objectclass=ipahostgroup
+default:managedBase: cn=ng,cn=alt,$SUFFIX
+default:managedTemplate: cn=NGP HGP Template,cn=etc,$SUFFIX
+
+# Fix an existing configuration with the wrong cn
+dn: cn=NGP Definition,cn=Managed Entries,cn=plugins,cn=config
+only:cn: NGP Definition

@@ -11,6 +11,8 @@ mepMappedAttr: cn: $$cn
 mepMappedAttr: memberHost: $$dn
 mepMappedAttr: description: ipaNetgroup $$cn
 
+# Changes to this definition need to be reflected in
+# updates/20-host_nis_groups.update
 dn: cn=NGP Definition,cn=Managed Entries,cn=plugins,cn=config
 changetype: add
 objectclass: extensibleObject

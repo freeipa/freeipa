@@ -1,0 +1,11 @@
+# This is a copy of the definition from user_private_groups.ldif
+# This is required for replication. The template entry will get
+# replicated but the plugin configuration will not.
+
+dn: cn=UPG Definition,cn=Managed Entries,cn=plugins,cn=config
+default:objectclass: extensibleObject
+default:cn: UPG Definition
+default:originScope: cn=users,cn=accounts,$SUFFIX
+default:originFilter: objectclass=posixAccount
+default:managedBase: cn=groups,cn=accounts,$SUFFIX
+default:managedTemplate: cn=UPG Template,cn=etc,$SUFFIX
