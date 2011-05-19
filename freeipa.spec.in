@@ -283,6 +283,7 @@ rm %{buildroot}/%{plugin_dir}/libipa_repl_version.la
 rm %{buildroot}/%{plugin_dir}/libipa_uuid.la
 rm %{buildroot}/%{plugin_dir}/libipa_modrdn.la
 rm %{buildroot}/%{plugin_dir}/libipa_lockout.la
+rm %{buildroot}/%{_libdir}/krb5/plugins/kdb/ipadb.la
 
 # Some user-modifiable HTML files are provided. Move these to /etc
 # and link back.
@@ -467,6 +468,7 @@ fi
 %dir %{_localstatedir}/cache/ipa
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 %attr(700,root,root) %dir %{_localstatedir}/cache/ipa/kpasswd
+%attr(755,root,root) %{_libdir}/krb5/plugins/kdb/ipadb.so
 %{_mandir}/man1/ipa-replica-conncheck.1.gz
 %{_mandir}/man1/ipa-replica-install.1.gz
 %{_mandir}/man1/ipa-replica-manage.1.gz
