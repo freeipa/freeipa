@@ -298,7 +298,7 @@ IPA.command = function(spec) {
 
             IPA.error_dialog.dialog({
                 modal: true,
-                title: error_thrown.title,
+                title: error_thrown.name,
                 width: 400,
                 buttons: buttons,
                 close: function() {
@@ -333,10 +333,6 @@ IPA.command = function(spec) {
                 }
             }
 
-            if (!error_thrown.title) {
-                error_thrown.title = 'AJAX Error: '+error_thrown.name;
-            }
-
             if (that.retry) {
                 dialog_open.call(this, xhr, text_status, error_thrown);
 
@@ -350,7 +346,7 @@ IPA.command = function(spec) {
             if (!data) {
                 IPA.hide_activity_icon();
                 var error_thrown = {
-                    title: 'HTTP Error '+xhr.status,
+                    name: 'HTTP Error '+xhr.status,
                     url: this.url,
                     message: data ? xhr.statusText : "No response"
                 };
@@ -359,7 +355,7 @@ IPA.command = function(spec) {
             } else if (data.error) {
                 // error_handler() calls IPA.hide_activity_icon()
                 error_handler.call(this, xhr, text_status,  /* error_thrown */ {
-                    title: 'IPA Error '+data.error.code,
+                    name: 'IPA Error '+data.error.code,
                     message: data.error.message
                 });
 
@@ -461,7 +457,7 @@ IPA.batch_command = function (spec) {
                         if (command.on_error) command.on_error(
                             xhr, text_status,
                             {
-                                title: 'Internal Error '+xhr.status,
+                                name: 'Internal Error '+xhr.status,
                                 message: result ? xhr.statusText : "Internal error"
                             }
                         );
@@ -471,7 +467,7 @@ IPA.batch_command = function (spec) {
                             xhr,
                             text_status,
                             {
-                                title: 'IPA Error '+result.error.code,
+                                name: 'IPA Error '+result.error.code,
                                 message: result.error.message
                             }
                         );

@@ -621,7 +621,6 @@ IPA.details_facet = function(spec) {
         command.on_error = function(xhr, text_status, error_thrown) {
             var details = $('.details', that.container).empty();
             details.append('<p>Error: '+error_thrown.name+'</p>');
-            details.append('<p>'+error_thrown.title+'</p>');
             details.append('<p>'+error_thrown.message+'</p>');
         };
 
