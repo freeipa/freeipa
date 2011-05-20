@@ -8,6 +8,7 @@ INCLUDES =						\
 	-DLIBDIR=\""$(libdir)"\" 			\
 	-DLIBEXECDIR=\""$(libexecdir)"\"		\
 	-DDATADIR=\""$(datadir)"\"			\
+	-DLDAPIDIR=\""$(localstatedir)/run"\"		\
 	$(AM_CFLAGS)					\
 	$(LDAP_CFLAGS)					\
 	$(KRB5_CFLAGS)					\

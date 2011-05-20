@@ -20,35 +20,369 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <kdb.h>
+#include "ipa_kdb.h"
+
+struct ipadb_context *ipadb_get_context(krb5_context kcontext)
+{
+    void *db_ctx;
+    krb5_error_code kerr;
+
+    kerr = krb5_db_get_context(kcontext, &db_ctx);
+    if (kerr != 0) {
+        return NULL;
+    }
+
+    return (struct ipadb_context *)db_ctx;
+}
+
+static void ipadb_context_free(krb5_context kcontext,
+                               struct ipadb_context **ctx)
+{
+    if (*ctx != NULL) {
+        free((*ctx)->uri);
+        /* ldap free lcontext */
+        if ((*ctx)->lcontext) {
+            ldap_unbind_ext_s((*ctx)->lcontext, NULL, NULL);
+        }
+        krb5_free_default_realm(kcontext, (*ctx)->realm);
+        free(*ctx);
+        *ctx = NULL;
+    }
+}
+
+#define LDAPI_URI_PREFIX "ldapi://"
+#define LDAPI_PATH_PREFIX "%2fslapd-"
+#define SOCKET_SUFFIX ".socket"
+#define APPEND_PATH_PART(pos, part) \
+    do { \
+        int partlen = strlen(part); \
+        strncpy(pos, part, partlen + 1); \
+        p += partlen; \
+    } while (0)
+
+static char *ipadb_realm_to_ldapi_uri(char *realm)
+{
+    char *uri = NULL;
+    char *p;
+    const char *q;
+    int len;
+
+    /* uri length, assume worst case for LDAPIDIR */
+    len = strlen(LDAPI_URI_PREFIX) + strlen(LDAPIDIR) * 3
+          + strlen(LDAPI_PATH_PREFIX) + strlen(realm)
+          + strlen(SOCKET_SUFFIX) + 1;
+
+    /* worst case they are all '/' to escape */
+    uri = malloc(len);
+    if (!uri) {
+        return NULL;
+    }
+    p = uri;
+
+    APPEND_PATH_PART(p, LDAPI_URI_PREFIX);
+
+    /* copy path and escape '/' to '%2f' */
+    for (q = LDAPIDIR; *q; q++) {
+        if (*q == '/') {
+            strncpy(p, "%2f", 3);
+            p += 3;
+        } else {
+            *p = *q;
+            p++;
+        }
+    }
+
+    APPEND_PATH_PART(p, LDAPI_PATH_PREFIX);
+
+    /* copy realm and convert '.' to '-' */
+    for (q = realm; *q; q++) {
+        if (*q == '.') {
+            *p = '-';
+        } else {
+            *p = *q;
+        }
+        p++;
+    }
+
+    /* terminate string */
+    APPEND_PATH_PART(p, SOCKET_SUFFIX);
+
+    return uri;
+}
+
+/* in IPA the base is always derived from the realm name */
+static char *ipadb_get_base_from_realm(krb5_context kcontext)
+{
+    krb5_error_code kerr;
+    char *realm = NULL;
+    char *base = NULL;
+    char *tmp;
+    size_t bi, ri;
+    size_t len;
+
+    kerr = krb5_get_default_realm(kcontext, &realm);
+    if (kerr != 0) {
+        return NULL;
+    }
+
+    bi = 3;
+    len = strlen(realm) + 3 + 1;
+
+    base = malloc(len);
+    if (!base) {
+        goto done;
+    }
+    strcpy(base, "dc=");
+
+    /* convert EXAMPLE.COM in dc=example,dc=com */
+    for (ri = 0; realm[ri]; ri++) {
+        if (realm[ri] == '.') {
+            len += 4;
+            tmp = realloc(base, len);
+            if (!tmp) {
+                free(base);
+                base = NULL;
+                goto done;
+            }
+            base = tmp;
+            strcpy(&base[bi], ",dc=");
+            bi += 4;
+        } else {
+            base[bi] = tolower(realm[ri]);
+            bi++;
+        }
+    }
+    base[bi] = '\0';
+
+done:
+    krb5_free_default_realm(kcontext, realm);
+    return base;
+}
+
+int ipadb_get_connection(struct ipadb_context *ipactx)
+{
+    struct berval **vals = NULL;
+    struct timeval tv = { 5, 0 };
+    LDAPMessage *res = NULL;
+    LDAPMessage *first;
+    krb5_key_salt_tuple *kst;
+    int n_kst;
+    int ret;
+    int v3;
+    int i;
+    char **cvals = NULL;
+    int c = 0;
+
+    if (!ipactx->uri) {
+        return EINVAL;
+    }
+
+    /* free existing conneciton if any */
+    if (ipactx->lcontext) {
+        ldap_unbind_ext_s(ipactx->lcontext, NULL, NULL);
+        ipactx->lcontext = NULL;
+    }
+
+    ret = ldap_initialize(&ipactx->lcontext, ipactx->uri);
+    if (ret != LDAP_SUCCESS) {
+        goto done;
+    }
+
+    /* make sure we talk LDAPv3 */
+    v3 = LDAP_VERSION3;
+    ret = ldap_set_option(ipactx->lcontext, LDAP_OPT_PROTOCOL_VERSION, &v3);
+    if (ret != LDAP_OPT_SUCCESS) {
+        goto done;
+    }
+
+    ret = ldap_set_option(ipactx->lcontext,  LDAP_OPT_NETWORK_TIMEOUT, &tv);
+    if (ret != LDAP_OPT_SUCCESS) {
+        goto done;
+    }
+
+    ret = ldap_set_option(ipactx->lcontext,  LDAP_OPT_TIMEOUT, &tv);
+    if (ret != LDAP_OPT_SUCCESS) {
+        goto done;
+    }
+
+    ret = ldap_sasl_bind_s(ipactx->lcontext,
+                           NULL, "EXTERNAL",
+                           NULL, NULL, NULL, NULL);
+    if (ret != LDAP_SUCCESS) {
+        goto done;
+    }
+
+    /* TODO: search rootdse */
+
+    ret = ipadb_simple_search(ipactx,
+                              ipactx->realm_base, LDAP_SCOPE_BASE,
+                              "(objectclass=*)", NULL, &res);
+    if (ret) {
+        goto done;
+    }
+
+    first = ldap_first_entry(ipactx->lcontext, res);
+    if (!first) {
+        goto done;
+    }
+
+    vals = ldap_get_values_len(ipactx->lcontext, first,
+                               "krbSupportedEncSaltTypes");
+    if (!vals || !vals[0]) {
+        goto done;
+    }
+
+    for (c = 0; vals[c]; c++) /* count */ ;
+    cvals = calloc(c, sizeof(char *));
+    if (!cvals) {
+        ret = ENOMEM;
+        goto done;
+    }
+    for (i = 0; i < c; i++) {
+        cvals[i] = strndup(vals[i]->bv_val, vals[i]->bv_len);
+        if (!cvals[i]) {
+            ret = ENOMEM;
+            goto done;
+        }
+    }
+
+    ret = parse_bval_key_salt_tuples(ipactx->kcontext,
+                                     (const char * const *)cvals, c,
+                                     &kst, &n_kst);
+    if (ret) {
+        goto done;
+    }
+
+    if (ipactx->supp_encs) {
+        free(ipactx->supp_encs);
+    }
+    ipactx->supp_encs = kst;
+    ipactx->n_supp_encs = n_kst;
+
+    ret = 0;
+
+done:
+    if (ret) {
+        if (ipactx->lcontext) {
+            ldap_unbind_ext_s(ipactx->lcontext, NULL, NULL);
+            ipactx->lcontext = NULL;
+        }
+        if (ret == LDAP_SERVER_DOWN) {
+            return ETIMEDOUT;
+        }
+        return EIO;
+    }
+
+    ldap_value_free_len(vals);
+    for (i = 0; i < c; i++) {
+        free(cvals[i]);
+    }
+    free(cvals);
+
+    return 0;
+}
+
+/* INTERFACE */
 
 static krb5_error_code ipadb_init_library(void)
 {
-    return KRB5_PLUGIN_OP_NOTSUPP;
+    return 0;
 }
 
 static krb5_error_code ipadb_fini_library(void)
 {
-    return KRB5_PLUGIN_OP_NOTSUPP;
+    return 0;
 }
 
 static krb5_error_code ipadb_init_module(krb5_context kcontext,
                                          char *conf_section,
                                          char **db_args, int mode)
 {
-    return KRB5_PLUGIN_OP_NOTSUPP;
+    struct ipadb_context *ipactx;
+    krb5_error_code kerr;
+    int ret;
+    int i;
+
+    /* make sure the context is freed to avoid leaking it */
+    ipactx = ipadb_get_context(kcontext);
+    ipadb_context_free(kcontext, &ipactx);
+
+    /* only check for unsupported 'temporary' value for now */
+    for (i = 0; db_args != NULL && db_args[i] != NULL; i++) {
+
+        if (strncmp(db_args[i], "temporary", 9) == 0) {
+            krb5_set_error_message(kcontext, EINVAL,
+                                   "Plugin requires -update argument!");
+            return EINVAL;
+        }
+    }
+
+    ipactx = calloc(1, sizeof(struct ipadb_context));
+    if (!ipactx) {
+        return ENOMEM;
+    }
+
+    ipactx->kcontext = kcontext;
+
+    kerr = krb5_get_default_realm(kcontext, &ipactx->realm);
+    if (kerr != 0) {
+        ret = EINVAL;
+        goto fail;
+    }
+
+    ipactx->uri = ipadb_realm_to_ldapi_uri(ipactx->realm);
+    if (!ipactx->uri) {
+        ret = ENOMEM;
+        goto fail;
+    }
+
+    ipactx->base = ipadb_get_base_from_realm(kcontext);
+    if (!ipactx->base) {
+        ret = ENOMEM;
+        goto fail;
+    }
+
+    ret = asprintf(&ipactx->realm_base, "cn=%s,cn=kerberos,%s",
+                                        ipactx->realm, ipactx->base);
+    if (ret == -1) {
+        ret = ENOMEM;
+        goto fail;
+    }
+
+    ret = ipadb_get_connection(ipactx);
+    if (ret != 0) {
+        /* not a fatal failure, as the LDAP server may be temporarily down */
+        /* TODO: spam syslog with this error */
+    }
+
+    kerr = krb5_db_set_context(kcontext, ipactx);
+    if (kerr != 0) {
+        ret = EACCES;
+        goto fail;
+    }
+
+    return 0;
+
+fail:
+    ipadb_context_free(kcontext, &ipactx);
+    return ret;
 }
 
 static krb5_error_code ipadb_fini_module(krb5_context kcontext)
 {
-    return KRB5_PLUGIN_OP_NOTSUPP;
+    struct ipadb_context *ipactx;
+
+    ipactx = ipadb_get_context(kcontext);
+    ipadb_context_free(kcontext, &ipactx);
+
+    return 0;
 }
 
 static krb5_error_code ipadb_create(krb5_context kcontext,
                                     char *conf_section,
                                     char **db_args)
 {
-    return KRB5_PLUGIN_OP_NOTSUPP;
+    return ipadb_init_module(kcontext, conf_section, db_args, 0);
 }
 
 static krb5_error_code ipadb_get_age(krb5_context kcontext,
