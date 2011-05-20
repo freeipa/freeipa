@@ -1,0 +1,5 @@
+# Enforce matching SSL certificate host names when 389-ds acts as an SSL
+# client. A restart is necessary for this to take effect, we do one when
+# upgrading.
+dn: cn=config
+only:nsslapd-ssl-check-hostname: on

@@ -541,8 +541,7 @@ class DsInstance(service.Service):
 +tls_rsa_export1024_with_des_cbc_sha")]
         conn.modify_s("cn=encryption,cn=config", mod)
 
-        mod = [(ldap.MOD_ADD, "nsslapd-security", "on"),
-               (ldap.MOD_REPLACE, "nsslapd-ssl-check-hostname", "off")]
+        mod = [(ldap.MOD_ADD, "nsslapd-security", "on")]
         conn.modify_s("cn=config", mod)
 
         entry = ipaldap.Entry("cn=RSA,cn=encryption,cn=config")

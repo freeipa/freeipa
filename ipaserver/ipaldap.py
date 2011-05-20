@@ -247,6 +247,7 @@ class IPAdmin(SimpleLDAPObject):
         self.ldapi = ldapi
         self.realm = realm
         self.suffixes = {}
+        self.schema = None
         self.__localinit()
 
     def __lateinit(self):
@@ -497,8 +498,13 @@ class IPAdmin(SimpleLDAPObject):
 
     def generateModList(self, old_entry, new_entry):
         """A mod list generator that computes more precise modification lists
-           than the python-ldap version.  This version purposely generates no
-           REPLACE operations, to deal with multi-user updates more properly."""
+           than the python-ldap version.  For single-value attributes always
+           use a REPLACE operation, otherwise use ADD/DEL.
+        """
+
+        # Some attributes, like those in cn=config, need to be replaced
+        # not deleted/added.
+        FORCE_REPLACE_ON_UPDATE_ATTRS = ('nsslapd-ssl-check-hostname',)
         modlist = []
 
         old_entry = ipautil.CIDict(old_entry)
@@ -523,16 +529,28 @@ class IPAdmin(SimpleLDAPObject):
             adds = list(new_values.difference(old_values))
             removes = list(old_values.difference(new_values))
 
+            if len(adds) == 0 and len(removes) == 0:
+                continue
+
+            is_single_value = self.get_single_value(key)
+            force_replace = False
+            if key in FORCE_REPLACE_ON_UPDATE_ATTRS or is_single_value:
+                force_replace = True
+
             # You can't remove schema online. An add will automatically
             # replace any existing schema.
             if old_entry.get('dn') == 'cn=schema':
                 if len(adds) > 0:
                     modlist.append((ldap.MOD_ADD, key, adds))
             else:
-                if len(removes) > 0:
-                    modlist.append((ldap.MOD_DELETE, key, removes))
-                if len(adds) > 0:
-                    modlist.append((ldap.MOD_ADD, key, adds))
+                if adds:
+                    if force_replace:
+                        modlist.append((ldap.MOD_REPLACE, key, adds))
+                    else:
+                        modlist.append((ldap.MOD_ADD, key, adds))
+                if removes:
+                    if not force_replace:
+                        modlist.append((ldap.MOD_DELETE, key, removes))
 
         return modlist
 
@@ -663,6 +681,33 @@ class IPAdmin(SimpleLDAPObject):
             if dowait: time.sleep(1)
             else: break
         return (done, exitCode)
+
+    def get_schema(self):
+        """
+        Retrieve cn=schema and convert it into a python-ldap schema
+        object.
+        """
+        if self.schema:
+            return self.schema
+        schema = self.getEntry('cn=schema', ldap.SCOPE_BASE,
+            '(objectclass=*)', ['attributetypes', 'objectclasses'])
+        schema = schema.toDict()
+        self.schema = ldap.schema.SubSchema(schema)
+        return self.schema
+
+    def get_single_value(self, attr):
+        """
+        Check the schema to see if the attribute is single-valued.
+
+        If the attribute is in the schema then returns True/False
+
+        If there is a problem loading the schema or the attribute is
+        not in the schema return None
+        """
+        if not self.schema:
+            self.get_schema()
+        obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
+        return obj and obj.single_value
 
     def normalizeDN(dn):
         # not great, but will do until we use a newer version of python-ldap
