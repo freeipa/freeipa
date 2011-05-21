@@ -160,12 +160,12 @@ class i18n_messages(Command):
                 "title":_("Records for DNS Zone"),
                 },
             "group": {
-                "add":_("Add New Group"),
+                "add":_("Add Group"),
                 "details":_("Group Settings"),
                 "posix":_("Is this a POSIX group?"),
                 },
             "hbacrule": {
-                "add":_("Add New Rule"),
+                "add":_("Add HBAC Rule"),
                 "active":_("Active"),
                 "allow":_("Allow"),
                 "deny":_("Deny"),
@@ -183,14 +183,14 @@ class i18n_messages(Command):
                 "sourcehost":_("From"),
                 },
             "hbacsvc": {
-                "add":_("Add New HBAC Service"),
+                "add":_("Add HBAC Service"),
                 },
             "hbacsvcgroup": {
-                "add":_("Add New HBAC Service Group"),
+                "add":_("Add HBAC Service Group"),
                 "services":_("Services"),
                 },
             "host": {
-                "add":_("Add New Host"),
+                "add":_("Add Host"),
                 "certificate":_("Host Certificate"),
                 "cn":_("Host Name"),
                 "details":_("Host Settings"),
@@ -210,8 +210,8 @@ class i18n_messages(Command):
                 "unprovision":_("Unprovision"),
                 },
             "hostgroup": {
-                "add":_("Add Hostgroup"),
-                "identity":_("Hostgroup Settings"),
+                "add":_("Add Host Group"),
+                "identity":_("Host Group Settings"),
                 },
             "krbtpolicy": {
                 "identity":_("Kerberos ticket policy"),
@@ -247,7 +247,7 @@ class i18n_messages(Command):
                 "add":_("Add Self Service Definition"),
                 },
             "service": {
-                "add":_("Add New Service"),
+                "add":_("Add Service"),
                 "certificate":_("Service Certificate"),
                 "details":_("Service Settings"),
                 "host":_("Host Name"),
@@ -262,15 +262,15 @@ class i18n_messages(Command):
                 "unprovision":_("Unprovision"),
                 },
             "sudocmd": {
-                "add":_("Add New Sudo Command"),
+                "add":_("Add Sudo Command"),
                 "groups":_("Groups"),
                 },
             "sudocmdgroup": {
-                "add":_("Add New Sudo Command Group"),
+                "add":_("Add Sudo Command Group"),
                 "commands":_("Commands"),
                 },
             "sudorule": {
-                "add":_("Add New Rule"),
+                "add":_("Add Sudo Rule"),
                 "active":_("Active"),
                 "inactive":_("Inactive"),
                 "allow":_("Allow"),

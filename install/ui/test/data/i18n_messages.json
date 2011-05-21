@@ -120,13 +120,13 @@
                     "identity": "DNS Zone Settings"
                 },
                 "group": {
-                    "add": "Add New Group",
+                    "add": "Add Group",
                     "details": "Group Settings",
                     "posix": "Is this a POSIX group?"
                 },
                 "hbacrule": {
                     "active": "Active",
-                    "add": "Add New Rule",
+                    "add": "Add HBAC Rule",
                     "allow": "Allow",
                     "any_host": "Any Host",
                     "any_service": "Any Service",
@@ -143,14 +143,14 @@
                     "user": "Who"
                 },
                 "hbacsvc": {
-                    "add": "Add New HBAC Service"
+                    "add": "Add HBAC Service"
                 },
                 "hbacsvcgroup": {
-                    "add": "Add New HBAC Service Group",
+                    "add": "Add HBAC Service Group",
                     "services": "Services"
                 },
                 "host": {
-                    "add": "Add New Host",
+                    "add": "Add Host",
                     "certificate": "Host Certificate",
                     "cn": "Host Name",
                     "delete_key_unprovision": "Delete Key, Unprovision",
@@ -170,8 +170,8 @@
                     "valid": "Kerberos Key Present, Host Provisioned"
                 },
                 "hostgroup": {
-                    "add": "Add Hostgroup",
-                    "identity": "Hostgroup Settings"
+                    "add": "Add Host Group",
+                    "identity": "Host Group Settings"
                 },
                 "krbtpolicy": {
                     "identity": "Kerberos ticket policy"
@@ -207,7 +207,7 @@
                     "add": "Add Self Service Definition"
                 },
                 "service": {
-                    "add": "Add New Service",
+                    "add": "Add Service",
                     "certificate": "Service Certificate",
                     "delete_key_unprovision": "Delete Key, Unprovision",
                     "details": "Service Settings",
@@ -222,16 +222,16 @@
                     "valid": "Kerberos Key Present, Service Provisioned"
                 },
                 "sudocmd": {
-                    "add": "Add New Sudo Command",
+                    "add": "Add Sudo Command",
                     "groups": "Groups"
                 },
                 "sudocmdgroup": {
-                    "add": "Add New Sudo Command Group",
+                    "add": "Add Sudo Command Group",
                     "commands": "Commands"
                 },
                 "sudorule": {
                     "active": "Active",
-                    "add": "Add New Rule",
+                    "add": "Add Sudo Rule",
                     "allow": "Allow",
                     "any_command": "Any Command",
                     "any_group": "Any Group",

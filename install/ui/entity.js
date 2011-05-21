@@ -809,7 +809,14 @@ IPA.entity_builder = function(){
     that.adder_dialog = function(spec) {
         spec.factory = spec.factory || IPA.add_dialog;
         spec.name = spec.name || 'add';
-        spec.title = spec.title || IPA.messages.objects.user.add;
+
+        if (!spec.title) {
+            var messages = IPA.messages.objects[entity.name];
+            if (messages) {
+                spec.title = messages.add;
+            }
+        }
+
         return that.dialog(spec);
     };
 
