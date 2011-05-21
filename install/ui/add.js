@@ -40,7 +40,7 @@ IPA.add_dialog = function (spec) {
             that.save(record);
             that.add(
                 record,
-                function() {
+                function(data, text_status, xhr) {
                     var entity = IPA.get_entity(that.entity_name);
                     var facet = entity.get_facet('search');
                     var table = facet.table;
@@ -56,7 +56,7 @@ IPA.add_dialog = function (spec) {
             that.save(record);
             that.add(
                 record,
-                function() {
+                function(data, text_status, xhr) {
                     var entity = IPA.get_entity(that.entity_name);
                     var facet = entity.get_facet('search');
                     var table = facet.table;
@@ -71,11 +71,17 @@ IPA.add_dialog = function (spec) {
             that.save(record);
             that.add(
                 record,
-                function() {
+                function(data, text_status, xhr) {
                     that.close();
 
                     var pkey_name = IPA.metadata.objects[that.entity_name].primary_key;
-                    var pkey = record[pkey_name];
+
+                    var result = data.result.result;
+                    var pkey = result[pkey_name];
+
+                    if (pkey instanceof Array) {
+                        pkey = pkey[0];
+                    }
 
                     IPA.nav.show_page(that.entity_name, 'details', pkey);
                 }
