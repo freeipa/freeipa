@@ -32,6 +32,7 @@ import copy
 import stat
 import shutil
 import urllib2
+import socket
 
 from ipapython import ipavalidate
 from types import *
@@ -1093,3 +1094,75 @@ def chkconfig_add(service_name):
 def chkconfig_del(service_name):
     run(["/sbin/chkconfig", "--del", service_name])
 
+def host_port_open(host, port, socket_stream=True, socket_timeout=None):
+    families = (socket.AF_INET, socket.AF_INET6)
+    success = False
+
+    if socket_stream:
+        socket_type = socket.SOCK_STREAM
+    else:
+        socket_type = socket.SOCK_DGRAM
+
+    for family in families:
+        try:
+            try:
+                s = socket.socket(family, socket_type)
+            except socket.error:
+                continue
+
+            if socket_timeout is not None:
+                s.settimeout(socket_timeout)
+
+            s.connect((host, port))
+            success = True
+        except socket.error, e:
+            pass
+        finally:
+            s.close()
+
+        if success:
+            return True
+
+    return False
+
+def bind_port_responder(port, socket_stream=True, socket_timeout=None, responder_data=None):
+    families = (socket.AF_INET, socket.AF_INET6)
+
+    if socket_stream:
+        socket_type = socket.SOCK_STREAM
+    else:
+        socket_type = socket.SOCK_DGRAM
+
+    host = ''   # all available interfaces
+
+    for family in families:
+        try:
+            s = socket.socket(family, socket_type)
+        except socket.error, e:
+            if family == families[-1]:  # last available family
+                raise e
+
+    if socket_timeout is not None:
+        s.settimeout(socket_timeout)
+
+    if socket_stream:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+    try:
+        s.bind((host, port))
+
+        if socket_stream:
+            s.listen(1)
+            connection, client_address = s.accept()
+            try:
+                if responder_data:
+                    connection.sendall(responder_data) #pylint: disable=E1101
+            finally:
+                connection.close()
+        else:
+            data, addr = s.recvfrom( 512 ) # buffer size is 1024 bytes
+
+            if responder_data:
+                s.sendto(responder_data, addr)
+    finally:
+        s.close()

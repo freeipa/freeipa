@@ -38,6 +38,7 @@ from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
 
 CACERT="/etc/ipa/ca.crt"
+REPLICA_INFO_TOP_DIR=None
 
 class ReplicaConfig:
     def __init__(self):
@@ -58,6 +59,8 @@ def parse_options():
                       default=False, help="gather extra debugging information")
     parser.add_option("-p", "--password", dest="password", sensitive=True,
                       help="Directory Manager (existing master) password")
+    parser.add_option("-w", "--admin-password", dest="admin_password", sensitive=True,
+                      help="Admin user Kerberos password used for connection check")
     parser.add_option("--setup-dns", dest="setup_dns", action="store_true",
                       default=False, help="configure bind with our zone")
     parser.add_option("--forwarder", dest="forwarders", action="append",
@@ -71,6 +74,8 @@ def parse_options():
                       help="Do not use DNS for hostname lookup during installation")
     parser.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
                       default=True, help="disables pkinit setup steps")
+    parser.add_option("--skip-conncheck", dest="skip_conncheck", action="store_true",
+                      default=False, help="skip connection check to remote master")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
                       default=False, help="unattended installation never prompts the user")
 
@@ -388,6 +393,8 @@ def main():
 
     try:
         top_dir, dir = expand_info(filename, dirman_password)
+        global REPLICA_INFO_TOP_DIR
+        REPLICA_INFO_TOP_DIR = top_dir
     except Exception, e:
         print "ERROR: Failed to decrypt or open the replica file."
         print "Verify you entered the correct Directory Manager password."
@@ -407,6 +414,32 @@ def main():
         except KeyboardInterrupt:
             sys.exit(0)
     config.dir = dir
+
+
+    # check connection
+    if not options.skip_conncheck:
+        print "Run connection check to master"
+        args = ["/usr/sbin/ipa-replica-conncheck", "--master", config.master_host_name,
+                "--auto-master-check", "--realm", config.realm_name,
+                "--principal", "admin",
+                "--hostname", config.host_name]
+
+        if options.admin_password:
+            args.extend(["--password", options.admin_password])
+
+        cafile = config.dir + "/cacert.p12"
+        if ipautil.file_exists(cafile): # with CA
+            args.append('--check-ca')
+        logging.debug("Running ipa-replica-conncheck with following arguments: %s" %
+                " ".join(args))
+        (stdin, stderr, returncode) = ipautil.run(args,raiseonerr=False, capture_output=False)
+
+        if returncode != 0:
+            sys.exit("Connection check failed!" +
+                     "\nPlease fix your network settings according to error messages above." +
+                     "\nIf the check results are not valid it can be skipped with --skip-conncheck parameter.")
+        else:
+            print "Connection check OK"
 
     # Create the management framework config file
     # Note: We must do this before bootstraping and finalizing ipalib.api
@@ -555,6 +588,13 @@ except Exception, e:
     logging.debug(message)
 except KeyboardInterrupt:
     print "Installation cancelled." 
+finally:
+    # always try to remove decrypted replica file
+    try:
+        if REPLICA_INFO_TOP_DIR:
+            shutil.rmtree(REPLICA_INFO_TOP_DIR)
+    except OSError:
+        pass
 
 print ""
 print "Your system may be partly configured." 

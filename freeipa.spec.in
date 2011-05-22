@@ -358,6 +358,7 @@ fi
 %doc COPYING README Contributors.txt
 %{_sbindir}/ipa-dns-install
 %{_sbindir}/ipa-server-install
+%{_sbindir}/ipa-replica-conncheck
 %{_sbindir}/ipa-replica-install
 %{_sbindir}/ipa-replica-prepare
 %{_sbindir}/ipa-replica-manage
@@ -425,6 +426,7 @@ fi
 %dir %{_localstatedir}/cache/ipa
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 %attr(700,root,root) %dir %{_localstatedir}/cache/ipa/kpasswd
+%{_mandir}/man1/ipa-replica-conncheck.1.gz
 %{_mandir}/man1/ipa-replica-install.1.gz
 %{_mandir}/man1/ipa-replica-manage.1.gz
 %{_mandir}/man1/ipa-replica-prepare.1.gz

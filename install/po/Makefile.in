@@ -44,6 +44,7 @@ PY_EXPLICIT_FILES = \
      ipa \
      install/tools/ipa-replica-manage \
      install/tools/ipa-server-certinstall \
+     install/tools/ipa-replica-conncheck \
      install/tools/ipa-replica-install \
      install/tools/ipa-nis-manage \
      install/tools/ipa-upgradeconfig \

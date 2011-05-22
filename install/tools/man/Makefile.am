@@ -5,6 +5,7 @@ AUTOMAKE_OPTIONS = 1.7
 NULL=
 
 man1_MANS = 				\
+	ipa-replica-conncheck.1		\
 	ipa-replica-install.1		\
 	ipa-replica-manage.1		\
 	ipa-replica-prepare.1		\

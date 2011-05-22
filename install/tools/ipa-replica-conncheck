@@ -1,0 +1,372 @@
+#! /usr/bin/python -E
+# Authors: Martin Kosek <mkosek@redhat.com>
+#
+# Copyright (C) 2011  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+from ipapython.config import IPAOptionParser
+from ipapython import version
+from ipapython import ipautil
+from ipapython.ipautil import CalledProcessError
+import ipaclient.ipachangeconf
+from optparse import OptionGroup
+import logging
+import sys
+import os
+import signal
+import tempfile
+import getpass
+import socket
+import time
+import threading
+import errno
+
+CONNECT_TIMEOUT = 5
+RESPONDERS = [ ]
+QUIET = False
+CCACHE_FILE = "/etc/ipa/.conncheck_ccache"
+KRB5_CONFIG = None
+
+class CheckedPort(object):
+    def __init__(self, port, stream, description):
+        self.port = port
+        self.stream = stream
+        self.description = description
+
+BASE_PORTS = [
+                CheckedPort(389, True, "Directory Service: unsecure port"),
+                CheckedPort(636, True, "Directory Service: secure port"),
+                CheckedPort(88, False, "Kerberos"),
+             ]
+
+CA_PORTS  = [
+                CheckedPort(7389, True, "PKI-CA: Directory Service"),
+                CheckedPort(9444, True, "PKI-CA: EE Secure port"),
+                CheckedPort(9445, True, "PKI-CA: Admin Secure port"),
+                CheckedPort(9446, True, "PKI-CA: EE Secure Client Auth port"),
+                CheckedPort(9180, True, "PKI-CA: Unsecure port"),
+            ]
+
+def print_info(msg):
+    if not QUIET:
+        print msg
+
+def parse_options():
+    parser = IPAOptionParser(version=version.VERSION)
+
+    replica_group = OptionGroup(parser, "on-replica options")
+    replica_group.add_option("-m", "--master", dest="master",
+                      help="Master address with running IPA for output connection check")
+    replica_group.add_option("-a", "--auto-master-check", dest="auto_master_check",
+                      action="store_true",
+                      default=False,
+                      help="Automatically execute connection check on master")
+    replica_group.add_option("-r", "--realm", dest="realm",
+                      help="Realm name")
+    replica_group.add_option("-k", "--kdc", dest="kdc",
+                      help="Master KDC. Defaults to master address")
+    replica_group.add_option("-p", "--principal", dest="principal",
+                      default="admin", help="Principal to use to log in to remote master")
+    replica_group.add_option("-w", "--password", dest="password", sensitive=True,
+                      help="Password for the principal"),
+    parser.add_option_group(replica_group)
+
+
+    master_group = OptionGroup(parser, "on-master options")
+    master_group.add_option("-R", "--replica", dest="replica",
+                      help="Address of remote replica machine to check against")
+    parser.add_option_group(master_group)
+
+    common_group = OptionGroup(parser, "common options")
+    common_group.add_option("-c", "--check-ca", dest="check_ca",
+                      action="store_true",
+                      default=False,
+                      help="Check also ports for Certificate Authority")
+
+    common_group.add_option("", "--hostname", dest="hostname",
+                      help="The hostname of this server (FQDN). "
+                           "By default a nodename from uname(2) is used.")
+    parser.add_option_group(common_group)
+
+    parser.add_option("-d", "--debug", dest="debug",
+                      action="store_true",
+                      default=False, help="Print debugging information")
+    parser.add_option("-q", "--quiet", dest="quiet",
+                      action="store_true",
+                      default=False, help="Output only errors")
+
+    options, args = parser.parse_args()
+    safe_options = parser.get_safe_opts(options)
+
+    if options.master and options.replica:
+        parser.error("on-master and on-replica options are mutually exclusive!")
+
+    if options.master:
+        if options.auto_master_check and not options.realm:
+            parser.error("Realm is parameter is required to connect to remote master!")
+        if not os.getegid() == 0:
+            parser.error("You can only run on-replica part as root.")
+
+    if options.master and not options.kdc:
+       options.kdc = options.master
+
+    if not options.master and not options.replica:
+       parser.error("No action: you should select either --replica or --master option.")
+
+    if not options.hostname:
+        options.hostname = socket.getfqdn()
+
+    if options.quiet:
+        global QUIET
+        QUIET = True
+
+    return safe_options, options
+
+def logging_setup(options):
+    if os.getegid() == 0:
+        log_file = "/var/log/ipareplica-conncheck.log"
+        old_umask = os.umask(077)
+        logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)s %(message)s',
+                        filename=log_file,
+                        filemode='w')
+        os.umask(old_umask)
+
+    console = logging.StreamHandler()
+    # If the debug option is set, also log debug messages to the console
+    if options.debug:
+        console.setLevel(logging.DEBUG)
+    else:
+        # Otherwise, log critical and error messages
+        console.setLevel(logging.ERROR)
+    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)
+
+def clean_responders(responders):
+    if not responders:
+        return
+
+    for responder in responders:
+        responder.stop()
+
+    for responder in responders:
+        responder.join()
+        responders.remove(responder)
+
+def sigterm_handler(signum, frame):
+    print_info("\nCleaning up...")
+
+    global RESPONDERS
+    clean_responders(RESPONDERS)
+
+    sys.exit(1)
+
+def configure_krb5_conf(realm, kdc, filename):
+
+    krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+    krbconf.setOptionAssignment(" = ")
+    krbconf.setSectionNameDelimiters(("[","]"))
+    krbconf.setSubSectionDelimiters(("{","}"))
+    krbconf.setIndent(("","  ","    "))
+
+    opts = [{'name':'comment', 'type':'comment', 'value':'File created by ipa-replica-conncheck'},
+            {'name':'empty', 'type':'empty'}]
+
+    #[libdefaults]
+    libdefaults = [{'name':'default_realm', 'type':'option', 'value':realm}]
+    libdefaults.append({'name':'dns_lookup_realm', 'type':'option', 'value':'false'})
+    libdefaults.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'false'})
+    libdefaults.append({'name':'rdns', 'type':'option', 'value':'false'})
+    libdefaults.append({'name':'ticket_lifetime', 'type':'option', 'value':'24h'})
+    libdefaults.append({'name':'forwardable', 'type':'option', 'value':'yes'})
+
+    opts.append({'name':'libdefaults', 'type':'section', 'value': libdefaults})
+    opts.append({'name':'empty', 'type':'empty'})
+
+    #the following are necessary only if DNS discovery does not work
+    #[realms]
+    realms_info =[{'name':'kdc', 'type':'option', 'value':kdc+':88'},
+                 {'name':'admin_server', 'type':'option', 'value':kdc+':749'}]
+    realms = [{'name':realm, 'type':'subsection', 'value':realms_info}]
+
+    opts.append({'name':'realms', 'type':'section', 'value':realms})
+    opts.append({'name':'empty', 'type':'empty'})
+
+    #[appdefaults]
+    pamopts = [{'name':'debug', 'type':'option', 'value':'false'},
+               {'name':'ticket_lifetime', 'type':'option', 'value':'36000'},
+               {'name':'renew_lifetime', 'type':'option', 'value':'36000'},
+               {'name':'forwardable', 'type':'option', 'value':'true'},
+               {'name':'krb4_convert', 'type':'option', 'value':'false'}]
+    appopts = [{'name':'pam', 'type':'subsection', 'value':pamopts}]
+    opts.append({'name':'appdefaults', 'type':'section', 'value':appopts})
+
+    logging.debug("Writing temporary Kerberos configuration to %s:\n%s"
+            % (filename, krbconf.dump(opts)))
+
+    krbconf.newConf(filename, opts)
+
+class PortResponder(threading.Thread):
+
+    def __init__(self, port, socket_stream = True, socket_timeout=1):
+        super(PortResponder, self).__init__()
+        self.port = port
+        self.socket_stream = socket_stream
+        self.socket_timeout = socket_timeout
+        self._stop_request = False
+
+    def run(self):
+        while not self._stop_request:
+            try:
+                ipautil.bind_port_responder(self.port, self.socket_stream,
+                        self.socket_timeout, responder_data="FreeIPA")
+            except socket.timeout:
+                pass
+            except socket.error, e:
+                if e.errno == errno.EADDRINUSE:
+                    time.sleep(1)
+                else:
+                    raise
+
+    def stop(self):
+        self._stop_request = True
+
+def port_check(host, port_list):
+    failed_ports = []
+    for port in port_list:
+        if ipautil.host_port_open(host, port.port, port.stream, CONNECT_TIMEOUT):
+            result = "OK"
+        else:
+            failed_ports.append(port)
+            result = "FAILED"
+        print_info("   %s (%d): %s" % (port.description, port.port, result))
+
+    if failed_ports:
+        msg_ports = ", ".join([str(port.port) for port in failed_ports])
+        raise RuntimeError("Port check failed! Inaccessible port(s): %s" % msg_ports)
+
+def main():
+    safe_options, options = parse_options()
+
+    logging_setup(options)
+    logging.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
+    logging.debug("missing options might be asked for interactively later\n")
+
+    signal.signal(signal.SIGTERM, sigterm_handler)
+    signal.signal(signal.SIGINT, sigterm_handler)
+
+    required_ports = BASE_PORTS
+    if options.check_ca:
+        required_ports.extend(CA_PORTS)
+
+    if options.replica:
+        print_info("Check connection from master to remote replica '%s':" % options.replica)
+        port_check(options.replica, required_ports)
+        print_info("\nConnection from master to replica is OK.")
+
+    # kinit to foreign master
+    if options.master:
+        # check ports on master first
+        print_info("Check connection from replica to remote master '%s':" % options.master)
+        port_check( options.master, required_ports)
+        print_info("\nConnection from replica to master is OK.")
+
+        # create listeners
+        global RESPONDERS
+        print_info("Start listening on required ports for remote master check")
+        for port in required_ports:
+            logging.debug("Start listening on port %d (%s)" % (port.port, port.description))
+            responder = PortResponder(port.port, port.stream)
+            responder.start()
+            RESPONDERS.append(responder)
+
+        if options.auto_master_check:
+            (krb_fd, krb_name) = tempfile.mkstemp()
+            os.close(krb_fd)
+            configure_krb5_conf(options.realm, options.kdc, krb_name)
+            global KRB5_CONFIG
+            KRB5_CONFIG = krb_name
+
+            print_info("Get credentials to log in to remote master")
+            if options.principal.find('@') == -1:
+                principal = '%s@%s' % (options.principal, options.realm)
+                user = options.principal
+            else:
+                principal = options.principal
+                user = options.principal.partition('@')[0]
+
+            if options.password:
+                password=options.password
+            else:
+                password = getpass.getpass("Password for %s: " % principal)
+
+            stderr=''
+            (stdout, stderr, returncode) = ipautil.run(['/usr/bin/kinit', principal],
+                 env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME':CCACHE_FILE},
+                 stdin=password, raiseonerr=False)
+            if returncode != 0:
+                raise RuntimeError("Cannot acquire Kerberos ticket: %s" % stderr)
+
+            remote_check_opts = ['--replica %s' % options.hostname]
+            if options.check_ca:
+                remote_check_opts.append('--check-ca')
+
+            print_info("Execute check on remote master")
+
+            stderr = ''
+            remote_addr = "%s@%s" % (user, options.master)
+            (stdout, stderr, returncode) = ipautil.run(['/usr/bin/ssh', remote_addr,
+                "/usr/sbin/ipa-replica-conncheck " + " ".join(remote_check_opts)],
+                env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME' : CCACHE_FILE},
+                raiseonerr=False)
+
+            print_info(stdout)
+
+            if returncode != 0:
+                raise RuntimeError("Remote master check failed with following error message(s):\n%s" % stderr)
+        else:
+            # wait until user  test is ready
+            print_info("Listeners are started. Use CTRL+C to terminate the listening part after the test.")
+            print_info("")
+            print_info("Please run the following command on remote master:")
+
+            remote_check_opts = ['--replica %s' % options.hostname]
+            if options.check_ca:
+                remote_check_opts.append('--check-ca')
+            print_info("/usr/sbin/ipa-replica-conncheck " + " ".join(remote_check_opts))
+            time.sleep(3600)
+            print_info("Connection check timeout: terminating listening program")
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except SystemExit, e:
+        sys.exit(e)
+    except KeyboardInterrupt:
+        sys.exit(1)
+    except RuntimeError, e:
+        sys.exit(e)
+    finally:
+        clean_responders(RESPONDERS)
+        for file_name in (CCACHE_FILE, KRB5_CONFIG):
+            if file_name:
+                try:
+                    os.remove(file_name)
+                except OSError:
+                    pass
+

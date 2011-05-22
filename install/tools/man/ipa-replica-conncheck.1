@@ -1,0 +1,87 @@
+.\" A man page for ipa-replica-conncheck
+.\" Copyright (C) 2011 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Martin Kosek <mkosek@redhat.com>
+.\"
+.TH "ipa-replica-conncheck" "1" "Jun 2 2011" "freeipa" ""
+.SH "NAME"
+ipa\-replica\-conncheck \- Check a replica\-master network connection before installation
+.SH "SYNOPSIS"
+ipa\-replica\-conncheck [\fIOPTION\fR]...
+.SH "DESCRIPTION"
+When an IPA replica is being installed a network connection between a replica machine and a replicated IPA master machine has to be prepared for master\-replica communication. In case of a flawed connection the installation may fail with inconvenient error messages. A common connection problem is a misconfigured firewall with closed required port on a replica or master machine.
+
+The connection is checked by running a set of tests from both master and replica machines. The program is incorporated to ipa\-replica\-install(1) but can be also run separately.
+
+.SH "OPTIONS"
+.SS "REPLICA MACHINE OPTIONS"
+This set of options is used when the connection check is run on a prepared IPA replica machine.
+.TP
+\fB\-m\fR \fIMASTER\fR, \fB\-\-master\fR=\fIMASTER\fR
+Remote master machine address
+.TP
+\fB\-a\fR, \fB\-\-auto\-master\-check\fR
+Automatically log in to master machine and execute the master machine part of the connection check. The following options for replica part are only evaluated when this option is set
+.TP
+\fB\-r\fR \fIREALM\fR, \fB\-\-realm\fR=\fIREALM\fR
+The Kerberos realm name for the IPA server
+.TP
+\fB\-k\fR \fIKDC\fR, \fB\-\-kdc\fR=\fIKDC\fR
+KDC server address. Defaults t \fIMASTER\fR
+.TP
+\fB\-p\fR \fIPRINCIPAL\fR, \fB\-\-principal\fR=\fIPRINCIPAL\fR
+Authorized Kerberos principal to use to log in to master machine. Defaults to \fIadmin\fR
+.TP
+\fB\-w\fR \fIPASSWORD\fR, \fB\-\-password\fR=\fIPASSWORD\fR
+Password for given principal. The password will be prompted interactively when this option is missing
+
+.SS "MASTER MACHINE OPTIONS"
+This set of options is used when the connection check is run on a master machine against a running ipa\-replica\-conncheck(1) on a replica machine.
+.TP
+\fB\-R\fR \fIREPLICA\fR, \fB\-\-replica\fR=\fIREPLICA\fR
+Remote replica machine address
+
+.SS "COMMON OPTIONS"
+.TP
+\fB\-c\fR, \fB\-\-check\-ca\fR
+Include in a check also a set of dogtag connection requirements. When a replica is self\-sign this option is not needed.
+.TP
+\fB\-h\fR \fIHOSTNAME\fR, \fB\-\-hostname\fR=\fIHOSTNAME\fR
+The hostname of this server (FQDN). By default a nodename from uname(2) is used
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Print debugging information
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Output only errors
+
+.SH "EXAMPLES"
+.TP
+\fBipa-replica-conncheck -m master.example.com\fR
+Run a replica machine connection check against a remote master \fImaster.example.com\fR. If the connection to the remote master machine is successful the program will switch to listening mode and prompt for running the master machine part. The second part check the connection from master to replica.
+.TP
+\fBipa-replica-conncheck -R replica.example.com\fR
+Run a master machine connection check part. This is either run automatically by replica part of the connection check program (when \fI-a\fR option is set) or manually by the user. A running ipa-replica-conncheck(1) in a listening mode must be already running on a replica machine.
+.TP
+\fBipa-replica-conncheck -m master.example.com -a -r EXAMPLE.COM -w password\fR
+Run a replica\-master connection check. In case of a success switch to listening mode, automatically log to \fImaster.example.com\fR in a realm \fIEXAMPLE.COM\fR with a password \fIpassword\fR and run the second part of the connection check.
+
+.SH "EXIT STATUS"
+0 if the connection check was successful
+
+1 if an error occurred
+.SH "SEE ALSO"
+.BR ipa-replica-install (1)

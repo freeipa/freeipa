@@ -7,6 +7,7 @@ SUBDIRS = 			\
 sbin_SCRIPTS =			\
 	ipa-dns-install		\
 	ipa-server-install	\
+	ipa-replica-conncheck	\
 	ipa-replica-install	\
 	ipa-replica-prepare	\
 	ipa-replica-manage	\
