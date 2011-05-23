@@ -131,7 +131,20 @@ var IPA = ( function () {
     };
 
     that.get_entity = function(name) {
-        return that.entities.get(name);
+        var entity = that.entities.get(name);
+        if (!entity){
+            var factory = that.entity_factories[name];
+            try {
+                entity = factory();
+                that.add_entity(entity);
+                entity.init();
+            } catch (e) {
+                /*exceptions thrown by builder just mean that entities
+                  are not to be registered. */
+                return null;
+            }
+        }
+        return entity;
     };
 
     that.add_entity = function(entity) {
@@ -140,22 +153,6 @@ var IPA = ( function () {
 
     that.remove_entity = function(name) {
         that.entities.remove(name);
-    };
-
-    that.start_entities = function() {
-        var factory;
-        var name;
-        for (name in that.entity_factories) {
-            factory = that.entity_factories[name];
-            try {
-                var entity = factory();
-                that.add_entity(entity);
-                entity.init();
-            } catch (e) {
-                /*exceptions thrown by builder just mean that entities
-                  are not to be registered. */
-            }
-        }
     };
 
     that.test_dirty = function(){

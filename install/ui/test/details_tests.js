@@ -43,7 +43,6 @@ module('details', {
                 return IPA.entity({name:obj_name,
                                    metadata:IPA.metadata.objects.user});
             };
-        IPA.start_entities();
     },
     teardown: function() {
         details_container.remove();

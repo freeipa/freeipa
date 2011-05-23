@@ -20,6 +20,7 @@
 
 
 module('navigation', {
+
     setup: function() {
         IPA.ajax_options.async = false;
         IPA.init(
@@ -32,11 +33,14 @@ module('navigation', {
             }
         );
     }
+
 });
 
 test("Testing IPA.navigation.create().", function() {
 
     var entity;
+    var user_mock_called = false;
+    var group_mock_called = false;
 
     IPA.entity_factories.user =  function() {
         var that = IPA.entity({name: 'user',
@@ -59,13 +63,8 @@ test("Testing IPA.navigation.create().", function() {
         return that;
     };
 
-    IPA.start_entities();
-
-    IPA.metadata = {};
     var navigation_container = $('<div id="navigation"/>').appendTo(document.body);
     var entity_container = $('<div id="content"/>').appendTo(document.body);
-    var user_mock_called = false;
-    var group_mock_called = false;
 
     var navigation = IPA.navigation({
         container: navigation_container,

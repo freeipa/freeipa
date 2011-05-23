@@ -143,8 +143,6 @@ $(function() {
         $('#loggedinas a').fragment(
             {'user-facet': 'details', 'user-pkey': IPA.whoami_pkey}, 2);
 
-        IPA.start_entities();
-
         IPA.nav = create_navigation();
         IPA.nav.create();
         IPA.nav.update();

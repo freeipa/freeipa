@@ -39,7 +39,6 @@ module('entity',{
                             columns:['uid']}).
                         build();
                 };
-                IPA.start_entities();
             },
             function(xhr, text_status, error_thrown) {
                 ok(false, "ipa_init() failed: "+error_thrown);
