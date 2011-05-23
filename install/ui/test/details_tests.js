@@ -198,7 +198,7 @@ test("Testing details lifecycle: create, setup, load.", function(){
         name: 'user',
         title: 'User',
         'class': 'entity'
-    }).appendTo(entities_container);
+    }).appendTo(details_container);
 
     entity.create(entity_container);
 
