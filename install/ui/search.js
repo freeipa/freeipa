@@ -166,7 +166,7 @@ IPA.search_facet = function(spec) {
         that.entity.header.facet_tabs.css('visibility', 'hidden');
 
         if (that.filter) {
-            var filter = $.bbq.getState(that.entity_name + '-filter', true) || '';
+            var filter = $.bbq.getState(that.entity_name+'-filter');
             that.filter.val(filter);
         }
     };
@@ -295,16 +295,16 @@ IPA.search_facet = function(spec) {
             summary.append('<p>'+error_thrown.message+'</p>');
         }
 
+
         var filter = [];
         var current_entity = entity;
-        filter.unshift($.bbq.getState(current_entity.name + '-filter', true) || '');
+        filter.unshift($.bbq.getState(current_entity.name+'-filter'));
         current_entity = current_entity.containing_entity;
         while(current_entity !== null){
             filter.unshift(
-                $.bbq.getState(current_entity.name + '-pkey', true) || '');
+                $.bbq.getState(current_entity.name+'-pkey'));
             current_entity = current_entity.containing_entity;
         }
-
 
         var command = IPA.command({
             entity: entity.name,
@@ -343,17 +343,17 @@ IPA.nested_search_facet = function(spec){
         that.entity.header.facet_tabs.css('visibility', 'visible');
 
         that.entity.header.set_pkey(
-            $.bbq.getState(IPA.current_entity.name + '-pkey', true) || '');
+            $.bbq.getState(IPA.current_entity.name+'-pkey'));
+
         if (that.filter) {
-            var filter = 
-                $.bbq.getState(that.managed_entity_name + '-filter', true) || '';
+            var filter = $.bbq.getState(that.managed_entity_name+'-filter');
             that.filter.val(filter);
         }
     };
 
     that.refresh = function(){
 
-        var pkey = $.bbq.getState(that.entity.name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity.name+'-pkey');
 
         if ((!pkey) && (that.entity.redirect_facet)) {
 

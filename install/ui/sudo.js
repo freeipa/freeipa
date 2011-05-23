@@ -197,7 +197,7 @@ IPA.sudocmd_member_sudocmdgroup_table_widget = function (spec) {
             'on_error': on_error
         });
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
 
         for (var i=0; i<values.length; i++) {
             var value = values[i];
@@ -226,7 +226,7 @@ IPA.sudocmd_member_sudocmdgroup_table_widget = function (spec) {
             'on_error': on_error
         });
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
 
         for (var i=0; i<values.length; i++) {
             var value = values[i];
@@ -354,7 +354,7 @@ IPA.sudorule_details_facet = function (spec) {
 
     that.update = function() {
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
 
         var modify_operation = {
             'execute': false,
@@ -1042,7 +1042,7 @@ IPA.sudorule_association_table_widget = function (spec) {
     that.external = spec.external;
 
     that.create_add_dialog = function() {
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
         var label = IPA.metadata.objects[that.other_entity].label;
         var title = 'Add '+label+' to '+that.entity_name+' '+pkey;
 
@@ -1240,7 +1240,7 @@ IPA.sudorule_command_table_widget = function (spec) {
 
     that.add = function(values, on_success, on_error) {
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
 
         var batch = IPA.batch_command({
             'on_success': on_success,
@@ -1278,7 +1278,7 @@ IPA.sudorule_command_table_widget = function (spec) {
 
     that.remove = function(values, on_success, on_error) {
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
 
         var command = IPA.command({
             entity: that.entity_name,

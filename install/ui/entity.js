@@ -364,8 +364,7 @@ IPA.entity = function (spec) {
         var current_entity = that;
         current_entity = current_entity.containing_entity;
         while(current_entity !== null){
-            pkey.unshift(
-                $.bbq.getState(current_entity.name + '-pkey', true) || '');
+            pkey.unshift($.bbq.getState(current_entity.name+'-pkey'));
             current_entity = current_entity.containing_entity;
         }
         return pkey;
@@ -375,8 +374,7 @@ IPA.entity = function (spec) {
     that.get_primary_key = function() {
         var pkey = that.get_primary_key_prefix();
         var current_entity = that;
-        pkey.unshift(
-            $.bbq.getState(current_entity.name + '-pkey', true) || '');
+        pkey.unshift($.bbq.getState(current_entity.name+'-pkey'));
         return pkey;
     };
 
@@ -387,7 +385,7 @@ IPA.entity = function (spec) {
 };
 
 IPA.current_facet =  function (entity){
-    var facet_name = $.bbq.getState(entity.name + '-facet', true);
+    var facet_name = $.bbq.getState(entity.name+'-facet');
     var facets = entity.facets.values;
     if (!facet_name  && facets.length) {
         facet_name = facets[0].name;
@@ -473,7 +471,7 @@ IPA.entity_header = function(spec) {
 
     that.select_tab = function() {
         $(that.facet_tabs).find('a').removeClass('selected');
-        var facet_name = $.bbq.getState(that.entity.name + '-facet', true);
+        var facet_name = $.bbq.getState(that.entity.name+'-facet');
 
         if (!facet_name || facet_name === 'default') {
             that.facet_tabs.find('a:first').addClass('selected');
@@ -490,8 +488,7 @@ IPA.entity_header = function(spec) {
 
             while(current_entity){
                 breadcrumb.unshift($('<a/>',{
-                    text:$.bbq.getState(current_entity.name + '-pkey', true) ||
-                        '',
+                    text:$.bbq.getState(current_entity.name+'-pkey'),
                     title: current_entity.name,
                     click: function() {
                         var entity = IPA.get_entity((this.title));
@@ -538,7 +535,7 @@ IPA.entity_header = function(spec) {
                     return false;
                 }
 
-                var pkey = $.bbq.getState(that.entity.name+'-pkey', true);
+                var pkey = $.bbq.getState(that.entity.name+'-pkey');
 
                 IPA.nav.show_page(that.entity.name, other_facet.name, pkey);
                 $('a', that.facet_tabs).removeClass('selected');

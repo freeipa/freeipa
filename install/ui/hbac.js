@@ -341,7 +341,7 @@ IPA.hbacrule_details_facet = function (spec) {
 
     that.update = function() {
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
 
         var modify_operation = {
             'execute': false,
@@ -837,7 +837,7 @@ IPA.hbacrule_accesstime_widget = function (spec) {
 
     that.add = function() {
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
         var title = IPA.messages.association.add;
         title = title.replace('${entity}', IPA.metadata.objects[that.entity_name].label);
         title = title.replace('${primary_key}', pkey);
@@ -946,7 +946,7 @@ IPA.hbacrule_accesstime_widget = function (spec) {
             return;
         }
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
         title = IPA.messages.association.remove;
         title = title.replace('${entity}', IPA.metadata.objects[that.entity_name].label);
         title = title.replace('${primary_key}', pkey);
@@ -1002,7 +1002,7 @@ IPA.hbacrule_accesstime_widget = function (spec) {
             summary.append('<p>'+error_thrown.message+'</p>');
         }
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
         IPA.command({
             entity: that.entity_name,
             method: 'show',

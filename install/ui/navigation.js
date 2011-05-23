@@ -88,7 +88,7 @@ IPA.navigation = function(spec) {
     };
 
     that.get_state = function(key) {
-        return $.bbq.getState(key, true);
+        return $.bbq.getState(key);
     };
 
     that.remove_state = function(key) {

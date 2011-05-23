@@ -211,7 +211,7 @@ IPA.records_facet = function(spec) {
 
         dialog.add = function() {
 
-            var pkey = $.bbq.getState(that.entity_name+'-pkey', true);
+            var pkey = $.bbq.getState(that.entity_name+'-pkey');
             var resource = dialog.resource.val();
 
             var options = {};
@@ -244,7 +244,7 @@ IPA.records_facet = function(spec) {
             return;
         }
 
-        var zone = $.bbq.getState('dnszone-pkey', true);
+        var zone = $.bbq.getState('dnszone-pkey');
 
         var records = [];
 
@@ -330,8 +330,8 @@ IPA.records_facet = function(spec) {
     };
 
     that.is_dirty = function() {
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        var record = $.bbq.getState(that.entity_name + '-record', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
+        var record = $.bbq.getState(that.entity_name+'-record');
         return pkey != that.pkey || record != that.record;
     };
 
@@ -415,8 +415,8 @@ IPA.records_facet = function(spec) {
     that.show = function() {
         that.facet_show();
 
-        that.record = $.bbq.getState(that.entity_name + '-record', true) || '';
-        that.pkey = $.bbq.getState(that.entity_name+'-pkey', true) || '';
+        that.record = $.bbq.getState(that.entity_name+'-record');
+        that.pkey = $.bbq.getState(that.entity_name+'-pkey');
         that.entity.header.set_pkey(that.pkey);
 
         that.entity.header.back_link.css('visibility', 'visible');
@@ -497,7 +497,7 @@ IPA.records_facet = function(spec) {
             options.data = data_filter;
         }
 */
-        var args = [$.bbq.getState(that.entity_name + '-pkey', true)];
+        var args = [$.bbq.getState(that.entity_name+'-pkey')];
 
         if (filter) {
             args.push(filter);

@@ -1374,29 +1374,6 @@ IPA.table_widget = function (spec) {
         }
     };
 
-    that.refresh = function() {
-
-        function on_success(data, text_status, xhr) {
-            that.load(data.result.result);
-        }
-
-        function on_error(xhr, text_status, error_thrown) {
-            var summary = $('span[name=summary]', that.tfoot).empty();
-            summary.append('<p>Error: '+error_thrown.name+'</p>');
-            summary.append('<p>'+error_thrown.message+'</p>');
-        }
-
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
-        IPA.command({
-            entity: that.entity_name,
-            method: 'show',
-            args: [pkey],
-            options: {'all': true, 'rights': true},
-            on_success: on_success,
-            on_error: on_error
-        }).execute();
-    };
-
     if (spec.columns) {
         for (var i=0; i<spec.columns; i++) {
             that.create_column(spec.columns[i]);

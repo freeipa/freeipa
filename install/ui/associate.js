@@ -527,7 +527,7 @@ IPA.association_table_widget = function (spec) {
     };
 
     that.create_add_dialog = function() {
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
         var label = IPA.metadata.objects[that.other_entity].label;
         var title = IPA.messages.association.add;
 
@@ -575,7 +575,7 @@ IPA.association_table_widget = function (spec) {
 
     that.add = function(values, on_success, on_error) {
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
 
         var command = IPA.command({
             entity: that.entity_name,
@@ -600,7 +600,7 @@ IPA.association_table_widget = function (spec) {
             return;
         }
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
         var label = IPA.metadata.objects[that.other_entity].label;
         var title = IPA.messages.association.remove;
 
@@ -638,7 +638,7 @@ IPA.association_table_widget = function (spec) {
 
     that.remove = function(values, on_success, on_error) {
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
 
         var command = IPA.command({
             entity: that.entity_name,
@@ -651,6 +651,29 @@ IPA.association_table_widget = function (spec) {
         command.set_option(that.other_entity, values.join(','));
 
         command.execute();
+    };
+
+    that.refresh = function() {
+
+        function on_success(data, text_status, xhr) {
+            that.load(data.result.result);
+        }
+
+        function on_error(xhr, text_status, error_thrown) {
+            var summary = $('span[name=summary]', that.tfoot).empty();
+            summary.append('<p>Error: '+error_thrown.name+'</p>');
+            summary.append('<p>'+error_thrown.message+'</p>');
+        }
+
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
+        IPA.command({
+            entity: that.entity_name,
+            method: 'show',
+            args: [pkey],
+            options: {'all': true, 'rights': true},
+            on_success: on_success,
+            on_error: on_error
+        }).execute();
     };
 
     // methods that should be invoked by subclasses
@@ -787,7 +810,7 @@ IPA.association_facet = function (spec) {
     };
 
     that.is_dirty = function() {
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
         return pkey != that.pkey;
     };
 
@@ -795,7 +818,7 @@ IPA.association_facet = function (spec) {
 
         that.facet_create_header(container);
 
-        that.pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        that.pkey = $.bbq.getState(that.entity_name+'-pkey');
         var other_label = IPA.metadata.objects[that.other_entity].label;
 
         var title = that.title;
@@ -845,7 +868,7 @@ IPA.association_facet = function (spec) {
     that.show = function() {
         that.facet_show();
 
-        that.pkey = $.bbq.getState(that.entity_name+'-pkey', true) || '';
+        that.pkey = $.bbq.getState(that.entity_name+'-pkey');
         that.entity.header.set_pkey(that.pkey);
 
         that.entity.header.back_link.css('visibility', 'visible');
@@ -854,7 +877,7 @@ IPA.association_facet = function (spec) {
 
     that.show_add_dialog = function() {
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
         var label = IPA.metadata.objects[that.other_entity] ? IPA.metadata.objects[that.other_entity].label : that.other_entity;
         var title = IPA.messages.association.add;
 
@@ -877,7 +900,7 @@ IPA.association_facet = function (spec) {
 
         dialog.execute = function() {
 
-            var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+            var pkey = $.bbq.getState(that.entity_name+'-pkey');
 
             var associator = that.associator({
                 'entity_name': that.entity_name,
@@ -915,7 +938,7 @@ IPA.association_facet = function (spec) {
             return;
         }
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
         var title = IPA.messages.association.remove;
 
         title = title.replace('${entity}', that.entity_name);
@@ -966,7 +989,7 @@ IPA.association_facet = function (spec) {
             'rights': true
         };
 
-        var pkey = $.bbq.getState(that.entity_name + '-pkey', true) || '';
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
         var args =[];
         /* TODO: make a general solution to generate this value */
         var relationship_filter = 'in_' + that.entity_name;
