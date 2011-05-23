@@ -185,11 +185,8 @@ def get_schema(url, conn=None):
 
     return _ldap.schema.SubSchema(schema_entry[1])
 
-# cache schema when importing module
-try:
-    _schema = get_schema(api.env.ldap_uri)
-except AttributeError:
-    _schema = None
+# Global schema
+_schema = None
 
 # The UPG setting will be cached the first time a module checks it
 _upg = None
@@ -261,7 +258,7 @@ class ldap2(CrudBackend, Encoder):
 
     def get_syntax(self, attr, value):
         if not self.schema:
-            return None
+            self.get_schema()
         obj = self.schema.get_obj(_ldap.schema.AttributeType, attr)
         if obj is not None:
             return obj.syntax
@@ -270,7 +267,7 @@ class ldap2(CrudBackend, Encoder):
 
     def get_allowed_attributes(self, objectclasses):
         if not self.schema:
-            return []
+            self.get_schema()
         allowed_attributes = []
         for oc in objectclasses:
             obj = self.schema.get_obj(_ldap.schema.ObjectClass, oc)
@@ -287,10 +284,10 @@ class ldap2(CrudBackend, Encoder):
         If there is a problem loading the schema or the attribute is
         not in the schema return None
         """
-        if self.schema:
-            obj = self.schema.get_obj(_ldap.schema.AttributeType, attr)
-            return obj and obj.single_value
-        return None
+        if not self.schema:
+            self.get_schema()
+        obj = self.schema.get_obj(_ldap.schema.AttributeType, attr)
+        return obj and obj.single_value
 
     @encode_args(2, 3, 'bind_dn', 'bind_pw')
     def create_connection(self, ccache=None, bind_dn='', bind_pw='',
@@ -336,10 +333,8 @@ class ldap2(CrudBackend, Encoder):
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
 
-        if self.schema is None and _schema is None:
-            # explicitly use setattr here so the schema can be set after
-            # the object is finalized.
-            object.__setattr__(self, 'schema', get_schema(self.ldap_uri, conn))
+        if _schema:
+            object.__setattr__(self, 'schema', _schema)
         return conn
 
     def destroy_connection(self):
@@ -656,9 +651,21 @@ class ldap2(CrudBackend, Encoder):
         setattr(context, 'config_entry', copy.deepcopy(config_entry))
         return (cdn, config_entry)
 
-    def get_schema(self):
-        """Returns a copy of the current LDAP schema."""
-        return copy.deepcopy(self.schema)
+    def get_schema(self, deepcopy=False):
+        """Returns either a reference to current schema or its deep copy"""
+        global _schema
+        if not _schema:
+            _schema = get_schema(self.ldap_uri, self.conn)
+            if not _schema:
+                raise errors.DatabaseError(desc='Unable to retrieve LDAP schema', info='Unable to proceed with request')
+            # explicitly use setattr here so the schema can be set after
+            # the object is finalized.
+            object.__setattr__(self, 'schema', _schema)
+
+        if (deepcopy):
+            return copy.deepcopy(self.schema)
+        else:
+            return self.schema
 
     def has_upg(self):
         """Returns True/False whether User-Private Groups are enabled.

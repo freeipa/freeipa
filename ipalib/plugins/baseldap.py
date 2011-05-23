@@ -597,6 +597,7 @@ class LDAPCreate(CallbackInterface, crud.Create):
                 )
 
         _check_single_value_attrs(self.params, entry_attrs)
+        ldap.get_schema()
         _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.limit_object_classes), entry_attrs.keys(), allow_only=True)
         _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.disallow_object_classes), entry_attrs.keys(), allow_only=False)
 
@@ -869,6 +870,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         _check_single_value_attrs(self.params, entry_attrs)
         _check_empty_attrs(self.obj.params, entry_attrs)
+        ldap.get_schema()
         _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.limit_object_classes), entry_attrs.keys(), allow_only=True)
         _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.disallow_object_classes), entry_attrs.keys(), allow_only=False)
 
