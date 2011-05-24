@@ -20,7 +20,7 @@
 .SH "NAME"
 ipa\-replica\-manage \- Manage an IPA replica
 .SH "SYNOPSIS"
-ipa\-replica\-manage [\fIOPTION\fR]...  [connect|disconnect|del|list|re-initialize|force-sync]
+ipa\-replica\-manage [\fIOPTION\fR]...  [connect|disconnect|del|list|re\-initialize|force\-sync]
 .SH "DESCRIPTION"
 Manages the replication agreements of an IPA server.
 .TP
@@ -36,17 +36,23 @@ Manages the replication agreements of an IPA server.
 \fBlist\fR [SERVER]
 \- Lists all the servers or the list of agreements of SERVER
 .TP
-\fBre-initialize\fR
-\- Forces a full re-initialization of the IPA server retrieving data from the server specified with the --from option
+\fBre\-initialize\fR
+\- Forces a full re\-initialization of the IPA server retrieving data from the server specified with the \-\-from option
 .TP
-\fBforce-sync\fR
-\- Immediately flush any data to be replicated from a server specified with the --from option
+\fBforce\-sync\fR
+\- Immediately flush any data to be replicated from a server specified with the \-\-from option
+.TP
+The connect and disconnect options are used to manage the replication topology. When a replica is created it is only connected with the master that created it. The connect option may be used to connect it to other existing replicas.
+.TP
+The disconnect option cannot be used to remove the last link of a replica. To remove a replica from the topology use the del option.
+.TP
+If a replica is deleted and then re\-added within a short time-frame then the 389\-ds instance on the master that created it should be restarted before re\-installing the replica. The master will have the old service principals cached which will cause replication to fail.
 .SH "OPTIONS"
 .TP
 \fB\-H\fR \fIHOST\fR, \fB\-\-host\fR=\fIHOST\fR
 The IPA server to manage.
 The default is the machine on which the command is run
-Not honoured by the re-initialize command.
+Not honoured by the re\-initialize command.
 .TP
 \fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 The Directory Manager password to use for authentication
@@ -76,7 +82,7 @@ DN of Windows subtree containing the users you want to sync (default cn=Users,<d
 Password for the Windows PassSync user.
 .TP
 \fB\-\-from\fR=\fISERVER\fR
-The server to pull the data from, used by the re-initialize and force-sync commands.
+The server to pull the data from, used by the re\-initialize and force\-sync commands.
 .SH "EXAMPLES"
 .TP
 List all masters:
@@ -91,8 +97,8 @@ List a server's replication agreements.
  srv2.example.com
  srv3.example.com
 .TP
-Re-initialize a replica:
- # ipa\-replica\-manage re-initialize --from srv2.example.com
+Re\-initialize a replica:
+ # ipa\-replica\-manage re\-initialize \-\-from srv2.example.com
 
 This will re\-initialize the data on the server where you execute the command, retrieving the data from the srv2.example.com replica
 .TP
@@ -107,5 +113,5 @@ Completely remove a replica:
 .TP
 Using connect/disconnect you can manage the replication topology.
 .SH "EXIT STATUS"
- 0 if the command was successful
+0 if the command was successful
  1 if an error occurred
