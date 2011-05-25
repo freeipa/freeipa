@@ -395,41 +395,6 @@ static krb5_error_code ipadb_get_age(krb5_context kcontext,
     return 0;
 }
 
-static krb5_error_code ipadb_get_principal(krb5_context kcontext,
-                                           krb5_const_principal search_for,
-                                           unsigned int flags,
-                                           krb5_db_entry **entry)
-{
-    return KRB5_PLUGIN_OP_NOTSUPP;
-}
-
-void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
-{
-    return;
-}
-
-static krb5_error_code ipadb_put_principal(krb5_context kcontext,
-                                           krb5_db_entry *entry,
-                                           char **db_args)
-{
-    return KRB5_PLUGIN_OP_NOTSUPP;
-}
-
-static krb5_error_code ipadb_delete_principal(krb5_context kcontext,
-                                              krb5_const_principal search_for)
-{
-    return KRB5_PLUGIN_OP_NOTSUPP;
-}
-
-static krb5_error_code ipadb_iterate(krb5_context kcontext,
-                                     char *match_entry,
-                                     int (*func)(krb5_pointer,
-                                                 krb5_db_entry *),
-                                     krb5_pointer func_arg)
-{
-    return KRB5_PLUGIN_OP_NOTSUPP;
-}
-
 static krb5_error_code ipadb_create_policy(krb5_context kcontext,
                                            osa_policy_ent_t policy)
 {
