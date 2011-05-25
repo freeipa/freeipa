@@ -388,7 +388,11 @@ static krb5_error_code ipadb_create(krb5_context kcontext,
 static krb5_error_code ipadb_get_age(krb5_context kcontext,
                                      char *db_name, time_t *age)
 {
-    return KRB5_PLUGIN_OP_NOTSUPP;
+    /* just return the current time for now,
+     * until we can use persistent searches and have
+     * a better estimate */
+    *age = time(NULL);
+    return 0;
 }
 
 static krb5_error_code ipadb_get_principal(krb5_context kcontext,

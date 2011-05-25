@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <kdb.h>
 #include <ldap.h>
+#include <time.h>
 
 struct ipadb_context {
     char *uri;
