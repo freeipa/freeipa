@@ -122,7 +122,7 @@ IPA.facet = function (spec) {
     that.load = function() {
     };
 
-    that.is_dirty = function (){
+    that.is_dirty = function() {
         return false;
     };
 
@@ -536,10 +536,7 @@ IPA.entity_header = function(spec) {
                 }
 
                 var pkey = $.bbq.getState(that.entity.name+'-pkey');
-
                 IPA.nav.show_page(that.entity.name, other_facet.name, pkey);
-                $('a', that.facet_tabs).removeClass('selected');
-                $('a', li).addClass('selected');
 
                 return false;
             }

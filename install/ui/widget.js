@@ -51,17 +51,11 @@ IPA.widget = function(spec) {
     that.undo = typeof spec.undo == 'undefined' ? true : spec.undo;
     that.join = spec.join;
 
-    that.init = spec.init || init;
-    that.create = spec.create || create;
-    that.setup = spec.setup || setup;
-    that.load = spec.load || load;
-    that.save = spec.save || save;
-    that.update = spec.update || update;
-
     that.param_info = spec.param_info;
     that.metadata = spec.metadata;
 
     that.values = [];
+    that.dirty = false;
     that.valid = true;
 
     that.__defineGetter__("entity_name", function(){
@@ -128,7 +122,7 @@ IPA.widget = function(spec) {
         }
     };
 
-    function init() {
+    that.init = function() {
         if (that.entity_name) {
             that.param_info = IPA.get_entity_param(that.entity_name, that.name);
 
@@ -143,20 +137,20 @@ IPA.widget = function(spec) {
                 }
             }
         }
-    }
+    };
 
-    function create(container) {
-    }
+    that.create = function(container) {
+    };
 
-    function setup(container) {
+    that.setup = function(container) {
         that.container = container;
-    }
+    };
 
     /**
      * This function stores the entire record and the values
      * of the field, then invoke reset() to update the UI.
      */
-    function load(record) {
+    that.load = function(record) {
         that.record = record;
 
         var value = record[that.name];
@@ -186,24 +180,24 @@ IPA.widget = function(spec) {
         }
 
         that.reset();
-    }
+    };
 
     that.reset = function() {
-        that.hide_undo();
+        that.set_dirty(false);
         that.update();
     };
 
-    function update() {
-    }
+    that.update = function() {
+    };
 
     /**
      * This function saves the values entered in the UI.
      * It returns the values in an array, or null if
      * the field should not be saved.
      */
-    function save() {
+    that.save = function() {
         return that.values;
-    }
+    };
 
     /**
      * This function compares the original values and the
@@ -211,45 +205,7 @@ IPA.widget = function(spec) {
      * it will return true.
      */
     that.is_dirty = function() {
-
-        if (that.read_only) {
-            return false;
-        }
-
-        var values = that.save();
-
-        if (!values) { // ignore null values
-            return false;
-        }
-
-        if (!that.values) {
-
-            if (values instanceof Array) {
-
-                if ((values.length === 0) ||
-                    (values.length === 1) &&
-                    (values[0] === '')) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        if (values.length != that.values.length) {
-            return true;
-        }
-
-        values.sort();
-        that.values.sort();
-
-        for (var i=0; i<values.length; i++) {
-            if (values[i] != that.values[i]) {
-                return true;
-            }
-        }
-
-        return false;
+        return that.dirty;
     };
 
     that.create_undo = function(container) {
@@ -260,6 +216,17 @@ IPA.widget = function(spec) {
                 'class': 'ui-state-highlight ui-corner-all undo',
                 html: 'undo'
             }).appendTo(container);
+    };
+
+    that.set_dirty = function(dirty) {
+        that.dirty = dirty;
+        if (that.undo) {
+            if (dirty) {
+                that.show_undo();
+            } else {
+                that.hide_undo();
+            }
+        }
     };
 
     that.get_undo = function() {
@@ -302,6 +269,7 @@ IPA.widget = function(spec) {
     that.widget_load = that.load;
     that.widget_reset = that.reset;
     that.widget_save = that.save;
+    that.widget_set_dirty = that.set_dirty;
 
     return that;
 };
@@ -352,9 +320,7 @@ IPA.text_widget = function(spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.keyup(function() {
-            if (that.undo) {
-                that.show_undo();
-            }
+            that.set_dirty(true);
             that.validate();
         });
 
@@ -415,6 +381,17 @@ IPA.multivalued_text_widget = function(spec) {
         } else {
             var row = that.get_row(index);
             return $('span[name="undo"]', row);
+        }
+    };
+
+    that.set_dirty = function(dirty, index) {
+        that.widget_set_dirty(dirty);
+        if (that.undo) {
+            if (dirty) {
+                that.show_undo(index);
+            } else {
+                that.hide_undo(index);
+            }
         }
     };
 
@@ -550,9 +527,8 @@ IPA.multivalued_text_widget = function(spec) {
             var index = that.row_index(row);
             if (index >= that.values.length) {
                 // show undo/remove link for new value
+                that.set_dirty(true, index);
                 if (that.undo) {
-                    that.show_undo(index);
-                    that.show_undo();
                     remove_link.css('display', 'none');
                 } else {
                     remove_link.css('display', 'inline');
@@ -563,9 +539,8 @@ IPA.multivalued_text_widget = function(spec) {
                 var index = that.row_index(row);
                 // uncross removed value
                 input.removeClass('strikethrough');
+                that.set_dirty(true, index);
                 if (that.undo) {
-                    that.show_undo(index);
-                    that.show_undo();
                     if (index < that.values.length) {
                         remove_link.css('display', 'inline');
                     }
@@ -579,10 +554,7 @@ IPA.multivalued_text_widget = function(spec) {
                     // restore old value then cross it out
                     that.update(index);
                     input.addClass('strikethrough');
-                    if (that.undo) {
-                        that.show_undo(index);
-                        that.show_undo();
-                    }
+                    that.set_dirty(true, index);
                     remove_link.css('display', 'none');
                 } else {
                     // remove new value
@@ -623,7 +595,7 @@ IPA.multivalued_text_widget = function(spec) {
     };
 
     that.reset = function(index) {
-        that.hide_undo(index);
+        that.set_dirty(false, index);
         that.update(index);
     };
 
@@ -685,7 +657,7 @@ IPA.checkbox_widget = function (spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
-            that.show_undo();
+            that.set_dirty(true);
         });
 
         var undo = that.get_undo();
@@ -759,7 +731,7 @@ IPA.checkboxes_widget = function (spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
-            that.show_undo();
+            that.set_dirty(true);
         });
 
         var undo = that.get_undo();
@@ -837,7 +809,7 @@ IPA.radio_widget = function(spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
-            that.show_undo();
+            that.set_dirty(true);
         });
 
         var undo = that.get_undo();
@@ -913,7 +885,7 @@ IPA.select_widget = function(spec) {
 
         that.select = $('select[name="'+that.name+'"]', that.container);
         that.select.change(function() {
-            that.show_undo();
+            that.set_dirty(true);
         });
 
         var undo = that.get_undo();
@@ -994,7 +966,7 @@ IPA.textarea_widget = function (spec) {
 
         var input = $('textarea[name="'+that.name+'"]', that.container);
         input.keyup(function() {
-            that.show_undo();
+            that.set_dirty(true);
             that.validate();
 
         });
@@ -1439,7 +1411,7 @@ IPA.entity_select_widget = function(spec) {
         that.entity_select = $('<select/>', {
             id: that.name + '-entity-select',
             change: function(){
-                that.show_undo();
+                that.set_dirty(true);
             }
         }).appendTo(container);
 
@@ -1450,7 +1422,7 @@ IPA.entity_select_widget = function(spec) {
             style: 'display: none;',
             keyup: function(){
                 populate_select();
-                that.show_undo();
+                that.set_dirty(true);
             }
         }).appendTo(container);
 
@@ -1477,12 +1449,8 @@ IPA.entity_select_widget = function(spec) {
 
     that.reset = function() {
         that.entity_filter.val(that.values[0]);
-        that.hide_undo();
+        that.set_dirty(false);
         populate_select(that.values[0]);
-    };
-
-    that.is_dirty = function() {
-        return (that.save()[0] !== that.values[0]);
     };
 
     that.load = function(record) {

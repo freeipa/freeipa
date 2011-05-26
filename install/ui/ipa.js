@@ -155,37 +155,6 @@ var IPA = ( function () {
         that.entities.remove(name);
     };
 
-    that.test_dirty = function(){
-        if (IPA.current_entity){
-            var facet_name =   IPA.current_facet(IPA.current_entity);
-            var facet = IPA.current_entity.get_facet(facet_name);
-            if (!facet) return false;
-
-            if (facet.is_dirty()){
-
-                var dialog = IPA.dialog({
-                    title: IPA.messages.dialogs.dirty_title,
-                    width: '20em'
-                });
-
-                dialog.create = function() {
-                    dialog.container.append(IPA.messages.dialogs.dirty_message);
-                };
-
-                dialog.add_button(IPA.messages.buttons.ok, function() {
-                    dialog.close();
-                });
-
-                dialog.init();
-
-                dialog.open($('#navigation'));
-
-                return false;
-            }
-        }
-        return true;
-    };
-
     that.display_activity_icon = function() {
         that.network_call_count++;
         $('.network-activity-indicator').css('visibility', 'visible');
@@ -577,4 +546,41 @@ IPA.create_network_spinner = function(){
     return $('<span />',{
         'class':'network-activity-indicator',
         html: '<img src="spinner_small.gif" />'});
+};
+
+IPA.dirty_dialog = function(spec) {
+
+    spec = spec || {};
+    spec.title = spec.title || IPA.messages.dialogs.dirty_title;
+    spec.width = spec.width || '25em';
+
+    var that = IPA.dialog(spec);
+    that.facet = spec.facet;
+    that.message = spec.message || IPA.messages.dialogs.dirty_message;
+
+    that.create = function() {
+        that.container.append(that.message);
+    };
+
+    that.add_button(IPA.messages.buttons.update, function() {
+        that.facet.update(function() {
+            that.close();
+            that.callback();
+        });
+    });
+
+    that.add_button(IPA.messages.buttons.reset, function() {
+        that.facet.reset();
+        that.close();
+        that.callback();
+    });
+
+    that.add_button(IPA.messages.buttons.cancel, function() {
+        that.close();
+    });
+
+    that.callback = function() {
+    };
+
+    return that;
 };

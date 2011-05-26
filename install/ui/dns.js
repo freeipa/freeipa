@@ -329,12 +329,6 @@ IPA.records_facet = function(spec) {
         dialog.open(that.container);
     };
 
-    that.is_dirty = function() {
-        var pkey = $.bbq.getState(that.entity_name+'-pkey');
-        var record = $.bbq.getState(that.entity_name+'-record');
-        return pkey != that.pkey || record != that.record;
-    };
-
     that.create_header = function(container) {
 
         that.facet_create_header(container);

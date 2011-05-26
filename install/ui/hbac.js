@@ -438,7 +438,6 @@ IPA.hbacrule_details_facet = function (spec) {
             for (var j=0; j<section_fields.length; j++) {
                 var field = section_fields[j];
 
-                var span = $('span[name='+field.name+']', section.container).first();
                 var values = field.save();
                 if (!values) continue;
 
@@ -461,7 +460,7 @@ IPA.hbacrule_details_facet = function (spec) {
                 }
 
                 // skip unchanged field
-                if (!field.is_dirty(span)) continue;
+                if (!field.is_dirty()) continue;
 
                 // check enable/disable
                 if (field.name == 'ipaenabledflag') {
@@ -795,7 +794,7 @@ IPA.hbacrule_accesstime_widget = function (spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
-            that.show_undo();
+            that.set_dirty(true);
         });
 
         var undo = that.get_undo();

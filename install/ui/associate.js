@@ -348,7 +348,6 @@ IPA.association_table_widget = function (spec) {
 
     that.create = function(container) {
 
-        var entity = IPA.get_entity(that.entity_name);
         var column;
 
         // create a column if none defined
@@ -395,21 +394,6 @@ IPA.association_table_widget = function (spec) {
 
         that.table_setup(container);
 
-        var dialog = IPA.dialog({
-            title: IPA.messages.dialogs.dirty_title,
-            width: '20em'
-        });
-
-        dialog.create = function() {
-            dialog.container.append(IPA.messages.dialogs.dirty_message);
-        };
-
-        dialog.add_button(IPA.messages.buttons.ok, function() {
-            dialog.close();
-        });
-
-        dialog.init();
-
         var entity = IPA.get_entity(that.entity_name);
         var facet_name = IPA.current_facet(entity);
         var facet = entity.get_facet(facet_name);
@@ -424,7 +408,17 @@ IPA.association_table_widget = function (spec) {
                 }
 
                 if (facet.is_dirty()) {
+                    var dialog = IPA.dirty_dialog({
+                        facet: facet
+                    });
+
+                    dialog.callback = function() {
+                        that.show_remove_dialog();
+                    };
+
+                    dialog.init();
                     dialog.open(that.container);
+
                 } else {
                     that.show_remove_dialog();
                 }
@@ -443,7 +437,17 @@ IPA.association_table_widget = function (spec) {
                 }
 
                 if (facet.is_dirty()) {
+                    var dialog = IPA.dirty_dialog({
+                        facet: facet
+                    });
+
+                    dialog.callback = function() {
+                        that.show_add_dialog();
+                    };
+
+                    dialog.init();
                     dialog.open(that.container);
+
                 } else {
                     that.show_add_dialog();
                 }
@@ -807,11 +811,6 @@ IPA.association_facet = function (spec) {
         }
 
         that.table.init();
-    };
-
-    that.is_dirty = function() {
-        var pkey = $.bbq.getState(that.entity_name+'-pkey');
-        return pkey != that.pkey;
     };
 
     that.create_header = function(container) {

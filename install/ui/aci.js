@@ -233,7 +233,7 @@ IPA.attributes_widget = function(spec) {
                 click: function(){
                     $('.aci-attribute', that.table).
                         attr('checked', $(this).attr('checked'));
-                    that.show_undo();
+                    that.set_dirty(true);
                 }
             })
         })).append($('<th/>', {
@@ -245,7 +245,6 @@ IPA.attributes_widget = function(spec) {
             that.create_undo(container);
             that.get_undo().click(function(){
                 that.reset();
-                that.hide_undo();
             });
         }
 
@@ -298,7 +297,7 @@ IPA.attributes_widget = function(spec) {
                 value: value,
                 'class': 'aci-attribute',
                 click: function() {
-                    that.show_undo();
+                    that.set_dirty(true);
                 }
             }));
             td =  $('<td/>').appendTo(aci_tr);
@@ -335,7 +334,7 @@ IPA.attributes_widget = function(spec) {
                     value: value,
                     'class': 'aci-attribute',
                     change: function() {
-                        that.show_undo();
+                        that.set_dirty(true);
                     }
                 }));
 

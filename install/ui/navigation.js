@@ -80,9 +80,27 @@ IPA.navigation = function(spec) {
     };
 
     that.push_state = function(params) {
-        if (!IPA.test_dirty()) {
-            return false;
+
+        if (IPA.current_entity) {
+            var facet_name = IPA.current_facet(IPA.current_entity);
+            var facet = IPA.current_entity.get_facet(facet_name);
+
+            if (facet.is_dirty()) {
+                var dialog = IPA.dirty_dialog({
+                    facet: facet
+                });
+
+                dialog.callback = function() {
+                    $.bbq.pushState(params);
+                };
+
+                dialog.init();
+                dialog.open($('#navigation'));
+
+                return false;
+            }
         }
+
         $.bbq.pushState(params);
         return true;
     };

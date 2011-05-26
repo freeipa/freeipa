@@ -185,13 +185,14 @@ test("IPA.table_widget" ,function(){
 test("Testing base widget.", function() {
     var update_called = false;
     var spec = {
-        name:'title',
-        update:function(){
-            update_called = true;
-        }
+        name:'title'
     };
 
     var widget = IPA.widget(spec);
+    widget.update = function() {
+        update_called = true;
+    };
+
     base_widget_test(widget,'user','test_value');
     widget_string_test(widget);
     ok (update_called, 'Update called');

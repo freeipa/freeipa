@@ -496,14 +496,11 @@ IPA.details_facet = function(spec) {
 
 
     that.is_dirty = function() {
-
-        var i;
-        for ( i =0; i <   that.sections.length; i +=1 ){
-            if (that.sections[i].is_dirty()){
+        for (var i=0; i<that.sections.length; i++) {
+            if (that.sections[i].is_dirty()) {
                 return true;
             }
         }
-
         return false;
     };
 
@@ -558,7 +555,6 @@ IPA.details_facet = function(spec) {
             for (var j=0; j<section_fields.length; j++) {
                 var field = section_fields[j];
 
-                var span = $('span[name='+field.name+']', section.container).first();
                 values = field.save();
                 if (!values) continue;
 
