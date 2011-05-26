@@ -1,5 +1,6 @@
 # Authors:
 #   Pavel Zuna <pzuna@redhat.com>
+#   Martin Kosek <mkosek@redhat.com>
 #
 # Copyright (C) 2010  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -49,6 +50,28 @@ EXAMPLES:
    ipa dnsrecord-add example.com _ldap._tcp --srv-rec="0 1 389 slow.example.com"
    ipa dnsrecord-add example.com _ldap._tcp --srv-rec="1 1 389 backup.example.com"
 
+ When dnsrecord-add command is executed with no option to add a specific record
+ an interactive mode is started. The mode interactively prompts for the most
+ typical record types for the respective zone:
+   ipa dnsrecord-add example.com www
+   [A record]: 1.2.3.4,11.22.33.44      (2 interactively entered random IPs)
+   [AAAA record]:                       (no AAAA address entered)
+     Record name: www
+     A record: 1.2.3.4, 11.22.33.44
+
+ The interactive mode can also be used for deleting the DNS records:
+   ipa dnsrecord-del example.com www
+   No option to delete specific record provided.
+   Delete all? Yes/No (default No):     (do not delete all records)
+   Current DNS record contents:
+
+   A record: 1.2.3.4, 11.22.33.44
+
+   Delete A record '1.2.3.4'? Yes/No (default No): 
+   Delete A record '11.22.33.44'? Yes/No (default No): y
+     Record name: www
+     A record: 1.2.3.4                  (A record 11.22.33.44 has been deleted)
+
  Show zone example.com:
    ipa dnszone-show example.com
 
@@ -71,7 +94,6 @@ EXAMPLES:
  if one is not included):
    ipa dns-resolve www.example.com
    ipa dns-resolve www
-
 """
 
 import netaddr
@@ -92,6 +114,14 @@ _record_types = (
     u'RRSIG', u'RP', u'SIG', u'SPF', u'SRV', u'SSHFP', u'TA', u'TKEY',
     u'TSIG', u'TXT',
 )
+
+# DNS zone record identificator
+_dns_zone_record = u'@'
+
+# most used record types, always ask for those in interactive prompt
+_top_record_types = ('A', 'AAAA', )
+_rev_top_record_types = ('PTR', )
+_zone_top_record_types = ('NS', 'MX', 'LOC', )
 
 # attributes derived from record types
 _record_attributes = [str('%srecord' % t.lower()) for t in _record_types]
@@ -194,6 +224,14 @@ _valid_reverse_zones = {
     '.in-addr.arpa.' : 4,
     '.ip6.arpa.' : 32,
 }
+
+def zone_is_reverse(zone_name):
+    for rev_zone_name in _valid_reverse_zones.keys():
+        if zone_name.endswith(rev_zone_name):
+            return True
+
+    return False
+
 
 def has_cli_options(entry, no_option_msg):
     entry = dict((t, entry.get(t, [])) for t in _record_attributes)
@@ -505,7 +543,7 @@ class dnsrecord(LDAPObject):
 
     def is_pkey_zone_record(self, *keys):
         idnsname = keys[-1]
-        if idnsname == '@' or idnsname == ('%s.' % keys[-2]):
+        if idnsname == str(_dns_zone_record) or idnsname == ('%s.' % keys[-2]):
             return True
         return False
 
@@ -533,24 +571,39 @@ class dnsrecord_cmd_w_record_options(Command):
     def get_record_options(self):
         for t in _record_types:
             t = t.encode('utf-8')
-            doc = self.record_param_doc % t
-            validator = _record_validators.get(t)
-            if validator:
-                yield List(
-                    '%srecord?' % t.lower(), validator,
-                    cli_name='%s_rec' % t.lower(), doc=doc,
-                    label='%s record' % t, attribute=True
-                )
-            else:
-                yield List(
-                    '%srecord?' % t.lower(), cli_name='%s_rec' % t.lower(),
-                    doc=doc, label='%s record' % t, attribute=True
-                )
+            yield self.get_record_option(t)
 
     def record_options_2_entry(self, **options):
         entries = dict((t, options.get(t, [])) for t in _record_attributes)
         entries.update(dict((k, []) for (k,v) in entries.iteritems() if v == None ))
         return entries
+
+    def get_record_option(self, rec_type):
+        doc = self.record_param_doc % rec_type
+        validator = _record_validators.get(rec_type)
+        if validator:
+            return List(
+                '%srecord?' % rec_type.lower(), validator,
+                cli_name='%s_rec' % rec_type.lower(), doc=doc,
+                label='%s record' % rec_type, attribute=True
+            )
+        else:
+            return List(
+                '%srecord?' % rec_type.lower(), cli_name='%s_rec' % rec_type.lower(),
+                doc=doc, label='%s record' % rec_type, attribute=True
+            )
+
+    def prompt_record_options(self, rec_type_list):
+        user_options = {}
+        # ask for all usual record types
+        for rec_type in rec_type_list:
+            rec_option = self.get_record_option(rec_type)
+            raw = self.Backend.textui.prompt(rec_option.label,optional=True)
+            rec_value = rec_option(raw)
+            if rec_value is not None:
+                 user_options[rec_option.name] = rec_value
+
+        return user_options
 
 
 class dnsrecord_mod_record(LDAPQuery, dnsrecord_cmd_w_record_options):
@@ -599,7 +652,7 @@ class dnsrecord_mod_record(LDAPQuery, dnsrecord_cmd_w_record_options):
             self.obj.handle_not_found(*keys)
 
         if self.obj.is_pkey_zone_record(*keys):
-            entry_attrs[self.obj.primary_key.name] = [u'@']
+            entry_attrs[self.obj.primary_key.name] = [_dns_zone_record]
 
         retval = self.post_callback(keys, entry_attrs)
         if retval:
@@ -637,7 +690,8 @@ class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
     """
     Add new DNS resource record.
     """
-    no_option_msg = 'No options to add a specific record provided.'
+    no_option_msg = 'No options to add a specific record provided.\n' \
+            "Command help may be consulted for all supported record types."
     takes_options = LDAPCreate.takes_options + (
         Flag('force',
              label=_('Force'),
@@ -693,6 +747,24 @@ class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
 
         return dn
 
+    def interactive_prompt_callback(self, kw):
+        for param in kw.keys():
+            if param in _record_attributes:
+                # some record type entered, skip this helper
+                return
+
+        # check zone type
+        if kw['idnsname'] == _dns_zone_record:
+            top_record_types = _zone_top_record_types
+        elif zone_is_reverse(kw['dnszoneidnsname']):
+            top_record_types = _rev_top_record_types
+        else:
+            top_record_types = _top_record_types
+
+        # ask for all usual record types
+        user_options = self.prompt_record_options(top_record_types)
+        kw.update(user_options)
+
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         for rtype in options:
             rtype_cb = '_%s_pre_callback' % rtype
@@ -727,7 +799,8 @@ class dnsrecord_del(dnsrecord_mod_record):
     """
     Delete DNS resource record.
     """
-    no_option_msg = _('Neither --del-all nor options to delete a specific record provided.')
+    no_option_msg = _('Neither --del-all nor options to delete a specific record provided.\n'\
+            "Command help may be consulted for all supported record types.")
     takes_options = (
             Flag('del_all',
                 default=False,
@@ -744,6 +817,52 @@ class dnsrecord_del(dnsrecord_mod_record):
     def record_options_2_entry(self, **options):
         entry = super(dnsrecord_del, self).record_options_2_entry(**options)
         return has_cli_options(entry, self.no_option_msg)
+
+    def interactive_prompt_callback(self, kw):
+        if kw.get('del_all', False):
+            return
+        for param in kw.keys():
+            if param in _record_attributes:
+                # we have something to delete, skip this helper
+                return
+
+        # get DNS record first so that the NotFound exception is raised
+        # before the helper would start
+        dns_record = api.Command['dnsrecord_show'](kw['dnszoneidnsname'], kw['idnsname'])['result']
+        rec_types = [rec_type for rec_type in dns_record if rec_type in _record_attributes]
+
+        self.Backend.textui.print_plain(_("No option to delete specific record provided."))
+        user_del_all = self.Backend.textui.prompt_yesno(_("Delete all?"), default=False)
+
+        if user_del_all is True:
+            kw['del_all'] = True
+            return
+
+        # ask user for records to be removed
+        dns_record = api.Command['dnsrecord_show'](kw['dnszoneidnsname'], kw['idnsname'])['result']
+        rec_types = [rec_type for rec_type in dns_record if rec_type in _record_attributes]
+
+        self.Backend.textui.print_plain(_(u'Current DNS record contents:\n'))
+        present_params = []
+        for param in self.params():
+            if param.name in _record_attributes and param.name in dns_record:
+                present_params.append(param)
+                rec_type_content = u', '.join(dns_record[param.name])
+                self.Backend.textui.print_plain(u'%s: %s' % (param.label, rec_type_content))
+        self.Backend.textui.print_plain(u'')
+
+        # ask what records to remove
+        for param in present_params:
+            deleted_values = []
+            for rec_value in dns_record[param.name]:
+                user_del_value = self.Backend.textui.prompt_yesno(
+                        _(u"Delete %s '%s'?"
+                        %  (param.label, rec_value)), default=False)
+                if user_del_value is True:
+                     deleted_values.append(rec_value)
+            if deleted_values:
+                deleted_list = u','.join(deleted_values)
+                kw[param.name] = param(deleted_list)
 
     def update_old_entry_callback(self, entry_attrs, old_entry_attrs):
         for (a, v) in entry_attrs.iteritems():
@@ -776,7 +895,7 @@ class dnsrecord_show(LDAPRetrieve, dnsrecord_cmd_w_record_options):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if self.obj.is_pkey_zone_record(*keys):
-            entry_attrs[self.obj.primary_key.name] = [u'@']
+            entry_attrs[self.obj.primary_key.name] = [_dns_zone_record]
         return dn
 
 api.register(dnsrecord_show)
@@ -805,7 +924,7 @@ class dnsrecord_find(LDAPSearch, dnsrecord_cmd_w_record_options):
             zone_obj = self.api.Object[self.obj.parent_object]
             zone_dn = zone_obj.get_dn(args[0])
             if entries[0][0] == zone_dn:
-                entries[0][1][zone_obj.primary_key.name] = [u'@']
+                entries[0][1][zone_obj.primary_key.name] = [_dns_zone_record]
 
 api.register(dnsrecord_find)
 

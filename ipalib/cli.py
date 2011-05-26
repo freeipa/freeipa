@@ -527,6 +527,47 @@ class textui(backend.Backend):
             return None
         return self.decode(data)
 
+    def prompt_yesno(self, label, default=None):
+        """
+        Prompt user for yes/no input. This method returns True/False according
+        to user response.
+
+        Parameter "default" should be True, False or None
+
+        If Default parameter is not None, user can enter an empty input instead
+        of Yes/No answer. Value passed to Default is returned in that case.
+        
+        If Default parameter is None, user is asked for Yes/No answer until
+        a correct answer is provided. Answer is then returned.
+
+        In case of an error, a None value may returned
+        """
+
+        default_prompt = None
+        if default is not None:
+            if default:
+                default_prompt = "Yes"
+            else:
+                default_prompt = "No"
+
+        if default_prompt:
+            prompt = u'%s Yes/No (default %s): ' % (label, default_prompt)
+        else:
+            prompt = u'%s Yes/No: ' % label
+
+        while True:
+            try:
+                data = raw_input(self.encode(prompt)).lower()
+            except EOFError:
+                return None
+
+            if data in (u'yes', u'y'):
+                return True
+            elif data in ( u'n', u'no'):
+                return False
+            elif default is not None and data == u'':
+                return default
+
     def prompt_password(self, label):
         """
         Prompt user for a password or read it in via stdin depending
@@ -1031,6 +1072,9 @@ class cli(backend.Executioner):
                 kw[param.name] = self.Backend.textui.prompt_password(
                     param.label
                 )
+
+        for callback in getattr(cmd, 'INTERACTIVE_PROMPT_CALLBACKS', []):
+            callback(kw)
 
     def load_files(self, cmd, kw):
         """

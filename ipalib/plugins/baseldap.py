@@ -482,12 +482,17 @@ class CallbackInterface(Method):
             self.__class__.POST_CALLBACKS = []
         if not hasattr(self.__class__, 'EXC_CALLBACKS'):
             self.__class__.EXC_CALLBACKS = []
+        if not hasattr(self.__class__, 'INTERACTIVE_PROMPT_CALLBACKS'):
+            self.__class__.INTERACTIVE_PROMPT_CALLBACKS = []
         if hasattr(self, 'pre_callback'):
             self.register_pre_callback(self.pre_callback, True)
         if hasattr(self, 'post_callback'):
             self.register_post_callback(self.post_callback, True)
         if hasattr(self, 'exc_callback'):
             self.register_exc_callback(self.exc_callback, True)
+        if hasattr(self, 'interactive_prompt_callback'):
+            self.register_interactive_prompt_callback(
+                    self.interactive_prompt_callback, True) #pylint: disable=E1101
         super(Method, self).__init__()
 
     @classmethod
@@ -519,6 +524,16 @@ class CallbackInterface(Method):
             klass.EXC_CALLBACKS.insert(0, callback)
         else:
             klass.EXC_CALLBACKS.append(callback)
+
+    @classmethod
+    def register_interactive_prompt_callback(klass, callback, first=False):
+        assert callable(callback)
+        if not hasattr(klass, 'INTERACTIVE_PROMPT_CALLBACKS'):
+            klass.INTERACTIVE_PROMPT_CALLBACKS = []
+        if first:
+            klass.INTERACTIVE_PROMPT_CALLBACKS.insert(0, callback)
+        else:
+            klass.INTERACTIVE_PROMPT_CALLBACKS.append(callback)
 
     def _call_exc_callbacks(self, args, options, exc, call_func, *call_args, **call_kwargs):
         rv = None
@@ -670,6 +685,9 @@ class LDAPCreate(CallbackInterface, crud.Create):
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
 
+    def interactive_prompt_callback(self, kw):
+        return
+
     # list of attributes we want exported to JSON
     json_friendly_attributes = (
         'takes_args', 'takes_options',
@@ -794,6 +812,9 @@ class LDAPRetrieve(LDAPQuery):
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
+
+    def interactive_prompt_callback(self, kw):
+        return
 
 
 class LDAPUpdate(LDAPQuery, crud.Update):
@@ -959,6 +980,9 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
 
+    def interactive_prompt_callback(self, kw):
+        return
+
 
 class LDAPDelete(LDAPMultiQuery):
     """
@@ -1045,6 +1069,9 @@ class LDAPDelete(LDAPMultiQuery):
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
+
+    def interactive_prompt_callback(self, kw):
+        return
 
 
 class LDAPModMember(LDAPQuery):
@@ -1191,6 +1218,9 @@ class LDAPAddMember(LDAPModMember):
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
 
+    def interactive_prompt_callback(self, kw):
+        return
+
 
 class LDAPRemoveMember(LDAPModMember):
     """
@@ -1296,6 +1326,9 @@ class LDAPRemoveMember(LDAPModMember):
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
+
+    def interactive_prompt_callback(self, kw):
+        return
 
 
 class LDAPSearch(CallbackInterface, crud.Search):
@@ -1501,6 +1534,9 @@ class LDAPSearch(CallbackInterface, crud.Search):
     def exc_callback(self, args, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
 
+    def interactive_prompt_callback(self, kw):
+        return
+
     # list of attributes we want exported to JSON
     json_friendly_attributes = (
         'takes_options',
@@ -1644,6 +1680,9 @@ class LDAPAddReverseMember(LDAPModReverseMember):
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
 
+    def interactive_prompt_callback(self, kw):
+        return
+
 class LDAPRemoveReverseMember(LDAPModReverseMember):
     """
     Remove other LDAP entries from members in reverse.
@@ -1753,3 +1792,6 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
+
+    def interactive_prompt_callback(self, kw):
+        return
