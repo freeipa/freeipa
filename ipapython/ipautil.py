@@ -95,6 +95,12 @@ class CheckedIPAddress(netaddr.IPAddress):
             raise ValueError("unsupported IP version")
         if addr.is_loopback():
             raise ValueError("cannot use loopback IP address")
+        if addr.is_reserved() or addr in netaddr.ip.IPV4_6TO4:
+            raise ValueError("cannot use IANA reserved IP address")
+        if addr.is_link_local():
+            raise ValueError("cannot use link-local IP address")
+        if addr.is_multicast():
+            raise ValueError("cannot use multicast IP address")
 
         if match_local:
             if addr.version == 4:
@@ -121,6 +127,11 @@ class CheckedIPAddress(netaddr.IPAddress):
                 net = netaddr.IPNetwork(netaddr.cidr_abbrev_to_verbose(str(addr)))
             elif addr.version == 6:
                 net = netaddr.IPNetwork(str(addr) + '/64')
+
+        if addr == net.network:
+            raise ValueError("cannot use IP network address")
+        if addr.version == 4 and addr == net.broadcast:
+            raise ValueError("cannot use broadcast IP address")
 
         super(CheckedIPAddress, self).__init__(addr)
         self.prefixlen = net.prefixlen
