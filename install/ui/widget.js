@@ -36,7 +36,7 @@ IPA.widget = function(spec) {
 
     that.disabled = spec.disabled;
     that.hidden = spec.hidden;
-
+    that.conditional = spec.conditional;
     // read_only is set during initialization
     that.read_only = spec.read_only;
 
@@ -1143,7 +1143,8 @@ IPA.table_widget = function (spec) {
 
             if (that.scrollable && (i == columns.length-1)) {
                 if (column.width) {
-                    var width = parseInt(column.width.substring(0, column.width.length-2),10);
+                    var width = parseInt(
+                        column.width.substring(0, column.width.length-2),10);
                     width += 16;
                     th.css('width', width+'px');
                 }
@@ -1348,6 +1349,11 @@ IPA.table_widget = function (spec) {
         var tr = that.row.clone();
         tr.appendTo(that.tbody);
 
+        $('input[name="select"]', tr).click(function(){
+            that.select_changed();
+        });
+
+
         var columns = that.columns.values;
         for (var i=0; i<columns.length; i++){
             var column = columns[i];
@@ -1356,12 +1362,7 @@ IPA.table_widget = function (spec) {
             value = value ? value.toString() : '';
 
             if (column.primary_key) {
-                // set checkbox value
                 $('input[name="select"]', tr).val(value);
-
-                $('input[name="select"]', tr).click(function(){
-                    that.select_changed();
-                });
             }
 
             var span = $('span[name="'+column.name+'"]', tr);

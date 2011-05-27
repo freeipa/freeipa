@@ -63,7 +63,8 @@ IPA.entity_factories.automountmap = function() {
             nested_entity : 'automountkey',
             label : IPA.metadata.objects.automountkey.label,
             name: 'keys',
-            columns:['description']
+            get_values: IPA.get_option_values,
+            columns:['automountkey','automountinformation']
         }).
         details_facet({
             sections:[
@@ -75,7 +76,27 @@ IPA.entity_factories.automountmap = function() {
             ]
         }).
         adder_dialog({
-            fields:['automountmapname','description']
+            factory: IPA.automountmap_adder_dialog,
+            fields:[{factory:IPA.method_radio_widget,
+                     name: 'method',
+                     undo: false,
+                     label:'Map Type',
+                     options:[{value:'add',label:'Direct'},
+                              {value:'add_indirect',label:'Indirect'}]
+                    },
+                    'automountmapname','description',
+                    {
+                        name:'key',
+                        label:'Mount Point',
+                        conditional:true,
+                        undo: false
+                    },
+                    {
+                        name:'parentmap',
+                        label:'Parent Map',
+                        conditional:true,
+                        undo: false
+                    }]
         }).
         build();
 };
@@ -98,4 +119,65 @@ IPA.entity_factories.automountkey = function() {
             fields:['automountkey','automountinformation']
         }).
         build();
+};
+
+
+IPA.automountmap_adder_dialog = function(spec){
+    var that = IPA.add_dialog(spec);
+
+    that.super_setup = that.setup;
+    that.setup = function(container) {
+        that.super_setup(container);
+        that.disable_conditional_fields();
+    };
+
+    return that;
+};
+
+
+IPA.get_option_values = function(){
+
+    var values = [];
+    $('input[name="select"]:checked', this.table.tbody).each(function() {
+        var value = {};
+        $('span',$(this).parent().parent()).each(function(){
+            var name = this.attributes['name'].value;
+
+            value[name] = $(this).text();
+        });
+        values.push (value);
+    });
+    return values;
+};
+
+IPA.method_radio_widget = function(spec){
+    var direct = true;
+
+    var that = IPA.radio_widget(spec);
+
+    that.setup = function(container) {
+
+        var input = $('input[name="'+that.name+'"]', that.container);
+        input.
+            filter("[value="+ that.dialog.method+"]").
+            attr('checked', true);
+
+
+        input.change(function() {
+            that.dialog.method = this.value;
+
+            if (this.value === 'add_indirect'){
+                that.dialog.enable_conditional_fields();
+            }else{
+                that.dialog.disable_conditional_fields();
+            }
+        });
+    };
+
+    that.reset = function(){
+        var input = $('input[name="'+that.name+'"]', that.container);
+        input.filter("[value=add]").click();
+    };
+
+    return that;
 };

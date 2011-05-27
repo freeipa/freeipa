@@ -32,7 +32,7 @@ IPA.add_dialog = function (spec) {
     that.name = spec.name;
     that.title = spec.title;
     that._entity_name = spec.entity_name;
-
+    that.method = spec.method || 'add';
     that.init = function() {
 
         that.add_button(IPA.messages.buttons.add, function() {
@@ -102,7 +102,7 @@ IPA.add_dialog = function (spec) {
 
         var command = IPA.command({
             entity: that.entity_name,
-            method: 'add',
+            method: that.method,
             on_success: on_success,
             on_error: on_error
         });

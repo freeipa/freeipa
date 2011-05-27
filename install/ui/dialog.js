@@ -43,6 +43,31 @@ IPA.dialog = function(spec) {
     that.fields = $.ordered_map();
     that.sections = $.ordered_map();
 
+    that.conditional_fields = [];
+
+    that.enable_conditional_fields = function(){
+        for (var i =0; i < that.conditional_fields.length; i+=1) {
+            $('label[id='+
+               that.conditional_fields[i] +'-label]',
+              that.container).css('visibility','visible');
+            $('input[name='+
+               that.conditional_fields[i] +
+              ']',that.container).css('visibility','visible');
+        }
+    };
+
+    that.disable_conditional_fields = function(){
+        for (var i =0; i < that.conditional_fields.length; i+=1) {
+            $('label[id='+
+               that.conditional_fields[i] +'-label]',
+              that.container).css('visibility','hidden');
+
+            $('input[name='+
+              that.conditional_fields[i] +
+              ']',that.container).css('visibility','hidden');
+        }
+    };
+
     that.__defineGetter__("entity_name", function(){
         return that._entity_name;
     });
@@ -70,7 +95,12 @@ IPA.dialog = function(spec) {
     };
 
     that.add_field = function(field) {
+        field.dialog = that;
         that.fields.put(field.name, field);
+        if (field.conditional){
+            that.conditional_fields.push(field.name);
+        }
+
     };
 
     that.field = function(field) {
@@ -149,7 +179,8 @@ IPA.dialog = function(spec) {
                 style: 'vertical-align: top;',
                 title: field.label
             }).appendTo(tr);
-            td.append(field.label+': ');
+            td.append($('<label />',{id: field.name+'-label',
+                                     text:field.label+': '}));
 
             td = $('<td/>', {
                 style: 'vertical-align: top;'
@@ -595,8 +626,24 @@ IPA.deleter_dialog =  function (spec) {
         ul.appendTo(div);
 
         for (var i=0; i<that.values.length; i++) {
+            var value = that.values[i];
+            if (value instanceof Object){
+                var first = true;
+                var str_value = "";
+                for (var key in value){
+                    if (value.hasOwnProperty(key)){
+                        if (!first){
+                            str_value += ',';
+                        }
+                        str_value += (key + ':' +value[key]);
+                        first = false;
+                    }
+                }
+                value = str_value;
+            }
+
             $('<li/>',{
-                'text': that.values[i]
+                'text': value
             }).appendTo(ul);
         }
     };

@@ -37,6 +37,12 @@ IPA.search_facet = function(spec) {
     that.search_all = spec.search_all || false;
 
 
+    function get_values (){
+        return that.table.get_selected_values();
+    }
+
+    that.get_values = spec.get_values || get_values;
+
     that.init = function() {
         that.facet_init();
         that.managed_entity = IPA.get_entity(that.managed_entity_name);
@@ -193,9 +199,10 @@ IPA.search_facet = function(spec) {
         that.remove_instances(that.managed_entity);
     };
 
+
     that.remove_instances = function(entity) {
 
-        var values = that.table.get_selected_values();
+        var values = that.get_values();
 
         var title;
         if (!values.length) {
@@ -240,8 +247,16 @@ IPA.search_facet = function(spec) {
                 for (var k=0; k<pkeys.length; k++) {
                     command.add_arg(pkeys[k]);
                 }
-
-                command.add_arg(values[i]);
+                var value = values[i];
+                if (value instanceof Object){
+                    for (var key in value){
+                        if (value.hasOwnProperty(key)){
+                            command.set_option(key, value[key]);
+                        }
+                    }
+                }else{
+                    command.add_arg(value);
+                }
                 batch.add_command(command);
             }
 
@@ -265,6 +280,8 @@ IPA.search_facet = function(spec) {
     };
 
     that.search_refresh = function(entity){
+
+        $('input[type=checkbox]',that.table.thead).removeAttr("checked");
 
         function on_success(data, text_status, xhr) {
 
