@@ -30,6 +30,7 @@ from ipapython import ipautil
 from ipaserver.install import dsinstance, installutils, krbinstance, service
 from ipaserver.install import bindinstance, httpinstance, ntpinstance, certs
 from ipaserver.install.replication import check_replication_plugin
+from ipaserver.install.installutils import HostnameLocalhost, resolve_host
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
 from ipalib import api, errors, util
@@ -37,9 +38,6 @@ from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
 
 CACERT="/etc/ipa/ca.crt"
-
-class HostnameLocalhost(Exception):
-    pass
 
 class ReplicaConfig:
     def __init__(self):
@@ -130,19 +128,6 @@ def get_host_name(no_host_dns):
         sys.exit(1)
 
     return hostname
-
-def resolve_host(host_name):
-    try:
-        addrinfos = socket.getaddrinfo(host_name, None,
-                                       socket.AF_UNSPEC, socket.SOCK_STREAM)
-        for ai in addrinfos:
-            ip = ai[4][0]
-            if ip == "127.0.0.1" or ip == "::1":
-                raise HostnameLocalhost
-
-        return addrinfos[0][4][0]
-    except:
-        return None
 
 def set_owner(config, dir):
     pw = pwd.getpwnam(dsinstance.DS_USER)

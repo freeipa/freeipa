@@ -30,6 +30,7 @@ from ipapython import ipautil
 from ipaserver.install import bindinstance, dsinstance, installutils, certs
 from ipaserver.install.bindinstance import add_zone, add_reverse_zone, add_rr, add_ptr_rr
 from ipaserver.install.replication import check_replication_plugin, enable_replication_version_checking
+from ipaserver.install.installutils import resolve_host
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
 from ipalib import api, errors, util
@@ -427,7 +428,8 @@ def main():
 
         zone = add_zone(domain, nsaddr=options.ip_address)
         add_rr(zone, name, "A", options.ip_address)
-        add_reverse_zone(options.ip_address)
+        ns_ip_address = resolve_host(api.env.host)
+        add_reverse_zone(options.ip_address, ns_ip_address)
         add_ptr_rr(options.ip_address, replica_fqdn)
 
 try:

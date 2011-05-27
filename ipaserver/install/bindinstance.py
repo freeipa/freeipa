@@ -138,7 +138,7 @@ def add_zone(name, zonemgr=None, dns_backup=None, nsaddr=None, update_policy=Non
     add_rr(name, "@", "NS", api.env.host+'.', dns_backup, force=True)
     return name
 
-def add_reverse_zone(ip_address, update_policy=None, dns_backup=None):
+def add_reverse_zone(ip_address, ns_ip_address, update_policy=None, dns_backup=None):
     zone, name = get_reverse_zone(ip_address)
     if not update_policy:
         update_policy = "grant %s krb5-subdomain %s. PTR;" % (api.env.realm, zone)
@@ -146,7 +146,7 @@ def add_reverse_zone(ip_address, update_policy=None, dns_backup=None):
         api.Command.dnszone_add(unicode(zone),
                                 idnssoamname=unicode(api.env.host+"."),
                                 idnsallowdynupdate=True,
-                                ip_address=unicode(ip_address),
+                                ip_address=unicode(ns_ip_address),
                                 idnsupdatepolicy=unicode(update_policy))
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
@@ -394,7 +394,8 @@ class BindInstance(service.Service):
             add_ptr_rr(self.ip_address, self.fqdn)
 
     def __setup_reverse_zone(self):
-        add_reverse_zone(self.ip_address, dns_backup=self.dns_backup)
+        add_reverse_zone(self.ip_address, self.ip_address,
+                dns_backup=self.dns_backup)
 
     def __setup_principal(self):
         dns_principal = "DNS/" + self.fqdn + "@" + self.realm

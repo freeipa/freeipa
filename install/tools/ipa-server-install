@@ -28,7 +28,6 @@
 
 import sys
 import os
-import socket
 import errno
 import logging
 import grp
@@ -302,27 +301,6 @@ def read_host_name(host_default,no_host_dns=False):
         else:
             break
     return host_name
-
-def resolve_host(host_name):
-    ip = None
-    try:
-        addrinfos = socket.getaddrinfo(host_name, None,
-                                       socket.AF_UNSPEC, socket.SOCK_DGRAM)
-        for ai in addrinfos:
-            ip = ai[4][0]
-            if ip == "127.0.0.1" or ip == "::1":
-                print "The hostname resolves to the localhost address (127.0.0.1/::1)"
-                print "Please change your /etc/hosts file so that the hostname"
-                print "resolves to the ip address of your network interface."
-                print "The KDC service does not listen on localhost"
-                print ""
-                print "Please fix your /etc/hosts file and restart the setup program"
-                return None
-
-        ip = addrinfos[0][4][0]
-    except:
-        print "Unable to lookup the IP address of the provided host"
-    return ip
 
 def read_domain_name(domain_name, unattended):
     print "The domain name has been calculated based on the host name."
@@ -987,6 +965,13 @@ try:
         sys.exit(main())
     except SystemExit, e:
         sys.exit(e)
+    except HostnameLocalhost:
+        print "The hostname resolves to the localhost address (127.0.0.1/::1)"
+        print "Please change your /etc/hosts file so that the hostname"
+        print "resolves to the ip address of your network interface."
+        print "The KDC service does not listen on localhost"
+        print ""
+        print "Please fix your /etc/hosts file and restart the setup program"
     except Exception, e:
         if uninstalling:
             message = "Unexpected error - see ipaserver-uninstall.log for details:\n %s" % str(e)
