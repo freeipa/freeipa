@@ -188,6 +188,7 @@ Requires: python-kerberos >= 1.1-3
 %endif
 Requires: authconfig
 Requires: gnupg
+Requires: iproute
 Requires: pyOpenSSL
 Requires: python-nss >= 0.11
 Requires: python-lxml

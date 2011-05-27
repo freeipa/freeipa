@@ -151,17 +151,18 @@ def verify_fqdn(host_name,no_host_dns=False):
     else:
         print "Warning: Hostname (%s) not found in DNS" % host_name
 
-def verify_ip_address(ip):
-    is_ok = True
+def parse_ip_address(addr, match_local=True, parse_netmask=True):
     try:
-        socket.inet_pton(socket.AF_INET, ip)
-    except:
-        try:
-            socket.inet_pton(socket.AF_INET6, ip)
-        except:
-            print "Unable to verify IP address"
-            is_ok = False
-    return is_ok
+        ip = ipautil.CheckedIPAddress(addr, match_local=match_local, parse_netmask=parse_netmask)
+        if match_local and not ip.is_local():
+            print "Warning: No network interface matches IP address %s" % addr
+        return ip
+    except Exception as e:
+        print "Error: Invalid IP Address %s: %s" % (addr, e)
+        return None
+
+def verify_ip_address(addr, match_local=True, parse_netmask=True):
+    return parse_ip_address(addr, match_local, parse_netmask) is not None
 
 def record_in_hosts(ip, host_name, file="/etc/hosts"):
     hosts = open(file, 'r').readlines()
@@ -194,19 +195,17 @@ def add_record_to_hosts(ip, host_name, file="/etc/hosts"):
 def read_ip_address(host_name, fstore):
     while True:
         ip = ipautil.user_input("Please provide the IP address to be used for this host name", allow_empty = False)
+        ip_parsed = parse_ip_address(ip)
 
-        if ip == "127.0.0.1" or ip == "::1":
-            print "The IPA Server can't use localhost as a valid IP"
-            continue
-
-        if verify_ip_address(ip):
+        if ip_parsed is not None:
             break
 
+    ip = str(ip_parsed)
     print "Adding ["+ip+" "+host_name+"] to your /etc/hosts file"
     fstore.backup_file("/etc/hosts")
     add_record_to_hosts(ip, host_name)
 
-    return ip
+    return ip_parsed
 
 def read_dns_forwarders():
     addrs = []
@@ -218,15 +217,13 @@ def read_dns_forwarders():
                                     allow_empty=True)
             if not ip:
                 break
-            if ip == "127.0.0.1" or ip == "::1":
-                print "You cannot use localhost as a DNS forwarder"
-                continue
-            if not verify_ip_address(ip):
+            ip_parsed = parse_ip_address(ip, match_local=False, parse_netmask=False)
+            if ip_parsed is None:
                 print "DNS forwarder %s not added" % ip
                 continue
 
             print "DNS forwarder %s added" % ip
-            addrs.append(ip)
+            addrs.append(str(ip_parsed))
 
     if not addrs:
         print "No DNS forwarders configured"

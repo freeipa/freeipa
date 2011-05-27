@@ -39,6 +39,7 @@ from types import *
 import re
 import xmlrpclib
 import datetime
+import netaddr
 from ipapython import config
 try:
     from subprocess import CalledProcessError
@@ -62,6 +63,72 @@ def get_domain_name():
         return None
 
     return domain_name
+
+class CheckedIPAddress(netaddr.IPAddress):
+    def __init__(self, addr, match_local=True, parse_netmask=True):
+        if isinstance(addr, CheckedIPAddress):
+            super(CheckedIPAddress, self).__init__(addr)
+            self.prefixlen = addr.prefixlen
+            self.defaultnet = addr.defaultnet
+            self.interface = addr.interface
+            return
+
+        net = None
+        iface = None
+        defnet = False
+
+        if isinstance(addr, netaddr.IPNetwork):
+            net = addr
+            addr = net.ip
+        elif isinstance(addr, netaddr.IPAddress):
+            pass
+        else:
+            try:
+                addr = netaddr.IPAddress(addr)
+            except ValueError:
+                net = netaddr.IPNetwork(addr)
+                if not parse_netmask:
+                    raise ValueError("netmask and prefix length not allowed here")
+                addr = net.ip
+
+        if addr.version not in (4, 6):
+            raise ValueError("unsupported IP version")
+        if addr.is_loopback():
+            raise ValueError("cannot use loopback IP address")
+
+        if match_local:
+            if addr.version == 4:
+                family = 'inet'
+            elif addr.version == 6:
+                family = 'inet6'
+
+            ipresult = run(['/sbin/ip', '-family', family, '-oneline', 'address', 'show'])
+            lines = ipresult[0].split('\n')
+            for line in lines:
+                fields = line.split()
+                if len(fields) < 4:
+                    continue
+
+                ifnet = netaddr.IPNetwork(fields[3])
+                if ifnet == net or ifnet.ip == addr:
+                    net = ifnet
+                    iface = fields[1]
+                    break
+
+        if net is None:
+            defnet = True
+            if addr.version == 4:
+                net = netaddr.IPNetwork(netaddr.cidr_abbrev_to_verbose(str(addr)))
+            elif addr.version == 6:
+                net = netaddr.IPNetwork(str(addr) + '/64')
+
+        super(CheckedIPAddress, self).__init__(addr)
+        self.prefixlen = net.prefixlen
+        self.defaultnet = defnet
+        self.interface = iface
+
+    def is_local(self):
+        return self.interface is not None
 
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")

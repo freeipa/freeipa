@@ -37,9 +37,10 @@ def parse_options():
                       sensitive=True, help="admin password")
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="print debugging information")
-    parser.add_option("--ip-address", dest="ip_address", help="Master Server IP Address")
+    parser.add_option("--ip-address", dest="ip_address",
+                      type="ipnet", help="Master Server IP Address")
     parser.add_option("--forwarder", dest="forwarders", action="append",
-                      help="Add a DNS forwarder")
+                      type="ipaddr", help="Add a DNS forwarder")
     parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
     parser.add_option("--no-reverse", dest="no_reverse",
@@ -105,12 +106,14 @@ def main():
     if options.ip_address:
         ip_address = options.ip_address
     else:
-        ip_address = resolve_host(api.env.host)
+        hostaddr = resolve_host(api.env.host)
+        ip_address = hostaddr and ipautil.CheckedIPAddress(hostaddr)
     if not ip_address or not verify_ip_address(ip_address):
         if options.unattended:
             sys.exit("Unable to resolve IP address for host name")
         else:
             ip_address = read_ip_address(api.env.host, fstore)
+    ip_address = str(ip_address)
     logging.debug("will use ip_address: %s\n", ip_address)
 
     if options.no_forwarders:

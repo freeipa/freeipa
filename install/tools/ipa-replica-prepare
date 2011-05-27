@@ -24,7 +24,6 @@ import logging, tempfile, shutil, os, pwd
 import traceback
 from ConfigParser import SafeConfigParser
 import krbV
-from optparse import OptionParser
 
 from ipapython import ipautil
 from ipaserver.install import bindinstance, dsinstance, installutils, certs
@@ -33,11 +32,12 @@ from ipaserver.install.replication import check_replication_plugin, enable_repli
 from ipaserver.install.installutils import resolve_host
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
+from ipapython.config import IPAOptionParser
 from ipalib import api, errors, util
 
 def parse_options():
     usage = "%prog [options] FQDN (e.g. replica.example.com)"
-    parser = OptionParser(usage=usage, version=version.VERSION)
+    parser = IPAOptionParser(usage=usage, version=version.VERSION)
 
     parser.add_option("--dirsrv_pkcs12", dest="dirsrv_pkcs12",
                       help="install certificate for the directory server")
@@ -54,7 +54,7 @@ def parse_options():
     parser.add_option("-p", "--password", dest="password", 
                       help="Directory Manager (existing master) password")
     parser.add_option("--ip-address", dest="ip_address",
-                      help="Add A and PTR records of the future replica")
+                      type="ipnet", help="Add A and PTR records of the future replica")
     parser.add_option("--ca", dest="ca_file", default="/root/cacert.p12",
                       help="Location of CA PKCS#12 file, default /root/cacert.p12")
     parser.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
@@ -79,7 +79,7 @@ def parse_options():
         parser.error("All PKCS#12 options are required if any are used.")
 
     if options.ip_address:
-        if not installutils.verify_ip_address(options.ip_address):
+        if not installutils.verify_ip_address(options.ip_address, match_local=False):
             parser.error("Bad IP address")
             sys.exit(1)
 
@@ -426,11 +426,12 @@ def main():
         name = domain.pop(0)
         domain = ".".join(domain)
 
-        zone = add_zone(domain, nsaddr=options.ip_address)
-        add_rr(zone, name, "A", options.ip_address)
+        ip_address = str(options.ip_address)
+        zone = add_zone(domain, nsaddr=ip_address)
+        add_rr(zone, name, "A", ip_address)
         ns_ip_address = resolve_host(api.env.host)
-        add_reverse_zone(options.ip_address, ns_ip_address)
-        add_ptr_rr(options.ip_address, replica_fqdn)
+        add_reverse_zone(ip_address, ns_ip_address)
+        add_ptr_rr(ip_address, replica_fqdn)
 
 try:
     if not os.geteuid()==0:

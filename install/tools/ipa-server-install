@@ -99,11 +99,12 @@ def parse_options():
     parser.add_option("", "--external_ca_file", dest="external_ca_file",
                       help="File containing PKCS#10 of the external CA chain")
     parser.add_option("--hostname", dest="host_name", help="fully qualified name of server")
-    parser.add_option("--ip-address", dest="ip_address", help="Master Server IP Address")
+    parser.add_option("--ip-address", dest="ip_address",
+                      type="ipnet", help="Master Server IP Address")
     parser.add_option("--setup-dns", dest="setup_dns", action="store_true",
                       default=False, help="configure bind with our zone")
     parser.add_option("--forwarder", dest="forwarders", action="append",
-                      help="Add a DNS forwarder")
+                      type="ipaddr", help="Add a DNS forwarder")
     parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
     parser.add_option("--no-reverse", dest="no_reverse", action="store_true",
@@ -593,37 +594,34 @@ def main():
     domain_name = domain_name.lower()
 
     # Check we have a public IP that is associated with the hostname
-    ip = resolve_host(host_name)
-    if ip is None:
-        if options.ip_address:
-            ip = options.ip_address
+    hostaddr = resolve_host(host_name)
+    if hostaddr is not None:
+        ip = CheckedIPAddress(hostaddr)
+    else:
+        ip = options.ip_address
     if ip is None and options.unattended:
         sys.exit("Unable to resolve IP address for host name")
 
     if not verify_ip_address(ip):
-        ip = ""
+        ip = None
         if options.unattended:
             sys.exit(1)
 
-    if options.ip_address and options.ip_address != ip:
-        if options.setup_dns:
-            if not verify_ip_address(options.ip_address):
-                return 1
-            ip = options.ip_address
-        else:
+    if options.ip_address:
+        if options.ip_address != ip and not options.setup_dns:
             print >>sys.stderr, "Error: the hostname resolves to an IP address that is different"
             print >>sys.stderr, "from the one provided on the command line.  Please fix your DNS"
             print >>sys.stderr, "or /etc/hosts file and restart the installation."
             return 1
 
-    if options.unattended:
-        if not ip:
-            sys.exit("Unable to resolve IP address")
+        ip = options.ip_address
+        if not verify_ip_address(ip):
+            return 1
 
-    if not ip:
+    if ip is None:
         ip = read_ip_address(host_name, fstore)
-        logging.debug("read ip_address: %s\n" % ip)
-    ip_address = ip
+        logging.debug("read ip_address: %s\n" % str(ip))
+    ip_address = str(ip)
 
     print "The IPA Master Server will be configured with"
     print "Hostname:    " + host_name
