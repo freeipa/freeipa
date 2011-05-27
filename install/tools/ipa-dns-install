@@ -113,6 +113,7 @@ def main():
             sys.exit("Unable to resolve IP address for host name")
         else:
             ip_address = read_ip_address(api.env.host, fstore)
+    ip_prefixlen = ip_address.prefixlen
     ip_address = str(ip_address)
     logging.debug("will use ip_address: %s\n", ip_address)
 
@@ -158,7 +159,7 @@ def main():
         create_reverse = not options.no_reverse
     elif not options.no_reverse:
         create_reverse = bindinstance.create_reverse()
-    bind.setup(api.env.host, ip_address, api.env.realm, api.env.domain, dns_forwarders, conf_ntp, create_reverse, zonemgr=options.zonemgr)
+    bind.setup(api.env.host, ip_address, ip_prefixlen, api.env.realm, api.env.domain, dns_forwarders, conf_ntp, create_reverse, zonemgr=options.zonemgr)
 
     if bind.dm_password:
         api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=bind.dm_password)

@@ -622,6 +622,7 @@ def main():
         ip = read_ip_address(host_name, fstore)
         logging.debug("read ip_address: %s\n" % str(ip))
     ip_address = str(ip)
+    ip_prefixlen = ip.prefixlen
 
     print "The IPA Master Server will be configured with"
     print "Hostname:    " + host_name
@@ -892,7 +893,7 @@ def main():
                 # specified, ask the user
                 create_reverse = bindinstance.create_reverse()
 
-    bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders, options.conf_ntp, create_reverse, zonemgr=options.zonemgr)
+    bind.setup(host_name, ip_address, ip_prefixlen, realm_name, domain_name, dns_forwarders, options.conf_ntp, create_reverse, zonemgr=options.zonemgr)
     if options.setup_dns:
         api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
 

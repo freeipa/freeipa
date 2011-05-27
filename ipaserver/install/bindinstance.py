@@ -98,15 +98,19 @@ def dns_container_exists(fqdn, suffix):
 
     return ret
 
-def get_reverse_zone(ip_address_str):
+def get_reverse_zone(ip_address_str, ip_prefixlen):
     ip = netaddr.IPAddress(ip_address_str)
+    items = ip.reverse_dns.split('.')
+
     if ip.version == 4:
-        name, dot, zone = ip.reverse_dns.partition('.')
+        pos = 4 - ip_prefixlen / 8
     elif ip.version == 6:
-        name = '.'.join(ip.reverse_dns.split('.')[:8])
-        zone = '.'.join(ip.reverse_dns.split('.')[8:])
+        pos = 32 - ip_prefixlen / 4
     else:
         raise ValueError('Bad address format?')
+
+    name = '.'.join(items[:pos])
+    zone = '.'.join(items[pos:])
 
     return unicode(zone), unicode(name)
 
@@ -138,8 +142,8 @@ def add_zone(name, zonemgr=None, dns_backup=None, nsaddr=None, update_policy=Non
     add_rr(name, "@", "NS", api.env.host+'.', dns_backup, force=True)
     return name
 
-def add_reverse_zone(ip_address, ns_ip_address, update_policy=None, dns_backup=None):
-    zone, name = get_reverse_zone(ip_address)
+def add_reverse_zone(ip_address, ip_prefixlen, ns_ip_address, update_policy=None, dns_backup=None):
+    zone, name = get_reverse_zone(ip_address, ip_prefixlen)
     if not update_policy:
         update_policy = "grant %s krb5-subdomain %s. PTR;" % (api.env.realm, zone)
     try:
@@ -172,8 +176,8 @@ def add_fwd_rr(zone, host, ip_address):
     elif addr.version == 6:
         add_rr(zone, host, "AAAA", ip_address)
 
-def add_ptr_rr(ip_address, fqdn, dns_backup=None):
-    zone, name = get_reverse_zone(ip_address)
+def add_ptr_rr(ip_address, ip_prefixlen, fqdn, dns_backup=None):
+    zone, name = get_reverse_zone(ip_address, ip_prefixlen)
     add_rr(zone, name, "PTR", fqdn+".", dns_backup)
 
 def del_rr(zone, name, type, rdata):
@@ -249,6 +253,7 @@ class BindInstance(service.Service):
         self.domain = None
         self.host = None
         self.ip_address = None
+        self.ip_prefixlen = None
         self.realm = None
         self.forwarders = None
         self.sub_dict = None
@@ -259,10 +264,11 @@ class BindInstance(service.Service):
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp, create_reverse, named_user="named", zonemgr=None):
+    def setup(self, fqdn, ip_address, ip_prefixlen, realm_name, domain_name, forwarders, ntp, create_reverse, named_user="named", zonemgr=None):
         self.named_user = named_user
         self.fqdn = fqdn
         self.ip_address = ip_address
+        self.ip_prefixlen = ip_prefixlen
         self.realm = realm_name
         self.domain = domain_name
         self.forwarders = forwarders
@@ -390,11 +396,11 @@ class BindInstance(service.Service):
 
         # Add forward and reverse records to self
         add_fwd_rr(zone, self.host, self.ip_address)
-        if dns_zone_exists(get_reverse_zone(self.ip_address)[0]):
-            add_ptr_rr(self.ip_address, self.fqdn)
+        if dns_zone_exists(get_reverse_zone(self.ip_address, self.ip_prefixlen)[0]):
+            add_ptr_rr(self.ip_address, self.ip_prefixlen, self.fqdn)
 
     def __setup_reverse_zone(self):
-        add_reverse_zone(self.ip_address, self.ip_address,
+        add_reverse_zone(self.ip_address, self.ip_prefixlen, self.ip_address,
                 dns_backup=self.dns_backup)
 
     def __setup_principal(self):
@@ -451,10 +457,11 @@ class BindInstance(service.Service):
         resolv_fd.write(resolv_txt)
         resolv_fd.close()
 
-    def add_master_dns_records(self, fqdn, ip_address,
+    def add_master_dns_records(self, fqdn, ip_address, ip_prefixlen,
                                realm_name, domain_name, ntp=False):
         self.fqdn = fqdn
         self.ip_address = ip_address
+        self.ip_prefixlen = ip_prefixlen
         self.realm = realm_name
         self.domain = domain_name
         self.host = fqdn.split(".")[0]
@@ -483,16 +490,25 @@ class BindInstance(service.Service):
         for (record, type, rdata) in resource_records:
             del_rr(zone, record, type, rdata)
 
-        areclist = get_rr(zone, host, "A")
-        if len(areclist) != 0:
-            for rdata in areclist:
-                del_rr(zone, host, "A", rdata)
+        areclist = [("A", x) for x in get_rr(zone, host, "A")] + [("AAAA", x) for x in get_rr(zone, host, "AAAA")]
+        for (type, rdata) in areclist:
+            del_rr(zone, host, type, rdata)
 
-                rzone, record = get_reverse_zone(rdata)
+            ip = netaddr.IPAddress(rdata)
+            rzone = ip.reverse_dns
+            record = ''
+
+            while True:
+                part, dot, rzone = rzone.partition('.')
+                if len(rzone) == 0:
+                    break
+                record = (record + '.' + part).lstrip('.')
+
                 if dns_zone_exists(rzone):
                     del_rr(rzone, record, "PTR", fqdn+".")
                     # remove also master NS record from the reverse zone
                     del_rr(rzone, "@", "NS", fqdn+".")
+                    break
 
 
     def uninstall(self):

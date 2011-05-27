@@ -272,6 +272,7 @@ def install_bind(config, options):
         sys.exit("Unable to resolve IP address for host name")
     ip = installutils.parse_ip_address(ip_address)
     ip_address = str(ip)
+    ip_prefixlen = ip.prefixlen
 
     create_reverse = True
     if options.unattended:
@@ -285,7 +286,7 @@ def install_bind(config, options):
             # specified, ask the user
             create_reverse = bindinstance.create_reverse()
 
-    bind.setup(config.host_name, ip_address, config.realm_name,
+    bind.setup(config.host_name, ip_address, ip_prefixlen, config.realm_name,
                config.domain_name, forwarders, options.conf_ntp, create_reverse)
     bind.create_instance()
 
@@ -309,8 +310,9 @@ def install_dns_records(config, options):
         sys.exit("Unable to resolve IP address for host name")
     ip = installutils.parse_ip_address(ip_address)
     ip_address = str(ip)
+    ip_prefixlen = ip.prefixlen
 
-    bind.add_master_dns_records(config.host_name, ip_address,
+    bind.add_master_dns_records(config.host_name, ip_address, ip_prefixlen,
                                 config.realm_name, config.domain_name,
                                 options.conf_ntp)
 

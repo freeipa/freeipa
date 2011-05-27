@@ -91,8 +91,6 @@ from ipalib import _, ngettext
 from ipalib import x509
 from ipapython.ipautil import ipa_generate_password
 from ipalib.request import context
-if api.env.context in ['lite', 'server']:
-    from ipaserver.install.bindinstance import get_reverse_zone
 import base64
 import nss.nss as nss
 import netaddr
@@ -111,16 +109,37 @@ def is_forward_record(zone, str_address):
     if addr.version == 4:
         result = api.Command['dnsrecord_find'](zone, arecord=str_address)
     elif addr.version == 6:
-        result = api.Command['dnsrecord_find'](zone, aaarecord=str_address)
+        result = api.Command['dnsrecord_find'](zone, aaaarecord=str_address)
     else:
         raise ValueError('Invalid address family')
 
     return result['count'] > 0
 
+def get_reverse_zone(ipaddr):
+    ip = netaddr.IPAddress(ipaddr)
+    revdns = unicode(ip.reverse_dns)
+
+    revzone = u''
+
+    result = api.Command['dnszone_find']()['result']
+    for zone in result:
+        zonename = zone['idnsname'][0]
+        if revdns.endswith(zonename) and len(zonename) > len(revzone):
+            revzone = zonename
+
+    if len(revzone) == 0:
+        raise errors.NotFound(
+            reason=_('DNS reverse zone for IP address %(addr)s not found') % dict(addr=ipaddr)
+        )
+
+    revname = revdns[:-len(revzone)-1]
+
+    return revzone, revname
+
 def remove_fwd_ptr(ipaddr, host, domain, recordtype):
     api.log.debug('deleting ipaddr %s' % ipaddr)
-    revzone, revname = get_reverse_zone(ipaddr)
     try:
+        revzone, revname = get_reverse_zone(ipaddr)
         delkw = { 'ptrrecord' : "%s.%s." % (host, domain) }
         api.Command['dnsrecord_del'](revzone, revname, **delkw)
     except errors.NotFound:
@@ -321,19 +340,9 @@ class host_add(LDAPCreate):
                     reason=_('DNS zone %(zone)s not found') % dict(zone=domain)
                 )
             if not options.get('no_reverse', False):
-                # we prefer lookup of the IP through the reverse zone
-                revzone, revname = get_reverse_zone(options['ip_address'])
-                # Verify that our reverse zone exists
-                match = False
-                for zone in result:
-                    if revzone == zone['idnsname'][0]:
-                        match = True
-                        break
-                if not match:
-                    raise errors.NotFound(
-                        reason=_('Reverse DNS zone %(zone)s not found') % dict(zone=revzone)
-                    )
                 try:
+                    # we prefer lookup of the IP through the reverse zone
+                    revzone, revname = get_reverse_zone(options['ip_address'])
                     reverse = api.Command['dnsrecord_find'](revzone, idnsname=revname)
                     if reverse['count'] > 0:
                         raise errors.DuplicateEntry(message=u'This IP address is already assigned.')
@@ -381,10 +390,12 @@ class host_add(LDAPCreate):
                 add_forward_record(domain, parts[0], options['ip_address'])
 
                 if not options.get('no_reverse', False):
-                    revzone, revname = get_reverse_zone(options['ip_address'])
                     try:
+                        revzone, revname = get_reverse_zone(options['ip_address'])
                         addkw = { 'ptrrecord' : keys[-1]+'.' }
                         api.Command['dnsrecord_add'](revzone, revname, **addkw)
+                    except errors.NotFound:
+                        pass
                     except errors.EmptyModlist:
                         # the entry already exists and matches
                         pass
