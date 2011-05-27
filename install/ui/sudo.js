@@ -160,6 +160,13 @@ IPA.sudocmd_member_sudocmdgroup_table_widget = function (spec) {
 
     that.get_records = function(on_success, on_error) {
 
+        var length = that.values.length;
+        if (!length) return;
+
+        if (length > 100) {
+            length = 100;
+        }
+
         if (!that.values.length) return;
 
         var batch = IPA.batch_command({
@@ -168,7 +175,7 @@ IPA.sudocmd_member_sudocmdgroup_table_widget = function (spec) {
             'on_error': on_error
         });
 
-        for (var i=0; i<that.values.length; i++) {
+        for (var i=0; i<length; i++) {
             var value = that.values[i];
 
             var command = IPA.command({

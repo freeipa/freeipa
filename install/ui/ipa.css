@@ -642,11 +642,26 @@ a.action-button-disabled {
     border: 1px solid #dfdfdf;
 }
 
-.search-table tfoot tr td span{
+.search-table tfoot tr td {
     border-top: 1px solid #dfdfdf;
     margin-top: 1em;
     padding: 0.9em 0 0 1em;
-    display: block;
+}
+
+.search-table span[name=summary] {
+    float: left;
+}
+
+.search-table span[name=pagination] {
+    float: right;
+}
+
+.search-table span[name=pagination] a {
+    cursor:pointer;
+}
+
+.search-table span[name=pagination] input[name=current_page] {
+    width: 22px;
 }
 
 .aci-attribute-table tbody{

@@ -468,19 +468,20 @@ IPA.association_table_widget = function (spec) {
 
     that.get_records = function(on_success, on_error) {
 
-        if (!that.values.length) return;
+        var length = that.values.length;
+        if (!length) return;
+
+        if (length > 100) {
+            length = 100;
+        }
 
         var batch = IPA.batch_command({
             'name': that.entity_name+'_'+that.name,
             'on_success': on_success,
             'on_error': on_error
         });
-        var length = that.values.length;
-        if (length > 100){
-            length = 100;
-        }
 
-        for (var i=0; i< length; i++) {
+        for (var i=0; i<length; i++) {
             var value = that.values[i];
 
             var command = IPA.command({
@@ -706,6 +707,8 @@ IPA.association_facet = function (spec) {
     that.columns = $.ordered_map();
     that.adder_columns = $.ordered_map();
 
+    that.page_length = 20;
+
     that.get_column = function(name) {
         return that.columns.get(name);
     };
@@ -765,7 +768,8 @@ IPA.association_facet = function (spec) {
             name: pkey_name,
             label: label,
             entity_name: that.entity_name,
-            other_entity: that.other_entity
+            other_entity: that.other_entity,
+            page_length: that.page_length
         });
 
         var columns = that.columns.values;
@@ -809,6 +813,10 @@ IPA.association_facet = function (spec) {
             column = adder_columns[i];
             column.entity_name = that.other_entity;
         }
+
+        that.table.refresh = function() {
+            that.refresh_table();
+        };
 
         that.table.init();
     };
@@ -978,66 +986,103 @@ IPA.association_facet = function (spec) {
         dialog.open(that.container);
     };
 
+    that.refresh_table = function() {
+
+        that.table.current_page_input.val(that.table.current_page);
+        that.table.total_pages_span.text(that.table.total_pages);
+
+        var pkeys = that.record[that.name];
+        if (!pkeys || !pkeys.length) {
+            that.table.summary.text('No entries.');
+            return;
+        }
+
+        pkeys.sort();
+        var total = pkeys.length;
+
+        var start = (that.table.current_page - 1) * that.table.page_length + 1;
+        var end = that.table.current_page * that.table.page_length;
+        end = end > total ? total : end;
+
+        var summary = 'Showing '+start+' to '+end+' of '+total+' entries.';
+        that.table.summary.text(summary);
+
+        var list = pkeys.slice(start-1, end);
+
+        var columns = that.table.columns.values;
+        if (columns.length == 1) { // show pkey only
+            var name = columns[0].name;
+            that.table.empty();
+            for (var i=0; i<list.length; i++) {
+                var entry = {};
+                entry[name] = list[i];
+                that.table.add_record(entry);
+            }
+
+        } else { // get and show additional fields
+            that.get_records(
+                list,
+                function(data, text_status, xhr) {
+                    var results = data.result.results;
+                    that.table.empty();
+                    for (var i=0; i<results.length; i++) {
+                        var record = results[i].result;
+                        that.table.add_record(record);
+                    }
+                },
+                function(xhr, text_status, error_thrown) {
+                    that.table.empty();
+                    var summary = that.table.summary.empty();
+                    summary.append('<p>Error: '+error_thrown.name+'</p>');
+                    summary.append('<p>'+error_thrown.message+'</p>');
+                }
+            );
+        }
+    };
+
     that.get_records = function(pkeys, on_success, on_error) {
 
-        if (!pkeys.length) return;
+        var length = pkeys.length;
+        if (!length) return;
 
-
-        var options = {
-            'all': true,
-            'rights': true
-        };
-
-        var pkey = $.bbq.getState(that.entity_name+'-pkey');
-        var args =[];
-        /* TODO: make a general solution to generate this value */
-        var relationship_filter = 'in_' + that.entity_name;
-        options[relationship_filter] = pkey;
-
-        var command = IPA.command({
-            entity: that.other_entity,
-            method: 'find',
-            args: args,
-            options: options,
-            on_success: on_success,
-            on_error: on_error
+        var batch = IPA.batch_command({
+            'name': that.entity_name+'_'+that.name,
+            'on_success': on_success,
+            'on_error': on_error
         });
 
-        command.execute();
+        for (var i=0; i<length; i++) {
+            var pkey = pkeys[i];
 
+            var command = IPA.command({
+                entity: that.other_entity,
+                method: 'show',
+                args: [pkey],
+                options: { all: true }
+            });
 
+            batch.add_command(command);
+        }
+
+        batch.execute();
     };
 
     that.refresh = function() {
 
         function on_success(data, text_status, xhr) {
+            that.record = data.result.result;
 
-            that.table.empty();
+            that.table.current_page = 1;
 
-            var pkeys = data.result.result[that.name];
-            if (!pkeys) return;
-
-            var columns = that.table.columns.values;
-            if (columns.length == 1) { // show pkey only
-                var name = columns[0].name;
-                for (var i=0; i<pkeys.length; i++) {
-                    var record = {};
-                    record[name] = pkeys[i];
-                    that.table.add_record(record);
-                }
-
-            } else { // get and show additional fields
-                that.get_records(
-                    pkeys,
-                    function(data, text_status, xhr) {
-                        var results = data.result.result;
-                        for (var i=0; i<results.length; i++) {
-                            var record = results[i];
-                            that.table.add_record(record);
-                        }
-                    }
-                );
+            var pkeys = that.record[that.name];
+            if (pkeys) {
+                that.table.total_pages =
+                    Math.ceil(pkeys.length / that.table.page_length);
+            } else {
+                that.table.total_pages = 1;
             }
+
+            that.refresh_table();
         }
 
         function on_error(xhr, text_status, error_thrown) {
@@ -1052,7 +1097,6 @@ IPA.association_facet = function (spec) {
             entity: that.entity_name,
             method: 'show',
             args: pkey,
-            options: {'all': true, 'rights': true},
             on_success: on_success,
             on_error: on_error
         }).execute();

@@ -1055,6 +1055,10 @@ IPA.table_widget = function (spec) {
     that.scrollable = spec.scrollable;
     that.save_values = typeof spec.save_values == 'undefined' ? true : spec.save_values;
 
+    that.current_page = 1;
+    that.total_pages = 1;
+    that.page_length = spec.page_length;
+
     that.columns = $.ordered_map();
 
     that.get_columns = function() {
@@ -1098,28 +1102,38 @@ IPA.table_widget = function (spec) {
 
     that.create = function(container) {
 
-        var table = $('<table/>', {
+        that.table = $('<table/>', {
             'class': 'search-table'
         }).appendTo(container);
-        that.table = table;
 
         if (that.scrollable) {
-            table.addClass('scrollable');
+            that.table.addClass('scrollable');
         }
 
-        var thead = $('<thead/>').appendTo(table);
-        that.thead = thead;
+        that.thead = $('<thead/>').appendTo(that.table);
 
-        var tr = $('<tr/>').appendTo(thead);
+        var tr = $('<tr/>').appendTo(that.thead);
 
         var th = $('<th/>', {
             'style': 'width: 22px;'
         }).appendTo(tr);
 
-        $('<input/>', {
-            'type': 'checkbox',
-            'name': 'select'
+        var select_all_checkbox = $('<input/>', {
+            type: 'checkbox',
+            name: 'select',
+            title: IPA.messages.search.select_all
         }).appendTo(th);
+
+        select_all_checkbox.change(function() {
+            var checked = select_all_checkbox.is(':checked');
+            select_all_checkbox.attr('title', checked ? IPA.messages.search.unselect_all : IPA.messages.search.select_all);
+            var checkboxes = $('input[name=select]', that.tbody).get();
+            for (var i=0; i<checkboxes.length; i++) {
+                checkboxes[i].checked = checked;
+            }
+            that.select_changed();
+            return false;
+        });
 
         var columns = that.columns.values;
         for (var i=0; i<columns.length; i++) {
@@ -1154,18 +1168,17 @@ IPA.table_widget = function (spec) {
             }
         }
 
-        var tbody = $('<tbody/>').appendTo(table);
-        that.tbody = tbody;
+        that.tbody = $('<tbody/>').appendTo(that.table);
 
         if (that.height) {
-            tbody.css('height', that.height);
+            that.tbody.css('height', that.height);
         }
 
-        tr = $('<tr/>').appendTo(tbody);
+        that.row = $('<tr/>');
 
         var td = $('<td/>', {
             'style': 'width: 22px;'
-        }).appendTo(tr);
+        }).appendTo(that.row);
 
         $('<input/>', {
             'type': 'checkbox',
@@ -1176,7 +1189,7 @@ IPA.table_widget = function (spec) {
         for (/* var */ i=0; i<columns.length; i++) {
             /* var */ column = columns[i];
 
-            td = $('<td/>').appendTo(tr);
+            td = $('<td/>').appendTo(that.row);
             if (column.width) {
                 td.css('width', column.width);
             }
@@ -1186,16 +1199,74 @@ IPA.table_widget = function (spec) {
             }).appendTo(td);
         }
 
-        var tfoot = $('<tfoot/>').appendTo(table);
-        that.tfoot = tfoot;
+        that.tfoot = $('<tfoot/>').appendTo(that.table);
 
-        tr = $('<tr/>').appendTo(tfoot);
+        tr = $('<tr/>').appendTo(that.tfoot);
 
         td = $('<td/>', { colspan: columns.length+1 }).appendTo(tr);
 
-        $('<span/>', {
+        that.summary = $('<span/>', {
             'name': 'summary'
         }).appendTo(td);
+
+        that.pagination = $('<span/>', {
+            'name': 'pagination'
+        }).appendTo(td);
+
+        if (that.page_length) {
+
+            $('<a/>', {
+                text: 'Prev',
+                name: 'prev_page',
+                click: function() {
+                    if (that.current_page > 1) {
+                        that.current_page--;
+                        that.refresh();
+                    }
+                    return false;
+                }
+            }).appendTo(that.pagination);
+
+            that.pagination.append(' ');
+
+            $('<a/>', {
+                text: 'Next',
+                name: 'next_page',
+                click: function() {
+                    if (that.current_page < that.total_pages) {
+                        that.current_page++;
+                        that.refresh();
+                    }
+                    return false;
+                }
+            }).appendTo(that.pagination);
+
+            that.pagination.append(' Page: ');
+
+            that.current_page_input = $('<input/>', {
+                type: 'text',
+                name: 'current_page',
+                keypress: function(e) {
+                    if (e.which == 13) {
+                        var page = parseInt($(this).val(), 10);
+                        if (page < 1) {
+                            page = 1;
+                        } else if (page > that.total_pages) {
+                            page = that.total_pages;
+                        }
+                        that.current_page = page;
+                        $(this).val(page);
+                        that.refresh();
+                    }
+                }
+            }).appendTo(that.pagination);
+
+            that.pagination.append(' / ');
+
+            that.total_pages_span = $('<span/>', {
+                name: 'total_pages'
+            }).appendTo(that.pagination);
+        }
     };
 
     that.select_changed = function(){
@@ -1204,28 +1275,6 @@ IPA.table_widget = function (spec) {
     that.setup = function(container) {
 
         that.widget_setup(container);
-
-//        that.table = $('table', that.container);
-//        that.thead = $('thead', that.table);
-//        that.tbody = $('tbody', that.table);
-//        that.tfoot = $('tfoot', that.table);
-
-        var select_all_checkbox = $('input[name=select]', that.thead);
-        select_all_checkbox.attr('title', IPA.messages.search.select_all);
-
-        select_all_checkbox.change(function() {
-            var checked = select_all_checkbox.is(':checked');
-            select_all_checkbox.attr('title', checked ? IPA.messages.search.unselect_all : IPA.messages.search.select_all);
-            var checkboxes = $('input[name=select]', that.tbody).get();
-            for (var i=0; i<checkboxes.length; i++) {
-                checkboxes[i].checked = checked;
-            }
-            that.select_changed();
-            return false;
-        });
-
-        that.row = that.tbody.children().first();
-        that.row.detach();
     };
 
     that.empty = function() {
