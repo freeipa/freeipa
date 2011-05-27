@@ -33,6 +33,9 @@ import time
 from ipapython import ipautil
 from ipapython import dnsclient
 
+class HostnameLocalhost(Exception):
+    pass
+
 def get_fqdn():
     fqdn = ""
     try:
@@ -421,3 +424,15 @@ def wait_for_open_ports(host, ports, timeout=0):
                 else:
                     raise e
 
+def resolve_host(host_name):
+    try:
+        addrinfos = socket.getaddrinfo(host_name, None,
+                                       socket.AF_UNSPEC, socket.SOCK_STREAM)
+        for ai in addrinfos:
+            ip = ai[4][0]
+            if ip == "127.0.0.1" or ip == "::1":
+                raise HostnameLocalhost("The hostname resolves to the localhost address")
+
+        return addrinfos[0][4][0]
+    except:
+        return None

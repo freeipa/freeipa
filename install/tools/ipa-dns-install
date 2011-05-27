@@ -62,31 +62,6 @@ def parse_options():
 
     return safe_options, options
 
-def resolve_host(host_name):
-    ip = None
-    try:
-        addrinfos = socket.getaddrinfo(host_name, None,
-                                       socket.AF_UNSPEC, socket.SOCK_DGRAM)
-    except:
-        print "Unable to lookup the IP address of the provided host"
-        return None
-
-    for ai in addrinfos:
-        ip = ai[4][0]
-        if ip == "127.0.0.1" or ip == "::1":
-            print "The hostname resolves to the localhost address (127.0.0.1/::1)"
-            print "Please change your /etc/hosts file so that the hostname."
-            print "resolves to the ip address of your network interface."
-            print ""
-            print "Please fix your /etc/hosts file and restart the setup program."
-            print ""
-            sys.exit("Aborting installation.")
-
-    if addrinfos:
-        ip = addrinfos[0][4][0]
-
-    return ip
-
 def main():
     safe_options, options = parse_options()
 
@@ -211,6 +186,13 @@ except KeyboardInterrupt:
     print "Installation cancelled."
 except RuntimeError, e:
     print str(e)
+except HostnameLocalhost:
+    print "The hostname resolves to the localhost address (127.0.0.1/::1)"
+    print "Please change your /etc/hosts file so that the hostname"
+    print "resolves to the ip address of your network interface."
+    print "The KDC service does not listen on localhost"
+    print ""
+    print "Please fix your /etc/hosts file and restart the setup program"
 except Exception, e:
     message = "Unexpected error - see ipaserver-install.log for details:\n %s" % str(e)
     print message
