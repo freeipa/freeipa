@@ -128,7 +128,7 @@ test("Testing details lifecycle: create, setup, load.", function(){
     }).execute();
 
     var setup_called = false;
-    var save_called= false;
+    var save_called = false;
     var load_called = false;
 
     var load_success_called = false;
@@ -149,8 +149,8 @@ test("Testing details lifecycle: create, setup, load.", function(){
         load_called = true;
     }
 
-    function test_widget(){
-        var widget = IPA.widget({name: 'cn'});
+    function test_widget(spec){
+        var widget = IPA.widget(spec);
 
         widget.setup = function(container) {
             setup_called = true;
@@ -243,6 +243,10 @@ test("Testing details lifecycle: create, setup, load.", function(){
     );
 
     ok (load_called, 'load manager called');
+
+    var section = facet.sections.get('contact');
+    var field = section.fields.get('test');
+    field.set_dirty(true);
 
     facet.update(
         function(){update_success_called = true},

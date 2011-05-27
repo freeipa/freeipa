@@ -269,7 +269,7 @@ IPA.details_facet = function(spec) {
     that.label = (IPA.messages && IPA.messages.facets && IPA.messages.facets.details) || spec.label;
     that.facet_group = spec.facet_group || 'settings';
 
-    that.sections = [];
+    that.sections = $.ordered_map();
 
     that.__defineGetter__("entity_name", function(){
         return that._entity_name;
@@ -278,14 +278,15 @@ IPA.details_facet = function(spec) {
     that.__defineSetter__("entity_name", function(entity_name){
         that._entity_name = entity_name;
 
-        for (var i=0; i<that.sections.length; i++) {
-            that.sections[i].entity_name = entity_name;
+        var sections = that.sections.values;
+        for (var i=0; i<sections.length; i++) {
+            sections[i].entity_name = entity_name;
         }
     });
 
     that.add_section = function(section) {
         section.entity_name = that.entity_name;
-        that.sections.push(section);
+        that.sections.put(section.name, section);
         return section;
     };
 
@@ -304,8 +305,9 @@ IPA.details_facet = function(spec) {
 
         that.facet_init();
 
-        for (var i=0; i<that.sections.length; i++) {
-            var section = that.sections[i];
+        var sections = that.sections.values;
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
             section.init();
         }
     };
@@ -375,8 +377,9 @@ IPA.details_facet = function(spec) {
                 that.expand_button.css('display', 'none');
                 that.collapse_button.css('display', 'inline');
 
-                for (var i=0; i<that.sections.length; i++) {
-                    var section = that.sections[i];
+                var sections = that.sections.values;
+                for (var i=0; i<sections.length; i++) {
+                    var section = sections[i];
                     that.toggle(section, true);
                 }
 
@@ -393,8 +396,9 @@ IPA.details_facet = function(spec) {
                 that.expand_button.css('display', 'inline');
                 that.collapse_button.css('display', 'none');
 
-                for (var i=0; i<that.sections.length; i++) {
-                    var section = that.sections[i];
+                var sections = that.sections.values;
+                for (var i=0; i<sections.length; i++) {
+                    var section = sections[i];
                     that.toggle(section, false);
                 }
 
@@ -409,8 +413,9 @@ IPA.details_facet = function(spec) {
             'name': 'details'
         }).appendTo(container);
 
-        for (var i = 0; i < that.sections.length; ++i) {
-            var section = that.sections[i];
+        var sections = that.sections.values;
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
 
             var header = $('<h2/>', {
                 name: section.name,
@@ -450,8 +455,9 @@ IPA.details_facet = function(spec) {
 
         var details = $('div[name=details]', that.container);
 
-        for (var i = 0; i < that.sections.length; ++i) {
-            var section = that.sections[i];
+        var sections = that.sections.values;
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
 
             var div = $('div.details-section[name='+section.name+']', that.container);
 
@@ -496,8 +502,9 @@ IPA.details_facet = function(spec) {
 
 
     that.is_dirty = function() {
-        for (var i=0; i<that.sections.length; i++) {
-            if (that.sections[i].is_dirty()) {
+        var sections = that.sections.values;
+        for (var i=0; i<sections.length; i++) {
+            if (sections[i].is_dirty()) {
                 return true;
             }
         }
@@ -506,16 +513,17 @@ IPA.details_facet = function(spec) {
 
     that.load = function (record) {
         that.record = record;
-        for (var i=0; i<that.sections.length; i++) {
-            var section = that.sections[i];
+        var sections = that.sections.values;
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
             section.load(record);
         }
     };
 
     that.reset = function() {
-
-        for (var i=0; i<that.sections.length; i++) {
-            var section = that.sections[i];
+        var sections = that.sections.values;
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
             section.reset();
         }
     };
@@ -539,21 +547,35 @@ IPA.details_facet = function(spec) {
                 on_fail(xhr, text_status, error_thrown);
         }
 
+        var args = that.get_primary_key();
+
+        var command = IPA.command({
+            entity: entity_name,
+            method: 'mod',
+            args: args,
+            options: {
+                all: true,
+                rights: true
+            },
+            on_success: on_success,
+            on_error: on_error
+        });
+
         var values;
-        var modlist = {'all': true, 'setattr': [], 'addattr': [], 'rights': true};
-        var attrs_wo_option = {};
 
-        for (var i=0; i<that.sections.length; i++) {
-            var section = that.sections[i];
+        var sections = that.sections.values;
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
 
-            if (section.save){
-                section.save(modlist);
+            if (section.save) {
+                section.save(command.options);
                 continue;
             }
 
             var section_fields = section.fields.values;
             for (var j=0; j<section_fields.length; j++) {
                 var field = section_fields[j];
+                if (!field.is_dirty()) continue;
 
                 values = field.save();
                 if (!values) continue;
@@ -562,40 +584,25 @@ IPA.details_facet = function(spec) {
                 if (param_info) {
                     if (param_info['primary_key']) continue;
                     if (values.length === 1) {
-                        modlist[field.name] = values[0];
-                    } else if (values.length > 1){
-                        if (field.join) {
-                            modlist[field.name] = values.join(',');
-                        } else {
-                            modlist[field.name] = values;
-                        }
-                    } else if (param_info['multivalue']){
-                        modlist[field.name] = [];
+                        command.set_option(field.name, values[0]);
+                    } else if (field.join) {
+                        command.set_option(field.name, values.join(','));
+                    } else {
+                        command.set_option(field.name, values);
                     }
+
                 } else {
-                    if (values.length) attrs_wo_option[field.name] = values;
+                    if (values.length) {
+                        command.add_option('setattr', field.name+'='+values[0]);
+                    } else {
+                        command.add_option('setattr', field.name+'=');
+                    }
+                    for (var k=1; k<values.length; k++) {
+                        command.add_option('addattr', field.name+'='+values[k]);
+                    }
                 }
             }
         }
-
-        for (var attr in attrs_wo_option) {
-            values = attrs_wo_option[attr];
-            modlist['setattr'].push(attr + '=' + values[0]);
-            for (var k = 1; k < values.length; ++k){
-                modlist['addattr'].push(attr + '=' + values[k]);
-            }
-        }
-
-        var args = that.get_primary_key();
-
-        var command = IPA.command({
-            entity: entity_name,
-            method: 'mod',
-            args: args,
-            options: modlist,
-            on_success: on_success,
-            on_error: on_error
-        });
 
         //alert(JSON.stringify(command.to_json()));
 

@@ -128,8 +128,9 @@ IPA.add_dialog = function (spec) {
             }
         }
 
-        for (var j=0; j<that.sections.length; j++) {
-            var section = that.sections[j];
+        var sections = that.sections.values;
+        for (var j=0; j<sections.length; j++) {
+            var section = sections[j];
 
             var section_fields = section.fields.values;
             for (var k=0; k<section_fields.length; k++) {

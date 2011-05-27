@@ -431,12 +431,14 @@ IPA.hbacrule_details_facet = function (spec) {
             })
         };
 
-        for (var i=0; i<that.sections.length; i++) {
-            var section = that.sections[i];
+        var sections = that.sections.values;
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
 
             var section_fields = section.fields.values;
             for (var j=0; j<section_fields.length; j++) {
                 var field = section_fields[j];
+                if (!field.is_dirty()) continue;
 
                 var values = field.save();
                 if (!values) continue;
@@ -486,23 +488,26 @@ IPA.hbacrule_details_facet = function (spec) {
                     }
                 }
 
-                // use setattr/addattr if param_info not available
-                if (!param_info) {
-                    for (var l=0; l<values.length; l++) {
-                        modify_operation.command.set_option(
-                            l === 0 ? 'setattr' : 'addattr',
-                            field.name+'='+values[l]);
-                        modify_operation.execute = true;
+                if (param_info) {
+                    if (values.length == 1) {
+                        modify_operation.command.set_option(field.name, values[0]);
+                    } else if (field.join) {
+                        modify_operation.command.set_option(field.name, values.join(','));
+                    } else {
+                        modify_operation.command.set_option(field.name, values);
                     }
-                    continue;
+
+                } else {
+                    if (values.length) {
+                        modify_operation.command.set_option('setattr', field.name+'='+values[0]);
+                    } else {
+                        modify_operation.command.set_option('setattr', field.name+'=');
+                    }
+                    for (var l=1; l<values.length; l++) {
+                        modify_operation.command.set_option('addattr', field.name+'='+values[l]);
+                    }
                 }
 
-                // set modify options
-                if (values.length == 1) {
-                    modify_operation.command.set_option(field.name, values[0]);
-                } else {
-                    modify_operation.command.set_option(field.name, values);
-                }
                 modify_operation.execute = true;
             }
         }
@@ -536,13 +541,6 @@ IPA.hbacrule_details_facet = function (spec) {
         }
 
         batch.execute();
-    };
-
-    that.reset = function() {
-        for (var i=0; i<that.sections.length; i++) {
-            var section = that.sections[i];
-            section.reset();
-        }
     };
 
     return that;

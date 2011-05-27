@@ -214,6 +214,15 @@ IPA.command = function(spec) {
         that.options[name] = value;
     };
 
+    that.add_option = function(name, value) {
+        var values = that.options[name];
+        if (!values) {
+            values = [];
+            that.options[name] = values;
+        }
+        values.push(value);
+    };
+
     that.get_option = function(name) {
         return that.options[name];
     };

@@ -447,12 +447,14 @@ IPA.sudorule_details_facet = function (spec) {
             })
         };
 
-        for (var i=0; i<that.sections.length; i++) {
-            var section = that.sections[i];
+        var sections = that.sections.values;
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
 
             var section_fields = section.fields.values;
             for (var j=0; j<section_fields.length; j++) {
                 var field = section_fields[j];
+                if (!field.is_dirty()) continue;
 
                 var values = field.save();
                 if (!values) continue;
@@ -490,23 +492,26 @@ IPA.sudorule_details_facet = function (spec) {
                     categories[field.name].remove_values = true;
                 }
 
-                // use setattr/addattr if param_info not available
-                if (!param_info) {
-                    for (var k=0; k<values.length; k++) {
-                        modify_operation.command.set_option(
-                            k === 0 ? 'setattr' : 'addattr',
-                            field.name+'='+values[k]);
-                        modify_operation.execute = true;
+                if (param_info) {
+                    if (values.length == 1) {
+                        modify_operation.command.set_option(field.name, values[0]);
+                    } else if (field.join) {
+                        modify_operation.command.set_option(field.name, values.join(','));
+                    } else {
+                        modify_operation.command.set_option(field.name, values);
                     }
-                    continue;
+
+                } else {
+                    if (values.length) {
+                        modify_operation.command.set_option('setattr', field.name+'='+values[0]);
+                    } else {
+                        modify_operation.command.set_option('setattr', field.name+'=');
+                    }
+                    for (var k=1; k<values.length; k++) {
+                        modify_operation.command.set_option('addattr', field.name+'='+values[k]);
+                    }
                 }
 
-                // set modify options
-                if (values.length == 1) {
-                    modify_operation.command.set_option(field.name, values[0]);
-                } else {
-                    modify_operation.command.set_option(field.name, values);
-                }
                 modify_operation.execute = true;
             }
         }

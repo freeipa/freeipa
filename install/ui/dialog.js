@@ -41,8 +41,7 @@ IPA.dialog = function(spec) {
     that.buttons = {};
 
     that.fields = $.ordered_map();
-
-    that.sections = [];
+    that.sections = $.ordered_map();
 
     that.__defineGetter__("entity_name", function(){
         return that._entity_name;
@@ -56,8 +55,9 @@ IPA.dialog = function(spec) {
             fields[i].entity_name = entity_name;
         }
 
-        for (var j=0; j<that.sections.length; j++) {
-            that.sections[j].entity_name = entity_name;
+        var sections = that.sections.values;
+        for (var j=0; j<sections.length; j++) {
+            sections[j].entity_name = entity_name;
         }
     });
 
@@ -97,7 +97,7 @@ IPA.dialog = function(spec) {
     };
 
     that.add_section = function(section) {
-        that.sections.push(section);
+        that.sections.put(section.name, section);
         return that;
     };
 
@@ -123,8 +123,9 @@ IPA.dialog = function(spec) {
             field.init();
         }
 
-        for (var j=0; j<that.sections.length; j++) {
-            var section = that.sections[j];
+        var sections = that.sections.values;
+        for (var j=0; j<sections.length; j++) {
+            var section = sections[j];
             section.entity_name = that.entity_name;
             section.init();
         }
@@ -158,8 +159,9 @@ IPA.dialog = function(spec) {
             field.create(span);
         }
 
-        for (var j=0; j<that.sections.length; j++) {
-            var section = that.sections[j];
+        var sections = that.sections.values;
+        for (var j=0; j<sections.length; j++) {
+            var section = sections[j];
 
             var div = $('<div/>', {
                 name: section.name,
@@ -182,8 +184,9 @@ IPA.dialog = function(spec) {
             field.setup(span);
         }
 
-        for (var j=0; j<that.sections.length; j++) {
-            var section = that.sections[j];
+        var sections = that.sections.values;
+        for (var j=0; j<sections.length; j++) {
+            var section = sections[j];
 
             var div = $('div.details-section[name='+section.name+']',
                 that.container);
@@ -251,8 +254,9 @@ IPA.dialog = function(spec) {
             record[field.name] = values.join(',');
         }
 
-        for (var j=0; j<that.sections.length; j++) {
-            var section = that.sections[j];
+        var sections = that.sections.values;
+        for (var j=0; j<sections.length; j++) {
+            var section = sections[j];
 
             if (section.save) {
                 section.save(record);
@@ -271,8 +275,10 @@ IPA.dialog = function(spec) {
             var field = fields[i];
             field.reset();
         }
-        for (var j=0; j<that.sections.length; j++) {
-            that.sections[j].reset();
+
+        var sections = that.sections.values;
+        for (var j=0; j<sections.length; j++) {
+            sections[j].reset();
         }
     };
 
