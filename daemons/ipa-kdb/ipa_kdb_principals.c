@@ -862,10 +862,130 @@ krb5_error_code ipadb_put_principal(krb5_context kcontext,
     return KRB5_PLUGIN_OP_NOTSUPP;
 }
 
+static krb5_error_code ipadb_delete_entry(krb5_context kcontext,
+                                          LDAPMessage *lentry)
+{
+    struct ipadb_context *ipactx;
+    krb5_error_code kerr;
+    char *dn = NULL;
+    int ret;
+
+    ipactx = ipadb_get_context(kcontext);
+    if (!ipactx) {
+        kerr = KRB5_KDB_DBNOTINITED;
+        goto done;
+    }
+
+    if (!ipactx->lcontext) {
+        ret = ipadb_get_connection(ipactx);
+        if (ret != 0) {
+            kerr = KRB5_KDB_SERVER_INTERNAL_ERR;
+            goto done;
+        }
+    }
+
+    dn = ldap_get_dn(ipactx->lcontext, lentry);
+    if (!dn) {
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    kerr = ipadb_simple_delete(ipactx, dn);
+
+done:
+    ldap_memfree(dn);
+    return kerr;
+}
+
+static krb5_error_code ipadb_delete_alias(krb5_context kcontext,
+                                          LDAPMessage *lentry,
+                                          char *principal)
+{
+    struct ipadb_context *ipactx;
+    krb5_error_code kerr;
+    char *dn = NULL;
+    int ret;
+
+    ipactx = ipadb_get_context(kcontext);
+    if (!ipactx) {
+        kerr = KRB5_KDB_DBNOTINITED;
+        goto done;
+    }
+
+    if (!ipactx->lcontext) {
+        ret = ipadb_get_connection(ipactx);
+        if (ret != 0) {
+            kerr = KRB5_KDB_SERVER_INTERNAL_ERR;
+            goto done;
+        }
+    }
+
+    dn = ldap_get_dn(ipactx->lcontext, lentry);
+    if (!dn) {
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    kerr = ipadb_simple_delete_val(ipactx, dn, "krbprincipalname", principal);
+
+done:
+    ldap_memfree(dn);
+    return kerr;
+}
+
 krb5_error_code ipadb_delete_principal(krb5_context kcontext,
                                        krb5_const_principal search_for)
 {
-    return KRB5_PLUGIN_OP_NOTSUPP;
+    struct ipadb_context *ipactx;
+    krb5_error_code kerr;
+    char *principal = NULL;
+    char *canonicalized = NULL;
+    LDAPMessage *res = NULL;
+    LDAPMessage *lentry;
+    unsigned int flags;
+
+    ipactx = ipadb_get_context(kcontext);
+    if (!ipactx) {
+        return KRB5_KDB_DBNOTINITED;
+    }
+
+    kerr = krb5_unparse_name(kcontext, search_for, &principal);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    kerr = ipadb_fetch_principals(ipactx, principal, &res);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    canonicalized = strdup(principal);
+    if (!canonicalized) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
+    flags = KRB5_KDB_FLAG_ALIAS_OK;
+    kerr = ipadb_find_principal(kcontext, flags, res, &canonicalized, &lentry);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    /* check if this is an alias (remove it) or if we should remove the whole
+     * ldap record */
+
+    /* TODO: should we use case insensitive matching here ? */
+    if (strcmp(canonicalized, principal) == 0) {
+        kerr = ipadb_delete_entry(kcontext, lentry);
+    } else {
+        kerr = ipadb_delete_alias(kcontext, lentry, principal);
+    }
+
+done:
+    ldap_msgfree(res);
+    free(canonicalized);
+    krb5_free_unparsed_name(kcontext, principal);
+    return kerr;
 }
 
 krb5_error_code ipadb_iterate(krb5_context kcontext,
