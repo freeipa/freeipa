@@ -426,9 +426,9 @@ def main():
         name = domain.pop(0)
         domain = ".".join(domain)
 
-        zone = add_zone(domain, nsaddr=options.ip_address)
-        add_rr(zone, name, "A", options.ip_address)
         ns_ip_address = resolve_host(api.env.host)
+        zone = add_zone(domain, nsaddr=ns_ip_address)
+        add_rr(zone, name, "A", options.ip_address)
         add_reverse_zone(options.ip_address, ns_ip_address)
         add_ptr_rr(options.ip_address, replica_fqdn)
 
