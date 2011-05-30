@@ -993,6 +993,46 @@ krb5_error_code ipadb_iterate(krb5_context kcontext,
                               int (*func)(krb5_pointer, krb5_db_entry *),
                               krb5_pointer func_arg)
 {
-    return KRB5_PLUGIN_OP_NOTSUPP;
+    struct ipadb_context *ipactx;
+    krb5_error_code kerr;
+    LDAPMessage *res = NULL;
+    LDAPMessage *lentry;
+    krb5_db_entry *kentry;
+    uint32_t pol;
+
+    ipactx = ipadb_get_context(kcontext);
+    if (!ipactx) {
+        return KRB5_KDB_DBNOTINITED;
+    }
+
+    /* fetch list of principal matching filter */
+    kerr = ipadb_fetch_principals(ipactx, match_entry, &res);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    lentry = ldap_first_entry(ipactx->lcontext, res);
+
+    while (lentry) {
+
+        kentry = NULL;
+        kerr = ipadb_parse_ldap_entry(kcontext, NULL, lentry, &kentry, &pol);
+        if (kerr == 0 && pol != 0) {
+            kerr = ipadb_fetch_tktpolicy(kcontext, lentry, kentry, pol);
+        }
+        if (kerr == 0) {
+            /* Now call the callback with the entry */
+            func(func_arg, kentry);
+        }
+        ipadb_free_principal(kcontext, kentry);
+
+        lentry = ldap_next_entry(ipactx->lcontext, lentry);
+    }
+
+    kerr = 0;
+
+done:
+    ldap_msgfree(res);
+    return kerr;
 }
 
