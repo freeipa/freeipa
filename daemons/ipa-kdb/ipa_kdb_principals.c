@@ -837,7 +837,22 @@ done:
 
 void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
 {
-    return;
+    krb5_tl_data *prev, *next;
+    int i;
+
+    if (entry) {
+        free(entry->e_data);
+        krb5_free_principal(kcontext, entry->princ);
+        prev = entry->tl_data;
+        while(prev) {
+            next = prev->tl_data_next;
+            free(prev->tl_data_contents);
+            free(prev);
+            prev = next;
+        }
+        ipa_krb5_free_key_data(entry->key_data, entry->n_key_data);
+        free(entry);
+    }
 }
 
 krb5_error_code ipadb_put_principal(krb5_context kcontext,
