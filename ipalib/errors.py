@@ -263,7 +263,10 @@ class PublicError(StandardError):
                 self.format = format
             self.forwarded = False
             self.msg = self.format % kw
-            self.strerror = ugettext(self.format) % kw
+            if isinstance(self.format, basestring):
+                self.strerror = ugettext(self.format) % kw
+            else:
+                self.strerror = self.format % kw
         else:
             if type(message) is not unicode:
                 raise TypeError(
