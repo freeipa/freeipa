@@ -904,7 +904,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: group_find
-args: 1,19,4
+args: 1,23,4
 arg: Str('criteria?')
 option: Str('cn', attribute=True, autofill=False, cli_name='group_name', label=Gettext('Group name', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -925,6 +925,10 @@ option: List('in_netgroup?', cli_name='in_netgroups', label='netgroup', multival
 option: List('not_in_netgroup?', cli_name='not_in_netgroups', label='netgroup', multivalue=True)
 option: List('in_role?', cli_name='in_roles', label='role', multivalue=True)
 option: List('not_in_role?', cli_name='not_in_roles', label='role', multivalue=True)
+option: List('in_hbacrule?', cli_name='in_hbacrules', label='HBAC rule', multivalue=True)
+option: List('not_in_hbacrule?', cli_name='not_in_hbacrules', label='HBAC rule', multivalue=True)
+option: List('in_sudorule?', cli_name='in_sudorules', label='Sudo Rule', multivalue=True)
+option: List('not_in_sudorule?', cli_name='not_in_sudorules', label='Sudo Rule', multivalue=True)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -1313,7 +1317,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: host_find
-args: 1,23,4
+args: 1,27,4
 arg: Str('criteria?')
 option: Str('fqdn', validate_host, attribute=True, autofill=False, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -1334,6 +1338,10 @@ option: List('in_netgroup?', cli_name='in_netgroups', label='netgroup', multival
 option: List('not_in_netgroup?', cli_name='not_in_netgroups', label='netgroup', multivalue=True)
 option: List('in_role?', cli_name='in_roles', label='role', multivalue=True)
 option: List('not_in_role?', cli_name='not_in_roles', label='role', multivalue=True)
+option: List('in_hbacrule?', cli_name='in_hbacrules', label='HBAC rule', multivalue=True)
+option: List('not_in_hbacrule?', cli_name='not_in_hbacrules', label='HBAC rule', multivalue=True)
+option: List('in_sudorule?', cli_name='in_sudorules', label='Sudo Rule', multivalue=True)
+option: List('not_in_sudorule?', cli_name='not_in_sudorules', label='Sudo Rule', multivalue=True)
 option: List('enroll_by_user?', cli_name='enroll_by_users', label='user', multivalue=True)
 option: List('not_enroll_by_user?', cli_name='not_enroll_by_users', label='user', multivalue=True)
 option: List('man_by_host?', cli_name='man_by_hosts', label='host', multivalue=True)
@@ -1415,7 +1423,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: hostgroup_find
-args: 1,13,4
+args: 1,17,4
 arg: Str('criteria?')
 option: Str('cn', attribute=True, autofill=False, cli_name='hostgroup_name', label=Gettext('Host-group', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -1430,6 +1438,10 @@ option: List('hostgroup?', cli_name='hostgroups', label='hostgroup', multivalue=
 option: List('no_hostgroup?', cli_name='no_hostgroups', label='hostgroup', multivalue=True)
 option: List('in_hostgroup?', cli_name='in_hostgroups', label='hostgroup', multivalue=True)
 option: List('not_in_hostgroup?', cli_name='not_in_hostgroups', label='hostgroup', multivalue=True)
+option: List('in_hbacrule?', cli_name='in_hbacrules', label='HBAC rule', multivalue=True)
+option: List('not_in_hbacrule?', cli_name='not_in_hbacrules', label='HBAC rule', multivalue=True)
+option: List('in_sudorule?', cli_name='in_sudorules', label='Sudo Rule', multivalue=True)
+option: List('not_in_sudorule?', cli_name='not_in_sudorules', label='Sudo Rule', multivalue=True)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -2580,7 +2592,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: user_find
-args: 1,38,4
+args: 1,42,4
 arg: Str('criteria?')
 option: Str('uid', attribute=True, autofill=False, cli_name='login', default_from=DefaultFrom(<lambda>, 'givenname', 'sn'), label=Gettext('User login', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, query=True, required=False)
 option: Str('givenname', attribute=True, autofill=False, cli_name='first', label=Gettext('First name', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -2620,6 +2632,10 @@ option: List('in_netgroup?', cli_name='in_netgroups', label='netgroup', multival
 option: List('not_in_netgroup?', cli_name='not_in_netgroups', label='netgroup', multivalue=True)
 option: List('in_role?', cli_name='in_roles', label='role', multivalue=True)
 option: List('not_in_role?', cli_name='not_in_roles', label='role', multivalue=True)
+option: List('in_hbacrule?', cli_name='in_hbacrules', label='HBAC rule', multivalue=True)
+option: List('not_in_hbacrule?', cli_name='not_in_hbacrules', label='HBAC rule', multivalue=True)
+option: List('in_sudorule?', cli_name='in_sudorules', label='Sudo Rule', multivalue=True)
+option: List('not_in_sudorule?', cli_name='not_in_sudorules', label='Sudo Rule', multivalue=True)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')

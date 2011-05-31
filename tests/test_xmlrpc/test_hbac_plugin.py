@@ -24,7 +24,6 @@ from xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
 
-
 class test_hbac(XMLRPC_test):
     """
     Test the `hbacrule` plugin.
@@ -179,6 +178,24 @@ class test_hbac(XMLRPC_test):
         assert_attr_equal(entry, 'memberuser_user', self.test_user)
         assert_attr_equal(entry, 'memberuser_group', self.test_group)
 
+    def test_9_a_show_user(self):
+        """
+        Test showing a user to verify HBAC rule membership
+        `xmlrpc.user_show`.
+        """
+        ret = api.Command['user_show'](self.test_user, all=True)
+        entry = ret['result']
+        assert_attr_equal(entry, 'memberof_HBAC rule', self.rule_name)
+
+    def test_9_b_show_group(self):
+        """
+        Test showing a group to verify HBAC rule membership
+        `xmlrpc.group_show`.
+        """
+        ret = api.Command['group_show'](self.test_group, all=True)
+        entry = ret['result']
+        assert_attr_equal(entry, 'memberof_HBAC rule', self.rule_name)
+
     def test_9_hbacrule_remove_user(self):
         """
         Test removing user and group from HBAC rule using `xmlrpc.hbacrule_remove_user'.
@@ -214,6 +231,24 @@ class test_hbac(XMLRPC_test):
         entry = ret['result']
         assert_attr_equal(entry, 'memberhost_host', self.test_host)
         assert_attr_equal(entry, 'memberhost_hostgroup', self.test_hostgroup)
+
+    def test_a_hbacrule_show_host(self):
+        """
+        Test showing host to verify HBAC rule membership
+        `xmlrpc.host_show`.
+        """
+        ret = api.Command['host_show'](self.test_host, all=True)
+        entry = ret['result']
+        assert_attr_equal(entry, 'memberof_HBAC rule', self.rule_name)
+
+    def test_a_hbacrule_show_hostgroup(self):
+        """
+        Test showing hostgroup to verify HBAC rule membership
+        `xmlrpc.hostgroup_show`.
+        """
+        ret = api.Command['hostgroup_show'](self.test_hostgroup, all=True)
+        entry = ret['result']
+        assert_attr_equal(entry, 'memberof_HBAC rule', self.rule_name)
 
     def test_b_hbacrule_remove_host(self):
         """

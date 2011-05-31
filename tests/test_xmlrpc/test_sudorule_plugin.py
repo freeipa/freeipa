@@ -25,7 +25,6 @@ from xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
 
-
 class test_sudorule(XMLRPC_test):
     """
     Test the `sudorule` plugin.
@@ -154,6 +153,24 @@ class test_sudorule(XMLRPC_test):
         entry = ret['result']
         assert_attr_equal(entry, 'memberuser_user', self.test_user)
         assert_attr_equal(entry, 'memberuser_group', self.test_group)
+
+    def test_9_a_show_user(self):
+        """
+        Test showing a user to verify Sudo rule membership
+        `xmlrpc.user_show`.
+        """
+        ret = api.Command['user_show'](self.test_user, all=True)
+        entry = ret['result']
+        assert_attr_equal(entry, 'memberof_Sudo Rule', self.rule_name)
+
+    def test_9_b_show_group(self):
+        """
+        Test showing a group to verify Sudo rule membership
+        `xmlrpc.group_show`.
+        """
+        ret = api.Command['group_show'](self.test_group, all=True)
+        entry = ret['result']
+        assert_attr_equal(entry, 'memberof_Sudo Rule', self.rule_name)
 
     def test_9_sudorule_remove_user(self):
         """
@@ -358,6 +375,24 @@ class test_sudorule(XMLRPC_test):
         entry = ret['result']
         assert_attr_equal(entry, 'memberhost_host', self.test_host)
         assert_attr_equal(entry, 'memberhost_hostgroup', self.test_hostgroup)
+
+    def test_a_sudorule_show_host(self):
+        """
+        Test showing host to verify Sudo rule membership
+        `xmlrpc.host_show`.
+        """
+        ret = api.Command['host_show'](self.test_host, all=True)
+        entry = ret['result']
+        assert_attr_equal(entry, 'memberof_Sudo Rule', self.rule_name)
+
+    def test_a_sudorule_show_hostgroup(self):
+        """
+        Test showing hostgroup to verify Sudo rule membership
+        `xmlrpc.hostgroup_show`.
+        """
+        ret = api.Command['hostgroup_show'](self.test_hostgroup, all=True)
+        entry = ret['result']
+        assert_attr_equal(entry, 'memberof_Sudo Rule', self.rule_name)
 
     def test_b_sudorule_remove_host(self):
         """

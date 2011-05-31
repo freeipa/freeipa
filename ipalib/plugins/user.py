@@ -99,8 +99,8 @@ class user(LDAPObject):
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
-        'memberof': ['group', 'netgroup', 'role'],
-        'memberofindirect': ['group', 'netgroup', 'role'],
+        'memberof': ['group', 'netgroup', 'role', 'hbacrule', 'sudorule'],
+        'memberofindirect': ['group', 'netgroup', 'role', 'hbacrule', 'sudorule'],
     }
     rdnattr = 'uid'
     bindable = True

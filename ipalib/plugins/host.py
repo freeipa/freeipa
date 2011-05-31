@@ -214,9 +214,10 @@ class host(LDAPObject):
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'enrolledby': ['user'],
-        'memberof': ['hostgroup', 'netgroup', 'role'],
+        'memberof': ['hostgroup', 'netgroup', 'role', 'hbacrule', 'sudorule'],
         'managedby': ['host'],
-        'memberofindirect': ['hostgroup', 'netgroup', 'role'],
+        'memberofindirect': ['hostgroup', 'netgroup', 'role', 'hbacrule',
+        'sudorule'],
     }
     bindable = True
     relationships = {
