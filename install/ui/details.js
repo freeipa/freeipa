@@ -641,9 +641,20 @@ IPA.details_facet = function(spec) {
         };
 
         command.on_error = function(xhr, text_status, error_thrown) {
-            var details = $('.details', that.container).empty();
-            details.append('<p>Error: '+error_thrown.name+'</p>');
-            details.append('<p>'+error_thrown.message+'</p>');
+            if (that.entity.redirect_facet) {
+                var current_entity = that.entity;
+                while (current_entity.containing_entity){
+                    current_entity = current_entity.containing_entity;
+                }
+                IPA.nav.show_page(
+                    current_entity.name,
+                    that.entity.redirect_facet);
+                return;
+            }else{
+                var details = $('.details', that.container).empty();
+                details.append('<p>Error: '+error_thrown.name+'</p>');
+                details.append('<p>'+error_thrown.message+'</p>');
+            }
         };
 
         command.execute();
