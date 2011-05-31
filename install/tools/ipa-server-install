@@ -598,14 +598,20 @@ def main():
     if hostaddr is not None:
         ip = CheckedIPAddress(hostaddr)
     else:
+        if not options.ip_address:
+            print "Unable to resolve IP address for host name"
         ip = options.ip_address
     if ip is None and options.unattended:
         sys.exit("Unable to resolve IP address for host name")
 
-    if not verify_ip_address(ip):
-        ip = None
-        if options.unattended:
-            sys.exit(1)
+    if ip:
+        try:
+            verify_ip_address(ip)
+        except Exception, e:
+            print "Error: Invalid IP Address %s: %s" % (ip, e)
+            if options.unattended:
+                sys.exit(1)
+            ip = None
 
     if options.ip_address:
         if options.ip_address != ip and not options.setup_dns:
@@ -615,8 +621,11 @@ def main():
             return 1
 
         ip = options.ip_address
-        if not verify_ip_address(ip):
-            return 1
+        try:
+            verify_ip_address(ip)
+        except Exception, e:
+            print "Error: Invalid IP Address %s: %s" % (ip, e)
+            sys.exit(1)
 
     if ip is None:
         ip = read_ip_address(host_name, fstore)

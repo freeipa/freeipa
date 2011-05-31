@@ -108,7 +108,14 @@ def main():
     else:
         hostaddr = resolve_host(api.env.host)
         ip_address = hostaddr and ipautil.CheckedIPAddress(hostaddr)
-    if not ip_address or not verify_ip_address(ip_address):
+
+    try:
+        verify_ip_address(ip_address)
+    except Exception, e:
+        print "Error: Invalid IP Address %s: %s" % (ip_address, e)
+        ip_address = None
+
+    if not ip_address:
         if options.unattended:
             sys.exit("Unable to resolve IP address for host name")
         else:

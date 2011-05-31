@@ -78,11 +78,6 @@ def parse_options():
     if cnt > 0 and cnt < num:
         parser.error("All PKCS#12 options are required if any are used.")
 
-    if options.ip_address:
-        if not installutils.verify_ip_address(options.ip_address, match_local=False):
-            parser.error("Bad IP address")
-            sys.exit(1)
-
     if len(args) != 1:
         parser.error("must provide the fully-qualified name of the replica")
 

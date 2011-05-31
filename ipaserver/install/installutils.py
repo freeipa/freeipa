@@ -108,6 +108,10 @@ def verify_fqdn(host_name,no_host_dns=False):
     if host_name != host_name.lower():
         raise RuntimeError("Invalid hostname '%s', must be lower-case." % host_name)
 
+    if no_host_dns:
+        print "Warning: skipping DNS resolution of host", host_name
+        return
+
     try:
         hostaddr = socket.getaddrinfo(host_name, None)
     except:
@@ -126,10 +130,6 @@ def verify_fqdn(host_name,no_host_dns=False):
             raise RuntimeError("Unable to resolve the reverse ip address, check /etc/hosts or DNS name resolution")
         if revname != host_name:
             raise RuntimeError("The host name %s does not match the reverse lookup %s" % (host_name, revname))
-
-    if no_host_dns:
-        print "Warning: skipping DNS resolution of host", host_name
-        return
 
     # Verify this is NOT a CNAME
     rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_CNAME)
@@ -152,17 +152,13 @@ def verify_fqdn(host_name,no_host_dns=False):
         print "Warning: Hostname (%s) not found in DNS" % host_name
 
 def parse_ip_address(addr, match_local=True, parse_netmask=True):
-    try:
-        ip = ipautil.CheckedIPAddress(addr, match_local=match_local, parse_netmask=parse_netmask)
-        if match_local and not ip.is_local():
-            print "Warning: No network interface matches IP address %s" % addr
-        return ip
-    except Exception as e:
-        print "Error: Invalid IP Address %s: %s" % (addr, e)
-        return None
+    ip = ipautil.CheckedIPAddress(addr, match_local=match_local, parse_netmask=parse_netmask)
+    if match_local and not ip.is_local():
+        print "Warning: No network interface matches IP address %s" % addr
+    return ip
 
 def verify_ip_address(addr, match_local=True, parse_netmask=True):
-    return parse_ip_address(addr, match_local, parse_netmask) is not None
+    ip = parse_ip_address(addr, match_local, parse_netmask)
 
 def record_in_hosts(ip, host_name, file="/etc/hosts"):
     hosts = open(file, 'r').readlines()
@@ -195,9 +191,12 @@ def add_record_to_hosts(ip, host_name, file="/etc/hosts"):
 def read_ip_address(host_name, fstore):
     while True:
         ip = ipautil.user_input("Please provide the IP address to be used for this host name", allow_empty = False)
-        ip_parsed = parse_ip_address(ip)
-
-        if ip_parsed is not None:
+        try:
+            ip_parsed = parse_ip_address(ip)
+        except Exception, e:
+            print "Error: Invalid IP Address %s: %s" % (ip, e)
+            continue
+        else:
             break
 
     ip = str(ip_parsed)
@@ -217,8 +216,10 @@ def read_dns_forwarders():
                                     allow_empty=True)
             if not ip:
                 break
-            ip_parsed = parse_ip_address(ip, match_local=False, parse_netmask=False)
-            if ip_parsed is None:
+            try:
+                ip_parsed = parse_ip_address(ip, match_local=False, parse_netmask=False)
+            except Exception, e:
+                print "Error: Invalid IP Address %s: %s" % (ip, e)
                 print "DNS forwarder %s not added" % ip
                 continue
 
