@@ -993,6 +993,7 @@ IPA.association_facet = function (spec) {
 
         var pkeys = that.record[that.name];
         if (!pkeys || !pkeys.length) {
+            that.table.empty();
             that.table.summary.text('No entries.');
             return;
         }
