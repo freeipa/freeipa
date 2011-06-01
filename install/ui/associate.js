@@ -707,7 +707,7 @@ IPA.association_facet = function (spec) {
     that.columns = $.ordered_map();
     that.adder_columns = $.ordered_map();
 
-    that.page_length = 20;
+    that.page_length = spec.page_length === undefined ? 20 : spec.page_length;
 
     that.get_column = function(name) {
         return that.columns.get(name);
@@ -1107,21 +1107,62 @@ IPA.association_facet = function (spec) {
     return that;
 };
 
+IPA.indirect_association_facet = function (spec) {
 
-IPA.deleter_dialog_setup = function () {
+    spec = spec || {};
 
-    var that = this;
+    spec.page_length = 0;
+    spec.read_only = true;
 
-    var ul = $('<ul/>');
-    ul.appendTo(that.dialog);
+    var that = IPA.association_facet(spec);
 
-    for (var i=0; i<that.values.length; i++) {
-        $('<li/>',{
-            'text': that.values[i]
-        }).appendTo(ul);
-    }
+    that.refresh = function() {
 
-    $('<p/>', {
-        'text': IPA.messages.search.delete_confirm
-    }).appendTo(that.dialog);
+        function on_success(data, text_status, xhr) {
+
+            that.table.empty();
+
+            var count = data.result.count;
+            if (count === 0) {
+                that.table.summary.text(data.result.summary);
+                return;
+            }
+
+            var results = data.result.result;
+            for (var i=0; i<results.length; i++) {
+                var record = results[i];
+                that.table.add_record(record);
+            }
+
+            if (data.result.truncated) {
+                var message = IPA.messages.search.truncated;
+                message = message.replace('${counter}', data.result.count);
+                that.table.summary.text(message);
+            } else {
+                that.table.summary.text(data.result.summary);
+            }
+        }
+
+        var options = {
+            'all': true
+        };
+
+        var pkey = $.bbq.getState(that.entity_name+'-pkey');
+
+        /* TODO: make a general solution to generate this value */
+        var relationship_filter = 'in_' + that.entity_name;
+        options[relationship_filter] = pkey;
+
+        var command = IPA.command({
+            entity: that.other_entity,
+            method: 'find',
+            options: options,
+            on_success: on_success,
+            on_error: that.on_error
+        });
+
+        command.execute();
+    };
+
+    return that;
 };

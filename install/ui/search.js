@@ -298,25 +298,17 @@ IPA.search_facet = function(spec) {
                 that.table.add_record(record);
             }
 
-            var summary = $('span[name=summary]', that.table.tfoot);
             if (data.result.truncated) {
                 var message = IPA.messages.search.truncated;
                 message = message.replace('${counter}', data.result.count);
-                summary.text(message);
+                that.table.summary.text(message);
             } else {
-                summary.text(data.result.summary);
+                that.table.summary.text(data.result.summary);
             }
 
             that.filter.focus();
             that.select_changed();
         }
-
-        function on_error(xhr, text_status, error_thrown) {
-            var summary = $('span[name=summary]', that.table.tfoot).empty();
-            summary.append('<p>Error: '+error_thrown.name+'</p>');
-            summary.append('<p>'+error_thrown.message+'</p>');
-        }
-
 
         var filter = [];
         var current_entity = entity;
@@ -336,7 +328,7 @@ IPA.search_facet = function(spec) {
                 all: that.search_all
             },
             on_success: on_success,
-            on_error: on_error
+            on_error: that.on_error
         });
 
         command.execute();
