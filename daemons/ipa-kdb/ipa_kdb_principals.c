@@ -66,6 +66,16 @@ static char *std_tktpolicy_attrs[] = {
 #define MAXTKTLIFE_BIT      0x02
 #define MAXRENEWABLEAGE_BIT 0x04
 
+static char *std_principal_obj_classes[] = {
+    "krbprincipal",
+    "krbprincipalaux",
+    "krbTicketPolicyAux",
+
+    NULL
+};
+
+#define STD_PRINCIPAL_OBJ_CLASSES_SIZE (sizeof(std_principal_obj_classes) / sizeof(char *) - 1)
+
 static int ipadb_ldap_attr_to_tl_data(LDAP *lcontext, LDAPMessage *le,
                                       char *attrname,
                                       krb5_tl_data **result, int *num)
@@ -855,11 +865,763 @@ void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
     }
 }
 
+static krb5_error_code ipadb_get_tl_data(krb5_db_entry *entry,
+                                         krb5_int16 type,
+                                         krb5_ui_2 length,
+                                         krb5_octet *data)
+{
+    krb5_tl_data *td;
+
+    for (td = entry->tl_data; td; td = td->tl_data_next) {
+        if (td->tl_data_type == type) {
+            break;
+        }
+    }
+    if (!td) {
+        return ENOENT;
+    }
+
+    if (td->tl_data_length != length) {
+        return EINVAL;
+    }
+
+    memcpy(data, td->tl_data_contents, length);
+
+    return 0;
+}
+
+struct ipadb_mods {
+    LDAPMod **mods;
+    int alloc_size;
+    int tip;
+};
+
+static int new_ipadb_mods(struct ipadb_mods **imods)
+{
+    struct ipadb_mods *r;
+
+    r = malloc(sizeof(struct ipadb_mods));
+    if (!r) {
+        return ENOMEM;
+    }
+
+    /* alloc the average space for a full change of all ldap attrinbutes */
+    r->alloc_size = 15;
+    r->mods = calloc(r->alloc_size, sizeof(LDAPMod *));
+    if (!r->mods) {
+        free(r);
+        return ENOMEM;
+    }
+    r->tip = 0;
+
+    *imods = r;
+    return 0;
+}
+
+static void ipadb_mods_free(struct ipadb_mods *imods)
+{
+    if (imods == NULL) {
+        return;
+    }
+
+    ldap_mods_free(imods->mods, 1);
+    free(imods);
+}
+
+static krb5_error_code ipadb_mods_new(struct ipadb_mods *imods,
+                                      LDAPMod **slot)
+{
+    LDAPMod **lmods = NULL;
+    LDAPMod *m;
+    int n;
+
+    lmods = imods->mods;
+    for (n = imods->tip; n < imods->alloc_size && lmods[n] != NULL; n++) {
+        /* find empty slot */ ;
+    }
+
+    if (n + 1 > imods->alloc_size) {
+        /* need to increase size */
+        lmods = realloc(imods->mods, (n * 2) * sizeof(LDAPMod *));
+        if (!lmods) {
+            return ENOMEM;
+        }
+        imods->mods = lmods;
+        imods->alloc_size = n * 2;
+        memset(&lmods[n + 1], 0,
+               (imods->alloc_size - n - 1) * sizeof(LDAPMod *));
+    }
+
+    m = calloc(1, sizeof(LDAPMod));
+    if (!m) {
+        return ENOMEM;
+    }
+    imods->tip = n;
+    *slot = imods->mods[n] = m;
+    return 0;
+}
+
+static void ipadb_mods_free_tip(struct ipadb_mods *imods)
+{
+    LDAPMod *m;
+    int i;
+
+    if (imods->alloc_size == 0) {
+        return;
+    }
+
+    m = imods->mods[imods->tip];
+
+    if (!m) {
+        return;
+    }
+
+    free(m->mod_type);
+    if (m->mod_values) {
+        for (i = 0; m->mod_values[i]; i++) {
+            free(m->mod_values[i]);
+        }
+    }
+    free(m->mod_values);
+    free(m);
+
+    imods->mods[imods->tip] = NULL;
+    imods->tip--;
+}
+
+static krb5_error_code ipadb_get_ldap_mod_str(struct ipadb_mods *imods,
+                                              char *attribute, char *value,
+                                              int mod_op)
+{
+    krb5_error_code kerr;
+    LDAPMod *m = NULL;
+
+    kerr = ipadb_mods_new(imods, &m);
+    if (kerr) {
+        return kerr;
+    }
+
+    m->mod_op = mod_op;
+    m->mod_type = strdup(attribute);
+    if (!m->mod_type) {
+        kerr = ENOMEM;
+        goto done;
+    }
+    m->mod_values = calloc(2, sizeof(char *));
+    if (!m->mod_values) {
+        kerr = ENOMEM;
+        goto done;
+    }
+    m->mod_values[0] = strdup(value);
+    if (!m->mod_values[0]) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
+    kerr = 0;
+
+done:
+    if (kerr) {
+        ipadb_mods_free_tip(imods);
+    }
+    return kerr;
+}
+
+static krb5_error_code ipadb_get_ldap_mod_int(struct ipadb_mods *imods,
+                                              char *attribute, int value,
+                                              int mod_op)
+{
+    krb5_error_code kerr;
+    char *v = NULL;
+    int ret;
+
+    ret = asprintf(&v, "%d", value);
+    if (ret == -1) {
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    kerr = ipadb_get_ldap_mod_str(imods, attribute, v, mod_op);
+
+done:
+    free(v);
+    return kerr;
+}
+
+static krb5_error_code ipadb_get_ldap_mod_time(struct ipadb_mods *imods,
+                                               char *attribute,
+                                               krb5_timestamp value,
+                                               int mod_op)
+{
+    struct tm date, *t;
+    time_t timeval;
+    char v[20];
+
+    timeval = (time_t)value;
+    t = gmtime_r(&timeval, &date);
+    if (t == NULL) {
+        return EINVAL;
+    }
+
+    strftime(v, 20, "%Y%m%d%H%M%SZ", &date);
+
+    return ipadb_get_ldap_mod_str(imods, attribute, v, mod_op);
+}
+
+static krb5_error_code ipadb_get_ldap_mod_bvalues(struct ipadb_mods *imods,
+                                                  char *attribute,
+                                                  struct berval **values,
+                                                  int num_values,
+                                                  int mod_op)
+{
+    krb5_error_code kerr;
+    LDAPMod *m = NULL;
+    int i;
+
+    if (values == NULL || values[0] == NULL || num_values <= 0) {
+        return EINVAL;
+    }
+
+    kerr = ipadb_mods_new(imods, &m);
+    if (kerr) {
+        return kerr;
+    }
+
+    m->mod_op = mod_op | LDAP_MOD_BVALUES;
+    m->mod_type = strdup(attribute);
+    if (!m->mod_type) {
+        kerr = ENOMEM;
+        goto done;
+    }
+    m->mod_bvalues = calloc(num_values + 1, sizeof(struct berval *));
+    if (!m->mod_bvalues) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
+    for (i = 0; i < num_values; i++) {
+        m->mod_bvalues[i] = values[i];
+    }
+
+    kerr = 0;
+
+done:
+    if (kerr) {
+        /* we need to free bvalues manually here otherwise
+         * ipadb_mods_free_tip will free contents which we
+         * did not allocate here */
+        free(m->mod_bvalues);
+        m->mod_bvalues = NULL;
+        ipadb_mods_free_tip(imods);
+    }
+    return kerr;
+}
+
+static krb5_error_code ipadb_get_ldap_mod_extra_data(struct ipadb_mods *imods,
+                                                     krb5_tl_data *tl_data,
+                                                     int mod_op)
+{
+    krb5_error_code kerr;
+    krb5_tl_data *data;
+    struct berval **bvs = NULL;
+    krb5_int16 be_type;
+    int n, i;
+
+    for (n = 0, data = tl_data; data; data = data->tl_data_next) {
+        if (data->tl_data_type == KRB5_TL_LAST_PWD_CHANGE ||
+            data->tl_data_type == KRB5_TL_KADM_DATA ||
+            data->tl_data_type == KRB5_TL_DB_ARGS ||
+            data->tl_data_type == KRB5_TL_MKVNO ||
+            data->tl_data_type == KRB5_TL_LAST_ADMIN_UNLOCK ||
+            data->tl_data_type == KDB_TL_USER_INFO) {
+            continue;
+        }
+        n++;
+    }
+
+    if (n == 0) {
+        return ENOENT;
+    }
+
+    bvs = calloc(n + 1, sizeof(struct berval *));
+    if (!bvs) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
+    for (i = 0, data = tl_data; data; data = data->tl_data_next) {
+
+        if (data->tl_data_type == KRB5_TL_LAST_PWD_CHANGE ||
+            data->tl_data_type == KRB5_TL_KADM_DATA ||
+            data->tl_data_type == KRB5_TL_DB_ARGS ||
+            data->tl_data_type == KRB5_TL_MKVNO ||
+            data->tl_data_type == KRB5_TL_LAST_ADMIN_UNLOCK ||
+            data->tl_data_type == KDB_TL_USER_INFO) {
+            continue;
+        }
+
+        be_type = htons(data->tl_data_type);
+
+        bvs[i] = calloc(1, sizeof(struct berval));
+        if (!bvs[i]) {
+            kerr = ENOMEM;
+            goto done;
+        }
+
+        bvs[i]->bv_len = data->tl_data_length + 2;
+        bvs[i]->bv_val = malloc(bvs[i]->bv_len);
+        if (!bvs[i]->bv_val) {
+            kerr = ENOMEM;
+            goto done;
+        }
+        memcpy(bvs[i]->bv_val, &be_type, 2);
+        memcpy(&(bvs[i]->bv_val[2]), data->tl_data_contents, data->tl_data_length);
+
+        i++;
+
+        if (i > n) {
+            kerr = KRB5_KDB_INTERNAL_ERROR;
+            goto done;
+        }
+    }
+
+    kerr = ipadb_get_ldap_mod_bvalues(imods, "krbExtraData", bvs, i, mod_op);
+
+done:
+    if (kerr) {
+        for (i = 0; bvs && bvs[i]; i++) {
+            free(bvs[i]->bv_val);
+            free(bvs[i]);
+        }
+    }
+    free(bvs);
+    return kerr;
+}
+
+static krb5_error_code ipadb_get_mkvno_from_tl_data(krb5_tl_data *tl_data,
+                                                    int *mkvno)
+{
+    krb5_tl_data *data;
+    int master_kvno = 0;
+    krb5_int16 tmp;
+
+    for (data = tl_data; data; data = data->tl_data_next) {
+
+        if (data->tl_data_type != KRB5_TL_MKVNO) {
+            continue;
+        }
+
+        if (data->tl_data_length != 2) {
+            return KRB5_KDB_TRUNCATED_RECORD;
+        }
+
+        memcpy(&tmp, data->tl_data_contents, 2);
+        master_kvno = le16toh(tmp);
+
+        break;
+    }
+
+    if (master_kvno == 0) {
+        /* fall back to std mkvno of 1 */
+        *mkvno = 1;
+    } else {
+        *mkvno = master_kvno;
+    }
+
+    return 0;
+}
+
+static krb5_error_code ipadb_get_ldap_mod_key_data(struct ipadb_mods *imods,
+                                                   krb5_key_data *key_data,
+                                                   int n_key_data, int mkvno,
+                                                   int mod_op)
+{
+    krb5_error_code kerr;
+    struct berval *bval = NULL;
+    int ret;
+
+    ret = ber_encode_krb5_key_data(key_data, n_key_data, mkvno, &bval);
+    if (ret != 0) {
+        kerr = ret;
+        goto done;
+    }
+
+    kerr = ipadb_get_ldap_mod_bvalues(imods, "krbPrincipalKey",
+                                      &bval, 1, mod_op);
+
+done:
+    if (kerr) {
+        ber_bvfree(bval);
+    }
+    return kerr;
+}
+
+static krb5_error_code ipadb_entry_to_mods(struct ipadb_mods *imods,
+                                           krb5_db_entry *entry,
+                                           char *principal,
+                                           int mod_op)
+{
+    krb5_error_code kerr;
+    krb5_int32 time32le;
+    int mkvno;
+
+    /* check each mask flag in order */
+
+    /* KADM5_PRINCIPAL */
+    if (entry->mask & KMASK_PRINCIPAL) {
+        kerr = ipadb_get_ldap_mod_str(imods, "krbPrincipalName",
+                                      principal, mod_op);
+        if (kerr) {
+            goto done;
+        }
+    }
+
+    /* KADM5_PRINC_EXPIRE_TIME */
+    if (entry->mask & KMASK_PRINC_EXPIRE_TIME) {
+        kerr = ipadb_get_ldap_mod_time(imods,
+                                       "krbPrincipalExpiration",
+                                       entry->expiration,
+                                       mod_op);
+        if (kerr) {
+            goto done;
+        }
+    }
+
+    /* KADM5_PW_EXPIRATION */
+    if (entry->mask & KMASK_PW_EXPIRATION) {
+        kerr = ipadb_get_ldap_mod_time(imods,
+                                       "krbPasswordExpiration",
+                                       entry->pw_expiration,
+                                       mod_op);
+        if (kerr) {
+            goto done;
+        }
+    }
+
+    /* KADM5_LAST_PWD_CHANGE */
+    /* apparently, at least some versions of kadmin fail to set this flag
+     * when they do include a pwd change timestamp in TL_DATA.
+     * So for now always check for it regardless. */
+#if KADM5_ACTUALLY_SETS_LAST_PWD_CHANGE
+    if (entry->mask & KMASK_LAST_PWD_CHANGE) {
+        if (!entry->n_tl_data) {
+            kerr = EINVAL;
+            goto done;
+        }
+
+#else
+    if (entry->n_tl_data) {
+#endif
+        kerr = ipadb_get_tl_data(entry,
+                                 KRB5_TL_LAST_PWD_CHANGE,
+                                 sizeof(time32le),
+                                 (krb5_octet *)&time32le);
+        if (kerr && kerr != ENOENT) {
+            goto done;
+        }
+        if (kerr == 0) {
+            kerr = ipadb_get_ldap_mod_time(imods,
+                                           "krbLastPwdChange",
+                                           le32toh(time32le),
+                                           mod_op);
+            if (kerr) {
+                goto done;
+            }
+        }
+    }
+
+    /* KADM5_ATTRIBUTES */
+    if (entry->mask & KMASK_ATTRIBUTES) {
+        kerr = ipadb_get_ldap_mod_int(imods,
+                                      "krbTicketFlags",
+                                      (int)entry->attributes,
+                                      mod_op);
+        if (kerr) {
+            goto done;
+        }
+    }
+
+    /* KADM5_MAX_LIFE */
+    if (entry->mask & KMASK_MAX_LIFE) {
+        kerr = ipadb_get_ldap_mod_int(imods,
+                                      "krbMaxTicketLife",
+                                      (int)entry->max_life,
+                                      mod_op);
+        if (kerr) {
+            goto done;
+        }
+    }
+
+    /* KADM5_MOD_TIME */
+    /* KADM5_MOD_NAME */
+    /* KADM5_KVNO */
+    /* KADM5_MKVNO */
+    /* KADM5_AUX_ATTRIBUTES */
+    /* KADM5_POLICY */
+    /* KADM5_POLICY_CLR */
+
+    /* version 2 masks */
+    /* KADM5_MAX_RLIFE */
+    if (entry->mask & KMASK_MAX_RLIFE) {
+        kerr = ipadb_get_ldap_mod_int(imods,
+                                      "krbMaxRenewableAge",
+                                      (int)entry->max_renewable_life,
+                                      mod_op);
+        if (kerr) {
+            goto done;
+        }
+    }
+
+    /* KADM5_LAST_SUCCESS */
+    if (entry->mask & KMASK_LAST_SUCCESS) {
+        kerr = ipadb_get_ldap_mod_time(imods,
+                                       "krbLastSuccessfulAuth",
+                                       entry->last_success,
+                                       mod_op);
+        if (kerr) {
+            goto done;
+        }
+    }
+
+    /* KADM5_LAST_FAILED */
+    if (entry->mask & KMASK_LAST_FAILED) {
+        kerr = ipadb_get_ldap_mod_time(imods,
+                                       "krbLastFailedAuth",
+                                       entry->last_failed,
+                                       mod_op);
+        if (kerr) {
+            goto done;
+        }
+    }
+
+    /* KADM5_FAIL_AUTH_COUNT */
+    if (entry->mask & KMASK_FAIL_AUTH_COUNT) {
+        kerr = ipadb_get_ldap_mod_int(imods,
+                                      "krbLoginFailedCount",
+                                      (int)entry->fail_auth_count,
+                                      mod_op);
+        if (kerr) {
+            goto done;
+        }
+    }
+
+    /* KADM5_KEY_DATA */
+    if (entry->mask & KMASK_KEY_DATA) {
+        /* TODO: password changes should go via change_pwd
+         * then we can get clear text and set all needed
+         * LDAP attributes */
+
+        kerr = ipadb_get_mkvno_from_tl_data(entry->tl_data, &mkvno);
+        if (kerr) {
+            goto done;
+        }
+
+        kerr = ipadb_get_ldap_mod_key_data(imods,
+                                           entry->key_data,
+                                           entry->n_key_data,
+                                           mkvno,
+                                           mod_op);
+        if (kerr) {
+            goto done;
+        }
+    }
+
+    /* KADM5_TL_DATA */
+    if (entry->mask & KMASK_TL_DATA) {
+        kerr = ipadb_get_tl_data(entry,
+                                 KRB5_TL_LAST_ADMIN_UNLOCK,
+                                 sizeof(time32le),
+                                 (krb5_octet *)&time32le);
+        if (kerr && kerr != ENOENT) {
+            goto done;
+        }
+        if (kerr == 0) {
+            kerr = ipadb_get_ldap_mod_time(imods,
+                                           "krbLastAdminUnlock",
+                                           le32toh(time32le),
+                                           mod_op);
+            if (kerr) {
+                goto done;
+            }
+        }
+
+        kerr = ipadb_get_ldap_mod_extra_data(imods,
+                                             entry->tl_data,
+                                             mod_op);
+        if (kerr && kerr != ENOENT) {
+            goto done;
+        }
+    }
+
+    /* KADM5_LOAD */
+
+    kerr = 0;
+
+done:
+    return kerr;
+}
+
+/* adds default objectclasses and attributes */
+static krb5_error_code ipadb_entry_default_attrs(struct ipadb_mods *imods)
+{
+    krb5_error_code kerr;
+    LDAPMod *m = NULL;
+    int i;
+
+    kerr = ipadb_mods_new(imods, &m);
+    if (kerr) {
+        return kerr;
+    }
+
+    m->mod_op = LDAP_MOD_ADD;
+    m->mod_type = strdup("objectClass");
+    if (!m->mod_type) {
+        kerr = ENOMEM;
+        goto done;
+    }
+    m->mod_values = calloc(STD_PRINCIPAL_OBJ_CLASSES_SIZE + 1, sizeof(char *));
+    if (!m->mod_values) {
+        kerr = ENOMEM;
+        goto done;
+    }
+    for (i = 0; i < STD_PRINCIPAL_OBJ_CLASSES_SIZE; i++) {
+        m->mod_values[i] = strdup(std_principal_obj_classes[i]);
+        if (!m->mod_values[i]) {
+            kerr = ENOMEM;
+            goto done;
+        }
+    }
+
+    kerr = 0;
+
+done:
+    if (kerr) {
+        ipadb_mods_free_tip(imods);
+    }
+    return kerr;
+}
+
+static krb5_error_code ipadb_add_principal(krb5_context kcontext,
+                                           krb5_db_entry *entry)
+{
+    struct ipadb_context *ipactx;
+    krb5_error_code kerr;
+    char *principal = NULL;
+    struct ipadb_mods *imods = NULL;
+    char *dn = NULL;
+    int ret;
+
+    ipactx = ipadb_get_context(kcontext);
+    if (!ipactx) {
+        kerr = KRB5_KDB_DBNOTINITED;
+        goto done;
+    }
+
+    kerr = krb5_unparse_name(kcontext, entry->princ, &principal);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    ret = asprintf(&dn, "krbPrincipalName=%s,cn=%s,cn=kerberos,%s",
+                        principal, ipactx->realm, ipactx->base);
+    if (ret == -1) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
+    ret = new_ipadb_mods(&imods);
+    if (ret != 0) {
+        kerr = ret;
+        goto done;
+    }
+
+    kerr = ipadb_entry_to_mods(imods, entry, principal, LDAP_MOD_ADD);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    kerr = ipadb_entry_default_attrs(imods);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    kerr = ipadb_simple_add(ipactx, dn, imods->mods);
+
+done:
+    ipadb_mods_free(imods);
+    krb5_free_unparsed_name(kcontext, principal);
+    ldap_memfree(dn);
+    return kerr;
+}
+
+static krb5_error_code ipadb_modify_principal(krb5_context kcontext,
+                                              krb5_db_entry *entry)
+{
+    struct ipadb_context *ipactx;
+    krb5_error_code kerr;
+    char *principal = NULL;
+    LDAPMessage *res = NULL;
+    LDAPMessage *lentry;
+    struct ipadb_mods *imods = NULL;
+    char *dn = NULL;
+
+    ipactx = ipadb_get_context(kcontext);
+    if (!ipactx) {
+        return KRB5_KDB_DBNOTINITED;
+    }
+
+    kerr = krb5_unparse_name(kcontext, entry->princ, &principal);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    kerr = ipadb_fetch_principals(ipactx, principal, &res);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    /* FIXME: no alias allowed for now, should we allow modifies
+     * by alias name ? */
+    kerr = ipadb_find_principal(kcontext, 0, res, &principal, &lentry);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    dn = ldap_get_dn(ipactx->lcontext, lentry);
+    if (!dn) {
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    kerr = new_ipadb_mods(&imods);
+    if (kerr) {
+        goto done;
+    }
+
+    kerr = ipadb_entry_to_mods(imods, entry, principal, LDAP_MOD_REPLACE);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    kerr = ipadb_simple_modify(ipactx, dn, imods->mods);
+
+done:
+    ipadb_mods_free(imods);
+    ldap_msgfree(res);
+    krb5_free_unparsed_name(kcontext, principal);
+    ldap_memfree(dn);
+    return kerr;
+}
+
 krb5_error_code ipadb_put_principal(krb5_context kcontext,
                                     krb5_db_entry *entry,
                                     char **db_args)
 {
-    return KRB5_PLUGIN_OP_NOTSUPP;
+    if (entry->mask & KMASK_PRINCIPAL) {
+        return ipadb_add_principal(kcontext, entry);
+    } else {
+        return ipadb_modify_principal(kcontext, entry);
+    }
 }
 
 static krb5_error_code ipadb_delete_entry(krb5_context kcontext,

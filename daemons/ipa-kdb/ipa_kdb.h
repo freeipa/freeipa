@@ -24,6 +24,12 @@
 #define _GNU_SOURCE 1
 #endif
 
+/* although we have nothing to do with SECURID yet, there are a
+ * couple of TL_DATA Ids that need it to be available.
+ * We need them to be avilable even if SECURID is not used for
+ * filtering purposes */
+#define SECURID 1
+
 #include <errno.h>
 #include <kdb.h>
 #include <ldap.h>
@@ -33,6 +39,36 @@
 #include <ctype.h>
 #include <arpa/inet.h>
 #include <endian.h>
+
+#include "ipa_krb5.h"
+
+/* easier to copy the defines here than to mess with kadm5/admin.h
+ * for now */
+#define KMASK_PRINCIPAL         0x000001
+#define KMASK_PRINC_EXPIRE_TIME 0x000002
+#define KMASK_PW_EXPIRATION     0x000004
+#define KMASK_LAST_PWD_CHANGE   0x000008
+#define KMASK_ATTRIBUTES        0x000010
+#define KMASK_MAX_LIFE          0x000020
+#define KMASK_MOD_TIME          0x000040
+#define KMASK_MOD_NAME          0x000080
+#define KMASK_KVNO              0x000100
+#define KMASK_MKVNO             0x000200
+#define KMASK_AUX_ATTRIBUTES    0x000400
+#define KMASK_POLICY            0x000800
+#define KMASK_POLICY_CLR        0x001000
+/* version 2 masks */
+#define KMASK_MAX_RLIFE         0x002000
+#define KMASK_LAST_SUCCESS      0x004000
+#define KMASK_LAST_FAILED       0x008000
+#define KMASK_FAIL_AUTH_COUNT   0x010000
+#define KMASK_KEY_DATA          0x020000
+#define KMASK_TL_DATA           0x040000
+#define KMASK_LOAD              0x200000
+
+/* MIT Kerberos sanctioned hack to carry private data around.
+ * In krb5 1.10 this should be superceeded by a better mechanism */
+#define  KDB_TL_USER_INFO      0x7ffe
 
 struct ipadb_context {
     char *uri;
