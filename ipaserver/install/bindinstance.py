@@ -28,6 +28,7 @@ import ldap
 import service
 from ipaserver import ipaldap
 from ipaserver.install.dsinstance import realm_to_serverid
+from ipaserver.install.installutils import resolve_host
 from ipapython import sysrestore
 from ipapython import ipautil
 
@@ -125,39 +126,69 @@ def dns_zone_exists(name):
     else:
         return True
 
-def add_zone(name, zonemgr=None, dns_backup=None, nsaddr=None, update_policy=None):
-    if not update_policy:
+def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_address=None,
+       update_policy=None):
+    if update_policy is None:
         update_policy = "grant %(realm)s krb5-self * A; grant %(realm)s krb5-self * AAAA;" % dict(realm=api.env.realm)
+
+    if ns_hostname is None:
+        # automatically retrieve list of DNS masters
+        dns_masters = api.Object.dnsrecord.get_dns_masters()
+        if not dns_masters:
+            raise errors.NotFound("No IPA server with DNS support found!")
+        ns_main = dns_masters.pop(0)
+        ns_replicas = dns_masters
+        ns_ip_address = resolve_host(ns_main)
+    else:
+        ns_main = ns_hostname
+        ns_replicas = []
 
     try:
         api.Command.dnszone_add(unicode(name),
-                                idnssoamname=unicode(api.env.host+"."),
+                                idnssoamname=unicode(ns_main+'.'),
                                 idnssoarname=unicode(zonemgr),
-                                ip_address=unicode(nsaddr),
+                                ip_address=unicode(ns_ip_address),
                                 idnsallowdynupdate=True,
                                 idnsupdatepolicy=unicode(update_policy))
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
 
-    add_rr(name, "@", "NS", api.env.host+'.', dns_backup, force=True)
-    return name
+    nameservers = ns_replicas + [ns_main]
+    for hostname in nameservers:
+        add_ns_rr(name, hostname, dns_backup=None, force=True)
 
-def add_reverse_zone(ip_address, ip_prefixlen, ns_ip_address, update_policy=None, dns_backup=None):
+
+def add_reverse_zone(ip_address, ip_prefixlen, ns_hostname=None, ns_ip_address=None,
+        ns_replicas=[], update_policy=None, dns_backup=None):
     zone, name = get_reverse_zone(ip_address, ip_prefixlen)
-    if not update_policy:
+    if update_policy is None:
         update_policy = "grant %s krb5-subdomain %s. PTR;" % (api.env.realm, zone)
+
+    if ns_hostname is None:
+        # automatically retrieve list of DNS masters
+        dns_masters = api.Object.dnsrecord.get_dns_masters()
+        if not dns_masters:
+            raise errors.NotFound("No IPA server with DNS support found!")
+        ns_main = dns_masters.pop(0)
+        ns_replicas = dns_masters
+        ns_ip_address = resolve_host(ns_main)
+    else:
+        ns_main = ns_hostname
+        ns_replicas = []
+
     try:
         api.Command.dnszone_add(unicode(zone),
-                                idnssoamname=unicode(api.env.host+"."),
+                                idnssoamname=unicode(ns_main+'.'),
                                 idnsallowdynupdate=True,
                                 ip_address=unicode(ns_ip_address),
                                 idnsupdatepolicy=unicode(update_policy))
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
 
-    add_rr(zone, "@", "NS", api.env.host+".", dns_backup, force=True)
+    nameservers = ns_replicas + [ns_main]
+    for hostname in nameservers:
+        add_ns_rr(zone, hostname, dns_backup=None, force=True)
 
-    return zone
 
 def add_rr(zone, name, type, rdata, dns_backup=None, **kwargs):
     addkw = { '%srecord' % str(type.lower()) : unicode(rdata) }
@@ -179,6 +210,10 @@ def add_fwd_rr(zone, host, ip_address):
 def add_ptr_rr(ip_address, ip_prefixlen, fqdn, dns_backup=None):
     zone, name = get_reverse_zone(ip_address, ip_prefixlen)
     add_rr(zone, name, "PTR", fqdn+".", dns_backup)
+
+def add_ns_rr(zone, hostname, dns_backup=None, force=True):
+    add_rr(zone, "@", "NS", hostname+'.', dns_backup=dns_backup,
+            force=force)
 
 def del_rr(zone, name, type, rdata):
     delkw = { '%srecord' % str(type.lower()) : unicode(rdata) }
@@ -367,11 +402,11 @@ class BindInstance(service.Service):
         self._ldap_mod("dns.ldif", self.sub_dict)
 
     def __setup_zone(self):
-        zone = add_zone(self.domain, self.zonemgr,
-                        self.dns_backup, self.ip_address)
+        add_zone(self.domain, self.zonemgr, dns_backup=self.dns_backup,
+                ns_hostname=api.env.host, ns_ip_address=self.ip_address)
 
     def __add_self_ns(self):
-        add_rr(self.domain, "@", "NS", api.env.host+'.', self.dns_backup, force=True)
+        add_ns_rr(self.domain, api.env.host, self.dns_backup, force=True)
 
     def __add_self(self):
         zone = self.domain
@@ -400,8 +435,8 @@ class BindInstance(service.Service):
             add_ptr_rr(self.ip_address, self.ip_prefixlen, self.fqdn)
 
     def __setup_reverse_zone(self):
-        add_reverse_zone(self.ip_address, self.ip_prefixlen, self.ip_address,
-                dns_backup=self.dns_backup)
+        add_reverse_zone(self.ip_address, self.ip_prefixlen, ns_hostname=api.env.host,
+                ns_ip_address=self.ip_address, dns_backup=self.dns_backup)
 
     def __setup_principal(self):
         dns_principal = "DNS/" + self.fqdn + "@" + self.realm

@@ -105,6 +105,7 @@ from ipalib import Flag, Int, List, Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipapython import dnsclient
+from ldap import explode_dn
 
 # supported resource record types
 _record_types = (
@@ -558,6 +559,25 @@ class dnsrecord(LDAPObject):
         except IndexError:
             cliname = attr
         return cliname
+
+    def get_dns_masters(self):
+        ldap = self.api.Backend.ldap2
+        base_dn = 'cn=masters,cn=ipa,cn=etc,%s' % self.api.env.basedn
+        ldap_filter = '(&(objectClass=ipaConfigObject)(cn=DNS))'
+        dns_masters = []
+
+        try:
+            entries = ldap.find_entries(filter=ldap_filter, base_dn=base_dn)[0]
+
+            for entry in entries:
+                master_dn = entry[0]
+                if master_dn.startswith('cn='):
+                    master = explode_dn(master_dn)[1].replace('cn=','')
+                    dns_masters.append(master)
+        except errors.NotFound:
+            return []
+
+        return dns_masters
 
 api.register(dnsrecord)
 

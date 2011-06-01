@@ -425,8 +425,6 @@ def main():
         ip_address = str(ip)
         ip_prefixlen = ip.prefixlen
 
-        ns_ip_address = resolve_host(api.env.host)
-
         if ip.defaultnet:
             revzone = ip.reverse_dns
             if ip.version == 4:
@@ -445,10 +443,10 @@ def main():
             if prefix > 0:
                 ip_prefixlen = prefix
             else:
-                add_reverse_zone(ip_address, ip_prefixlen, ns_ip_address)
+                add_reverse_zone(ip_address, ip_prefixlen)
 
-        zone = add_zone(domain, nsaddr=ns_ip_address)
-        add_fwd_rr(zone, name, ip_address)
+        add_zone(domain)
+        add_fwd_rr(domain, name, ip_address)
         add_ptr_rr(ip_address, ip_prefixlen, replica_fqdn)
 
 try:
