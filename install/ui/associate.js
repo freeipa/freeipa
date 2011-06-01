@@ -1086,12 +1086,6 @@ IPA.association_facet = function (spec) {
             that.refresh_table();
         }
 
-        function on_error(xhr, text_status, error_thrown) {
-            var summary = $('span[name=summary]', that.table.tfoot).empty();
-            summary.append('<p>Error: '+error_thrown.name+'</p>');
-            summary.append('<p>'+error_thrown.message+'</p>');
-        }
-
         var pkey = IPA.get_entity(that.entity_name).get_primary_key();
 
         IPA.command({
@@ -1099,7 +1093,7 @@ IPA.association_facet = function (spec) {
             method: 'show',
             args: pkey,
             on_success: on_success,
-            on_error: on_error
+            on_error: that.on_error
         }).execute();
     };
 
