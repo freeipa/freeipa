@@ -108,6 +108,10 @@ def verify_fqdn(host_name,no_host_dns=False):
     if host_name != host_name.lower():
         raise RuntimeError("Invalid hostname '%s', must be lower-case." % host_name)
 
+    if no_host_dns:
+        print "Warning: skipping DNS resolution of host", host_name
+        return
+
     try:
         hostaddr = socket.getaddrinfo(host_name, None)
     except:
@@ -126,10 +130,6 @@ def verify_fqdn(host_name,no_host_dns=False):
             raise RuntimeError("Unable to resolve the reverse ip address, check /etc/hosts or DNS name resolution")
         if revname != host_name:
             raise RuntimeError("The host name %s does not match the reverse lookup %s" % (host_name, revname))
-
-    if no_host_dns:
-        print "Warning: skipping DNS resolution of host", host_name
-        return
 
     # Verify this is NOT a CNAME
     rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_CNAME)
