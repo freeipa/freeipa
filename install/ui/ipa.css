@@ -12,6 +12,7 @@
 @font-face {font-family: "FreeWayBold"; src:url("FreeWay-Bold.otf");}
 
 body{
+    overflow:hidden;
     background-image:url("outer-bg.png");
     background-repeat:repeat-x;
     background-position:left top;
@@ -456,6 +457,7 @@ span.ui-icon-search {
 
 [title="details"] {
         margin-top: -.7em !important;
+        overflow: scroll;
 }
 
 

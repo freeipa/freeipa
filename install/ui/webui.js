@@ -109,6 +109,8 @@ IPA.self_serv_navigation = function(spec) {
 /* main (document onready event handler) */
 $(function() {
 
+
+
     /* main loop (hashchange event handler) */
     function window_hashchange(evt){
         IPA.nav.update();
@@ -151,6 +153,17 @@ $(function() {
         IPA.nav.update();
 
         $('#login_header').html(IPA.messages.login.header);
+
+        function resizeFacet(){
+            var entity = IPA.current_entity;
+            if (entity){
+                var facet_name = IPA.current_facet(entity);
+                var facet = entity.get_facet(facet_name);
+                if (!facet) return;
+                facet.resize();
+            }
+        }
+        jQuery.event.add(window, "resize", resizeFacet);
     }
 
 
@@ -161,4 +174,5 @@ $(function() {
     }
 
     IPA.init(null, null, init_on_win, init_on_error);
+
 });

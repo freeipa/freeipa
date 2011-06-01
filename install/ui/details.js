@@ -382,7 +382,6 @@ IPA.details_facet = function(spec) {
                     var section = sections[i];
                     that.toggle(section, true);
                 }
-
                 return false;
             }
         }).appendTo(that.controls);
@@ -401,7 +400,6 @@ IPA.details_facet = function(spec) {
                     var section = sections[i];
                     that.toggle(section, false);
                 }
-
                 return false;
             }
         }).appendTo(that.controls);
@@ -447,7 +445,11 @@ IPA.details_facet = function(spec) {
 
             details.append('<hr/>');
         }
+
+
+        that.resize();
     };
+
 
     that.setup = function(container) {
 
@@ -490,7 +492,7 @@ IPA.details_facet = function(spec) {
         var div = section.container;
 
         if (visible != div.is(":visible")) {
-            div.slideToggle();
+            div.slideToggle('slow', that.resize);
         }
     };
 

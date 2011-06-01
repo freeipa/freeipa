@@ -24,6 +24,10 @@
 
 /* REQUIRES: ipa.js */
 
+/* For scrolling tables, we want to make sure we leave enough room for the 
+   header and footer. */
+IPA.reserved_screen_size = 400;
+
 IPA.search_facet = function(spec) {
 
     spec = spec || {};
@@ -73,6 +77,7 @@ IPA.search_facet = function(spec) {
 
 
         that.table = IPA.table_widget({
+            scrollable: true,
             id: entity.name+'-search',
             name: 'search',
             label: IPA.metadata.objects[entity.name].label,

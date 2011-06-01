@@ -717,6 +717,10 @@ IPA.association_facet = function (spec) {
         that.columns.put(column.name, column);
     };
 
+    that.resize = function(){
+        that.table.resize();
+    };
+
     that.create_column = function(spec) {
         var column = IPA.column(spec);
         if (spec.link_entity){
@@ -769,7 +773,8 @@ IPA.association_facet = function (spec) {
             label: label,
             entity_name: that.entity_name,
             other_entity: that.other_entity,
-            page_length: that.page_length
+            page_length: that.page_length,
+            scrollable: true
         });
 
         var columns = that.columns.values;

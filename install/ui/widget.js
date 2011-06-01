@@ -23,6 +23,8 @@
 
 /* REQUIRES: ipa.js */
 
+IPA.checkbox_column_width = 22;
+
 IPA.widget = function(spec) {
 
     spec = spec || {};
@@ -1141,13 +1143,22 @@ IPA.table_widget = function (spec) {
 
             th = $('<th/>').appendTo(tr);
 
-            if (that.scrollable && (i == columns.length-1)) {
+            if (that.scrollable ) {
+                var width;
                 if (column.width) {
-                    var width = parseInt(
+                    width = parseInt(
                         column.width.substring(0, column.width.length-2),10);
                     width += 16;
-                    th.css('width', width+'px');
+                }else{
+                    /* don't use the checkbox column as part of the overall
+                       calculation for column widths.  It is so small
+                       that it throws off the average. */
+                    width = (that.table.width() - IPA.checkbox_column_width) /
+                        (columns.length);
                 }
+                width += 'px';
+                th.css('width', width);
+                column.width = width;
             } else {
                 if (column.width) {
                     th.css('width', column.width);
@@ -1167,6 +1178,9 @@ IPA.table_widget = function (spec) {
                     'style': 'float: right;'
                 }).appendTo(th);
             }
+            if (that.scrollable && !column.width){
+                column.width = th.width() +'px';
+            }
         }
 
         that.tbody = $('<tbody/>').appendTo(that.table);
@@ -1178,7 +1192,7 @@ IPA.table_widget = function (spec) {
         that.row = $('<tr/>');
 
         var td = $('<td/>', {
-            'style': 'width: 22px;'
+            'style': 'width: '+ IPA.checkbox_column_width +'px;'
         }).appendTo(that.row);
 
         $('<input/>', {
@@ -1268,6 +1282,7 @@ IPA.table_widget = function (spec) {
                 name: 'total_pages'
             }).appendTo(that.pagination);
         }
+        that.resize();
     };
 
     that.select_changed = function(){
@@ -1280,6 +1295,16 @@ IPA.table_widget = function (spec) {
 
     that.empty = function() {
         that.tbody.empty();
+    };
+
+    that.resize = function(){
+        if (that.scrollable){
+            that.tbody.attr('overflow-y', 'auto');
+            that.tbody.height("auto");
+            var table_max_height = $(window).height() -
+                IPA.reserved_screen_size;
+            that.tbody.height(table_max_height);
+        }
     };
 
     that.load = function(result) {
