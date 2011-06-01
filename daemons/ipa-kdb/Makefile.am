@@ -1,8 +1,12 @@
 NULL =
 
+KRB5_UTIL_DIR = ../../util
+KRB5_UTIL_SRCS = $(KRB5_UTIL_DIR)/ipa_krb5.c
+
 INCLUDES =						\
 	-I.						\
 	-I$(srcdir)					\
+	-I$(KRB5_UTIL_DIR)				\
 	-DPREFIX=\""$(prefix)"\" 			\
 	-DBINDIR=\""$(bindir)"\"			\
 	-DLIBDIR=\""$(libdir)"\" 			\
@@ -25,6 +29,7 @@ ipadb_la_SOURCES = 		\
 	ipa_kdb.c		\
 	ipa_kdb_common.c	\
 	ipa_kdb_principals.c	\
+	$(KRB5_UTIL_SRCS)	\
 	$(NULL)
 
 ipadb_la_LDFLAGS = 		\
