@@ -516,7 +516,7 @@ class ldap2(CrudBackend, Encoder):
     @decode_retval()
     def find_entries(self, filter=None, attrs_list=None, base_dn='',
             scope=_ldap.SCOPE_SUBTREE, time_limit=None, size_limit=None,
-            normalize=True):
+            normalize=True, search_refs=False):
         """
         Return a list of entries and indication of whteher the results where
         truncated ([(dn, entry_attrs)], truncated) matching specified search
@@ -530,6 +530,7 @@ class ldap2(CrudBackend, Encoder):
         time_limit -- time limit in seconds (default use IPA config values)
         size_limit -- size (number of entries returned) limit (default use IPA config values)
         normalize -- normalize the DN (default True)
+        search_refs -- allow search references to be returned (default skips these entries)
         """
         if normalize:
             base_dn = self.normalize_dn(base_dn)
@@ -564,7 +565,9 @@ class ldap2(CrudBackend, Encoder):
                 (objtype, res_list) = self.conn.result(id, 0)
                 if not res_list:
                     break
-                res.append(res_list[0])
+                if objtype == _ldap.RES_SEARCH_ENTRY or \
+                   (search_refs and objtype == _ldap.RES_SEARCH_REFERENCE):
+                    res.append(res_list[0])
         except (_ldap.ADMINLIMIT_EXCEEDED, _ldap.TIMELIMIT_EXCEEDED,
                 _ldap.SIZELIMIT_EXCEEDED), e:
             truncated = True

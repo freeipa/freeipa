@@ -77,6 +77,7 @@ from ipalib.text import Gettext # FIXME: remove once the other Gettext FIXME is 
 
 _krb_err_msg = _('Kerberos principal %s already exists. Use \'ipa user-mod\' to set it manually.')
 _grp_err_msg = _('Failed to add user to the default group. Use \'ipa group-add-member\' to add manually.')
+_ref_err_msg = _('Migration of LDAP search reference is not supported.')
 
 _supported_schemas = (u'RFC2307bis', u'RFC2307')
 
@@ -118,7 +119,7 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
     except errors.NotFound:
         entry_attrs['krbprincipalname'] = principal
     else:
-        failed[pkey] = _krb_err_msg % principal
+        failed[pkey] = unicode(_krb_err_msg % principal)
 
     return dn
 
@@ -128,7 +129,7 @@ def _post_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx):
     try:
         ldap.add_entry_to_group(dn, ctx['def_group_dn'])
     except errors.ExecutionError, e:
-        failed[pkey] = _grp_err_msg
+        failed[pkey] = unicode(_grp_err_msg)
 
 
 # GROUP MIGRATION CALLBACKS AND VARS
@@ -417,7 +418,8 @@ can use their Kerberos accounts.''')
                 (entries, truncated) = ds_ldap.find_entries(
                     search_filter, ['*'], search_bases[ldap_obj_name],
                     ds_ldap.SCOPE_ONELEVEL,
-                    time_limit=0, size_limit=-1
+                    time_limit=0, size_limit=-1,
+                    search_refs=True    # migrated DS may contain search references
                 )
             except errors.NotFound:
                 if not options.get('continue',False):
@@ -435,6 +437,10 @@ can use their Kerberos accounts.''')
                 )
 
             for (dn, entry_attrs) in entries:
+                if dn is None:  # LDAP search reference
+                    failed[ldap_obj_name][entry_attrs[0]] = unicode(_ref_err_msg)
+                    continue
+
                 pkey = entry_attrs[ldap_obj.primary_key.name][0].lower()
                 if pkey in exclude:
                     continue
