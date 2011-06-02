@@ -1410,9 +1410,8 @@ int ipapwd_set_extradata(const char *dn,
                          time_t unixtime)
 {
     Slapi_Mods *smods;
-    Slapi_Value *va[3] = { NULL };
+    Slapi_Value *va[2] = { NULL };
     struct berval bv;
-    char mkvno[4] = { 0x00, 0x08, 0x01, 0x00 };
     char *xdata;
     int xd_len;
     int p_len;
@@ -1426,11 +1425,6 @@ int ipapwd_set_extradata(const char *dn,
     }
 
     smods = slapi_mods_new();
-
-    /* always append a master key kvno of 1 for now */
-    bv.bv_val = mkvno;
-    bv.bv_len = 4;
-    va[0] = slapi_value_new_berval(&bv);
 
     /* data type id */
     xdata[0] = 0x00;
@@ -1449,13 +1443,12 @@ int ipapwd_set_extradata(const char *dn,
 
     bv.bv_val = xdata;
     bv.bv_len = xd_len;
-    va[1] = slapi_value_new_berval(&bv);
+    va[0] = slapi_value_new_berval(&bv);
 
     slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE, "krbExtraData", va);
 
     ret = ipapwd_apply_mods(dn, smods);
 
-    slapi_value_free(&va[1]);
     slapi_value_free(&va[0]);
     slapi_mods_free(&smods);
 
