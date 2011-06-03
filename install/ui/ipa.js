@@ -287,13 +287,6 @@ IPA.command = function(spec) {
 
             IPA.hide_activity_icon();
 
-            if (!error_thrown) {
-                error_thrown = {
-                    name: xhr.responseText || 'Unknown Error',
-                    message: xhr.statusText || 'Unknown Error'
-                };
-            }
-
             if (xhr.status === 401) {
                 error_thrown = {}; // error_thrown is string
                 error_thrown.name = 'Kerberos ticket no longer valid.';
@@ -307,6 +300,18 @@ IPA.command = function(spec) {
                         "<a href='/ipa/config/unauthorized.html'>"+
                         "follow these directions</a> to configure your browser.";
                 }
+
+            } else if (!error_thrown) {
+                error_thrown = {
+                    name: xhr.responseText || 'Unknown Error',
+                    message: xhr.statusText || 'Unknown Error'
+                };
+
+            } else if (typeof error_thrown == 'string') {
+                error_thrown = {
+                    name: error_thrown,
+                    message: error_thrown
+                };
             }
 
             if (that.retry) {
@@ -320,13 +325,12 @@ IPA.command = function(spec) {
         function success_handler(data, text_status, xhr) {
 
             if (!data) {
-                IPA.hide_activity_icon();
-                var error_thrown = {
+                // error_handler() calls IPA.hide_activity_icon()
+                error_handler.call(this, xhr, text_status, /* error_thrown */ {
                     name: 'HTTP Error '+xhr.status,
                     url: this.url,
-                    message: data ? xhr.statusText : "No response"
-                };
-                dialog_open.call(this, xhr, text_status, error_thrown);
+                    message: data ? xhr.statusText : 'No response'
+                });
 
             } else if (data.error) {
                 // error_handler() calls IPA.hide_activity_icon()
