@@ -292,10 +292,6 @@ dl.aci-target input {
 
 }
 
-.aci-attribute-table th.style {
-
-}
-
 #group_filter {
         margin-right: 2em;
 }
@@ -384,6 +380,10 @@ span.attrhint {
 .ui-icon {
   //background-image: url("ui-icons_222222_256x240.png");
     background-color: #e2e2e2;
+}
+.ui-dialog .ui-dialog-content {
+    #this should go away once we can fix table scrolling
+    overflow:auto;
 }
 
 .ui-widget-content {
@@ -666,16 +666,22 @@ a.action-button-disabled {
     width: 22px;
 }
 
+.aci-attribute-table {
+
+}
+
+
 .aci-attribute-table tbody{
-    height:30em;
-    overflow-x:hidden;
-        border-bottom: 1px solid #8a8a8a;
+    width: 20em;
+    height:10em;
+    overflow:auto;
+    border-bottom: 1px solid #8a8a8a;
 }
 
 .aci-attribute-table th.aci-attribute-column{
     float: left;
-        width: 46.5em;
-        padding: 0.8em 0.5em;
+    width: 20.5em;
+    padding: 0.8em 0.5em;
 }
 
 .entity-views{

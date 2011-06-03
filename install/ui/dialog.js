@@ -394,6 +394,9 @@ IPA.adder_dialog = function (spec) {
             height: '151px'
         });
 
+        that.available_table.resize = function(){
+        };
+
         var columns = that.columns.values;
         that.available_table.set_columns(columns);
 
@@ -404,6 +407,9 @@ IPA.adder_dialog = function (spec) {
             scrollable: true,
             height: '151px'
         });
+
+        that.selected_table.resize = function(){
+        };
 
         that.selected_table.set_columns(columns);
 

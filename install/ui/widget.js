@@ -1060,7 +1060,6 @@ IPA.table_widget = function (spec) {
     that.current_page = 1;
     that.total_pages = 1;
     that.page_length = spec.page_length;
-
     that.columns = $.ordered_map();
 
     that.get_columns = function() {
@@ -1298,13 +1297,12 @@ IPA.table_widget = function (spec) {
     };
 
     that.resize = function(){
-        if (that.scrollable){
-            that.tbody.attr('overflow-y', 'auto');
-            that.tbody.height("auto");
-            var table_max_height = $(window).height() -
-                IPA.reserved_screen_size;
-            that.tbody.height(table_max_height);
-        }
+        that.tbody.attr('overflow-y', 'auto');
+
+        var win = $(window);
+        var table_max_height = win.height() -
+            IPA.reserved_screen_size;
+        that.tbody.height(table_max_height);
     };
 
     that.load = function(result) {

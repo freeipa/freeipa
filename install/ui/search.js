@@ -75,7 +75,6 @@ IPA.search_facet = function(spec) {
             };
         }
 
-
         that.table = IPA.table_widget({
             scrollable: true,
             id: entity.name+'-search',

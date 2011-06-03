@@ -132,7 +132,6 @@ IPA.facet = function (spec) {
 
     that.resize = function(){
         var facet_content = $('.facet-content', that.container);
-        facet_content.css("height", 'auto');
         facet_content.css('overflow-y', 'auto');
 
         var content_max_height = $(window).height() -

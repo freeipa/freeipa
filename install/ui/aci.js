@@ -50,6 +50,7 @@ IPA.entity_factories.permission = function() {
             }]}).
         standard_association_facets().
         adder_dialog({
+            height: '400',
             fields:[
                 'cn',
                 {
