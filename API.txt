@@ -1523,7 +1523,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: migrate_ds
-args: 2,9,3
+args: 2,13,3
 arg: Str('ldapuri', validate_ldapuri, cli_name='ldap_uri', label=Gettext('LDAP URI', domain='ipa', localedir=None))
 arg: Password('bindpw', cli_name='password', label=Gettext('Password', domain='ipa', localedir=None))
 option: Str('binddn?', autofill=True, cli_name='bind_dn', default=u'cn=directory manager', label=Gettext('Bind DN', domain='ipa', localedir=None))
@@ -1531,6 +1531,10 @@ option: Str('usercontainer?', autofill=True, cli_name='user_container', default=
 option: Str('groupcontainer?', autofill=True, cli_name='group_container', default=u'ou=groups', label=Gettext('Group container', domain='ipa', localedir=None))
 option: List('userobjectclass?', autofill=True, cli_name='user_objectclass', default=(u'person',), label=Gettext('User object class', domain='ipa', localedir=None), multivalue=True)
 option: List('groupobjectclass?', autofill=True, cli_name='group_objectclass', default=(u'groupOfUniqueNames', u'groupOfNames'), label=Gettext('Group object class', domain='ipa', localedir=None), multivalue=True)
+option: List('userignoreobjectclass?', autofill=True, cli_name='user_ignore_objectclass', default=(), label=Gettext('Ignore user object class', domain='ipa', localedir=None), multivalue=True)
+option: List('userignoreattribute?', autofill=True, cli_name='user_ignore_attribute', default=(), label=Gettext('Ignore user attribute', domain='ipa', localedir=None), multivalue=True)
+option: List('groupignoreobjectclass?', autofill=True, cli_name='group_ignore_objectclass', default=(), label=Gettext('Ignore group object class', domain='ipa', localedir=None), multivalue=True)
+option: List('groupignoreattribute?', autofill=True, cli_name='group_ignore_attribute', default=(), label=Gettext('Ignore group attribute', domain='ipa', localedir=None), multivalue=True)
 option: StrEnum('schema?', autofill=True, cli_name='schema', default=u'RFC2307bis', label=Gettext('LDAP schema', domain='ipa', localedir=None), values=(u'RFC2307bis', u'RFC2307'))
 option: Flag('continue?', autofill=True, default=False)
 option: List('exclude_groups?', autofill=True, cli_name='exclude_groups', default=(), multivalue=True)

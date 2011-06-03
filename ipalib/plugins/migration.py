@@ -70,8 +70,6 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
     except StandardError, e:
         raise e
 from ipalib import _
-from ipalib.text import Gettext # FIXME: remove once the other Gettext FIXME is removed
-
 
 # USER MIGRATION CALLBACKS AND VARS
 
@@ -84,6 +82,7 @@ _supported_schemas = (u'RFC2307bis', u'RFC2307')
 
 def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs):
     attr_blacklist = ['krbprincipalkey','memberofindirect','memberindirect']
+    attr_blacklist.extend(kwargs.get('attr_blacklist', []))
 
     # get default primary group for new users
     if 'def_group_dn' not in ctx:
@@ -109,6 +108,14 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
     for attr in entry_attrs.keys():
         if attr in attr_blacklist:
             del entry_attrs[attr]
+
+    # do not migrate all object classes
+    if 'objectclass' in entry_attrs:
+        for object_class in kwargs.get('oc_blacklist', []):
+            try:
+                entry_attrs['objectclass'].remove(object_class)
+            except ValueError:  # object class not present
+                pass
 
     # generate a principal name and check if it isn't already taken
     principal = u'%s@%s' % (pkey, api.env.realm)
@@ -186,6 +193,7 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
         entry_attrs['member'] = new_members
 
     attr_blacklist = ['memberofindirect','memberindirect']
+    attr_blacklist.extend(kwargs.get('attr_blacklist', []))
 
     schema = kwargs.get('schema', None)
     entry_attrs['ipauniqueid'] = 'autogenerate'
@@ -205,6 +213,14 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
     for attr in entry_attrs.keys():
         if attr in attr_blacklist:
             del entry_attrs[attr]
+
+    # do not migrate all object classes
+    if 'objectclass' in entry_attrs:
+        for object_class in kwargs.get('oc_blacklist', []):
+            try:
+                entry_attrs['objectclass'].remove(object_class)
+            except ValueError:  # object class not present
+                pass
 
     return dn
 
@@ -249,12 +265,16 @@ class migrate_ds(Command):
         'user': {
             'filter_template' : '(&(|%s)(uid=*))',
             'oc_option' : 'userobjectclass',
+            'oc_blacklist_option' : 'userignoreobjectclass',
+            'attr_blacklist_option' : 'userignoreattribute',
             'pre_callback' : _pre_migrate_user,
             'post_callback' : _post_migrate_user
         },
         'group': {
             'filter_template' : '(&(|%s)(cn=*))',
             'oc_option' : 'groupobjectclass',
+            'oc_blacklist_option' : 'groupignoreobjectclass',
+            'attr_blacklist_option' : 'groupignoreattribute',
             'pre_callback' : _pre_migrate_group,
             'post_callback' : None
         },
@@ -307,6 +327,34 @@ class migrate_ds(Command):
             label=_('Group object class'),
             doc=_('Comma-separated list of objectclasses used to search for group entries in DS'),
             default=(u'groupOfUniqueNames', u'groupOfNames'),
+            autofill=True,
+        ),
+        List('userignoreobjectclass?',
+            cli_name='user_ignore_objectclass',
+            label=_('Ignore user object class'),
+            doc=_('Comma-separated list of objectclasses to be ignored for user entries in DS'),
+            default=tuple(),
+            autofill=True,
+        ),
+        List('userignoreattribute?',
+            cli_name='user_ignore_attribute',
+            label=_('Ignore user attribute'),
+            doc=_('Comma-separated list of attributes to be ignored for user entries in DS'),
+            default=tuple(),
+            autofill=True,
+        ),
+        List('groupignoreobjectclass?',
+            cli_name='group_ignore_objectclass',
+            label=_('Ignore group object class'),
+            doc=_('Comma-separated list of objectclasses to be ignored for group entries in DS'),
+            default=tuple(),
+            autofill=True,
+        ),
+        List('groupignoreattribute?',
+            cli_name='group_ignore_attribute',
+            label=_('Ignore group attribute'),
+            doc=_('Comma-separated list of attributes to be ignored for group entries in DS'),
+            default=tuple(),
             autofill=True,
         ),
         StrEnum('schema?',
@@ -365,8 +413,7 @@ can use their Kerberos accounts.''')
         for ldap_obj_name in self.migrate_objects:
             ldap_obj = self.api.Object[ldap_obj_name]
             name = 'exclude_%ss' % to_cli(ldap_obj_name)
-            # FIXME: can't substitute strings static Gettext instance
-            doc = Gettext(self.exclude_doc % ldap_obj.object_name_plural)
+            doc = self.exclude_doc % ldap_obj.object_name_plural
             yield List(
                 '%s?' % name, cli_name=name, doc=doc, default=tuple(),
                 autofill=True
@@ -436,6 +483,14 @@ can use their Kerberos accounts.''')
                     )
                 )
 
+            blacklists = {}
+            for blacklist in ('oc_blacklist', 'attr_blacklist'):
+                blacklist_option = self.migrate_objects[ldap_obj_name][blacklist+'_option']
+                if blacklist_option is not None:
+                    blacklists[blacklist] = options.get(blacklist_option, tuple())
+                else:
+                    blacklists[blacklist] = tuple()
+
             for (dn, entry_attrs) in entries:
                 if dn is None:  # LDAP search reference
                     failed[ldap_obj_name][entry_attrs[0]] = unicode(_ref_err_msg)
@@ -459,7 +514,8 @@ can use their Kerberos accounts.''')
                     dn = callback(
                         ldap, pkey, dn, entry_attrs, failed[ldap_obj_name],
                         config, context, schema = options['schema'],
-                        search_bases = search_bases
+                        search_bases = search_bases,
+                        **blacklists
                     )
                     if not dn:
                         continue
