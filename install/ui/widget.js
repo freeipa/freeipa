@@ -883,6 +883,7 @@ IPA.select_widget = function(spec) {
             that.create_undo(container);
         }
     };
+
     that.setup = function(container) {
         that.widget_setup(container);
 
@@ -1056,12 +1057,14 @@ IPA.table_widget = function (spec) {
     var that = IPA.widget(spec);
 
     that.scrollable = spec.scrollable;
-    that.save_values = typeof spec.save_values == 'undefined' ? true : spec.save_values;
+    that.selectable = spec.selectable === undefined ? true : spec.selectable;
+    that.save_values = spec.save_values === undefined ? true : spec.save_values;
     that['class'] = spec['class'];
 
     that.current_page = 1;
     that.total_pages = 1;
     that.page_length = spec.page_length;
+
     that.columns = $.ordered_map();
 
     that.get_columns = function() {
@@ -1121,26 +1124,30 @@ IPA.table_widget = function (spec) {
 
         var tr = $('<tr/>').appendTo(that.thead);
 
-        var th = $('<th/>', {
-            'style': 'width: 22px;'
-        }).appendTo(tr);
+        var th;
 
-        var select_all_checkbox = $('<input/>', {
-            type: 'checkbox',
-            name: 'select',
-            title: IPA.messages.search.select_all
-        }).appendTo(th);
+        if (that.selectable) {
+            th = $('<th/>', {
+                'style': 'width: 22px;'
+            }).appendTo(tr);
 
-        select_all_checkbox.change(function() {
-            var checked = select_all_checkbox.is(':checked');
-            select_all_checkbox.attr('title', checked ? IPA.messages.search.unselect_all : IPA.messages.search.select_all);
-            var checkboxes = $('input[name=select]', that.tbody).get();
-            for (var i=0; i<checkboxes.length; i++) {
-                checkboxes[i].checked = checked;
-            }
-            that.select_changed();
-            return false;
-        });
+            var select_all_checkbox = $('<input/>', {
+                type: 'checkbox',
+                name: 'select',
+                title: IPA.messages.search.select_all
+            }).appendTo(th);
+
+            select_all_checkbox.change(function() {
+                var checked = select_all_checkbox.is(':checked');
+                select_all_checkbox.attr('title', checked ? IPA.messages.search.unselect_all : IPA.messages.search.select_all);
+                var checkboxes = $('input[name=select]', that.tbody).get();
+                for (var i=0; i<checkboxes.length; i++) {
+                    checkboxes[i].checked = checked;
+                }
+                that.select_changed();
+                return false;
+            });
+        }
 
         var columns = that.columns.values;
         for (var i=0; i<columns.length; i++) {
@@ -1158,8 +1165,8 @@ IPA.table_widget = function (spec) {
                     /* don't use the checkbox column as part of the overall
                        calculation for column widths.  It is so small
                        that it throws off the average. */
-                    width = (that.table.width() - IPA.checkbox_column_width) /
-                        (columns.length);
+                    width = (that.table.width() - (that.selectable ? IPA.checkbox_column_width : 0)) /
+                        columns.length;
                 }
                 width += 'px';
                 th.css('width', width);
@@ -1196,15 +1203,19 @@ IPA.table_widget = function (spec) {
 
         that.row = $('<tr/>');
 
-        var td = $('<td/>', {
-            'style': 'width: '+ IPA.checkbox_column_width +'px;'
-        }).appendTo(that.row);
+        var td;
 
-        $('<input/>', {
-            'type': 'checkbox',
-            'name': 'select',
-            'value': 'user'
-        }).appendTo(td);
+        if (that.selectable) {
+            td = $('<td/>', {
+                'style': 'width: '+ IPA.checkbox_column_width +'px;'
+            }).appendTo(that.row);
+
+            $('<input/>', {
+                'type': 'checkbox',
+                'name': 'select',
+                'value': 'user'
+            }).appendTo(td);
+        }
 
         for (/* var */ i=0; i<columns.length; i++) {
             /* var */ column = columns[i];
@@ -1223,7 +1234,9 @@ IPA.table_widget = function (spec) {
 
         tr = $('<tr/>').appendTo(that.tfoot);
 
-        td = $('<td/>', { colspan: columns.length+1 }).appendTo(tr);
+        td = $('<td/>', {
+            colspan: columns.length + (that.selectable ? 1 : 0)
+        }).appendTo(tr);
 
         that.summary = $('<span/>', {
             'name': 'summary'

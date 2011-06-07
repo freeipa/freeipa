@@ -771,7 +771,8 @@ IPA.association_facet = function (spec) {
             entity_name: that.entity_name,
             other_entity: that.other_entity,
             page_length: that.page_length,
-            scrollable: true
+            scrollable: true,
+            selectable: !that.read_only
         });
 
         var columns = that.columns.values;
