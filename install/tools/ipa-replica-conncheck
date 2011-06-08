@@ -330,7 +330,9 @@ def main():
 
             stderr = ''
             remote_addr = "%s@%s" % (user, options.master)
-            (stdout, stderr, returncode) = ipautil.run(['/usr/bin/ssh', remote_addr,
+            (stdout, stderr, returncode) = ipautil.run(['/usr/bin/ssh',
+                '-q', '-o StrictHostKeychecking=no',
+                '-o UserKnownHostsFile=/dev/null', remote_addr,
                 "/usr/sbin/ipa-replica-conncheck " + " ".join(remote_check_opts)],
                 env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME' : CCACHE_FILE},
                 raiseonerr=False)
