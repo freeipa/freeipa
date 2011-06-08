@@ -39,7 +39,7 @@ fqdn1 = u'testhost1.%s' % api.env.domain
 host_dn1 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn1, api.env.basedn)
 
 
-class test_group(Declarative):
+class test_nesting(Declarative):
     cleanup_commands = [
         ('group_del', [group1], {}),
         ('group_del', [group2], {}),
@@ -136,6 +136,7 @@ class test_group(Declarative):
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
                     displayname=[u'Test User1'],
                     cn=[u'Test User1'],
                     initials=[u'TU'],
@@ -164,6 +165,7 @@ class test_group(Declarative):
                     sn=[u'User2'],
                     uid=[user2],
                     uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
                     displayname=[u'Test User2'],
                     cn=[u'Test User2'],
                     initials=[u'TU'],

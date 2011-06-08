@@ -88,7 +88,8 @@ class user(LDAPObject):
     disallow_object_classes = ['krbticketpolicyaux']
     search_attributes_config = 'ipausersearchfields'
     default_attributes = [
-        'uid', 'givenname', 'sn', 'homedirectory', 'loginshell', 'ou',
+        'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
+        'uidnumber', 'gidnumber', 'mail', 'ou',
         'telephonenumber', 'title', 'memberof', 'nsaccountlock',
         'memberofindirect',
     ]

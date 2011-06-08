@@ -34,7 +34,7 @@ user_memberof = (u'cn=ipausers,cn=groups,cn=accounts,%s' % api.env.basedn,)
 user1=u'tuser1'
 
 
-class test_attr(Declarative):
+class test_replace(Declarative):
 
     cleanup_commands = [
         ('user_del', [user1], {}),
@@ -61,6 +61,7 @@ class test_attr(Declarative):
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
                     displayname=[u'Test User1'],
                     cn=[u'Test User1'],
                     initials=[u'TU'],
@@ -84,6 +85,8 @@ class test_attr(Declarative):
                     loginshell=[u'/bin/sh'],
                     sn=[u'User1'],
                     uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
                     mail=[u'test1@example.com', u'test3@example.com'],
                     memberof_group=[u'ipausers'],
                     nsaccountlock=[u'False'],
@@ -106,6 +109,8 @@ class test_attr(Declarative):
                     loginshell=[u'/bin/sh'],
                     sn=[u'User1'],
                     uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
                     mail=[u'test4@example.com'],
                     memberof_group=[u'ipausers'],
                     nsaccountlock=[u'False'],
@@ -128,6 +133,8 @@ class test_attr(Declarative):
                     loginshell=[u'/bin/sh'],
                     sn=[u'User1'],
                     uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
                     mail=[u'test6@example.com', u'test7@example.com', u'test5@example.com'],
                     memberof_group=[u'ipausers'],
                     nsaccountlock=[u'False'],
@@ -150,6 +157,8 @@ class test_attr(Declarative):
                     loginshell=[u'/bin/sh'],
                     sn=[u'User1'],
                     uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
                     memberof_group=[u'ipausers'],
                     nsaccountlock=[u'False'],
                 ),
@@ -171,6 +180,8 @@ class test_attr(Declarative):
                     loginshell=[u'/bin/sh'],
                     sn=[u'User1'],
                     uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
                     initials=[u'ABC'],
                     memberof_group=[u'ipausers'],
                     nsaccountlock=[u'False'],
@@ -193,6 +204,8 @@ class test_attr(Declarative):
                     loginshell=[u'/bin/sh'],
                     sn=[u'User1'],
                     uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
                     memberof_group=[u'ipausers'],
                     nsaccountlock=[u'False'],
                 ),

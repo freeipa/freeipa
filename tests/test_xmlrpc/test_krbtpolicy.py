@@ -101,6 +101,7 @@ class test_krbtpolicy(Declarative):
                     sn=[u'User1'],
                     uid=[user1],
                     uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
                     displayname=[u'Test User1'],
                     cn=[u'Test User1'],
                     initials=[u'TU'],
