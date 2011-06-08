@@ -94,6 +94,7 @@ class Service(object):
         self.realm = None
         self.suffix = None
         self.principal = None
+        self.dercert = None
 
     def ldap_connect(self):
         self.admin_conn = self.__get_conn(self.fqdn, self.dm_password)
@@ -192,23 +193,12 @@ class Service(object):
         """
         Add a certificate to a service
 
-        This should be passed in DER format but we'll be nice and convert
-        a base64-encoded cert if needed (like when we add certs that come
-        from PKCS#12 files.)
+        This server cert should be in DER format.
         """
 
         if not self.admin_conn:
             self.ldap_connect()
 
-        try:
-            s = self.dercert.find('-----BEGIN CERTIFICATE-----')
-            if s > -1:
-                e = self.dercert.find('-----END CERTIFICATE-----')
-                s = s + 27
-                self.dercert = self.dercert[s:e]
-                self.dercert = base64.b64decode(self.dercert)
-        except Exception:
-            pass
         dn = "krbprincipalname=%s,cn=services,cn=accounts,%s" % (self.principal, self.suffix)
         mod = [(ldap.MOD_ADD, 'userCertificate', self.dercert)]
         try:

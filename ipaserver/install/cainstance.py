@@ -38,7 +38,7 @@ import stat
 import socket
 from ipapython import dogtag
 from ipapython.certdb import get_ca_nickname
-from ipalib import pkcs10
+from ipalib import pkcs10, x509
 import subprocess
 
 from nss.error import NSPRError
@@ -322,7 +322,7 @@ class CADSInstance(service.Service):
 
             # We only handle one server cert
             self.nickname = server_certs[0][0]
-            self.dercert = dsdb.get_cert_from_db(self.nickname)
+            self.dercert = dsdb.get_cert_from_db(self.nickname, pem=False)
             dsdb.track_server_cert(self.nickname, self.principal, dsdb.passwd_fname)
 
     def create_certdb(self):
@@ -721,13 +721,6 @@ class CAInstance(service.Service):
             # TODO: roll back here?
             logging.critical("Failed to restart the certificate server. See the installation log for details.")
 
-    def __get_agent_cert(self, nickname):
-        args = ["/usr/bin/certutil", "-L", "-d", self.ca_agent_db, "-n", nickname, "-a"]
-        (out, err, returncode) = ipautil.run(args)
-        out = out.replace('-----BEGIN CERTIFICATE-----', '')
-        out = out.replace('-----END CERTIFICATE-----', '')
-        return out
-
     def __issue_ra_cert(self):
         # The CA certificate is in the agent DB but isn't trusted
         (admin_fd, admin_name) = tempfile.mkstemp()
@@ -801,8 +794,7 @@ class CAInstance(service.Service):
 
         self.ra_cert = outputList['b64_cert']
         self.ra_cert = self.ra_cert.replace('\\n','')
-        self.ra_cert = self.ra_cert.replace('-----BEGIN CERTIFICATE-----','')
-        self.ra_cert = self.ra_cert.replace('-----END CERTIFICATE-----','')
+        self.ra_cert = x509.strip_header(self.ra_cert)
 
         # Add the new RA cert to the database in /etc/httpd/alias
         (agent_fd, agent_name) = tempfile.mkstemp()

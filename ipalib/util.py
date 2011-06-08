@@ -30,6 +30,7 @@ import re
 from types import NoneType
 
 from ipalib import errors
+from ipalib.text import _
 from ipapython import dnsclient
 
 
@@ -185,3 +186,20 @@ def validate_ipaddr(ipaddr):
         except socket.error:
             return False
     return True
+
+def check_writable_file(filename):
+    """
+    Determine if the file is writable. If the file doesn't exist then
+    open the file to test writability.
+    """
+    if filename is None:
+        raise errors.FileError(reason='Filename is empty')
+    try:
+        if os.path.exists(filename):
+            if not os.access(filename, os.W_OK):
+                raise errors.FileError(reason=_('Permission denied: %(file)s') % dict(file=filename))
+        else:
+            fp = open(filename, 'w')
+            fp.close()
+    except (IOError, OSError), e:
+        raise errors.FileError(reason=str(e))
