@@ -290,15 +290,18 @@ def get_password(prompt):
     else:
         return sys.stdin.readline().rstrip()
 
-def read_password(user, confirm=True, validate=True):
+def read_password(user, confirm=True, validate=True, retry=True):
     correct = False
     pwd = ""
     while not correct:
+        if not retry:
+            correct = True
         pwd = get_password(user + " password: ")
         if not pwd:
             continue
         if validate and len(pwd) < 8:
             print "Password must be at least 8 characters long"
+            pwd = ""
             continue
         if not confirm:
             correct = True
@@ -307,6 +310,7 @@ def read_password(user, confirm=True, validate=True):
         if pwd != pwd_confirm:
             print "Password mismatch!"
             print ""
+            pwd = ""
         else:
             correct = True
     print ""
