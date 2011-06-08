@@ -31,11 +31,6 @@
 
 [dbmodules]
   $REALM = {
-    db_library = kldap
-    ldap_servers = ldapi://%2fvar%2frun%2fslapd-$SERVER_ID.socket
-    ldap_kerberos_container_dn = cn=kerberos,$SUFFIX
-    ldap_kdc_dn = uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX
-    ldap_kadmind_dn = uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX
-    ldap_service_password_file = /var/kerberos/krb5kdc/ldappwd
+    db_library = ipadb.so
   }
 

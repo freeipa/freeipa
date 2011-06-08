@@ -13,8 +13,6 @@ app_DATA =				\
 	caJarSigningCert.cfg.template	\
 	default-aci.ldif		\
 	default-hbac.ldif		\
-	default-keytypes.ldif		\
-	default-pwpolicy.ldif		\
 	delegation.ldif			\
 	replica-acis.ldif		\
 	ds-nfiles.ldif			\
