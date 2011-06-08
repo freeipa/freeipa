@@ -46,22 +46,36 @@
     <link rel="icon" type="image/ico" href="favicon.ico">
 </head>
 
-<body> 
-  <div class="center-container">
-    <div class="header" >
-      <span class="header-logo">
-        <a href="#"><img src="ipalogo.png" /><img src="ipabanner.png" /></a>
-      </span>
-      <span id="header-network-activity-indicator" class="network-activity-indicator">
-        <img src="spinner_header.gif" />
-      </span>
-      <span id="loggedinas" class="header-loggedinas">
-        <a href="#"><span id="login_header">Logged in as</span>: <strong>user@FREEIPA.ORG</strong></a>
-      </span>
+<body>
+
+    <div id="container">
+
+        <div id="background">
+            <div id="background-header"></div>
+            <div id="background-navigation"></div>
+            <div id="background-left"></div>
+            <div id="background-center"></div>
+            <div id="background-right"></div>
+        </div>
+
+        <div id="header">
+            <span class="header-logo">
+                 <a href="#"><img src="ipalogo.png" /><img src="ipabanner.png" /></a>
+            </span>
+            <span id="header-network-activity-indicator" class="network-activity-indicator">
+                 <img src="spinner_header.gif" />
+            </span>
+            <span id="loggedinas" class="header-loggedinas">
+                 <a href="#"><span id="login_header">Logged in as</span>: <strong>user@FREEIPA.ORG</strong></a>
+            </span>
+        </div>
+
+        <div id="navigation"></div>
+
+        <div id="content"></div>
+
     </div>
-    <div id="navigation" class="tabs"></div>
-    <div id="content"></div>
-  </div>
+
 </body>
 
 </html>

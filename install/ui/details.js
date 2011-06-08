@@ -407,8 +407,8 @@ IPA.details_facet = function(spec) {
 
     that.create_content = function(container) {
 
-        var details = $('<div/>', {
-            'name': 'details'
+        that.content = $('<div/>', {
+            'class': 'details-content'
         }).appendTo(container);
 
         var sections = that.sections.values;
@@ -418,7 +418,7 @@ IPA.details_facet = function(spec) {
             var header = $('<h2/>', {
                 name: section.name,
                 title: section.label
-            }).appendTo(details);
+            }).appendTo(that.content);
 
             var icon = $('<span/>', {
                 name: 'icon',
@@ -432,7 +432,7 @@ IPA.details_facet = function(spec) {
             var div = $('<div/>', {
                 name: section.name,
                 'class': 'details-section'
-            }).appendTo(details);
+            }).appendTo(that.content);
 
             header.click(function(section, div) {
                 return function() {
@@ -443,25 +443,26 @@ IPA.details_facet = function(spec) {
 
             section.create(div);
 
-            details.append('<hr/>');
+            if (i < sections.length-1) {
+                that.content.append('<hr/>');
+            }
         }
 
-
-        that.resize();
+        $('<span/>', {
+            name: 'summary',
+            'class': 'details-summary'
+        }).appendTo(container);
     };
-
 
     that.setup = function(container) {
 
         that.facet_setup(container);
 
-        var details = $('div[name=details]', that.container);
-
         var sections = that.sections.values;
         for (var i=0; i<sections.length; i++) {
             var section = sections[i];
 
-            var div = $('div.details-section[name='+section.name+']', that.container);
+            var div = $('.details-section[name='+section.name+']', that.container);
 
             section.setup(div);
         }
@@ -492,7 +493,7 @@ IPA.details_facet = function(spec) {
         var div = section.container;
 
         if (visible != div.is(":visible")) {
-            div.slideToggle('slow', that.resize);
+            div.slideToggle('slow');
         }
     };
 

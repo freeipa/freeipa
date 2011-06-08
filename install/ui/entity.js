@@ -112,7 +112,7 @@ IPA.facet = function (spec) {
     };
 
     that.show = function() {
-        that.container.css('display', 'inline');
+        that.container.css('display', 'block');
     };
 
     that.hide = function() {
@@ -128,15 +128,6 @@ IPA.facet = function (spec) {
 
     that.get_content = function() {
         return $('.content', that.container);
-    };
-
-    that.resize = function(){
-        var facet_content = $('.facet-content', that.container);
-        facet_content.css('overflow-y', 'auto');
-
-        var content_max_height = $(window).height() -
-            IPA.reserved_screen_size;
-        facet_content.css('height',content_max_height);
     };
 
     that.on_error = function(xhr, text_status, error_thrown) {
@@ -200,10 +191,6 @@ IPA.table_facet = function(spec) {
     that.column = function(spec){
         that.create_column(spec);
         return that;
-    };
-
-    that.resize = function(){
-        that.table.resize();
     };
 
     var columns = spec.columns || [];
@@ -557,7 +544,7 @@ IPA.entity_header = function(spec) {
         }
     };
 
-    that.facet_link = function(container, other_facet) {
+    that.create_facet_link = function(container, other_facet) {
 
         var li = $('<li/>', {
             title: other_facet.name,
@@ -579,13 +566,14 @@ IPA.entity_header = function(spec) {
         }).appendTo(li);
     };
 
-    that.facet_group = function(facet_group) {
+    that.create_facet_group = function(container, facet_group) {
 
         var section = $('<span/>', {
-            'class': 'facet-tab-group'
-        }).appendTo(that.facet_tabs);
+            'class': 'facet-group'
+        }).appendTo(container);
 
-        $('<label/>', {
+        $('<div/>', {
+            'class': 'facet-group-name',
             text: facet_group.label
         }).appendTo(section);
 
@@ -596,7 +584,7 @@ IPA.entity_header = function(spec) {
         var facets = facet_group.facets.values;
         for (var i=0; i<facets.length; i++) {
             var facet = facets[i];
-            that.facet_link(ul, facet);
+            that.create_facet_link(ul, facet);
         }
     };
 
@@ -617,7 +605,7 @@ IPA.entity_header = function(spec) {
             'class': 'entity-pkey'
         }));
 
-        var search_bar = $('<span/>', {
+        var search_bar = $('<div/>', {
             'class': 'entity-search'
         }).appendTo(container);
 
@@ -651,7 +639,7 @@ IPA.entity_header = function(spec) {
         for (var i=0; i<facet_groups.length; i++) {
             var facet_group = facet_groups[i];
             if (facet_group.facets.length) {
-                that.facet_group(facet_group);
+                that.create_facet_group(that.facet_tabs, facet_group);
             }
         }
     };

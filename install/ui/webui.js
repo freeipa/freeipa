@@ -153,17 +153,6 @@ $(function() {
         IPA.nav.update();
 
         $('#login_header').html(IPA.messages.login.header);
-
-        function resizeFacet(){
-            var entity = IPA.current_entity;
-            if (entity){
-                var facet_name = IPA.current_facet(entity);
-                var facet = entity.get_facet(facet_name);
-                if (!facet) return;
-                facet.resize();
-            }
-        }
-        jQuery.event.add(window, "resize", resizeFacet);
     }
 
 

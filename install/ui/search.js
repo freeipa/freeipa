@@ -24,10 +24,6 @@
 
 /* REQUIRES: ipa.js */
 
-/* For scrolling tables, we want to make sure we leave enough room for the 
-   header and footer. */
-IPA.reserved_screen_size = 400;
-
 IPA.search_facet = function(spec) {
 
     spec = spec || {};
@@ -40,8 +36,7 @@ IPA.search_facet = function(spec) {
 
     that.search_all = spec.search_all || false;
 
-
-    function get_values (){
+    function get_values() {
         return that.table.get_selected_values();
     }
 
@@ -76,12 +71,13 @@ IPA.search_facet = function(spec) {
         }
 
         that.table = IPA.table_widget({
-            scrollable: true,
             id: entity.name+'-search',
+            'class': 'content-table',
             name: 'search',
             label: IPA.metadata.objects[entity.name].label,
             entity_name: entity.name,
-            search_all: that.search_all
+            search_all: that.search_all,
+            scrollable: true
         });
 
         var columns = that.columns.values;
@@ -158,14 +154,8 @@ IPA.search_facet = function(spec) {
 
     that.create_content = function(container) {
 
-        var span = $('<span/>', { 'name': 'search' }).appendTo(container);
-
-        that.table.create(span);
-        that.table.setup(span);
-    };
-
-    that.setup = function(container) {
-        that.facet_setup(container);
+        that.table.create(container);
+        that.table.setup(container);
     };
 
     that.show = function() {

@@ -12,6 +12,9 @@ app_DATA =                              \
 	add.js				\
 	associate.js			\
 	automount.js			\
+	background-center.png		\
+	background-left.png		\
+	background-right.png		\
 	caution.png			\
 	centered-bg.png                 \
 	check.png			\

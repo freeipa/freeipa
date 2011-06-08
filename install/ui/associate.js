@@ -717,10 +717,6 @@ IPA.association_facet = function (spec) {
         that.columns.put(column.name, column);
     };
 
-    that.resize = function(){
-        that.table.resize();
-    };
-
     that.create_column = function(spec) {
         var column = IPA.column(spec);
         if (spec.link_entity){
@@ -769,6 +765,7 @@ IPA.association_facet = function (spec) {
 
         that.table = IPA.table_widget({
             id: that.entity_name+'-'+that.other_entity,
+            'class': 'content-table',
             name: pkey_name,
             label: label,
             entity_name: that.entity_name,
@@ -863,18 +860,8 @@ IPA.association_facet = function (spec) {
 
     that.create_content = function(container) {
 
-        var span = $('<span/>', { 'name': 'association' }).appendTo(container);
-
-        that.table.create(span);
-    };
-
-    that.setup = function(container) {
-
-        that.facet_setup(container);
-
-        var span = $('span[name=association]', that.container);
-
-        that.table.setup(span);
+        that.table.create(container);
+        that.table.setup(container);
     };
 
     that.show = function() {

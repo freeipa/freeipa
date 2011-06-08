@@ -30,6 +30,7 @@ IPA.navigation = function(spec) {
     that.container = spec.container;
     that.content = spec.content;
     that.tab_class = spec.tab_class || 'tabs';
+    that.max_depth = spec.max_depth || 3;
 
     that.tabs = [];
     that.tabs_by_name = {};
@@ -129,9 +130,11 @@ IPA.navigation = function(spec) {
 
     that.create = function() {
 
-        that._create(that.tabs, that.container, 1);
+        var container = $('<div/>').appendTo(that.container);
 
-        var tabs = $('.' + that.tab_class);
+        that._create(that.tabs, container, 1);
+
+        var tabs = $('.' + that.tab_class, that.container);
         tabs.tabs({
             select: function(event, ui) {
                 var panel = $(ui.panel);
@@ -187,6 +190,10 @@ IPA.navigation = function(spec) {
     };
 
     that.update = function() {
+        for (var i=1; i<=that.max_depth; i++) {
+            that.container.removeClass(that.tab_class+'-'+i);
+            that.content.removeClass(that.tab_class+'-'+i);
+        }
         $('.entity', that.content).css('display', 'none');
         that._update(that.tabs, that.container, 1);
     };
@@ -208,6 +215,9 @@ IPA.navigation = function(spec) {
             that._update(tab.children, tab.container, depth+1);
 
         } else if (tab.entity) {
+            that.container.addClass(that.tab_class+'-'+depth);
+            that.content.addClass(that.tab_class+'-'+depth);
+
             var entity_container = $('.entity[name="'+tab.entity.name+'"]', that.content);
             if (!entity_container.length) {
                 tab.content = $('<div/>', {
@@ -218,7 +228,7 @@ IPA.navigation = function(spec) {
                 tab.entity.create(tab.content);
             }
 
-            entity_container.css('display', 'inline');
+            entity_container.css('display', 'block');
             tab.entity.setup(tab.content);
         }
     };

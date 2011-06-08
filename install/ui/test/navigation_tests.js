@@ -87,7 +87,9 @@ test("Testing IPA.navigation.create().", function() {
     ok(user_mock_called, "mock user setup was called");
     ok(!group_mock_called, "mock group setup was not called because the tab is inactive");
 
-    var level1_tabs = navigation_container.children('div');
+    var tabs_container = navigation_container.children('div');
+
+    var level1_tabs = tabs_container.children('div');
     same(level1_tabs.length, 1, "One level 1 tab");
 
     var identity_tab = level1_tabs.first();
@@ -140,13 +142,15 @@ test("Testing IPA.navigation.update() with valid index.", function() {
     navigation.push_state({'identity': 'two'});
     navigation.update();
 
+    var tabs_container = navigation_container.children('div');
+
     same(
-        navigation_container.tabs('option', 'selected'), 0,
+        tabs_container.tabs('option', 'selected'), 0,
         "Active tab at level 1"
     );
 
     same(
-        $('.tabs[name=identity]', navigation_container).tabs('option', 'selected'), 1,
+        $('.tabs[name=identity]', tabs_container).tabs('option', 'selected'), 1,
         "Active tab at level 2"
     );
 
@@ -190,13 +194,15 @@ test("Testing IPA.navigation.update() with out-of-range index.", function() {
     navigation.push_state({'identity': 'three'});
     navigation.update();
 
+    var tabs_container = navigation_container.children('div');
+
     same(
-        navigation_container.tabs('option', 'selected'), 0,
+        tabs_container.tabs('option', 'selected'), 0,
         "Active tab at level 1"
     );
 
     same(
-        $('.tabs[name=identity]', navigation_container).tabs('option', 'selected'), 0,
+        $('.tabs[name=identity]', tabs_container).tabs('option', 'selected'), 0,
         "Active tab at level 2"
     );
 

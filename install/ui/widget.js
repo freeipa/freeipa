@@ -142,6 +142,7 @@ IPA.widget = function(spec) {
     };
 
     that.create = function(container) {
+        that.container = container;
     };
 
     that.setup = function(container) {
@@ -1056,6 +1057,7 @@ IPA.table_widget = function (spec) {
 
     that.scrollable = spec.scrollable;
     that.save_values = typeof spec.save_values == 'undefined' ? true : spec.save_values;
+    that['class'] = spec['class'];
 
     that.current_page = 1;
     that.total_pages = 1;
@@ -1103,9 +1105,13 @@ IPA.table_widget = function (spec) {
 
     that.create = function(container) {
 
+        that.widget_create(container);
+
         that.table = $('<table/>', {
             'class': 'search-table'
         }).appendTo(container);
+
+        if (that['class']) that.table.addClass(that['class']);
 
         if (that.scrollable) {
             that.table.addClass('scrollable');
@@ -1142,13 +1148,13 @@ IPA.table_widget = function (spec) {
 
             th = $('<th/>').appendTo(tr);
 
-            if (that.scrollable ) {
+            if (that.scrollable) {
                 var width;
                 if (column.width) {
                     width = parseInt(
                         column.width.substring(0, column.width.length-2),10);
                     width += 16;
-                }else{
+                } else {
                     /* don't use the checkbox column as part of the overall
                        calculation for column widths.  It is so small
                        that it throws off the average. */
@@ -1281,7 +1287,6 @@ IPA.table_widget = function (spec) {
                 name: 'total_pages'
             }).appendTo(that.pagination);
         }
-        that.resize();
     };
 
     that.select_changed = function(){
@@ -1294,15 +1299,6 @@ IPA.table_widget = function (spec) {
 
     that.empty = function() {
         that.tbody.empty();
-    };
-
-    that.resize = function(){
-        that.tbody.attr('overflow-y', 'auto');
-
-        var win = $(window);
-        var table_max_height = win.height() -
-            IPA.reserved_screen_size;
-        that.tbody.height(table_max_height);
     };
 
     that.load = function(result) {
