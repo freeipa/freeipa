@@ -217,20 +217,22 @@ def get_outputList(data):
     return outputdict
 
 class CADSInstance(service.Service):
-    def __init__(self, realm_name=None, domain_name=None, dm_password=None):
+    def __init__(self, host_name=None, realm_name=None, domain_name=None, dm_password=None):
         service.Service.__init__(self, "pkids")
+        self.serverid = "PKI-IPA"
         self.realm_name = realm_name
         self.dm_password = dm_password
         self.sub_dict = None
         self.domain = domain_name
-        self.serverid = None
-        self.fqdn = None
+        self.fqdn = host_name
         self.dercert = None
         self.pkcs12_info = None
         self.ds_port = None
         self.master_host = None
         self.nickname = 'Server-Cert'
         self.subject_base = None
+        if host_name and realm_name:
+            self.principal = "dogtagldap/%s@%s" % (self.fqdn, self.realm_name)
         if realm_name:
             self.suffix = util.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()
@@ -242,7 +244,6 @@ class CADSInstance(service.Service):
                         subject_base=None):
         self.ds_port = ds_port
         self.realm_name = realm_name.upper()
-        self.serverid = "PKI-IPA"
         self.suffix = util.realm_to_suffix(self.realm_name)
         self.fqdn = host_name
         self.dm_password = dm_password

@@ -767,7 +767,7 @@ def main():
                 # This can happen if someone passes external_ca_file without
                 # already having done the first stage of the CA install.
                 sys.exit('CA is not installed yet. To install with an external CA is a two-stage process.\nFirst run the installer with --external-ca.')
-            cs = cainstance.CADSInstance(dm_password=dm_password)
+            cs = cainstance.CADSInstance(host_name, realm_name, domain_name, dm_password)
             ca.configure_instance(host_name, dm_password, dm_password,
                                   cert_file=options.external_cert_file,
                                   cert_chain_file=options.external_ca_file,
@@ -812,7 +812,7 @@ def main():
         cs.create_certdb()
         cs.enable_ssl()
         # Add the IPA service for storing the PKI-IPA server certificate.
-        cs.add_simple_service('dogtagldap/%s@%s' % (host_name, realm_name))
+        cs.add_simple_service(cs.principal)
         cs.add_cert_to_service()
 
     # Create a kerberos instance
