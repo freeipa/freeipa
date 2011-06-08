@@ -1196,7 +1196,7 @@ from ipalib import api, SkipPluginModule
 if api.env.ra_plugin != 'dogtag':
     # In this case, abort loading this plugin module...
     raise SkipPluginModule(reason='dogtag not selected as RA plugin')
-import os
+import os, random, ldap
 from ipaserver.plugins import rabase
 from ipalib.errors import NetworkError, CertificateOperationError
 from ipalib.constants import TYPE_ERROR
@@ -1218,6 +1218,7 @@ class ra(rabase.rabase):
         self.ipa_key_size = "2048"
         self.ipa_certificate_nickname = "ipaCert"
         self.ca_certificate_nickname = "caCert"
+        self.ca_host = None
         try:
             f = open(self.pwd_file, "r")
             self.password = f.readline().strip()
@@ -1225,6 +1226,63 @@ class ra(rabase.rabase):
         except IOError:
             self.password = ''
         super(ra, self).__init__()
+
+    def _host_has_service(self, host, service='CA'):
+        """
+        :param host: A host which might be a master for a service.
+        :param service: The service for which the host might be a master.
+        :return:   (true, false)
+
+        Check if a specified host is a master for a specified service.
+        """
+        base_dn = 'cn=%s,cn=masters,cn=ipa,cn=etc,%s' % (host, api.env.basedn)
+        filter = '(&(objectClass=ipaConfigObject)(cn=%s)(ipaConfigString=enabledService))' % service
+        try:
+            ldap2 = self.api.Backend.ldap2
+            ent,trunc = ldap2.find_entries(filter=filter, base_dn=base_dn)
+            if len(ent):
+                return True
+        except Exception, e:
+            pass
+        return False
+
+    def _select_any_master(self, service='CA'):
+        """
+        :param service: The service for which we're looking for a master.
+        :return:   host
+                   as str
+
+        Select any host which is a master for a specified service.
+        """
+        base_dn = 'cn=masters,cn=ipa,cn=etc,%s' % api.env.basedn
+        filter = '(&(objectClass=ipaConfigObject)(cn=%s)(ipaConfigString=enabledService))' % service
+        try:
+            ldap2 = self.api.Backend.ldap2
+            ent,trunc = ldap2.find_entries(filter=filter, base_dn=base_dn)
+            if len(ent):
+                entry = random.choice(ent)
+                return ldap.explode_dn(dn=entry[0],notypes=True)[1]
+        except Exception, e:
+            pass
+        return None
+
+    def _select_ca(self):
+        """
+        :return:   host
+                   as str
+
+        Select our CA host.
+        """
+        if self._host_has_service(host=api.env.ca_host):
+            return api.env.ca_host
+        if api.env.host != api.env.ca_host:
+            if self._host_has_service(host=api.env.host):
+                return api.env.host
+        host = self._select_any_master()
+        if host:
+            return host
+        else:
+            return api.env.ca_host
 
     def _request(self, url, port, **kw):
         """
@@ -1235,7 +1293,9 @@ class ra(rabase.rabase):
 
         Perform an HTTP request.
         """
-        return dogtag.http_request(self.env.ca_host, port, url, **kw)
+        if self.ca_host == None:
+            self.ca_host = self._select_ca()
+        return dogtag.http_request(self.ca_host, port, url, **kw)
 
     def _sslget(self, url, port, **kw):
         """
@@ -1247,7 +1307,9 @@ class ra(rabase.rabase):
         Perform an HTTPS request
         """
 
-        return dogtag.https_request(self.env.ca_host, port, url, self.sec_dir, self.password, self.ipa_certificate_nickname, **kw)
+        if self.ca_host == None:
+            self.ca_host = self._select_ca()
+        return dogtag.https_request(self.ca_host, port, url, self.sec_dir, self.password, self.ipa_certificate_nickname, **kw)
 
     def get_parse_result_xml(self, xml_text, parse_func):
         '''
