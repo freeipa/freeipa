@@ -16,3 +16,42 @@ objectClass: top
 cn: kerberos
 aci: (targetattr="*")(version 3.0; acl "KDC System Account"; allow (all) userdn= "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
 
+#Realm base object
+dn: cn=$REALM,cn=kerberos,$SUFFIX
+changetype: add
+cn: $REALM
+objectClass: top
+objectClass: krbrealmcontainer
+objectClass: krbticketpolicyaux
+krbSubTrees: $SUFFIX
+krbSearchScope: 2
+krbSupportedEncSaltTypes: aes256-cts:normal
+krbSupportedEncSaltTypes: aes256-cts:special
+krbSupportedEncSaltTypes: aes128-cts:normal
+krbSupportedEncSaltTypes: aes128-cts:special
+krbSupportedEncSaltTypes: des3-hmac-sha1:normal
+krbSupportedEncSaltTypes: des3-hmac-sha1:special
+krbSupportedEncSaltTypes: arcfour-hmac:normal
+krbSupportedEncSaltTypes: arcfour-hmac:special
+krbMaxTicketLife: 86400
+krbMaxRenewableAge: 604800
+krbDefaultEncSaltTypes: aes256-cts:special
+krbDefaultEncSaltTypes: aes128-cts:special
+krbDefaultEncSaltTypes: des3-hmac-sha1:special
+krbDefaultEncSaltTypes: arcfour-hmac:special
+
+# Default password Policy
+dn: cn=global_policy,cn=$REALM,cn=kerberos,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+objectClass: krbPwdPolicy
+krbMinPwdLife: 3600
+krbPwdMinDiffChars: 0
+krbPwdMinLength: 8
+krbPwdHistoryLength: 0
+krbMaxPwdLife: 7776000
+krbPwdMaxFailure: 6
+krbPwdFailureCountInterval: 60
+krbPwdLockoutDuration: 600
+
