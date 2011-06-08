@@ -83,9 +83,6 @@ def makecert(reqdir):
     api.register(client)
     api.finalize()
 
-    # This needs to be imported after the API is initialized
-    from ipalib.plugins.service import make_pem
-
     ra = rabase.rabase()
     if not os.path.exists(ra.sec_dir) and api.env.xmlrpc_uri == 'http://localhost:8888/ipa/xml':
         sys.exit('The in-tree self-signed CA is not configured, see tests/test_xmlrpc/test_cert.py')
@@ -108,7 +105,7 @@ def makecert(reqdir):
     try:
         res = api.Backend.client.run('cert_request', csr, principal=princ,
             add=True)
-        cert = make_pem(res['result']['certificate'])
+        cert = x509.make_pem(res['result']['certificate'])
         fd = open(CERTPATH, 'w')
         fd.write(cert)
         fd.close()

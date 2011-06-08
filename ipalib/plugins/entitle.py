@@ -78,7 +78,8 @@ import base64
 from OpenSSL import crypto
 from ipapython.ipautil import run
 from ipalib.request import context
-from ipalib.plugins.service import validate_certificate, normalize_certificate
+from ipalib.plugins.service import validate_certificate
+from ipalib import x509
 
 import locale
 
@@ -100,16 +101,6 @@ def read_pkcs12_pin():
     pwd = fp.read()
     fp.close()
     return pwd
-
-def make_pem(data):
-    """
-    The M2Crypto/openSSL modules are very picky about PEM format and
-    require lines split to 64 characters with proper headers.
-    """
-    cert = '\n'.join([data[x:x+64] for x in range(0, len(data), 64)])
-    return '-----BEGIN CERTIFICATE-----\n' + \
-    cert + \
-    '\n-----END CERTIFICATE-----'
 
 def get_pool(ldap):
     """
@@ -256,7 +247,7 @@ class entitle_status(VirtualCommand):
             if u'usercertificate' in registrations:
                 certs = registrations['usercertificate']
                 for cert in certs:
-                    cert = make_pem(base64.b64encode(cert))
+                    cert = x509.make_pem(base64.b64encode(cert))
                     try:
                         pc = EntitlementCertificate(cert)
                         o = pc.getOrder()
@@ -358,7 +349,7 @@ class entitle_consume(LDAPUpdate):
             results = cp.getCertificates(uuid)
             usercertificate = []
             for cert in results:
-                usercertificate.append(normalize_certificate(cert['cert']))
+                usercertificate.append(x509.normalize_certificate(cert['cert']))
             entry_attrs['usercertificate'] = usercertificate
             entry_attrs['ipaentitlementid'] = uuid
         finally:
@@ -427,7 +418,7 @@ class entitle_get(VirtualCommand):
             if u'usercertificate' in registrations:
                 # make it look like a UEP cert
                 for cert in registrations['usercertificate']:
-                    certs.append(dict(cert = make_pem(base64.b64encode(cert))))
+                    certs.append(dict(cert = x509.make_pem(base64.b64encode(cert))))
         else:
             try:
                 cp = UEPConnection(handler='/candlepin', cert_file=certfile, key_file=keyfile)
@@ -626,8 +617,8 @@ class entitle_import(LDAPUpdate):
 
         try:
             entry_attrs['ipaentitlementid'] = unicode('IMPORTED')
-            newcert = normalize_certificate(keys[-1][0])
-            cert = make_pem(base64.b64encode(newcert))
+            newcert = x509.normalize_certificate(keys[-1][0])
+            cert = x509.make_pem(base64.b64encode(newcert))
             try:
                 pc = EntitlementCertificate(cert)
                 o = pc.getOrder()
@@ -645,7 +636,7 @@ class entitle_import(LDAPUpdate):
             # First import, create the entry
             entry_attrs['ipaentitlementid'] = unicode('IMPORTED')
             entry_attrs['objectclass'] = self.obj.object_class
-            entry_attrs['usercertificate'] = normalize_certificate(keys[-1][0])
+            entry_attrs['usercertificate'] = x509.normalize_certificate(keys[-1][0])
             ldap.add_entry(dn, entry_attrs)
             setattr(context, 'entitle_import', True)
 
@@ -717,7 +708,7 @@ class entitle_sync(LDAPUpdate):
             results = cp.getCertificates(uuid)
             usercertificate = []
             for cert in results:
-                usercertificate.append(normalize_certificate(cert['cert']))
+                usercertificate.append(x509.normalize_certificate(cert['cert']))
             entry_attrs['usercertificate'] = usercertificate
             entry_attrs['ipaentitlementid'] = uuid
         finally:

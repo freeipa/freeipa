@@ -87,10 +87,9 @@ from ipalib import Command, Str, Int, Bytes, Flag, File
 from ipalib import errors
 from ipalib import pkcs10
 from ipalib import x509
+from ipalib import util
 from ipalib.plugins.virtual import *
 from ipalib.plugins.service import split_principal
-from ipalib.plugins.service import make_pem, check_writable_file
-from ipalib.plugins.service import write_certificate
 import base64
 import logging
 import traceback
@@ -501,10 +500,10 @@ class cert_show(VirtualCommand):
 
     def forward(self, *keys, **options):
         if 'out' in options:
-            check_writable_file(options['out'])
+            util.check_writable_file(options['out'])
             result = super(cert_show, self).forward(*keys, **options)
             if 'certificate' in result['result']:
-                write_certificate(result['result']['certificate'], options['out'])
+                x509.write_certificate(result['result']['certificate'], options['out'])
                 return result
             else:
                 raise errors.NoCertificateError(entry=keys[-1])

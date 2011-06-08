@@ -185,7 +185,7 @@ class HTTPInstance(service.Service):
             db.create_password_conf()
             # We only handle one server cert
             nickname = server_certs[0][0]
-            self.dercert = db.get_cert_from_db(nickname)
+            self.dercert = db.get_cert_from_db(nickname, pem=False)
             db.track_server_cert(nickname, self.principal, db.passwd_fname)
 
             self.__set_mod_nss_nickname(nickname)

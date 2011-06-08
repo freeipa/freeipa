@@ -81,7 +81,7 @@ def check_compliance(tmpdir, debug=False):
     api.bootstrap(**cfg)
     api.register(client)
     api.finalize()
-    from ipalib.plugins.service import normalize_certificate, make_pem
+    from ipalib.x509 import normalize_certificate, make_pem
 
     try:
         # Create a new credentials cache for this tool. This executes

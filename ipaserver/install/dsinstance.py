@@ -379,7 +379,7 @@ class DsInstance(service.Service):
             logging.debug("completed creating ds instance")
         except ipautil.CalledProcessError, e:
             logging.critical("failed to restart ds instance %s" % e)
-        
+
         # check for open port 389 from now on
         self.open_ports.append(389)
 
@@ -517,7 +517,7 @@ class DsInstance(service.Service):
 
             # We only handle one server cert
             nickname = server_certs[0][0]
-            self.dercert = dsdb.get_cert_from_db(nickname)
+            self.dercert = dsdb.get_cert_from_db(nickname, pem=False)
             dsdb.track_server_cert(nickname, self.principal, dsdb.passwd_fname)
         else:
             nickname = "Server-Cert"

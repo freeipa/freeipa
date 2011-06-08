@@ -432,11 +432,22 @@ class CertDB(object):
             except RuntimeError:
                 break
 
-    def get_cert_from_db(self, nickname):
+    def get_cert_from_db(self, nickname, pem=True):
+        """
+        Retrieve a certificate from the current NSS database for nickname.
+
+        pem controls whether the value returned PEM or DER-encoded. The
+        default is the data straight from certutil -a.
+        """
         try:
             args = ["-L", "-n", nickname, "-a"]
             (cert, err, returncode) = self.run_certutil(args)
-            return cert
+            if pem:
+                return cert
+            else:
+                (cert, start) = find_cert_from_txt(cert, start=0)
+                dercert = base64.b64decode(cert)
+                return dercert
         except ipautil.CalledProcessError:
             return ''
 
@@ -501,6 +512,8 @@ class CertDB(object):
         that will issue our cert.
 
         You can override the certificate Subject by specifying a subject.
+
+        Returns a certificate in DER format.
         """
         cdb = other_certdb
         if not cdb:

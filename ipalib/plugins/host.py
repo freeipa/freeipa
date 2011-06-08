@@ -81,11 +81,7 @@ from ipalib import Str, Flag, Bytes
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.service import split_principal
 from ipalib.plugins.service import validate_certificate
-from ipalib.plugins.service import normalize_certificate
 from ipalib.plugins.service import set_certificate_attrs
-from ipalib.plugins.service import make_pem, check_writable_file
-from ipalib.plugins.service import write_certificate
-from ipalib.plugins.service import verify_cert_subject
 from ipalib.plugins.dns import dns_container_exists, _record_types
 from ipalib.plugins.dns import add_forward_record
 from ipalib import _, ngettext
@@ -423,8 +419,8 @@ class host_add(LDAPCreate):
             del entry_attrs['random']
         cert = options.get('usercertificate')
         if cert:
-            cert = normalize_certificate(cert)
-            verify_cert_subject(ldap, keys[-1], cert)
+            cert = x509.normalize_certificate(cert)
+            x509.verify_cert_subject(ldap, keys[-1], cert)
             entry_attrs['usercertificate'] = cert
         entry_attrs['managedby'] = dn
         return dn
@@ -562,7 +558,7 @@ class host_del(LDAPDelete):
             self.obj.handle_not_found(*keys)
 
         if 'usercertificate' in entry_attrs:
-            cert = normalize_certificate(entry_attrs.get('usercertificate')[0])
+            cert = x509.normalize_certificate(entry_attrs.get('usercertificate')[0])
             try:
                 serial = unicode(x509.get_serial_number(cert, x509.DER))
                 try:
@@ -626,12 +622,12 @@ class host_mod(LDAPUpdate):
             if 'krbprincipalaux' not in obj_classes:
                 obj_classes.append('krbprincipalaux')
                 entry_attrs['objectclass'] = obj_classes
-        cert = normalize_certificate(entry_attrs.get('usercertificate'))
+        cert = x509.normalize_certificate(entry_attrs.get('usercertificate'))
         if cert:
-            verify_cert_subject(ldap, keys[-1], cert)
+            x509.verify_cert_subject(ldap, keys[-1], cert)
             (dn, entry_attrs_old) = ldap.get_entry(dn, ['usercertificate'])
             if 'usercertificate' in entry_attrs_old:
-                oldcert = normalize_certificate(entry_attrs_old.get('usercertificate')[0])
+                oldcert = x509.normalize_certificate(entry_attrs_old.get('usercertificate')[0])
                 try:
                     serial = unicode(x509.get_serial_number(oldcert, x509.DER))
                     try:
@@ -733,10 +729,10 @@ class host_show(LDAPRetrieve):
 
     def forward(self, *keys, **options):
         if 'out' in options:
-            check_writable_file(options['out'])
+            util.check_writable_file(options['out'])
             result = super(host_show, self).forward(*keys, **options)
             if 'usercertificate' in result['result']:
-                write_certificate(result['result']['usercertificate'][0], options['out'])
+                x509.write_certificate(result['result']['usercertificate'][0], options['out'])
                 result['summary'] = _('Certificate stored in file \'%(file)s\'') % dict(file=options['out'])
                 return result
             else:
@@ -792,7 +788,7 @@ class host_disable(LDAPQuery):
                         except errors.AlreadyInactive:
                             pass
         if 'usercertificate' in entry_attrs:
-            cert = normalize_certificate(entry_attrs.get('usercertificate')[0])
+            cert = x509.normalize_certificate(entry_attrs.get('usercertificate')[0])
             try:
                 serial = unicode(x509.get_serial_number(cert, x509.DER))
                 try:
