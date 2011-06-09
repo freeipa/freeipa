@@ -95,13 +95,16 @@ class KrbInstance(service.Service):
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
+    def get_realm_suffix(self):
+        return "cn=%s,cn=kerberos,%s" % (self.realm, self.suffix)
+
     def move_service_to_host(self, principal):
         """
         Used to move a host/ service principal created by kadmin.local from
         cn=kerberos to reside under the host entry.
         """
 
-        service_dn = "krbprincipalname=%s,cn=%s,cn=kerberos,%s" % (principal, self.realm, self.suffix)
+        service_dn = "krbprincipalname=%s,%s" % (principal, self.get_realm_suffix())
         service_entry = self.admin_conn.getEntry(service_dn, ldap.SCOPE_BASE)
         self.admin_conn.deleteEntry(service_dn)
 
@@ -374,7 +377,8 @@ class KrbInstance(service.Service):
 
     def __write_stash_from_ds(self):
         try:
-            entry = self.admin_conn.getEntry("cn=%s, cn=kerberos, %s" % (self.realm, self.suffix), ldap.SCOPE_SUBTREE)
+            entry = self.admin_conn.getEntry(self.get_realm_suffix(),
+                                             ldap.SCOPE_SUBTREE)
         except errors.NotFound, e:
             logging.critical("Could not find master key in DS")
             raise e
@@ -471,12 +475,11 @@ class KrbInstance(service.Service):
         krbMKey.setComponentByPosition(1, MasterKey)
         asn1key = pyasn1.codec.ber.encoder.encode(krbMKey)
 
-        dn = "cn="+self.realm+",cn=kerberos,"+self.suffix
         #protect the master key by adding an appropriate deny rule along with the key
         mod = [(ldap.MOD_ADD, 'aci', ipautil.template_str(KRBMKEY_DENY_ACI, self.sub_dict)),
                (ldap.MOD_ADD, 'krbMKey', str(asn1key))]
         try:
-            self.admin_conn.modify_s(dn, mod)
+            self.admin_conn.modify_s(self.get_realm_suffix(), mod)
         except ldap.TYPE_OR_VALUE_EXISTS, e:
             logging.critical("failed to add master key to kerberos database\n")
             raise e
@@ -541,7 +544,7 @@ class KrbInstance(service.Service):
 
         # Create the special anonymous principal
         installutils.kadmin_addprinc(princ_realm)
-        dn = "krbprincipalname=%s,cn=%s,cn=kerberos,%s" % (princ_realm, self.realm, self.suffix)
+        dn = "krbprincipalname=%s,%s" % (princ_realm, self.get_realm_suffix())
         self.admin_conn.inactivateEntry(dn, False)
 
     def __convert_to_gssapi_replication(self):
