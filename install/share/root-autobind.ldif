@@ -17,8 +17,3 @@ changetype: modify
 replace: nsslapd-ldapimaptoentries
 nsslapd-ldapimaptoentries: on
 
-dn: cn=config
-changetype: modify
-replace: nsslapd-ldapientrysearchbase
-nsslapd-ldapientrysearchbase: cn=config
-

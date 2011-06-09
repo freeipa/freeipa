@@ -21,6 +21,7 @@ import os
 import sys
 import shutil
 import random
+import logging
 
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
@@ -56,6 +57,7 @@ class IPAUpgrade(service.Service):
         self.files = files
         self.modified = False
         self.badsyntax = False
+        self.upgradefailed = False
 
     def create_instance(self):
         self.step("stopping directory server", self.stop)
@@ -75,41 +77,26 @@ class IPAUpgrade(service.Service):
                separator=':')
         security = installutils.get_directive(self.filename, 'nsslapd-security',
                    separator=':')
-        autobind = installutils.get_directive(self.filename,
-                   'nsslapd-ldapiautobind', separator=':')
-        searchbase = installutils.get_directive(self.filename,
-                   'nsslapd-ldapientrysearchbase', separator=':')
 
         self.backup_state('nsslapd-port', port)
         self.backup_state('nsslapd-security', security)
-        self.backup_state('nsslapd-ldapiautobind', autobind)
-        self.backup_state('nsslapd-ldapientrysearchbase', searchbase)
 
     def __restore_config(self):
         port = self.restore_state('nsslapd-port')
         security = self.restore_state('nsslapd-security')
-        autobind = self.restore_state('nsslapd-ldapiautobind')
-        searchbase = self.restore_state('nsslapd-ldapientrysearchbase')
 
         installutils.set_directive(self.filename, 'nsslapd-port',
             port, quotes=False, separator=':')
         installutils.set_directive(self.filename, 'nsslapd-security',
             security, quotes=False, separator=':')
-        installutils.set_directive(self.filename, 'nsslapd-ldapiautobind',
-            autobind, quotes=False, separator=':')
-        installutils.set_directive(self.filename,
-            'nsslapd-ldapientrysearchbase',
-            searchbase, quotes=False, separator=':')
 
     def __disable_listeners(self):
         installutils.set_directive(self.filename, 'nsslapd-port',
             0, quotes=False, separator=':')
         installutils.set_directive(self.filename, 'nsslapd-security',
             'off', quotes=False, separator=':')
-        installutils.set_directive(self.filename, 'nsslapd-ldapiautobind',
-            'on', quotes=False, separator=':')
         installutils.set_directive(self.filename, 'nsslapd-ldapientrysearchbase',
-            '', quotes=False, separator=':')
+            None, quotes=False, separator=':')
 
     def __upgrade(self):
         try:
@@ -120,6 +107,11 @@ class IPAUpgrade(service.Service):
         except ldapupdate.BadSyntax:
             self.modified = False
             self.badsyntax = True
+        except Exception, e:
+            # Bad things happened, return gracefully
+            self.modified = False
+            self.upgradefailed = True
+            logging.error('Upgrade failed with %s' % str(e))
 
 def main():
     if os.getegid() != 0:

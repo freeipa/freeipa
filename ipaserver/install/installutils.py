@@ -332,6 +332,8 @@ def update_file(filename, orig, subst):
 def set_directive(filename, directive, value, quotes=True, separator=' '):
     """Set a name/value pair directive in a configuration file.
 
+       A value of None means to drop the directive.
+
        This has only been tested with nss.conf
     """
     valueset = False
@@ -341,18 +343,20 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
     for line in fd:
         if directive in line:
             valueset = True
-            if quotes:
-                newfile.append('%s%s"%s"\n' % (directive, separator, value))
-            else:
-                newfile.append('%s%s%s\n' % (directive, separator, value))
+            if value is not None:
+                if quotes:
+                    newfile.append('%s%s"%s"\n' % (directive, separator, value))
+                else:
+                    newfile.append('%s%s%s\n' % (directive, separator, value))
         else:
             newfile.append(line)
     fd.close()
     if not valueset:
-        if quotes:
-            newfile.append('%s%s"%s"\n' % (directive, separator, value))
-        else:
-            newfile.append('%s%s%s\n' % (directive, separator, value))
+        if value is not None:
+            if quotes:
+                newfile.append('%s%s"%s"\n' % (directive, separator, value))
+            else:
+                newfile.append('%s%s%s\n' % (directive, separator, value))
 
     fd = open(filename, "w")
     fd.write("".join(newfile))
@@ -403,7 +407,7 @@ def wait_for_open_ports(host, ports, timeout=0):
 
     op_timeout = time.time() + timeout
     ipv6_failover = False
-    
+
     for port in ports:
         while True:
             try:
