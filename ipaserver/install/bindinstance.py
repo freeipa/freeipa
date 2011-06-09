@@ -308,6 +308,7 @@ class BindInstance(service.Service):
         self.domain = domain_name
         self.forwarders = forwarders
         self.host = fqdn.split(".")[0]
+        self.host_domain = '.'.join(fqdn.split(".")[1:])
         self.suffix = util.realm_to_suffix(self.realm)
         self.ntp = ntp
         self.create_reverse = create_reverse
@@ -402,6 +403,14 @@ class BindInstance(service.Service):
         self._ldap_mod("dns.ldif", self.sub_dict)
 
     def __setup_zone(self):
+        if self.host_domain != self.domain:
+            # add DNS domain for host first
+            logging.debug("Host domain (%s) is different from DNS domain (%s)!" \
+                    % (self.host_domain, self.domain))
+            logging.debug("Add DNS zone for host first.")
+
+            add_zone(self.host_domain, self.zonemgr, dns_backup=self.dns_backup,
+                    ns_hostname=api.env.host, ns_ip_address=self.ip_address)
         add_zone(self.domain, self.zonemgr, dns_backup=self.dns_backup,
                 ns_hostname=api.env.host, ns_ip_address=self.ip_address)
 
