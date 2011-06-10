@@ -1416,7 +1416,7 @@ class List(Param):
         super(List, self).__init__(name, *rules, **kw)
 
     def normalize(self, value):
-        if value and not isinstance(value, tuple):
+        if value and not type(value) in (list, tuple):
             reader = self.__unicode_csv_reader([value])
             value = []
             for row in reader:
