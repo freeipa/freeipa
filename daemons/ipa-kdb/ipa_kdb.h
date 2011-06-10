@@ -70,6 +70,8 @@
  * In krb5 1.10 this should be superceeded by a better mechanism */
 #define  KDB_TL_USER_INFO      0x7ffe
 
+#define IPA_SETUP "ipa-setup-override-restrictions"
+
 struct ipadb_context {
     char *uri;
     char *base;
@@ -77,6 +79,7 @@ struct ipadb_context {
     char *realm_base;
     LDAP *lcontext;
     krb5_context kcontext;
+    bool override_restrictions;
     krb5_key_salt_tuple *supp_encs;
     int n_supp_encs;
 };
@@ -129,3 +132,17 @@ krb5_error_code ipadb_iterate(krb5_context kcontext,
                               char *match_entry,
                               int (*func)(krb5_pointer, krb5_db_entry *),
                               krb5_pointer func_arg);
+
+/* MASTER KEY FUNCTIONS */
+krb5_error_code ipadb_fetch_master_key(krb5_context kcontext,
+                                       krb5_principal mname,
+                                       krb5_keyblock *key,
+                                       krb5_kvno *kvno,
+                                       char *db_args);
+krb5_error_code ipadb_store_master_key_list(krb5_context kcontext,
+                                            char *db_arg,
+                                            krb5_principal mname,
+                                            krb5_keylist_node *keylist,
+                                            char *master_pwd);
+
+krb5_error_code ipadb_create_master_key(krb5_context kcontext);
