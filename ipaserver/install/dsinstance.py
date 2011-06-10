@@ -441,7 +441,10 @@ class DsInstance(service.Service):
         dn = "cn=IPA install %s,cn=memberof task,cn=tasks,cn=config" % self.sub_dict["TIME"]
         logging.debug("Waiting for memberof task to complete.")
         conn = ipaldap.IPAdmin("127.0.0.1")
-        conn.simple_bind_s("cn=directory manager", self.dm_password)
+        if self.dm_password:
+            conn.simple_bind_s("cn=directory manager", self.dm_password)
+        else:
+            conn.do_sasl_gssapi_bind()
         conn.checkTask(dn, dowait=True)
         conn.unbind()
 
