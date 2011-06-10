@@ -742,15 +742,15 @@ def main():
             print "%s does not exist" % options.external_ca_file
             sys.exit(1);
 
-        if options.external_cert_file is None:
-            cs = cainstance.CADSInstance()
+        cs = cainstance.CADSInstance(host_name, realm_name, domain_name, dm_password)
+        if not cs.is_configured():
             cs.create_instance(realm_name, host_name, domain_name, dm_password, subject_base=options.subject)
         ca = cainstance.CAInstance(realm_name, certs.NSS_DIR)
         if external == 0:
             ca.configure_instance(host_name, dm_password, dm_password,
                                   subject_base=options.subject)
         elif external == 1:
-            # stage 2 of external CA installation
+            # stage 1 of external CA installation
             options.realm_name = realm_name
             options.domain_name = domain_name
             options.master_password = master_password
@@ -763,11 +763,11 @@ def main():
                                   csr_file="/root/ipa.csr",
                                   subject_base=options.subject)
         else:
+            # stage 2 of external CA installation
             if not ca.is_installed():
                 # This can happen if someone passes external_ca_file without
                 # already having done the first stage of the CA install.
                 sys.exit('CA is not installed yet. To install with an external CA is a two-stage process.\nFirst run the installer with --external-ca.')
-            cs = cainstance.CADSInstance(host_name, realm_name, domain_name, dm_password)
             ca.configure_instance(host_name, dm_password, dm_password,
                                   cert_file=options.external_cert_file,
                                   cert_chain_file=options.external_ca_file,
