@@ -307,19 +307,24 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
     ipactx = ipadb_get_context(kcontext);
     ipadb_context_free(kcontext, &ipactx);
 
+    ipactx = calloc(1, sizeof(struct ipadb_context));
+    if (!ipactx) {
+        return ENOMEM;
+    }
+
     /* only check for unsupported 'temporary' value for now */
     for (i = 0; db_args != NULL && db_args[i] != NULL; i++) {
+
+        if (strncmp(db_args[i], IPA_SETUP, sizeof(IPA_SETUP)) == 0) {
+            ipactx->override_restrictions = true;
+        }
 
         if (strncmp(db_args[i], "temporary", 9) == 0) {
             krb5_set_error_message(kcontext, EINVAL,
                                    "Plugin requires -update argument!");
-            return EINVAL;
+            ret = EINVAL;
+            goto fail;
         }
-    }
-
-    ipactx = calloc(1, sizeof(struct ipadb_context));
-    if (!ipactx) {
-        return ENOMEM;
     }
 
     ipactx->kcontext = kcontext;
@@ -469,9 +474,9 @@ kdb_vftabl kdb_function_table = {
     ipadb_free_policy,                  /* free_policy */
     ipadb_alloc,                        /* alloc */
     ipadb_free,                         /* free */
-    NULL,                               /* fetch_master_key */
+    ipadb_fetch_master_key,             /* fetch_master_key */
     NULL,                               /* fetch_master_key_list */
-    NULL,                               /* store_master_key_list */
+    ipadb_store_master_key_list,        /* store_master_key_list */
     NULL,                               /* dbe_search_enctype */
     NULL,                               /* change_pwd */
     NULL,                               /* promote_db */

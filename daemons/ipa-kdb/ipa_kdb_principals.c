@@ -572,7 +572,6 @@ static krb5_error_code ipadb_fetch_principals(struct ipadb_context *ipactx,
     krb5_error_code kerr;
     char *src_filter = NULL;
     char *esc_search_expr = NULL;
-    LDAPMessage *res = NULL;
     int ret;
 
     if (!ipactx->lcontext) {
@@ -603,9 +602,6 @@ static krb5_error_code ipadb_fetch_principals(struct ipadb_context *ipactx,
                                result);
 
 done:
-    if (kerr) {
-        ldap_msgfree(res);
-    }
     free(src_filter);
     free(esc_search_expr);
     return kerr;
@@ -1517,6 +1513,10 @@ static krb5_error_code ipadb_add_principal(krb5_context kcontext,
         goto done;
     }
 
+    if (!ipactx->override_restrictions) {
+        return KRB5_KDB_CONSTRAINT_VIOLATION;
+    }
+
     kerr = krb5_unparse_name(kcontext, entry->princ, &principal);
     if (kerr != 0) {
         goto done;
@@ -1709,6 +1709,10 @@ krb5_error_code ipadb_delete_principal(krb5_context kcontext,
     ipactx = ipadb_get_context(kcontext);
     if (!ipactx) {
         return KRB5_KDB_DBNOTINITED;
+    }
+
+    if (!ipactx->override_restrictions) {
+        return KRB5_KDB_CONSTRAINT_VIOLATION;
     }
 
     kerr = krb5_unparse_name(kcontext, search_for, &principal);

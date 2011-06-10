@@ -28,6 +28,7 @@ plugin_LTLIBRARIES = 		\
 ipadb_la_SOURCES = 		\
 	ipa_kdb.c		\
 	ipa_kdb_common.c	\
+	ipa_kdb_mkey.c		\
 	ipa_kdb_principals.c	\
 	$(KRB5_UTIL_SRCS)	\
 	$(NULL)
