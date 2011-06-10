@@ -42,3 +42,34 @@ struct ipadb_context {
 
 struct ipadb_context *ipadb_get_context(krb5_context kcontext);
 int ipadb_get_connection(struct ipadb_context *ipactx);
+
+/* COMMON LDAP FUNCTIONS */
+char *ipadb_filter_escape(const char *input, bool star);
+krb5_error_code ipadb_simple_search(struct ipadb_context *ipactx,
+                                    char *basedn, int scope,
+                                    char *filter, char **attrs,
+                                    LDAPMessage **res);
+krb5_error_code ipadb_simple_delete(struct ipadb_context *ipactx, char *dn);
+krb5_error_code ipadb_simple_add(struct ipadb_context *ipactx,
+                                 char *dn, LDAPMod **mods);
+krb5_error_code ipadb_simple_modify(struct ipadb_context *ipactx,
+                                    char *dn, LDAPMod **mods);
+krb5_error_code ipadb_simple_delete_val(struct ipadb_context *ipactx,
+                                        char *dn, char *attr, char *value);
+
+int ipadb_ldap_attr_to_int(LDAP *lcontext, LDAPMessage *le,
+                           char *attrname, int *result);
+int ipadb_ldap_attr_to_uint32(LDAP *lcontext, LDAPMessage *le,
+                              char *attrname, uint32_t *result);
+int ipadb_ldap_attr_to_str(LDAP *lcontext, LDAPMessage *le,
+                           char *attrname, char **result);
+int ipadb_ldap_attr_to_strlist(LDAP *lcontext, LDAPMessage *le,
+                               char *attrname, char ***result);
+int ipadb_ldap_attr_to_bool(LDAP *lcontext, LDAPMessage *le,
+                            char *attrname, bool *result);
+int ipadb_ldap_attr_to_time_t(LDAP *lcontext, LDAPMessage *le,
+                              char *attrname, time_t *result);
+
+int ipadb_ldap_attr_has_value(LDAP *lcontext, LDAPMessage *le,
+                              char *attrname, char *value);
+
