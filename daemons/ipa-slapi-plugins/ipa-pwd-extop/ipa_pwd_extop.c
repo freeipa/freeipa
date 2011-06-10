@@ -680,8 +680,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	kset->major_vno = 1;
 	kset->minor_vno = 1;
 	kset->kvno = kvno;
-	/* we also assum mkvno is 0 */
-	kset->mkvno = 0;
+	kset->mkvno = krbcfg->mkvno;
 
 	kset->keys = NULL;
 	kset->num_keys = 0;

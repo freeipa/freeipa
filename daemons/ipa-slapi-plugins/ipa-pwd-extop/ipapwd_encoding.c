@@ -298,8 +298,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
     kset->minor_vno = 1;
     /* increment kvno (will be 1 if this is a new entry) */
     kset->kvno = kvno + 1;
-    /* we also assum mkvno is 0 */
-    kset->mkvno = 0;
+    kset->mkvno = krbcfg->mkvno;
 
     kset->num_keys = krbcfg->num_pref_encsalts;
     kset->keys = calloc(kset->num_keys, sizeof(struct ipapwd_krbkey));
