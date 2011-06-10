@@ -105,6 +105,7 @@ struct ipapwd_encsalt {
 struct ipapwd_krbcfg {
     krb5_context krbctx;
     char *realm;
+    int mkvno;
     krb5_keyblock *kmkey;
     int num_supp_encsalts;
     struct ipapwd_encsalt *supp_encsalts;

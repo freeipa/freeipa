@@ -152,7 +152,7 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     Slapi_Attr *a;
     Slapi_Value *v;
     BerElement *be = NULL;
-    ber_tag_t tag, tmp;
+    ber_tag_t tag, tvno;
     ber_int_t ttype;
     const struct berval *bval;
     struct berval *mkey = NULL;
@@ -219,12 +219,13 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
         goto free_and_error;
     }
 
-    tag = ber_scanf(be, "{i{iO}}", &tmp, &ttype, &mkey);
+    tag = ber_scanf(be, "{i{iO}}", &tvno, &ttype, &mkey);
     if (tag == LBER_ERROR) {
         LOG_FATAL("Bad Master key encoding ?!\n");
         goto free_and_error;
     }
 
+    config->mkvno = tvno;
     kmkey->magic = KV5M_KEYBLOCK;
     kmkey->enctype = ttype;
     kmkey->length = mkey->bv_len;
