@@ -812,15 +812,7 @@ IPA.entity_builder = function(){
             }
         }
 
-        var factory = spec.factory;
-        if (!factory) {
-            if (spec.facet_group == 'memberindirect') {
-                factory = IPA.indirect_association_facet;
-            } else {
-                factory = IPA.association_facet;
-            }
-        }
-
+        var factory = spec.factory || IPA.association_facet;
         facet = factory(spec);
         entity.add_facet(facet);
 
