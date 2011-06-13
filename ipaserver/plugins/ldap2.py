@@ -943,14 +943,21 @@ class ldap2(CrudBackend, Encoder):
         # Verify group membership
 
         results = []
-        for member in members:
-            try:
-                (result, truncated) = self.find_entries(searchfilter, attr_list,
-                    member, time_limit=time_limit,
-                    size_limit=size_limit, normalize=normalize)
-                results.append(list(result[0]))
-            except errors.NotFound:
-                pass
+        if membertype == MEMBERS_ALL or membertype == MEMBERS_INDIRECT:
+            checkmembers = copy.deepcopy(members)
+            for member in checkmembers:
+                try:
+                    (result, truncated) = self.find_entries(searchfilter,
+                        attr_list, member, time_limit=time_limit,
+                        size_limit=size_limit, normalize=normalize)
+                    results.append(list(result[0]))
+                    for m in result[0][1].get('member', []):
+                        # This member may contain other members, add it to our
+                        # candidate list
+                        if m not in checkmembers:
+                            checkmembers.append(m)
+                except errors.NotFound:
+                    pass
 
         if membertype == MEMBERS_ALL:
             entries = []
@@ -969,7 +976,7 @@ class ldap2(CrudBackend, Encoder):
 
         entries = []
         for e in results:
-            if unicode(e[0]) not in real_members:
+            if unicode(e[0]) not in real_members and unicode(e[0]) not in entries:
                 if membertype == MEMBERS_INDIRECT:
                     entries.append(e[0])
             else:
