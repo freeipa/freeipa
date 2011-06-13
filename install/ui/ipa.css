@@ -8,8 +8,29 @@
 */
 
 
-@font-face {font-family: "FreeWay"; src:url("FreeWay.otf");}
-@font-face {font-family: "FreeWayBold"; src:url("FreeWay-Bold.otf");}
+@font-face {
+    font-family: 'Overpass';
+    src: url('overpass_regular-web.eot');
+    src: url('overpass_regular-web.eot?#iefix') format('eot'),
+         url('overpass_regular-web.woff') format('woff'),
+         url('overpass_regular-web.ttf') format('truetype'),
+         url('overpass_regular-web.svg#webfontLTZe4IYH') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'Overpass Bold';
+    src: url('overpass_bold-web.eot');
+    src: url('overpass_bold-web.eot?#iefix') format('eot'),
+         url('overpass_bold-web.woff') format('woff'),
+         url('overpass_bold-web.ttf') format('truetype'),
+         url('overpass_bold-web.svg#webfontzAU82Ltw') format('svg');
+    font-weight: bold;
+    font-style: normal;
+
+}
 
 html {
     height: 100%;
@@ -31,7 +52,9 @@ body {
 
 .network-activity-indicator {
     visibility: hidden;
-    padding: 5px;
+    padding-right: 11px;
+	float: right;
+	padding-top: 3px;
 }
 
 /* ---- Container ---- */
@@ -119,7 +142,25 @@ body {
     vertical-align: middle;
 }
 
+.input_link span.search-icon {
+	background: url(search-icon.png);
+	border: none;
+	margin: 0 0 0 !important;
+	float: right;
+	position: relative;
+}
 
+.input_link span.add-icon {
+	background: url(add-icon.png);
+	border: none;
+	margin: -9px 0 0 1px;
+}
+
+.input_link span.remove-icon {
+	background: url(remove-icon.png);
+	border: none;
+	margin: -9px 0 0 1px;
+}
 
 .ipa-icon {
         font-size: 0.7em;
@@ -223,7 +264,7 @@ div.tabs {
 .tabs1 > .ui-tabs-nav > li > a {
     -moz-border-radius: 0 !important;
         -webkit-border-radius: 0 !important;
-    font-family: "FreeWayBold", "Liberation Sans", Arial, Sans;
+    font-family: "Overpass Bold","Liberation Sans", Arial, sans-serif;
     width: 5em;
     height: 20px;
     color: #858585;
@@ -356,6 +397,7 @@ div.tabs {
     right: 0;
     height: 70px;
     margin: 10px 10px 0;
+    padding: 0 30px 10px;
 }
 
 .entity-title {
@@ -409,6 +451,10 @@ div.tabs {
     height: 15px;
 }
 
+.facet-title {
+	display: none;
+}
+
 .facet-tab {
     height: 25px;
     list-style-type: none;
@@ -452,7 +498,7 @@ div.tabs {
 
 .entity-content {
     position: absolute;
-    top: 80px;
+    top: 100px;
     left: 0;
     right: 0;
     bottom: 0;
@@ -482,16 +528,9 @@ div.tabs {
     top: 0;
     left: 0;
     right: 0;
-    height: 50px;
+    height: 30px;
 
-    padding: 10px 10px 10px;
-
-    border-color: #C9C3BA;
-    border-style: solid;
-    border-width: 1px;
-
-    background: -moz-linear-gradient(top,  #eeeeee,  #dfdfdf);
-    background: -webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#dfdfdf));
+    padding: 5px;
 }
 
 .facet-controls {
@@ -501,7 +540,7 @@ div.tabs {
 
 .facet-content {
     position: absolute;
-    top: 75px;
+    top: 35px;
     left: 0;
     right: 0;
     bottom: 0;
@@ -524,6 +563,18 @@ div.tabs {
     left: 3px;
     right: 4px;
     bottom: 32px;
+}
+
+.search-container {
+	float: right;
+	width: 215px;
+	-moz-border-radius: 15px !important;
+        -webkit-border-radius: 15px !important;
+    border-radius: 15px !important;
+	border: 1px solid #9f9e9e;
+	background: url("search-bg.png");
+	height: 18px;
+	padding-left: 8px;
 }
 
 .search-controls {
@@ -561,9 +612,10 @@ div.tabs {
 }
 
 .search-table tfoot td {
-    padding-left: 0.5em;
+    padding: 0.5em 0 0 1em;
     border-top: 1px solid #dfdfdf;
     height: 25px;
+    margin-top: 1em;
 }
 
 .search-table span[name=summary] {
@@ -606,7 +658,7 @@ ul#viewtype li a {
 
 
 h1 {
-    font-family: "FreeWayBold","Liberation Sans", Arial, sans-serif;
+    font-family: "Overpass Bold","Liberation Sans", Arial, sans-serif;
     font-size: 1.5em;
     font-weight: normal;
     color: #555555;
@@ -616,7 +668,7 @@ h1 {
 
 
 h2 {
-    font-family: "FreeWayBold","Liberation Sans", Arial, sans-serif;
+    font-family: "Overpass Bold","Liberation Sans", Arial, sans-serif;
     font-size: 1.5em;
     font-weight: normal;
     color: #333333;
@@ -624,6 +676,14 @@ h2 {
     margin-left: 1em;
     margin-bottom: 0;
     text-align: left;
+}
+
+h3 {
+    font-family: "Overpass Bold","Liberation Sans", Arial, sans-serif;
+    font-size: 1.8em;
+    color: #3c3c3c;
+    text-transform: uppercase;
+        text-shadow: 1px 1px 0 #FFFFFF;
 }
 
 .section-expand{
@@ -909,14 +969,27 @@ span.ui-icon-search {
 }
 
 [title="Find"] {
-        margin-left: 0.5em !important;
-    padding: 0.4em 1em 0.4em 2em !important;
+        background: none !important;
+		border: none !important;
+		color: transparent !important;
+		float: right !important;
+		margin: 0 -25em 0 0 !important;
+		width: 8px !important;
 }
 
 [title=">>"] {
     margin-top: 1em !important;
 }
 
+[title="Delete"] {
+	font-size: 1.3em !important;
+	padding: 0 0 2px 22px;
+}
+
+[title="Add"] {
+	font-size: 1.3em !important;
+	padding: 0 0 2px 22px;
+}
 
 span.sub-nav-off > a:link, span.sub-nav-off >  a:visited{
     color:white;

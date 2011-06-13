@@ -113,6 +113,7 @@ IPA.search_facet = function(spec) {
 
         that.filter = $('<input/>', {
             type: 'text',
+			'class': 'search-container',
             name: 'filter'
         }).appendTo(that.controls);
 
@@ -123,9 +124,9 @@ IPA.search_facet = function(spec) {
             }
         });
 
-        that.find_button = IPA.button({
+        that.find_button = IPA.action_button({
             label: IPA.messages.buttons.find,
-            icon: 'ui-icon-search',
+            icon: 'search-icon',
             click: function() {
                 that.find();
                 return false;
@@ -136,7 +137,7 @@ IPA.search_facet = function(spec) {
 
         that.remove_button = IPA.action_button({
             label: IPA.messages.buttons.remove,
-            icon: 'ui-icon-trash',
+            icon: 'remove-icon',
             click: function() {
                 if (that.remove_button.hasClass('input_link_disabled')) return false;
                 that.remove();
@@ -146,7 +147,7 @@ IPA.search_facet = function(spec) {
 
         that.add_button = IPA.action_button({
             label: IPA.messages.buttons.add,
-            icon: 'ui-icon-plus',
+            icon: 'add-icon',
             click: function() {
                 that.add();
                 return false;
