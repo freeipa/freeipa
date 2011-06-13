@@ -597,7 +597,7 @@ def main():
     # Check we have a public IP that is associated with the hostname
     hostaddr = resolve_host(host_name)
     if hostaddr is not None:
-        ip = CheckedIPAddress(hostaddr)
+        ip = CheckedIPAddress(hostaddr, match_local=True)
     else:
         if not options.ip_address:
             print "Unable to resolve IP address for host name"

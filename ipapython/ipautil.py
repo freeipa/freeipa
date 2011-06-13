@@ -66,7 +66,7 @@ def get_domain_name():
     return domain_name
 
 class CheckedIPAddress(netaddr.IPAddress):
-    def __init__(self, addr, match_local=True, parse_netmask=True):
+    def __init__(self, addr, match_local=False, parse_netmask=True):
         if isinstance(addr, CheckedIPAddress):
             super(CheckedIPAddress, self).__init__(addr)
             self.prefixlen = addr.prefixlen
@@ -117,10 +117,13 @@ class CheckedIPAddress(netaddr.IPAddress):
                     continue
 
                 ifnet = netaddr.IPNetwork(fields[3])
-                if ifnet == net or ifnet.ip == addr:
+                if ifnet == net or (net is None and ifnet.ip == addr):
                     net = ifnet
                     iface = fields[1]
                     break
+
+            if iface is None:
+                raise ValueError('No network interface matches the provided IP address and netmask')
 
         if net is None:
             defnet = True
