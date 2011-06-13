@@ -27,8 +27,11 @@ from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 group1 = u'testgroup1'
 group2 = u'testgroup2'
 group3 = u'testgroup3'
+group4 = u'testgroup4'
 user1 = u'tuser1'
 user2 = u'tuser2'
+user3 = u'tuser3'
+user4 = u'tuser4'
 
 hostgroup1 = u'testhostgroup1'
 hgdn1 = u'cn=%s,cn=hostgroups,cn=accounts,%s' % (hostgroup1, api.env.basedn)
@@ -44,8 +47,11 @@ class test_group(Declarative):
         ('group_del', [group1], {}),
         ('group_del', [group2], {}),
         ('group_del', [group3], {}),
+        ('group_del', [group4], {}),
         ('user_del', [user1], {}),
         ('user_del', [user2], {}),
+        ('user_del', [user3], {}),
+        ('user_del', [user4], {}),
         ('host_del', [fqdn1], {}),
         ('hostgroup_del', [hostgroup1], {}),
         ('hostgroup_del', [hostgroup2], {}),
@@ -119,6 +125,26 @@ class test_group(Declarative):
 
 
         dict(
+            desc='Create %r' % group4,
+            command=(
+                'group_add', [group4], dict(description=u'Test desc 4')
+            ),
+            expected=dict(
+                value=group4,
+                summary=u'Added group "testgroup4"',
+                result=dict(
+                    cn=[group4],
+                    description=[u'Test desc 4'],
+                    gidnumber=[fuzzy_digits],
+                    objectclass=objectclasses.group + [u'posixgroup'],
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=u'cn=testgroup4,cn=groups,cn=accounts,' + api.env.basedn,
+                ),
+            ),
+        ),
+
+
+        dict(
             desc='Create %r' % user1,
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
@@ -174,38 +200,108 @@ class test_group(Declarative):
         ),
 
 
+        dict(
+            desc='Create %r' % user3,
+            command=(
+                'user_add', [user3], dict(givenname=u'Test', sn=u'User3')
+            ),
+            expected=dict(
+                value=user3,
+                summary=u'Added user "%s"' % user3,
+                result=dict(
+                    gecos=[u'Test User3'],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser3'],
+                    krbprincipalname=[u'tuser3@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User3'],
+                    uid=[user3],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    displayname=[u'Test User3'],
+                    cn=[u'Test User3'],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=u'uid=%s,cn=users,cn=accounts,%s' % (user3, api.env.basedn)
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Create %r' % user4,
+            command=(
+                'user_add', [user4], dict(givenname=u'Test', sn=u'User4')
+            ),
+            expected=dict(
+                value=user4,
+                summary=u'Added user "%s"' % user4,
+                result=dict(
+                    gecos=[u'Test User4'],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser4'],
+                    krbprincipalname=[u'tuser4@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User4'],
+                    uid=[user4],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    displayname=[u'Test User4'],
+                    cn=[u'Test User4'],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=u'uid=%s,cn=users,cn=accounts,%s' % (user4, api.env.basedn)
+                ),
+            ),
+        ),
+
+
         ###############
         # member stuff
         #
-        # Create 3 groups and 2 users and set the following membership:
+        # Create 4 groups and 4 users and set the following membership:
         #
         # g1:
-        #    member: g2
+        #    no direct memberships
         #
         # g2:
-        #    member: g3
-        #    member: user1
+        #    memberof: g1
+        #    member: user1, user2
         #
         # g3:
-        #    member: user2
+        #    memberof: g1
+        #    member: user3, g4
+        #
+        # g4:
+        #    memberof: g3
+        #    member: user1, user4
         #
         # So when we do a show it looks like:
         #
         # g1:
-        #    member: g2
-        #    indirect group: g3
-        #    indirect users: user1, user2
+        #    member groups: g2, g3
+        #    indirect member group: g4
+        #    indirect member users: user1, user2, tuser3, tuser4
         #
         # g2:
-        #    member group: g3
-        #    member user: tuser1
-        #    indirect users: user2
-        #    memberof: g1
+        #    member of group: g1
+        #    member users: tuser1, tuser2
         #
         # g3:
-        #    member: user2
-        #    memberof: g1, g2
-
+        #  member users: tuser3
+        #  member groups: g4
+        #  member of groups: g1
+        #  indirect member users: tuser4
+        #
+        # g4:
+        #  member users: tuser1, tuser4
+        #  member of groups: g3
+        #  indirect member of groups: g1
+        #
+        # Note that tuser1 is an indirect member of g1 both through
+        # g2 and g4. It should appear just once in the list.
 
         dict(
             desc='Add a group member %r to %r' % (group2, group1),
@@ -232,9 +328,9 @@ class test_group(Declarative):
 
 
         dict(
-            desc='Add a group member %r to %r' % (group3, group2),
+            desc='Add a group member %r to %r' % (group3, group1),
             command=(
-                'group_add_member', [group2], dict(group=group3)
+                'group_add_member', [group1], dict(group=group3)
             ),
             expected=dict(
                 completed=1,
@@ -245,12 +341,11 @@ class test_group(Declarative):
                     ),
                 ),
                 result={
-                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group2, api.env.basedn),
-                        'member_group': (group3,),
-                        'memberof_group': (u'testgroup1',),
+                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
+                        'member_group': [group2, group3,],
                         'gidnumber': [fuzzy_digits],
-                        'cn': [group2],
-                        'description': [u'Test desc 2'],
+                        'cn': [group1],
+                        'description': [u'Test desc 1'],
                 },
             ),
         ),
@@ -272,7 +367,6 @@ class test_group(Declarative):
                 result={
                         'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group2, api.env.basedn),
                         'member_user': (u'tuser1',),
-                        'member_group': (group3,),
                         'memberof_group': (u'testgroup1',),
                         'gidnumber': [fuzzy_digits],
                         'cn': [group2],
@@ -283,9 +377,34 @@ class test_group(Declarative):
 
 
         dict(
-            desc='Add a user member %r to %r' % (user2, group3),
+            desc='Add a user member %r to %r' % (user2, group2),
             command=(
-                'group_add_member', [group3], dict(user=user2)
+                'group_add_member', [group2], dict(user=user2)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group2, api.env.basedn),
+                        'member_user': [user1, user2],
+                        'memberof_group': [group1],
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [group2],
+                        'description': [u'Test desc 2'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Add a user member %r to %r' % (user3, group3),
+            command=(
+                'group_add_member', [group3], dict(user=user3)
             ),
             expected=dict(
                 completed=1,
@@ -297,12 +416,89 @@ class test_group(Declarative):
                 ),
                 result={
                         'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group3, api.env.basedn),
-                        'member_user': (u'tuser2',),
-                        'memberof_group': [u'testgroup2'],
-                        'memberofindirect_group': [u'testgroup1'],
+                        'member_user': [user3],
+                        'memberof_group': [group1],
                         'gidnumber': [fuzzy_digits],
                         'cn': [group3],
                         'description': [u'Test desc 3'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Add a group member %r to %r' % (group4, group3),
+            command=(
+                'group_add_member', [group3], dict(group=group4)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group3, api.env.basedn),
+                        'member_user': [user3],
+                        'memberof_group': [group1],
+                        'member_group': [group4],
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [group3],
+                        'description': [u'Test desc 3'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Add a user member %r to %r' % (user1, group4),
+            command=(
+                'group_add_member', [group4], dict(user=user1)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group4, api.env.basedn),
+                        'member_user': [user1],
+                        'memberof_group': [group3],
+                        'memberofindirect_group': [group1],
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [group4],
+                        'description': [u'Test desc 4'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Add a user member %r to %r' % (user4, group4),
+            command=(
+                'group_add_member', [group4], dict(user=user4)
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group4, api.env.basedn),
+                        'member_user': [user1, user4],
+                        'memberof_group': [group3],
+                        'memberofindirect_group': [group1],
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [group4],
+                        'description': [u'Test desc 4'],
                 },
             ),
         ),
@@ -318,9 +514,9 @@ class test_group(Declarative):
                     cn=[group1],
                     description=[u'Test desc 1'],
                     gidnumber= [fuzzy_digits],
-                    memberindirect_group = [u'testgroup3'],
-                    member_group = (u'testgroup2',),
-                    memberindirect_user = (u'tuser1',u'tuser2',),
+                    memberindirect_group = [group4],
+                    member_group = [group2, group3],
+                    memberindirect_user = [user1, user2, user3, user4],
                     dn=u'cn=testgroup1,cn=groups,cn=accounts,' + api.env.basedn,
                 ),
             ),
@@ -337,10 +533,8 @@ class test_group(Declarative):
                     cn=[group2],
                     description=[u'Test desc 2'],
                     gidnumber= [fuzzy_digits],
-                    memberof_group = (u'testgroup1',),
-                    member_group = (u'testgroup3',),
-                    member_user = (u'tuser1',),
-                    memberindirect_user = (u'tuser2',),
+                    memberof_group = [group1],
+                    member_user = [user1, user2],
                     dn=u'cn=testgroup2,cn=groups,cn=accounts,' + api.env.basedn,
                 ),
             ),
@@ -357,13 +551,34 @@ class test_group(Declarative):
                     cn=[group3],
                     description=[u'Test desc 3'],
                     gidnumber= [fuzzy_digits],
-                    memberof_group = (u'testgroup2',),
-                    member_user = (u'tuser2',),
-                    memberofindirect_group = (u'testgroup1',),
+                    memberof_group = [group1],
+                    member_user = [user3],
+                    member_group = [group4],
+                    memberindirect_user = [user1, user4],
                     dn=u'cn=testgroup3,cn=groups,cn=accounts,' + api.env.basedn,
                 ),
             ),
         ),
+
+
+        dict(
+            desc='Retrieve group %r' % group4,
+            command=('group_show', [group4], {}),
+            expected=dict(
+                value=group4,
+                summary=None,
+                result=dict(
+                    cn=[group4],
+                    description=[u'Test desc 4'],
+                    gidnumber= [fuzzy_digits],
+                    memberof_group = [group3],
+                    member_user = [user1, user4],
+                    memberofindirect_group = [group1],
+                    dn=u'cn=testgroup4,cn=groups,cn=accounts,' + api.env.basedn,
+                ),
+            ),
+        ),
+
 
         # Now do something similar with hosts and hostgroups
         dict(
@@ -390,6 +605,7 @@ class test_group(Declarative):
                 ),
             ),
         ),
+
 
         dict(
             desc='Create %r' % hostgroup1,
@@ -490,6 +706,7 @@ class test_group(Declarative):
                 },
             ),
         ),
+
 
         dict(
             desc='Retrieve %r' % fqdn1,
