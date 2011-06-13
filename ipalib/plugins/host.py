@@ -158,6 +158,9 @@ host_output_params = (
     Str('managedby_host',
         label='Managed by',
     ),
+    Str('managing_host',
+        label='Managing',
+    ),
     Str('subject',
         label=_('Subject'),
     ),
@@ -216,6 +219,7 @@ class host(LDAPObject):
         'enrolledby': ['user'],
         'memberof': ['hostgroup', 'netgroup', 'role', 'hbacrule', 'sudorule'],
         'managedby': ['host'],
+        'managing': ['host'],
         'memberofindirect': ['hostgroup', 'netgroup', 'role', 'hbacrule',
         'sudorule'],
     }
@@ -224,6 +228,7 @@ class host(LDAPObject):
         'memberof': ('Member Of', 'in_', 'not_in_'),
         'enrolledby': ('Enrolled by', 'enroll_by_', 'not_enroll_by_'),
         'managedby': ('Managed by', 'man_by_', 'not_man_by_'),
+        'managing': ('Managing', 'man_', 'not_man_'),
     }
 
     label = _('Hosts')
@@ -301,6 +306,23 @@ class host(LDAPObject):
             except errors.NotFound:
                 pass
         return dn
+
+    def get_managed_hosts(self, dn):
+        host_filter = 'managedBy=%s' % dn
+        host_attrs = ['fqdn']
+        ldap = self.api.Backend.ldap2
+        managed_hosts = []
+
+        try:
+            (hosts, truncated) = ldap.find_entries(base_dn=self.container_dn,
+                                    filter=host_filter, attrs_list=host_attrs)
+
+            for host in hosts:
+                managed_hosts.append(host[0])
+        except errors.NotFound:
+            return []
+
+        return managed_hosts
 
 api.register(host)
 
@@ -416,6 +438,10 @@ class host_add(LDAPCreate):
                 reason=_('The host was added but the DNS update failed with: %(exc)s') % dict(exc=exc)
             )
         set_certificate_attrs(entry_attrs)
+
+        if options.get('all', False):
+                entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
+
         return dn
 
 api.register(host_add)
@@ -611,6 +637,10 @@ class host_mod(LDAPUpdate):
         if options.get('random', False):
             entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
         set_certificate_attrs(entry_attrs)
+
+        if options.get('all', False):
+            entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
+
         return dn
 
 api.register(host_mod)
@@ -638,6 +668,9 @@ class host_find(LDAPSearch):
             entry_attrs = entry[1]
             set_certificate_attrs(entry_attrs)
 
+            if options.get('all', False):
+                entry_attrs['managing'] = self.obj.get_managed_hosts(entry[0])
+
 api.register(host_find)
 
 
@@ -663,6 +696,9 @@ class host_show(LDAPRetrieve):
             entry_attrs['has_keytab'] = False
 
         set_certificate_attrs(entry_attrs)
+
+        if options.get('all', False):
+            entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
 
         return dn
 

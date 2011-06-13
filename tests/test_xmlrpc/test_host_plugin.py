@@ -152,6 +152,7 @@ class test_host(Declarative):
                     serverhostname=[u'testhost1'],
                     objectclass=objectclasses.host,
                     managedby_host=[fqdn1],
+                    managing_host=[fqdn1],
                     ipauniqueid=[fuzzy_uuid],
                     has_keytab=False
                 ),
@@ -203,6 +204,7 @@ class test_host(Declarative):
                         objectclass=objectclasses.host,
                         ipauniqueid=[fuzzy_uuid],
                         managedby_host=[u'%s' % fqdn1],
+                        managing_host=[u'%s' % fqdn1],
                     ),
                 ],
             ),
