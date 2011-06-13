@@ -673,6 +673,8 @@ IPA.button = function(spec) {
 
     var button = $('<a/>', {
         id: spec.id,
+        name: spec.name,
+        href: spec.href || '#' + (spec.name || 'button'),
         html: spec.label,
         title: spec.title || spec.label,
         'class': 'ui-state-default ui-corner-all',
