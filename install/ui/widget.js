@@ -1014,39 +1014,53 @@ IPA.column = function (spec) {
 
     that.name = spec.name;
     that.label = spec.label;
-    that.primary_key = spec.primary_key;
     that.width = spec.width;
-    that.entity_name = spec.entity_name;
-    that.format = spec.format;
 
-    that.setup = spec.setup || setup;
+    that.entity_name = spec.entity_name;
+    that.primary_key = spec.primary_key;
+    that.link = spec.link;
+
+    that.format = spec.format;
 
     that.init = function() {
         if (that.entity_name && !that.label) {
             var param_info = IPA.get_entity_param(that.entity_name, that.name);
             if (param_info) {
                 that.label = param_info.label;
-            }else{
+            } else {
                 alert('cannot find label for ' + that.entity_name + ' ' +
                       that.name);
             }
         }
     };
 
-    function setup(container, record) {
-
+    that.setup = function(container, record) {
         container.empty();
 
         var value = record[that.name];
-        if (that.format && value){
+        if (that.format && value) {
             value = that.format(value);
         }
-
         value = value ? value.toString() : '';
 
+        if (that.link) {
+            $('<a/>', {
+                href: '#'+value,
+                html: value,
+                click: function() {
+                    return that.link_handler(value);
+                }
+            }).appendTo(container);
 
-        container.append(value);
-    }
+        } else {
+            container.append(value);
+        }
+
+    };
+
+    that.link_handler = function(value) {
+        return false;
+    };
 
     return that;
 };

@@ -27,6 +27,8 @@ IPA.navigation = function(spec) {
 
     var that = {};
 
+    that.name = spec.name;
+
     that.container = spec.container;
     that.content = spec.content;
     that.tab_class = spec.tab_class || 'tabs';

@@ -30,6 +30,8 @@ IPA.admin_navigation = function(spec) {
 
     spec = spec || {};
 
+    spec.name = 'admin';
+
     spec.tabs = [
         {name: 'identity', label: IPA.messages.tabs.identity, children: [
             {entity: 'user'},
@@ -79,10 +81,11 @@ IPA.self_serv_navigation = function(spec) {
 
     spec = spec || {};
 
+    spec.name = 'self-service';
+
     spec.tabs = [
         {name: 'identity', label: IPA.messages.tabs.identity, children: [
-            {entity: 'user'},
-            {entity: 'group'}
+            {entity: 'user'}
         ]}];
 
     var that = IPA.navigation(spec);

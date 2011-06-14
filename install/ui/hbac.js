@@ -106,26 +106,9 @@ IPA.hbacsvcgroup_member_hbacsvc_table_widget = function (spec) {
         var column = that.create_column({
             name: 'cn',
             primary_key: true,
-            width: '150px'
+            width: '150px',
+            link: true
         });
-
-        column.setup = function(container, record) {
-            container.empty();
-
-            var value = record[column.name];
-            value = value ? value.toString() : '';
-
-            $('<a/>', {
-                'href': '#'+value,
-                'html': value,
-                'click': function (value) {
-                    return function() {
-                        IPA.nav.show_page(that.other_entity, 'details', value);
-                        return false;
-                    };
-                }(value)
-            }).appendTo(container);
-        };
 
         that.create_column({
             name: 'description',

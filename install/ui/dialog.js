@@ -526,6 +526,7 @@ IPA.adder_dialog = function (spec) {
             'label': button.val(),
             'click': function() {
                 that.remove();
+                return false;
             }
         });
         button.replaceWith(that.remove_button);
@@ -535,6 +536,7 @@ IPA.adder_dialog = function (spec) {
             'label': button.val(),
             'click': function() {
                 that.add();
+                return false;
             }
         });
         button.replaceWith(that.add_button);

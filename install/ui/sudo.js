@@ -66,7 +66,7 @@ IPA.entity_factories.sudocmd = function () {
                             name: 'cn',
                             primary_key: true,
                             width: '150px',
-                            link_entity: true
+                            link: true
                         },
                         {
                             name: 'description',
@@ -120,7 +120,7 @@ IPA.entity_factories.sudocmdgroup = function () {
                             name: 'sudocmd',
                             primary_key: true,
                             width: '150px',
-                            link_entity: true
+                            link: true
                         },
                         {
                             name: 'description',

@@ -83,7 +83,7 @@ IPA.add_dialog = function (spec) {
                         pkey = pkey[0];
                     }
 
-                    IPA.nav.show_page(that.entity_name, 'details', pkey);
+                    IPA.nav.show_page(that.entity_name, 'default', pkey);
                 }
             );
         });

@@ -365,33 +365,15 @@ IPA.host_managedby_host_facet = function (spec) {
 
         var column = that.create_column({
             name: 'fqdn',
-            primary_key: true
+            primary_key: true,
+            link: true
         });
-
-        column.setup = function(container, record) {
-            container.empty();
-
-            var value = record[column.name];
-            value = value ? value.toString() : '';
-
-            $('<a/>', {
-                'href': '#'+value,
-                'html': value,
-                'click': function (value) {
-                    return function() {
-                        IPA.nav.show_page(that.other_entity, 'details', value);
-                        return false;
-                    };
-                }(value)
-            }).appendTo(container);
-        };
 
         that.create_adder_column({
             name: 'fqdn',
             primary_key: true,
             width: '200px'
         });
-
 
         that.association_facet_init();
     };

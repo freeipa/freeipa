@@ -51,26 +51,6 @@ IPA.search_facet = function(spec) {
 
     that.init_table = function(entity){
 
-        function setup_column(column,entity) {
-            column.setup = function(container, record) {
-                container.empty();
-
-                var value = record[column.name];
-                value = value ? value.toString() : '';
-
-                $('<a/>', {
-                    'href': '#'+value,
-                    'html': value,
-                    'click': function (value) {
-                        return function() {
-                            IPA.nav.show_page(entity.name, 'default', value);
-                            return false;
-                        };
-                    }(value)
-                }).appendTo(container);
-            };
-        }
-
         that.table = IPA.table_widget({
             id: entity.name+'-search',
             'class': 'content-table',
@@ -88,9 +68,13 @@ IPA.search_facet = function(spec) {
 
             var param_info = IPA.get_entity_param(entity.name, column.name);
             column.primary_key = param_info && param_info['primary_key'];
+            column.link = column.primary_key;
 
-            if (column.primary_key) {
-                setup_column(column,entity);
+            if (column.link) {
+                column.link_handler = function(value) {
+                    IPA.nav.show_page(entity.name, 'default', value);
+                    return false;
+                };
             }
 
             that.table.add_column(column);

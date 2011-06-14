@@ -277,25 +277,6 @@ IPA.association_config = function (spec) {
     return that;
 };
 
-
-IPA.association_pkey_setup = function  (container, record) {
-    var other_entity = this.entity_name;
-    container.empty();
-    var value = record[this.name];
-    value = value ? value.toString() : '';
-    $('<a/>', {
-        'href': '#'+value,
-        'html': value,
-        'click': function (value) {
-            return function() {
-                IPA.nav.show_page(other_entity, 'default', value);
-                return false;
-            };
-        }(value)
-    }).appendTo(container);
-};
-
-
 IPA.association_table_widget = function (spec) {
 
     spec = spec || {};
@@ -325,14 +306,6 @@ IPA.association_table_widget = function (spec) {
         return column;
     };
 
-    that.super_create_column =  that.create_column;
-
-    that.create_column = function(spec){
-        if (spec.link_entity){
-            spec.setup = IPA.association_pkey_setup;
-        }
-        return that.super_create_column(spec);
-    };
     /*this is duplicated in the facet... should be unified*/
     var i;
     if (spec.columns){
@@ -363,6 +336,13 @@ IPA.association_table_widget = function (spec) {
         for (var i=0; i<columns.length; i++) {
             column = columns[i];
             column.entity_name = that.other_entity;
+
+            if (column.link) {
+                column.link_handler = function(value) {
+                    IPA.nav.show_page(that.other_entity, 'default', value);
+                    return false;
+                };
+            }
         }
 
         var adder_columns = that.adder_columns.values;
@@ -698,6 +678,7 @@ IPA.association_facet = function (spec) {
     that.facet_group = spec.facet_group;
 
     that.read_only = spec.read_only;
+    that.link = spec.link === undefined ? true : spec.link;
 
     that.associator = spec.associator || IPA.bulk_associator;
     that.add_method = spec.add_method || 'add_member';
@@ -718,9 +699,6 @@ IPA.association_facet = function (spec) {
 
     that.create_column = function(spec) {
         var column = IPA.column(spec);
-        if (spec.link_entity){
-            column.setup = IPA.association_pkey_setup;
-        }
         that.add_column(column);
         return column;
     };
@@ -775,39 +753,26 @@ IPA.association_facet = function (spec) {
         });
 
         var columns = that.columns.values;
-        if (columns.length) {
-            that.table.set_columns(columns);
-
-        } else {
-
-            column = that.table.create_column({
-                name: that.table.name,
-                label: IPA.metadata.objects[that.other_entity].label,
-                primary_key: true
+        if (!columns.length) {
+            that.create_column({
+                name: pkey_name,
+                primary_key: true,
+                link: that.link
             });
-
-            column.setup = function(container, record) {
-                container.empty();
-
-                var value = record[column.name];
-                value = value ? value.toString() : '';
-
-                $('<a/>', {
-                    'href': '#'+value,
-                    'html': value,
-                    'click': function (value) {
-                        return function() {
-                            IPA.nav.show_page(that.other_entity, 'default', value);
-                            return false;
-                        };
-                    }(value)
-                }).appendTo(container);
-            };
         }
+
+        that.table.set_columns(columns);
 
         for (i=0; i<columns.length; i++) {
             column = columns[i];
             column.entity_name = that.other_entity;
+
+            if (column.link) {
+                column.link_handler = function(value) {
+                    IPA.nav.show_page(that.other_entity, 'default', value);
+                    return false;
+                };
+            }
         }
 
         var adder_columns = that.adder_columns.values;

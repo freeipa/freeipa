@@ -819,32 +819,29 @@ IPA.entity_builder = function(){
         return that;
     };
 
-    that.standard_association_facets = function() {
+    that.standard_association_facets = function(spec) {
+
+        spec = spec || {};
 
         var attribute_members = entity.metadata.attribute_members;
 
         for (var attribute_member in attribute_members) {
-            that.association_facets(attribute_member);
-        }
 
-        return that;
-    };
+            var other_entities = entity.metadata.attribute_members[attribute_member];
 
-    that.association_facets = function(attribute_member) {
+            for (var i=0; i<other_entities.length; i++) {
 
-        var other_entities = entity.metadata.attribute_members[attribute_member];
+                var other_entity = other_entities[i];
+                var association_name = attribute_member+'_'+other_entity;
 
-        for (var i=0; i<other_entities.length; i++) {
+                var facet = entity.get_facet(association_name);
+                if (facet) continue;
 
-            var other_entity = other_entities[i];
-            var association_name = attribute_member+'_'+other_entity;
+                var tmp_spec = $.extend({}, spec);
+                tmp_spec.name = association_name;
 
-            var facet = entity.get_facet(association_name);
-            if (facet) continue;
-
-            that.association_facet({
-                name: association_name
-            });
+                that.association_facet(tmp_spec);
+            }
         }
 
         return that;

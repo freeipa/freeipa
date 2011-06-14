@@ -42,7 +42,7 @@ IPA.entity_factories.group =  function () {
                 {
                     name: 'uid',
                     primary_key: true,
-                    link_entity: true
+                    link: true
                 },
                 {name: 'uidnumber'},
                 {name: 'mail'},

@@ -26,6 +26,11 @@
 
 IPA.entity_factories.user = function() {
 
+    var link = true;
+    if (IPA.nav && IPA.nav.name == 'self-service') {
+        link = false;
+    }
+
     var builder = IPA.entity_builder();
 
     builder.
@@ -90,26 +95,28 @@ IPA.entity_factories.user = function() {
             }]}).
         association_facet({
             name: 'memberof_group',
-            associator: IPA.serial_associator
+            associator: IPA.serial_associator,
+            link: link
         }).
         association_facet({
             name: 'memberof_netgroup',
-            associator: IPA.serial_associator
+            associator: IPA.serial_associator,
+            link: link
         }).
         association_facet({
             name: 'memberof_role',
-            associator: IPA.serial_associator
+            associator: IPA.serial_associator,
+            link: link
         }).
-        standard_association_facets().
+        standard_association_facets({
+            link: link
+        }).
         adder_dialog({
             fields: ['uid', 'givenname', 'sn']
         });
 
     return builder.build();
 };
-
-/* ATTRIBUTE CALLBACKS */
-
 
 IPA.user_status_widget = function(spec) {
 
