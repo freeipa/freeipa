@@ -10,7 +10,7 @@ appdir = $(IPA_DATA_DIR)/ui
 app_DATA =                              \
 	aci.js				\
 	add.js				\
-	associate.js			\
+	association.js			\
 	automount.js			\
 	background-center.png		\
 	background-left.png		\
