@@ -88,42 +88,42 @@ void *ipapwd_plugin_id;
 
 static int filter_keys(struct ipapwd_krbcfg *krbcfg, struct ipapwd_keyset *kset)
 {
-	int i, j;
+    int i, j;
 
-	for (i = 0; i < kset->num_keys; i++) {
-		for (j = 0; j < krbcfg->num_supp_encsalts; j++) {
-			if (kset->keys[i].ekey->type ==
-					krbcfg->supp_encsalts[j].enc_type) {
-				break;
-			}
-		}
-		if (j == krbcfg->num_supp_encsalts) { /* not valid */
+    for (i = 0; i < kset->num_keys; i++) {
+        for (j = 0; j < krbcfg->num_supp_encsalts; j++) {
+            if (kset->keys[i].ekey->type ==
+                    krbcfg->supp_encsalts[j].enc_type) {
+                break;
+            }
+        }
+        if (j == krbcfg->num_supp_encsalts) { /* not valid */
 
-			/* free key */
-			if (kset->keys[i].ekey) {
-				free(kset->keys[i].ekey->value.bv_val);
-				free(kset->keys[i].ekey);
-			}
-			if (kset->keys[i].salt) {
-				free(kset->keys[i].salt->value.bv_val);
-				free(kset->keys[i].salt);
-			}
-			free(kset->keys[i].s2kparams.bv_val);
+            /* free key */
+            if (kset->keys[i].ekey) {
+                free(kset->keys[i].ekey->value.bv_val);
+                free(kset->keys[i].ekey);
+            }
+            if (kset->keys[i].salt) {
+                free(kset->keys[i].salt->value.bv_val);
+                free(kset->keys[i].salt);
+            }
+            free(kset->keys[i].s2kparams.bv_val);
 
-			/* move all remaining keys up by one */
-			kset->num_keys -= 1;
+            /* move all remaining keys up by one */
+            kset->num_keys -= 1;
 
-			for (j = i; j < kset->num_keys; j++) {
-				kset->keys[j] = kset->keys[j + 1];
-			}
+            for (j = i; j < kset->num_keys; j++) {
+                kset->keys[j] = kset->keys[j + 1];
+            }
 
-			/* new key has been moved to this position, make sure
-			 * we do not skip it, by neutralizing next increment */
-			i--;
-		}
-	}
+            /* new key has been moved to this position, make sure
+             * we do not skip it, by neutralizing next increment */
+            i--;
+        }
+    }
 
-	return 0;
+    return 0;
 }
 
 
