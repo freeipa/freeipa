@@ -227,11 +227,12 @@ class WSGIExecutioner(Executioner):
             error = InternalError()
         finally:
             os.environ['LANG'] = lang
-        params = self.Command[name].args_options_2_params(*args, **options)
-        if error:
-            self.info('%s: %s(%s): %s', context.principal, name, ', '.join(self.Command[name]._repr_iter(**params)), e.__class__.__name__)
-        else:
-            self.info('%s: %s(%s): SUCCESS', context.principal, name, ', '.join(self.Command[name]._repr_iter(**params)))
+        if error is None:
+            params = self.Command[name].args_options_2_params(*args, **options)
+            if error:
+                self.info('%s: %s(%s): %s', context.principal, name, ', '.join(self.Command[name]._repr_iter(**params)), e.__class__.__name__)
+            else:
+                self.info('%s: %s(%s): SUCCESS', context.principal, name, ', '.join(self.Command[name]._repr_iter(**params)))
         return self.marshal(result, error, _id)
 
     def simple_unmarshal(self, environ):
