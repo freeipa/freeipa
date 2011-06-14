@@ -145,7 +145,7 @@ body {
 .input_link span.search-icon {
 	background: url(search-icon.png);
 	border: none;
-	margin: 0 0 0 !important;
+	margin: -1px 0 0 !important;
 	float: right;
 	position: relative;
 }
@@ -153,13 +153,13 @@ body {
 .input_link span.add-icon {
 	background: url(add-icon.png);
 	border: none;
-	margin: -9px 0 0 1px;
+	margin: -4px 0 0 1px;
 }
 
 .input_link span.remove-icon {
 	background: url(remove-icon.png);
 	border: none;
-	margin: -9px 0 0 1px;
+	margin: -4px 0 0 1px;
 }
 
 .ipa-icon {
@@ -295,7 +295,7 @@ div.tabs {
 }
 
 .tabs2 > .ui-tabs-nav {
-    padding: 4px 10px 1px;
+    padding: 5px 24px 1px;
     margin: 0;
     height: 25px;
     border: none;
@@ -313,7 +313,7 @@ div.tabs {
 }
 
 .tabs2 .ui-tabs-nav li.ui-tabs-selected  {
-    background: url("nav-arrow.png") no-repeat scroll center 2.2em transparent !important;
+    background: url("nav-arrow.png") no-repeat scroll center 2.1em transparent !important;
     height: 3.1em;
         border: none;
         margin: 0;
@@ -396,8 +396,7 @@ div.tabs {
     left: 0;
     right: 0;
     height: 70px;
-    margin: 10px 10px 0;
-    padding: 0 30px 10px;
+    margin: 20px 22px 0;
 }
 
 .entity-title {
@@ -983,7 +982,7 @@ span.ui-icon-search {
 
 [title="Delete"] {
 	font-size: 1.3em !important;
-	padding: 0 0 2px 22px;
+	padding: 0 0 2px 6px;
 }
 
 [title="Add"] {
