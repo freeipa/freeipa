@@ -1082,7 +1082,7 @@ int ipapwd_get_cur_kvno(Slapi_Entry *target)
             LOG_TRACE("Error retrieving berval from Slapi_Value\n");
             goto next;
         }
-        be = ber_init(cbval);
+        be = ber_init(discard_const(cbval));
         if (!be) {
             LOG_TRACE("ber_init() failed!\n");
             goto next;
@@ -1292,7 +1292,7 @@ Slapi_Value **ipapwd_setPasswordHistory(Slapi_Mods *smods,
         count = 0;
         err = slapi_attr_get_numvalues(passwordHistory, &count);
         /* if we have one */
-        if (count > 0 && data->pwHistoryLen > 0) {
+        if (err == 0 && count > 0 && data->pwHistoryLen > 0) {
             pH = calloc(count + 2, sizeof(Slapi_Value *));
             if (!pH) {
                 LOG_OOM();

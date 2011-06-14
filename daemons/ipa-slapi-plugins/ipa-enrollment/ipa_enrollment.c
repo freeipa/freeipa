@@ -103,7 +103,7 @@ ipaenrollement_secure(Slapi_PBlock *pb, char **errMesg)
 
     if (NULL == realm) {
         *errMesg = "Kerberos realm is not set.\n";
-        LOG_FATAL("%s", errMesg);
+        LOG_FATAL("%s", *errMesg);
         rc = LDAP_OPERATIONS_ERROR;
         goto done;
     }
