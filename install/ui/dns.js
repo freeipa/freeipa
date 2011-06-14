@@ -421,27 +421,32 @@ IPA.records_facet = function(spec) {
         that.set_title(this.container, title);
     };
 
-    that.get_record = function(result, index) {
-        var record = {};
 
+    that.get_records = function(result) {
+        var idnsname;
         if (result.idnsname) {
-            record.idnsname = result.idnsname[0];
+            idnsname = result.idnsname[0];
         } else {
-            record.idnsname = result.dn.split(',')[0].split('=')[1];
+            idnsname = result.dn.split(',')[0].split('=')[1];
         }
 
+        var records = [];
         for (var i=0; i<record_types.length; i++){
             var type = record_types[i];
-            var data = result[type+'record'];
-            if (data) {
-                record.type = type;
-                record.data = data[0];
-                break;
+            var data = result[type+'record'] || [];
+            for (var j =0 ; j < data.length; j+=1){
+                var record = {
+                    idnsname: idnsname,
+                    type : type,
+                    data : data[j]
+                };
+                records.unshift(record);
             }
         }
 
-        return record;
+        return records;
     };
+
 
     that.refresh = function() {
 
@@ -451,8 +456,12 @@ IPA.records_facet = function(spec) {
 
             var result = data.result.result;
             for (var i = 0; i<result.length; i++) {
-                var record = that.get_record(result[i], 0);
-                that.table.add_record(record);
+                var records = that.get_records(result[i]);
+
+                for (var j =0; j < records.length; j +=1){
+                    var record = records[j];
+                    that.table.add_record(record);
+                }
             }
 
             var summary = $('span[name=summary]', that.table.tfoot);
@@ -509,4 +518,3 @@ IPA.records_facet = function(spec) {
 
     return that;
 };
-

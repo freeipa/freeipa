@@ -1,106 +1,111 @@
 {
     "error": null,
-    "id": 10,
+    "id": null,
     "result": {
         "count": 11,
         "result": [
             {
-                "dn": "idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "idnsname": [
                     "@"
                 ],
                 "nsrecord": [
-                    "ipa.ayoung.boston.devel.redhat.com."
+                    "server15.ayoung.boston.devel.redhat.com."
                 ]
             },
             {
-                "arecord": [
-                    "192.168.122.81"
-                ],
-                "dn": "idnsname=ipa,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
-                "idnsname": [
-                    "ipa"
-                ]
-            },
-            {
-                "dn": "idnsname=_ldap._tcp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
-                "idnsname": [
-                    "_ldap._tcp"
-                ],
-                "srvrecord": [
-                    "0 100 389 ipa"
-                ]
-            },
-            {
-                "dn": "idnsname=_kerberos,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_kerberos,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "idnsname": [
                     "_kerberos"
                 ],
                 "txtrecord": [
-                    "AYOUNG.BOSTON.DEVEL.REDHAT.COM"
+                    "SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
                 ]
             },
             {
-                "dn": "idnsname=_kerberos._tcp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
-                "idnsname": [
-                    "_kerberos._tcp"
-                ],
-                "srvrecord": [
-                    "0 100 88 ipa"
-                ]
-            },
-            {
-                "dn": "idnsname=_kerberos._udp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
-                "idnsname": [
-                    "_kerberos._udp"
-                ],
-                "srvrecord": [
-                    "0 100 88 ipa"
-                ]
-            },
-            {
-                "dn": "idnsname=_kerberos-master._tcp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_kerberos-master._tcp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "idnsname": [
                     "_kerberos-master._tcp"
                 ],
                 "srvrecord": [
-                    "0 100 88 ipa"
+                    "0 100 88 server15"
                 ]
             },
             {
-                "dn": "idnsname=_kerberos-master._udp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_kerberos-master._udp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "idnsname": [
                     "_kerberos-master._udp"
                 ],
                 "srvrecord": [
-                    "0 100 88 ipa"
+                    "0 100 88 server15"
                 ]
             },
             {
-                "dn": "idnsname=_kpasswd._tcp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_kerberos._tcp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "idnsname": [
+                    "_kerberos._tcp"
+                ],
+                "srvrecord": [
+                    "0 100 88 server15"
+                ]
+            },
+            {
+                "dn": "idnsname=_kerberos._udp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "idnsname": [
+                    "_kerberos._udp"
+                ],
+                "srvrecord": [
+                    "0 100 88 server15"
+                ]
+            },
+            {
+                "dn": "idnsname=_kpasswd._tcp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "idnsname": [
                     "_kpasswd._tcp"
                 ],
                 "srvrecord": [
-                    "0 100 464 ipa"
+                    "0 100 464 server15"
                 ]
             },
             {
-                "dn": "idnsname=_kpasswd._udp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_kpasswd._udp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "idnsname": [
                     "_kpasswd._udp"
                 ],
                 "srvrecord": [
-                    "0 100 464 ipa"
+                    "0 100 464 server15"
                 ]
             },
             {
-                "dn": "idnsname=_ntp._udp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_ldap._tcp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "idnsname": [
+                    "_ldap._tcp"
+                ],
+                "srvrecord": [
+                    "0 100 389 server15"
+                ]
+            },
+            {
+                "dn": "idnsname=_ntp._udp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "idnsname": [
                     "_ntp._udp"
                 ],
                 "srvrecord": [
-                    "0 100 123 ipa"
+                    "0 100 123 server15"
+                ]
+            },
+            {
+                "aaaarecord": [
+                    "00::11",
+                    "00::112"
+                ],
+                "arecord": [
+                    "192.168.122.28",
+                    "1.2.3.4"
+                ],
+                "dn": "idnsname=server15,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "idnsname": [
+                    "server15"
                 ]
             }
         ],
