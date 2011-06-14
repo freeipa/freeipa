@@ -90,7 +90,7 @@ from ipalib.plugins.dns import dns_container_exists, _record_types
 from ipalib.plugins.dns import add_forward_record
 from ipalib import _, ngettext
 from ipalib import x509
-from ipapython.ipautil import ipa_generate_password
+from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
 from ipalib.request import context
 import base64
 import nss.nss as nss
@@ -116,17 +116,30 @@ def is_forward_record(zone, str_address):
 
     return result['count'] > 0
 
-def get_reverse_zone(ipaddr):
+def get_reverse_zone(ipaddr, prefixlen=None):
     ip = netaddr.IPAddress(ipaddr)
     revdns = unicode(ip.reverse_dns)
 
-    revzone = u''
+    if prefixlen is None:
+        revzone = u''
 
-    result = api.Command['dnszone_find']()['result']
-    for zone in result:
-        zonename = zone['idnsname'][0]
-        if revdns.endswith(zonename) and len(zonename) > len(revzone):
-            revzone = zonename
+        result = api.Command['dnszone_find']()['result']
+        for zone in result:
+            zonename = zone['idnsname'][0]
+            if revdns.endswith(zonename) and len(zonename) > len(revzone):
+                revzone = zonename
+    else:
+        if ip.version == 4:
+            pos = 4 - prefixlen / 8
+        elif ip.version == 6:
+            pos = 32 - prefixlen / 4
+        items = ip.reverse_dns.split('.')
+        revzone = u'.'.join(items[pos:])
+
+        try:
+            api.Command['dnszone_show'](revzone)
+        except errors.NotFound:
+            revzone = u''
 
     if len(revzone) == 0:
         raise errors.NotFound(
@@ -192,7 +205,9 @@ def validate_ipaddr(ugettext, ipaddr):
     """
     Verify that we have either an IPv4 or IPv6 address.
     """
-    if not util.validate_ipaddr(ipaddr):
+    try:
+        ip = CheckedIPAddress(ipaddr, match_local=False)
+    except:
         return _('invalid IP address')
     return None
 
@@ -363,17 +378,21 @@ class host_add(LDAPCreate):
                 raise errors.NotFound(
                     reason=_('DNS zone %(zone)s not found') % dict(zone=domain)
                 )
+            ip = CheckedIPAddress(options['ip_address'], match_local=False)
             if not options.get('no_reverse', False):
                 try:
+                    prefixlen = None
+                    if not ip.defaultnet:
+                        prefixlen = ip.prefixlen
                     # we prefer lookup of the IP through the reverse zone
-                    revzone, revname = get_reverse_zone(options['ip_address'])
+                    revzone, revname = get_reverse_zone(ip, prefixlen)
                     reverse = api.Command['dnsrecord_find'](revzone, idnsname=revname)
                     if reverse['count'] > 0:
                         raise errors.DuplicateEntry(message=u'This IP address is already assigned.')
                 except errors.NotFound:
                     pass
             else:
-                if is_forward_record(domain, options['ip_address']):
+                if is_forward_record(domain, unicode(ip)):
                     raise errors.DuplicateEntry(message=u'This IP address is already assigned.')
         if not options.get('force', False) and not 'ip_address' in options:
             util.validate_host_dns(self.log, keys[-1])
@@ -416,15 +435,17 @@ class host_add(LDAPCreate):
                 parts = keys[-1].split('.')
                 domain = unicode('.'.join(parts[1:]))
 
-                add_forward_record(domain, parts[0], options['ip_address'])
+                ip = CheckedIPAddress(options['ip_address'], match_local=False)
+                add_forward_record(domain, parts[0], unicode(ip))
 
                 if not options.get('no_reverse', False):
                     try:
-                        revzone, revname = get_reverse_zone(options['ip_address'])
+                        prefixlen = None
+                        if not ip.defaultnet:
+                            prefixlen = ip.prefixlen
+                        revzone, revname = get_reverse_zone(ip, prefixlen)
                         addkw = { 'ptrrecord' : keys[-1]+'.' }
                         api.Command['dnsrecord_add'](revzone, revname, **addkw)
-                    except errors.NotFound:
-                        pass
                     except errors.EmptyModlist:
                         # the entry already exists and matches
                         pass
