@@ -278,7 +278,7 @@ static int create_keys(krb5_context krbctx,
     struct krb_key_salt *ksdata;
     krb5_error_code krberr;
     krb5_data key_password;
-    krb5_data *realm;
+    krb5_data *realm = NULL;
     int i, nkeys;
     int ret;
 

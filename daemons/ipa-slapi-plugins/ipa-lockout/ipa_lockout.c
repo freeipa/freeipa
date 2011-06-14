@@ -343,15 +343,15 @@ static int ipalockout_postop(Slapi_PBlock *pb)
     time_now = time(NULL);
     if (lastfail != NULL) {
         struct tm tm;
-        int ret = 0;
+        int res = 0;
 
         memset(&tm, 0, sizeof(struct tm));
-        ret = sscanf(lastfail,
+        res = sscanf(lastfail,
                      "%04u%02u%02u%02u%02u%02u",
                      &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
                      &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
 
-        if (ret == 6) {
+        if (res == 6) {
             tm.tm_year -= 1900;
             tm.tm_mon -= 1;
 
@@ -562,21 +562,23 @@ static int ipalockout_preop(Slapi_PBlock *pb)
     unlock_time = slapi_entry_attr_get_charptr(target_entry, "krbLastAdminUnlock");
     if (lastfail != NULL) {
         struct tm tm;
-        int ret = 0;
+        int res = 0;
 
         memset(&tm, 0, sizeof(struct tm));
-        ret = sscanf(lastfail,
+        res = sscanf(lastfail,
                      "%04u%02u%02u%02u%02u%02u",
                      &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
                      &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
 
-        if (ret == 6) {
+        if (res == 6) {
             tm.tm_year -= 1900;
             tm.tm_mon -= 1;
 
             last_failed = timegm(&tm);
-            LOG("%d > %d ?\n", time_now, last_failed + failcnt_interval);
-            LOG("diff %d\n", (last_failed + failcnt_interval) - time_now);
+            LOG("%ld > %ld ?\n",
+                (long)time_now, (long)last_failed + failcnt_interval);
+            LOG("diff %ld\n",
+                (long)((last_failed + failcnt_interval) - time_now));
             if (time_now > last_failed + failcnt_interval) {
                 failedcount = 0;
             }
@@ -585,12 +587,12 @@ static int ipalockout_preop(Slapi_PBlock *pb)
             time_t unlock;
 
             memset(&tm, 0, sizeof(struct tm));
-            ret = sscanf(lastfail,
+            res = sscanf(lastfail,
                          "%04u%02u%02u%02u%02u%02u",
                          &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
                          &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
 
-            if (ret == 6) {
+            if (res == 6) {
                 tm.tm_year -= 1900;
                 tm.tm_mon -= 1;
 
