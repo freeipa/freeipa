@@ -130,8 +130,15 @@ IPA.facet = function (spec) {
         return $('.content', that.container);
     };
 
+    that.report_error = function(error_thrown){
+        var details = $('.details', that.container).empty();
+        details.append('<p>Error: '+error_thrown.name+'</p>');
+        details.append('<p>'+error_thrown.message+'</p>');
+    };
+
     that.on_error = function(xhr, text_status, error_thrown) {
-        if (that.entity.redirect_facet) {
+        if (that.entity.redirect_facet )
+        {
             var current_entity = that.entity;
             while (current_entity.containing_entity){
                 current_entity = current_entity.containing_entity;
@@ -141,9 +148,7 @@ IPA.facet = function (spec) {
                 that.entity.redirect_facet);
             return;
         }else{
-            var details = $('.details', that.container).empty();
-            details.append('<p>Error: '+error_thrown.name+'</p>');
-            details.append('<p>'+error_thrown.message+'</p>');
+            that.report_error(error_thrown);
         }
     };
 

@@ -287,6 +287,10 @@ IPA.search_facet = function(spec) {
         that.search_refresh(that.entity);
     };
 
+    that.on_error = function(xhr, text_status, error_thrown) {
+        that.report_error(error_thrown);
+    };
+
     that.search_refresh = function(entity){
 
         $('input[type=checkbox]',that.table.thead).removeAttr("checked");
