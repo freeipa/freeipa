@@ -552,6 +552,8 @@ class cert_revoke(VirtualCommand):
                 result = api.Command['cert_show'](unicode(serial_number))['result']
             except errors.NotImplementedError:
                 pass
+        if kw['revocation_reason'] == 7:
+            raise errors.CertificateOperationError(error=_('7 is not a valid revocation reason'))
         return dict(
             result=self.Backend.ra.revoke_certificate(serial_number, **kw)
         )
