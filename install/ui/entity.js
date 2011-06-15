@@ -136,20 +136,33 @@ IPA.facet = function (spec) {
         details.append('<p>'+error_thrown.message+'</p>');
     };
 
+    that.redirect_on_error = function(){
+        var current_entity = that.entity;
+        while (current_entity.containing_entity){
+            current_entity = current_entity.containing_entity;
+        }
+        IPA.nav.show_page(
+            current_entity.name,
+            that.entity.redirect_facet);
+    };
+
+    var redirect_errors =
+        ["IPA Error 4001"];
+
     that.on_error = function(xhr, text_status, error_thrown) {
+
+        /*If the error is in talking to the server, don't attempt to redirect,
+          as there is nothing any other facet can do either. */
         if (that.entity.redirect_facet )
         {
-            var current_entity = that.entity;
-            while (current_entity.containing_entity){
-                current_entity = current_entity.containing_entity;
+            for (var i =0; i <  redirect_errors.length; i += 1){
+                if (error_thrown.name ===  redirect_errors[i]){
+                    that.redirect_on_error();
+                    return;
+                }
             }
-            IPA.nav.show_page(
-                current_entity.name,
-                that.entity.redirect_facet);
-            return;
-        }else{
-            that.report_error(error_thrown);
         }
+        that.report_error(error_thrown);
     };
 
 
