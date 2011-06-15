@@ -1,6 +1,7 @@
 # Authors:
 #   Rob Crittenden <rcritten@redhat.com>
 #   Pavel Zuna <pzuna@redhat.com>
+#   John Dennis <jdennis@redhat.com>
 #
 # Copyright (C) 2009  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -24,6 +25,7 @@ Test the `ipalib/plugins/role.py` module.
 from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from ipalib.dn import *
 
 search = u'test-role'
 
@@ -41,9 +43,11 @@ role2_dn = u'cn=%s,%s,%s' % (
 group1 = u'testgroup1'
 group1_dn = u'cn=%s,%s,%s' % (group1, api.env.container_group, api.env.basedn)
 
-privilege1 = u'testpriv1'
-privilege1_dn = u'cn=%s,%s,%s' % (privilege1, api.env.container_privilege, api.env.basedn)
+privilege1 = u'r,w privilege 1'
+privilege1_dn = DN('cn', privilege1, DN(api.env.container_privilege), DN(api.env.basedn))
 
+def escape_comma(value):
+    return value.replace(',', '\\,')
 
 class test_role(Declarative):
 
@@ -158,7 +162,7 @@ class test_role(Declarative):
                 value=privilege1,
                 summary=u'Added privilege "%s"' % privilege1,
                 result=dict(
-                    dn=privilege1_dn,
+                    dn=lambda got: DN(got) == privilege1_dn,
                     cn=[privilege1],
                     description=[u'privilege desc. 1'],
                     objectclass=objectclasses.privilege,
@@ -170,7 +174,7 @@ class test_role(Declarative):
         dict(
             desc='Add privilege %r to role %r' % (privilege1, role1),
             command=('role_add_privilege', [role1],
-                dict(privilege=privilege1)
+                dict(privilege=escape_comma(privilege1))
             ),
             expected=dict(
                 completed=1,
@@ -451,7 +455,7 @@ class test_role(Declarative):
         dict(
             desc='Remove privilege %r from role %r' % (privilege1, role1),
             command=('role_remove_privilege', [role1],
-                dict(privilege=privilege1)
+                dict(privilege=escape_comma(privilege1))
             ),
             expected=dict(
                 completed=1,
@@ -472,7 +476,7 @@ class test_role(Declarative):
         dict(
             desc='Remove privilege %r from role %r again' % (privilege1, role1),
             command=('role_remove_privilege', [role1],
-                dict(privilege=privilege1)
+                dict(privilege=escape_comma(privilege1))
             ),
             expected=dict(
                 completed=0,
