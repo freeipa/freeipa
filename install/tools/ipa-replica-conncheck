@@ -48,16 +48,17 @@ class CheckedPort(object):
         self.description = description
 
 BASE_PORTS = [
-                CheckedPort(389, True, "Directory Service: unsecure port"),
-                CheckedPort(636, True, "Directory Service: secure port"),
+                CheckedPort(389, True, "Directory Service: Unsecure port"),
+                CheckedPort(636, True, "Directory Service: Secure port"),
                 CheckedPort(88, False, "Kerberos"),
              ]
 
 CA_PORTS  = [
-                CheckedPort(7389, True, "PKI-CA: Directory Service"),
-                CheckedPort(9444, True, "PKI-CA: EE Secure port"),
-                CheckedPort(9445, True, "PKI-CA: Admin Secure port"),
-                CheckedPort(9446, True, "PKI-CA: EE Secure Client Auth port"),
+                CheckedPort(7389, True, "PKI-CA: Directory Service port"),
+                CheckedPort(9443, True, "PKI-CA: Agent secure port"),
+                CheckedPort(9444, True, "PKI-CA: EE secure port"),
+                CheckedPort(9445, True, "PKI-CA: Admin secure port"),
+                CheckedPort(9446, True, "PKI-CA: EE secure client auth port"),
                 CheckedPort(9180, True, "PKI-CA: Unsecure port"),
             ]
 
