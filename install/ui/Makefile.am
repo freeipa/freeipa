@@ -75,8 +75,18 @@ app_DATA =                              \
 	ui-icons_ededed_256x240.png \
 	ui-icons_ffcf29_256x240.png \
 	ui-icons_ffffff_256x240.png \
-	FreeWay.otf \
-	FreeWay-Bold.otf \
+	add-icon.png \
+	overpass_bold-web.eot \
+	overpass_bold-web.svg \
+	overpass_bold-web.ttf \
+	overpass_bold-web.woff \
+	overpass_regular-web.eot \
+	overpass_regular-web.svg \
+	overpass_regular-web.ttf \
+	overpass_regular-web.woff \
+	remove-icon.png \
+	search-bg.png \
+	search-icon.png \
 	spinner_header.gif \
 	spinner_large.gif \
 	spinner_small.gif \
