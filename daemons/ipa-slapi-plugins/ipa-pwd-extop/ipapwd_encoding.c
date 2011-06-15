@@ -53,6 +53,8 @@
 #include <lber.h>
 #include <time.h>
 
+#include <endian.h>
+
 #include "ipapwd.h"
 #include "util.h"
 #include "ipa_krb5.h"
@@ -243,13 +245,6 @@ void ipapwd_keyset_free(struct ipapwd_keyset **pkset)
     *pkset = NULL;
 }
 
-
-void encode_int16(unsigned int val, unsigned char *p)
-{
-    p[1] = (val >>  8) & 0xff;
-    p[0] = (val      ) & 0xff;
-}
-
 static krb5_error_code ipa_get_random_salt(krb5_context krbctx,
                                            krb5_data *salt)
 {
@@ -362,6 +357,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
         krb5_octet *ptr;
         krb5_data plain;
         krb5_enc_data cipher;
+        krb5_int16 t;
         size_t len;
         const char *p;
 
@@ -474,7 +470,8 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
             goto enc_error;
         }
 
-        encode_int16(key.length, ptr);
+        t = htole16(key.length);
+        memcpy(ptr, &t, 2);
 
         plain.length = key.length;
         plain.data = (char *)key.contents;

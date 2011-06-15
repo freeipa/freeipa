@@ -154,7 +154,6 @@ struct ipapwd_keyset {
     int num_keys;
 };
 
-void encode_int16(unsigned int val, unsigned char *p);
 struct berval *encode_keys(struct ipapwd_keyset *kset);
 void ipapwd_keyset_free(struct ipapwd_keyset **pkset);
 
