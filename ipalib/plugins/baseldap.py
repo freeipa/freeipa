@@ -33,6 +33,7 @@ from ipalib.cli import to_cli, from_cli
 from ipalib import output
 from ipalib.text import _
 from ipalib.util import json_serialize
+from ipalib.dn import *
 
 global_output_params = (
     Str('member',
@@ -315,7 +316,9 @@ class LDAPObject(Object):
                     return ''
         except errors.NotFound:
             pass
-        return dn[len(self.primary_key.name) + 1:dn.find(',')]
+        # DN object assures we're returning a decoded (unescaped) value
+        dn = DN(dn)
+        return dn[self.primary_key.name]
 
     def get_ancestor_primary_keys(self):
         if self.parent_object:
