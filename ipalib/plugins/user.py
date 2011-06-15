@@ -329,6 +329,7 @@ class user_add(LDAPCreate):
             home_dir = home_dir.replace('//', '/').rstrip('/')
             entry_attrs['homedirectory'] = home_dir
         entry_attrs.setdefault('krbpwdpolicyreference', 'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn))
+        entry_attrs.setdefault('krbprincipalname', '%s@%s' % (entry_attrs['uid'], api.env.realm))
 
         if 'gidnumber' not in entry_attrs:
             # gidNumber wasn't specified explicity, find out what it should be
