@@ -692,6 +692,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 		krb5_enc_data cipher;
 		struct berval tval;
 		krb5_octet *kdata;
+                krb5_int16 t;
 		size_t klen;
 
 		i = kset->num_keys;
@@ -752,7 +753,8 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 			LOG_OOM();
 			goto free_and_return;
 		}
-		encode_int16(plain.length, kdata);
+		t = htole16(plain.length);
+		memcpy(kdata, &t, 2);
 
 		kset->keys[i].ekey->value.bv_len = 2 + klen;
 		kset->keys[i].ekey->value.bv_val = (char *)kdata;
