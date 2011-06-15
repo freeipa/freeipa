@@ -266,6 +266,10 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
     """
     Recursively check for type and equality.
 
+    If a value in expected is callable then it will used as a callback to
+    test for equality on the got value. The callback is passed the got
+    value and returns True if equal, False otherwise.
+
     If the tests fails, it will raise an ``AssertionError`` with detailed
     information, including the path to the offending value.  For example:
 
@@ -288,7 +292,7 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
         expected = list(expected)
     if isinstance(got, tuple):
         got = list(got)
-    if not (isinstance(expected, Fuzzy) or type(expected) is type(got)):
+    if not (isinstance(expected, Fuzzy) or callable(expected) or type(expected) is type(got)):
         raise AssertionError(
             TYPE % (doc, type(expected), type(got), expected, got, stack)
         )
@@ -312,6 +316,11 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
             e_sub = expected[key]
             g_sub = got[key]
             assert_deepequal(e_sub, g_sub, doc, stack + (key,))
+    elif callable(expected):
+        if not expected(got):
+            raise AssertionError(
+                VALUE % (doc, expected, got, stack)
+                )
     elif expected != got:
         raise AssertionError(
             VALUE % (doc, expected, got, stack)
