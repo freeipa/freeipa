@@ -189,6 +189,7 @@ class sudorule_del(LDAPDelete):
     """
     Delete Sudo Rule.
     """
+    msg_summary = _('Deleted sudo rule "%(value)s"')
 
 api.register(sudorule_del)
 
@@ -197,6 +198,7 @@ class sudorule_mod(LDAPUpdate):
     """
     Modify Sudo Rule.
     """
+    msg_summary = _('Modified sudo rule "%(value)s"')
 
 api.register(sudorule_mod)
 
@@ -205,6 +207,9 @@ class sudorule_find(LDAPSearch):
     """
     Search for Sudo Rule.
     """
+    msg_summary = ngettext(
+        '%(count)d sudo rule matched', '%(count)d sudo rules matched', 0
+    )
 
 api.register(sudorule_find)
 
