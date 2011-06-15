@@ -1404,7 +1404,8 @@ class List(Param):
     def __unicode_csv_reader(self, unicode_csv_data, dialect=csv.excel, **kwargs):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
         csv_reader = csv.reader(self.__utf_8_encoder(unicode_csv_data),
-                                dialect=dialect, delimiter=self.separator,
+                                dialect=dialect,
+                                delimiter=self.separator, escapechar='\\',
                                 skipinitialspace=self.skipspace,
                                 **kwargs)
         for row in csv_reader:
