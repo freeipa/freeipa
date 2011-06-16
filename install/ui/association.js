@@ -671,7 +671,7 @@ IPA.association_facet = function (spec) {
 
     spec = spec || {};
 
-    var that = IPA.facet(spec);
+    var that = IPA.table_facet(spec);
 
     that.attribute_member = spec.attribute_member;
     that.indirect_attribute_member = spec.indirect_attribute_member;
@@ -688,49 +688,34 @@ IPA.association_facet = function (spec) {
     that.add_method = spec.add_method || 'add_member';
     that.remove_method = spec.remove_method || 'remove_member';
 
-    that.columns = $.ordered_map();
     that.adder_columns = $.ordered_map();
 
     that.page_length = spec.page_length === undefined ? 20 : spec.page_length;
-
-    that.get_column = function(name) {
-        return that.columns.get(name);
-    };
-
-    that.add_column = function(column) {
-        that.columns.put(column.name, column);
-    };
-
-    that.create_column = function(spec) {
-        var column = IPA.column(spec);
-        that.add_column(column);
-        return column;
-    };
 
     that.get_adder_column = function(name) {
         return that.adder_columns.get(name);
     };
 
     that.add_adder_column = function(column) {
+        column.entity_name = that.managed_entity_name;
         that.adder_columns.put(column.name, column);
     };
 
     that.create_adder_column = function(spec) {
-        var column = IPA.column(spec);
+        var column;
+        if (spec instanceof Object) {
+            var factory = spec.factory || IPA.column;
+            column = factory(spec);
+        } else {
+            column = IPA.column({ name: spec });
+        }
         that.add_adder_column(column);
         return column;
     };
 
-    var i;
-    if (spec.columns){
-        for (i = 0; i < spec.columns.length; i+= 1){
-            that.create_column(spec.columns[i]);
-        }
-    }
-    if (spec.adder_columns){
-        for (i = 0; i < spec.adder_columns.length; i+= 1){
-            that.create_adder_column(spec.adder_columns[i]);
-        }
+    var adder_columns = spec.adder_columns || [];
+    for (var i=0; i<adder_columns.length; i++) {
+        that.create_adder_column(adder_columns[i]);
     }
 
     that.init = function() {
@@ -785,7 +770,38 @@ IPA.association_facet = function (spec) {
             column.entity_name = that.other_entity;
         }
 
+        that.table.prev_page = function() {
+            if (that.table.current_page > 1) {
+                IPA.nav.push_state({ page: that.table.current_page-1 });
+            }
+        };
+
+        that.table.next_page = function() {
+            if (that.table.current_page < that.table.total_pages) {
+                IPA.nav.push_state({ page: that.table.current_page+1 });
+            }
+        };
+
+        that.table.set_page = function(page) {
+            if (page < 1) {
+                page = 1;
+            } else if (page > that.total_pages) {
+                page = that.total_pages;
+            }
+            IPA.nav.push_state({ page: page });
+        };
+
         that.table.refresh = function() {
+            var page = parseInt(IPA.nav.get_state('page'), 10) || 1;
+            if (page < 1) {
+                IPA.nav.push_state({ page: 1 });
+                return;
+            } else if (page > that.table.total_pages) {
+                IPA.nav.push_state({ page: that.table.total_pages });
+                return;
+            }
+            that.table.current_page = page;
+            that.table.current_page_input.val(page);
             that.refresh_table();
         };
 
@@ -1095,7 +1111,7 @@ IPA.association_facet = function (spec) {
                 that.table.total_pages = 1;
             }
 
-            that.refresh_table();
+            that.table.refresh();
         }
 
         var pkey = IPA.get_entity(that.entity_name).get_primary_key();

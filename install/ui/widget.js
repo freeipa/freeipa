@@ -1334,10 +1334,7 @@ IPA.table_widget = function (spec) {
                 text: 'Prev',
                 name: 'prev_page',
                 click: function() {
-                    if (that.current_page > 1) {
-                        that.current_page--;
-                        that.refresh();
-                    }
+                    that.prev_page();
                     return false;
                 }
             }).appendTo(that.pagination);
@@ -1348,10 +1345,7 @@ IPA.table_widget = function (spec) {
                 text: 'Next',
                 name: 'next_page',
                 click: function() {
-                    if (that.current_page < that.total_pages) {
-                        that.current_page++;
-                        that.refresh();
-                    }
+                    that.next_page();
                     return false;
                 }
             }).appendTo(that.pagination);
@@ -1363,15 +1357,8 @@ IPA.table_widget = function (spec) {
                 name: 'current_page',
                 keypress: function(e) {
                     if (e.which == 13) {
-                        var page = parseInt($(this).val(), 10);
-                        if (page < 1) {
-                            page = 1;
-                        } else if (page > that.total_pages) {
-                            page = that.total_pages;
-                        }
-                        that.current_page = page;
-                        $(this).val(page);
-                        that.refresh();
+                        var page = parseInt(that.current_page_input.val(), 10) || 1;
+                        that.set_page(page);
                     }
                 }
             }).appendTo(that.pagination);
@@ -1384,7 +1371,32 @@ IPA.table_widget = function (spec) {
         }
     };
 
-    that.select_changed = function(){
+    that.prev_page = function() {
+        if (that.current_page > 1) {
+            that.current_page--;
+            that.refresh();
+        }
+    };
+
+    that.next_page = function() {
+        if (that.current_page < that.total_pages) {
+            that.current_page++;
+            that.refresh();
+        }
+    };
+
+    that.set_page = function(page) {
+        if (page < 1) {
+            page = 1;
+        } else if (page > that.total_pages) {
+            page = that.total_pages;
+        }
+        that.current_page = page;
+        that.current_page_input.val(page);
+        that.refresh();
+    };
+
+    that.select_changed = function() {
     };
 
     that.setup = function(container) {
@@ -1521,6 +1533,9 @@ IPA.table_widget = function (spec) {
     that.table_create = that.create;
     that.table_setup = that.setup;
     that.table_set_enabled = that.set_enabled;
+    that.table_prev_page = that.prev_page;
+    that.table_next_page = that.next_page;
+    that.table_set_page = that.set_page;
 
     return that;
 };

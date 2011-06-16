@@ -188,7 +188,13 @@ IPA.table_facet = function(spec) {
     };
 
     that.create_column = function(spec) {
-        var column = IPA.column(spec);
+        var column;
+        if (spec instanceof Object) {
+            var factory = spec.factory || IPA.column;
+            column = factory(spec);
+        } else {
+            column = IPA.column({ name: spec });
+        }
         that.add_column(column);
         return column;
     };
@@ -200,16 +206,7 @@ IPA.table_facet = function(spec) {
 
     var columns = spec.columns || [];
     for (var i=0; i<columns.length; i++) {
-        var column_spec = columns[i];
-        var column;
-
-        if (column_spec instanceof Object) {
-            var factory = column_spec.factory || IPA.column;
-            column = factory(column_spec);
-        } else {
-            column = IPA.column({ name: column_spec });
-        }
-        that.add_column(column);
+        that.create_column(columns[i]);
     }
 
     return that;
