@@ -795,7 +795,20 @@ IPA.entity_builder = function(){
 
         if (spec.facet_group == 'memberindirect' ||
             spec.facet_group == 'memberofindirect') {
-            spec.read_only = true;
+
+            var length = spec.attribute_member.length;
+            var direct_attribute_member = spec.attribute_member.substring(0, length-8);
+            var direct_facet_name = direct_attribute_member+'_'+spec.other_entity;
+
+            facet = entity.get_facet(direct_facet_name);
+
+            if (facet) { // merge into previously created direct facet
+                facet.indirect_attribute_member = spec.attribute_member;
+                return that;
+
+            } else {
+                spec.read_only = true;
+            }
         }
 
         spec.label = spec.label ||
@@ -823,15 +836,28 @@ IPA.entity_builder = function(){
 
         spec = spec || {};
 
-        var attribute_members = entity.metadata.attribute_members;
+        var direct_associations = [];
+        var indirect_associations = [];
 
-        for (var attribute_member in attribute_members) {
+        for (var association in entity.metadata.attribute_members) {
+            if (association == 'memberindirect' ||
+                association == 'memberofindirect') {
+                indirect_associations.push(association);
+            } else {
+                direct_associations.push(association);
+            }
+        }
 
+        // make sure direct facets are created first
+        var attribute_members = direct_associations.concat(indirect_associations);
+
+        for (var i=0; i<attribute_members.length; i++) {
+            var attribute_member = attribute_members[i];
             var other_entities = entity.metadata.attribute_members[attribute_member];
 
-            for (var i=0; i<other_entities.length; i++) {
+            for (var j=0; j<other_entities.length; j++) {
 
-                var other_entity = other_entities[i];
+                var other_entity = other_entities[j];
                 var association_name = attribute_member+'_'+other_entity;
 
                 var facet = entity.get_facet(association_name);

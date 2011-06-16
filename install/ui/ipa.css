@@ -1191,7 +1191,7 @@ table.scrollable tbody {
     height: 4em;
 }
 
-.expand-collapse-all {
+.right-aligned-controls {
     position: absolute;
     right: 0;
     padding-right: 1.5em;

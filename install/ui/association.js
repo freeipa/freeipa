@@ -674,7 +674,11 @@ IPA.association_facet = function (spec) {
     var that = IPA.facet(spec);
 
     that.attribute_member = spec.attribute_member;
+    that.indirect_attribute_member = spec.indirect_attribute_member;
+
     that.other_entity = spec.other_entity;
+
+    that.association_type = 'direct';
     that.facet_group = spec.facet_group;
 
     that.read_only = spec.read_only;
@@ -821,6 +825,48 @@ IPA.association_facet = function (spec) {
                 }
             }).appendTo(that.controls);
         }
+
+        if (that.indirect_attribute_member) {
+            var span = $('<span/>', {
+                'class': 'right-aligned-controls'
+            }).appendTo(that.controls);
+
+            span.append('Show Results ');
+
+            that.direct_radio = $('<input/>', {
+                type: 'radio',
+                name: 'type',
+                value: 'direct',
+                click: function() {
+                    that.association_type = $(this).val();
+                    that.refresh();
+                    return true;
+                }
+            }).appendTo(span);
+
+            span.append(' Direct Enrollment ');
+
+            that.indirect_radio = $('<input/>', {
+                type: 'radio',
+                name: 'type',
+                value: 'indirect',
+                click: function() {
+                    that.association_type = $(this).val();
+                    that.refresh();
+                    return true;
+                }
+            }).appendTo(span);
+
+            span.append(' Indirect Enrollment');
+        }
+    };
+
+    that.get_attribute_name = function() {
+        if (that.association_type == 'direct') {
+            return that.attribute_member+'_'+that.other_entity;
+        } else {
+            return that.indirect_attribute_member+'_'+that.other_entity;
+        }
     };
 
     that.create_content = function(container) {
@@ -948,7 +994,7 @@ IPA.association_facet = function (spec) {
         that.table.current_page_input.val(that.table.current_page);
         that.table.total_pages_span.text(that.table.total_pages);
 
-        var pkeys = that.record[that.name];
+        var pkeys = that.record[that.get_attribute_name()];
         if (!pkeys || !pkeys.length) {
             that.table.empty();
             that.table.summary.text('No entries.');
@@ -1003,7 +1049,7 @@ IPA.association_facet = function (spec) {
         if (!length) return;
 
         var batch = IPA.batch_command({
-            'name': that.entity_name+'_'+that.name,
+            'name': that.entity_name+'_'+that.get_attribute_name(),
             'on_success': on_success,
             'on_error': on_error
         });
@@ -1026,12 +1072,22 @@ IPA.association_facet = function (spec) {
 
     that.refresh = function() {
 
+        if (that.association_type == 'direct') {
+            if (that.direct_radio) that.direct_radio.attr('checked', true);
+            if (that.add_button) that.add_button.css('display', 'inline');
+            if (that.remove_button) that.remove_button.css('display', 'inline');
+        } else {
+            if (that.indirect_radio) that.indirect_radio.attr('checked', true);
+            if (that.add_button) that.add_button.css('display', 'none');
+            if (that.remove_button) that.remove_button.css('display', 'none');
+        }
+
         function on_success(data, text_status, xhr) {
             that.record = data.result.result;
 
             that.table.current_page = 1;
 
-            var pkeys = that.record[that.name];
+            var pkeys = that.record[that.get_attribute_name()];
             if (pkeys) {
                 that.table.total_pages =
                     Math.ceil(pkeys.length / that.table.page_length);
