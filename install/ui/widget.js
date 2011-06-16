@@ -141,6 +141,52 @@ IPA.widget = function(spec) {
             }
         }
     };
+    /**
+     * This function compares the original values and the
+     * values entered in the UI. If the values have changed
+     * it will return true.
+     */
+    that.test_dirty = function(){
+
+        if (that.read_only) {
+            return false;
+        }
+
+        var values = that.save();
+
+        if (!values) { // ignore null values
+            return false;
+        }
+
+        if (!that.values) {
+
+            if (values instanceof Array) {
+
+                if ((values.length === 0) ||
+                    (values.length === 1) &&
+                    (values[0] === '')) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        if (values.length != that.values.length) {
+            return true;
+        }
+
+        values.sort();
+        that.values.sort();
+
+        for (var i=0; i<values.length; i++) {
+            if (values[i] != that.values[i]) {
+                return true;
+            }
+        }
+
+        return false;
+    };
 
     that.create = function(container) {
         that.container = container;
@@ -324,7 +370,7 @@ IPA.text_widget = function(spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.keyup(function() {
-            that.set_dirty(true);
+            that.set_dirty(that.test_dirty());
             that.validate();
         });
 
