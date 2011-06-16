@@ -434,6 +434,27 @@ IPA.multivalued_text_widget = function(spec) {
         }
     };
 
+    that.super_test_dirty = that.test_dirty;
+
+    that.test_dirty = function(index){
+        if (index === undefined) {
+            return that.super_test_dirty();
+        }
+        var row = that.get_row(index);
+        var return_value = false;
+
+        $('input[name="'+that.name+'"]', row).each(function() {
+            var input = $(this);
+            if (input.is('.strikethrough')) return_value = true;
+            var value = input.val();
+
+            if (value !== that.values[index]){
+                return_value = true;
+            }
+        });
+        return return_value;
+    };
+
     that.set_dirty = function(dirty, index) {
         that.widget_set_dirty(dirty);
         if (that.undo) {
@@ -589,7 +610,7 @@ IPA.multivalued_text_widget = function(spec) {
                 var index = that.row_index(row);
                 // uncross removed value
                 input.removeClass('strikethrough');
-                that.set_dirty(true, index);
+                that.set_dirty( that.test_dirty(index), index);
                 if (that.undo) {
                     if (index < that.values.length) {
                         remove_link.css('display', 'inline');
