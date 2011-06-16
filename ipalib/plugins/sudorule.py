@@ -147,7 +147,7 @@ class sudorule(LDAPObject):
             label=_('Run As User'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('ipasudorunasgroup_group?',
+        Str('ipasudorunas_group?',
             label=_('Run As Group'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
