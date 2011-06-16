@@ -52,7 +52,7 @@ class sudorule(LDAPObject):
         'cn', 'ipaenabledflag',
         'description', 'usercategory', 'hostcategory',
         'cmdcategory', 'memberuser', 'memberhost',
-        'memberallowcmd', 'memberdenycmd',
+        'memberallowcmd', 'memberdenycmd', 'ipasudoopt',
     ]
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
@@ -611,11 +611,19 @@ class sudorule_add_option(LDAPQuery):
 
         dn = self.obj.get_dn(cn)
 
+        if not options['ipasudoopt'].strip():
+            raise errors.EmptyModlist()
         (dn, entry_attrs) = ldap.get_entry(dn, ['ipasudoopt'])
 
-        entry_attrs.setdefault('ipasudoopt', []).append(
-            options['ipasudoopt']
-        )
+        try:
+            if options['ipasudoopt'] not in entry_attrs['ipasudoopt']:
+                entry_attrs.setdefault('ipasudoopt', []).append(
+                    options['ipasudoopt'])
+            else:
+                raise errors.DuplicateEntry
+        except KeyError:
+            entry_attrs.setdefault('ipasudoopt', []).append(
+                options['ipasudoopt'])
         try:
             ldap.update_entry(dn, entry_attrs)
         except errors.EmptyModlist:
@@ -623,15 +631,12 @@ class sudorule_add_option(LDAPQuery):
         except errors.NotFound:
             self.obj.handle_not_found(cn)
 
-        return dict(result=entry_attrs)
-
-    def output_for_cli(self, textui, result, cn, **options):
-        textui.print_name(self.name)
-        textui.print_dashed(
-            'Added option "%s" to Sudo rule "%s"' % (
-                options['ipasudoopt'], cn
+        attrs_list = self.obj.default_attributes
+        (dn, entry_attrs) = ldap.get_entry(
+            dn, attrs_list, normalize=self.obj.normalize_dn
             )
-        )
+
+        return dict(result=entry_attrs)
 
 api.register(sudorule_add_option)
 
@@ -641,7 +646,7 @@ class sudorule_remove_option(LDAPQuery):
     Remove an option from Sudo rule.
     """
     takes_options = (
-        Str('ipasudoopt?',
+        Str('ipasudoopt',
             cli_name='sudooption',
             label=_('Sudo Option'),
         ),
@@ -652,25 +657,34 @@ class sudorule_remove_option(LDAPQuery):
 
         dn = self.obj.get_dn(cn)
 
+        if not options['ipasudoopt'].strip():
+            raise errors.EmptyModlist()
         (dn, entry_attrs) = ldap.get_entry(dn, ['ipasudoopt'])
         try:
-            entry_attrs.setdefault('ipasudoopt', []).remove(
-                options['ipasudoopt']
-            )
-            ldap.update_entry(dn, entry_attrs)
-        except (ValueError, errors.EmptyModlist):
+            if options['ipasudoopt'] in entry_attrs['ipasudoopt']:
+                entry_attrs.setdefault('ipasudoopt', []).remove(
+                    options['ipasudoopt'])
+                ldap.update_entry(dn, entry_attrs)
+            else:
+                raise errors.AttrValueNotFound(
+                    attr='ipasudoopt',
+                    value=options['ipasudoopt']
+                    )
+        except ValueError, e:
             pass
+        except KeyError:
+            raise errors.AttrValueNotFound(
+                    attr='ipasudoopt',
+                    value=options['ipasudoopt']
+                    )
         except errors.NotFound:
             self.obj.handle_not_found(cn)
 
-        return dict(result=True)
-
-    def output_for_cli(self, textui, result, cn, **options):
-        textui.print_name(self.name)
-        textui.print_dashed(
-            'Removed option "%s" from Sudo rule "%s"' % (
-                options['ipasudoopt'], cn
+        attrs_list = self.obj.default_attributes
+        (dn, entry_attrs) = ldap.get_entry(
+            dn, attrs_list, normalize=self.obj.normalize_dn
             )
-        )
+
+        return dict(result=entry_attrs)
 
 api.register(sudorule_remove_option)

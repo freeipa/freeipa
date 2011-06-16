@@ -316,7 +316,6 @@ class test_sudorule(XMLRPC_test):
         ret = api.Command['sudorule_add_runasgroup'](
             self.rule_name, group=self.test_external_group
         )
-        print ret
         assert ret['completed'] == 1
         failed = ret['failed']
         entry = ret['result']
@@ -330,7 +329,6 @@ class test_sudorule(XMLRPC_test):
         ret = api.Command['sudorule_remove_runasgroup'](
             self.rule_name, group=self.test_external_group
         )
-        print ret
         assert ret['completed'] == 1
         failed = ret['failed']
         entry = ret['result']
@@ -355,7 +353,8 @@ class test_sudorule(XMLRPC_test):
         ret = api.Command['sudorule_remove_option'](
             self.rule_name, ipasudoopt=self.test_option
         )
-        assert ret['result'] is True
+        entry = ret['result']
+        assert 'ipasudoopt' not in entry
 
     def test_a_sudorule_add_host(self):
         """

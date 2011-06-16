@@ -2495,7 +2495,7 @@ output: Output('completed', <type 'int'>, Gettext('Number of members removed', d
 command: sudorule_remove_option
 args: 1,1,1
 arg: Str('cn', attribute=True, cli_name='sudorule_name', label=Gettext('Rule name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
-option: Str('ipasudoopt?', cli_name='sudooption', label=Gettext('Sudo Option', domain='ipa', localedir=None))
+option: Str('ipasudoopt', cli_name='sudooption', label=Gettext('Sudo Option', domain='ipa', localedir=None))
 output: Output('result', None, None)
 command: sudorule_remove_runasgroup
 args: 1,4,3

@@ -1192,6 +1192,24 @@ class ReverseMemberError(ExecutionError):
     format = _('A problem was encountered when verifying that all members were %(verb)s: %(exc)s')
 
 
+class AttrValueNotFound(ExecutionError):
+    """
+    **4026** Raised when an Attribute/Value pair is not found.
+
+    For example:
+
+    >>> raise NotFound(attr='ipasudoopt', value='authenticate')
+    Traceback (most recent call last):
+      ...
+    AttrValueNotFound: ipasudoopt does not contain 'authenticate'.
+
+    """
+
+    errno = 4026
+    rval = 1
+    format = _('%(attr)s does not contain \'%(value)s\'')
+
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).
