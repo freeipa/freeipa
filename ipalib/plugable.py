@@ -74,7 +74,8 @@ class SetProxy(ReadOnly):
         if type(s) not in allowed:
             raise TypeError('%r not in %r' % (type(s), allowed))
         self.__s = s
-        lock(self)
+        if not is_production_mode(self):
+            lock(self)
 
     def __len__(self):
         """
@@ -293,9 +294,11 @@ class Registrar(DictProxy):
 
     def __base_iter(self):
         for (base, sub_d) in self.__allowed.iteritems():
-            assert inspect.isclass(base)
+            if not is_production_mode(self):
+                assert inspect.isclass(base)
             name = base.__name__
-            assert not hasattr(self, name)
+            if not is_production_mode(self):
+                assert not hasattr(self, name)
             setattr(self, name, MagicDict(sub_d))
             yield (name, base)
 
@@ -308,7 +311,8 @@ class Registrar(DictProxy):
 
         :param klass: The plugin class to find bases for.
         """
-        assert inspect.isclass(klass)
+        if not is_production_mode(self):
+            assert inspect.isclass(klass)
         found = False
         for (base, sub_d) in self.__allowed.iteritems():
             if issubclass(klass, base):
@@ -599,7 +603,8 @@ class API(DictProxy):
                 self.module = str(p.klass.__module__)
                 self.plugin = '%s.%s' % (self.module, self.name)
                 self.bases = tuple(b.__name__ for b in p.bases)
-                lock(self)
+                if not is_production_mode(self):
+                    lock(self)
 
         plugins = {}
         def plugin_iter(base, subclasses):
@@ -608,7 +613,8 @@ class API(DictProxy):
                 if klass not in plugins:
                     plugins[klass] = PluginInstance(klass)
                 p = plugins[klass]
-                assert base not in p.bases
+                if not is_production_mode(self):
+                    assert base not in p.bases
                 p.bases.append(base)
                 yield p.instance
 
