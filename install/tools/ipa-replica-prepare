@@ -54,7 +54,8 @@ def parse_options():
     parser.add_option("-p", "--password", dest="password", 
                       help="Directory Manager (existing master) password")
     parser.add_option("--ip-address", dest="ip_address",
-                      type="ipnet", help="Add A and PTR records of the future replica")
+                      type="ip", ip_netmask=True,
+                      help="Add A and PTR records of the future replica")
     parser.add_option("--ca", dest="ca_file", default="/root/cacert.p12",
                       help="Location of CA PKCS#12 file, default /root/cacert.p12")
     parser.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",

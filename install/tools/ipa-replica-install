@@ -64,7 +64,7 @@ def parse_options():
     parser.add_option("--setup-dns", dest="setup_dns", action="store_true",
                       default=False, help="configure bind with our zone")
     parser.add_option("--forwarder", dest="forwarders", action="append",
-                      type="ipaddr", help="Add a DNS forwarder")
+                      type="ip", help="Add a DNS forwarder")
     parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
     parser.add_option("--no-reverse", dest="no_reverse", action="store_true",

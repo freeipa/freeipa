@@ -100,11 +100,12 @@ def parse_options():
                       help="File containing PKCS#10 of the external CA chain")
     parser.add_option("--hostname", dest="host_name", help="fully qualified name of server")
     parser.add_option("--ip-address", dest="ip_address",
-                      type="ipnet", help="Master Server IP Address")
+                      type="ip", ip_netmask=True, ip_local=True,
+                      help="Master Server IP Address")
     parser.add_option("--setup-dns", dest="setup_dns", action="store_true",
                       default=False, help="configure bind with our zone")
     parser.add_option("--forwarder", dest="forwarders", action="append",
-                      type="ipaddr", help="Add a DNS forwarder")
+                      type="ip", help="Add a DNS forwarder")
     parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
     parser.add_option("--no-reverse", dest="no_reverse", action="store_true",
