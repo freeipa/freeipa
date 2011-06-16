@@ -448,7 +448,8 @@ class sudorule_remove_host(LDAPRemoveMember):
                 except errors.EmptyModlist:
                     pass
                 failed['memberhost']['host'] = failed_hosts
-                entry_attrs['externalhost'] = external_hosts
+                if external_hosts:
+                    entry_attrs['externalhost'] = external_hosts
         return (completed + completed_external, dn)
 
 api.register(sudorule_remove_host)
