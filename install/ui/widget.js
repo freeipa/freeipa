@@ -1017,7 +1017,7 @@ IPA.textarea_widget = function (spec) {
 
         var input = $('textarea[name="'+that.name+'"]', that.container);
         input.keyup(function() {
-            that.set_dirty(true);
+            that.set_dirty(that.test_dirty());
             that.validate();
 
         });
