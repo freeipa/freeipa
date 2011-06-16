@@ -728,7 +728,7 @@ IPA.checkbox_widget = function (spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
-            that.set_dirty(true);
+            that.set_dirty(that.test_dirty());
         });
 
         var undo = that.get_undo();
@@ -802,7 +802,7 @@ IPA.checkboxes_widget = function (spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
-            that.set_dirty(true);
+            that.set_dirty(that.test_dirty());
         });
 
         var undo = that.get_undo();
@@ -880,7 +880,7 @@ IPA.radio_widget = function(spec) {
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
-            that.set_dirty(true);
+            that.set_dirty(that.test_dirty());
         });
 
         var undo = that.get_undo();
@@ -957,7 +957,7 @@ IPA.select_widget = function(spec) {
 
         that.select = $('select[name="'+that.name+'"]', that.container);
         that.select.change(function() {
-            that.set_dirty(true);
+            that.set_dirty(that.test_dirty());
         });
 
         var undo = that.get_undo();
@@ -1575,7 +1575,7 @@ IPA.entity_select_widget = function(spec) {
         that.entity_select = $('<select/>', {
             id: that.name + '-entity-select',
             change: function(){
-                that.set_dirty(true);
+                that.set_dirty(that.test_dirty());
             }
         }).appendTo(container);
 
@@ -1586,7 +1586,7 @@ IPA.entity_select_widget = function(spec) {
             style: 'display: none;',
             keyup: function(){
                 populate_select();
-                that.set_dirty(true);
+                that.set_dirty(that.test_dirty());
             }
         }).appendTo(container);
 
