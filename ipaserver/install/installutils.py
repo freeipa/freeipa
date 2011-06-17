@@ -29,12 +29,25 @@ import struct
 import fcntl
 import netaddr
 import time
+import tempfile
+from ConfigParser import SafeConfigParser
 
 from ipapython import ipautil
 from ipapython import dnsclient
 
 class HostnameLocalhost(Exception):
     pass
+
+class ReplicaConfig:
+    def __init__(self):
+        self.realm_name = ""
+        self.domain_name = ""
+        self.master_host_name = ""
+        self.dirman_password = ""
+        self.host_name = ""
+        self.dir = ""
+        self.subject_base = ""
+        self.setup_ca = False
 
 def get_fqdn():
     fqdn = ""
@@ -444,3 +457,47 @@ def resolve_host(host_name):
         return addrinfos[0][4][0]
     except:
         return None
+
+def get_host_name(no_host_dns):
+    """
+    Get the current FQDN from the socket and verify that it is valid.
+
+    no_host_dns is a boolean that determines whether we enforce that the
+    hostname is resolvable.
+
+    Will raise a RuntimeError on error, returns hostname on success
+    """
+    hostname = get_fqdn()
+    verify_fqdn(hostname, no_host_dns)
+    return hostname
+
+def expand_replica_info(filename, password):
+    """
+    Decrypt and expand a replica installation file into a temporary
+    location. The caller is responsible to remove this directory.
+    """
+    top_dir = tempfile.mkdtemp("ipa")
+    tarfile = top_dir+"/files.tar"
+    dir = top_dir + "/realm_info"
+    ipautil.decrypt_file(filename, tarfile, password, top_dir)
+    ipautil.run(["tar", "xf", tarfile, "-C", top_dir])
+    os.remove(tarfile)
+
+    return top_dir, dir
+
+def read_replica_info(dir, rconfig):
+    """
+    Read the contents of a replica installation file.
+
+    rconfig is a ReplicaConfig object
+    """
+    filename = dir + "/realm_info"
+    fd = open(filename)
+    config = SafeConfigParser()
+    config.readfp(fd)
+
+    rconfig.realm_name = config.get("realm", "realm_name")
+    rconfig.master_host_name = config.get("realm", "master_host_name")
+    rconfig.domain_name = config.get("realm", "domain_name")
+    rconfig.host_name = config.get("realm", "destination_host")
+    rconfig.subject_base = config.get("realm", "subject_base")

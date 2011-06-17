@@ -21,33 +21,25 @@
 import sys
 import socket
 
-import tempfile, os, pwd, traceback, logging, shutil
+import os, pwd, traceback, logging, shutil
 import grp
-from ConfigParser import SafeConfigParser
 
 from ipapython import ipautil
 
 from ipaserver.install import dsinstance, installutils, krbinstance, service
 from ipaserver.install import bindinstance, httpinstance, ntpinstance, certs
-from ipaserver.install.replication import check_replication_plugin
+from ipaserver.install.replication import check_replication_plugin, replica_conn_check
 from ipaserver.install.installutils import HostnameLocalhost, resolve_host
+from ipaserver.install.installutils import ReplicaConfig, expand_replica_info, read_replica_info
+from ipaserver.install.installutils import get_host_name
 from ipaserver.plugins.ldap2 import ldap2
+from ipaserver.install import cainstance
 from ipapython import version
 from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
 
 CACERT="/etc/ipa/ca.crt"
-
-class ReplicaConfig:
-    def __init__(self):
-        self.realm_name = ""
-        self.domain_name = ""
-        self.master_host_name = ""
-        self.dirman_password = ""
-        self.host_name = ""
-        self.dir = ""
-        self.subject_base = ""
 
 def parse_options():
     usage = "%prog [options] REPLICA_FILE"
@@ -71,6 +63,8 @@ def parse_options():
                       help="Do not use DNS for hostname lookup during installation")
     parser.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
                       default=True, help="disables pkinit setup steps")
+    parser.add_option("--setup-ca", dest="setup_ca", action="store_true",
+                      default=False, help="configure a dogtag CA")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
                       default=False, help="unattended installation never prompts the user")
 
@@ -97,97 +91,9 @@ def parse_options():
 def get_dirman_password():
     return installutils.read_password("Directory Manager (existing master)", confirm=False, validate=False)
 
-def expand_info(filename, password):
-    top_dir = tempfile.mkdtemp("ipa")
-    tarfile = top_dir+"/files.tar"
-    dir = top_dir + "/realm_info"
-    ipautil.decrypt_file(filename, tarfile, password, top_dir)
-    ipautil.run(["tar", "xf", tarfile, "-C", top_dir])
-    os.remove(tarfile)
-
-    return top_dir, dir
-
-def read_info(dir, rconfig):
-    filename = dir + "/realm_info"
-    fd = open(filename)
-    config = SafeConfigParser()
-    config.readfp(fd)
-
-    rconfig.realm_name = config.get("realm", "realm_name")
-    rconfig.master_host_name = config.get("realm", "master_host_name")
-    rconfig.domain_name = config.get("realm", "domain_name")
-    rconfig.host_name = config.get("realm", "destination_host")
-    rconfig.subject_base = config.get("realm", "subject_base")
-
-def get_host_name(no_host_dns):
-    hostname = installutils.get_fqdn()
-    try:
-        installutils.verify_fqdn(hostname, no_host_dns)
-    except RuntimeError, e:
-        logging.error(str(e))
-        sys.exit(1)
-
-    return hostname
-
 def set_owner(config, dir):
     pw = pwd.getpwnam(dsinstance.DS_USER)
     os.chown(dir, pw.pw_uid, pw.pw_gid)
-
-def install_ca(config):
-    # FIXME, need to pass along the CA plugin to use
-    cafile = config.dir + "/cacert.p12"
-
-    if not ipautil.file_exists(cafile):
-        # CA not used on the server, return empty instances
-        return (None, None)
-
-    try:
-        from ipaserver.install import cainstance
-    except ImportError:
-        print >> sys.stderr, "Import failed: %s" % sys.exc_value
-        sys.exit(1)
-
-    if not cainstance.check_inst():
-        print "A CA was specified but the dogtag certificate server"
-        print "is not installed on the system"
-        print "Please install dogtag and restart the setup program"
-        sys.exit(1)
-
-    pkcs12_info = None
-    if ipautil.file_exists(config.dir + "/dogtagcert.p12"):
-        pkcs12_info = (config.dir + "/dogtagcert.p12",
-                       config.dir + "/dirsrv_pin.txt")
-    cs = cainstance.CADSInstance()
-    cs.create_instance(config.realm_name, config.host_name,
-                       config.domain_name, config.dirman_password,
-                       pkcs12_info)
-    cs.load_pkcs12()
-    cs.enable_ssl()
-    cs.restart_instance()
-    ca = cainstance.CAInstance(config.realm_name, certs.NSS_DIR)
-    ca.configure_instance(config.host_name, config.dirman_password,
-                          config.dirman_password, pkcs12_info=(cafile,),
-                          master_host=config.master_host_name,
-                          subject_base=config.subject_base)
-
-    # The dogtag DS instance needs to be restarted after installation.
-    # The procedure for this is: stop dogtag, stop DS, start DS, start
-    # dogtag
-    #
-    # The service_name trickery is due to the service naming we do
-    # internally. In the case of the dogtag DS the name doesn't match the
-    # unix service.
-
-    service_name = cs.service_name
-    service.print_msg("Restarting the directory and certificate servers")
-    cs.service_name = "dirsrv"
-    ca.stop()
-    cs.stop("PKI-IPA")
-    cs.start("PKI-IPA")
-    ca.start()
-    cs.service_name = service_name
-
-    return (ca, cs)
 
 def install_replica_ds(config):
     dsinstance.check_existing_installation()
@@ -381,16 +287,22 @@ def main():
             sys.exit(0)
 
     try:
-        top_dir, dir = expand_info(filename, dirman_password)
+        top_dir, dir = expand_replica_info(filename, dirman_password)
+        global REPLICA_INFO_TOP_DIR
+        REPLICA_INFO_TOP_DIR = top_dir
     except Exception, e:
         print "ERROR: Failed to decrypt or open the replica file."
         print "Verify you entered the correct Directory Manager password."
         sys.exit(1)
 
     config = ReplicaConfig()
-    read_info(dir, config)
+    read_replica_info(dir, config)
     config.dirman_password = dirman_password
-    host = get_host_name(options.no_host_dns)
+    try:
+        host = get_host_name(options.no_host_dns)
+    except RuntimeError, e:
+        logging.error(str(e))
+        sys.exit(1)
     if config.host_name != host:
         try:
             print "This replica was created for '%s' but this machine is named '%s'" % (config.host_name, host)
@@ -401,6 +313,7 @@ def main():
         except KeyboardInterrupt:
             sys.exit(0)
     config.dir = dir
+    config.setup_ca = options.setup_ca
 
     # Create the management framework config file
     # Note: We must do this before bootstraping and finalizing ipalib.api
@@ -477,7 +390,7 @@ def main():
         ntp.create_instance()
 
     # Configure the CA if necessary
-    (CA, cs) = install_ca(config)
+    (CA, cs) = cainstance.install_replica_ca(config)
 
     # Always try to install DNS records
     install_dns_records(config, options)
@@ -486,7 +399,7 @@ def main():
     ds = install_replica_ds(config)
 
     # We need to ldap_enable the CA now that DS is up and running
-    if CA:
+    if CA and config.setup_ca:
         CA.ldap_enable('CA', config.host_name, config.dirman_password,
                        util.realm_to_suffix(config.realm_name))
         cs.add_simple_service('dogtagldap/%s@%s' % (config.host_name, config.realm_name))
@@ -498,8 +411,9 @@ def main():
         CA.import_ra_cert(dir + "/ra.p12")
         CA.fix_ra_perms()
         service.restart("httpd")
-        service.print_msg("Setting the certificate subject base")
-        CA.set_subject_in_config(util.realm_to_suffix(config.realm_name))
+        if config.setup_ca:
+            service.print_msg("Setting the certificate subject base")
+            CA.set_subject_in_config(util.realm_to_suffix(config.realm_name))
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated

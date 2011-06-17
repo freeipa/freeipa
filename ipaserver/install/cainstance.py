@@ -52,6 +52,7 @@ from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
 from ipaserver.install import certs
+from ipaserver.install.installutils import ReplicaConfig
 from ipalib import util
 
 DEFAULT_DSPORT=7389
@@ -446,6 +447,7 @@ class CAInstance(service.Service):
         self.csr_file = None
         self.cert_file = None
         self.cert_chain_file = None
+        self.create_ra_agent_db = True
 
         # The same database is used for mod_nss because the NSS context
         # will already have been initialized by Apache by the time
@@ -521,7 +523,8 @@ class CAInstance(service.Service):
         if self.external != 1:
             if not self.clone:
                 self.step("creating CA agent PKCS#12 file in /root", self.__create_ca_agent_pkcs12)
-            self.step("creating RA agent certificate database", self.__create_ra_agent_db)
+            if self.create_ra_agent_db:
+                self.step("creating RA agent certificate database", self.__create_ra_agent_db)
             self.step("importing CA chain to RA certificate database", self.__import_ca_chain)
             if not self.clone:
                 self.step("restarting certificate server", self.__restart_instance)
@@ -1090,6 +1093,79 @@ class CAInstance(service.Service):
         fd.write(cert)
         fd.close()
         os.chmod(location, 0444)
+
+def install_replica_ca(config, postinstall=False):
+    """
+    Install a CA on a replica.
+
+    There are two modes of doing this controlled:
+      - While the replica is being installed
+      - Post-replica installation
+
+    config is a ReplicaConfig object
+
+    Returns a tuple of the CA and CADS instances
+    """
+    cafile = config.dir + "/cacert.p12"
+
+    if not ipautil.file_exists(cafile):
+        # not a dogtag CA replica
+        sys.exit('Not a dogtag CA installation')
+
+    if not config.setup_ca:
+        # We aren't configuring the CA in this step but we still need
+        # a minimum amount of information on the CA for this IPA install.
+        ca = CAInstance(config.realm_name, certs.NSS_DIR)
+        ca.dm_password = config.dirman_password
+        ca.subject_base = config.subject_base
+        return (ca, None)
+
+    ca = CAInstance(config.realm_name, certs.NSS_DIR)
+    ca.dm_password = config.dirman_password
+    ca.subject_base = config.subject_base
+    if ca.is_installed():
+        sys.exit("A CA is already configured on this system.")
+
+    pkcs12_info = None
+    if ipautil.file_exists(config.dir + "/dogtagcert.p12"):
+        pkcs12_info = (config.dir + "/dogtagcert.p12",
+                       config.dir + "/dirsrv_pin.txt")
+    cs = CADSInstance()
+    cs.create_instance(config.realm_name, config.host_name,
+                       config.domain_name, config.dirman_password,
+                       pkcs12_info)
+    cs.load_pkcs12()
+    cs.enable_ssl()
+    cs.restart_instance()
+    ca = CAInstance(config.realm_name, certs.NSS_DIR)
+    if postinstall:
+        # If installing this afterward the Apache NSS database already
+        # exists, don't remove it.
+        ca.create_ra_agent_db = False
+    ca.configure_instance(config.host_name, config.dirman_password,
+                          config.dirman_password, pkcs12_info=(cafile,),
+                          master_host=config.master_host_name,
+                          subject_base=config.subject_base)
+
+    # The dogtag DS instance needs to be restarted after installation.
+    # The procedure for this is: stop dogtag, stop DS, start DS, start
+    # dogtag
+    #
+    #
+    # The service_name trickery is due to the service naming we do
+    # internally. In the case of the dogtag DS the name doesn't match the
+    # unix service.
+
+    service_name = cs.service_name
+    service.print_msg("Restarting the directory and certificate servers")
+    cs.service_name = "dirsrv"
+    ca.stop()
+    cs.stop("PKI-IPA")
+    cs.start("PKI-IPA")
+    ca.start()
+    cs.service_name = service_name
+
+    return (ca, cs)
 
 if __name__ == "__main__":
     installutils.standard_logging_setup("install.log", False)

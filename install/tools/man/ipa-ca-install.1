@@ -1,0 +1,49 @@
+.\" A man page for ipa-replica-install
+.\" Copyright (C) 2011 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\"
+.TH "ipa-ca-install" "1" "Jun 17 2011" "freeipa" ""
+.SH "NAME"
+ipa\-ca\-install \- Install a CA on a replica
+.SH "SYNOPSIS"
+ipa\-ca\-install [\fIOPTION\fR]... replica_file
+.SH "DESCRIPTION"
+Adds a CA as an IPA\-managed service. This requires that the IPA server is already installed and configured.
+
+The replica_file is created using the ipa\-replica\-prepare utility and should be the same one used when originally installing the replica.
+.SH "OPTIONS"
+\fB\-d\fR, \fB\-\-debug\fR
+Enable debug logging when more verbose output is needed
+.TP
+\fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
+Directory Manager (existing master) password
+.TP
+\fB\-w\fR \fIADMIN_PASSWORD\fR, \fB\-\-admin\-password\fR=\fIADMIN_PASSWORD\fR
+Admin user Kerberos password used for connection check
+.TP
+\fB\-\-no\-host\-dns\fR
+Do not use DNS for hostname lookup during installation
+.TP
+\fB\-\-skip\-conncheck\fR
+Skip connection check to remote master
+.TP
+\fB\-U\fR, \fB\-\-unattended\fR
+An unattended installation that will never prompt for user input
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred

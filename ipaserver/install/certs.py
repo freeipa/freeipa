@@ -446,6 +446,7 @@ class CertDB(object):
                 return cert
             else:
                 (cert, start) = find_cert_from_txt(cert, start=0)
+                cert = x509.strip_header(cert)
                 dercert = base64.b64decode(cert)
                 return dercert
         except ipautil.CalledProcessError:
@@ -475,7 +476,8 @@ class CertDB(object):
 
         service.stop("certmonger")
         cert = self.get_cert_from_db(nickname)
-        subject = str(x509.get_subject(cert))
+        nsscert = x509.load_certificate(cert, dbdir=self.secdir)
+        subject = str(nsscert.subject)
         m = re.match('New tracking request "(\d+)" added', stdout)
         if not m:
             logging.error('Didn\'t get new certmonger request, got %s' % stdout)

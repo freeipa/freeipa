@@ -20,6 +20,7 @@
 import time, logging
 
 import os
+import sys
 import ldap
 from ipaserver import ipaldap
 from ipaserver.install.service import restart
@@ -27,6 +28,7 @@ import installutils
 from ldap import modlist
 from ipalib import util
 from ipalib import errors
+from ipapython import ipautil
 
 DIRMAN_CN = "cn=directory manager"
 CACERT = "/etc/ipa/ca.crt"
@@ -39,6 +41,37 @@ TIMEOUT = 120
 
 IPA_REPLICA = 1
 WINSYNC = 2
+
+def replica_conn_check(master_host, host_name, realm, check_ca,
+                       admin_password=None):
+    """
+    Check the ports used by the replica both locally and remotely to be sure
+    that replication will work.
+
+    Does not return a value, will sys.exit() on failure.
+    """
+    print "Run connection check to master"
+    args = ["/usr/sbin/ipa-replica-conncheck", "--master", master_host,
+            "--auto-master-check", "--realm", realm,
+            "--principal", "admin",
+            "--hostname", host_name]
+
+    if admin_password:
+        args.extend(["--password", admin_password])
+
+    if check_ca:
+        args.append('--check-ca')
+    logging.debug("Running ipa-replica-conncheck with following arguments: %s" %
+            " ".join(args))
+    (stdin, stderr, returncode) = ipautil.run(args,raiseonerr=False, capture_output=False)
+
+    if returncode != 0:
+        sys.exit("Connection check failed!" +
+                 "\nPlease fix your network settings according to error messages above." +
+                 "\nIf the check results are not valid it can be skipped with --skip-conncheck parameter.")
+    else:
+        print "Connection check OK"
+
 
 def check_replication_plugin():
     """

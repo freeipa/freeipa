@@ -33,8 +33,15 @@ Do not configure NTP
 \fB\-d\fR, \fB\-\-debug
 Enable debug logging when more verbose output is needed
 .TP
-\fB\-p\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
+\fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 Directory Manager (existing master) password
+.TP
+\fB\-w\fR \fIADMIN_PASSWORD\fR, \fB\-\-admin\-password\fR=\fIADMIN_PASSWORD\fR
+Admin user Kerberos password used for connection check
+.TP
+\fB\-\-setup\-ca\fR
+Install and configure a CA on this replica. If a CA is not configured then
+certificate operations will be forwarded to a master with a CA installed.
 .TP
 \fB\-\-setup\-dns\fR
 Generate a DNS zone if it does not exist already and configure the DNS server.

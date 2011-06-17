@@ -355,6 +355,7 @@ fi
 %files server
 %defattr(-,root,root,-)
 %doc COPYING README Contributors.txt
+%{_sbindir}/ipa-ca-install
 %{_sbindir}/ipa-dns-install
 %{_sbindir}/ipa-server-install
 %{_sbindir}/ipa-replica-install
@@ -430,6 +431,7 @@ fi
 %{_mandir}/man1/ipa-server-certinstall.1.gz
 %{_mandir}/man1/ipa-server-install.1.gz
 %{_mandir}/man1/ipa-dns-install.1.gz
+%{_mandir}/man1/ipa-ca-install.1.gz
 %{_mandir}/man1/ipa-compat-manage.1.gz
 %{_mandir}/man1/ipa-nis-manage.1.gz
 %{_mandir}/man1/ipa-host-net-manage.1.gz
@@ -492,7 +494,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
-* Thu May 12 2011 Rob Crittenden <rcritten@redhat.com> - 1.99.49
+* Fri Jun 17 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-50
+- Ship ipa-ca-install utility
+
+* Thu May 12 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-49
 - Set min nvr of selinux-policy to 3.9.16-18 on F-15+
 - Set min nvr of pki-ca to 9.0.7 on F-15+
 
