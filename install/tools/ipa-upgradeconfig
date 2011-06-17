@@ -114,7 +114,11 @@ def check_certs():
     if not os.path.exists("/usr/share/ipa/html/ca.crt"):
         ca_file = "/etc/httpd/alias/cacert.asc"
         if os.path.exists(ca_file):
-            shutil.copyfile(ca_file, "/usr/share/ipa/html/ca.crt")
+            old_umask = os.umask(022)   # make sure its readable by httpd
+            try:
+                shutil.copyfile(ca_file, "/usr/share/ipa/html/ca.crt")
+            finally:
+                os.umask(old_umask)
         else:
             print "Missing Certification Authority file."
             print "You should place a copy of the CA certificate in /usr/share/ipa/html/ca.crt"

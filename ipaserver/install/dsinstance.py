@@ -358,10 +358,13 @@ class DsInstance(service.Service):
         self.sub_dict['BASEDC'] = self.realm_name.split('.')[0].lower()
         base_txt = ipautil.template_str(BASE_TEMPLATE, self.sub_dict)
         logging.debug(base_txt)
-        base_fd = file("/var/lib/dirsrv/boot.ldif", "w")
-        base_fd.write(base_txt)
-        base_fd.flush()
-        base_fd.close()
+        old_umask = os.umask(022)   # must be readable for dirsrv
+        try:
+            base_fd = open("/var/lib/dirsrv/boot.ldif", "w")
+            base_fd.write(base_txt)
+            base_fd.close()
+        finally:
+            os.umask(old_umask)
 
         inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
         logging.debug("writing inf template")
@@ -394,21 +397,25 @@ class DsInstance(service.Service):
         os.remove("/var/lib/dirsrv/boot.ldif")
 
     def __add_default_schemas(self):
-        shutil.copyfile(ipautil.SHARE_DIR + "60kerberos.ldif",
-                        schema_dirname(self.serverid) + "60kerberos.ldif")
-        shutil.copyfile(ipautil.SHARE_DIR + "60samba.ldif",
-                        schema_dirname(self.serverid) + "60samba.ldif")
-        shutil.copyfile(ipautil.SHARE_DIR + "60ipaconfig.ldif",
-                        schema_dirname(self.serverid) + "60ipaconfig.ldif")
-        shutil.copyfile(ipautil.SHARE_DIR + "60basev2.ldif",
-                        schema_dirname(self.serverid) + "60basev2.ldif")
-        shutil.copyfile(ipautil.SHARE_DIR + "60ipasudo.ldif",
-                        schema_dirname(self.serverid) + "60ipasudo.ldif")
+        pent = pwd.getpwnam(DS_USER)
+        for schema_fname in ("60kerberos.ldif",
+                             "60samba.ldif",
+                             "60ipaconfig.ldif",
+                             "60basev2.ldif",
+                             "60ipasudo.ldif"):
+            target_fname = schema_dirname(self.serverid) + schema_fname
+            shutil.copyfile(ipautil.SHARE_DIR + schema_fname, target_fname)
+            os.chmod(target_fname, 0440)    # read access for dirsrv user/group
+            os.chown(target_fname, pent.pw_uid, pent.pw_gid)
+
         try:
             shutil.move(schema_dirname(self.serverid) + "05rfc2247.ldif",
                             schema_dirname(self.serverid) + "05rfc2247.ldif.old")
-            shutil.copyfile(ipautil.SHARE_DIR + "05rfc2247.ldif",
-                            schema_dirname(self.serverid) + "05rfc2247.ldif")
+
+            target_fname = schema_dirname(self.serverid) + "05rfc2247.ldif"
+            shutil.copyfile(ipautil.SHARE_DIR + "05rfc2247.ldif", target_fname)
+            os.chmod(target_fname, 0440)
+            os.chown(target_fname, pent.pw_uid, pent.pw_gid)
         except IOError:
             # Does not apply with newer DS releases
             pass
