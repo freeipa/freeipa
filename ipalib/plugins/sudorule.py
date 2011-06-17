@@ -456,7 +456,7 @@ api.register(sudorule_remove_host)
 
 class sudorule_add_runasuser(LDAPAddMember):
     """
-    Add user for Sudo to execute as.
+    Add users and groups for Sudo to execute as.
     """
     member_attributes = ['ipasudorunas']
     member_count_out = ('%i object added.', '%i objects added.')
@@ -492,7 +492,7 @@ api.register(sudorule_add_runasuser)
 
 class sudorule_remove_runasuser(LDAPRemoveMember):
     """
-    Remove user for Sudo to execute as.
+    Remove users and groups for Sudo to execute as.
     """
     member_attributes = ['ipasudorunas']
     member_count_out = ('%i object removed.', '%i objects removed.')
