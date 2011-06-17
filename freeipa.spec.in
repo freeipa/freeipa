@@ -217,12 +217,12 @@ cd install; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localst
 %endif
 
 %if ! %{ONLY_CLIENT}
-make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} version-update all
+make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} all
 cd selinux
 # This isn't multi-process make capable yet
 make all
 %else
-make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} version-update client
+make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} client
 %endif
 
 %install

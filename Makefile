@@ -113,7 +113,7 @@ version-update: release-update
 		./makeapi --validate; \
 	fi
 
-server:
+server: version-update
 	python setup.py build
 
 server-install: server
