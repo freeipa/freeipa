@@ -53,6 +53,8 @@ PY_EXPLICIT_FILES = \
      install/tools/ipa-host-net-manage \
      install/tools/ipa-server-install \
      install/tools/ipa-ldap-updater \
+     install/tools/ipa-dns-install \
+     install/tools/ipa-ca-install \
      ipa-client/ipa-install/ipa-client-install
 
 PYTHON_POTFILES = $(PY_FILES) $(PY_EXPLICIT_FILES)

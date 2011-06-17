@@ -12,6 +12,7 @@ man1_MANS = 				\
 	ipa-server-certinstall.1	\
 	ipa-server-install.1		\
 	ipa-dns-install.1		\
+	ipa-ca-install.1		\
 	ipa-ldap-updater.1		\
 	ipa-compat-manage.1		\
 	ipa-nis-manage.1		\

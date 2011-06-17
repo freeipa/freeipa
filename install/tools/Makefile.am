@@ -5,6 +5,7 @@ SUBDIRS = 			\
         $(NULL)
 
 sbin_SCRIPTS =			\
+	ipa-ca-install		\
 	ipa-dns-install		\
 	ipa-server-install	\
 	ipa-replica-conncheck	\
