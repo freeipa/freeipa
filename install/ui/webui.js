@@ -53,10 +53,8 @@ IPA.admin_navigation = function(spec) {
                  {entity: 'sudocmd'},
                  {entity: 'sudocmdgroup'}
             ]},
-            {name: 'automount', label: IPA.messages.tabs.automount, children: [
-                {entity: 'automountlocation'},
-                {entity: 'automountmap'}
-            ]},
+            {entity: 'automountlocation', label: IPA.messages.tabs.automount},
+            {entity: 'automountmap',hidden:true},
             {entity: 'pwpolicy'},
             {entity: 'krbtpolicy'}
         ]},

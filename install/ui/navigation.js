@@ -174,11 +174,15 @@ IPA.navigation = function(spec) {
                 }
             }
 
-            $('<li/>').append($('<a/>', {
+            var tab_li =$('<li/>').append($('<a/>', {
                 href: '#'+tab_id,
                 title: tab.label,
                 html: tab.label
             })).appendTo(ul);
+
+            if (tab.hidden){
+                tab_li.css('display','none');
+            }
 
             tab.container = $('<div/>', {
                 id: tab_id,
