@@ -87,7 +87,19 @@ IPA.entity_factories.host = function () {
         }).
         standard_association_facets().
         adder_dialog({
-            fields: ['fqdn', {factory:IPA.force_host_add_checkbox_widget}]
+            width:500,
+            fields:[
+                {
+                    factory:IPA.entity_select_widget,
+                    name: 'fqdn',
+                    field_name:'idnsname',
+                    entity: 'dnszone',
+                    label: IPA.messages.objects.service.host,
+                    editable: true,
+                    undo: false
+                },
+                {factory:IPA.force_host_add_checkbox_widget}
+            ] 
         }).
         build();
 };

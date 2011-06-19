@@ -324,6 +324,20 @@ IPA.widget = function(spec) {
     return that;
 };
 
+/*uses a browser specific technique to select a range.*/
+IPA.select_range = function(input,start, end) {
+    input.focus();
+    if (input[0].setSelectionRange) {
+        input[0].setSelectionRange(start, end);
+    } else if (input[0].createTextRange) {
+        var range = input[0].createTextRange();
+        range.collapse(true);
+        range.moveEnd('character', end);
+        range.moveStart('character', start);
+        range.select();
+    }
+};
+
 
 IPA.text_widget = function(spec) {
 
@@ -333,6 +347,10 @@ IPA.text_widget = function(spec) {
 
     that.size = spec.size || 30;
     that.type = spec.type || 'text';
+
+    that.select_range = function(start, end){
+        IPA.select_range(that.input, start, end);
+    };
 
     that.create = function(container) {
 
@@ -1545,6 +1563,7 @@ IPA.entity_select_widget = function(spec) {
     var that = IPA.widget(spec);
     var entity = spec.entity || 'group';
     var field_name = spec.field_name || 'cn';
+    var editable = spec.editable || false;
 
     function populate_select(value) {
         function find_success(result) {
@@ -1588,9 +1607,24 @@ IPA.entity_select_widget = function(spec) {
 
     that.create = function(container) {
 
+        if (editable){
+            that.edit_box = $('<input />',{
+                type: 'text'
+            });
+
+            $('<div style:"display=block;" />').
+                append(that.edit_box).
+                appendTo(container);
+        }
+
         that.entity_select = $('<select/>', {
             id: that.name + '-entity-select',
             change: function(){
+                if (editable){
+                    that.edit_box.val(
+                        $('option:selected', that.entity_select).val());
+                    IPA.select_range(that.edit_box,0,0);
+                }
                 that.set_dirty(that.test_dirty());
             }
         }).appendTo(container);
@@ -1601,7 +1635,7 @@ IPA.entity_select_widget = function(spec) {
             id: 'entity_filter',
             style: 'display: none;',
             keyup: function(){
-                populate_select($('option:selected', that.entity_select).val());
+                populate_select(current_value());
             }
         }).appendTo(container);
 
@@ -1630,6 +1664,9 @@ IPA.entity_select_widget = function(spec) {
         that.entity_filter.val(that.values[0]);
         that.set_dirty(false);
         populate_select(that.values[0]);
+        if (editable){
+            that.edit_box.val(that.values[0]);
+        }
     };
 
     that.load = function(record) {
@@ -1642,8 +1679,18 @@ IPA.entity_select_widget = function(spec) {
         that.reset();
     };
 
+    function current_value(){
+        var value;
+        if (editable){
+            value = that.edit_box.val();
+        }else{
+            value = $('option:selected', that.entity_select).val();
+        }
+        return value;
+    }
+
     that.save = function() {
-        var value = $('option:selected', that.entity_select).val();
+        var value = current_value();
         return [value];
     };
 
