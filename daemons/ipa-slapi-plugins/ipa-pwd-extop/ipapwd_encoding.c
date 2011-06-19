@@ -250,9 +250,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 {
     krb5_context krbctx;
     char *krbPrincipalName = NULL;
-    uint32_t krbMaxTicketLife;
     int kvno, i;
-    int krbTicketFlags;
     struct berval *bval = NULL;
     Slapi_Value **svals = NULL;
     krb5_principal princ = NULL;
@@ -284,16 +282,6 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
                   krb5_get_error_message(krbctx, krberr));
         goto enc_error;
     }
-
-    krbMaxTicketLife = slapi_entry_attr_get_uint(data->target,
-                                                 "krbMaxTicketLife");
-    if (krbMaxTicketLife == 0) {
-        /* FIXME: retrieve the default from config (max_life from kdc.conf) */
-        krbMaxTicketLife = 86400; /* just set the default 24h for now */
-    }
-
-    krbTicketFlags = slapi_entry_attr_get_int(data->target,
-                                              "krbTicketFlags");
 
     pwd.data = (char *)data->password;
     pwd.length = strlen(data->password);
