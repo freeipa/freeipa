@@ -1572,6 +1572,7 @@ IPA.entity_select_widget = function(spec) {
                     option.attr('selected','selected');
                 }
             }
+            that.set_dirty(that.test_dirty());
         }
         function find_error(err){
         }
@@ -1600,8 +1601,7 @@ IPA.entity_select_widget = function(spec) {
             id: 'entity_filter',
             style: 'display: none;',
             keyup: function(){
-                populate_select();
-                that.set_dirty(that.test_dirty());
+                populate_select($('option:selected', that.entity_select).val());
             }
         }).appendTo(container);
 
