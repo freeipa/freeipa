@@ -118,10 +118,11 @@ IPA.service_add_dialog = function(spec) {
             size: 20,
             undo: false
         })).
-        field(IPA.text_widget({
+        field(IPA.entity_select_widget({
             name: 'host',
+            field_name: 'fqdn',
+            entity: 'host',
             label: IPA.messages.objects.service.host,
-            size: 40,
             undo: false
         })).
         field(
