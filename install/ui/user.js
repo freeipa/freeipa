@@ -78,7 +78,8 @@ IPA.entity_factories.user = function() {
                     { factory: IPA.multivalued_text_widget, name: 'telephonenumber' },
                     { factory: IPA.multivalued_text_widget, name: 'pager' },
                     { factory: IPA.multivalued_text_widget, name: 'mobile' },
-                    { factory: IPA.multivalued_text_widget, name: 'facsimiletelephonenumber' }
+                    { factory: IPA.multivalued_text_widget,
+                      name: 'facsimiletelephonenumber' }
                 ]
             },
             {
@@ -87,7 +88,13 @@ IPA.entity_factories.user = function() {
             },
             {
                 name: 'employee',
-                fields: ['ou', 'manager']
+                fields:
+                ['ou',
+                 {
+                     factory:IPA.entity_select_widget,
+                     name: 'manager', entity: 'user', field_name: 'uid'
+                 }
+                ]
             },
             {
                 name: 'misc',
