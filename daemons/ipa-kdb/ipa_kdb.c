@@ -441,7 +441,7 @@ kdb_vftabl kdb_function_table = {
     NULL,                               /* fetch_master_key_list */
     ipadb_store_master_key_list,        /* store_master_key_list */
     NULL,                               /* dbe_search_enctype */
-    NULL,                               /* change_pwd */
+    ipadb_change_pwd,                   /* change_pwd */
     NULL,                               /* promote_db */
     NULL,                               /* decrypt_key_data */
     NULL,                               /* encrypt_key_data */

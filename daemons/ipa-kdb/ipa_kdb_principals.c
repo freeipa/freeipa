@@ -348,7 +348,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     krb5_error_code kerr;
     krb5_tl_data *res_tl_data;
     krb5_key_data *res_key_data;
-    krb5_kvno mkvno;
+    krb5_kvno mkvno = 0;
     char *restring;
     time_t restime;
     bool resbool;
@@ -844,7 +844,6 @@ done:
 void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
 {
     krb5_tl_data *prev, *next;
-    int i;
 
     if (entry) {
         free(entry->e_data);
@@ -1128,8 +1127,7 @@ static krb5_error_code ipadb_get_ldap_mod_extra_data(struct ipadb_mods *imods,
             data->tl_data_type == KRB5_TL_KADM_DATA ||
             data->tl_data_type == KRB5_TL_DB_ARGS ||
             data->tl_data_type == KRB5_TL_MKVNO ||
-            data->tl_data_type == KRB5_TL_LAST_ADMIN_UNLOCK ||
-            data->tl_data_type == KDB_TL_USER_INFO) {
+            data->tl_data_type == KRB5_TL_LAST_ADMIN_UNLOCK) {
             continue;
         }
         n++;
@@ -1151,8 +1149,7 @@ static krb5_error_code ipadb_get_ldap_mod_extra_data(struct ipadb_mods *imods,
             data->tl_data_type == KRB5_TL_KADM_DATA ||
             data->tl_data_type == KRB5_TL_DB_ARGS ||
             data->tl_data_type == KRB5_TL_MKVNO ||
-            data->tl_data_type == KRB5_TL_LAST_ADMIN_UNLOCK ||
-            data->tl_data_type == KDB_TL_USER_INFO) {
+            data->tl_data_type == KRB5_TL_LAST_ADMIN_UNLOCK) {
             continue;
         }
 

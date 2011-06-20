@@ -32,4 +32,8 @@ krb5_error_code parse_bval_key_salt_tuples(krb5_context kcontext,
                                            krb5_key_salt_tuple **kst,
                                            int *n_kst);
 
+krb5_error_code filter_key_salt_tuples(krb5_context context,
+                                       krb5_key_salt_tuple *req, int n_req,
+                                       krb5_key_salt_tuple *supp, int n_supp,
+                                       krb5_key_salt_tuple **res, int *n_res);
 #endif /* __IPA_KRB5_H_ */
