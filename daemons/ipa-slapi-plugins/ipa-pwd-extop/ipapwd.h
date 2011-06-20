@@ -97,20 +97,15 @@ struct ipapwd_operation {
 
 
 /* from ipapwd_common.c */
-struct ipapwd_encsalt {
-    krb5_int32 enc_type;
-    krb5_int32 salt_type;
-};
-
 struct ipapwd_krbcfg {
     krb5_context krbctx;
     char *realm;
     int mkvno;
     krb5_keyblock *kmkey;
     int num_supp_encsalts;
-    struct ipapwd_encsalt *supp_encsalts;
+    krb5_key_salt_tuple *supp_encsalts;
     int num_pref_encsalts;
-    struct ipapwd_encsalt *pref_encsalts;
+    krb5_key_salt_tuple *pref_encsalts;
     char **passsync_mgrs;
     int num_passsync_mgrs;
     bool allow_lm_hash;

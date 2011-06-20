@@ -319,7 +319,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
         salt.data = NULL;
 
-        switch (krbcfg->pref_encsalts[i].salt_type) {
+        switch (krbcfg->pref_encsalts[i].ks_salttype) {
 
         case KRB5_KDB_SALTTYPE_ONLYREALM:
 
@@ -396,14 +396,14 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
         default:
             LOG_FATAL("Invalid salt type [%d]\n",
-                      krbcfg->pref_encsalts[i].salt_type);
+                      krbcfg->pref_encsalts[i].ks_salttype);
             goto enc_error;
         }
 
         /* need to build the key now to manage the AFS salt.length
          * special case */
         krberr = krb5_c_string_to_key(krbctx,
-                                      krbcfg->pref_encsalts[i].enc_type,
+                                      krbcfg->pref_encsalts[i].ks_enctype,
                                       &pwd, &salt, &key);
         if (krberr) {
             LOG_FATAL("krb5_c_string_to_key failed [%s]\n",
@@ -461,7 +461,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
             goto enc_error;
         }
 
-        kset->keys[i].salt->type = krbcfg->pref_encsalts[i].salt_type;
+        kset->keys[i].salt->type = krbcfg->pref_encsalts[i].ks_salttype;
 
         if (salt.length) {
             kset->keys[i].salt->value.bv_len = salt.length;

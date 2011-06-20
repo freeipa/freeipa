@@ -69,15 +69,15 @@ static const char *ipapwd_def_encsalts[] = {
 
 static int new_ipapwd_encsalt(krb5_context krbctx,
                               const char * const *encsalts,
-                              struct ipapwd_encsalt **es_types,
+                              krb5_key_salt_tuple **es_types,
                               int *num_es_types)
 {
-    struct ipapwd_encsalt *es;
+    krb5_key_salt_tuple *es;
     int nes, i;
     int rc;
 
     for (i = 0; encsalts[i]; i++) /* count */ ;
-    es = calloc(i + 1, sizeof(struct ipapwd_encsalt));
+    es = calloc(i + 1, sizeof(krb5_key_salt_tuple));
     if (!es) {
         LOG_OOM();
         rc = LDAP_OPERATIONS_ERROR;
@@ -116,16 +116,16 @@ static int new_ipapwd_encsalt(krb5_context krbctx,
 
         krberr = krb5_string_to_salttype(salt, &tmpsalt);
         for (j = 0; j < nes; j++) {
-            krb5_c_enctype_compare(krbctx, es[j].enc_type, tmpenc, &similar);
-            if (similar && (es[j].salt_type == tmpsalt)) {
+            krb5_c_enctype_compare(krbctx, es[j].ks_enctype, tmpenc, &similar);
+            if (similar && (es[j].ks_salttype == tmpsalt)) {
                 break;
             }
         }
 
         if (j == nes) {
             /* not found */
-            es[j].enc_type = tmpenc;
-            es[j].salt_type = tmpsalt;
+            es[j].ks_enctype = tmpenc;
+            es[j].ks_salttype = tmpsalt;
             nes++;
         }
 
