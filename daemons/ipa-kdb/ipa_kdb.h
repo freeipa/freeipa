@@ -66,10 +66,6 @@
 #define KMASK_TL_DATA           0x040000
 #define KMASK_LOAD              0x200000
 
-/* MIT Kerberos sanctioned hack to carry private data around.
- * In krb5 1.10 this should be superceeded by a better mechanism */
-#define  KDB_TL_USER_INFO      0x7ffe
-
 #define IPA_SETUP "ipa-setup-override-restrictions"
 
 struct ipadb_context {
@@ -161,3 +157,12 @@ krb5_error_code ipadb_store_master_key_list(krb5_context kcontext,
                                             char *master_pwd);
 
 krb5_error_code ipadb_create_master_key(krb5_context kcontext);
+
+/* PASSWORD FUNCTIONS */
+krb5_error_code ipadb_change_pwd(krb5_context context,
+                                 krb5_keyblock *master_key,
+                                 krb5_key_salt_tuple *ks_tuple,
+                                 int ks_tuple_count, char *passwd,
+                                 int new_kvno, krb5_boolean keepold,
+                                 krb5_db_entry *db_entry);
+

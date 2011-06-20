@@ -452,3 +452,36 @@ fail:
     return kerr;
 }
 
+krb5_error_code filter_key_salt_tuples(krb5_context context,
+                                       krb5_key_salt_tuple *req, int n_req,
+                                       krb5_key_salt_tuple *supp, int n_supp,
+                                       krb5_key_salt_tuple **res, int *n_res)
+{
+    krb5_key_salt_tuple *ks = NULL;
+    int n_ks;
+    int i, j;
+
+    ks = calloc(n_req, sizeof(krb5_key_salt_tuple));
+    if (!ks) {
+        return ENOMEM;
+    }
+    n_ks = 0;
+
+    for (i = 0; i < n_req; i++) {
+        for (j = 0; j < n_supp; j++) {
+            if (req[i].ks_enctype == supp[j].ks_enctype &&
+                req[i].ks_salttype == supp[j].ks_salttype) {
+                break;
+            }
+        }
+        if (j < n_supp) {
+            ks[n_ks] = req[i];
+            n_ks++;
+        }
+    }
+
+    *res = ks;
+    *n_res = n_ks;
+    return 0;
+}
+
