@@ -98,8 +98,14 @@ IPA.entity_factories.host = function () {
                     editable: true,
                     undo: false
                 },
-                {factory:IPA.force_host_add_checkbox_widget}
-            ] 
+                {factory:IPA.force_host_add_checkbox_widget},
+                {
+                    factory:IPA.text_widget,
+                    name:"ip_address",
+                    undo:false,
+                    label:  IPA.get_method_option('host_add','ip_address')['label']
+                }
+            ]
         }).
         build();
 };

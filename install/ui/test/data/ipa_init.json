@@ -169,7 +169,7 @@
                                 "pattern_errmsg": null,
                                 "primary_key": false,
                                 "query": false,
-                                "required": true,
+                                "required": false,
                                 "type": "unicode"
                             }
                         ]
@@ -429,7 +429,7 @@
                                 "pattern_errmsg": null,
                                 "primary_key": false,
                                 "query": false,
-                                "required": true,
+                                "required": false,
                                 "type": "unicode"
                             }
                         ]
@@ -3855,7 +3855,7 @@
                                 "flags": [],
                                 "hint": null,
                                 "include": null,
-                                "label": "<ip_address>",
+                                "label": "IP Address",
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
@@ -7288,7 +7288,7 @@
                                 "pattern_errmsg": null,
                                 "primary_key": false,
                                 "query": false,
-                                "required": false,
+                                "required": true,
                                 "type": "unicode"
                             }
                         ]
@@ -10371,12 +10371,16 @@
                             "memberof": [
                                 "group",
                                 "netgroup",
-                                "role"
+                                "role",
+                                "hbacrule",
+                                "sudorule"
                             ],
                             "memberofindirect": [
                                 "group",
                                 "netgroup",
-                                "role"
+                                "role",
+                                "hbacrule",
+                                "sudorule"
                             ]
                         },
                         "bindable": false,
@@ -11348,15 +11352,22 @@
                             "managedby": [
                                 "host"
                             ],
+                            "managing": [
+                                "host"
+                            ],
                             "memberof": [
                                 "hostgroup",
                                 "netgroup",
-                                "role"
+                                "role",
+                                "hbacrule",
+                                "sudorule"
                             ],
                             "memberofindirect": [
                                 "hostgroup",
                                 "netgroup",
-                                "role"
+                                "role",
+                                "hbacrule",
+                                "sudorule"
                             ]
                         },
                         "bindable": true,
@@ -11415,6 +11426,11 @@
                                 "Managed by",
                                 "man_by_",
                                 "not_man_by_"
+                            ],
+                            "managing": [
+                                "Managing",
+                                "man_",
+                                "not_man_"
                             ],
                             "memberof": [
                                 "Member Of",
@@ -11751,11 +11767,15 @@
                                 "hostgroup"
                             ],
                             "memberof": [
-                                "hostgroup"
+                                "hostgroup",
+                                "hbacrule",
+                                "sudorule"
                             ],
                             "memberofindirect": [
                                 "host",
-                                "hostgroup"
+                                "hostgroup",
+                                "hbacrule",
+                                "sudorule"
                             ]
                         },
                         "bindable": false,
@@ -13751,7 +13771,8 @@
                             "memberuser",
                             "memberhost",
                             "memberallowcmd",
-                            "memberdenycmd"
+                            "memberdenycmd",
+                            "ipasudoopt"
                         ],
                         "hidden_attributes": [
                             "objectclass",
@@ -14491,12 +14512,16 @@
                             "memberof": [
                                 "group",
                                 "netgroup",
-                                "role"
+                                "role",
+                                "hbacrule",
+                                "sudorule"
                             ],
                             "memberofindirect": [
                                 "group",
                                 "netgroup",
-                                "role"
+                                "role",
+                                "hbacrule",
+                                "sudorule"
                             ]
                         },
                         "bindable": true,
@@ -14507,6 +14532,9 @@
                             "sn",
                             "homedirectory",
                             "loginshell",
+                            "uidnumber",
+                            "gidnumber",
+                            "mail",
                             "ou",
                             "telephonenumber",
                             "title",
@@ -15594,30 +15622,30 @@
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "469800000"
+                            "1488000000"
                         ],
                         "homedirectory": [
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "31758798-8707-11e0-9000-525400b55a47"
+                            "8c37adc4-9949-11e0-a3ce-525400b55a47"
                         ],
                         "krbextradata": [
                             {
-                                "__base64__": "AAIiXN1Ncm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
+                                "__base64__": "AAJl/vtNcm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
                             },
                             {
                                 "__base64__": "AAgBAA=="
                             }
                         ],
                         "krblastpwdchange": [
-                            "20110525194434Z"
+                            "20110618012453Z"
                         ],
                         "krblastsuccessfulauth": [
-                            "20110525211013Z"
+                            "20110620185940Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20110823194434Z"
+                            "20110916012453Z"
                         ],
                         "krbprincipalname": [
                             "admin@SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
@@ -15647,7 +15675,7 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "469800000"
+                            "1488000000"
                         ]
                     }
                 ],

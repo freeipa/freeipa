@@ -1286,7 +1286,7 @@ option: Flag('random', attribute=True, autofill=True, cli_name='random', default
 option: Bytes('usercertificate', validate_certificate, attribute=True, cli_name='certificate', label=Gettext('Certificate', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Flag('force', autofill=True, default=False, label=Gettext('Force', domain='ipa', localedir=None))
 option: Flag('no_reverse', autofill=True, default=False)
-option: Str('ip_address?', validate_ipaddr)
+option: Str('ip_address?', validate_ipaddr, label=Gettext('IP Address', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])

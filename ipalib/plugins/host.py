@@ -361,6 +361,7 @@ class host_add(LDAPCreate):
         ),
         Str('ip_address?', validate_ipaddr,
             doc=_('Add the host to DNS with this IP address'),
+            label=_('IP Address'),
         ),
     )
 
