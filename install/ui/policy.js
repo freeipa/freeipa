@@ -38,7 +38,14 @@ IPA.entity_factories.pwpolicy = function() {
                 }]}).
         standard_association_facets().
         adder_dialog({
-            fields:['cn', 'cospriority']
+            fields:[
+                {
+                    factory:IPA.entity_select_widget,
+                    name: 'cn',
+                    entity: 'group',
+                    undo: false
+                },
+                'cospriority']
         }).
         build();
 };
