@@ -86,13 +86,14 @@ Slapi_PluginDesc ipapwd_plugin_desc = {
 
 void *ipapwd_plugin_id;
 
-static int filter_keys(struct ipapwd_krbcfg *krbcfg, struct ipapwd_keyset *kset)
+static int filter_keys(struct ipapwd_krbcfg *krbcfg,
+                       struct ipapwd_keyset *kset)
 {
     int i, j;
 
     for (i = 0; i < kset->num_keys; i++) {
         for (j = 0; j < krbcfg->num_supp_encsalts; j++) {
-            if (kset->keys[i].ekey->type ==
+            if (kset->keys[i].key_data_type[0] ==
                     krbcfg->supp_encsalts[j].ks_enctype) {
                 break;
             }
@@ -100,15 +101,8 @@ static int filter_keys(struct ipapwd_krbcfg *krbcfg, struct ipapwd_keyset *kset)
         if (j == krbcfg->num_supp_encsalts) { /* not valid */
 
             /* free key */
-            if (kset->keys[i].ekey) {
-                free(kset->keys[i].ekey->value.bv_val);
-                free(kset->keys[i].ekey);
-            }
-            if (kset->keys[i].salt) {
-                free(kset->keys[i].salt->value.bv_val);
-                free(kset->keys[i].salt);
-            }
-            free(kset->keys[i].s2kparams.bv_val);
+            free(kset->keys[i].key_data_contents[0]);
+            free(kset->keys[i].key_data_contents[1]);
 
             /* move all remaining keys up by one */
             kset->num_keys -= 1;
@@ -672,6 +666,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	kset = malloc(sizeof(struct ipapwd_keyset));
 	if (!kset) {
 		LOG_OOM();
+		rc = LDAP_OPERATIONS_ERROR;
 		goto free_and_return;
 	}
 
@@ -679,7 +674,6 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	/* major-vno = 1 and minor-vno = 1 */
 	kset->major_vno = 1;
 	kset->minor_vno = 1;
-	kset->kvno = kvno;
 	kset->mkvno = krbcfg->mkvno;
 
 	kset->keys = NULL;
@@ -687,6 +681,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 
 	rtag = ber_peek_tag(ber, &tlen);
 	while (rtag == LBER_SEQUENCE) {
+		krb5_key_data *newset;
 		krb5_data plain;
 		krb5_enc_data cipher;
 		struct berval tval;
@@ -696,28 +691,18 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 
 		i = kset->num_keys;
 
-		if (kset->keys) {
-			struct ipapwd_krbkey *newset;
-
-			newset = realloc(kset->keys, sizeof(struct ipapwd_krbkey) * (i + 1));
-			if (!newset) {
-				LOG_OOM();
-				goto free_and_return;
-			}
-			kset->keys = newset;
-		} else {
-			kset->keys = malloc(sizeof(struct ipapwd_krbkey));
-			if (!kset->keys) {
-				LOG_OOM();
-				goto free_and_return;
-			}
+		newset = realloc(kset->keys, sizeof(krb5_key_data) * (i + 1));
+		if (!newset) {
+			LOG_OOM();
+			goto free_and_return;
 		}
+		kset->keys = newset;
+
 		kset->num_keys += 1;
 
-		kset->keys[i].salt = NULL;
-		kset->keys[i].ekey = NULL;
-		kset->keys[i].s2kparams.bv_len = 0;
-		kset->keys[i].s2kparams.bv_val = NULL;
+		memset(&kset->keys[i], 0, sizeof(krb5_key_data));
+		kset->keys[i].key_data_ver = 1;
+		kset->keys[i].key_data_kvno = kvno;
 
 		/* EncryptionKey */
 		rtag = ber_scanf(ber, "{t[{t[i]t[o]}]", &ttmp, &ttmp, &tint, &ttmp, &tval);
@@ -728,13 +713,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 			goto free_and_return;
 		}
 
-		kset->keys[i].ekey = calloc(1, sizeof(struct ipapwd_krbkeydata));
-		if (!kset->keys[i].ekey) {
-			LOG_OOM();
-			goto free_and_return;
-		}
-
-		kset->keys[i].ekey->type = tint;
+		kset->keys[i].key_data_type[0] = tint;
 
 		plain.length = tval.bv_len;
 		plain.data = tval.bv_val;
@@ -755,8 +734,8 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 		t = htole16(plain.length);
 		memcpy(kdata, &t, 2);
 
-		kset->keys[i].ekey->value.bv_len = 2 + klen;
-		kset->keys[i].ekey->value.bv_val = (char *)kdata;
+		kset->keys[i].key_data_length[0] = 2 + klen;
+		kset->keys[i].key_data_contents[0] = (krb5_octet *)kdata;
 
 		cipher.ciphertext.length = klen;
 		cipher.ciphertext.data = (char *)kdata + 2;
@@ -768,7 +747,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 			goto free_and_return;
 		}
 
-		free(tval.bv_val);
+		ber_memfree(tval.bv_val);
 
 		rtag = ber_peek_tag(ber, &tlen);
 
@@ -783,13 +762,8 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 				goto free_and_return;
 			}
 
-			kset->keys[i].salt = calloc(1, sizeof(struct ipapwd_krbkeydata));
-			if (!kset->keys[i].salt) {
-				LOG_OOM();
-				goto free_and_return;
-			}
-
-			kset->keys[i].salt->type = tint;
+			kset->keys[i].key_data_ver = 2; /* we have a salt */
+			kset->keys[i].key_data_type[1] = tint;
 
 			rtag = ber_peek_tag(ber, &tlen);
 			if (rtag == (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 1)) {
@@ -802,7 +776,16 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 					goto free_and_return;
 				}
 
-				kset->keys[i].salt->value = tval;
+				kset->keys[i].key_data_length[1] = tval.bv_len;
+				kset->keys[i].key_data_contents[1] = malloc(tval.bv_len);
+				if (!kset->keys[i].key_data_contents[1]) {
+				    LOG_OOM();
+				    rc = LDAP_OPERATIONS_ERROR;
+				    goto free_and_return;
+				}
+				memcpy(kset->keys[i].key_data_contents[1],
+				       tval.bv_val, tval.bv_len);
+				ber_memfree(tval.bv_val);
 
 				rtag = ber_peek_tag(ber, &tlen);
 			}
@@ -866,9 +849,10 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "krbPasswordExpiration", timestr);
 #endif
 
-	bval = encode_keys(kset);
-	if (!bval) {
-		LOG_FATAL("encoding asn1 KrbSalt failed\n");
+	ret = ber_encode_krb5_key_data(kset->keys, kset->num_keys,
+                                       kset->mkvno, &bval);
+	if (ret != 0) {
+		LOG_FATAL("encoding krb5_key_data failed\n");
 		slapi_mods_free(&smods);
 		goto free_and_return;
 	}
@@ -954,7 +938,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	}
 
 	for (i = 0; i < kset->num_keys; i++) {
-		ret = ber_printf(ber, "{i}", (ber_int_t)kset->keys[i].ekey->type);
+		ret = ber_printf(ber, "{i}", (ber_int_t)kset->keys[i].key_data_type[0]);
 		if (ret == -1) {
 			goto free_and_return;
 		}

@@ -72,36 +72,6 @@
 #define KTF_DISALLOW_SVR              0x00001000
 #define KTF_PWCHANGE_SERVICE          0x00002000
 
-/* Novell key-format scheme:
-
-   KrbKeySet ::= SEQUENCE {
-   attribute-major-vno       [0] UInt16,
-   attribute-minor-vno       [1] UInt16,
-   kvno                      [2] UInt32,
-   mkvno                     [3] UInt32 OPTIONAL,
-   keys                      [4] SEQUENCE OF KrbKey,
-   ...
-   }
-
-   KrbKey ::= SEQUENCE {
-   salt      [0] KrbSalt OPTIONAL,
-   key       [1] EncryptionKey,
-   s2kparams [2] OCTET STRING OPTIONAL,
-    ...
-   }
-
-   KrbSalt ::= SEQUENCE {
-   type      [0] Int32,
-   salt      [1] OCTET STRING OPTIONAL
-   }
-
-   EncryptionKey ::= SEQUENCE {
-   keytype   [0] Int32,
-   keyvalue  [1] OCTET STRING
-   }
-
- */
-
 /* ascii hex output of bytes in "in"
  * out len is 32 (preallocated)
  * in len is 16 */
@@ -116,99 +86,6 @@ static void hexbuf(char *out, const uint8_t *in)
     }
 }
 
-struct berval *encode_keys(struct ipapwd_keyset *kset)
-{
-    BerElement *be = NULL;
-    struct berval *bval = NULL;
-    int ret, i;
-
-    be = ber_alloc_t(LBER_USE_DER);
-
-    if (!be) {
-        LOG_OOM();
-        return NULL;
-    }
-
-    ret = ber_printf(be, "{t[i]t[i]t[i]t[i]t[{",
-                    (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0),
-                    kset->major_vno,
-                    (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 1),
-                    kset->minor_vno,
-                    (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 2),
-                    kset->kvno,
-                    (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 3),
-                    kset->mkvno,
-                    (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 4));
-    if (ret == -1) {
-        LOG_FATAL("encoding asn1 vno info failed\n");
-        goto done;
-    }
-
-    for (i = 0; i < kset->num_keys; i++) {
-
-        ret = ber_printf(be, "{");
-        if (ret == -1) {
-            LOG_FATAL("encoding asn1 EncryptionKey failed\n");
-            goto done;
-        }
-
-        if (kset->keys[i].salt) {
-            ret = ber_printf(be, "t[{t[i]",
-                     (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0),
-                     (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0),
-                     kset->keys[i].salt->type);
-            if ((ret != -1) && kset->keys[i].salt->value.bv_len) {
-                ret = ber_printf(be, "t[o]",
-                         (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 1),
-                         kset->keys[i].salt->value.bv_val,
-                         kset->keys[i].salt->value.bv_len);
-            }
-            if (ret != -1) {
-                ret = ber_printf(be, "}]");
-            }
-            if (ret == -1) {
-                goto done;
-            }
-        }
-
-        ret = ber_printf(be, "t[{t[i]t[o]}]",
-                 (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 1),
-                 (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0),
-                 kset->keys[i].ekey->type,
-                 (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 1),
-                 kset->keys[i].ekey->value.bv_val,
-                 kset->keys[i].ekey->value.bv_len);
-        if (ret == -1) {
-            LOG_FATAL("encoding asn1 EncryptionKey failed\n");
-            goto done;
-        }
-
-        /* FIXME: s2kparams not supported yet */
-
-        ret = ber_printf(be, "}");
-        if (ret == -1) {
-            LOG_FATAL("encoding asn1 EncryptionKey failed\n");
-            goto done;
-        }
-    }
-
-    ret = ber_printf(be, "}]}");
-    if (ret == -1) {
-        LOG_FATAL("encoding asn1 end of sequences failed\n");
-        goto done;
-    }
-
-    ret = ber_flatten(be, &bval);
-    if (ret == -1) {
-        LOG_FATAL("flattening asn1 failed\n");
-        goto done;
-    }
-done:
-    ber_free(be, 1);
-
-    return bval;
-}
-
 void ipapwd_keyset_free(struct ipapwd_keyset **pkset)
 {
     struct ipapwd_keyset *kset = *pkset;
@@ -217,15 +94,8 @@ void ipapwd_keyset_free(struct ipapwd_keyset **pkset)
     if (!kset) return;
 
     for (i = 0; i < kset->num_keys; i++) {
-        if (kset->keys[i].salt) {
-            free(kset->keys[i].salt->value.bv_val);
-            free(kset->keys[i].salt);
-        }
-        if (kset->keys[i].ekey) {
-            free(kset->keys[i].ekey->value.bv_val);
-            free(kset->keys[i].ekey);
-        }
-        free(kset->keys[i].s2kparams.bv_val);
+        free(kset->keys[i].key_data_contents[0]);
+        free(kset->keys[i].key_data_contents[1]);
     }
     free(kset->keys);
     free(kset);
@@ -285,7 +155,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
     kset->major_vno = 1;
     kset->minor_vno = 1;
     /* increment kvno (will be 1 if this is a new entry) */
-    kset->kvno = kvno + 1;
+    kvno += 1;
     kset->mkvno = krbcfg->mkvno;
 
     krberr = ipa_krb5_generate_key_data(krbctx, princ,
@@ -299,9 +169,10 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
         goto enc_error;
     }
 
-    bval = encode_keys(kset);
-    if (!bval) {
-        LOG_FATAL("encoding asn1 KrbSalt failed\n");
+    krberr = ber_encode_krb5_key_data(kset->keys, kset->num_keys,
+                                      kset->mkvno, &bval);
+    if (krberr != 0) {
+        LOG_FATAL("encoding krb5_key_data failed\n");
         goto enc_error;
     }
 

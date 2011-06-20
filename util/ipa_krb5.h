@@ -22,4 +22,8 @@ krb5_error_code ipa_krb5_generate_key_data(krb5_context krbctx,
 
 void ipa_krb5_free_key_data(krb5_key_data *keys, int num_keys);
 
+int ber_encode_krb5_key_data(krb5_key_data *data,
+                             int numk, int mkvno,
+                             struct berval **encoded);
+
 #endif /* __IPA_KRB5_H_ */

@@ -1,6 +1,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <lber.h>
+#include <errno.h>
 
 #include "ipa_krb5.h"
 
@@ -257,5 +259,123 @@ void ipa_krb5_free_key_data(krb5_key_data *keys, int num_keys)
         free(keys[i].key_data_contents[1]);
     }
     free(keys);
+}
+
+/* Novell key-format scheme:
+
+   KrbKeySet ::= SEQUENCE {
+   attribute-major-vno       [0] UInt16,
+   attribute-minor-vno       [1] UInt16,
+   kvno                      [2] UInt32,
+   mkvno                     [3] UInt32 OPTIONAL,
+   keys                      [4] SEQUENCE OF KrbKey,
+   ...
+   }
+
+   KrbKey ::= SEQUENCE {
+   salt      [0] KrbSalt OPTIONAL,
+   key       [1] EncryptionKey,
+   s2kparams [2] OCTET STRING OPTIONAL,
+    ...
+   }
+
+   KrbSalt ::= SEQUENCE {
+   type      [0] Int32,
+   salt      [1] OCTET STRING OPTIONAL
+   }
+
+   EncryptionKey ::= SEQUENCE {
+   keytype   [0] Int32,
+   keyvalue  [1] OCTET STRING
+   }
+
+ */
+
+int ber_encode_krb5_key_data(krb5_key_data *data,
+                             int numk, int mkvno,
+                             struct berval **encoded)
+{
+    BerElement *be = NULL;
+    ber_tag_t tag;
+    int ret, i;
+
+    be = ber_alloc_t(LBER_USE_DER);
+    if (!be) {
+        return ENOMEM;
+    }
+
+    tag = LBER_CONSTRUCTED | LBER_CLASS_CONTEXT;
+
+    ret = ber_printf(be, "{t[i]t[i]t[i]t[i]t[{",
+                         tag | 0, 1, tag | 1, 1,
+                         tag | 2, (ber_int_t)data[0].key_data_kvno,
+                         tag | 3, (ber_int_t)mkvno, tag | 4);
+    if (ret == -1) {
+        ret = EFAULT;
+        goto done;
+    }
+
+    for (i = 0; i < numk; i++) {
+
+        ret = ber_printf(be, "{");
+        if (ret == -1) {
+            ret = EFAULT;
+            goto done;
+        }
+
+        if (data[i].key_data_length[1] != 0) {
+            ret = ber_printf(be, "t[{t[i]",
+                                 tag | 0,
+                                   tag | 0,
+                                     (ber_int_t)data[i].key_data_type[1]);
+            if (ret != -1) {
+                ret = ber_printf(be, "t[o]",
+                                     tag | 1,
+                                       data[i].key_data_contents[1],
+                                       (ber_len_t)data[i].key_data_length[1]);
+            }
+            if (ret != -1) {
+                ret = ber_printf(be, "}]");
+            }
+            if (ret == -1) {
+                ret = EFAULT;
+                goto done;
+            }
+        }
+
+        ret = ber_printf(be, "t[{t[i]t[o]}]",
+                              tag | 1,
+                                tag | 0,
+                                  (ber_int_t)data[i].key_data_type[0],
+                                tag | 1,
+                                  data[i].key_data_contents[0],
+                                  (ber_len_t)data[i].key_data_length[0]);
+        if (ret == -1) {
+            ret = EFAULT;
+            goto done;
+        }
+
+        ret = ber_printf(be, "}");
+        if (ret == -1) {
+            ret = EFAULT;
+            goto done;
+        }
+    }
+
+    ret = ber_printf(be, "}]}");
+    if (ret == -1) {
+        ret = EFAULT;
+        goto done;
+    }
+
+    ret = ber_flatten(be, encoded);
+    if (ret == -1) {
+        ret = EFAULT;
+        goto done;
+    }
+
+done:
+    ber_free(be, 1);
+    return ret;
 }
 

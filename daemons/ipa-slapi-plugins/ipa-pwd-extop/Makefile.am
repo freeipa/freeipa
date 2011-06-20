@@ -2,13 +2,14 @@ NULL =
 
 PLUGIN_COMMON_DIR=../common
 KRB5_UTIL_DIR= ../../../util
-KRB5_UTIL_SRCS=$(KRB5_UTIL_DIR)/ipa_krb5.c
+KRB5_UTIL_SRCS = $(KRB5_UTIL_DIR)/ipa_krb5.c
 
 INCLUDES =							\
 	-I.							\
 	-I$(srcdir)						\
 	-I$(PLUGIN_COMMON_DIR)					\
 	-I$(KRB5_UTIL_DIR)					\
+	-I$(COMMON_BER_DIR)					\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
 	-DLIBDIR=\""$(libdir)"\" 				\
