@@ -93,7 +93,7 @@ static int filter_keys(struct ipapwd_krbcfg *krbcfg, struct ipapwd_keyset *kset)
     for (i = 0; i < kset->num_keys; i++) {
         for (j = 0; j < krbcfg->num_supp_encsalts; j++) {
             if (kset->keys[i].ekey->type ==
-                    krbcfg->supp_encsalts[j].enc_type) {
+                    krbcfg->supp_encsalts[j].ks_enctype) {
                 break;
             }
         }
