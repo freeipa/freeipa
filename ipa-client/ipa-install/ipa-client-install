@@ -528,7 +528,11 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
     domain = sssdconfig.new_domain(cli_domain)
     domain.add_provider('ipa', 'id')
 
-    domain.set_option('ipa_server', '_srv_, %s' % cli_server)
+    if not options.on_master:
+        domain.set_option('ipa_server', '_srv_, %s' % cli_server)
+    else:
+        # the master should only use itself for Kerberos
+        domain.set_option('ipa_server', cli_server)
     domain.set_option('ipa_domain', cli_domain)
     if options.hostname:
         domain.set_option('ipa_hostname', options.hostname)
