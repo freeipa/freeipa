@@ -53,11 +53,14 @@
 #include <ssl.h>
 #include <dirsrv/slapi-plugin.h>
 #include <krb5.h>
+#include <kdb.h>
 #include <lber.h>
 #include <time.h>
 #include <iconv.h>
 #include <openssl/des.h>
 #include <openssl/md4.h>
+
+#include "ipa_krb5.h"
 
 #define IPAPWD_PLUGIN_NAME   "ipa-pwd-extop"
 #define IPAPWD_FEATURE_DESC  "IPA Password Manager"
@@ -132,25 +135,14 @@ void ipapwd_free_slapi_value_array(Slapi_Value ***svals);
 void free_ipapwd_krbcfg(struct ipapwd_krbcfg **cfg);
 
 /* from ipapwd_encoding.c */
-struct ipapwd_krbkeydata {
-    int32_t type;
-    struct berval value;
-};
-struct ipapwd_krbkey {
-    struct ipapwd_krbkeydata *salt;
-    struct ipapwd_krbkeydata *ekey;
-    struct berval s2kparams;
-};
 struct ipapwd_keyset {
     uint16_t major_vno;
     uint16_t minor_vno;
-    uint32_t kvno;
     uint32_t mkvno;
-    struct ipapwd_krbkey *keys;
+    krb5_key_data *keys;
     int num_keys;
 };
 
-struct berval *encode_keys(struct ipapwd_keyset *kset);
 void ipapwd_keyset_free(struct ipapwd_keyset **pkset);
 
 int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
