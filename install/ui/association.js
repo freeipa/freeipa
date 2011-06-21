@@ -381,7 +381,7 @@ IPA.association_table_widget = function (spec) {
         var button = $('input[name=remove]', container);
         button.replaceWith(IPA.action_button({
             'label': button.val(),
-            'icon': 'ui-icon-trash',
+            'icon': 'remove-icon',
             'click': function() {
                 if ($(this).hasClass('action-button-disabled')) {
                     return false;
@@ -410,7 +410,7 @@ IPA.association_table_widget = function (spec) {
         button = $('input[name=add]', container);
         button.replaceWith(IPA.action_button({
             'label': button.val(),
-            'icon': 'ui-icon-plus',
+            'icon': 'add-icon',
             'click': function() {
                 if ($(this).hasClass('action-button-disabled')) {
                     return false;
@@ -825,7 +825,7 @@ IPA.association_facet = function (spec) {
         if (!that.read_only) {
             that.remove_button = IPA.action_button({
                 label: IPA.messages.buttons.remove,
-                icon: 'ui-icon-trash',
+                icon: 'remove-icon',
                 click: function() {
                     that.show_remove_dialog();
                     return false;
@@ -834,7 +834,7 @@ IPA.association_facet = function (spec) {
 
             that.add_button = IPA.action_button({
                 label: IPA.messages.buttons.enroll,
-                icon: 'ui-icon-plus',
+                icon: 'add-icon',
                 click: function() {
                     that.show_add_dialog();
                     return false;

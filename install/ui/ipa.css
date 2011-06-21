@@ -1,3 +1,4 @@
+
 /* Authors:
  *   Pavel Zuna <pzuna@redhat.com>
  *   Adam Young <ayoung@redhat.com>
@@ -158,6 +159,24 @@ body {
 
 .input_link span.remove-icon {
 	background: url(remove-icon.png);
+	border: none;
+	margin: -4px 0 0 1px;
+}
+
+.input_link span.update-icon {
+	background: url(update-icon.png);
+	border: none;
+	margin: -4px 0 0 1px;
+}
+
+.input_link span.reset-icon {
+	background: url(reset-icon.png);
+	border: none;
+	margin: -4px 0 0 1px;
+}
+
+.input_link span.enroll-icon {
+	background: url(enroll-icon.png);
 	border: none;
 	margin: -4px 0 0 1px;
 }
@@ -476,11 +495,12 @@ div.tabs {
     border-left: 1px solid #c9c3ba;
 	border-right: 1px solid #c9c3ba;
     margin: 5px 0 0;
-    padding: 6px 25px;
+    padding: 6px 16px;
     text-decoration: none;
     display: inline-block;
     line-height: 19px;
 	background-image: url("facet-tab_off.png");
+	color: #666666;
 }
 
 .facet-tab li a:hover {
@@ -1055,6 +1075,16 @@ span.ui-icon-search {
 }
 
 [name="memberof_privilege"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="memberof_hbacrule"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="memberof_sudorule"] {
 	margin-top: 30px;
 	margin-left: 7px;
 }
