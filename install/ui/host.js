@@ -103,7 +103,8 @@ IPA.entity_factories.host = function () {
                     factory:IPA.text_widget,
                     name:"ip_address",
                     undo:false,
-                    label:  IPA.get_method_option('host_add','ip_address')['label']
+                    label:  IPA.get_method_option('host_add','ip_address')['label'],
+                    tooltip: IPA.get_method_option('host_add','ip_address')['doc']
                 }
             ]
         }).

@@ -1609,7 +1609,8 @@ IPA.entity_select_widget = function(spec) {
 
         if (editable){
             that.edit_box = $('<input />',{
-                type: 'text'
+                type: 'text',
+                title: that.tooltip
             });
 
             $('<div style:"display=block;" />').
