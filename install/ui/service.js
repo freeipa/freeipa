@@ -256,6 +256,7 @@ IPA.service_provisioning_status_widget = function (spec) {
 
         var button = $('input[name=unprovision]', that.container);
         that.unprovision_button = IPA.button({
+            name: 'unprovision',
             'label': IPA.messages.objects.service.delete_key_unprovision,
             'click': that.unprovision
         });

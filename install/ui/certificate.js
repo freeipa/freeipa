@@ -515,6 +515,7 @@ IPA.cert.status_widget = function(spec) {
 
         var button = $('input[name=get]', that.container);
         that.get_button = IPA.button({
+            name: 'get',
             label: IPA.messages.buttons.get,
             'click': function() {
                 IPA.command({
@@ -531,6 +532,7 @@ IPA.cert.status_widget = function(spec) {
 
         button = $('input[name=revoke]', that.container);
         that.revoke_button = IPA.button({
+            name: 'revoke',
             label: IPA.messages.buttons.revoke,
             'click': function() {
                 IPA.command({
@@ -547,6 +549,7 @@ IPA.cert.status_widget = function(spec) {
 
         button = $('input[name=view]', that.container);
         that.view_button = IPA.button({
+            name: 'view',
             label: IPA.messages.buttons.view,
             'click': function() {
                 IPA.command({
@@ -565,6 +568,7 @@ IPA.cert.status_widget = function(spec) {
 
         button = $('input[name=restore]', that.container);
         that.restore_button = IPA.button({
+            name: 'restore',
             label: IPA.messages.buttons.restore,
             'click': function() {
                 IPA.command({
@@ -582,6 +586,7 @@ IPA.cert.status_widget = function(spec) {
         $('input[name=create]', that.container).each(function(index) {
             button = $(this);
             that.create_button = IPA.button({
+                name: 'create',
                 label: IPA.messages.objects.cert.new_certificate,
                 'click': function() {
                     request_certificate(that.result);

@@ -326,6 +326,7 @@ IPA.entitle.entity = function(spec) {
 IPA.entitle.details_facet = function(spec) {
 
     spec = spec || {};
+    spec.disable_back_link = true;
 
     var that = IPA.details_facet(spec);
 
@@ -336,35 +337,31 @@ IPA.entitle.details_facet = function(spec) {
         }).appendTo(that.controls);
 
         that.register_online_button = IPA.action_button({
+            name: 'register',
             label: 'Register',
             icon: 'ui-icon-plus',
             click: function() {
                 var dialog = that.entity.get_dialog('online_registration');
                 dialog.open(that.container);
+                return false;
             }
         }).appendTo(that.register_buttons);
 
         that.register_online_button.css('display', 'none');
 /*
         that.register_offline_button = IPA.action_button({
+            name: 'import',
             label: 'Import',
             icon: 'ui-icon-plus',
             click: function() {
                 var dialog = that.entity.get_dialog('offline_registration');
                 dialog.open(that.container);
+                return false;
             }
         }).appendTo(that.register_buttons);
 
         that.register_offline_button.css('display', 'none');
 */
-    };
-
-    that.show = function() {
-        that.facet_show();
-
-        that.entity.header.set_pkey(null);
-        that.entity.header.back_link.css('visibility', 'hidden');
-        that.entity.header.facet_tabs.css('visibility', 'visible');
     };
 
     that.refresh = function() {
@@ -415,6 +412,7 @@ IPA.entitle.details_facet = function(spec) {
 IPA.entitle.search_facet = function(spec) {
 
     spec = spec || {};
+    spec.disable_facet_tabs = false;
     spec.selectable = false;
 
     var that = IPA.search_facet(spec);
@@ -428,34 +426,30 @@ IPA.entitle.search_facet = function(spec) {
         }).appendTo(that.controls);
 
         that.consume_button = IPA.action_button({
+            name: 'consume',
             label: 'Consume',
             icon: 'ui-icon-plus',
             click: function() {
                 var dialog = that.entity.get_dialog('consume');
                 dialog.open(that.container);
+                return false;
             }
         }).appendTo(that.consume_buttons);
 
         that.consume_button.css('display', 'none');
 
         that.import_button = IPA.action_button({
+            name: 'import',
             label: 'Import',
             icon: 'ui-icon-plus',
             click: function() {
                 var dialog = that.entity.get_dialog('import');
                 dialog.open(that.container);
+                return false;
             }
         }).appendTo(that.consume_buttons);
 
         that.import_button.css('display', 'none');
-    };
-
-    that.show = function() {
-        that.facet_show();
-
-        that.entity.header.set_pkey(null);
-        that.entity.header.back_link.css('visibility', 'hidden');
-        that.entity.header.facet_tabs.css('visibility', 'visible');
     };
 
     that.refresh = function() {

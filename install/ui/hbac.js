@@ -761,6 +761,7 @@ IPA.hbacrule_accesstime_widget = function (spec) {
 
         var button = $('input[name=remove]', span);
         button.replaceWith(IPA.button({
+            name: 'remove',
             'label': button.val(),
             'icon': 'ui-icon-trash',
             'click': function() { that.remove(that.container); }
@@ -768,6 +769,7 @@ IPA.hbacrule_accesstime_widget = function (spec) {
 
         button = $('input[name=add]', span);
         button.replaceWith(IPA.button({
+            name: 'add',
             'label': button.val(),
             'icon': 'ui-icon-plus',
             'click': function() { that.add(that.container); }

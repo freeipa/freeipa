@@ -234,6 +234,7 @@ IPA.host_provisioning_status_widget = function (spec) {
 
         var button = $('input[name=unprovision]', that.container);
         that.unprovision_button = IPA.button({
+            name: 'unprovision',
             'label': IPA.messages.objects.host.delete_key_unprovision,
             'click': that.show_unprovision_dialog
         });
@@ -243,6 +244,7 @@ IPA.host_provisioning_status_widget = function (spec) {
 
         that.enroll_button = $('input[name=enroll]', that.container);
         button = IPA.button({
+            name: 'enroll',
             'label': IPA.messages.objects.host.set_otp,
             'click': that.set_otp
         });

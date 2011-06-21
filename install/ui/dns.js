@@ -55,7 +55,7 @@ IPA.entity_factories.dnszone = function() {
                     'idnsupdatepolicy']}]
         }).
         facet({
-            factory: IPA.records_facet,
+            factory: IPA.dnsrecord_facet,
             name: 'records',
             facet_group: 'member',
             label: IPA.metadata.objects.dnsrecord.label,
@@ -95,9 +95,12 @@ IPA.force_dnszone_add_checkbox_widget = function(spec) {
     return  IPA.checkbox_widget(spec);
 };
 
-IPA.records_facet = function(spec) {
+IPA.dnsrecord_facet = function(spec) {
 
     spec = spec || {};
+
+    spec.disable_back_link = false;
+    spec.disable_facet_tabs = false;
 
     var that = IPA.search_facet(spec);
 
@@ -113,9 +116,11 @@ IPA.records_facet = function(spec) {
         that.facet_init();
 
         that.table = IPA.table_widget({
+            'class': 'content-table',
             name: 'search',
             label: IPA.metadata.objects[that.entity_name].label,
-            entity_name: that.entity_name
+            entity_name: that.entity_name,
+            scrollable: true
         });
 
         var columns = that.columns.values;
@@ -334,10 +339,15 @@ IPA.records_facet = function(spec) {
 
         that.facet_create_header(container);
 
+        var span = $('<span/>', {
+            'class': 'right-aligned-facet-controls'
+        }).appendTo(that.controls);
+
         that.filter = $('<input/>', {
             type: 'text',
+            'class': 'search-filter',
             name: 'filter'
-        }).appendTo(that.controls);
+        }).appendTo(span);
 
         that.filter.keypress(function(e) {
             /* if the key pressed is the enter key */
@@ -357,20 +367,21 @@ IPA.records_facet = function(spec) {
           appendTo(that.controls);
         */
 
-        that.find_button = IPA.button({
-            label: IPA.messages.buttons.find,
-            icon: 'ui-icon-search',
+        that.find_button = IPA.action_button({
+            name: 'find',
+            icon: 'search-icon',
             click: function(){
                 that.find();
                 return false;
             }
-        }).appendTo(that.controls);
+        }).appendTo(span);
 
         that.controls.append(IPA.create_network_spinner());
 
         that.remove_button = IPA.action_button({
+            name: 'remove',
             label: IPA.messages.buttons.remove,
-            icon: 'ui-icon-trash',
+            icon: 'remove-icon',
             click: function() {
                 if (that.remove_button.hasClass('input_link_disabled')) return false;
                 that.remove();
@@ -379,8 +390,9 @@ IPA.records_facet = function(spec) {
         }).appendTo(that.controls);
 
         that.add_button = IPA.action_button({
+            name: 'add',
             label: IPA.messages.buttons.add,
-            icon: 'ui-icon-plus',
+            icon: 'add-icon',
             click: function() {
                 that.add();
                 return false;
@@ -412,13 +424,7 @@ IPA.records_facet = function(spec) {
 
         that.record = $.bbq.getState(that.entity_name+'-record');
         that.pkey = $.bbq.getState(that.entity_name+'-pkey');
-        that.entity.header.set_pkey(that.pkey);
-
-        that.entity.header.back_link.css('visibility', 'visible');
-        that.entity.header.facet_tabs.css('visibility', 'visible');
-
-        var title = IPA.messages.objects.dnsrecord.title+': '+that.pkey;
-        that.set_title(this.container, title);
+        that.header.set_pkey(that.pkey);
     };
 
 

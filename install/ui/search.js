@@ -29,8 +29,10 @@ IPA.search_facet = function(spec) {
     spec = spec || {};
 
     spec.name = spec.name || 'search';
-    spec.display_class = 'search-facet';
     spec.managed_entity_name = spec.managed_entity_name || spec.entity_name;
+
+    spec.disable_back_link = spec.disable_back_link === undefined ? true : spec.disable_back_link;
+    spec.disable_facet_tabs = spec.disable_facet_tabs === undefined ? true : spec.disable_facet_tabs;
 
     var that = IPA.table_facet(spec);
 
@@ -52,7 +54,6 @@ IPA.search_facet = function(spec) {
     that.init_table = function(entity){
 
         that.table = IPA.table_widget({
-            id: entity.name+'-search',
             'class': 'content-table',
             name: 'search',
             label: IPA.metadata.objects[entity.name].label,
@@ -95,11 +96,15 @@ IPA.search_facet = function(spec) {
 
         that.facet_create_header(container);
 
+        var span = $('<span/>', {
+            'class': 'right-aligned-facet-controls'
+        }).appendTo(that.controls);
+
         that.filter = $('<input/>', {
             type: 'text',
-			'class': 'search-container',
+			'class': 'search-filter',
             name: 'filter'
-        }).appendTo(that.controls);
+        }).appendTo(span);
 
         that.filter.keypress(function(e) {
             /* if the key pressed is the enter key */
@@ -109,17 +114,18 @@ IPA.search_facet = function(spec) {
         });
 
         that.find_button = IPA.action_button({
-            label: IPA.messages.buttons.find,
+            name: 'find',
             icon: 'search-icon',
             click: function() {
                 that.find();
                 return false;
             }
-        }).appendTo(that.controls);
+        }).appendTo(span);
 
-        that.controls.append(IPA.create_network_spinner());
+        span.append(IPA.create_network_spinner());
 
         that.remove_button = IPA.action_button({
+            name: 'remove',
             label: IPA.messages.buttons.remove,
             icon: 'remove-icon',
             click: function() {
@@ -130,6 +136,7 @@ IPA.search_facet = function(spec) {
         }).appendTo(that.controls);
 
         that.add_button = IPA.action_button({
+            name: 'add',
             label: IPA.messages.buttons.add,
             icon: 'add-icon',
             click: function() {
@@ -147,10 +154,6 @@ IPA.search_facet = function(spec) {
 
     that.show = function() {
         that.facet_show();
-
-        that.entity.header.set_pkey(null);
-        that.entity.header.back_link.css('visibility', 'hidden');
-        that.entity.header.facet_tabs.css('visibility', 'hidden');
 
         if (that.filter) {
             var filter = $.bbq.getState(that.entity_name+'-filter');
@@ -330,18 +333,21 @@ IPA.search_facet = function(spec) {
 
 /*TODO.  this has much copied code from above.  Refactor the search_facet
 To either be nested or not nested. */
-IPA.nested_search_facet = function(spec){
+IPA.nested_search_facet = function(spec) {
+
+    spec = spec || {};
+
     spec.managed_entity_name = spec.nested_entity;
+
+    spec.disable_back_link = false;
+    spec.disable_facet_tabs = false;
+
     var that = IPA.search_facet(spec);
 
     that.show = function() {
         that.facet_show();
 
-        //that.entity.header.set_pkey(null);
-        that.entity.header.back_link.css('visibility', 'visible');
-        that.entity.header.facet_tabs.css('visibility', 'visible');
-
-        that.entity.header.set_pkey(
+        that.header.set_pkey(
             $.bbq.getState(IPA.current_entity.name+'-pkey'));
 
         if (that.filter) {

@@ -392,140 +392,25 @@ div.tabs {
 /* ---- Entity ---- */
 
 .entity {
-    height: 100%;
-    position: relative;
-}
-
-.entity h1{
-    margin: 0 0 10px;
-/*
-    margin-left: 0.5em;
-    margin-right: 0.5em;
-
-    -moz-border-radius: 0.5em 0.5em 0 0;
-        -webkit-border-radius: 0.5em 0.5em 0 0;
-    background: -moz-linear-gradient(center top , #EEEEEE, #DFDFDF) repeat scroll 0 0 transparent;
-    background: -webkit-gradient(linear, left top, left bottom, from(#EEEEEE), to(#DFDFDF));
-*/
-}
-
-.entity-header {
     position: absolute;
     top: 0;
-    left: 0;
-    right: 0;
-    height: 70px;
-    margin: 20px 22px 0;
-}
-
-.entity-title {
-    position: absolute;
-    top: 0;
-    left: 0;
-    color: gray;
-    display: block;
-}
-
-.entity-title h3 {
-    margin: 0;
-}
-
-.entity-title span {
-    display: inline;
-}
-
-.entity-pkey {
-    color:black;
-}
-
-.entity-search {
-    position: absolute;
-    top: 0;
-    right: 0;
-}
-
-.back-link {
-    cursor: pointer;
-}
-
-.entity-tabs {
-    position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 1; /* need to be above facet header */
-	margin-bottom: -25px;
-	padding-bottom: 11px;
-	border-bottom: 1px solid #C9C3BA;
 }
 
-.facet-group {
-    float: left;
-/*    height: 3em; */
-    margin-right: 1em;
-    position: relative;
-    height: 100%;
-}
-
-.facet-group-name {
-    height: 15px;
-}
-
-.facet-title {
-	display: none;
-}
-
-.facet-tab {
-    height: 25px;
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    cursor: pointer;
-}
-
-.facet-tab li {
-    display: inline-block;
-    height: 25px;
-    position: relative;
-	padding-right: 5px;
-}
-
-.facet-tab li a {
-    background-color: #dedbde;
-    border-left: 1px solid #c9c3ba;
-	border-right: 1px solid #c9c3ba;
-    margin: 5px 0 0;
-    padding: 6px 16px;
-    text-decoration: none;
-    display: inline-block;
-    line-height: 19px;
-	background-image: url("facet-tab_off.png");
-	color: #666666;
-}
-
-.facet-tab li a:hover {
-    background-color: #f1f0ee;
-}
-.facet-tab li a.selected {
-    color: #6C6F73;
-    background-color: #f1f0ee;
-    font-weight: bold;
-    background-image: url("facet-tab_on.png");
-	height: 20px;
-}
-
-.facet-tab li.settings {
-    margin-left:1em;  margin-right:1em;
+.entity h1 {
+    margin: 0 0 10px;
 }
 
 .entity-content {
     position: absolute;
-    top: 100px;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     font-size: 10px;
-    margin: 0 10px 0;
+    margin: 0 0 0;
 }
 
 .entity-content div.content-buttons {
@@ -540,9 +425,11 @@ div.tabs {
 /* ---- Facet ---- */
 
 .facet {
-    width: 100%;
-    height: 100%;
-    position: relative;
+    position: absolute;
+    top: 20px;
+    left: 10px;
+    right: 10px;
+    bottom: 0;
 }
 
 .facet-header {
@@ -550,26 +437,147 @@ div.tabs {
     top: 0;
     left: 0;
     right: 0;
-    height: 30px;
-
-    padding: 5px;
+    height: 130px;
+    margin: 0 12px 0;
 }
+
+.facet-title {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: gray;
+    display: block;
+}
+
+.facet-title h3 {
+    margin: 0;
+}
+
+.facet-title span {
+    display: inline;
+}
+
+.facet-pkey {
+    color:black;
+}
+
+.back-link {
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+/* ---- Facet Tabs ---- */
+
+.facet-tabs {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 30px;
+    z-index: 1; /* need to be above facet header */
+	border-bottom: 1px solid #C9C3BA;
+}
+
+.facet-group {
+    float: left;
+    margin-right: 1em;
+    position: relative;
+    height: 100%;
+}
+
+.facet-group-name {
+    height: 20px;
+}
+
+.facet-tab {
+    height: 31px;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+.facet-tab li {
+    display: inline-block;
+    position: relative;
+	padding-right: 5px;
+}
+
+.facet-tab li a {
+    background-color: #dedbde;
+    border-left: 1px solid #c9c3ba;
+	border-right: 1px solid #c9c3ba;
+    margin: 0 0 0;
+    padding: 6px 16px;
+    text-decoration: none;
+    display: inline-block;
+    line-height: 19px;
+	background-image: url("facet-tab_off.png");
+	color: #666666;
+}
+
+.facet-tab li a:hover {
+    background-color: #f1f0ee;
+}
+
+.facet-tab li a.selected {
+    color: #6C6F73;
+    background-color: #f1f0ee;
+    font-weight: bold;
+    background-image: url("facet-tab_on.png");
+	height: 20px;
+}
+
+.facet-tab li.settings {
+    margin-left:1em;  margin-right:1em;
+}
+
+/* ---- Facet Controls ---- */
 
 .facet-controls {
-    position: relative;
-    min-height: 1.8em;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 30px;
+    line-height: 30px;
 }
+
+.right-aligned-facet-controls {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.facet-controls > a {
+	font-size: 1.3em !important;
+	padding: 0 6px 0 0;
+}
+
+/* ---- Facet Content ---- */
 
 .facet-content {
     position: absolute;
-    top: 35px;
+    top: 130px;
     left: 0;
     right: 0;
     bottom: 0;
     padding: 0;
 }
 
-/* ---- Search ---- */
+/* ---- Facet Customization ---- */
+
+.no-facet-tabs .facet-header {
+    height: 70px;
+}
+
+.no-facet-tabs .facet-content {
+    top: 70px;
+}
+
+/* ---- Search Facet ---- */
 
 .content-table {
     position: absolute;
@@ -587,7 +595,7 @@ div.tabs {
     bottom: 32px;
 }
 
-.search-container {
+.search-filter {
 	float: right;
 	width: 215px;
 	-moz-border-radius: 15px !important;
@@ -597,6 +605,7 @@ div.tabs {
 	background: url("search-bg.png");
 	height: 18px;
 	padding-left: 8px;
+    margin: 5px 0 5px;
 }
 
 .search-controls {
@@ -730,7 +739,7 @@ hr {
     margin-top: 1em;
 }
 
-/* ---- Details ---- */
+/* ---- Details Facet ---- */
 
 .details-content {
     position: absolute;
@@ -991,172 +1000,15 @@ span.ui-icon-search {
         margin-left: 0 !important;
 }
 
-[title="Find"] {
-        background: none !important;
-		border: none !important;
-		color: transparent !important;
-		float: right !important;
-		margin: 0 -25em 0 0 !important;
-		width: 8px !important;
+a[name=find] {
+    margin: 6px;
+    padding: 3px 3px 2px;
+    position: absolute;
+    right: 0;
 }
 
 [title=">>"] {
     margin-top: 1em !important;
-}
-
-[title="Delete"] {
-	font-size: 1.3em !important;
-	padding: 0 0 2px 6px;
-}
-
-[title="Enroll"] {
-	font-size: 1.3em !important;
-	padding: 0 0 2px 6px;
-}
-
-[title="Update"] {
-	font-size: 1.3em !important;
-	padding: 0 0 2px 6px;
-}
-
-[title="Reset"] {
-	font-size: 1.3em !important;
-	padding: 0 0 2px 6px;
-}
-
-[title="Add"] {
-	font-size: 1.3em !important;
-	padding: 0 0 2px 22px;
-}
-
-[name="search"] {
-	margin-top: -40px;
-}
-
-[name="details"] {
-	margin-top: 30px;
-	margin-left: 7px;
-	width: 910px;
-}
-
-[name="records"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="maps"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="keys"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="certificates"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="member_role"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="member_privilege"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="memberof_group"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="memberof_privilege"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="memberof_hbacrule"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="memberof_sudorule"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="memberof_permission"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="memberof_netgroup"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="memberof_hostgroup"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="managedby_host"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="memberof_role"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="member_group"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="member_host"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="member_hostgroup"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="member_netgroup"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="memberhost_host"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="memberhost_hostgroup"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="memberuser_user"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="memberuser_group"] {
-	margin-top: 30px;
-	margin-left: 7px;
-}
-
-[name="member_user"] {
-	margin-top: 30px;
-	margin-left: 7px;
 }
 
 span.sub-nav-off > a:link, span.sub-nav-off >  a:visited{
@@ -1274,11 +1126,6 @@ dl.modal dd {
     margin-left: 0.8em;
 }
 /*
-#dns-record-resource-filter {
-        padding: 0 1em;
-        margin: 0 1em;
-}
-
 #dns-record-type-filter {
         margin: 0 1em 0 0.5em;
 }
@@ -1358,10 +1205,4 @@ table.scrollable tbody {
     bottom: 0;
     width: 23em;
     height: 4em;
-}
-
-.right-aligned-controls {
-    position: absolute;
-    right: 0;
-    padding-right: 1.5em;
 }

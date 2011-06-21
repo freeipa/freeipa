@@ -380,6 +380,7 @@ IPA.association_table_widget = function (spec) {
 
         var button = $('input[name=remove]', container);
         button.replaceWith(IPA.action_button({
+            name: 'remove',
             'label': button.val(),
             'icon': 'remove-icon',
             'click': function() {
@@ -409,6 +410,7 @@ IPA.association_table_widget = function (spec) {
 
         button = $('input[name=add]', container);
         button.replaceWith(IPA.action_button({
+            name: 'add',
             'label': button.val(),
             'icon': 'add-icon',
             'click': function() {
@@ -824,6 +826,7 @@ IPA.association_facet = function (spec) {
 
         if (!that.read_only) {
             that.remove_button = IPA.action_button({
+                name: 'remove',
                 label: IPA.messages.buttons.remove,
                 icon: 'remove-icon',
                 click: function() {
@@ -833,6 +836,7 @@ IPA.association_facet = function (spec) {
             }).appendTo(that.controls);
 
             that.add_button = IPA.action_button({
+                name: 'add',
                 label: IPA.messages.buttons.enroll,
                 icon: 'add-icon',
                 click: function() {
@@ -844,7 +848,7 @@ IPA.association_facet = function (spec) {
 
         if (that.indirect_attribute_member) {
             var span = $('<span/>', {
-                'class': 'right-aligned-controls'
+                'class': 'right-aligned-facet-controls'
             }).appendTo(that.controls);
 
             span.append('Show Results ');
@@ -895,10 +899,7 @@ IPA.association_facet = function (spec) {
         that.facet_show();
 
         that.pkey = $.bbq.getState(that.entity_name+'-pkey');
-        that.entity.header.set_pkey(that.pkey);
-
-        that.entity.header.back_link.css('visibility', 'visible');
-        that.entity.header.facet_tabs.css('visibility', 'visible');
+        that.header.set_pkey(that.pkey);
     };
 
     that.show_add_dialog = function() {

@@ -515,6 +515,7 @@ IPA.adder_dialog = function (spec) {
 
         var button = $('input[name=find]', that.container);
         that.find_button = IPA.button({
+            name: 'find',
             'label': button.val(),
             'icon': 'ui-icon-search',
             'click': function() { that.search(); }
@@ -523,6 +524,7 @@ IPA.adder_dialog = function (spec) {
 
         button = $('input[name=remove]', that.container);
         that.remove_button = IPA.button({
+            name: 'remove',
             'label': button.val(),
             'click': function() {
                 that.remove();
@@ -533,6 +535,7 @@ IPA.adder_dialog = function (spec) {
 
         button = $('input[name=add]', that.container);
         that.add_button = IPA.button({
+            name: 'add',
             'label': button.val(),
             'click': function() {
                 that.add();

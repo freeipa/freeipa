@@ -334,9 +334,19 @@ IPA.details_facet = function(spec) {
         return pkey;
     };
 
+    that.create = function(container) {
+        if (that.entity.facets.length == 1) {
+            that.disable_back_link = true;
+            that.disable_facet_tabs = true;
+        }
+
+        that.facet_create(container);
+    };
+
     that.create_controls = function() {
 
         that.reset_button = IPA.action_button({
+            name: 'reset',
             label: IPA.messages.buttons.reset,
             icon: 'reset-icon',
             'class': 'details-reset',
@@ -347,6 +357,7 @@ IPA.details_facet = function(spec) {
         }).appendTo(that.controls);
 
         that.update_button = IPA.action_button({
+            name: 'update',
             label: IPA.messages.buttons.update,
             icon: 'update-icon',
             'class': 'details-update',
@@ -376,7 +387,7 @@ IPA.details_facet = function(spec) {
             name: 'expand_all',
             href: 'expand_all',
             label: 'Expand All',
-            'class': 'right-aligned-controls',
+            'class': 'right-aligned-facet-controls',
             style: 'display: none;',
             click: function() {
                 that.expand_button.css('display', 'none');
@@ -395,7 +406,7 @@ IPA.details_facet = function(spec) {
             name: 'collapse_all',
             href: 'collapse_all',
             label: 'Collapse All',
-            'class': 'right-aligned-controls',
+            'class': 'right-aligned-facet-controls',
             click: function() {
                 that.expand_button.css('display', 'inline');
                 that.collapse_button.css('display', 'none');
@@ -477,15 +488,7 @@ IPA.details_facet = function(spec) {
         that.facet_show();
 
         that.pkey = $.bbq.getState(that.entity_name+'-pkey');
-        that.entity.header.set_pkey(that.pkey);
-
-        if (that.entity.facets.length == 1) {
-            that.entity.header.back_link.css('visibility', 'hidden');
-            that.entity.header.facet_tabs.css('visibility', 'hidden');
-        } else {
-            that.entity.header.back_link.css('visibility', 'visible');
-            that.entity.header.facet_tabs.css('visibility', 'visible');
-        }
+        that.header.set_pkey(that.pkey);
     };
 
     that.toggle = function(section, visible) {
