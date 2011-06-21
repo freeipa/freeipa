@@ -380,6 +380,7 @@ class LDAPObject(Object):
 
     def __json__(self):
         ldap = self.backend
+        ldap.get_schema()
         json_dict = dict(
             (a, getattr(self, a)) for a in self.json_friendly_attributes
         )
