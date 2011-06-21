@@ -338,7 +338,7 @@ IPA.details_facet = function(spec) {
 
         that.reset_button = IPA.action_button({
             label: IPA.messages.buttons.reset,
-            icon: 'ui-icon-refresh',
+            icon: 'reset-icon',
             'class': 'details-reset',
             click: function() {
                 that.reset();
@@ -348,7 +348,7 @@ IPA.details_facet = function(spec) {
 
         that.update_button = IPA.action_button({
             label: IPA.messages.buttons.update,
-            icon: 'ui-icon-check',
+            icon: 'update-icon',
             'class': 'details-update',
             click: function() {
                 that.update();

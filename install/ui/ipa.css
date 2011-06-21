@@ -431,11 +431,13 @@ div.tabs {
 
 .entity-tabs {
     position: absolute;
-    height: 40px;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: 1; /* need to be above facet header */
+	margin-bottom: -25px;
+	padding-bottom: 11px;
+	border-bottom: 1px solid #C9C3BA;
 }
 
 .facet-group {
@@ -466,29 +468,30 @@ div.tabs {
     display: inline-block;
     height: 25px;
     position: relative;
+	padding-right: 5px;
 }
 
 .facet-tab li a {
-    color: #42454a;
     background-color: #dedbde;
-    border: 1px solid #c9c3ba;
-    border-bottom: none;
+    border-left: 1px solid #c9c3ba;
+	border-right: 1px solid #c9c3ba;
     margin: 5px 0 0;
-    padding: 0 4px 0;
+    padding: 6px 25px;
     text-decoration: none;
     display: inline-block;
     line-height: 19px;
+	background-image: url("facet-tab_off.png");
 }
 
 .facet-tab li a:hover {
     background-color: #f1f0ee;
 }
 .facet-tab li a.selected {
-    color: #000;
+    color: #6C6F73;
     background-color: #f1f0ee;
     font-weight: bold;
-    margin: 0;
-    padding: 5px 4px 1px;
+    background-image: url("facet-tab_on.png");
+	height: 20px;
 }
 
 .facet-tab li.settings {
@@ -717,6 +720,7 @@ hr {
     bottom: 32px;
     overflow: auto;
     border: none;
+	border-top: 1px solid #DFDFDF;
 }
 
 .details-summary {
@@ -985,9 +989,144 @@ span.ui-icon-search {
 	padding: 0 0 2px 6px;
 }
 
+[title="Enroll"] {
+	font-size: 1.3em !important;
+	padding: 0 0 2px 6px;
+}
+
+[title="Update"] {
+	font-size: 1.3em !important;
+	padding: 0 0 2px 6px;
+}
+
+[title="Reset"] {
+	font-size: 1.3em !important;
+	padding: 0 0 2px 6px;
+}
+
 [title="Add"] {
 	font-size: 1.3em !important;
 	padding: 0 0 2px 22px;
+}
+
+[name="search"] {
+	margin-top: -40px;
+}
+
+[name="details"] {
+	margin-top: 30px;
+	margin-left: 7px;
+	width: 910px;
+}
+
+[name="records"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="maps"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="keys"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="certificates"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="member_role"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="member_privilege"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="memberof_group"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="memberof_privilege"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="memberof_permission"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="memberof_netgroup"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="memberof_hostgroup"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="managedby_host"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="memberof_role"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="member_group"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="member_host"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="member_hostgroup"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="member_netgroup"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="memberhost_host"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="memberhost_hostgroup"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="memberuser_user"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="memberuser_group"] {
+	margin-top: 30px;
+	margin-left: 7px;
+}
+
+[name="member_user"] {
+	margin-top: 30px;
+	margin-left: 7px;
 }
 
 span.sub-nav-off > a:link, span.sub-nav-off >  a:visited{

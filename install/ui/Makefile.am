@@ -20,6 +20,8 @@ app_DATA =                              \
 	check.png			\
 	dialog.js 			\
 	dns.js				\
+        facet-tab_on.png                \
+	facet-tab_off.png               \
 	ipa_logo_180x50.png		\
 	ipa.js				\
 	ipa.css				\
