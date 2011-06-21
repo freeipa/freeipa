@@ -418,6 +418,33 @@ class test_Command(ClassChecker):
         """
         # FIXME: Add an updated unit tests for get_default()
 
+    def test_default_from_chaining(self):
+        """
+        Test chaining of parameters through default_from.
+        """
+        class my_cmd(self.cls):
+            takes_options = (
+                Str('option0'),
+                Str('option1', default_from=lambda option0: option0),
+                Str('option2', default_from=lambda option1: option1),
+            )
+
+            def run(self, *args, **options):
+                return dict(result=options)
+
+        kw = dict(option0=u'some value')
+
+        (api, home) = create_test_api()
+        api.finalize()
+        o = my_cmd()
+        o.set_api(api)
+        o.finalize()
+        e = o(**kw)
+        assert type(e) is dict
+        assert 'result' in e
+        assert 'option2' in e['result']
+        assert e['result']['option2'] == u'some value'
+
     def test_validate(self):
         """
         Test the `ipalib.frontend.Command.validate` method.

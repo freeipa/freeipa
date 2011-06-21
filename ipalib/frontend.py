@@ -408,7 +408,11 @@ class Command(HasParam):
         self.debug(
             'raw: %s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
-        params.update(self.get_default(**params))
+        while True:
+            default = self.get_default(**params)
+            if len(default) == 0:
+                break
+            params.update(default)
         params = self.normalize(**params)
         params = self.convert(**params)
         self.debug(

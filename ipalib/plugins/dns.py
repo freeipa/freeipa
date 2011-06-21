@@ -28,6 +28,10 @@ EXAMPLES:
    ipa dnszone-add example.com --name-server nameserver.example.com
                                --admin-email admin@example.com
 
+ Add new reverse zone specified by network IP address:
+   ipa dnszone-add --name-from-ip 80.142.15.0/24
+                   --name-server nameserver.example.com
+
  Add second nameserver for example.com:
    ipa dnsrecord-add example.com @ --ns-rec nameserver2.example.com
 
@@ -140,6 +144,16 @@ def _rname_normalizer(value):
 def _create_zone_serial(**kwargs):
     """Generate serial number for zones."""
     return int('%s01' % time.strftime('%Y%d%m'))
+
+def _reverse_zone_name(netstr):
+    net = netaddr.IPNetwork(netstr)
+    items = net.ip.reverse_dns.split('.')
+    if net.version == 4:
+        return u'.'.join(items[4 - net.prefixlen / 8:])
+    elif net.version == 6:
+        return u'.'.join(items[32 - net.prefixlen / 4:])
+    else:
+        return None
 
 def _validate_ipaddr(ugettext, ipaddr):
     try:
@@ -293,8 +307,13 @@ class dnszone(LDAPObject):
             cli_name='name',
             label=_('Zone name'),
             doc=_('Zone name (FQDN)'),
+            default_from=lambda name_from_ip: _reverse_zone_name(name_from_ip),
             normalizer=lambda value: value.lower(),
             primary_key=True,
+        ),
+        Str('name_from_ip?', _validate_ipnet,
+            label=_('Reverse zone IP network'),
+            doc=_('IP network to create reverse zone name from'),
         ),
         Str('idnssoamname',
             cli_name='name_server',
@@ -401,6 +420,9 @@ class dnszone_add(LDAPCreate):
         if not dns_container_exists(self.api.Backend.ldap2):
             raise errors.NotFound(reason=_('DNS is not configured'))
 
+        if 'name_from_ip' in entry_attrs:
+            del entry_attrs['name_from_ip']
+
         entry_attrs['idnszoneactive'] = 'TRUE'
         entry_attrs['idnsallowdynupdate'] = str(
             entry_attrs.get('idnsallowdynupdate', False)
@@ -445,6 +467,8 @@ class dnszone_mod(LDAPUpdate):
     Modify DNS zone (SOA record).
     """
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if 'name_from_ip' in entry_attrs:
+            del entry_attrs['name_from_ip']
         entry_attrs['idnsallowdynupdate'] = str(
             entry_attrs.get('idnsallowdynupdate', False)
         ).upper()
@@ -457,6 +481,12 @@ class dnszone_find(LDAPSearch):
     """
     Search for DNS zones (SOA records).
     """
+    def args_options_2_entry(self, *args, **options):
+        if 'name_from_ip' in options:
+            if 'idnsname' not in options:
+                options['idnsname'] = self.obj.params['idnsname'].get_default(**options)
+            del options['name_from_ip']
+        return super(dnszone_find, self).args_options_2_entry(self, *args, **options)
 
     takes_options = LDAPSearch.takes_options + (
         Flag('forward_only',

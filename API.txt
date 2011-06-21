@@ -737,8 +737,9 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnszone_add
-args: 1,18,3
-arg: Str('idnsname', attribute=True, cli_name='name', label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=True)
+args: 1,19,3
+arg: Str('idnsname', attribute=True, cli_name='name', default_from=DefaultFrom(<lambda>, 'name_from_ip'), label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=True)
+option: Str('name_from_ip', _validate_ipnet, attribute=True, cli_name='name_from_ip', label=Gettext('Reverse zone IP network', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('idnssoamname', attribute=True, cli_name='name_server', label=Gettext('Authoritative nameserver', domain='ipa', localedir=None), multivalue=False, required=True)
 option: Str('idnssoarname', attribute=True, cli_name='admin_email', default_from=DefaultFrom(<lambda>, 'idnsname'), label=Gettext('Administrator e-mail address', domain='ipa', localedir=None), multivalue=False, normalizer=_rname_normalizer, required=True)
 option: Int('idnssoaserial', attribute=True, autofill=True, cli_name='serial', create_default=_create_zone_serial, label=Gettext('SOA serial', domain='ipa', localedir=None), minvalue=1, multivalue=False, required=False)
@@ -762,27 +763,28 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnszone_del
 args: 1,1,3
-arg: Str('idnsname', attribute=True, cli_name='name', label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=True, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('idnsname', attribute=True, cli_name='name', default_from=DefaultFrom(<lambda>, 'name_from_ip'), label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=True, normalizer=<lambda>, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnszone_disable
 args: 1,0,3
-arg: Str('idnsname', attribute=True, cli_name='name', label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('idnsname', attribute=True, cli_name='name', default_from=DefaultFrom(<lambda>, 'name_from_ip'), label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnszone_enable
 args: 1,0,3
-arg: Str('idnsname', attribute=True, cli_name='name', label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('idnsname', attribute=True, cli_name='name', default_from=DefaultFrom(<lambda>, 'name_from_ip'), label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnszone_find
-args: 1,19,4
+args: 1,20,4
 arg: Str('criteria?', noextrawhitespace=False)
-option: Str('idnsname', attribute=True, autofill=False, cli_name='name', label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
+option: Str('idnsname', attribute=True, autofill=False, cli_name='name', default_from=DefaultFrom(<lambda>, 'name_from_ip'), label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
+option: Str('name_from_ip', _validate_ipnet, attribute=True, autofill=False, cli_name='name_from_ip', label=Gettext('Reverse zone IP network', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Str('idnssoamname', attribute=True, autofill=False, cli_name='name_server', label=Gettext('Authoritative nameserver', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Str('idnssoarname', attribute=True, autofill=False, cli_name='admin_email', default_from=DefaultFrom(<lambda>, 'idnsname'), label=Gettext('Administrator e-mail address', domain='ipa', localedir=None), multivalue=False, normalizer=_rname_normalizer, query=True, required=False)
 option: Int('idnssoaserial', attribute=True, autofill=False, cli_name='serial', create_default=_create_zone_serial, label=Gettext('SOA serial', domain='ipa', localedir=None), minvalue=1, multivalue=False, query=True, required=False)
@@ -806,8 +808,9 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, 'Number of entries returned')
 output: Output('truncated', <type 'bool'>, 'True if not all results were returned')
 command: dnszone_mod
-args: 1,17,3
-arg: Str('idnsname', attribute=True, cli_name='name', label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+args: 1,18,3
+arg: Str('idnsname', attribute=True, cli_name='name', default_from=DefaultFrom(<lambda>, 'name_from_ip'), label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+option: Str('name_from_ip', _validate_ipnet, attribute=True, autofill=False, cli_name='name_from_ip', label=Gettext('Reverse zone IP network', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('idnssoamname', attribute=True, autofill=False, cli_name='name_server', label=Gettext('Authoritative nameserver', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('idnssoarname', attribute=True, autofill=False, cli_name='admin_email', default_from=DefaultFrom(<lambda>, 'idnsname'), label=Gettext('Administrator e-mail address', domain='ipa', localedir=None), multivalue=False, normalizer=_rname_normalizer, required=False)
 option: Int('idnssoaserial', attribute=True, autofill=False, cli_name='serial', create_default=_create_zone_serial, label=Gettext('SOA serial', domain='ipa', localedir=None), minvalue=1, multivalue=False, required=False)
@@ -830,7 +833,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnszone_show
 args: 1,4,3
-arg: Str('idnsname', attribute=True, cli_name='name', label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('idnsname', attribute=True, cli_name='name', default_from=DefaultFrom(<lambda>, 'name_from_ip'), label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
 option: Flag('rights', autofill=True, default=False, label=Gettext('Rights', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
