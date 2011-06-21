@@ -15609,6 +15609,7 @@
                         "sudo": "Sudo"
                     },
                     "widget": {
+                        "optional": "Optional field: click to show",
                         "validation_error": "Text does not match field pattern"
                     }
                 }

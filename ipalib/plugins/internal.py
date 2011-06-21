@@ -365,6 +365,7 @@ class i18n_messages(Command):
             "remove":_("Remove ${other_entity} from ${entity} ${primary_key}"),
             },
         "widget":{
+            "optional":_("Optional field: click to show"),
             "validation_error":_("Text does not match field pattern"),
             },
         "ajax":{

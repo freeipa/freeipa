@@ -119,7 +119,14 @@ IPA.entity_factories.user = function() {
             link: link
         }).
         adder_dialog({
-            fields: ['uid', 'givenname', 'sn']
+            fields: [
+                {
+                    factory : IPA.text_widget,
+                    undo: false,
+                    optional: true,
+                    name:'uid'
+                },
+                'givenname', 'sn']
         });
 
     return builder.build();

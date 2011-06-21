@@ -188,6 +188,23 @@ IPA.dialog = function(spec) {
 
             var span = $('<span/>', { 'name': field.name }).appendTo(td);
             field.create(span);
+            field.field_span = span;
+
+            if (field.optional){
+                span.css('display','none');
+                td.append(
+                    $('<a/>',{
+                        text: IPA.messages.widget.optional,
+                        href:'',
+                        click: function(){
+                            var span = $(this).prev();
+                            span.css('display','inline');
+                            $(this).css('display','none');
+                            return false;
+                        }
+                    }));
+            }
+
         }
 
         var sections = that.sections.values;
@@ -326,6 +343,8 @@ IPA.dialog = function(spec) {
         if (field_spec instanceof Object) {
             var factory = field_spec.factory || IPA.text_widget;
             field = factory(field_spec);
+
+            field.optional = field_spec.optional || false;
 
             /* This is a bit of a hack, and is here to support ACI
                permissions. The target section is a group of several
