@@ -132,7 +132,9 @@ IPA.navigation = function(spec) {
 
     that.create = function() {
 
-        var container = $('<div/>').appendTo(that.container);
+        var container = $('<div/>', {
+            name: 'navigation'
+        }).appendTo(that.container);
 
         that._create(that.tabs, container, 1);
 
@@ -152,13 +154,11 @@ IPA.navigation = function(spec) {
         container.addClass(that.tab_class);
         container.addClass('tabs'+depth);
 
-        var parent_id = container.attr('id');
-
         var ul = $('<ul/>').appendTo(container);
 
         for (var i=0; i<tabs.length; i++) {
             var tab = tabs[i];
-            var tab_id = parent_id+'-'+i;
+            var tab_id = 'navigation-'+tab.name;
 
             if (tab.entity) {
                 var entity = IPA.get_entity(tab.entity);
@@ -201,12 +201,14 @@ IPA.navigation = function(spec) {
             that.content.removeClass(that.tab_class+'-'+i);
         }
         $('.entity', that.content).css('display', 'none');
-        that._update(that.tabs, that.container, 1);
+
+        var container = $('div[name=navigation]', that.container);
+        that._update(that.tabs, container, 1);
     };
 
     that._update = function(tabs, container, depth) {
 
-        var parent_name = container.attr('name') || container.attr('id');
+        var parent_name = container.attr('name');
         var tab_name = that.get_state(parent_name);
 
         var index = 0;
