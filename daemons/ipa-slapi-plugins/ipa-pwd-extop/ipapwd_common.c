@@ -67,81 +67,6 @@ static const char *ipapwd_def_encsalts[] = {
     NULL
 };
 
-static int new_ipapwd_encsalt(krb5_context krbctx,
-                              const char * const *encsalts,
-                              krb5_key_salt_tuple **es_types,
-                              int *num_es_types)
-{
-    krb5_key_salt_tuple *es;
-    int nes, i;
-    int rc;
-
-    for (i = 0; encsalts[i]; i++) /* count */ ;
-    es = calloc(i + 1, sizeof(krb5_key_salt_tuple));
-    if (!es) {
-        LOG_OOM();
-        rc = LDAP_OPERATIONS_ERROR;
-        goto fail;
-    }
-
-    for (i = 0, nes = 0; encsalts[i]; i++) {
-        char *enc, *salt;
-        krb5_int32 tmpsalt;
-        krb5_enctype tmpenc;
-        krb5_boolean similar;
-        krb5_error_code krberr;
-        int j;
-
-        enc = strdup(encsalts[i]);
-        if (!enc) {
-            LOG_OOM();
-            rc = LDAP_OPERATIONS_ERROR;
-            goto fail;
-        }
-        salt = strchr(enc, ':');
-        if (!salt) {
-            LOG_FATAL("Invalid krb5 enc string\n");
-            free(enc);
-            continue;
-        }
-        *salt = '\0'; /* null terminate the enc type */
-        salt++; /* skip : */
-
-        krberr = krb5_string_to_enctype(enc, &tmpenc);
-        if (krberr) {
-            LOG_FATAL("Invalid krb5 enctype\n");
-            free(enc);
-            continue;
-        }
-
-        krberr = krb5_string_to_salttype(salt, &tmpsalt);
-        for (j = 0; j < nes; j++) {
-            krb5_c_enctype_compare(krbctx, es[j].ks_enctype, tmpenc, &similar);
-            if (similar && (es[j].ks_salttype == tmpsalt)) {
-                break;
-            }
-        }
-
-        if (j == nes) {
-            /* not found */
-            es[j].ks_enctype = tmpenc;
-            es[j].ks_salttype = tmpsalt;
-            nes++;
-        }
-
-        free(enc);
-    }
-
-    *es_types = es;
-    *num_es_types = nes;
-
-    return LDAP_SUCCESS;
-
-fail:
-    free(es);
-    return rc;
-}
-
 static struct ipapwd_krbcfg *ipapwd_getConfig(void)
 {
     krb5_error_code krberr;
@@ -245,17 +170,19 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     encsalts = slapi_entry_attr_get_charray(realm_entry,
                                             "krbSupportedEncSaltTypes");
     if (encsalts) {
-        ret = new_ipapwd_encsalt(config->krbctx,
-                                 (const char * const *)encsalts,
-                                 &config->supp_encsalts,
-                                 &config->num_supp_encsalts);
+        for (i = 0; encsalts[i]; i++) /* count */ ;
+        ret = parse_bval_key_salt_tuples(config->krbctx,
+                                         (const char * const *)encsalts, i,
+                                         &config->supp_encsalts,
+                                         &config->num_supp_encsalts);
         slapi_ch_array_free(encsalts);
     } else {
         LOG("No configured salt types use defaults\n");
-        ret = new_ipapwd_encsalt(config->krbctx,
-                                 ipapwd_def_encsalts,
-                                 &config->supp_encsalts,
-                                 &config->num_supp_encsalts);
+        for (i = 0; ipapwd_def_encsalts[i]; i++) /* count */ ;
+        ret = parse_bval_key_salt_tuples(config->krbctx,
+                                         ipapwd_def_encsalts, i,
+                                         &config->supp_encsalts,
+                                         &config->num_supp_encsalts);
     }
     if (ret) {
         LOG_FATAL("Can't get Supported EncSalt Types\n");
@@ -267,17 +194,19 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     encsalts = slapi_entry_attr_get_charray(realm_entry,
                                             "krbDefaultEncSaltTypes");
     if (encsalts) {
-        ret = new_ipapwd_encsalt(config->krbctx,
-                                 (const char * const *)encsalts,
-                                 &config->pref_encsalts,
-                                 &config->num_pref_encsalts);
+        for (i = 0; encsalts[i]; i++) /* count */ ;
+        ret = parse_bval_key_salt_tuples(config->krbctx,
+                                         (const char * const *)encsalts, i,
+                                         &config->pref_encsalts,
+                                         &config->num_pref_encsalts);
         slapi_ch_array_free(encsalts);
     } else {
         LOG("No configured salt types use defaults\n");
-        ret = new_ipapwd_encsalt(config->krbctx,
-                                 ipapwd_def_encsalts,
-                                 &config->pref_encsalts,
-                                 &config->num_pref_encsalts);
+        for (i = 0; ipapwd_def_encsalts[i]; i++) /* count */ ;
+        ret = parse_bval_key_salt_tuples(config->krbctx,
+                                         ipapwd_def_encsalts, i,
+                                         &config->pref_encsalts,
+                                         &config->num_pref_encsalts);
     }
     if (ret) {
         LOG_FATAL("Can't get Preferred EncSalt Types\n");

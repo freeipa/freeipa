@@ -26,4 +26,10 @@ int ber_encode_krb5_key_data(krb5_key_data *data,
                              int numk, int mkvno,
                              struct berval **encoded);
 
+krb5_error_code parse_bval_key_salt_tuples(krb5_context kcontext,
+                                           const char * const *vals,
+                                           int n_vals,
+                                           krb5_key_salt_tuple **kst,
+                                           int *n_kst);
+
 #endif /* __IPA_KRB5_H_ */
