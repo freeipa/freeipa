@@ -33,8 +33,19 @@ IPA.add_dialog = function (spec) {
     that.title = spec.title;
     that._entity_name = spec.entity_name;
     that.method = spec.method || 'add';
-    that.init = function() {
 
+    function show_edit_page(entity_name,result){
+        var pkey_name = IPA.metadata.objects[entity_name].primary_key;
+        var pkey = result[pkey_name];
+        if (pkey instanceof Array) {
+            pkey = pkey[0];
+        }
+        IPA.nav.show_page(that.entity_name, 'default', pkey);
+    }
+
+    that.show_edit_page = spec.show_edit_page || show_edit_page;
+
+    that.init = function() {
         that.add_button(IPA.messages.buttons.add, function() {
             var record = {};
             that.save(record);
@@ -74,16 +85,9 @@ IPA.add_dialog = function (spec) {
                 function(data, text_status, xhr) {
                     that.close();
 
-                    var pkey_name = IPA.metadata.objects[that.entity_name].primary_key;
-
+                    var entity_name = that.entity_name;
                     var result = data.result.result;
-                    var pkey = result[pkey_name];
-
-                    if (pkey instanceof Array) {
-                        pkey = pkey[0];
-                    }
-
-                    IPA.nav.show_page(that.entity_name, 'default', pkey);
+                    that.show_edit_page(entity_name,result);
                 }
             );
         });

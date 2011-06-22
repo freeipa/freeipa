@@ -66,8 +66,15 @@ IPA.entity_factories.automountmap = function() {
             label : IPA.metadata.objects.automountkey.label,
             name: 'keys',
             get_values: IPA.get_option_values,
-            columns:['automountkey','automountinformation'],
-            back_link_text: 'Back to Locations'
+            back_link_text: 'Back to Locations',
+            columns:[
+                {
+                    factory: IPA.automount_key_column,
+                    name:'automountkey',
+                    label:IPA.get_entity_param('automountkey', 'automountkey').
+                        label
+                },
+                'automountinformation']
         }).
         details_facet({
             sections:[
@@ -114,15 +121,75 @@ IPA.entity_factories.automountkey = function() {
                 {
                     name:'identity',
                     label: IPA.messages.details.identity,
-                    fields:['automountkey','automountinformation','description']
+                    fields:[
+                        {
+                            factory: IPA.text_widget,
+                            read_only: true,
+                            name:   'automountkey'
+                        },
+                        'automountinformation']
                 }
             ],
-            back_link_text: 'Back to Locations'
+            disable_breadcrumb: false,
+            back_link_text: 'Back to Locations',
+            pre_execute_hook : function (command){
+                var entity_name = this.entity_name;
+                var info = IPA.nav.get_state(entity_name + '-info');
+                var key = IPA.nav.get_state(entity_name + '-pkey');
+
+
+                if (command.args.length ==3){
+                    command.args.pop();
+                }
+                if (command.method === 'mod'){
+                    command.options['newautomountinformation'] =
+                        command.options['automountinformation'];
+
+                }
+                command.options['automountkey'] = key;
+                command.options['automountinformation'] = info;
+            }
         }).
         adder_dialog({
+            show_edit_page : function(entity_name, result){
+                var key = result.automountkey[0];
+                var info = result.automountinformation[0];
+                var state = IPA.nav.get_path_state(entity_name);
+                state[entity_name + '-facet'] = 'default';
+                state[entity_name + '-info'] = info;
+                state[entity_name + '-pkey'] = key;
+                IPA.nav.push_state(state);
+                return false;
+            },
             fields:['automountkey','automountinformation']
         }).
         build();
+};
+
+IPA.automount_key_column = function(spec){
+    var that = IPA.column(spec);
+
+    that.setup = function(container, record) {
+        container.empty();
+        var key = record.automountkey;
+        var info = record.automountinformation;
+
+        $('<a/>', {
+            href: '#'+key,
+            html: key,
+            click: function() {
+                var state = IPA.nav.get_path_state(that.entity_name);
+                state[that.entity_name + '-facet'] = 'default';
+                state[that.entity_name + '-info'] = info;
+                state[that.entity_name + '-pkey'] = key;
+                IPA.nav.push_state(state);
+                return false;
+            }
+        }).appendTo(container);
+
+    };
+
+    return that;
 };
 
 

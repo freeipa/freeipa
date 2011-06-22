@@ -55,6 +55,7 @@ IPA.admin_navigation = function(spec) {
             ]},
             {entity: 'automountlocation', label: IPA.messages.tabs.automount},
             {entity: 'automountmap',hidden:true},
+            {entity: 'automountkey',hidden:true},
             {entity: 'pwpolicy'},
             {entity: 'krbtpolicy'}
         ]},

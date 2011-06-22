@@ -266,6 +266,8 @@ IPA.details_facet = function(spec) {
 
     var that = IPA.facet(spec);
 
+    that.pre_execute_hook = spec.pre_execute_hook;
+
     that.label = spec.label || IPA.messages && IPA.messages.facets && IPA.messages.facets.details;
     that.facet_group = spec.facet_group || 'settings';
 
@@ -336,8 +338,12 @@ IPA.details_facet = function(spec) {
 
     that.create = function(container) {
         if (that.entity.facets.length == 1) {
-            that.disable_breadcrumb = true;
-            that.disable_facet_tabs = true;
+            if (that.disable_breadcrumb === undefined) {
+                that.disable_breadcrumb = true;
+            }
+            if (that.disable_facet_tabs === undefined) {
+                that.disable_facet_tabs = true;
+            }
         }
 
         that.facet_create(container);
@@ -617,6 +623,10 @@ IPA.details_facet = function(spec) {
 
         //alert(JSON.stringify(command.to_json()));
 
+        if (that.pre_execute_hook){
+            that.pre_execute_hook(command);
+        }
+
         command.execute();
     };
 
@@ -652,6 +662,10 @@ IPA.details_facet = function(spec) {
         };
 
         command.on_error = that.on_error;
+
+        if (that.pre_execute_hook){
+            that.pre_execute_hook(command);
+        }
 
         command.execute();
     };
