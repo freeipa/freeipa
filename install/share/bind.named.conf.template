@@ -11,6 +11,9 @@ options {
 	forward first;
 	forwarders {$FORWARDERS};
 
+	// Any host is permitted to issue recursive queries
+	allow-recursion { any; };
+
 	tkey-gssapi-credential "DNS/$FQDN";
 	tkey-domain "$REALM";
 };
