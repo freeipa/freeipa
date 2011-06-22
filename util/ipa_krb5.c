@@ -379,3 +379,76 @@ done:
     return ret;
 }
 
+krb5_error_code parse_bval_key_salt_tuples(krb5_context kcontext,
+                                           const char * const *vals,
+                                           int n_vals,
+                                           krb5_key_salt_tuple **kst,
+                                           int *n_kst)
+{
+    krb5_error_code kerr;
+    krb5_key_salt_tuple *ks;
+    int n_ks;
+    int i;
+
+    ks = calloc(n_vals + 1, sizeof(krb5_key_salt_tuple));
+    if (!ks) {
+        return ENOMEM;
+    }
+
+    for (i = 0, n_ks = 0; i < n_vals; i++) {
+        char *enc, *salt;
+        krb5_int32 tmpsalt;
+        krb5_enctype tmpenc;
+        krb5_boolean similar;
+        krb5_error_code krberr;
+        int j;
+
+        enc = strdup(vals[i]);
+        if (!enc) {
+            kerr = ENOMEM;
+            goto fail;
+        }
+
+        salt = strchr(enc, ':');
+        if (!salt) {
+            free(enc);
+            continue;
+        }
+        *salt = '\0'; /* null terminate the enc type */
+        salt++; /* skip : */
+
+        krberr = krb5_string_to_enctype(enc, &tmpenc);
+        if (krberr) {
+            free(enc);
+            continue;
+        }
+
+        krberr = krb5_string_to_salttype(salt, &tmpsalt);
+        for (j = 0; j < n_ks; j++) {
+            krb5_c_enctype_compare(kcontext,
+                                   ks[j].ks_enctype, tmpenc, &similar);
+            if (similar && (ks[j].ks_salttype == tmpsalt)) {
+                break;
+            }
+        }
+
+        if (j == n_ks) {
+            /* not found */
+            ks[j].ks_enctype = tmpenc;
+            ks[j].ks_salttype = tmpsalt;
+            n_ks++;
+        }
+
+        free(enc);
+    }
+
+    *kst = ks;
+    *n_kst = n_ks;
+
+    return 0;
+
+fail:
+    free(ks);
+    return kerr;
+}
+
