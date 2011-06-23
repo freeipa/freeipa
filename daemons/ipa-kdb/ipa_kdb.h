@@ -133,6 +133,21 @@ krb5_error_code ipadb_iterate(krb5_context kcontext,
                               int (*func)(krb5_pointer, krb5_db_entry *),
                               krb5_pointer func_arg);
 
+/* POLICY FUNCTIONS */
+krb5_error_code ipadb_create_pwd_policy(krb5_context kcontext,
+                                        osa_policy_ent_t policy);
+krb5_error_code ipadb_get_pwd_policy(krb5_context kcontext, char *name,
+                                     osa_policy_ent_t *policy);
+krb5_error_code ipadb_put_pwd_policy(krb5_context kcontext,
+                                     osa_policy_ent_t policy);
+krb5_error_code ipadb_iterate_pwd_policy(krb5_context kcontext,
+                                         char *match_entry,
+                                         osa_adb_iter_policy_func func,
+                                         void *data);
+krb5_error_code ipadb_delete_pwd_policy(krb5_context kcontext,
+                                        char *policy);
+void ipadb_free_pwd_policy(krb5_context kcontext, osa_policy_ent_t val);
+
 /* MASTER KEY FUNCTIONS */
 krb5_error_code ipadb_fetch_master_key(krb5_context kcontext,
                                        krb5_principal mname,

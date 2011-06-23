@@ -1,0 +1,187 @@
+/*
+ * MIT Kerberos KDC database backend for FreeIPA
+ *
+ * Authors: Simo Sorce <ssorce@redhat.com>
+ *
+ * Copyright (C) 2011  Simo Sorce, Red Hat
+ * see file 'COPYING' for use and warranty information
+ *
+ * This program is free software you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "ipa_kdb.h"
+
+#define POLICY_SEARCH_FILTER "(&(objectClass=krbPwdPolicy)(cn=%s))"
+
+static char *std_pwdpolicy_attrs[] = {
+    "krbmaxpwdlife",
+    "krbminpwdlife",
+    "krbpwdmindiffchars",
+    "krbpwdminlength",
+    "krbpwdhistorylength",
+    "krbpwdmaxfailure",
+    "krbpwdmaxfailurecountinterval",
+    "krbpwdlockoutduration",
+
+    NULL
+};
+
+krb5_error_code ipadb_create_pwd_policy(krb5_context kcontext,
+                                        osa_policy_ent_t policy)
+{
+    return KRB5_PLUGIN_OP_NOTSUPP;
+}
+
+krb5_error_code ipadb_get_pwd_policy(krb5_context kcontext, char *name,
+                                     osa_policy_ent_t *policy)
+{
+    struct ipadb_context *ipactx;
+    char *esc_name = NULL;
+    char *src_filter = NULL;
+    krb5_error_code kerr;
+    LDAPMessage *res = NULL;
+    LDAPMessage *lentry;
+    osa_policy_ent_t pentry;
+    uint32_t result;
+    int ret;
+
+    ipactx = ipadb_get_context(kcontext);
+    if (!ipactx) {
+        return KRB5_KDB_DBNOTINITED;
+    }
+
+    esc_name = ipadb_filter_escape(name, true);
+    if (!esc_name) {
+        return ENOMEM;
+    }
+
+    ret = asprintf(&src_filter, POLICY_SEARCH_FILTER, esc_name);
+    if (ret == -1) {
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    kerr = ipadb_simple_search(ipactx,
+                               ipactx->realm_base, LDAP_SCOPE_SUBTREE,
+                               src_filter, std_pwdpolicy_attrs, &res);
+    if (kerr) {
+        goto done;
+    }
+
+    lentry = ldap_first_entry(ipactx->lcontext, res);
+    if (!lentry) {
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    pentry = calloc(1, sizeof(osa_policy_ent_t));
+    if (!pentry) {
+        kerr = ENOMEM;
+        goto done;
+    }
+    pentry->version = 1;
+    pentry->name = strdup(name);
+    if (!pentry->name) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
+    /* FIXME: what to do with missing attributes ? */
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "krbMinPwdLife", &result);
+    if (ret == 0) {
+        pentry->pw_min_life = result;
+    }
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "krbMaxPwdLife", &result);
+    if (ret == 0) {
+        pentry->pw_max_life = result;
+    }
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "krbPwdMinLength", &result);
+    if (ret == 0) {
+        pentry->pw_min_length = result;
+    }
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "krbPwdMinDiffChars", &result);
+    if (ret == 0) {
+        pentry->pw_min_classes = result;
+    }
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "krbPwdHistoryLength", &result);
+    if (ret == 0) {
+        pentry->pw_history_num = result;
+    }
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "krbPwdMaxFailure", &result);
+    if (ret == 0) {
+        pentry->pw_max_fail = result;
+    }
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "krbPwdFailureCountInterval", &result);
+    if (ret == 0) {
+        pentry->pw_failcnt_interval = result;
+    }
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "krbPwdLockoutDuration", &result);
+    if (ret == 0) {
+        pentry->pw_lockout_duration = result;
+    }
+
+    *policy = pentry;
+
+done:
+    free(esc_name);
+    free(src_filter);
+    ldap_msgfree(res);
+
+    return kerr;
+}
+
+krb5_error_code ipadb_put_pwd_policy(krb5_context kcontext,
+                                     osa_policy_ent_t policy)
+{
+    return KRB5_PLUGIN_OP_NOTSUPP;
+}
+
+krb5_error_code ipadb_iterate_pwd_policy(krb5_context kcontext,
+                                         char *match_entry,
+                                         osa_adb_iter_policy_func func,
+                                         void *data)
+{
+    return KRB5_PLUGIN_OP_NOTSUPP;
+}
+
+krb5_error_code ipadb_delete_pwd_policy(krb5_context kcontext,
+                                        char *policy)
+{
+    return KRB5_PLUGIN_OP_NOTSUPP;
+}
+
+void ipadb_free_pwd_policy(krb5_context kcontext, osa_policy_ent_t val)
+{
+    if (val) {
+        free(val->name);
+        free(val);
+    }
+}
+
