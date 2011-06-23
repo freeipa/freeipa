@@ -447,7 +447,6 @@ class Env(object):
         self.__doing('_bootstrap')
 
         # Set run-time variables (cannot be overridden):
-        self.host = getfqdn()
         self.ipalib = path.dirname(path.abspath(__file__))
         self.site_packages = path.dirname(self.ipalib)
         self.script = path.abspath(sys.argv[0])
@@ -550,9 +549,6 @@ class Env(object):
         if 'log' not in self:
             self.log = self._join('logdir', '%s.log' % self.context)
 
-        # FIXME: move into ca plugin
-        if 'ca_host' not in self:
-            self.ca_host = self.host
         self._merge(**defaults)
 
     def _finalize(self, **lastchance):

@@ -671,6 +671,7 @@ def main():
     try:
         fd = open("/etc/ipa/default.conf", "w")
         fd.write("[global]\n")
+        fd.write("host=" + host_name + "\n")
         fd.write("basedn=" + util.realm_to_suffix(realm_name) + "\n")
         fd.write("realm=" + realm_name + "\n")
         fd.write("domain=" + domain_name + "\n")
@@ -911,7 +912,7 @@ def main():
 
     # Call client install script
     try:
-        run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--domain", domain_name, "--server", host_name, "--realm", realm_name])
+        run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--domain", domain_name, "--server", host_name, "--realm", realm_name, "--hostname", host_name])
     except Exception, e:
         sys.exit("Configuration of client side components failed!\nipa-client-install returned: " + str(e))
 

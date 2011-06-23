@@ -408,6 +408,7 @@ def main():
     try:
         fd = open("/etc/ipa/default.conf", "w")
         fd.write("[global]\n")
+        fd.write("host=" + config.host_name + "\n")
         fd.write("basedn=" + util.realm_to_suffix(config.realm_name) + "\n")
         fd.write("realm=" + config.realm_name + "\n")
         fd.write("domain=" + config.domain_name + "\n")
