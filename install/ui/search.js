@@ -361,15 +361,7 @@ IPA.nested_search_facet = function(spec) {
         var pkey = $.bbq.getState(that.entity.name+'-pkey');
 
         if ((!pkey) && (that.entity.redirect_facet)) {
-
-            var current_entity = that.entity;
-            while (current_entity.containing_entity){
-                current_entity = current_entity.containing_entity;
-            }
-
-            IPA.nav.show_page(
-                current_entity.name,
-                that.entity.redirect_facet);
+            that.redirect();
             return;
         }
 

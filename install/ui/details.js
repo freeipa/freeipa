@@ -321,14 +321,14 @@ IPA.details_facet = function(spec) {
 
         var pkey = IPA.get_entity(that.entity_name).get_primary_key_prefix();
 
-        if (from_url){
+        if (from_url) {
             pkey.push(that.pkey);
-        }else{
+        } else {
             var pkey_name = IPA.metadata.objects[that.entity_name].primary_key;
-            var pkey_val = that.record[pkey_name];
-            if (pkey_val instanceof Array){
-                pkey.push( pkey_val[0]);
-            }else{
+            var pkey_val = that.data[pkey_name];
+            if (pkey_val instanceof Array) {
+                pkey.push(pkey_val[0]);
+            } else {
                 pkey.push(pkey_val);
             }
         }
@@ -528,12 +528,13 @@ IPA.details_facet = function(spec) {
         return false;
     };
 
-    that.load = function(record) {
-        that.record = record;
+    that.load = function(data) {
+        that.facet_load(data);
+
         var sections = that.sections.values;
         for (var i=0; i<sections.length; i++) {
             var section = sections[i];
-            section.load(record);
+            section.load(data);
         }
     };
 
@@ -640,20 +641,15 @@ IPA.details_facet = function(spec) {
             options: { all: true, rights: true }
         });
 
-        if (IPA.details_refresh_devel_hook){
-            IPA.details_refresh_devel_hook(that.entity_name,command,that.pkey);
+        if (IPA.details_refresh_devel_hook) {
+            IPA.details_refresh_devel_hook(that.entity_name, command, that.pkey);
         }
 
-        if (that.pkey){
+        if (that.pkey) {
             command.args = that.get_primary_key(true);
-        }else if (that.entity.redirect_facet) {
-            var current_entity = that.entity;
-            while (current_entity.containing_entity){
-                current_entity = current_entity.containing_entity;
-            }
-            IPA.nav.show_page(
-                current_entity.name,
-                that.entity.redirect_facet);
+
+        } else if (that.entity.redirect_facet) {
+            that.redirect();
             return;
         }
 

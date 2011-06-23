@@ -123,7 +123,9 @@ IPA.facet = function (spec) {
         that.container.css('display', 'none');
     };
 
-    that.load = function() {
+    that.load = function(data) {
+        that.data = data;
+        that.header.load(data);
     };
 
     that.is_dirty = function() {
@@ -140,13 +142,14 @@ IPA.facet = function (spec) {
         details.append('<p>'+error_thrown.message+'</p>');
     };
 
-    that.redirect_on_error = function(){
-        var current_entity = that.entity;
-        while (current_entity.containing_entity){
-            current_entity = current_entity.containing_entity;
+    that.redirect = function() {
+        var entity = that.entity;
+        while (entity.containing_entity) {
+            entity = entity.containing_entity;
         }
+
         IPA.nav.show_page(
-            current_entity.name,
+            entity.name,
             that.entity.redirect_facet);
     };
 
@@ -157,11 +160,10 @@ IPA.facet = function (spec) {
 
         /*If the error is in talking to the server, don't attempt to redirect,
           as there is nothing any other facet can do either. */
-        if (that.entity.redirect_facet )
-        {
-            for (var i =0; i <  redirect_errors.length; i += 1){
-                if (error_thrown.name ===  redirect_errors[i]){
-                    that.redirect_on_error();
+        if (that.entity.redirect_facet) {
+            for (var i=0; i<redirect_errors.length; i++) {
+                if (error_thrown.name ===  redirect_errors[i]) {
+                    that.redirect();
                     return;
                 }
             }
@@ -178,6 +180,7 @@ IPA.facet = function (spec) {
     that.facet_setup = that.setup;
     that.facet_show = that.show;
     that.facet_hide = that.hide;
+    that.facet_load = that.load;
 
     return that;
 };
@@ -251,6 +254,7 @@ IPA.facet_header = function(spec) {
     that.create_facet_link = function(container, other_facet) {
 
         var li = $('<li/>', {
+            name: other_facet.name,
             title: other_facet.name,
             click: function() {
                 if (li.hasClass('entity-facet-disabled')) {
@@ -273,11 +277,12 @@ IPA.facet_header = function(spec) {
     that.create_facet_group = function(container, facet_group) {
 
         var section = $('<span/>', {
+            name: facet_group.name,
             'class': 'facet-group'
         }).appendTo(container);
 
         $('<div/>', {
-            'class': 'facet-group-name',
+            'class': 'facet-group-label',
             text: facet_group.label
         }).appendTo(section);
 
@@ -308,12 +313,7 @@ IPA.facet_header = function(spec) {
             $('<a/>', {
                 text: that.facet.back_link_text,
                 click: function() {
-                    var current_entity = that.facet.entity;
-                    while(current_entity.containing_entity){
-                        current_entity = current_entity.containing_entity;
-                    }
-
-                    IPA.nav.show_page(current_entity.name, 'search');
+                    that.facet.redirect();
                     return false;
                 }
             }).appendTo(that.back_link);
@@ -342,6 +342,29 @@ IPA.facet_header = function(spec) {
                 var facet_group = facet_groups[i];
                 if (facet_group.facets.length) {
                     that.create_facet_group(that.facet_tabs, facet_group);
+                }
+            }
+        }
+    };
+
+    that.load = function(data) {
+        if (!that.facet.disable_facet_tabs) {
+            var facet_groups = that.facet.entity.facet_groups.values;
+            for (var i=0; i<facet_groups.length; i++) {
+                var facet_group = facet_groups[i];
+                var span = $('.facet-group[name='+facet_group.name+']', that.facet_tabs);
+
+                var facets = facet_group.facets.values;
+                for (var j=0; j<facets.length; j++) {
+                    var facet = facets[j];
+                    var link = $('li[name='+facet.name+'] a', span);
+
+                    var values = data[facet.name];
+                    if (values) {
+                        link.text(facet.label+' ('+values.length+')');
+                    } else {
+                        link.text(facet.label);
+                    }
                 }
             }
         }

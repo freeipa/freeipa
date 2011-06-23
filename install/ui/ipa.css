@@ -489,7 +489,7 @@ div.tabs {
     height: 100%;
 }
 
-.facet-group-name {
+.facet-group-label {
     height: 20px;
 }
 
@@ -504,7 +504,7 @@ div.tabs {
 .facet-tab li {
     display: inline-block;
     position: relative;
-	padding-right: 5px;
+	padding-right: 1px;
 }
 
 .facet-tab li a {

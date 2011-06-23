@@ -1011,7 +1011,7 @@ IPA.association_facet = function (spec) {
         that.table.current_page_input.val(that.table.current_page);
         that.table.total_pages_span.text(that.table.total_pages);
 
-        var pkeys = that.record[that.get_attribute_name()];
+        var pkeys = that.data[that.get_attribute_name()];
         if (!pkeys || !pkeys.length) {
             that.table.empty();
             that.table.summary.text('No entries.');
@@ -1087,6 +1087,22 @@ IPA.association_facet = function (spec) {
         batch.execute();
     };
 
+    that.load = function(data) {
+        that.facet_load(data);
+
+        var pkeys = that.data[that.get_attribute_name()];
+        if (pkeys) {
+            that.table.total_pages =
+                Math.ceil(pkeys.length / that.table.page_length);
+        } else {
+            that.table.total_pages = 1;
+        }
+
+        that.table.current_page = 1;
+
+        that.table.refresh();
+    };
+
     that.refresh = function() {
 
         if (that.association_type == 'direct') {
@@ -1099,31 +1115,21 @@ IPA.association_facet = function (spec) {
             if (that.remove_button) that.remove_button.css('display', 'none');
         }
 
-        function on_success(data, text_status, xhr) {
-            that.record = data.result.result;
-
-            that.table.current_page = 1;
-
-            var pkeys = that.record[that.get_attribute_name()];
-            if (pkeys) {
-                that.table.total_pages =
-                    Math.ceil(pkeys.length / that.table.page_length);
-            } else {
-                that.table.total_pages = 1;
-            }
-
-            that.table.refresh();
-        }
-
         var pkey = IPA.get_entity(that.entity_name).get_primary_key();
 
-        IPA.command({
+        var command = IPA.command({
             entity: that.entity_name,
             method: 'show',
-            args: pkey,
-            on_success: on_success,
-            on_error: that.on_error
-        }).execute();
+            args: pkey
+        });
+
+        command.on_success = function(data, text_status, xhr) {
+            that.load(data.result.result);
+        };
+
+        command.on_error = that.on_error;
+
+        command.execute();
     };
 
     that.association_facet_init = that.init;
