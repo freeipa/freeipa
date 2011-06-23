@@ -336,7 +336,7 @@ IPA.details_facet = function(spec) {
 
     that.create = function(container) {
         if (that.entity.facets.length == 1) {
-            that.disable_back_link = true;
+            that.disable_breadcrumb = true;
             that.disable_facet_tabs = true;
         }
 

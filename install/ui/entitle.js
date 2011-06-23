@@ -326,7 +326,7 @@ IPA.entitle.entity = function(spec) {
 IPA.entitle.details_facet = function(spec) {
 
     spec = spec || {};
-    spec.disable_back_link = true;
+    spec.disable_breadcrumb = true;
 
     var that = IPA.details_facet(spec);
 

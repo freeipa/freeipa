@@ -99,7 +99,7 @@ IPA.dnsrecord_facet = function(spec) {
 
     spec = spec || {};
 
-    spec.disable_back_link = false;
+    spec.disable_breadcrumb = false;
     spec.disable_facet_tabs = false;
 
     var that = IPA.search_facet(spec);

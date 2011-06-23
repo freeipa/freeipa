@@ -28,8 +28,7 @@
 
 IPA.entity_factories.automountlocation = function() {
     return IPA.entity_builder().
-        entity({name:'automountlocation',
-                title:IPA.messages.tabs.automount}).
+        entity({ name: 'automountlocation' }).
         search_facet({
             title: IPA.metadata.objects.automountlocation.label,
             columns:['cn']
@@ -39,7 +38,8 @@ IPA.entity_factories.automountlocation = function() {
             nested_entity : 'automountmap',
             label : IPA.metadata.objects.automountmap.label,
             name: 'maps',
-            columns:['automountmapname']
+            columns:['automountmapname'],
+            back_link_text: 'Back to Locations'
         }).
         details_facet({
             sections:[
@@ -48,7 +48,9 @@ IPA.entity_factories.automountlocation = function() {
                     label: IPA.messages.details.identity,
                     fields:['cn']
                 }
-            ]}).
+            ],
+            back_link_text: 'Back to Locations'
+        }).
         adder_dialog({
             fields:['cn']
         }).
@@ -56,8 +58,7 @@ IPA.entity_factories.automountlocation = function() {
 };
 IPA.entity_factories.automountmap = function() {
     return IPA.entity_builder().
-        entity({name:'automountmap',
-                title:IPA.messages.tabs.automount}).
+        entity({ name: 'automountmap' }).
         containing_entity('automountlocation').
         nested_search_facet({
             facet_group: 'member',
@@ -65,7 +66,8 @@ IPA.entity_factories.automountmap = function() {
             label : IPA.metadata.objects.automountkey.label,
             name: 'keys',
             get_values: IPA.get_option_values,
-            columns:['automountkey','automountinformation']
+            columns:['automountkey','automountinformation'],
+            back_link_text: 'Back to Locations'
         }).
         details_facet({
             sections:[
@@ -74,7 +76,8 @@ IPA.entity_factories.automountmap = function() {
                     label: IPA.messages.details.identity,
                     fields:['automountmapname','description']
                 }
-            ]
+            ],
+            back_link_text: 'Back to Locations'
         }).
         adder_dialog({
             factory: IPA.automountmap_adder_dialog,
@@ -104,8 +107,7 @@ IPA.entity_factories.automountmap = function() {
 
 IPA.entity_factories.automountkey = function() {
     return IPA.entity_builder().
-        entity({name:'automountkey',
-                title:IPA.messages.tabs.automount}).
+        entity({ name: 'automountkey' }).
         containing_entity('automountmap').
         details_facet({
             sections:[
@@ -114,7 +116,8 @@ IPA.entity_factories.automountkey = function() {
                     label: IPA.messages.details.identity,
                     fields:['automountkey','automountinformation','description']
                 }
-            ]
+            ],
+            back_link_text: 'Back to Locations'
         }).
         adder_dialog({
             fields:['automountkey','automountinformation']

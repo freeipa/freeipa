@@ -31,7 +31,7 @@ IPA.search_facet = function(spec) {
     spec.name = spec.name || 'search';
     spec.managed_entity_name = spec.managed_entity_name || spec.entity_name;
 
-    spec.disable_back_link = spec.disable_back_link === undefined ? true : spec.disable_back_link;
+    spec.disable_breadcrumb = spec.disable_breadcrumb === undefined ? true : spec.disable_breadcrumb;
     spec.disable_facet_tabs = spec.disable_facet_tabs === undefined ? true : spec.disable_facet_tabs;
 
     var that = IPA.table_facet(spec);
@@ -339,7 +339,7 @@ IPA.nested_search_facet = function(spec) {
 
     spec.managed_entity_name = spec.nested_entity;
 
-    spec.disable_back_link = false;
+    spec.disable_breadcrumb = false;
     spec.disable_facet_tabs = false;
 
     var that = IPA.search_facet(spec);

@@ -443,7 +443,7 @@ div.tabs {
 
 .facet-title {
     position: absolute;
-    top: 0;
+    top: 10px;
     left: 0;
     color: gray;
     display: block;
@@ -461,11 +461,14 @@ div.tabs {
     color:black;
 }
 
-.back-link {
-    cursor: pointer;
+.breadcrumb {
     position: absolute;
     top: 0;
-    right: 0;
+    left: 0;
+}
+
+.breadcrumb a {
+    cursor: pointer;
 }
 
 /* ---- Facet Tabs ---- */
