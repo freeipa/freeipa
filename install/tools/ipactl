@@ -71,7 +71,7 @@ def emit_err(err):
     sys.stderr.write(err + '\n')
 
 def get_config():
-    base = "cn=%s,cn=masters,cn=ipa,cn=etc,%s" % (socket.gethostname(),
+    base = "cn=%s,cn=masters,cn=ipa,cn=etc,%s" % (api.env.host,
                                                   api.env.basedn)
     srcfilter = '(ipaConfigString=enabledService)'
     attrs = ['cn', 'ipaConfigString']

@@ -441,7 +441,6 @@ class test_Env(ClassChecker):
         (o, home) = self.new()
         o._bootstrap()
         ipalib = path.dirname(path.abspath(config.__file__))
-        assert o.host == socket.gethostname()
         assert o.ipalib == ipalib
         assert o.site_packages == path.dirname(ipalib)
         assert o.script == path.abspath(sys.argv[0])

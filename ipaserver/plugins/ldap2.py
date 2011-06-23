@@ -160,6 +160,8 @@ def get_schema(url, conn=None):
 
         if conn is None:
             conn = _ldap.initialize(url)
+            if url.startswith('ldapi://'):
+                conn.set_option(_ldap.OPT_HOST_NAME, api.env.host)
             conn.sasl_interactive_bind_s('', SASL_AUTH)
 
         schema_entry = conn.search_s(
@@ -321,6 +323,8 @@ class ldap2(CrudBackend, Encoder):
 
         try:
             conn = _ldap.initialize(self.ldap_uri)
+            if self.ldap_uri.startswith('ldapi://'):
+                conn.set_option(_ldap.OPT_HOST_NAME, api.env.host)
             if ccache is not None:
                 os.environ['KRB5CCNAME'] = ccache
                 conn.sasl_interactive_bind_s('', SASL_AUTH)

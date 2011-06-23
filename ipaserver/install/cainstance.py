@@ -519,7 +519,6 @@ class CAInstance(service.Service):
         # Step 1 of external is getting a CSR so we don't need to do these
         # steps until we get a cert back from the external CA.
         if self.external != 1:
-            self.step("restarting certificate server", self.__restart_instance)
             if not self.clone:
                 self.step("creating CA agent PKCS#12 file in /root", self.__create_ca_agent_pkcs12)
             self.step("creating RA agent certificate database", self.__create_ra_agent_db)
@@ -557,7 +556,7 @@ class CAInstance(service.Service):
                 '-redirect', 'conf=/etc/pki-ca',
                 '-redirect', 'logs=/var/log/pki-ca',
         ]
-        ipautil.run(args)
+        ipautil.run(args, env={'PKI_HOSTNAME':self.fqdn})
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
@@ -673,7 +672,7 @@ class CAInstance(service.Service):
             # Define the things we don't want logged
             nolog = (self.admin_password, self.dm_password,)
 
-            ipautil.run(args, nolog=nolog)
+            ipautil.run(args, env={'PKI_HOSTNAME':self.fqdn}, nolog=nolog)
         except ipautil.CalledProcessError, e:
             logging.critical("failed to configure ca instance %s" % e)
             raise RuntimeError('Configuration of CA failed')
@@ -683,11 +682,22 @@ class CAInstance(service.Service):
             print "ipa-server-install --external_cert_file=/path/to/signed_certificate --external_ca_file=/path/to/external_ca_certificate"
             sys.exit(0)
 
+        # Turn off Nonces (again)
+        if installutils.update_file('/var/lib/pki-ca/conf/CS.cfg', 'ca.enableNonces=true', 'ca.enableNonces=false') != 0:
+            raise RuntimeError("Disabling nonces failed")
+        pent = pwd.getpwnam(PKI_USER)
+        os.chown('/var/lib/pki-ca/conf/CS.cfg', pent.pw_uid, pent.pw_gid )
+
+        # pkisilent makes a copy of the CA PKCS#12 file for us but gives
+        # it a lousy name.
+        if ipautil.file_exists("/root/tmp-ca.p12"):
+            shutil.move("/root/tmp-ca.p12", "/root/cacert.p12")
+
         try:
             # After configuration the service is running and configured
             # but must be restarted for configuration to take effect.
             # The service status in this case will be 4.
-            self.restart()
+            self.__restart_instance()
         except ipautil.CalledProcessError, e:
             logging.critical("failed to restart ca instance after pkisilent configuration %s" % e)
             raise RuntimeError('Restarting CA after pkisilent configuration failed')
@@ -701,17 +711,6 @@ class CAInstance(service.Service):
             raise RuntimeError('CA configuration not successful after restart')
 
         logging.debug("completed creating ca instance")
-
-        # Turn off Nonces (again)
-        if installutils.update_file('/var/lib/pki-ca/conf/CS.cfg', 'ca.enableNonces=true', 'ca.enableNonces=false') != 0:
-            raise RuntimeError("Disabling nonces failed")
-        pent = pwd.getpwnam(PKI_USER)
-        os.chown('/var/lib/pki-ca/conf/CS.cfg', pent.pw_uid, pent.pw_gid )
-
-        # pkisilent makes a copy of the CA PKCS#12 file for us but gives
-        # it a lousy name.
-        if ipautil.file_exists("/root/tmp-ca.p12"):
-            shutil.move("/root/tmp-ca.p12", "/root/cacert.p12")
 
     def __restart_instance(self):
         try:

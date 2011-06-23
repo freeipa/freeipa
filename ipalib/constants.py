@@ -21,6 +21,14 @@
 """
 All constants centralised in one file.
 """
+import socket
+try:
+    FQDN = socket.getfqdn()
+except:
+    try:
+        FQDN = socket.gethostname()
+    except:
+        FQDN = None
 
 # The parameter system treats all these values as None:
 NULLS = (None, '', u'', tuple(), [])
@@ -127,7 +135,7 @@ DEFAULT_CONFIG = (
     ('mode', 'production'),
 
     # CA plugin:
-    ('ca_host', object),  # Set in Env._finalize_core()
+    ('ca_host', FQDN),  # Set in Env._finalize_core()
     ('ca_port', 9180),
     ('ca_agent_port', 9443),
     ('ca_ee_port', 9444),
@@ -160,7 +168,7 @@ DEFAULT_CONFIG = (
     # raised.
 
     # Non-overridable vars set in Env._bootstrap():
-    ('host', object),
+    ('host', FQDN),
     ('ipalib', object),  # The directory containing ipalib/__init__.py
     ('site_packages', object),  # The directory contaning ipalib
     ('script', object),  # sys.argv[0]
