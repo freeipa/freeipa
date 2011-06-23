@@ -400,43 +400,6 @@ static krb5_error_code ipadb_get_age(krb5_context kcontext,
     return 0;
 }
 
-static krb5_error_code ipadb_create_policy(krb5_context kcontext,
-                                           osa_policy_ent_t policy)
-{
-    return KRB5_PLUGIN_OP_NOTSUPP;
-}
-
-static krb5_error_code ipadb_get_policy(krb5_context kcontext, char *name,
-                                        osa_policy_ent_t *policy)
-{
-    return KRB5_PLUGIN_OP_NOTSUPP;
-}
-
-static krb5_error_code ipadb_put_policy(krb5_context kcontext,
-                                        osa_policy_ent_t policy)
-{
-    return KRB5_PLUGIN_OP_NOTSUPP;
-}
-
-static krb5_error_code ipadb_iterate_policy(krb5_context kcontext,
-                                            char *match_entry,
-                                            osa_adb_iter_policy_func func,
-                                            void *data)
-{
-    return KRB5_PLUGIN_OP_NOTSUPP;
-}
-
-static krb5_error_code ipadb_delete_policy(krb5_context kcontext,
-                                           char *policy)
-{
-    return KRB5_PLUGIN_OP_NOTSUPP;
-}
-
-static void ipadb_free_policy(krb5_context kcontext, osa_policy_ent_t val)
-{
-    return;
-}
-
 static void *ipadb_alloc(krb5_context context, void *ptr, size_t size)
 {
     return realloc(ptr, size);
@@ -466,12 +429,12 @@ kdb_vftabl kdb_function_table = {
     ipadb_put_principal,                /* put_principal */
     ipadb_delete_principal,             /* delete_principal */
     ipadb_iterate,                      /* iterate */
-    ipadb_create_policy,                /* create_policy */
-    ipadb_get_policy,                   /* get_policy */
-    ipadb_put_policy,                   /* put_policy */
-    ipadb_iterate_policy,               /* iter_policy */
-    ipadb_delete_policy,                /* delete_policy */
-    ipadb_free_policy,                  /* free_policy */
+    ipadb_create_pwd_policy,            /* create_policy */
+    ipadb_get_pwd_policy,               /* get_policy */
+    ipadb_put_pwd_policy,               /* put_policy */
+    ipadb_iterate_pwd_policy,           /* iter_policy */
+    ipadb_delete_pwd_policy,            /* delete_policy */
+    ipadb_free_pwd_policy,              /* free_policy */
     ipadb_alloc,                        /* alloc */
     ipadb_free,                         /* free */
     ipadb_fetch_master_key,             /* fetch_master_key */
