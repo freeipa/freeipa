@@ -295,6 +295,9 @@ def main():
     api.bootstrap(context='cli', debug=options.debug)
     api.finalize()
 
+    if '.' not in api.env.host:
+        raise IpactlError("Invalid hostname, must be fully-qualified")
+
     if args[0].lower() == "start":
         ipa_start()
     elif args[0].lower() == "stop":

@@ -573,15 +573,14 @@ def main():
     else:
         host_default = get_fqdn()
 
-    if options.unattended:
-        try:
+    try:
+        if options.unattended:
             verify_fqdn(host_default,options.no_host_dns)
-        except RuntimeError, e:
-            sys.exit(str(e) + "\n")
-
-        host_name = host_default
-    else:
-        host_name = read_host_name(host_default,options.no_host_dns)
+            host_name = host_default
+        else:
+            host_name = read_host_name(host_default,options.no_host_dns)
+    except RuntimeError, e:
+        sys.exit(str(e) + "\n")
 
     host_name = host_name.lower()
     logging.debug("will use host_name: %s\n" % host_name)
