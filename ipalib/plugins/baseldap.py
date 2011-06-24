@@ -1365,7 +1365,7 @@ class LDAPSearch(CallbackInterface, crud.Search):
         #pylint: disable=E1003
         for key in self.obj.get_ancestor_primary_keys():
             yield key
-        yield Str('criteria?')
+        yield Str('criteria?', noextrawhitespace=False)
         for arg in super(crud.Search, self).get_args():
             yield arg
 

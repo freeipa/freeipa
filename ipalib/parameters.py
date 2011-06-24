@@ -432,7 +432,10 @@ class Param(ReadOnly):
         # Check that all the rules are callable
         self.class_rules = tuple(class_rules)
         self.rules = rules
-        self.all_rules = self.class_rules + self.rules
+        if self.query:
+            self.all_rules = self.class_rules
+        else:
+            self.all_rules = self.class_rules + self.rules
         for rule in self.all_rules:
             if not callable(rule):
                 raise TypeError(
@@ -726,8 +729,6 @@ class Param(ReadOnly):
                     raise RequirementError(name=self.cli_name)
                 else:
                     raise RequirementError(name=self.name)
-            return
-        if self.query:
             return
         if self.multivalue:
             if type(value) is not tuple:
@@ -1125,7 +1126,7 @@ class Data(Param):
         ('pattern', (basestring,), None),
         ('pattern_errmsg', (basestring,), None),
     )
-    
+
     re = None
     re_errmsg = None
 
@@ -1242,6 +1243,10 @@ class Str(Data):
     Also see the `Bytes` parameter.
     """
 
+    kwargs = Data.kwargs + (
+        ('noextrawhitespace', bool, True),
+    )
+
     type = unicode
     type_error = _('must be Unicode text')
 
@@ -1267,6 +1272,16 @@ class Str(Data):
         raise ConversionError(name=self.name, index=index,
             error=ugettext(self.type_error),
         )
+
+    def _rule_noextrawhitespace(self, _, value):
+        """
+        Do not allow leading/trailing spaces.
+        """
+        assert type(value) is unicode
+        if self.noextrawhitespace is False: #pylint: disable=E1101
+            return
+        if len(value) != len(value.strip()):
+            return _('Leading and trailing spaces are not allowed')
 
     def _rule_minlength(self, _, value):
         """

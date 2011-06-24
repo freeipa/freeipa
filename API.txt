@@ -127,7 +127,7 @@ command: automountkey_find
 args: 3,7,4
 arg: Str('automountlocationcn', cli_name='automountlocation', label=Gettext('Location', domain='ipa', localedir=None), query=True, required=True)
 arg: IA5Str('automountmapautomountmapname', cli_name='automountmap', label=Gettext('Map', domain='ipa', localedir=None), query=True, required=True)
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: IA5Str('automountkey', attribute=True, autofill=False, cli_name='key', label=Gettext('Key', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: IA5Str('automountinformation', attribute=True, autofill=False, cli_name='info', label=Gettext('Mount information', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
@@ -189,7 +189,7 @@ output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: automountlocation_find
 args: 1,6,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='location', label=Gettext('Location', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
 option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('Size Limit', domain='ipa', localedir=None), minvalue=0)
@@ -259,7 +259,7 @@ output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e
 command: automountmap_find
 args: 2,7,4
 arg: Str('automountlocationcn', cli_name='automountlocation', label=Gettext('Location', domain='ipa', localedir=None), query=True, required=True)
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: IA5Str('automountmapname', attribute=True, autofill=False, cli_name='map', label=Gettext('Map', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
@@ -381,7 +381,7 @@ output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: cosentry_find
 args: 1,8,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='cn', label=FixMe('cn'), multivalue=False, primary_key=True, query=True, required=False)
 option: Str('krbpwdpolicyreference', attribute=True, autofill=False, cli_name='krbpwdpolicyreference', label=FixMe('krbpwdpolicyreference'), multivalue=False, query=True, required=False)
 option: Int('cospriority', attribute=True, autofill=False, cli_name='cospriority', label=FixMe('cospriority'), minvalue=0, multivalue=False, query=True, required=False)
@@ -634,7 +634,7 @@ output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e
 command: dnsrecord_find
 args: 2,42,4
 arg: Str('dnszoneidnsname', cli_name='dnszone', label=Gettext('Zone name', domain='ipa', localedir=None), query=True, required=True)
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('idnsname', attribute=True, autofill=False, cli_name='name', label=Gettext('Record name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Int('dnsttl', attribute=True, autofill=False, cli_name='ttl', label=Gettext('Time to live', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: StrEnum('dnsclass', attribute=True, autofill=False, cli_name='class', label=Gettext('Class', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'IN', u'CS', u'CH', u'HS'))
@@ -737,7 +737,7 @@ output: Output('result', <type 'bool'>, 'True means the operation was successful
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnszone_find
 args: 1,18,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('idnsname', attribute=True, autofill=False, cli_name='name', label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('idnssoamname', attribute=True, autofill=False, cli_name='name_server', label=Gettext('Authoritative nameserver', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Str('idnssoarname', attribute=True, autofill=False, cli_name='admin_email', default_from=DefaultFrom(<lambda>, 'idnsname'), label=Gettext('Administrator e-mail address', domain='ipa', localedir=None), multivalue=False, normalizer=_rname_normalizer, query=True, required=False)
@@ -805,7 +805,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: entitle_find
 args: 1,5,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
 option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('Size Limit', domain='ipa', localedir=None), minvalue=0)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
@@ -905,7 +905,7 @@ output: Output('result', <type 'bool'>, 'True means the operation was successful
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: group_find
 args: 1,23,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='group_name', label=Gettext('Group name', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('gidnumber', attribute=True, autofill=False, cli_name='gid', label=Gettext('GID', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -1052,7 +1052,7 @@ output: Output('result', <type 'bool'>, 'True means the operation was successful
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: hbacrule_find
 args: 1,12,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Rule name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: StrEnum('accessruletype', attribute=True, autofill=False, cli_name='type', label=Gettext('Rule type', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'allow', u'deny'))
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', label=Gettext('User category', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'all',))
@@ -1162,7 +1162,7 @@ output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: hbacsvc_find
 args: 1,7,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='service', label=Gettext('Service name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
@@ -1228,7 +1228,7 @@ output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: hbacsvcgroup_find
 args: 1,7,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Service group name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
@@ -1318,7 +1318,7 @@ output: Output('result', <type 'bool'>, 'True means the operation was successful
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: host_find
 args: 1,27,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('fqdn', validate_host, attribute=True, autofill=False, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Str('l', attribute=True, autofill=False, cli_name='locality', label=Gettext('Locality', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -1424,7 +1424,7 @@ output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: hostgroup_find
 args: 1,17,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='hostgroup_name', label=Gettext('Host-group', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
@@ -1580,7 +1580,7 @@ output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: netgroup_find
 args: 1,25,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Netgroup name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Str('nisdomainname', attribute=True, autofill=False, cli_name='nisdomain', label=Gettext('NIS domain name', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -1694,7 +1694,7 @@ output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: permission_find
 args: 1,13,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: List('permissions', attribute=True, autofill=False, cli_name='permissions', label=Gettext('Permissions', domain='ipa', localedir=None), multivalue=True, query=True, required=False)
 option: List('attrs', attribute=True, autofill=False, cli_name='attrs', flags=('ask_create', 'ask_update'), label=Gettext('Attributes', domain='ipa', localedir=None), multivalue=True, normalizer=<lambda>, query=True, required=False)
@@ -1807,7 +1807,7 @@ output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: privilege_find
 args: 1,7,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
@@ -1892,7 +1892,7 @@ output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: pwpolicy_find
 args: 1,15,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='group', label=Gettext('Group', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Int('krbmaxpwdlife', attribute=True, autofill=False, cli_name='maxlife', label=Gettext('Max lifetime (days)', domain='ipa', localedir=None), minvalue=0, multivalue=False, query=True, required=False)
 option: Int('krbminpwdlife', attribute=True, autofill=False, cli_name='minlife', label=Gettext('Min lifetime (hours)', domain='ipa', localedir=None), minvalue=0, multivalue=False, query=True, required=False)
@@ -1988,7 +1988,7 @@ output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: role_find
 args: 1,7,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
@@ -2133,7 +2133,7 @@ output: Output('result', <type 'bool'>, 'True means the operation was successful
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: service_find
 args: 1,8,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('krbprincipalname', validate_principal, attribute=True, autofill=False, cli_name='principal', label=Gettext('Principal', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
 option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('Size Limit', domain='ipa', localedir=None), minvalue=0)
@@ -2201,7 +2201,7 @@ output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: sudocmd_find
 args: 1,7,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('sudocmd', attribute=True, autofill=False, cli_name='command', label=Gettext('Sudo Command', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
@@ -2267,7 +2267,7 @@ output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: sudocmdgroup_find
 args: 1,7,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='sudocmdgroup_name', label=Gettext('Sudo Command Group', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
@@ -2419,7 +2419,7 @@ arg: Str('cn', attribute=True, cli_name='sudorule_name', label=Gettext('Rule nam
 output: Output('result', None, None)
 command: sudorule_find
 args: 1,15,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='sudorule_name', label=Gettext('Rule name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', label=Gettext('User category', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'all',))
@@ -2598,7 +2598,7 @@ output: Output('result', <type 'bool'>, 'True means the operation was successful
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: user_find
 args: 1,42,4
-arg: Str('criteria?')
+arg: Str('criteria?', noextrawhitespace=False)
 option: Str('uid', attribute=True, autofill=False, cli_name='login', default_from=DefaultFrom(<lambda>, 'givenname', 'sn'), label=Gettext('User login', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, query=True, required=False)
 option: Str('givenname', attribute=True, autofill=False, cli_name='first', label=Gettext('First name', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Str('sn', attribute=True, autofill=False, cli_name='last', label=Gettext('Last name', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
