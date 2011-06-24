@@ -91,7 +91,7 @@ class group(LDAPObject):
     attribute_members = {
         'member': ['user', 'group'],
         'memberof': ['group', 'netgroup', 'role', 'hbacrule', 'sudorule'],
-        'memberindirect': ['user', 'group', 'netgroup', 'role'],
+        'memberindirect': ['user', 'group'],
         'memberofindirect': ['group', 'netgroup', 'role', 'hbacrule',
         'sudorule'],
     }

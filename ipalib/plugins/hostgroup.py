@@ -67,7 +67,7 @@ class hostgroup(LDAPObject):
         'member': ['host', 'hostgroup'],
         'memberof': ['hostgroup', 'hbacrule', 'sudorule'],
         'memberindirect': ['host', 'hostgroup'],
-        'memberofindirect': ['host', 'hostgroup', 'hbacrule', 'sudorule'],
+        'memberofindirect': ['hostgroup', 'hbacrule', 'sudorule'],
     }
 
     label = _('Host Groups')
