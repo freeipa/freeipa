@@ -73,6 +73,7 @@ class selfservice(Object):
     object_name = 'selfservice',
     object_name_plural = 'selfservice',
     label = _('Self Service Permissions')
+    label_singular = _('self service permission')
 
     takes_params = (
         Str('aciname',
@@ -97,7 +98,7 @@ class selfservice(Object):
 
     def __json__(self):
         json_friendly_attributes = (
-            'label', 'takes_params', 'bindable', 'name',
+            'label', 'label_singular', 'takes_params', 'bindable', 'name',
             'object_name', 'object_name_plural',
         )
         json_dict = dict(

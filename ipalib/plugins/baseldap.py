@@ -280,6 +280,7 @@ class LDAPObject(Object):
         ),
     }
     label = _('Entry')
+    label_singular = _('entry')
 
     container_not_found_msg = _('container entry (%(container)s) not found')
     parent_not_found_msg = _('%(parent)s: %(oname)s not found')
@@ -376,7 +377,7 @@ class LDAPObject(Object):
     # list of attributes we want exported to JSON
     json_friendly_attributes = (
         'parent_object', 'container_dn', 'object_name', 'object_name_plural',
-        'object_class', 'object_class_config', 'default_attributes', 'label',
+        'object_class', 'object_class_config', 'default_attributes', 'label', 'label_singular',
         'hidden_attributes', 'uuid_attribute', 'attribute_members', 'name',
         'takes_params', 'rdn_attribute', 'bindable', 'relationships',
     )

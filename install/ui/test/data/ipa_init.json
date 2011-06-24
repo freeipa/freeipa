@@ -7719,6 +7719,7 @@
                             "aci"
                         ],
                         "label": "Automount Keys",
+                        "label_singular": "automount key",
                         "methods": [
                             "add",
                             "del",
@@ -7863,6 +7864,7 @@
                             "aci"
                         ],
                         "label": "Automount Locations",
+                        "label_singular": "automount location",
                         "methods": [
                             "add",
                             "del",
@@ -7951,6 +7953,7 @@
                             "aci"
                         ],
                         "label": "Automount Maps",
+                        "label_singular": "automount map",
                         "methods": [
                             "add",
                             "add_indirect",
@@ -8070,6 +8073,7 @@
                             "aci"
                         ],
                         "label": "Configuration",
+                        "label_singular": "configuration",
                         "methods": [
                             "mod",
                             "show"
@@ -9336,6 +9340,7 @@
                             "aci"
                         ],
                         "label": "Entry",
+                        "label_singular": "entry",
                         "methods": [
                             "add",
                             "del",
@@ -9460,6 +9465,7 @@
                     "delegation": {
                         "bindable": false,
                         "label": "Delegation",
+                        "label_singular": "delegation",
                         "methods": [
                             "add",
                             "del",
@@ -9681,6 +9687,7 @@
                             "aci"
                         ],
                         "label": "DNS resource record",
+                        "label_singular": "DNS resource record",
                         "methods": [
                             "add",
                             "add_record",
@@ -9898,6 +9905,7 @@
                             "aci"
                         ],
                         "label": "DNS",
+                        "label_singular": "DNS zone",
                         "methods": [
                             "add",
                             "del",
@@ -10297,6 +10305,7 @@
                             "aci"
                         ],
                         "label": "Entitlements",
+                        "label_singular": "entitlement",
                         "methods": [
                             "consume",
                             "find",
@@ -10399,6 +10408,7 @@
                             "aci"
                         ],
                         "label": "User Groups",
+                        "label_singular": "user group",
                         "methods": [
                             "add",
                             "add_member",
@@ -10579,6 +10589,7 @@
                             "aci"
                         ],
                         "label": "HBAC Rule",
+                        "label_singular": "HBAC rule",
                         "methods": [
                             "add",
                             "add_host",
@@ -11102,6 +11113,7 @@
                             "aci"
                         ],
                         "label": "HBAC Services",
+                        "label_singular": "HBAC service",
                         "methods": [
                             "add",
                             "del",
@@ -11228,6 +11240,7 @@
                             "aci"
                         ],
                         "label": "HBAC service Groups",
+                        "label_singular": "HBAC service group",
                         "methods": [
                             "add",
                             "add_member",
@@ -11392,6 +11405,7 @@
                             "aci"
                         ],
                         "label": "Hosts",
+                        "label_singular": "host",
                         "methods": [
                             "add",
                             "add_managedby",
@@ -11793,6 +11807,7 @@
                             "aci"
                         ],
                         "label": "Host Groups",
+                        "label_singular": "host group",
                         "methods": [
                             "add",
                             "add_member",
@@ -11905,6 +11920,7 @@
                             "aci"
                         ],
                         "label": "Kerberos Ticket Policy",
+                        "label_singular": "Kerberos ticket policy",
                         "methods": [
                             "mod",
                             "reset",
@@ -12070,6 +12086,7 @@
                             "aci"
                         ],
                         "label": "Netgroups",
+                        "label_singular": "netgroup",
                         "methods": [
                             "add",
                             "add_member",
@@ -12309,6 +12326,7 @@
                             "aci"
                         ],
                         "label": "Permissions",
+                        "label_singular": "permission",
                         "methods": [
                             "add",
                             "add_member",
@@ -12621,6 +12639,7 @@
                             "aci"
                         ],
                         "label": "Privileges",
+                        "label_singular": "privilege",
                         "methods": [
                             "add",
                             "add_member",
@@ -12754,6 +12773,7 @@
                             "aci"
                         ],
                         "label": "Password Policy",
+                        "label_singular": "password policy",
                         "methods": [
                             "add",
                             "del",
@@ -13071,6 +13091,7 @@
                             "aci"
                         ],
                         "label": "Role",
+                        "label_singular": "role",
                         "methods": [
                             "add",
                             "add_member",
@@ -13174,6 +13195,7 @@
                     "selfservice": {
                         "bindable": false,
                         "label": "Self Service Permissions",
+                        "label_singular": "self service permission",
                         "methods": [
                             "add",
                             "del",
@@ -13311,6 +13333,7 @@
                             "aci"
                         ],
                         "label": "Services",
+                        "label_singular": "service",
                         "methods": [
                             "add",
                             "add_host",
@@ -13426,6 +13449,7 @@
                             "aci"
                         ],
                         "label": "Sudo Commands",
+                        "label_singular": "sudo command",
                         "methods": [
                             "add",
                             "del",
@@ -13552,6 +13576,7 @@
                             "aci"
                         ],
                         "label": "Sudo Command Groups",
+                        "label_singular": "sudo command group",
                         "methods": [
                             "add",
                             "add_member",
@@ -13779,6 +13804,7 @@
                             "aci"
                         ],
                         "label": "Sudo Rule",
+                        "label_singular": "sudo rule",
                         "methods": [
                             "add",
                             "add_allow_command",
@@ -14547,6 +14573,7 @@
                             "aci"
                         ],
                         "label": "Users",
+                        "label_singular": "user",
                         "methods": [
                             "add",
                             "del",

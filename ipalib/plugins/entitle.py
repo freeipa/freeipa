@@ -187,6 +187,7 @@ class entitle(LDAPObject):
     uuid_attribute = 'ipaentitlementid'
 
     label = _('Entitlements')
+    label_singular = _('entitlement')
 
     """
     def get_dn(self, *keys, **kwargs):

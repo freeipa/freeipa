@@ -62,6 +62,7 @@ class hbacsvcgroup(LDAPObject):
     }
 
     label = _('HBAC service Groups')
+    label_singular = _('HBAC service group')
 
     takes_params = (
         Str('cn',

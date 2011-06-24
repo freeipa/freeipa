@@ -218,6 +218,7 @@ class service(LDAPObject):
     }
 
     label = _('Services')
+    label_singular = _('service')
 
     takes_params = (
         Str('krbprincipalname', validate_principal,

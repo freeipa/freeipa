@@ -283,6 +283,7 @@ class dnszone(LDAPObject):
         'idnssoaminimum'
     ] + _record_attributes
     label = _('DNS')
+    label_singular = _('DNS zone')
 
     takes_params = (
         Str('idnsname',
@@ -521,6 +522,7 @@ class dnsrecord(LDAPObject):
     default_attributes = _record_attributes + ['idnsname']
 
     label = _('DNS resource record')
+    label_singular = _('DNS resource record')
 
     takes_params = (
         Str('idnsname',

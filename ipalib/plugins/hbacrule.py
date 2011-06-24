@@ -124,6 +124,7 @@ class hbacrule(LDAPObject):
     }
 
     label = _('HBAC Rule')
+    label_singular = _('HBAC rule')
 
     takes_params = (
         Str('cn',

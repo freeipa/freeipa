@@ -188,7 +188,7 @@ class automountlocation(LDAPObject):
     object_class = ['nscontainer']
     default_attributes = ['cn']
     label = _('Automount Locations')
-
+    label_singular = _('automount location')
 
     takes_params = (
         Str('cn',
@@ -513,6 +513,7 @@ class automountmap(LDAPObject):
     )
 
     label = _('Automount Maps')
+    label_singular = _('automount map')
 
 api.register(automountmap)
 
@@ -604,6 +605,7 @@ class automountkey(LDAPObject):
 
     num_parents = 2
     label = _('Automount Keys')
+    label_singular = _('automount key')
     already_exists_msg = _('The key,info pair must be unique. A key named %(key)s with info %(info)s already exists')
     key_already_exists_msg = _('key named %(key)s already exists')
     object_not_found_msg = _('The automount key %(key)s with info %(info)s does not exist')

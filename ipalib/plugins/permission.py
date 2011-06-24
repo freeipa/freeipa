@@ -105,6 +105,7 @@ class permission(LDAPObject):
     rdnattr='cn'
 
     label = _('Permissions')
+    label_singular = _('permission')
 
     takes_params = (
         Str('cn',

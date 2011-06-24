@@ -71,6 +71,7 @@ class hostgroup(LDAPObject):
     }
 
     label = _('Host Groups')
+    label_singular = _('host group')
 
     takes_params = (
         Str('cn',
