@@ -99,14 +99,11 @@ class i18n_messages(Command):
                 "attribute":_("Attribute"),
                 },
             "automountlocation": {
-                "add":_("Add Automount Location"),
                 "identity":_("Automount Location Settings")
                 },
             "automountmap": {
-                "add":_("Add Automount Map")
                 },
             "automountkey": {
-                "add":_("Add Automount Key")
                 },
             "cert": {
                 "unspecified":_("Unspecified"),
@@ -152,26 +149,21 @@ class i18n_messages(Command):
                 "cn":_("Name"),
                 },
             "delegation": {
-                "add":_("Add Delegation"),
                 },
             "dnszone": {
-                "add":_("Add DNS Zone"),
                 "identity":_("DNS Zone Settings"),
                 },
             "dnsrecord": {
-                "add":_("Add DNS Resource Record"),
                 "resource":_("Resource"),
                 "type":_("Type"),
                 "data":_("Data"),
                 "title":_("Records for DNS Zone"),
                 },
             "group": {
-                "add":_("Add Group"),
                 "details":_("Group Settings"),
                 "posix":_("Is this a POSIX group?"),
                 },
             "hbacrule": {
-                "add":_("Add HBAC Rule"),
                 "active":_("Active"),
                 "allow":_("Allow"),
                 "deny":_("Deny"),
@@ -189,14 +181,11 @@ class i18n_messages(Command):
                 "sourcehost":_("From"),
                 },
             "hbacsvc": {
-                "add":_("Add HBAC Service"),
                 },
             "hbacsvcgroup": {
-                "add":_("Add HBAC Service Group"),
                 "services":_("Services"),
                 },
             "host": {
-                "add":_("Add Host"),
                 "certificate":_("Host Certificate"),
                 "cn":_("Host Name"),
                 "details":_("Host Settings"),
@@ -216,18 +205,15 @@ class i18n_messages(Command):
                 "unprovision":_("Unprovision"),
                 },
             "hostgroup": {
-                "add":_("Add Host Group"),
                 "identity":_("Host Group Settings"),
                 },
             "krbtpolicy": {
                 "identity":_("Kerberos ticket policy"),
                 },
             "netgroup": {
-                "add":_("Add Netgroup"),
                 "identity":_("Netgroup Settings"),
                 },
             "permission": {
-                "add":_("Add Permission"),
                 "identity":_("Identity"),
                 "rights":_("Rights"),
                 "target":_("Target"),
@@ -238,22 +224,17 @@ class i18n_messages(Command):
                 "invalid_target":_("Permission with invalid target specification"),
                 },
             "privilege": {
-                "add":_("Add Privilege"),
                 "identity":_("Privilege Settings"),
                 },
             "pwpolicy": {
-                "add":_("Add Password Policy"),
                 "identity":_("Password Policy"),
                 },
             "role": {
-                "add":_("Add Role"),
                 "identity":_("Role Settings"),
                 },
             "selfservice": {
-                "add":_("Add Self Service Definition"),
                 },
             "service": {
-                "add":_("Add Service"),
                 "certificate":_("Service Certificate"),
                 "details":_("Service Settings"),
                 "host":_("Host Name"),
@@ -268,15 +249,12 @@ class i18n_messages(Command):
                 "unprovision":_("Unprovision"),
                 },
             "sudocmd": {
-                "add":_("Add Sudo Command"),
                 "groups":_("Groups"),
                 },
             "sudocmdgroup": {
-                "add":_("Add Sudo Command Group"),
                 "commands":_("Commands"),
                 },
             "sudorule": {
-                "add":_("Add Sudo Rule"),
                 "active":_("Active"),
                 "inactive":_("Inactive"),
                 "allow":_("Allow"),
@@ -297,7 +275,6 @@ class i18n_messages(Command):
                 "external":_("External"),
                 },
             "user": {
-                "add":_("Add User"),
                 "account":_("Account Settings"),
                 "contact":_("Contact Settings"),
                 "mailing":_("Mailing Address"),
@@ -321,7 +298,6 @@ class i18n_messages(Command):
             "add_and_edit":_("Add and Edit"),
             "add_and_close":_("Add and Close"),
             "add_many":_("Add Many"),
-            "back_to_list":_("Back to List"),
             "cancel": _("Cancel"),
             "close": _("Close"),
             "enroll":_("Enroll"),
@@ -338,12 +314,13 @@ class i18n_messages(Command):
             "view":_("View"),
             },
         "dialogs":{
+            "add_title":_("Add ${entity}"),
             "available":_("Available"),
             "dirty_message":_("This page has unsaved changes. Please save or revert."),
             "dirty_title":_("Dirty"),
             "hide_already_enrolled":_("Hide already enrolled."),
             "remove_empty":_("Select ${entity} to be removed."),
-            "remove_title":_("Remove ${entity}."),
+            "remove_title":_("Remove ${entity}"),
             "prospective":_("Prospective"),
             },
         "facet_groups":{
@@ -373,6 +350,7 @@ class i18n_messages(Command):
             "to_top":_("Back to Top")
             },
         "tabs": {
+            "dns":_("DNS"),
             "identity":_("Identity"),
             "policy":_("Policy"),
             "audit": _("Audit"),
@@ -384,8 +362,6 @@ class i18n_messages(Command):
             },
         "association":{
             "add":_("Add ${other_entity} into ${entity} ${primary_key}"),
-            "member":_("${other_entity} enrolled in ${entity} ${primary_key}"),
-            "memberof":_("${entity} ${primary_key} is enrolled in the following ${other_entity}"),
             "remove":_("Remove ${other_entity} from ${entity} ${primary_key}"),
             },
         "widget":{

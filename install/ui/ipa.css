@@ -925,26 +925,13 @@ span.attrhint {
     background-position: -176px -97px;
 }
 
-.ui-dialog .ui-dialog-titlebar-close span {
-        background-color: transparent !important;
-}
-
 .ui-icon {
     /* background-image: url("ui-icons_222222_256x240.png"); */
     background-color: #e2e2e2;
     display: inline-block;
 }
-.ui-dialog .ui-dialog-content {
-    /* this should go away once we can fix table scrolling */
-    overflow:auto;
-}
 
 .ui-widget-content {
-}
-
-.ui-dialog .ui-dialog-titlebar {
-        padding: 0.5em 1em;
-        position: relative;
 }
 
 a {
@@ -959,6 +946,26 @@ a {
     background: -webkit-gradient(linear, left top, left bottom, from(#225314), to(#1c400a));
         border: 1px solid #319016;
     font-weight: bold;
+}
+
+/* ---- Dialog ---- */
+
+.ui-dialog .ui-dialog-title {
+    text-transform: capitalize;
+}
+
+.ui-dialog .ui-dialog-titlebar-close span {
+        background-color: transparent !important;
+}
+
+.ui-dialog .ui-dialog-content {
+    /* this should go away once we can fix table scrolling */
+    overflow:auto;
+}
+
+.ui-dialog .ui-dialog-titlebar {
+        padding: 0.5em 1em;
+        position: relative;
 }
 
 .ui-dialog .ui-dialog-buttonpane button {

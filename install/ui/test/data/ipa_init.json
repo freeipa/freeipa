@@ -9464,7 +9464,7 @@
                     },
                     "delegation": {
                         "bindable": false,
-                        "label": "Delegation",
+                        "label": "Delegations",
                         "label_singular": "delegation",
                         "methods": [
                             "add",
@@ -9686,7 +9686,7 @@
                             "objectclass",
                             "aci"
                         ],
-                        "label": "DNS resource record",
+                        "label": "DNS Resource Records",
                         "label_singular": "DNS resource record",
                         "methods": [
                             "add",
@@ -9904,7 +9904,7 @@
                             "objectclass",
                             "aci"
                         ],
-                        "label": "DNS",
+                        "label": "DNS Zones",
                         "label_singular": "DNS zone",
                         "methods": [
                             "add",
@@ -10588,7 +10588,7 @@
                             "objectclass",
                             "aci"
                         ],
-                        "label": "HBAC Rule",
+                        "label": "HBAC Rules",
                         "label_singular": "HBAC rule",
                         "methods": [
                             "add",
@@ -11239,7 +11239,7 @@
                             "objectclass",
                             "aci"
                         ],
-                        "label": "HBAC service Groups",
+                        "label": "HBAC Service Groups",
                         "label_singular": "HBAC service group",
                         "methods": [
                             "add",
@@ -12772,7 +12772,7 @@
                             "objectclass",
                             "aci"
                         ],
-                        "label": "Password Policy",
+                        "label": "Password Policies",
                         "label_singular": "password policy",
                         "methods": [
                             "add",
@@ -13090,7 +13090,7 @@
                             "objectclass",
                             "aci"
                         ],
-                        "label": "Role",
+                        "label": "Roles",
                         "label_singular": "role",
                         "methods": [
                             "add",
@@ -13803,7 +13803,7 @@
                             "objectclass",
                             "aci"
                         ],
-                        "label": "Sudo Rule",
+                        "label": "Sudo Rules",
                         "label_singular": "sudo rule",
                         "methods": [
                             "add",
@@ -15339,8 +15339,6 @@
                     },
                     "association": {
                         "add": "Add ${other_entity} into ${entity} ${primary_key}",
-                        "member": "${other_entity} enrolled in ${entity} ${primary_key}",
-                        "memberof": "${entity} ${primary_key} is enrolled in the following ${other_entity}",
                         "remove": "Remove ${other_entity} from ${entity} ${primary_key}"
                     },
                     "buttons": {
@@ -15349,7 +15347,6 @@
                         "add_and_close": "Add and Close",
                         "add_and_edit": "Add and Edit",
                         "add_many": "Add Many",
-                        "back_to_list": "Back to List",
                         "cancel": "Cancel",
                         "close": "Close",
                         "enroll": "Enroll",
@@ -15372,13 +15369,14 @@
                         "to_top": "Back to Top"
                     },
                     "dialogs": {
+                        "add_title": "Add ${entity}",
                         "available": "Available",
                         "dirty_message": "This page has unsaved changes. Please save or revert.",
                         "dirty_title": "Dirty",
                         "hide_already_enrolled": "Hide already enrolled.",
                         "prospective": "Prospective",
                         "remove_empty": "Select ${entity} to be removed.",
-                        "remove_title": "Remove ${entity}."
+                        "remove_title": "Remove ${entity}"
                     },
                     "facet_groups": {
                         "managedby": "Managed by",
@@ -15400,14 +15398,12 @@
                             "attribute": "Attribute"
                         },
                         "automountkey": {
-                            "add": "Add Automount Key"
                         },
                         "automountlocation": {
                             "add": "Add Automount Location",
                             "identity": "Automount Location Settings"
                         },
                         "automountmap": {
-                            "add": "Add Automount Map"
                         },
                         "cert": {
                             "aa_compromise": "AA Compromise",
@@ -15451,27 +15447,22 @@
                             "ipaserver": "Configuration"
                         },
                         "delegation": {
-                            "add": "Add Delegation"
                         },
                         "dnsrecord": {
-                            "add": "Add DNS Resource Record",
                             "data": "Data",
                             "resource": "Resource",
                             "title": "Records for DNS Zone",
                             "type": "Type"
                         },
                         "dnszone": {
-                            "add": "Add DNS Zone",
                             "identity": "DNS Zone Settings"
                         },
                         "group": {
-                            "add": "Add Group",
                             "details": "Group Settings",
                             "posix": "Is this a POSIX group?"
                         },
                         "hbacrule": {
                             "active": "Active",
-                            "add": "Add HBAC Rule",
                             "allow": "Allow",
                             "any_host": "Any Host",
                             "any_service": "Any Service",
@@ -15488,14 +15479,11 @@
                             "user": "Who"
                         },
                         "hbacsvc": {
-                            "add": "Add HBAC Service"
                         },
                         "hbacsvcgroup": {
-                            "add": "Add HBAC Service Group",
                             "services": "Services"
                         },
                         "host": {
-                            "add": "Add Host",
                             "certificate": "Host Certificate",
                             "cn": "Host Name",
                             "delete_key_unprovision": "Delete Key, Unprovision",
@@ -15515,18 +15503,15 @@
                             "valid": "Kerberos Key Present, Host Provisioned"
                         },
                         "hostgroup": {
-                            "add": "Add Host Group",
                             "identity": "Host Group Settings"
                         },
                         "krbtpolicy": {
                             "identity": "Kerberos ticket policy"
                         },
                         "netgroup": {
-                            "add": "Add Netgroup",
                             "identity": "Netgroup Settings"
                         },
                         "permission": {
-                            "add": "Add Permission",
                             "filter": "Filter",
                             "identity": "Identity",
                             "invalid_target": "Permission with invalid target specification",
@@ -15537,22 +15522,17 @@
                             "type": "Object By Type"
                         },
                         "privilege": {
-                            "add": "Add Privilege",
                             "identity": "Privilege Settings"
                         },
                         "pwpolicy": {
-                            "add": "Add Password Policy",
                             "identity": "Password Policy"
                         },
                         "role": {
-                            "add": "Add Role",
                             "identity": "Role Settings"
                         },
                         "selfservice": {
-                            "add": "Add Self Service Definition"
                         },
                         "service": {
-                            "add": "Add Service",
                             "certificate": "Service Certificate",
                             "delete_key_unprovision": "Delete Key, Unprovision",
                             "details": "Service Settings",
@@ -15567,16 +15547,13 @@
                             "valid": "Kerberos Key Present, Service Provisioned"
                         },
                         "sudocmd": {
-                            "add": "Add Sudo Command",
                             "groups": "Groups"
                         },
                         "sudocmdgroup": {
-                            "add": "Add Sudo Command Group",
                             "commands": "Commands"
                         },
                         "sudorule": {
                             "active": "Active",
-                            "add": "Add Sudo Rule",
                             "allow": "Allow",
                             "any_command": "Any Command",
                             "any_group": "Any Group",
@@ -15599,7 +15576,6 @@
                             "account": "Account Settings",
                             "activate": "Click to Activate",
                             "active": "Active",
-                            "add": "Add User",
                             "contact": "Contact Settings",
                             "deactivate": "Click to Deactivate",
                             "employee": "Employee Information",
@@ -15624,6 +15600,7 @@
                     "tabs": {
                         "audit": "Audit",
                         "automount": "Automount",
+                        "dns": "DNS",
                         "hbac": "Host Based Access Control",
                         "identity": "Identity",
                         "ipaserver": "IPA Server",

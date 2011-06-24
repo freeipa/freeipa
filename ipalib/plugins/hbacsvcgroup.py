@@ -61,7 +61,7 @@ class hbacsvcgroup(LDAPObject):
         'member': ['hbacsvc'],
     }
 
-    label = _('HBAC service Groups')
+    label = _('HBAC Service Groups')
     label_singular = _('HBAC service group')
 
     takes_params = (

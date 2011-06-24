@@ -78,7 +78,7 @@ class role(LDAPObject):
     }
     rdnattr='cn'
 
-    label = _('Role')
+    label = _('Roles')
     label_singular = _('role')
 
     takes_params = (

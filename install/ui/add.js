@@ -29,9 +29,6 @@ IPA.add_dialog = function (spec) {
 
     var that = IPA.dialog(spec);
 
-    that.name = spec.name;
-    that.title = spec.title;
-    that._entity_name = spec.entity_name;
     that.method = spec.method || 'add';
 
     function show_edit_page(entity_name,result){

@@ -56,7 +56,7 @@ IPA.search_facet = function(spec) {
         that.table = IPA.table_widget({
             'class': 'content-table',
             name: 'search',
-            label: IPA.metadata.objects[entity.name].label,
+            label: entity.metadata.label,
             entity_name: entity.name,
             search_all: that.search_all,
             scrollable: true,
@@ -188,17 +188,18 @@ IPA.search_facet = function(spec) {
     that.remove_instances = function(entity) {
 
         var values = that.get_values();
+        var label = entity.metadata.label;
 
         var title;
         if (!values.length) {
             title = IPA.messages.dialogs.remove_empty;
-            title = title.replace('${entity}', that.label);
+            title = title.replace('${entity}', label);
             alert(title);
             return;
         }
 
         title = IPA.messages.dialogs.remove_title;
-        title = title.replace('${entity}', that.label);
+        title = title.replace('${entity}', label);
 
         var dialog = IPA.deleter_dialog({
             'title': title,

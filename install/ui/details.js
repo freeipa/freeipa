@@ -379,13 +379,6 @@ IPA.details_facet = function(spec) {
         that.facet_create_header(container);
 
         that.pkey = $.bbq.getState(that.entity_name+'-pkey');
-        var label = IPA.metadata.objects[that.entity_name].label;
-
-        var title = that.title;
-        title = title.replace('${entity}', label);
-        title = title.replace('${primary_key}', that.pkey);
-
-        that.set_title(container, title);
 
         that.create_controls();
 

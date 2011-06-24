@@ -817,13 +817,6 @@ IPA.association_facet = function (spec) {
         that.pkey = $.bbq.getState(that.entity_name+'-pkey');
         var other_label = IPA.metadata.objects[that.other_entity].label;
 
-        var title = that.title;
-        title = title.replace('${entity}', that.entity_name);
-        title = title.replace('${primary_key}', that.pkey);
-        title = title.replace('${other_entity}', other_label);
-
-        that.set_title(container, title);
-
         if (!that.read_only) {
             that.remove_button = IPA.action_button({
                 name: 'remove',

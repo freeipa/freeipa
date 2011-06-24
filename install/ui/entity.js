@@ -38,7 +38,6 @@ IPA.facet = function (spec) {
 
     that.disable_breadcrumb = spec.disable_breadcrumb;
     that.disable_facet_tabs = spec.disable_facet_tabs;
-    that.back_link_text = spec.back_link_text || IPA.messages.buttons.back_to_list;
 
     that.header = spec.header || IPA.facet_header({ facet: that });
 
@@ -242,7 +241,7 @@ IPA.facet_header = function(spec) {
 
         that.title_container.empty();
         var h3 = $('<h3/>').appendTo(that.title_container);
-        h3.append(that.facet.entity.title);
+        h3.append(that.facet.title);
         h3.append(': ');
 
         $('<span/>', {
@@ -308,10 +307,11 @@ IPA.facet_header = function(spec) {
                 'class': 'back-link'
             }).appendTo(that.breadcrumb);
 
-            that.back_link.append('&laquo; ');
+            var entity = that.facet.entity;
+            while (entity.containing_entity) entity = entity.containing_entity;
 
             $('<a/>', {
-                text: that.facet.back_link_text,
+                text: entity.metadata.label,
                 click: function() {
                     that.facet.redirect();
                     return false;
@@ -724,7 +724,7 @@ IPA.entity_builder = function(){
         }
 
         if (!facet_group.label) {
-            var relationships = IPA.metadata.objects[entity.name].relationships;
+            var relationships = entity.metadata.relationships;
             if (relationships) {
                 var relationship = relationships[facet_group.name];
                 if (relationship) {
@@ -763,7 +763,7 @@ IPA.entity_builder = function(){
     that.search_facet = function(spec) {
 
         spec.entity_name = entity.name;
-        spec.title = spec.title || spec.label;
+        spec.title = spec.title || entity.metadata.label;
         spec.label = spec.label || IPA.messages.facets.search;
 
         var factory = spec.factory || IPA.search_facet;
@@ -777,6 +777,7 @@ IPA.entity_builder = function(){
     that.nested_search_facet = function(spec) {
 
         spec.entity_name = entity.name;
+        spec.title = spec.title || entity.metadata.label_singular;
         spec.label = spec.label || IPA.messages.facets.search;
 
         var factory = spec.factory || IPA.nested_search_facet;
@@ -791,7 +792,7 @@ IPA.entity_builder = function(){
         var sections = spec.sections;
         spec.sections = null;
         spec.entity_name = entity.name;
-        spec.title = spec.title || spec.label || IPA.messages.details.settings;
+        spec.title = spec.title || entity.metadata.label_singular;
         spec.label = spec.label || IPA.messages.facets.details;
 
         var factory = spec.factory || IPA.details_facet;
@@ -838,19 +839,11 @@ IPA.entity_builder = function(){
             }
         }
 
+        spec.title = spec.label || entity.metadata.label_singular;
+
         spec.label = spec.label ||
             (IPA.metadata.objects[spec.other_entity] ?
              IPA.metadata.objects[spec.other_entity].label : spec.other_entity);
-
-        if (!spec.title) {
-            if (spec.facet_group == 'member' ||
-                spec.facet_group == 'memberindirect') {
-                spec.title = IPA.messages.association.member;
-            } else if (spec.facet_group == 'memberof' ||
-                       spec.facet_group == 'memberofindirect') {
-                spec.title = IPA.messages.association.memberof;
-            }
-        }
 
         var factory = spec.factory || IPA.association_facet;
         facet = factory(spec);
@@ -964,10 +957,9 @@ IPA.entity_builder = function(){
         spec.name = spec.name || 'add';
 
         if (!spec.title) {
-            var messages = IPA.messages.objects[entity.name];
-            if (messages) {
-                spec.title = messages.add;
-            }
+            var title = IPA.messages.dialogs.add_title;
+            var label = entity.metadata.label_singular;
+            spec.title = title.replace('${entity}', label);
         }
 
         return that.dialog(spec);

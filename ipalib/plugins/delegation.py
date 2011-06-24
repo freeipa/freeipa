@@ -99,7 +99,7 @@ class delegation(Object):
     bindable = False
     object_name = 'delegation',
     object_name_plural = 'delegation',
-    label = _('Delegation')
+    label = _('Delegations')
     label_singular = _('delegation')
 
     takes_params = (

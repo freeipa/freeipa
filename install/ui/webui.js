@@ -42,7 +42,7 @@ IPA.admin_navigation = function(spec) {
             {entity: 'service'}
         ]},
         {name: 'policy', label: IPA.messages.tabs.policy, children: [
-            {entity: 'dnszone'},
+            {entity: 'dnszone', label: IPA.messages.tabs.dns},
             {name: 'hbac', label: IPA.messages.tabs.hbac, children: [
                  {entity: 'hbacrule'},
                  {entity: 'hbacsvc'},
@@ -54,8 +54,8 @@ IPA.admin_navigation = function(spec) {
                  {entity: 'sudocmdgroup'}
             ]},
             {entity: 'automountlocation', label: IPA.messages.tabs.automount},
-            {entity: 'automountmap',hidden:true},
-            {entity: 'automountkey',hidden:true},
+            {entity: 'automountmap', hidden: true},
+            {entity: 'automountkey', hidden: true},
             {entity: 'pwpolicy'},
             {entity: 'krbtpolicy'}
         ]},

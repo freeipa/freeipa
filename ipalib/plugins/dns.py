@@ -282,7 +282,7 @@ class dnszone(LDAPObject):
         'idnssoaserial', 'idnssoarefresh', 'idnssoaretry', 'idnssoaexpire',
         'idnssoaminimum'
     ] + _record_attributes
-    label = _('DNS')
+    label = _('DNS Zones')
     label_singular = _('DNS zone')
 
     takes_params = (
@@ -521,7 +521,7 @@ class dnsrecord(LDAPObject):
     object_class = ['top', 'idnsrecord']
     default_attributes = _record_attributes + ['idnsname']
 
-    label = _('DNS resource record')
+    label = _('DNS Resource Records')
     label_singular = _('DNS resource record')
 
     takes_params = (

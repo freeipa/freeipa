@@ -38,8 +38,7 @@ IPA.entity_factories.automountlocation = function() {
             nested_entity : 'automountmap',
             label : IPA.metadata.objects.automountmap.label,
             name: 'maps',
-            columns:['automountmapname'],
-            back_link_text: 'Back to Locations'
+            columns:['automountmapname']
         }).
         details_facet({
             sections:[
@@ -48,8 +47,7 @@ IPA.entity_factories.automountlocation = function() {
                     label: IPA.messages.details.identity,
                     fields:['cn']
                 }
-            ],
-            back_link_text: 'Back to Locations'
+            ]
         }).
         adder_dialog({
             fields:['cn']
@@ -66,7 +64,6 @@ IPA.entity_factories.automountmap = function() {
             label : IPA.metadata.objects.automountkey.label,
             name: 'keys',
             get_values: IPA.get_option_values,
-            back_link_text: 'Back to Locations',
             columns:[
                 {
                     factory: IPA.automount_key_column,
@@ -83,8 +80,7 @@ IPA.entity_factories.automountmap = function() {
                     label: IPA.messages.details.identity,
                     fields:['automountmapname','description']
                 }
-            ],
-            back_link_text: 'Back to Locations'
+            ]
         }).
         adder_dialog({
             factory: IPA.automountmap_adder_dialog,
@@ -131,7 +127,6 @@ IPA.entity_factories.automountkey = function() {
                 }
             ],
             disable_breadcrumb: false,
-            back_link_text: 'Back to Locations',
             pre_execute_hook : function (command){
                 var entity_name = this.entity_name;
                 var info = IPA.nav.get_state(entity_name + '-info');

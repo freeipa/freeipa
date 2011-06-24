@@ -216,7 +216,7 @@ class pwpolicy(LDAPObject):
             ),
         )
 
-    label = _('Password Policy')
+    label = _('Password Policies')
     label_singular = _('password policy')
 
     takes_params = (
