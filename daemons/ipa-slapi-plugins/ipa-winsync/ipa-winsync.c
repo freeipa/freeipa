@@ -404,6 +404,7 @@ ipa_winsync_get_new_ds_user_dn_cb(void *cbdata, const Slapi_Entry *rawentry,
     }
 
     ldap_rdn2str(ldn[0], &rdn, LDAP_DN_FORMAT_LDAPV3);
+    slapi_ch_free_string(new_dn_string);
     *new_dn_string = slapi_ch_smprintf("%s,%s", rdn, slapi_sdn_get_dn(ds_suffix));
     ldap_dnfree(ldn);
     ldap_memfree(rdn);
