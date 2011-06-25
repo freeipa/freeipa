@@ -787,6 +787,13 @@ sync_acct_disable(
         return; /* not supported */
     }
 
+    if (!ad_entry) {
+        LOG("<-- sync_acct_disable - the AD entry corresponding to [%s] "
+            "is NULL - skipping\n",
+            slapi_entry_get_dn_const(ds_entry));
+        return;
+    }
+
     /* get the account lock state of the ds entry */
     if (0 == ipa_check_account_lock(ds_entry, &isvirt)) {
         ds_is_enabled = 0;
@@ -1113,7 +1120,7 @@ do_force_sync(
 
     LOG("do_force_sync - forcing sync of AD entry [%s] "
         "with DS entry [%s]\n",
-        slapi_entry_get_dn_const(ad_entry),
+        ad_entry ? slapi_entry_get_dn_const(ad_entry) : "(none)",
         slapi_entry_get_dn_const(ds_entry));
 
     find_and_add_mod(ds_entry, smods, "objectClass", "ntUser", (size_t)6, do_modify);
