@@ -890,11 +890,13 @@ sync_acct_disable(
             (!ad_is_enabled && (ipaconfig->inactivated_group_dn == NULL))) {
             char *attrtype = NULL;
             char *attrval = NULL;
+            size_t attrvallen = 0;
             attrtype = "nsAccountLock";
             if (ad_is_enabled) {
                 attrval = NULL; /* will delete the value */
             } else {
-                attrval = "true";
+                attrval = "TRUE";
+                attrvallen = 4;
             }
 
             if (update_entry) {
@@ -903,7 +905,7 @@ sync_acct_disable(
                     (ad_is_enabled) ? "enabled" : "disabled",
                     slapi_entry_get_dn_const(ds_entry));
             } else { /* do mod */
-                struct berval tmpbval = {0, NULL};
+                struct berval tmpbval = {attrvallen, attrval};
                 Slapi_Mod *smod = slapi_mod_new();
                 slapi_mod_init(smod, 1); /* one element */
                 slapi_mod_set_type(smod, attrtype);
@@ -911,8 +913,8 @@ sync_acct_disable(
                     slapi_mod_set_operation(smod, LDAP_MOD_DELETE|LDAP_MOD_BVALUES);
                 } else {
                     slapi_mod_set_operation(smod, LDAP_MOD_REPLACE|LDAP_MOD_BVALUES);
+                    slapi_mod_add_value(smod, &tmpbval);
                 }
-                slapi_mod_add_value(smod, &tmpbval);
                 slapi_mods_add_ldapmod(smods,
                                        slapi_mod_get_ldapmod_passout(smod));
                 slapi_mod_free(&smod);
