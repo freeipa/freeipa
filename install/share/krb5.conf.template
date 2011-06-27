@@ -26,9 +26,6 @@
 [appdefaults]
  pam = {
    debug = false
-   ticket_lifetime = 36000
-   renew_lifetime = 36000
-   forwardable = true
    krb4_convert = false
  }
 
