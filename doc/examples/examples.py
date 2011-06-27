@@ -152,7 +152,7 @@ class exshowuser(Command):
         # the 'no_display' flag is supported by the Command.output_for_cli
         # method, but you can always use your own if you plan
         # to override it - I'll show you how later.
-        output.Output('result', dict, 'user entry whithout DN'),
+        output.Output('result', dict, 'user entry without DN'),
         output.Output('dn', unicode, 'DN of the user entry', ['no_display']),
     )
 
@@ -322,7 +322,7 @@ class exuser(Object):
 # we don't want to damage your user entries - adding, deleting, modifying is a
 # bit more complicated and will be covered later in this file.
 
-# Methods are automatically associtad with a parent Object based on class
+# Methods are automatically associated with a parent Object based on class
 # names. They can then access their parent Object using self.obj.
 # Simply said, Methods are just Commands associated with an Object.
 
