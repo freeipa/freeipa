@@ -149,12 +149,13 @@ IPA.widget = function(spec) {
             }
         }
     };
+
     /**
      * This function compares the original values and the
      * values entered in the UI. If the values have changed
      * it will return true.
      */
-    that.test_dirty = function(){
+    that.test_dirty = function() {
 
         if (that.read_only) {
             return false;
@@ -241,8 +242,8 @@ IPA.widget = function(spec) {
     };
 
     that.reset = function() {
-        that.set_dirty(false);
         that.update();
+        that.set_dirty(false);
     };
 
     that.update = function() {
@@ -328,6 +329,7 @@ IPA.widget = function(spec) {
     that.widget_reset = that.reset;
     that.widget_save = that.save;
     that.widget_set_dirty = that.set_dirty;
+    that.widget_test_dirty = that.test_dirty;
 
     return that;
 };
@@ -460,34 +462,39 @@ IPA.multivalued_text_widget = function(spec) {
         }
     };
 
-    that.super_test_dirty = that.test_dirty;
-
-    that.test_dirty = function(index){
+    that.test_dirty = function(index) {
         if (index === undefined) {
-            return that.super_test_dirty();
+            return that.widget_test_dirty();
         }
+
         var row = that.get_row(index);
-        var return_value = false;
+        var input = $('input[name="'+that.name+'"]', row);
 
-        $('input[name="'+that.name+'"]', row).each(function() {
-            var input = $(this);
-            if (input.is('.strikethrough')) return_value = true;
-            var value = input.val();
+        if (input.is('.strikethrough')) {
+            return true;
+        }
 
-            if (value !== that.values[index]){
-                return_value = true;
-            }
-        });
-        return return_value;
+        var value = input.val();
+        if (value !== that.values[index]) {
+            return true;
+        }
+
+        return false;
     };
 
     that.set_dirty = function(dirty, index) {
-        that.widget_set_dirty(dirty);
+        that.dirty = dirty;
+
         if (that.undo) {
             if (dirty) {
                 that.show_undo(index);
             } else {
                 that.hide_undo(index);
+            }
+
+            if (index !== undefined) {
+                // update undo all
+                that.set_dirty(that.test_dirty());
             }
         }
     };
@@ -636,7 +643,7 @@ IPA.multivalued_text_widget = function(spec) {
                 var index = that.row_index(row);
                 // uncross removed value
                 input.removeClass('strikethrough');
-                that.set_dirty( that.test_dirty(index), index);
+                that.set_dirty(that.test_dirty(index), index);
                 if (that.undo) {
                     if (index < that.values.length) {
                         remove_link.css('display', 'inline');
@@ -655,7 +662,8 @@ IPA.multivalued_text_widget = function(spec) {
                     remove_link.css('display', 'none');
                 } else {
                     // remove new value
-                    row.remove();
+                    that.remove_row(index);
+                    that.set_dirty(that.test_dirty());
                 }
                 return false;
             });
@@ -664,12 +672,13 @@ IPA.multivalued_text_widget = function(spec) {
                 var index = that.row_index(row);
                 if (index < that.values.length) {
                     // restore old value
-                    that.reset(index);
                     input.removeClass('strikethrough');
                     remove_link.css('display', 'inline');
+                    that.reset(index);
                 } else {
                     // remove new value
-                    row.remove();
+                    that.remove_row(index);
+                    that.set_dirty(that.test_dirty());
                 }
             });
         }
@@ -677,6 +686,10 @@ IPA.multivalued_text_widget = function(spec) {
 
     that.remove_row = function(index) {
         that.get_row(index).remove();
+    };
+
+    that.remove_rows = function() {
+        that.get_rows().remove();
     };
 
     that.get_row = function(index) {
@@ -692,8 +705,8 @@ IPA.multivalued_text_widget = function(spec) {
     };
 
     that.reset = function(index) {
-        that.set_dirty(false, index);
         that.update(index);
+        that.set_dirty(false, index);
     };
 
     that.update = function(index) {
@@ -701,7 +714,7 @@ IPA.multivalued_text_widget = function(spec) {
         var value;
 
         if (index === undefined) {
-            $('div[name=value]', that.container).remove();
+            that.remove_rows();
 
             for (var i=0; i<that.values.length; i++) {
                 value = that.values[i];
