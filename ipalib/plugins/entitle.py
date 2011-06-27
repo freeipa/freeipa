@@ -488,7 +488,7 @@ class entitle_register(LDAPCreate):
     takes_options = LDAPCreate.takes_options + (
         Str('ipaentitlementid?',
             label='UUID',
-            doc=_('Enrollment UUID'),
+            doc=_('Enrollment UUID (not implemented)'),
             flags=['no_create', 'no_update'],
         ),
         Password('password',
@@ -515,6 +515,9 @@ class entitle_register(LDAPCreate):
             raise errors.ACIError(info='No permission to register')
         os.environ['LANG'] = 'en_US'
         locale.setlocale(locale.LC_ALL, '')
+
+        if 'ipaentitlementid' in options:
+            raise errors.ValidationError(name='ipaentitlementid', error='Registering to specific UUID is not supported yet.')
 
         try:
             registrations = api.Command['entitle_find']()
