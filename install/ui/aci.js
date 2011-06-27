@@ -393,6 +393,7 @@ IPA.target_section = function(spec) {
     spec = spec || {};
 
     var that = IPA.details_section(spec);
+    that.section = true;
     that.undo = typeof spec.undo == 'undefined' ? true : spec.undo;
 
     that.filter_text = IPA.text_widget({name: 'filter', undo: that.undo});
