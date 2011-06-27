@@ -522,7 +522,7 @@ class ldap2(CrudBackend, Encoder):
             scope=_ldap.SCOPE_SUBTREE, time_limit=None, size_limit=None,
             normalize=True, search_refs=False):
         """
-        Return a list of entries and indication of whteher the results where
+        Return a list of entries and indication of whether the results were
         truncated ([(dn, entry_attrs)], truncated) matching specified search
         parameters followed by truncated flag. If the truncated flag is True,
         search hit a server limit and its results are incomplete.
@@ -1056,7 +1056,10 @@ class ldap2(CrudBackend, Encoder):
         else:
             if account_lock_attr == 'true':
                 raise errors.AlreadyInactive()
-        account_lock_attr = str(not active)
+
+        # LDAP expects string instead of Bool but it also requires it to be TRUE or FALSE,
+        # not True or False as Python stringification does. Thus, we uppercase it.
+        account_lock_attr = str(not active).upper()
 
         entry_attrs['nsaccountlock'] = account_lock_attr
         self.update_entry(dn, entry_attrs)
