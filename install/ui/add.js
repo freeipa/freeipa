@@ -116,6 +116,10 @@ IPA.add_dialog = function (spec) {
 
         var fields = that.fields.values;
         for (var i=0; i<fields.length; i++) {
+            fields[i].validate();
+        }
+
+        for (i=0; i<fields.length; i++) {
             field = fields[i];
             if (!field.valid) return;
 

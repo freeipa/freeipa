@@ -39,6 +39,8 @@ IPA.widget = function(spec) {
     that.disabled = spec.disabled;
     that.hidden = spec.hidden;
     that.conditional = spec.conditional;
+    that.optional = spec.optional || false;
+
     // read_only is set during initialization
     that.read_only = spec.read_only;
 
@@ -79,6 +81,12 @@ IPA.widget = function(spec) {
 
         var values = that.save();
         if (!values || !values.length) {
+            if (that.param_info &&
+                that.param_info.required &&
+                !that.optional) {
+                that.valid = false;
+                that.show_error('required field');
+            }
             return;
         }
 

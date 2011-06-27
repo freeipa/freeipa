@@ -344,8 +344,6 @@ IPA.dialog = function(spec) {
             var factory = field_spec.factory || IPA.text_widget;
             field = factory(field_spec);
 
-            field.optional = field_spec.optional || false;
-
             /* This is a bit of a hack, and is here to support ACI
                permissions. The target section is a group of several
                widgets together. It makes more sense to do them as a
