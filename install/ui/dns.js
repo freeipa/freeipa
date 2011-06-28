@@ -105,12 +105,22 @@ IPA.dnsrecord_facet = function(spec) {
 
     var that = IPA.search_facet(spec);
 
-    var record_types = [
-        'a', 'aaaa', 'dname', 'cname', 'mx', 'ns', 'ptr',
-        'srv', 'txt', 'a6', 'afsdb', 'cert', 'ds',
-        'key', 'kx', 'loc',  'naptr', 'nsec',
-        'rrsig', 'sshfp'
-    ];
+    function generate_recordtype_list(){
+        var attrs = IPA.metadata.objects.dnsrecord.default_attributes;
+        var record_types = [];
+        for (var i =0; i < attrs.length; i+=1){
+            var attr = attrs[i];
+            var index = attr.search('record$');
+            if (index > -1){
+                var rec_type = attr.substring(0,index);
+                record_types.push(rec_type);
+            }
+        }
+        return record_types;
+
+    }
+
+    var record_types =  generate_recordtype_list();
 
     that.init = function() {
 
