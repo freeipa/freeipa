@@ -793,6 +793,7 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
     char *errMsg = "Internal operations error\n";
     struct ipapwd_krbcfg *krbcfg = NULL;
     char *principal = NULL;
+    Slapi_Value *ipahost;
 
     LOG_TRACE("=>\n");
 
@@ -828,26 +829,6 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
     /* prepare changes that can be made only as root */
     smods = slapi_mods_new();
 
-    /* change Last Password Change field with the current date */
-    if (!gmtime_r(&(pwdop->pwdata.timeNow), &utctime)) {
-        LOG_FATAL("failed to parse current date (buggy gmtime_r ?)\n");
-        goto done;
-    }
-    strftime(timestr, GENERALIZED_TIME_LENGTH+1,
-             "%Y%m%d%H%M%SZ", &utctime);
-    slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
-                          "krbLastPwdChange", timestr);
-
-    /* set Password Expiration date */
-    if (!gmtime_r(&(pwdop->pwdata.expireTime), &utctime)) {
-        LOG_FATAL("failed to parse expiration date (buggy gmtime_r ?)\n");
-        goto done;
-    }
-    strftime(timestr, GENERALIZED_TIME_LENGTH+1,
-             "%Y%m%d%H%M%SZ", &utctime);
-    slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
-                          "krbPasswordExpiration", timestr);
-
     /* This was a mod operation on an existing entry, make sure we also update
      * the password history based on the entry we saved from the pre-op */
     if (IPAPWD_OP_MOD == pwdop->pwd_op) {
@@ -868,6 +849,35 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
                                       "passwordHistory", pwvals);
         }
     }
+
+    /* set Password Expiration date */
+    if (!gmtime_r(&(pwdop->pwdata.expireTime), &utctime)) {
+        LOG_FATAL("failed to parse expiration date (buggy gmtime_r ?)\n");
+        goto done;
+    }
+    strftime(timestr, GENERALIZED_TIME_LENGTH+1,
+             "%Y%m%d%H%M%SZ", &utctime);
+    slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
+                          "krbPasswordExpiration", timestr);
+
+    /* Don't set a last password change password on host passwords. This
+     * attribute is used to tell whether we have a valid keytab. If we
+     * set it on userPassword it confuses enrollment.
+     */
+    ipahost = slapi_value_new_string("ipaHost");
+    if (!pwdop->pwdata.target || (slapi_entry_attr_has_syntax_value(pwdop->pwdata.target, SLAPI_ATTR_OBJECTCLASS, ipahost)) == 0) {
+        /* change Last Password Change field with the current date */
+        if (!gmtime_r(&(pwdop->pwdata.timeNow), &utctime)) {
+            LOG_FATAL("failed to parse current date (buggy gmtime_r ?)\n");
+            slapi_value_free(&ipahost);
+            goto done;
+        }
+        strftime(timestr, GENERALIZED_TIME_LENGTH+1,
+                 "%Y%m%d%H%M%SZ", &utctime);
+        slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
+                              "krbLastPwdChange", timestr);
+    }
+    slapi_value_free(&ipahost);
 
     ret = ipapwd_apply_mods(pwdop->pwdata.dn, smods);
     if (ret)

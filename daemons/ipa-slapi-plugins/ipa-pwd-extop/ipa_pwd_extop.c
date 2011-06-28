@@ -141,6 +141,7 @@ static int ipapwd_chpwop(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	struct berval	*extop_value = NULL;
 	BerElement	*ber = NULL;
 	Slapi_Entry *targetEntry=NULL;
+	Slapi_Value *objectclass=NULL;
 	char *attrlist[] = {"*", "passwordHistory", NULL };
 	struct ipapwd_data pwdata;
 	int is_krb, is_smb;
@@ -287,6 +288,14 @@ parse_req_done:
 	 if (rc) {
 		goto free_and_return;
 	 }
+
+	/* When setting the password for host principals do not set kerberos
+	 * keys */
+	objectclass = slapi_value_new_string("ipaHost");
+	if ((slapi_entry_attr_has_syntax_value(targetEntry, SLAPI_ATTR_OBJECTCLASS, objectclass)) == 1) {
+		is_krb = 0;
+	}
+	slapi_value_free(&objectclass);
 
 	 /* First thing to do is to ask access control if the bound identity has
 	  * rights to modify the userpassword attribute on this entry. If not,
