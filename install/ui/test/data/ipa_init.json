@@ -15592,6 +15592,7 @@
                     "dialogs": {
                         "add_title": "Add ${entity}",
                         "available": "Available",
+                        "confirmation": "Confirmation",
                         "dirty_message": "This page has unsaved changes. Please save or revert.",
                         "dirty_title": "Dirty",
                         "hide_already_enrolled": "Hide already enrolled.",
@@ -15665,9 +15666,7 @@
                             "view_certificate": "Certificate for ${entity} ${primary_key}"
                         },
                         "config": {
-                            "cn": "Name",
                             "group": "Group Options",
-                            "ipaserver": "Configuration",
                             "search": "Search Options",
                             "user": "User Options"
                         },
@@ -15816,10 +15815,13 @@
                         },
                         "user": {
                             "account": "Account Settings",
-                            "activate": "Click to Activate",
+                            "account_status": "Account status",
+                            "activate": "Activate",
+                            "activation_link": "Click to ${action}",
+                            "activation_confirmation": "Are you sure you want to ${action} the user?<br/>The change will take effect immediately.",
                             "active": "Active",
                             "contact": "Contact Settings",
-                            "deactivate": "Click to Deactivate",
+                            "deactivate": "Deactivate",
                             "employee": "Employee Information",
                             "error_changing_status": "Error changing account status",
                             "inactive": "Inactive",

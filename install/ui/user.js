@@ -62,7 +62,11 @@ IPA.entity_factories.user = function() {
             {
                 name: 'account',
                 fields: [
-                    { factory: IPA.user_status_widget, name: 'nsaccountlock' },
+                    {
+                        factory: IPA.user_status_widget,
+                        name: 'nsaccountlock',
+                        label: IPA.messages.objects.user.account_status
+                    },
                     'uid',
                     { factory: IPA.user_password_widget, name: 'userpassword' },
                     'uidnumber',
@@ -138,62 +142,126 @@ IPA.user_status_widget = function(spec) {
 
     var that = IPA.widget(spec);
 
+    that.create = function(container) {
+
+        that.widget_create(container);
+
+        that.status_span = $('<span/>', {
+            name: 'status'
+        }).appendTo(container);
+
+        container.append(': ');
+
+        that.status_link = $('<a/>', {
+            name: 'link',
+            click: function() {
+
+                var entity = IPA.get_entity(that.entity_name);
+                var facet_name = IPA.current_facet(entity);
+                var facet = entity.get_facet(facet_name);
+
+                if (facet.is_dirty()) {
+                    var dialog = IPA.dirty_dialog({
+                        facet: facet
+                    });
+
+                    dialog.callback = function() {
+                        that.show_activation_dialog();
+                    };
+
+                    dialog.init();
+                    dialog.open(container);
+
+                } else {
+                    that.show_activation_dialog();
+                }
+
+                return false;
+            }
+        }).appendTo(container);
+    };
+
     that.update = function() {
 
         if (!that.record) return;
 
-        that.container.empty();
-
         var lock_field = 'nsaccountlock';
 
-        var locked  = that.record[lock_field] &&
+        var locked = that.record[lock_field] &&
             that.record[lock_field][0].toLowerCase() === 'true';
-        var title = IPA.messages.objects.user.active;
-        var text = title+":  "+IPA.messages.objects.user.deactivate;
+
+        var status;
+        var action;
+
         if (locked) {
-            title = IPA.messages.objects.user.inactive;
-            text = title+":  "+IPA.messages.objects.user.activate;
+            status = IPA.messages.objects.user.inactive;
+            action = 'activate';
+
+        } else {
+            status = IPA.messages.objects.user.active;
+            action = 'deactivate';
         }
 
-        function on_lock_win(data, textStatus, xhr){
-            var entity = IPA.get_entity(that.entity_name);
-            var facet = entity.get_facet('details');
-            facet.refresh();
-            return false;
-        }
+        that.status_span.html(status);
+        that.status_link.attr('href', action);
 
-        function on_lock_fail(data, textStatus, xhr){
-            $("#userstatuslink").text = IPA.messages.objects.user.error_changing_status;
-            return false;
-        }
+        var message = IPA.messages.objects.user.activation_link;
+        var action_label = IPA.messages.objects.user[action];
+        message = message.replace('${action}', action_label);
 
-        var status_field =
-            $('<a/>',
-              {
-                  id: 'userstatuslink',
-                  title: title,
-                  href: "jslink",
-                  text: text,
-                  click: function() {
-                      var jobj = $(this);
-                      var val = jobj.attr('title');
-                      var pkey =  IPA.nav.get_state('user-pkey');
-                      var method = 'enable';
-                      if (val == IPA.messages.objects.user.active) {
-                          method = 'disable';
-                      }
-                      IPA.command({
-                          entity: 'user',
-                          method: method,
-                          args: [pkey],
-                          on_success: on_lock_win,
-                          on_error: on_lock_fail
-                      }).execute();
+        that.status_link.html(message);
+    };
 
-                      return (false);
-                  }
-              });
-        status_field.appendTo(that.container);
+    that.show_activation_dialog = function() {
+
+        var action = that.status_link.attr('href');
+
+        var message = IPA.messages.objects.user.activation_confirmation;
+        var action_label = IPA.messages.objects.user[action];
+        message = message.replace('${action}', action_label.toLocaleLowerCase());
+
+        var dialog = IPA.dialog({
+            'title': IPA.messages.dialogs.confirmation
+        });
+
+        dialog.create = function() {
+            dialog.container.append(message);
+        };
+
+        dialog.add_button(action_label, function() {
+            that.set_status(
+                action == 'activate',
+                function(data, textStatus, xhr) {
+                    var entity = IPA.get_entity(that.entity_name);
+                    var facet_name = IPA.current_facet(entity);
+                    var facet = entity.get_facet(facet_name);
+                    facet.refresh();
+                    dialog.close();
+                }
+            );
+        });
+
+        dialog.add_button(IPA.messages.buttons.cancel, function() {
+            dialog.close();
+        });
+
+        dialog.init();
+
+        dialog.open(that.container);
+    };
+
+    that.set_status = function(enabled, on_success, on_error) {
+
+        var pkey = IPA.nav.get_state('user-pkey');
+        var method = enabled ? 'enable' : 'disable';
+
+        IPA.command({
+            entity: 'user',
+            method: method,
+            args: [pkey],
+            on_success: on_success,
+            on_error: on_error
+        }).execute();
     };
 
     return that;
