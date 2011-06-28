@@ -50,7 +50,11 @@ BuildRequires:  python-ldap
 BuildRequires:  python-setuptools
 BuildRequires:  python-krbV
 BuildRequires:  python-nss
+%if 0%{?fedora} >= 15
+BuildRequires:  python-netaddr >= 0.7.5-3
+%else
 BuildRequires:  python-netaddr
+%endif
 BuildRequires:  python-kerberos
 BuildRequires:  python-rhsm
 BuildRequires:  pyOpenSSL
@@ -192,7 +196,11 @@ Requires: iproute
 Requires: pyOpenSSL
 Requires: python-nss >= 0.11
 Requires: python-lxml
+%if 0%{?fedora} >= 15
+Requires: python-netaddr >= 0.7.5-3
+%else
 Requires: python-netaddr
+%endif
 
 Obsoletes: ipa-python >= 1.0
 
