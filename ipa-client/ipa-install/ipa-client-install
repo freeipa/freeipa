@@ -90,6 +90,8 @@ def parse_options():
                       help="The hostname of this server (FQDN). By default of nodename from uname(2) is used.")
     parser.add_option("", "--enable-dns-updates", dest="dns_updates", action="store_true", default=False,
                       help="Configures the machine to attempt dns updates when the ip address changes.")
+    parser.add_option("--no-krb5-offline-passwords", dest="krb5_offline_passwords", action="store_false",
+                      help="Configure SSSD not to store user password when the server is offline", default=True)
 
     options, args = parser.parse_args()
     safe_opts = parser.get_safe_opts(options)
@@ -550,6 +552,8 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
 
     if options.dns_updates:
         domain.set_option('ipa_dyndns_update', True)
+    if options.krb5_offline_passwords:
+        domain.set_option('krb5_store_password_if_offline', True)
 
     domain.set_active(True)
 
