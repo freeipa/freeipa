@@ -228,7 +228,7 @@ IPA.dnsrecord_facet = function(spec) {
 
         dialog.add = function() {
 
-            var pkey = $.bbq.getState(that.entity_name+'-pkey');
+            var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
             var resource = dialog.resource.val();
 
             var options = {};
@@ -261,7 +261,7 @@ IPA.dnsrecord_facet = function(spec) {
             return;
         }
 
-        var zone = $.bbq.getState('dnszone-pkey');
+        var zone = IPA.nav.get_state('dnszone-pkey');
 
         var records = [];
 
@@ -433,8 +433,8 @@ IPA.dnsrecord_facet = function(spec) {
     that.show = function() {
         that.facet_show();
 
-        that.record = $.bbq.getState(that.entity_name+'-record');
-        that.pkey = $.bbq.getState(that.entity_name+'-pkey');
+        that.record = IPA.nav.get_state(that.entity_name+'-record');
+        that.pkey = IPA.nav.get_state(that.entity_name+'-pkey');
         that.header.set_pkey(that.pkey);
     };
 
@@ -517,7 +517,7 @@ IPA.dnsrecord_facet = function(spec) {
             options.data = data_filter;
         }
 */
-        var args = [$.bbq.getState(that.entity_name+'-pkey')];
+        var args = [IPA.nav.get_state(that.entity_name+'-pkey')];
 
         if (filter) {
             args.push(filter);

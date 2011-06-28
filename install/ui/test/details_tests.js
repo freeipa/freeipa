@@ -35,6 +35,12 @@ module('details', {
             }
         );
 
+        IPA.nav = {};
+
+        IPA.nav.get_state = function(key){
+            return $.bbq.getState(key);
+        };
+
         details_container = $('<div id="details"/>').appendTo(document.body);
 
         var obj_name = 'user';

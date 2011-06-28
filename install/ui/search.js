@@ -102,7 +102,7 @@ IPA.search_facet = function(spec) {
 
         that.filter = $('<input/>', {
             type: 'text',
-			'class': 'search-filter',
+                        'class': 'search-filter',
             name: 'filter'
         }).appendTo(span);
 
@@ -156,7 +156,7 @@ IPA.search_facet = function(spec) {
         that.facet_show();
 
         if (that.filter) {
-            var filter = $.bbq.getState(that.entity_name+'-filter');
+            var filter = IPA.nav.get_state(that.entity_name+'-filter');
             that.filter.val(filter);
         }
     };
@@ -301,11 +301,11 @@ IPA.search_facet = function(spec) {
 
         var filter = [];
         var current_entity = entity;
-        filter.unshift($.bbq.getState(current_entity.name+'-filter'));
+        filter.unshift(IPA.nav.get_state(current_entity.name+'-filter'));
         current_entity = current_entity.containing_entity;
         while(current_entity !== null){
             filter.unshift(
-                $.bbq.getState(current_entity.name+'-pkey'));
+                IPA.nav.get_state(current_entity.name+'-pkey'));
             current_entity = current_entity.containing_entity;
         }
 
@@ -349,17 +349,17 @@ IPA.nested_search_facet = function(spec) {
         that.facet_show();
 
         that.header.set_pkey(
-            $.bbq.getState(IPA.current_entity.name+'-pkey'));
+            IPA.nav.get_state(IPA.current_entity.name+'-pkey'));
 
         if (that.filter) {
-            var filter = $.bbq.getState(that.managed_entity_name+'-filter');
+            var filter = IPA.nav.get_state(that.managed_entity_name+'-filter');
             that.filter.val(filter);
         }
     };
 
     that.refresh = function(){
 
-        var pkey = $.bbq.getState(that.entity.name+'-pkey');
+        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
 
         if ((!pkey) && (that.entity.redirect_facet)) {
             that.redirect();

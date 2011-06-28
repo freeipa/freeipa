@@ -378,7 +378,7 @@ IPA.details_facet = function(spec) {
 
         that.facet_create_header(container);
 
-        that.pkey = $.bbq.getState(that.entity_name+'-pkey');
+        that.pkey = IPA.nav.get_state(that.entity_name+'-pkey');
 
         that.create_controls();
 
@@ -486,7 +486,7 @@ IPA.details_facet = function(spec) {
     that.show = function() {
         that.facet_show();
 
-        that.pkey = $.bbq.getState(that.entity_name+'-pkey');
+        that.pkey = IPA.nav.get_state(that.entity_name+'-pkey');
         that.header.set_pkey(that.pkey);
     };
 
@@ -505,7 +505,7 @@ IPA.details_facet = function(spec) {
     };
 
     function new_key(){
-        var pkey = $.bbq.getState(that.entity_name+'-pkey');
+        var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
         return pkey != that.pkey;
     }
     that.new_key = new_key;
@@ -626,7 +626,7 @@ IPA.details_facet = function(spec) {
 
     that.refresh = function() {
 
-        that.pkey = $.bbq.getState(that.entity_name+'-pkey');
+        that.pkey = IPA.nav.get_state(that.entity_name+'-pkey');
 
         var command = IPA.command({
             entity: that.entity_name,

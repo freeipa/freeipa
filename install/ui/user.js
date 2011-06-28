@@ -177,7 +177,7 @@ IPA.user_status_widget = function(spec) {
                   click: function() {
                       var jobj = $(this);
                       var val = jobj.attr('title');
-                      var pkey =  $.bbq.getState('user-pkey');
+                      var pkey =  IPA.nav.get_state('user-pkey');
                       var method = 'enable';
                       if (val == IPA.messages.objects.user.active) {
                           method = 'disable';
@@ -266,7 +266,7 @@ IPA.user_password_widget = function(spec) {
                 return;
             }
 
-            var user_pkey = $.bbq.getState('user-pkey');
+            var user_pkey = IPA.nav.get_state('user-pkey');
 
             var args;
             if (user_pkey === IPA.whoami.uid[0]) {

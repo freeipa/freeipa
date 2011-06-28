@@ -65,22 +65,24 @@ IPA.navigation = function(spec) {
 
     that.get_path_state = function(name) {
 
-        var state = {};
+        var path_state = {};
 
         var tab = that.get_tab(name);
         var parent = tab.parent;
 
         while (parent) {
-            state[parent.name] = tab.name;
+            path_state[parent.name] = tab.name;
 
             tab = parent;
             parent = tab.parent;
         }
 
-        state[that.container.attr('id')] = tab.name;
+        path_state[that.container.attr('id')] = tab.name;
 
-        return state;
+        return path_state;
     };
+
+    var state = $.bbq.getState();
 
     that.push_state = function(params) {
 
@@ -104,15 +106,37 @@ IPA.navigation = function(spec) {
             }
         }
 
-        $.bbq.pushState(params);
+        for ( var param in params){
+            state[param] = params[param];
+        }
+
+        var url_state ={};
+        var key = 'navigation';
+        while(state[key]){
+            var value = state[key];
+            url_state[key] = value;
+            var entity = value;
+            for (var key2 in state){
+                if ((key2 === entity) || (key2.search('^'+entity) > -1)){
+                    url_state[key2] = state[key2];
+                }
+            }
+            key = value;
+        }
+        $.bbq.pushState(url_state,2);
         return true;
     };
 
     that.get_state = function(key) {
-        return $.bbq.getState(key);
+        var url_state = $.bbq.getState(key);
+        if (!url_state){
+            url_state = state[key];
+        }
+        return url_state;
     };
 
     that.remove_state = function(key) {
+        delete state[key];
         $.bbq.removeState(key);
     };
 
@@ -218,15 +242,21 @@ IPA.navigation = function(spec) {
         container.tabs('select', index);
 
         var tab = tabs[index];
+        if (tab.hidden){
+            depth = depth -1;
+        }
 
         if (tab.children && tab.children.length) {
-            that._update(tab.children, tab.container, depth+1);
+            var next_depth = depth + 1;
+            that._update(tab.children, tab.container, next_depth);
 
         } else if (tab.entity) {
+
             that.container.addClass(that.tab_class+'-'+depth);
             that.content.addClass(that.tab_class+'-'+depth);
 
-            var entity_container = $('.entity[name="'+tab.entity.name+'"]', that.content);
+            var entity_container = $('.entity[name="'+tab.entity.name+'"]',
+                                     that.content);
             if (!entity_container.length) {
                 tab.content = $('<div/>', {
                     name: tab.name,

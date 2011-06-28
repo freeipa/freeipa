@@ -134,7 +134,7 @@ IPA.rule_association_table_widget = function (spec) {
 
     that.add = function(values, on_success, on_error) {
 
-        var pkey = $.bbq.getState(that.entity_name+'-pkey');
+        var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
 
         var batch = IPA.batch_command({
             'on_success': on_success,
