@@ -115,14 +115,32 @@ IPA.navigation = function(spec) {
         while(state[key]){
             var value = state[key];
             url_state[key] = value;
-            var entity = value;
-            for (var key2 in state){
-                if ((key2 === entity) || (key2.search('^'+entity) > -1)){
-                    url_state[key2] = state[key2];
-                }
-            }
             key = value;
         }
+
+        /*We are at the leaf node, which is the sleected entity.*/
+        var entity = value;
+        for (var key2 in state){
+            if ((key2 === entity) || (key2.search('^'+entity +'-') > -1)){
+                url_state[key2] = state[key2];
+            }
+        }
+
+        /*
+           Trace back up the nested entities for their pkeys as well
+        */
+        var current_entity = IPA.get_entity(entity);
+        while(current_entity !== null){
+            var key_names = current_entity.get_key_names();
+            for (var j = 0; j < key_names.length; j+= 1){
+                var key_name = key_names[j];
+                if (state[key_name]){
+                    url_state[key_name] = state[key_name];
+                }
+            }
+            current_entity = current_entity.containing_entity;
+        }
+
         $.bbq.pushState(url_state,2);
         return true;
     };

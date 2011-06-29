@@ -597,7 +597,12 @@ IPA.entity = function (spec) {
         pkey.unshift(IPA.nav.get_state(current_entity.name+'-pkey'));
         return pkey;
     };
-
+    /* most entites only require -pkey for their primary keys, but some
+       are more specific.  This call allows those entites a place
+       to override the other parameters. */
+    that.get_key_names = function() {
+        return [that.name + '-pkey'];
+    };
 
     that.entity_init = that.init;
 
