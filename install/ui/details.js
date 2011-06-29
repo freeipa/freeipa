@@ -325,6 +325,9 @@ IPA.details_facet = function(spec) {
             pkey.push(that.pkey);
         } else {
             var pkey_name = IPA.metadata.objects[that.entity_name].primary_key;
+            if (!pkey_name){
+                return pkey;
+            }
             var pkey_val = that.data[pkey_name];
             if (pkey_val instanceof Array) {
                 pkey.push(pkey_val[0]);

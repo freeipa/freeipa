@@ -584,7 +584,11 @@ IPA.entity = function (spec) {
         var current_entity = that;
         current_entity = current_entity.containing_entity;
         while(current_entity !== null){
-            pkey.unshift(IPA.nav.get_state(current_entity.name+'-pkey'));
+
+            var key = IPA.nav.get_state(current_entity.name+'-pkey');
+            if (key){
+                pkey.unshift(key);
+            }
             current_entity = current_entity.containing_entity;
         }
         return pkey;
