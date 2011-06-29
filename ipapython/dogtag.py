@@ -80,11 +80,11 @@ def https_request(host, port, url, secdir, password, nickname, **kw):
                        "Accept": "text/plain"}
     try:
         conn = nsslib.NSSConnection(host, port, dbdir=secdir)
+        conn.set_debuglevel(0)
+        conn.connect()
         conn.sock.set_client_auth_data_callback(nsslib.client_auth_data_callback,
                                                 nickname,
                                                 password, nss.get_default_certdb())
-        conn.set_debuglevel(0)
-        conn.connect()
         conn.request("POST", url, post, request_headers)
 
         res = conn.getresponse()
