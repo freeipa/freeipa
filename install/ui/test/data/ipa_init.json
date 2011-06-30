@@ -102,7 +102,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -116,7 +117,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -300,7 +302,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -314,7 +317,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -362,7 +366,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -376,7 +381,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -511,7 +517,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -525,7 +532,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -628,7 +636,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -642,7 +651,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -664,7 +674,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -678,7 +689,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -878,7 +890,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -892,7 +905,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -1024,7 +1038,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -1038,7 +1053,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -1060,7 +1076,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -1074,7 +1091,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -1152,7 +1170,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -1166,7 +1185,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -1188,7 +1208,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -1202,7 +1223,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -1285,7 +1307,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -1299,7 +1322,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -1431,7 +1455,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -1445,7 +1470,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -1467,7 +1493,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -1481,7 +1508,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -1574,7 +1602,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [
                                     "no_option",
@@ -1591,7 +1620,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -1617,7 +1647,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -1631,7 +1662,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -1653,7 +1685,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -1667,7 +1700,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -1743,7 +1777,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -1757,7 +1792,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -1835,7 +1871,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -1849,7 +1886,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -1897,7 +1935,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -1911,7 +1950,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -2051,7 +2091,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -2065,7 +2106,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -2087,7 +2129,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -2101,7 +2144,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -2580,7 +2624,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -2594,7 +2639,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -2620,7 +2666,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -2634,7 +2681,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -2709,7 +2757,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -2723,7 +2772,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -2801,7 +2851,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -2815,7 +2866,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -2832,7 +2884,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -2846,7 +2899,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -2872,7 +2926,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -2886,7 +2941,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -2985,7 +3041,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -2999,7 +3056,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -3139,7 +3197,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -3153,7 +3212,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -3191,7 +3251,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -3205,7 +3266,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -3288,7 +3350,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -3302,7 +3365,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -3434,7 +3498,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -3448,7 +3513,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -3470,7 +3536,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -3484,7 +3551,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -3571,7 +3639,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -3585,7 +3654,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -3717,7 +3787,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -3731,7 +3802,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -3757,7 +3829,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -3771,7 +3844,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -3793,7 +3867,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -3807,7 +3882,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -3824,7 +3900,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -3838,7 +3915,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -3890,7 +3968,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -3904,7 +3983,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -4040,7 +4120,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -4054,7 +4135,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -4106,7 +4188,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -4120,7 +4203,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -4233,7 +4317,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -4247,7 +4332,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -4379,7 +4465,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -4393,7 +4480,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -4419,7 +4507,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -4433,7 +4522,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -4511,7 +4601,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -4525,7 +4616,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -4551,7 +4643,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -4565,7 +4658,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -4652,7 +4746,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -4666,7 +4761,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -4732,14 +4828,20 @@
                                 "cli_name": "private",
                                 "cli_short_name": null,
                                 "default": false,
-                                "doc": "search for private groups",
-                                "exclude": null,
+                                "doc": "<private>",
+                                "exclude": [
+                                    "webui"
+                                ],
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
-                                "flags": [],
+                                "flags": [
+                                    "no_option",
+                                    "no_output"
+                                ],
                                 "hint": null,
                                 "include": null,
                                 "label": "<private>",
@@ -4751,7 +4853,41 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
+                                ],
+                                "type": "bool"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": true,
+                                "class": "Flag",
+                                "cli_name": "managed",
+                                "cli_short_name": null,
+                                "default": false,
+                                "doc": "search for managed groups",
+                                "exclude": null,
+                                "falsehoods": [
+                                    0,
+                                    "0",
+                                    "false",
+                                    "FALSE"
+                                ],
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "<managed>",
+                                "multivalue": false,
+                                "name": "managed",
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "truths": [
+                                    "1",
+                                    1,
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -4829,7 +4965,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -4843,7 +4980,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -4869,7 +5007,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -4883,7 +5022,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -4970,7 +5110,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -4984,7 +5125,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -5116,7 +5258,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -5130,7 +5273,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -5156,7 +5300,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -5170,7 +5315,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -5261,7 +5407,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -5275,7 +5422,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -5407,7 +5555,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -5421,7 +5570,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -5451,7 +5601,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -5465,7 +5616,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -5548,7 +5700,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -5562,7 +5715,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -5694,7 +5848,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -5708,7 +5863,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -5730,7 +5886,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -5744,7 +5901,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -5861,7 +6019,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -5875,7 +6034,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -6007,7 +6167,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -6021,7 +6182,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -6051,7 +6213,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -6065,7 +6228,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -6102,7 +6266,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -6116,7 +6281,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -6142,7 +6308,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -6156,7 +6323,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -6292,7 +6460,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -6306,7 +6475,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -6332,7 +6502,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -6346,7 +6517,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -6455,7 +6627,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -6469,7 +6642,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -6601,7 +6775,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -6615,7 +6790,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -6637,7 +6813,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -6651,7 +6828,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -6738,7 +6916,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -6752,7 +6931,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -6884,7 +7064,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -6898,7 +7079,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -6924,7 +7106,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -6938,7 +7121,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -7076,7 +7260,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -7090,7 +7275,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -7230,7 +7416,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -7244,7 +7431,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -7321,7 +7509,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -7335,7 +7524,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -7413,7 +7603,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -7427,7 +7618,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -7449,7 +7641,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -7463,7 +7656,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -7542,7 +7736,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -7556,7 +7751,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -7634,7 +7830,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -7648,7 +7845,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -7670,7 +7868,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -7684,7 +7883,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -8346,7 +8546,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -8360,7 +8561,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -10232,7 +10434,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [
                                     "no_update",
@@ -10249,7 +10452,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -10266,7 +10470,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [],
                                 "hint": null,
@@ -10280,7 +10485,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -10827,7 +11033,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [
                                     "no_update",
@@ -10845,7 +11052,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -11648,7 +11856,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [
                                     "no_search"
@@ -11664,7 +11873,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -13927,7 +14137,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [
                                     "no_update",
@@ -13945,7 +14156,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             },
@@ -14344,7 +14556,7 @@
                                 "attribute": false,
                                 "autofill": false,
                                 "class": "Str",
-                                "cli_name": "ipasudorunasgroup_group",
+                                "cli_name": "ipasudorunas_group",
                                 "cli_short_name": null,
                                 "default": null,
                                 "doc": "Run As Group",
@@ -14361,7 +14573,7 @@
                                 "maxlength": null,
                                 "minlength": null,
                                 "multivalue": false,
-                                "name": "ipasudorunasgroup_group",
+                                "name": "ipasudorunas_group",
                                 "pattern": null,
                                 "pattern_errmsg": null,
                                 "primary_key": false,
@@ -15304,7 +15516,8 @@
                                 "falsehoods": [
                                     0,
                                     "0",
-                                    "false"
+                                    "false",
+                                    "FALSE"
                                 ],
                                 "flags": [
                                     "no_update",
@@ -15322,7 +15535,8 @@
                                 "truths": [
                                     "1",
                                     1,
-                                    "true"
+                                    "true",
+                                    "TRUE"
                                 ],
                                 "type": "bool"
                             }
@@ -15397,14 +15611,11 @@
                         "aci": {
                             "attribute": "Attribute"
                         },
-                        "automountkey": {
-                        },
+                        "automountkey": {},
                         "automountlocation": {
-                            "add": "Add Automount Location",
                             "identity": "Automount Location Settings"
                         },
-                        "automountmap": {
-                        },
+                        "automountmap": {},
                         "cert": {
                             "aa_compromise": "AA Compromise",
                             "affiliation_changed": "Affiliation Changed",
@@ -15444,10 +15655,12 @@
                         },
                         "config": {
                             "cn": "Name",
-                            "ipaserver": "Configuration"
+                            "group": "Group Options",
+                            "ipaserver": "Configuration",
+                            "search": "Search Options",
+                            "user": "User Options"
                         },
-                        "delegation": {
-                        },
+                        "delegation": {},
                         "dnsrecord": {
                             "data": "Data",
                             "resource": "Resource",
@@ -15478,8 +15691,7 @@
                             "specified_users": "Specified Users and Groups",
                             "user": "Who"
                         },
-                        "hbacsvc": {
-                        },
+                        "hbacsvc": {},
                         "hbacsvcgroup": {
                             "services": "Services"
                         },
@@ -15530,8 +15742,7 @@
                         "role": {
                             "identity": "Role Settings"
                         },
-                        "selfservice": {
-                        },
+                        "selfservice": {},
                         "service": {
                             "certificate": "Service Certificate",
                             "delete_key_unprovision": "Delete Key, Unprovision",
@@ -15627,30 +15838,30 @@
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "1488000000"
+                            "85800000"
                         ],
                         "homedirectory": [
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "8c37adc4-9949-11e0-a3ce-525400b55a47"
+                            "f91142a2-a19b-11e0-843c-525400b55a47"
                         ],
                         "krbextradata": [
                             {
-                                "__base64__": "AAJl/vtNcm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
+                                "__base64__": "AAgBAA=="
                             },
                             {
-                                "__base64__": "AAgBAA=="
+                                "__base64__": "AAKl9AlOcm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
                             }
                         ],
                         "krblastpwdchange": [
-                            "20110618012453Z"
+                            "20110628153501Z"
                         ],
                         "krblastsuccessfulauth": [
-                            "20110620185940Z"
+                            "20110629132818Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20110916012453Z"
+                            "20110926153501Z"
                         ],
                         "krbprincipalname": [
                             "admin@SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
@@ -15680,7 +15891,7 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "1488000000"
+                            "85800000"
                         ]
                     }
                 ],

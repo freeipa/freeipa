@@ -147,6 +147,9 @@ class i18n_messages(Command):
             "config": {
                 "ipaserver":_("Configuration"),
                 "cn":_("Name"),
+                "user":_("User Options"),
+                "search":_("Search Options"),
+                "group":_("Group Options"),
                 },
             "delegation": {
                 },

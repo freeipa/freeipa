@@ -33,19 +33,42 @@ IPA.entity_factories.config = function(){
         details_facet({
             title: IPA.metadata.objects.config.label,
             sections:
-            [{
-            name: 'ipaserver',
-            label: IPA.messages.objects.config.ipaserver,
-            fields:
-            [{
-                factory: IPA.text_widget,
-                name: 'cn',
-                label: IPA.messages.objects.config.cn
-            },
-             'ipacertificatesubjectbase','ipadefaultloginshell',
-             'ipadefaultprimarygroup','ipagroupsearchfields',
-             'ipahomesrootdir','ipamaxusernamelength',
-             'ipamigrationenabled','ipasearchrecordslimit',
-             'ipasearchtimelimit','ipausersearchfields']}]}).
+            [
+                {
+                    name: 'search',
+                    label: IPA.messages.objects.config.search,
+                    fields:[
+                        'ipasearchrecordslimit',
+                        'ipasearchtimelimit'
+                    ]
+                },
+                {
+                    name: 'user',
+                    label: IPA.messages.objects.config.user,
+                    fields:[
+                        'ipausersearchfields',
+                        'ipadefaultprimarygroup',
+                        'ipahomesrootdir',
+                        'ipamaxusernamelength',
+                        'ipamigrationenabled',
+                        'ipapwdexpadvnotify',
+                        {
+                            factory: IPA.multivalued_text_widget,
+                            name: 'ipauserobjectclasses'
+                        }
+                    ]
+                },
+                {
+                    name: 'group',
+                    label: IPA.messages.objects.config.group,
+                    fields:[
+                        'ipagroupsearchfields',
+                        {
+                            factory: IPA.multivalued_text_widget,
+                            name: 'ipagroupobjectclasses'
+                        }
+                    ]
+                }
+            ]}).
         build();
 };
