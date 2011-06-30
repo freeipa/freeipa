@@ -16,13 +16,11 @@ app_DATA =                              \
 	background-left.png		\
 	background-right.png		\
 	caution.png			\
-	centered-bg.png                 \
 	check.png			\
 	dialog.js 			\
 	dns.js				\
         facet-tab_on.png                \
 	facet-tab_off.png               \
-	ipa_logo_180x50.png		\
 	ipa.js				\
 	ipa.css				\
 	json2.js			\
@@ -53,15 +51,10 @@ app_DATA =                              \
 	user.js 			\
 	ipalogo.png			\
 	ipabanner.png			\
-	gray-fade-line.png		\
 	Mainnav-background.png		\
 	Mainnav-offtab.png  		\
 	Mainnav-ontab.png  		\
         outer-bg.png			\
-	panel-background.png		\
-	Subnav-background.png		\
-	Subnav-offbutton.png		\
-	Subnav-onbutton.png		\
 	ui-bg_flat_65_ffffff_40x100.png \
 	ui-bg_glass_40_111111_1x400.png \
 	ui-bg_glass_55_1c1c1c_1x400.png \
@@ -90,7 +83,6 @@ app_DATA =                              \
 	search-bg.png \
 	search-icon.png \
 	spinner_header.gif \
-	spinner_large.gif \
 	spinner_small.gif \
 	$(NULL)
 
