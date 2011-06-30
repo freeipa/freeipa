@@ -790,6 +790,13 @@ IPA.checkbox_widget = function (spec) {
 
     that.update = function() {
         var value = that.values && that.values.length ? that.values[0] : false;
+        if (value ==="FALSE"){
+            value = false;
+        }
+        if (value ==="TRUE"){
+            value = true;
+        }
+
         $('input[name="'+that.name+'"]', that.container).get(0).checked = value;
     };
 

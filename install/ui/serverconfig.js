@@ -48,11 +48,18 @@ IPA.entity_factories.config = function(){
                     fields:[
                         'ipausersearchfields',
                         'ipadefaultemaildomain',
-                        'ipadefaultprimarygroup',
+                        {
+                            factory:IPA.entity_select_widget,
+                            name: 'ipadefaultprimarygroup',
+                            entity: 'group'
+                        },
                         'ipahomesrootdir',
                         'ipamaxusernamelength',
-                        'ipamigrationenabled',
                         'ipapwdexpadvnotify',
+                        {
+                            factory: IPA.checkbox_widget,
+                            name: 'ipamigrationenabled'
+                        },
                         {
                             factory: IPA.multivalued_text_widget,
                             name: 'ipauserobjectclasses'

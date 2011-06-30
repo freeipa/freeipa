@@ -337,7 +337,7 @@ option: Int('ipasearchtimelimit', validate_searchtimelimit, attribute=True, auto
 option: Int('ipasearchrecordslimit', attribute=True, autofill=False, cli_name='searchrecordslimit', label=Gettext('Search size limit', domain='ipa', localedir=None), minvalue=-1, multivalue=False, required=False)
 option: IA5Str('ipausersearchfields', attribute=True, autofill=False, cli_name='usersearch', label=Gettext('User search fields', domain='ipa', localedir=None), multivalue=False, required=False)
 option: IA5Str('ipagroupsearchfields', attribute=True, autofill=False, cli_name='groupsearch', label='Group search fields', multivalue=False, required=False)
-option: Bool('ipamigrationenabled', attribute=True, autofill=False, cli_name='enable_migration', label=Gettext('Migration mode', domain='ipa', localedir=None), multivalue=False, required=False)
+option: Bool('ipamigrationenabled', attribute=True, autofill=False, cli_name='enable_migration', label=Gettext('Enable migration mode', domain='ipa', localedir=None), multivalue=False, required=False)
 option: List('ipagroupobjectclasses', attribute=True, autofill=False, cli_name='groupobjectclasses', label=Gettext('Default group objectclasses', domain='ipa', localedir=None), multivalue=True, required=False)
 option: List('ipauserobjectclasses', attribute=True, autofill=False, cli_name='userobjectclasses', label=Gettext('Default user objectclasses', domain='ipa', localedir=None), multivalue=True, required=False)
 option: Int('ipapwdexpadvnotify', attribute=True, autofill=False, cli_name='pwdexpnotify', label=Gettext('Password Expiration Notification', domain='ipa', localedir=None), minvalue=0, multivalue=False, required=False)

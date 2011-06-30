@@ -8552,7 +8552,7 @@
                                 "flags": [],
                                 "hint": null,
                                 "include": null,
-                                "label": "Migration mode",
+                                "label": "Enable migration mode",
                                 "multivalue": false,
                                 "name": "ipamigrationenabled",
                                 "primary_key": false,
@@ -15878,33 +15878,36 @@
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "85800000"
+                            "1965600000"
                         ],
                         "homedirectory": [
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "f91142a2-a19b-11e0-843c-525400b55a47"
+                            "9e262c00-a357-11e0-a074-525400b55a47"
                         ],
                         "krbextradata": [
                             {
-                                "__base64__": "AAKl9AlOcm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
+                                "__base64__": "AAgBAA=="
                             },
                             {
-                                "__base64__": "AAgBAA=="
+                                "__base64__": "AAL33AxOcm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
                             }
                         ],
                         "krblastpwdchange": [
-                            "20110628153501Z"
+                            "20110630203047Z"
                         ],
                         "krblastsuccessfulauth": [
-                            "20110630175326Z"
+                            "20110701022251Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20110926153501Z"
+                            "20110928203047Z"
                         ],
                         "krbprincipalname": [
                             "admin@SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
+                        ],
+                        "krbpwdpolicyreference": [
+                            "cn=admins,cn=SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM,cn=kerberos,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
                         ],
                         "loginshell": [
                             "/bin/bash"
@@ -15931,7 +15934,7 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "85800000"
+                            "1965600000"
                         ]
                     }
                 ],

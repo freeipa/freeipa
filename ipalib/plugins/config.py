@@ -141,7 +141,7 @@ class config(LDAPObject):
         ),
         Bool('ipamigrationenabled?',
             cli_name='enable_migration',
-            label=_('Migration mode'),
+            label=_('Enable migration mode'),
             doc=_('Enable migration mode.'),
         ),
         Str('ipacertificatesubjectbase?',
