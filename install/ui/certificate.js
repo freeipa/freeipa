@@ -33,17 +33,17 @@ IPA.cert.CERTIFICATE_STATUS_VALID   = 1;
 IPA.cert.CERTIFICATE_STATUS_REVOKED = 2;
 
 IPA.cert.CRL_REASON = [
-    'Unspecified',
-    'Key Compromise',
-    'CA Compromise',
-    'Affiliation Changed',
-    'Superseded',
-    'Cessation of Operation',
-    'Certificate Hold',
+    'unspecified',
+    'key_compromise',
+    'ca_compromise',
+    'affiliation_changed',
+    'superseded',
+    'cessation_of_operation',
+    'certificate_hold',
     null,
-    'Remove from CRL',
-    'Privilege Withdrawn',
-    'AA Compromise'
+    'remove_from_crl',
+    'privilege_withdrawn',
+    'aa_compromise'
 ];
 
 IPA.cert.parse_dn = function(dn) {
@@ -155,10 +155,11 @@ IPA.cert.revoke_dialog = function(spec) {
 
         that.select = $('<select/>').appendTo(td);
         for (var i=0; i<IPA.cert.CRL_REASON.length; i++) {
-            if (!IPA.cert.CRL_REASON[i]) continue;
+            var reason = IPA.cert.CRL_REASON[i];
+            if (!reason) continue;
             $('<option/>', {
                 'value': i,
-                'html': IPA.cert.CRL_REASON[i]
+                'html': IPA.messages.objects.cert[reason]
             }).appendTo(that.select);
         }
     };
@@ -616,8 +617,10 @@ IPA.cert.status_widget = function(spec) {
         if (!that.is_selfsign()) {
             that.status_revoked.css('display', status == IPA.cert.CERTIFICATE_STATUS_REVOKED ? 'inline' : 'none');
             that.revoke_button.css('display', status == IPA.cert.CERTIFICATE_STATUS_VALID ? 'inline' : 'none');
-            that.revocation_reason.html(revocation_reason == undefined ? '' : IPA.cert.CRL_REASON[revocation_reason]);
-            that.restore_button.css('display', revocation_reason == 6 ? 'inline' : 'none');
+
+            var reason = IPA.cert.CRL_REASON[revocation_reason];
+            that.revocation_reason.html(revocation_reason === undefined || reason === null ? '' : IPA.messages.objects.cert[reason]);
+            that.restore_button.css('display', reason == 'certificate_hold' ? 'inline' : 'none');
         }
     }
 

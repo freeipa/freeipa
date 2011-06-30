@@ -102,6 +102,9 @@ class i18n_messages(Command):
                 "identity":_("Automount Location Settings")
                 },
             "automountmap": {
+                "map_type":_("Map Type"),
+                "direct":_("Direct"),
+                "indirect":_("Indirect"),
                 },
             "automountkey": {
                 },
@@ -157,10 +160,30 @@ class i18n_messages(Command):
                 "identity":_("DNS Zone Settings"),
                 },
             "dnsrecord": {
-                "resource":_("Resource"),
-                "type":_("Type"),
+                "type":_("Record Type"),
                 "data":_("Data"),
                 "title":_("Records for DNS Zone"),
+                },
+            "entitle": {
+                "account":_("Account"),
+                "certificate":_("Certificate"),
+                "certificates":_("Certificates"),
+                "consume":_("Consume"),
+                "consume_entitlement":_("Consume Entitlement"),
+                "consumed":_("Consumed"),
+                "download":_("Download"),
+                "download_certificate":_("Download Certificate"),
+                "end":_("End"),
+                "import_button":_("Import"),
+                "import_certificate":_("Import Certificate"),
+                "import_message":_("Enter the Base64-encoded entitlement certificate below:"),
+                "loading":_("Loading..."),
+                "no_certificate":_("No Certificate."),
+                "product":_("Product"),
+                "register":_("Register"),
+                "registration":_("Registration"),
+                "start":_("Start"),
+                "status":_("Status"),
                 },
             "group": {
                 "details":_("Group Settings"),
@@ -295,7 +318,7 @@ class i18n_messages(Command):
                 "password_must_match":_("Passwords must match"),
                 },
             },
-        "buttons":{
+        "buttons": {
             "add":_("Add"),
             "add_and_add_another":_("Add and Add Another"),
             "add_and_edit":_("Add and Edit"),
@@ -316,7 +339,7 @@ class i18n_messages(Command):
             "update":_("Update"),
             "view":_("View"),
             },
-        "dialogs":{
+        "dialogs": {
             "add_title":_("Add ${entity}"),
             "available":_("Available"),
             "dirty_message":_("This page has unsaved changes. Please save or revert."),
@@ -326,7 +349,7 @@ class i18n_messages(Command):
             "remove_title":_("Remove ${entity}"),
             "prospective":_("Prospective"),
             },
-        "facet_groups":{
+        "facet_groups": {
             "managedby":_("Managed by"),
             "member":_("Member"),
             "memberindirect":_("Indirect Member"),
@@ -334,11 +357,11 @@ class i18n_messages(Command):
             "memberofindirect":_("Indirect Member Of"),
             "settings": _("Settings"),
             },
-        "facets":{
+        "facets": {
             "search":_("Search"),
             "details": _("Settings"),
             },
-        "search":{
+        "search": {
             "quick_links":_("Quick Links"),
             "select_all":_("Select All"),
             "unselect_all":_("Unselect All"),
@@ -346,7 +369,9 @@ class i18n_messages(Command):
             "truncated":_(
                 "Query returned more results than the configured size limit. Displaying the first ${counter} results."),
             },
-        "details":{
+        "details": {
+            "collapse_all":_("Collapse All"),
+            "expand_all":_("Expand All"),
             "general":_("General"),
             "identity":_("Identity Settings"),
             "settings":_("${entity} ${primary_key} Settings"),
@@ -363,15 +388,29 @@ class i18n_messages(Command):
             "role":_("Role Based Access Control"),
             "automount":_("Automount")
             },
-        "association":{
+        "association": {
             "add":_("Add ${other_entity} into ${entity} ${primary_key}"),
+            "direct_enrollment":_("Direct Enrollment"),
+            "indirect_enrollment":_("Indirect Enrollment"),
+            "no_entries":_("No entries."),
+            "paging":_("Showing ${start} to ${end} of ${total} entries."),
             "remove":_("Remove ${other_entity} from ${entity} ${primary_key}"),
+            "show_results":_("Show Results"),
             },
-        "widget":{
+        "widget": {
+            "next":_("Next"),
             "optional":_("Optional field: click to show"),
-            "validation_error":_("Text does not match field pattern"),
+            "page":_("Page"),
+            "prev":_("Prev"),
+            "validation": {
+                    "error":_("Text does not match field pattern"),
+                    "integer": _("Must be an integer"),
+                    "max_value": _("Maximum value is ${value}"),
+                    "min_value": _("Minimum value is ${value}"),
+                    "required": _("Required field"),
+                },
             },
-        "ajax":{
+        "ajax": {
             "401":_("Your Kerberos ticket is no longer valid. Please run kinit and then click 'Retry'. If this is your first time running the IPA Web UI <a href='/ipa/config/unauthorized.html'>follow these directions</a> to configure your browser.")
             },
         }

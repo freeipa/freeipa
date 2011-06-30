@@ -68,11 +68,11 @@ IPA.entity_factories.dnszone = function() {
                 },
                 {
                     name: 'type',
-                    label: 'Record Type'
+                    label: IPA.messages.objects.dnsrecord.type
                 },
                 {
                     name: 'data',
-                    label: 'Data'
+                    label: IPA.messages.objects.dnsrecord.data
                 }
             ]
         }).
@@ -175,8 +175,12 @@ IPA.dnsrecord_facet = function(spec) {
 
     that.add = function() {
 
+        var title = IPA.messages.dialogs.add_title;
+        var label = IPA.metadata.objects.dnsrecord.label_singular;
+        title = title.replace('${entity}', label);
+
         var dialog = IPA.dialog({
-            title: IPA.messages.objects.dnsrecord.add
+            title: title
         });
 
         dialog.create = function() {
@@ -184,7 +188,7 @@ IPA.dnsrecord_facet = function(spec) {
             var dl = $('<dl/>').appendTo(dialog.container);
 
             $('<dt/>', {
-                html: IPA.messages.objects.dnsrecord.resource
+                html: IPA.get_entity_param('dnsrecord', 'idnsname').label
             }).appendTo(dl);
 
             var dd = $('<dd/>').appendTo(dl);
@@ -275,23 +279,38 @@ IPA.dnsrecord_facet = function(spec) {
             });
         });
 
+        var title = IPA.messages.dialogs.remove_title;
+        var label = IPA.metadata.objects.dnsrecord.label;
+        title = title.replace('${entity}', label);
+
         var dialog = IPA.dialog({
-            title: IPA.messages.buttons.remove
+            title: title
         });
 
         dialog.create = function() {
 
-            var to_delete_table =
-                $('<table class="search-table" >'+
-                  '<thead><tr><th>Resource</th><th>Type</th></tr></thead>'+
-                  '<tbody></tbody></table>').appendTo(dialog.container);
+            var table = $('<table/>', {
+                'class': 'search-table'
+            }).appendTo(dialog.container);
 
-            var to_delete_body =  to_delete_table.find('tbody');
+            var thead = $('<thead/>').appendTo(table);
+
+            var tr = $('<tr/>').appendTo(thead);
+
+            $('<th/>', {
+                text: IPA.get_entity_param('dnsrecord', 'idnsname').label
+            }).appendTo(tr);
+
+            $('<th/>', {
+                text: IPA.messages.objects.dnsrecord.type
+            }).appendTo(tr);
+
+            var tbody = $('<tbody/>').appendTo(table);
 
             for (var i=0; i<records.length; i++) {
                 var record = records[i];
 
-                var tr = $('<tr></tr>').appendTo(to_delete_body);
+                tr = $('<tr/>').appendTo(tbody);
 
                 $('<td/>', {
                     html: record.resource

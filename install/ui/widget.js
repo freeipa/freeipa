@@ -78,6 +78,7 @@ IPA.widget = function(spec) {
         that.hide_error();
 
         that.valid = true;
+        var message;
 
         var values = that.save();
         if (!values || !values.length) {
@@ -85,7 +86,7 @@ IPA.widget = function(spec) {
                 that.param_info.required &&
                 !that.optional) {
                 that.valid = false;
-                that.show_error('required field');
+                that.show_error(IPA.messages.widget.validation.required);
             }
             return;
         }
@@ -99,22 +100,23 @@ IPA.widget = function(spec) {
             if (that.metadata.type == 'int') {
                 if (!value.match(/^-?\d+$/)) {
                     that.valid = false;
-                    // TODO: I18n
-                    that.show_error('must be an integer');
+                    that.show_error(IPA.messages.widget.validation.integer);
                     return;
                 }
 
                 if (that.metadata.minvalue && value < that.metadata.minvalue) {
                     that.valid = false;
-                    // TODO: I18n
-                    that.show_error('minimum value is '+that.metadata.minvalue);
+                    message = IPA.messages.widget.validation.min_value;
+                    message = message.replace('${value}', that.metadata.minvalue);
+                    that.show_error(message);
                     return;
                 }
 
                 if (that.metadata.maxvalue && value > that.metadata.maxvalue) {
                     that.valid = false;
-                    // TODO: I18n
-                    that.show_error('maximum value is '+that.metadata.maxvalue);
+                    message = IPA.messages.widget.validation.max_value;
+                    message = message.replace('${value}', that.metadata.maxvalue);
+                    that.show_error(message);
                     return;
                 }
             }
@@ -386,7 +388,7 @@ IPA.text_widget = function(spec) {
 
         $('<span/>', {
             name: 'error_link',
-            html: IPA.messages.widget.validation_error,
+            html: IPA.messages.widget.validation.error,
             'class': 'ui-state-error ui-corner-all',
             style: 'display:none'
         }).appendTo(container);
@@ -541,7 +543,7 @@ IPA.multivalued_text_widget = function(spec) {
 
         $('<span/>', {
             name: 'error_link',
-            html: IPA.messages.widget.validation_error,
+            html: IPA.messages.widget.validation.error,
             'class': 'ui-state-error ui-corner-all',
             style: 'display:none'
         }).appendTo(div);
@@ -1065,7 +1067,7 @@ IPA.textarea_widget = function (spec) {
 
         $("<span/>",{
             name:'error_link',
-            html: IPA.messages.widget.validation_error,
+            html: IPA.messages.widget.validation.error,
             "class":"ui-state-error ui-corner-all",
             style:"display:none"
         }).appendTo(container);
@@ -1134,7 +1136,7 @@ IPA.column = function (spec) {
             if (param_info) {
                 that.label = param_info.label;
             } else {
-                alert('cannot find label for ' + that.entity_name + ' ' +
+                alert('Cannot find label for ' + that.entity_name + ' ' +
                       that.name);
             }
         }
@@ -1370,7 +1372,7 @@ IPA.table_widget = function (spec) {
         if (that.page_length) {
 
             $('<a/>', {
-                text: 'Prev',
+                text: IPA.messages.widget.prev,
                 name: 'prev_page',
                 click: function() {
                     that.prev_page();
@@ -1381,7 +1383,7 @@ IPA.table_widget = function (spec) {
             that.pagination.append(' ');
 
             $('<a/>', {
-                text: 'Next',
+                text: IPA.messages.widget.next,
                 name: 'next_page',
                 click: function() {
                     that.next_page();
@@ -1389,7 +1391,9 @@ IPA.table_widget = function (spec) {
                 }
             }).appendTo(that.pagination);
 
-            that.pagination.append(' Page: ');
+            that.pagination.append(' ');
+            that.pagination.append(IPA.messages.widget.page);
+            that.pagination.append(': ');
 
             that.current_page_input = $('<input/>', {
                 type: 'text',

@@ -39,12 +39,12 @@ IPA.entity_factories.entitle = function() {
             name: 'entitle'
         }).
         facet_groups([
-            { name: 'account', label: 'Account' },
-            { name: 'certificates', label: 'Certificates' }
+            { name: 'account', label: IPA.messages.objects.entitle.account },
+            { name: 'certificates', label: IPA.messages.objects.entitle.certificates }
         ]).
         details_facet({
             factory: IPA.entitle.details_facet,
-            label: 'Account',
+            label: IPA.messages.objects.entitle.account,
             facet_group: 'account',
             sections: [
                 {
@@ -53,33 +53,33 @@ IPA.entity_factories.entitle = function() {
                     fields: [
                         {
                             name: 'uuid',
-                            label: 'UUID',
+                            label: IPA.get_method_option('entitle_register', 'ipaentitlementid').label,
                             read_only: true
                         },
                         {
                             factory: IPA.entitle.download_widget,
                             name: 'certificate',
-                            label: 'Certificate'
+                            label: IPA.messages.objects.entitle.certificate
                         }
                     ]
                 },
                 {
                     name: 'status',
-                    label: 'Status',
+                    label: IPA.messages.objects.entitle.status,
                     fields: [
                         {
                             name: 'product',
-                            label: 'Product',
+                            label: IPA.messages.objects.entitle.product,
                             read_only: true
                         },
                         {
                             name: 'quantity',
-                            label: 'Quantity',
+                            label: IPA.get_method_arg('entitle_consume', 'quantity').label,
                             read_only: true
                         },
                         {
                             name: 'consumed',
-                            label: 'Consumed',
+                            label: IPA.messages.objects.entitle.consumed,
                             read_only: true
                         }
                     ]
@@ -89,29 +89,29 @@ IPA.entity_factories.entitle = function() {
         search_facet({
             factory: IPA.entitle.search_facet,
             name: 'certificates',
-            label: 'Certificates',
+            label: IPA.messages.objects.entitle.certificates,
             facet_group: 'certificates',
             columns: [
                 {
                     name: 'product',
-                    label: 'Product'
+                    label: IPA.messages.objects.entitle.product
                 },
                 {
                     name: 'quantity',
-                    label: 'Quantity'
+                    label: IPA.get_method_arg('entitle_consume', 'quantity').label
                 },
                 {
                     name: 'start',
-                    label: 'Start'
+                    label: IPA.messages.objects.entitle.start
                 },
                 {
                     name: 'end',
-                    label: 'End'
+                    label: IPA.messages.objects.entitle.end
                 },
                 {
                     factory: IPA.entitle.certificate_column,
                     name: 'certificate',
-                    label: 'Certificate'
+                    label: IPA.messages.objects.entitle.certificate
                 }
             ]
         }).
@@ -119,11 +119,11 @@ IPA.entity_factories.entitle = function() {
         dialog({
             factory: IPA.entitle.register_online_dialog,
             name: 'online_registration',
-            title: 'Registration',
+            title: IPA.messages.objects.entitle.registration,
             fields: [
                 {
                     name: 'username',
-                    label: 'Username',
+                    label: IPA.get_method_arg('entitle_register', 'username').label,
                     undo: false
                 },
                 {
@@ -142,13 +142,12 @@ IPA.entity_factories.entitle = function() {
         dialog({
             factory: IPA.entitle.register_offline_dialog,
             name: 'offline_registration',
-            title: 'Import Certificate',
-            message: 'Enter the Base64-encoded entitlement certificate below:',
-            label: 'Import',
+            title: IPA.messages.objects.entitle.import_certificate,
+            message: IPA.messages.objects.entitle.import_message,
             fields: [
                 {
                     name: 'certificate',
-                    label: 'Certificate',
+                    label: IPA.messages.objects.entitle.certificate,
                     undo: false
                 }
             ]
@@ -156,11 +155,11 @@ IPA.entity_factories.entitle = function() {
         dialog({
             factory: IPA.entitle.consume_dialog,
             name: 'consume',
-            title: 'Consume Entitlement',
+            title: IPA.messages.objects.entitle.consume_entitlement,
             fields: [
                 {
                     name: 'quantity',
-                    label: 'Quantity',
+                    label: IPA.get_method_arg('entitle_consume', 'quantity').label,
                     undo: false,
                     metadata: IPA.get_method_arg('entitle_consume', 'quantity')
                 }
@@ -169,13 +168,12 @@ IPA.entity_factories.entitle = function() {
         dialog({
             factory: IPA.entitle.import_dialog,
             name: 'import',
-            title: 'Import Certificate',
-            message: 'Enter the Base64-encoded entitlement certificate below:',
-            label: 'Import',
+            title: IPA.messages.objects.entitle.import_certificate,
+            message: IPA.messages.objects.entitle.import_message,
             fields: [
                 {
                     name: 'certificate',
-                    label: 'Certificate',
+                    label: IPA.messages.objects.entitle.certificate,
                     undo: false
                 }
             ]
@@ -338,7 +336,7 @@ IPA.entitle.details_facet = function(spec) {
 
         that.register_online_button = IPA.action_button({
             name: 'register',
-            label: 'Register',
+            label: IPA.messages.objects.entitle.register,
             icon: 'ui-icon-plus',
             click: function() {
                 var dialog = that.entity.get_dialog('online_registration');
@@ -351,7 +349,7 @@ IPA.entitle.details_facet = function(spec) {
 /*
         that.register_offline_button = IPA.action_button({
             name: 'import',
-            label: 'Import',
+            label: IPA.messages.objects.entitle.import,
             icon: 'ui-icon-plus',
             click: function() {
                 var dialog = that.entity.get_dialog('offline_registration');
@@ -367,7 +365,7 @@ IPA.entitle.details_facet = function(spec) {
     that.refresh = function() {
 
         var summary = $('span[name=summary]', that.container).empty();
-        summary.append('Loading...');
+        summary.append(IPA.messages.objects.entitle.loading);
 
         function on_success(data, text_status, xhr) {
             if (that.entity.status == IPA.entitle.unregistered) {
@@ -427,7 +425,7 @@ IPA.entitle.search_facet = function(spec) {
 
         that.consume_button = IPA.action_button({
             name: 'consume',
-            label: 'Consume',
+            label: IPA.messages.objects.entitle.consume,
             icon: 'ui-icon-plus',
             click: function() {
                 var dialog = that.entity.get_dialog('consume');
@@ -440,7 +438,7 @@ IPA.entitle.search_facet = function(spec) {
 
         that.import_button = IPA.action_button({
             name: 'import',
-            label: 'Import',
+            label: IPA.messages.objects.entitle.import_button,
             icon: 'ui-icon-plus',
             click: function() {
                 var dialog = that.entity.get_dialog('import');
@@ -516,10 +514,10 @@ IPA.entitle.certificate_column = function(spec) {
 
         $('<a/>', {
             'href': '#download',
-            'html': 'Download',
+            'html': IPA.messages.objects.entitle.download,
             'click': function() {
                 var dialog = IPA.cert.download_dialog({
-                    title: 'Download Certificate',
+                    title: IPA.messages.objects.entitle.download_certificate,
                     certificate: certificate,
                     add_pem_delimiters: false
                 });
@@ -576,7 +574,7 @@ IPA.entitle.register_online_dialog = function(spec) {
 
     var that = IPA.dialog(spec);
 
-    that.add_button('Register', function() {
+    that.add_button(IPA.messages.objects.entitle.register, function() {
         var record = {};
         that.save(record);
 
@@ -593,7 +591,7 @@ IPA.entitle.register_online_dialog = function(spec) {
         );
     });
 
-    that.add_button('Cancel', function() {
+    that.add_button(IPA.messages.buttons.cancel, function() {
         that.close();
     });
 
@@ -631,7 +629,7 @@ IPA.entitle.consume_dialog = function(spec) {
 
     var that = IPA.dialog(spec);
 
-    that.add_button('Consume', function() {
+    that.add_button(IPA.messages.objects.entitle.consume, function() {
 
         if (!that.is_valid()) {
             return;
@@ -651,7 +649,7 @@ IPA.entitle.consume_dialog = function(spec) {
         );
     });
 
-    that.add_button('Cancel', function() {
+    that.add_button(IPA.messages.buttons.cancel, function() {
         that.close();
     });
 
@@ -692,18 +690,18 @@ IPA.entitle.download_widget = function(spec) {
     that.create = function(container) {
         that.link = $('<a/>', {
             'href': '#download',
-            'html': 'Download',
+            'html': IPA.messages.objects.entitle.download,
             'click': function() {
                 that.entity.get_accounts(
                     function(data, text_status, xhr) {
                         var userpkcs12 = data.result.result[0].userpkcs12;
                         if (!userpkcs12) {
-                            alert('No certificate.');
+                            alert(IPA.messages.objects.entitle.no_certificate);
                             return;
                         }
 
                         var dialog = IPA.cert.download_dialog({
-                            title: 'Download Certificate',
+                            title: IPA.messages.objects.entitle.download_certificate,
                             certificate: userpkcs12[0].__base64__,
                             add_pem_delimiters: false
                         });

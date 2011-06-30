@@ -388,7 +388,7 @@ IPA.details_facet = function(spec) {
         that.expand_button = IPA.action_button({
             name: 'expand_all',
             href: 'expand_all',
-            label: 'Expand All',
+            label: IPA.messages.details.expand_all,
             'class': 'right-aligned-facet-controls',
             style: 'display: none;',
             click: function() {
@@ -407,7 +407,7 @@ IPA.details_facet = function(spec) {
         that.collapse_button = IPA.action_button({
             name: 'collapse_all',
             href: 'collapse_all',
-            label: 'Collapse All',
+            label: IPA.messages.details.collapse_all,
             'class': 'right-aligned-facet-controls',
             click: function() {
                 that.expand_button.css('display', 'inline');

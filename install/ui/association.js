@@ -844,7 +844,8 @@ IPA.association_facet = function (spec) {
                 'class': 'right-aligned-facet-controls'
             }).appendTo(that.controls);
 
-            span.append('Show Results ');
+            span.append(IPA.messages.association.show_results);
+            span.append(' ');
 
             that.direct_radio = $('<input/>', {
                 type: 'radio',
@@ -857,7 +858,9 @@ IPA.association_facet = function (spec) {
                 }
             }).appendTo(span);
 
-            span.append(' Direct Enrollment ');
+            span.append(' ');
+            span.append(IPA.messages.association.direct_enrollment);
+            span.append(' ');
 
             that.indirect_radio = $('<input/>', {
                 type: 'radio',
@@ -870,7 +873,8 @@ IPA.association_facet = function (spec) {
                 }
             }).appendTo(span);
 
-            span.append(' Indirect Enrollment');
+            span.append(' ');
+            span.append(IPA.messages.association.indirect_enrollment);
         }
     };
 
@@ -1007,7 +1011,7 @@ IPA.association_facet = function (spec) {
         var pkeys = that.data[that.get_attribute_name()];
         if (!pkeys || !pkeys.length) {
             that.table.empty();
-            that.table.summary.text('No entries.');
+            that.table.summary.text(IPA.messages.association.no_entries);
             return;
         }
 
@@ -1018,7 +1022,10 @@ IPA.association_facet = function (spec) {
         var end = that.table.current_page * that.table.page_length;
         end = end > total ? total : end;
 
-        var summary = 'Showing '+start+' to '+end+' of '+total+' entries.';
+        var summary = IPA.messages.association.paging;
+        summary = summary.replace('${start}', start);
+        summary = summary.replace('${end}', end);
+        summary = summary.replace('${total}', total);
         that.table.summary.text(summary);
 
         var list = pkeys.slice(start-1, end);

@@ -15553,7 +15553,12 @@
                     },
                     "association": {
                         "add": "Add ${other_entity} into ${entity} ${primary_key}",
-                        "remove": "Remove ${other_entity} from ${entity} ${primary_key}"
+                        "direct_enrollment": "Direct Enrollment",
+                        "indirect_enrollment": "Indirect Enrollment",
+                        "no_entries": "No entries.",
+                        "paging": "Showing ${start} to ${end} of ${total} entries.",
+                        "remove": "Remove ${other_entity} from ${entity} ${primary_key}",
+                        "show_results": "Show Results"
                     },
                     "buttons": {
                         "add": "Add",
@@ -15577,6 +15582,8 @@
                         "view": "View"
                     },
                     "details": {
+                        "collapse_all": "Collapse All",
+                        "expand_all": "Expand All",
                         "general": "General",
                         "identity": "Identity Settings",
                         "settings": "${entity} ${primary_key} Settings",
@@ -15615,7 +15622,11 @@
                         "automountlocation": {
                             "identity": "Automount Location Settings"
                         },
-                        "automountmap": {},
+                        "automountmap": {
+                            "direct": "Direct",
+                            "indirect": "Indirect",
+                            "map_type": "Map Type"
+                        },
                         "cert": {
                             "aa_compromise": "AA Compromise",
                             "affiliation_changed": "Affiliation Changed",
@@ -15663,12 +15674,32 @@
                         "delegation": {},
                         "dnsrecord": {
                             "data": "Data",
-                            "resource": "Resource",
                             "title": "Records for DNS Zone",
-                            "type": "Type"
+                            "type": "Record Type"
                         },
                         "dnszone": {
                             "identity": "DNS Zone Settings"
+                        },
+                        "entitle": {
+                            "account": "Account",
+                            "certificate": "Certificate",
+                            "certificates": "Certificates",
+                            "consume": "Consume",
+                            "consume_entitlement": "Consume Entitlement",
+                            "consumed": "Consumed",
+                            "download": "Download",
+                            "download_certificate": "Download Certificate",
+                            "end": "End",
+                            "import_button": "Import",
+                            "import_certificate": "Import Certificate",
+                            "import_message": "Enter the Base64-encoded entitlement certificate below:",
+                            "loading": "Loading...",
+                            "no_certificate": "No Certificate.",
+                            "product": "Product",
+                            "register": "Register",
+                            "registration": "Registration",
+                            "start": "Start",
+                            "status": "Status"
                         },
                         "group": {
                             "details": "Group Settings",
@@ -15820,8 +15851,17 @@
                         "sudo": "Sudo"
                     },
                     "widget": {
+                        "next": "Next",
                         "optional": "Optional field: click to show",
-                        "validation_error": "Text does not match field pattern"
+                        "page": "Page",
+                        "prev": "Prev",
+                        "validation": {
+                            "error": "Text does not match field pattern",
+                            "integer": "Must be an integer",
+                            "max_value": "Maximum value is ${value}",
+                            "min_value": "Minimum value is ${value}",
+                            "required": "Required field"
+                        }
                     }
                 }
             },
@@ -15848,17 +15888,17 @@
                         ],
                         "krbextradata": [
                             {
-                                "__base64__": "AAgBAA=="
+                                "__base64__": "AAKl9AlOcm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
                             },
                             {
-                                "__base64__": "AAKl9AlOcm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
+                                "__base64__": "AAgBAA=="
                             }
                         ],
                         "krblastpwdchange": [
                             "20110628153501Z"
                         ],
                         "krblastsuccessfulauth": [
-                            "20110629132818Z"
+                            "20110630175326Z"
                         ],
                         "krbpasswordexpiration": [
                             "20110926153501Z"

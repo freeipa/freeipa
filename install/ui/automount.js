@@ -87,21 +87,23 @@ IPA.entity_factories.automountmap = function() {
             fields:[{factory:IPA.method_radio_widget,
                      name: 'method',
                      undo: false,
-                     label:'Map Type',
-                     options:[{value:'add',label:'Direct'},
-                              {value:'add_indirect',label:'Indirect'}]
+                     label: IPA.messages.objects.automountmap.map_type,
+                     options: [
+                         { value: 'add', label: IPA.messages.objects.automountmap.direct },
+                         { value: 'add_indirect', label: IPA.messages.objects.automountmap.indirect }
+                     ]
                     },
                     'automountmapname','description',
                     {
-                        name:'key',
-                        label:'Mount Point',
-                        conditional:true,
+                        name: 'key',
+                        label: IPA.get_method_option('automountmap_add_indirect', 'key').label,
+                        conditional: true,
                         undo: false
                     },
                     {
-                        name:'parentmap',
-                        label:'Parent Map',
-                        conditional:true,
+                        name: 'parentmap',
+                        label: IPA.get_method_option('automountmap_add_indirect', 'parentmap').label,
+                        conditional: true,
                         undo: false
                     }]
         }).
