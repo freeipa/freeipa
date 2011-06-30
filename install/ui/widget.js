@@ -1729,3 +1729,59 @@ IPA.entity_select_widget = function(spec) {
 
     return that;
 };
+
+IPA.entity_link_widget = function(spec) {
+    var that = IPA.widget(spec);
+    var no_link_value = spec.no_link_value || null;
+    var should_link = true;
+    var other_pkey = null;
+    var other_entity = spec.entity;
+
+    that.super_create = that.create;
+    that.create = function(container) {
+        that.super_create(container);
+        that.link =
+        $('<a/>', {
+            href: 'jslink',
+            title: '',
+            html: '',
+            click: function() {
+                if (should_link){
+                     IPA.nav.show_page(other_entity, 'default', other_pkey);
+                }
+                return false;
+            }
+        }).appendTo(container);
+
+        that.label = $('<label/>').
+            appendTo(container);
+    };
+    that.should_link = function(){
+        return (other_pkey !== no_link_value);
+    };
+
+    that.reset = function(record) {
+        other_pkey = null;
+        if (that.values || that.values.length > 0){
+            other_pkey = that.values[0];
+            var should_link =  that.should_link();
+            if (should_link){
+                that.link.html(other_pkey);
+                that.link.css('display','inline');
+                that.label.css('display','none');
+            }else{
+                that.label.html(other_pkey);
+                that.link.css('display','none');
+                that.label.css('display','inline');
+            }
+        }else{
+            should_link = false;
+            that.link.html('');
+            that.label.html('');
+            that.link.css('display','none');
+            that.label.css('display','none');
+        }
+    };
+
+    return that;
+};

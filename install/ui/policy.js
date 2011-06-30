@@ -33,8 +33,15 @@ IPA.entity_factories.pwpolicy = function() {
             sections:[
                 {
                     name : 'identity',
-                    fields:['krbmaxpwdlife','krbminpwdlife','krbpwdhistorylength',
-                            'krbpwdmindiffchars','krbpwdminlength']
+                    fields:[
+                        {
+                            factory: IPA.entity_link_widget,
+                            name: 'cn',
+                            entity: 'group',
+                            no_link_value: 'global_policy'
+                        },
+                        'krbmaxpwdlife','krbminpwdlife','krbpwdhistorylength',
+                        'krbpwdmindiffchars','krbpwdminlength']
                 }]}).
         standard_association_facets().
         adder_dialog({
