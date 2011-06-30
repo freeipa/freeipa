@@ -47,6 +47,7 @@ IPA.entity_factories.config = function(){
                     label: IPA.messages.objects.config.user,
                     fields:[
                         'ipausersearchfields',
+                        'ipadefaultemaildomain',
                         'ipadefaultprimarygroup',
                         'ipahomesrootdir',
                         'ipamaxusernamelength',
