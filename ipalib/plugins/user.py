@@ -402,6 +402,11 @@ class user_add(LDAPCreate):
                     self.api.Command['user_mod'](keys[-1], **kw)
                 except (errors.EmptyModlist, errors.NotFound):
                     pass
+        else:
+            if self.api.env.wait_for_attr:
+                newentry = wait_for_value(ldap, dn, 'objectclass', 'mepOriginEntry')
+                entry_from_entry(entry_attrs, newentry)
+
         return dn
 
 api.register(user_add)

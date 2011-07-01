@@ -23,6 +23,7 @@ Test the `ipalib.plugins.hostgroup` module.
 """
 
 from ipalib import api, errors
+from ipalib.dn import DN
 from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from tests.test_xmlrpc import objectclasses
 
@@ -79,6 +80,7 @@ class test_hostgroup(Declarative):
                     objectclass=objectclasses.hostgroup,
                     description=[u'Test hostgroup 1'],
                     ipauniqueid=[fuzzy_uuid],
+                    mepmanagedentry=['cn=%s,cn=ng,cn=alt,%s' % (hostgroup1, api.env.basedn)],
                 ),
             ),
         ),

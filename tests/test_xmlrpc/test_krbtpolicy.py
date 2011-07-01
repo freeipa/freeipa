@@ -106,6 +106,9 @@ class test_krbtpolicy(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=[u'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn)],
+                    mepmanagedentry=[u'cn=%s,cn=groups,cn=accounts,%s' % (user1, api.env.basedn)],
+                    memberof_group=[u'ipausers'],
                     dn=u'uid=%s,cn=users,cn=accounts,%s' % (user1, api.env.basedn)
                 ),
             ),

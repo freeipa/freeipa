@@ -148,6 +148,7 @@ DEFAULT_CONFIG = (
     # Enable certain optional plugins:
     ('enable_ra', False),
     ('ra_plugin', 'selfsign'),
+    ('wait_for_attr', False),
 
     # Used when verifying that the API hasn't changed. Not for production.
     ('validate_api', False),

@@ -98,6 +98,14 @@ class hostgroup_add(LDAPCreate):
 
     msg_summary = _('Added hostgroup "%(value)s"')
 
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if self.api.env.wait_for_attr:
+            newentry = wait_for_value(ldap, dn, 'objectclass', 'mepOriginEntry')
+        entry_from_entry(entry_attrs, newentry)
+
+        return dn
+
+
 api.register(hostgroup_add)
 
 

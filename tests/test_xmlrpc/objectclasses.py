@@ -21,7 +21,7 @@
 Defines the expected objectclass for various entries.
 """
 
-user = [
+user_base = [
     u'top',
     u'person',
     u'organizationalperson',
@@ -32,6 +32,8 @@ user = [
     u'krbticketpolicyaux',
     u'ipaobject',
 ]
+
+user = user_base + [u'mepOriginEntry']
 
 group = [
     u'top',

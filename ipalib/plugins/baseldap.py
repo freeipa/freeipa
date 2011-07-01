@@ -194,6 +194,25 @@ def get_effective_rights(ldap, dn, attrs=None):
 
     return rdict
 
+def entry_from_entry(entry, newentry):
+    """
+    Python is more or less pass-by-value except for immutable objects. So if
+    you pass in a dict to a function you are free to change members of that
+    dict but you can't create a new dict in the function and expect to replace
+    what was passed in.
+
+    In some post-op plugins that is exactly what we want to do, so here is a
+    clumsy way around the problem.
+    """
+
+    # Wipe out the current data
+    for e in entry.keys():
+        del entry[e]
+
+    # Re-populate it with new wentry
+    for e in newentry:
+        entry[e] = newentry[e]
+
 def wait_for_memberof(keys, entry_start, completed, show_command, adding=True):
     """
     When adding or removing reverse members we are faking an update to
@@ -235,6 +254,40 @@ def wait_for_memberof(keys, entry_start, completed, show_command, adding=True):
         else:
             if starting_memberof + completed <= memberof:
                 break
+
+    return entry_attrs
+
+def wait_for_value(ldap, dn, attr, value):
+    """
+    389-ds postoperation plugins are executed after the data has been
+    returned to a client. This means that plugins that add data in a
+    postop are not included in data returned to the user.
+
+    The downside of waiting is that this increases the time of the
+    command.
+
+    The updated entry is returned.
+    """
+    # Loop a few times to give the postop-plugin a chance to complete
+    # Don't sleep for more than 6 seconds.
+    x = 0
+    while x < 20:
+        # sleep first because the first search, even on a quiet system,
+        # almost always fails.
+        time.sleep(.3)
+        x = x + 1
+
+        # FIXME: put a try/except around here? I think it is probably better
+        # to just let the exception filter up to the caller.
+        (dn, entry_attrs) = ldap.get_entry( dn, ['*'])
+        if attr in entry_attrs:
+            if isinstance(entry_attrs[attr], (list, tuple)):
+                values = map(lambda y:y.lower(), entry_attrs[attr])
+                if value.lower() in values:
+                    break
+            else:
+                if value.lower() == entry_attrs[attr].lower():
+                    break
 
     return entry_attrs
 
