@@ -61,6 +61,7 @@
 #include <openssl/md4.h>
 
 #include "ipa_krb5.h"
+#include "ipa_pwd.h"
 
 #define IPAPWD_PLUGIN_NAME   "ipa-pwd-extop"
 #define IPAPWD_FEATURE_DESC  "IPA Password Manager"
@@ -80,10 +81,9 @@ struct ipapwd_data {
     char *dn;
     char *password;
     time_t timeNow;
-    time_t lastPwChange;
     time_t expireTime;
     int changetype;
-    int pwHistoryLen;
+    struct ipapwd_policy policy;
 };
 
 struct ipapwd_operation {
@@ -93,11 +93,6 @@ struct ipapwd_operation {
 };
 
 #define GENERALIZED_TIME_LENGTH 15
-
-#define IPAPWD_POLICY_MASK 0x0FF
-#define IPAPWD_POLICY_ERROR 0x100
-#define IPAPWD_POLICY_OK 0
-
 
 /* from ipapwd_common.c */
 struct ipapwd_krbcfg {

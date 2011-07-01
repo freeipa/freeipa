@@ -120,6 +120,24 @@ static int filter_keys(struct ipapwd_krbcfg *krbcfg,
     return 0;
 }
 
+static int ipapwd_to_ldap_pwpolicy_error(int ipapwderr)
+{
+    switch (ipapwderr) {
+    case IPAPWD_POLICY_ACCOUNT_EXPIRED:
+        return LDAP_PWPOLICY_PWDMODNOTALLOWED;
+    case IPAPWD_POLICY_PWD_TOO_YOUNG:
+        return LDAP_PWPOLICY_PWDTOOYOUNG;
+    case IPAPWD_POLICY_PWD_TOO_SHORT:
+        return LDAP_PWPOLICY_PWDTOOSHORT;
+    case IPAPWD_POLICY_PWD_IN_HISTORY:
+        return LDAP_PWPOLICY_PWDINHISTORY;
+    case IPAPWD_POLICY_PWD_COMPLEXITY:
+        return LDAP_PWPOLICY_INVALIDPWDSYNTAX;
+    }
+    /* in case of unhandled error return access denied */
+    return LDAP_PWPOLICY_PWDMODNOTALLOWED;
+}
+
 
 static int ipapwd_chpwop(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 {
@@ -374,12 +392,13 @@ parse_req_done:
 	ret = ipapwd_CheckPolicy(&pwdata);
 	if (ret) {
 		errMesg = "Password Fails to meet minimum strength criteria";
-		if (ret & IPAPWD_POLICY_ERROR) {
-			slapi_pwpolicy_make_response_control(pb, -1, -1, ret & IPAPWD_POLICY_MASK);
-			rc = LDAP_CONSTRAINT_VIOLATION;
-		} else {
+		if (ret == IPAPWD_POLICY_ERROR) {
 			errMesg = "Internal error";
 			rc = ret;
+		} else {
+			ret = ipapwd_to_ldap_pwpolicy_error(ret);
+			slapi_pwpolicy_make_response_control(pb, -1, -1, ret);
+			rc = LDAP_CONSTRAINT_VIOLATION;
 		}
 		goto free_and_return;
 	}
