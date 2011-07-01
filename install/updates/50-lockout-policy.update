@@ -1,4 +1,4 @@
 dn: cn=global_policy,cn=$REALM,cn=kerberos,$SUFFIX
-replace:krbPwdLockoutDuration:10:600
-replace: krbPwdMaxFailure:3:6
+replace:krbPwdLockoutDuration:10::600
+replace: krbPwdMaxFailure:3::6
 

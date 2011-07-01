@@ -483,9 +483,9 @@ class LDAPUpdate:
                     # skip this update type, it occurs in  __delete_entries()
                     return None
                 elif utype == 'replace':
-                    # v has the format "old: new"
+                    # v has the format "old:: new"
                     try:
-                        (old, new) = v.split(':', 1)
+                        (old, new) = v.split('::', 1)
                     except ValueError:
                         raise BadSyntax, "bad syntax in replace, needs to be in the format old: new in %s" % v
                     try:

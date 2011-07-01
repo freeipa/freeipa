@@ -647,12 +647,14 @@ aci: (targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///krbp
 
 # Add the ACI needed to do host enrollment. When this occurs we
 # set the krbPrincipalName, add krbPrincipalAux to objectClass and
-# set enrolledBy to whoever ran join.
+# set enrolledBy to whoever ran join. enrolledBy is specifically
+# not listed here, it is set by the plugin but we don't want an
+# admin overriding it using --setattr or ldapmodify.
 
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "enrolledby || objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Enroll a host";allow (write) groupdn = "ldap:///cn=Enroll a host,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Enroll a host";allow (write) groupdn = "ldap:///cn=Enroll a host,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Entitlement administration
 

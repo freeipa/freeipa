@@ -258,3 +258,7 @@ add:aci: '(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(targetfil
 
 dn: cn=Host Enrollment,cn=privileges,cn=pbac,$SUFFIX
 add:member: 'cn=admins,cn=groups,cn=accounts,$SUFFIX'
+
+# Don't allow admins to update enrolledBy
+dn: $SUFFIX
+replace:aci:'(targetattr = "enrolledby || objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Enroll a host";allow (write) groupdn = "ldap:///cn=Enroll a host,cn=permissions,cn=pbac,$SUFFIX";)::(targetattr = "objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Enroll a host";allow (write) groupdn = "ldap:///cn=Enroll a host,cn=permissions,cn=pbac,$SUFFIX";)'
