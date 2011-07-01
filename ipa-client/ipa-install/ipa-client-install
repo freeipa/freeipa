@@ -925,9 +925,12 @@ def main():
         try:
             nscd_chkconfig_cmd('nscd')
         except:
-            print >>sys.stderr, "Failed to configure automatic startup of the NSCD daemon"
             if not options.sssd:
+                print >>sys.stderr, "Failed to configure automatic startup of the NSCD daemon"
                 print >>sys.stderr, "Caching of users/groups will not be available after reboot"
+	    else:
+		print >>sys.stderr, "Failed to disable NSCD daemon. Please disable it manually."
+
     else:
         # this is optional service, just log
         logging.info("NSCD daemon is not installed, skip configuration")
