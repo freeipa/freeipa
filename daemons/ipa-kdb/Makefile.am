@@ -1,7 +1,8 @@
 NULL =
 
 KRB5_UTIL_DIR = ../../util
-KRB5_UTIL_SRCS = $(KRB5_UTIL_DIR)/ipa_krb5.c
+KRB5_UTIL_SRCS = $(KRB5_UTIL_DIR)/ipa_krb5.c \
+		 $(KRB5_UTIL_DIR)/ipa_pwd.c
 
 INCLUDES =						\
 	-I.						\

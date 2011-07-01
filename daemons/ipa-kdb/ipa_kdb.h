@@ -41,6 +41,7 @@
 #include <endian.h>
 
 #include "ipa_krb5.h"
+#include "ipa_pwd.h"
 
 /* easier to copy the defines here than to mess with kadm5/admin.h
  * for now */
@@ -78,6 +79,17 @@ struct ipadb_context {
     bool override_restrictions;
     krb5_key_salt_tuple *supp_encs;
     int n_supp_encs;
+};
+
+#define IPA_E_DATA_MAGIC 0x0eda7a
+struct ipadb_e_data {
+    int magic;
+    bool ipa_user;
+    char *passwd;
+    time_t last_pwd_change;
+    char *pw_policy_dn;
+    char **pw_history;
+    struct ipapwd_policy pol;
 };
 
 struct ipadb_context *ipadb_get_context(krb5_context kcontext);

@@ -21,6 +21,147 @@
  */
 
 #include "ipa_kdb.h"
+#include "ipa_pwd.h"
+#include <kadm5/kadm_err.h>
+
+static char *pw_policy_attrs[] = {
+    "krbmaxpwdlife",
+    "krbminpwdlife",
+    "krbpwdmindiffchars",
+    "krbpwdminlength",
+    "krbpwdhistorylength",
+
+    NULL
+};
+
+static krb5_error_code ipadb_get_pw_policy(struct ipadb_context *ipactx,
+                                           char *pw_policy_dn,
+                                           struct ipapwd_policy *pol)
+{
+    krb5_error_code kerr;
+    LDAPMessage *res = NULL;
+    LDAPMessage *lentry;
+    uint32_t result;
+    int ret;
+
+    kerr = ipadb_simple_search(ipactx, pw_policy_dn, LDAP_SCOPE_BASE,
+                               "(objectClass=*)", pw_policy_attrs, &res);
+    if (kerr) {
+        goto done;
+    }
+
+    lentry = ldap_first_entry(ipactx->lcontext, res);
+    if (!lentry) {
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "krbMinPwdLife", &result);
+    if (ret == 0) {
+        pol->min_pwd_life = result;
+    }
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "krbMaxPwdLife", &result);
+    if (ret == 0) {
+        pol->max_pwd_life = result;
+    }
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "krbPwdMinLength", &result);
+    if (ret == 0) {
+        pol->min_pwd_length = result;
+    }
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "krbPwdHistoryLength", &result);
+    if (ret == 0) {
+        pol->history_length = result;
+    }
+
+    ret = ipadb_ldap_attr_to_uint32(ipactx->lcontext, lentry,
+                                    "krbPwdMinDiffChars", &result);
+    if (ret == 0) {
+        pol->min_complexity = result;
+    }
+
+done:
+    ldap_msgfree(res);
+    return kerr;
+}
+
+static krb5_error_code ipapwd_error_to_kerr(krb5_context context,
+                                            enum ipapwd_error err)
+{
+    krb5_error_code kerr;
+
+    switch(err) {
+    case IPAPWD_POLICY_OK:
+        kerr = 0;
+        break;
+    case IPAPWD_POLICY_ACCOUNT_EXPIRED:
+        kerr = KADM5_BAD_PRINCIPAL;
+        krb5_set_error_message(context, kerr, "Account expired");
+        break;
+    case IPAPWD_POLICY_PWD_TOO_YOUNG:
+        kerr = KADM5_PASS_TOOSOON;
+        krb5_set_error_message(context, kerr, "Too soon to change password");
+        break;
+    case IPAPWD_POLICY_PWD_TOO_SHORT:
+        kerr = KADM5_PASS_Q_TOOSHORT;
+        krb5_set_error_message(context, kerr, "Password is too short");
+        break;
+    case IPAPWD_POLICY_PWD_IN_HISTORY:
+        kerr = KADM5_PASS_REUSE;
+        krb5_set_error_message(context, kerr, "Password reuse not permitted");
+        break;
+    case IPAPWD_POLICY_PWD_COMPLEXITY:
+        kerr = KADM5_PASS_Q_CLASS;
+        krb5_set_error_message(context, kerr, "Password is too simple");
+        break;
+    default:
+        kerr = KADM5_PASS_Q_GENERIC;
+        break;
+    }
+
+    return kerr;
+}
+
+static krb5_error_code ipadb_check_pw_policy(krb5_context context,
+                                             char *passwd,
+                                             krb5_db_entry *db_entry)
+{
+    krb5_error_code kerr;
+    struct ipadb_e_data *ied;
+    struct ipadb_context *ipactx;
+    int ret;
+
+    ipactx = ipadb_get_context(context);
+
+    ied = (struct ipadb_e_data *)db_entry->e_data;
+    if (ied->magic != IPA_E_DATA_MAGIC) {
+        return EINVAL;
+    }
+
+    ied->passwd = strdup(passwd);
+    if (!ied->passwd) {
+        return ENOMEM;
+    }
+
+    ied->pol.max_pwd_life = IPAPWD_DEFAULT_PWDLIFE;
+    ied->pol.min_pwd_length = IPAPWD_DEFAULT_MINLEN;
+    kerr = ipadb_get_pw_policy(ipactx, ied->pw_policy_dn, &ied->pol);
+    if (kerr != 0) {
+        return kerr;
+    }
+    ret = ipapwd_check_policy(&ied->pol, passwd, time(NULL),
+                              db_entry->expiration,
+                              db_entry->pw_expiration,
+                              ied->last_pwd_change,
+                              ied->pw_history);
+    return ipapwd_error_to_kerr(context, ret);
+}
 
 krb5_error_code ipadb_change_pwd(krb5_context context,
                                  krb5_keyblock *master_key,
@@ -32,6 +173,7 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
     krb5_error_code kerr;
     krb5_data pwd;
     struct ipadb_context *ipactx;
+    struct ipadb_e_data *ied;
     krb5_key_salt_tuple *fks = NULL;
     int n_fks;
     krb5_key_data *keys = NULL;
@@ -39,11 +181,38 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
     krb5_key_data *tdata;
     int t_keys;
     int old_kvno;
+    int ret;
     int i;
 
     ipactx = ipadb_get_context(context);
     if (!ipactx) {
         return KRB5_KDB_DBNOTINITED;
+    }
+
+    if (!db_entry->e_data) {
+        if (!ipactx->override_restrictions) {
+            return EINVAL;
+        } else {
+            /* kadmin is creating a new principal */
+            ied = calloc(1, sizeof(struct ipadb_e_data));
+            if (!ied) {
+                return ENOMEM;
+            }
+            ied->magic = IPA_E_DATA_MAGIC;
+            /* set the default policy on new entries */
+            ret = asprintf(&ied->pw_policy_dn,
+                           "cn=global_policy,%s", ipactx->realm_base);
+            if (ret == -1) {
+                return ENOMEM;
+            }
+            db_entry->e_data = (krb5_octet *)ied;
+        }
+    }
+
+    /* check pwd policy before doing any other work */
+    kerr = ipadb_check_pw_policy(context, passwd, db_entry);
+    if (kerr) {
+        return kerr;
     }
 
     old_kvno = krb5_db_get_key_data_kvno(context, db_entry->n_key_data,

@@ -49,7 +49,9 @@ static char *std_principal_attrs[] = {
     "krbMaxTicketLife",
     "krbMaxRenewableAge",
 
+    /* IPA SPECIFIC ATTRIBUTES */
     "nsaccountlock",
+    "passwordHistory",
 
     NULL
 };
@@ -343,12 +345,15 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                               krb5_db_entry **kentry,
                                               uint32_t *polmask)
 {
+    struct ipadb_context *ipactx;
     LDAP *lcontext;
     krb5_db_entry *entry;
+    struct ipadb_e_data *ied;
     krb5_error_code kerr;
     krb5_tl_data *res_tl_data;
     krb5_key_data *res_key_data;
     krb5_kvno mkvno = 0;
+    char **restrlist;
     char *restring;
     time_t restime;
     bool resbool;
@@ -363,7 +368,8 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
 
     /* proceed to fill in attributes in the order they are defined in
      * krb5_db_entry in kdb.h */
-    lcontext = (ipadb_get_context(kcontext))->lcontext;
+    ipactx = ipadb_get_context(kcontext);
+    lcontext = ipactx->lcontext;
 
     entry->magic = KRB5_KDB_MAGIC_NUMBER;
     entry->len = KRB5_KDB_V1_BASE_LENGTH;
@@ -525,20 +531,6 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     }
 
     ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
-                                    "krbLastPwdChange", &restime);
-    if (ret == 0) {
-        krb5_int32 time32le = htole32((krb5_int32)restime);
-
-        kerr = ipadb_set_tl_data(entry,
-                                 KRB5_TL_LAST_PWD_CHANGE,
-                                 sizeof(time32le),
-                                 (krb5_octet *)&time32le);
-        if (kerr) {
-            goto done;
-        }
-    }
-
-    ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
                                     "krbLastAdminUnlock", &restime);
     if (ret == 0) {
         krb5_int32 time32le = htole32((krb5_int32)restime);
@@ -552,7 +544,70 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         }
     }
 
-    /* FIXME: fetch and se policy via krbpwdpolicyreference or fallback */
+    ied = calloc(1, sizeof(struct ipadb_e_data));
+    if (!ied) {
+        kerr = ENOMEM;
+        goto done;
+    }
+    ied->magic = IPA_E_DATA_MAGIC;
+
+    /* mark this as an ipa_user if it has the posixaccount objectclass */
+    ret = ipadb_ldap_attr_has_value(lcontext, lentry,
+                                    "objectClass", "posixAccount");
+    if (ret != 0 && ret != ENOENT) {
+        kerr = ret;
+        goto done;
+    }
+    if (ret == 0) {
+        ied->ipa_user = true;
+    }
+
+    ret = ipadb_ldap_attr_to_str(lcontext, lentry,
+                                 "krbPwdPolicyReference", &restring);
+    switch (ret) {
+    case ENOENT:
+        /* use the default policy if ref. is not available */
+        ret = asprintf(&restring,
+                       "cn=global_policy,%s", ipactx->realm_base);
+        if (ret == -1) {
+            kerr = ENOMEM;
+            goto done;
+        }
+    case 0:
+        break;
+    default:
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+    ied->pw_policy_dn = restring;
+
+    ret = ipadb_ldap_attr_to_strlist(lcontext, lentry,
+                                     "passwordHistory", &restrlist);
+    if (ret != 0 && ret != ENOENT) {
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+    if (ret == 0) {
+        ied->pw_history = restrlist;
+    }
+
+    ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
+                                    "krbLastPwdChange", &restime);
+    if (ret == 0) {
+        krb5_int32 time32le = htole32((krb5_int32)restime);
+
+        kerr = ipadb_set_tl_data(entry,
+                                 KRB5_TL_LAST_PWD_CHANGE,
+                                 sizeof(time32le),
+                                 (krb5_octet *)&time32le);
+        if (kerr) {
+            goto done;
+        }
+
+        ied->last_pwd_change = restime;
+    }
+
+    entry->e_data = (krb5_octet *)ied;
 
     kerr = 0;
 
@@ -843,10 +898,11 @@ done:
 
 void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
 {
+    struct ipadb_e_data *ied;
     krb5_tl_data *prev, *next;
+    int i;
 
     if (entry) {
-        free(entry->e_data);
         krb5_free_principal(kcontext, entry->princ);
         prev = entry->tl_data;
         while(prev) {
@@ -856,6 +912,20 @@ void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
             prev = next;
         }
         ipa_krb5_free_key_data(entry->key_data, entry->n_key_data);
+
+        if (entry->e_data) {
+            ied = (struct ipadb_e_data *)entry->e_data;
+            if (ied->magic == IPA_E_DATA_MAGIC) {
+                free(ied->passwd);
+                free(ied->pw_policy_dn);
+                for (i = 0; ied->pw_history && ied->pw_history[i]; i++) {
+                    free(ied->pw_history[i]);
+                }
+                free(ied->pw_history);
+                free(ied);
+            }
+        }
+
         free(entry);
     }
 }
@@ -1249,6 +1319,49 @@ done:
     return kerr;
 }
 
+static krb5_error_code ipadb_get_ldap_mod_str_list(struct ipadb_mods *imods,
+                                                   char *attrname,
+                                                   char **strlist, int len,
+                                                   int mod_op)
+{
+    krb5_error_code kerr;
+    struct berval **bvs = NULL;
+    int i;
+
+    bvs = calloc(len + 1, sizeof(struct berval *));
+    if (!bvs) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
+    for (i = 0; i < len; i++) {
+        bvs[i] = calloc(1, sizeof(struct berval));
+        if (!bvs[i]) {
+            kerr = ENOMEM;
+            goto done;
+        }
+
+        bvs[i]->bv_val = strdup(strlist[i]);
+        if (!bvs[i]->bv_val) {
+            kerr = ENOMEM;
+            goto done;
+        }
+        bvs[i]->bv_len = strlen(strlist[i]) + 1;
+    }
+
+    kerr = ipadb_get_ldap_mod_bvalues(imods, attrname, bvs, len, mod_op);
+
+done:
+    if (kerr) {
+        for (i = 0; bvs && bvs[i]; i++) {
+            free(bvs[i]->bv_val);
+            free(bvs[i]);
+        }
+    }
+    free(bvs);
+    return kerr;
+}
+
 static krb5_error_code ipadb_entry_to_mods(struct ipadb_mods *imods,
                                            krb5_db_entry *entry,
                                            char *principal,
@@ -1447,6 +1560,50 @@ static krb5_error_code ipadb_entry_to_mods(struct ipadb_mods *imods,
     }
 
     /* KADM5_LOAD */
+
+    /* Store saved password if any and password history */
+    if (entry->e_data) {
+        struct ipadb_e_data *ied;
+        time_t now = time(NULL);
+        char **new_history;
+        int nh_len;
+        int ret;
+
+        ied = (struct ipadb_e_data *)entry->e_data;
+        if (ied->magic != IPA_E_DATA_MAGIC) {
+            kerr = EINVAL;
+            goto done;
+        }
+
+        /*
+         * We need to set userPassword and history only if this is
+         * a IPA User, we don't do that for simple service principals
+         */
+        if (ied->ipa_user && ied->passwd) {
+            kerr = ipadb_get_ldap_mod_str(imods, "userPassword",
+                                          ied->passwd, mod_op);
+            if (kerr) {
+                goto done;
+            }
+        }
+
+        if (ied->ipa_user && ied->passwd && ied->pol.history_length) {
+            ret = ipapwd_generate_new_history(ied->passwd, now,
+                                              ied->pol.history_length,
+                                              ied->pw_history,
+                                              &new_history, &nh_len);
+            if (ret) {
+                kerr = ret;
+                goto done;
+            }
+
+            kerr = ipadb_get_ldap_mod_str_list(imods, "passwordHistory",
+                                               new_history, nh_len, mod_op);
+            if (kerr) {
+                goto done;
+            }
+        }
+    }
 
     kerr = 0;
 
