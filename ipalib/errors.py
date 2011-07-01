@@ -1198,10 +1198,10 @@ class AttrValueNotFound(ExecutionError):
 
     For example:
 
-    >>> raise NotFound(attr='ipasudoopt', value='authenticate')
+    >>> raise AttrValueNotFound(attr='ipasudoopt', value='authenticate')
     Traceback (most recent call last):
       ...
-    AttrValueNotFound: ipasudoopt does not contain 'authenticate'.
+    AttrValueNotFound: ipasudoopt does not contain 'authenticate'
 
     """
 
