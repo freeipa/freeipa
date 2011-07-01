@@ -721,15 +721,6 @@ h3 {
 }
 
 .section-expand{
-    float:left;
-    -moz-border-radius: 0.3em;
-        -webkit-border-radius: 0.3em;
-    background-color: -moz-linear-gradient(top,  #959595,  #5e5e5e);
-        background: -webkit-gradient(linear, left top, left bottom, from(#959595), to(#5e5e5e));
-    border: 1px solid #b8b8b8;
-    color: #fff;
-    margin-right: 0.5em;
-    margin-top: -0.2em;
 }
 
 hr {
@@ -909,26 +900,30 @@ span.attrhint {
     padding:0;
 }
 
-#the positions for these are in the large icon image,
-#and need to be specified in pixels.
-
-
-.ui-icon-minus {
-    background-position: -48px -129px;
-}
-
-.ui-icon-plus {
-        background-position: -16px -129px;
-}
-
-.ui-icon-trash {
-    background-position: -176px -97px;
-}
-
+/*
+ the positions for these are in the large icon image,
+ and need to be specified in pixels.
+*/
 .ui-icon {
     /* background-image: url("ui-icons_222222_256x240.png"); */
     background-color: #e2e2e2;
     display: inline-block;
+}
+
+.ui-icon-expanded {
+    background: url(arrow_expanded.png);
+}
+
+.ui-icon-collapsed {
+    background: url(arrow_collapsed.png);
+}
+
+.ui-icon-plus {
+    background-position: -16px -129px;
+}
+
+.ui-icon-trash {
+    background-position: -176px -97px;
 }
 
 .ui-widget-content {

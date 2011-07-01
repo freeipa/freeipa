@@ -26,8 +26,8 @@
 
 /* REQUIRES: ipa.js */
 
-IPA.expand_icon = 'ui-icon-minus';
-IPA.collapse_icon = 'ui-icon-plus';
+IPA.expanded_icon = 'ui-icon-expanded';
+IPA.collapsed_icon = 'ui-icon-collapsed';
 
 IPA.details_section = function(spec) {
 
@@ -440,7 +440,7 @@ IPA.details_facet = function(spec) {
 
             var icon = $('<span/>', {
                 name: 'icon',
-                'class': 'ui-icon section-expand '+IPA.expand_icon
+                'class': 'ui-icon section-expand '+IPA.expanded_icon
             }).appendTo(header);
 
             header.append(' ');
@@ -497,8 +497,8 @@ IPA.details_facet = function(spec) {
         var header = $('h2[name='+section.name+']', that.container);
 
         var icon = $('span[name=icon]', header);
-        icon.toggleClass(IPA.expand_icon, visible);
-        icon.toggleClass(IPA.collapse_icon, !visible);
+        icon.toggleClass(IPA.expanded_icon, visible);
+        icon.toggleClass(IPA.collapsed_icon, !visible);
 
         var div = section.container;
 
