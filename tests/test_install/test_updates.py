@@ -126,7 +126,7 @@ class test_update(object):
         Test the updater adding a new value to a single-valued attribute
         """
         modified = self.updater.update([self.testdir + "4_update.update"])
-        assert(modified == False)
+        assert(modified == True)
 
     def test_5_update(self):
         """
