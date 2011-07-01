@@ -554,7 +554,7 @@ div.tabs {
     bottom: 0;
 }
 
-.facet-controls > a {
+.facet-controls a {
 	font-size: 1.3em !important;
 	padding: 0 6px 0 0;
 }
