@@ -70,6 +70,44 @@ IPA.widget = function(spec) {
         that._entity_name = entity_name;
     });
 
+
+    function meta_validate(meta, value){
+        var message;
+
+        if (meta.type == 'int') {
+            if (!value.match(/^-?\d+$/)) {
+                that.valid = false;
+                that.show_error(IPA.messages.widget.validation.integer);
+                return;
+            }
+
+            if (meta.minvalue && value < meta.minvalue) {
+                that.valid = false;
+                message = IPA.messages.widget.validation.min_value;
+                message = message.replace('${value}', meta.minvalue);
+                that.show_error(message);
+                return;
+            }
+
+            if (meta.maxvalue && value > meta.maxvalue) {
+                that.valid = false;
+                message = IPA.messages.widget.validation.max_value;
+                message = message.replace('${value}', meta.maxvalue);
+                that.show_error(message);
+                return;
+            }
+        }
+        if (meta.pattern) {
+            var regex = new RegExp(meta.pattern);
+            if (!value.match(regex)) {
+                that.valid = false;
+                that.show_error(meta.pattern_errmsg);
+                return;
+            }
+        }
+
+    }
+
     /*returns true and clears the error message if the field value  passes
       the validation pattern.  If the field value does not pass validation,
       displays the error message and returns false. */
@@ -78,7 +116,6 @@ IPA.widget = function(spec) {
         that.hide_error();
 
         that.valid = true;
-        var message;
 
         var values = that.save();
         if (!values || !values.length) {
@@ -97,40 +134,10 @@ IPA.widget = function(spec) {
         }
 
         if (that.metadata) {
-            if (that.metadata.type == 'int') {
-                if (!value.match(/^-?\d+$/)) {
-                    that.valid = false;
-                    that.show_error(IPA.messages.widget.validation.integer);
-                    return;
-                }
-
-                if (that.metadata.minvalue && value < that.metadata.minvalue) {
-                    that.valid = false;
-                    message = IPA.messages.widget.validation.min_value;
-                    message = message.replace('${value}', that.metadata.minvalue);
-                    that.show_error(message);
-                    return;
-                }
-
-                if (that.metadata.maxvalue && value > that.metadata.maxvalue) {
-                    that.valid = false;
-                    message = IPA.messages.widget.validation.max_value;
-                    message = message.replace('${value}', that.metadata.maxvalue);
-                    that.show_error(message);
-                    return;
-                }
-            }
+            meta_validate(that.metadata,value);
         }
-
         if (that.param_info) {
-            if (that.param_info.pattern) {
-                var regex = new RegExp(that.param_info.pattern);
-                if (!value.match(regex)) {
-                    that.valid = false;
-                    that.show_error(that.param_info.pattern_errmsg);
-                    return;
-                }
-            }
+            meta_validate(that.param_info,value);
         }
     };
 
