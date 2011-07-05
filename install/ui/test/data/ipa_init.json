@@ -8653,7 +8653,7 @@
                                 "flags": [],
                                 "hint": null,
                                 "include": null,
-                                "label": "Password Expiration Notification",
+                                "label": "Password Expiration Notification (days)",
                                 "maxvalue": 2147483647,
                                 "minvalue": 0,
                                 "multivalue": false,
@@ -15877,30 +15877,30 @@
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "1965600000"
+                            "193200000"
                         ],
                         "homedirectory": [
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "9e262c00-a357-11e0-a074-525400b55a47"
+                            "c300021e-a445-11e0-80b9-525400b55a47"
                         ],
                         "krbextradata": [
                             {
-                                "__base64__": "AAgBAA=="
+                                "__base64__": "AAL2bA5Ocm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
                             },
                             {
-                                "__base64__": "AAL33AxOcm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
+                                "__base64__": "AAgBAA=="
                             }
                         ],
                         "krblastpwdchange": [
-                            "20110630203047Z"
+                            "20110702005726Z"
                         ],
                         "krblastsuccessfulauth": [
-                            "20110701022251Z"
+                            "20110705172822Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20110928203047Z"
+                            "20110930005726Z"
                         ],
                         "krbprincipalname": [
                             "admin@SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
@@ -15930,7 +15930,7 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "1965600000"
+                            "193200000"
                         ]
                     }
                 ],
@@ -15997,7 +15997,7 @@
                     "mount_jsonserver": "json",
                     "mount_xmlserver": "xml",
                     "prompt_all": false,
-                    "ra_plugin": "selfsign",
+                    "ra_plugin": "dogtag",
                     "realm": "SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM",
                     "rpc_json_uri": "http://localhost:8888/ipa/json",
                     "script": "/var/www/mod_wsgi",

@@ -340,7 +340,7 @@ option: IA5Str('ipagroupsearchfields', attribute=True, autofill=False, cli_name=
 option: Bool('ipamigrationenabled', attribute=True, autofill=False, cli_name='enable_migration', label=Gettext('Enable migration mode', domain='ipa', localedir=None), multivalue=False, required=False)
 option: List('ipagroupobjectclasses', attribute=True, autofill=False, cli_name='groupobjectclasses', label=Gettext('Default group objectclasses', domain='ipa', localedir=None), multivalue=True, required=False)
 option: List('ipauserobjectclasses', attribute=True, autofill=False, cli_name='userobjectclasses', label=Gettext('Default user objectclasses', domain='ipa', localedir=None), multivalue=True, required=False)
-option: Int('ipapwdexpadvnotify', attribute=True, autofill=False, cli_name='pwdexpnotify', label=Gettext('Password Expiration Notification', domain='ipa', localedir=None), minvalue=0, multivalue=False, required=False)
+option: Int('ipapwdexpadvnotify', attribute=True, autofill=False, cli_name='pwdexpnotify', label=Gettext('Password Expiration Notification (days)', domain='ipa', localedir=None), minvalue=0, multivalue=False, required=False)
 option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
 option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False, label=Gettext('Rights', domain='ipa', localedir=None))

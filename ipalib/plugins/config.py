@@ -163,7 +163,7 @@ class config(LDAPObject):
         ),
         Int('ipapwdexpadvnotify?',
             cli_name='pwdexpnotify',
-            label=_('Password Expiration Notification'),
+            label=_('Password Expiration Notification (days)'),
             doc=_('Number of days\'s notice of impending password expiration.'),
             minvalue=0,
         ),
