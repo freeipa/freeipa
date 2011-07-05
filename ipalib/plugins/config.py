@@ -86,6 +86,7 @@ class config(LDAPObject):
         'ipadefaultprimarygroup', 'ipadefaultemaildomain', 'ipasearchtimelimit',
         'ipasearchrecordslimit', 'ipausersearchfields', 'ipagroupsearchfields',
         'ipamigrationenabled', 'ipacertificatesubjectbase',
+        'ipapwdexpadvnotify',
     ]
 
     label = _('Configuration')
