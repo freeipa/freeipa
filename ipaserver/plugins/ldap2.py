@@ -620,7 +620,12 @@ class ldap2(CrudBackend, Encoder):
         """
         search_kw = {attr: value, 'objectClass': object_class}
         filter = self.make_filter(search_kw, rules=self.MATCH_ALL)
-        return self.find_entries(filter, attrs_list, base_dn)[0][0]
+        (entries, truncated) = self.find_entries(filter, attrs_list, base_dn)
+
+        if len(entries) > 1:
+            raise errors.SingleMatchExpected(found=len(entries))
+        else:
+            return entries[0]
 
     def get_entry(self, dn, attrs_list=None, time_limit=None,
                   size_limit=None, normalize=True):

@@ -39,6 +39,8 @@ dn2 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn2, api.env.basedn)
 fqdn3 = u'testhost2.%s' % api.env.domain
 short3 = u'testhost2'
 dn3 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn3, api.env.basedn)
+fqdn4 = u'testhost2.lab.%s' % api.env.domain
+dn4 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn4, api.env.basedn)
 
 # We can use the same cert we generated for the service tests
 fd = open('tests/test_xmlrpc/service.crt', 'r')
@@ -53,6 +55,7 @@ class test_host(Declarative):
         ('host_del', [fqdn1], {}),
         ('host_del', [fqdn2], {}),
         ('host_del', [fqdn3], {}),
+        ('host_del', [fqdn4], {}),
         ('service_del', [service1], {}),
     ]
 
@@ -295,6 +298,32 @@ class test_host(Declarative):
 
 
         dict(
+            desc='Create %r' % fqdn4,
+            command=('host_add', [fqdn4],
+                dict(
+                    description=u'Test host 4',
+                    l=u'Undisclosed location 4',
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=fqdn4,
+                summary=u'Added host "%s"' % fqdn4,
+                result=dict(
+                    dn=dn4,
+                    fqdn=[fqdn4],
+                    description=[u'Test host 4'],
+                    l=[u'Undisclosed location 4'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn4, api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[u'%s' % fqdn4],
+                ),
+            ),
+        ),
+
+
+        dict(
             desc='Add managedby_host %r to %r' % (fqdn1, fqdn3),
             command=('host_add_managedby', [fqdn3],
                 dict(
@@ -362,6 +391,12 @@ class test_host(Declarative):
             ),
         ),
 
+
+        dict(
+            desc='Show a host with multiple matches %s' % short3,
+            command=('host_show', [short3], {}),
+            expected=errors.SingleMatchExpected(found=2),
+        ),
 
 
         dict(

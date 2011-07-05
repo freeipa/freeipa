@@ -1210,6 +1210,23 @@ class AttrValueNotFound(ExecutionError):
     format = _('%(attr)s does not contain \'%(value)s\'')
 
 
+class SingleMatchExpected(ExecutionError):
+    """
+    **4027** Raised when a search should return a single match
+
+    For example:
+
+    >>> raise SingleMatchExpected(found=9)
+    Traceback (most recent call last):
+      ...
+    SingleMatchExpected: The search criteria was not specific enough. Expected 1 and found 9.
+    """
+
+    errno = 4027
+    rval = 1
+    format = _('The search criteria was not specific enough. Expected 1 and found %(found)d.')
+
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).
