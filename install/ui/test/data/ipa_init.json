@@ -1,8 +1,8 @@
 {
     "error": null,
-    "id": 1,
+    "id": null,
     "result": {
-        "count": 5,
+        "count": 6,
         "results": [
             {
                 "error": null,
@@ -8266,7 +8266,8 @@
                             "ipausersearchfields",
                             "ipagroupsearchfields",
                             "ipamigrationenabled",
-                            "ipacertificatesubjectbase"
+                            "ipacertificatesubjectbase",
+                            "ipapwdexpadvnotify"
                         ],
                         "hidden_attributes": [
                             "objectclass",
@@ -12117,7 +12118,7 @@
                         "aciattrs": [],
                         "attribute_members": {},
                         "bindable": false,
-                        "container_dn": "cn=IDM.LAB.BOS.REDHAT.COM,cn=kerberos",
+                        "container_dn": "cn=SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM,cn=kerberos",
                         "default_attributes": [
                             "krbmaxticketlife",
                             "krbmaxrenewableage"
@@ -12962,7 +12963,7 @@
                         ],
                         "attribute_members": {},
                         "bindable": false,
-                        "container_dn": "cn=IDM.LAB.BOS.REDHAT.COM,cn=kerberos",
+                        "container_dn": "cn=SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM,cn=kerberos",
                         "default_attributes": [
                             "cn",
                             "cospriority",
@@ -15887,17 +15888,17 @@
                         ],
                         "krbextradata": [
                             {
-                                "__base64__": "AAL2bA5Ocm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
+                                "__base64__": "AAgBAA=="
                             },
                             {
-                                "__base64__": "AAgBAA=="
+                                "__base64__": "AAL2bA5Ocm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
                             }
                         ],
                         "krblastpwdchange": [
                             "20110702005726Z"
                         ],
                         "krblastsuccessfulauth": [
-                            "20110705172822Z"
+                            "20110705180548Z"
                         ],
                         "krbpasswordexpiration": [
                             "20110930005726Z"
@@ -16017,6 +16018,53 @@
                 "result": true,
                 "summary": null,
                 "value": ""
+            },
+            {
+                "count": 3,
+                "error": null,
+                "result": [
+                    {
+                        "accessruletype": [
+                            "deny"
+                        ],
+                        "cn": [
+                            "deny1"
+                        ],
+                        "dn": "ipauniqueid=8af3e23c-a7e2-11e0-b394-525400b55a47,cn=hbac,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                        "ipaenabledflag": [
+                            "TRUE"
+                        ],
+                        "memberuser_user": [
+                            "abrown"
+                        ]
+                    },
+                    {
+                        "accessruletype": [
+                            "deny"
+                        ],
+                        "cn": [
+                            "deny2"
+                        ],
+                        "dn": "ipauniqueid=8f05d042-a7e2-11e0-b394-525400b55a47,cn=hbac,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                        "ipaenabledflag": [
+                            "TRUE"
+                        ]
+                    },
+                    {
+                        "accessruletype": [
+                            "deny"
+                        ],
+                        "cn": [
+                            "deny3"
+                        ],
+                        "dn": "ipauniqueid=92dcf9fc-a7e2-11e0-8dac-525400b55a47,cn=hbac,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                        "ipaenabledflag": [
+                            "TRUE"
+                        ]
+                    }
+                ],
+                "summary": "3 HBAC rules matched",
+                "truncated": false
             }
         ]
     }

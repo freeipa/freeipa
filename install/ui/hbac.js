@@ -26,7 +26,21 @@ IPA.entity_factories.hbacrule = function () {
     return IPA.entity_builder().
         entity('hbacrule').
         search_facet({
-            columns:['cn','usercategory','hostcategory','ipaenabledflag',
+            columns:['cn',
+                     {
+                         factory: IPA.column,
+                         name:'accessruletype',
+                         setup : function(container,record){
+                             container.empty();
+                             var value = record[this.name];
+                             value = value ? value.toString() : '';
+                             if (value === 'deny'){
+                                 container.addClass('hbac-deny-rule');
+                             }
+                             container.append(value);
+                         }
+                     },
+                     'usercategory','hostcategory','ipaenabledflag',
                      'servicecategory','sourcehostcategory']
         }).
         details_facet({
@@ -995,4 +1009,41 @@ IPA.hbacrule_accesstime_widget = function (spec) {
     };
 
     return that;
+};
+
+IPA.hbac_deny_warning_dialog = function (container) {
+    var dialog = IPA.dialog({
+        'title': 'HBAC Deny Rules found'
+    });
+
+    var link_path = "config";
+    if (IPA.use_static_files){
+        link_path = "html";
+    }
+
+    dialog.create = function() {
+        dialog.container.append(
+            "HBAC rules with type deny have been found."+
+                "  These rules have been deprecated." +
+                "  Please remove them, and restructure the HBAC rules." );
+        $('<p/>').append($('<a/>',{
+            text: 'Click here for more information',
+            href: '../' +link_path +'/hbac-deny-remove.html',
+            target: "_blank",
+            style: 'target: tab; color: blue; '
+        })).appendTo(dialog.container);
+    };
+
+    dialog.add_button('Edit HBAC Rules', function() {
+        dialog.close();
+        IPA.nav.show_page('hbacrule', 'search');
+    });
+
+    dialog.add_button('Ignore for now', function() {
+        dialog.close();
+    });
+
+    dialog.init();
+
+    dialog.open();
 };

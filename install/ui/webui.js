@@ -158,6 +158,12 @@ $(function() {
         IPA.nav.update();
 
         $('#login_header').html(IPA.messages.login.header);
+
+        if (IPA.hbac_deny_rules  && IPA.hbac_deny_rules.count > 0){
+            if (IPA.nav.name === 'admin'){
+                IPA.hbac_deny_warning_dialog();
+            }
+        }
     }
 
 

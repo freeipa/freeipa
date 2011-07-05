@@ -1,54 +1,74 @@
 {
-    "error": null, 
-    "id": 0,
+    "error": null,
+    "id": null,
     "result": {
-        "count": 2,
+        "count": 4,
         "result": [
             {
                 "accessruletype": [
                     "allow"
-                ], 
+                ],
                 "cn": [
                     "allow_all"
-                ], 
+                ],
                 "description": [
                     "Allow all users to access any host from any host"
-                ], 
-                "dn": "ipauniqueid=b7567b5a-e39311df-bfde9b13-2b28c216,cn=hbac,dc=dev,dc=example,dc=com",
+                ],
+                "dn": "ipauniqueid=ca842a42-a445-11e0-87ff-525400b55a47,cn=hbac,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "hostcategory": [
                     "all"
-                ], 
+                ],
                 "ipaenabledflag": [
                     "TRUE"
-                ], 
+                ],
                 "servicecategory": [
                     "all"
-                ], 
+                ],
                 "sourcehostcategory": [
                     "all"
-                ], 
+                ],
                 "usercategory": [
                     "all"
                 ]
             },
             {
                 "accessruletype": [
-                    "allow"
-                ],
-                "accesstime": [
-                    "periodic daily 0800-1400",
-                    "absolute 201012161032 ~ 201012161033"
+                    "deny"
                 ],
                 "cn": [
-                    "test"
+                    "deny1"
                 ],
-                "dn": "ipauniqueid=3b6d2a82-e3b511df-bfde9b13-2b28c216,cn=hbac,dc=dev,dc=example,dc=com",
+                "dn": "ipauniqueid=8af3e23c-a7e2-11e0-b394-525400b55a47,cn=hbac,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "ipaenabledflag": [
+                    "TRUE"
+                ]
+            },
+            {
+                "accessruletype": [
+                    "deny"
+                ],
+                "cn": [
+                    "deny2"
+                ],
+                "dn": "ipauniqueid=8f05d042-a7e2-11e0-b394-525400b55a47,cn=hbac,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "ipaenabledflag": [
+                    "TRUE"
+                ]
+            },
+            {
+                "accessruletype": [
+                    "deny"
+                ],
+                "cn": [
+                    "deny3"
+                ],
+                "dn": "ipauniqueid=92dcf9fc-a7e2-11e0-8dac-525400b55a47,cn=hbac,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "ipaenabledflag": [
                     "TRUE"
                 ]
             }
-        ], 
-        "summary": null, 
+        ],
+        "summary": "4 HBAC rules matched",
         "truncated": false
     }
 }

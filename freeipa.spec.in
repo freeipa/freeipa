@@ -261,6 +261,8 @@ ln -s ../../../..%{_sysconfdir}/ipa/html/unauthorized.html \
     %{buildroot}%{_usr}/share/ipa/html/unauthorized.html
 ln -s ../../../..%{_sysconfdir}/ipa/html/browserconfig.html \
     %{buildroot}%{_usr}/share/ipa/html/browserconfig.html
+ln -s ../../../..%{_sysconfdir}/ipa/html/hbac-deny-remove.html \
+    %{buildroot}%{_usr}/share/ipa/html/hbac-deny-remove.html
 ln -s ../../../..%{_sysconfdir}/ipa/html/ipa_error.css \
     %{buildroot}%{_usr}/share/ipa/html/ipa_error.css
 
@@ -386,6 +388,7 @@ fi
 %{_usr}/share/ipa/html/ssbrowser.html
 %{_usr}/share/ipa/html/browserconfig.html
 %{_usr}/share/ipa/html/unauthorized.html
+%{_usr}/share/ipa/html/hbac-deny-remove.html
 %{_usr}/share/ipa/html/ipa_error.css
 %dir %{_usr}/share/ipa/migration
 %{_usr}/share/ipa/migration/error.html
@@ -412,6 +415,7 @@ fi
 %config(noreplace) %{_sysconfdir}/ipa/html/ipa_error.css
 %config(noreplace) %{_sysconfdir}/ipa/html/unauthorized.html
 %config(noreplace) %{_sysconfdir}/ipa/html/browserconfig.html
+%config(noreplace) %{_sysconfdir}/ipa/html/hbac-deny-remove.html
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa.conf
 %{_usr}/share/ipa/ipa.conf
@@ -500,6 +504,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Wed Jul 6 2011 Adam Young <ayoung@redhat.com> - 2.0.90-5
+- Add HTML file describing issues with HBAC deny rules
+
 * Fri Jun 17 2011 Rob Crittenden <rcritten@redhat.com> - 2.0.90-4
 - Ship ipa-ca-install utility
 

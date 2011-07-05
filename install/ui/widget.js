@@ -1156,7 +1156,7 @@ IPA.column = function (spec) {
         }
     };
 
-    that.setup = function(container, record) {
+    function setup(container, record) {
         container.empty();
 
         var value = record[that.name];
@@ -1177,8 +1177,9 @@ IPA.column = function (spec) {
         } else {
             container.append(value);
         }
+    }
 
-    };
+    that.setup = spec.setup || setup;
 
     that.link_handler = function(value) {
         return false;
