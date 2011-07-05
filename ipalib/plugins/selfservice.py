@@ -70,8 +70,8 @@ class selfservice(Object):
     """
 
     bindable = False
-    object_name = 'selfservice',
-    object_name_plural = 'selfservice',
+    object_name = 'self service permission',
+    object_name_plural = 'self service permissions',
     label = _('Self Service Permissions')
     label_singular = _('self service permission')
 

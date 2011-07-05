@@ -10579,9 +10579,7 @@
                             ],
                             "memberindirect": [
                                 "user",
-                                "group",
-                                "netgroup",
-                                "role"
+                                "group"
                             ],
                             "memberof": [
                                 "group",
@@ -11335,8 +11333,8 @@
                             "ipahbacservice"
                         ],
                         "object_class_config": null,
-                        "object_name": "hbacsvc",
-                        "object_name_plural": "hbacsvcs",
+                        "object_name": "HBAC service",
+                        "object_name_plural": "HBAC services",
                         "parent_object": "",
                         "primary_key": "cn",
                         "rdn_attribute": "",
@@ -11464,8 +11462,8 @@
                             "ipahbacservicegroup"
                         ],
                         "object_class_config": null,
-                        "object_name": "hbacsvcgroup",
-                        "object_name_plural": "hbacsvcgroups",
+                        "object_name": "HBAC service group",
+                        "object_name_plural": "HBAC service groups",
                         "parent_object": "",
                         "primary_key": "cn",
                         "rdn_attribute": "",
@@ -11996,7 +11994,6 @@
                                 "sudorule"
                             ],
                             "memberofindirect": [
-                                "host",
                                 "hostgroup",
                                 "hbacrule",
                                 "sudorule"
@@ -12033,8 +12030,8 @@
                             "ipahostgroup"
                         ],
                         "object_class_config": null,
-                        "object_name": "hostgroup",
-                        "object_name_plural": "hostgroups",
+                        "object_name": "host group",
+                        "object_name_plural": "host groups",
                         "parent_object": "",
                         "primary_key": "cn",
                         "rdn_attribute": "",
@@ -12120,7 +12117,7 @@
                         "aciattrs": [],
                         "attribute_members": {},
                         "bindable": false,
-                        "container_dn": "cn=SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM,cn=kerberos",
+                        "container_dn": "cn=IDM.LAB.BOS.REDHAT.COM,cn=kerberos",
                         "default_attributes": [
                             "krbmaxticketlife",
                             "krbmaxrenewableage"
@@ -12965,7 +12962,7 @@
                         ],
                         "attribute_members": {},
                         "bindable": false,
-                        "container_dn": "cn=SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM,cn=kerberos",
+                        "container_dn": "cn=IDM.LAB.BOS.REDHAT.COM,cn=kerberos",
                         "default_attributes": [
                             "cn",
                             "cospriority",
@@ -13415,10 +13412,10 @@
                         ],
                         "name": "selfservice",
                         "object_name": [
-                            "selfservice"
+                            "self service permission"
                         ],
                         "object_name_plural": [
-                            "selfservice"
+                            "self service permissions"
                         ],
                         "primary_key": "aciname",
                         "takes_params": [
@@ -13673,8 +13670,8 @@
                             "ipasudocmd"
                         ],
                         "object_class_config": null,
-                        "object_name": "sudocmd",
-                        "object_name_plural": "sudocmds",
+                        "object_name": "sudo command",
+                        "object_name_plural": "sudo commands",
                         "parent_object": "",
                         "primary_key": "sudocmd",
                         "rdn_attribute": "",
@@ -13802,8 +13799,8 @@
                             "ipasudocmdgrp"
                         ],
                         "object_class_config": null,
-                        "object_name": "sudocmdgroup",
-                        "object_name_plural": "sudocmdgroups",
+                        "object_name": "sudo command group",
+                        "object_name_plural": "sudo command groups",
                         "parent_object": "",
                         "primary_key": "cn",
                         "rdn_attribute": "",
@@ -14044,8 +14041,8 @@
                             "ipasudorule"
                         ],
                         "object_class_config": null,
-                        "object_name": "Sudo Rule",
-                        "object_name_plural": "Sudo Rules",
+                        "object_name": "sudo rule",
+                        "object_name_plural": "sudo rules",
                         "parent_object": "",
                         "primary_key": "cn",
                         "rdn_attribute": "ipauniqueid",
@@ -15815,10 +15812,10 @@
                         },
                         "user": {
                             "account": "Account Settings",
-                            "account_status": "Account status",
+                            "account_status": "Account Status",
                             "activate": "Activate",
-                            "activation_link": "Click to ${action}",
                             "activation_confirmation": "Are you sure you want to ${action} the user?<br/>The change will take effect immediately.",
+                            "activation_link": "Click to ${action}",
                             "active": "Active",
                             "contact": "Contact Settings",
                             "deactivate": "Deactivate",
@@ -15907,9 +15904,6 @@
                         ],
                         "krbprincipalname": [
                             "admin@SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
-                        ],
-                        "krbpwdpolicyreference": [
-                            "cn=admins,cn=SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM,cn=kerberos,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
                         ],
                         "loginshell": [
                             "/bin/bash"

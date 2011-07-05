@@ -52,8 +52,8 @@ class hbacsvcgroup(LDAPObject):
     HBAC service group object.
     """
     container_dn = api.env.container_hbacservicegroup
-    object_name = 'hbacsvcgroup'
-    object_name_plural = 'hbacsvcgroups'
+    object_name = 'HBAC service group'
+    object_name_plural = 'HBAC service groups'
     object_class = ['ipaobject', 'ipahbacservicegroup']
     default_attributes = [ 'cn', 'description', 'member' ]
     uuid_attribute = 'ipauniqueid'

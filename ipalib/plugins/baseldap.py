@@ -348,7 +348,7 @@ class LDAPObject(Object):
                 for ldap_obj_name in self.attribute_members[attr]:
                     ldap_obj = self.api.Object[ldap_obj_name]
                     if member.find(ldap_obj.container_dn) > 0:
-                        new_attr = '%s_%s' % (attr, ldap_obj.object_name)
+                        new_attr = '%s_%s' % (attr, ldap_obj.name)
                         entry_attrs.setdefault(new_attr, []).append(
                             ldap_obj.get_primary_key_from_dn(member)
                         )
