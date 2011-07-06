@@ -28,7 +28,7 @@ try:
     import logging
     import tempfile
     import getpass
-    import ipaclient.ipadiscovery
+    from ipaclient import ipadiscovery
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
     from ipapython.ipautil import run, user_input, CalledProcessError, file_exists
@@ -703,15 +703,18 @@ def main():
         sys.exit('Invalid hostname \'%s\', must be lower-case.' % hostname)
 
     # Create the discovery instance
-    ds = ipaclient.ipadiscovery.IPADiscovery()
+    ds = ipadiscovery.IPADiscovery()
 
-    ret = ds.search(domain=options.domain, server=options.server)
+    ret = ds.search(domain=options.domain, server=options.server, hostname=hostname)
 
-    if ret == -10:
+    if ret == ipadiscovery.BAD_HOST_CONFIG:
         print >>sys.stderr, "Can't get the fully qualified name of this host"
         print >>sys.stderr, "Please check that the client is properly configured"
         return ret
-    if ret == -1 or not ds.getDomainName():
+    if ret == ipadiscovery.NOT_FQDN:
+        print >>sys.stderr, "%s is not a fully-qualified hostname" % hostname
+        return ret
+    if ret == ipadiscovery.NO_LDAP_SERVER or not ds.getDomainName():
         logging.debug("Domain not found")
         if options.domain:
             cli_domain = options.domain
@@ -722,14 +725,14 @@ def main():
             print "DNS discovery failed to determine your DNS domain"
             cli_domain = user_input("Please provide the domain name of your IPA server (ex: example.com)", allow_empty = False)
             logging.debug("will use domain: %s\n", cli_domain)
-        ret = ds.search(domain=cli_domain, server=options.server)
+        ret = ds.search(domain=cli_domain, server=options.server, hostname=hostname)
 
     if not cli_domain:
         if ds.getDomainName():
             cli_domain = ds.getDomainName()
             logging.debug("will use domain: %s\n", cli_domain)
 
-    if ret == -2 or not ds.getServerName():
+    if ret == ipadiscovery.NO_LDAP_SERVER or not ds.getServerName():
         logging.debug("IPA Server not found")
         if options.server:
             cli_server = options.server
@@ -740,7 +743,7 @@ def main():
             print "DNS discovery failed to find the IPA Server"
             cli_server = user_input("Please provide your IPA server name (ex: ipa.example.com)", allow_empty = False)
             logging.debug("will use server: %s\n", cli_server)
-        ret = ds.search(domain=cli_domain, server=cli_server)
+        ret = ds.search(domain=cli_domain, server=cli_server, hostname=hostname)
     else:
         dnsok = True
     if not cli_server:
@@ -748,6 +751,9 @@ def main():
             cli_server = ds.getServerName()
             logging.debug("will use server: %s\n", cli_server)
 
+    if ret == ipadiscovery.NOT_IPA_SERVER:
+        print >>sys.stderr, "%s is not an IPA v2 Server." % cli_server
+        return ret
     if ret != 0:
         print >>sys.stderr, "Failed to verify that "+cli_server+" is an IPA Server."
         print >>sys.stderr, "This may mean that the remote server is not up or is not reachable"
@@ -861,11 +867,7 @@ def main():
             (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env)
 
             if returncode != 0:
-                if returncode == 17:    # XML-RPC fault - possible IPA v1/v2 incompatibility
-                    print "Joining realm failed because of failing XML-RPC request."
-                    print "  This error may be caused by incompatible server/client major versions."
-                else:
-                    print >>sys.stderr, "Joining realm failed: %s" % stderr,
+                print >>sys.stderr, "Joining realm failed: %s" % stderr,
                 if not options.force:
                     return 1
                 print "  Use ipa-getkeytab to obtain a host principal for this server."
