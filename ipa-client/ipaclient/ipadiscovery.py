@@ -26,6 +26,13 @@ import ldap
 from ldap import LDAPError
 from ipapython.ipautil import run, CalledProcessError
 
+
+NOT_FQDN = -1
+NO_LDAP_SERVER = -2
+REALM_NOT_FOUND = -3
+NOT_IPA_SERVER = -4
+BAD_HOST_CONFIG = -10
+
 class IPADiscovery:
 
     def __init__(self):
@@ -95,8 +102,7 @@ class IPADiscovery:
                 domain = domain[p+1:]
         return (None, None)
 
-    def search(self, domain = "", server = ""):
-        hostname = ""
+    def search(self, domain = "", server = "", hostname=None):
         qname = ""
         results = []
         result = []
@@ -108,14 +114,15 @@ class IPADiscovery:
             if not domain: #domain not provided do full DNS discovery
 
                 # get the local host name
-                hostname = socket.getfqdn()
                 if not hostname:
-                    return -10 #bad host configuration
+                    hostname = socket.getfqdn()
+                if not hostname:
+                    return BAD_HOST_CONFIG
 
                 # first, check for an LDAP server for the local domain
                 p = hostname.find(".")
                 if p == -1: #no domain name
-                    return -1
+                    return NOT_FQDN
                 domain = hostname[p+1:]
 
                 # Get the list of domains from /etc/resolv.conf, we'll search
@@ -133,14 +140,14 @@ class IPADiscovery:
                         self.domain = domain
                         break
                 if not self.domain: #no ldap server found
-                    return -1
+                    return NO_LDAP_SERVER
             else:
                 logging.debug("[ipadnssearchldap]")
                 self.server = self.ipadnssearchldap(domain)
                 if self.server:
                     self.domain = domain
                 else:
-                    return -2 #no ldap server found
+                    return NO_LDAP_SERVER
 
         else: #server forced on us, this means DNS doesn't work :/
 
@@ -151,7 +158,7 @@ class IPADiscovery:
         logging.debug("[ipadnssearchkrb]")
         krbret = self.ipadnssearchkrb(self.domain)
         if not server and not krbret[0]:
-            return -3 # realm for autodiscovery not found
+            return REALM_NOT_FOUND
 
         self.realm = krbret[0]
         self.kdc = krbret[1]
@@ -161,7 +168,7 @@ class IPADiscovery:
         ldapret = self.ipacheckldap(self.server, self.realm)
 
         if not ldapret:
-            return -4 # not an IPA server (or broken config)
+            return NOT_IPA_SERVER
 
         self.server = ldapret[0]
         self.realm = ldapret[1]
@@ -169,6 +176,14 @@ class IPADiscovery:
         return 0
 
     def ipacheckldap(self, thost, trealm):
+        """
+        Given a host and kerberos realm verify that it is an IPA LDAP
+        server hosting the realm. The connection is an SSL connection
+        so the remote IPA CA cert must be available at
+        http://HOST/ipa/config/ca.crt
+
+        Returns a list [host, realm] or an empty list on error.
+        """
 
         lret = []
         lres = []
@@ -219,7 +234,7 @@ class IPADiscovery:
                     linfo = lret[0][1][lattr][0].lower()
                     break
 
-            if not linfo:
+            if not linfo or linfo.lower() != 'ipa v2.0':
                 return []
 
             #search and return known realms
@@ -323,5 +338,5 @@ class IPADiscovery:
 
             if not kdc:
                 logging.debug("SRV record for KDC not found! Realm: %s, SRV record: %s" % (realm, qname))
-        
+
         return [realm, kdc]

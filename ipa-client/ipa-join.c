@@ -475,15 +475,9 @@ join_ldap(const char *ipaserver, char *hostname, const char ** binddn, const cha
     /* Now rebind as the host */
     ld = connect_ldap(ipaserver, *binddn, bindpw);
     if (!ld) {
-        if (has_principal) {
-            if (!quiet)
-                fprintf(stderr, _("Host is already joined.\n"));
-            rval = 13;
-        } else {
-            if (!quiet)
-                fprintf(stderr, _("Incorrect password.\n"));
-            rval = 15;
-        }
+        if (!quiet)
+            fprintf(stderr, _("Incorrect password.\n"));
+        rval = 15;
         goto done;
     }
 
@@ -491,13 +485,19 @@ join_ldap(const char *ipaserver, char *hostname, const char ** binddn, const cha
     valrequest.bv_len = strlen(hostname);
 
     if ((rc = ldap_extended_operation_s(ld, JOIN_OID, &valrequest, NULL, NULL, &oidresult, &valresult)) != LDAP_SUCCESS) {
+        char *s = NULL;
+#ifdef LDAP_OPT_DIAGNOSTIC_MESSAGE
+        ldap_get_option(ld, LDAP_OPT_DIAGNOSTIC_MESSAGE, &s);
+#else
+        ldap_get_option(ld, LDAP_OPT_ERROR_STRING, &s);
+#endif
         if (!quiet)
-            fprintf(stderr, _("principal not found in host entry\n"));
+            fprintf(stderr, _("Enrollment failed. %s\n"), s);
         if (debug) {
             fprintf(stderr, "ldap_extended_operation_s failed: %s",
                             ldap_err2string(rc));
         }
-        rval = 18;
+        rval = 13;
         goto ldap_done;
     }
 
@@ -1003,7 +1003,7 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
     }
 
 cleanup:
-    if (NULL != subject && !quiet)
+    if (NULL != subject && !quiet && rval == 0)
         fprintf(stderr, _("Certificate subject base is: %s\n"), subject);
 
     free((char *)princ);
