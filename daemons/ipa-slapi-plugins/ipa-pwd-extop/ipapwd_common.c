@@ -1197,6 +1197,12 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
         slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
                               "sambaPwdLastset", modtime);
     }
+    if (is_krb) {
+        if (data->changetype == IPA_CHANGETYPE_ADMIN) {
+            slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
+                                 "krbLoginFailedCount", "0");
+        }
+    }
     /* let DS encode the password itself, this allows also other plugins to
      * intercept it to perform operations like synchronization with Active
      * Directory domains through the replication plugin */
