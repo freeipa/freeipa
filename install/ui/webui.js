@@ -101,6 +101,8 @@ IPA.self_serv_navigation = function(spec) {
 
         } else {
             var state = {
+                'navigation': 'identity',
+                'identity': 'user',
                 'user-pkey': pkey || IPA.whoami_pkey,
                 'user-facet': facet || 'details'
             };
