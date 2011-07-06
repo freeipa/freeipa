@@ -1,0 +1,10 @@
+EXPORTED {
+
+	# public symbols
+	global:
+		kdb_function_table;
+
+	# everything else is local
+	local:
+		*;
+};
