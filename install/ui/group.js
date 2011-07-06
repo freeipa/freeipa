@@ -74,6 +74,18 @@ IPA.entity_factories.group =  function () {
             name: 'memberof_role',
             associator: IPA.serial_associator
         }).
+        association_facet({
+            name: 'memberof_hbacrule',
+            associator: IPA.serial_associator,
+            add_method: 'add_user',
+            remove_method: 'remove_user'
+        }).
+        association_facet({
+            name: 'memberof_sudorule',
+            associator: IPA.serial_associator,
+            add_method: 'add_user',
+            remove_method: 'remove_user'
+        }).
         standard_association_facets().
         adder_dialog({
             fields: [

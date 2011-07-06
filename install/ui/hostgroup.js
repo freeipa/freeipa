@@ -37,6 +37,18 @@ IPA.entity_factories.hostgroup = function() {
             name: 'memberof_hostgroup',
             associator: IPA.serial_associator
         }).
+        association_facet({
+            name: 'memberof_hbacrule',
+            associator: IPA.serial_associator,
+            add_method: 'add_host',
+            remove_method: 'remove_host'
+        }).
+        association_facet({
+            name: 'memberof_sudorule',
+            associator: IPA.serial_associator,
+            add_method: 'add_host',
+            remove_method: 'remove_host'
+        }).
         standard_association_facets().
         adder_dialog({
             fields:['cn','description']

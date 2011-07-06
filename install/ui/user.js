@@ -119,6 +119,20 @@ IPA.entity_factories.user = function() {
             associator: IPA.serial_associator,
             link: link
         }).
+        association_facet({
+            name: 'memberof_hbacrule',
+            associator: IPA.serial_associator,
+            add_method: 'add_user',
+            remove_method: 'remove_user',
+            link: link
+        }).
+        association_facet({
+            name: 'memberof_sudorule',
+            associator: IPA.serial_associator,
+            add_method: 'add_user',
+            remove_method: 'remove_user',
+            link: link
+        }).
         standard_association_facets({
             link: link
         }).
