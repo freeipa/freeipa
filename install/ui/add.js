@@ -118,10 +118,13 @@ IPA.add_dialog = function (spec) {
         for (var i=0; i<fields.length; i++) {
             fields[i].validate();
         }
-
+        var required_fields_filled = true;
         for (i=0; i<fields.length; i++) {
             field = fields[i];
             if (!field.valid) return;
+
+            required_fields_filled = field.check_required() &&
+                required_fields_filled;
 
             value = record[field.name];
             if (!value) continue;
@@ -141,6 +144,8 @@ IPA.add_dialog = function (spec) {
             for (var k=0; k<section_fields.length; k++) {
                 field = section_fields[k];
                 if (!field.valid) return;
+                required_fields_filled = field.check_required()  &&
+                    required_fields_filled;
 
                 value = record[field.name];
                 if (!value) continue;
@@ -155,7 +160,9 @@ IPA.add_dialog = function (spec) {
 
         //alert(JSON.stringify(command.to_json()));
 
-        command.execute();
+        if (required_fields_filled){
+            command.execute();
+        }
     };
 
     that.add_dialog_init = that.init;

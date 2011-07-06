@@ -107,27 +107,39 @@ IPA.widget = function(spec) {
         }
 
     }
+    that.create_error_link = function(container){
+        container.append(' ');
 
-    /*returns true and clears the error message if the field value  passes
-      the validation pattern.  If the field value does not pass validation,
-      displays the error message and returns false. */
-    that.validate = function() {
+        $('<span/>', {
+            name: 'error_link',
+            html: IPA.messages.widget.validation.error,
+            'class': 'ui-state-error ui-corner-all',
+            style: 'display:none'
+        }).appendTo(container);
+    };
 
-        that.hide_error();
-
-        that.valid = true;
-
+    that.check_required = function(){
         var values = that.save();
-        if (!values || !values.length) {
+        if (!values || !values.length || values[0] === '' ) {
             if (that.param_info &&
                 that.param_info.required &&
                 !that.optional) {
                 that.valid = false;
                 that.show_error(IPA.messages.widget.validation.required);
+                return false;
             }
-            return;
         }
+        return true;
+    };
 
+    /*returns true and clears the error message if the field value  passes
+      the validation pattern.  If the field value does not pass validation,
+      displays the error message and returns false. */
+    that.validate = function() {
+        hide_error();
+        that.valid = true;
+
+        var values = that.save();
         var value = values[0];
         if (!value) {
             return;
@@ -319,10 +331,10 @@ IPA.widget = function(spec) {
         error_link.css('display', 'block');
     };
 
-    that.hide_error = function() {
+    function hide_error() {
         var error_link = that.get_error_link();
         error_link.css('display', 'none');
-    };
+    }
 
     that.set_enabled = function() {
     };
@@ -371,6 +383,7 @@ IPA.text_widget = function(spec) {
         IPA.select_range(that.input, start, end);
     };
 
+
     that.create = function(container) {
 
         $('<label/>', {
@@ -391,14 +404,7 @@ IPA.text_widget = function(spec) {
             that.create_undo(container);
         }
 
-        container.append(' ');
-
-        $('<span/>', {
-            name: 'error_link',
-            html: IPA.messages.widget.validation.error,
-            'class': 'ui-state-error ui-corner-all',
-            style: 'display:none'
-        }).appendTo(container);
+        that.create_error_link(container);
     };
 
     that.setup = function(container) {
@@ -546,14 +552,7 @@ IPA.multivalued_text_widget = function(spec) {
             that.create_undo(div);
         }
 
-        div.append(' ');
-
-        $('<span/>', {
-            name: 'error_link',
-            html: IPA.messages.widget.validation.error,
-            'class': 'ui-state-error ui-corner-all',
-            style: 'display:none'
-        }).appendTo(div);
+        that.create_error_link(container);
 
         $('<a/>', {
             name: 'add',
@@ -1079,12 +1078,8 @@ IPA.textarea_widget = function (spec) {
             that.create_undo(container);
         }
 
-        $("<span/>",{
-            name:'error_link',
-            html: IPA.messages.widget.validation.error,
-            "class":"ui-state-error ui-corner-all",
-            style:"display:none"
-        }).appendTo(container);
+        that.create_error_link(container);
+
     };
 
     that.setup = function(container) {
@@ -1650,7 +1645,10 @@ IPA.entity_select_widget = function(spec) {
         if (editable){
             that.edit_box = $('<input />',{
                 type: 'text',
-                title: that.tooltip
+                title: that.tooltip,
+                keyup:function(){
+                    that.validate();
+                }
             });
 
             $('<div style:"display=block;" />').
@@ -1658,9 +1656,12 @@ IPA.entity_select_widget = function(spec) {
                 appendTo(container);
         }
 
+        that.create_error_link(container);
+
         that.entity_select = $('<select/>', {
             id: that.name + '-entity-select',
             change: function(){
+                that.validate();
                 if (editable){
                     that.edit_box.val(
                         $('option:selected', that.entity_select).val());

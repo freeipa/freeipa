@@ -110,6 +110,7 @@ IPA.service_add_dialog = function(spec) {
     var that = IPA.add_dialog(spec).
         field(IPA.widget({
             name: 'krbprincipalname',
+            optional:true,
             hidden: true
         })).
         field(IPA.service_select_widget({
