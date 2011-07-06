@@ -26,13 +26,16 @@ ipadb_la_SOURCES = 		\
 
 ipadb_la_LDFLAGS = 		\
 	-avoid-version 		\
-	-module
+	-module			\
+	-Wl,--version-script,$(srcdir)/ipa_kdb.exports
 
 ipadb_la_LIBADD = 		\
 	$(KRB5_LIBS)		\
 	$(SSL_LIBS)		\
 	$(LDAP_LIBS)		\
 	$(NULL)
+
+dist_noinst_DATA = ipa_kdb.exports
 
 EXTRA_DIST =			\
 	README			\
