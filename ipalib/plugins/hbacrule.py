@@ -87,6 +87,10 @@ from ipalib import _, ngettext
 
 topic = ('hbac', 'Host-based access control commands')
 
+def validate_type(ugettext, type):
+    if type.lower() == 'deny':
+        raise errors.ValidationError(name='type', error=_('The deny type has been deprecated.'))
+
 def is_all(options, attribute):
     """
     See if options[attribute] is lower-case 'all' in a safe way.
@@ -132,11 +136,13 @@ class hbacrule(LDAPObject):
             label=_('Rule name'),
             primary_key=True,
         ),
-        StrEnum('accessruletype',
+        StrEnum('accessruletype', validate_type,
             cli_name='type',
-            doc=_('Rule type (allow or deny)'),
+            doc=_('Rule type (allow)'),
             label=_('Rule type'),
             values=(u'allow', u'deny'),
+            default=u'allow',
+            autofill=True,
         ),
         # FIXME: {user,host,sourcehost,service}categories should expand in the future
         StrEnum('usercategory?',

@@ -436,6 +436,31 @@ class test_hbac(XMLRPC_test):
         finally:
             api.Command['hbacrule_remove_service'](self.rule_name, hbacsvc=self.test_service)
 
+    def test_l_hbacrule_add(self):
+        """
+        Test adding a new HBAC rule with a deny type.
+        """
+        try:
+            api.Command['hbacrule_add'](
+                u'denyrule',
+                accessruletype=u'deny',
+                description=self.rule_desc,
+            )
+        except errors.ValidationError:
+            pass
+
+    def test_m_hbacrule_add(self):
+        """
+        Test changing an HBAC rule to the deny type
+        """
+        try:
+            api.Command['hbacrule_mod'](
+                self.rule_name,
+                accessruletype=u'deny',
+            )
+        except errors.ValidationError:
+            pass
+
     def test_z_hbacrule_del(self):
         """
         Test deleting a HBAC rule using `xmlrpc.hbacrule_del`.
