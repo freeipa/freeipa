@@ -58,9 +58,18 @@ from ipapython.ipautil import *
 from ipalib import api, errors, util
 from ipalib.parameters import IA5Str
 from ipapython.config import IPAOptionParser
+from ipalib.dn import DN
 
 pw_name = None
 uninstalling = False
+
+VALID_SUBJECT_ATTRS = ['cn', 'st', 'o', 'ou', 'dnqualifier', 'c',
+                       'serialnumber', 'l', 'title', 'sn', 'givenname',
+                       'initials', 'generationqualifier', 'dc', 'mail',
+                       'uid', 'postaladdress', 'postalcode', 'postofficebox',
+                       'houseidentifier', 'e', 'street', 'pseudonym',
+                       'incorporationlocality', 'incorporationstate',
+                       'incorporationcountry', 'businesscategory']
 
 def zonemgr_callback(option, opt_str, value, parser):
     """
@@ -71,6 +80,21 @@ def zonemgr_callback(option, opt_str, value, parser):
     ia = IA5Str(name)
     ia._convert_scalar(v)
     parser.values.zonemgr = value
+
+def subject_callback(option, opt_str, value, parser):
+    """
+    Make sure the certificate subject base is a valid DN
+    """
+    name = opt_str.replace('--','')
+    v = unicode(value, 'utf-8')
+    try:
+        dn = DN(v)
+        for x in xrange(len(dn)):
+            if dn[x][0].attr.lower() not in VALID_SUBJECT_ATTRS:
+                raise ValueError('invalid attribute: %s' % dn[x][0].attr.lower())
+    except ValueError, e:
+        raise ValueError('Invalid subject base format: %s' % str(e))
+    parser.values.subject = value
 
 def parse_options():
     # Guaranteed to give a random 200k range below the 2G mark (uint32_t limit)
@@ -142,7 +166,8 @@ def parse_options():
                       help="The starting value for the IDs range (default random)")
     parser.add_option("--idmax", dest="idmax", default=0, type=int,
                       help="The max value value for the IDs range (default: idstart+199999)")
-    parser.add_option("--subject", dest="subject",
+    parser.add_option("--subject", action="callback", callback=subject_callback,
+                      type="string",
                       help="The certificate subject base (default O=<realm-name>)")
     parser.add_option("--no_hbac_allow", dest="hbac_allow", default=False,
                       action="store_true",
