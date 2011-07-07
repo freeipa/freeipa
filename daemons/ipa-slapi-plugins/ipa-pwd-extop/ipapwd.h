@@ -90,6 +90,8 @@ struct ipapwd_operation {
     struct ipapwd_data pwdata;
     int pwd_op;
     int is_krb;
+    int skip_keys;
+    int skip_history;
 };
 
 #define GENERALIZED_TIME_LENGTH 15
