@@ -567,7 +567,7 @@ class IPAdmin(SimpleLDAPObject):
         else:
             operation = ldap.MOD_ADD
 
-        modlist.append((operation, "nsAccountlock", "true"))
+        modlist.append((operation, "nsAccountlock", "TRUE"))
 
         try:
             if sctrl is not None:

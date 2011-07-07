@@ -69,11 +69,19 @@ NO_UPG_MAGIC = '__no_upg__'
 
 def validate_nsaccountlock(entry_attrs):
     if 'nsaccountlock' in entry_attrs:
-        if not isinstance(entry_attrs['nsaccountlock'], basestring):
-            raise errors.OnlyOneValueAllowed(attr='nsaccountlock')
-        if entry_attrs['nsaccountlock'].lower() not in ('true','false'):
-            raise errors.ValidationError(name='nsaccountlock', error='must be TRUE or FALSE')
+        nsaccountlock = entry_attrs['nsaccountlock']
+        if not isinstance(nsaccountlock, (bool, Bool)):
+            if not isinstance(nsaccountlock, basestring):
+                raise errors.OnlyOneValueAllowed(attr='nsaccountlock')
+            if nsaccountlock.lower() not in ('true','false'):
+                raise errors.ValidationError(name='nsaccountlock', error='must be TRUE or FALSE')
 
+def convert_nsaccountlock(entry_attrs):
+    if not 'nsaccountlock' in entry_attrs:
+        entry_attrs['nsaccountlock'] = False
+    else:
+        nsaccountlock = Bool('temp')
+        entry_attrs['nsaccountlock'] = nsaccountlock.convert(entry_attrs['nsaccountlock'][0])
 
 class user(LDAPObject):
     """
@@ -428,8 +436,7 @@ class user_mod(LDAPUpdate):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        if not 'nsaccountlock' in entry_attrs:
-            entry_attrs['nsaccountlock'] = [u'False']
+        convert_nsaccountlock(entry_attrs)
         self.obj._convert_manager(entry_attrs, **options)
         return dn
 
@@ -460,8 +467,7 @@ class user_find(LDAPSearch):
         for entry in entries:
             (dn, attrs) = entry
             self.obj._convert_manager(attrs, **options)
-            if not 'nsaccountlock' in attrs:
-                attrs['nsaccountlock'] = [u'False']
+            convert_nsaccountlock(attrs)
 
     msg_summary = ngettext(
         '%(count)d user matched', '%(count)d users matched', 0
@@ -475,8 +481,7 @@ class user_show(LDAPRetrieve):
     Display information about a user.
     """
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        if not 'nsaccountlock' in entry_attrs:
-            entry_attrs['nsaccountlock'] = [u'False']
+        convert_nsaccountlock(entry_attrs)
         self.obj._convert_manager(entry_attrs, **options)
         return dn
 

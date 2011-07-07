@@ -200,9 +200,16 @@ IPA.user_status_widget = function(spec) {
         if (!that.record) return;
 
         var lock_field = 'nsaccountlock';
+        var locked_field = that.record[lock_field];
+        var locked = false;
 
-        var locked = that.record[lock_field] &&
-            that.record[lock_field][0].toLowerCase() === 'true';
+        if (typeof locked_field === 'array') locked_field = locked_field[0];
+
+        if (typeof locked_field === 'boolean') {
+            locked = locked_field;
+        } else {
+            locked = locked_field && locked_field.toLowerCase() === 'true';
+        }
 
         var status;
         var action;

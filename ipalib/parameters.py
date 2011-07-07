@@ -904,8 +904,8 @@ class Bool(Param):
     # FIXME: This my quick hack to get some UI stuff working, change these defaults
     #   --jderose 2009-08-28
     kwargs = Param.kwargs + (
-        ('truths', frozenset, frozenset([1, u'1', u'true', u'TRUE'])),
-        ('falsehoods', frozenset, frozenset([0, u'0', u'false', u'FALSE'])),
+        ('truths', frozenset, frozenset([1, u'1', True, u'true', u'TRUE'])),
+        ('falsehoods', frozenset, frozenset([0, u'0', False, u'false', u'FALSE'])),
     )
 
     def _convert_scalar(self, value, index=None):
