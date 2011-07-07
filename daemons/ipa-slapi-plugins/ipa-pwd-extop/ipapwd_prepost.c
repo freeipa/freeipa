@@ -398,6 +398,9 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     struct ipapwd_operation *pwdop = NULL;
     void *op;
     int is_repl_op, is_pwd_op, is_root, is_krb, is_smb;
+    int has_krb_keys = 0;
+    int has_history = 0;
+    int gen_krb_keys = 0;
     int ret, rc;
 
     LOG_TRACE( "=>\n");
@@ -609,10 +612,38 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
             }
         }
 
+        /* if we are getting a krbPrincipalKey, also avoid regenerating the keys,
+         * it means kadmin has alredy done the job and is simply keeping
+         * userPassword and sambaXXPAssword in sync */
+        if (slapi_attr_types_equivalent(type, "krbPrincipalKey")) {
+            /* we also check we have enough authority */
+            if (is_root) {
+                has_krb_keys = 1;
+            }
+        }
+
+        /* if we are getting a passwordHistory, also avoid regenerating the hashes,
+         * it means kadmin has alredy done the job and is simply keeping
+         * userPassword and sambaXXPAssword in sync */
+        if (slapi_attr_types_equivalent(type, "passwordHistory")) {
+            /* we also check we have enough authority */
+            if (is_root) {
+                has_history = 1;
+            }
+        }
+
         slapi_mod_done(tmod);
         smod = slapi_mods_get_next_smod(smods, tmod);
     }
     slapi_mod_free(&tmod);
+
+    if (is_krb) {
+        if (has_krb_keys) {
+            gen_krb_keys = 0;
+        } else {
+            gen_krb_keys = 1;
+        }
+    }
 
     /* It seem like we have determined that the end result will be deletion of
      * the userPassword attribute, so we have no more business here */
@@ -623,7 +654,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
 
     /* Check this is a clear text password, or refuse operation (only if we need
      * to comput other hashes */
-    if (! unhashedpw) {
+    if (! unhashedpw && (gen_krb_keys || is_smb)) {
         if ('{' == userpw[0]) {
             if (0 == strncasecmp(userpw, "{CLEAR}", strlen("{CLEAR}"))) {
                 unhashedpw = slapi_ch_strdup(&userpw[strlen("{CLEAR}")]);
@@ -663,6 +694,8 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     pwdop->pwd_op = IPAPWD_OP_MOD;
     pwdop->pwdata.password = slapi_ch_strdup(unhashedpw);
     pwdop->pwdata.changetype = IPA_CHANGETYPE_NORMAL;
+    pwdop->skip_history = has_history;
+    pwdop->skip_keys = has_krb_keys;
 
     if (is_root) {
         pwdop->pwdata.changetype = IPA_CHANGETYPE_DSMGR;
@@ -701,21 +734,27 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     pwdop->pwdata.timeNow = time(NULL);
     pwdop->pwdata.target = e;
 
-    ret = ipapwd_CheckPolicy(&pwdop->pwdata);
-    if (ret) {
-        errMesg = "Password Fails to meet minimum strength criteria";
-        rc = LDAP_CONSTRAINT_VIOLATION;
-        goto done;
+    /* if krb keys are being set by an external agent we assume password
+     * policies have been properly checked already, so we check them only
+     * if no krb keys are available */
+    if (has_krb_keys == 0) {
+        ret = ipapwd_CheckPolicy(&pwdop->pwdata);
+        if (ret) {
+            errMesg = "Password Fails to meet minimum strength criteria";
+            rc = LDAP_CONSTRAINT_VIOLATION;
+            goto done;
+        }
     }
 
-    if (is_krb || is_smb) {
+    if (gen_krb_keys || is_smb) {
 
         Slapi_Value **svals = NULL;
         char *nt = NULL;
         char *lm = NULL;
 
         rc = ipapwd_gen_hashes(krbcfg, &pwdop->pwdata, unhashedpw,
-                               is_krb, is_smb, &svals, &nt, &lm, &errMesg);
+                               gen_krb_keys, is_smb,
+                               &svals, &nt, &lm, &errMesg);
         if (rc) {
             goto done;
         }
@@ -820,6 +859,11 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
         return 0;
     }
 
+    if (pwdop->skip_keys && pwdop->skip_history) {
+        /* nothing to do, caller already set all interesting attributes */
+        return 0;
+    }
+
     ret = ipapwd_gen_checks(pb, &errMsg, &krbcfg, 0);
     if (ret != 0) {
         LOG_FATAL("ipapwd_gen_checks failed!?\n");
@@ -831,7 +875,7 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
 
     /* This was a mod operation on an existing entry, make sure we also update
      * the password history based on the entry we saved from the pre-op */
-    if (IPAPWD_OP_MOD == pwdop->pwd_op) {
+    if (IPAPWD_OP_MOD == pwdop->pwd_op && !pwdop->skip_history) {
         Slapi_DN *tmp_dn = slapi_sdn_new_dn_byref(pwdop->pwdata.dn);
         if (tmp_dn) {
             ret = slapi_search_internal_get_entry(tmp_dn, 0,
@@ -850,53 +894,59 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
         }
     }
 
-    /* Don't set a last password change or expiration on host passwords. 
-     * krbLastPwdChange is used to tell whether we have a valid keytab. If we
-     * set it on userPassword it confuses enrollment. If krbPasswordExpiration
-     * is set on a host entry then the keytab will appear to be expired.
-     *
-     * When a host is issued a keytab these attributes get set properly by
-     * ipapwd_setkeytab().
-     */
-    ipahost = slapi_value_new_string("ipaHost");
-    if (!pwdop->pwdata.target ||
-        (slapi_entry_attr_has_syntax_value(pwdop->pwdata.target,
-                                           SLAPI_ATTR_OBJECTCLASS,
-                                           ipahost)) == 0) {
+    /* we assume that krb attributes are properly updated too if keys were
+     * passed in */
+    if (!pwdop->skip_keys) {
+        /* Don't set a last password change or expiration on host passwords.
+         * krbLastPwdChange is used to tell whether we have a valid keytab.
+         * If we set it on userPassword it confuses enrollment.
+         * If krbPasswordExpiration is set on a host entry then the keytab
+         * will appear to be expired.
+         *
+         * When a host is issued a keytab these attributes get set properly by
+         * ipapwd_setkeytab().
+         */
+        ipahost = slapi_value_new_string("ipaHost");
+        if (!pwdop->pwdata.target ||
+            (slapi_entry_attr_has_syntax_value(pwdop->pwdata.target,
+                                    SLAPI_ATTR_OBJECTCLASS, ipahost)) == 0) {
+            /* set Password Expiration date */
+            if (!gmtime_r(&(pwdop->pwdata.expireTime), &utctime)) {
+                LOG_FATAL("failed to parse expiration date (buggy gmtime_r ?)\n");
+                goto done;
+            }
+            strftime(timestr, GENERALIZED_TIME_LENGTH+1,
+                     "%Y%m%d%H%M%SZ", &utctime);
+            slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
+                                  "krbPasswordExpiration", timestr);
 
-        /* set Password Expiration date */
-        if (!gmtime_r(&(pwdop->pwdata.expireTime), &utctime)) {
-            LOG_FATAL("failed to parse expiration date (buggy gmtime_r ?)\n");
-            goto done;
+            /* change Last Password Change field with the current date */
+            if (!gmtime_r(&(pwdop->pwdata.timeNow), &utctime)) {
+                LOG_FATAL("failed to parse current date (buggy gmtime_r ?)\n");
+                slapi_value_free(&ipahost);
+                goto done;
+            }
+            strftime(timestr, GENERALIZED_TIME_LENGTH+1,
+                     "%Y%m%d%H%M%SZ", &utctime);
+            slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
+                                  "krbLastPwdChange", timestr);
         }
-        strftime(timestr, GENERALIZED_TIME_LENGTH+1,
-                 "%Y%m%d%H%M%SZ", &utctime);
-        slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
-                              "krbPasswordExpiration", timestr);
-        /* change Last Password Change field with the current date */
-        if (!gmtime_r(&(pwdop->pwdata.timeNow), &utctime)) {
-            LOG_FATAL("failed to parse current date (buggy gmtime_r ?)\n");
-            slapi_value_free(&ipahost);
-            goto done;
-        }
-        strftime(timestr, GENERALIZED_TIME_LENGTH+1,
-                 "%Y%m%d%H%M%SZ", &utctime);
-        slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
-                              "krbLastPwdChange", timestr);
+        slapi_value_free(&ipahost);
     }
-    slapi_value_free(&ipahost);
 
     ret = ipapwd_apply_mods(pwdop->pwdata.dn, smods);
     if (ret)
         LOG("Failed to set additional password attributes in the post-op!\n");
 
-    if (pwdop->pwdata.changetype == IPA_CHANGETYPE_NORMAL) {
-        principal = slapi_entry_attr_get_charptr(pwdop->pwdata.target,
-                                                 "krbPrincipalName");
-    } else {
-        principal = slapi_ch_smprintf("root/admin@%s", krbcfg->realm);
+    if (!pwdop->skip_keys) {
+        if (pwdop->pwdata.changetype == IPA_CHANGETYPE_NORMAL) {
+            principal = slapi_entry_attr_get_charptr(pwdop->pwdata.target,
+                                                     "krbPrincipalName");
+        } else {
+            principal = slapi_ch_smprintf("root/admin@%s", krbcfg->realm);
+        }
+        ipapwd_set_extradata(pwdop->pwdata.dn, principal, pwdop->pwdata.timeNow);
     }
-    ipapwd_set_extradata(pwdop->pwdata.dn, principal, pwdop->pwdata.timeNow);
 
 done:
     if (pwdop && pwdop->pwdata.target) slapi_entry_free(pwdop->pwdata.target);
