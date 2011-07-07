@@ -23,7 +23,7 @@
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
 
-IPA.entity_factories.sudorule = function () {
+IPA.entity_factories.sudorule = function() {
 
     return IPA.entity_builder().
         entity('sudorule').
@@ -39,7 +39,7 @@ IPA.entity_factories.sudorule = function () {
         build();
 };
 
-IPA.entity_factories.sudocmd = function () {
+IPA.entity_factories.sudocmd = function() {
 
     return IPA.entity_builder().
         entity( 'sudocmd').
@@ -93,7 +93,7 @@ IPA.entity_factories.sudocmd = function () {
 
 };
 
-IPA.entity_factories.sudocmdgroup = function () {
+IPA.entity_factories.sudocmdgroup = function() {
     return IPA.entity_builder().
         entity('sudocmdgroup').
         search_facet({
@@ -150,7 +150,7 @@ IPA.entity_factories.sudocmdgroup = function () {
 /*
 * TODO:  user the serial associator to perform back end operations.
 */
-IPA.sudocmd_member_sudocmdgroup_table_widget = function (spec) {
+IPA.sudocmd_member_sudocmdgroup_table_widget = function(spec) {
 
     spec = spec || {};
 
@@ -257,7 +257,7 @@ IPA.sudocmd_member_sudocmdgroup_table_widget = function (spec) {
 IPA.sudo = {};
 
 
-IPA.sudorule_details_facet = function (spec) {
+IPA.sudorule_details_facet = function(spec) {
 
     spec = spec || {};
 
@@ -298,7 +298,9 @@ IPA.sudorule_details_facet = function (spec) {
     });
     that.add_section(section);
 
-    var category = section.radio({ name: 'usercategory' });
+    var category = section.add_field(IPA.radio_widget({
+        name: 'usercategory'
+    }));
     section.add_field(IPA.sudorule_association_table_widget({
         'id': that.entity_name+'-memberuser_user',
         'name': 'memberuser_user', 'category': category,
@@ -326,7 +328,9 @@ IPA.sudorule_details_facet = function (spec) {
     });
     that.add_section(section);
 
-    category = section.radio({ 'name': 'hostcategory' });
+    category = section.add_field(IPA.radio_widget({
+        name: 'hostcategory'
+    }));
     section.add_field(IPA.sudorule_association_table_widget({
         'id': that.entity_name+'-memberhost_host',
         'name': 'memberhost_host', 'category': category,
@@ -351,7 +355,7 @@ IPA.sudorule_details_facet = function (spec) {
     });
     that.add_section(section);
 
-    that.update = function() {
+    that.update = function(on_success, on_error) {
 
         var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
 
@@ -519,9 +523,11 @@ IPA.sudorule_details_facet = function (spec) {
             'name': 'sudorule_details_update',
             'on_success': function(data, text_status, xhr) {
                 that.refresh();
+                if (on_success) on_success(data, text_status, xhr);
             },
             'on_error': function(xhr, text_status, error_thrown) {
                 that.refresh();
+                if (on_error) on_error(xhr, text_status, error_thrown);
             }
         });
 
@@ -549,7 +555,7 @@ IPA.sudorule_details_facet = function (spec) {
 };
 
 
-IPA.sudo.rule_details_general_section = function (spec){
+IPA.sudo.rule_details_general_section = function(spec) {
 
     spec = spec || {};
 
@@ -675,7 +681,7 @@ IPA.sudo.rule_details_general_section = function (spec){
 };
 
 
-IPA.sudo.rule_details_command_section = function (spec){
+IPA.sudo.rule_details_command_section = function(spec) {
 
     spec = spec || {};
 
@@ -683,31 +689,31 @@ IPA.sudo.rule_details_command_section = function (spec){
 
     that.init = function() {
 
-        var category = that.radio({'name': 'cmdcategory'});
+        var category = that.add_field(IPA.radio_widget({
+            name: 'cmdcategory'
+        }));
 
-        that.add_field(IPA.sudorule_command_table_widget({
+        that.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberallowcmd_sudocmd',
             'name': 'memberallowcmd_sudocmd', 'label': 'Command',
-            'category': category, 'section': that,
+            'category': category,
             'other_entity': 'sudocmd', 'add_method': 'add_allow_command', 'remove_method': 'remove_allow_command'
         }));
-        that.add_field(IPA.sudorule_command_table_widget({
+        that.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberallowcmd_sudocmdgroup',
             'name': 'memberallowcmd_sudocmdgroup', 'label': 'Groups',
-            'category': category, 'section': that,
+            'category': category,
             'other_entity': 'sudocmdgroup', 'add_method': 'add_allow_command', 'remove_method': 'remove_allow_command'
         }));
 
-        that.add_field(IPA.sudorule_command_table_widget({
+        that.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberdenycmd_sudocmd',
             'name': 'memberdenycmd_sudocmd', 'label': 'Command',
-            'section': that,
             'other_entity': 'sudocmd', 'add_method': 'add_deny_command', 'remove_method': 'remove_deny_command'
         }));
-        that.add_field(IPA.sudorule_command_table_widget({
+        that.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberdenycmd_sudocmdgroup',
             'name': 'memberdenycmd_sudocmdgroup', 'label': 'Groups',
-            'section': that,
             'other_entity': 'sudocmdgroup', 'add_method': 'add_deny_command', 'remove_method': 'remove_deny_command'
         }));
 
@@ -839,7 +845,7 @@ IPA.sudo.rule_details_command_section = function (spec){
 };
 
 
-IPA.sudo.rule_details_runas_section = function (spec){
+IPA.sudo.rule_details_runas_section = function(spec) {
 
     spec = spec || {};
 
@@ -847,7 +853,11 @@ IPA.sudo.rule_details_runas_section = function (spec){
 
     that.init = function() {
 
-        var category = that.radio({ name: 'ipasudorunasusercategory', label: 'Run as User category' });
+        var category = that.add_field(IPA.radio_widget({
+            name: 'ipasudorunasusercategory',
+            label: 'Run as User category'
+        }));
+
         that.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-runasruser_user',
             'name': 'ipasudorunas_user', 'label': 'Users', 'category': category,
@@ -859,7 +869,11 @@ IPA.sudo.rule_details_runas_section = function (spec){
             'other_entity': 'group', 'add_method': 'add_runasuser', 'remove_method': 'remove_runasuser'
         }));
 
-        category = that.radio({ name: 'ipasudorunasgroupcategory', label: 'Run as Group category' });
+        category = that.add_field(IPA.radio_widget({
+            name: 'ipasudorunasgroupcategory',
+            label: 'Run as Group category'
+        }));
+
         that.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-runasgroup_group',
             'name': 'ipasudorunasgroup_group', 'label': 'Groups', 'category': category,
@@ -1036,7 +1050,7 @@ IPA.sudo.rule_details_runas_section = function (spec){
 };
 
 
-IPA.sudorule_association_table_widget = function (spec) {
+IPA.sudorule_association_table_widget = function(spec) {
 
     spec = spec || {};
 
@@ -1077,7 +1091,7 @@ IPA.sudorule_association_table_widget = function (spec) {
 };
 
 
-IPA.sudo.rule_association_adder_dialog = function (spec) {
+IPA.sudo.rule_association_adder_dialog = function(spec) {
 
     spec = spec || {};
 
@@ -1226,74 +1240,6 @@ IPA.sudo.rule_association_adder_dialog = function (spec) {
             that.selected_table.add_record(record);
             that.external_field.val('');
         }
-    };
-
-    return that;
-};
-
-
-IPA.sudorule_command_table_widget = function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.association_table_widget(spec);
-
-    that.category = spec.category;
-    that.section = spec.section;
-
-    that.add = function(values, on_success, on_error) {
-
-        var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
-
-        var batch = IPA.batch_command({
-            'on_success': on_success,
-            'on_error': on_error
-        });
-
-        var command;
-
-        if (that.category) {
-            command = IPA.command({
-                entity: that.entity_name,
-                method: 'mod',
-                args: [pkey],
-                options: {all: true, rights: true},
-                on_success: function() {
-                    var record = {};
-                    record[that.category.name] = [''];
-                    that.category.load(record);
-                }
-            });
-            command.set_option(that.category.name, '');
-            batch.add_command(command);
-        }
-
-        command = IPA.command({
-            entity: that.entity_name,
-            method: that.add_method,
-            args: [pkey]
-        });
-        command.set_option(that.other_entity, values.join(','));
-        batch.add_command(command);
-
-        batch.execute();
-    };
-
-    that.remove = function(values, on_success, on_error) {
-
-        var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
-
-        var command = IPA.command({
-            entity: that.entity_name,
-            method: that.remove_method,
-            args: [pkey],
-            on_success: on_success,
-            on_error: on_error
-        });
-
-        command.set_option(that.other_entity, values.join(','));
-
-        command.execute();
     };
 
     return that;

@@ -22,7 +22,7 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.entity_factories.hbacrule = function () {
+IPA.entity_factories.hbacrule = function() {
     return IPA.entity_builder().
         entity('hbacrule').
         search_facet({
@@ -65,7 +65,7 @@ IPA.entity_factories.hbacrule = function () {
         build();
 };
 
-IPA.entity_factories.hbacsvc = function () {
+IPA.entity_factories.hbacsvc = function() {
     return IPA.entity_builder().
         entity('hbacsvc').
         search_facet({
@@ -81,7 +81,7 @@ IPA.entity_factories.hbacsvc = function () {
 };
 
 
-IPA.entity_factories.hbacsvcgroup = function () {
+IPA.entity_factories.hbacsvcgroup = function() {
     return IPA.entity_builder().
         entity('hbacsvcgroup').
         search_facet({
@@ -109,7 +109,7 @@ IPA.entity_factories.hbacsvcgroup = function () {
         build();
 };
 
-IPA.hbacsvcgroup_member_hbacsvc_table_widget = function (spec) {
+IPA.hbacsvcgroup_member_hbacsvc_table_widget = function(spec) {
 
     spec = spec || {};
 
@@ -148,7 +148,7 @@ IPA.hbacsvcgroup_member_hbacsvc_table_widget = function (spec) {
 
 
 
-IPA.hbacrule_details_facet = function (spec) {
+IPA.hbacrule_details_facet = function(spec) {
 
     spec = spec || {};
 
@@ -205,7 +205,9 @@ IPA.hbacrule_details_facet = function (spec) {
             that.add_section(section);
         }
 
-        var category = section.radio({ name: 'usercategory' });
+        var category = section.add_field(IPA.radio_widget({
+            name: 'usercategory'
+        }));
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberuser_user',
             'name': 'memberuser_user', 'category': category,
@@ -244,7 +246,9 @@ IPA.hbacrule_details_facet = function (spec) {
             that.add_section(section);
         }
 
-        category = section.radio({ 'name': 'hostcategory' });
+        category = section.add_field(IPA.radio_widget({
+            name: 'hostcategory'
+        }));
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberhost_host',
             'name': 'memberhost_host', 'category': category,
@@ -283,7 +287,9 @@ IPA.hbacrule_details_facet = function (spec) {
             that.add_section(section);
         }
 
-        category = section.radio({ 'name': 'servicecategory' });
+        category = section.add_field(IPA.radio_widget({
+            name: 'servicecategory'
+        }));
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberservice_hbacsvc',
             'name': 'memberservice_hbacsvc', 'category': category,
@@ -322,7 +328,9 @@ IPA.hbacrule_details_facet = function (spec) {
             that.add_section(section);
         }
 
-        category = section.radio({ 'name': 'sourcehostcategory' });
+        category = section.add_field(IPA.radio_widget({
+            name: 'sourcehostcategory'
+        }));
         section.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-sourcehost_host',
             'name': 'sourcehost_host', 'category': category,
@@ -336,7 +344,7 @@ IPA.hbacrule_details_facet = function (spec) {
         that.details_facet_init();
     };
 
-    that.update = function() {
+    that.update = function(on_success, on_error) {
 
         var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
 
@@ -513,9 +521,11 @@ IPA.hbacrule_details_facet = function (spec) {
             'name': 'hbac_details_update',
             'on_success': function(data, text_status, xhr) {
                 that.refresh();
+                if (on_success) on_success(data, text_status, xhr);
             },
             'on_error': function(xhr, text_status, error_thrown) {
                 that.refresh();
+                if (on_error) on_error(xhr, text_status, error_thrown);
             }
         });
 
@@ -544,7 +554,7 @@ IPA.hbacrule_details_facet = function (spec) {
 };
 
 
-IPA.hbacrule_details_general_section = function (spec){
+IPA.hbacrule_details_general_section = function(spec) {
 
     spec = spec || {};
 
@@ -692,7 +702,7 @@ IPA.hbacrule_details_general_section = function (spec){
     return that;
 };
 
-IPA.hbacrule_accesstime_widget = function (spec) {
+IPA.hbacrule_accesstime_widget = function(spec) {
 
     spec = spec || {};
 
@@ -1011,7 +1021,7 @@ IPA.hbacrule_accesstime_widget = function (spec) {
     return that;
 };
 
-IPA.hbac_deny_warning_dialog = function (container) {
+IPA.hbac_deny_warning_dialog = function(container) {
     var dialog = IPA.dialog({
         'title': 'HBAC Deny Rules found'
     });

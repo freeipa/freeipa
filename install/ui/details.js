@@ -292,9 +292,8 @@ IPA.details_facet = function(spec) {
         return section;
     };
 
-    that.section = function(section) {
-        that.add_section(section);
-        return that;
+    that.get_section = function(name) {
+        return that.sections.get(name);
     };
 
     that.create_section = function(spec) {

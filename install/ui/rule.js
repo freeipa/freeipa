@@ -22,7 +22,7 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-IPA.rule_details_section = function (spec){
+IPA.rule_details_section = function(spec) {
 
     spec = spec || {};
 
@@ -124,13 +124,29 @@ IPA.rule_details_section = function (spec){
 };
 
 
-IPA.rule_association_table_widget = function (spec) {
+IPA.rule_association_table_widget = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.association_table_widget(spec);
 
     that.category = spec.category;
+
+    that.show_add_dialog = function() {
+        if (that.category) {
+            var values = that.category.save();
+            if (values[0] !== '') return;
+        }
+        that.association_table_widget_show_add_dialog();
+    };
+
+    that.show_remove_dialog = function() {
+        if (that.category) {
+            var values = that.category.save();
+            if (values[0] !== '') return;
+        }
+        that.association_table_widget_show_remove_dialog();
+    };
 
     that.add = function(values, on_success, on_error) {
 

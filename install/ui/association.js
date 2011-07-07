@@ -664,6 +664,8 @@ IPA.association_table_widget = function (spec) {
 
     // methods that should be invoked by subclasses
     that.association_table_widget_init = that.init;
+    that.association_table_widget_show_add_dialog = that.show_add_dialog;
+    that.association_table_widget_show_remove_dialog = that.show_remove_dialog;
 
     return that;
 };
