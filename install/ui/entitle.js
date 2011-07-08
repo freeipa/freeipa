@@ -662,7 +662,7 @@ IPA.entitle.import_dialog = function(spec) {
 
     var that = IPA.entitle.certificate_dialog(spec);
 
-    that.add_button(that.label, function() {
+    that.add_button(IPA.messages.objects.entitle.import_button, function() {
         that.entity.import_certificate(
             that.get_certificate(),
             function() {
