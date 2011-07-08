@@ -54,13 +54,15 @@ IPA.entity_factories.dnszone = function() {
                     'idnsallowdynupdate',
                     'idnsupdatepolicy']}]
         }).
-        facet({
-            factory: IPA.dnsrecord_facet,
-            name: 'records',
+        nested_search_facet({
             facet_group: 'member',
+            nested_entity : 'dnsrecord',
+            name: 'records',
             title: IPA.metadata.objects.dnszone.label_singular,
             label: IPA.metadata.objects.dnsrecord.label,
-            columns: [
+            load: IPA.dns_record_search_load,
+            get_values: IPA.dnsrecord_get_delete_values,
+            columns:[
                 {
                     name: 'idnsname',
                     label: IPA.get_entity_param('dnsrecord', 'idnsname').label,
@@ -87,6 +89,229 @@ IPA.entity_factories.dnszone = function() {
         build();
 };
 
+IPA.dns_record_search_load = function (result) {
+    this.table.empty();
+    var normalized_record;
+    var dns_record_types = IPA.dns_record_types();
+    for (var i = 0; i<result.length; i++) {
+        var record = result[i];
+        for (var j =0; j < dns_record_types.length; j += 1){
+            var record_type = dns_record_types[j].value;
+            if (record[record_type]){
+                var record_of_type = record[record_type];
+                for (var k =0;
+                     k < record_of_type.length;
+                     k+=1)
+                {
+                    normalized_record = {
+                        idnsname:record.idnsname,
+                        type:record_type,
+                        data:record_of_type[k]
+                    };
+                    this.table.add_record(normalized_record);
+
+                }
+            }
+        }
+    }
+};
+
+IPA.entity_factories.dnsrecord = function() {
+    return IPA.entity_builder().
+        entity('dnsrecord').
+        containing_entity('dnszone').
+        details_facet({
+            disable_breadcrumb: false,
+            sections:[
+               {
+                   name:'identity',
+                   label: IPA.messages.details.identity,
+                   fields:[
+                       {
+                           factory:IPA.dnsrecord_host_link_widget,
+                           name: 'idnsname',
+                           other_entity:'host',
+                           label:'Record Name'
+                       }
+                   ]
+               },
+                {
+                    name:'standard',
+                    label:'Standard Records',
+                    fields:[
+                        { factory: IPA.multivalued_text_widget,
+                          name: 'arecord',
+                          param_info: {primary_key: false},
+                          label:'A'
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          name: 'aaaarecord',
+                          param_info: {primary_key: false},
+                          label:'AAAA'
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          name: 'ptrrecord',
+                          param_info: {primary_key: false},
+                          label:'PTR'
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          name: 'srvrecord',
+                          param_info: {primary_key: false},
+                          label:'SRV'
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          name: 'txtrecord',
+                          param_info: {primary_key: false},
+                          label:'TXT'
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          name: 'cnamerecord',
+                          param_info: {primary_key: false},
+                          label:'CNAME'
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          label:'MX',
+                          param_info: {primary_key: false},
+                          name:"mxrecord"
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          label:'NS',
+                          param_info: {primary_key: false},
+                          name:"nsrecord"
+                        }
+
+                    ]
+                },
+                {
+                    name:'unusual',
+                    label:'Other Record Types',
+                    fields:[
+                        { factory: IPA.multivalued_text_widget,
+                          label:'AFSDB',
+                          param_info: {primary_key: false},
+                          name: "afsdbrecord"
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          label:'CERT',
+                          param_info: {primary_key: false},
+                          name:"certrecord"
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          label:'DNAME',
+                          param_info: {primary_key: false},
+                          name:"dnamerecord"
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          label:'DSRECORD',
+                          param_info: {primary_key: false},
+                          name:"dsrecord"
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          label:'KEY',
+                          param_info: {primary_key: false},
+                          name:"keyrecord"
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          label:'KX',
+                          param_info: {primary_key: false},
+                          name:"kxrecord"
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          label:'LOC',
+                          param_info: {primary_key: false},
+                          name:"locrecord"
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          label:'NAPTR',
+                          name:"naptrrecord"
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          label:'NSEC',
+                          param_info: {primary_key: false},
+                          name:"nsecrecord"
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          label:'RRSIG',
+                          param_info: {primary_key: false},
+                          name:"rrsigrecord"
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          label:'SIG',
+                          param_info: {primary_key: false},
+                          name:"sigrecord"
+                        },
+                        { factory: IPA.multivalued_text_widget,
+                          label:'SSHFP',
+                          param_info: {primary_key: false},
+                          name:"sshfprecord"
+                        }
+                    ]
+                }
+            ]
+        }).
+        adder_dialog({
+            pre_execute_hook:function(command){
+                var record_type = command.options.record_type;
+                var record_data = command.options.record_data;
+
+                delete  command.options.record_type;
+                delete  command.options.record_data;
+                command.options[record_type] = record_data;
+            },
+            fields: [
+                'idnsname',
+                {
+                    name:'record_type',
+                    label:IPA.messages.objects.dnsrecord.type,
+                    factory:IPA.dnsrecord_type_widget,
+                    undo: false
+                },
+                {
+                    name:'record_data',
+                    label:IPA.messages.objects.dnsrecord.data,
+                    factory:IPA.text_widget,
+                    param_info:{required:true},
+                    undo: false
+                }
+            ]
+        }).
+        build();
+};
+
+IPA.dnsrecord_host_link_widget = function(spec){
+    var that = IPA.entity_link_widget(spec);
+    that.other_pkeys = function(){
+        var entity = IPA.get_entity(that.entity_name);
+        var pkey = entity.get_primary_key();
+        return [pkey[0]+'.'+pkey[1]];
+    };
+    return that;
+};
+
+IPA.dns_record_types = function(){
+    var attrs = IPA.metadata.objects.dnsrecord.default_attributes;
+    var record_types = [];
+    for (var i =0; i < attrs.length; i+=1){
+        var attr = attrs[i];
+        var index = attr.search('record$');
+        if (index > -1){
+            var rec_type = {
+                label:   attr.substring(0,index).toUpperCase(),
+                value:   attr
+            };
+            record_types.push(rec_type);
+        }
+    }
+    return record_types;
+};
+
+IPA.dnsrecord_type_widget = function (spec){
+
+    spec.options = IPA.dns_record_types();
+    var that = IPA.select_widget(spec);
+    return that;
+};
+
 IPA.force_dnszone_add_checkbox_widget = function(spec) {
     var param_info = IPA.get_method_option('dnszone_add', 'force');
     spec.name = 'force';
@@ -96,461 +321,39 @@ IPA.force_dnszone_add_checkbox_widget = function(spec) {
     return  IPA.checkbox_widget(spec);
 };
 
-IPA.dnsrecord_facet = function(spec) {
 
-    spec = spec || {};
+IPA.dnsrecord_get_delete_values = function(){
 
-    spec.disable_breadcrumb = false;
-    spec.disable_facet_tabs = false;
+    var records = {};
+    var value;
+    var record_type;
+    $('input[name="select"]:checked', this.table.tbody).each(function() {
 
-    var that = IPA.search_facet(spec);
+        $('span',$(this).parent().parent()).each(function(){
+            var name = this.attributes['name'].value;
 
-    function generate_recordtype_list(){
-        var attrs = IPA.metadata.objects.dnsrecord.default_attributes;
-        var record_types = [];
-        for (var i =0; i < attrs.length; i+=1){
-            var attr = attrs[i];
-            var index = attr.search('record$');
-            if (index > -1){
-                var rec_type = attr.substring(0,index);
-                record_types.push(rec_type);
+            if (name === 'idnsname'){
+                value = records[$(this).text()];
+                if (!value){
+                    value = {pkey:$(this).text()};
+                    records[$(this).text()] = value;
+                }
+            }else if (name === 'type'){
+                record_type = $(this).text();
+            }else if (name === 'data'){
+                if (!value[record_type]){
+                    value[record_type] = $(this).text();
+                }else{
+                     value[record_type] += "," + $(this).text();
+                }
             }
-        }
-        return record_types;
+        });
+    });
 
+    var value_array = [];
+    for (var key in records){
+        value_array.push(records[key]);
     }
 
-    var record_types =  generate_recordtype_list();
-
-    that.init = function() {
-
-        that.facet_init();
-
-        that.table = IPA.table_widget({
-            'class': 'content-table',
-            name: 'search',
-            label: IPA.metadata.objects[that.entity_name].label,
-            entity_name: that.entity_name,
-            scrollable: true
-        });
-
-        var columns = that.columns.values;
-        for (var i=0; i<columns.length; i++) {
-            var column = columns[i];
-            that.table.add_column(column);
-        }
-
-        that.table.select_changed = function() {
-            that.select_changed();
-        };
-
-        that.table.refresh = function() {
-            that.refresh();
-        };
-
-        that.table.init();
-    };
-
-    function create_type_select(id,add_none) {
-        var type_select = $('<select/>',{
-            id: id
-        });
-
-        if (add_none){
-            type_select.append($('<option/>', {
-                text: '(any)',
-                value: ''
-            }));
-        }
-        for (var t = 0 ; t < record_types.length ; t += 1){
-            var record_type = record_types[t].toUpperCase();
-
-            type_select.append($('<option/>',{
-                text: record_type,
-                value: record_type
-            }));
-        }
-        return type_select;
-    }
-
-    that.add = function() {
-
-        var title = IPA.messages.dialogs.add_title;
-        var label = IPA.metadata.objects.dnsrecord.label_singular;
-        title = title.replace('${entity}', label);
-
-        var dialog = IPA.dialog({
-            title: title
-        });
-
-        dialog.create = function() {
-
-            var dl = $('<dl/>').appendTo(dialog.container);
-
-            $('<dt/>', {
-                html: IPA.get_entity_param('dnsrecord', 'idnsname').label
-            }).appendTo(dl);
-
-            var dd = $('<dd/>').appendTo(dl);
-
-            dialog.resource = $('<input/>', {
-                type: 'text'
-            }).appendTo(dd);
-
-            $('<dt/>', {
-                html: IPA.messages.objects.dnsrecord.type
-            }).appendTo(dl);
-
-            dd = $('<dd/>').appendTo(dl);
-
-            dialog.type = create_type_select('dns-record-type').appendTo(dd);
-
-            $('<dt/>', {
-                html: IPA.messages.objects.dnsrecord.data
-            }).appendTo(dl);
-
-            dd = $('<dd/>').appendTo(dl);
-
-            dialog.data = $('<textarea/>', {
-                rows: 8,
-                cols: 20
-            }).appendTo(dd);
-        };
-
-        dialog.add_button(IPA.messages.buttons.add, function() {
-            dialog.add();
-            dialog.close();
-        });
-
-        dialog.add_button(IPA.messages.buttons.add_and_add_another, function() {
-            dialog.add();
-        });
-
-        dialog.add_button(IPA.messages.buttons.cancel, function() {
-            dialog.close();
-        });
-
-        dialog.add = function() {
-
-            var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
-            var resource = dialog.resource.val();
-
-            var options = {};
-            var key =  dialog.type.val().toLowerCase()+'record';
-            options[key] = dialog.data.val();
-
-            var command = IPA.command({
-                entity: 'dnsrecord',
-                method: 'add',
-                args: [pkey, resource],
-                options: options,
-                on_success: function(data, text_status, xhr) {
-                    that.refresh();
-                }
-            });
-
-            command.execute();
-        };
-
-        dialog.init();
-
-        dialog.open(that.container);
-    };
-
-    that.remove = function() {
-
-        var values = that.table.get_selected_rows();
-
-        if (!values.length) {
-            return;
-        }
-
-        var zone = IPA.nav.get_state('dnszone-pkey');
-
-        var records = [];
-
-        values.each(function() {
-            var tr = $(this);
-
-            records.push({
-                resource: $('span[name=idnsname]', tr).text(),
-                type: $('span[name=type]', tr).text().toLowerCase(),
-                data: $('span[name=data]', tr).text()
-            });
-        });
-
-        var title = IPA.messages.dialogs.remove_title;
-        var label = IPA.metadata.objects.dnsrecord.label;
-        title = title.replace('${entity}', label);
-
-        var dialog = IPA.dialog({
-            title: title
-        });
-
-        dialog.create = function() {
-
-            var table = $('<table/>', {
-                'class': 'search-table'
-            }).appendTo(dialog.container);
-
-            var thead = $('<thead/>').appendTo(table);
-
-            var tr = $('<tr/>').appendTo(thead);
-
-            $('<th/>', {
-                text: IPA.get_entity_param('dnsrecord', 'idnsname').label
-            }).appendTo(tr);
-
-            $('<th/>', {
-                text: IPA.messages.objects.dnsrecord.type
-            }).appendTo(tr);
-
-            var tbody = $('<tbody/>').appendTo(table);
-
-            for (var i=0; i<records.length; i++) {
-                var record = records[i];
-
-                tr = $('<tr/>').appendTo(tbody);
-
-                $('<td/>', {
-                    html: record.resource
-                }).appendTo(tr);
-
-                $('<td/>', {
-                    html: record.type
-                }).appendTo(tr);
-            }
-
-            $('<p/>', {
-                text: IPA.messages.search.delete_confirm
-            }).appendTo(dialog.container);
-        };
-
-        dialog.add_button(IPA.messages.buttons.remove, function() {
-
-            var batch = IPA.batch_command({
-                on_success: function() {
-                    that.refresh();
-                    dialog.close();
-                },
-                on_error: function() {
-                    that.refresh();
-                    dialog.close();
-                }
-            });
-
-            for (var i=0; i<records.length; i++) {
-                var record = records[i];
-
-                var command = IPA.command({
-                    entity: 'dnsrecord',
-                    method: 'del',
-                    args: [zone, record.resource]
-                });
-
-                command.set_option(record.type+'record', record.data);
-
-                batch.add_command(command);
-            }
-
-            batch.execute();
-        });
-
-        dialog.add_button(IPA.messages.buttons.cancel, function() {
-            dialog.close();
-        });
-
-        dialog.init();
-
-        dialog.open(that.container);
-    };
-
-    that.create_header = function(container) {
-
-        that.facet_create_header(container);
-
-        var span = $('<span/>', {
-            'class': 'right-aligned-facet-controls'
-        }).appendTo(that.controls);
-
-        that.filter = $('<input/>', {
-            type: 'text',
-            'class': 'search-filter',
-            name: 'filter'
-        }).appendTo(span);
-
-        that.filter.keypress(function(e) {
-            /* if the key pressed is the enter key */
-            if (e.which == 13) {
-                that.find();
-            }
-        });
-
-        /*
-          The old DNS plugin allowed for search based on record type.
-          This one does not. If the plugin gets modified to support
-          Record type searches, uncomment the following lines and
-          adjust the code that modifies the search parameters.
-
-          that.controls.append('Type');
-          create_type_select('dns-record-type-filter',true).
-          appendTo(that.controls);
-        */
-
-        that.find_button = IPA.action_button({
-            name: 'find',
-            icon: 'search-icon',
-            click: function(){
-                that.find();
-                return false;
-            }
-        }).appendTo(span);
-
-        that.controls.append(IPA.create_network_spinner());
-
-        that.remove_button = IPA.action_button({
-            name: 'remove',
-            label: IPA.messages.buttons.remove,
-            icon: 'remove-icon',
-            click: function() {
-                if (that.remove_button.hasClass('input_link_disabled')) return false;
-                that.remove();
-                return false;
-            }
-        }).appendTo(that.controls);
-
-        that.add_button = IPA.action_button({
-            name: 'add',
-            label: IPA.messages.buttons.add,
-            icon: 'add-icon',
-            click: function() {
-                that.add();
-                return false;
-            }
-        }).appendTo(that.controls);
-    };
-
-    that.create_content = function(container) {
-
-        that.table.create(container);
-        that.table.setup(container);
-    };
-
-    that.setup = function(container) {
-
-        that.facet_setup(container);
-
-        //commented out until data is searchable
-        //control_span.append('Data');
-        //control_span.append($('<input />',{
-        //    type: "text",
-        //    id: 'dns-record-data-filter',
-        //    name: 'search-' + obj_name + '-filter'
-        //}));
-    };
-
-    that.show = function() {
-        that.facet_show();
-
-        that.record = IPA.nav.get_state(that.entity_name+'-record');
-        that.pkey = IPA.nav.get_state(that.entity_name+'-pkey');
-        that.header.set_pkey(that.pkey);
-    };
-
-
-    that.get_records = function(result) {
-        var idnsname;
-        if (result.idnsname) {
-            idnsname = result.idnsname[0];
-        } else {
-            idnsname = result.dn.split(',')[0].split('=')[1];
-        }
-
-        var records = [];
-        for (var i=0; i<record_types.length; i++){
-            var type = record_types[i];
-            var data = result[type+'record'] || [];
-            for (var j =0 ; j < data.length; j+=1){
-                var record = {
-                    idnsname: idnsname,
-                    type : type,
-                    data : data[j]
-                };
-                records.unshift(record);
-            }
-        }
-
-        return records;
-    };
-
-
-    that.refresh = function() {
-
-        function on_success(data, text_status, xhr) {
-
-            that.table.empty();
-
-            var result = data.result.result;
-            for (var i = 0; i<result.length; i++) {
-                var records = that.get_records(result[i]);
-
-                for (var j =0; j < records.length; j +=1){
-                    var record = records[j];
-                    that.table.add_record(record);
-                }
-            }
-
-            var summary = $('span[name=summary]', that.table.tfoot);
-            if (data.result.truncated) {
-                var message = IPA.messages.search.truncated;
-                message = message.replace('${counter}', data.result.count);
-                summary.text(message);
-            } else {
-                summary.text(data.result.summary);
-            }
-
-            that.filter.focus();
-            that.select_changed();
-        }
-
-        function on_error(xhr, text_status, error_thrown) {
-            var summary = $('span[name=summary]', that.table.tfoot).empty();
-            summary.append(error_thrown.name+': '+error_thrown.message);
-        }
-
-        var options = {};
-
-        var filter = that.filter.val();
-/*
-        if (filter){
-            options.idnsname = filter;
-        }
-
-        var type_filter = that.container.find("#dns-record-type-filter").val();
-        if (type_filter){
-            options.type = type_filter;
-        }
-
-        var data_filter = that.container.find("#dns-record-data-filter").val();
-        if (data_filter){
-            options.data = data_filter;
-        }
-*/
-        var args = [IPA.nav.get_state(that.entity_name+'-pkey')];
-
-        if (filter) {
-            args.push(filter);
-        }
-
-        IPA.command({
-            entity: 'dnsrecord',
-            method: 'find',
-            args: args,
-            options: options,
-            on_success: on_success,
-            on_error: on_error
-        }).execute();
-    };
-
-    return that;
+    return value_array;
 };

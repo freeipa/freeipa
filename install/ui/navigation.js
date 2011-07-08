@@ -172,6 +172,26 @@ IPA.navigation = function(spec) {
         that.push_state(state);
     };
 
+    /*like show page, but works for nested entities */
+    that.show_entity_page = function(entity, facet_name, pkeys) {
+        var state = that.get_path_state(entity.name);
+
+        if (facet_name) {
+            state[entity.name + '-facet'] = facet_name;
+        }
+
+        if (pkeys) {
+            var current_entity = entity;
+            while (current_entity){
+                state[current_entity.name + '-pkey'] = pkeys.pop();
+                current_entity = current_entity.containing_entity;
+            }
+        }
+
+        that.push_state(state);
+    };
+
+
     that.create = function() {
 
         var container = $('<div/>', {

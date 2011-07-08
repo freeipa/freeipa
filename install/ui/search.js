@@ -237,7 +237,11 @@ IPA.search_facet = function(spec) {
                 if (value instanceof Object){
                     for (var key in value){
                         if (value.hasOwnProperty(key)){
-                            command.set_option(key, value[key]);
+                            if (key === 'pkey'){
+                                command.add_arg(value[key]);
+                            }else{
+                                command.set_option(key, value[key]);
+                            }
                         }
                     }
                 }else{
@@ -261,7 +265,7 @@ IPA.search_facet = function(spec) {
         IPA.nav.push_state(state);
     };
 
-    that.load = function(result) {
+    function load(result) {
 
         that.table.empty();
 
@@ -269,7 +273,9 @@ IPA.search_facet = function(spec) {
             var record = that.table.get_record(result[i], 0);
             that.table.add_record(record);
         }
-    };
+    }
+
+    that.load = spec.load || load;
 
     that.refresh = function() {
         that.search_refresh(that.entity);

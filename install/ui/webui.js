@@ -42,7 +42,13 @@ IPA.admin_navigation = function(spec) {
             {entity: 'service'}
         ]},
         {name: 'policy', label: IPA.messages.tabs.policy, children: [
-            {entity: 'dnszone', label: IPA.messages.tabs.dns},
+            {name:'dns',
+             label: IPA.messages.tabs.dns,
+             children:[
+                 {entity: 'dnszone', hidden:true},
+                 {entity: 'dnsrecord', hidden:true}
+             ]
+            },
             {name: 'hbac', label: IPA.messages.tabs.hbac, children: [
                  {entity: 'hbacrule'},
                  {entity: 'hbacsvc'},

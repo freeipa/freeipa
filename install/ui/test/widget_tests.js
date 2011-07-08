@@ -275,6 +275,41 @@ test("IPA.entity_select_widget" ,function(){
 });
 
 
+test("IPA.entity_link_widget" ,function(){
+    var widget = IPA.entity_link_widget({
+        name: 'gidnumber',
+        other_entity:'group',
+    });
+    base_widget_test(widget,'user','test_value');
+
+    var mock_entity = {
+        get_primary_key: function(){
+            return "";
+        }
+    };
+
+    mock_record = {'uid':'kfrog','gidnumber':'123456'};
+
+    widget.entity = mock_entity;
+    widget.create(widget_container);
+
+    var nonlink = widget_container.find('label');
+    var link = widget_container.find('a');
+
+    ok(nonlink.length > 1);
+    ok(link.length > 1);
+
+    widget.load(mock_record);
+
+    link = widget_container.find('a[text=123456]');
+
+    same(link.length, 1,'link is populated');
+    same(link.css('display'), 'inline','link is displayed');
+    same(widget.nonlink.css('display'), 'none','text is not displayed');
+
+});
+
+
 
 
 test("IPA.radio_widget" ,function(){

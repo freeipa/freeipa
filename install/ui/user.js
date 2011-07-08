@@ -203,8 +203,9 @@ IPA.user_status_widget = function(spec) {
         var locked_field = that.record[lock_field];
         var locked = false;
 
-        if (typeof locked_field === 'array') locked_field = locked_field[0];
-
+        if (locked_field instanceof Array) {
+            locked_field = locked_field[0];
+        }
         if (typeof locked_field === 'boolean') {
             locked = locked_field;
         } else {

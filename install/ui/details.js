@@ -591,9 +591,9 @@ IPA.details_facet = function(spec) {
                 values = field.save();
                 if (!values) continue;
 
-                var param_info = IPA.get_entity_param(entity_name, field.name);
+                var param_info =  field.param_info;
                 if (param_info) {
-                    if (param_info['primary_key']) continue;
+                    if (param_info.primary_key) continue;
                     if (values.length === 1) {
                         command.set_option(field.name, values[0]);
                     } else if (field.join) {
@@ -601,8 +601,7 @@ IPA.details_facet = function(spec) {
                     } else {
                         command.set_option(field.name, values);
                     }
-
-                } else {
+                }  else {
                     if (values.length) {
                         command.add_option('setattr', field.name+'='+values[0]);
                     } else {

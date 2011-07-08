@@ -37,8 +37,7 @@ IPA.entity_factories.pwpolicy = function() {
                         {
                             factory: IPA.entity_link_widget,
                             name: 'cn',
-                            entity: 'group',
-                            no_link_value: 'global_policy'
+                            other_entity: 'group'
                         },
                         'krbmaxpwdlife','krbminpwdlife','krbpwdhistorylength',
                         'krbpwdmindiffchars','krbpwdminlength']

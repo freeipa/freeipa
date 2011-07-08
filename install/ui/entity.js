@@ -594,7 +594,7 @@ IPA.entity = function (spec) {
         return pkey;
     };
 
-    /*gets the primary key for trhe current entity out of the URL parameters */
+    /*gets the primary key for the current entity out of the URL parameters */
     that.get_primary_key = function() {
         var pkey = that.get_primary_key_prefix();
         var current_entity = that;

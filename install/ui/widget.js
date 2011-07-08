@@ -162,8 +162,10 @@ IPA.widget = function(spec) {
     that.init = function() {
         if (that.entity_name) {
             that.entity = IPA.get_entity(that.entity_name);
-            that.param_info = IPA.get_entity_param(that.entity_name, that.name);
-
+            if (!that.param_info){
+                that.param_info =
+                    IPA.get_entity_param(that.entity_name, that.name);
+            }
             if (that.param_info) {
 
                 if (that.label === undefined) {
@@ -1750,10 +1752,12 @@ IPA.entity_select_widget = function(spec) {
 
 IPA.entity_link_widget = function(spec) {
     var that = IPA.widget(spec);
-    var no_link_value = spec.no_link_value || null;
-    var should_link = true;
-    var other_pkey = null;
-    var other_entity = spec.entity;
+    var other_entity = spec.other_entity;
+
+    function other_pkeys (){
+        return that.entity.get_primary_key();
+    }
+    that.other_pkeys = spec.other_pkeys || other_pkeys;
 
     that.super_create = that.create;
     that.create = function(container) {
@@ -1764,42 +1768,53 @@ IPA.entity_link_widget = function(spec) {
             title: '',
             html: '',
             click: function() {
-                if (should_link){
-                     IPA.nav.show_page(other_entity, 'default', other_pkey);
-                }
+                IPA.nav.show_entity_page(
+                    IPA.get_entity(other_entity),
+                    'default',
+                    that.other_pkeys());
                 return false;
             }
         }).appendTo(container);
 
-        that.label = $('<label/>').
+        that.nonlink = $('<label/>').
             appendTo(container);
     };
-    that.should_link = function(){
-        return (other_pkey !== no_link_value);
+
+    that.super_load = that.load;
+
+    that.load = function (record){
+        that.super_load(record);
+        if (that.values || that.values.length > 0){
+            that.nonlink.html(that.values[0]);
+            that.link.html(that.values[0]);
+            that.link.css('display','none');
+            that.nonlink.css('display','inline');
+        }else{
+            that.link.html('');
+            that.nonlink.html('');
+            that.link.css('display','none');
+            that.nonlink.css('display','none');
+        }
+
+        function find_success(result) {
+            if (result.result){
+                that.link.css('display','inline');
+                that.nonlink.css('display','none');
+            }
+        }
+        function find_error(err){
+        }
+        IPA.command({
+            entity: other_entity,
+            method: 'show',
+            args:that.other_pkeys(),
+            options:{},
+            retry:false,
+            on_success:find_success,
+            on_error:find_error
+        }).execute();
     };
 
-    that.reset = function(record) {
-        other_pkey = null;
-        if (that.values || that.values.length > 0){
-            other_pkey = that.values[0];
-            var should_link =  that.should_link();
-            if (should_link){
-                that.link.html(other_pkey);
-                that.link.css('display','inline');
-                that.label.css('display','none');
-            }else{
-                that.label.html(other_pkey);
-                that.link.css('display','none');
-                that.label.css('display','inline');
-            }
-        }else{
-            should_link = false;
-            that.link.html('');
-            that.label.html('');
-            that.link.css('display','none');
-            that.label.css('display','none');
-        }
-    };
 
     return that;
 };

@@ -30,6 +30,7 @@ IPA.add_dialog = function (spec) {
     var that = IPA.dialog(spec);
 
     that.method = spec.method || 'add';
+    that.pre_execute_hook = spec.pre_execute_hook;
 
     function show_edit_page(entity_name,result){
         var pkey_name = IPA.metadata.objects[entity_name].primary_key;
@@ -160,9 +161,13 @@ IPA.add_dialog = function (spec) {
 
         //alert(JSON.stringify(command.to_json()));
 
+        if (that.pre_execute_hook){
+            that.pre_execute_hook(command);
+        }
         if (required_fields_filled){
             command.execute();
         }
+
     };
 
     that.add_dialog_init = that.init;

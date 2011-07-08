@@ -1,0 +1,73 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "result": {
+            "aaaarecord": [
+                "feed:babe:beef:cafe::0001",
+                "feed:babe:beef:cafe::0002",
+                "feed:babe:beef:cafe::0004"
+            ],
+            "arecord": [
+                "3.4.5.6",
+                "1.3.5.7",
+                "10.10.2.1"
+            ],
+            "attributelevelrights": {
+                "a6record": "rscwo",
+                "aaaarecord": "rscwo",
+                "aci": "rscwo",
+                "afsdbrecord": "rscwo",
+                "arecord": "rscwo",
+                "certrecord": "rscwo",
+                "cn": "rscwo",
+                "cnamerecord": "rscwo",
+                "dnamerecord": "rscwo",
+                "dnsclass": "rscwo",
+                "dnsttl": "rscwo",
+                "dsrecord": "rscwo",
+                "hinforecord": "rscwo",
+                "idnsallowdynupdate": "rscwo",
+                "idnsname": "rscwo",
+                "keyrecord": "rscwo",
+                "kxrecord": "rscwo",
+                "locrecord": "rscwo",
+                "mdrecord": "rscwo",
+                "minforecord": "rscwo",
+                "mxrecord": "rscwo",
+                "naptrrecord": "rscwo",
+                "nsaccountlock": "rscwo",
+                "nsecrecord": "rscwo",
+                "nsrecord": "rscwo",
+                "nxtrecord": "rscwo",
+                "objectclass": "rscwo",
+                "ptrrecord": "rscwo",
+                "rrsigrecord": "rscwo",
+                "sigrecord": "rscwo",
+                "srvrecord": "rscwo",
+                "sshfprecord": "rscwo",
+                "txtrecord": "rscwo"
+            },
+            "dn": "idnsname=testrec,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "idnsname": [
+                "testrec"
+            ],
+            "keyrecord": [
+                "key"
+            ],
+            "objectclass": [
+                "top",
+                "idnsrecord"
+            ],
+            "srvrecord": [
+                "1 1 80 server15"
+            ],
+            "txtrecord": [
+                "A Text Record",
+                "Another Text Record"
+            ]
+        },
+        "summary": null,
+        "value": "testrec"
+    }
+}

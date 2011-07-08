@@ -39,7 +39,10 @@ IPA.entity_factories.host = function () {
             {
                 name:'details',
                 fields: [
-                    'fqdn',
+                    { factory: IPA.host_dnsrecord_entity_link_widget,
+                      name: 'fqdn',
+                      other_entity:'dnsrecord'
+                    },
                     'krbprincipalname',
                     {
                         factory: IPA.text_widget,
@@ -123,6 +126,21 @@ IPA.entity_factories.host = function () {
         build();
 };
 
+
+IPA.host_dnsrecord_entity_link_widget = function(spec){
+    var that = IPA.entity_link_widget(spec);
+
+    that.other_pkeys = function(){
+        var entity = IPA.get_entity(that.entity_name);
+        var pkey = entity.get_primary_key()[0];
+        var first_dot = pkey.search(/\./);
+        var pkeys = [];
+        pkeys[1] = pkey.substring(0,first_dot);
+        pkeys[0] = pkey.substring(first_dot+1);
+        return pkeys;
+    };
+    return that;
+};
 
 /* Take an LDAP format date in UTC and format it */
 IPA.utc_date_column_format = function(value){
