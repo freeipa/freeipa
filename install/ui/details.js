@@ -155,7 +155,6 @@ IPA.details_section = function(spec) {
 
         for (var j=0; j<fields.length; j++) {
             var field = fields[j];
-            var span = $('span[name='+field.name+']', this.container).first();
             field.load(record);
         }
     };
@@ -164,7 +163,6 @@ IPA.details_section = function(spec) {
         var fields = that.fields.values;
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
-            var span = $('span[name='+field.name+']', this.container).first();
             field.reset();
         }
     };

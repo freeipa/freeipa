@@ -140,6 +140,12 @@ IPA.widget = function(spec) {
         that.valid = true;
 
         var values = that.save();
+        if (!values){
+            return;
+        }
+        if (values.length ===0 ){
+            return;
+        }
         var value = values[0];
         if (!value) {
             return;
@@ -264,6 +270,7 @@ IPA.widget = function(spec) {
 
     that.reset = function() {
         that.update();
+        that.validate();
         that.set_dirty(false);
     };
 
@@ -1704,11 +1711,12 @@ IPA.entity_select_widget = function(spec) {
 
     that.reset = function() {
         that.entity_filter.val(that.values[0]);
-        that.set_dirty(false);
         populate_select(that.values[0]);
         if (editable){
             that.edit_box.val(that.values[0]);
         }
+        that.validate();
+        that.set_dirty(false);
     };
 
     that.load = function(record) {

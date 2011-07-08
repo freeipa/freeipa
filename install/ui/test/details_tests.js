@@ -170,7 +170,7 @@ test("Testing details lifecycle: create, setup, load.", function(){
 
         widget.save = function() {
             save_called = true;
-            widget.widget_save();
+            return widget.widget_save();
         };
         return widget;
     }
