@@ -268,13 +268,13 @@ IPA.sudorule_details_facet = function(spec) {
     if (IPA.layout) {
         section = that.create_section({
             'name': 'general',
-            'label': IPA.messages.dialogs.general,
+            'label': IPA.messages.details.general,
             'template': 'sudorule-details-general.html #contents'
         });
     } else {
         section = IPA.sudo.rule_details_general_section({
             'name': 'general',
-            'label': IPA.messages.dialogs.general
+            'label': IPA.messages.details.general
         });
         that.add_section(section);
     }
@@ -283,9 +283,18 @@ IPA.sudorule_details_facet = function(spec) {
     section.textarea({name: 'description'});
     section.radio({name: 'ipaenabledflag'});
 
+    section = that.add_section(IPA.sudo.options_section({
+        name: 'options',
+        label: IPA.messages.objects.sudorule.options,
+        facet: that
+    }));
+
+    var param_info = IPA.get_entity_param('sudorule', 'usercategory');
+
     section = IPA.rule_details_section({
         'name': 'user',
         'label': IPA.messages.objects.sudorule.user,
+        text: param_info.doc+':',
         'field_name': 'usercategory',
         'options': [
             { 'value': 'all', 'label': IPA.messages.objects.sudorule.anyone },
@@ -313,9 +322,12 @@ IPA.sudorule_details_facet = function(spec) {
         'other_entity': 'group', 'add_method': 'add_user', 'remove_method': 'remove_user'
     }));
 
+    param_info = IPA.get_entity_param('sudorule', 'hostcategory');
+
     section = IPA.rule_details_section({
         'name': 'host',
         'label': IPA.messages.objects.sudorule.host,
+        text: param_info.doc+':',
         'field_name': 'hostcategory',
         'options': [
             { 'value': 'all', 'label': IPA.messages.objects.sudorule.any_host },
@@ -554,6 +566,199 @@ IPA.sudorule_details_facet = function(spec) {
     return that;
 };
 
+IPA.sudo.options_section = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.details_section(spec);
+
+    that.facet = spec.facet;
+
+    that.init = function() {
+
+        that.table = that.add_field(IPA.table_widget({
+            name: 'ipasudoopt',
+            show_buttons: true
+        }));
+
+        that.table.create_column({
+            name: 'ipasudoopt',
+            label: IPA.get_method_option('sudorule_add_option', 'ipasudoopt').label,
+            primary_key: true
+        });
+
+        that.table.create = function(container) {
+
+            that.table.table_create(container);
+
+            var button = IPA.action_button({
+                name: 'remove',
+                label: IPA.messages.buttons.remove,
+                icon: 'remove-icon',
+                click: function() {
+                    that.remove_handler();
+                    return false;
+                }
+            }).appendTo(that.table.buttons);
+
+            button = IPA.action_button({
+                name: 'add',
+                label: IPA.messages.buttons.add,
+                icon: 'add-icon',
+                click: function() {
+                    that.add_handler();
+                    return false;
+                }
+            }).appendTo(that.table.buttons);
+        };
+
+        that.section_init();
+    };
+
+    that.add_handler = function() {
+        if (that.facet.is_dirty()) {
+            var dialog = IPA.dirty_dialog({
+                facet: that.facet
+            });
+
+            dialog.callback = function() {
+                that.show_add_dialog();
+            };
+
+            dialog.init();
+            dialog.open(that.container);
+
+        } else {
+            that.show_add_dialog();
+        }
+    };
+
+    that.remove_handler = function() {
+        if (that.facet.is_dirty()) {
+            var dialog = IPA.dirty_dialog({
+                facet: that.facet
+            });
+
+            dialog.callback = function() {
+                that.show_remove_dialog();
+            };
+
+            dialog.init();
+            dialog.open(that.container);
+
+        } else {
+            that.show_remove_dialog();
+        }
+    };
+
+    that.show_add_dialog = function() {
+
+        var label = IPA.get_method_option('sudorule_add_option', 'ipasudoopt').label;
+
+        var title = IPA.messages.dialogs.add_title;
+        title = title.replace('${entity}', label);
+
+        var dialog = IPA.dialog({
+            title: title
+        });
+
+        var ipasudoopt = dialog.add_field(IPA.text_widget({
+            name: 'ipasudoopt',
+            label: label,
+            undo: false
+        }));
+
+        dialog.add_button(IPA.messages.buttons.add, function() {
+            var value = ipasudoopt.save()[0];
+
+            var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
+
+            var command = IPA.command({
+                entity: 'sudorule',
+                method: 'add_option',
+                args: [pkey],
+                options: {
+                    ipasudoopt: value
+                },
+                on_success: function() {
+                    that.facet.refresh();
+                    dialog.close();
+                },
+                on_error: function() {
+                    that.facet.refresh();
+                    dialog.close();
+                }
+            });
+
+            command.execute();
+        });
+
+        dialog.add_button(IPA.messages.buttons.cancel, function() {
+            dialog.close();
+        });
+
+        dialog.init();
+
+        dialog.open(that.container);
+    };
+
+    that.show_remove_dialog = function() {
+
+        var label = IPA.get_method_option('sudorule_add_option', 'ipasudoopt').label;
+        var values = that.table.get_selected_values();
+
+        if (!values.length) {
+            var message = IPA.messages.dialogs.remove_empty;
+            message = message.replace('${entity}', label);
+            alert(message);
+            return;
+        }
+
+        var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
+
+        var title = IPA.messages.dialogs.remove_title;
+        title = title.replace('${entity}', label);
+
+        var dialog = IPA.deleter_dialog({
+            title: title,
+            values: values
+        });
+
+        dialog.execute = function() {
+
+            var batch = IPA.batch_command({
+                on_success: function() {
+                    that.facet.refresh();
+                    dialog.close();
+                },
+                on_error: function() {
+                    that.facet.refresh();
+                    dialog.close();
+                }
+            });
+
+            for (var i=0; i<values.length; i++) {
+                var command = IPA.command({
+                    entity: 'sudorule',
+                    method: 'remove_option',
+                    args: [pkey]
+                });
+
+                command.set_option('ipasudoopt', values[i]);
+
+                batch.add_command(command);
+            }
+
+            batch.execute();
+        };
+
+        dialog.init();
+
+        dialog.open(that.container);
+    };
+
+    return that;
+};
 
 IPA.sudo.rule_details_general_section = function(spec) {
 
@@ -729,13 +934,16 @@ IPA.sudo.rule_details_command_section = function(spec) {
 
         var span = $('<span/>', {
             name: 'cmdcategory',
-            title: param_info ? param_info.doc : 'cmdcategory'
+            title: param_info.doc
         }).appendTo(container);
 
         $('<h3/>', {
             text: IPA.messages.objects.sudorule.allow,
             title: IPA.messages.objects.sudorule.allow
         }).appendTo(span);
+
+        span.append(param_info.doc);
+        span.append(': ');
 
         $('<input/>', {
             type: 'radio',
@@ -854,29 +1062,27 @@ IPA.sudo.rule_details_runas_section = function(spec) {
     that.init = function() {
 
         var category = that.add_field(IPA.radio_widget({
-            name: 'ipasudorunasusercategory',
-            label: 'Run as User category'
+            name: 'ipasudorunasusercategory'
         }));
 
         that.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-runasruser_user',
-            'name': 'ipasudorunas_user', 'label': 'Users', 'category': category,
+            'name': 'ipasudorunas_user', 'category': category,
             'other_entity': 'user', 'add_method': 'add_runasuser', 'remove_method': 'remove_runasuser'
         }));
         that.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-runasuser_group',
-            'name': 'ipasudorunas_group', 'label': 'Groups', 'category': category,
+            'name': 'ipasudorunas_group', 'category': category,
             'other_entity': 'group', 'add_method': 'add_runasuser', 'remove_method': 'remove_runasuser'
         }));
 
         category = that.add_field(IPA.radio_widget({
-            name: 'ipasudorunasgroupcategory',
-            label: 'Run as Group category'
+            name: 'ipasudorunasgroupcategory'
         }));
 
         that.add_field(IPA.sudorule_association_table_widget({
             'id': that.entity_name+'-runasgroup_group',
-            'name': 'ipasudorunasgroup_group', 'label': 'Groups', 'category': category,
+            'name': 'ipasudorunasgroup_group', 'category': category,
             'other_entity': 'group', 'add_method': 'add_runasgroup', 'remove_method': 'remove_runasgroup'
         }));
 
@@ -892,8 +1098,11 @@ IPA.sudo.rule_details_runas_section = function(spec) {
 
         var span = $('<span/>', {
             name: 'ipasudorunasusercategory',
-            title: param_info ? param_info.doc : 'ipasudorunasusercategory'
+            title: param_info.doc
         }).appendTo(container);
+
+        span.append(param_info.doc);
+        span.append(': ');
 
         $('<input/>', {
             'type': 'radio',
@@ -948,8 +1157,11 @@ IPA.sudo.rule_details_runas_section = function(spec) {
 
         span = $('<span/>', {
             name: 'ipasudorunasgroupcategory',
-            title: param_info ? param_info.doc : 'ipasudorunasgroupcategory'
+            title: param_info.doc
         }).appendTo(container);
+
+        span.append(param_info.doc);
+        span.append(': ');
 
         $('<input/>', {
             'type': 'radio',

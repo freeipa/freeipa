@@ -15804,6 +15804,7 @@
                             "host": "Access this host",
                             "inactive": "Inactive",
                             "ipaenabledflag": "Rule status",
+                            "options": "Options",
                             "runas": "As Whom",
                             "specified_commands": "Specified Commands and Groups",
                             "specified_groups": "Specified Groups",

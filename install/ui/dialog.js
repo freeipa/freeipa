@@ -100,7 +100,7 @@ IPA.dialog = function(spec) {
         if (field.conditional){
             that.conditional_fields.push(field.name);
         }
-
+        return field;
     };
 
     that.field = function(field) {

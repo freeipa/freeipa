@@ -41,6 +41,10 @@
             "ipaenabledflag": [
                 "TRUE"
             ],
+            "ipasudoopt": [
+                "-H",
+                "-b"
+            ],
             "ipasudorunas_user": [
                 "admin"
             ],

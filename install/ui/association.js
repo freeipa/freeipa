@@ -355,88 +355,77 @@ IPA.association_table_widget = function (spec) {
 
         that.table_create(container);
 
-        var buttons = $('span[name=buttons]', container);
+        var button = IPA.action_button({
+            name: 'remove',
+            label: IPA.messages.buttons.remove,
+            icon: 'remove-icon',
+            click: function() {
+                that.remove_handler();
+                return false;
+            }
+        }).appendTo(that.buttons);
 
-        $('<input/>', {
-            'type': 'button',
-            'name': 'remove',
-            'value': IPA.messages.buttons.remove
-        }).appendTo(buttons);
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'add',
-            'value': IPA.messages.buttons.add
-        }).appendTo(buttons);
+        button = IPA.action_button({
+            name: 'add',
+            label: IPA.messages.buttons.add,
+            icon: 'add-icon',
+            click: function() {
+                that.add_handler();
+                return false;
+            }
+        }).appendTo(that.buttons);
     };
 
-    that.setup = function(container) {
-
-        that.table_setup(container);
+    that.add_handler = function() {
+        if ($(this).hasClass('action-button-disabled')) {
+            return;
+        }
 
         var entity = IPA.get_entity(that.entity_name);
         var facet_name = IPA.current_facet(entity);
         var facet = entity.get_facet(facet_name);
 
-        var button = $('input[name=remove]', container);
-        button.replaceWith(IPA.action_button({
-            name: 'remove',
-            'label': button.val(),
-            'icon': 'remove-icon',
-            'click': function() {
-                if ($(this).hasClass('action-button-disabled')) {
-                    return false;
-                }
+        if (facet.is_dirty()) {
+            var dialog = IPA.dirty_dialog({
+                facet: facet
+            });
 
-                if (facet.is_dirty()) {
-                    var dialog = IPA.dirty_dialog({
-                        facet: facet
-                    });
+            dialog.callback = function() {
+                that.show_add_dialog();
+            };
 
-                    dialog.callback = function() {
-                        that.show_remove_dialog();
-                    };
+            dialog.init();
+            dialog.open(that.container);
 
-                    dialog.init();
-                    dialog.open(that.container);
+        } else {
+            that.show_add_dialog();
+        }
+    };
 
-                } else {
-                    that.show_remove_dialog();
-                }
+    that.remove_handler = function() {
+        if ($(this).hasClass('action-button-disabled')) {
+            return;
+        }
 
-                return false;
-            }
-        }));
+        var entity = IPA.get_entity(that.entity_name);
+        var facet_name = IPA.current_facet(entity);
+        var facet = entity.get_facet(facet_name);
 
-        button = $('input[name=add]', container);
-        button.replaceWith(IPA.action_button({
-            name: 'add',
-            'label': button.val(),
-            'icon': 'add-icon',
-            'click': function() {
-                if ($(this).hasClass('action-button-disabled')) {
-                    return false;
-                }
+        if (facet.is_dirty()) {
+            var dialog = IPA.dirty_dialog({
+                facet: facet
+            });
 
-                if (facet.is_dirty()) {
-                    var dialog = IPA.dirty_dialog({
-                        facet: facet
-                    });
+            dialog.callback = function() {
+                that.show_remove_dialog();
+            };
 
-                    dialog.callback = function() {
-                        that.show_add_dialog();
-                    };
+            dialog.init();
+            dialog.open(that.container);
 
-                    dialog.init();
-                    dialog.open(that.container);
-
-                } else {
-                    that.show_add_dialog();
-                }
-
-                return false;
-            }
-        }));
+        } else {
+            that.show_remove_dialog();
+        }
     };
 
     that.set_enabled = function(enabled) {

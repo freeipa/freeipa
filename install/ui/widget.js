@@ -1325,7 +1325,7 @@ IPA.table_widget = function (spec) {
             }).appendTo(th);
 
             if (i == columns.length-1) {
-                $('<span/>', {
+                that.buttons = $('<span/>', {
                     'name': 'buttons',
                     'style': 'float: right;'
                 }).appendTo(th);

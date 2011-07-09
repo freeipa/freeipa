@@ -292,6 +292,7 @@ class i18n_messages(Command):
                 "command":_("Run Commands"),
                 "any_command":_("Any Command"),
                 "specified_commands":_("Specified Commands and Groups"),
+                "options":_("Options"),
                 "runas":_("As Whom"),
                 "any_group":_("Any Group"),
                 "specified_groups":_("Specified Groups"),
