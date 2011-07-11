@@ -127,14 +127,16 @@ $(function() {
         var whoami = IPA.whoami;
         var factory;
 
+
         if (whoami.hasOwnProperty('memberof_group') &&
             whoami.memberof_group.indexOf('admins') !== -1) {
             factory = IPA.admin_navigation;
-
-        } else if (whoami.hasOwnProperty('memberof_rolegroup') &&
-            whoami.memberof_rolegroup.length > 0) {
+        } else if (whoami.hasOwnProperty('memberofindirect_group')&&
+                   whoami.memberofindirect_group.indexOf('admins') !== -1) {
             factory = IPA.admin_navigation;
-
+        } else if (whoami.hasOwnProperty('memberof_rolegroup') &&
+                   whoami.memberof_rolegroup.length > 0) {
+            factory = IPA.admin_navigation;
         } else {
             factory = IPA.self_serv_navigation;
         }
