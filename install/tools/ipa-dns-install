@@ -38,14 +38,14 @@ def parse_options():
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="print debugging information")
     parser.add_option("--ip-address", dest="ip_address",
-                      type="ip", ip_netmask=True, ip_local=True, help="Master Server IP Address")
+                      type="ip", ip_local=True, help="Master Server IP Address")
     parser.add_option("--forwarder", dest="forwarders", action="append",
                       type="ip", help="Add a DNS forwarder")
     parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
-    parser.add_option("--no-reverse", dest="no_reverse",
-                      action="store_true", default=False,
-                      help="Do not create reverse DNS zone")
+    parser.add_option("--reverse-zone", dest="reverse_zone", help="The reverse DNS zone to use")
+    parser.add_option("--no-reverse", dest="no_reverse", action="store_true",
+                      default=False, help="Do not create reverse DNS zone")
     parser.add_option("--zonemgr", dest="zonemgr", 
                       help="DNS zone manager e-mail address. Defaults to root")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
@@ -56,6 +56,8 @@ def parse_options():
 
     if options.forwarders and options.no_forwarders:
         parser.error("You cannot specify a --forwarder option together with --no-forwarders")
+    elif options.reverse_zone and options.no_reverse:
+        parser.error("You cannot specify a --reverse-zone option together with --no-reverse")
 
     if options.unattended:
         if not options.forwarders and not options.no_forwarders:
@@ -104,25 +106,27 @@ def main():
 
     # Check we have a public IP that is associated with the hostname
     if options.ip_address:
-        ip_address = options.ip_address
+        ip = options.ip_address
     else:
         hostaddr = resolve_host(api.env.host)
-        ip_address = hostaddr and ipautil.CheckedIPAddress(hostaddr)
+        ip = hostaddr and ipautil.CheckedIPAddress(hostaddr)
 
     try:
-        verify_ip_address(ip_address)
+        verify_ip_address(ip)
     except Exception, e:
-        print "Error: Invalid IP Address %s: %s" % (ip_address, e)
-        ip_address = None
+        print "Error: Invalid IP Address %s: %s" % (ip, e)
+        ip = None
 
-    if not ip_address:
+    if not ip:
         if options.unattended:
             sys.exit("Unable to resolve IP address for host name")
         else:
-            ip_address = read_ip_address(api.env.host, fstore)
-    ip_prefixlen = ip_address.prefixlen
-    ip_address = str(ip_address)
+            ip = read_ip_address(api.env.host, fstore)
+    ip_address = str(ip)
     logging.debug("will use ip_address: %s\n", ip_address)
+
+    if options.reverse_zone and not bindinstance.verify_reverse_zone(options.reverse_zone, ip):
+        sys.exit(1)
 
     if options.no_forwarders:
         dns_forwarders = ()
@@ -161,13 +165,6 @@ def main():
                 sys.exit("\nPassword is not valid!")
             bind.dm_password = read_password("Directory Manager", confirm=False, validate=False)
 
-    create_reverse = True
-    if options.unattended:
-        create_reverse = not options.no_reverse
-    elif not options.no_reverse:
-        create_reverse = bindinstance.create_reverse()
-    bind.setup(api.env.host, ip_address, ip_prefixlen, api.env.realm, api.env.domain, dns_forwarders, conf_ntp, create_reverse, zonemgr=options.zonemgr)
-
     if bind.dm_password:
         api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=bind.dm_password)
     else:
@@ -175,6 +172,19 @@ def main():
         ccache = krbV.default_context().default_ccache().name
         api.Backend.ldap2.connect(ccache)
 
+    if options.reverse_zone:
+        reverse_zone = bindinstance.normalize_zone(options.reverse_zone)
+    else:
+        reverse_zone = bindinstance.find_reverse_zone(ip)
+        if reverse_zone is None and not options.no_reverse:
+            reverse_zone = bindinstance.get_reverse_zone_default(ip)
+            if not options.unattended and bindinstance.create_reverse():
+                reverse_zone = bindinstance.read_reverse_zone(reverse_zone, ip)
+
+    if reverse_zone is not None:
+        print "Using reverse zone %s" % reverse_zone
+
+    bind.setup(api.env.host, ip_address, api.env.realm, api.env.domain, dns_forwarders, conf_ntp, reverse_zone, zonemgr=options.zonemgr)
     bind.create_instance()
 
 

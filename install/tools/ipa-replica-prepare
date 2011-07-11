@@ -27,7 +27,7 @@ import krbV
 
 from ipapython import ipautil
 from ipaserver.install import bindinstance, dsinstance, installutils, certs
-from ipaserver.install.bindinstance import add_zone, add_reverse_zone, add_fwd_rr, add_ptr_rr, dns_zone_exists
+from ipaserver.install.bindinstance import add_zone, add_reverse_zone, add_fwd_rr, add_ptr_rr
 from ipaserver.install.replication import check_replication_plugin, enable_replication_version_checking
 from ipaserver.install.installutils import resolve_host
 from ipaserver.plugins.ldap2 import ldap2
@@ -54,14 +54,25 @@ def parse_options():
     parser.add_option("-p", "--password", dest="password", 
                       help="Directory Manager (existing master) password")
     parser.add_option("--ip-address", dest="ip_address",
-                      type="ip", ip_netmask=True,
-                      help="Add A and PTR records of the future replica")
+                      type="ip", help="Add A and PTR records of the future replica")
+    parser.add_option("--reverse-zone", dest="reverse_zone",
+                      help="The reverse DNS zone to use")
+    parser.add_option("--no-reverse", dest="no_reverse", action="store_true",
+                      default=False, help="Do not create reverse DNS zone")
     parser.add_option("--ca", dest="ca_file", default="/root/cacert.p12",
                       help="Location of CA PKCS#12 file, default /root/cacert.p12")
     parser.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
                       default=True, help="disables pkinit setup steps")
 
     options, args = parser.parse_args()
+
+    if not options.ip_address:
+        if options.reverse_zone:
+            parser.error("You cannot specify a --reverse-zone option without the --ip-address option")
+        if options.no_reverse:
+            parser.error("You cannot specify a --no-reverse option without the --ip-address option")
+    elif options.reverse_zone and options.no_reverse:
+        parser.error("You cannot specify a --reverse-zone option together with --no-reverse")
 
     # If any of the PKCS#12 options are selected, all are required. Create a
     # list of the options and count it to enforce that all are required without
@@ -255,6 +266,8 @@ def main():
         if not bindinstance.dns_container_exists(api.env.host, api.env.basedn):
             print "You can't add a DNS record because DNS is not set up."
             sys.exit(1)
+        if options.reverse_zone and not bindinstance.verify_reverse_zone(options.reverse_zone, options.ip_address):
+            sys.exit(1)
 
     if not certs.ipa_self_signed() and not ipautil.file_exists("/var/lib/pki-ca/conf/CS.cfg") and not options.dirsrv_pin:
         sys.exit("The replica must be created on the primary IPA server.\nIf you installed IPA with your own certificates using PKCS#12 files you must provide PKCS#12 files for any replicas you create as well.")
@@ -424,31 +437,21 @@ def main():
 
         ip = options.ip_address
         ip_address = str(ip)
-        ip_prefixlen = ip.prefixlen
 
-        if ip.defaultnet:
-            revzone = ip.reverse_dns
-            if ip.version == 4:
-                prefix = 32
-                dec = 8
-            elif ip.version == 6:
-                prefix = 128
-                dec = 4
-
-            while prefix > 0:
-                dummy, dot, revzone = revzone.partition('.')
-                prefix = prefix - dec
-                if dns_zone_exists(revzone):
-                    break
-
-            if prefix > 0:
-                ip_prefixlen = prefix
-            else:
-                add_reverse_zone(ip_address, ip_prefixlen)
+        if options.reverse_zone:
+            reverse_zone = bindinstance.normalize_zone(options.reverse_zone)
+        else:
+            reverse_zone = bindinstance.find_reverse_zone(ip)
+            if reverse_zone is None and not options.no_reverse:
+                reverse_zone = bindinstance.get_reverse_zone_default(ip)
 
         add_zone(domain)
         add_fwd_rr(domain, name, ip_address)
-        add_ptr_rr(ip_address, ip_prefixlen, replica_fqdn)
+
+        if reverse_zone is not None:
+            print "Using reverse zone %s" % reverse_zone
+            add_reverse_zone(reverse_zone)
+            add_ptr_rr(reverse_zone, ip_address, replica_fqdn)
 
 try:
     if not os.geteuid()==0:

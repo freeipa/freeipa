@@ -60,6 +60,12 @@ def check_inst(unattended):
 
     return True
 
+def normalize_zone(zone):
+    if zone[-1] != '.':
+        return zone + '.'
+    else:
+        return zone
+
 def create_reverse():
     return ipautil.user_input("Do you want to configure the reverse zone?", True)
 
@@ -99,22 +105,6 @@ def dns_container_exists(fqdn, suffix):
 
     return ret
 
-def get_reverse_zone(ip_address_str, ip_prefixlen):
-    ip = netaddr.IPAddress(ip_address_str)
-    items = ip.reverse_dns.split('.')
-
-    if ip.version == 4:
-        pos = 4 - ip_prefixlen / 8
-    elif ip.version == 6:
-        pos = 32 - ip_prefixlen / 4
-    else:
-        raise ValueError('Bad address format?')
-
-    name = '.'.join(items[:pos])
-    zone = '.'.join(items[pos:])
-
-    return unicode(zone), unicode(name)
-
 def dns_zone_exists(name):
     try:
         zone = api.Command.dnszone_show(unicode(name))
@@ -125,6 +115,60 @@ def dns_zone_exists(name):
         return False
     else:
         return True
+
+def get_reverse_record_name(zone, ip_address):
+    ip = netaddr.IPAddress(ip_address)
+    rev = '.' + normalize_zone(zone)
+    fullrev = '.' + normalize_zone(ip.reverse_dns)
+
+    if not fullrev.endswith(rev):
+        raise ValueError("IP address does not match reverse zone")
+
+    return fullrev[1:-len(rev)]
+
+def verify_reverse_zone(zone, ip_address):
+    try:
+        get_reverse_record_name(zone, ip_address)
+    except ValueError:
+        print "Invalid reverse zone %s" % zone
+        return False
+
+    return True
+
+def get_reverse_zone_default(ip_address):
+    ip = netaddr.IPAddress(ip_address)
+    items = ip.reverse_dns.split('.')
+
+    if ip.version == 4:
+        items = items[1:]   # /24 for IPv4
+    elif ip.version == 6:
+        items = items[16:]  # /64 for IPv6
+
+    return normalize_zone('.'.join(items))
+
+def find_reverse_zone(ip_address):
+    ip = netaddr.IPAddress(ip_address)
+    zone = normalize_zone(ip.reverse_dns)
+
+    while len(zone) > 0:
+        if dns_zone_exists(zone):
+            return zone
+        foo, bar, zone = zone.partition('.')
+
+    return None
+
+def get_reverse_zone(ip_address):
+    return find_reverse_zone(ip_address) or get_reverse_zone_default(ip_address)
+
+def read_reverse_zone(default, ip_address):
+    while True:
+        zone = ipautil.user_input("Please specify the reverse zone name", default=default)
+        if not zone:
+            return None
+        if verify_reverse_zone(zone, ip_address):
+            break
+
+    return normalize_zone(zone)
 
 def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_address=None,
        update_policy=None):
@@ -158,9 +202,8 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_addres
         add_ns_rr(name, hostname, dns_backup=None, force=True)
 
 
-def add_reverse_zone(ip_address, ip_prefixlen, ns_hostname=None, ns_ip_address=None,
+def add_reverse_zone(zone, ns_hostname=None, ns_ip_address=None,
         ns_replicas=[], update_policy=None, dns_backup=None):
-    zone, name = get_reverse_zone(ip_address, ip_prefixlen)
     if update_policy is None:
         update_policy = "grant %s krb5-subdomain %s. PTR;" % (api.env.realm, zone)
 
@@ -207,8 +250,8 @@ def add_fwd_rr(zone, host, ip_address):
     elif addr.version == 6:
         add_rr(zone, host, "AAAA", ip_address)
 
-def add_ptr_rr(ip_address, ip_prefixlen, fqdn, dns_backup=None):
-    zone, name = get_reverse_zone(ip_address, ip_prefixlen)
+def add_ptr_rr(zone, ip_address, fqdn, dns_backup=None):
+    name = get_reverse_record_name(zone, ip_address)
     add_rr(zone, name, "PTR", fqdn+".", dns_backup)
 
 def add_ns_rr(zone, hostname, dns_backup=None, force=True):
@@ -288,22 +331,20 @@ class BindInstance(service.Service):
         self.domain = None
         self.host = None
         self.ip_address = None
-        self.ip_prefixlen = None
         self.realm = None
         self.forwarders = None
         self.sub_dict = None
-        self.create_reverse = True
+        self.reverse_zone = None
 
         if fstore:
             self.fstore = fstore
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    def setup(self, fqdn, ip_address, ip_prefixlen, realm_name, domain_name, forwarders, ntp, create_reverse, named_user="named", zonemgr=None):
+    def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp, reverse_zone, named_user="named", zonemgr=None):
         self.named_user = named_user
         self.fqdn = fqdn
         self.ip_address = ip_address
-        self.ip_prefixlen = ip_prefixlen
         self.realm = realm_name
         self.domain = domain_name
         self.forwarders = forwarders
@@ -311,7 +352,7 @@ class BindInstance(service.Service):
         self.host_domain = '.'.join(fqdn.split(".")[1:])
         self.suffix = util.realm_to_suffix(self.realm)
         self.ntp = ntp
-        self.create_reverse = create_reverse
+        self.reverse_zone = reverse_zone
 
         if zonemgr:
             self.zonemgr = zonemgr.replace('@','.')
@@ -346,7 +387,7 @@ class BindInstance(service.Service):
             self.step("adding NS record to the zone", self.__add_self_ns)
         else:
             self.step("setting up our zone", self.__setup_zone)
-        if self.create_reverse:
+        if self.reverse_zone is not None:
             self.step("setting up reverse zone", self.__setup_reverse_zone)
         self.step("setting up our own record", self.__add_self)
 
@@ -440,11 +481,11 @@ class BindInstance(service.Service):
 
         # Add forward and reverse records to self
         add_fwd_rr(zone, self.host, self.ip_address)
-        if dns_zone_exists(get_reverse_zone(self.ip_address, self.ip_prefixlen)[0]):
-            add_ptr_rr(self.ip_address, self.ip_prefixlen, self.fqdn)
+        if self.reverse_zone is not None and dns_zone_exists(self.reverse_zone):
+            add_ptr_rr(self.reverse_zone, self.ip_address, self.fqdn)
 
     def __setup_reverse_zone(self):
-        add_reverse_zone(self.ip_address, self.ip_prefixlen, ns_hostname=api.env.host,
+        add_reverse_zone(self.reverse_zone, ns_hostname=api.env.host,
                 ns_ip_address=self.ip_address, dns_backup=self.dns_backup)
 
     def __setup_principal(self):
@@ -501,16 +542,16 @@ class BindInstance(service.Service):
         resolv_fd.write(resolv_txt)
         resolv_fd.close()
 
-    def add_master_dns_records(self, fqdn, ip_address, ip_prefixlen,
-                               realm_name, domain_name, ntp=False):
+    def add_master_dns_records(self, fqdn, ip_address, realm_name, domain_name,
+                               reverse_zone, ntp=False):
         self.fqdn = fqdn
         self.ip_address = ip_address
-        self.ip_prefixlen = ip_prefixlen
         self.realm = realm_name
         self.domain = domain_name
         self.host = fqdn.split(".")[0]
         self.suffix = util.realm_to_suffix(self.realm)
         self.ntp = ntp
+        self.reverse_zone = reverse_zone
 
         self.__add_self()
 
@@ -538,21 +579,12 @@ class BindInstance(service.Service):
         for (type, rdata) in areclist:
             del_rr(zone, host, type, rdata)
 
-            ip = netaddr.IPAddress(rdata)
-            rzone = ip.reverse_dns
-            record = ''
-
-            while True:
-                part, dot, rzone = rzone.partition('.')
-                if len(rzone) == 0:
-                    break
-                record = (record + '.' + part).lstrip('.')
-
-                if dns_zone_exists(rzone):
-                    del_rr(rzone, record, "PTR", fqdn+".")
-                    # remove also master NS record from the reverse zone
-                    del_rr(rzone, "@", "NS", fqdn+".")
-                    break
+            rzone = find_reverse_zone(rdata)
+            if rzone is not None:
+                record = get_reverse_record_name(rzone, rdata)
+                del_rr(rzone, record, "PTR", fqdn+".")
+                # remove also master NS record from the reverse zone
+                del_rr(rzone, "@", "NS", fqdn+".")
 
 
     def uninstall(self):

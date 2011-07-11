@@ -59,6 +59,7 @@ def parse_options():
                       type="ip", help="Add a DNS forwarder")
     parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
+    parser.add_option("--reverse-zone", dest="reverse_zone", help="The reverse DNS zone to use")
     parser.add_option("--no-reverse", dest="no_reverse", action="store_true",
                       default=False, help="Do not create reverse DNS zone")
     parser.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
@@ -84,12 +85,16 @@ def parse_options():
             parser.error("You cannot specify a --forwarder option without the --setup-dns option")
         if options.no_forwarders:
             parser.error("You cannot specify a --no-forwarders option without the --setup-dns option")
+        if options.reverse_zone:
+            parser.error("You cannot specify a --reverse-zone option without the --setup-dns option")
         if options.no_reverse:
             parser.error("You cannot specify a --no-reverse option without the --setup-dns option")
     elif options.forwarders and options.no_forwarders:
         parser.error("You cannot specify a --forwarder option together with --no-forwarders")
     elif not options.forwarders and not options.no_forwarders:
         parser.error("You must specify at least one --forwarder option or --no-forwarders option")
+    elif options.reverse_zone and options.no_reverse:
+        parser.error("You cannot specify a --reverse-zone option together with --no-reverse")
 
     return safe_options, options, args[0]
 
@@ -183,22 +188,23 @@ def install_bind(config, options):
         sys.exit("Unable to resolve IP address for host name")
     ip = installutils.parse_ip_address(ip_address)
     ip_address = str(ip)
-    ip_prefixlen = ip.prefixlen
 
-    create_reverse = True
-    if options.unattended:
-        # In unattended mode just use the cmdline flag
-        create_reverse = not options.no_reverse
+    if options.reverse_zone:
+        if not bindinstance.verify_reverse_zone(options.reverse_zone, ip):
+            sys.exit(1)
+        reverse_zone = bindinstance.normalize_zone(options.reverse_zone)
     else:
-        if options.no_reverse:
-            create_reverse = False
-        else:
-            # In interactive mode, if the flag was not explicitly 
-            # specified, ask the user
-            create_reverse = bindinstance.create_reverse()
+        reverse_zone = bindinstance.find_reverse_zone(ip)
+        if reverse_zone is None and not options.no_reverse:
+            reverse_zone = bindinstance.get_reverse_zone_default(ip)
+            if not options.unattended and bindinstance.create_reverse():
+                reverse_zone = bindinstance.read_reverse_zone(reverse_zone, ip)
 
-    bind.setup(config.host_name, ip_address, ip_prefixlen, config.realm_name,
-               config.domain_name, forwarders, options.conf_ntp, create_reverse)
+    if reverse_zone is not None:
+        print "Using reverse zone %s" % reverse_zone
+
+    bind.setup(config.host_name, ip_address, config.realm_name,
+               config.domain_name, forwarders, options.conf_ntp, reverse_zone)
     bind.create_instance()
 
 def install_dns_records(config, options):
@@ -221,11 +227,11 @@ def install_dns_records(config, options):
         sys.exit("Unable to resolve IP address for host name")
     ip = installutils.parse_ip_address(ip_address)
     ip_address = str(ip)
-    ip_prefixlen = ip.prefixlen
+    reverse_zone = bindinstance.find_reverse_zone(ip)
 
-    bind.add_master_dns_records(config.host_name, ip_address, ip_prefixlen,
+    bind.add_master_dns_records(config.host_name, ip_address,
                                 config.realm_name, config.domain_name,
-                                options.conf_ntp)
+                                reverse_zone, options.conf_ntp)
 
     #set it back to the default
     api.Backend.ldap2.disconnect()
