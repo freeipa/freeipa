@@ -39,6 +39,7 @@ import socket
 from ipapython import dogtag
 from ipapython.certdb import get_ca_nickname
 from ipalib import pkcs10, x509
+from ipalib.dn import DN
 import subprocess
 
 from nss.error import NSPRError
@@ -919,7 +920,7 @@ class CAInstance(service.Service):
         # makes openssl throw up.
         data = base64.b64decode(chain)
 
-        (certs, stderr, returncode) = ipautil.run(["/usr/bin/openssl",
+        (certlist, stderr, returncode) = ipautil.run(["/usr/bin/openssl",
              "pkcs7",
              "-inform",
              "DER",
@@ -932,18 +933,20 @@ class CAInstance(service.Service):
         st = 1
         en = 0
         subid = 0
+        normalized_base = str(DN(self.subject_base))
         while st > 0:
-            st = certs.find('-----BEGIN', en)
-            en = certs.find('-----END', en+1)
+            st = certlist.find('-----BEGIN', en)
+            en = certlist.find('-----END', en+1)
             if st > 0:
                 try:
                     (chain_fd, chain_name) = tempfile.mkstemp()
-                    os.write(chain_fd, certs[st:en+25])
+                    os.write(chain_fd, certlist[st:en+25])
                     os.close(chain_fd)
-                    if subid == 0:
-                        nick = self.canickname
+                    (rdn, subject) = certs.get_cert_nickname(certlist[st:en+25])
+                    if subject.lower() == ('CN=Certificate Authority,%s' % normalized_base).lower():
+                        nick = get_ca_nickname(self.realm)
                     else:
-                        nick = "%s sub %d" % (self.canickname, subid)
+                        nick = subject
                     self.__run_certutil(
                         ['-A', '-t', 'CT,C,C', '-n', nick, '-a',
                          '-i', chain_name]

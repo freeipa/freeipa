@@ -94,7 +94,7 @@ def subject_callback(option, opt_str, value, parser):
                 raise ValueError('invalid attribute: %s' % dn[x][0].attr.lower())
     except ValueError, e:
         raise ValueError('Invalid subject base format: %s' % str(e))
-    parser.values.subject = value
+    parser.values.subject = str(dn) # may as well normalize it
 
 def parse_options():
     # Guaranteed to give a random 200k range below the 2G mark (uint32_t limit)

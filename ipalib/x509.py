@@ -71,27 +71,45 @@ def load_certificate(data, datatype=PEM, dbdir=None):
         data = base64.b64decode(data)
 
     if dbdir is None:
-        if api.env.in_tree:
-            dbdir = api.env.dot_ipa + os.sep + 'alias'
+        if 'in_tree' in api.env:
+            if api.env.in_tree:
+                dbdir = api.env.dot_ipa + os.sep + 'alias'
+            else:
+                dbdir = "/etc/httpd/alias"
+            nss.nss_init(dbdir)
         else:
-            dbdir = "/etc/httpd/alias"
+            nss.nss_init_nodb()
+    else:
+        nss.nss_init(dbdir)
 
-    nss.nss_init(dbdir)
+
     return nss.Certificate(buffer(data))
 
-def get_subject(certificate, datatype=PEM):
+def load_certificate_from_file(filename, dbdir=None):
+    """
+    Load a certificate from a PEM file.
+
+    Returns a nss.Certificate type
+    """
+    fd = open(filename, 'r')
+    data = fd.read()
+    fd.close()
+
+    return load_certificate(file, PEM, dbdir)
+
+def get_subject(certificate, datatype=PEM, dbdir=None):
     """
     Load an X509.3 certificate and get the subject.
     """
 
-    nsscert = load_certificate(certificate, datatype)
+    nsscert = load_certificate(certificate, datatype, dbdir)
     return nsscert.subject
 
-def get_serial_number(certificate, datatype=PEM):
+def get_serial_number(certificate, datatype=PEM, dbdir=None):
     """
     Return the decimal value of the serial number.
     """
-    nsscert = load_certificate(certificate, datatype)
+    nsscert = load_certificate(certificate, datatype, dbdir)
     return nsscert.serial_number
 
 def make_pem(data):
