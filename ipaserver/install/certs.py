@@ -38,6 +38,7 @@ from ipalib import pkcs10
 from ConfigParser import RawConfigParser, MissingSectionHeaderError
 import service
 from ipalib import x509
+from ipalib.dn import DN
 from ipalib.errors import CertificateOperationError
 
 from nss.error import NSPRError
@@ -81,6 +82,20 @@ def find_cert_from_txt(cert, start=0):
 
     cert = cert[s:e]
     return (cert, e)
+
+def get_cert_nickname(cert):
+    """
+    Using the subject from cert come up with a nickname suitable
+    for NSS. The caller can decide whether to use just the RDN
+    or the whole subject.
+
+    Returns a tuple of (rdn, subject)
+    """
+    nsscert = x509.load_certificate(cert)
+    subject = str(nsscert.subject)
+    dn = DN(subject)
+
+    return (str(dn[0]), str(dn))
 
 def next_serial(serial_file=CA_SERIALNO):
     """
@@ -415,16 +430,16 @@ class CertDB(object):
         certs = fd.read()
         fd.close()
 
+        normalized_base = str(DN(self.subject_base))
         st = 0
-        subid=0
         while True:
             try:
                 (cert, st) = find_cert_from_txt(certs, st)
-                if subid == 0:
-                    nick = self.cacert_name
+                (nick, subject) = get_cert_nickname(cert)
+                if subject.lower() == ('CN=Certificate Authority,%s' % normalized_base).lower():
+                    nick = get_ca_nickname(self.realm)
                 else:
-                    nick = "%s sub %d" % (self.cacert_name, subid)
-                subid = subid + 1
+                    nick = subject
                 self.run_certutil(["-A", "-n", nick,
                                    "-t", "CT,,C",
                                    "-a"],
