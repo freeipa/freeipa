@@ -1653,6 +1653,7 @@ IPA.entity_select_widget = function(spec) {
             that.edit_box = $('<input />',{
                 type: 'text',
                 title: that.tooltip,
+                name: that.name,
                 keyup:function(){
                     that.validate();
                 }
