@@ -210,8 +210,6 @@ def run(args, stdin=None, raiseonerr=True,
     if capture_output:
         p_out = subprocess.PIPE
         p_err = subprocess.PIPE
-    elif len(nolog):
-        raise RuntimeError("Can't use nolog if output is not captured")
 
     p = subprocess.Popen(args, stdin=p_in, stdout=p_out, stderr=p_err,
                          close_fds=True, env=env)
@@ -224,13 +222,14 @@ def run(args, stdin=None, raiseonerr=True,
     for value in nolog:
         if not isinstance(value, basestring):
             continue
-        args = args.replace(value, 'XXXXXXXX')
-        stdout = stdout.replace(value, 'XXXXXXXX')
-        stderr = stderr.replace(value, 'XXXXXXXX')
+
         quoted = urllib2.quote(value)
-        args = args.replace(quoted, 'XXXXXXXX')
-        stdout = stdout.replace(quoted, 'XXXXXXXX')
-        stderr = stderr.replace(quoted, 'XXXXXXXX')
+        for nolog_value in (value, quoted):
+            if capture_output:
+                stdout = stdout.replace(nolog_value, 'XXXXXXXX')
+                stderr = stderr.replace(nolog_value, 'XXXXXXXX')
+            args = args.replace(nolog_value, 'XXXXXXXX')
+
     logging.debug('args=%s' % args)
     if capture_output:
         logging.debug('stdout=%s' % stdout)

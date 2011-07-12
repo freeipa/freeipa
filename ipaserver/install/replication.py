@@ -55,15 +55,16 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
             "--auto-master-check", "--realm", realm,
             "--principal", "admin",
             "--hostname", host_name]
+    nolog=tuple()
 
     if admin_password:
         args.extend(["--password", admin_password])
+        nolog=(admin_password,)
 
     if check_ca:
         args.append('--check-ca')
-    logging.debug("Running ipa-replica-conncheck with following arguments: %s" %
-            " ".join(args))
-    (stdin, stderr, returncode) = ipautil.run(args,raiseonerr=False, capture_output=False)
+    (stdin, stderr, returncode) = ipautil.run(args,raiseonerr=False,capture_output=False,
+                                              nolog=nolog)
 
     if returncode != 0:
         sys.exit("Connection check failed!" +
