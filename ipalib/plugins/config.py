@@ -80,7 +80,7 @@ class config(LDAPObject):
     """
     IPA configuration object
     """
-    object_name = 'configuration options'
+    object_name = _('configuration options')
     default_attributes = [
         'ipamaxusernamelength', 'ipahomesrootdir', 'ipadefaultloginshell',
         'ipadefaultprimarygroup', 'ipadefaultemaildomain', 'ipasearchtimelimit',

@@ -479,7 +479,7 @@ can use their Kerberos accounts.''')
             if truncated:
                 self.log.error(
                     '%s: %s' % (
-                        ldap_obj.object_name_plural, self.truncated_err_msg
+                        ldap_obj.name, self.truncated_err_msg
                     )
                 )
 

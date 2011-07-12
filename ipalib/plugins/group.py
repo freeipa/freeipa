@@ -77,8 +77,8 @@ class group(LDAPObject):
     Group object.
     """
     container_dn = api.env.container_group
-    object_name = 'group'
-    object_name_plural = 'groups'
+    object_name = _('group')
+    object_name_plural = _('groups')
     object_class = ['ipausergroup']
     object_class_config = 'ipagroupobjectclasses'
     possible_objectclasses = ['posixGroup', 'mepManagedEntry']

@@ -51,8 +51,8 @@ class sudocmdgroup(LDAPObject):
     Sudo Group object.
     """
     container_dn = api.env.container_sudocmdgroup
-    object_name = 'sudo command group'
-    object_name_plural = 'sudo command groups'
+    object_name = _('sudo command group')
+    object_name_plural = _('sudo command groups')
     object_class = ['ipaobject', 'ipasudocmdgrp']
     default_attributes = [
         'cn', 'description', 'member',

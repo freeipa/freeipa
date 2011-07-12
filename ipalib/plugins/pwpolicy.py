@@ -173,8 +173,8 @@ class pwpolicy(LDAPObject):
     Password Policy object
     """
     container_dn = 'cn=%s,cn=kerberos' % api.env.realm
-    object_name = 'password policy'
-    object_name_plural = 'password policies'
+    object_name = _('password policy')
+    object_name_plural = _('password policies')
     object_class = ['top', 'nscontainer', 'krbpwdpolicy']
     default_attributes = [
         'cn', 'cospriority', 'krbmaxpwdlife', 'krbminpwdlife',

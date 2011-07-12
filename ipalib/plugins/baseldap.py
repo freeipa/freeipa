@@ -247,8 +247,8 @@ class LDAPObject(Object):
     parent_object = ''
     container_dn = ''
     normalize_dn = True
-    object_name = 'entry'
-    object_name_plural = 'entries'
+    object_name = _('entry')
+    object_name_plural = _('entries')
     object_class = []
     object_class_config = None
     # If an objectclass is possible but not default in an entry. Needed for
@@ -1084,7 +1084,7 @@ class LDAPModMember(LDAPQuery):
     Base class for member manipulation.
     """
     member_attributes = ['member']
-    member_param_doc = 'comma-separated list of %s'
+    member_param_doc = _('comma-separated list of %s')
     member_count_out = ('%i member processed.', '%i members processed.')
 
     def get_options(self):
@@ -1096,7 +1096,7 @@ class LDAPModMember(LDAPQuery):
                 name = to_cli(ldap_obj_name)
                 doc = self.member_param_doc % ldap_obj.object_name_plural
                 yield List('%s?' % name, cli_name='%ss' % name, doc=doc,
-                           label='member ' + ldap_obj.object_name, alwaysask=True)
+                           label=_('member %s') % ldap_obj.object_name, alwaysask=True)
 
     def get_member_dns(self, **options):
         dns = {}
@@ -1125,7 +1125,7 @@ class LDAPAddMember(LDAPModMember):
     """
     Add other LDAP entries to members.
     """
-    member_param_doc = 'comma-separated list of %s to add'
+    member_param_doc = _('comma-separated list of %s to add')
     member_count_out = ('%i member added.', '%i members added.')
     allow_same = False
 
@@ -1231,7 +1231,7 @@ class LDAPRemoveMember(LDAPModMember):
     """
     Remove LDAP entries from members.
     """
-    member_param_doc = 'comma-separated list of %s to remove'
+    member_param_doc = _('comma-separated list of %s to remove')
     member_count_out = ('%i member removed.', '%i members removed.')
 
     has_output = (
@@ -1341,8 +1341,8 @@ class LDAPSearch(CallbackInterface, crud.Search):
     Retrieve all LDAP entries matching the given criteria.
     """
     member_attributes = []
-    member_param_incl_doc = 'Search for %s with these %s %s.'
-    member_param_excl_doc = 'Search for %s without these %s %s.'
+    member_param_incl_doc = _('Search for %s with these %s %s.')
+    member_param_excl_doc = _('Search for %s without these %s %s.')
 
     takes_options = (
         Int('timelimit?',
@@ -1558,7 +1558,7 @@ class LDAPModReverseMember(LDAPQuery):
     Base class for reverse member manipulation.
     """
     reverse_attributes = ['member']
-    reverse_param_doc = 'comma-separated list of %s'
+    reverse_param_doc = _('comma-separated list of %s')
     reverse_count_out = ('%i member processed.', '%i members processed.')
 
     has_output_params = global_output_params
@@ -1582,7 +1582,7 @@ class LDAPAddReverseMember(LDAPModReverseMember):
     The call looks like "add A to B" but in fact executes
     add B to A to handle reverse membership.
     """
-    member_param_doc = 'comma-separated list of %s to add'
+    member_param_doc = _('comma-separated list of %s to add')
     member_count_out = ('%i member added.', '%i members added.')
 
     show_command = None
@@ -1695,7 +1695,7 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
     The call looks like "remove A from B" but in fact executes
     remove B from A to handle reverse membership.
     """
-    member_param_doc = 'comma-separated list of %s to remove'
+    member_param_doc = _('comma-separated list of %s to remove')
     member_count_out = ('%i member removed.', '%i members removed.')
 
     show_command = None

@@ -213,8 +213,8 @@ class host(LDAPObject):
     Host object.
     """
     container_dn = api.env.container_host
-    object_name = 'host'
-    object_name_plural = 'hosts'
+    object_name = _('host')
+    object_name_plural = _('hosts')
     object_class = ['ipaobject', 'nshost', 'ipahost', 'pkiuser', 'ipaservice']
     # object_class_config = 'ipahostobjectclasses'
     search_attributes = [

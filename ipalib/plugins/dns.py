@@ -277,8 +277,8 @@ class dnszone(LDAPObject):
     DNS Zone, container for resource records.
     """
     container_dn = api.env.container_dns
-    object_name = 'DNS zone'
-    object_name_plural = 'DNS zones'
+    object_name = _('DNS zone')
+    object_name_plural = _('DNS zones')
     object_class = ['top', 'idnsrecord', 'idnszone']
     default_attributes = [
         'idnsname', 'idnszoneactive', 'idnssoamname', 'idnssoarname',
@@ -519,8 +519,8 @@ class dnsrecord(LDAPObject):
     """
     parent_object = 'dnszone'
     container_dn = api.env.container_dns
-    object_name = 'DNS resource record'
-    object_name_plural = 'DNS resource records'
+    object_name = _('DNS resource record')
+    object_name_plural = _('DNS resource records')
     object_class = ['top', 'idnsrecord']
     default_attributes = _record_attributes + ['idnsname']
 

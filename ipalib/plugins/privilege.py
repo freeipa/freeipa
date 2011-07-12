@@ -46,8 +46,8 @@ class privilege(LDAPObject):
     Privilege object.
     """
     container_dn = api.env.container_privilege
-    object_name = 'privilege'
-    object_name_plural = 'privileges'
+    object_name = _('privilege')
+    object_name_plural = _('privileges')
     object_class = ['nestedgroup', 'groupofnames']
     default_attributes = ['cn', 'description', 'member', 'memberof',
         'memberindirect', 'memberofindirect',

@@ -46,7 +46,7 @@ class pkinit(Object):
     """
     PKINIT Options
     """
-    object_name = 'pkinit'
+    object_name = _('pkinit')
 
     label=_('PKINIT')
 

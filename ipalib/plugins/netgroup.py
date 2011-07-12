@@ -68,8 +68,8 @@ class netgroup(LDAPObject):
     Netgroup object.
     """
     container_dn = api.env.container_netgroup
-    object_name = 'netgroup'
-    object_name_plural = 'netgroups'
+    object_name = _('netgroup')
+    object_name_plural = _('netgroups')
     object_class = ['ipaobject', 'ipaassociation', 'ipanisnetgroup']
     default_attributes = [
         'cn', 'description', 'memberof', 'externalhost', 'nisdomainname',

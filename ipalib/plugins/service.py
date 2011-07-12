@@ -200,8 +200,8 @@ class service(LDAPObject):
     Service object.
     """
     container_dn = api.env.container_service
-    object_name = 'service'
-    object_name_plural = 'services'
+    object_name = _('service')
+    object_name_plural = _('services')
     object_class = [
         'krbprincipal', 'krbprincipalaux', 'krbticketpolicyaux', 'ipaobject',
         'ipaservice', 'pkiuser'

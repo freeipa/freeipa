@@ -179,8 +179,8 @@ class entitle(LDAPObject):
     Entitlement object
     """
     container_dn = api.env.container_entitlements
-    object_name = 'entitlement'
-    object_name_plural = 'entitlements'
+    object_name = _('entitlement')
+    object_name_plural = _('entitlements')
     object_class = ['ipaobject', 'ipaentitlement']
     search_attributes = ['usercertificate']
     default_attributes = ['ipaentitlement']

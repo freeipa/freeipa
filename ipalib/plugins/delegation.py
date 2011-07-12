@@ -97,8 +97,8 @@ class delegation(Object):
     """
 
     bindable = False
-    object_name = 'delegation',
-    object_name_plural = 'delegation',
+    object_name = _('delegation')
+    object_name_plural = _('delegations')
     label = _('Delegations')
     label_singular = _('delegation')
 

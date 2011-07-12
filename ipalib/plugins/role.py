@@ -63,8 +63,8 @@ class role(LDAPObject):
     Role object.
     """
     container_dn = api.env.container_rolegroup
-    object_name = 'role'
-    object_name_plural = 'roles'
+    object_name = _('role')
+    object_name_plural = _('roles')
     object_class = ['groupofnames', 'nestedgroup']
     default_attributes = ['cn', 'description', 'member', 'memberof',
         'memberindirect', 'memberofindirect',

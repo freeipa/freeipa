@@ -104,8 +104,8 @@ class hbacrule(LDAPObject):
     HBAC object.
     """
     container_dn = api.env.container_hbac
-    object_name = 'HBAC rule'
-    object_name_plural = 'HBAC rules'
+    object_name = _('HBAC rule')
+    object_name_plural = _('HBAC rules')
     object_class = ['ipaassociation', 'ipahbacrule']
     default_attributes = [
         'cn', 'accessruletype', 'ipaenabledflag',

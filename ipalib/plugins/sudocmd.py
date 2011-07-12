@@ -47,8 +47,8 @@ class sudocmd(LDAPObject):
     Sudo Command object.
     """
     container_dn = api.env.container_sudocmd
-    object_name = 'sudo command'
-    object_name_plural = 'sudo commands'
+    object_name = _('sudo command')
+    object_name_plural = _('sudo commands')
     object_class = ['ipaobject', 'ipasudocmd']
     # object_class_config = 'ipahostobjectclasses'
     search_attributes = [

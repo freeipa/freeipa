@@ -45,8 +45,8 @@ class sudorule(LDAPObject):
     Sudo Rule management
     """
     container_dn = api.env.container_sudorule
-    object_name = 'sudo rule'
-    object_name_plural = 'sudo rules'
+    object_name = _('sudo rule')
+    object_name_plural = _('sudo rules')
     object_class = ['ipaassociation', 'ipasudorule']
     default_attributes = [
         'cn', 'ipaenabledflag',

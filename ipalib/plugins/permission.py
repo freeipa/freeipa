@@ -90,8 +90,8 @@ class permission(LDAPObject):
     Permission object.
     """
     container_dn = api.env.container_permission
-    object_name = 'permission'
-    object_name_plural = 'permissions'
+    object_name = _('permission')
+    object_name_plural = _('permissions')
     object_class = ['groupofnames', 'ipapermission']
     default_attributes = ['cn', 'member', 'memberof',
         'memberindirect', 'ipapermissiontype',

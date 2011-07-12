@@ -80,8 +80,8 @@ class user(LDAPObject):
     User object.
     """
     container_dn = api.env.container_user
-    object_name = 'user'
-    object_name_plural = 'users'
+    object_name = _('user')
+    object_name_plural = _('users')
     object_class = ['posixaccount']
     object_class_config = 'ipauserobjectclasses'
     possible_objectclasses = ['meporiginentry']

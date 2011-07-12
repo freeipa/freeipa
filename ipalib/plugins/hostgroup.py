@@ -56,8 +56,8 @@ class hostgroup(LDAPObject):
     Hostgroup object.
     """
     container_dn = api.env.container_hostgroup
-    object_name = 'host group'
-    object_name_plural = 'host groups'
+    object_name = _('host group')
+    object_name_plural = _('host groups')
     object_class = ['ipaobject', 'ipahostgroup']
     default_attributes = ['cn', 'description', 'member', 'memberof',
         'memberindirect', 'memberofindirect',

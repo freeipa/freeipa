@@ -183,8 +183,8 @@ class automountlocation(LDAPObject):
     Location container for automount maps.
     """
     container_dn = api.env.container_automount
-    object_name = 'automount location'
-    object_name_plural = 'automount locations'
+    object_name = _('automount location')
+    object_name_plural = _('automount locations')
     object_class = ['nscontainer']
     default_attributes = ['cn']
     label = _('Automount Locations')
@@ -494,8 +494,8 @@ class automountmap(LDAPObject):
     """
     parent_object = 'automountlocation'
     container_dn = api.env.container_automount
-    object_name = 'automount map'
-    object_name_plural = 'automount maps'
+    object_name = _('automount map')
+    object_name_plural = _('automount maps')
     object_class = ['automountmap']
     default_attributes = ['automountmapname', 'description']
 
@@ -575,8 +575,8 @@ class automountkey(LDAPObject):
     """
     parent_object = 'automountmap'
     container_dn = api.env.container_automount
-    object_name = 'automount key'
-    object_name_plural = 'automount keys'
+    object_name = _('automount key')
+    object_name_plural = _('automount keys')
     object_class = ['automount']
     default_attributes = [
         'automountkey', 'automountinformation', 'description'

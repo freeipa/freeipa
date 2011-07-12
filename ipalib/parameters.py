@@ -301,7 +301,7 @@ class Param(ReadOnly):
     kwargs = (
         ('cli_name', str, None),
         ('cli_short_name', str, None),
-        ('label', (str, Gettext), None),
+        ('label', (basestring, Gettext), None),
         ('doc', (basestring, Gettext), None),
         ('required', bool, True),
         ('multivalue', bool, False),
