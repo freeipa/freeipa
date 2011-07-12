@@ -364,7 +364,7 @@ class test_dns(Declarative):
 
 
         dict(
-            desc='Add A record to %r in zone %r' % (dnszone1, dnsres1),
+            desc='Add A record to %r in zone %r' % (dnsres1, dnszone1),
             command=('dnsrecord_add', [dnszone1, dnsres1], {'arecord': u'10.10.0.1'}),
             expected={
                 'value': dnsres1,
@@ -380,8 +380,52 @@ class test_dns(Declarative):
 
 
         dict(
-            desc='Remove A record from %r in zone %r' % (dnszone1, dnsres1),
+            desc='Remove A record from %r in zone %r' % (dnsres1, dnszone1),
             command=('dnsrecord_del', [dnszone1, dnsres1], {'arecord': u'127.0.0.1'}),
+            expected={
+                'value': dnsres1,
+                'summary': None,
+                'result': {
+                    'idnsname': [dnsres1],
+                    'arecord': [u'10.10.0.1'],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Add AAAA record to %r in zone %r using dnsrecord_mod' % (dnsres1, dnszone1),
+            command=('dnsrecord_mod', [dnszone1, dnsres1], {'aaaarecord': u'::1'}),
+            expected={
+                'value': dnsres1,
+                'summary': None,
+                'result': {
+                    'idnsname': [dnsres1],
+                    'arecord': [u'10.10.0.1'],
+                    'aaaarecord': [u'::1'],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Modify AAAA record in %r in zone %r' % (dnsres1, dnszone1),
+            command=('dnsrecord_mod', [dnszone1, dnsres1], {'aaaarecord': u'ff02::1'}),
+            expected={
+                'value': dnsres1,
+                'summary': None,
+                'result': {
+                    'idnsname': [dnsres1],
+                    'arecord': [u'10.10.0.1'],
+                    'aaaarecord': [u'ff02::1'],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Remove AAAA record from %r in zone %r using dnsrecord_mod' % (dnsres1, dnszone1),
+            command=('dnsrecord_mod', [dnszone1, dnsres1], {'aaaarecord': u''}),
             expected={
                 'value': dnsres1,
                 'summary': None,

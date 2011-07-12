@@ -234,10 +234,13 @@ def zone_is_reverse(zone_name):
     return False
 
 
-def has_cli_options(entry, no_option_msg):
+def has_cli_options(entry, no_option_msg, allow_empty_attrs=False):
     entry = dict((t, entry.get(t, [])) for t in _record_attributes)
-    numattr = reduce(lambda x,y: x+y,
-                     map(lambda x: len(x), [ v for v in entry.values() if v is not None ]))
+    if allow_empty_attrs:
+        numattr = len(entry)
+    else:
+        numattr = reduce(lambda x,y: x+y,
+                      map(lambda x: len(x), [ v for v in entry.values() if v is not None ]))
     if numattr == 0:
         raise errors.OptionError(no_option_msg)
     return entry
@@ -544,6 +547,43 @@ class dnsrecord(LDAPObject):
         ),
     )
 
+    def _nsrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if options.get('force', False):
+            return dn
+
+        for ns in options['nsrecord']:
+            is_ns_rec_resolvable(ns)
+        return dn
+
+    def _ptrrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        components = dn.split(',',2)
+        addr = components[0].split('=')[1]
+        zone = components[1].split('=')[1]
+        zone_len = 0
+        for valid_zone in _valid_reverse_zones:
+            if zone.find(valid_zone) != -1:
+                zone = zone.replace(valid_zone,'')
+                zone_name = valid_zone
+                zone_len = _valid_reverse_zones[valid_zone]
+
+        if not zone_len:
+            allowed_zones = ', '.join(_valid_reverse_zones)
+            raise errors.ValidationError(name='cn',
+                    error=unicode(_('Reverse zone for PTR record should be a sub-zone of one the following fully qualified domains: %s') % allowed_zones))
+
+        ip_addr_comp_count = len(addr.split('.')) + len(zone.split('.'))
+        if ip_addr_comp_count != zone_len:
+            raise errors.ValidationError(name='cn',
+                error=unicode(_('Reverse zone %s requires exactly %d IP address components, %d given')
+                % (zone_name, zone_len, ip_addr_comp_count)))
+
+        for ptr in options['ptrrecord']:
+            if not ptr.endswith('.'):
+                raise errors.ValidationError(name='ptr-rec',
+                        error=unicode(_('PTR record \'%s\' is not fully qualified (check traling \'.\')') % ptr))
+
+        return dn
+
     def is_pkey_zone_record(self, *keys):
         idnsname = keys[-1]
         if idnsname == str(_dns_zone_record) or idnsname == ('%s.' % keys[-2]):
@@ -732,43 +772,6 @@ class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
         has_cli_options(options, self.no_option_msg)
         return super(dnsrecord_add, self).args_options_2_entry(*keys, **options)
 
-    def _nsrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        if options.get('force', False):
-            return dn
-
-        for ns in options['nsrecord']:
-            is_ns_rec_resolvable(ns)
-        return dn
-
-    def _ptrrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        components = dn.split(',',2)
-        addr = components[0].split('=')[1]
-        zone = components[1].split('=')[1]
-        zone_len = 0
-        for valid_zone in _valid_reverse_zones:
-            if zone.find(valid_zone) != -1:
-                zone = zone.replace(valid_zone,'')
-                zone_name = valid_zone
-                zone_len = _valid_reverse_zones[valid_zone]
-
-        if not zone_len:
-            allowed_zones = ', '.join(_valid_reverse_zones)
-            raise errors.ValidationError(name='cn',
-                    error=unicode(_('Reverse zone for PTR record should be a sub-zone of one the following fully qualified domains: %s') % allowed_zones))
-
-        ip_addr_comp_count = len(addr.split('.')) + len(zone.split('.'))
-        if ip_addr_comp_count != zone_len:
-            raise errors.ValidationError(name='cn',
-                error=unicode(_('Reverse zone %s requires exactly %d IP address components, %d given')
-                % (zone_name, zone_len, ip_addr_comp_count)))
-
-        for ptr in options['ptrrecord']:
-            if not ptr.endswith('.'):
-                raise errors.ValidationError(name='ptr-rec',
-                        error=unicode(_('PTR record \'%s\' is not fully qualified (check traling \'.\')') % ptr))
-
-        return dn
-
     def interactive_prompt_callback(self, kw):
         for param in kw.keys():
             if param in _record_attributes:
@@ -790,8 +793,8 @@ class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         for rtype in options:
             rtype_cb = '_%s_pre_callback' % rtype
-            if hasattr(self, rtype_cb):
-                dn = getattr(self, rtype_cb)(ldap, dn, entry_attrs, *keys, **options)
+            if hasattr(self.obj, rtype_cb):
+                dn = getattr(self.obj, rtype_cb)(ldap, dn, entry_attrs, *keys, **options)
 
         return dn
 
@@ -805,6 +808,46 @@ class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
         raise exc
 
 api.register(dnsrecord_add)
+
+
+class dnsrecord_mod(dnsrecord_mod_record):
+    """
+    Modify a DNS resource record.
+    """
+    no_option_msg = 'No options to modify a specific record provided.'
+
+    def update_old_entry_callback(self, entry_attrs, old_entry_attrs):
+        for (a, v) in entry_attrs.iteritems():
+            if not isinstance(v, (list, tuple)):
+                v = [v]
+            old_entry_attrs.setdefault(a, [])
+            if v or v is None:   # overwrite the old entry
+                old_entry_attrs[a] = v
+        print "DNSRECORD_MOD::update_old_entry_callback: old:", old_entry_attrs
+        print "DNSRECORD_MOD::update_old_entry_callback: new:", entry_attrs
+
+    def record_options_2_entry(self, **options):
+        entries = dict((t, options.get(t, [])) for t in _record_attributes)
+        return has_cli_options(entries, self.no_option_msg, True)
+
+    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        for rtype in options:
+            rtype_cb = '_%s_pre_callback' % rtype
+            if hasattr(self.obj, rtype_cb):
+                dn = getattr(self.obj, rtype_cb)(ldap, dn, entry_attrs, *keys, **options)
+                print "DNSRECORD_MOD::pre_callback: rtype_cb:", rtype_cb
+
+        return dn
+
+    def post_callback(self, keys, entry_attrs):
+        print "DNSRECORD_MOD::post_callback:", entry_attrs
+        if not self.obj.is_pkey_zone_record(*keys):
+            for a in _record_attributes:
+                if a in entry_attrs and entry_attrs[a]:
+                    return
+            return self.obj.methods.delentry(*keys)
+
+api.register(dnsrecord_mod)
 
 
 class dnsrecord_delentry(LDAPDelete):
