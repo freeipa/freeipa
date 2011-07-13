@@ -457,7 +457,8 @@ class ldap2(CrudBackend, Encoder):
         return flt
 
     @encode_args(1, 2)
-    def make_filter_from_attr(self, attr, value, rules='|', exact=True):
+    def make_filter_from_attr(self, attr, value, rules='|', exact=True,
+            leading_wildcard=True, trailing_wildcard=True):
         """
         Make filter for ldap2.find_entries from attribute.
 
@@ -465,28 +466,42 @@ class ldap2(CrudBackend, Encoder):
         rules -- see ldap2.make_filter
         exact -- boolean, True - make filter as (attr=value)
                           False - make filter as (attr=*value*)
+        leading_wildcard -- boolean, True - allow heading filter wildcard when exact=False
+                                     False - forbid heading filter wildcard when exact=False
+        trailing_wildcard -- boolean, True - allow trailing filter wildcard when exact=False
+                                      False - forbid trailing filter wildcard when exact=False
         """
         if isinstance(value, (list, tuple)):
             flts = []
             if rules == self.MATCH_NONE:
                 for v in value:
                     flts.append(
-                        self.make_filter_from_attr(attr, v, exact=exact)
+                        self.make_filter_from_attr(attr, v, exact=exact,
+                            leading_wildcard=leading_wildcard,
+                            trailing_wildcard=trailing_wildcard)
                     )
                 return '(!%s)' % self.combine_filters(flts)
             for v in value:
-                flts.append(self.make_filter_from_attr(attr, v, rules, exact))
+                flts.append(self.make_filter_from_attr(attr, v, rules, exact,
+                            leading_wildcard=leading_wildcard,
+                            trailing_wildcard=trailing_wildcard))
             return self.combine_filters(flts, rules)
         elif value is not None:
             value = _ldap_filter.escape_filter_chars(value)
             if not exact:
-                value = '*%s*' % value
+                template = '%s'
+                if leading_wildcard:
+                    template = '*' + template
+                if trailing_wildcard:
+                    template = template + '*'
+                value = template % value
             if rules == self.MATCH_NONE:
                 return '(!(%s=%s))' % (attr, value)
             return '(%s=%s)' % (attr, value)
         return ''
 
-    def make_filter(self, entry_attrs, attrs_list=None, rules='|', exact=True):
+    def make_filter(self, entry_attrs, attrs_list=None, rules='|', exact=True,
+            leading_wildcard=True, trailing_wildcard=True):
         """
         Make filter for ldap2.find_entries from entry attributes.
 
@@ -495,6 +510,10 @@ class ldap2(CrudBackend, Encoder):
         rules -- specifies how to determine a match (default ldap2.MATCH_ANY)
         exact -- boolean, True - make filter as (attr=value)
                           False - make filter as (attr=*value*)
+        leading_wildcard -- boolean, True - allow heading filter wildcard when exact=False
+                                     False - forbid heading filter wildcard when exact=False
+        trailing_wildcard -- boolean, True - allow trailing filter wildcard when exact=False
+                                      False - forbid trailing filter wildcard when exact=False
 
         rules can be one of the following:
         ldap2.MATCH_NONE - match entries that do not match any attribute
@@ -505,14 +524,16 @@ class ldap2(CrudBackend, Encoder):
         if attrs_list is None:
             for (k, v) in entry_attrs.iteritems():
                 flts.append(
-                    self.make_filter_from_attr(k, v, rules, exact)
+                    self.make_filter_from_attr(k, v, rules, exact,
+                        leading_wildcard, trailing_wildcard)
                 )
         else:
             for a in attrs_list:
                 value = entry_attrs.get(a, None)
                 if value is not None:
                     flts.append(
-                        self.make_filter_from_attr(a, value, rules, exact)
+                        self.make_filter_from_attr(a, value, rules, exact,
+                            leading_wildcard, trailing_wildcard)
                     )
         return self.combine_filters(flts, rules)
 

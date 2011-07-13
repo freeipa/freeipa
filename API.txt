@@ -780,7 +780,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnszone_find
-args: 1,18,4
+args: 1,19,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('idnsname', attribute=True, autofill=False, cli_name='name', label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('idnssoamname', attribute=True, autofill=False, cli_name='name_server', label=Gettext('Authoritative nameserver', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -797,6 +797,7 @@ option: Bool('idnszoneactive', attribute=True, autofill=False, cli_name='zone_ac
 option: Bool('idnsallowdynupdate', attribute=True, autofill=False, cli_name='allow_dynupdate', default=False, label=Gettext('Dynamic update', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
 option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('Size Limit', domain='ipa', localedir=None), minvalue=0)
+option: Flag('forward_only', autofill=True, cli_name='forward_only', default=False, label=Gettext('Forward zones only', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])

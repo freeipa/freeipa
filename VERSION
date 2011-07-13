@@ -79,4 +79,4 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=8
+IPA_API_VERSION_MINOR=9

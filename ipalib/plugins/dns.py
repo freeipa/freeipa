@@ -458,6 +458,25 @@ class dnszone_find(LDAPSearch):
     Search for DNS zones (SOA records).
     """
 
+    takes_options = LDAPSearch.takes_options + (
+        Flag('forward_only',
+            label=_('Forward zones only'),
+            cli_name='forward_only',
+            doc=_('Search for forward zones only'),
+        ),
+    )
+
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
+        if options.get('forward_only', False):
+            search_kw = {}
+            search_kw['idnsname'] = _valid_reverse_zones.keys()
+            rev_zone_filter = ldap.make_filter(search_kw, rules=ldap.MATCH_NONE, exact=False,
+                    trailing_wildcard=False)
+            filter = ldap.combine_filters((rev_zone_filter, filter), rules=ldap.MATCH_ALL)
+
+        return (filter, base_dn, scope)
+
+
 api.register(dnszone_find)
 
 
@@ -823,8 +842,6 @@ class dnsrecord_mod(dnsrecord_mod_record):
             old_entry_attrs.setdefault(a, [])
             if v or v is None:   # overwrite the old entry
                 old_entry_attrs[a] = v
-        print "DNSRECORD_MOD::update_old_entry_callback: old:", old_entry_attrs
-        print "DNSRECORD_MOD::update_old_entry_callback: new:", entry_attrs
 
     def record_options_2_entry(self, **options):
         entries = dict((t, options.get(t, [])) for t in _record_attributes)
@@ -835,12 +852,10 @@ class dnsrecord_mod(dnsrecord_mod_record):
             rtype_cb = '_%s_pre_callback' % rtype
             if hasattr(self.obj, rtype_cb):
                 dn = getattr(self.obj, rtype_cb)(ldap, dn, entry_attrs, *keys, **options)
-                print "DNSRECORD_MOD::pre_callback: rtype_cb:", rtype_cb
 
         return dn
 
     def post_callback(self, keys, entry_attrs):
-        print "DNSRECORD_MOD::post_callback:", entry_attrs
         if not self.obj.is_pkey_zone_record(*keys):
             for a in _record_attributes:
                 if a in entry_attrs and entry_attrs[a]:
