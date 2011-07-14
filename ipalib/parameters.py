@@ -1065,6 +1065,30 @@ class Int(Number):
                 maxvalue=self.maxvalue,
             )
 
+    def _validate_scalar(self, value, index=None):
+        if type(value) is long:
+            # too big number for int type to hold
+            if self.maxvalue is not None:
+                raise ValidationError(
+                        name=self.name,
+                        value=value,
+                        index=index,
+                        error=_('can be at most %(maxvalue)d') % dict(
+                                maxvalue=self.maxvalue,
+                            )
+                    )
+            else:
+                raise ValidationError(
+                        name=self.name,
+                        value=value,
+                        index=index,
+                        error=_('can be at most %(maxvalue)d') % dict(
+                                maxvalue=MAXINT,
+                            )
+                    )
+        super(Int, self)._validate_scalar(value, index)
+
+
 class Float(Number):
     """
     A parameter for floating-point values (stored in the ``float`` type).
