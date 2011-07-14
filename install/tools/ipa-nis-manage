@@ -154,19 +154,16 @@ def main():
 
             # The cn=config entry for the plugin may already exist but it
             # could be turned off, handle both cases.
-            if (entry is None or
-              entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'off'):
-                # Already configured, just enable the plugin
+            if entry is None:
                 print "Enabling plugin"
                 ld = LDAPUpdate(dm_password=dirman_password, sub_dict={}, ldapi=True)
                 if ld.update(files) != True:
                     retval = 1
+            elif entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'off':
+                print "Enabling plugin"
+                # Already configured, just enable the plugin
                 mod = {'nsslapd-pluginenabled': 'on'}
-                try:
-                    conn.update_entry(nis_config_dn, mod, normalize=False)
-                except errors.EmptyModlist:
-                    # plugin is already enabled, silently continue
-                    pass
+                conn.update_entry(nis_config_dn, mod, normalize=False)
             else:
                 print "Plugin already Enabled"
                 retval = 2
