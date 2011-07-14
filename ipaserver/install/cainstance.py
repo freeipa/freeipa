@@ -1109,8 +1109,8 @@ def install_replica_ca(config, postinstall=False):
     cafile = config.dir + "/cacert.p12"
 
     if not ipautil.file_exists(cafile):
-        # not a dogtag CA replica
-        sys.exit('Not a dogtag CA installation')
+        # self-signed replica
+        return (None, None)
 
     if not config.setup_ca:
         # We aren't configuring the CA in this step but we still need
