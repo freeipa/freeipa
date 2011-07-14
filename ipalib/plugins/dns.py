@@ -45,7 +45,7 @@ EXAMPLES:
    ipa dnsrecord-add example.com www --a-rec 80.142.15.2
 
  Add new PTR record for www.example.com
-   ipa dnsrecord-add 15.142.80.in-addr.arpa 2 --ptr-rec www.example.com.
+   ipa dnsrecord-add 15.142.80.in-addr.arpa. 2 --ptr-rec www.example.com.
 
  Add new SRV records for LDAP servers. Three quarters of the requests
  should go to fast.example.com, one quarter to slow.example.com. If neither

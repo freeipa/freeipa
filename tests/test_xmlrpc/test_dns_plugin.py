@@ -27,6 +27,7 @@ from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
 dnszone1 = u'dnszone.test'
 dnszone2 = u'dnszone2.test'
+revdnszone1 = u'15.142.80.in-addr.arpa.'
 dnsres1 = u'testdnsres'
 
 class test_dns(Declarative):
@@ -48,6 +49,8 @@ class test_dns(Declarative):
     cleanup_commands = [
         ('dnszone_del', [dnszone1], {}),
         ('dnsrecord_del', [dnszone1, dnsres1], {'del_all' : True}),
+        ('dnszone_del', [dnszone2], {}),
+        ('dnszone_del', [revdnszone1], {}),
     ]
 
     tests = [
@@ -214,8 +217,76 @@ class test_dns(Declarative):
 
 
         dict(
+            desc='Create reverse zone %r' % revdnszone1,
+            command=(
+                'dnszone_add', [revdnszone1], {
+                    'idnssoamname': u'ns1.%s' % dnszone1,
+                    'idnssoarname': u'root.%s' % dnszone1,
+                    'ip_address' : u'1.2.3.4',
+                }
+            ),
+            expected={
+                'value': revdnszone1,
+                'summary': None,
+                'result': {
+                    'dn': u'idnsname=%s,cn=dns,%s' % (revdnszone1, api.env.basedn),
+                    'idnsname': [revdnszone1],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [u'ns1.%s.' % dnszone1],
+                    'nsrecord': [u'ns1.%s.' % dnszone1],
+                    'idnssoarname': [u'root.%s.' % dnszone1],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'objectclass': [u'top', u'idnsrecord', u'idnszone'],
+                },
+            },
+        ),
+
+
+        dict(
             desc='Search for zones with name server %r' % (u'ns1.%s.' % dnszone1),
             command=('dnszone_find', [], {'idnssoamname': u'ns1.%s.' % dnszone1}),
+            expected={
+                'summary': None,
+                'count': 2,
+                'truncated': False,
+                'result': [{
+                    'dn': u'idnsname=%s,cn=dns,%s' % (revdnszone1, api.env.basedn),
+                    'idnsname': [revdnszone1],
+                    'idnszoneactive': [u'TRUE'],
+                    'nsrecord': [u'ns1.%s.' % dnszone1],
+                    'idnssoamname': [u'ns1.%s.' % dnszone1],
+                    'idnssoarname': [u'root.%s.' % dnszone1],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                },
+                {
+                    'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
+                    'idnsname': [dnszone1],
+                    'idnszoneactive': [u'TRUE'],
+                    'nsrecord': [u'ns1.%s.' % dnszone1],
+                    'idnssoamname': [u'ns1.%s.' % dnszone1],
+                    'idnssoarname': [u'root.%s.' % dnszone1],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [u'5478'],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                }],
+            },
+        ),
+
+
+        dict(
+            desc='Search for zones with name server %r with --forward-only' % (u'ns1.%s.' % dnszone1),
+            command=('dnszone_find', [], {'idnssoamname': u'ns1.%s.' % dnszone1, 'forward_only' : True}),
             expected={
                 'summary': None,
                 'count': 1,
@@ -233,6 +304,17 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                 }],
+            },
+        ),
+
+
+        dict(
+            desc='Delete reverse zone %r' % revdnszone1,
+            command=('dnszone_del', [revdnszone1], {}),
+            expected={
+                'value': revdnszone1,
+                'summary': None,
+                'result': {'failed': u''},
             },
         ),
 
