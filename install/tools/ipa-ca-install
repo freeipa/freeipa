@@ -134,6 +134,10 @@ def main():
     # Configure the CA if necessary
     (CA, cs) = cainstance.install_replica_ca(config, postinstall=True)
 
+    if not CA:
+        # not a dogtag CA replica
+        sys.exit("Not a dogtag CA installation!")
+
     # We need to ldap_enable the CA now that DS is up and running
     CA.ldap_enable('CA', config.host_name, config.dirman_password,
                    util.realm_to_suffix(config.realm_name))
