@@ -59,7 +59,7 @@ class hbacsvc(LDAPObject):
     uuid_attribute = 'ipauniqueid'
 
     label = _('HBAC Services')
-    label_singular = _('HBAC service')
+    label_singular = _('HBAC Service')
 
     takes_params = (
         Str('cn',

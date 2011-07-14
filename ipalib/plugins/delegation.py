@@ -100,7 +100,7 @@ class delegation(Object):
     object_name = _('delegation')
     object_name_plural = _('delegations')
     label = _('Delegations')
-    label_singular = _('delegation')
+    label_singular = _('Delegation')
 
     takes_params = (
         Str('aciname',

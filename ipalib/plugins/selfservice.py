@@ -73,7 +73,7 @@ class selfservice(Object):
     object_name = _('self service permission')
     object_name_plural = _('self service permissions')
     label = _('Self Service Permissions')
-    label_singular = _('self service permission')
+    label_singular = _('Self Service Permission')
 
     takes_params = (
         Str('aciname',

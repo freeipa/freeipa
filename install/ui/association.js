@@ -507,7 +507,7 @@ IPA.association_table_widget = function (spec) {
         var label = IPA.metadata.objects[that.other_entity].label;
         var title = IPA.messages.association.add;
 
-        title = title.replace('${entity}', that.entity_name);
+        title = title.replace('${entity}', IPA.metadata.objects[that.entity_name].label_singular);
         title = title.replace('${primary_key}', pkey);
         title = title.replace('${other_entity}', label);
 
@@ -571,7 +571,6 @@ IPA.association_table_widget = function (spec) {
 
         if (!selected_values.length) {
             var message = IPA.messages.dialogs.remove_empty;
-            message = message.replace('${entity}', that.label);
             alert(message);
             return;
         }
@@ -580,7 +579,7 @@ IPA.association_table_widget = function (spec) {
         var label = IPA.metadata.objects[that.other_entity].label;
         var title = IPA.messages.association.remove;
 
-        title = title.replace('${entity}', that.entity_name);
+        title = title.replace('${entity}', IPA.metadata.objects[that.entity_name].label_singular);
         title = title.replace('${primary_key}', pkey);
         title = title.replace('${other_entity}', label);
 
@@ -896,7 +895,7 @@ IPA.association_facet = function (spec) {
         var label = IPA.metadata.objects[that.other_entity] ? IPA.metadata.objects[that.other_entity].label : that.other_entity;
         var title = IPA.messages.association.add;
 
-        title = title.replace('${entity}', that.entity_name);
+        title = title.replace('${entity}', IPA.metadata.objects[that.entity_name].label_singular);
         title = title.replace('${primary_key}', pkey);
         title = title.replace('${other_entity}', label);
 
@@ -948,7 +947,6 @@ IPA.association_facet = function (spec) {
 
         if (!values.length) {
             var message = IPA.messages.dialogs.remove_empty;
-            message = message.replace('${entity}', label);
             alert(message);
             return;
         }
@@ -956,7 +954,7 @@ IPA.association_facet = function (spec) {
         var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
         var title = IPA.messages.association.remove;
 
-        title = title.replace('${entity}', that.entity_name);
+        title = title.replace('${entity}', IPA.metadata.objects[that.entity_name].label_singular);
         title = title.replace('${primary_key}', pkey);
         title = title.replace('${other_entity}', label);
 

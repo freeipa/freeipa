@@ -90,7 +90,7 @@ class config(LDAPObject):
     ]
 
     label = _('Configuration')
-    label_singular = _('configuration')
+    label_singular = _('Configuration')
 
     takes_params = (
         Int('ipamaxusernamelength?',

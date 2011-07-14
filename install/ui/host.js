@@ -285,7 +285,7 @@ IPA.host_provisioning_status_widget = function (spec) {
 
     that.show_unprovision_dialog = function() {
 
-        var label = IPA.metadata.objects[that.entity_name].label;
+        var label = IPA.metadata.objects[that.entity_name].label_singular;
         var title = IPA.messages.objects.host.unprovision_title;
         title = title.replace('${entity}', label);
 
@@ -378,7 +378,7 @@ IPA.host_certificate_status_widget = function (spec) {
 
     that.init = function() {
 
-        that.entity_label = IPA.metadata.objects[that.entity_name].label;
+        that.entity_label = IPA.metadata.objects[that.entity_name].label_singular;
 
         that.get_entity_pkey = function(result) {
             var values = result['fqdn'];

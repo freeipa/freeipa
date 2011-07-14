@@ -114,8 +114,8 @@ class user(LDAPObject):
     rdnattr = 'uid'
     bindable = True
 
-    label_singular = _('user')
     label = _('Users')
+    label_singular = _('User')
 
     takes_params = (
         Str('uid',

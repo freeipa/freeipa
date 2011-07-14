@@ -96,7 +96,7 @@ class netgroup(LDAPObject):
     }
 
     label = _('Netgroups')
-    label_singular = _('netgroup')
+    label_singular = _('Netgroup')
 
     takes_params = (
         Str('cn',

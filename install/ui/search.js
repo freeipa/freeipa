@@ -193,7 +193,6 @@ IPA.search_facet = function(spec) {
         var title;
         if (!values.length) {
             title = IPA.messages.dialogs.remove_empty;
-            title = title.replace('${entity}', label);
             alert(title);
             return;
         }

@@ -77,7 +77,7 @@ class krbtpolicy(LDAPObject):
     limit_object_classes = ['krbticketpolicyaux']
 
     label=_('Kerberos Ticket Policy')
-    label_singular = _('Kerberos ticket policy')
+    label_singular = _('Kerberos Ticket Policy')
 
     takes_params = (
         Str('uid?',

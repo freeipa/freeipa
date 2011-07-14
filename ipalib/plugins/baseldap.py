@@ -280,7 +280,7 @@ class LDAPObject(Object):
         ),
     }
     label = _('Entry')
-    label_singular = _('entry')
+    label_singular = _('Entry')
 
     container_not_found_msg = _('container entry (%(container)s) not found')
     parent_not_found_msg = _('%(parent)s: %(oname)s not found')

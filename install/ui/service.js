@@ -266,7 +266,7 @@ IPA.service_provisioning_status_widget = function (spec) {
 
     that.unprovision = function() {
 
-        var label = IPA.metadata.objects[that.entity_name].label;
+        var label = IPA.metadata.objects[that.entity_name].label_singular;
         var title = IPA.messages.objects.service.unprovision_title;
         title = title.replace('${entity}', label);
 
@@ -323,7 +323,7 @@ IPA.service_certificate_status_widget = function (spec) {
 
     that.init = function() {
 
-        that.entity_label = IPA.metadata.objects[that.entity_name].label;
+        that.entity_label = IPA.metadata.objects[that.entity_name].label_singular;
 
         that.get_entity_pkey = function(result) {
             var values = result['krbprincipalname'];

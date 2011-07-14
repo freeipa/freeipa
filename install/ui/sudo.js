@@ -709,7 +709,6 @@ IPA.sudo.options_section = function(spec) {
 
         if (!values.length) {
             var message = IPA.messages.dialogs.remove_empty;
-            message = message.replace('${entity}', label);
             alert(message);
             return;
         }

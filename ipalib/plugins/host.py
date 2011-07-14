@@ -244,7 +244,7 @@ class host(LDAPObject):
     }
 
     label = _('Hosts')
-    label_singular = _('host')
+    label_singular = _('Host')
 
     takes_params = (
         Str('fqdn', validate_host,

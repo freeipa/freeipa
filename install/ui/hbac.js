@@ -845,7 +845,7 @@ IPA.hbacrule_accesstime_widget = function(spec) {
 
         var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
         var title = IPA.messages.association.add;
-        title = title.replace('${entity}', IPA.metadata.objects[that.entity_name].label);
+        title = title.replace('${entity}', IPA.metadata.objects[that.entity_name].label_singular);
         title = title.replace('${primary_key}', pkey);
         title = title.replace('${other_entity}', that.label);
 
@@ -947,14 +947,13 @@ IPA.hbacrule_accesstime_widget = function(spec) {
         var title;
         if (!values.length) {
             title = IPA.messages.dialogs.remove_empty;
-            title = title.replace('${entity}', that.label);
             alert(title);
             return;
         }
 
         var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
         title = IPA.messages.association.remove;
-        title = title.replace('${entity}', IPA.metadata.objects[that.entity_name].label);
+        title = title.replace('${entity}', IPA.metadata.objects[that.entity_name].label_singular);
         title = title.replace('${primary_key}', pkey);
         title = title.replace('${other_entity}', that.label);
 

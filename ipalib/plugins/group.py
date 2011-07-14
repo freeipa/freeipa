@@ -98,7 +98,7 @@ class group(LDAPObject):
     rdnattr = 'cn'
 
     label = _('User Groups')
-    label_singular = _('user group')
+    label_singular = _('User Group')
 
     takes_params = (
         Str('cn',

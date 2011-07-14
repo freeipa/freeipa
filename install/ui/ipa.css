@@ -459,6 +459,7 @@ div.tabs {
 
 .facet-pkey {
     color:black;
+    text-transform: none;
 }
 
 .breadcrumb {
@@ -947,10 +948,6 @@ a {
 }
 
 /* ---- Dialog ---- */
-
-.ui-dialog .ui-dialog-title {
-    text-transform: capitalize;
-}
 
 .ui-dialog .ui-dialog-titlebar-close span {
         background-color: transparent !important;

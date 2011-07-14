@@ -63,7 +63,7 @@ class privilege(LDAPObject):
     rdnattr='cn'
 
     label = _('Privileges')
-    label_singular = _('privilege')
+    label_singular = _('Privilege')
 
     takes_params = (
         Str('cn',

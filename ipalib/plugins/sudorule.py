@@ -66,7 +66,7 @@ class sudorule(LDAPObject):
     }
 
     label = _('Sudo Rules')
-    label_singular = _('sudo rule')
+    label_singular = _('Sudo Rule')
 
     takes_params = (
         Str('cn',

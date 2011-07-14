@@ -348,7 +348,7 @@ class i18n_messages(Command):
             "dirty_message":_("This page has unsaved changes. Please save or revert."),
             "dirty_title":_("Dirty"),
             "hide_already_enrolled":_("Hide already enrolled."),
-            "remove_empty":_("Select ${entity} to be removed."),
+            "remove_empty":_("Select entries to be removed."),
             "remove_title":_("Remove ${entity}"),
             "prospective":_("Prospective"),
             },
