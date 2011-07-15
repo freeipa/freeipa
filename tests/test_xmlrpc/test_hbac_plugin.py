@@ -185,7 +185,7 @@ class test_hbac(XMLRPC_test):
         """
         ret = api.Command['user_show'](self.test_user, all=True)
         entry = ret['result']
-        assert_attr_equal(entry, 'memberof_HBAC rule', self.rule_name)
+        assert_attr_equal(entry, 'memberof_hbacrule', self.rule_name)
 
     def test_9_b_show_group(self):
         """
@@ -194,7 +194,7 @@ class test_hbac(XMLRPC_test):
         """
         ret = api.Command['group_show'](self.test_group, all=True)
         entry = ret['result']
-        assert_attr_equal(entry, 'memberof_HBAC rule', self.rule_name)
+        assert_attr_equal(entry, 'memberof_hbacrule', self.rule_name)
 
     def test_9_hbacrule_remove_user(self):
         """
@@ -239,7 +239,7 @@ class test_hbac(XMLRPC_test):
         """
         ret = api.Command['host_show'](self.test_host, all=True)
         entry = ret['result']
-        assert_attr_equal(entry, 'memberof_HBAC rule', self.rule_name)
+        assert_attr_equal(entry, 'memberof_hbacrule', self.rule_name)
 
     def test_a_hbacrule_show_hostgroup(self):
         """
@@ -248,7 +248,7 @@ class test_hbac(XMLRPC_test):
         """
         ret = api.Command['hostgroup_show'](self.test_hostgroup, all=True)
         entry = ret['result']
-        assert_attr_equal(entry, 'memberof_HBAC rule', self.rule_name)
+        assert_attr_equal(entry, 'memberof_hbacrule', self.rule_name)
 
     def test_b_hbacrule_remove_host(self):
         """

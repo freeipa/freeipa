@@ -161,7 +161,7 @@ class test_sudorule(XMLRPC_test):
         """
         ret = api.Command['user_show'](self.test_user, all=True)
         entry = ret['result']
-        assert_attr_equal(entry, 'memberof_Sudo Rule', self.rule_name)
+        assert_attr_equal(entry, 'memberof_sudorule', self.rule_name)
 
     def test_9_b_show_group(self):
         """
@@ -170,7 +170,7 @@ class test_sudorule(XMLRPC_test):
         """
         ret = api.Command['group_show'](self.test_group, all=True)
         entry = ret['result']
-        assert_attr_equal(entry, 'memberof_Sudo Rule', self.rule_name)
+        assert_attr_equal(entry, 'memberof_sudorule', self.rule_name)
 
     def test_9_sudorule_remove_user(self):
         """
@@ -382,7 +382,7 @@ class test_sudorule(XMLRPC_test):
         """
         ret = api.Command['host_show'](self.test_host, all=True)
         entry = ret['result']
-        assert_attr_equal(entry, 'memberof_Sudo Rule', self.rule_name)
+        assert_attr_equal(entry, 'memberof_sudorule', self.rule_name)
 
     def test_a_sudorule_show_hostgroup(self):
         """
@@ -391,7 +391,7 @@ class test_sudorule(XMLRPC_test):
         """
         ret = api.Command['hostgroup_show'](self.test_hostgroup, all=True)
         entry = ret['result']
-        assert_attr_equal(entry, 'memberof_Sudo Rule', self.rule_name)
+        assert_attr_equal(entry, 'memberof_sudorule', self.rule_name)
 
     def test_b_sudorule_remove_host(self):
         """
