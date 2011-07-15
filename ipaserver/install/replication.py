@@ -29,6 +29,7 @@ from ldap import modlist
 from ipalib import util
 from ipalib import errors
 from ipapython import ipautil
+from ipalib.dn import DN
 
 DIRMAN_CN = "cn=directory manager"
 CACERT = "/etc/ipa/ca.crt"
@@ -38,6 +39,7 @@ WIN_USER_CONTAINER = "cn=Users"
 IPA_USER_CONTAINER = "cn=users,cn=accounts"
 PORT = 636
 TIMEOUT = 120
+REPL_MAN_DN = "cn=replication manager,cn=config"
 
 IPA_REPLICA = 1
 WINSYNC = 2
@@ -107,19 +109,26 @@ def enable_replication_version_checking(hostname, realm, dirman_passwd):
     else:
         conn.unbind()
 
-class ReplicationManager:
+class ReplicationManager(object):
     """Manage replication agreements between DS servers, and sync
     agreements with Windows servers"""
-    def __init__(self, realm, hostname, dirman_passwd):
+    def __init__(self, realm, hostname, dirman_passwd, port=PORT, starttls=False):
         self.hostname = hostname
+        self.port = port
         self.dirman_passwd = dirman_passwd
         self.realm = realm
+        self.starttls = starttls
         tmp = util.realm_to_suffix(realm)
         self.suffix = ipaldap.IPAdmin.normalizeDN(tmp)
 
         # If we are passed a password we'll use it as the DM password
         # otherwise we'll do a GSSAPI bind.
-        self.conn = ipaldap.IPAdmin(hostname, port=PORT, cacert=CACERT)
+        if starttls:
+            self.conn = ipaldap.IPAdmin(hostname, port=port)
+            ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, CACERT)
+            self.conn.start_tls_s()
+        else:
+            self.conn = ipaldap.IPAdmin(hostname, port=port, cacert=CACERT)
         if dirman_passwd:
             self.conn.do_simple_bind(bindpw=dirman_passwd)
         else:
@@ -129,7 +138,7 @@ class ReplicationManager:
 
         # these are likely constant, but you could change them
         # at runtime if you really want
-        self.repl_man_dn = "cn=replication manager,cn=config"
+        self.repl_man_dn = REPL_MAN_DN
         self.repl_man_cn = "replication manager"
 
     def _get_replica_id(self, conn, master_conn):
@@ -151,7 +160,7 @@ class ReplicationManager:
         # Ok, either the entry doesn't exist or the attribute isn't set
         # so get it from the other master
         retval = -1
-        dn = "cn=replication, cn=etc, %s" % self.suffix
+        dn = str(DN("cn=replication, cn=etc, %s" % self.suffix))
         try:
             replica = master_conn.search_s(dn, ldap.SCOPE_BASE, "objectclass=*")[0]
             if not replica.getValue('nsDS5ReplicaId'):
@@ -234,7 +243,7 @@ class ReplicationManager:
             conn.modify_s(dn, [(ldap.MOD_REPLACE, "userpassword", pw)])
             pass
 
-    def delete_replication_manager(self, conn, dn="cn=replication manager,cn=config"):
+    def delete_replication_manager(self, conn, dn=REPL_MAN_DN):
         try:
             conn.delete_s(dn)
         except ldap.NO_SUCH_OBJECT:
@@ -247,13 +256,21 @@ class ReplicationManager:
             return "2"
 
     def replica_dn(self):
-        return 'cn=replica, cn="%s", cn=mapping tree, cn=config' % self.suffix
+        return str(DN('cn=replica, cn="%s", cn=mapping tree, cn=config' % self.suffix))
 
     def replica_config(self, conn, replica_id, replica_binddn):
         dn = self.replica_dn()
 
         try:
-            conn.getEntry(dn, ldap.SCOPE_BASE)
+            entry = conn.getEntry(dn, ldap.SCOPE_BASE)
+            managers = entry.getValues('nsDS5ReplicaBindDN')
+            for m in managers:
+                if DN(replica_binddn) == DN(m):
+                    return
+            # Add the new replication manager
+            mod = [(ldap.MOD_ADD, 'nsDS5ReplicaBindDN', replica_binddn)]
+            conn.modify_s(dn, mod)
+
             # replication is already configured
             return
         except errors.NotFound:
@@ -408,23 +425,33 @@ class ReplicationManager:
         entry.setValues("nsds7NewWinGroupSyncEnabled", 'false')
         entry.setValues("nsds7WindowsDomain", windomain)
 
-    def agreement_dn(self, hostname):
+    def agreement_dn(self, hostname, master=None):
+        """
+        IPA agreement use the same dn on both sides, dogtag does not.
+        master is not used for IPA agreements but for dogtag it will
+        tell which side we want.
+        """
         cn = "meTo%s" % (hostname)
         dn = "cn=%s, %s" % (cn, self.replica_dn())
 
         return (cn, dn)
 
-    def setup_agreement(self, a_conn, b_hostname,
+    def setup_agreement(self, a_conn, b_hostname, port=389,
                         repl_man_dn=None, repl_man_passwd=None,
-                        iswinsync=False, win_subtree=None, isgssapi=False):
-        cn, dn = self.agreement_dn(b_hostname)
+                        iswinsync=False, win_subtree=None, isgssapi=False,
+                        master=None):
+        """
+        master is used to determine which side of the agreement we are
+        creating. This is only needed for dogtag replication agreements
+        which use a different name on each side. If master is None then
+        isn't a dogtag replication agreement.
+        """
+        cn, dn = self.agreement_dn(b_hostname, master=master)
         try:
             a_conn.getEntry(dn, ldap.SCOPE_BASE)
             return
         except errors.NotFound:
             pass
-
-        port = 389
 
         # List of attributes that need to be excluded from replication.
         excludes = ('memberof', 'entryusn',
@@ -439,9 +466,10 @@ class ReplicationManager:
         entry.setValues('nsds5replicaport', str(port))
         entry.setValues('nsds5replicatimeout', str(TIMEOUT))
         entry.setValues('nsds5replicaroot', self.suffix)
-        entry.setValues('nsds5replicaupdateschedule', '0000-2359 0123456')
-        entry.setValues('nsDS5ReplicatedAttributeList',
-                        '(objectclass=*) $ EXCLUDE %s' % " ".join(excludes))
+        if master is None:
+            entry.setValues('nsds5replicaupdateschedule', '0000-2359 0123456')
+            entry.setValues('nsDS5ReplicatedAttributeList',
+                            '(objectclass=*) $ EXCLUDE %s' % " ".join(excludes))
         entry.setValues('description', "me to %s" % b_hostname)
         if isgssapi:
             entry.setValues('nsds5replicatransportinfo', 'LDAP')
@@ -622,11 +650,11 @@ class ReplicationManager:
             haserror = 1
         return haserror
 
-    def start_replication(self, conn, hostname=None):
+    def start_replication(self, conn, hostname=None, master=None):
         print "Starting replication, please wait until this has completed."
         if hostname == None:
             hostname = self.conn.host
-        cn, dn = self.agreement_dn(hostname)
+        cn, dn = self.agreement_dn(hostname, master)
 
         mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start')]
         conn.modify_s(dn, mod)
@@ -639,10 +667,16 @@ class ReplicationManager:
         self.replica_config(conn, replica_id, repldn)
         self.setup_changelog(conn)
 
-    def setup_replication(self, r_hostname, r_binddn=None, r_bindpw=None):
+    def setup_replication(self, r_hostname, r_port=389, r_sslport=636, r_binddn=None, r_bindpw=None, starttls=False):
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
-        r_conn = ipaldap.IPAdmin(r_hostname, port=PORT, cacert=CACERT)
+        if starttls:
+            r_conn = ipaldap.IPAdmin(r_hostname, port=r_port)
+            ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, CACERT)
+            r_conn.start_tls_s()
+        else:
+            r_conn = ipaldap.IPAdmin(r_hostname, port=r_sslport, cacert=CACERT)
+
         if r_bindpw:
             r_conn.do_simple_bind(binddn=r_binddn, bindpw=r_bindpw)
         else:
@@ -658,15 +692,17 @@ class ReplicationManager:
         self.basic_replication_setup(r_conn, r_id,
                                      self.repl_man_dn, self.repl_man_passwd)
 
-        self.setup_agreement(r_conn, self.conn.host,
+        self.setup_agreement(r_conn, self.conn.host, port=r_port,
                              repl_man_dn=self.repl_man_dn,
-                             repl_man_passwd=self.repl_man_passwd)
-        self.setup_agreement(self.conn, r_hostname,
+                             repl_man_passwd=self.repl_man_passwd,
+                             master=True)
+        self.setup_agreement(self.conn, r_hostname, port=r_port,
                              repl_man_dn=self.repl_man_dn,
-                             repl_man_passwd=self.repl_man_passwd)
+                             repl_man_passwd=self.repl_man_passwd,
+                             master=False)
 
         #Finally start replication
-        ret = self.start_replication(r_conn)
+        ret = self.start_replication(r_conn, master=True)
         if ret != 0:
             raise RuntimeError("Failed to start replication")
 
@@ -716,7 +752,7 @@ class ReplicationManager:
         logging.info("Agreement is ready, starting replication . . .")
 
         # Add winsync replica to the public DIT
-        dn = 'cn=%s,cn=replicas,cn=ipa,cn=etc,%s' % (ad_dc_name, self.suffix)
+        dn = str(DN('cn=%s,cn=replicas,cn=ipa,cn=etc,%s' % (ad_dc_name, self.suffix)))
         entry = ipaldap.Entry(dn)
         entry.setValues("objectclass", ["nsContainer", "ipaConfigObject"])
         entry.setValues("cn", ad_dc_name)
@@ -801,6 +837,8 @@ class ReplicationManager:
 
         dn = entry[0].dn
         schedule = entry[0].nsds5replicaupdateschedule
+        if schedule is None:
+            schedule = '0000-2359 0123456'
 
         # On the remote chance of a match. We force a synch to happen right
         # now by changing the schedule to something else and quickly changing

@@ -361,6 +361,7 @@ fi
 %{_sbindir}/ipa-replica-install
 %{_sbindir}/ipa-replica-prepare
 %{_sbindir}/ipa-replica-manage
+%{_sbindir}/ipa-csreplica-manage
 %{_sbindir}/ipa-server-certinstall
 %{_sbindir}/ipa-ldap-updater
 %{_sbindir}/ipa-compat-manage
@@ -427,6 +428,7 @@ fi
 %attr(700,root,root) %dir %{_localstatedir}/cache/ipa/kpasswd
 %{_mandir}/man1/ipa-replica-install.1.gz
 %{_mandir}/man1/ipa-replica-manage.1.gz
+%{_mandir}/man1/ipa-csreplica-manage.1.gz
 %{_mandir}/man1/ipa-replica-prepare.1.gz
 %{_mandir}/man1/ipa-server-certinstall.1.gz
 %{_mandir}/man1/ipa-server-install.1.gz
@@ -494,6 +496,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Thu Jul 14 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-6
+- Add ipa-csreplica-manage tool.
+
 * Fri Jun 17 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-50
 - Ship ipa-ca-install utility
 

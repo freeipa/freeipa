@@ -1,0 +1,452 @@
+#! /usr/bin/python -E
+# Authors: Rob Crittenden <rcritten@redhat.com>
+#
+# Based on ipa-replica-manage by Karl MacMillan <kmacmillan@mentalrootkit.com>
+#
+# Copyright (C) 2011  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+import sys
+import os
+
+import getpass, ldap, krbV
+import logging
+
+from ipapython import ipautil
+from ipaserver.install import replication, installutils
+from ipaserver import ipaldap
+from ipapython import version
+from ipalib import api, errors, util
+from ipalib.dn import DN
+
+CACERT = "/etc/ipa/ca.crt"
+PORT = 7389
+
+# dict of command name and tuples of min/max num of args needed
+commands = {
+    "list":(0, 1, "[master fqdn]", ""),
+    "connect":(1, 2, "<master fqdn> [other master fqdn]",
+                    "must provide the name of the servers to connect"),
+    "disconnect":(1, 2, "<master fqdn> [other master fqdn]",
+                    "must provide the name of the server to disconnect"),
+    "del":(1, 1, "<master fqdn>",
+                    "must provide hostname of master to delete"),
+    "re-initialize":(0, 0, "", ""),
+    "force-sync":(0, 0, "", "")
+}
+
+def convert_error(exc):
+    """
+    LDAP exceptions are a dictionary, make them prettier.
+    """
+    if isinstance(exc, ldap.LDAPError):
+        desc = exc.args[0]['desc'].strip()
+        info = exc.args[0].get('info', '').strip()
+        return '%s %s' % (desc, info)
+    else:
+        return str(exc)
+
+class CSReplicationManager(replication.ReplicationManager):
+
+    def __init__(self, realm, hostname, dirman_passwd, port=PORT, starttls=True):
+        super(CSReplicationManager, self).__init__(realm, hostname, dirman_passwd, port, starttls)
+        self.suffix = 'o=ipaca'
+        self.hostnames = [] # set before calling or agreement_dn() will fail
+
+    def agreement_dn(self, hostname, master=None):
+        """
+        Construct a dogtag replication agreement name. This needs to be much
+        more agressive than the IPA replication agreements because the name
+        is different on each side.
+
+        hostname is the local hostname, not the remote one, for both sides
+
+        NOTE: The agreement number is hardcoded in dogtag as well
+
+        TODO: configurable instance name
+        """
+        dn = None
+        cn = None
+        instance_name = 'pki-ca'
+
+        # if master is not None we know what dn to return:
+        if master is not None:
+            if master is True:
+                name = "master"
+            else:
+                name = "clone"
+            cn="%sAgreement1-%s-%s" % (name, hostname, instance_name)
+            dn = str(DN("cn=%s, %s" % (cn, self.replica_dn())))
+            return (cn, dn)
+
+        for host in self.hostnames:
+            for master in ["master", "clone"]:
+                try:
+                    cn="%sAgreement1-%s-%s" % (master, host, instance_name)
+                    dn = "cn=%s, %s" % (cn, self.replica_dn())
+                    self.conn.getEntry(dn, ldap.SCOPE_BASE)
+                    return (cn, dn)
+                except errors.NotFound:
+                    dn = None
+                    cn = None
+
+        raise errors.NotFound(reason='No agreement found for %s' % hostname)
+
+    def delete_referral(self, hostname):
+        esc1_suffix = self.suffix.replace('=', '\\3D').replace(',', '\\2C')
+        esc2_suffix = self.suffix.replace('=', '%3D').replace(',', '%2C')
+        dn = 'cn=%s,cn=mapping tree,cn=config' % esc1_suffix
+        # TODO: should we detect proto/port somehow ?
+        mod = [(ldap.MOD_DELETE, 'nsslapd-referral',
+                'ldap://%s:%s/%s' % (hostname, PORT, esc2_suffix))]
+
+        try:
+            self.conn.modify_s(dn, mod)
+        except Exception, e:
+            logging.debug("Failed to remove referral value: %s" % convert_error(e))
+
+def parse_options():
+    from optparse import OptionParser
+
+    parser = OptionParser(version=version.VERSION)
+    parser.add_option("-H", "--host", dest="host", help="starting host")
+    parser.add_option("-p", "--password", dest="dirman_passwd", help="Directory Manager password")
+    parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
+                      help="provide additional information")
+    parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
+                      help="ignore some types of errors")
+    parser.add_option("--from", dest="fromhost", help="Host to get data from")
+
+    options, args = parser.parse_args()
+
+    valid_syntax = False
+
+    if len(args):
+        n = len(args) - 1
+        k = commands.keys()
+        for cmd in k:
+            if cmd == args[0]:
+                v = commands[cmd]
+                err = None
+                if n < v[0]:
+                    err = v[3]
+                elif n > v[1]:
+                    err = "too many arguments"
+                else:
+                    valid_syntax = True
+                if err:
+                    parser.error("Invalid syntax: %s\nUsage: %s [options] %s" % (err, cmd, v[2]))
+
+    if not valid_syntax:
+        cmdstr = " | ".join(commands.keys())
+        parser.error("must provide a command [%s]" % cmdstr)
+
+    # set log level
+    if options.verbose:
+        # if verbose, output events at INFO level if not already
+        mylogger = logging.getLogger()
+        if mylogger.getEffectiveLevel() > logging.INFO:
+            mylogger.setLevel(logging.INFO)
+        # else user has already configured logging externally lower
+    return options, args
+
+def list_replicas(realm, host, replica, dirman_passwd, verbose):
+
+    peers = {}
+
+    try:
+        # connect to main IPA LDAP server
+        conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
+        conn.do_simple_bind(bindpw=dirman_passwd)
+
+        dn = str(DN('cn=masters,cn=ipa,cn=etc,%s' % util.realm_to_suffix(realm)))
+        entries = conn.search_s(dn, ldap.SCOPE_ONELEVEL)
+
+        for ent in entries:
+            try:
+                cadn = DN(('cn', 'CA'), DN(ent.dn))
+                entry = conn.getEntry(str(cadn), ldap.SCOPE_BASE)
+                peers[ent.cn] = ['master', '']
+            except errors.NotFound:
+                peers[ent.cn] = ['CA not configured', '']
+
+    except Exception, e:
+        sys.exit("Failed to get data from '%s': %s" % (host, convert_error(e)))
+    finally:
+        conn.unbind_s()
+
+    if not replica:
+        for k, p in peers.iteritems():
+            print '%s: %s' % (k, p[0])
+        return
+
+    repl = CSReplicationManager(realm, replica, dirman_passwd, PORT, True)
+    entries = repl.find_replication_agreements()
+
+    for entry in entries:
+        print '%s' % entry.nsds5replicahost
+
+        if verbose:
+            print "  last init status: %s" % entry.nsds5replicalastinitstatus
+            print "  last init ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastinitend))
+            print "  last update status: %s" % entry.nsds5replicalastupdatestatus
+            print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastupdateend))
+
+def del_link(realm, replica1, replica2, dirman_passwd, force=False):
+
+    repl2 = None
+
+    try:
+        repl1 = CSReplicationManager(realm, replica1, dirman_passwd, PORT, True)
+
+        repl1.hostnames = [replica1, replica2]
+        type1 = repl1.get_agreement_type(replica2)
+
+        repl_list = repl1.find_ipa_replication_agreements()
+        if not force and len(repl_list) <= 1:
+            print "Cannot remove the last replication link of '%s'" % replica1
+            print "Please use the 'del' command to remove it from the domain"
+            sys.exit(1)
+
+    except ldap.NO_SUCH_OBJECT:
+        sys.exit("'%s' has no replication agreement for '%s'" % (replica1, replica2))
+    except errors.NotFound:
+        sys.exit("'%s' has no replication agreement for '%s'" % (replica1, replica2))
+    except ldap.SERVER_DOWN, e:
+        sys.exit("Unable to connect to %s:%d: %s" % (replica1, PORT, convert_error(e)))
+    except Exception, e:
+        sys.exit("Failed to get data from '%s': %s" % (replica1, convert_error(e)))
+
+    try:
+        repl2 = CSReplicationManager(realm, replica2, dirman_passwd, PORT, True)
+        repl2.hostnames = [replica1, replica2]
+
+        repl_list = repl1.find_ipa_replication_agreements()
+        if not force and len(repl_list) <= 1:
+            print "Cannot remove the last replication link of '%s'" % replica2
+            print "Please use the 'del' command to remove it from the domain"
+            sys.exit(1)
+
+    except ldap.NO_SUCH_OBJECT:
+        print "'%s' has no replication agreement for '%s'" % (replica2, replica1)
+        if not force:
+            sys.exit(1)
+    except errors.NotFound:
+        print "'%s' has no replication agreement for '%s'" % (replica2, replica1)
+        if not force:
+            return
+    except Exception, e:
+        print "Failed to get data from '%s': %s" % (replica2, convert_error(e))
+        if not force:
+            sys.exit(1)
+
+    if repl2:
+        failed = False
+        try:
+            repl2.delete_agreement(replica1)
+            repl2.delete_referral(replica1)
+        except Exception, e:
+            print "Unable to remove agreement on %s: %s" % (replica2, convert_error(e))
+            failed = True
+
+        if failed:
+            if force:
+                print "Forcing removal on '%s'" % replica1
+            else:
+                sys.exit(1)
+
+    if not repl2 and force:
+        print "Forcing removal on '%s'" % replica1
+
+    repl1.delete_agreement(replica2)
+    repl1.delete_referral(replica2)
+
+def del_master(realm, hostname, options):
+
+    force_del = False
+
+    delrepl = None
+    # 1. Connect to the dogtag DS to be removed.
+    try:
+        delrepl = CSReplicationManager(realm, hostname, options.dirman_passwd)
+    except Exception, e:
+        if not options.force:
+            print "Unable to delete replica %s: %s" % (hostname, convert_error(e))
+            sys.exit(1)
+        else:
+            print "Unable to connect to replica %s, forcing removal" % hostname
+            force_del = True
+
+    # 2. Connect to the local dogtag DS server
+    try:
+        thisrepl = CSReplicationManager(realm, options.host,
+                                        options.dirman_passwd)
+    except Exception, e:
+        sys.exit("Failed to connect to server %s: %s" % (options.host, convert_error(e)))
+
+    # 2. Get list of agreements.
+    if delrepl is None:
+        # server not up, just remove it from this server
+        replica_names = [options.host]
+    else:
+        replica_names = delrepl.find_ipa_replication_agreements()
+
+    # 3. Remove each agreement
+    for r in replica_names:
+        try:
+            del_link(realm, r, hostname, options.dirman_passwd, force=True)
+        except Exception, e:
+            sys.exit("There were issues removing a connection: %s" % convert_error(e))
+
+def add_link(realm, replica1, replica2, dirman_passwd, options):
+    try:
+        conn = ipaldap.IPAdmin(replica2, 636, cacert=CACERT)
+        conn.do_simple_bind(bindpw=dirman_passwd)
+
+        dn = str(DN('cn=CA,cn=%s,cn=masters,cn=ipa,cn=etc,%s' % (replica2, util.realm_to_suffix(realm))))
+        conn.search_s(dn, ldap.SCOPE_ONELEVEL)
+        conn.unbind_s()
+    except ldap.NO_SUCH_OBJECT:
+        sys.exit('%s does not have a CA configured.' % replica2)
+    except ldap.SERVER_DOWN, e:
+        sys.exit("Unable to connect to %s:636: %s" % (replica2, convert_error(e)))
+    except Exception, e:
+        sys.exit("Failed to get data from '%s': %s" % (replica1, convert_error(e)))
+
+    try:
+        repl1 = CSReplicationManager(realm, replica1, dirman_passwd, PORT, True)
+        entries = repl1.find_replication_agreements()
+        for e in entries:
+            if replica1 in e.dn or replica2 in e.dn:
+                sys.exit('This replication agreement already exists.')
+        repl1.hostnames = [replica1, replica2]
+
+    except ldap.NO_SUCH_OBJECT:
+        sys.exit("Cannot find replica '%s'" % replica1)
+    except ldap.SERVER_DOWN, e:
+        sys.exit("Unable to connect to %s:%d %s" % (replica1, PORT, convert_error(e)))
+    except Exception, e:
+        sys.exit("Failed to get data from '%s': %s" % (replica1, convert_error(e)))
+
+    repl1.setup_replication(replica2, PORT, 0, "cn=Directory Manager", dirman_passwd, True)
+    print "Connected '%s' to '%s'" % (replica1, replica2)
+
+def re_initialize(realm, options):
+
+    if not options.fromhost:
+        sys.exit("re-initialize requires the option --from <host name>")
+
+    repl = CSReplicationManager(realm, options.fromhost, options.dirman_passwd,
+                                PORT, True)
+
+    thishost = installutils.get_fqdn()
+
+    filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % thishost
+    entry = repl.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
+    if len(entry) == 0:
+        logging.error("Unable to find %s -> %s replication agreement" % (options.fromhost, thishost))
+        sys.exit(1)
+    if len(entry) > 1:
+        logging.error("Found multiple agreements for %s. Only initializing the first one returned: %s" % (thishost, entry[0].dn))
+
+    repl.initialize_replication(entry[0].dn, repl.conn)
+    repl.wait_for_repl_init(repl.conn, entry[0].dn)
+
+def force_sync(realm, thishost, fromhost, dirman_passwd):
+
+    repl = CSReplicationManager(realm, fromhost, dirman_passwd, PORT, True)
+    try:
+        repl.force_sync(repl.conn, thishost)
+    except Exception, e:
+        sys.exit(convert_error(e))
+
+def main():
+    options, args = parse_options()
+
+    # Just initialize the environment. This is so the installer can have
+    # access to the plugin environment
+    api_env = {}
+    api_env['in_server'] = True
+
+    if os.getegid() != 0:
+        api_env['log'] = None # turn off logging for non-root
+
+    api.bootstrap(**api_env)
+    api.finalize()
+
+    dirman_passwd = None
+    realm = krbV.default_context().default_realm
+
+    if options.host:
+        host = options.host
+    else:
+        host = installutils.get_fqdn()
+
+    options.host = host
+
+    if options.dirman_passwd:
+        dirman_passwd = options.dirman_passwd
+    else:
+        dirman_passwd = getpass.getpass("Directory Manager password: ")
+
+    options.dirman_passwd = dirman_passwd
+
+    if args[0] == "list":
+        replica = None
+        if len(args) == 2:
+            replica = args[1]
+        list_replicas(realm, host, replica, dirman_passwd, options.verbose)
+    elif args[0] == "del":
+        del_master(realm, args[1], options)
+    elif args[0] == "re-initialize":
+        re_initialize(realm, options)
+    elif args[0] == "force-sync":
+        if not options.fromhost:
+            sys.exit("force-sync requires the option --from <host name>")
+        force_sync(realm, host, options.fromhost, options.dirman_passwd)
+    elif args[0] == "connect":
+        if len(args) == 3:
+            replica1 = args[1]
+            replica2 = args[2]
+        elif len(args) == 2:
+            replica1 = host
+            replica2 = args[1]
+        add_link(realm, replica1, replica2, dirman_passwd, options)
+    elif args[0] == "disconnect":
+        if len(args) == 3:
+            replica1 = args[1]
+            replica2 = args[2]
+        elif len(args) == 2:
+            replica1 = host
+            replica2 = args[1]
+        del_link(realm, replica1, replica2, dirman_passwd)
+
+try:
+    main()
+except KeyboardInterrupt:
+    sys.exit(1)
+except SystemExit, e:
+    sys.exit(e)
+except ldap.INVALID_CREDENTIALS:
+    sys.exit("Invalid password")
+except ldap.INSUFFICIENT_ACCESS:
+    sys.exit("Insufficient access")
+except ldap.LOCAL_ERROR, e:
+    sys.exit(convert_error(e))
+except ldap.SERVER_DOWN, e:
+    sys.exit("%s" % convert_error(e))
+except Exception, e:
+    sys.exit("unexpected error: %s" % convert_error(e))

@@ -305,8 +305,8 @@ class DsInstance(service.Service):
                                               self.fqdn,
                                               self.dm_password)
         repl.setup_replication(self.master_fqdn,
-                               "cn=Directory Manager",
-                               self.dm_password)
+                               r_binddn="cn=Directory Manager",
+                               r_bindpw=self.dm_password)
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
