@@ -121,11 +121,10 @@ body {
 }
 
 .ui-widget {
-    font-size: 1em;
+    font-size: 11px;
 }
 
 .input_link {
-    padding: .4em 1em .4em 0em;
     text-decoration: none;
     position: relative;
     cursor: pointer;
@@ -136,54 +135,56 @@ body {
     color:black;
 }
 
-.input_link span.ui-icon {
-    -moz-border-radius: 0.3em;
-        -webkit-border-radius: 0.3em;
-    border: 1px solid #B8B8B8;
+.input_link_label {
+
+}
+
+.icon {
+    display: inline-block;
+    height: 16px;
+    width: 16px;
     vertical-align: middle;
 }
 
-.input_link span.search-icon {
-	background: url(search-icon.png);
-	border: none;
-	margin: -1px 0 0 !important;
-	float: right;
-	position: relative;
+.combobox-icon {
+    background: url(combobox_open.png);
 }
 
-.input_link span.add-icon {
+.expanded-icon {
+    background: url(arrow_expanded.png);
+}
+
+.collapsed-icon {
+    background: url(arrow_collapsed.png);
+}
+
+.search-icon {
+	background: url(search-icon.png) no-repeat;
+}
+
+.add-icon {
 	background: url(add-icon.png);
-	border: none;
 	margin: -4px 0 0 1px;
 }
 
-.input_link span.remove-icon {
+.remove-icon {
 	background: url(remove-icon.png);
-	border: none;
 	margin: -4px 0 0 1px;
 }
 
-.input_link span.update-icon {
+.update-icon {
 	background: url(update-icon.png);
-	border: none;
 	margin: -4px 0 0 1px;
 }
 
-.input_link span.reset-icon {
+.reset-icon {
 	background: url(reset-icon.png);
-	border: none;
-	margin: -4px 0 0 1px;
-}
-
-.input_link span.enroll-icon {
-	background: url(enroll-icon.png);
-	border: none;
 	margin: -4px 0 0 1px;
 }
 
 .ipa-icon {
-        font-size: 0.7em;
-        padding-right: 0.3em;
+    font-size: 0.7em;
+    padding-right: 0.3em;
 }
 
 /*  ----  Header  ----  */
@@ -557,7 +558,7 @@ div.tabs {
 
 .facet-controls a {
 	font-size: 1.3em !important;
-	padding: 0 6px 0 0;
+	margin: 0 6px 0 0;
 }
 
 /* ---- Facet Content ---- */
@@ -605,9 +606,21 @@ div.tabs {
     border-radius: 15px !important;
 	border: 1px solid #9f9e9e;
 	background: url("search-bg.png");
-	height: 18px;
-	padding-left: 8px;
+	height: 20px;
+    line-height: 20px;
+	padding: 0 8px 0;
     margin: 5px 0 5px;
+}
+
+.search-filter input {
+	width: 193px;
+	border: none;
+	background: transparent;
+	height: 18px;
+}
+
+.search-filter a {
+    padding: 3px;
 }
 
 .search-controls {
@@ -632,12 +645,16 @@ div.tabs {
 }
 
 .search-table thead tr th {
-    padding-left: 0.5em;
+    padding: 0 0.5em;
     background-color:#f6f6f6;
     color:#333333;
     text-align: left;
     border: 1px solid #dfdfdf;
     height: 25px;
+}
+
+.search-table thead tr th .action-button {
+    margin: 0 0 0 0.5em;
 }
 
 .search-table tbody td {
@@ -793,24 +810,10 @@ dl.entryattrs dt {
 
 dl.entryattrs dd {
     float: left;
-    padding-bottom: 0.8em;
-        margin-left: 0;
-}
-
-dl.entryattrs dd.first {
+    margin-bottom: 1em;
     margin-left: 0;
     margin-top: 0.5em;
     font-weight: bold;
-}
-
-dl.entryattrs dd.other {
-    clear: both;
-    margin-left: 10.7em;
-}
-
-dl.entryattrs input {
-    margin-right: 0.5em;
-    margin-bottom: 1em;
 }
 
 dl.entryattrs input.otp {
@@ -883,14 +886,6 @@ dl.aci-target input {
         width: 46em;
 }
 
-#memberof-entity-select {
-        margin-right: 1em;
-}
-
-#group-entity-select {
-        margin-right: 1em;
-}
-
 span.attrhint {
     font-size: 8pt;
     left: 5em;
@@ -902,32 +897,6 @@ span.attrhint {
 
 .ui-tabs {
     padding:0;
-}
-
-/*
- the positions for these are in the large icon image,
- and need to be specified in pixels.
-*/
-.ui-icon {
-    /* background-image: url("ui-icons_222222_256x240.png"); */
-    background-color: #e2e2e2;
-    display: inline-block;
-}
-
-.ui-icon-expanded {
-    background: url(arrow_expanded.png);
-}
-
-.ui-icon-collapsed {
-    background: url(arrow_collapsed.png);
-}
-
-.ui-icon-plus {
-    background-position: -16px -129px;
-}
-
-.ui-icon-trash {
-    background-position: -176px -97px;
 }
 
 .ui-widget-content {
@@ -976,14 +945,16 @@ a {
     text-align: left;
 }
 
-//.ui-dialog .ui-dialog-content {
+/*
+.ui-dialog .ui-dialog-content {
         min-height: 26em !important;
-}//
+}
+*/
 
 .ui-widget input, .ui-widget select,
 .ui-widget textarea, .ui-widget button {
     font-family: "Liberation Sans", Arial, sans-serif;
-    font-size: 1.3em;
+    font-size: 11px;
     margin-right: .1em;
 }
 
@@ -996,20 +967,6 @@ a {
      color: #fff;
      font-weight: normal;
          padding: 0.4em 1em;
-}
-
-span.ui-icon-search {
-        background-color: transparent !important;
-    border: medium none !important;
-    color: #FFFFFF !important;
-        margin-left: 0 !important;
-}
-
-a[name=find] {
-    margin: 6px;
-    padding: 3px 3px 2px;
-    position: absolute;
-    right: 0;
 }
 
 [title=">>"] {
@@ -1036,6 +993,10 @@ span.main-separator{
     font-size: 0.9em;
 }
 
+.action-button .button-label {
+    padding: 0 0.2em;
+}
+
 a.action-button-disabled {
     color: gray;
     cursor: default;
@@ -1055,9 +1016,7 @@ a.action-button-disabled {
 }
 
 .aci-attribute-table th.aci-attribute-column{
-    float: left;
     width: 20.5em;
-    padding: 0.8em 0.5em;
 }
 
 .entity-views{
@@ -1210,4 +1169,61 @@ table.scrollable tbody {
     bottom: 0;
     width: 23em;
     height: 4em;
+}
+
+/* ---- Widgets ---- */
+
+.text-widget input {
+    width: 250px;
+}
+
+.multivalued-text-widget [name=value] {
+    margin-bottom: 1em;
+}
+
+.multivalued-text-widget input {
+    width: 250px;
+}
+
+.combobox-widget-input {
+    display: inline-block;
+    position: relative;
+}
+
+.combobox-widget-input input {
+    width: 250px;
+}
+
+.combobox-widget-input .combobox-icon {
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    margin-top: -2px;
+    margin-right: 4px;
+}
+
+.combobox-widget-list {
+    visibility: hidden;
+    border: 1px solid #A0A0A0;
+    background: #EEEEEE;
+    padding: 5px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 1010; /* need to be above dialog box */
+}
+
+.combobox-widget-list input {
+    width: 238px;
+}
+
+.combobox-widget-list .search-icon {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    margin-top: -2px;
+    margin-right: 3px;
 }

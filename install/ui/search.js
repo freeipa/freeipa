@@ -96,15 +96,18 @@ IPA.search_facet = function(spec) {
 
         that.facet_create_header(container);
 
-        var span = $('<span/>', {
+        var span = $('<div/>', {
             'class': 'right-aligned-facet-controls'
         }).appendTo(that.controls);
 
+        var filter_container = $('<div/>', {
+            'class': 'search-filter'
+        }).appendTo(span);
+
         that.filter = $('<input/>', {
             type: 'text',
-                        'class': 'search-filter',
             name: 'filter'
-        }).appendTo(span);
+        }).appendTo(filter_container);
 
         that.filter.keypress(function(e) {
             /* if the key pressed is the enter key */
@@ -120,7 +123,7 @@ IPA.search_facet = function(spec) {
                 that.find();
                 return false;
             }
-        }).appendTo(span);
+        }).appendTo(filter_container);
 
         span.append(IPA.create_network_spinner());
 

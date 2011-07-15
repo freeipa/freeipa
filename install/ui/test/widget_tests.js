@@ -265,10 +265,15 @@ test("IPA.select_widget" ,function(){
 
 
 test("IPA.entity_select_widget" ,function(){
+
     var widget = IPA.entity_select_widget({
-        name: 'uid', entity:'user',field_name:'uid'});
+        name: 'uid',
+        other_entity: 'user',
+        other_field: 'uid'
+    });
+
     base_widget_test(widget,'user','test_value');
-    ok( $('#uid-entity-select option').length > 1,"options populatedfrom AJAX");
+    ok( $('option', widget.container).length > 1,"options populated from AJAX");
     mock_record = {'uid':'kfrog'};
     widget.load(mock_record);
     same(widget.values[0],'kfrog','select set from values');
@@ -278,7 +283,7 @@ test("IPA.entity_select_widget" ,function(){
 test("IPA.entity_link_widget" ,function(){
     var widget = IPA.entity_link_widget({
         name: 'gidnumber',
-        other_entity:'group',
+        other_entity:'group'
     });
     base_widget_test(widget,'user','test_value');
 

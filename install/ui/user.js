@@ -96,7 +96,9 @@ IPA.entity_factories.user = function() {
                 ['ou',
                  {
                      factory:IPA.entity_select_widget,
-                     name: 'manager', entity: 'user', field_name: 'uid'
+                     name: 'manager',
+                     other_entity: 'user',
+                     other_field: 'uid'
                  }
                 ]
             },
@@ -325,9 +327,7 @@ IPA.user_password_widget = function(spec) {
                 html: IPA.messages.objects.user.new_password
             }).appendTo(dl);
 
-            var dd = $('<dd/>', {
-                'class': 'first'
-            }).appendTo(dl);
+            var dd = $('<dd/>').appendTo(dl);
 
             dialog.password1 = $('<input/>', {
                 type: 'password'
@@ -337,9 +337,7 @@ IPA.user_password_widget = function(spec) {
                 html: IPA.messages.objects.user.repeat_password
             }).appendTo(dl);
 
-            dd = $('<dd/>', {
-                'class': 'first'
-            }).appendTo(dl);
+            dd = $('<dd/>').appendTo(dl);
 
             dialog.password2 = $('<input/>', {
                 type: 'password'

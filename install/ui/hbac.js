@@ -787,7 +787,7 @@ IPA.hbacrule_accesstime_widget = function(spec) {
         button.replaceWith(IPA.button({
             name: 'remove',
             'label': button.val(),
-            'icon': 'ui-icon-trash',
+            'icon': 'remove-icon',
             'click': function() { that.remove(that.container); }
         }));
 
@@ -795,7 +795,7 @@ IPA.hbacrule_accesstime_widget = function(spec) {
         button.replaceWith(IPA.button({
             name: 'add',
             'label': button.val(),
-            'icon': 'ui-icon-plus',
+            'icon': 'add-icon',
             'click': function() { that.add(that.container); }
         }));
 

@@ -49,9 +49,10 @@ IPA.entity_factories.config = function(){
                         'ipausersearchfields',
                         'ipadefaultemaildomain',
                         {
-                            factory:IPA.entity_select_widget,
+                            factory: IPA.entity_select_widget,
                             name: 'ipadefaultprimarygroup',
-                            entity: 'group'
+                            other_entity: 'group',
+                            other_field: 'cn'
                         },
                         'ipahomesrootdir',
                         'ipamaxusernamelength',

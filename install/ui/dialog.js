@@ -35,7 +35,7 @@ IPA.dialog = function(spec) {
     that.template = spec.template;
     that._entity_name = spec.entity_name;
 
-    that.width = spec.width || '400px';
+    that.width = spec.width || 400;
     that.height = spec.height;
 
     that.buttons = {};
@@ -375,7 +375,8 @@ IPA.adder_dialog = function (spec) {
 
     var that = IPA.dialog(spec);
 
-    that.width = spec.width || '600px';
+    that.width = spec.width || 600;
+    that.height = spec.height || 360;
 
     that.columns = $.ordered_map();
 
@@ -534,7 +535,6 @@ IPA.adder_dialog = function (spec) {
         that.find_button = IPA.button({
             name: 'find',
             'label': button.val(),
-            'icon': 'ui-icon-search',
             'click': function() { that.search(); }
         });
         button.replaceWith(that.find_button);

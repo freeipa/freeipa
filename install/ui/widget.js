@@ -227,6 +227,7 @@ IPA.widget = function(spec) {
     };
 
     that.create = function(container) {
+        container.addClass('widget');
         that.container = container;
     };
 
@@ -395,6 +396,10 @@ IPA.text_widget = function(spec) {
 
     that.create = function(container) {
 
+        that.widget_create(container);
+
+        container.addClass('text-widget');
+
         $('<label/>', {
             name: that.name,
             style: 'display: none;'
@@ -534,6 +539,10 @@ IPA.multivalued_text_widget = function(spec) {
     };
 
     that.create = function(container) {
+
+        that.widget_create(container);
+
+        container.addClass('multivalued-text-widget');
 
         var div = $('<div/>', {
             name: 'value'
@@ -766,6 +775,10 @@ IPA.checkbox_widget = function (spec) {
 
     that.create = function(container) {
 
+        that.widget_create(container);
+
+        container.addClass('checkbox-widget');
+
         $('<input/>', {
             type: 'checkbox',
             name: that.name,
@@ -832,6 +845,10 @@ IPA.checkboxes_widget = function (spec) {
     };
 
     that.create = function(container) {
+
+        that.widget_create(container);
+
+        container.addClass('checkboxes-widget');
 
         var vertical = that.direction === 'vertical';
 
@@ -920,6 +937,10 @@ IPA.radio_widget = function(spec) {
 
     that.create = function(container) {
 
+        that.widget_create(container);
+
+        container.addClass('radio-widget');
+
         for (var i=0; i<that.options.length; i++) {
             var option = that.options[i];
 
@@ -995,6 +1016,10 @@ IPA.select_widget = function(spec) {
     that.options = spec.options || [];
 
     that.create = function(container) {
+
+        that.widget_create(container);
+
+        container.addClass('select-widget');
 
         var select = $('<select/>', {
             name: that.name
@@ -1073,6 +1098,10 @@ IPA.textarea_widget = function (spec) {
     that.cols = spec.cols || 40;
 
     that.create = function(container) {
+
+        that.widget_create(container);
+
+        container.addClass('textarea-widget');
 
         $('<textarea/>', {
             name: that.name,
@@ -1251,6 +1280,8 @@ IPA.table_widget = function (spec) {
     that.create = function(container) {
 
         that.widget_create(container);
+
+        container.addClass('table-widget');
 
         that.table = $('<table/>', {
             'class': 'search-table'
@@ -1602,149 +1633,227 @@ IPA.table_widget = function (spec) {
     return that;
 };
 
-IPA.entity_select_widget = function(spec) {
+IPA.combobox_widget = function(spec) {
+
+    spec = spec || {};
 
     var that = IPA.widget(spec);
-    var entity = spec.entity || 'group';
-    var field_name = spec.field_name || 'cn';
-    var editable = spec.editable || false;
 
-    function populate_select(value) {
-        function find_success(result) {
-            $('option', that.entity_select).remove();
-
-            // add default empty value
-            $('<option/>', {
-                text: '',
-                value: ''
-            }).
-            appendTo(that.entity_select);
-
-            var entities = result.result.result;
-            for (var i =0; i < result.result.count; i +=1){
-                var entity = entities[i];
-                var field_array = entity[field_name];
-                var field_value = field_array[0];
-                var option =
-                    $('<option/>',{
-                        text:field_value,
-                        value:field_value
-                    }).
-                    appendTo(that.entity_select);
-                if (value === field_value){
-                    option.attr('selected','selected');
-                }
-            }
-            that.set_dirty(that.test_dirty());
-        }
-        function find_error(err){
-        }
-        IPA.command({
-            entity: entity,
-            method: 'find',
-            args:[that.entity_filter.val()],
-            options:{},
-            on_success:find_success,
-            on_error:find_error
-        }).execute();
-    }
+    that.editable = spec.editable;
+    that.searchable = spec.searchable;
+    that.list_size = spec.list_size || 5;
 
     that.create = function(container) {
 
-        if (editable){
-            that.edit_box = $('<input />',{
-                type: 'text',
-                title: that.tooltip,
-                name: that.name,
-                keyup:function(){
-                    that.validate();
-                }
-            });
+        that.widget_create(container);
 
-            $('<div style:"display=block;" />').
-                append(that.edit_box).
-                appendTo(container);
+        container.addClass('combobox-widget');
+
+        $(document).keyup(function(e) {
+            if (e.which == 27) { // Escape
+                that.close();
+            }
+        });
+
+        that.input_container = $('<div/>', {
+            'class': 'combobox-widget-input'
+        }).appendTo(container);
+
+        that.text = $('<label/>', {
+            name: that.name,
+            style: 'display: none;'
+        }).appendTo(that.input_container);
+
+        that.input = $('<input/>', {
+            type: 'text',
+            name: that.name,
+            title: that.tooltip,
+            readonly: !that.editable,
+            keyup: function() {
+                that.validate();
+            },
+            click: function() {
+                if (that.editable) return false;
+                if (that.is_open()) {
+                    that.close();
+                } else {
+                    that.open();
+                }
+                return false;
+            }
+        }).appendTo(that.input_container);
+
+        that.open_button = IPA.action_button({
+            name: 'open',
+            icon: 'combobox-icon',
+            click: function() {
+                if (that.is_open()) {
+                    that.close();
+                } else {
+                    that.open();
+                }
+                return false;
+            }
+        }).appendTo(that.input_container);
+
+        that.list_container = $('<div/>', {
+            'class': 'combobox-widget-list'
+        }).appendTo(that.input_container);
+
+        var div = $('<div/>', {
+            style: 'position: relative; width: 100%;'
+        }).appendTo(that.list_container);
+
+        if (that.searchable) {
+            that.filter = $('<input/>', {
+                type: 'text',
+                name: 'filter',
+                keypress: function(e) {
+                    if (e.which == 13) { // Enter
+                        that.search();
+                    }
+                }
+            }).appendTo(div);
+
+            that.search_button = IPA.action_button({
+                name: 'search',
+                icon: 'search-icon',
+                click: function() {
+                    that.search();
+                    return false;
+                }
+            }).appendTo(div);
+
+            div.append('<br/>');
+        }
+
+        that.list = $('<select/>', {
+            name: 'list',
+            size: that.list_size,
+            style: 'width: 100%',
+            click: function(){
+                that.close();
+                var value = $('option:selected', that.list).val();
+                that.input.val(value);
+                IPA.select_range(that.input, 0, 0);
+
+                that.validate();
+                that.set_dirty(that.test_dirty());
+            }
+        }).appendTo(div);
+
+        if (that.undo) {
+            container.append(' ');
+            that.create_undo(container);
+
+            var undo = that.get_undo();
+            undo.click(function() {
+                that.reset();
+            });
         }
 
         that.create_error_link(container);
 
-        that.entity_select = $('<select/>', {
-            id: that.name + '-entity-select',
-            change: function(){
-                that.validate();
-                if (editable){
-                    that.edit_box.val(
-                        $('option:selected', that.entity_select).val());
-                    IPA.select_range(that.edit_box,0,0);
-                }
-                that.set_dirty(that.test_dirty());
-            }
-        }).appendTo(container);
-
-        that.entity_filter = $('<input/>', {
-            size:10,
-            type: 'text',
-            id: 'entity_filter',
-            style: 'display: none;',
-            keyup: function(){
-                populate_select(current_value());
-            }
-        }).appendTo(container);
-
-        $('<a/>', {
-            href: '',
-            text: 'add ' +entity + ' filter: ',
-            click: function() {
-                that.entity_filter.css('display','inline');
-                $(this).css('display','none');
-                return false;
-            }
-        }).appendTo(container);
-
-        if (that.undo) {
-            that.create_undo(container);
-        }
-        var undo = that.get_undo();
-        undo.click(function() {
-            that.reset();
-        });
-
-        populate_select();
+        that.search();
     };
 
-    that.reset = function() {
-        that.entity_filter.val(that.values[0]);
-        populate_select(that.values[0]);
-        if (editable){
-            that.edit_box.val(that.values[0]);
-        }
-        that.validate();
-        that.set_dirty(false);
+    that.open = function() {
+        that.list_container.css('visibility', 'visible');
     };
 
-    that.load = function(record) {
-        var value = record[that.name];
-        if (value instanceof Array) {
-            that.values = value;
+    that.close = function() {
+        that.list_container.css('visibility', 'hidden');
+    };
+
+    that.is_open = function() {
+        return that.list_container.css('visibility') == 'visible';
+    };
+
+    that.search = function() {
+    };
+
+    that.update = function() {
+        that.close();
+        if (that.writable) {
+            that.text.css('display', 'none');
+            that.input.css('display', 'inline');
+            that.input.val(that.values[0]);
+            that.open_button.css('display', 'inline');
         } else {
-            that.values = value ? [value] : [''];
+            that.text.css('display', 'inline');
+            that.text.html(that.values[0]);
+            that.input.css('display', 'none');
+            that.open_button.css('display', 'none');
+            that.input.val(that.values[0]);
         }
-        that.reset();
+        if (that.searchable) {
+            that.filter.empty();
+            that.search();
+        }
     };
-
-    function current_value(){
-        var value;
-        if (editable){
-            value = that.edit_box.val();
-        }else{
-            value = $('option:selected', that.entity_select).val();
-        }
-        return value;
-    }
 
     that.save = function() {
-        var value = current_value();
-        return [value];
+        var value = that.input.val();
+        return value === '' ? [] : [value];
+    };
+
+    that.create_option = function(text, value) {
+        return $('<option/>', {
+            text: text,
+            value: value
+        }).appendTo(that.list);
+    };
+
+    that.remove_options = function() {
+        that.list.empty();
+    };
+
+    return that;
+};
+
+IPA.entity_select_widget = function(spec) {
+
+    spec = spec || {};
+    spec.searchable = spec.searchable === undefined ? true : spec.searchable;
+
+    var that = IPA.combobox_widget(spec);
+
+    that.other_entity = spec.other_entity;
+    that.other_field = spec.other_field;
+
+    that.search = function() {
+
+        var filter = that.filter.val();
+
+        var command = IPA.command({
+            entity: that.other_entity,
+            method: 'find',
+            args: [filter]
+        });
+
+        command.on_success = function(data, text_status, xhr) {
+
+            that.remove_options();
+
+            that.create_option();
+
+            var entries = data.result.result;
+            for (var i=0; i<data.result.count; i++) {
+                var entry = entries[i];
+                var values = entry[that.other_field];
+                var value = values[0];
+
+                var option = that.create_option(value, value);
+
+                if (filter === value) {
+                    option.attr('selected', 'selected');
+                }
+            }
+
+            that.set_dirty(that.test_dirty());
+        };
+
+        command.execute();
     };
 
     return that;
@@ -1759,9 +1868,8 @@ IPA.entity_link_widget = function(spec) {
     }
     that.other_pkeys = spec.other_pkeys || other_pkeys;
 
-    that.super_create = that.create;
     that.create = function(container) {
-        that.super_create(container);
+        that.widget_create(container);
         that.link =
         $('<a/>', {
             href: 'jslink',
@@ -1780,10 +1888,8 @@ IPA.entity_link_widget = function(spec) {
             appendTo(container);
     };
 
-    that.super_load = that.load;
-
     that.load = function (record){
-        that.super_load(record);
+        that.widget_load(record);
         if (that.values || that.values.length > 0){
             that.nonlink.html(that.values[0]);
             that.link.html(that.values[0]);

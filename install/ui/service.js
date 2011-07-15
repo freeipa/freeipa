@@ -72,7 +72,8 @@ IPA.entity_factories.service = function() {
         standard_association_facets().
         adder_dialog({
             factory: IPA.service_add_dialog,
-            width: '450px'
+            width: 450,
+            height: 300
         }).
         build();
 };
@@ -121,8 +122,8 @@ IPA.service_add_dialog = function(spec) {
         })).
         field(IPA.entity_select_widget({
             name: 'host',
-            field_name: 'fqdn',
-            entity: 'host',
+            other_entity: 'host',
+            other_field: 'fqdn',
             label: IPA.messages.objects.service.host,
             undo: false
         })).

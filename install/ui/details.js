@@ -26,8 +26,8 @@
 
 /* REQUIRES: ipa.js */
 
-IPA.expanded_icon = 'ui-icon-expanded';
-IPA.collapsed_icon = 'ui-icon-collapsed';
+IPA.expanded_icon = 'expanded-icon';
+IPA.collapsed_icon = 'collapsed-icon';
 
 IPA.details_section = function(spec) {
 
@@ -111,8 +111,11 @@ IPA.details_section = function(spec) {
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
 
-            var span = $('<span/>', { 'name': field.name }).appendTo(container);
-            field.create(span);
+            var field_container = $('<div/>', {
+                name: field.name,
+                'class': 'details-field'
+            }).appendTo(container);
+            field.create(field_container);
         }
     };
 
@@ -126,8 +129,8 @@ IPA.details_section = function(spec) {
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
 
-            var span = $('span[name='+field.name+']', this.container).first();
-            field.setup(span);
+            var field_container = $('.details-field[name='+field.name+']', this.container).first();
+            field.setup(field_container);
         }
     };
 
@@ -245,12 +248,13 @@ IPA.details_list_section = function(spec) {
                 title: label
             }).appendTo(dl);
 
-            var dd = $('<dd/>', {
-                'class': 'first'
-            }).appendTo(dl);
+            var dd = $('<dd/>').appendTo(dl);
 
-            var span = $('<span/>', { 'name': field.name }).appendTo(dd);
-            field.create(span);
+            var field_container = $('<div/>', {
+                name: field.name,
+                'class': 'details-field'
+            }).appendTo(dd);
+            field.create(field_container);
         }
     };
 
@@ -437,7 +441,7 @@ IPA.details_facet = function(spec) {
 
             var icon = $('<span/>', {
                 name: 'icon',
-                'class': 'ui-icon section-expand '+IPA.expanded_icon
+                'class': 'icon section-expand '+IPA.expanded_icon
             }).appendTo(header);
 
             header.append(' ');
@@ -680,23 +684,26 @@ IPA.button = function(spec) {
         id: spec.id,
         name: spec.name,
         href: spec.href || '#' + (spec.name || 'button'),
-        html: spec.label,
         title: spec.title || spec.label,
-        'class': 'ui-state-default ui-corner-all',
-        style: spec.style
+        'class': 'ui-state-default ui-corner-all input_link',
+        style: spec.style,
+        click: spec.click,
+        blur: spec.blur
     });
 
-    if (spec.click) {
-        button.click(spec.click);
-    }
-
     if (spec['class']) button.addClass(spec['class']);
-    button.addClass('input_link');
 
     if (spec.icon) {
-        button.prepend('<span class="ui-icon '+spec.icon+'" ></span> ');
-    } else {
-        button.addClass('button-without-icon');
+        $('<span/>', {
+            'class': 'icon '+spec.icon
+        }).appendTo(button);
+    }
+
+    if (spec.label) {
+        $('<span/>', {
+            'class': 'button-label',
+            html: spec.label
+        }).appendTo(button);
     }
 
     return button;

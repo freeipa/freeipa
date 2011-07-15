@@ -50,7 +50,8 @@ IPA.entity_factories.permission = function() {
             }]}).
         standard_association_facets().
         adder_dialog({
-            height: '400',
+            width: 500,
+            height: 400,
             fields:[
                 'cn',
                 {
@@ -165,12 +166,16 @@ IPA.entity_factories.delegation = function() {
                 fields:[
                     'aciname',
                     {
-                        factory:IPA.entity_select_widget,
-                        name: 'group', entity: 'group'
+                        factory: IPA.entity_select_widget,
+                        name: 'group',
+                        other_entity: 'group',
+                        other_field: 'cn'
                     },
                     {
-                        factory:IPA.entity_select_widget,
-                        name: 'memberof', entity: 'group',
+                        factory: IPA.entity_select_widget,
+                        name: 'memberof',
+                        other_entity: 'group',
+                        other_field: 'cn',
                         join: true
                     },
                     {
@@ -183,13 +188,19 @@ IPA.entity_factories.delegation = function() {
             fields:[
                 'aciname',
                 {
-                    factory:IPA.entity_select_widget,
-                    name: 'group', entity: 'group', undo: false
+                    factory: IPA.entity_select_widget,
+                    name: 'group',
+                    other_entity: 'group',
+                    other_field: 'cn',
+                    undo: false
                 },
                 {
-                    factory:IPA.entity_select_widget,
-                    name: 'memberof', entity: 'group',
-                    join: true, undo: false
+                    factory: IPA.entity_select_widget,
+                    name: 'memberof',
+                    other_entity: 'group',
+                    other_field: 'cn',
+                    join: true,
+                    undo: false
                 },
                 {
                     factory:IPA.attributes_widget,
@@ -402,8 +413,12 @@ IPA.target_section = function(spec) {
         cols: 30, rows: 1,
         undo: that.undo
     });
-    that.group_select = IPA.entity_select_widget(
-        {name: 'targetgroup', entity:'group', undo: that.undo});
+    that.group_select = IPA.entity_select_widget({
+        name: 'targetgroup',
+        other_entity: 'group',
+        other_field: 'cn',
+        undo: that.undo
+    });
     that.type_select = IPA.select_widget({name: 'type', undo: that.undo});
     that.attribute_table = IPA.attributes_widget({
         name: 'attrs', undo: that.undo});
@@ -506,7 +521,7 @@ IPA.target_section = function(spec) {
                 that.group_select.create(span);
             },
             load: function(record){
-                that.group_select.entity_select.val(record.targetgroup);
+                that.group_select.list.val(record.targetgroup);
             },
             save: function(record){
                 record.targetgroup = that.group_select.save()[0];

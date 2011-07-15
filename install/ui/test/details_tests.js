@@ -98,14 +98,14 @@ test("Testing IPA.details_section.create().", function() {
             'Checking field '+field.name+'\'s label'
         );
 
-        var span = $('span[name='+field.name+']', dl);
+        var field_container = $('.details-field[name='+field.name+']', dl);
 
         ok(
-            span.length,
-            'Checking span tag for field '+field.name
+            field_container.length,
+            'Checking container tag for field '+field.name
         );
 
-        var dd = $('dd', span);
+        var dd = $('dd', field_container);
 
         ok(
             dd.length == 0,
@@ -316,9 +316,9 @@ test("Testing IPA.details_section_setup again()",function(){
         '3 dd'
     );
 
-    var span = $('span[name="cn"]', dd[0]);
+    var field_container = $('.details-field[name="cn"]', dd[0]);
     same(
-        span.length, 1,
-        '1 span'
+        field_container.length, 1,
+        '1 field container'
     );
 });

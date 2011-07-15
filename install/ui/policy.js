@@ -46,12 +46,15 @@ IPA.entity_factories.pwpolicy = function() {
         adder_dialog({
             fields:[
                 {
-                    factory:IPA.entity_select_widget,
+                    factory: IPA.entity_select_widget,
                     name: 'cn',
-                    entity: 'group',
+                    other_entity: 'group',
+                    other_field: 'cn',
                     undo: false
                 },
-                'cospriority']
+                'cospriority'],
+            width: 400,
+            height: 250
         }).
         build();
 };

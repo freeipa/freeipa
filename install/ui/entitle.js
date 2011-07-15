@@ -337,7 +337,7 @@ IPA.entitle.details_facet = function(spec) {
         that.register_online_button = IPA.action_button({
             name: 'register',
             label: IPA.messages.objects.entitle.register,
-            icon: 'ui-icon-plus',
+            icon: 'add-icon',
             click: function() {
                 var dialog = that.entity.get_dialog('online_registration');
                 dialog.open(that.container);
@@ -350,7 +350,7 @@ IPA.entitle.details_facet = function(spec) {
         that.register_offline_button = IPA.action_button({
             name: 'import',
             label: IPA.messages.objects.entitle.import,
-            icon: 'ui-icon-plus',
+            icon: 'add-icon',
             click: function() {
                 var dialog = that.entity.get_dialog('offline_registration');
                 dialog.open(that.container);
@@ -426,7 +426,7 @@ IPA.entitle.search_facet = function(spec) {
         that.consume_button = IPA.action_button({
             name: 'consume',
             label: IPA.messages.objects.entitle.consume,
-            icon: 'ui-icon-plus',
+            icon: 'add-icon',
             click: function() {
                 var dialog = that.entity.get_dialog('consume');
                 dialog.open(that.container);
@@ -439,7 +439,7 @@ IPA.entitle.search_facet = function(spec) {
         that.import_button = IPA.action_button({
             name: 'import',
             label: IPA.messages.objects.entitle.import_button,
-            icon: 'ui-icon-plus',
+            icon: 'add-icon',
             click: function() {
                 var dialog = that.entity.get_dialog('import');
                 dialog.open(that.container);

@@ -134,7 +134,7 @@ test("Testing aci grouptarget.", function() {
     var selected = $(target_section.type_select+":selected");
 
     same(selected.val(), 'targetgroup' , 'group control selected');
-    ok ($('#targetgroup-entity-select option').length > 2,
+    ok ($('option', selected.group_select).length > 2,
         'group select populated');
 
 });

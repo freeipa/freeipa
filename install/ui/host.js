@@ -102,13 +102,14 @@ IPA.entity_factories.host = function () {
         }).
         standard_association_facets().
         adder_dialog({
-            width:500,
+            width: 400,
+            height: 250,
             fields:[
                 {
-                    factory:IPA.entity_select_widget,
+                    factory: IPA.entity_select_widget,
                     name: 'fqdn',
-                    field_name:'idnsname',
-                    entity: 'dnszone',
+                    other_entity: 'dnszone',
+                    other_field: 'idnsname',
                     label: IPA.messages.objects.service.host,
                     editable: true,
                     undo: false
