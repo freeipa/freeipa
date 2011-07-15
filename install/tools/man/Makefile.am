@@ -8,6 +8,7 @@ man1_MANS = 				\
 	ipa-replica-conncheck.1		\
 	ipa-replica-install.1		\
 	ipa-replica-manage.1		\
+	ipa-csreplica-manage.1		\
 	ipa-replica-prepare.1		\
 	ipa-server-certinstall.1	\
 	ipa-server-install.1		\

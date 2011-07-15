@@ -1,0 +1,93 @@
+.\" A man page for ipa-csreplica-manage
+.\" Copyright (C) 2011 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\"
+.TH "ipa-replica-manage" "1" "Jul 14 2011" "freeipa" ""
+.SH "NAME"
+ipa\-replica\-manage \- Manage an IPA CS replica
+.SH "SYNOPSIS"
+ipa\-replica\-manage [\fIOPTION\fR]...  [connect|disconnect|del|list|re\-initialize|force\-sync]
+.SH "DESCRIPTION"
+Manages the CA replication agreements of an IPA server.
+.TP
+\fBconnect\fR [SERVER_A] <SERVER_B>
+\- Adds a new replication agreement between SERVER_A/localhost and SERVER_B
+.TP
+\fBdisconnect\fR [SERVER_A] <SERVER_B>
+\- Removes a replication agreement between SERVER_A/localhost and SERVER_B
+.TP
+\fBdel\fR <SERVER>
+\- Removes all replication agreements and data about SERVER
+.TP
+\fBlist\fR [SERVER]
+\- Lists all the servers or the list of agreements of SERVER
+.TP
+\fBre\-initialize\fR
+\- Forces a full re\-initialization of the IPA CA server retrieving data from the server specified with the \-\-from option
+.TP
+\fBforce\-sync\fR
+\- Immediately flush any data to be replicated from a server specified with the \-\-from option
+.TP
+The connect and disconnect options are used to manage the replication topology. When a replica is created it is only connected with the master that created it. The connect option may be used to connect it to other existing replicas.
+.TP
+The disconnect option cannot be used to remove the last link of a replica. To remove a replica from the topology use the del option.
+.TP
+If a replica is deleted and then re\-added within a short time-frame then the 389\-ds instance on the master that created it should be restarted before re\-installing the replica. The master will have the old service principals cached which will cause replication to fail.
+.SH "OPTIONS"
+.TP
+\fB\-H\fR \fIHOST\fR, \fB\-\-host\fR=\fIHOST\fR
+The IPA server to manage.
+The default is the machine on which the command is run
+Not honoured by the re\-initialize command.
+.TP
+\fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
+The Directory Manager password to use for authentication
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+Provide additional information
+.TP
+\fB\-f\fR, \fB\-\-force\fR
+Ignore some types of errors
+.TP
+\fB\-\-from\fR=\fISERVER\fR
+The server to pull the data from, used by the re\-initialize and force\-sync commands.
+.SH "EXAMPLES"
+.TP
+List a server's replication agreements.
+ # ipa\-csreplica\-manage list srv1.example.com
+ srv2.example.com
+ srv3.example.com
+.TP
+Re\-initialize a replica:
+ # ipa\-csreplica\-manage re\-initialize \-\-from srv2.example.com
+
+This will re\-initialize the data on the server where you execute the command, retrieving the data from the srv2.example.com replica
+.TP
+Add a new replication agreement:
+ # ipa\-csreplica\-manage connect srv2.example.com srv4.example.com
+.TP
+Remove an existing replication agreement:
+ # ipa\-csreplica\-manage disconnect srv1.example.com srv3.example.com
+.TP
+Completely remove a replica:
+ # ipa\-csreplica\-manage del srv4.example.com
+.TP
+Using connect/disconnect you can manage the replication topology.
+.SH "EXIT STATUS"
+0 if the command was successful
+.TP
+1 if an error occurred
