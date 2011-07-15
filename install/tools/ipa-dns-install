@@ -145,25 +145,19 @@ def main():
         print ""
 
     # Create a BIND instance
-    bind = bindinstance.BindInstance(fstore, options.dm_password)
+    if options.unattended and not options.dm_password:
+        sys.exit("\nIn unattended mode you need to provide at least the -p option")
 
-    valid_password = False
-    while not valid_password:
-        # try the connection
-        try:
-            bind.ldap_connect()
-            bind.ldap_disconnect()
-            valid_password = True
-        except ldap.LOCAL_ERROR, e:
-            if not bind.dm_password:
-                if options.unattended:
-                    sys.exit("\nIn unattended mode you need to provide at least the -p option")
-                else:
-                    bind.dm_password = read_password("Directory Manager", confirm=False, validate=False)
-        except ldap.INVALID_CREDENTIALS, e:
-            if options.unattended:
-                sys.exit("\nPassword is not valid!")
-            bind.dm_password = read_password("Directory Manager", confirm=False, validate=False)
+    dm_password = options.dm_password or read_password("Directory Manager",
+                                             confirm=False, validate=False)
+    bind = bindinstance.BindInstance(fstore, dm_password)
+
+    # try the connection
+    try:
+        bind.ldap_connect()
+        bind.ldap_disconnect()
+    except ldap.INVALID_CREDENTIALS, e:
+        sys.exit("Password is not valid!")
 
     if bind.dm_password:
         api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=bind.dm_password)
