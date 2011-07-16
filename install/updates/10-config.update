@@ -3,3 +3,8 @@
 # upgrading.
 dn: cn=config
 only:nsslapd-ssl-check-hostname: on
+
+# Set the precedence of the ipa-modrdn plugin so it runs after other
+# plugins (the default is 50).
+dn: cn=Kerberos Principal Name,cn=IPA MODRDN,cn=plugins,cn=config
+only: nsslapd-pluginPrecedence: 60
