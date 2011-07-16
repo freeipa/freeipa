@@ -846,7 +846,7 @@ class CAInstance(service.Service):
         ('usertype', "agentType"),
         ('userstate', "1"),
         ('userCertificate', decoded),
-        ('description', '2;%s;CN=Certificate Authority,%s;CN=RA Subsystem,%s' % (str(self.requestId), self.subject_base, self.subject_base)),]
+        ('description', '2;%s;CN=Certificate Authority,%s;CN=IPA RA,%s' % (str(self.requestId), self.subject_base, self.subject_base)),]
 
         ld.add_s(entry_dn, entry)
 
@@ -964,7 +964,7 @@ class CAInstance(service.Service):
 
         # Generate our CSR. The result gets put into stdout
         try:
-            (stdout, stderr, returncode) = self.__run_certutil(["-R", "-k", "rsa", "-g", "2048", "-s", "CN=RA Subsystem,%s" % self.subject_base, "-z", noise_name, "-a"])
+            (stdout, stderr, returncode) = self.__run_certutil(["-R", "-k", "rsa", "-g", "2048", "-s", "CN=IPA RA,%s" % self.subject_base, "-z", noise_name, "-a"])
         finally:
             os.remove(noise_name)
 
