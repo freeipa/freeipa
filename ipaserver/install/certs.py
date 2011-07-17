@@ -914,7 +914,7 @@ class CertDB(object):
         self.export_ca_cert(self.cacert_name, True)
         self.create_pin_file()
 
-    def create_from_cacert(self, cacert_fname, passwd=""):
+    def create_from_cacert(self, cacert_fname, passwd=None):
         if ipautil.file_exists(self.certdb_fname):
             # We already have a cert db, see if it is for the same CA.
             # If it is we leave things as they are.
