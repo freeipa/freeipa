@@ -112,13 +112,11 @@ def main():
         ip = options.ip_address
     else:
         hostaddr = resolve_host(api.env.host)
-        ip = hostaddr and ipautil.CheckedIPAddress(hostaddr)
-
-    try:
-        verify_ip_address(ip)
-    except Exception, e:
-        print "Error: Invalid IP Address %s: %s" % (ip, e)
-        ip = None
+        try:
+            ip = hostaddr and ipautil.CheckedIPAddress(hostaddr, match_local=True)
+        except Exception, e:
+            print "Error: Invalid IP Address %s: %s" % (ip, e)
+            ip = None
 
     if not ip:
         if options.unattended:

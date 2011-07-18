@@ -186,7 +186,7 @@ def install_bind(config, options):
     ip_address = resolve_host(config.host_name)
     if not ip_address:
         sys.exit("Unable to resolve IP address for host name")
-    ip = installutils.parse_ip_address(ip_address)
+    ip = ipautil.CheckedIPAddress(ip_address, match_local=True)
     ip_address = str(ip)
 
     if options.reverse_zone:
@@ -225,7 +225,7 @@ def install_dns_records(config, options):
     ip_address = resolve_host(config.host_name)
     if not ip_address:
         sys.exit("Unable to resolve IP address for host name")
-    ip = installutils.parse_ip_address(ip_address)
+    ip = ipautil.CheckedIPAddress(ip_address, match_local=True)
     ip_address = str(ip)
     reverse_zone = bindinstance.find_reverse_zone(ip)
 

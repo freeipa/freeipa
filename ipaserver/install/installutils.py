@@ -163,15 +163,6 @@ def verify_fqdn(host_name,no_host_dns=False):
     else:
         print "Warning: Hostname (%s) not found in DNS" % host_name
 
-def parse_ip_address(addr, match_local=True, parse_netmask=True):
-    ip = ipautil.CheckedIPAddress(addr, match_local=match_local, parse_netmask=parse_netmask)
-    if match_local and not ip.is_local():
-        print "Warning: No network interface matches IP address %s" % addr
-    return ip
-
-def verify_ip_address(addr, match_local=True, parse_netmask=True):
-    ip = parse_ip_address(addr, match_local, parse_netmask)
-
 def record_in_hosts(ip, host_name, file="/etc/hosts"):
     hosts = open(file, 'r').readlines()
     for line in hosts:
@@ -204,7 +195,7 @@ def read_ip_address(host_name, fstore):
     while True:
         ip = ipautil.user_input("Please provide the IP address to be used for this host name", allow_empty = False)
         try:
-            ip_parsed = parse_ip_address(ip)
+            ip_parsed = ipautil.CheckedIPAddress(ip, match_local=True)
         except Exception, e:
             print "Error: Invalid IP Address %s: %s" % (ip, e)
             continue
@@ -229,7 +220,7 @@ def read_dns_forwarders():
             if not ip:
                 break
             try:
-                ip_parsed = parse_ip_address(ip, match_local=False, parse_netmask=False)
+                ip_parsed = ipautil.CheckedIPAddress(ip, parse_netmask=False)
             except Exception, e:
                 print "Error: Invalid IP Address %s: %s" % (ip, e)
                 print "DNS forwarder %s not added" % ip
