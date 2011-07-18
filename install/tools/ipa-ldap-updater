@@ -85,9 +85,7 @@ def main():
         loglevel = logging.DEBUG
 
     if os.getegid() == 0:
-        fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
-        if not fstore.has_files():
-            sys.exit("IPA is not configured on this system.")
+        installutils.check_server_configuration()
     elif not os.path.exists('/etc/ipa/default.conf'):
         sys.exit("IPA is not configured on this system.")
 
@@ -149,8 +147,7 @@ except BadSyntax, e:
     print "  %s" % e
     sys.exit(1)
 except RuntimeError, e:
-    print "%s" % e
-    sys.exit(1)
+    sys.exit(e)
 except SystemExit, e:
     sys.exit(e)
 except KeyboardInterrupt, e:

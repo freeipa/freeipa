@@ -412,6 +412,11 @@ def force_sync(realm, thishost, fromhost, dirman_passwd):
     repl.force_sync(repl.conn, thishost)
 
 def main():
+    if os.getegid() == 0:
+        installutils.check_server_configuration()
+    elif not os.path.exists('/etc/ipa/default.conf'):
+        sys.exit("IPA is not configured on this system.")
+
     options, args = parse_options()
 
     # Just initialize the environment. This is so the installer can have
@@ -479,6 +484,8 @@ try:
 except KeyboardInterrupt:
     sys.exit(1)
 except SystemExit, e:
+    sys.exit(e)
+except RuntimeError, e:
     sys.exit(e)
 except ldap.INVALID_CREDENTIALS:
     print "Invalid password"

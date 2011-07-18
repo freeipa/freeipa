@@ -32,8 +32,7 @@ import time
 import tempfile
 from ConfigParser import SafeConfigParser
 
-from ipapython import ipautil
-from ipapython import dnsclient
+from ipapython import ipautil, dnsclient, sysrestore
 
 class HostnameLocalhost(Exception):
     pass
@@ -501,3 +500,19 @@ def read_replica_info(dir, rconfig):
     rconfig.domain_name = config.get("realm", "domain_name")
     rconfig.host_name = config.get("realm", "destination_host")
     rconfig.subject_base = config.get("realm", "subject_base")
+
+def check_server_configuration():
+    """
+    Check if IPA server is configured on the system.
+
+    This is done by checking if there are system restore (uninstall) files
+    present on the system. Note that this check can only be run with root
+    privileges.
+
+    When IPA is not configured, this function raises a RuntimeError exception.
+    Most convenient use case for the function is in install tools that require
+    configured IPA for its function.
+    """
+    server_fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+    if not server_fstore.has_files():
+        raise RuntimeError("IPA is not configured on this system.")

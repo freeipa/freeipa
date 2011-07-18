@@ -32,6 +32,7 @@ from ipapython.ipautil import user_input
 from ipaserver.install import certs, dsinstance, httpinstance, installutils
 from ipalib import api
 from ipaserver.plugins.ldap2 import ldap2
+from ipaserver.install import installutils
 
 def get_realm_name():
     c = krbV.default_context()
@@ -120,6 +121,8 @@ def import_cert(dirname, pkcs12_fname, pkcs12_passwd, db_password):
     return server_cert
 
 def main():
+    installutils.check_server_configuration()
+
     options, pkcs12_fname = parse_options()
 
     cfg = dict(in_server=True,)
@@ -160,4 +163,12 @@ def main():
 
     return 0
 
-sys.exit(main())
+try:
+    if not os.geteuid()==0:
+        sys.exit("\nYou must be root to run this script.\n")
+
+    main()
+except SystemExit, e:
+    sys.exit(e)
+except RuntimeError, e:
+    sys.exit(e)

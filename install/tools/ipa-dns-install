@@ -24,6 +24,7 @@ import traceback
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import bindinstance, ntpinstance
 from ipaserver.install.installutils import *
+from ipaserver.install import installutils
 from ipapython import version
 from ipapython import ipautil, sysrestore
 from ipalib import api, errors, util
@@ -67,6 +68,8 @@ def main():
 
     if os.getegid() != 0:
         sys.exit("Must be root to setup server")
+
+    installutils.check_server_configuration()
 
     standard_logging_setup("/var/log/ipaserver-install.log", options.debug, filemode='a')
     print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
