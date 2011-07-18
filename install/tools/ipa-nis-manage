@@ -87,6 +87,8 @@ def main():
     if os.getegid() != 0:
         sys.exit('Must be root to use this tool.')
 
+    installutils.check_server_configuration()
+
     options, args = parse_options()
     if options.debug:
         loglevel = logging.DEBUG

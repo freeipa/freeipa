@@ -35,6 +35,7 @@ try:
 
     from ipaserver.plugins.ldap2 import ldap2
     from ipalib import api, errors, backend
+    from ipaserver.install import installutils
 except ImportError, e:
     # If python-rhsm isn't installed exit gracefully and quietly.
     if e.args[0] == 'No module named rhsm.certificate':
@@ -165,8 +166,7 @@ def check_compliance(tmpdir, debug=False):
             print 'IPA is in compliance: %d of %d entitlements used.' % (hostcount, available)
 
 def main():
-    if os.getegid() != 0:
-        sys.exit("Must be root to check compliance")
+    installutils.check_server_configuration()
 
     if not os.path.exists('/etc/ipa/default.conf'):
         return 0
@@ -189,4 +189,12 @@ def main():
 
     return 0
 
-sys.exit(main())
+try:
+    if not os.geteuid()==0:
+        sys.exit("\nMust be root to check compliance\n")
+
+    main()
+except SystemExit, e:
+    sys.exit(e)
+except RuntimeError, e:
+    sys.exit(e)

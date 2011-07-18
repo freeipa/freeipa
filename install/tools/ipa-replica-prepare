@@ -65,6 +65,7 @@ def parse_options():
                       default=True, help="disables pkinit setup steps")
 
     options, args = parser.parse_args()
+    config.init_config()
 
     if not options.ip_address:
         if options.reverse_zone:
@@ -230,6 +231,7 @@ def get_dirman_password():
     return installutils.read_password("Directory Manager (existing master)", confirm=False, validate=False)
 
 def main():
+    installutils.check_server_configuration()
     if not check_replication_plugin():
         sys.exit(1)
     options, args = parse_options()
@@ -459,6 +461,8 @@ try:
 
     main()
 except SystemExit, e:
+    sys.exit(e)
+except RuntimeError, e:
     sys.exit(e)
 except Exception, e:
     print "preparation of replica failed: %s" % str(e)
