@@ -83,7 +83,8 @@ def check_replication_plugin():
     """
     if not os.path.exists('/usr/lib/dirsrv/plugins/libreplication-plugin.so') and \
        not os.path.exists('/usr/lib64/dirsrv/plugins/libreplication-plugin.so'):
-        print "The 389-ds replication plug-in was not found on this system"
+        print "The 389-ds replication plug-in was not found on this system."
+        print "Please install the 'ds-replication' package and start the installation again"
         return False
 
     return True
