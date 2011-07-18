@@ -61,7 +61,6 @@ def parse_options():
                       default=True, help="disables pkinit setup steps")
 
     options, args = parser.parse_args()
-    config.init_config()
 
     # If any of the PKCS#12 options are selected, all are required. Create a
     # list of the options and count it to enforce that all are required without
