@@ -141,8 +141,7 @@ class LDAPUpdate:
     def __unicode_csv_reader(self, unicode_csv_data, quote_char="'", dialect=csv.excel, **kwargs):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
         csv_reader = csv.reader(self.__utf_8_encoder(unicode_csv_data),
-                                dialect=dialect,
-                                delimiter=',', escapechar='\\',
+                                dialect=dialect, delimiter=',',
                                 quotechar=quote_char,
                                 skipinitialspace=True,
                                 **kwargs)
