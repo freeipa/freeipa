@@ -185,21 +185,6 @@ def main():
                 print lde
                 retval = 1
 
-            # delete the netgroups compat area.
-            try:
-                conn.delete_entry('cn=ng,cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
-            except errors.NotFound:
-                pass
-            except errors.DatabaseError, dbe:
-                print "An error occurred while talking to the server."
-                print dbe
-                retval = 1
-            except errors.ExecutionError, lde:
-                print "An error occurred while talking to the server."
-                print lde
-                retval = 1
-
-
         else:
             retval = 1
 
