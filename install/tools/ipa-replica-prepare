@@ -65,7 +65,6 @@ def parse_options():
                       default=True, help="disables pkinit setup steps")
 
     options, args = parser.parse_args()
-    config.init_config()
 
     if not options.ip_address:
         if options.reverse_zone:
