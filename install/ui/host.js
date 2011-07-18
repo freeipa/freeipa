@@ -37,20 +37,20 @@ IPA.entity_factories.host = function () {
         }).
         details_facet({sections:[
             {
-                name:'details',
+                name: 'details',
                 fields: [
-                    { factory: IPA.host_dnsrecord_entity_link_widget,
-                      name: 'fqdn',
-                      other_entity:'dnsrecord'
+                    {
+                        factory: IPA.host_dnsrecord_entity_link_widget,
+                        name: 'fqdn',
+                        other_entity:'dnsrecord'
                     },
                     'krbprincipalname',
-                    {
-                        factory: IPA.text_widget,
-                        name: 'cn',
-                        label: IPA.messages.objects.host.cn,
-                        read_only: true
-                    },
-                    'description' ]
+                    'description',
+                    'l',
+                    'nshostlocation',
+                    'nshardwareplatform',
+                    'nsosversion'
+                ]
             },
             {
                 name:'enrollment',
