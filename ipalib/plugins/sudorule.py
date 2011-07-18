@@ -503,8 +503,8 @@ class sudorule_remove_runasuser(LDAPRemoveMember):
         # Run through the user failures and gracefully remove any defined as
         # as an externaluser.
         if 'ipasudorunas' in failed and 'user' in failed['ipasudorunas']:
-            (dn, entry_attrs) = ldap.get_entry(dn, ['ipasudorunasextuser'])
-            external_users = entry_attrs.get('ipasudorunasextuser', [])
+            (dn, entry_attrs_) = ldap.get_entry(dn, ['ipasudorunasextuser'])
+            external_users = entry_attrs_.get('ipasudorunasextuser', [])
             failed_users = []
             completed_external = 0
             for user in failed['ipasudorunas']['user']:
@@ -573,8 +573,8 @@ class sudorule_remove_runasgroup(LDAPRemoveMember):
         # Run through the group failures and gracefully remove any defined as
         # as an external group.
         if 'ipasudorunasgroup' in failed and 'group' in failed['ipasudorunasgroup']:
-            (dn, entry_attrs) = ldap.get_entry(dn, ['ipasudorunasextgroup'])
-            external_groups = entry_attrs.get('ipasudorunasextgroup', [])
+            (dn, entry_attrs_) = ldap.get_entry(dn, ['ipasudorunasextgroup'])
+            external_groups = entry_attrs_.get('ipasudorunasextgroup', [])
             failed_groups = []
             completed_external = 0
             for group in failed['ipasudorunasgroup']['group']:
