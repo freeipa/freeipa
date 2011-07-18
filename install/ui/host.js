@@ -106,10 +106,8 @@ IPA.entity_factories.host = function () {
             height: 250,
             fields:[
                 {
-                    factory: IPA.entity_select_widget,
+                    factory: IPA.dnszone_select_widget,
                     name: 'fqdn',
-                    other_entity: 'dnszone',
-                    other_field: 'idnsname',
                     label: IPA.messages.objects.service.host,
                     editable: true,
                     undo: false
@@ -127,6 +125,27 @@ IPA.entity_factories.host = function () {
         build();
 };
 
+IPA.dnszone_select_widget = function(spec) {
+
+    spec = spec || {};
+    spec.other_entity = 'dnszone';
+    spec.other_field = 'idnsname';
+
+    var that = IPA.entity_select_widget(spec);
+
+    that.create_search_command = function() {
+        return IPA.command({
+            entity: that.other_entity,
+            method: 'find',
+            args: [that.filter.val()],
+            options: {
+                forward_only: true
+            }
+        });
+    };
+
+    return that;
+};
 
 IPA.host_dnsrecord_entity_link_widget = function(spec){
     var that = IPA.entity_link_widget(spec);

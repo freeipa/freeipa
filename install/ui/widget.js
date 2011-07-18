@@ -1821,15 +1821,17 @@ IPA.entity_select_widget = function(spec) {
     that.other_entity = spec.other_entity;
     that.other_field = spec.other_field;
 
-    that.search = function() {
-
-        var filter = that.filter.val();
-
-        var command = IPA.command({
+    that.create_search_command = function() {
+        return IPA.command({
             entity: that.other_entity,
             method: 'find',
-            args: [filter]
+            args: [that.filter.val()]
         });
+    };
+
+    that.search = function() {
+
+        var command = that.create_search_command();
 
         command.on_success = function(data, text_status, xhr) {
 
@@ -1837,6 +1839,7 @@ IPA.entity_select_widget = function(spec) {
 
             that.create_option();
 
+            var filter = that.filter.val();
             var entries = data.result.result;
             for (var i=0; i<data.result.count; i++) {
                 var entry = entries[i];
