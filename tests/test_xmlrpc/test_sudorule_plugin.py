@@ -263,7 +263,7 @@ class test_sudorule(XMLRPC_test):
         assert ret['completed'] == 1
         failed = ret['failed']
         entry = ret['result']
-        assert 'externaluser' not in entry
+        assert entry['externaluser'] == ()
 
     def test_a_sudorule_add_runasexternaluser(self):
         """
@@ -289,7 +289,7 @@ class test_sudorule(XMLRPC_test):
         assert ret['completed'] == 1
         failed = ret['failed']
         entry = ret['result']
-        assert 'ipasudorunasextuser' not in entry
+        assert entry['ipasudorunasextuser'] == ()
 
     def test_a_sudorule_add_runasexternalgroup(self):
         """
@@ -317,7 +317,7 @@ class test_sudorule(XMLRPC_test):
         assert ret['completed'] == 1
         failed = ret['failed']
         entry = ret['result']
-        assert 'ipasudorunasextgroup' not in entry
+        assert entry['ipasudorunasextgroup'] == ()
 
     def test_a_sudorule_add_option(self):
         """
