@@ -550,6 +550,12 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
 
     domain.set_option('cache_credentials', True)
 
+    # SSSD will need TLS for checking if ipaMigrationEnabled attribute is set
+    # Note that SSSD will force StartTLS because the channel is later used for
+    # authentication as well if password migration is enabled. Thus set the option
+    # unconditionally.
+    domain.set_option('ldap_tls_cacert', '/etc/ipa/ca.crt')
+
     if options.dns_updates:
         domain.set_option('ipa_dyndns_update', True)
     if options.krb5_offline_passwords:
