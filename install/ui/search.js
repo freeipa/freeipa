@@ -182,16 +182,13 @@ IPA.search_facet = function(spec) {
         dialog.open(that.container);
     };
 
-
     that.remove = function() {
         that.remove_instances(that.managed_entity);
     };
 
-
     that.remove_instances = function(entity) {
 
         var values = that.get_values();
-        var label = entity.metadata.label;
 
         var title;
         if (!values.length) {
@@ -200,60 +197,21 @@ IPA.search_facet = function(spec) {
             return;
         }
 
+        var dialog = that.managed_entity.get_dialog('remove');
+
+        if (!dialog) {
+            dialog = IPA.search_deleter_dialog();
+        }
+
+        dialog.entity_name = entity.name;
+        dialog.entity = entity;
+        dialog.facet = that;
+
         title = IPA.messages.dialogs.remove_title;
-        title = title.replace('${entity}', label);
+        var label = entity.metadata.label;
+        dialog.title = title.replace('${entity}', label);
 
-        var dialog = IPA.deleter_dialog({
-            'title': title,
-            'parent': that.container,
-            'values': values,
-            entity_name: entity.name
-        });
-
-        dialog.execute = function() {
-
-            var batch = IPA.batch_command({
-                'on_success': function() {
-                    that.refresh();
-                    dialog.close();
-                },
-                'on_error': function() {
-                    that.refresh();
-                    dialog.close();
-                }
-            });
-
-            var pkeys =
-                entity.get_primary_key_prefix();
-
-            for (var i=0; i<values.length; i++) {
-                var command = IPA.command({
-                    entity: entity.name,
-                    method: 'del'
-                });
-
-                for (var k=0; k<pkeys.length; k++) {
-                    command.add_arg(pkeys[k]);
-                }
-                var value = values[i];
-                if (value instanceof Object){
-                    for (var key in value){
-                        if (value.hasOwnProperty(key)){
-                            if (key === 'pkey'){
-                                command.add_arg(value[key]);
-                            }else{
-                                command.set_option(key, value[key]);
-                            }
-                        }
-                    }
-                }else{
-                    command.add_arg(value);
-                }
-                batch.add_command(command);
-            }
-
-            batch.execute();
-        };
+        dialog.set_values(values);
 
         dialog.init();
 
@@ -339,6 +297,69 @@ IPA.search_facet = function(spec) {
     return that;
 };
 
+IPA.search_deleter_dialog = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.deleter_dialog(spec);
+
+    that.create_command = function() {
+        var batch = IPA.batch_command();
+
+        var pkeys = that.entity.get_primary_key_prefix();
+
+        for (var i=0; i<that.values.length; i++) {
+            var command = IPA.command({
+                entity: that.entity.name,
+                method: 'del'
+            });
+
+            for (var j=0; j<pkeys.length; j++) {
+                command.add_arg(pkeys[j]);
+            }
+
+            var value = that.values[i];
+            if (value instanceof Object) {
+                for (var key in value) {
+                    if (value.hasOwnProperty(key)) {
+                        if (key === 'pkey'){
+                            command.add_arg(value[key]);
+                        } else {
+                            command.set_option(key, value[key]);
+                        }
+                    }
+                }
+            } else {
+                command.add_arg(value);
+            }
+
+            batch.add_command(command);
+        }
+
+        return batch;
+    };
+
+    that.execute = function() {
+
+        var batch = that.create_command();
+
+        batch.on_success = function() {
+            that.facet.refresh();
+            that.close();
+        };
+
+        batch.on_error = function() {
+            that.facet.refresh();
+            that.close();
+        };
+
+        batch.execute();
+    };
+
+    that.search_deleter_dialog_create_command = that.create_command;
+
+    return that;
+};
 
 /*TODO.  this has much copied code from above.  Refactor the search_facet
 To either be nested or not nested. */

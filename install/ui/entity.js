@@ -974,6 +974,13 @@ IPA.entity_builder = function(){
         return that.dialog(spec);
     };
 
+    that.deleter_dialog = function(spec) {
+        spec.factory = spec.factory || IPA.search_deleter_dialog;
+        spec.name = spec.name || 'remove';
+
+        return that.dialog(spec);
+    };
+
     that.build = function(){
         var item = entity;
         entity = null;

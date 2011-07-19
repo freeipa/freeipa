@@ -122,7 +122,48 @@ IPA.entity_factories.host = function () {
                 }
             ]
         }).
+        deleter_dialog({
+            factory: IPA.host_deleter_dialog
+        }).
         build();
+};
+
+IPA.host_deleter_dialog = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.search_deleter_dialog(spec);
+
+    that.create = function() {
+
+        that.deleter_dialog_create();
+
+        var metadata = IPA.get_method_option('host_del', 'updatedns');
+
+        that.updatedns = $('<input/>', {
+            type: 'checkbox',
+            name: 'updatedns',
+            title: metadata.doc
+        }).appendTo(that.container);
+
+        that.container.append(' ');
+
+        that.container.append(metadata.doc);
+    };
+
+    that.create_command = function() {
+        var batch = that.search_deleter_dialog_create_command();
+        var updatedns = that.updatedns.is(':checked');
+
+        for (var i=0; i<batch.commands.length; i++) {
+            var command = batch.commands[i];
+            command.set_option('updatedns', updatedns);
+        }
+
+        return batch;
+    };
+
+    return that;
 };
 
 IPA.dnszone_select_widget = function(spec) {

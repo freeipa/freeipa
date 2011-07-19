@@ -631,7 +631,7 @@ IPA.deleter_dialog =  function (spec) {
     };
 
     that.set_values = function(values) {
-        that.values = that.values.concat(values);
+        that.values = values;
     };
 
     that.create = function() {
@@ -677,6 +677,8 @@ IPA.deleter_dialog =  function (spec) {
 
         that.dialog_open(container);
     };
+
+    that.deleter_dialog_create = that.create;
 
     return that;
 };
