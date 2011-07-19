@@ -512,9 +512,6 @@ class KrbInstance(service.Service):
         self.fstore.backup_file("/var/kerberos/krb5kdc/kpasswd.keytab")
         installutils.create_keytab("/var/kerberos/krb5kdc/kpasswd.keytab", "kadmin/changepw")
 
-        self.fstore.backup_file("/etc/sysconfig/ipa_kpasswd")
-        update_key_val_in_file("/etc/sysconfig/ipa_kpasswd", "export KRB5_KTNAME", "/var/kerberos/krb5kdc/kpasswd.keytab")
-
     def __setup_pkinit(self):
         if self.self_signed_ca:
             ca_db = certs.CertDB(self.realm,
