@@ -230,7 +230,7 @@ class netgroup_add_member(LDAPAddMember):
         # hosts that aren't stored in IPA, aka external hosts.
         if 'memberhost' in failed and 'host' in failed['memberhost']:
             (dn, entry_attrs_) = ldap.get_entry(dn, ['externalhost'])
-            members = entry_attrs.get('memberhost', [])
+            members = entry_attrs_.get('memberhost', [])
             external_hosts = entry_attrs_.get('externalhost', [])
             failed_hosts = []
             for host in failed['memberhost']['host']:
@@ -264,8 +264,8 @@ class netgroup_remove_member(LDAPRemoveMember):
         # Run through the host failures and gracefully remove any defined as
         # as an externalhost.
         if 'memberhost' in failed and 'host' in failed['memberhost']:
-            (dn, entry_attrs) = ldap.get_entry(dn, ['externalhost'])
-            external_hosts = entry_attrs.get('externalhost', [])
+            (dn, entry_attrs_) = ldap.get_entry(dn, ['externalhost'])
+            external_hosts = entry_attrs_.get('externalhost', [])
             failed_hosts = []
             completed_external = 0
             for host in failed['memberhost']['host']:
