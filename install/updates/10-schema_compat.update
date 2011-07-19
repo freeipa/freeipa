@@ -1,0 +1,2 @@
+dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
+replace: schema-compat-entry-attribute:'sudoRunAsGroup=%deref("ipaSudoRunAs","cn")::sudoRunAsGroup=%deref_f("ipaSudoRunAsGroup","(objectclass=posixGroup)","cn")'
