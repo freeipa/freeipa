@@ -45,7 +45,6 @@
 
 #define DEFAULT_KEYTAB "FILE:/var/kerberos/krb5kdc/kpasswd.keytab"
 #define TMP_TEMPLATE "/var/cache/ipa/kpasswd/krb5_cc.XXXXXX"
-#define KPASSWD_PORT 464
 
 /* blacklist entries are released only BLCAKLIST_TIMEOUT seconds
  * after the children performing the noperation has finished.
@@ -586,8 +585,17 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 			ber_tag_t rtag, btag;
 			ber_int_t bint;
 			rtag = ber_scanf(sctrl, "{t", &btag);
+			if (rtag == LBER_ERROR) {
+				syslog(LOG_ERR, "Could not decode the tag BER element");
+				goto done;
+			}
+
 			if (btag == LDAP_TAG_PWP_WARNING) {
 				rtag = ber_scanf(sctrl, "{ti}", &btag, &bint);
+				if (rtag == LBER_ERROR) {
+					syslog(LOG_ERR, "Could not decode the warning BER element");
+					goto done;
+				}
 				if (btag == LDAP_TAG_PWP_SECSLEFT) {
 					ret = asprintf(&exterr2, " (%d seconds left before password expires)", bint);
 				} else {
@@ -597,10 +605,16 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 					syslog(LOG_ERR, "OOM while creating error message ...");
 					exterr2 = NULL;
 				}
-				rtag = ber_scanf(sctrl, "t", &btag);
+				/* The next element might or might not be there (the control is a sequence) */
+				ber_scanf(sctrl, "t", &btag);
 			}
 			if (btag == LDAP_TAG_PWP_ERROR) {
 				rtag = ber_scanf(sctrl, "e", &bint);
+				if (rtag == LBER_ERROR) {
+					syslog(LOG_ERR, "Could not decode the error BER element");
+					goto done;
+				}
+
 				switch(bint) {
 				case 0:
 					ret = asprintf(&exterr1, " Err%d: Password Expired.", bint);
