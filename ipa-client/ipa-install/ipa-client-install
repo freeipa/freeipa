@@ -28,10 +28,11 @@ try:
     import logging
     import tempfile
     import getpass
+    import re
     from ipaclient import ipadiscovery
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
-    from ipapython.ipautil import run, user_input, CalledProcessError, file_exists
+    from ipapython.ipautil import run, user_input, CalledProcessError, file_exists, install_file
     from ipapython import ipautil
     from ipapython import dnsclient
     from ipapython import sysrestore
@@ -87,7 +88,9 @@ def parse_options():
     parser.add_option("", "--uninstall", dest="uninstall", action="store_true",
                       default=False, help="uninstall an existing installation")
     parser.add_option("", "--hostname", dest="hostname",
-                      help="The hostname of this server (FQDN). By default of nodename from uname(2) is used.")
+                      help="The hostname of this server (FQDN). If specified, the hostname will be set and "
+                           "the system configuration will be updated to persist over reboot. "
+                           "By default a nodename result from uname(2) is used.")
     parser.add_option("", "--enable-dns-updates", dest="dns_updates", action="store_true", default=False,
                       help="Configures the machine to attempt dns updates when the ip address changes.")
     parser.add_option("--no-krb5-offline-passwords", dest="krb5_offline_passwords", action="store_false",
@@ -236,6 +239,12 @@ def uninstall(options, env):
 
     print "Restoring client configuration files"
     fstore.restore_all_files()
+    old_hostname = statestore.restore_state('network','hostname')
+    if old_hostname is not None and old_hostname != hostname:
+        try:
+            ipautil.run(['/bin/hostname', old_hostname])
+        except CalledProcessError, e:
+            print >>sys.stderr, "Failed to set this machine hostname to %s (%s)." % (old_hostname, str(e))
 
     if ipautil.service_is_installed('nscd'):
         try:
@@ -520,6 +529,47 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options):
         except:
             print "certmonger request for host certificate failed"
 
+def backup_and_replace_hostname(fstore, hostname):
+    # TODO: this code is for Red Hat-based systems
+    #       it need to be rewritten for cross-paltform support
+    #       so that different configuration backends would be possible
+    #       (GNU/Debian stores this information in a different place)
+    network_filename = "/etc/sysconfig/network"
+    # Backup original /etc/sysconfig/network
+    fstore.backup_file(network_filename)
+    hostname_pattern = re.compile('''
+(^
+                        \s*
+        (?P<option>     [^\#;]+?)
+                        (\s*=\s*)
+        (?P<value>      .+?)?
+                        (\s*((\#|;).*)?)?
+$)''', re.VERBOSE)
+    temp_filename = None
+    with tempfile.NamedTemporaryFile(delete=False) as new_config:
+        temp_filename = new_config.name
+        with open(network_filename, 'r') as f:
+            for line in f:
+                new_line = line
+                m = hostname_pattern.match(line)
+                if m:
+                    option, value = m.group('option', 'value')
+                    if option is not None and option == 'HOSTNAME':
+                        if value is not None and hostname != value:
+                            new_line = u'HOSTNAME=%s' % (hostname)
+                            statestore.backup_state('network', 'hostname', value)
+                new_config.write(new_line)
+        new_config.flush()
+
+    # At this point new_config is closed but not removed due to 'delete=False' above
+    # Now, install the temporary file as configuration and ensure old version is available as .orig
+    # While .orig file is not used during uninstall, it is left there for administrator.
+    install_file(temp_filename, network_filename)
+    try:
+        ipautil.run(['/bin/hostname', hostname])
+    except CalledProcessError, e:
+        print >>sys.stderr, "Failed to set this machine hostname to %s (%s)." % (hostname, str(e))
+
 def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
     sssdconfig = SSSDConfig.SSSDConfig()
     sssdconfig.new_config()
@@ -679,6 +729,9 @@ def main():
     global fstore
     fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
 
+    global statestore
+    statestore = sysrestore.StateFile('/var/lib/ipa-client/sysrestore')
+
     if options.uninstall:
         return uninstall(options, env)
 
@@ -701,6 +754,10 @@ def main():
         hostname = socket.getfqdn()
     if hostname != hostname.lower():
         sys.exit('Invalid hostname \'%s\', must be lower-case.' % hostname)
+
+    if options.hostname:
+        # configure /etc/sysconfig/network to contain the hostname we set.
+        backup_and_replace_hostname(fstore, options.hostname)
 
     # Create the discovery instance
     ds = ipadiscovery.IPADiscovery()
@@ -940,8 +997,8 @@ def main():
             if not options.sssd:
                 print >>sys.stderr, "Failed to configure automatic startup of the NSCD daemon"
                 print >>sys.stderr, "Caching of users/groups will not be available after reboot"
-	    else:
-		print >>sys.stderr, "Failed to disable NSCD daemon. Please disable it manually."
+            else:
+                print >>sys.stderr, "Failed to disable NSCD daemon. Please disable it manually."
 
     else:
         # this is optional service, just log

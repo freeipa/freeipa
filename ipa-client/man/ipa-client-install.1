@@ -77,7 +77,7 @@ Configure PAM to create a users home directory if it does not exist.
 Remove the IPA client software and restore the configuration to the pre\-IPA state.
 .TP
 \fB\-\-hostname\fR
-The hostname of this server (FQDN). By default of nodename from uname(2) is used.
+The hostname of this server (FQDN). If specified, the hostname will be set and the system configuration will be updated to persist over reboot. By default a nodename result from uname(2) is used.
 .TP
 \fB\-\-enable\-dns\-updates\fR
 This option tells SSSD to automatically update DNS with the IP address of this client.
