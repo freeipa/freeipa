@@ -784,7 +784,7 @@ def main():
 
     if not options.unattended:
         if options.principal is None and options.password is None and options.prompt_password is False:
-            options.principal = user_input("Enrollment principal", allow_empty=False)
+            options.principal = user_input("User authorized to enroll computers", allow_empty=False)
             logging.debug("will use principal: %s\n", options.principal)
 
     # Get the CA certificate
