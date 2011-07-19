@@ -6,6 +6,7 @@ app_DATA =				\
 	10-RFC2307bis.update		\
 	10-RFC4876.update		\
 	10-config.update		\
+	10-sudo.update			\
 	20-aci.update			\
 	20-dna.update			\
 	20-host_nis_groups.update	\
