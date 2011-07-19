@@ -362,8 +362,8 @@ class sudorule_remove_user(LDAPRemoveMember):
         # Run through the user failures and gracefully remove any defined as
         # as an externaluser.
         if 'memberuser' in failed and 'user' in failed['memberuser']:
-            (dn, entry_attrs) = ldap.get_entry(dn, ['externaluser'])
-            external_users = entry_attrs.get('externaluser', [])
+            (dn, entry_attrs_) = ldap.get_entry(dn, ['externaluser'])
+            external_users = entry_attrs_.get('externaluser', [])
             failed_users = []
             completed_external = 0
             for user in failed['memberuser']['user']:
