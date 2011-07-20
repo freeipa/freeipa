@@ -109,7 +109,7 @@ from errors import PasswordMismatch
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
 from text import Gettext, FixMe
 import csv
-from xmlrpclib import MAXINT
+from xmlrpclib import MAXINT, MININT
 
 
 class DefaultFrom(ReadOnly):
@@ -1003,7 +1003,7 @@ class Int(Number):
     type_error = _('must be an integer')
 
     kwargs = Param.kwargs + (
-        ('minvalue', int, None),
+        ('minvalue', int, int(MININT)),
         ('maxvalue', int, int(MAXINT)),
     )
 
@@ -1050,9 +1050,9 @@ class Int(Number):
         """
         Check min constraint.
         """
-        assert type(value) is int
-        if value < self.minvalue:
-            return _('must be at least %(minvalue)d') % dict(
+        assert type(value) in (int, long)
+        if value < self.minvalue or value < MININT:
+            return _('can be at least %(minvalue)d') % dict(
                 minvalue=self.minvalue,
             )
 
@@ -1060,34 +1060,41 @@ class Int(Number):
         """
         Check max constraint.
         """
-        assert type(value) is int
-        if value > self.maxvalue:
+        assert type(value) in (int, long)
+        if value > self.maxvalue or value > MAXINT:
             return _('can be at most %(maxvalue)d') % dict(
                 maxvalue=self.maxvalue,
             )
 
     def _validate_scalar(self, value, index=None):
-        if type(value) is long:
-            # too big number for int type to hold
-            if self.maxvalue is not None:
+        """
+        This duplicates _validate_scalar in the Param class with
+        the exception that it allows both int and long types. The
+        min/max rules handle size enforcement.
+        """
+        if type(value)  not in (int, long):
+            raise ValidationError(name=self.name,
+                error='need a %r; got %r (a %r)' % (
+                    self.type, value, type(value)
+                )
+            )
+        if index is not None and type(index) is not int:
+            raise TypeError(
+                TYPE_ERROR % ('index', int, index, type(index))
+            )
+        for rule in self.all_rules:
+            error = rule(ugettext, value)
+            if error is not None:
+                name = self.cli_name
+                if not name:
+                    name = self.name
                 raise ValidationError(
-                        name=self.name,
-                        value=value,
-                        index=index,
-                        error=_('can be at most %(maxvalue)d') % dict(
-                                maxvalue=self.maxvalue,
-                            )
-                    )
-            else:
-                raise ValidationError(
-                        name=self.name,
-                        value=value,
-                        index=index,
-                        error=_('can be at most %(maxvalue)d') % dict(
-                                maxvalue=MAXINT,
-                            )
-                    )
-        super(Int, self)._validate_scalar(value, index)
+                    name=name,
+                    value=value,
+                    index=index,
+                    error=error,
+                    rule=rule,
+                )
 
 
 class Float(Number):

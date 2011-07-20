@@ -33,7 +33,7 @@ from ipalib import parameters, text, errors, config
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, NULLS
 from ipalib.errors import ValidationError
 from ipalib import _
-from xmlrpclib import MAXINT
+from xmlrpclib import MAXINT, MININT
 
 class test_DefaultFrom(ClassChecker):
     """
@@ -1164,7 +1164,7 @@ class test_Int(ClassChecker):
         o = self.cls('my_number')
         assert o.type is int
         assert isinstance(o, parameters.Int)
-        assert o.minvalue is None
+        assert o.minvalue == int(MININT)
         assert o.maxvalue == int(MAXINT)
 
         # Test when min > max:
@@ -1194,7 +1194,7 @@ class test_Int(ClassChecker):
                 rule(dummy, value),
                 translation % dict(minvalue=3)
             )
-            assert dummy.message == 'must be at least %(minvalue)d'
+            assert dummy.message == 'can be at least %(minvalue)d'
             assert dummy.called() is True
             dummy.reset()
 
