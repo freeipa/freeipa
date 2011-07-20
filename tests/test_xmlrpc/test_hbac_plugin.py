@@ -81,7 +81,6 @@ class test_hbac(XMLRPC_test):
         """
         entry = api.Command['hbacrule_show'](self.rule_name)['result']
         assert_attr_equal(entry, 'cn', self.rule_name)
-        assert_attr_equal(entry, 'accessruletype', self.rule_type)
         assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
         assert_attr_equal(entry, 'description', self.rule_desc)
 
