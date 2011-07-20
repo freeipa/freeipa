@@ -36,7 +36,7 @@ EXAMPLES:
 
  Create a rule, "test1", that grants all users access to the host "server" from
  anywhere:
-   ipa hbacrule-add --type=allow --usercat=all --srchostcat=all test1
+   ipa hbacrule-add --usercat=all --srchostcat=all test1
    ipa hbacrule-add-host --hosts=server.example.com test1
 
  Display the properties of a named HBAC rule:
@@ -44,7 +44,7 @@ EXAMPLES:
 
  Create a rule for a specific service. This lets the user john access
  the sshd service on any machine from any machine:
-   ipa hbacrule-add --type=allow --hostcat=all --srchostcat=all john_sshd
+   ipa hbacrule-add --hostcat=all --srchostcat=all john_sshd
    ipa hbacrule-add-user --users=john john_sshd
    ipa hbacrule-add-service --hbacsvcs=sshd john_sshd
 
@@ -53,7 +53,7 @@ EXAMPLES:
    ipa hbacsvcgroup-add ftpers
    ipa hbacsvc-add sftp
    ipa hbacsvcgroup-add-member --hbacsvcs=ftp,sftp ftpers
-   ipa hbacrule-add --type=allow --hostcat=all --srchostcat=all john_ftp
+   ipa hbacrule-add --hostcat=all --srchostcat=all john_ftp
    ipa hbacrule-add-user --users=john john_ftp
    ipa hbacrule-add-service --hbacsvcgroups=ftpers john_ftp
 
@@ -108,7 +108,7 @@ class hbacrule(LDAPObject):
     object_name_plural = 'HBAC rules'
     object_class = ['ipaassociation', 'ipahbacrule']
     default_attributes = [
-        'cn', 'accessruletype', 'ipaenabledflag',
+        'cn', 'ipaenabledflag',
         'description', 'usercategory', 'hostcategory',
         'sourcehostcategory', 'servicecategory', 'ipaenabledflag',
         'memberuser', 'sourcehost', 'memberhost', 'memberservice',
@@ -136,6 +136,10 @@ class hbacrule(LDAPObject):
             doc=_('Rule type (allow or deny)'),
             label=_('Rule type'),
             values=(u'allow', u'deny'),
+            default=u'allow',
+            autofill=True,
+            exclude='webui',
+            flags=['no_option', 'no_output'],
         ),
         # FIXME: {user,host,sourcehost,service}categories should expand in the future
         StrEnum('usercategory?',

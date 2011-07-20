@@ -969,7 +969,7 @@ output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e
 command: hbacrule_add
 args: 1,11,3
 arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Rule name', domain='ipa', localedir=None), multivalue=False, primary_key=True, required=True)
-option: StrEnum('accessruletype', attribute=True, cli_name='type', label=Gettext('Rule type', domain='ipa', localedir=None), multivalue=False, required=True, values=(u'allow', u'deny'))
+option: StrEnum('accessruletype', validate_type, attribute=True, autofill=True, cli_name='type', default=u'allow', exclude='webui', flags=['no_option', 'no_output'], label=Gettext('Rule type', domain='ipa', localedir=None), multivalue=False, required=True, values=(u'allow', u'deny'))
 option: StrEnum('usercategory', attribute=True, cli_name='usercat', label=Gettext('User category', domain='ipa', localedir=None), multivalue=False, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, cli_name='hostcat', label=Gettext('Host category', domain='ipa', localedir=None), multivalue=False, required=False, values=(u'all',))
 option: StrEnum('sourcehostcategory', attribute=True, cli_name='srchostcat', label=Gettext('Source host category', domain='ipa', localedir=None), multivalue=False, required=False, values=(u'all',))
@@ -1050,7 +1050,7 @@ command: hbacrule_find
 args: 1,12,4
 arg: Str('criteria?')
 option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Rule name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
-option: StrEnum('accessruletype', attribute=True, autofill=False, cli_name='type', label=Gettext('Rule type', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'allow', u'deny'))
+option: StrEnum('accessruletype', validate_type, attribute=True, autofill=False, cli_name='type', default=u'allow', exclude='webui', flags=['no_option', 'no_output'], label=Gettext('Rule type', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'allow', u'deny'))
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', label=Gettext('User category', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostcat', label=Gettext('Host category', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'all',))
 option: StrEnum('sourcehostcategory', attribute=True, autofill=False, cli_name='srchostcat', label=Gettext('Source host category', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'all',))
@@ -1068,7 +1068,7 @@ output: Output('truncated', <type 'bool'>, 'True if not all results were returne
 command: hbacrule_mod
 args: 1,12,3
 arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Rule name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
-option: StrEnum('accessruletype', attribute=True, autofill=False, cli_name='type', label=Gettext('Rule type', domain='ipa', localedir=None), multivalue=False, required=False, values=(u'allow', u'deny'))
+option: StrEnum('accessruletype', validate_type, attribute=True, autofill=False, cli_name='type', default=u'allow', exclude='webui', flags=['no_option', 'no_output'], label=Gettext('Rule type', domain='ipa', localedir=None), multivalue=False, required=False, values=(u'allow', u'deny'))
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', label=Gettext('User category', domain='ipa', localedir=None), multivalue=False, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostcat', label=Gettext('Host category', domain='ipa', localedir=None), multivalue=False, required=False, values=(u'all',))
 option: StrEnum('sourcehostcategory', attribute=True, autofill=False, cli_name='srchostcat', label=Gettext('Source host category', domain='ipa', localedir=None), multivalue=False, required=False, values=(u'all',))
