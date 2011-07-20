@@ -5,6 +5,8 @@ The following people have contributed to the FreeIPA project.
 
 Developers:
 	Jr Aquino
+	Alexander Bokovoy
+	Jan Cholasta
 	Rob Crittenden
 	Nalin Dahyabhai
 	John Dennis
