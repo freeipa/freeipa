@@ -117,6 +117,11 @@ IPA.dns_record_search_load = function (result) {
 };
 
 IPA.entity_factories.dnsrecord = function() {
+
+    if (!IPA.dns_enabled) {
+        throw "DNS not enabled on server";
+    }
+
     return IPA.entity_builder().
         entity('dnsrecord').
         containing_entity('dnszone').

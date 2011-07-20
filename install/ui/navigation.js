@@ -217,6 +217,7 @@ IPA.navigation = function(spec) {
         container.addClass('tabs'+depth);
 
         var ul = $('<ul/>').appendTo(container);
+        var created_count = 0;
 
         for (var i=0; i<tabs.length; i++) {
             var tab = tabs[i];
@@ -240,7 +241,7 @@ IPA.navigation = function(spec) {
                 href: '#'+tab_id,
                 title: tab.label,
                 html: tab.label
-            })).appendTo(ul);
+            }));
 
             if (tab.hidden){
                 tab_li.css('display','none');
@@ -249,12 +250,23 @@ IPA.navigation = function(spec) {
             tab.container = $('<div/>', {
                 id: tab_id,
                 name: tab.name
-            }).appendTo(container);
+            });
 
             if (tab.children && tab.children.length) {
-                that._create(tab.children, tab.container, depth+1);
+                var kids =
+                    that._create(tab.children, tab.container, depth+1);
+                /*If there are no child tabs, remove the container */
+                if (kids === 0){
+                    tabs.splice(i,1);
+                    i -= 1;
+                    continue;
+                }
             }
+            created_count += 1;
+            tab_li.appendTo(ul);
+            tab.container.appendTo(container);
         }
+        return created_count;
     };
 
     that.update = function() {
