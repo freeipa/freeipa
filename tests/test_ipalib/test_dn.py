@@ -3,27 +3,36 @@
 import unittest
 from ipalib.dn import AVA, RDN, DN
 
+def default_rdn_attr_arg(i):
+    return 'a%d' % i
+
+def default_rdn_value_arg(i):
+    return str(i)
+
+def alt_rdn_attr_arg(i):
+    return 'b%d' % i
+
+def alt_rdn_value_arg(i):
+    return str(i*10)
+
 def make_rdn_args(low, high, kind, attr=None, value=None):
     result=[]
     for i in range(low, high):
         if attr is None:
-            new_attr = 'a%d' % i
+            new_attr = default_rdn_attr_arg(i)
         elif callable(attr):
             new_attr = attr(i)
         else:
             new_attr = attr
 
         if value is None:
-            new_value = str(i)
+            new_value = default_rdn_value_arg(i)
         elif callable(value):
             new_value = value(i)
         else:
             new_value = value
 
-        if kind == 'sequence':
-            result.append(new_attr)
-            result.append(new_value)
-        elif kind == 'tuple':
+        if kind == 'tuple':
             result.append((new_attr, new_value))
         elif kind == 'list':
             result.append([new_attr, new_value])
@@ -526,9 +535,21 @@ class TestDN(unittest.TestCase):
         self.str_dn3 = '%s,%s' % (self.str_rdn1, self.str_rdn2)
         self.dn3 = DN(self.rdn1, self.rdn2)
 
+        self.base_rdn1 = RDN('dc', 'redhat')
+        self.base_rdn2 = RDN('dc', 'com')
+        self.base_dn = DN(self.base_rdn1, self.base_rdn2)
+
+        self.container_rdn1 = RDN('cn', 'sudorules')
+        self.container_rdn2 = RDN('cn', 'sudo')
+        self.container_dn = DN(self.container_rdn1, self.container_rdn2)
+
+        self.base_container_dn = DN((self.attr1, self.value1),
+                                    self.container_dn, self.base_dn)
+
+
     def test_create(self):
         # Create with single attr,value pair
-        dn1 = DN(self.attr1, self.value1)
+        dn1 = DN((self.attr1, self.value1))
         self.assertEqual(len(dn1), 1)
         self.assertIsInstance(dn1[0], RDN)
         self.assertIsInstance(dn1[0].attr, unicode)
@@ -543,8 +564,12 @@ class TestDN(unittest.TestCase):
         self.assertIsInstance(dn1[0].value, unicode)
         self.assertEqual(dn1[0], self.rdn1)
 
-        # Create with multiple attr,value pairs
-        dn1 = DN(self.attr1, self.value1, self.attr2, self.value2)
+        # Creation with multiple attr,value string pairs should fail
+        with self.assertRaises(ValueError):
+            dn1 = DN(self.attr1, self.value1, self.attr2, self.value2)
+
+        # Create with multiple attr,value pairs passed as tuples & lists
+        dn1 = DN((self.attr1, self.value1), [self.attr2, self.value2])
         self.assertEqual(len(dn1), 2)
         self.assertIsInstance(dn1[0], RDN)
         self.assertIsInstance(dn1[0].attr, unicode)
@@ -555,8 +580,8 @@ class TestDN(unittest.TestCase):
         self.assertIsInstance(dn1[1].value, unicode)
         self.assertEqual(dn1[1], self.rdn2)
 
-        # Create with multiple attr,value pairs passed as lists
-        dn1 = DN([self.attr1, self.value1], [self.attr2, self.value2])
+        # Create with multiple attr,value pairs passed as tuple and RDN
+        dn1 = DN((self.attr1, self.value1), RDN(self.attr2, self.value2))
         self.assertEqual(len(dn1), 2)
         self.assertIsInstance(dn1[0], RDN)
         self.assertIsInstance(dn1[0].attr, unicode)
@@ -570,7 +595,7 @@ class TestDN(unittest.TestCase):
         # Create with multiple attr,value pairs but reverse
         # constructor parameter ordering. RDN ordering should also be
         # reversed because DN's are a ordered sequence of RDN's
-        dn1 = DN(self.attr2, self.value2, self.attr1, self.value1)
+        dn1 = DN((self.attr2, self.value2), (self.attr1, self.value1))
         self.assertEqual(len(dn1), 2)
         self.assertIsInstance(dn1[0], RDN)
         self.assertIsInstance(dn1[0].attr, unicode)
@@ -634,6 +659,14 @@ class TestDN(unittest.TestCase):
         self.assertIsInstance(dn1[1].value, unicode)
         self.assertEqual(dn1[1], self.rdn2)
 
+        # Create with RDN, and 2 DN's (e.g. attr + container + base)
+        dn1 = DN((self.attr1, self.value1), self.container_dn, self.base_dn)
+        self.assertEqual(len(dn1), 5)
+        dn_str = ','.join([str(self.rdn1),
+                           str(self.container_rdn1), str(self.container_rdn2),
+                           str(self.base_rdn1), str(self.base_rdn2)])
+        self.assertEqual(str(dn1), dn_str)
+
     def test_str(self):
         self.assertEqual(str(self.dn1), self.str_dn1)
         self.assertIsInstance(str(self.dn1), str)
@@ -646,7 +679,7 @@ class TestDN(unittest.TestCase):
 
     def test_cmp(self):
         # Equality
-        dn1 = DN(self.attr1, self.value1)
+        dn1 = DN((self.attr1, self.value1))
 
         self.assertTrue(dn1 == self.dn1)
         self.assertFalse(dn1 != self.dn1)
@@ -688,6 +721,40 @@ class TestDN(unittest.TestCase):
         result = cmp(self.dn3, self.dn1)
         self.assertEqual(result, 1)
 
+        # Test startswith, endswith
+        self.assertTrue(self.base_container_dn.startswith(self.rdn1))
+        self.assertTrue(self.base_container_dn.startswith(self.dn1))
+        self.assertTrue(self.base_container_dn.startswith(self.dn1 + self.container_dn))
+        self.assertFalse(self.base_container_dn.startswith(self.dn2))
+        self.assertFalse(self.base_container_dn.startswith(self.rdn2))
+        self.assertTrue(self.base_container_dn.startswith((self.dn1)))
+        self.assertTrue(self.base_container_dn.startswith((self.rdn1)))
+        self.assertFalse(self.base_container_dn.startswith((self.rdn2)))
+        self.assertTrue(self.base_container_dn.startswith((self.rdn2, self.rdn1)))
+        self.assertTrue(self.base_container_dn.startswith((self.dn1, self.dn2)))
+
+        self.assertTrue(self.base_container_dn.endswith(self.base_dn))
+        self.assertTrue(self.base_container_dn.endswith(self.container_dn + self.base_dn))
+        self.assertFalse(self.base_container_dn.endswith(DN(self.base_rdn1)))
+        self.assertTrue(self.base_container_dn.endswith(DN(self.base_rdn2)))
+        self.assertTrue(self.base_container_dn.endswith((DN(self.base_rdn1), DN(self.base_rdn2))))
+
+        # Test "in" membership
+        self.assertTrue(self.container_rdn1 in self.container_dn)
+        self.assertTrue(self.container_dn in self.container_dn)
+        self.assertFalse(self.base_rdn1 in self.container_dn)
+
+        self.assertTrue(self.container_rdn1 in self.base_container_dn)
+        self.assertTrue(self.container_dn in self.base_container_dn)
+        self.assertTrue(self.container_dn + self.base_dn in
+                        self.base_container_dn)
+        self.assertTrue(self.dn1 + self.container_dn + self.base_dn in
+                        self.base_container_dn)
+        self.assertTrue(self.dn1 + self.container_dn + self.base_dn ==
+                        self.base_container_dn)
+
+        self.assertFalse(self.container_rdn1 in self.base_dn)
+
     def test_indexing(self):
         self.assertEqual(self.dn1[0], self.rdn1)
         self.assertEqual(self.dn1[self.rdn1.attr], self.rdn1.value)
@@ -713,30 +780,33 @@ class TestDN(unittest.TestCase):
         dn_low = 0
         dn_high = 6
 
-        rdn_args = make_rdn_args(dn_low, dn_high, 'sequence')
+        rdn_args = make_rdn_args(dn_low, dn_high, 'tuple',
+                                 default_rdn_attr_arg, default_rdn_value_arg)
         dn1 = DN(*rdn_args)
 
-        rdn_args = make_rdn_args(dn_low, dn_high, 'tuple')
+        rdn_args = make_rdn_args(dn_low, dn_high, 'list',
+                                 default_rdn_attr_arg, default_rdn_value_arg)
         dn2 = DN(*rdn_args)
 
-        rdn_args = make_rdn_args(dn_low, dn_high, 'RDN')
+        rdn_args = make_rdn_args(dn_low, dn_high, 'RDN',
+                                 default_rdn_attr_arg, default_rdn_value_arg)
         dn3 = DN(*rdn_args)
 
         self.assertEqual(dn1, dn2)
         self.assertEqual(dn1, dn3)
 
         for i in range(dn_low, dn_high):
-            attr = 'a%d' % i
-            value = str(i)
+            attr = default_rdn_attr_arg(i)
+            value = default_rdn_value_arg(i)
             self.assertEqual(dn1[i].attr, attr)
             self.assertEqual(dn1[i].value, value)
             self.assertEqual(dn1[attr], value)
 
         for i in range(dn_low, dn_high):
             if i % 2:
-                orig_attr = 'a%d' % i
-                attr = 'b%d' % i
-                value = str(i*10)
+                orig_attr = default_rdn_attr_arg(i)
+                attr = alt_rdn_attr_arg(i)
+                value = alt_rdn_value_arg(i)
                 dn1[i] = attr, value
                 dn2[orig_attr] = (attr, value)
                 dn3[i] = RDN(attr, value)
@@ -746,11 +816,11 @@ class TestDN(unittest.TestCase):
 
         for i in range(dn_low, dn_high):
             if i % 2:
-                attr = 'b%d' % i
-                value = str(i*10)
+                attr = alt_rdn_attr_arg(i)
+                value = alt_rdn_value_arg(i)
             else:
-                attr = 'a%d' % i
-                value = str(i)
+                attr = default_rdn_attr_arg(i)
+                value = default_rdn_value_arg(i)
             self.assertEqual(dn1[i].value, dn1[i].value)
             self.assertEqual(dn1[attr], value)
 
@@ -759,47 +829,24 @@ class TestDN(unittest.TestCase):
         slice_high = 4
         interval = range(slice_low, slice_high)
 
-        # Assign via sequence
-        rdn_args = make_rdn_args(dn_low, dn_high, 'sequence')
-        dn1 = DN(*rdn_args)
-
-        dn_slice = make_rdn_args(slice_low, slice_high, 'sequence',
-                                 lambda i: 'b%d' % i, lambda i: str(i*10))
-
-        dn1[slice_low:slice_high] = dn_slice
-
-        for i in range(dn_low, dn_high):
-            if i in interval:
-                attr = 'b%d' % i
-                value = str(i*10)
-            else:
-                attr = 'a%d' % i
-                value = str(i)
-            self.assertEqual(dn1[i].value, dn1[i].value)
-            self.assertEqual(dn1[attr], value)
-
-        query_slice = dn1[slice_low:slice_high]
-        for i, query_rdn in enumerate(query_slice):
-            slice_rdn = RDN(dn_slice[i*2], dn_slice[i*2+1])
-            self.assertEqual(slice_rdn, query_rdn)
-
         # Slices
         # Assign via tuple
-        rdn_args = make_rdn_args(dn_low, dn_high, 'sequence')
+        rdn_args = make_rdn_args(dn_low, dn_high, 'tuple',
+                                 default_rdn_attr_arg, default_rdn_value_arg)
         dn1 = DN(*rdn_args)
 
         dn_slice = make_rdn_args(slice_low, slice_high, 'tuple',
-                                 lambda i: 'b%d' % i, lambda i: str(i*10))
+                                 alt_rdn_attr_arg, alt_rdn_value_arg)
 
         dn1[slice_low:slice_high] = dn_slice
 
         for i in range(dn_low, dn_high):
             if i in interval:
-                attr = 'b%d' % i
-                value = str(i*10)
+                attr = alt_rdn_attr_arg(i)
+                value = alt_rdn_value_arg(i)
             else:
-                attr = 'a%d' % i
-                value = str(i)
+                attr = default_rdn_attr_arg(i)
+                value = default_rdn_value_arg(i)
             self.assertEqual(dn1[i].value, dn1[i].value)
             self.assertEqual(dn1[attr], value)
 
@@ -810,21 +857,22 @@ class TestDN(unittest.TestCase):
 
         # Slices
         # Assign via RDN
-        rdn_args = make_rdn_args(dn_low, dn_high, 'sequence')
+        rdn_args = make_rdn_args(dn_low, dn_high, 'tuple',
+                                 default_rdn_attr_arg, default_rdn_value_arg)
         dn1 = DN(*rdn_args)
 
         dn_slice = make_rdn_args(slice_low, slice_high, 'RDN',
-                                 lambda i: 'b%d' % i, lambda i: str(i*10))
+                                 alt_rdn_attr_arg, alt_rdn_value_arg)
 
         dn1[slice_low:slice_high] = dn_slice
 
         for i in range(dn_low, dn_high):
             if i in interval:
-                attr = 'b%d' % i
-                value = str(i*10)
+                attr = alt_rdn_attr_arg(i)
+                value = alt_rdn_value_arg(i)
             else:
-                attr = 'a%d' % i
-                value = str(i)
+                attr = default_rdn_attr_arg(i)
+                value = default_rdn_value_arg(i)
             self.assertEqual(dn1[i].value, dn1[i].value)
             self.assertEqual(dn1[attr], value)
 
@@ -863,31 +911,31 @@ class TestDN(unittest.TestCase):
 
 
     def test_concat(self):
-        dn1 = DN(self.attr1, self.value1)
-        dn2 = DN(self.attr2, self.value2)
+        dn1 = DN((self.attr1, self.value1))
+        dn2 = DN([self.attr2, self.value2])
 
         # in-place addtion
         dn1 += dn2
         self.assertEqual(dn1, self.dn3)
 
-        dn1 = DN(self.attr1, self.value1)
+        dn1 = DN((self.attr1, self.value1))
         dn1 += self.rdn2
         self.assertEqual(dn1, self.dn3)
 
-        dn1 = DN(self.attr1, self.value1)
+        dn1 = DN((self.attr1, self.value1))
         dn1 += self.dn2
         self.assertEqual(dn1, self.dn3)
 
-        dn1 = DN(self.attr1, self.value1)
+        dn1 = DN((self.attr1, self.value1))
         dn1 += self.str_dn2
         self.assertEqual(dn1, self.dn3)
 
         # concatenation
-        dn1 = DN(self.attr1, self.value1)
+        dn1 = DN((self.attr1, self.value1))
         dn3 = dn1 + dn2
         self.assertEqual(dn3, self.dn3)
 
-        dn1 = DN(self.attr1, self.value1)
+        dn1 = DN((self.attr1, self.value1))
         dn3 = dn1 + self.rdn2
         self.assertEqual(dn3, self.dn3)
 
