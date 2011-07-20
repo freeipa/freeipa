@@ -101,7 +101,7 @@ class hostgroup_add(LDAPCreate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if self.api.env.wait_for_attr:
             newentry = wait_for_value(ldap, dn, 'objectclass', 'mepOriginEntry')
-        entry_from_entry(entry_attrs, newentry)
+            entry_from_entry(entry_attrs, newentry)
 
         return dn
 
