@@ -49,8 +49,6 @@ import struct
 import certs
 from distutils import version
 
-KRBMKEY_DENY_ACI = '(targetattr = "krbMKey")(version 3.0; acl "No external access"; deny (read,write,search,compare) userdn != "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)'
-
 def update_key_val_in_file(filename, key, val):
     if os.path.exists(filename):
         pattern = "^[\s#]*%s\s*=\s*%s\s*" % (re.escape(key), re.escape(val))
@@ -162,7 +160,6 @@ class KrbInstance(service.Service):
 
         self.__common_setup(realm_name, host_name, domain_name, admin_password)
 
-        self.step("setting KDC account password", self.__configure_kdc_account_password)
         self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
         self.step("adding kerberos container to the directory", self.__add_krb_container)
         self.step("configuring KDC", self.__configure_instance)
@@ -225,16 +222,6 @@ class KrbInstance(service.Service):
         shutil.copy(filename, "/var/kerberos/krb5kdc/kpasswd.keytab")
         os.chmod("/var/kerberos/krb5kdc/kpasswd.keytab", 0600)
 
-
-    def __configure_kdc_account_password(self):
-        hexpwd = ''
-	for x in self.kdc_password:
-            hexpwd += (hex(ord(x))[2:])
-        self.fstore.backup_file("/var/kerberos/krb5kdc/ldappwd")
-        pwd_fd = open("/var/kerberos/krb5kdc/ldappwd", "w")
-        pwd_fd.write("uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix+"#{HEX}"+hexpwd+"\n")
-        pwd_fd.close()
-        os.chmod("/var/kerberos/krb5kdc/ldappwd", 0600)
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
