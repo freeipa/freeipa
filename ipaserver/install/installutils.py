@@ -36,7 +36,7 @@ from ConfigParser import SafeConfigParser
 from ipapython import ipautil, dnsclient, sysrestore
 
 # Used to determine install status
-IPA_MODULES = ['httpd', 'ipa_kpasswd', 'dirsrv', 'pki-cad', 'pkids', 'install', 'krb5kdc', 'ntpd', 'named']
+IPA_MODULES = ['httpd', 'kadmin', 'dirsrv', 'pki-cad', 'pkids', 'install', 'krb5kdc', 'ntpd', 'named']
 
 class BadHostError(Exception):
     pass

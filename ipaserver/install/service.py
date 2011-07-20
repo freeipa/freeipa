@@ -35,7 +35,7 @@ CACERT = "/etc/ipa/ca.crt"
 
 SERVICE_LIST = {
     'KDC':('krb5kdc', 10),
-    'KPASSWD':('ipa_kpasswd', 20),
+    'KPASSWD':('kadmin', 20),
     'DNS':('named', 30),
     'HTTP':('httpd', 40),
     'CA':('pki-cad', 50)

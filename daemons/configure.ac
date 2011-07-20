@@ -289,7 +289,6 @@ AC_SUBST(LDFLAGS)
 AC_CONFIG_FILES([
     Makefile
     ipa-kdb/Makefile
-    ipa-kpasswd/Makefile
     ipa-slapi-plugins/Makefile
     ipa-slapi-plugins/ipa-enrollment/Makefile
     ipa-slapi-plugins/ipa-lockout/Makefile
