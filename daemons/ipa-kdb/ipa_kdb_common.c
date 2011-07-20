@@ -372,10 +372,10 @@ int ipadb_ldap_attr_to_bool(LDAP *lcontext, LDAPMessage *le,
 
     vals = ldap_get_values_len(lcontext, le, attrname);
     if (vals) {
-        if (strcmp("TRUE", vals[0]->bv_val) == 0) {
+        if (strcasecmp("TRUE", vals[0]->bv_val) == 0) {
             *result = true;
             ret = 0;
-        } else if (strcmp("FALSE", vals[0]->bv_val) == 0) {
+        } else if (strcasecmp("FALSE", vals[0]->bv_val) == 0) {
             *result = false;
             ret = 0;
         } else {
