@@ -305,6 +305,7 @@ ln -s ../../../..%{_sysconfdir}/ipa/html/ipa_error.css \
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d/
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa.conf
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
+mkdir -p %{buildroot}%{_initrddir}
 install -m755 ipa.init %{buildroot}%{_initrddir}/ipa
 %endif
 
@@ -326,7 +327,6 @@ rm -rf %{buildroot}
 %post server
 if [ $1 = 1 ]; then
     /sbin/chkconfig --add ipa
-    /sbin/chkconfig --add ipa_kpasswd
 fi
 if [ $1 -gt 1 ] ; then
     /usr/sbin/ipa-upgradeconfig || :
@@ -336,7 +336,6 @@ fi
 %preun server
 if [ $1 = 0 ]; then
     /sbin/chkconfig --del ipa
-    /sbin/chkconfig --del ipa_kpasswd
     /sbin/service ipa stop >/dev/null 2>&1 || :
 fi
 
@@ -355,7 +354,7 @@ if [ -s /etc/selinux/config ]; then
 fi
 
 %post server-selinux
-semodule -s targeted -i /usr/share/selinux/targeted/ipa_kpasswd.pp /usr/share/selinux/targeted/ipa_httpd.pp /usr/share/selinux/targeted/ipa_dogtag.pp
+semodule -s targeted -i /usr/share/selinux/targeted/ipa_httpd.pp /usr/share/selinux/targeted/ipa_dogtag.pp
 . %{_sysconfdir}/selinux/config
 FILE_CONTEXT=%{_sysconfdir}/selinux/targeted/contexts/files/file_contexts
 selinuxenabled
@@ -377,7 +376,7 @@ fi
 
 %postun server-selinux
 if [ $1 = 0 ]; then
-semodule -s targeted -r ipa_kpasswd ipa_httpd ipa_dogtag
+semodule -s targeted -r ipa_httpd ipa_dogtag
 . %{_sysconfdir}/selinux/config
 FILE_CONTEXT=%{_sysconfdir}/selinux/targeted/contexts/files/file_contexts
 selinuxenabled
@@ -406,13 +405,11 @@ fi
 %{_sbindir}/ipa-compat-manage
 %{_sbindir}/ipa-nis-manage
 %{_sbindir}/ipa-host-net-manage
-%{_sbindir}/ipa_kpasswd
 %{_sbindir}/ipactl
 %{_sbindir}/ipa-upgradeconfig
 %{_sbindir}/ipa-compliance
 %{_sysconfdir}/cron.d/ipa-compliance
 %attr(755,root,root) %{_initrddir}/ipa
-%attr(755,root,root) %{_initrddir}/ipa_kpasswd
 %dir %{python_sitelib}/ipaserver
 %{python_sitelib}/ipaserver/*
 %dir %{_usr}/share/ipa
@@ -467,7 +464,6 @@ fi
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
 %dir %{_localstatedir}/cache/ipa
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
-%attr(700,root,root) %dir %{_localstatedir}/cache/ipa/kpasswd
 %attr(755,root,root) %{_libdir}/krb5/plugins/kdb/ipadb.so
 %{_mandir}/man1/ipa-replica-conncheck.1.gz
 %{_mandir}/man1/ipa-replica-install.1.gz
@@ -482,14 +478,12 @@ fi
 %{_mandir}/man1/ipa-nis-manage.1.gz
 %{_mandir}/man1/ipa-host-net-manage.1.gz
 %{_mandir}/man1/ipa-ldap-updater.1.gz
-%{_mandir}/man8/ipa_kpasswd.8.gz
 %{_mandir}/man8/ipactl.8.gz
 %{_mandir}/man1/ipa-compliance.1.gz
 
 %files server-selinux
 %defattr(-,root,root,-)
 %doc COPYING README Contributors.txt
-%{_usr}/share/selinux/targeted/ipa_kpasswd.pp
 %{_usr}/share/selinux/targeted/ipa_httpd.pp
 %{_usr}/share/selinux/targeted/ipa_dogtag.pp
 %endif
@@ -540,6 +534,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Wed Aug 25 2011 Simo Sorce <ssorce#redhat.com> - 3.0.0
+- Remove ipa_kpasswd.
+
 * Tue Aug 23 2011 Jan Cholasta <jcholast@redhat.com> - 2.1.0-1
 - Add subscription-manager dependency for RHEL.
 

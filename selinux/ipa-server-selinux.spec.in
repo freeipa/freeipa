@@ -36,7 +36,6 @@ make DESTDIR=%{buildroot} install
 
 %files
 %{_usr}/share/selinux/targeted/ipa_webgui.pp
-%{_usr}/share/selinux/targeted/ipa_kpasswd.pp
 
 
 %define saveFileContext() \
@@ -61,7 +60,7 @@ fi;
 %saveFileContext targeted
 
 %post
-semodule -s targeted -i /usr/share/selinux/targeted/ipa_webgui.pp /usr/share/selinux/targeted/ipa_kpasswd.pp
+semodule -s targeted -i /usr/share/selinux/targeted/ipa_webgui.pp
 %relabel targeted
 
 %preun
@@ -71,7 +70,7 @@ fi
 
 %postun
 if [ $1 = 0 ]; then
-semodule -s targeted -r ipa_webgui ipa_kpasswd
+semodule -s targeted -r ipa_webgui
 %relabel targeted
 fi
 

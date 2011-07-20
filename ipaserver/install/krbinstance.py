@@ -71,7 +71,7 @@ def update_key_val_in_file(filename, key, val):
 
 class KpasswdInstance(service.SimpleServiceInstance):
     def __init__(self):
-        service.SimpleServiceInstance.__init__(self, "ipa_kpasswd")
+        service.SimpleServiceInstance.__init__(self, "kadmin")
 
 class KrbInstance(service.Service):
     def __init__(self, fstore=None):

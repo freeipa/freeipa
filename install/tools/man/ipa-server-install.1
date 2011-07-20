@@ -22,7 +22,7 @@ ipa\-server\-install \- Configure an IPA server
 .SH "SYNOPSIS"
 ipa\-server\-install [\fIOPTION\fR]...
 .SH "DESCRIPTION"
-Configures the services needed by an IPA server. This includes setting up a Kerberos Key Distribution Center (KDC) with an LDAP back\-end, configuring Apache, configuring NTP and starting the ipa_kpasswd service provided by IPA. By default a dogtag\-based CA will be configured to issue server certificates.
+Configures the services needed by an IPA server. This includes setting up a Kerberos Key Distribution Center (KDC) and a Kadmin daemon with an LDAP back\-end, configuring Apache, configuring NTP and optionally configuring and starting an LDAP-backed DNS server. By default a dogtag\-based CA will be configured to issue server certificates.
 .SH "OPTIONS"
 .TP
 \fB\-r\fR \fIREALM_NAME\fR, \fB\-\-realm\fR=\fIREALM_NAME\fR

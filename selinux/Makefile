@@ -1,4 +1,4 @@
-SUBDIRS = ipa_kpasswd ipa_httpd ipa_dogtag
+SUBDIRS = ipa_httpd ipa_dogtag
 POLICY_MAKEFILE = /usr/share/selinux/devel/Makefile
 POLICY_DIR = $(DESTDIR)/usr/share/selinux/targeted
 
@@ -21,9 +21,8 @@ maintainer-clean: distclean
 
 install: all
 	install -d $(POLICY_DIR)
-	install -m 644 ipa_kpasswd/ipa_kpasswd.pp $(POLICY_DIR)
 	install -m 644 ipa_httpd/ipa_httpd.pp $(POLICY_DIR)
 	install -m 644 ipa_dogtag/ipa_dogtag.pp $(POLICY_DIR)
 
 load:
-	/usr/sbin/semodule -i ipa_kpasswd/ipa_kpasswd.pp ipa_httpd/ipa_httpd.pp
+	/usr/sbin/semodule -i ipa_httpd/ipa_httpd.pp

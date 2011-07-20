@@ -28,7 +28,6 @@ daemons/config.status
 daemons/config.sub
 daemons/depcomp
 daemons/install-sh
-daemons/ipa-kpasswd/ipa_kpasswd
 daemons/ipa-version.h
 daemons/libtool
 daemons/ltmain.sh

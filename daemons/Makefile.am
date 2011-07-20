@@ -14,7 +14,6 @@ export AM_CFLAGS
 
 SUBDIRS =			\
 	ipa-kdb			\
-	ipa-kpasswd		\
 	ipa-slapi-plugins	\
 	$(NULL)
 
