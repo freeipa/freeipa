@@ -44,7 +44,7 @@ group1 = u'testgroup1'
 group1_dn = u'cn=%s,%s,%s' % (group1, api.env.container_group, api.env.basedn)
 
 privilege1 = u'r,w privilege 1'
-privilege1_dn = DN('cn', privilege1, DN(api.env.container_privilege), DN(api.env.basedn))
+privilege1_dn = DN(('cn', privilege1), DN(api.env.container_privilege), DN(api.env.basedn))
 
 def escape_comma(value):
     return value.replace(',', '\\,')

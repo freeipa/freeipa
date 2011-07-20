@@ -20,6 +20,7 @@
 from ldap.dn import str2dn, dn2str
 from ldap import DECODING_ERROR
 from copy import deepcopy
+import sys
 
 __all__ = ['AVA', 'RDN', 'DN']
 
@@ -104,10 +105,10 @@ Or compare a value returned by an LDAP query to a known value:
 
 if value == 'Bob'
 
-All of these simple coding assumptions are WRONG and will FAIL when
-a DN is not one of the simple DN's which are probably the 95% of all
-DN's. This is what makes DN handling pernicious. What works in 95% of
-the cases and is simple, fails for the 5% of DN's which are not
+All of these simple coding assumptions are WRONG and will FAIL when a
+DN is not one of the simple DN's (simple DN's are probably the 95% of
+all DN's). This is what makes DN handling pernicious. What works in
+95% of the cases and is simple, fails for the 5% of DN's which are not
 simple.
 
 Examples of where the simple assumptions fail are:
@@ -127,13 +128,13 @@ Examples of where the simple assumptions fail are:
 To complicate matters a bit more the RFC for the string representation
 of DN's (RFC 4514) permits a variety of different syntax's each of
 which can evaluate to exactly the same DN but have different string
-representations. For example, the attr "R,W" which contains a reserved
+representations. For example, the attr "r,w" which contains a reserved
 character (the comma) can be encoded as a string in these different
 ways:
 
-'R\,W'          # backslash escape
-'R\2cW'         # hexadecimal ascii escape
-'#522C57'       # binary encoded
+'r\,w'          # backslash escape
+'r\2cw'         # hexadecimal ascii escape
+'#722C77'       # binary encoded
 
 It should be clear a DN string may NOT be a simple string, rather a DN
 string is ENCODED. For simple strings the encoding of the DN is
@@ -143,10 +144,10 @@ encodings).
 
 The openldap library we use at the client level uses the backslash
 escape form. The LDAP server we use uses the hexadecimal ascii escape
-form. Thus 'R,W' appears as 'R\,W' when sent from the client to the
+form. Thus 'r,w' appears as 'r\,w' when sent from the client to the
 LDAP server as part of a DN. But when it's returned as a DN from the
-server in an LDAP search it's returned as 'R\2cW'. Any attempt to
-compare 'R\,W' to 'R\2cW' for equality will fail despite the fact they
+server in an LDAP search it's returned as 'r\2cw'. Any attempt to
+compare 'r\,w' to 'r\2cw' for equality will fail despite the fact they
 are indeed equal once decoded. Such a test fails because you're
 comparing two different encodings of the same value. In MIME you
 wouldn't expect the base64 encoding of a string to be equal to the
@@ -162,13 +163,13 @@ other string you MUST:
   the entire DN as a string and operate on it. Why? Consider a value
   with a comma embedded in it. For example:
 
-  cn=R\2cW,cn=privilege
+  cn=r\2cw,cn=privilege
 
-  Is a DN with 2 RDN components: cn=R,W followed by "cn=privilege"
+  Is a DN with 2 RDN components: cn=r,w followed by "cn=privilege"
 
   But if you decode the entire DN string as a whole you would get:
 
-  cn=R,W,cn=privilege
+  cn=r,w,cn=privilege
 
   Which is a malformed DN with 3 RDN's, the 2nd RDN is invalid.
 
@@ -189,10 +190,10 @@ simply do string concatenation or string formatting unless you ESCAPE
 the components independently prior to concatenation, for example:
 
   base = 'dc=redhat,dc=com'
-  value = 'R,W'
+  value = 'r,w'
   dn = 'cn=%s,%s' % (value, base)
 
-Will result in the malformed DN 'cn=R,W,dc=redhat,dc=com'
+Will result in the malformed DN 'cn=r,w,dc=redhat,dc=com'
 
 Syntax Sugar
 ------------
@@ -216,15 +217,36 @@ compliant escaped UTF-8.
 RDN's are assumed to be single-valued. If you need a multi-valued RDN
 (an exception) you must explicitly create a multi-valued RDN.
 
-Thus DN's are assumed to be a sequence of attr, value pairs.
+Thus DN's are assumed to be a sequence of attr, value pairs, which is
+equivalent to a sequence of RDN's. The attr and value in the pair MUST
+be strings.
 
-The attr and value in the pair MUST be strings (we'll see why in a
-moment).
+The DN and RDN constructors take a sequence, the constructor parses
+the sequence to find items it knows about.
 
-You can express any part of a DN as an even numbered sequence of
-strings.
+The DN constructor will accept in it's sequence:
+  * tuple of 2 strings, converting it to an RDN
+  * list of 2 strings, converting it to an RDN
+  * a RDN object
+  * a DN syntax string (e.g. 'cn=Bob,dc=redhat.com')
 
-   DN('cn', 'Bob', 'dc', 'redhat.com')
+Note DN syntax strings should be avoided if possible when passing to a
+constructor because they run afoul of the problems outlined above
+which the DN, RDN & AVA classes are meant to overcome. But sometimes a
+DN syntax string is all you have to work with. DN strings which come
+from a LDAP library or server will be properly formed and it's safe to
+use those. However DN strings provided via user input should be
+treated suspiciously as they may be improperly formed. You can test
+for this by passing the string to the DN constructor and see if it
+throws an exception.
+
+The sequence passed to the DN constructor takes each item in order,
+produces one or more RDN's from it and appends those RDN in order to
+its internal RDN sequence.
+
+For example:
+
+   DN(('cn', 'Bob'), ('dc', 'redhat.com'))
 
 This is equivalent to the DN string:
 
@@ -237,25 +259,18 @@ And is exactly equal to:
 The following are alternative syntax's which are all exactly
 equivalent to the above example.
 
-If you prefer to be more explicit about the pair-wise grouping (or you
-have to have a pair) you can use tuples or lists with 2 elements.
-
-   DN(('cn', 'Bob'), ('dc', 'redhat.com'))
    DN(['cn', 'Bob'], ['dc', 'redhat.com'])
+   DN(RDN('cn', 'Bob'), RDN('dc', 'redhat.com'))
 
 You can provide a properly escaped string representation.
 
    DN('cn=Bob,dc=redhat.com')
 
-You can mix and match any of the forms.
+You can mix and match any of the forms in the constructor parameter
+list.
 
-   DN('cn', 'Bob', ['dc', 'redhat.com'])
-   DN('cn', 'Bob', 'dc=redhat.com')
-   DN('cn', 'Bob', RDN('dc', 'redhat.com'))
-
-Note: this is why attr's and values must be strings, the parsing logic
-assumes 2 consecutive strings in a sequence is always a single valued
-RDN, everything else is interpreted according to it's type.
+   DN(('cn', 'Bob'), 'dc=redhat.com')
+   DN(('cn', 'Bob'), RDN('dc', 'redhat.com'))
 
 AVA's have an attr and value property, thus if you have an AVA
 
@@ -267,9 +282,9 @@ ava.value -> u'Bob'
 ava.attr  = 'cn'
 ava.value = 'Bob'
 
-But since RDN's are assumed to be single valued, exactly the same
-behavior applies to an RDN (it will throw an exception if the RDN is
-not single valued)
+Since RDN's are assumed to be single valued, exactly the same
+behavior applies to an RDN. If the RDN is multi-valued then the attr
+property returns the attr of the first AVA, likewise for the value.
 
 # Get the attr and value
 rdn.attr  -> u'cn'
@@ -316,8 +331,8 @@ dn['cn'] -> u'Bob'
 # whose attr matches the key.
 
 # Set the first RDN in the DN (all are equivalent)
-dn[0] = 'cn', 'Bob'
 dn[0] = ('cn', 'Bob')
+dn[0] = ['cn', 'Bob']
 dn[0] = RDN('cn', 'Bob')
 
 dn[0].attr = 'cn'
@@ -333,9 +348,8 @@ dn[-2:]
 dn[:]
 
 # Set the 2nd and 3rd RDN using slices (all are equivalent)
-dn[1:4] = 'cn', 'Bob, 'dc', 'redhat.com'
-dn[1:4] = ('cn', 'Bob), ('dc', 'redhat.com')
-dn[1:4] = RDN('cn', 'Bob), RDN('dc', 'redhat.com')
+dn[1:3] = ('cn', 'Bob), ('dc', 'redhat.com')
+dn[1:3] = RDN('cn', 'Bob), RDN('dc', 'redhat.com')
 
 String representations and escapes:
 
@@ -346,26 +360,33 @@ str(dn) -> 'cn=Bob,dc=redhat.com'
 # When working with attr's and values you do not have to worry about
 # escapes, simply use the raw unescaped string in a natural fashion.
 
-rdn = RDN('cn', 'R,W')
+rdn = RDN('cn', 'r,w')
 
 # Thus:
-rdn.value == 'R,W' -> True
+rdn.value == 'r,w' -> True
 
 # But:
-str(rdn) == 'cn=R,W' -> False
+str(rdn) == 'cn=r,w' -> False
 # Because:
-str(rdn) -> 'cn=R\2cW' or 'cn='R\,W' # depending on the underlying LDAP library
+str(rdn) -> 'cn=r\2cw' or 'cn='r\,w' # depending on the underlying LDAP library
 
 Equality and Comparing:
 
 # All DN's, RDN's and AVA's support equality testing in an intuitive
 # manner.
-dn1 = DN('cn', 'Bob')
+dn1 = DN(('cn', 'Bob'))
 dn2 = DN(RDN('cn', 'Bob'))
 dn1 == dn2 -> True
 dn1[0] == dn2[0] -> True
 dn1[0].value = 'Bobby'
 dn1 == dn2 -> False
+
+DN objects implement startswith(), endswith() and the "in" membership
+operator. You may pass a DN or RDN object to these. Examples:
+
+if dn.endswith(base_dn):
+if dn.startswith(rdn1):
+if container_dn in dn:
 
 # See the class doc for how DN's, RDN's and AVA's compare
 # (e.g. cmp()). The general rule is for objects supporting multiple
@@ -380,7 +401,6 @@ Concatenation and In-Place Addition:
 dn3 = dn1 + dn2
 
 # Append a RDN to DN's RDN sequence (all are equivalent)
-dn += 'cn', 'Bob'
 dn += ('cn', 'Bob')
 dn += RDN('cn', 'Bob')
 
@@ -492,18 +512,18 @@ class AVA(object):
                 return self.value
             raise KeyError("\"%s\" not found in %s" % (key, self.__str__()))
         else:
-            raise TypeError("unsupported type for %s indexing, must be basestring; not %s" % \
-                                (self.__class__.__name__, key.__class__.__name__))
+            raise TypeError("unsupported type for AVA indexing, must be basestring; not %s" % \
+                                (key.__class__.__name__))
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
-            raise TypeError("expected %s but got %s" % (self.__class__.__name__, other.__class__.__name__))
+            raise TypeError("expected AVA but got %s" % (other.__class__.__name__))
 
         return self.attr == other.attr and self.value == other.value
 
     def __cmp__(self, other):
         if not isinstance(other, self.__class__):
-            raise TypeError("expected %s but got %s" % (self.__class__.__name__, other.__class__.__name__))
+            raise TypeError("expected AVA but got %s" % (other.__class__.__name__))
 
         result = cmp(self.attr, other.attr)
         if result != 0: return result
@@ -519,14 +539,15 @@ class RDN(object):
     implementation orders the AVA's according to the AVA comparison function to
     make equality and comparison testing easier. Think of this a canonical
     normalization (however LDAP does not impose any ordering on multiple AVA's
-    within an RDN). Single valued RDN's are the norm.
+    within an RDN). Single valued RDN's are the norm and thus the RDN
+    constructor has simple syntax for them.
 
     The RDN constructor may be invoked in a variety of different ways.
 
     * When two adjacent string (or unicode) argument appear together in the
     argument list they are taken to be the <attr,value> pair of an AVA. An AVA
     object is constructed and inserted into the RDN. Multiple pairs of strings
-    arguments may appear in the argument list, each pair add one additional AVA
+    arguments may appear in the argument list, each pair adds one additional AVA
     to the RDN.
 
     * A 2-valued tuple or list denotes the <attr,value> pair of an AVA. The
@@ -630,7 +651,7 @@ class RDN(object):
 
     def _ava_from_value(self, value):
         if isinstance(value, AVA):
-            return value
+            return deepcopy(value)
         elif isinstance(value, basestring):
             try:
                 rdns = str2dn(value.encode('utf-8'))
@@ -710,14 +731,14 @@ class RDN(object):
                     return avas
                 raise KeyError("\"%s\" not found in %s" % (key, self.__str__()))
         else:
-            raise TypeError("unsupported type for %s indexing, must be int, basestring or slice; not %s" % \
-                                (self.__class__.__name__, key.__class__.__name__))
+            raise TypeError("unsupported type for RDN indexing, must be int, basestring or slice; not %s" % \
+                                (key.__class__.__name__))
 
     def __setitem__(self, key, value):
         if isinstance(key, (int, long)):
             new_ava = self._ava_from_value(value)
             if isinstance(new_ava, list):
-                raise TypeError("multiple AVA's")
+                raise TypeError("cannot assign multiple AVA's to single entry")
             self.avas[key] = new_ava
         elif isinstance(key, slice):
             avas = self._avas_from_sequence(value)
@@ -725,7 +746,7 @@ class RDN(object):
         elif isinstance(key, basestring):
             new_ava = self._ava_from_value(value)
             if isinstance(new_ava, list):
-                raise TypeError("cannot assign multiple values to single entry")
+                raise TypeError("cannot assign multiple AVA's to single entry")
             found = False
             i = 0
             while i < len(self.avas):
@@ -737,8 +758,9 @@ class RDN(object):
             if not found:
                 raise KeyError("\"%s\" not found in %s" % (key, self.__str__()))
         else:
-            raise TypeError("unsupported type for %s indexing, must be int, basestring or slice; not %s" % \
-                                (self.__class__.__name__, key.__class__.__name__))
+            raise TypeError("unsupported type for RDN indexing, must be int, basestring or slice; not %s" % \
+                                (key.__class__.__name__))
+        self.avas.sort()
 
     def _get_attr(self):
         if len(self.avas) == 0:
@@ -774,13 +796,13 @@ class RDN(object):
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
-            raise TypeError("expected %s but got %s" % (self.__class__.__name__, other.__class__.__name__))
+            raise TypeError("expected RDN but got %s" % (other.__class__.__name__))
 
         return self.avas == other.avas
 
     def __cmp__(self, other):
         if not isinstance(other, self.__class__):
-            raise TypeError("expected %s but got %s" % (self.__class__.__name__, other.__class__.__name__))
+            raise TypeError("expected RDN but got %s" % (other.__class__.__name__))
 
         result = cmp(len(self), len(other))
         if result != 0: return result
@@ -797,7 +819,7 @@ class RDN(object):
             for ava in other.avas:
                 result.avas.append(deepcopy(ava))
         elif isinstance(other, AVA):
-                result.avas.append(deepcopy(other))
+            result.avas.append(deepcopy(other))
         elif isinstance(other, basestring):
             rdn = RDN(other)
             for ava in rdn.avas:
@@ -813,7 +835,7 @@ class RDN(object):
             for ava in other.avas:
                 self.avas.append(deepcopy(ava))
         elif isinstance(other, AVA):
-                self.avas.append(deepcopy(other))
+            self.avas.append(deepcopy(other))
         elif isinstance(other, basestring):
             rdn = RDN(other)
             for ava in rdn.avas:
@@ -828,54 +850,54 @@ class DN(object):
     '''
     A DN is a LDAP Distinguished Name. A DN is an ordered sequence of RDN's.
 
-    The DN constructor may be invoked in a variety of different ways.
+    The DN constructor accepts a sequence. The constructor iterates
+    through the sequence and adds the RDN's it finds in order to the
+    DN object. Each item in the sequence may be:
 
-    * When two adjacent string (or unicode) argument appear together in the
-    argument list they are taken to be the <attr,value> pair of a
-    singled valued RDN. An RDN
-    object is constructed and inserted into the DN. Multiple pairs of strings
-    arguments may appear in the argument list, each pair adds one additional RDN
-    to the DN.
+    * A 2-valued tuple or list. The first member is the attr and the
+      second member is the value of an RDN, both members must be
+      strings (or unicode). The tuple or list is passed to the RDN
+      constructor and the resulting RDN is appended to the
+      DN. Multiple tuples or lists may appear in the argument list,
+      each adds one additional RDN to the DN.
 
-    * A 2-valued tuple or list denotes the <attr,value> pair of an RDN. The
-    first member is the attr and the second member is the value, both members
-    must be strings (or unicode). The tuple or list is passed to the RDN
-    constructor and the resulting RDN is added to the DN. Multiple tuples or
-    lists may appear in the argument list, each adds one additional RDN to the
-    DN.
+    * A single string (or unicode) argument, in this case the string
+      will be interpretted using the DN syntax described in RFC 4514
+      to yield one or more RDN's which will be appended in order to
+      the DN. The parsing recognizes the DN syntax escaping rules.
 
-    * A single string (or unicode) argument, in this case the string will
-    be interpretted using the DN syntax described in RFC 4514 to yield one or
-    more RDN's. The parsing recognizes the DN syntax escaping
-    rules.
+    * A RDN object. Each RDN object in the argument list will be
+      appended to the DN in order.
 
-    Note, a DN syntax argument is distguished from RDN string pairs by testing
-    to see if two strings appear adjacent in the argument list, if so those two
-    strings are interpretted as an <attr,value> RDN pair and consumed.
-
-    * A RDN object. Each RDN object in the argument list will be added to the DN.
-
-    * A DN object. Each DN object in the argument list will add it's RDN's to the DN.
+    * A DN object. Each DN object in the argument list will append in order
+      it's RDN's to the DN.
 
     Single DN Examples:
 
-    DN('cn', 'Bob')                     # 2 adjacent strings yield 1 RDN
     DN(('cn', 'Bob'))                   # tuple yields 1 RDN
+    DN(['cn', 'Bob'])                   # list yields 1 RDN
     DN('cn=Bob')                        # DN syntax with 1 RDN
     DN(RDN('cn', 'Bob'))                # RDN object adds 1 RDN
 
     Multiple RDN Examples:
 
-    DN('cn', 'Bob', 'ou', 'people')	# 2 strings pairs yield 2 RDN's
     DN(('cn', 'Bob'),('ou', 'people'))  # 2 tuples yields 2 RDN's
+                                        # 2 RDN's total
     DN('cn=Bob,ou=people')              # DN syntax with 2 RDN's
-    DN(RDN('cn', 'Bob'),RDN('ou', 'people')) # 2 RDN objects adds 2 RDN's
-    DN('cn', 'Bob', "ou=people')        # 3 strings, 1st two strings form 1 RDN
-                                        # 3rd string DN syntax for 1 RDN,
-                                        # adds 2 RDN's in total
-    DN('cn', 'Bob', DN(container), DN(base)) # 1st two strings form 1 RDN
-                                        # then the RDN's from container are added
-                                        # followed by the RDN from base
+                                        # 2 RDN's total
+    DN(RDN('cn', 'Bob'),RDN('ou', 'people')) # 2 RDN objects
+                                        # 2 RDN's total
+    DN(('cn', 'Bob'), "ou=people')      # 1st tuple adds 1 RDN
+                                        # 2nd DN syntax string adds 1 RDN
+                                        # 2 RDN's total
+    base_dn = DN('dc=redhat,dc=com')
+    container_dn = DN('cn=sudorules,cn=sudo')
+    DN(('cn', 'Bob'), container_dn, base_dn)
+                                        # 1st arg adds 1 RDN, cn=Bob
+                                        # 2nd arg adds 2 RDN's, cn=sudorules,cn=sudo
+                                        # 3rd arg adds 2 RDN's, dc=redhat,dc=com
+                                        # 5 RDN's total
+
 
     Note: The RHS of a slice assignment is interpreted exactly in the
     same manner as the constructor argument list (see above examples).
@@ -912,12 +934,22 @@ class DN(object):
     dn[:]
 
     # Set the 2nd and 3rd RDN using slices (all are equivalent)
-    dn[1:4] = 'cn', 'Bob, 'dc', 'redhat.com'
-    dn[1:4] = ('cn', 'Bob), ('dc', 'redhat.com')
-    dn[1:4] = RDN('cn', 'Bob), RDN('dc', 'redhat.com')
+    dn[1:3] = ('cn', 'Bob), ('dc', 'redhat.com')
+    dn[1:3] = [['cn', 'Bob], ['dc', 'redhat.com']]
+    dn[1:3] = RDN('cn', 'Bob), RDN('dc', 'redhat.com')
 
     DN objects support equality testing and comparision. See RDN for the
     definition of the comparision method.
+
+    DN objects implement startswith(), endswith() and the "in" membership
+    operator. You may pass a DN or RDN object to these. Examples:
+
+    # Test if dn ends with the contents of base_dn
+    if dn.endswith(base_dn):
+    # Test if dn starts with a rdn
+    if dn.startswith(rdn1):
+    # Test if a container is present in a dn
+    if container_dn in dn:
 
     DN objects support concatenation and addition with other DN's or RDN's
     or strings (interpreted as RFC 4514 DN syntax).
@@ -946,66 +978,49 @@ class DN(object):
 
     def _rdn_from_value(self, value):
         if isinstance(value, RDN):
-            return value
+            return deepcopy(value)
+        elif isinstance(value, DN):
+            rdns = []
+            for rdn in value.rdns:
+                rdns.append(deepcopy(rdn))
+            if len(rdns) == 1:
+                return rdns[0]
+            else:
+                return rdns
         elif isinstance(value, basestring):
+            rdns = []
             try:
-                rdns = str2dn(value.encode('utf-8'))
-                for rdn_list in rdns:
+                dn_list = str2dn(value.encode('utf-8'))
+                for rdn_list in dn_list:
                     avas = []
                     for ava_tuple in rdn_list:
                         avas.append(AVA(ava_tuple[0], ava_tuple[1]))
                     rdn = RDN(*avas)
-                    return rdn
+                    rdns.append(rdn)
             except DECODING_ERROR:
                 raise ValueError("malformed RDN string = \"%s\"" % value)
+            if len(rdns) == 1:
+                return rdns[0]
+            else:
+                return rdns
         elif isinstance(value, (tuple, list)):
             if len(value) != 2:
                 raise ValueError("tuple or list must be 2-valued, not \"%s\"" % (rdn))
             rdn = RDN(value)
             return rdn
         else:
-            raise TypeError("single argument must be str,unicode,tuple, or RDN, got %s instead" % \
+            raise TypeError("must be str,unicode,tuple, or RDN, got %s instead" % \
                             value.__class__.__name__)
 
     def _rdns_from_sequence(self, seq):
-        self.first_key_match = True
         rdns = []
 
-        i = 0
-        while i < len(seq):
-            if i+1 < len(seq)                       and \
-               isinstance(seq[i],   basestring) and \
-               isinstance(seq[i+1], basestring):
-                rdn = RDN(seq[i], seq[i+1])
-                rdns.append(rdn)
-                i += 2
+        for item in seq:
+            rdn = self._rdn_from_value(item)
+            if isinstance(rdn, list):
+                rdns.extend(rdn)
             else:
-                arg = seq[i]
-                i += 1
-                if isinstance(arg, RDN):
-                    rdns.append(arg)
-                elif isinstance(arg, DN):
-                    for rdn in arg.rdns:
-                        rdns.append(deepcopy(rdn))
-                elif isinstance(arg, basestring):
-                    try:
-                        dn_list = str2dn(arg.encode('utf-8'))
-                        for rdn_list in dn_list:
-                            avas = []
-                            for ava_tuple in rdn_list:
-                                avas.append(AVA(ava_tuple[0], ava_tuple[1]))
-                            rdn = RDN(*avas)
-                            rdns.append(rdn)
-                    except DECODING_ERROR:
-                        raise ValueError("malformed RDN string = \"%s\"" % arg)
-                elif isinstance(arg, (tuple, list)):
-                    if len(arg) != 2:
-                        raise ValueError("tuple or list must be 2-valued, not \"%s\"" % (rdn))
-                    rdn = RDN(arg)
-                    rdns.append(rdn)
-                else:
-                    raise TypeError("single argument must be str,unicode,tuple, or RDN, got %s instead" % \
-                                    arg.__class__.__name__)
+                rdns.append(rdn)
         return rdns
 
     def _to_openldap(self):
@@ -1042,14 +1057,14 @@ class DN(object):
                     return rdns
                 raise KeyError("\"%s\" not found in %s" % (key, self.__str__()))
         else:
-            raise TypeError("unsupported type for %s indexing, must be int, basestring or slice; not %s" % \
-                                (self.__class__.__name__, key.__class__.__name__))
+            raise TypeError("unsupported type for DN indexing, must be int, basestring or slice; not %s" % \
+                                (key.__class__.__name__))
 
     def __setitem__(self, key, value):
         if isinstance(key, (int, long)):
             new_rdn = self._rdn_from_value(value)
             if isinstance(new_rdn, list):
-                raise TypeError("multiple RDN's")
+                raise TypeError("cannot assign multiple RDN's to single entry")
             self.rdns[key] = new_rdn
         elif isinstance(key, slice):
             rdns = self._rdns_from_sequence(value)
@@ -1069,26 +1084,31 @@ class DN(object):
             if not found:
                 raise KeyError("\"%s\" not found in %s" % (key, self.__str__()))
         else:
-            raise TypeError("unsupported type for %s indexing, must be int, basestring or slice; not %s" % \
-                                (self.__class__.__name__, key.__class__.__name__))
+            raise TypeError("unsupported type for DN indexing, must be int, basestring or slice; not %s" % \
+                                (key.__class__.__name__))
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
-            raise TypeError("expected %s but got %s" % (self.__class__.__name__, other.__class__.__name__))
+            raise TypeError("expected DN but got %s" % (other.__class__.__name__))
 
         return self.rdns == other.rdns
 
     def __cmp__(self, other):
         if not isinstance(other, self.__class__):
-            raise TypeError("expected %s but got %s" % (self.__class__.__name__, other.__class__.__name__))
+            raise TypeError("expected DN but got %s" % (other.__class__.__name__))
 
         result = cmp(len(self), len(other))
         if result != 0: return result
-        i = 0
-        while i < len(self):
-            result = cmp(self[i], other[i])
+        return self._cmp_sequence(other, 0, len(self))
+
+    def _cmp_sequence(self, pattern, self_start, pat_len):
+        self_idx = self_start
+        pat_idx = 0
+        while pat_idx < pat_len:
+            result = cmp(self[self_idx], pattern[pat_idx])
             if result != 0: return result
-            i += 1
+            self_idx += 1
+            pat_idx += 1
         return 0
 
     def __add__(self, other):
@@ -1097,7 +1117,7 @@ class DN(object):
             for rdn in other.rdns:
                 result.rdns.append(deepcopy(rdn))
         elif isinstance(other, RDN):
-                result.rdns.append(deepcopy(other))
+            result.rdns.append(deepcopy(other))
         elif isinstance(other, basestring):
             dn = DN(other)
             for rdn in dn.rdns:
@@ -1112,7 +1132,7 @@ class DN(object):
             for rdn in other.rdns:
                 self.rdns.append(deepcopy(rdn))
         elif isinstance(other, RDN):
-                self.rdns.append(deepcopy(other))
+            self.rdns.append(deepcopy(other))
         elif isinstance(other, basestring):
             dn = DN(other)
             self.__iadd__(dn)
@@ -1120,4 +1140,112 @@ class DN(object):
             raise TypeError("expected DN, RDN or basestring but got %s" % (other.__class__.__name__))
 
         return self
+
+    # The implementation of startswith, endswith, tailmatch, adjust_indices
+    # was based on the Python's stringobject.c implementation
+
+    def startswith(self, prefix, start=0, end=sys.maxsize):
+        '''
+        Return True if the dn starts with the specified prefix (either a DN or
+        RDN object), False otherwise.  With optional start, test dn beginning at
+        that position.  With optional end, stop comparing dn at that position.
+        prefix can also be a tuple of dn's or rdn's to try.
+        '''
+        if isinstance(prefix, tuple):
+            for pat in prefix:
+                if self._tailmatch(pat, start, end, -1):
+                    return True
+            return False
+
+        return self._tailmatch(prefix, start, end, -1)
+
+    def endswith(self, suffix, start=0, end=sys.maxsize):
+        '''
+        Return True if dn ends with the specified suffix (either a DN or RDN
+        object), False otherwise.  With optional start, test dn beginning at
+        that position.  With optional end, stop comparing dn at that position.
+        suffix can also be a tuple of dn's or rdn's to try.
+        '''
+        if isinstance(suffix, tuple):
+            for pat in suffix:
+                if self._tailmatch(pat, start, end, +1):
+                    return True
+            return False
+
+        return self._tailmatch(suffix, start, end, +1)
+
+    def _adjust_indices(self, start, end, length):
+        'helper to fixup start/end slice values'
+
+        if end > length:
+            end = length
+        elif end < 0:
+            end += length
+            if end < 0:
+                end = 0
+
+        if start < 0:
+            start += length
+            if start < 0:
+                start = 0
+
+        return start, end
+
+    def _tailmatch(self, pattern, start, end, direction):
+        '''
+        Matches the end (direction >= 0) or start (direction < 0) of self
+        against pattern (either a DN or RDN), using the start and end
+        arguments. Returns 0 if not found and 1 if found.
+        '''
+
+        if isinstance(pattern, DN):
+            pat_len = len(pattern)
+        elif isinstance(pattern, RDN):
+            pat_len = 1
+        else:
+            raise TypeError("expected DN or RDN but got %s" % (pattern.__class__.__name__))
+
+        self_len = len(self)
+
+        start, end = self._adjust_indices(start, end, self_len)
+
+        if direction < 0:       # starswith
+            if start+pat_len > self_len:
+                return 0;
+        else:                   # endswith
+            if end-start < pat_len or start > self_len:
+                return 0
+
+            if end-pat_len >= start:
+                start = end - pat_len
+
+        if isinstance(pattern, DN):
+            if end-start >= pat_len:
+                return not self._cmp_sequence(pattern, start, pat_len)
+            return 0;
+        else:
+            return self.rdns[start] == pattern
+
+    def __contains__(self, other):
+        'Return the outcome of the test other in self. Note the reversed operands.'
+
+        if isinstance(other, DN):
+            other_len = len(other)
+            end = len(self) - other_len
+            i = 0
+            while i <= end:
+                result = self._cmp_sequence(other, i, other_len)
+                if result == 0:
+                    return True
+                i += 1
+            return False
+
+        elif isinstance(other, RDN):
+            return other in self.rdns
+        else:
+            raise TypeError("expected DN or RDN but got %s" % (other.__class__.__name__))
+
+
+
+
 
