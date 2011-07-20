@@ -1,20 +1,9 @@
-#kerberos user
-dn: uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX
-changetype: add
-objectclass: account
-objectclass: simplesecurityobject
-uid: kdc
-userPassword: $PASSWORD
-passwordExpirationTime: 20380119031407Z
-nsIdleTimeout: 0
-
 #kerberos base object
 dn: cn=kerberos,$SUFFIX
 changetype: add
 objectClass: krbContainer
 objectClass: top
 cn: kerberos
-aci: (targetattr="*")(version 3.0; acl "KDC System Account"; allow (all) userdn= "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
 
 #Realm base object
 dn: cn=$REALM,cn=kerberos,$SUFFIX

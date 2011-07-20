@@ -3,9 +3,6 @@
     "id": 6,
     "result": {
         "result": {
-            "aci": [
-                "(targetattr = \"krbMKey\")(version 3.0; acl \"No external access\"; deny (read,write,search,compare) userdn != \"ldap:///uid=kdc,cn=sysaccounts,cn=etc,dc=ipa14,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com\";)"
-            ],
             "attributelevelrights": {
                 "aci": "rscwo",
                 "cn": "rscwo",

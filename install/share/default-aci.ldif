@@ -9,9 +9,6 @@ aci: (targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || samba
 aci: (targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword")(version 3.0; acl "selfservice:Self can write own password"; allow (write) userdn="ldap:///self";)
 aci: (targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Admins can write passwords"; allow (add,delete,write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 aci: (targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Password change service can read/write passwords"; allow (read, write) userdn="ldap:///krbprincipalname=kadmin/changepw@$REALM,cn=$REALM,cn=kerberos,$SUFFIX";)
-aci: (targetattr = "userPassword || krbPrincipalKey || krbPasswordExpiration || sambaLMPassword || sambaNTPassword || passwordHistory || krbExtraData")(version 3.0; acl "KDC System Account can access passwords"; allow (all) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
-aci: (targetattr = "krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount || krbLastAdminUnlock")(version 3.0; acl "KDC System Account can update some fields"; allow (read,write) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
-aci: (targetattr = "krbPrincipalName || krbCanonicalName || krbUPEnabled || krbMKey || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount")(version 3.0; acl "Only the KDC System Account has access to kerberos material"; allow (read, search, compare) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
 aci: (targetfilter = "(objectClass=krbPwdPolicy)")(targetattr = "krbMaxPwdLife || krbMinPwdLife || krbPwdMinDiffChars || krbPwdMinLength || krbPwdHistoryLength")(version 3.0;acl "Admins can write password policies"; allow (read, search, compare, write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 aci: (targetattr = "*")(target = "ldap:///cn=*,ou=SUDOers,$SUFFIX")(version 3.0; acl "No anonymous access to sudo"; deny (read,search,compare) userdn != "ldap:///all";)
 
@@ -39,7 +36,6 @@ aci: (targetattr = "aci")(version 3.0;acl "Admins can manage delegations"; allow
 dn: cn=services,cn=accounts,$SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr="krbPrincipalName || krbCanonicalName || krbUPEnabled || krbPrincipalKey || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData")(version 3.0; acl "KDC System Account"; allow (read, search, compare, write) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
 aci: (targetattr = "krbPrincipalKey || krbLastPwdChange")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Admins can manage service keytab";allow (write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 
 # Define which hosts can edit services
