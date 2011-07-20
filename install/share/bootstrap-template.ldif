@@ -179,7 +179,7 @@ gidNumber: $IDSTART
 homeDirectory: /home/admin
 loginShell: /bin/bash
 gecos: Administrator
-nsAccountLock: False
+nsAccountLock: FALSE
 ipaUniqueID: autogenerate
 
 dn: cn=admins,cn=groups,cn=accounts,$SUFFIX
@@ -193,7 +193,7 @@ cn: admins
 description: Account administrators group
 gidNumber: $IDSTART
 member: uid=admin,cn=users,cn=accounts,$SUFFIX
-nsAccountLock: False
+nsAccountLock: FALSE
 ipaUniqueID: autogenerate
 
 dn: cn=ipausers,cn=groups,cn=accounts,$SUFFIX
