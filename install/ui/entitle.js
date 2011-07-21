@@ -131,12 +131,14 @@ IPA.entity_factories.entitle = function() {
                     label: IPA.get_method_option('entitle_register', 'password').label,
                     type: 'password',
                     undo: false
-                },
-                {
+                }
+/* currently not supported
+                , {
                     name: 'ipaentitlementid',
                     label: IPA.get_method_option('entitle_register', 'ipaentitlementid').label,
                     undo: false
                 }
+*/
             ]
         }).
         dialog({
@@ -254,8 +256,7 @@ IPA.entitle.entity = function(spec) {
             method: 'register',
             args: [ username ],
             options: {
-                password: password,
-                ipaentitlementid: ipaentitlementid
+                password: password
             },
             on_success: function(data, text_status, xhr) {
                 that.status = IPA.entitle.online;
@@ -265,6 +266,10 @@ IPA.entitle.entity = function(spec) {
             },
             on_error: on_error
         });
+
+        if (ipaentitlementid) {
+            command.set_option('ipaentitlementid', ipaentitlementid);
+        }
 
         command.execute();
     };
