@@ -263,21 +263,11 @@ IPA.sudorule_details_facet = function(spec) {
 
     var that = IPA.details_facet(spec);
 
-    var section;
-
-    if (IPA.layout) {
-        section = that.create_section({
-            'name': 'general',
-            'label': IPA.messages.details.general,
-            'template': 'sudorule-details-general.html #contents'
-        });
-    } else {
-        section = IPA.sudo.rule_details_general_section({
-            'name': 'general',
-            'label': IPA.messages.details.general
-        });
-        that.add_section(section);
-    }
+    var section = IPA.sudo.rule_details_general_section({
+        'name': 'general',
+        'label': IPA.messages.details.general
+    });
+    that.add_section(section);
 
     section.text({name: 'cn', read_only: true});
     section.textarea({name: 'description'});
@@ -929,8 +919,6 @@ IPA.sudo.rule_details_command_section = function(spec) {
 
     that.create = function(container) {
 
-        if (that.template) return;
-
         var field = that.get_field('cmdcategory');
         var param_info = IPA.get_entity_param(that.entity_name, 'cmdcategory');
 
@@ -1097,8 +1085,6 @@ IPA.sudo.rule_details_runas_section = function(spec) {
     };
 
     that.create = function(container) {
-
-        if (that.template) return;
 
         var field = that.get_field('ipasudorunasusercategory');
         var param_info = IPA.get_entity_param(that.entity_name, 'ipasudorunasusercategory');
@@ -1287,18 +1273,12 @@ IPA.sudorule_association_table_widget = function(spec) {
         var label = IPA.metadata.objects[that.other_entity].label;
         var title = 'Add '+label+' to '+that.entity_name+' '+pkey;
 
-        var template;
-        if (IPA.layout) {
-            template = 'sudorule-'+that.other_entity+'-dialog.html #contents';
-        }
-
         return IPA.sudo.rule_association_adder_dialog({
             'title': title,
             'entity_name': that.entity_name,
             'pkey': pkey,
             'other_entity': that.other_entity,
-            'external': that.external,
-            'template': template
+            'external': that.external
         });
     };
 

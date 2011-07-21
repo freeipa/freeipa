@@ -52,15 +52,7 @@ var IPA = ( function () {
     that.entities = $.ordered_map();
     that.entity_factories = {};
 
-    that.layout = $.bbq.getState('layout');
-    that.layouts_dir = 'layouts';
-
     that.network_call_count = 0;
-
-    that.get_template = function(path) {
-        var layout = that.layout || 'default';
-        return that.layouts_dir+'/'+layout+'/'+path;
-    };
 
     /* initialize the IPA JSON-RPC helper
      * arguments:

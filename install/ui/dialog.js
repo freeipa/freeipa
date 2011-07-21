@@ -32,7 +32,6 @@ IPA.dialog = function(spec) {
 
     that.name = spec.name;
     that.title = spec.title;
-    that.template = spec.template;
     that._entity_name = spec.entity_name;
 
     that.width = spec.width || 400;
@@ -254,40 +253,19 @@ IPA.dialog = function(spec) {
             container.append(that.container);
         }
 
-        if (that.template) {
-            var template = IPA.get_template(that.template);
-            that.container.load(
-                template,
-                function(data, text_status, xhr) {
-                    that.setup();
-                    that.container.dialog({
-                        'title': that.title,
-                        'modal': true,
-                        'width': that.width,
-                        'height': that.height,
-                        'buttons': that.buttons,
-                        close: function(event, ui) {
-                            that.close();
-                        }
-                    });
-                }
-            );
+        that.create();
+        that.setup();
 
-        } else {
-            that.create();
-            that.setup();
-
-            that.container.dialog({
-                'title': that.title,
-                'modal': true,
-                'width': that.width,
-                'height': that.height,
-                'buttons': that.buttons,
-                close: function(event, ui) {
-                    that.close();
-                }
-            });
-        }
+        that.container.dialog({
+            'title': that.title,
+            'modal': true,
+            'width': that.width,
+            'height': that.height,
+            'buttons': that.buttons,
+            close: function(event, ui) {
+                that.close();
+            }
+        });
     };
 
     that.option = function(name, value) {

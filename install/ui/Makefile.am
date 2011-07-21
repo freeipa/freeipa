@@ -3,7 +3,6 @@ AUTOMAKE_OPTIONS = 1.7
 NULL =
 
 SUBDIRS =  				\
-	layouts 				\
 	$(NULL)
 
 appdir = $(IPA_DATA_DIR)/ui

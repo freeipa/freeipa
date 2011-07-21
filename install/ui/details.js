@@ -37,7 +37,6 @@ IPA.details_section = function(spec) {
 
     that.name = spec.name || '';
     that.label = spec.label || '';
-    that.template = spec.template;
     that._entity_name = spec.entity_name;
 
     that.fields = $.ordered_map();
@@ -105,8 +104,6 @@ IPA.details_section = function(spec) {
 
     that.create = function(container) {
 
-        if (that.template) return;
-
         var fields = that.fields.values;
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
@@ -123,8 +120,6 @@ IPA.details_section = function(spec) {
 
         that.container = container;
 
-        if (that.template) return;
-
         var fields = that.fields.values;
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
@@ -139,23 +134,6 @@ IPA.details_section = function(spec) {
         that.record = record;
 
         var fields = that.fields.values;
-
-        if (that.template) {
-            var template = IPA.get_template(that.template);
-            this.container.load(
-                template,
-                function(data, text_status, xhr) {
-                    for (var i=0; i<fields.length; i++) {
-                        var field = fields[i];
-                        var span = $('span[name='+field.name+']', this.container).first();
-                        field.setup(span);
-                        field.load(record);
-                    }
-                }
-            );
-            return;
-        }
-
         for (var j=0; j<fields.length; j++) {
             var field = fields[j];
             field.load(record);
@@ -229,8 +207,6 @@ IPA.details_list_section = function(spec) {
     that.create = function(container) {
 
         // do not call section_create() here
-
-        if (that.template) return;
 
         var dl = $('<dl/>', {
             'id': that.name,

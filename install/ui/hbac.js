@@ -156,22 +156,11 @@ IPA.hbacrule_details_facet = function(spec) {
 
     that.init = function() {
 
-        var section;
-
-        if (IPA.layout) {
-            section = that.create_section({
-                'name': 'general',
-                'label': IPA.messages.details.general,
-                'template': 'hbacrule-details-general.html #contents'
-            });
-
-        } else {
-            section = IPA.hbacrule_details_general_section({
-                'name': 'general',
-                'label': IPA.messages.details.general
-            });
-            that.add_section(section);
-        }
+        var section = IPA.hbacrule_details_general_section({
+            'name': 'general',
+            'label': IPA.messages.details.general
+        });
+        that.add_section(section);
 
         section.text({name: 'cn', read_only: true});
         section.radio({name: 'accessruletype'});
@@ -180,30 +169,21 @@ IPA.hbacrule_details_facet = function(spec) {
 
         var param_info = IPA.get_entity_param('hbacrule', 'usercategory');
 
-        if (IPA.layout) {
-            section = that.create_section({
-                'name': 'user',
-                'label': IPA.messages.objects.hbacrule.user,
-                'template': 'hbacrule-details-user.html #contents'
-            });
-
-        } else {
-            section = IPA.rule_details_section({
-                'name': 'user',
-                'label': IPA.messages.objects.hbacrule.user,
-                'text': param_info.doc+':',
-                'field_name': 'usercategory',
-                'options': [
-                    { 'value': 'all', 'label': IPA.messages.objects.hbacrule.anyone },
-                    { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_users }
-                ],
-                'tables': [
-                    { 'field_name': 'memberuser_user' },
-                    { 'field_name': 'memberuser_group' }
-                ]
-            });
-            that.add_section(section);
-        }
+        section = IPA.rule_details_section({
+            'name': 'user',
+            'label': IPA.messages.objects.hbacrule.user,
+            'text': param_info.doc+':',
+            'field_name': 'usercategory',
+            'options': [
+                { 'value': 'all', 'label': IPA.messages.objects.hbacrule.anyone },
+                { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_users }
+            ],
+            'tables': [
+                { 'field_name': 'memberuser_user' },
+                { 'field_name': 'memberuser_group' }
+            ]
+        });
+        that.add_section(section);
 
         var category = section.add_field(IPA.radio_widget({
             name: 'usercategory'
@@ -221,30 +201,21 @@ IPA.hbacrule_details_facet = function(spec) {
 
         param_info = IPA.get_entity_param('hbacrule', 'hostcategory');
 
-        if (IPA.layout) {
-            section = that.create_section({
-                'name': 'host',
-                'label': IPA.messages.objects.hbacrule.host,
-                'template': 'hbacrule-details-host.html #contents'
-            });
-
-        } else {
-            section = IPA.rule_details_section({
-                'name': 'host',
-                'label': IPA.messages.objects.hbacrule.host,
-                'text': param_info.doc+':',
-                'field_name': 'hostcategory',
-                'options': [
-                    { 'value': 'all', 'label': IPA.messages.objects.hbacrule.any_host },
-                    { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_hosts }
-                ],
-                'tables': [
-                    { 'field_name': 'memberhost_host' },
-                    { 'field_name': 'memberhost_hostgroup' }
-                ]
-            });
-            that.add_section(section);
-        }
+        section = IPA.rule_details_section({
+            'name': 'host',
+            'label': IPA.messages.objects.hbacrule.host,
+            'text': param_info.doc+':',
+            'field_name': 'hostcategory',
+            'options': [
+                { 'value': 'all', 'label': IPA.messages.objects.hbacrule.any_host },
+                { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_hosts }
+            ],
+            'tables': [
+                { 'field_name': 'memberhost_host' },
+                { 'field_name': 'memberhost_hostgroup' }
+            ]
+        });
+        that.add_section(section);
 
         category = section.add_field(IPA.radio_widget({
             name: 'hostcategory'
@@ -262,30 +233,21 @@ IPA.hbacrule_details_facet = function(spec) {
 
         param_info = IPA.get_entity_param('hbacrule', 'servicecategory');
 
-        if (IPA.layout) {
-            section = that.create_section({
-                'name': 'service',
-                'label': IPA.messages.objects.hbacrule.service,
-                'template': 'hbacrule-details-service.html #contents'
-            });
-
-        } else {
-            section = IPA.rule_details_section({
-                'name': 'service',
-                'label': IPA.messages.objects.hbacrule.service,
-                'text': param_info.doc+':',
-                'field_name': 'servicecategory',
-                'options': [
-                    { 'value': 'all', 'label': IPA.messages.objects.hbacrule.any_service },
-                    { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_services }
-                ],
-                'tables': [
-                    { 'field_name': 'memberservice_hbacsvc' },
-                    { 'field_name': 'memberservice_hbacsvcgroup' }
-                ]
-            });
-            that.add_section(section);
-        }
+        section = IPA.rule_details_section({
+            'name': 'service',
+            'label': IPA.messages.objects.hbacrule.service,
+            'text': param_info.doc+':',
+            'field_name': 'servicecategory',
+            'options': [
+                { 'value': 'all', 'label': IPA.messages.objects.hbacrule.any_service },
+                { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_services }
+            ],
+            'tables': [
+                { 'field_name': 'memberservice_hbacsvc' },
+                { 'field_name': 'memberservice_hbacsvcgroup' }
+            ]
+        });
+        that.add_section(section);
 
         category = section.add_field(IPA.radio_widget({
             name: 'servicecategory'
@@ -303,30 +265,21 @@ IPA.hbacrule_details_facet = function(spec) {
 
         param_info = IPA.get_entity_param('hbacrule', 'sourcehostcategory');
 
-        if (IPA.layout) {
-            section = that.create_section({
-                'name': 'sourcehost',
-                'label': IPA.messages.objects.hbacrule.sourcehost,
-                'template': 'hbacrule-details-sourcehost.html #contents'
-            });
-
-        } else {
-            section = IPA.rule_details_section({
-                'name': 'sourcehost',
-                'label': IPA.messages.objects.hbacrule.sourcehost,
-                'text': param_info.doc+':',
-                'field_name': 'sourcehostcategory',
-                'options': [
-                    { 'value': 'all', 'label': IPA.messages.objects.hbacrule.any_host },
-                    { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_hosts }
-                ],
-                'tables': [
-                    { 'field_name': 'sourcehost_host' },
-                    { 'field_name': 'sourcehost_hostgroup' }
-                ]
-            });
-            that.add_section(section);
-        }
+        section = IPA.rule_details_section({
+            'name': 'sourcehost',
+            'label': IPA.messages.objects.hbacrule.sourcehost,
+            'text': param_info.doc+':',
+            'field_name': 'sourcehostcategory',
+            'options': [
+                { 'value': 'all', 'label': IPA.messages.objects.hbacrule.any_host },
+                { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_hosts }
+            ],
+            'tables': [
+                { 'field_name': 'sourcehost_host' },
+                { 'field_name': 'sourcehost_hostgroup' }
+            ]
+        });
+        that.add_section(section);
 
         category = section.add_field(IPA.radio_widget({
             name: 'sourcehostcategory'

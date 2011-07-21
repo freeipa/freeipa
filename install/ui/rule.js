@@ -36,8 +36,6 @@ IPA.rule_details_section = function(spec) {
 
     that.create = function(container) {
 
-        if (that.template) return;
-
         if (that.text) container.append(that.text);
 
         var field = that.get_field(that.field_name);

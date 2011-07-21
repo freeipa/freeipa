@@ -415,9 +415,6 @@ fi
 %{_usr}/share/ipa/ui/*.svg
 %{_usr}/share/ipa/ui/*.ttf
 %{_usr}/share/ipa/ui/*.woff
-%dir %{_usr}/share/ipa/ui/layouts
-%dir %{_usr}/share/ipa/ui/layouts/default
-%{_usr}/share/ipa/ui/layouts/default/*.html
 %dir %{_sysconfdir}/ipa
 %dir %{_sysconfdir}/ipa/html
 %config(noreplace) %{_sysconfdir}/ipa/html/ssbrowser.html
