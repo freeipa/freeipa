@@ -45,7 +45,8 @@ IPA.rule_details_section = function(spec) {
 
         var span = $('<span/>', {
             name: that.field_name,
-            title: param_info.doc
+            title: param_info.doc,
+            'class': 'details-field'
         }).appendTo(container);
 
         if (that.options.length) {
@@ -77,7 +78,8 @@ IPA.rule_details_section = function(spec) {
 
             var table_span = $('<span/>', {
                 name: table.field_name,
-                title: param_info ? param_info.doc : table.field_name
+                title: param_info ? param_info.doc : table.field_name,
+                'class': 'details-field'
             }).appendTo(span);
 
             field = that.get_field(table.field_name);

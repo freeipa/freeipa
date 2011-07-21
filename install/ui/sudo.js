@@ -787,7 +787,8 @@ IPA.sudo.rule_details_general_section = function(spec) {
 
         var span = $('<span/>', {
             name: 'cn',
-            title: param_info ? param_info.doc : 'cn'
+            title: param_info ? param_info.doc : 'cn',
+            'class': 'details-field'
         }).appendTo(td);
 
         $('<label/>', {
@@ -821,7 +822,8 @@ IPA.sudo.rule_details_general_section = function(spec) {
 
         span = $('<span/>', {
             name: 'description',
-            title: param_info ? param_info.doc : 'description'
+            title: param_info ? param_info.doc : 'description',
+            'class': 'details-field'
         }).appendTo(td);
 
         $('<textarea/>', {
@@ -851,7 +853,8 @@ IPA.sudo.rule_details_general_section = function(spec) {
 
         span = $('<span/>', {
             name: 'ipaenabledflag',
-            title: label
+            title: label,
+            'class': 'details-field'
         }).appendTo(td);
 
         $('<input/>', {
@@ -933,7 +936,8 @@ IPA.sudo.rule_details_command_section = function(spec) {
 
         var span = $('<span/>', {
             name: 'cmdcategory',
-            title: param_info.doc
+            title: param_info.doc,
+            'class': 'details-field'
         }).appendTo(container);
 
         $('<h3/>', {
@@ -974,7 +978,8 @@ IPA.sudo.rule_details_command_section = function(spec) {
 
         var table_span = $('<span/>', {
             name: 'memberallowcmd_sudocmd',
-            title: param_info ? param_info.doc : 'memberallowcmd_sudocmd'
+            title: param_info ? param_info.doc : 'memberallowcmd_sudocmd',
+            'class': 'details-field'
         }).appendTo(span);
 
         field = that.get_field('memberallowcmd_sudocmd');
@@ -984,7 +989,8 @@ IPA.sudo.rule_details_command_section = function(spec) {
 
         table_span = $('<span/>', {
             name: 'memberallowcmd_sudocmdgroup',
-            title: param_info ? param_info.doc : 'memberallowcmd_sudocmdgroup'
+            title: param_info ? param_info.doc : 'memberallowcmd_sudocmdgroup',
+            'class': 'details-field'
         }).appendTo(span);
 
         field = that.get_field('memberallowcmd_sudocmdgroup');
@@ -999,7 +1005,8 @@ IPA.sudo.rule_details_command_section = function(spec) {
 
         table_span = $('<span/>', {
             name: 'memberdenycmd_sudocmd',
-            title: param_info ? param_info.doc : 'memberdenycmd_sudocmd'
+            title: param_info ? param_info.doc : 'memberdenycmd_sudocmd',
+            'class': 'details-field'
         }).appendTo(span);
 
         field = that.get_field('memberdenycmd_sudocmd');
@@ -1009,7 +1016,8 @@ IPA.sudo.rule_details_command_section = function(spec) {
 
         table_span = $('<span/>', {
             name: 'memberdenycmd_sudocmdgroup',
-            title: param_info ? param_info.doc : 'memberdenycmd_sudocmdgroup'
+            title: param_info ? param_info.doc : 'memberdenycmd_sudocmdgroup',
+            'class': 'details-field'
         }).appendTo(span);
 
         field = that.get_field('memberdenycmd_sudocmdgroup');
@@ -1097,7 +1105,8 @@ IPA.sudo.rule_details_runas_section = function(spec) {
 
         var span = $('<span/>', {
             name: 'ipasudorunasusercategory',
-            title: param_info.doc
+            title: param_info.doc,
+            'class': 'details-field'
         }).appendTo(container);
 
         span.append(param_info.doc);
@@ -1135,7 +1144,8 @@ IPA.sudo.rule_details_runas_section = function(spec) {
 
         var table_span = $('<span/>', {
             name: 'ipasudorunas_user',
-            title: param_info ? param_info.doc : 'ipasudorunas_user'
+            title: param_info ? param_info.doc : 'ipasudorunas_user',
+            'class': 'details-field'
         }).appendTo(span);
 
         field = that.get_field('ipasudorunas_user');
@@ -1145,7 +1155,8 @@ IPA.sudo.rule_details_runas_section = function(spec) {
 
         table_span = $('<span/>', {
             name: 'ipasudorunas_group',
-            title: param_info ? param_info.doc : 'ipasudorunas_group'
+            title: param_info ? param_info.doc : 'ipasudorunas_group',
+            'class': 'details-field'
         }).appendTo(span);
 
         field = that.get_field('ipasudorunas_group');
@@ -1156,7 +1167,8 @@ IPA.sudo.rule_details_runas_section = function(spec) {
 
         span = $('<span/>', {
             name: 'ipasudorunasgroupcategory',
-            title: param_info.doc
+            title: param_info.doc,
+            'class': 'details-field'
         }).appendTo(container);
 
         span.append(param_info.doc);
@@ -1194,7 +1206,8 @@ IPA.sudo.rule_details_runas_section = function(spec) {
 
         table_span = $('<span/>', {
             name: 'ipasudorunasgroup_group',
-            title: param_info ? param_info.doc : 'ipasudorunasgroup_group'
+            title: param_info ? param_info.doc : 'ipasudorunasgroup_group',
+            'class': 'details-field'
         }).appendTo(span);
 
         field = that.get_field('ipasudorunasgroup_group');

@@ -578,7 +578,10 @@ IPA.hbacrule_details_general_section = function(spec) {
         td = $('<td/>').appendTo(tr);
 
         var field = that.get_field('cn');
-        var span = $('<span/>', { 'name': 'cn' }).appendTo(td);
+        var span = $('<span/>', {
+            name: 'cn',
+            'class': 'details-field'
+        }).appendTo(td);
 
         $('<label/>', {
             name: 'cn',
@@ -603,7 +606,10 @@ IPA.hbacrule_details_general_section = function(spec) {
         td.append(param_info.label+':');
 
         field = that.get_field('accessruletype');
-        span = $('<span/>', { 'name': 'accessruletype' }).appendTo(td);
+        span = $('<span/>', {
+            name: 'accessruletype',
+            'class': 'details-field'
+        }).appendTo(td);
 
         $('<input/>', {
             'type': 'radio',
@@ -645,7 +651,10 @@ IPA.hbacrule_details_general_section = function(spec) {
         }).appendTo(tr);
 
         field = that.get_field('description');
-        span = $('<span/>', { 'name': 'description' }).appendTo(td);
+        span = $('<span/>', {
+            name: 'description',
+            'class': 'details-field'
+        }).appendTo(td);
 
         $('<textarea/>', {
             'name': 'description',
@@ -670,7 +679,10 @@ IPA.hbacrule_details_general_section = function(spec) {
         }).appendTo(tr);
 
         field = that.get_field('ipaenabledflag');
-        span = $('<span/>', { 'name': 'ipaenabledflag' }).appendTo(td);
+        span = $('<span/>', {
+            name: 'ipaenabledflag',
+            'class': 'details-field'
+        }).appendTo(td);
 
         $('<input/>', {
             'type': 'radio',
@@ -757,7 +769,10 @@ IPA.hbacrule_accesstime_widget = function(spec) {
 
         container.append('<br/>');
 
-        span = $('<span/>', { 'name': 'table' }).appendTo(container);
+        span = $('<span/>', {
+            name: 'table',
+            'class': 'details-field'
+        }).appendTo(container);
 
         that.table.create(span);
 
@@ -780,7 +795,7 @@ IPA.hbacrule_accesstime_widget = function(spec) {
 
         that.widget_setup(container);
 
-        var span = $('span[name="table"]', that.container);
+        var span = $('.details-field[name="table"]', that.container);
         that.table.setup(span);
 
         var button = $('input[name=remove]', span);
