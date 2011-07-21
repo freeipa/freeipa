@@ -315,7 +315,7 @@ output: Output('result', <type 'dict'>, Gettext('Dictionary mapping variable nam
 command: cert_revoke
 args: 1,1,1
 arg: Str('serial_number', validate_serial_number, label=Gettext('Serial number', domain='ipa', localedir=None), normalizer=normalize_serial_number)
-option: Int('revocation_reason?', default=0, label=Gettext('Reason', domain='ipa', localedir=None), maxvalue=10, minvalue=0)
+option: Int('revocation_reason?', autofill=True, default=0, label=Gettext('Reason', domain='ipa', localedir=None), maxvalue=10, minvalue=0)
 output: Output('result', None, None)
 command: cert_show
 args: 1,1,1

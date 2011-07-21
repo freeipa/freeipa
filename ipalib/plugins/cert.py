@@ -536,6 +536,7 @@ class cert_revoke(VirtualCommand):
             minvalue=0,
             maxvalue=10,
             default=0,
+            autofill=True
         ),
     )
 
