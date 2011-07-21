@@ -762,13 +762,17 @@ IPA.association_facet = function (spec) {
 
         that.table.prev_page = function() {
             if (that.table.current_page > 1) {
-                IPA.nav.push_state({ page: that.table.current_page-1 });
+                var state = {};
+                state[that.entity_name+'-page'] = that.table.current_page - 1;
+                IPA.nav.push_state(state);
             }
         };
 
         that.table.next_page = function() {
             if (that.table.current_page < that.table.total_pages) {
-                IPA.nav.push_state({ page: that.table.current_page+1 });
+                var state = {};
+                state[that.entity_name+'-page'] = that.table.current_page + 1;
+                IPA.nav.push_state(state);
             }
         };
 
@@ -778,16 +782,21 @@ IPA.association_facet = function (spec) {
             } else if (page > that.total_pages) {
                 page = that.total_pages;
             }
-            IPA.nav.push_state({ page: page });
+            var state = {};
+            state[that.entity_name+'-page'] = page;
+            IPA.nav.push_state(state);
         };
 
         that.table.refresh = function() {
-            var page = parseInt(IPA.nav.get_state('page'), 10) || 1;
+            var state = {};
+            var page = parseInt(IPA.nav.get_state(that.entity_name+'-page'), 10) || 1;
             if (page < 1) {
-                IPA.nav.push_state({ page: 1 });
+                state[that.entity_name+'-page'] = 1;
+                IPA.nav.push_state(state);
                 return;
             } else if (page > that.table.total_pages) {
-                IPA.nav.push_state({ page: that.table.total_pages });
+                state[that.entity_name+'-page'] = that.table.total_pages;
+                IPA.nav.push_state(state);
                 return;
             }
             that.table.current_page = page;

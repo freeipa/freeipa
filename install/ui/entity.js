@@ -48,6 +48,8 @@ IPA.facet = function (spec) {
     // facet group name
     that.facet_group = spec.facet_group;
 
+    that.state = {};
+
     that.__defineGetter__('entity_name', function() {
         return that._entity_name;
     });
@@ -467,6 +469,7 @@ IPA.entity = function (spec) {
 
     that.redirect_facet = spec.redirect_facet;
     that.containing_entity = null;
+
     that.get_dialog = function(name) {
         return that.dialogs.get(name);
     };

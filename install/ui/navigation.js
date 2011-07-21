@@ -39,6 +39,8 @@ IPA.navigation = function(spec) {
     that.tabs = [];
     that.tabs_by_name = {};
 
+    that.path = {};
+
     that.set_tabs = function(tabs) {
         that.tabs = tabs;
         that.tabs_by_name = {};
@@ -96,16 +98,30 @@ IPA.navigation = function(spec) {
         return path_state;
     };
 
-    var state = $.bbq.getState();
-
     that.push_state = function(params) {
 
-        if (IPA.current_entity) {
-            var facet = IPA.current_entity.get_facet();
+        var param_path = {};
+        var param_state = {};
 
-            if (facet.is_dirty()) {
+        for (var key in params) {
+            var value = params[key];
+            if (key.indexOf('-') < 0) {
+                param_path[key] = value;
+            } else {
+                param_state[key] = value;
+            }
+        }
+
+        var state = {};
+
+        var prev_entity = IPA.current_entity;
+        var prev_facet = prev_entity ? prev_entity.facet : null;
+
+        if (prev_facet) {
+
+            if (prev_facet.is_dirty()) {
                 var dialog = IPA.dirty_dialog({
-                    facet: facet
+                    facet: prev_facet
                 });
 
                 dialog.callback = function() {
@@ -117,57 +133,68 @@ IPA.navigation = function(spec) {
 
                 return false;
             }
+
+            // get prev facet state
+            $.extend(state, prev_facet.state);
         }
 
-        for ( var param in params){
-            state[param] = params[param];
+        // merge existing path with new path
+        $.extend(that.path, param_path);
+
+        // find the tab pointed by the path
+        var tab = that.get_current_tab(that.path);
+
+        // find the active tab at the lowest level
+        while (!tab.entity) {
+            var index = tab.container.tabs('option', 'selected');
+            tab = tab.children[index];
         }
 
-        var url_state ={};
-        var key = that.root;
-        while(state[key]){
-            var value = state[key];
-            url_state[key] = value;
-            key = value;
+        var facet_name;
+        if (tab.entity == prev_entity) {
+            // merge prev facet state with new state to find new facet name
+            $.extend(state, param_state);
+            facet_name = state[tab.entity.name+'-facet'];
+
+        } else {
+            // find new facet name in the new state
+            facet_name = param_state[tab.entity.name+'-facet'];
         }
 
-        /*We are at the leaf node, which is the sleected entity.*/
-        var entity = value;
-        for (var key2 in state){
-            if ((key2 === entity) || (key2.search('^'+entity +'-') > -1)){
-                url_state[key2] = state[key2];
+        var facet = tab.entity.get_facet(facet_name);
+
+        // update new facet state with new state
+        $.extend(facet.state, param_state);
+
+        var entity = tab.entity.containing_entity;
+        while (entity) {
+            var facet2 = entity.get_facet();
+
+            var key_names = entity.get_key_names();
+            for (var i=0; i<key_names.length; i++) {
+                var key_name = key_names[i];
+                var key_value = param_state[key_name];
+                if (!key_value) key_value = facet2.state[key_name];
+                if (key_value) facet.state[key_name] = key_value;
             }
+
+            entity = entity.containing_entity;
         }
 
-        /*
-           Trace back up the nested entities for their pkeys as well
-        */
-        var current_entity = IPA.get_entity(entity);
-        while(current_entity !== null){
-            var key_names = current_entity.get_key_names();
-            for (var j = 0; j < key_names.length; j+= 1){
-                var key_name = key_names[j];
-                if (state[key_name]){
-                    url_state[key_name] = state[key_name];
-                }
-            }
-            current_entity = current_entity.containing_entity;
-        }
+        // push entity path and facet state
+        state = {};
+        $.extend(state, that.get_path_state(tab.entity.name));
+        $.extend(state, facet.state);
+        $.bbq.pushState(state, 2);
 
-        $.bbq.pushState(url_state,2);
         return true;
     };
 
     that.get_state = function(key) {
-        var url_state = $.bbq.getState(key);
-        if (!url_state){
-            url_state = state[key];
-        }
-        return url_state;
+        return $.bbq.getState(key);
     };
 
     that.remove_state = function(key) {
-        delete state[key];
         $.bbq.removeState(key);
     };
 
@@ -201,7 +228,7 @@ IPA.navigation = function(spec) {
             }
         }
 
-        that.push_state(state);
+        return that.push_state(state);
     };
 
 
@@ -219,7 +246,7 @@ IPA.navigation = function(spec) {
                 var panel = $(ui.panel);
                 var name = panel.attr('name');
 
-                var state = $.bbq.getState();
+                var state = that.get_state();
                 var tab = that.get_current_tab(state);
 
                 if (tab && tab.name == name) { // hash change
@@ -234,6 +261,9 @@ IPA.navigation = function(spec) {
 
     that._create = function(tabs, container, depth) {
 
+        var parent_name = container.attr('name');
+        that.path[parent_name] = tabs[0].name;
+
         container.addClass(that.tab_class);
         container.addClass('tabs'+depth);
 
@@ -242,6 +272,8 @@ IPA.navigation = function(spec) {
 
         for (var i=0; i<tabs.length; i++) {
             var tab = tabs[i];
+            tab.container = container;
+
             var tab_id = that.root+'-'+tab.name;
 
             if (tab.entity) {
@@ -258,34 +290,34 @@ IPA.navigation = function(spec) {
                 }
             }
 
-            var tab_li =$('<li/>').append($('<a/>', {
+            var tab_li = $('<li/>').append($('<a/>', {
                 href: '#'+tab_id,
                 title: tab.label,
                 html: tab.label
             }));
 
-            if (tab.hidden){
-                tab_li.css('display','none');
+            if (tab.hidden) {
+                tab_li.css('display', 'none');
             }
 
-            tab.container = $('<div/>', {
+            tab.children_container = $('<div/>', {
                 id: tab_id,
                 name: tab.name
             });
 
             if (tab.children && tab.children.length) {
                 var kids =
-                    that._create(tab.children, tab.container, depth+1);
+                    that._create(tab.children, tab.children_container, depth+1);
                 /*If there are no child tabs, remove the container */
-                if (kids === 0){
-                    tabs.splice(i,1);
+                if (kids === 0) {
+                    tabs.splice(i, 1);
                     i -= 1;
                     continue;
                 }
             }
             created_count += 1;
             tab_li.appendTo(ul);
-            tab.container.appendTo(container);
+            tab.children_container.appendTo(container);
         }
         return created_count;
     };
@@ -305,6 +337,8 @@ IPA.navigation = function(spec) {
 
         var parent_name = container.attr('name');
         var tab_name = that.get_state(parent_name);
+        if (!tab_name) tab_name = that.path[parent_name];
+        that.path[parent_name] = tab_name;
 
         var index = 0;
         while (index < tabs.length && tabs[index].name != tab_name) index++;
@@ -313,13 +347,13 @@ IPA.navigation = function(spec) {
         container.tabs('select', index);
 
         var tab = tabs[index];
-        if (tab.hidden){
-            depth = depth -1;
+        if (tab.hidden) {
+            depth--;
         }
 
         if (tab.children && tab.children.length) {
             var next_depth = depth + 1;
-            that._update(tab.children, tab.container, next_depth);
+            that._update(tab.children, tab.children_container, next_depth);
 
         } else if (tab.entity) {
 
