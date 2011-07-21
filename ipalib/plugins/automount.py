@@ -205,6 +205,9 @@ class automountlocation_add(LDAPCreate):
     """
     Create a new automount location.
     """
+
+    msg_summary = _('Added automount location "%(value)s"')
+
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         # create auto.master for the new location
         self.api.Command['automountmap_add'](keys[-1], u'auto.master')
@@ -213,6 +216,7 @@ class automountlocation_add(LDAPCreate):
         )
         return dn
 
+
 api.register(automountlocation_add)
 
 
@@ -220,6 +224,8 @@ class automountlocation_del(LDAPDelete):
     """
     Delete an automount location.
     """
+
+    msg_summary = _('Deleted automount location "%(value)s"')
 
 api.register(automountlocation_del)
 
@@ -236,6 +242,11 @@ class automountlocation_find(LDAPSearch):
     """
     Search for an automount location.
     """
+
+    msg_summary = ngettext(
+        '%(count)d automount location matched',
+        '%(count)d automount locations matched', 0
+    )
 
 api.register(automountlocation_find)
 
@@ -521,6 +532,8 @@ class automountmap_add(LDAPCreate):
     Create a new automount map.
     """
 
+    msg_summary = _('Added automount map "%(value)s"')
+
 api.register(automountmap_add)
 
 
@@ -528,6 +541,9 @@ class automountmap_del(LDAPDelete):
     """
     Delete an automount map.
     """
+
+    msg_summary = _('Deleted automount map "%(value)s"')
+
     def post_callback(self, ldap, dn, *keys, **options):
         # delete optional parental connection (direct maps may not have this)
         try:
@@ -548,6 +564,8 @@ class automountmap_mod(LDAPUpdate):
     Modify an automount map.
     """
 
+    msg_summary = _('Modified automount map "%(value)s"')
+
 api.register(automountmap_mod)
 
 
@@ -555,6 +573,11 @@ class automountmap_find(LDAPSearch):
     """
     Search for an automount map.
     """
+
+    msg_summary = ngettext(
+        '%(count)d automount map matched',
+        '%(count)d automount maps matched', 0
+    )
 
 api.register(automountmap_find)
 
@@ -667,6 +690,9 @@ class automountkey_add(LDAPCreate):
     """
     Create a new automount key.
     """
+
+    msg_summary = _('Added automount key "%(value)s"')
+
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         self.obj.check_key_uniqueness(keys[-2], keys[-1], **options)
         return dn
@@ -688,6 +714,9 @@ class automountmap_add_indirect(LDAPCreate):
     """
     Create a new indirect mount point.
     """
+
+    msg_summary = _('Added automount indirect map "%(value)s"')
+
     takes_options = LDAPCreate.takes_options + (
         Str('key',
             cli_name='mount',
@@ -718,6 +747,9 @@ class automountkey_del(LDAPDelete):
     """
     Delete an automount key.
     """
+
+    msg_summary = _('Deleted automount key "%(value)s"')
+
     takes_options = LDAPDelete.takes_options + (
         IA5Str('automountkey',
                cli_name='key',
@@ -749,6 +781,9 @@ class automountkey_mod(LDAPUpdate):
     """
     Modify an automount key.
     """
+
+    msg_summary = _('Modified automount key "%(value)s"')
+
     takes_options = LDAPUpdate.takes_options + (
         IA5Str('newautomountinformation',
                cli_name='newinfo',
@@ -782,6 +817,11 @@ class automountkey_find(LDAPSearch):
     """
     Search for an automount key.
     """
+
+    msg_summary = ngettext(
+        '%(count)d automount key matched',
+        '%(count)d automount keys matched', 0
+    )
 
 api.register(automountkey_find)
 
