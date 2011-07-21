@@ -131,7 +131,7 @@ def main():
 
         if args[0] == "enable":
             compat = get_entry(compat_dn, conn)
-            if compat is None:
+            if compat is None or compat.get('nsslapd-pluginenabled', [''])[0].lower() == 'off':
                 sys.exit("The compat plugin needs to be enabled: ipa-compat-manage enable")
             entry = None
             try:

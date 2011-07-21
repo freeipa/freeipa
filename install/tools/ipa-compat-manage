@@ -37,7 +37,8 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-netgroup_compat_dn = "cn=ng,cn=Schema Compatibility,cn=plugins,cn=config"
+compat_dn = "cn=Schema Compatibility,cn=plugins,cn=config"
+nis_config_dn = "cn=NIS Server,cn=plugins,cn=config"
 
 def parse_options():
     usage = "%prog [options] <enable|disable>\n"
@@ -63,6 +64,18 @@ def get_dirman_password():
     password = installutils.read_password("Directory Manager", confirm=False, validate=False)
 
     return password
+
+def get_entry(dn, conn):
+    """
+    Return the entry for the given DN. If the entry is not found return
+    None.
+    """
+    entry = None
+    try:
+        (dn, entry) = conn.get_entry(dn, normalize=False)
+    except errors.NotFound:
+        pass
+    return entry
 
 def main():
     retval = 0
@@ -104,67 +117,80 @@ def main():
             sys.exit("Authentication failed: %s" % e.info)
 
         if args[0] == "status":
+            entry = None
             try:
-                conn.get_entry('cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
-                print "Plugin Enabled"
-            except errors.NotFound:
-                print "Plugin Disabled" 
+                entry = get_entry(compat_dn, conn)
+                if entry is not None and entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
+                    print "Plugin Enabled"
+                else:
+                    print "Plugin Disabled"
             except errors.LDAPError, lde:
                 print "An error occurred while talking to the server."
                 print lde
-            return 0
 
         if args[0] == "enable":
+            entry = None
             try:
-                conn.get_entry('cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
-                print "Plugin already Enabled"
-                retval = 2
-            except errors.NotFound:
-                print "Enabling plugin"
+                entry = get_entry(compat_dn, conn)
+                if entry is not None and entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
+                    print "Plugin already Enabled"
+                    retval = 2
+                else:
+                    print "Enabling plugin"
+
+                    if entry is None:
+                        ld = LDAPUpdate(dm_password=dirman_password, sub_dict={})
+                        if not ld.update(files):
+                            print "Updating Directory Server failed."
+                            retval = 1
+                    else:
+                        mod = {'nsslapd-pluginenabled': 'on'}
+                        conn.update_entry(compat_dn, mod, normalize=False)
+            except errors.ExecutionError, lde:
+                print "An error occurred while talking to the server."
+                print lde
+                retval = 1
+
+        elif args[0] == "disable":
+            entry = None
+            try:
+                entry = get_entry(nis_config_dn, conn)
+                # We can't disable schema compat if the NIS plugin is enabled
+                if entry is not None and entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
+                    print >>sys.stderr, "The NIS plugin is configured, cannot disable compatibility."
+                    print >>sys.stderr, "Run 'ipa-nis-manage disable' first."
+                    retval = 2
             except errors.ExecutionError, lde:
                 print "An error occurred while talking to the server."
                 print lde
                 retval = 1
 
             if retval == 0:
-                ld = LDAPUpdate(dm_password=dirman_password, sub_dict={})
-                rv = ld.update(files)
-                if rv:
-                    print "This setting will not take effect until you restart Directory Server."
-                else:
-                    print "Updating Directory Server failed."
-                    retval = 1
+                entry = None
+                try:
+                    entry = get_entry(compat_dn, conn)
+                    if entry is None or entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'off':
+                        print "Plugin is already disabled"
+                        retval = 2
+                    else:
+                        print "Disabling plugin"
 
-        elif args[0] == "disable":
-            # We can't disable schema compat if the NIS plugin is enabled
-            try:
-                conn.get_entry(netgroup_compat_dn, normalize=False)
-                print >>sys.stderr, "The NIS plugin is configured, cannot disable compatibility."
-                print >>sys.stderr, "Run 'ipa-nis-manage disable' first."
-                sys.exit(2)
-            except errors.NotFound:
-                pass
-            # Make a quick hack for now, directly delete the entries by name,
-            # In future we should add delete capabilites to LDAPUpdate
-            try:
-                conn.delete_entry('cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
-                conn.delete_entry('cn=groups,cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
-                conn.delete_entry('cn=users,cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
-                conn.delete_entry('cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
-            except errors.NotFound:
-                print "Plugin is already disabled"
-                retval = 2
-            except errors.DatabaseError, dbe:
-                print "An error occurred while talking to the server."
-                print dbe
-                retval = 1
-            except errors.ExecutionError, lde:
-                print "An error occurred while talking to the server."
-                print lde
-                retval = 1
+                        mod = {'nsslapd-pluginenabled': 'off'}
+                        conn.update_entry(compat_dn, mod, normalize=False)
+                except errors.DatabaseError, dbe:
+                    print "An error occurred while talking to the server."
+                    print dbe
+                    retval = 1
+                except errors.ExecutionError, lde:
+                    print "An error occurred while talking to the server."
+                    print lde
+                    retval = 1
 
         else:
             retval = 1
+
+        if retval == 0:
+            print "This setting will not take effect until you restart Directory Server."
 
     finally:
         if conn and conn.isconnected():
