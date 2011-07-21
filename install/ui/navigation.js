@@ -30,6 +30,8 @@ IPA.navigation = function(spec) {
     that.name = spec.name;
 
     that.container = spec.container;
+    that.root = that.container.attr('id');
+
     that.content = spec.content;
     that.tab_class = spec.tab_class || 'tabs';
     that.max_depth = spec.max_depth || 3;
@@ -63,6 +65,18 @@ IPA.navigation = function(spec) {
         return that.tabs_by_name[name];
     };
 
+    that.get_current_tab = function(state) {
+        var name = null;
+        var next = state[that.root];
+
+        while (next) {
+            name = next;
+            next = state[name];
+        }
+
+        return that.get_tab(name);
+    };
+
     that.get_path_state = function(name) {
 
         var path_state = {};
@@ -77,7 +91,7 @@ IPA.navigation = function(spec) {
             parent = tab.parent;
         }
 
-        path_state[that.container.attr('id')] = tab.name;
+        path_state[that.root] = tab.name;
 
         return path_state;
     };
@@ -99,7 +113,7 @@ IPA.navigation = function(spec) {
                 };
 
                 dialog.init();
-                dialog.open($('#navigation'));
+                dialog.open(that.container);
 
                 return false;
             }
@@ -110,7 +124,7 @@ IPA.navigation = function(spec) {
         }
 
         var url_state ={};
-        var key = 'navigation';
+        var key = that.root;
         while(state[key]){
             var value = state[key];
             url_state[key] = value;
@@ -168,7 +182,7 @@ IPA.navigation = function(spec) {
             state[entity_name + '-pkey'] = pkey;
         }
 
-        that.push_state(state);
+        return that.push_state(state);
     };
 
     /*like show page, but works for nested entities */
@@ -194,7 +208,7 @@ IPA.navigation = function(spec) {
     that.create = function() {
 
         var container = $('<div/>', {
-            name: 'navigation'
+            name: that.root
         }).appendTo(that.container);
 
         that._create(that.tabs, container, 1);
@@ -205,7 +219,15 @@ IPA.navigation = function(spec) {
                 var panel = $(ui.panel);
                 var name = panel.attr('name');
 
-                return that.show_page(name);
+                var state = $.bbq.getState();
+                var tab = that.get_current_tab(state);
+
+                if (tab && tab.name == name) { // hash change
+                    return that.push_state(state);
+
+                } else { // mouse click
+                    return that.show_page(name);
+                }
             }
         });
     };
@@ -220,7 +242,7 @@ IPA.navigation = function(spec) {
 
         for (var i=0; i<tabs.length; i++) {
             var tab = tabs[i];
-            var tab_id = 'navigation-'+tab.name;
+            var tab_id = that.root+'-'+tab.name;
 
             if (tab.entity) {
                 var entity = IPA.get_entity(tab.entity);
@@ -275,7 +297,7 @@ IPA.navigation = function(spec) {
         }
         $('.entity', that.content).css('display', 'none');
 
-        var container = $('div[name=navigation]', that.container);
+        var container = $('div[name='+that.root+']', that.container);
         that._update(that.tabs, container, 1);
     };
 
