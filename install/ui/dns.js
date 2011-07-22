@@ -212,7 +212,7 @@ IPA.entity_factories.dnsrecord = function() {
                },
                 {
                     name:'standard',
-                    label:'Standard Records',
+                    label:IPA.messages.objects.dnsrecord.standard,
                     fields:[
                         { factory: IPA.multivalued_text_widget,
                           name: 'arecord',
@@ -259,7 +259,7 @@ IPA.entity_factories.dnsrecord = function() {
                 },
                 {
                     name:'unusual',
-                    label:'Other Record Types',
+                    label:IPA.messages.objects.dnsrecord.other,
                     fields:[
                         { factory: IPA.multivalued_text_widget,
                           label:'AFSDB',

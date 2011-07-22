@@ -15962,6 +15962,8 @@
                         "delegation": {},
                         "dnsrecord": {
                             "data": "Data",
+                            "other": "Other Record Types",
+                            "standard": "Standard Record Types",
                             "title": "Records for DNS Zone",
                             "type": "Record Type"
                         },
@@ -16181,7 +16183,7 @@
                         ],
                         "krbextradata": [
                             {
-                                "__base64__": "AAgBAA=="
+                                "__base64__": "AALU0ylOcm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
                             },
                             {
                                 "__base64__": "AALU0ylOcm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"

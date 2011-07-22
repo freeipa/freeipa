@@ -165,6 +165,8 @@ class i18n_messages(Command):
                 "deleted_no_data":_("DNS record was deleted because it contained no data."),
                 "redirection_dnszone":_("You will be redirected to DNS Zone."),
                 "title":_("Records for DNS Zone"),
+                "standard":_("Standard Record Types"),
+                "other":_("Other Record Types"),
                 },
             "entitle": {
                 "account":_("Account"),
