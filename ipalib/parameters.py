@@ -1493,9 +1493,10 @@ class File(Str):
 
     Accepts file names and loads their content into the parameter value.
     """
-    kwargs = Str.kwargs + (
+    kwargs = Data.kwargs + (
         # valid for CLI, other backends (e.g. webUI) can ignore this
         ('stdin_if_missing', bool, False),
+        ('noextrawhitespace', bool, False),
     )
 
 
