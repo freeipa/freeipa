@@ -131,7 +131,7 @@ test("Testing IPA.navigation.update() with valid index.", function() {
     };
 
     navigation.get_state = function(key) {
-        return state[key];
+        return key ? state[key] : {};
     };
 
     navigation.remove_state = function(key) {
@@ -183,7 +183,7 @@ test("Testing IPA.navigation.update() with out-of-range index.", function() {
     };
 
     navigation.get_state = function(key) {
-        return state[key];
+        return key ? state[key] : {};
     };
 
     navigation.remove_state = function(key) {
