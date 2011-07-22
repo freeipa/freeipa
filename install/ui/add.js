@@ -50,8 +50,7 @@ IPA.add_dialog = function (spec) {
             that.add(
                 record,
                 function(data, text_status, xhr) {
-                    var facet_name =   IPA.current_facet(IPA.current_entity);
-                    var facet = IPA.current_entity.get_facet(facet_name);
+                    var facet = IPA.current_entity.get_facet();
                     var table = facet.table;
                     table.refresh();
                     that.close();
@@ -66,8 +65,7 @@ IPA.add_dialog = function (spec) {
             that.add(
                 record,
                 function(data, text_status, xhr) {
-                    var facet_name =   IPA.current_facet(IPA.current_entity);
-                    var facet = IPA.current_entity.get_facet(facet_name);
+                    var facet = IPA.current_entity.get_facet();
                     var table = facet.table;
                     table.refresh();
                     that.reset();

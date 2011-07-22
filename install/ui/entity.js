@@ -127,6 +127,10 @@ IPA.facet = function (spec) {
         that.header.load(data);
     };
 
+    that.needs_update = function() {
+        return true;
+    };
+
     that.is_dirty = function() {
         return false;
     };
@@ -459,7 +463,7 @@ IPA.entity = function (spec) {
     that.facet_groups = $.ordered_map();
 
     // current facet
-    that.facet_name = null;
+    that.facet = null;
 
     that.redirect_facet = spec.redirect_facet;
     that.containing_entity = null;
@@ -490,7 +494,14 @@ IPA.entity = function (spec) {
     };
 
     that.get_facet = function(name) {
-        if (name === 'default') {
+        if (name === undefined) {
+            // return the current facet
+            if (that.facet) return that.facet;
+
+            // return the main facet
+            return that.facets.values[0];
+
+        } else if (name === 'default') {
             // return the first facet in the first facet group
             var facet_groups = that.facet_groups.values;
             for (var i=0; i<facet_groups.length; i++) {
@@ -541,22 +552,17 @@ IPA.entity = function (spec) {
 
     that.setup = function(container) {
 
-        var prev_facet = that.facet;
+        var prev_entity = IPA.current_entity;
+        var prev_facet = prev_entity ? prev_entity.facet : null;
 
         IPA.current_entity = that;
-        var facet_name = IPA.current_facet(that);
 
+        var facet_name = IPA.nav.get_state(that.name+'-facet');
         that.facet = that.get_facet(facet_name);
-        if (!that.facet) return;
 
-        if (IPA.entity_name == that.name) {
-            if (that.facet_name == that.facet.name) {
-                if (that.facet.new_key && (!that.facet.new_key())) return;
-            } else {
-                that.facet_name = that.facet.name;
-            }
-        } else {
-            IPA.entity_name = that.name;
+        // same entity, same facet, and doesn't need updating => return
+        if (that == prev_entity && that.facet == prev_facet && !that.facet.needs_update()) {
+            return;
         }
 
         if (prev_facet) {
@@ -611,15 +617,6 @@ IPA.entity = function (spec) {
     that.entity_init = that.init;
 
     return that;
-};
-
-IPA.current_facet = function(entity) {
-    var facet_name = IPA.nav.get_state(entity.name+'-facet');
-    var facets = entity.facets.values;
-    if (!facet_name  && facets.length) {
-        facet_name = facets[0].name;
-    }
-    return facet_name;
 };
 
 IPA.nested_tab_labels = {};

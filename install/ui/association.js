@@ -382,8 +382,7 @@ IPA.association_table_widget = function (spec) {
         }
 
         var entity = IPA.get_entity(that.entity_name);
-        var facet_name = IPA.current_facet(entity);
-        var facet = entity.get_facet(facet_name);
+        var facet = entity.get_facet();
 
         if (facet.is_dirty()) {
             var dialog = IPA.dirty_dialog({
@@ -408,8 +407,7 @@ IPA.association_table_widget = function (spec) {
         }
 
         var entity = IPA.get_entity(that.entity_name);
-        var facet_name = IPA.current_facet(entity);
-        var facet = entity.get_facet(facet_name);
+        var facet = entity.get_facet();
 
         if (facet.is_dirty()) {
             var dialog = IPA.dirty_dialog({

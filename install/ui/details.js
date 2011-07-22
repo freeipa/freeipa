@@ -484,12 +484,10 @@ IPA.details_facet = function(spec) {
         }
     };
 
-    function new_key(){
+    that.needs_update = function() {
         var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
         return pkey != that.pkey;
-    }
-    that.new_key = new_key;
-
+    };
 
     that.is_dirty = function() {
         var sections = that.sections.values;

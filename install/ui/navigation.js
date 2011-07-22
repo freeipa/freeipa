@@ -87,8 +87,7 @@ IPA.navigation = function(spec) {
     that.push_state = function(params) {
 
         if (IPA.current_entity) {
-            var facet_name = IPA.current_facet(IPA.current_entity);
-            var facet = IPA.current_entity.get_facet(facet_name);
+            var facet = IPA.current_entity.get_facet();
 
             if (facet.is_dirty()) {
                 var dialog = IPA.dirty_dialog({

@@ -588,8 +588,7 @@ IPA.entitle.register_online_dialog = function(spec) {
             record.password,
             record.ipaentitlementid,
             function() {
-                var facet_name = IPA.current_facet(that.entity);
-                var facet = that.entity.get_facet(facet_name);
+                var facet = that.entity.get_facet();
                 facet.refresh();
                 that.close();
             }
@@ -613,8 +612,7 @@ IPA.entitle.register_offline_dialog = function(spec) {
         that.entity.register_offline(
             that.get_certificate(),
             function() {
-                var facet_name = IPA.current_facet(that.entity);
-                var facet = that.entity.get_facet(facet_name);
+                var facet = that.entity.get_facet();
                 facet.refresh();
                 that.close();
             }
@@ -646,8 +644,7 @@ IPA.entitle.consume_dialog = function(spec) {
         that.entity.consume(
             record.quantity,
             function() {
-                var facet_name = IPA.current_facet(that.entity);
-                var facet = that.entity.get_facet(facet_name);
+                var facet = that.entity.get_facet();
                 facet.refresh();
                 that.close();
             }
@@ -671,8 +668,7 @@ IPA.entitle.import_dialog = function(spec) {
         that.entity.import_certificate(
             that.get_certificate(),
             function() {
-                var facet_name = IPA.current_facet(that.entity);
-                var facet = that.entity.get_facet(facet_name);
+                var facet = that.entity.get_facet();
                 facet.refresh();
                 that.close();
             }
