@@ -81,7 +81,7 @@ Requires: nss-tools
 Requires: krb5-server
 Requires: krb5-server-ldap
 Requires: krb5-pkinit-openssl
-Requires: cyrus-sasl-gssapi
+Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
 Requires: httpd
 Requires: mod_wsgi
@@ -143,7 +143,7 @@ Summary: IPA authentication for use on clients
 Group: System Environment/Base
 Requires: %{name}-python = %{version}-%{release}
 Requires: python-ldap
-Requires: cyrus-sasl-gssapi
+Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
 Requires: krb5-workstation
 Requires: authconfig
@@ -504,7 +504,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
-* Thu Jul 14 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-6
+* Wed Jul 20 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-52
+- Make cyrus-sasl-gssapi requires arch-specific
+
+* Thu Jul 14 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-51
 - Add ipa-csreplica-manage tool.
 
 * Fri Jun 17 2011 Rob Crittenden <rcritten@redhat.com> - 1.99-50
