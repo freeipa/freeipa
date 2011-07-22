@@ -276,7 +276,8 @@ IPA.entity_factories.dnsrecord = function() {
                            factory:IPA.dnsrecord_host_link_widget,
                            name: 'idnsname',
                            other_entity:'host',
-                           label:'Record Name'
+                           label:IPA.get_entity_param(
+                               'dnsrecord', 'idnsname').label
                        }
                    ]
                },
