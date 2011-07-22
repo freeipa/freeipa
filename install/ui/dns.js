@@ -265,7 +265,17 @@ IPA.entity_factories.dnsrecord = function() {
     return IPA.entity_builder().
         entity('dnsrecord').
         containing_entity('dnszone').
-        details_facet({
+        details_facet({            
+            post_update_hook:function(data){
+                var result = data.result.result;
+                 if (result.idnsname) {
+                    this.load(result);
+                } else {
+                    this.reset();
+                    var dialog = IPA.dnsrecord_redirection_dialog();                
+                    dialog.open(this.container);
+                }
+            },
             disable_breadcrumb: false,
             sections:[
                {
@@ -422,6 +432,28 @@ IPA.entity_factories.dnsrecord = function() {
             ]
         }).
         build();
+};
+
+IPA.dnsrecord_redirection_dialog = function(spec) {
+    spec = spec || {};    
+    spec.title = spec.title || IPA.messages.dialogs.redirection;  
+        
+    var that = IPA.dialog(spec);    
+    
+    that.create = function() {
+        $('<p/>', {
+            'text': IPA.messages.objects.dnsrecord.deleted_no_data
+        }).appendTo(that.container);
+        $('<p/>', {
+            'text': IPA.messages.objects.dnsrecord.redirection_dnszone
+        }).appendTo(that.container);
+    };
+    
+    that.add_button(IPA.messages.buttons.ok, function() {         
+        that.close();
+        IPA.nav.show_page('dnszone','default');       
+    });
+    return that;
 };
 
 IPA.dnsrecord_host_link_widget = function(spec){

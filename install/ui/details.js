@@ -245,6 +245,7 @@ IPA.details_facet = function(spec) {
     var that = IPA.facet(spec);
 
     that.pre_execute_hook = spec.pre_execute_hook;
+    that.post_update_hook = spec.post_update_hook;
 
     that.label = spec.label || IPA.messages && IPA.messages.facets && IPA.messages.facets.details;
     that.facet_group = spec.facet_group || 'settings';
@@ -526,7 +527,12 @@ IPA.details_facet = function(spec) {
                 on_win(data, text_status, xhr);
             if (data.error)
                 return;
-
+            
+            if (that.post_update_hook) {
+                that.post_update_hook(data, text_status);
+                return;
+            }
+            
             var result = data.result.result;
             that.load(result);
         }

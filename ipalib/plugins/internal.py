@@ -160,6 +160,8 @@ class i18n_messages(Command):
             "dnsrecord": {
                 "type":_("Record Type"),
                 "data":_("Data"),
+                "deleted_no_data":_("DNS record was deleted because it contained no data."),
+                "redirection_dnszone":_("You will be redirected to DNS Zone."),
                 "title":_("Records for DNS Zone"),
                 },
             "entitle": {
@@ -348,6 +350,7 @@ class i18n_messages(Command):
             "dirty_message":_("This page has unsaved changes. Please save or revert."),
             "dirty_title":_("Dirty"),
             "hide_already_enrolled":_("Hide already enrolled."),
+            "redirection":_("Redirection"),
             "remove_empty":_("Select entries to be removed."),
             "remove_title":_("Remove ${entity}"),
             "prospective":_("Prospective"),
