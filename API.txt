@@ -1321,6 +1321,21 @@ option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
+command: hbactest
+args: 0,8,5
+option: Str('user', cli_name='user', label=Gettext('User name', domain='ipa', localedir=None), primary_key=True)
+option: Str('sourcehost', cli_name='srchost', label=Gettext('Source host', domain='ipa', localedir=None))
+option: Str('targethost', cli_name='host', label=Gettext('Target host', domain='ipa', localedir=None))
+option: Str('service', cli_name='service', label=Gettext('Service', domain='ipa', localedir=None))
+option: List('rules?', cli_name='rules', label=Gettext('Rules to test. If not specified, --enabled is assumed', domain='ipa', localedir=None), multivalue=True)
+option: Flag('nodetail?', autofill=True, cli_name='nodetail', default=False, label=Gettext('Hide details which rules are matched, not matched, or invalid', domain='ipa', localedir=None))
+option: Flag('enabled?', autofill=True, cli_name='enabled', default=False, label=Gettext('Include all enabled IPA rules into test [default]', domain='ipa', localedir=None))
+option: Flag('disabled?', autofill=True, cli_name='disabled', default=False, label=Gettext('Include all disabled IPA rules into test', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
+output: Output('matched', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>), Gettext('Matched rules', domain='ipa', localedir=None))
+output: Output('notmatched', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>), Gettext('Not matched rules', domain='ipa', localedir=None))
+output: Output('error', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>), Gettext('Non-existent or invalid rules', domain='ipa', localedir=None))
+output: Output('value', <type 'bool'>, Gettext('Result of simulation', domain='ipa', localedir=None))
 command: host_add
 args: 1,14,3
 arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=True)

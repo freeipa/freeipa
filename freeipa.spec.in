@@ -59,6 +59,7 @@ BuildRequires:  python-kerberos
 BuildRequires:  python-rhsm
 BuildRequires:  pyOpenSSL
 BuildRequires:  pylint
+BuildRequires:  libipa_hbac-python
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -201,6 +202,7 @@ Requires: python-netaddr >= 0.7.5-3
 %else
 Requires: python-netaddr
 %endif
+Requires: libipa_hbac-python
 
 Obsoletes: ipa-python >= 1.0
 
@@ -511,6 +513,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Tue Jul 26 2011 Alexander Bokovoy <abokovoy@redhat.com> - 2.0.90-9
+- Add libipa_hbac-python dependency for hbactest plugin
+
 * Thu Jul 28 2011 Rob Crittenden <rcritten@redhat.com> - 2.0.90-8
 - Set min nvr of pki-ca to 9.0.10 on F-15+ to pick up updated
   caIPAserviceCert.cfg profile
