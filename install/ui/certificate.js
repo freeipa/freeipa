@@ -518,7 +518,7 @@ IPA.cert.status_widget = function(spec) {
         that.get_button = IPA.button({
             name: 'get',
             label: IPA.messages.buttons.get,
-            'click': function() {
+            click: function() {
                 IPA.command({
                     entity: that.entity_name,
                     method: 'show',
@@ -527,6 +527,7 @@ IPA.cert.status_widget = function(spec) {
                         get_certificate(data.result.result);
                     }
                 }).execute();
+                return false;
             }
         });
         button.replaceWith(that.get_button);
@@ -535,7 +536,7 @@ IPA.cert.status_widget = function(spec) {
         that.revoke_button = IPA.button({
             name: 'revoke',
             label: IPA.messages.buttons.revoke,
-            'click': function() {
+            click: function() {
                 IPA.command({
                     entity: that.entity_name,
                     method: 'show',
@@ -544,6 +545,7 @@ IPA.cert.status_widget = function(spec) {
                         revoke_certificate(data.result.result);
                     }
                 }).execute();
+                return false;
             }
         });
         button.replaceWith(that.revoke_button);
@@ -552,7 +554,7 @@ IPA.cert.status_widget = function(spec) {
         that.view_button = IPA.button({
             name: 'view',
             label: IPA.messages.buttons.view,
-            'click': function() {
+            click: function() {
                 IPA.command({
                     entity: that.entity_name,
                     method: 'show',
@@ -561,6 +563,7 @@ IPA.cert.status_widget = function(spec) {
                         view_certificate(data.result.result);
                     }
                 }).execute();
+                return false;
             }
         });
         button.replaceWith(that.view_button);
@@ -571,7 +574,7 @@ IPA.cert.status_widget = function(spec) {
         that.restore_button = IPA.button({
             name: 'restore',
             label: IPA.messages.buttons.restore,
-            'click': function() {
+            click: function() {
                 IPA.command({
                     entity: that.entity_name,
                     method: 'show',
@@ -580,6 +583,7 @@ IPA.cert.status_widget = function(spec) {
                         restore_certificate(data.result.result);
                     }
                 }).execute();
+                return false;
             }
         });
         button.replaceWith(that.restore_button);
@@ -589,8 +593,9 @@ IPA.cert.status_widget = function(spec) {
             that.create_button = IPA.button({
                 name: 'create',
                 label: IPA.messages.objects.cert.new_certificate,
-                'click': function() {
+                click: function() {
                     request_certificate(that.result);
+                    return false;
                 }
             });
             button.replaceWith(that.create_button);
