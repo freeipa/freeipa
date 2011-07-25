@@ -182,6 +182,21 @@ body {
 	margin: -4px 0 0 1px;
 }
 
+.register-icon {
+	background: url(register.png);
+	margin: -4px 0 0 1px;
+}
+
+.import-icon {
+	background: url(import.png);
+	margin: -4px 0 0 1px;
+}
+
+.consume-icon {
+	background: url(consume.png);
+	margin: -4px 0 0 1px;
+}
+
 .ipa-icon {
     font-size: 0.7em;
     padding-right: 0.3em;
