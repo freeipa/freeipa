@@ -31,6 +31,8 @@ IPA.widget = function(spec) {
 
     var that = {};
 
+
+    that.entity = spec.entity;
     that.id = spec.id;
     that.name = spec.name;
     that.label = spec.label;
@@ -41,13 +43,11 @@ IPA.widget = function(spec) {
     that.conditional = spec.conditional;
     that.optional = spec.optional || false;
 
-    // read_only is set during initialization
+    // read_only is set when widget is created
     that.read_only = spec.read_only;
 
     // writable is set during load
     that.writable = true;
-
-    that._entity_name = spec.entity_name;
 
     that.width = spec.width;
     that.height = spec.height;
@@ -62,13 +62,21 @@ IPA.widget = function(spec) {
     that.dirty = false;
     that.valid = true;
 
-    that.__defineGetter__("entity_name", function(){
-        return that._entity_name;
-    });
 
-    that.__defineSetter__("entity_name", function(entity_name){
-        that._entity_name = entity_name;
-    });
+    function set_param_info(){
+        if (!that.param_info  && that.entity){
+            that.param_info =
+                IPA.get_entity_param(that.entity.name, that.name);
+        }
+        if (that.param_info) {
+            if (that.label === undefined) {
+                that.label = that.param_info.label;
+            }
+            if (that.tooltip === undefined) {
+                that.tooltip = that.param_info.doc;
+            }
+        }
+    }
 
 
     function meta_validate(meta, value){
@@ -159,25 +167,6 @@ IPA.widget = function(spec) {
         }
     };
 
-    that.init = function() {
-        if (that.entity_name) {
-            that.entity = IPA.get_entity(that.entity_name);
-            if (!that.param_info){
-                that.param_info =
-                    IPA.get_entity_param(that.entity_name, that.name);
-            }
-            if (that.param_info) {
-
-                if (that.label === undefined) {
-                    that.label = that.param_info.label;
-                }
-
-                if (that.tooltip === undefined) {
-                    that.tooltip = that.param_info.doc;
-                }
-            }
-        }
-    };
 
     /**
      * This function compares the original values and the
@@ -228,10 +217,6 @@ IPA.widget = function(spec) {
 
     that.create = function(container) {
         container.addClass('widget');
-        that.container = container;
-    };
-
-    that.setup = function(container) {
         that.container = container;
     };
 
@@ -352,10 +337,12 @@ IPA.widget = function(spec) {
     that.refresh = function() {
     };
 
+
+    /*widget initialization*/
+    set_param_info();
+
     // methods that should be invoked by subclasses
-    that.widget_init = that.init;
     that.widget_create = that.create;
-    that.widget_setup = that.setup;
     that.widget_load = that.load;
     that.widget_reset = that.reset;
     that.widget_save = that.save;
@@ -419,11 +406,6 @@ IPA.text_widget = function(spec) {
         }
 
         that.create_error_link(container);
-    };
-
-    that.setup = function(container) {
-
-        that.widget_setup(container);
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.keyup(function() {
@@ -587,11 +569,6 @@ IPA.multivalued_text_widget = function(spec) {
             'class': 'ui-state-highlight ui-corner-all undo',
             html: 'undo all'
         }).appendTo(container);
-    };
-
-    that.setup = function(container) {
-
-        that.widget_setup(container);
 
         that.template = $('div[name=value]', that.container);
         that.template.detach();
@@ -789,11 +766,6 @@ IPA.checkbox_widget = function (spec) {
         if (that.undo) {
             that.create_undo(container);
         }
-    };
-
-    that.setup = function(container) {
-
-        that.widget_setup(container);
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
@@ -874,11 +846,6 @@ IPA.checkboxes_widget = function (spec) {
         if (that.undo) {
             that.create_undo(container);
         }
-    };
-
-    that.setup = function(container) {
-
-        that.widget_setup(container);
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
@@ -890,6 +857,7 @@ IPA.checkboxes_widget = function (spec) {
             that.reset();
         });
     };
+
 
     that.load = function(record) {
         that.values = record[that.name] || [];
@@ -956,11 +924,6 @@ IPA.radio_widget = function(spec) {
         if (that.undo) {
             that.create_undo(container);
         }
-    };
-
-    that.setup = function(container) {
-
-        that.widget_setup(container);
 
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
@@ -1038,10 +1001,6 @@ IPA.select_widget = function(spec) {
             container.append(' ');
             that.create_undo(container);
         }
-    };
-
-    that.setup = function(container) {
-        that.widget_setup(container);
 
         that.select = $('select[name="'+that.name+'"]', that.container);
         that.select.change(function() {
@@ -1118,12 +1077,6 @@ IPA.textarea_widget = function (spec) {
 
         that.create_error_link(container);
 
-    };
-
-    that.setup = function(container) {
-
-        that.widget_setup(container);
-
         var input = $('textarea[name="'+that.name+'"]', that.container);
         input.keyup(function() {
             that.set_dirty(that.test_dirty());
@@ -1160,7 +1113,9 @@ IPA.textarea_widget = function (spec) {
     return that;
 };
 
-
+/*
+  The entity name must be set in the spec either directly or via entity.name
+*/
 IPA.column = function (spec) {
 
     spec = spec || {};
@@ -1170,26 +1125,22 @@ IPA.column = function (spec) {
     that.name = spec.name;
     that.label = spec.label;
     that.width = spec.width;
-
-    that.entity_name = spec.entity_name;
+    that.entity_name = spec.entity ? spec.entity.name : spec.entity_name;
     that.primary_key = spec.primary_key;
     that.link = spec.link;
-
     that.format = spec.format;
 
-    that.init = function() {
-        if (that.entity_name && !that.label) {
-            var param_info = IPA.get_entity_param(that.entity_name, that.name);
-            if (param_info) {
-                that.label = param_info.label;
-            } else {
-                alert('Cannot find label for ' + that.entity_name + ' ' +
-                      that.name);
-            }
-        }
-    };
+    if (!that.entity_name){
+        var except = {
+            expected: false,
+            message:'Column created without an entity_name.'
+        };
+        throw except;
+    }
 
     function setup(container, record) {
+
+
         container.empty();
 
         var value = record[that.name];
@@ -1217,6 +1168,16 @@ IPA.column = function (spec) {
     that.link_handler = function(value) {
         return false;
     };
+
+
+    /*column initialization*/
+    if (that.entity_name && !that.label) {
+        var param_info = IPA.get_entity_param(that.entity_name, that.name);
+        if (param_info) {
+            that.label = param_info.label;
+        }
+    }
+
 
     return that;
 };
@@ -1267,15 +1228,6 @@ IPA.table_widget = function (spec) {
         return column;
     };
 
-    that.init = function() {
-        that.widget_init();
-
-        var columns = that.columns.values;
-        for (var i=0; i<columns.length; i++) {
-            var column = columns[i];
-            column.init();
-        }
-    };
 
     that.create = function(container) {
 
@@ -1312,7 +1264,10 @@ IPA.table_widget = function (spec) {
 
             select_all_checkbox.change(function() {
                 var checked = select_all_checkbox.is(':checked');
-                select_all_checkbox.attr('title', checked ? IPA.messages.search.unselect_all : IPA.messages.search.select_all);
+                select_all_checkbox.attr(
+                    'title', checked ?
+                        IPA.messages.search.unselect_all :
+                        IPA.messages.search.select_all);
                 var checkboxes = $('input[name=select]', that.tbody).get();
                 for (var i=0; i<checkboxes.length; i++) {
                     checkboxes[i].checked = checked;
@@ -1338,7 +1293,9 @@ IPA.table_widget = function (spec) {
                     /* don't use the checkbox column as part of the overall
                        calculation for column widths.  It is so small
                        that it throws off the average. */
-                    width = (that.table.width() - (that.selectable ? IPA.checkbox_column_width : 0)) /
+                    width = (that.table.width() -
+                             (that.selectable ?
+                              IPA.checkbox_column_width : 0)) /
                         columns.length;
                 }
                 width += 'px';
@@ -1492,11 +1449,6 @@ IPA.table_widget = function (spec) {
     that.select_changed = function() {
     };
 
-    that.setup = function(container) {
-
-        that.widget_setup(container);
-    };
-
     that.empty = function() {
         that.tbody.empty();
     };
@@ -1622,9 +1574,7 @@ IPA.table_widget = function (spec) {
     }
 
     // methods that should be invoked by subclasses
-    that.table_init = that.init;
     that.table_create = that.create;
-    that.table_setup = that.setup;
     that.table_set_enabled = that.set_enabled;
     that.table_prev_page = that.prev_page;
     that.table_next_page = that.next_page;
@@ -1644,7 +1594,6 @@ IPA.combobox_widget = function(spec) {
     that.list_size = spec.list_size || 5;
 
     that.create = function(container) {
-
         that.widget_create(container);
 
         container.addClass('combobox-widget');
@@ -1927,3 +1876,43 @@ IPA.entity_link_widget = function(spec) {
 
     return that;
 };
+
+IPA.action_button = function(spec) {
+    var button = IPA.button(spec);
+    button.removeClass("ui-state-default").addClass("action-button");
+    return button;
+};
+
+IPA.button = function(spec) {
+
+    spec = spec || {};
+
+    var button = $('<a/>', {
+        id: spec.id,
+        name: spec.name,
+        href: spec.href || '#' + (spec.name || 'button'),
+        title: spec.title || spec.label,
+        'class': 'ui-state-default ui-corner-all input_link',
+        style: spec.style,
+        click: spec.click,
+        blur: spec.blur
+    });
+
+    if (spec['class']) button.addClass(spec['class']);
+
+    if (spec.icon) {
+        $('<span/>', {
+            'class': 'icon '+spec.icon
+        }).appendTo(button);
+    }
+
+    if (spec.label) {
+        $('<span/>', {
+            'class': 'button-label',
+            html: spec.label
+        }).appendTo(button);
+    }
+
+    return button;
+};
+

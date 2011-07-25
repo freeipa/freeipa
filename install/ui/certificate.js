@@ -504,11 +504,7 @@ IPA.cert.status_widget = function(spec) {
             'name': 'create',
             'value': IPA.messages.objects.cert.new_certificate
         }).appendTo(content_div);
-    };
 
-    that.setup = function(container) {
-
-        that.widget_setup(container);
 
         that.status_valid = $('div[name=certificate-valid]', that.container);
         that.status_revoked = $('div[name=certificate-revoked]', that.container);
@@ -676,7 +672,6 @@ IPA.cert.status_widget = function(spec) {
             'sha1_fingerprint': result['sha1_fingerprint']
         });
 
-        dialog.init();
         dialog.open();
     }
 
@@ -699,7 +694,6 @@ IPA.cert.status_widget = function(spec) {
             certificate: entity_certificate
         });
 
-        dialog.init();
         dialog.open();
     }
 
@@ -731,7 +725,6 @@ IPA.cert.status_widget = function(spec) {
             }
         });
 
-        dialog.init();
         dialog.open();
     }
 
@@ -769,7 +762,6 @@ IPA.cert.status_widget = function(spec) {
             }
         });
 
-        dialog.init();
         dialog.open();
     }
 
@@ -802,7 +794,6 @@ IPA.cert.status_widget = function(spec) {
             }
         });
 
-        dialog.init();
         dialog.open();
     }
 

@@ -3,7 +3,7 @@
 
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
- *    Endi S. Dewata <edewata@redhat.com>
+ *    Endi Sukma Dewata <edewata@redhat.com>
  *    Adam Young <ayoung@redhat.com>
  *
  * Copyright (C) 2010-2011 Red Hat
@@ -31,6 +31,8 @@ IPA.facet = function (spec) {
 
     var that = {};
 
+    that.entity = spec.entity;
+
     that.name = spec.name;
     that.label = spec.label;
     that.title = spec.title || that.label;
@@ -41,7 +43,7 @@ IPA.facet = function (spec) {
 
     that.header = spec.header || IPA.facet_header({ facet: that });
 
-    that._entity_name = spec.entity_name;
+    that.entity_name = spec.entity_name;
 
     that.dialogs = $.ordered_map();
 
@@ -50,14 +52,6 @@ IPA.facet = function (spec) {
 
     that.state = {};
 
-    that.__defineGetter__('entity_name', function() {
-        return that._entity_name;
-    });
-
-    that.__defineSetter__('entity_name', function(entity_name) {
-        that._entity_name = entity_name;
-    });
-
     that.get_dialog = function(name) {
         return that.dialogs.get(name);
     };
@@ -65,16 +59,6 @@ IPA.facet = function (spec) {
     that.dialog = function(dialog) {
         that.dialogs.put(dialog.name, dialog);
         return that;
-    };
-
-    that.init = function() {
-
-        var dialogs = that.dialogs.values;
-        for (var i=0; i<dialogs.length; i++){
-            var dialog = dialogs[i];
-            dialog.entity_name = that._entity_name;
-            dialog.init();
-        }
     };
 
     that.create = function(container) {
@@ -110,10 +94,6 @@ IPA.facet = function (spec) {
     that.set_title = function(container, title) {
         var element = $('h1', that.title_container);
         element.html(title);
-    };
-
-    that.setup = function(container) {
-        that.container = container;
     };
 
     that.show = function() {
@@ -178,11 +158,9 @@ IPA.facet = function (spec) {
 
 
     // methods that should be invoked by subclasses
-    that.facet_init = that.init;
     that.facet_create = that.create;
     that.facet_create_header = that.create_header;
     that.facet_create_content = that.create_content;
-    that.facet_setup = that.setup;
     that.facet_show = that.show;
     that.facet_hide = that.hide;
     that.facet_load = that.load;
@@ -385,7 +363,7 @@ IPA.table_facet = function(spec) {
 
     var that = IPA.facet(spec);
 
-    that.managed_entity_name = spec.managed_entity_name || that.entity_name;
+    that.managed_entity_name = spec.managed_entity_name || that.entity.name;
 
     that.columns = $.ordered_map();
 
@@ -406,10 +384,14 @@ IPA.table_facet = function(spec) {
         var column;
         if (spec instanceof Object) {
             var factory = spec.factory || IPA.column;
-            column = factory(spec);
         } else {
-            column = IPA.column({ name: spec });
+            factory = IPA.column;
+            spec = { name: spec };
         }
+
+        spec.entity_name = that.managed_entity_name;
+        column = factory(spec);
+
         that.add_column(column);
         return column;
     };
@@ -522,6 +504,8 @@ IPA.entity = function (spec) {
 
     that.add_facet = function(facet) {
         facet.entity_name = that.name;
+        facet.entity = that;
+
         that.facets.put(facet.name, facet);
 
         if (facet.facet_group) {
@@ -534,26 +518,11 @@ IPA.entity = function (spec) {
         return that;
     };
 
-    that.init = function() {
-
-        var facets = that.facets.values;
-        for (var i=0; i<facets.length; i++) {
-            var facet = facets[i];
-            facet.entity = that;
-            facet.init();
-        }
-
-        var dialogs = that.dialogs.values;
-        for (var j=0; j<dialogs.length; j++) {
-            dialogs[j].init();
-        }
-    };
-
     that.create = function(container) {
         that.container = container;
     };
 
-    that.setup = function(container) {
+    that.display = function(container) {
 
         var prev_entity = IPA.current_entity;
         var prev_facet = prev_entity ? prev_entity.facet : null;
@@ -580,7 +549,6 @@ IPA.entity = function (spec) {
             }).appendTo(that.container);
 
             that.facet.create(facet_container);
-            that.facet.setup(facet_container);
         }
 
         that.facet.show();
@@ -617,7 +585,6 @@ IPA.entity = function (spec) {
         return [that.name + '-pkey'];
     };
 
-    that.entity_init = that.init;
 
     return that;
 };
@@ -707,7 +674,10 @@ IPA.entity_builder = function(){
 
         spec.metadata = spec.metadata || IPA.metadata.objects[spec.name];
         if (!spec.metadata) {
-            throw "Entity not supported by server.";
+            throw {
+                expected: true,
+                message: "Entity " + spec.name + "not supported by server."
+            };
         }
 
         entity = factory(spec);
@@ -725,6 +695,7 @@ IPA.entity_builder = function(){
     };
 
     that.facet_group = function(spec) {
+        spec.entity = entity;
         if (spec instanceof Object) {
             var factory = spec.factory || IPA.facet_group;
             facet_group = factory(spec);
@@ -756,6 +727,7 @@ IPA.entity_builder = function(){
         entity.remove_facet_groups();
 
         for (var i=0; i<specs.length; i++) {
+            specs[i].entity = entity;
             that.facet_group(specs[i]);
         }
 
@@ -763,15 +735,14 @@ IPA.entity_builder = function(){
     };
 
     that.facet = function(spec) {
-        spec.entity_name  = entity.name;
+        spec.entity  = entity;
         facet = spec.factory(spec);
         entity.add_facet(facet);
         return that;
     };
 
     that.search_facet = function(spec) {
-
-        spec.entity_name = entity.name;
+        spec.entity = entity;
         spec.title = spec.title || entity.metadata.label;
         spec.label = spec.label || IPA.messages.facets.search;
 
@@ -785,7 +756,7 @@ IPA.entity_builder = function(){
 
     that.nested_search_facet = function(spec) {
 
-        spec.entity_name = entity.name;
+        spec.entity = entity;
         spec.title = spec.title || entity.metadata.label_singular;
         spec.label = spec.label || IPA.messages.facets.search;
 
@@ -799,8 +770,8 @@ IPA.entity_builder = function(){
     that.details_facet = function(spec) {
 
         var sections = spec.sections;
+        spec.entity = entity;
         spec.sections = null;
-        spec.entity_name = entity.name;
         spec.title = spec.title || entity.metadata.label_singular;
         spec.label = spec.label || IPA.messages.facets.details;
 
@@ -819,7 +790,7 @@ IPA.entity_builder = function(){
 
     that.association_facet = function(spec) {
 
-        spec.entity_name = entity.name;
+        spec.entity = entity;
 
         var index = spec.name.indexOf('_');
         spec.attribute_member = spec.attribute_member ||
@@ -864,6 +835,7 @@ IPA.entity_builder = function(){
     that.standard_association_facets = function(spec) {
 
         spec = spec || {};
+        spec.entity = entity;
 
         var direct_associations = [];
         var indirect_associations = [];
@@ -903,7 +875,7 @@ IPA.entity_builder = function(){
     };
 
     that.section = function(spec) {
-        spec.entity_name = entity.name;
+        spec.entity = entity;
 
         if (!spec.label) {
             var obj_messages = IPA.messages.objects[entity.name];
@@ -923,13 +895,13 @@ IPA.entity_builder = function(){
                 var field;
 
                 if (field_spec instanceof Object) {
-                    field_spec.entity_name = entity.name;
+                    field_spec.entity = entity;
                     var factory = field_spec.factory || IPA.text_widget;
                     field = factory(field_spec);
                 } else {
                     field = IPA.text_widget({
                         name: field_spec,
-                        entity_name: entity.name
+                        entity: entity
                     });
                 }
                 section.add_field(field);
@@ -953,9 +925,13 @@ IPA.entity_builder = function(){
         var dialog;
         if (spec instanceof Object) {
             var factory = spec.factory || IPA.dialog;
+            spec.entity = entity;
             dialog = factory(spec);
         } else {
-            dialog = IPA.dialog({ name: spec });
+            dialog = IPA.dialog({
+                name: spec,
+                entity: entity
+            });
         }
         entity.dialog(dialog);
         return that;
@@ -964,6 +940,7 @@ IPA.entity_builder = function(){
     that.adder_dialog = function(spec) {
         spec.factory = spec.factory || IPA.add_dialog;
         spec.name = spec.name || 'add';
+        spec.entity = entity;
 
         if (!spec.title) {
             var title = IPA.messages.dialogs.add_title;

@@ -36,10 +36,12 @@ IPA.rule_details_section = function(spec) {
 
     that.create = function(container) {
 
+        that.container = container;
+
         if (that.text) container.append(that.text);
 
         var field = that.get_field(that.field_name);
-        var param_info = IPA.get_entity_param(that.entity_name, that.field_name);
+        var param_info = IPA.get_entity_param(that.entity.name, that.field_name);
 
         var span = $('<span/>', {
             name: that.field_name,
@@ -47,32 +49,46 @@ IPA.rule_details_section = function(spec) {
             'class': 'details-field'
         }).appendTo(container);
 
-        if (that.options.length) {
-            for (var i=0; i<that.options.length; i++) {
-                var option = that.options[i];
 
-                $('<input/>', {
-                    'type': 'radio',
-                    'name': that.field_name,
-                    'value': option.value
-                }).appendTo(span);
 
-                span.append(' ');
+        function update_tables(value) {
+            var enabled = ('' === value);
+            for (var i=0; i<that.tables.length; i++) {
+                var table = that.tables[i];
 
-                span.append(option.label);
-
-                span.append(' ');
+                var field = that.get_field(table.field_name);
+                field.set_enabled(enabled);
             }
-
-            field.create_undo(span);
-
-            span.append('<br/>');
         }
+
+        if (that.options.length) {
+            var category = that.get_field(that.field_name);
+            category.options=that.options;
+            category.reset = function() {
+                category.widget_reset();
+                var values = category.save();
+                if (values.length === 0){
+                    return;
+                }
+                var value = values[0];
+                update_tables(value);
+            };
+            category.create(span);
+
+            var inputs = $('input[name='+that.field_name+']', container);
+            inputs.change(function() {
+                var input = $(this);
+                var value = input.val();
+                update_tables(value);
+            });
+        }
+
+
 
         for (var j=0; j<that.tables.length; j++) {
             var table = that.tables[j];
 
-            param_info = IPA.get_entity_param(that.entity_name, table.field_name);
+            param_info = IPA.get_entity_param(that.entity.name, table.field_name);
 
             var table_span = $('<span/>', {
                 name: table.field_name,
@@ -83,41 +99,8 @@ IPA.rule_details_section = function(spec) {
             field = that.get_field(table.field_name);
             field.create(table_span);
         }
-    };
 
-    that.setup = function(container) {
 
-        that.section_setup(container);
-
-        function update_tables(value) {
-
-            var enabled = ('' === value);
-
-            for (var i=0; i<that.tables.length; i++) {
-                var table = that.tables[i];
-
-                var field = that.get_field(table.field_name);
-                field.set_enabled(enabled);
-            }
-        }
-
-        var category = that.get_field(that.field_name);
-        category.reset = function() {
-            category.widget_reset();
-            var values = category.save();
-            if (values.length === 0){
-                return;
-            }
-            var value = values[0];
-            update_tables(value);
-        };
-
-        var inputs = $('input[name='+that.field_name+']', container);
-        inputs.change(function() {
-            var input = $(this);
-            var value = input.val();
-            update_tables(value);
-        });
     };
 
     return that;
@@ -150,7 +133,7 @@ IPA.rule_association_table_widget = function(spec) {
 
     that.add = function(values, on_success, on_error) {
 
-        var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
+        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
 
         var batch = IPA.batch_command({
             'on_success': on_success,
@@ -161,7 +144,7 @@ IPA.rule_association_table_widget = function(spec) {
 
         if (that.category) {
             command = IPA.command({
-                entity: that.entity_name,
+                entity: that.entity.name,
                 method: 'mod',
                 args: [pkey],
                 options: {all: true, rights: true},
@@ -176,7 +159,7 @@ IPA.rule_association_table_widget = function(spec) {
         }
 
         command = IPA.command({
-            entity: that.entity_name,
+            entity: that.entity.name,
             method: that.add_method,
             args: [pkey]
         });

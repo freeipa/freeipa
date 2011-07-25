@@ -32,7 +32,7 @@ test("Testing serial_associator().", function() {
     var params = {
         method: 'add_member',
         pkey: 'test',
-        entity_name: 'user',
+        entity: {name:'user'},
         other_entity: 'group'
     };
 
@@ -78,7 +78,7 @@ test("Testing serial_associator().", function() {
 
 test("Testing bulk_associator().", function() {
 
-    expect(5);
+    expect(4);
 
     var orig_ipa_command = IPA.command;
 
@@ -87,7 +87,7 @@ test("Testing bulk_associator().", function() {
     var params = {
         method: "add_member",
         pkey: "test",
-        entity_name: "user",
+        entity: {name:"user"},
         other_entity: "group"
     };
 
@@ -99,11 +99,6 @@ test("Testing bulk_associator().", function() {
 
         that.execute = function() {
             counter++;
-
-            equals(
-                that.entity, params.entity_name,
-                'Checking IPA.command() parameter: entity'
-            );
 
             equals(
                 that.method, params.method,

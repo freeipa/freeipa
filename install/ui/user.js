@@ -172,8 +172,7 @@ IPA.user_status_widget = function(spec) {
             name: 'link',
             click: function() {
 
-                var entity = IPA.get_entity(that.entity_name);
-                var facet = entity.get_facet();
+                var facet = that.entity.get_facet();
 
                 if (facet.is_dirty()) {
                     var dialog = IPA.dirty_dialog({
@@ -184,7 +183,6 @@ IPA.user_status_widget = function(spec) {
                         that.show_activation_dialog();
                     };
 
-                    dialog.init();
                     dialog.open(container);
 
                 } else {
@@ -255,8 +253,7 @@ IPA.user_status_widget = function(spec) {
             that.set_status(
                 action == 'activate',
                 function(data, textStatus, xhr) {
-                    var entity = IPA.get_entity(that.entity_name);
-                    var facet = entity.get_facet();
+                    var facet = that.entity.get_facet();
                     facet.refresh();
                     dialog.close();
                 }
@@ -266,8 +263,6 @@ IPA.user_status_widget = function(spec) {
         dialog.add_button(IPA.messages.buttons.cancel, function() {
             dialog.close();
         });
-
-        dialog.init();
 
         dialog.open(that.container);
     };
@@ -382,8 +377,6 @@ IPA.user_password_widget = function(spec) {
         dialog.add_button(IPA.messages.buttons.cancel, function() {
             dialog.close();
         });
-
-        dialog.init();
 
         dialog.open(that.container);
     };

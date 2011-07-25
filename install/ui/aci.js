@@ -222,9 +222,6 @@ IPA.attributes_widget = function(spec) {
 
     var id = spec.name;
 
-    that.setup = function() {
-    };
-
     that.create = function(container) {
         that.container = container;
 
@@ -366,31 +363,26 @@ IPA.rights_widget = function(spec) {
     var that = IPA.checkboxes_widget(spec);
 
     that.rights = ['write', 'add', 'delete'];
-
-    that.init = function() {
-
-        that.widget_init();
-
-        for (var i=0; i<that.rights.length; i++) {
-            var right = that.rights[i];
-            that.add_option({label: right, value: right});
-        }
-    };
+    for (var i=0; i<that.rights.length; i++) {
+        var right = that.rights[i];
+        that.add_option({label: right, value: right});
+    }
 
     return that;
 };
 
 
-IPA.rights_section = function() {
+IPA.rights_section = function(spec) {
 
-    var spec = {
-        name: 'rights',
-        label: IPA.messages.objects.permission.rights
-    };
+    spec = spec || {};
+
+    spec.name = 'rights';
+    spec.label = IPA.messages.objects.permission.rights;
 
     var that = IPA.details_section(spec);
 
     that.add_field(IPA.rights_widget({
+        entity: that.entity,
         name: 'permissions',
         join: true
     }));
@@ -407,8 +399,13 @@ IPA.target_section = function(spec) {
     that.section = true;
     that.undo = typeof spec.undo == 'undefined' ? true : spec.undo;
 
-    that.filter_text = IPA.text_widget({name: 'filter', undo: that.undo});
+    that.filter_text = IPA.text_widget({
+        name: 'filter',
+        undo: that.undo,
+        entity: spec.entity
+    });
     that.subtree_textarea = IPA.textarea_widget({
+        entity: spec.entity,
         name: 'subtree',
         cols: 30, rows: 1,
         undo: that.undo
@@ -419,9 +416,15 @@ IPA.target_section = function(spec) {
         other_field: 'cn',
         undo: that.undo
     });
-    that.type_select = IPA.select_widget({name: 'type', undo: that.undo});
+    that.type_select = IPA.select_widget({
+        name: 'type',
+        undo: that.undo
+    });
     that.attribute_table = IPA.attributes_widget({
-        name: 'attrs', undo: that.undo});
+        entity: spec.entity,
+        name: 'attrs',
+        undo: that.undo
+    });
 
     that.add_field(that.filter_text);
     that.add_field(that.subtree_textarea);
@@ -542,7 +545,7 @@ IPA.target_section = function(spec) {
                     name: 'type'
                 }).appendTo(dd);
                 that.type_select.create(span);
-                that.type_select.setup(span);
+
 
                 span = $('<dd/>', {
                     name: 'attrs',

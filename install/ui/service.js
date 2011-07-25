@@ -112,24 +112,28 @@ IPA.service_add_dialog = function(spec) {
         field(IPA.widget({
             name: 'krbprincipalname',
             optional:true,
+            entity:spec.entity,
             hidden: true
         })).
         field(IPA.service_select_widget({
             name: 'service',
             label: IPA.messages.objects.service.service,
             size: 20,
+            entity:spec.entity,
             undo: false
         })).
         field(IPA.entity_select_widget({
             name: 'host',
             other_entity: 'host',
             other_field: 'fqdn',
+            entity:spec.entity,
             label: IPA.messages.objects.service.host,
             undo: false
         })).
         field(
         IPA.checkbox_widget({
             name: 'force',
+            entity:spec.entity,
             label: IPA.get_method_option('service_add', 'force').label,
             tooltip: IPA.get_method_option('service_add', 'force').doc,
             undo: false
@@ -247,11 +251,6 @@ IPA.service_provisioning_status_widget = function (spec) {
         }).appendTo(div);
 
         content_div.append('<b>'+IPA.messages.objects.service.missing+'</b>');
-    };
-
-    that.setup = function(container) {
-
-        that.widget_setup(container);
 
         that.status_valid = $('div[name=kerberos-key-valid]', that.container);
         that.status_missing = $('div[name=kerberos-key-missing]', that.container);
@@ -267,7 +266,7 @@ IPA.service_provisioning_status_widget = function (spec) {
 
     that.unprovision = function() {
 
-        var label = IPA.metadata.objects[that.entity_name].label_singular;
+        var label = that.entity.metadata.label_singular;
         var title = IPA.messages.objects.service.unprovision_title;
         title = title.replace('${entity}', label);
 
@@ -282,7 +281,7 @@ IPA.service_provisioning_status_widget = function (spec) {
         dialog.add_button(IPA.messages.objects.service.unprovision, function() {
             var pkey = that.result['krbprincipalname'][0];
             IPA.command({
-                entity: that.entity_name,
+                entity: that.entity,
                 method: 'disable',
                 args: [pkey],
                 on_success: function(data, text_status, xhr) {
@@ -294,8 +293,6 @@ IPA.service_provisioning_status_widget = function (spec) {
                 }
             }).execute();
         });
-
-        dialog.init();
 
         dialog.open(that.container);
 
@@ -322,28 +319,26 @@ IPA.service_certificate_status_widget = function (spec) {
 
     var that = IPA.cert.status_widget(spec);
 
-    that.init = function() {
 
-        that.entity_label = IPA.metadata.objects[that.entity_name].label_singular;
+    that.entity_label = that.entity.metadata.label_singular;
 
-        that.get_entity_pkey = function(result) {
-            var values = result['krbprincipalname'];
-            return values ? values[0] : null;
-        };
+    that.get_entity_pkey = function(result) {
+        var values = result['krbprincipalname'];
+        return values ? values[0] : null;
+    };
 
-        that.get_entity_name = function(result) {
-            var value = that.get_entity_pkey(result);
-            return value ? value.replace(/@.*$/, '') : null;
-        };
+    that.get_entity_name = function(result) {
+        var value = that.get_entity_pkey(result);
+        return value ? value.replace(/@.*$/, '') : null;
+    };
 
-        that.get_entity_principal = function(result) {
-            return that.get_entity_pkey(result);
-        };
+    that.get_entity_principal = function(result) {
+        return that.get_entity_pkey(result);
+    };
 
-        that.get_entity_certificate = function(result) {
-            var values = result['usercertificate'];
-            return values ? values[0].__base64__ : null;
-        };
+    that.get_entity_certificate = function(result) {
+        var values = result['usercertificate'];
+        return values ? values[0].__base64__ : null;
     };
 
     return that;
@@ -355,22 +350,13 @@ IPA.service_managedby_host_facet = function(spec) {
 
     var that = IPA.association_facet(spec);
 
-    that.init = function() {
+    that.create_adder_column({
+        name: 'fqdn',
+        label: IPA.messages.objects.service.host,
+        primary_key: true,
+        width: '200px'
+    });
 
-        var column = that.create_column({
-            name: 'fqdn',
-            primary_key: true,
-            link: true
-        });
-
-        that.create_adder_column({
-            name: 'fqdn',
-            primary_key: true,
-            width: '200px'
-        });
-
-        that.association_facet_init();
-    };
 
     return that;
 };

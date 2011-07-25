@@ -137,7 +137,6 @@ IPA.navigation = function(spec) {
                     $.bbq.pushState(params);
                 };
 
-                dialog.init();
                 dialog.open(that.container);
 
                 return false;
@@ -230,10 +229,14 @@ IPA.navigation = function(spec) {
         }
 
         if (pkeys) {
-            var current_entity = entity;
-            while (current_entity){
-                state[current_entity.name + '-pkey'] = pkeys.pop();
-                current_entity = current_entity.containing_entity;
+            if (pkeys instanceof Array){
+                var current_entity = entity;
+                while (current_entity){
+                    state[current_entity.name + '-pkey'] = pkeys.pop();
+                    current_entity = current_entity.containing_entity;
+                }
+            }else{
+                state[entity.name + '-pkey'] = pkeys;
             }
         }
 
@@ -394,7 +397,7 @@ IPA.navigation = function(spec) {
             }
 
             entity_container.css('display', 'block');
-            tab.entity.setup(tab.content);
+            tab.entity.display(tab.content);
         }
     };
 

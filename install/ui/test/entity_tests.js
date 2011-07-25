@@ -1,5 +1,6 @@
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
+ *    Adam Young <ayoung@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -66,7 +67,6 @@ test('Testing IPA.entity_set_search_definition().', function() {
         search_facet({
             columns:['uid']}).
         build();
-    entity.init();
 
     var entity_container = $('<div/>', {
         name: 'user',
@@ -84,7 +84,6 @@ test('Testing IPA.entity_set_search_definition().', function() {
     });
 
     facet.create(facet_container);
-    facet.setup(facet_container);
 
     var column = facet.get_columns()[0];
     ok(

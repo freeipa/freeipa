@@ -30,10 +30,9 @@ IPA.dialog = function(spec) {
 
     var that = {};
 
+    that.entity = spec.entity;
     that.name = spec.name;
     that.title = spec.title;
-    that._entity_name = spec.entity_name;
-
     that.width = spec.width || 400;
     that.height = spec.height;
 
@@ -66,24 +65,6 @@ IPA.dialog = function(spec) {
               ']',that.container).css('visibility','hidden');
         }
     };
-
-    that.__defineGetter__("entity_name", function(){
-        return that._entity_name;
-    });
-
-    that.__defineSetter__("entity_name", function(entity_name){
-        that._entity_name = entity_name;
-
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            fields[i].entity_name = entity_name;
-        }
-
-        var sections = that.sections.values;
-        for (var j=0; j<sections.length; j++) {
-            sections[j].entity_name = entity_name;
-        }
-    });
 
     that.add_button = function(name, handler) {
         that.buttons[name] = handler;
@@ -120,7 +101,7 @@ IPA.dialog = function(spec) {
         that.field(IPA.text_widget({
             name: name,
             undo: false,
-            entity_name : that.entity_name
+            entity : that.entity
         }));
         return that;
     };
@@ -141,25 +122,6 @@ IPA.dialog = function(spec) {
         return section;
     };
 
-    that.init = function() {
-
-        that.entity = IPA.get_entity(that.entity_name);
-
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            var field = fields[i];
-            field.entity_name = that.entity_name;
-            field.init();
-        }
-
-        var sections = that.sections.values;
-        for (var j=0; j<sections.length; j++) {
-            var section = sections[j];
-            section.entity_name = that.entity_name;
-            section.init();
-        }
-    };
-
     /**
      * Create content layout
      */
@@ -178,8 +140,14 @@ IPA.dialog = function(spec) {
                 style: 'vertical-align: top;',
                 title: field.label
             }).appendTo(tr);
+            var label_text = field.label;
+            if (label_text !== null){
+                label_text += ': ';
+            }else{
+                label_text = '';
+            }
             td.append($('<label />',{id: field.name+'-label',
-                                     text:field.label+': '}));
+                                     text: label_text}));
 
             td = $('<td/>', {
                 style: 'vertical-align: top;'
@@ -217,30 +185,9 @@ IPA.dialog = function(spec) {
 
             section.create(div);
         }
+
     };
 
-    /**
-     * Setup behavior
-     */
-    that.setup = function() {
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            var field = fields[i];
-
-            var span = $('span[name="'+field.name+'"]', that.container);
-            field.setup(span);
-        }
-
-        var sections = that.sections.values;
-        for (var j=0; j<sections.length; j++) {
-            var section = sections[j];
-
-            var div = $('div.details-section[name='+section.name+']',
-                that.container);
-
-            section.setup(div);
-        }
-    };
 
     /**
      * Open dialog
@@ -248,13 +195,11 @@ IPA.dialog = function(spec) {
     that.open = function(container) {
 
         that.container = $('<div/>');
-
         if (container) {
             container.append(that.container);
         }
 
         that.create();
-        that.setup();
 
         that.container.dialog({
             'title': that.title,
@@ -308,9 +253,7 @@ IPA.dialog = function(spec) {
         }
     };
 
-    that.dialog_init = that.init;
     that.dialog_create = that.create;
-    that.dialog_setup = that.setup;
     that.dialog_open = that.open;
 
     var fields = spec.fields || [];
@@ -320,6 +263,7 @@ IPA.dialog = function(spec) {
 
         if (field_spec instanceof Object) {
             var factory = field_spec.factory || IPA.text_widget;
+            field_spec.entity = that.entity;
             field = factory(field_spec);
 
             /* This is a bit of a hack, and is here to support ACI
@@ -335,7 +279,10 @@ IPA.dialog = function(spec) {
             }
 
         } else {
-            field = IPA.text_widget({ name: field_spec, undo: false });
+            field = IPA.text_widget({
+                name: field_spec,
+                entity:that.entity,
+                undo: false });
             that.add_field(field);
         }
     }
@@ -348,15 +295,26 @@ IPA.dialog = function(spec) {
  * values from the available results.
  */
 IPA.adder_dialog = function (spec) {
+    var NORMAL_HEIGHT = '151px';
+    var EXTERNAL_HEIGHT = '119px';
 
     spec = spec || {};
 
     var that = IPA.dialog(spec);
-
+    that.external = spec.external;
     that.width = spec.width || 600;
     that.height = spec.height || 360;
 
+    if (!that.entity){
+        var except = {
+            expected: false,
+            message:'Adder dialog created without entity.'
+        };
+        throw except;
+    }
+
     that.columns = $.ordered_map();
+
 
     that.get_column = function(name) {
         return that.columns.get(name);
@@ -378,37 +336,39 @@ IPA.adder_dialog = function (spec) {
     };
 
     that.create_column = function(spec) {
+        spec.entity = that.entity;
         var column = IPA.column(spec);
         that.add_column(column);
         return column;
     };
 
-    that.init = function() {
+    function initialize_table(){
+        var table_height = NORMAL_HEIGHT;
+        if (that.external){
+            table_height = EXTERNAL_HEIGHT;
+        }
+
         that.available_table = IPA.table_widget({
+            entity: that.entity,
             name: 'available',
             scrollable: true,
-            height: '151px'
+            height: table_height
         });
 
         var columns = that.columns.values;
         that.available_table.set_columns(columns);
 
-        that.available_table.init();
-
         that.selected_table = IPA.table_widget({
+            entity: that.entity,
             name: 'selected',
             scrollable: true,
-            height: '151px'
+            height: NORMAL_HEIGHT
         });
 
         that.selected_table.set_columns(columns);
-
-        that.selected_table.init();
-
-        that.dialog_init();
-    };
-
+    }
     that.create = function() {
+
 
         // do not call that.dialog_create();
 
@@ -465,6 +425,7 @@ IPA.adder_dialog = function (spec) {
 
         that.available_table.create(available_panel);
 
+
         var buttons_panel = $('<div/>', {
             name: 'buttons',
             'class': 'adder-dialog-buttons'
@@ -495,17 +456,6 @@ IPA.adder_dialog = function (spec) {
         }).appendTo(selected_panel);
 
         that.selected_table.create(selected_panel);
-    };
-
-    that.setup = function() {
-
-        // do not call that.dialog_setup();
-
-        var available_panel = $('div[name=available]', that.container);
-        that.available_table.setup(available_panel);
-
-        var selected_panel = $('div[name=selected]', that.container);
-        that.selected_table.setup(selected_panel);
 
         that.filter_field = $('input[name=filter]', that.container);
 
@@ -513,7 +463,10 @@ IPA.adder_dialog = function (spec) {
         that.find_button = IPA.button({
             name: 'find',
             'label': button.val(),
-            'click': function() { that.search(); }
+            'click': function() {
+                that.search();
+                return false;
+            }
         });
         button.replaceWith(that.find_button);
 
@@ -539,8 +492,28 @@ IPA.adder_dialog = function (spec) {
         });
         button.replaceWith(that.add_button);
 
+        if (that.external) {
+            var external_panel = $('<div/>', {
+                name: 'external',
+                'class': 'adder-dialog-external'
+            }).appendTo(results_panel);
+
+            $('<div/>', {
+                html: IPA.messages.objects.sudorule.external,
+                'class': 'ui-widget-header'
+            }).appendTo(external_panel);
+
+            that.external_field = $('<input/>', {
+                type: 'text',
+                name: 'external',
+                style: 'width: 244px'
+            }).appendTo(external_panel);
+
+        }
+
         that.search();
     };
+
 
     that.open = function(container) {
 
@@ -584,9 +557,16 @@ IPA.adder_dialog = function (spec) {
         return that.selected_table.save();
     };
 
-    that.adder_dialog_init = that.init;
+    /*dialog initialization */
+   if (spec.columns){
+        for (var i =0; i < spec.columns.length; i +=1){
+            that.create_column(spec.columns[i]);
+        }
+    }
+
+    initialize_table();
+
     that.adder_dialog_create = that.create;
-    that.adder_dialog_setup = that.setup;
 
     return that;
 };

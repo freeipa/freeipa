@@ -32,82 +32,30 @@ IPA.add_dialog = function (spec) {
     that.method = spec.method || 'add';
     that.pre_execute_hook = spec.pre_execute_hook;
 
-    function show_edit_page(entity_name,result){
-        var pkey_name = IPA.metadata.objects[entity_name].primary_key;
+    function show_edit_page(entity,result){
+        var pkey_name = entity.metadata.primary_key;
         var pkey = result[pkey_name];
         if (pkey instanceof Array) {
             pkey = pkey[0];
         }
-        IPA.nav.show_page(that.entity_name, 'default', pkey);
+        IPA.nav.show_entity_page(that.entity, 'default', pkey);
     }
 
     that.show_edit_page = spec.show_edit_page || show_edit_page;
 
-    that.init = function() {
-        that.add_button(IPA.messages.buttons.add, function() {
-            var record = {};
-            that.save(record);
-            that.add(
-                record,
-                function(data, text_status, xhr) {
-                    var facet = IPA.current_entity.get_facet();
-                    var table = facet.table;
-                    table.refresh();
-                    that.close();
-                }
-            );
-        });
-
-
-        that.add_button(IPA.messages.buttons.add_and_add_another, function() {
-            var record = {};
-            that.save(record);
-            that.add(
-                record,
-                function(data, text_status, xhr) {
-                    var facet = IPA.current_entity.get_facet();
-                    var table = facet.table;
-                    table.refresh();
-                    that.reset();
-                }
-            );
-        });
-
-        that.add_button(IPA.messages.buttons.add_and_edit, function() {
-            var record = {};
-            that.save(record);
-            that.add(
-                record,
-                function(data, text_status, xhr) {
-                    that.close();
-
-                    var entity_name = that.entity_name;
-                    var result = data.result.result;
-                    that.show_edit_page(entity_name,result);
-                }
-            );
-        });
-
-        that.add_button(IPA.messages.buttons.cancel, function() {
-            that.close();
-        });
-
-        that.dialog_init();
-    };
-
     that.add = function(record, on_success, on_error) {
 
         var field, value, pkey_prefix;
-        var pkey_name = IPA.metadata.objects[that.entity_name].primary_key;
+        var pkey_name = that.entity.metadata.primary_key;
 
         var command = IPA.command({
-            entity: that.entity_name,
+            entity: that.entity.name,
             method: that.method,
             on_success: on_success,
             on_error: on_error
         });
 
-        pkey_prefix = IPA.get_entity(that.entity_name).get_primary_key_prefix();
+        pkey_prefix = that.entity.get_primary_key_prefix();
 
         for (var h=0; h<pkey_prefix.length; h++) {
             command.add_arg(pkey_prefix[h]);
@@ -168,7 +116,52 @@ IPA.add_dialog = function (spec) {
 
     };
 
-    that.add_dialog_init = that.init;
+    /*dialog initialization*/
+    that.add_button(IPA.messages.buttons.add, function() {
+        var record = {};
+        that.save(record);
+        that.add(
+            record,
+            function(data, text_status, xhr) {
+                var facet = IPA.current_entity.get_facet();
+                var table = facet.table;
+                table.refresh();
+                that.close();
+            }
+        );
+    });
+
+    that.add_button(IPA.messages.buttons.add_and_add_another, function() {
+        var record = {};
+        that.save(record);
+        that.add(
+            record,
+            function(data, text_status, xhr) {
+                var facet = IPA.current_entity.get_facet();
+                var table = facet.table;
+                table.refresh();
+                that.reset();
+            }
+        );
+    });
+
+    that.add_button(IPA.messages.buttons.add_and_edit, function() {
+        var record = {};
+        that.save(record);
+        that.add(
+            record,
+            function(data, text_status, xhr) {
+                that.close();
+                var result = data.result.result;
+                that.show_edit_page(that.entity,result);
+            }
+        );
+    });
+
+    that.add_button(IPA.messages.buttons.cancel, function() {
+        that.close();
+    });
+
 
     return that;
 };

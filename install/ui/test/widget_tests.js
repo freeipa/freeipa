@@ -20,6 +20,9 @@
 
 
 var widget_container;
+var widget;
+var factory
+var spec;
 
 
 module('widget',{
@@ -35,40 +38,46 @@ module('widget',{
                }
            );
            widget_container = $('<div id="widget"/>').appendTo(document.body);
+
+           widget = null;
+           factory = null;
+           spec = null;
+
+
        },
        teardown: function() {
            widget_container.remove();
        }}
 );
 
-function base_widget_test(widget,entity_name, value){
+
+function base_widget_test(value){
+    spec.entity = {
+        name:'user'
+    };
+
+    widget = factory(spec);
+
+    var entity_name = 'user';
     var field_name = widget.name;
     ok (widget, "Created Widget");
-    widget.init();
-    ok(!widget.label,'widget with no entity has no label');
-    ok(!widget.tooltip,'widget with entity and name has no tooltip');
 
     //init reads param info for an entity.  We'll use the user entity
-    widget.entity_name = entity_name;
     widget.name = field_name;
 
-    widget.init();
     ok(widget.label,'widget with entity and name has label');
     ok(widget.tooltip,'widget with entity and name has tooltip');
 
 
-    ok(!widget.container,'widget has no container before setup');
+    ok(!widget.container,'widget has no container before create');
     widget.create(widget_container);
-    widget.setup(widget_container);
-
-    ok(widget.container,'widget has container after setup');
-
+    ok(widget.container,'widget has container after create');
 
 }
 
 
-function widget_string_test(widget) {
-   var value = 'test_title';
+function widget_string_test() {
+    var value = 'test_title';
     var mock_record = {'title': value};
 
     widget.load(mock_record);
@@ -143,9 +152,17 @@ function multivalued_text_tests(widget) {
 }
 
 test("IPA.table_widget" ,function(){
-    var widget = IPA.table_widget({undo:true,name:'users'});
-
+    factory = IPA.table_widget;
+    spec = {
+        undo:true,
+        name:'users',
+        entity: {
+            name:'user'
+        }
+    };
+    widget = factory(spec);
     widget.add_column(IPA.column({
+        entity: spec.entity,
         name:'uid',
         label:'User ID',
         primary_key:'uid',
@@ -153,6 +170,7 @@ test("IPA.table_widget" ,function(){
         entity_name:'user'
     }));
     widget.add_column(IPA.column({
+        entity: spec.entity,
         name:'title',
         lable:'Title',
         primary_key:'uid',
@@ -160,13 +178,9 @@ test("IPA.table_widget" ,function(){
         entity_name:'user'
     }));
 
-    widget.init();
- 
-    ok(!widget.container,'widget has no container before setup');
+    ok(!widget.container,'widget has no container before create');
     widget.create(widget_container);
-    widget.setup(widget_container);
-
-    ok(widget.container,'widget has container after setup');
+    ok(widget.container,'widget has container after create');
 
 
     var mock_results = {
@@ -184,49 +198,48 @@ test("IPA.table_widget" ,function(){
 
 test("Testing base widget.", function() {
     var update_called = false;
-    var spec = {
+    spec = {
         name:'title'
     };
 
-    var widget = IPA.widget(spec);
-    widget.update = function() {
-        update_called = true;
-    };
-
-    base_widget_test(widget,'user','test_value');
-    widget_string_test(widget);
-    ok (update_called, 'Update called');
-
+    factory = IPA.widget;
+    base_widget_test('test_value');
+    widget_string_test();
 });
 
 
+
 test("IPA.textarea_widget" ,function(){
-    var widget = IPA.textarea_widget({undo:true,name:'title'});
-    base_widget_test(widget,'user','test_value');
-    widget_string_test(widget);
+    spec = {undo:true,name:'title'};
+    factory = IPA.textarea_widget;
+    base_widget_test('test_value');
+    widget_string_test();
     text_tests(widget, $('textarea',widget_container));
 
 });
 
 
 test("Testing text widget.", function() {
-    var widget = IPA.text_widget({undo:true,name:'title'});
-    base_widget_test(widget,'user','test_value');
-    widget_string_test(widget);
+    factory = IPA.text_widget;
+    spec = {undo:true,name:'title'};
+    base_widget_test('test_value');
+    widget_string_test();
     text_tests(widget, $('input[type=text]',widget_container));
 
 });
 
 test("Testing multi-valued text widget.", function() {
-    var widget = IPA.multivalued_text_widget({undo:true,name:'title'});
-    base_widget_test(widget,'user','test_value');
-    widget_string_test(widget);
+    factory  = IPA.multivalued_text_widget;
+    spec = {undo:true,name:'title'};
+    base_widget_test('test_value');
+    widget_string_test();
     multivalued_text_tests(widget);
 });
 
 test("Testing checkbox widget.", function() {
-    var widget = IPA.checkbox_widget({name:'title'});
-    base_widget_test(widget,'user','test_value');
+    factory  = IPA.checkbox_widget;
+    spec = {name:'title'};
+    base_widget_test('test_value');
 
     mock_record = {'title':'something'};
 
@@ -252,28 +265,30 @@ test("Testing checkbox widget.", function() {
 
 
 test("IPA.checkboxes_widget" ,function(){
-    var widget = IPA.checkboxes_widget({undo:true, name:'title' });
-    base_widget_test(widget,'user','test_value');
+    factory  = IPA.checkboxes_widget;
+    spec = {undo:true, name:'title' };
+    base_widget_test('test_value');
 
 });
 test("IPA.select_widget" ,function(){
 
-    var widget = IPA.select_widget({undo:true,name:'title'});
-    base_widget_test(widget,'user','test_value');
+    factory  = IPA.select_widget;
+    spec = {undo:true,name:'title'};
+    base_widget_test('test_value');
 
 });
 
 
 test("IPA.entity_select_widget" ,function(){
-
-    var widget = IPA.entity_select_widget({
+    factory =  IPA.entity_select_widget;
+    spec = {
         name: 'uid',
-        other_entity: 'user',
-        other_field: 'uid'
-    });
+        other_entity:'user',
+        field_name:'uid',
+        other_field: 'uid' };
 
-    base_widget_test(widget,'user','test_value');
-    ok( $('option', widget.container).length > 1,"options populated from AJAX");
+    base_widget_test('test_value');
+    ok( $('option',widget.list ).length > 1,"options come from AJAX");
     mock_record = {'uid':'kfrog'};
     widget.load(mock_record);
     same(widget.values[0],'kfrog','select set from values');
@@ -281,10 +296,11 @@ test("IPA.entity_select_widget" ,function(){
 
 
 test("IPA.entity_link_widget" ,function(){
-    var widget = IPA.entity_link_widget({
+    factory  = IPA.entity_link_widget;
+    spec = {
         name: 'gidnumber',
         other_entity:'group'
-    });
+    };
     base_widget_test(widget,'user','test_value');
 
     var mock_entity = {
@@ -315,15 +331,14 @@ test("IPA.entity_link_widget" ,function(){
 });
 
 
-
-
 test("IPA.radio_widget" ,function(){
     var options = [{label:"Engineer",value:"engineer"},
                    {label:"Manager", value:"manager"},
                    {label:"Director",value:"director"},
                    {label:"Vice President",value:"VP"}];
-    var widget = IPA.radio_widget({undo:true, name: 'title',options:options});
-    base_widget_test(widget,'user','test_value');
+    factory = IPA.radio_widget;
+    spec = {undo:true, name: 'title',options:options};
+    base_widget_test('test_value');
     var mock_record = {'title':["director"]};
     widget.load(mock_record);
     var values = widget.save();

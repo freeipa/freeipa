@@ -27,7 +27,10 @@
 IPA.entity_factories.dnszone = function() {
 
     if (!IPA.dns_enabled) {
-        throw "DNS not enabled on server";
+        var except = {
+            expected: true
+        };
+        throw except;
     }
 
     return IPA.entity_builder().
@@ -106,93 +109,6 @@ IPA.dnszone_adder_dialog = function(spec) {
 
     var that = IPA.add_dialog(spec);
 
-    that.create = function() {
-
-        var table = $('<table/>').appendTo(that.container);
-
-        var field = that.fields.get('idnsname');
-        var tr = $('<tr/>').appendTo(table);
-
-        var td = $('<td/>', {
-            style: 'vertical-align: top;',
-            title: field.label
-        }).appendTo(tr);
-
-        td.append($('<label/>', {
-            text: field.label+':'
-        }));
-
-        td = $('<td/>', {
-            style: 'vertical-align: top;'
-        }).appendTo(tr);
-
-        var span = $('<span/>', {
-            name: field.name
-        }).appendTo(td);
-
-        field.create(span);
-        field.field_span = span;
-
-        field = that.fields.get('name_from_ip');
-        tr = $('<tr/>').appendTo(table);
-
-        td = $('<td/>', {
-            style: 'vertical-align: top;',
-            title: field.label
-        }).appendTo(tr);
-
-        td = $('<td/>', {
-            style: 'vertical-align: top;'
-        }).appendTo(tr);
-
-        span = $('<span/>', {
-            name: field.name
-        }).appendTo(td);
-
-        td.append($('<label/>', {
-            text: field.label
-        }));
-
-        field.create(span);
-        field.field_span = span;
-
-        tr = $('<tr/>').appendTo(table);
-
-        td = $('<td/>', {
-            colspan: 2,
-            html: '&nbsp;'
-        }).appendTo(tr);
-
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            field = fields[i];
-            if (field.name == 'idnsname' || field.name == 'name_from_ip') continue;
-            if (field.hidden) continue;
-
-            tr = $('<tr/>').appendTo(table);
-
-            td = $('<td/>', {
-                style: 'vertical-align: top;',
-                title: field.label
-            }).appendTo(tr);
-
-            td.append($('<label/>', {
-                text: field.label+':'
-            }));
-
-            td = $('<td/>', {
-                style: 'vertical-align: top;'
-            }).appendTo(tr);
-
-            span = $('<span/>', {
-                name: field.name
-            }).appendTo(td);
-
-            field.create(span);
-            field.field_span = span;
-        }
-    };
-
     that.save = function(record) {
 
         var idnsname;
@@ -259,7 +175,10 @@ IPA.dns_record_search_load = function (result) {
 IPA.entity_factories.dnsrecord = function() {
 
     if (!IPA.dns_enabled) {
-        throw "DNS not enabled on server";
+        var except = {
+            expected: true
+        };
+        throw except;
     }
 
     return IPA.entity_builder().
@@ -459,8 +378,7 @@ IPA.dnsrecord_redirection_dialog = function(spec) {
 IPA.dnsrecord_host_link_widget = function(spec){
     var that = IPA.entity_link_widget(spec);
     that.other_pkeys = function(){
-        var entity = IPA.get_entity(that.entity_name);
-        var pkey = entity.get_primary_key();
+        var pkey = that.entity.get_primary_key();
         return [pkey[0]+'.'+pkey[1]];
     };
     return that;

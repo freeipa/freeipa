@@ -21,6 +21,7 @@
 
 var target_container;
 var target_section;
+var entity = {name:'bogus'};
 
 module('aci',{
        setup: function() {
@@ -36,8 +37,11 @@ module('aci',{
            );
 
            target_container = $('<div id="target"/>').appendTo(document.body);
-           target_section = IPA.target_section({name: 'target', label: 'Target'});
-           target_section.init();
+           target_section = IPA.target_section({
+               name: 'target',
+               label: 'Target',
+               entity:entity
+           });
            target_section.create(target_container);
        },
        teardown: function() {
@@ -56,12 +60,12 @@ test("IPA.attributes_widget.", function() {
 
     var widget = IPA.attributes_widget({
         name: 'attrs',
-        object_type: 'user'
+        object_type: 'user',
+        entity:entity
+
     });
 
-    widget.init();
     widget.create(container);
-    widget.setup(container);
 
     var table = $('table', container);
 
@@ -112,12 +116,11 @@ test("IPA.rights_widget.", function() {
     });
 
     var widget = IPA.rights_widget({
-        name: 'permissions'
+        name: 'permissions',
+        entity:entity
     });
 
-    widget.init();
     widget.create(container);
-    widget.setup(container);
 
     var inputs = $('input', container);
 

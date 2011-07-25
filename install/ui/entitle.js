@@ -526,7 +526,6 @@ IPA.entitle.certificate_column = function(spec) {
                     certificate: certificate,
                     add_pem_delimiters: false
                 });
-                dialog.init();
                 dialog.open();
                 return false;
             }
@@ -706,8 +705,6 @@ IPA.entitle.download_widget = function(spec) {
                             certificate: userpkcs12[0].__base64__,
                             add_pem_delimiters: false
                         });
-
-                        dialog.init();
                         dialog.open();
                     }
                 );

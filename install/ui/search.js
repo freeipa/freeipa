@@ -29,10 +29,12 @@ IPA.search_facet = function(spec) {
     spec = spec || {};
 
     spec.name = spec.name || 'search';
-    spec.managed_entity_name = spec.managed_entity_name || spec.entity_name;
+    spec.managed_entity_name = spec.managed_entity_name || spec.entity.name;
 
-    spec.disable_breadcrumb = spec.disable_breadcrumb === undefined ? true : spec.disable_breadcrumb;
-    spec.disable_facet_tabs = spec.disable_facet_tabs === undefined ? true : spec.disable_facet_tabs;
+    spec.disable_breadcrumb =
+        spec.disable_breadcrumb === undefined ? true : spec.disable_breadcrumb;
+    spec.disable_facet_tabs =
+        spec.disable_facet_tabs === undefined ? true : spec.disable_facet_tabs;
 
     var that = IPA.table_facet(spec);
 
@@ -45,19 +47,15 @@ IPA.search_facet = function(spec) {
 
     that.get_values = spec.get_values || get_values;
 
-    that.init = function() {
-        that.facet_init();
+    function initialize_table_columns(){
         that.managed_entity = IPA.get_entity(that.managed_entity_name);
-        that.init_table(that.managed_entity);
-    };
-
-    that.init_table = function(entity){
+        var entity = that.managed_entity;
 
         that.table = IPA.table_widget({
             'class': 'content-table',
             name: 'search',
             label: entity.metadata.label,
-            entity_name: entity.name,
+            entity: entity,
             search_all: that.search_all,
             scrollable: true,
             selectable: that.selectable
@@ -66,7 +64,7 @@ IPA.search_facet = function(spec) {
         var columns = that.columns.values;
         for (var i=0; i<columns.length; i++) {
             var column = columns[i];
-
+            column.entity = entity;
             var param_info = IPA.get_entity_param(entity.name, column.name);
             column.primary_key = param_info && param_info['primary_key'];
             column.link = column.primary_key;
@@ -88,8 +86,13 @@ IPA.search_facet = function(spec) {
         that.table.refresh = function() {
             that.refresh();
         };
+    }
 
-        that.table.init();
+    that.create_content = function(container) {
+        /*should be in the initialize section, but can not, due to
+          get_entity circular references.*/
+        initialize_table_columns();
+        that.table.create(container);
     };
 
     that.create_header = function(container) {
@@ -132,7 +135,9 @@ IPA.search_facet = function(spec) {
             label: IPA.messages.buttons.remove,
             icon: 'remove-icon',
             click: function() {
-                if (that.remove_button.hasClass('input_link_disabled')) return false;
+                if (that.remove_button.hasClass('input_link_disabled')) {
+                    return false;
+                }
                 that.remove();
                 return false;
             }
@@ -149,17 +154,12 @@ IPA.search_facet = function(spec) {
         }).appendTo(that.controls);
     };
 
-    that.create_content = function(container) {
-
-        that.table.create(container);
-        that.table.setup(container);
-    };
 
     that.show = function() {
         that.facet_show();
 
         if (that.filter) {
-            var filter = IPA.nav.get_state(that.entity_name+'-filter');
+            var filter = IPA.nav.get_state(that.entity.name+'-filter');
             that.filter.val(filter);
         }
     };
@@ -212,8 +212,6 @@ IPA.search_facet = function(spec) {
         dialog.title = title.replace('${entity}', label);
 
         dialog.set_values(values);
-
-        dialog.init();
 
         dialog.open(that.container);
     };
@@ -290,9 +288,7 @@ IPA.search_facet = function(spec) {
     };
 
     // methods that should be invoked by subclasses
-    that.search_facet_init = that.init;
     that.search_facet_create_content = that.create_content;
-    that.search_facet_setup = that.setup;
 
     return that;
 };

@@ -131,17 +131,29 @@ var IPA = ( function () {
         return that.entities.values;
     };
 
+
+
     that.get_entity = function(name) {
         var entity = that.entities.get(name);
         if (!entity){
             var factory = that.entity_factories[name];
+            if (!factory){
+                return null;
+            }
             try {
                 entity = factory();
                 that.add_entity(entity);
-                entity.init();
             } catch (e) {
-                /*exceptions thrown by builder just mean that entities
-                  are not to be registered. */
+                if (e.expected){
+                    /*expected exceptions thrown by builder just mean that
+                      entities are not to be registered. */
+                    return null;
+                }
+                if (e.message){
+                    alert(e.message);
+                }else{
+                    alert(e);
+                }
                 return null;
             }
         }

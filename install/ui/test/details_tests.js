@@ -59,13 +59,13 @@ module('details', {
 test("Testing IPA.details_section.create().", function() {
 
     var section = IPA.details_list_section({
+        entity: IPA.get_entity('user'),
         name:'IDIDID', label:'NAMENAMENAME'}).
         text({name:'cn'}).
         text({name:'uid'}).
         text({name:'mail'});
 
     section.entity_name = 'user';
-    section.init();
 
     var fields = section.fields.values;
     var container = $("<div/>");
@@ -116,7 +116,7 @@ test("Testing IPA.details_section.create().", function() {
 
 
 
-test("Testing details lifecycle: create, setup, load.", function(){
+test("Testing details lifecycle: create, load.", function(){
 
     var result = {};
 
@@ -133,7 +133,6 @@ test("Testing details lifecycle: create, setup, load.", function(){
         }
     }).execute();
 
-    var setup_called = false;
     var save_called = false;
     var load_called = false;
 
@@ -142,9 +141,6 @@ test("Testing details lifecycle: create, setup, load.", function(){
     var update_success_called = false;
     var update_failure_called = false;
 
-    function setup_status(){
-        setup_called = true;
-    }
 
     function save_password(){
         save_called = true;
@@ -157,11 +153,6 @@ test("Testing details lifecycle: create, setup, load.", function(){
 
     function test_widget(spec){
         var widget = IPA.widget(spec);
-
-        widget.setup = function(container) {
-            setup_called = true;
-            widget.widget_setup(container);
-        };
 
         widget.load = function(record) {
             load_called = true;
@@ -198,7 +189,7 @@ test("Testing details lifecycle: create, setup, load.", function(){
                     name:'facsimiletelephonenumber'}]
             }
         ]}).build();
-    entity.init();
+
 
     var entity_container = $('<div/>', {
         name: 'user',
@@ -216,7 +207,6 @@ test("Testing details lifecycle: create, setup, load.", function(){
     });
 
     facet.create(facet_container);
-    facet.setup(facet_container);
 
     facet.load(result);
 
@@ -243,11 +233,6 @@ test("Testing details lifecycle: create, setup, load.", function(){
 
     facet_container.attr('id','user');
 
-    ok (
-        setup_called,
-        'Setup status called'
-    );
-
     ok (load_called, 'load manager called');
 
     var section = facet.sections.get('contact');
@@ -266,10 +251,10 @@ test("Testing details lifecycle: create, setup, load.", function(){
 });
 
 
-test("Testing IPA.details_section_setup again()",function(){
+test("Testing IPA.details_section_create again()",function(){
 
     var section = IPA.details_list_section({
-        name: 'IDIDID', label: 'NAMENAMENAME'}).
+        name: 'IDIDID', label: 'NAMENAMENAME',entity: IPA.get_entity('user'),}).
         text({name:'cn', label:'Entity Name'}).
         text({name:'description', label:'Description'}).
         text({name:'number', label:'Entity ID'});
@@ -281,12 +266,7 @@ test("Testing IPA.details_section_setup again()",function(){
     var result = {};
 
     section.create(container);
-    section.setup(container);
     section.load(result);
-
-    //var h2= container.find('h2');
-    //ok(h2);
-    //ok(h2[0].innerHTML.indexOf(section.label) > 1,"find name in html");
 
     var dl = $('dl', container);
     ok(

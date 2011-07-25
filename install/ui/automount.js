@@ -89,20 +89,24 @@ IPA.entity_factories.automountmap = function() {
                      undo: false,
                      label: IPA.messages.objects.automountmap.map_type,
                      options: [
-                         { value: 'add', label: IPA.messages.objects.automountmap.direct },
-                         { value: 'add_indirect', label: IPA.messages.objects.automountmap.indirect }
+                         { value: 'add',
+                           label: IPA.messages.objects.automountmap.direct },
+                         { value: 'add_indirect',
+                           label: IPA.messages.objects.automountmap.indirect }
                      ]
                     },
                     'automountmapname','description',
                     {
                         name: 'key',
-                        label: IPA.get_method_option('automountmap_add_indirect', 'key').label,
+                        label: IPA.get_method_option(
+                            'automountmap_add_indirect', 'key').label,
                         conditional: true,
                         undo: false
                     },
                     {
                         name: 'parentmap',
-                        label: IPA.get_method_option('automountmap_add_indirect', 'parentmap').label,
+                        label: IPA.get_method_option(
+                            'automountmap_add_indirect', 'parentmap').label,
                         conditional: true,
                         undo: false
                     }]
@@ -148,13 +152,13 @@ IPA.entity_factories.automountkey = function() {
             }
         }).
         adder_dialog({
-            show_edit_page : function(entity_name, result){
+            show_edit_page : function(entity, result){
                 var key = result.automountkey[0];
                 var info = result.automountinformation[0];
-                var state = IPA.nav.get_path_state(entity_name);
-                state[entity_name + '-facet'] = 'default';
-                state[entity_name + '-info'] = info;
-                state[entity_name + '-pkey'] = key;
+                var state = IPA.nav.get_path_state(entity.name);
+                state[entity.name + '-facet'] = 'default';
+                state[entity.name + '-info'] = info;
+                state[entity.name + '-pkey'] = key;
                 IPA.nav.push_state(state);
                 return false;
             },
@@ -193,9 +197,9 @@ IPA.automount_key_column = function(spec){
 IPA.automountmap_adder_dialog = function(spec){
     var that = IPA.add_dialog(spec);
 
-    that.super_setup = that.setup;
-    that.setup = function(container) {
-        that.super_setup(container);
+    that.super_create = that.create;
+    that.create = function(container) {
+        that.super_create(container);
         that.disable_conditional_fields();
     };
 
@@ -223,8 +227,10 @@ IPA.method_radio_widget = function(spec){
 
     var that = IPA.radio_widget(spec);
 
-    that.setup = function(container) {
+    that.radio_create = that.create;
 
+    that.create = function(container) {
+        that.radio_create(container);
         var input = $('input[name="'+that.name+'"]', that.container);
         input.
             filter("[value="+ that.dialog.method+"]").

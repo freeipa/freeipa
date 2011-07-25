@@ -94,6 +94,8 @@ class i18n_messages(Command):
 
     messages={
         "login": {"header" :_("Logged In As")},
+        "true": "True",
+        "false": "False",
         "objects": {
             "aci": {
                 "attribute":_("Attribute"),

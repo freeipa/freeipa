@@ -192,8 +192,7 @@ IPA.host_dnsrecord_entity_link_widget = function(spec){
     var that = IPA.entity_link_widget(spec);
 
     that.other_pkeys = function(){
-        var entity = IPA.get_entity(that.entity_name);
-        var pkey = entity.get_primary_key()[0];
+        var pkey = that.entity.get_primary_key()[0];
         var first_dot = pkey.search(/\./);
         var pkeys = [];
         pkeys[1] = pkey.substring(0,first_dot);
@@ -312,14 +311,10 @@ IPA.host_provisioning_status_widget = function (spec) {
             'name': 'enroll',
             'value': IPA.messages.objects.host.set_otp
         }).appendTo(content_div);
-    };
-
-    that.setup = function(container) {
-
-        that.widget_setup(container);
 
         that.status_valid = $('div[name=kerberos-key-valid]', that.container);
-        that.status_missing = $('div[name=kerberos-key-missing]', that.container);
+        that.status_missing = $('div[name=kerberos-key-missing]',
+                                that.container);
 
         var button = $('input[name=unprovision]', that.container);
         that.unprovision_button = IPA.button({
@@ -350,7 +345,7 @@ IPA.host_provisioning_status_widget = function (spec) {
 
     that.show_unprovision_dialog = function() {
 
-        var label = IPA.metadata.objects[that.entity_name].label_singular;
+        var label = that.entity.metadata.label_singular;
         var title = IPA.messages.objects.host.unprovision_title;
         title = title.replace('${entity}', label);
 
@@ -374,19 +369,16 @@ IPA.host_provisioning_status_widget = function (spec) {
             );
         });
 
-        dialog.init();
-
         dialog.open(that.container);
     };
 
     that.unprovision = function(on_success, on_error) {
 
-        var entity = IPA.get_entity(that.entity_name);
-        var pkey = entity.get_primary_key();
+        var pkey = that.entity.get_primary_key();
 
         var command = IPA.command({
-            name: that.entity_name+'_disable_'+pkey,
-            entity: that.entity_name,
+            name: that.entity.name+'_disable_'+pkey,
+            entity: that.entity.name,
             method: 'disable',
             args: pkey,
             options: { all: true, rights: true },
@@ -399,13 +391,12 @@ IPA.host_provisioning_status_widget = function (spec) {
 
     that.set_otp = function() {
 
-        var entity = IPA.get_entity(that.entity_name);
-        var pkey = entity.get_primary_key();
+        var pkey = that.entity.get_primary_key();
         var otp = that.otp_input.val();
         that.otp_input.val('');
 
         var command = IPA.command({
-            entity: that.entity_name,
+            entity: that.entity.name,
             method: 'mod',
             args: pkey,
             options: {
@@ -441,28 +432,26 @@ IPA.host_certificate_status_widget = function (spec) {
 
     var that = IPA.cert.status_widget(spec);
 
-    that.init = function() {
 
-        that.entity_label = IPA.metadata.objects[that.entity_name].label_singular;
+    that.entity_label = that.entity.metadata.label_singular;
 
-        that.get_entity_pkey = function(result) {
-            var values = result['fqdn'];
-            return values ? values[0] : null;
-        };
+    that.get_entity_pkey = function(result) {
+        var values = result['fqdn'];
+        return values ? values[0] : null;
+    };
 
-        that.get_entity_name = function(result) {
-            return that.get_entity_pkey(result);
-        };
+    that.get_entity_name = function(result) {
+        return that.get_entity_pkey(result);
+    };
 
-        that.get_entity_principal = function(result) {
-            var values = result['krbprincipalname'];
-            return values ? values[0] : null;
-        };
+    that.get_entity_principal = function(result) {
+        var values = result['krbprincipalname'];
+        return values ? values[0] : null;
+    };
 
-        that.get_entity_certificate = function(result) {
-            var values = result['usercertificate'];
-            return values ? values[0].__base64__ : null;
-        };
+    that.get_entity_certificate = function(result) {
+        var values = result['usercertificate'];
+        return values ? values[0].__base64__ : null;
     };
 
     return that;
@@ -477,22 +466,11 @@ IPA.host_managedby_host_facet = function (spec) {
     that.add_method = 'add_managedby';
     that.remove_method = 'remove_managedby';
 
-    that.init = function() {
-
-        var column = that.create_column({
-            name: 'fqdn',
-            primary_key: true,
-            link: true
-        });
-
-        that.create_adder_column({
-            name: 'fqdn',
-            primary_key: true,
-            width: '200px'
-        });
-
-        that.association_facet_init();
-    };
+    that.create_adder_column({
+        name: 'fqdn',
+        primary_key: true,
+        width: '200px'
+    });
 
     return that;
 };

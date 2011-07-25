@@ -47,9 +47,9 @@ test("Testing IPA.navigation.create().", function() {
     IPA.entity_factories.user =  function() {
         var that = IPA.entity({name: 'user',
                                metadata:IPA.metadata.objects.user});
-        that.add_facet(IPA.search_facet({'entity_name':'user'}));
+        that.add_facet(IPA.search_facet({'entity':that}));
 
-        that.setup = function(container){
+        that.display = function(container){
             user_mock_called = true;
             same(container.attr('name'), 'user', 'user container name');
             same(container[0].nodeName, 'DIV', 'user container element');
@@ -59,7 +59,7 @@ test("Testing IPA.navigation.create().", function() {
     IPA.entity_factories.group = function(){
         var that  = IPA.entity({name: 'group',
                                metadata:IPA.metadata.objects.group});
-        that.setup = function(container){
+        that.display = function(container){
             group_mock_called = true;
             same(container.attr('name'), 'group','user container name');
             same(container[0].nodeName, 'DIV', 'user container element');

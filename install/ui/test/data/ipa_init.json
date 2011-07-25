@@ -2351,7 +2351,7 @@
                                 "minlength": null,
                                 "multivalue": true,
                                 "name": "usercertificate",
-                                "noextrawhitespace": true,
+                                "noextrawhitespace": false,
                                 "pattern": null,
                                 "pattern_errmsg": null,
                                 "primary_key": false,
@@ -9651,8 +9651,13 @@
                             "sudocmd",
                             "sudocommand",
                             "sudohost",
+                            "sudonotafter",
+                            "sudonotbefore",
                             "sudooption",
+                            "sudoorder",
                             "sudorunas",
+                            "sudorunasgroup",
+                            "sudorunasuser",
                             "sudouser",
                             "supportedalgorithms",
                             "supportedcontrol",
@@ -10139,7 +10144,7 @@
                                 "include": null,
                                 "label": "Time to live",
                                 "maxvalue": 2147483647,
-                                "minvalue": null,
+                                "minvalue": -2147483648,
                                 "multivalue": false,
                                 "name": "dnsttl",
                                 "primary_key": false,
@@ -10556,7 +10561,7 @@
                                 "include": null,
                                 "label": "SOA time to live",
                                 "maxvalue": 2147483647,
-                                "minvalue": null,
+                                "minvalue": -2147483648,
                                 "multivalue": false,
                                 "name": "dnsttl",
                                 "primary_key": false,
@@ -10922,7 +10927,7 @@
                                 "include": null,
                                 "label": "GID",
                                 "maxvalue": 2147483647,
-                                "minvalue": null,
+                                "minvalue": -2147483648,
                                 "multivalue": false,
                                 "name": "gidnumber",
                                 "primary_key": false,
@@ -10973,7 +10978,6 @@
                         "container_dn": "cn=hbac",
                         "default_attributes": [
                             "cn",
-                            "accessruletype",
                             "ipaenabledflag",
                             "description",
                             "usercategory",
@@ -11080,8 +11084,13 @@
                                 "cli_short_name": null,
                                 "default": "allow",
                                 "doc": "Rule type (allow)",
-                                "exclude": null,
-                                "flags": [],
+                                "exclude": [
+                                    "webui"
+                                ],
+                                "flags": [
+                                    "no_option",
+                                    "no_output"
+                                ],
                                 "hint": null,
                                 "include": null,
                                 "label": "Rule type",
@@ -15450,7 +15459,7 @@
                                 "include": null,
                                 "label": "GID",
                                 "maxvalue": 2147483647,
-                                "minvalue": null,
+                                "minvalue": -2147483648,
                                 "multivalue": false,
                                 "name": "gidnumber",
                                 "primary_key": false,
@@ -15891,6 +15900,7 @@
                         "details": "Settings",
                         "search": "Search"
                     },
+                    "false": "False",
                     "login": {
                         "header": "Logged In As"
                     },
@@ -16132,6 +16142,7 @@
                         "role": "Role Based Access Control",
                         "sudo": "Sudo"
                     },
+                    "true": "True",
                     "widget": {
                         "next": "Next",
                         "optional": "Optional field: click to show",
@@ -16160,30 +16171,30 @@
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "193200000"
+                            "349800000"
                         ],
                         "homedirectory": [
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "c300021e-a445-11e0-80b9-525400b55a47"
+                            "3d3de554-b49b-11e0-921a-525400b55a47"
                         ],
                         "krbextradata": [
                             {
                                 "__base64__": "AAgBAA=="
                             },
                             {
-                                "__base64__": "AAL2bA5Ocm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
+                                "__base64__": "AALU0ylOcm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
                             }
                         ],
                         "krblastpwdchange": [
-                            "20110702005726Z"
+                            "20110722194732Z"
                         ],
                         "krblastsuccessfulauth": [
-                            "20110705180548Z"
+                            "20110725162159Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20110930005726Z"
+                            "20111020194732Z"
                         ],
                         "krbprincipalname": [
                             "admin@SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
@@ -16211,7 +16222,7 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "193200000"
+                            "349800000"
                         ]
                     }
                 ],
@@ -16219,7 +16230,7 @@
                 "truncated": false
             },
             {
-                "count": 67,
+                "count": 68,
                 "error": null,
                 "result": {
                     "basedn": "dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
@@ -16278,7 +16289,7 @@
                     "mount_jsonserver": "json",
                     "mount_xmlserver": "xml",
                     "prompt_all": false,
-                    "ra_plugin": "dogtag",
+                    "ra_plugin": "selfsign",
                     "realm": "SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM",
                     "rpc_json_uri": "http://localhost:8888/ipa/json",
                     "script": "/var/www/mod_wsgi",
@@ -16286,12 +16297,13 @@
                     "startup_traceback": false,
                     "validate_api": false,
                     "verbose": 0,
+                    "wait_for_attr": false,
                     "webui_assets_dir": null,
                     "webui_prod": true,
                     "xmlrpc_uri": "https://server15.ayoung.boston.devel.redhat.com/ipa/xml"
                 },
-                "summary": "67 variables",
-                "total": 67
+                "summary": "68 variables",
+                "total": 68
             },
             {
                 "error": null,
@@ -16300,54 +16312,11 @@
                 "value": ""
             },
             {
+                "count": 0,
                 "error": null,
-                "id": null,
-                "result": {
-                    "count": 2,
-                    "result": [
-                        {
-                            "accessruletype": [
-                                "allow"
-                            ],
-                            "cn": [
-                                "allow_all"
-                            ],
-                            "description": [
-                                "Allow all users to access any host from any host"
-                            ],
-                            "dn": "ipauniqueid=75841b24-acba-11e0-aeb9-525400b55a47,cn=hbac,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
-                            "hostcategory": [
-                                "all"
-                            ],
-                            "ipaenabledflag": [
-                                "TRUE"
-                            ],
-                            "servicecategory": [
-                                "all"
-                            ],
-                            "sourcehostcategory": [
-                                "all"
-                            ],
-                            "usercategory": [
-                                "all"
-                            ]
-                        },
-                        {
-                            "accessruletype": [
-                                "allow"
-                            ],
-                            "cn": [
-                                "allow_somnething"
-                            ],
-                            "dn": "ipauniqueid=137053da-acc4-11e0-8d43-525400b55a47,cn=hbac,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
-                            "ipaenabledflag": [
-                                "TRUE"
-                            ]
-                        }
-                    ],
-                    "summary": "2 HBAC rules matched",
-                    "truncated": false
-                }
+                "result": [],
+                "summary": "0 HBAC rules matched",
+                "truncated": false
             }
         ]
     }
