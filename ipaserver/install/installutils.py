@@ -120,6 +120,9 @@ def verify_fqdn(host_name,no_host_dns=False):
     if host_name != host_name.lower():
         raise RuntimeError("Invalid hostname '%s', must be lower-case." % host_name)
 
+    if ipautil.valid_ip(host_name):
+        raise RuntimeError("IP address not allowed as a hostname")
+
     if no_host_dns:
         print "Warning: skipping DNS resolution of host", host_name
         return

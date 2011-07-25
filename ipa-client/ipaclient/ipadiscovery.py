@@ -24,7 +24,7 @@ import ipapython.dnsclient
 import tempfile
 import ldap
 from ldap import LDAPError
-from ipapython.ipautil import run, CalledProcessError
+from ipapython.ipautil import run, CalledProcessError, valid_ip
 
 
 NOT_FQDN = -1
@@ -118,6 +118,9 @@ class IPADiscovery:
                     hostname = socket.getfqdn()
                 if not hostname:
                     return BAD_HOST_CONFIG
+
+                if valid_ip(hostname):
+                    return NOT_FQDN
 
                 # first, check for an LDAP server for the local domain
                 p = hostname.find(".")

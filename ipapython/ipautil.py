@@ -145,6 +145,9 @@ class CheckedIPAddress(netaddr.IPAddress):
     def is_local(self):
         return self.interface is not None
 
+def valid_ip(addr):
+    return netaddr.valid_ipv4(addr) or netaddr.valid_ipv6(addr)
+
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")
     terms = ["dc=" + x.lower() for x in s]
