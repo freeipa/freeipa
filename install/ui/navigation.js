@@ -67,7 +67,7 @@ IPA.navigation = function(spec) {
         return that.tabs_by_name[name];
     };
 
-    that.get_current_tab = function(state) {
+    that.get_active_tab = function(state) {
         var name = null;
         var next = state[that.root];
 
@@ -77,6 +77,15 @@ IPA.navigation = function(spec) {
         }
 
         return that.get_tab(name);
+    };
+
+    that.is_ancestor = function(tab, ancestor) {
+        var parent = tab.parent;
+        while (parent) {
+            if (parent == ancestor) return true;
+            parent = parent.parent;
+        }
+        return false;
     };
 
     that.get_path_state = function(name) {
@@ -142,7 +151,7 @@ IPA.navigation = function(spec) {
         $.extend(that.path, param_path);
 
         // find the tab pointed by the path
-        var tab = that.get_current_tab(that.path);
+        var tab = that.get_active_tab(that.path);
 
         // find the active tab at the lowest level
         while (!tab.entity) {
@@ -243,18 +252,31 @@ IPA.navigation = function(spec) {
         var tabs = $('.' + that.tab_class, that.container);
         tabs.tabs({
             select: function(event, ui) {
+
+                // get the selected tab
                 var panel = $(ui.panel);
                 var name = panel.attr('name');
+                var selected_tab = that.get_tab(name);
 
+                // get the tab specified in the URL state
                 var state = that.get_state();
-                var tab = that.get_current_tab(state);
+                var url_tab = that.get_active_tab(state);
 
-                if (tab && tab.name == name) { // hash change
-                    return that.push_state(state);
+                if (url_tab) {
+                    // if they are the same, the selection is triggered by hash change
+                    if (url_tab == selected_tab) {
+                        // use the URL state to update internal state
+                        return that.push_state(state);
 
-                } else { // mouse click
-                    return that.show_page(name);
+                    // if the selection is for the ancestor
+                    } else if (that.is_ancestor(url_tab, selected_tab)) {
+                        // let the tab be updated and don't change the state
+                        return true;
+                    }
                 }
+
+                // selection is triggered by mouse click, update the URL state
+                return that.show_page(name);
             }
         });
     };
