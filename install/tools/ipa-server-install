@@ -711,6 +711,16 @@ def main():
             dns_forwarders = options.forwarders
         else:
             dns_forwarders = read_dns_forwarders()
+
+        if options.reverse_zone:
+            reverse_zone = bindinstance.normalize_zone(options.reverse_zone)
+        elif not options.no_reverse:
+            reverse_zone = bindinstance.get_reverse_zone_default(ip)
+            if not options.unattended and bindinstance.create_reverse():
+                reverse_zone = bindinstance.read_reverse_zone(reverse_zone, ip)
+
+        if reverse_zone is not None:
+            print "Using reverse zone %s" % reverse_zone
     else:
         dns_forwarders = ()
     logging.debug("will use dns_forwarders: %s\n" % str(dns_forwarders))
@@ -919,17 +929,6 @@ def main():
 
     # Create a BIND instance
     bind = bindinstance.BindInstance(fstore, dm_password)
-    if options.setup_dns:
-        if options.reverse_zone:
-            reverse_zone = bindinstance.normalize_zone(options.reverse_zone)
-        elif not options.no_reverse:
-            reverse_zone = bindinstance.get_reverse_zone_default(ip)
-            if not options.unattended and bindinstance.create_reverse():
-                reverse_zone = bindinstance.read_reverse_zone(reverse_zone, ip)
-
-        if reverse_zone is not None:
-            print "Using reverse zone %s" % reverse_zone
-
     bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders, options.conf_ntp, reverse_zone, zonemgr=options.zonemgr)
     if options.setup_dns:
         api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)

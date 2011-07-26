@@ -107,6 +107,21 @@ def main():
     if bindinstance.named_conf_exists():
         sys.exit("\nDNS is already configured in this IPA server.")
 
+    # Create a BIND instance
+    if options.unattended and not options.dm_password:
+        sys.exit("\nIn unattended mode you need to provide at least the -p option")
+
+    dm_password = options.dm_password or read_password("Directory Manager",
+                                             confirm=False, validate=False)
+    bind = bindinstance.BindInstance(fstore, dm_password)
+
+    # try the connection
+    try:
+        bind.ldap_connect()
+        bind.ldap_disconnect()
+    except ldap.INVALID_CREDENTIALS, e:
+        sys.exit("Password is not valid!")
+
     # Check we have a public IP that is associated with the hostname
     if options.ip_address:
         ip = options.ip_address
@@ -137,29 +152,6 @@ def main():
         dns_forwarders = read_dns_forwarders()
     logging.debug("will use dns_forwarders: %s\n", str(dns_forwarders))
 
-    conf_ntp = ntpinstance.NTPInstance(fstore).is_enabled()
-
-    if not options.unattended:
-        print ""
-        print "The following operations may take some minutes to complete."
-        print "Please wait until the prompt is returned."
-        print ""
-
-    # Create a BIND instance
-    if options.unattended and not options.dm_password:
-        sys.exit("\nIn unattended mode you need to provide at least the -p option")
-
-    dm_password = options.dm_password or read_password("Directory Manager",
-                                             confirm=False, validate=False)
-    bind = bindinstance.BindInstance(fstore, dm_password)
-
-    # try the connection
-    try:
-        bind.ldap_connect()
-        bind.ldap_disconnect()
-    except ldap.INVALID_CREDENTIALS, e:
-        sys.exit("Password is not valid!")
-
     if bind.dm_password:
         api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=bind.dm_password)
     else:
@@ -178,6 +170,14 @@ def main():
 
     if reverse_zone is not None:
         print "Using reverse zone %s" % reverse_zone
+
+    conf_ntp = ntpinstance.NTPInstance(fstore).is_enabled()
+
+    if not options.unattended:
+        print ""
+        print "The following operations may take some minutes to complete."
+        print "Please wait until the prompt is returned."
+        print ""
 
     bind.setup(api.env.host, ip_address, api.env.realm, api.env.domain, dns_forwarders, conf_ntp, reverse_zone, zonemgr=options.zonemgr)
     bind.create_instance()
