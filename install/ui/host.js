@@ -246,8 +246,6 @@ IPA.host_provisioning_status_widget = function (spec) {
 
     var that = IPA.widget(spec);
 
-    that.facet = spec.facet;
-
     that.create = function(container) {
 
         that.widget_create(container);
@@ -326,8 +324,11 @@ IPA.host_provisioning_status_widget = function (spec) {
         var button = $('input[name=unprovision]', that.container);
         that.unprovision_button = IPA.button({
             name: 'unprovision',
-            'label': IPA.messages.objects.host.delete_key_unprovision,
-            'click': that.show_unprovision_dialog
+            label: IPA.messages.objects.host.delete_key_unprovision,
+            click: function() {
+                that.show_unprovision_dialog();
+                return false;
+            }
         });
         button.replaceWith(that.unprovision_button);
 
@@ -336,8 +337,11 @@ IPA.host_provisioning_status_widget = function (spec) {
         that.enroll_button = $('input[name=enroll]', that.container);
         button = IPA.button({
             name: 'enroll',
-            'label': IPA.messages.objects.host.set_otp,
-            'click': that.set_otp
+            label: IPA.messages.objects.host.set_otp,
+            click: function() {
+                that.set_otp();
+                return false;
+            }
         });
 
         that.enroll_button.replaceWith(button);
@@ -373,13 +377,12 @@ IPA.host_provisioning_status_widget = function (spec) {
         dialog.init();
 
         dialog.open(that.container);
-
-        return false;
     };
 
     that.unprovision = function(on_success, on_error) {
 
-        var pkey = that.facet.get_primary_key();
+        var entity = IPA.get_entity(that.entity_name);
+        var pkey = entity.get_primary_key();
 
         var command = IPA.command({
             name: that.entity_name+'_disable_'+pkey,
@@ -396,7 +399,8 @@ IPA.host_provisioning_status_widget = function (spec) {
 
     that.set_otp = function() {
 
-        var pkey = that.facet.get_primary_key();
+        var entity = IPA.get_entity(that.entity_name);
+        var pkey = entity.get_primary_key();
         var otp = that.otp_input.val();
         that.otp_input.val('');
 
