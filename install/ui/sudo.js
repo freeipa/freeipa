@@ -892,25 +892,25 @@ IPA.sudo.rule_details_command_section = function(spec) {
 
         that.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberallowcmd_sudocmd',
-            'name': 'memberallowcmd_sudocmd', 'label': 'Command',
+            'name': 'memberallowcmd_sudocmd',
             'category': category,
             'other_entity': 'sudocmd', 'add_method': 'add_allow_command', 'remove_method': 'remove_allow_command'
         }));
         that.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberallowcmd_sudocmdgroup',
-            'name': 'memberallowcmd_sudocmdgroup', 'label': 'Groups',
+            'name': 'memberallowcmd_sudocmdgroup',
             'category': category,
             'other_entity': 'sudocmdgroup', 'add_method': 'add_allow_command', 'remove_method': 'remove_allow_command'
         }));
 
         that.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberdenycmd_sudocmd',
-            'name': 'memberdenycmd_sudocmd', 'label': 'Command',
+            'name': 'memberdenycmd_sudocmd',
             'other_entity': 'sudocmd', 'add_method': 'add_deny_command', 'remove_method': 'remove_deny_command'
         }));
         that.add_field(IPA.rule_association_table_widget({
             'id': that.entity_name+'-memberdenycmd_sudocmdgroup',
-            'name': 'memberdenycmd_sudocmdgroup', 'label': 'Groups',
+            'name': 'memberdenycmd_sudocmdgroup',
             'other_entity': 'sudocmdgroup', 'add_method': 'add_deny_command', 'remove_method': 'remove_deny_command'
         }));
 
@@ -1269,9 +1269,13 @@ IPA.sudorule_association_table_widget = function(spec) {
     that.external = spec.external;
 
     that.create_add_dialog = function() {
+
         var pkey = IPA.nav.get_state(that.entity_name+'-pkey');
-        var label = IPA.metadata.objects[that.other_entity].label;
-        var title = 'Add '+label+' to '+that.entity_name+' '+pkey;
+
+        var title = IPA.messages.association.add;
+        title = title.replace('${other_entity}', IPA.metadata.objects[that.other_entity].label);
+        title = title.replace('${entity}', IPA.metadata.objects[that.entity_name].label_singular);
+        title = title.replace('${primary_key}', pkey);
 
         return IPA.sudo.rule_association_adder_dialog({
             'title': title,
