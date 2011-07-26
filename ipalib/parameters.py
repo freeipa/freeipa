@@ -1051,7 +1051,7 @@ class Int(Number):
         """
         assert type(value) in (int, long)
         if value < self.minvalue or value < MININT:
-            return _('can be at least %(minvalue)d') % dict(
+            return _('must be at least %(minvalue)d') % dict(
                 minvalue=self.minvalue,
             )
 
