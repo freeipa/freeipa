@@ -37,7 +37,7 @@ def make_rdn_args(low, high, kind, attr=None, value=None):
         elif kind == 'list':
             result.append([new_attr, new_value])
         elif kind == 'RDN':
-            result.append(RDN(new_attr, new_value))
+            result.append(RDN((new_attr, new_value)))
         else:
             raise ValueError("Unknown kind = %s" % kind)
 
@@ -162,6 +162,28 @@ class TestAVA(unittest.TestCase):
         result = cmp(ava1, self.ava1)
         self.assertEqual(result, 0)
 
+        # Upper case attr should still be equal
+        ava1 = AVA(self.attr1.upper(), self.value1)
+
+        self.assertFalse(ava1.attr == self.attr1)
+        self.assertTrue(ava1.value == self.value1)
+        self.assertTrue(ava1 == self.ava1)
+        self.assertFalse(ava1 != self.ava1)
+
+        result = cmp(ava1, self.ava1)
+        self.assertEqual(result, 0)
+
+        # Upper case value should still be equal
+        ava1 = AVA(self.attr1, self.value1.upper())
+
+        self.assertTrue(ava1.attr == self.attr1)
+        self.assertFalse(ava1.value == self.value1)
+        self.assertTrue(ava1 == self.ava1)
+        self.assertFalse(ava1 != self.ava1)
+
+        result = cmp(ava1, self.ava1)
+        self.assertEqual(result, 0)
+
         # Make ava1's attr greater
         ava1.attr = self.attr1 + "1"
 
@@ -199,7 +221,7 @@ class TestRDN(unittest.TestCase):
         self.ava1     = AVA(self.attr1, self.value1)
 
         self.str_rdn1 = '%s=%s' % (self.attr1, self.value1)
-        self.rdn1 = RDN(self.attr1, self.value1)
+        self.rdn1 = RDN((self.attr1, self.value1))
 
         self.attr2    = 'ou'
         self.value2   = 'people'
@@ -207,7 +229,7 @@ class TestRDN(unittest.TestCase):
         self.ava2     = AVA(self.attr2, self.value2)
 
         self.str_rdn2 = '%s=%s' % (self.attr2, self.value2)
-        self.rdn2     = RDN(self.attr2, self.value2)
+        self.rdn2     = RDN((self.attr2, self.value2))
 
         self.str_ava3 = '%s=%s+%s=%s' % (self.attr1, self.value1, self.attr2, self.value2)
 
@@ -216,13 +238,6 @@ class TestRDN(unittest.TestCase):
 
     def test_create(self):
         # Create with single attr,value pair
-        rdn1 = RDN(self.attr1, self.value1)
-        self.assertEqual(len(rdn1), 1)
-        self.assertEqual(rdn1, self.rdn1)
-        self.assertIsInstance(rdn1[0], AVA)
-        self.assertEqual(rdn1[0], self.ava1)
-
-        # Create with single attr,value pair passed as a tuple
         rdn1 = RDN((self.attr1, self.value1))
         self.assertEqual(len(rdn1), 1)
         self.assertEqual(rdn1, self.rdn1)
@@ -230,7 +245,7 @@ class TestRDN(unittest.TestCase):
         self.assertEqual(rdn1[0], self.ava1)
 
         # Create with multiple attr,value pairs
-        rdn3 = RDN(self.attr1, self.value1, self.attr2, self.value2)
+        rdn3 = RDN((self.attr1, self.value1), (self.attr2, self.value2))
         self.assertEqual(len(rdn3), 2)
         self.assertEqual(rdn3, self.rdn3)
         self.assertIsInstance(rdn3[0], AVA)
@@ -250,7 +265,7 @@ class TestRDN(unittest.TestCase):
         # Create with multiple attr,value pairs but reverse
         # constructor parameter ordering. RDN canonical ordering
         # should remain the same
-        rdn3 = RDN(self.attr2, self.value2, self.attr1, self.value1)
+        rdn3 = RDN((self.attr2, self.value2), (self.attr1, self.value1))
         self.assertEqual(len(rdn3), 2)
         self.assertEqual(rdn3, self.rdn3)
         self.assertIsInstance(rdn3[0], AVA)
@@ -333,7 +348,7 @@ class TestRDN(unittest.TestCase):
 
     def test_cmp(self):
         # Equality
-        rdn1 = RDN(self.attr1, self.value1)
+        rdn1 = RDN((self.attr1, self.value1))
 
         self.assertTrue(rdn1 == self.rdn1)
         self.assertFalse(rdn1 != self.rdn1)
@@ -404,50 +419,50 @@ class TestRDN(unittest.TestCase):
         self.assertEqual(self.rdn3[:],   [self.ava1, self.ava2])
 
     def test_assignments(self):
-        rdn = RDN(self.attr1, self.value1)
+        rdn = RDN((self.attr1, self.value1))
         rdn[0] = self.ava2
         self.assertEqual(rdn, self.rdn2)
 
-        rdn = RDN(self.attr1, self.value1)
+        rdn = RDN((self.attr1, self.value1))
         rdn[0] = (self.attr2, self.value2)
         self.assertEqual(rdn, self.rdn2)
 
-        rdn  = RDN(self.attr1, self.value1)
+        rdn  = RDN((self.attr1, self.value1))
         rdn[self.attr1] = self.str_ava2
         self.assertEqual(rdn[0], self.ava2)
 
         # Can't assign multiples to single entry
-        rdn  = RDN(self.attr1, self.value1)
+        rdn  = RDN((self.attr1, self.value1))
         with self.assertRaises(TypeError):
             rdn[self.attr1] = self.str_ava3
 
-        rdn  = RDN(self.attr1, self.value1)
+        rdn  = RDN((self.attr1, self.value1))
         with self.assertRaises(TypeError):
             rdn[self.attr1] = (self.attr1, self.value1, self.attr2, self.value2)
 
-        rdn  = RDN(self.attr1, self.value1)
+        rdn  = RDN((self.attr1, self.value1))
         with self.assertRaises(TypeError):
             rdn[self.attr1] = [(self.attr1, self.value1), (self.attr2, self.value2)]
 
         # Slices
-        rdn  = RDN(self.attr1, self.value1)
+        rdn  = RDN((self.attr1, self.value1))
         self.assertEqual(rdn, self.rdn1)
         rdn[0:1] = [self.ava2]
         self.assertEqual(rdn, self.rdn2)
 
-        rdn  = RDN(self.attr1, self.value1)
+        rdn  = RDN((self.attr1, self.value1))
         self.assertEqual(rdn, self.rdn1)
         rdn[:] = [(self.attr2, self.value2)]
         self.assertEqual(rdn, self.rdn2)
 
-        rdn  = RDN(self.attr1, self.value1)
+        rdn  = RDN((self.attr1, self.value1))
         self.assertEqual(rdn, self.rdn1)
         rdn[:] = [(self.attr1, self.value1),(self.attr2, self.value2)]
         self.assertEqual(rdn, self.rdn3)
 
-        rdn  = RDN(self.attr1, self.value1)
+        rdn  = RDN((self.attr1, self.value1))
         self.assertEqual(rdn, self.rdn1)
-        rdn[0:1] = [self.attr1, self.value1, self.attr2, self.value2]
+        rdn[0:1] = [(self.attr1, self.value1), (self.attr2, self.value2)]
         self.assertEqual(rdn, self.rdn3)
 
 
@@ -480,23 +495,23 @@ class TestRDN(unittest.TestCase):
 
 
     def test_concat(self):
-        rdn1 = RDN(self.attr1, self.value1)
-        rdn2 = RDN(self.attr2, self.value2)
+        rdn1 = RDN((self.attr1, self.value1))
+        rdn2 = RDN((self.attr2, self.value2))
 
         # in-place addtion
         rdn1 += rdn2
         self.assertEqual(rdn1, self.rdn3)
 
-        rdn1 = RDN(self.attr1, self.value1)
+        rdn1 = RDN((self.attr1, self.value1))
         rdn1 += self.ava2
         self.assertEqual(rdn1, self.rdn3)
 
-        rdn1 = RDN(self.attr1, self.value1)
+        rdn1 = RDN((self.attr1, self.value1))
         rdn1 += self.str_ava2
         self.assertEqual(rdn1, self.rdn3)
 
         # concatenation
-        rdn1 = RDN(self.attr1, self.value1)
+        rdn1 = RDN((self.attr1, self.value1))
         rdn3 = rdn1 + rdn2
         self.assertEqual(rdn3, self.rdn3)
 
@@ -516,7 +531,7 @@ class TestDN(unittest.TestCase):
         self.ava1     = AVA(self.attr1, self.value1)
 
         self.str_rdn1 = '%s=%s' % (self.attr1, self.value1)
-        self.rdn1     = RDN(self.attr1, self.value1)
+        self.rdn1     = RDN((self.attr1, self.value1))
 
         self.attr2    = 'ou'
         self.value2   = 'people'
@@ -524,7 +539,7 @@ class TestDN(unittest.TestCase):
         self.ava2     = AVA(self.attr2, self.value2)
 
         self.str_rdn2 = '%s=%s' % (self.attr2, self.value2)
-        self.rdn2     = RDN(self.attr2, self.value2)
+        self.rdn2     = RDN((self.attr2, self.value2))
 
         self.str_dn1 = self.str_rdn1
         self.dn1 = DN(self.rdn1)
@@ -535,12 +550,12 @@ class TestDN(unittest.TestCase):
         self.str_dn3 = '%s,%s' % (self.str_rdn1, self.str_rdn2)
         self.dn3 = DN(self.rdn1, self.rdn2)
 
-        self.base_rdn1 = RDN('dc', 'redhat')
-        self.base_rdn2 = RDN('dc', 'com')
+        self.base_rdn1 = RDN(('dc', 'redhat'))
+        self.base_rdn2 = RDN(('dc', 'com'))
         self.base_dn = DN(self.base_rdn1, self.base_rdn2)
 
-        self.container_rdn1 = RDN('cn', 'sudorules')
-        self.container_rdn2 = RDN('cn', 'sudo')
+        self.container_rdn1 = RDN(('cn', 'sudorules'))
+        self.container_rdn2 = RDN(('cn', 'sudo'))
         self.container_dn = DN(self.container_rdn1, self.container_rdn2)
 
         self.base_container_dn = DN((self.attr1, self.value1),
@@ -581,7 +596,7 @@ class TestDN(unittest.TestCase):
         self.assertEqual(dn1[1], self.rdn2)
 
         # Create with multiple attr,value pairs passed as tuple and RDN
-        dn1 = DN((self.attr1, self.value1), RDN(self.attr2, self.value2))
+        dn1 = DN((self.attr1, self.value1), RDN((self.attr2, self.value2)))
         self.assertEqual(len(dn1), 2)
         self.assertIsInstance(dn1[0], RDN)
         self.assertIsInstance(dn1[0].attr, unicode)
@@ -809,7 +824,7 @@ class TestDN(unittest.TestCase):
                 value = alt_rdn_value_arg(i)
                 dn1[i] = attr, value
                 dn2[orig_attr] = (attr, value)
-                dn3[i] = RDN(attr, value)
+                dn3[i] = RDN((attr, value))
 
         self.assertEqual(dn1, dn2)
         self.assertEqual(dn1, dn3)
