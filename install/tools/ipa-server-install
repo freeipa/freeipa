@@ -212,9 +212,15 @@ def parse_options():
     if (options.external_cert_file or options.external_ca_file) and options.selfsign:
         parser.error("--selfsign cannot be used with the external CA options.")
 
+    if options.external_ca:
+        if options.external_cert_file:
+            parser.error("You cannot specify --external_cert_file together with --external-ca")
+        if options.external_ca_file:
+            parser.error("You cannot specify --external_ca_file together with --external-ca")
+
     if ((options.external_cert_file and not options.external_ca_file) or
        (not options.external_cert_file and options.external_ca_file)):
-        parser.error("if either external option is used, both are required.")
+        parser.error("if either external CA option is used, both are required.")
 
     if (options.external_ca_file and not os.path.isabs(options.external_ca_file)):
         parser.error("--external-ca-file must use an absolute path")
@@ -503,7 +509,7 @@ def main():
     else:
         standard_logging_setup("/var/log/ipaserver-install.log", options.debug)
         print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
-        if (dsinstance.DsInstance().is_configured() or cainstance.CADSInstance().is_configured()) and not options.external_cert_file:
+        if not options.external_ca and not options.external_cert_file and (dsinstance.DsInstance().is_configured() or cainstance.CADSInstance().is_configured()):
             sys.exit("IPA server is already configured on this system.\n"
                      + "If you want to reinstall the IPA server please uninstall it first.")
 
@@ -544,9 +550,26 @@ def main():
 
         return uninstall()
 
+    if options.external_ca:
+        if cainstance.CADSInstance().is_configured():
+            print "CA is already installed.\nRun the installer with --external_cert_file and --external_ca_file."
+            sys.exit(1)
+    elif options.external_cert_file:
+        if not cainstance.CADSInstance().is_configured():
+            # This can happen if someone passes external_ca_file without
+            # already having done the first stage of the CA install.
+            print "CA is not installed yet. To install with an external CA is a two-stage process.\nFirst run the installer with --external-ca."
+            sys.exit(1)
+        if not ipautil.file_exists(options.external_cert_file):
+            print "%s does not exist" % options.external_cert_file
+            sys.exit(1)
+        if not ipautil.file_exists(options.external_ca_file):
+            print "%s does not exist" % options.external_ca_file
+            sys.exit(1)
+
     # This will override any settings passed in on the cmdline
     if ipautil.file_exists(ANSWER_CACHE):
-        dm_password = read_dm_password()
+        dm_password = read_password("Directory Manager", confirm=False)
         options._update_loose(read_cache(dm_password))
 
     print "=============================================================================="
@@ -754,24 +777,12 @@ def main():
 
         # Figure out what state we're in. See cainstance.py for more info on
         # the 3 states.
-        if options.external_cert_file is not None and options.external_ca_file is not None:
-            # These options imply this and this is required to install the CA.
-            # This is needed otherwise the setup of dogtag will fail.
-            options.external_ca = True
-        external = 0
-        if options.external_ca:
-            external = 1
-        if external and ipautil.file_exists("/root/ipa.csr"):
+        if options.external_cert_file:
             external = 2
-            if options.external_cert_file is None or options.external_ca_file is None:
-                print "You already have a CA signing request for this server (/root/ipa.csr), you need to include --external_cert_file and --external_ca_file"
-                sys.exit(1);
-        if external and options.external_cert_file and not ipautil.file_exists(options.external_cert_file):
-            print "%s does not exist" % options.external_cert_file
-            sys.exit(1);
-        if external and options.external_ca_file and not ipautil.file_exists(options.external_ca_file):
-            print "%s does not exist" % options.external_ca_file
-            sys.exit(1);
+        elif options.external_ca:
+            external = 1
+        else:
+            external = 0
 
         cs = cainstance.CADSInstance(host_name, realm_name, domain_name, dm_password)
         if not cs.is_configured():
@@ -787,18 +798,16 @@ def main():
             options.master_password = master_password
             options.dm_password = dm_password
             options.admin_password = admin_password
-            options.host_name = host_default
+            options.host_name = host_name
             options.unattended = True
+            options.forwarders = dns_forwarders
+            options.reverse_zone = reverse_zone
             write_cache(options)
             ca.configure_instance(host_name, dm_password, dm_password,
                                   csr_file="/root/ipa.csr",
                                   subject_base=options.subject)
         else:
             # stage 2 of external CA installation
-            if not ca.is_installed():
-                # This can happen if someone passes external_ca_file without
-                # already having done the first stage of the CA install.
-                sys.exit('CA is not installed yet. To install with an external CA is a two-stage process.\nFirst run the installer with --external-ca.')
             ca.configure_instance(host_name, dm_password, dm_password,
                                   cert_file=options.external_cert_file,
                                   cert_chain_file=options.external_ca_file,
