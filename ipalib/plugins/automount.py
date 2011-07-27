@@ -791,11 +791,16 @@ class automountmap_add_indirect(LDAPCreate):
 
     def execute(self, *keys, **options):
         result = self.api.Command['automountmap_add'](*keys, **options)
-        options['automountinformation'] = keys[1]
-        self.api.Command['automountkey_add'](
-            keys[0], options['parentmap'],
-            automountkey=options['key'], **options
-        )
+        try:
+            options['automountinformation'] = keys[1]
+            self.api.Command['automountkey_add'](
+                keys[0], options['parentmap'],
+                automountkey=options['key'], **options
+            )
+        except Exception, e:
+            # The key exists, drop the map
+            self.api.Command['automountmap_del'](*keys, **options)
+            raise e
         return result
 
 api.register(automountmap_add_indirect)

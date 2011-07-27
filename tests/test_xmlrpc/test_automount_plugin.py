@@ -266,6 +266,17 @@ class test_automount_indirect(XMLRPC_test):
         assert res
         assert_attr_equal(res, 'automountmapname', self.mapname)
 
+    def test_1a_automountmap_add_indirect(self):
+        """
+        Test adding a duplicate indirect map.
+        """
+        try:
+            api.Command['automountmap_add_indirect'](self.locname, self.mapname, **self.map_kw)['result']
+        except errors.DuplicateEntry:
+            pass
+        else:
+            assert False
+
     def test_2_automountmap_show(self):
         """
         Test the `xmlrpc.automountmap_show` method.
