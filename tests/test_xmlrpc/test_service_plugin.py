@@ -23,7 +23,7 @@ Test the `ipalib/plugins/service.py` module.
 
 from ipalib import api, errors, x509
 from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid, fuzzy_hash
-from tests.test_xmlrpc.xmlrpc_test import fuzzy_digits, fuzzy_date
+from tests.test_xmlrpc.xmlrpc_test import fuzzy_digits, fuzzy_date, fuzzy_issuer
 from tests.test_xmlrpc import objectclasses
 import base64
 
@@ -375,7 +375,7 @@ class test_host(Declarative):
                     serial_number=fuzzy_digits,
                     md5_fingerprint=fuzzy_hash,
                     sha1_fingerprint=fuzzy_hash,
-                    issuer=u'CN=%s Certificate Authority' % api.env.realm,
+                    issuer=fuzzy_issuer,
                 ),
             ),
         ),
@@ -401,7 +401,7 @@ class test_host(Declarative):
                     serial_number=fuzzy_digits,
                     md5_fingerprint=fuzzy_hash,
                     sha1_fingerprint=fuzzy_hash,
-                    issuer=u'CN=%s Certificate Authority' % api.env.realm,
+                    issuer=fuzzy_issuer,
                 ),
             ),
         ),
