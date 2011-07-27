@@ -761,7 +761,9 @@ class automountkey_add(LDAPCreate):
         else:
             options[self.obj.primary_key.name] = self.obj.get_pk(key, None)
         options['add_operation'] = True
-        return super(automountkey_add, self).execute(*keys, **options)
+        result = super(automountkey_add, self).execute(*keys, **options)
+        result['value'] = options['automountkey']
+        return result
 
 api.register(automountkey_add)
 
@@ -828,7 +830,9 @@ class automountkey_del(LDAPDelete):
         options[self.obj.primary_key.name] = self.obj.get_pk(
                                             options['automountkey'],
                                             options.get('automountinformation', None))
-        return super(automountkey_del, self).execute(*keys, **options)
+        result = super(automountkey_del, self).execute(*keys, **options)
+        result['value'] = options['automountkey']
+        return result
 
 api.register(automountkey_del)
 
@@ -864,7 +868,9 @@ class automountkey_mod(LDAPUpdate):
         options[self.obj.primary_key.name] = self.obj.get_pk(
                                             options['automountkey'],
                                             options.get('automountinformation', None))
-        return super(automountkey_mod, self).execute(*keys, **options)
+        result = super(automountkey_mod, self).execute(*keys, **options)
+        result['value'] = options['automountkey']
+        return result
 
 api.register(automountkey_mod)
 
@@ -909,6 +915,8 @@ class automountkey_show(LDAPRetrieve):
                                             options['automountkey'],
                                             options.get('automountinformation', None))
 
-        return super(automountkey_show, self).execute(*keys, **options)
+        result = super(automountkey_show, self).execute(*keys, **options)
+        result['value'] = options['automountkey']
+        return result
 
 api.register(automountkey_show)
