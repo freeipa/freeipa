@@ -427,7 +427,7 @@ IPA.adder_dialog = function (spec) {
         $('<input/>', {
             type: 'button',
             name: 'find',
-            value: 'Find'
+            value: IPA.messages.buttons.find
         }).appendTo(search_panel);
 
         $('<input/>', {
