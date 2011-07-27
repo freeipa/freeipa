@@ -45,6 +45,10 @@ from ipalib import errors
 PEM = 0
 DER = 1
 
+def valid_issuer(issuer, realm):
+    return issuer in ('CN=%s Certificate Authority' % realm,
+                      'CN=Certificate Authority,O=%s' % realm,)
+
 def strip_header(pem):
     """
     Remove the header and footer from a certificate.
@@ -187,8 +191,7 @@ def verify_cert_subject(ldap, hostname, dercert):
     issuer = str(nsscert.issuer)
 
     # Handle both supported forms of issuer, from selfsign and dogtag.
-    if ((issuer != 'CN=%s Certificate Authority' % api.env.realm) and
-        (issuer != 'CN=Certificate Authority,O=%s' % api.env.realm)):
+    if (not valid_issuer(issuer, api.env.realm)):
         raise errors.CertificateOperationError(error=_('Issuer "%(issuer)s" does not match the expected issuer') % \
         {'issuer' : issuer})
 

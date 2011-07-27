@@ -27,6 +27,7 @@ import nose
 from tests.util import assert_deepequal, Fuzzy
 from ipalib import api, request
 from ipalib import errors
+from ipalib.x509 import valid_issuer
 
 
 # Matches a gidnumber like '1391016742'
@@ -49,6 +50,8 @@ fuzzy_hash = Fuzzy('^([a-f0-9][a-f0-9]:)+[a-f0-9][a-f0-9]$', type=basestring)
 
 # Matches a date, like Tue Apr 26 17:45:35 2016 UTC
 fuzzy_date = Fuzzy('^[a-zA-Z]{3} [a-zA-Z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4} UTC$')
+
+fuzzy_issuer = Fuzzy(type=basestring, test=lambda issuer: valid_issuer(issuer, api.env.realm))
 
 try:
     if not api.Backend.xmlclient.isconnected():
