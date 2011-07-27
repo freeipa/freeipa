@@ -855,14 +855,14 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
         LOG_FATAL("failed to parse expiration date (buggy gmtime_r ?)\n");
         goto done;
     }
-    strftime(timestr, GENERALIZED_TIME_LENGTH+1,
-             "%Y%m%d%H%M%SZ", &utctime);
-    slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
-                          "krbPasswordExpiration", timestr);
 
-    /* Don't set a last password change password on host passwords. This
-     * attribute is used to tell whether we have a valid keytab. If we
-     * set it on userPassword it confuses enrollment.
+    /* Don't set a last password change or expiration on host passwords. 
+     * krbLastPwdChange is used to tell whether we have a valid keytab. If we
+     * set it on userPassword it confuses enrollment. If krbPasswordExpiration
+     * is set on a host entry then the keytab will appear to be expired.
+     *
+     * When a host is issued a keytab these attributes get set properly by
+     * ipapwd_setkeytab().
      */
     ipahost = slapi_value_new_string("ipaHost");
     if (!pwdop->pwdata.target || (slapi_entry_attr_has_syntax_value(pwdop->pwdata.target, SLAPI_ATTR_OBJECTCLASS, ipahost)) == 0) {
@@ -876,6 +876,10 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
                  "%Y%m%d%H%M%SZ", &utctime);
         slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
                               "krbLastPwdChange", timestr);
+        strftime(timestr, GENERALIZED_TIME_LENGTH+1,
+                 "%Y%m%d%H%M%SZ", &utctime);
+        slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
+                              "krbPasswordExpiration", timestr);
     }
     slapi_value_free(&ipahost);
 
