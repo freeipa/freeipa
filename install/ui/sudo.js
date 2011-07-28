@@ -103,7 +103,7 @@ IPA.entity_factories.sudocmdgroup = function() {
             {
 
                 name: 'general',
-                label: IPA.messages.dialogs.general,
+                label: IPA.messages.details.general,
                 fields:['cn','description']
             },
             {
