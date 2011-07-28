@@ -99,8 +99,8 @@ Requires: selinux-policy >= 3.9.7-27
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.21
 %if 0%{?fedora} >= 15
-Requires: pki-ca >= 9.0.7
-Requires: pki-silent >= 9.0.7
+Requires: pki-ca >= 9.0.10
+Requires: pki-silent >= 9.0.10
 %else
 Requires: pki-ca >= 9.0.5
 Requires: pki-silent >= 9.0.5
@@ -511,6 +511,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Thu Jul 28 2011 Rob Crittenden <rcritten@redhat.com> - 2.0.90-8
+- Set min nvr of pki-ca to 9.0.10 on F-15+ to pick up updated
+  caIPAserviceCert.cfg profile
+
 * Wed Jul 20 2011 Rob Crittenden <rcritten@redhat.com> - 2.0.90-7
 - Make cyrus-sasl-gssapi requires arch-specific
 
