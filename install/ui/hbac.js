@@ -63,6 +63,30 @@ IPA.entity_factories.hbacsvc = function() {
             name: 'general',
             label: IPA.messages.details.general,
             fields:[ 'cn', 'description']}]}).
+        association_facet({
+            name: 'memberof_hbacsvcgroup',
+            associator: IPA.serial_associator,
+            columns:[
+                {
+                    name: 'cn',
+                    primary_key: true,
+                    link: true
+                },
+                { name: 'description' }
+            ],
+            adder_columns: [
+                {
+                    name: 'cn',
+                    primary_key: true,
+                    width: '100px'
+                },
+                {
+                    name: 'description',
+                    width: '100px'
+                }
+            ]
+        }).
+        standard_association_facets().
         adder_dialog({
             fields:['cn','description']
         }).
@@ -80,18 +104,30 @@ IPA.entity_factories.hbacsvcgroup = function() {
                 name: 'general',
                 label: IPA.messages.details.general,
                 fields:['cn','description']
-            },
-            {
-                name: 'services',
-                label: IPA.messages.objects.hbacsvcgroup.services,
-                fields:[{
-                    factory: IPA.hbacsvcgroup_member_hbacsvc_table_widget,
-                    name: 'member_hbacsvc',
-                    label: IPA.messages.objects.hbacsvcgroup.services,
-                    other_entity: 'hbacsvc',
-                    save_values: false
-                }]
             }]}).
+        association_facet({
+            name: 'member_hbacsvc',
+            columns:[
+                {
+                    name: 'cn',
+                    primary_key: true,
+                    link: true
+                },
+                { name: 'description' }
+            ],
+            adder_columns: [
+                {
+                    name: 'cn',
+                    primary_key: true,
+                    width: '100px'
+                },
+                {
+                    name: 'description',
+                    width: '100px'
+                }
+            ]
+        }).
+        standard_association_facets().
         adder_dialog({
             fields:['cn', 'description']
         }).

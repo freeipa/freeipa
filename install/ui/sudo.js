@@ -50,42 +50,31 @@ IPA.entity_factories.sudocmd = function() {
                 name: 'general',
                 label: IPA.messages.details.general,
                 fields:['sudocmd','description']
-            },
-            {
-                name: 'groups',
-                label: IPA.messages.objects.sudocmd.groups,
-                factory: IPA.details_section,
-                fields:[{
-                    factory: IPA.sudocmd_member_sudocmdgroup_table_widget,
-                    name: 'memberof_sudocmdgroup',
-                    label: '',//IPA.messages.objects.sudocmd.groups,
-                    other_entity: 'sudocmdgroup',
-                    save_values: false,
-                    columns:[
-                        {
-                            name: 'cn',
-                            primary_key: true,
-                            width: '150px',
-                            link: true
-                        },
-                        {
-                            name: 'description',
-                            width: '150px'
-                        }
-                    ],
-                    adder_columns:[
-                        {
-                            name: 'cn',
-                            primary_key: true,
-                            width: '100px'
-                        },
-                        {
-                            name: 'description',
-                            width: '100px'
-                        }
-                    ]
-                }]
             }]}).
+        association_facet({
+            name: 'memberof_sudocmdgroup',
+            associator: IPA.serial_associator,
+            columns:[
+                {
+                    name: 'cn',
+                    primary_key: true,
+                    link: true
+                },
+                { name: 'description' }
+            ],
+            adder_columns:[
+                {
+                    name: 'cn',
+                    primary_key: true,
+                    width: '100px'
+                },
+                {
+                    name: 'description',
+                    width: '100px'
+                }
+            ]
+        }).
+        standard_association_facets().
         adder_dialog({
             fields:['sudocmd','description']
         }).
@@ -105,41 +94,30 @@ IPA.entity_factories.sudocmdgroup = function() {
                 name: 'general',
                 label: IPA.messages.details.general,
                 fields:['cn','description']
-            },
-            {
-                name: 'commands',
-                factory:  IPA.details_section,
-                fields: [{
-                    factory: IPA.association_table_widget,
-                    name: 'member_sudocmd',
-                    label: IPA.messages.objects.sudocmdgroup.commands,
-                    other_entity: 'sudocmd',
-                    save_values: false,
-                    columns:[
-                        {
-                            name: 'sudocmd',
-                            primary_key: true,
-                            width: '150px',
-                            link: true
-                        },
-                        {
-                            name: 'description',
-                            width: '150px'
-                        }
-                    ],
-                    adder_columns: [
-                        {
-                            name: 'sudocmd',
-                            primary_key: true,
-                            width: '100px'
-                        },
-                        {
-                            name: 'description',
-                            width: '100px'
-                        }
-                    ]
-                }]
             }]}).
+        association_facet({
+            name: 'member_sudocmd',
+            columns:[
+                {
+                    name: 'sudocmd',
+                    primary_key: true,
+                    link: true
+                },
+                { name: 'description' }
+            ],
+            adder_columns: [
+                {
+                    name: 'sudocmd',
+                    primary_key: true,
+                    width: '100px'
+                },
+                {
+                    name: 'description',
+                    width: '100px'
+                }
+            ]
+        }).
+        standard_association_facets().
         adder_dialog({
             fields:['cn','description']
         }).
