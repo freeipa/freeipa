@@ -513,7 +513,7 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
-* Tue Jul 26 2011 Alexander Bokovoy <abokovoy@redhat.com> - 2.0.90-9
+* Tue Jul 29 2011 Alexander Bokovoy <abokovoy@redhat.com> - 2.0.90-9
 - Add libipa_hbac-python dependency for hbactest plugin
 
 * Thu Jul 28 2011 Rob Crittenden <rcritten@redhat.com> - 2.0.90-8
