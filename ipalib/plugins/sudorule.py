@@ -40,6 +40,18 @@ from ipalib import _, ngettext
 
 topic = ('sudo', 'Commands for controlling sudo configuration')
 
+def deprecated(attribute):
+    raise errors.ValidationError(name=attribute, error=_('this option has been deprecated.'))
+
+def validate_externaluser(ugettext, value):
+    deprecated('externaluser')
+
+def validate_runasextuser(ugettext, value):
+    deprecated('runasexternaluser')
+
+def validate_runasextgroup(ugettext, value):
+    deprecated('runasexternalgroup')
+
 class sudorule(LDAPObject):
     """
     Sudo Rule management
@@ -152,20 +164,20 @@ class sudorule(LDAPObject):
             label=_('RunAs Group'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('externaluser?',
+        Str('externaluser?', validate_externaluser,
             cli_name='externaluser',
             label=_('External User'),
-            doc=_('External User the rule applies to'),
+            doc=_('External User the rule applies to (sudorule-find only)'),
         ),
-        Str('ipasudorunasextuser?',
+        Str('ipasudorunasextuser?', validate_runasextuser,
             cli_name='runasexternaluser',
             label=_('RunAs External User'),
-            doc=_('External User the commands can run as'),
+            doc=_('External User the commands can run as (sudorule-find only)'),
         ),
-        Str('ipasudorunasextgroup?',
+        Str('ipasudorunasextgroup?', validate_runasextgroup,
             cli_name='runasexternalgroup',
             label=_('RunAs External Group'),
-            doc=_('External Group the commands can run as'),
+            doc=_('External Group the commands can run as (sudorule-find only)'),
         ),
     )
 
