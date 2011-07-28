@@ -281,7 +281,7 @@ IPA.service_provisioning_status_widget = function (spec) {
         dialog.add_button(IPA.messages.objects.service.unprovision, function() {
             var pkey = that.result['krbprincipalname'][0];
             IPA.command({
-                entity: that.entity,
+                entity: that.entity.name,
                 method: 'disable',
                 args: [pkey],
                 on_success: function(data, text_status, xhr) {
