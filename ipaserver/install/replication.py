@@ -121,7 +121,7 @@ class ReplicationManager(object):
         self.realm = realm
         self.starttls = starttls
         tmp = util.realm_to_suffix(realm)
-        self.suffix = ipaldap.IPAdmin.normalizeDN(tmp)
+        self.suffix = str(DN(tmp)).lower()
 
         # If we are passed a password we'll use it as the DM password
         # otherwise we'll do a GSSAPI bind.
@@ -162,7 +162,7 @@ class ReplicationManager(object):
         # Ok, either the entry doesn't exist or the attribute isn't set
         # so get it from the other master
         retval = -1
-        dn = str(DN("cn=replication, cn=etc, %s" % self.suffix))
+        dn = str(DN(('cn','replication'),('cn','etc'), self.suffix))
         try:
             replica = master_conn.search_s(dn, ldap.SCOPE_BASE, "objectclass=*")[0]
             if not replica.getValue('nsDS5ReplicaId'):
@@ -258,7 +258,7 @@ class ReplicationManager(object):
             return "2"
 
     def replica_dn(self):
-        return str(DN('cn=replica, cn="%s", cn=mapping tree, cn=config' % self.suffix))
+        return str(DN(('cn','replica'),('cn',self.suffix),('cn','mapping tree'),('cn','config')))
 
     def replica_config(self, conn, replica_id, replica_binddn):
         dn = self.replica_dn()
@@ -754,7 +754,7 @@ class ReplicationManager(object):
         logging.info("Agreement is ready, starting replication . . .")
 
         # Add winsync replica to the public DIT
-        dn = str(DN('cn=%s,cn=replicas,cn=ipa,cn=etc,%s' % (ad_dc_name, self.suffix)))
+        dn = str(DN(('cn',ad_dc_name),('cn','replicas'),('cn','ipa'),('cn','etc'), self.suffix))
         entry = ipaldap.Entry(dn)
         entry.setValues("objectclass", ["nsContainer", "ipaConfigObject"])
         entry.setValues("cn", ad_dc_name)

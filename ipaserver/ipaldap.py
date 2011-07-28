@@ -709,13 +709,6 @@ class IPAdmin(SimpleLDAPObject):
         obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
         return obj and obj.single_value
 
-    def normalizeDN(dn):
-        # not great, but will do until we use a newer version of python-ldap
-        # that has DN utilities
-        ary = ldap.explode_dn(dn.lower())
-        return ",".join(ary)
-    normalizeDN = staticmethod(normalizeDN)
-
     def get_dns_sorted_by_length(self, entries, reverse=False):
         """
         Sorts a list of entries [(dn, entry_attrs)] based on their DN.
