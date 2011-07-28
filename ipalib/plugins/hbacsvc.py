@@ -55,8 +55,11 @@ class hbacsvc(LDAPObject):
     object_name = _('HBAC service')
     object_name_plural = _('HBAC services')
     object_class = [ 'ipaobject', 'ipahbacservice' ]
-    default_attributes = ['cn', 'description', 'memberindirect',]
+    default_attributes = ['cn', 'description', 'memberof']
     uuid_attribute = 'ipauniqueid'
+    attribute_members = {
+        'memberof': ['hbacsvcgroup'],
+    }
 
     label = _('HBAC Services')
     label_singular = _('HBAC Service')
