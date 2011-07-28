@@ -89,13 +89,15 @@ def get_cert_nickname(cert):
     for NSS. The caller can decide whether to use just the RDN
     or the whole subject.
 
-    Returns a tuple of (rdn, subject)
+    Returns a tuple of (rdn, subject_dn) when rdn is the string
+    representation of the first RDN in the subject and subject_dn
+    is a DN object.
     """
     nsscert = x509.load_certificate(cert)
     subject = str(nsscert.subject)
     dn = DN(subject)
 
-    return (str(dn[0]), str(dn))
+    return (str(dn[0]), dn)
 
 def next_serial(serial_file=CA_SERIALNO):
     """
@@ -430,16 +432,16 @@ class CertDB(object):
         certs = fd.read()
         fd.close()
 
-        normalized_base = str(DN(self.subject_base))
+        ca_dn = DN(('CN','Certificate Authority'), self.subject_base)
         st = 0
         while True:
             try:
                 (cert, st) = find_cert_from_txt(certs, st)
-                (nick, subject) = get_cert_nickname(cert)
-                if subject.lower() == ('CN=Certificate Authority,%s' % normalized_base).lower():
+                (rdn, subject_dn) = get_cert_nickname(cert)
+                if subject_dn == ca_dn:
                     nick = get_ca_nickname(self.realm)
                 else:
-                    nick = subject
+                    nick = str(subject_dn)
                 self.run_certutil(["-A", "-n", nick,
                                    "-t", "CT,,C",
                                    "-a"],

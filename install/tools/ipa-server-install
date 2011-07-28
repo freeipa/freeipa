@@ -89,9 +89,9 @@ def subject_callback(option, opt_str, value, parser):
     v = unicode(value, 'utf-8')
     try:
         dn = DN(v)
-        for x in xrange(len(dn)):
-            if dn[x][0].attr.lower() not in VALID_SUBJECT_ATTRS:
-                raise ValueError('invalid attribute: %s' % dn[x][0].attr.lower())
+        for rdn in dn:
+            if rdn.attr.lower() not in VALID_SUBJECT_ATTRS:
+                raise ValueError('invalid attribute: %s' % rdn.attr)
     except ValueError, e:
         raise ValueError('Invalid subject base format: %s' % str(e))
     parser.values.subject = str(dn) # may as well normalize it
