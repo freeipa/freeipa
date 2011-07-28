@@ -1194,7 +1194,7 @@ class test_Int(ClassChecker):
                 rule(dummy, value),
                 translation % dict(minvalue=3)
             )
-            assert dummy.message == 'can be at least %(minvalue)d'
+            assert dummy.message == 'must be at least %(minvalue)d'
             assert dummy.called() is True
             dummy.reset()
 
