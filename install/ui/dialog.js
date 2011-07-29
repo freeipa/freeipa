@@ -369,6 +369,11 @@ IPA.adder_dialog = function (spec) {
     }
     that.create = function() {
 
+        /*TODO:  move this earlier
+          The table initialization should be done earlier.  However,
+          the adder columns are not added until after initialization is over,
+          and thus we have to dleay the creation of the table.*/
+        initialize_table();
 
         // do not call that.dialog_create();
 
@@ -564,7 +569,6 @@ IPA.adder_dialog = function (spec) {
         }
     }
 
-    initialize_table();
 
     that.adder_dialog_create = that.create;
 

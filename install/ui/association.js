@@ -715,7 +715,7 @@ IPA.association_facet = function (spec) {
             factory  = IPA.column;
             spec = { name: spec };
         }
-        spec.entity = that.entity;
+        spec.entity_name = that.other_entity;
         column = factory(spec);
         that.add_adder_column(column);
         return column;
