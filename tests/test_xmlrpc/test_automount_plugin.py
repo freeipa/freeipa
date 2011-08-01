@@ -34,6 +34,7 @@ class test_automount(XMLRPC_test):
     locname = u'testlocation'
     mapname = u'testmap'
     keyname = u'testkey'
+    keyname_rename = u'testkey_rename'
     keyname2 = u'testkey2'
     description = u'description of map'
     info = u'ro'
@@ -127,9 +128,11 @@ class test_automount(XMLRPC_test):
         Test the `xmlrpc.automountkey_mod` method.
         """
         self.key_kw['newautomountinformation'] = self.newinfo
+        self.key_kw['rename'] = self.keyname_rename
         res = api.Command['automountkey_mod'](self.locname, self.mapname, **self.key_kw)['result']
         assert res
-        assert_attr_equal(res, 'automountinformation', 'rw')
+        assert_attr_equal(res, 'automountinformation', self.newinfo)
+        assert_attr_equal(res, 'automountkey', self.keyname_rename)
 
     def test_a_automountmap_mod(self):
         """
@@ -144,7 +147,7 @@ class test_automount(XMLRPC_test):
         """
         Test the `xmlrpc.automountkey_del` method.
         """
-        delkey_kw={'automountkey': self.keyname, 'automountinformation' : self.newinfo, 'raw': True}
+        delkey_kw={'automountkey': self.keyname_rename, 'automountinformation' : self.newinfo, 'raw': True}
         res = api.Command['automountkey_del'](self.locname, self.mapname, **delkey_kw)['result']
         assert res
         assert_attr_equal(res, 'failed', '')
