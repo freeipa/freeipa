@@ -177,6 +177,7 @@ from ipalib import _, ngettext
 import ldap as _ldap
 import os
 
+DIRECT_MAP_KEY = u'/-'
 
 class automountlocation(LDAPObject):
     """
@@ -213,7 +214,7 @@ class automountlocation_add(LDAPCreate):
         # create auto.master for the new location
         self.api.Command['automountmap_add'](keys[-1], u'auto.master')
         self.api.Command['automountmap_add_indirect'](
-            keys[-1], u'auto.direct', key=u'/-'
+            keys[-1], u'auto.direct', key=DIRECT_MAP_KEY
         )
         return dn
 
@@ -612,6 +613,7 @@ class automountkey(LDAPObject):
                cli_name='key',
                label=_('Key'),
                doc=_('Automount key name.'),
+               flags=('req_update',),
         ),
         IA5Str('automountinformation',
                cli_name='info',
@@ -714,7 +716,7 @@ class automountkey(LDAPObject):
             )
 
     def get_pk(self, key, info=None):
-        if info:
+        if key == DIRECT_MAP_KEY and info:
             return self.rdn_separator.join((key,info))
         else:
             return key
@@ -727,7 +729,7 @@ class automountkey(LDAPObject):
 
         entries = self.methods.find(location, map, automountkey=key)['result']
         if len(entries) > 0:
-            if key == u'/-':
+            if key == DIRECT_MAP_KEY:
                 info = keykw.get('automountinformation')
                 entries = self.methods.find(location, map, **keykw)['result']
                 if len(entries) > 0:
@@ -756,10 +758,7 @@ class automountkey_add(LDAPCreate):
     def execute(self, *keys, **options):
         key = options['automountkey']
         info = options.get('automountinformation', None)
-        if key == '/-':
-            options[self.obj.primary_key.name] = self.obj.get_pk(key, info)
-        else:
-            options[self.obj.primary_key.name] = self.obj.get_pk(key, None)
+        options[self.obj.primary_key.name] = self.obj.get_pk(key, info)
         options['add_operation'] = True
         result = super(automountkey_add, self).execute(*keys, **options)
         result['value'] = options['automountkey']
@@ -858,7 +857,7 @@ class automountkey_mod(LDAPUpdate):
     msg_summary = _('Modified automount key "%(value)s"')
 
     takes_options = LDAPUpdate.takes_options + (
-        IA5Str('newautomountinformation',
+        IA5Str('newautomountinformation?',
                cli_name='newinfo',
                label=_('New mount information'),
         ),
@@ -869,18 +868,38 @@ class automountkey_mod(LDAPUpdate):
             yield key
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        entry_attrs['automountinformation'] = options['newautomountinformation']
-        entry_attrs['description'] = self.obj.get_pk(
-                                            options['automountkey'],
-                                            options['newautomountinformation'])
+        if 'newautomountkey' in options:
+            entry_attrs['automountkey'] = options['newautomountkey']
+        if 'newautomountinformation' in options:
+            entry_attrs['automountinformation'] = options['newautomountinformation']
         return dn
 
     def execute(self, *keys, **options):
-        keys += (self.obj.get_pk(options['automountkey'],
-                                 options.get('automountinformation', None)), )
-        options[self.obj.primary_key.name] = self.obj.get_pk(
-                                            options['automountkey'],
-                                            options.get('automountinformation', None))
+        ldap = self.api.Backend.ldap2
+        key = options['automountkey']
+        info = options.get('automountinformation', None)
+        keys += (self.obj.get_pk(key, info), )
+
+        # handle RDN changes
+        if 'rename' in options or 'newautomountinformation' in options:
+            new_key = options.get('rename', key)
+            new_info = options.get('newautomountinformation', info)
+
+            if new_key == DIRECT_MAP_KEY and not new_info:
+                # automountinformation attribute of existing LDAP object needs
+                # to be retrieved so that RDN can be generated
+                dn = self.obj.get_dn(*keys, **options)
+                (dn_, entry_attrs_) = ldap.get_entry(dn, ['automountinformation'])
+                new_info = entry_attrs_.get('automountinformation', [])[0]
+
+            # automounkey attribute cannot be overwritten so that get_dn()
+            # still works right
+            options['newautomountkey'] = new_key
+
+            new_rdn = self.obj.get_pk(new_key, new_info)
+            if new_rdn != keys[-1]:
+                options['rename'] = new_rdn
+
         result = super(automountkey_mod, self).execute(*keys, **options)
         result['value'] = options['automountkey']
         return result

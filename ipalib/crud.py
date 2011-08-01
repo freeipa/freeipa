@@ -190,6 +190,10 @@ class Update(PKQuery):
                     attribute=True, query=True, required=False,
                     autofill=False, alwaysask=True
                 )
+            elif 'req_update' in option.flags:
+                yield option.clone(
+                    attribute=True, required=True, alwaysask=False,
+                )
             else:
                 yield option.clone(attribute=True, required=False, autofill=False)
         if not self.extra_options_first:
