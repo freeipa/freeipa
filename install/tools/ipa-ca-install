@@ -144,9 +144,6 @@ def main():
     cs.add_simple_service('dogtagldap/%s@%s' % (config.host_name, config.realm_name))
     cs.add_cert_to_service()
 
-    service.print_msg("Setting the certificate subject base")
-    CA.set_subject_in_config(util.realm_to_suffix(config.realm_name))
-
 try:
     if not os.geteuid()==0:
         sys.exit("\nYou must be root to run this script.\n")

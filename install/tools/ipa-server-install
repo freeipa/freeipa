@@ -900,9 +900,6 @@ def main():
     ipautil.run(["/sbin/restorecon", "/var/cache/ipa/sessions"])
 
     set_subject_in_config(realm_name, dm_password, util.realm_to_suffix(realm_name), options.subject)
-    if not options.selfsign:
-        service.print_msg("Setting the certificate subject base")
-        ca.set_subject_in_config(util.realm_to_suffix(realm_name))
 
     # Apply any LDAP updates. Needs to be done after the configuration file
     # is created

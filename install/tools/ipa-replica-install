@@ -433,9 +433,6 @@ def main():
         CA.import_ra_cert(dir + "/ra.p12")
         CA.fix_ra_perms()
         service.restart("httpd")
-        if config.setup_ca:
-            service.print_msg("Setting the certificate subject base")
-            CA.set_subject_in_config(util.realm_to_suffix(config.realm_name))
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated
