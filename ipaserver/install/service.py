@@ -258,7 +258,10 @@ class Service(object):
             if est.tm_min > 0:
                 if est.tm_min > 1:
                     plural = 's'
-                self.print_msg('%s: Estimated time %d minute%s' % (message, est.tm_min, plural))
+                if est.tm_sec > 0:
+                    self.print_msg('%s: Estimated time %d minute%s %d seconds' % (message, est.tm_min, plural, est.tm_sec))
+                else:
+                    self.print_msg('%s: Estimated time %d minute%s' % (message, est.tm_min, plural))
             else:
                 if est.tm_sec > 1:
                     plural = 's'

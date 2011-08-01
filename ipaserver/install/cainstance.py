@@ -517,8 +517,8 @@ class CAInstance(service.Service):
         self.step("creating certificate server user", self.__create_ca_user)
         if not ipautil.dir_exists("/var/lib/pki-ca"):
             self.step("creating pki-ca instance", self.create_instance)
-        self.step("restarting certificate server", self.__restart_instance)
         self.step("configuring certificate server instance", self.__configure_instance)
+        self.step("disabling nonces", self.__disable_nonce)
         # Step 1 of external is getting a CSR so we don't need to do these
         # steps until we get a cert back from the external CA.
         if self.external != 1:
@@ -527,20 +527,18 @@ class CAInstance(service.Service):
             if self.create_ra_agent_db:
                 self.step("creating RA agent certificate database", self.__create_ra_agent_db)
             self.step("importing CA chain to RA certificate database", self.__import_ca_chain)
+            self.step("fixing RA database permissions", self.fix_ra_perms)
+            self.step("setting up signing cert profile", self.__setup_sign_profile)
+            self.step("set up CRL publishing", self.__enable_crl_publish)
+            self.step("set certificate subject base", self.__set_subject_in_config)
+            self.step("configuring certificate server to start on boot", self.__enable)
             if not self.clone:
                 self.step("restarting certificate server", self.__restart_instance)
                 self.step("requesting RA certificate from CA", self.__request_ra_certificate)
                 self.step("issuing RA agent certificate", self.__issue_ra_cert)
                 self.step("adding RA agent as a trusted user", self.__configure_ra)
-            self.step("fixing RA database permissions", self.fix_ra_perms)
-            self.step("setting up signing cert profile", self.__setup_sign_profile)
-            self.step("set up CRL publishing", self.__enable_crl_publish)
-            self.step("configuring certificate server to start on boot", self.__enable)
-            if not self.clone:
-                # A clone will be restarted in ipa-replica-install
-                self.step("restarting certificate server", self.__restart_instance)
 
-        self.start_creation("Configuring certificate server", 360)
+        self.start_creation("Configuring certificate server", 210)
 
     def create_instance(self):
         """
@@ -686,33 +684,10 @@ class CAInstance(service.Service):
             print "ipa-server-install --external_cert_file=/path/to/signed_certificate --external_ca_file=/path/to/external_ca_certificate"
             sys.exit(0)
 
-        # Turn off Nonces (again)
-        if installutils.update_file('/var/lib/pki-ca/conf/CS.cfg', 'ca.enableNonces=true', 'ca.enableNonces=false') != 0:
-            raise RuntimeError("Disabling nonces failed")
-        pent = pwd.getpwnam(PKI_USER)
-        os.chown('/var/lib/pki-ca/conf/CS.cfg', pent.pw_uid, pent.pw_gid )
-
         # pkisilent makes a copy of the CA PKCS#12 file for us but gives
         # it a lousy name.
         if ipautil.file_exists("/root/tmp-ca.p12"):
             shutil.move("/root/tmp-ca.p12", "/root/cacert.p12")
-
-        try:
-            # After configuration the service is running and configured
-            # but must be restarted for configuration to take effect.
-            # The service status in this case will be 4.
-            self.__restart_instance()
-        except ipautil.CalledProcessError, e:
-            logging.critical("failed to restart ca instance after pkisilent configuration %s" % e)
-            raise RuntimeError('Restarting CA after pkisilent configuration failed')
-
-        # If the configuration was successful status should now be 0.
-        # We don't call is_running() because we want the exit status for debugging.
-        try:
-            ipautil.run(["/sbin/service", self.service_name, "status", PKI_INSTANCE_NAME])
-        except ipautil.CalledProcessError, e:
-            logging.critical("ca instance configuration not successful after restart %s" % e)
-            raise RuntimeError('CA configuration not successful after restart')
 
         logging.debug("completed creating ca instance")
 
@@ -723,6 +698,13 @@ class CAInstance(service.Service):
         except Exception:
             # TODO: roll back here?
             logging.critical("Failed to restart the certificate server. See the installation log for details.")
+
+    def __disable_nonce(self):
+        # Turn off Nonces
+        if installutils.update_file('/var/lib/pki-ca/conf/CS.cfg', 'ca.enableNonces=true', 'ca.enableNonces=false') != 0:
+            raise RuntimeError("Disabling nonces failed")
+        pent = pwd.getpwnam(PKI_USER)
+        os.chown('/var/lib/pki-ca/conf/CS.cfg', pent.pw_uid, pent.pw_gid )
 
     def __issue_ra_cert(self):
         # The CA certificate is in the agent DB but isn't trusted
@@ -1060,13 +1042,11 @@ class CAInstance(service.Service):
 
         ipautil.run(["/sbin/restorecon", publishdir])
 
-    def set_subject_in_config(self, suffix):
+    def __set_subject_in_config(self):
         # dogtag ships with an IPA-specific profile that forces a subject
         # format. We need to update that template with our base subject
         if installutils.update_file("/var/lib/%s/profiles/ca/caIPAserviceCert.cfg" % PKI_INSTANCE_NAME, 'OU=pki-ipa, O=IPA', self.subject_base):
             print "Updating subject_base in CA template failed"
-        self.print_msg("restarting certificate server")
-        self.__restart_instance()
 
     def uninstall(self):
         if self.is_configured():
