@@ -768,6 +768,14 @@ class automountkey_del(LDAPDelete):
                label=_('Mount information'),
         ),
     )
+    def get_options(self):
+        for option in self.takes_options:
+            if option.name == 'continue':
+                # TODO: hide for now - remove in future major release
+                yield option.clone(exclude='webui',
+                                   flags=['no_option', 'no_output'])
+            else:
+                yield option
 
     def get_args(self):
         for key in self.obj.get_ancestor_primary_keys():
