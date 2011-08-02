@@ -371,7 +371,7 @@ IPA.cert.status_widget = function(spec) {
 
     var that = IPA.widget(spec);
 
-    that.entity_label = spec.entity_label || that.entity_name;
+    that.entity_label = spec.entity_label || that.entity.metadata.label_singular;
 
     that.result = spec.result;
 
@@ -516,7 +516,7 @@ IPA.cert.status_widget = function(spec) {
             label: IPA.messages.buttons.get,
             click: function() {
                 IPA.command({
-                    entity: that.entity_name,
+                    entity: that.entity.name,
                     method: 'show',
                     args: [that.pkey],
                     on_success: function(data, text_status, xhr) {
@@ -534,7 +534,7 @@ IPA.cert.status_widget = function(spec) {
             label: IPA.messages.buttons.revoke,
             click: function() {
                 IPA.command({
-                    entity: that.entity_name,
+                    entity: that.entity.name,
                     method: 'show',
                     args: [that.pkey],
                     on_success: function(data, text_status, xhr) {
@@ -552,7 +552,7 @@ IPA.cert.status_widget = function(spec) {
             label: IPA.messages.buttons.view,
             click: function() {
                 IPA.command({
-                    entity: that.entity_name,
+                    entity: that.entity.name,
                     method: 'show',
                     args: [that.pkey],
                     on_success: function(data, text_status, xhr) {
@@ -572,7 +572,7 @@ IPA.cert.status_widget = function(spec) {
             label: IPA.messages.buttons.restore,
             click: function() {
                 IPA.command({
-                    entity: that.entity_name,
+                    entity: that.entity.name,
                     method: 'show',
                     args: [that.pkey],
                     on_success: function(data, text_status, xhr) {

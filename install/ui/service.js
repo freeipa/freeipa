@@ -319,9 +319,6 @@ IPA.service_certificate_status_widget = function (spec) {
 
     var that = IPA.cert.status_widget(spec);
 
-
-    that.entity_label = that.entity.metadata.label_singular;
-
     that.get_entity_pkey = function(result) {
         var values = result['krbprincipalname'];
         return values ? values[0] : null;
