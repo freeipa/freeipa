@@ -635,7 +635,8 @@ div.tabs {
 }
 
 .search-filter a {
-    padding: 3px;
+    float: right;
+    margin: 0;
 }
 
 .search-controls {
