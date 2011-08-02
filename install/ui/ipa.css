@@ -1125,14 +1125,69 @@ table.scrollable tbody {
     overflow: auto;
 }
 
-.adder-dialog-filter {
-    height: 2.5em;
-        padding-top: 0.7em;
+.adder-dialog {
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 
-.adder-dialog-results {
-    position: relative;
-    height: 20.0em;
+.adder-dialog-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3em;
+    line-height: 3em;
+}
+
+.adder-dialog-top input[name=filter] {
+    width: 244px;
+}
+
+.adder-dialog-left {
+    position: absolute;
+    top: 3.5em;
+    left: 0;
+    right: 50%;
+    bottom: 0;
+}
+
+.adder-dialog-right {
+    position: absolute;
+    top: 3.5em;
+    left: 50%;
+    right: 0;
+    bottom: 0;
+}
+
+.adder-dialog .search-table {
+    width: 100%;
+    height: 100%;
+}
+
+.adder-dialog tbody {
+    position: absolute;
+    bottom: 32px;
+    left: 3px;
+    right: 4px;
+    top: 31px;
+}
+
+.adder-dialog-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1.5em;
+    line-height: 1.5em;
+}
+
+.adder-dialog-content {
+    position: absolute;
+    top: 1.5em;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .adder-dialog-available {
@@ -1142,8 +1197,11 @@ table.scrollable tbody {
     top: 0;
     left: 0;
     bottom: 0;
-    width: 23em;
-    padding-top: 1em;
+    right: 3em;
+}
+
+.adder-dialog-with-external .adder-dialog-available {
+    bottom: 4em;
 }
 
 .adder-dialog-selected {
@@ -1153,16 +1211,12 @@ table.scrollable tbody {
     top: 0;
     right: 0;
     bottom: 0;
-    width: 23em;
-    padding-top: 1em;
+    left: 3em;
 }
 
 .adder-dialog-buttons {
-    position: absolute;
-    top: 7.5em;
-    left: 23em;
-    right: 23em;
-    bottom: 0;
+    padding-top: 10em;
+    width: 100%;
     text-align: center;
 }
 
@@ -1183,8 +1237,16 @@ table.scrollable tbody {
     position: absolute;
     left: 0;
     bottom: 0;
-    width: 23em;
+    right: 3em;
     height: 4em;
+}
+
+.adder-dialog-external .adder-dialog-content {
+    top: 1.9em;
+}
+
+.adder-dialog-external input {
+    width: 98%;
 }
 
 /* ---- Widgets ---- */

@@ -217,7 +217,7 @@ IPA.association_adder_dialog = function (spec) {
                 name: pkey_name,
                 label: IPA.metadata.objects[spec.other_entity].label,
                 primary_key: true,
-                width: '200px'
+                width: '600px'
             }];
         }
     }

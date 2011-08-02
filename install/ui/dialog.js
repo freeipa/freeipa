@@ -202,11 +202,13 @@ IPA.dialog = function(spec) {
         that.create();
 
         that.container.dialog({
-            'title': that.title,
-            'modal': true,
-            'width': that.width,
-            'height': that.height,
-            'buttons': that.buttons,
+            title: that.title,
+            modal: true,
+            width: that.width,
+            minWidth: that.width,
+            height: that.height,
+            minHeight: that.height,
+            buttons: that.buttons,
             close: function(event, ui) {
                 that.close();
             }
@@ -295,8 +297,6 @@ IPA.dialog = function(spec) {
  * values from the available results.
  */
 IPA.adder_dialog = function (spec) {
-    var NORMAL_HEIGHT = '151px';
-    var EXTERNAL_HEIGHT = '119px';
 
     spec = spec || {};
 
@@ -343,16 +343,10 @@ IPA.adder_dialog = function (spec) {
     };
 
     function initialize_table(){
-        var table_height = NORMAL_HEIGHT;
-        if (that.external){
-            table_height = EXTERNAL_HEIGHT;
-        }
-
         that.available_table = IPA.table_widget({
             entity: that.entity,
             name: 'available',
-            scrollable: true,
-            height: table_height
+            scrollable: true
         });
 
         var columns = that.columns.values;
@@ -361,8 +355,7 @@ IPA.adder_dialog = function (spec) {
         that.selected_table = IPA.table_widget({
             entity: that.entity,
             name: 'selected',
-            scrollable: true,
-            height: NORMAL_HEIGHT
+            scrollable: true
         });
 
         that.selected_table.set_columns(columns);
@@ -377,23 +370,26 @@ IPA.adder_dialog = function (spec) {
 
         // do not call that.dialog_create();
 
-        var search_panel = $('<div/>', {
-            'class': 'adder-dialog-filter'
+        var container = $('<div/>', {
+            'class': 'adder-dialog'
         }).appendTo(that.container);
+
+        var top_panel = $('<div/>', {
+            'class': 'adder-dialog-top'
+        }).appendTo(container);
 
         $('<input/>', {
             type: 'text',
-            name: 'filter',
-            style: 'width: 244px'
-        }).appendTo(search_panel);
+            name: 'filter'
+        }).appendTo(top_panel);
 
-        search_panel.append(' ');
+        top_panel.append(' ');
 
         $('<input/>', {
             type: 'button',
             name: 'find',
             value: IPA.messages.buttons.find
-        }).appendTo(search_panel);
+        }).appendTo(top_panel);
 
         $('<input/>', {
             type: 'checkbox',
@@ -401,40 +397,41 @@ IPA.adder_dialog = function (spec) {
             id: 'hidememb',
             checked: 'checked',
             style: 'margin-left: 5px; vertical-align: middle'
-        }).appendTo(search_panel);
+        }).appendTo(top_panel);
 
-        var label = $('<label/>', {
+        $('<label/>', {
             'for': 'hidememb',
+            text: IPA.messages.dialogs.hide_already_enrolled,
             style: 'margin-left: 3px'
-        });
+        }).appendTo(top_panel);
 
-        label.text(IPA.messages.dialogs.hide_already_enrolled);
+        top_panel.append(IPA.create_network_spinner());
 
-        label.appendTo(search_panel);
-
-        search_panel.append(IPA.create_network_spinner());
-
-        var results_panel = $('<div/>', {
-            'class': 'adder-dialog-results'
-        }).appendTo(that.container);
+        var left_panel = $('<div/>', {
+            'class': 'adder-dialog-left'
+        }).appendTo(container);
 
         var available_panel = $('<div/>', {
             name: 'available',
             'class': 'adder-dialog-available'
-        }).appendTo(results_panel);
+        }).appendTo(left_panel);
 
         $('<div/>', {
             html: IPA.messages.dialogs.available,
-            'class': 'ui-widget-header'
+            'class': 'adder-dialog-header ui-widget-header'
         }).appendTo(available_panel);
 
-        that.available_table.create(available_panel);
+        var available_content = $('<div/>', {
+            'class': 'adder-dialog-content'
+        }).appendTo(available_panel);
+
+        that.available_table.create(available_content);
 
 
         var buttons_panel = $('<div/>', {
             name: 'buttons',
             'class': 'adder-dialog-buttons'
-        }).appendTo(results_panel);
+        }).appendTo(container);
 
         var p = $('<p/>').appendTo(buttons_panel);
         $('<input />', {
@@ -450,17 +447,27 @@ IPA.adder_dialog = function (spec) {
             value: '>>'
         }).appendTo(p);
 
+
+        var right_panel = $('<div/>', {
+            'class': 'adder-dialog-right'
+        }).appendTo(container);
+
         var selected_panel = $('<div/>', {
             name: 'selected',
             'class': 'adder-dialog-selected'
-        }).appendTo(results_panel);
+        }).appendTo(right_panel);
 
         $('<div/>', {
             html: IPA.messages.dialogs.prospective,
-            'class': 'ui-widget-header'
+            'class': 'adder-dialog-header ui-widget-header'
         }).appendTo(selected_panel);
 
-        that.selected_table.create(selected_panel);
+        var selected_content = $('<div/>', {
+            'class': 'adder-dialog-content'
+        }).appendTo(selected_panel);
+
+        that.selected_table.create(selected_content);
+
 
         that.filter_field = $('input[name=filter]', that.container);
 
@@ -498,21 +505,26 @@ IPA.adder_dialog = function (spec) {
         button.replaceWith(that.add_button);
 
         if (that.external) {
+            container.addClass('adder-dialog-with-external');
+
             var external_panel = $('<div/>', {
                 name: 'external',
                 'class': 'adder-dialog-external'
-            }).appendTo(results_panel);
+            }).appendTo(left_panel);
 
             $('<div/>', {
                 html: IPA.messages.objects.sudorule.external,
-                'class': 'ui-widget-header'
+                'class': 'adder-dialog-header ui-widget-header'
+            }).appendTo(external_panel);
+
+            var external_content = $('<div/>', {
+                'class': 'adder-dialog-content'
             }).appendTo(external_panel);
 
             that.external_field = $('<input/>', {
                 type: 'text',
-                name: 'external',
-                style: 'width: 244px'
-            }).appendTo(external_panel);
+                name: 'external'
+            }).appendTo(external_content);
 
         }
 
