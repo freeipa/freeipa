@@ -411,6 +411,7 @@ fi
 %{_usr}/share/ipa/ui/index.html
 %{_usr}/share/ipa/ui/*.png
 %{_usr}/share/ipa/ui/*.gif
+%{_usr}/share/ipa/ui/*.ico
 %{_usr}/share/ipa/ui/*.css
 %{_usr}/share/ipa/ui/*.js
 %{_usr}/share/ipa/ui/*.eot
@@ -513,6 +514,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Tue Aug 2 2011 Endi S. Dewata <edewata@redhat.com> - 2.0.90-10
+- Add *.ico files
+
 * Tue Jul 29 2011 Alexander Bokovoy <abokovoy@redhat.com> - 2.0.90-9
 - Add libipa_hbac-python dependency for hbactest plugin
 
