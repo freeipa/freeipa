@@ -25,6 +25,7 @@ try:
     from ipapython import sysrestore
     from ipapython import config
     from ipalib import api, errors
+    from ipalib.dn import DN
     import logging
     import ldap
     import ldap.sasl
@@ -88,6 +89,25 @@ def get_config():
         # LSB status code 3: program is not running
         raise IpactlError("Failed to get list of services to probe status:\n" +
                           "Directory Server is stopped", 3)
+    except ldap.NO_SUCH_OBJECT:
+        masters_list = []
+        dn = str(DN('cn=masters,cn=ipa,cn=etc,%s' % api.env.basedn))
+        attrs = ['cn']
+        try:
+            entries = con.search_s(dn,
+                                    ldap.SCOPE_ONELEVEL,
+                                    attrlist=attrs,)
+        except Exception, e:
+            masters_list.append("No master found because of error: %s" % str(e))
+        else:
+            for dn,master_entry in entries:
+                masters_list.append(master_entry.get('cn', [None])[0])
+
+        masters = "\n".join(masters_list)
+
+        raise IpactlError("Failed to get list of services to probe status!\n"
+                          "Configured hostname '%s' does not match any master server in LDAP:\n%s"
+                          % (api.env.host, masters))
     except Exception, e:
         raise IpactlError("Unknown error when retrieving list of services from LDAP: " + str(e))
 
@@ -296,7 +316,8 @@ def main():
     api.finalize()
 
     if '.' not in api.env.host:
-        raise IpactlError("Invalid hostname, must be fully-qualified")
+        raise IpactlError("Invalid hostname '%s' in IPA configuration!\n"
+                          "The hostname must be fully-qualified" % api.env.host)
 
     if args[0].lower() == "start":
         ipa_start()
