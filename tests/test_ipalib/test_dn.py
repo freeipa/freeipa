@@ -870,6 +870,15 @@ class TestDN(unittest.TestCase):
             slice_rdn = RDN(dn_slice[i])
             self.assertEqual(slice_rdn, query_rdn)
 
+        # insert
+        dn = DN(self.rdn2)
+        dn.insert(0, self.rdn1)
+        self.assertEqual(dn, self.dn3)
+
+        dn = DN(self.rdn1)
+        dn.insert(1, (self.attr2, self.value2))
+        self.assertEqual(dn, self.dn3)
+
         # Slices
         # Assign via RDN
         rdn_args = make_rdn_args(dn_low, dn_high, 'tuple',
