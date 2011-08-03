@@ -1004,9 +1004,19 @@ class DN(object):
     dn[:]
 
     # Set the 2nd and 3rd RDN using slices (all are equivalent)
-    dn[1:3] = ('cn', 'Bob), ('dc', 'redhat.com')
-    dn[1:3] = [['cn', 'Bob], ['dc', 'redhat.com']]
-    dn[1:3] = RDN('cn', 'Bob), RDN('dc', 'redhat.com')
+    dn[1:3] = ('cn', 'Bob'), ('dc', 'redhat.com')
+    dn[1:3] = [['cn', 'Bob'], ['dc', 'redhat.com']]
+    dn[1:3] = RDN('cn', 'Bob'), RDN('dc', 'redhat.com')
+
+    DN objects support the insert operation.
+
+    dn.insert(i,x) is exactly equivalent to dn[i:i] = [x], thus the following
+    are all equivalent:
+
+    dn.insert(i, ('cn','Bob'))
+    dn.insert(i, ['cn','Bob'])
+    dn.insert(i, RDN(('cn','Bob')))
+    dn[i:i] = [('cn','Bob')]
 
     DN objects support equality testing and comparision. See RDN for the
     definition of the comparision method.
@@ -1213,6 +1223,20 @@ class DN(object):
             raise TypeError("expected DN, RDN or basestring but got %s" % (other.__class__.__name__))
 
         return self
+
+    def insert(self, i, x):
+        '''
+        x must be a 2-value tuple or list promotable to an RDN object,
+        or a RDN object.
+
+        dn.insert(i, x) is the same as s[i:i] = [x]
+
+        When a negative index is passed as the first parameter to the
+        insert() method, the list length is added, as for slice
+        indices. If it is still negative, it is truncated to zero, as
+        for slice indices.
+        '''
+        self.rdns.insert(i, self._rdn_from_value(x))
 
     # The implementation of startswith, endswith, tailmatch, adjust_indices
     # was based on the Python's stringobject.c implementation
