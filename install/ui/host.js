@@ -138,6 +138,7 @@ IPA.host_adder_dialog = function(spec)
 
     that.on_error = function(xhr, text_status, error_thrown)
     {
+        var ajax = this;
         var command = that.command;
         var data = error_thrown.data;
         var dialog = null;
@@ -152,7 +153,7 @@ IPA.host_adder_dialog = function(spec)
                             fqdn: that.get_field('fqdn').save()
                         }
                     };
-                    command.on_success(data, text_status, xhr);
+                    command.on_success.call(ajax, data, text_status, xhr);
                 }
             });
         } else {

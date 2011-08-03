@@ -70,8 +70,35 @@ var IPA = ( function () {
 
         var batch = IPA.batch_command({
             name: 'ipa_init',
+            retry: false,
             on_success: on_success,
-            on_error: on_error
+            on_error: function(xhr, text_status, error_thrown) {
+
+                // On IE the request is missing after authentication,
+                // so the request needs to be resent.
+                if (error_thrown.name == 'IPA Error 909') {
+                    batch.execute();
+
+                } else {
+                    var ajax = this;
+
+                    var dialog = IPA.error_dialog({
+                        xhr: xhr,
+                        text_status: text_status,
+                        error_thrown: error_thrown,
+                        command: batch
+                    });
+
+                    dialog.on_cancel = function() {
+                        dialog.close();
+                        if (on_error) {
+                            on_error.call(ajax, xhr, text_status, error_thrown);
+                        }
+                    };
+
+                    dialog.open();
+                }
+            }
         });
 
         batch.add_command(IPA.command({
@@ -243,12 +270,23 @@ IPA.command = function(spec) {
     that.execute = function() {
 
         function dialog_open(xhr, text_status, error_thrown) {
+
+            var ajax = this;
+
             var dialog = IPA.error_dialog({
                 xhr: xhr,
                 text_status: text_status,
                 error_thrown: error_thrown,
                 command: that
             });
+
+            dialog.on_cancel = function() {
+                dialog.close();
+                if (that.on_error) {
+                    that.on_error.call(ajax, xhr, text_status, error_thrown);
+                }
+            };
+
             dialog.open();
         }
 
@@ -399,6 +437,7 @@ IPA.batch_command = function (spec) {
             method: that.method,
             args: that.args,
             options: that.options,
+            retry: that.retry,
             on_success: function(data, text_status, xhr) {
 
                 for (var i=0; i<that.commands.length; i++) {
@@ -406,8 +445,10 @@ IPA.batch_command = function (spec) {
                     var result = data.result.results[i];
 
                     if (!result) {
-                        if (command.on_error) command.on_error(
-                            xhr, text_status,
+                        if (command.on_error) command.on_error.call(
+                            this,
+                            xhr,
+                            text_status,
                             {
                                 name: 'Internal Error '+xhr.status,
                                 message: result ? xhr.statusText : "Internal error"
@@ -415,7 +456,8 @@ IPA.batch_command = function (spec) {
                         );
 
                     } else if (result.error) {
-                        if (command.on_error) command.on_error(
+                        if (command.on_error) command.on_error.call(
+                            this,
                             xhr,
                             text_status,
                             {
@@ -425,15 +467,15 @@ IPA.batch_command = function (spec) {
                         );
 
                     } else {
-                        if (command.on_success) command.on_success(result, text_status, xhr);
+                        if (command.on_success) command.on_success.call(this, result, text_status, xhr);
                     }
                 }
-                if (that.on_success) that.on_success(data, text_status, xhr);
+                if (that.on_success) that.on_success.call(this, data, text_status, xhr);
             },
             on_error: function(xhr, text_status, error_thrown) {
                 // TODO: undefined behavior
                 if (that.on_error) {
-                    that.on_error(xhr, text_status, error_thrown);
+                    that.on_error.call(this, xhr, text_status, error_thrown);
                 }
             }
         }).execute();
@@ -571,6 +613,7 @@ IPA.dirty_dialog = function(spec) {
 };
 
 IPA.error_dialog = function(spec) {
+
     var that = IPA.dialog(spec);
 
     var init = function() {
@@ -605,17 +648,22 @@ IPA.error_dialog = function(spec) {
         var label = IPA.messages.buttons ? IPA.messages.buttons.retry : 'Retry';
 
         that.add_button(label, function() {
-            that.close();
-            that.command.execute();
+            that.on_retry();
         });
 
         label = IPA.messages.buttons ? IPA.messages.buttons.cancel : 'Cancel';
         that.add_button(label, function() {
-            that.close();
-            if (that.command.retry && that.command.on_error) {
-                that.command.on_error(that.xhr, that.text_status, that.error_thrown);
-            }
+            that.on_cancel();
         });
+    };
+
+    that.on_retry = function() {
+        that.close();
+        that.command.execute();
+    };
+
+    that.on_cancel = function() {
+        that.close();
     };
 
     init();
