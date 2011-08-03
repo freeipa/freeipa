@@ -19,7 +19,10 @@
 
 from ldap.dn import str2dn, dn2str
 from ldap import DECODING_ERROR
+import codecs
 import sys
+
+utf8_codec = codecs.lookup('utf-8')
 
 __all__ = ['AVA', 'RDN', 'DN']
 
@@ -519,44 +522,47 @@ class AVA(object):
         if not isinstance(value, basestring):
             raise TypeError("value must be basestring, got %s instead" % value.__class__.__name__)
 
-        attr  = attr.decode('utf-8')
-        value = value.decode('utf-8')
-
-        self._attr  = attr
-        self._value = value
+        self.attr  = attr
+        self.value = value
 
     def _get_attr(self):
-        return self._attr
+        return self._attr_unicode
 
     def _set_attr(self, new_attr):
         if not isinstance(new_attr, basestring):
             raise TypeError("attr must be basestring, got %s instead" % new_attr.__class__.__name__)
 
-        self._attr  = new_attr
+        if isinstance(new_attr, unicode):
+            self._attr_unicode = new_attr
+        else:
+            self._attr_unicode = utf8_codec.decode(new_attr)[0]
 
     attr  = property(_get_attr, _set_attr)
 
     def _get_value(self):
-        return self._value
+        return self._value_unicode
 
     def _set_value(self, new_value):
         if not isinstance(new_value, basestring):
             raise TypeError("value must be basestring, got %s instead" % new_value.__class__.__name__)
 
-        self._value  = new_value
+        if isinstance(new_value, unicode):
+            self._value_unicode  = new_value
+        else:
+            self._value_unicode  = utf8_codec.decode(new_value)[0]
 
     value = property(_get_value, _set_value)
 
     def _to_openldap(self):
-        return [[(self._attr.encode('utf-8'), self._value.encode('utf-8'), self.flags)]]
+        return [[(self._attr_unicode.encode('utf-8'), self._value_unicode.encode('utf-8'), self.flags)]]
 
     def __str__(self):
         return dn2str(self._to_openldap())
 
     def __getitem__(self, key):
         if isinstance(key, basestring):
-            if key == self._attr:
-                return self._value
+            if key == self._attr_unicode:
+                return self._value_unicode
             raise KeyError("\"%s\" not found in %s" % (key, self.__str__()))
         else:
             raise TypeError("unsupported type for AVA indexing, must be basestring; not %s" % \
@@ -578,8 +584,8 @@ class AVA(object):
         if not isinstance(other, self.__class__):
             raise TypeError("expected AVA but got %s" % (other.__class__.__name__))
 
-        return self._attr.lower() == other.attr.lower() and \
-            self._value.lower() == other.value.lower()
+        return self._attr_unicode.lower() == other.attr.lower() and \
+            self._value_unicode.lower() == other.value.lower()
 
     def __cmp__(self, other):
         'comparision is case insensitive, see __eq__ doc for explanation'
@@ -587,10 +593,10 @@ class AVA(object):
         if not isinstance(other, self.__class__):
             raise TypeError("expected AVA but got %s" % (other.__class__.__name__))
 
-        result = cmp(self._attr.lower(), other.attr.lower())
+        result = cmp(self._attr_unicode.lower(), other.attr.lower())
         if result != 0:
             return result
-        result = cmp(self._value.lower(), other.value.lower())
+        result = cmp(self._value_unicode.lower(), other.value.lower())
         return result
 
 class RDN(object):
