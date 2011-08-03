@@ -28,7 +28,6 @@ IPA.rule_details_section = function(spec) {
 
     var that = IPA.details_section(spec);
 
-    that.text = spec.text;
     that.field_name = spec.field_name;
     that.options = spec.options || [];
     that.tables = spec.tables || [];
@@ -38,10 +37,10 @@ IPA.rule_details_section = function(spec) {
 
         that.container = container;
 
-        if (that.text) container.append(that.text);
-
         var field = that.get_field(that.field_name);
         var param_info = IPA.get_entity_param(that.entity.name, that.field_name);
+
+        container.append(param_info.doc+':');
 
         var span = $('<span/>', {
             name: that.field_name,

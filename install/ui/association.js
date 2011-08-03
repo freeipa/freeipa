@@ -320,7 +320,8 @@ IPA.association_table_widget = function (spec) {
                 name: that.name,
                 label: IPA.metadata.objects[that.other_entity].label,
                 entity_name: that.other_entity,
-                primary_key: true
+                primary_key: true,
+                link: true
             });
         }
 

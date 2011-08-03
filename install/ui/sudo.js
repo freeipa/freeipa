@@ -272,12 +272,9 @@ IPA.sudorule_details_facet = function(spec) {
 
 
     function user_section(){
-        var param_info = IPA.get_entity_param('sudorule', 'usercategory');
-
         var section = IPA.rule_details_section({
             name: 'user',
             label: IPA.messages.objects.sudorule.user,
-            text: param_info.doc+':',
             field_name: 'usercategory',
             entity: that.entity,
             options: [
@@ -317,19 +314,16 @@ IPA.sudorule_details_facet = function(spec) {
     }
 
     function host_section(){
-        var param_info = IPA.get_entity_param('sudorule', 'hostcategory');
-
         var section = IPA.rule_details_section({
-            'name': 'host',
+            name: 'host',
             entity: that.entity,
-            'label': IPA.messages.objects.sudorule.host,
-            text: param_info.doc+':',
-            'field_name': 'hostcategory',
-            'options': [
+            label: IPA.messages.objects.sudorule.host,
+            field_name: 'hostcategory',
+            options: [
                 { 'value': 'all', 'label': IPA.messages.objects.sudorule.any_host },
                 { 'value': '', 'label': IPA.messages.objects.sudorule.specified_hosts }
             ],
-            'tables': [
+            tables: [
                 { 'field_name': 'memberhost_host' },
                 { 'field_name': 'memberhost_hostgroup' }
             ]

@@ -203,14 +203,10 @@ IPA.hbacrule_details_facet = function(spec) {
 
 
     function user_category_section(){
-        var param_info = IPA.get_entity_param('hbacrule', 'usercategory');
-
         var section = IPA.rule_details_section({
             name: 'user',
-            entity:that.entity,
-
+            entity: that.entity,
             label: IPA.messages.objects.hbacrule.user,
-            text: param_info.doc+':',
             field_name: 'usercategory',
             options: [
                 { value: 'all', label: IPA.messages.objects.hbacrule.anyone },
@@ -242,13 +238,10 @@ IPA.hbacrule_details_facet = function(spec) {
     }
 
     function hostcategory_section(){
-        var param_info = IPA.get_entity_param('hbacrule', 'hostcategory');
-
         var section = IPA.rule_details_section({
             name: 'host',
             label: IPA.messages.objects.hbacrule.host,
-            entity:that.entity,
-            text: param_info.doc+':',
+            entity: that.entity,
             field_name: 'hostcategory',
             options: [
                 { value: 'all', label: IPA.messages.objects.hbacrule.any_host },
@@ -280,13 +273,10 @@ IPA.hbacrule_details_facet = function(spec) {
     }
 
     function servicecategory_section(){
-        var param_info = IPA.get_entity_param('hbacrule', 'servicecategory');
-
         var section = IPA.rule_details_section({
             name: 'service',
-            entity:that.entity,
+            entity: that.entity,
             label: IPA.messages.objects.hbacrule.service,
-            text: param_info.doc+':',
             field_name: 'servicecategory',
             options: [
                 { value: 'all',
@@ -294,7 +284,7 @@ IPA.hbacrule_details_facet = function(spec) {
                 { value: '',
                   label: IPA.messages.objects.hbacrule.specified_services }
             ],
-            'tables': [
+            tables: [
                 { field_name: 'memberservice_hbacsvc' },
                 { field_name: 'memberservice_hbacsvcgroup' }
             ]
@@ -319,14 +309,10 @@ IPA.hbacrule_details_facet = function(spec) {
     }
 
     function sourcehostcategory_section(){
-
-        var param_info = IPA.get_entity_param('hbacrule', 'sourcehostcategory');
-
         var section = IPA.rule_details_section({
             name: 'sourcehost',
-            entity:that.entity,
+            entity: that.entity,
             label: IPA.messages.objects.hbacrule.sourcehost,
-            text: param_info.doc+':',
             field_name: 'sourcehostcategory',
             options: [
                 { value: 'all', label: IPA.messages.objects.hbacrule.any_host },
