@@ -109,6 +109,7 @@ from ipalib import Flag, Int, List, Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipapython import dnsclient
+from ipapython.ipautil import valid_ip
 from ldap import explode_dn
 
 # supported resource record types
@@ -318,7 +319,7 @@ class dnszone(LDAPObject):
         Str('idnssoamname',
             cli_name='name_server',
             label=_('Authoritative nameserver'),
-            doc=_('Authoritative nameserver.'),
+            doc=_('Authoritative nameserver domain name'),
         ),
         Str('idnssoarname',
             cli_name='admin_email',
@@ -430,6 +431,11 @@ class dnszone_add(LDAPCreate):
 
         # Check nameserver has a forward record
         nameserver = entry_attrs['idnssoamname']
+
+        # NS record must contain domain name
+        if valid_ip(nameserver):
+            raise errors.ValidationError(name='name-server',
+                    error=unicode(_("Nameserver address is not a fully qualified domain name")))
 
         if not 'ip_address' in options and not options['force']:
             is_ns_rec_resolvable(nameserver)
