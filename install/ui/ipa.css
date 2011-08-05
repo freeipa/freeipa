@@ -309,11 +309,12 @@ div.tabs {
         text-shadow: 1px 1px 0 #FFFFFF;
 }
 
-.tabs1 .ui-tabs-nav li > a:link, span.main-nav-off >  a:visited{
+.tabs1 > .ui-tabs-nav > li > a:link,
+span.main-nav-off > a:visited{
     color: #858585;
 }
 
-.tabs1 .ui-tabs-nav li.ui-tabs-selected a{
+.tabs1 > .ui-tabs-nav > li.ui-tabs-selected > a {
     color: #1e5e05;
 }
 
@@ -339,39 +340,40 @@ div.tabs {
     background: transparent;
 }
 
-.tabs2 .ui-tabs-nav li {
-    width:auto;
+.tabs2 > .ui-tabs-nav > li {
+    width: auto;
     margin: 0;
     background: none repeat scroll 0 0 transparent !important;
     color: white;
-        border: none;
+    border: none;
 }
 
-.tabs2 .ui-tabs-nav li.ui-tabs-selected  {
+.tabs2 > .ui-tabs-nav > li.ui-tabs-selected  {
     background: url("nav-arrow.png") no-repeat scroll center 2.1em transparent !important;
     height: 3.1em;
-        border: none;
-        margin: 0;
+    border: none;
+    margin: 0;
 }
 
-.tabs2 .ui-tabs-nav li a {
+.tabs2 > .ui-tabs-nav > li > a {
     width:auto;
     padding: 0.3em 0.8em ;
     -moz-border-radius: 2em !important;
-        -webkit-border-radius: 2em !important;
+    -webkit-border-radius: 2em !important;
     border-radius: 2em !important;
     color: #333333;
     font-size: 1em;
     font-family: "Liberation Sans", Arial, Sans;
-        margin: 0 0.3em;
+    margin: 0 0.3em;
 }
 
-.tabs2 .ui-tabs-nav li > a:link, span.main-nav-off >  a:visited {
+.tabs2 > .ui-tabs-nav li > a:link,
+span.main-nav-off > a:visited {
     color: #333333;
 }
 
-.tabs2 .ui-tabs-nav li.ui-tabs-selected a,
-.tabs2 .ui-tabs-nav li a:hover {
+.tabs2 > .ui-tabs-nav > li.ui-tabs-selected > a,
+.tabs2 > .ui-tabs-nav > li > a:hover {
     background-color:#EEEEEE;
     color: #164304;
         text-shadow: 1px 1px 0 #FFFFFF;
@@ -385,11 +387,30 @@ div.tabs {
 }
 
 .tabs3 > .ui-tabs-nav {
-    padding:  1em 2em 0.1em 2em;
+    padding: 1em 22px 0.1em;
     border: none;
-    -moz-border-radius: 0;
-    -webkit-border-radius: 0;
     background: transparent;
+}
+
+.tabs3 > .ui-tabs-nav > li {
+    background: transparent;
+    border: 0;
+    margin: 0 2.4em 1px 0;
+}
+
+.tabs3 > .ui-tabs-nav > li > a {
+    width: auto;
+    margin: 0;
+    padding: 0.3em 0 0.3em 0;
+    font-family: "Overpass", "Liberation Sans", Arial, sans-serif;
+    font-size: 1.2em;
+    text-transform: uppercase;
+    color: #858585;
+}
+
+.tabs3 > .ui-tabs-nav > li.ui-tabs-selected > a {
+    font-family: "Overpass Bold", "Liberation Sans", Arial, sans-serif;
+    color: #1e5e05;
 }
 
 /* ---- Content ---- */
@@ -402,7 +423,7 @@ div.tabs {
 }
 
 #content.tabs-3 {
-    top: 175px;
+    top: 160px;
 }
 
 /* ---- Entity ---- */
@@ -459,7 +480,7 @@ div.tabs {
 
 .facet-title {
     position: absolute;
-    top: 10px;
+    top: 15px;
     left: 0;
     color: gray;
     display: block;
