@@ -15889,12 +15889,9 @@
                         "remove_title": "Remove ${entity}"
                     },
                     "facet_groups": {
-                        "managedby": "Managed by",
-                        "member": "Member",
-                        "memberindirect": "Indirect Member",
-                        "memberof": "Member Of",
-                        "memberofindirect": "Indirect Member Of",
-                        "settings": "Settings"
+                        "managedby": "${primary_key} is managed by:",
+                        "member": "Entities enrolled in ${primary_key}:",
+                        "memberof": "${primary_key} is a member of these:"
                     },
                     "facets": {
                         "details": "Settings",

@@ -27,6 +27,7 @@ IPA.entity_factories.permission = function() {
 
     return IPA.entity_builder().
         entity('permission').
+        facet_groups([ 'privilege' , 'settings' ]).
         search_facet({
             columns:['cn']
         }).
@@ -48,7 +49,10 @@ IPA.entity_factories.permission = function() {
                 factory:IPA.target_section,
                 label: IPA.messages.objects.permission.target
             }]}).
-        standard_association_facets().
+        association_facet({
+            name: 'member_privilege',
+            facet_group: 'privilege'
+        }).
         adder_dialog({
             width: 500,
             height: 400,
@@ -73,6 +77,7 @@ IPA.entity_factories.permission = function() {
 IPA.entity_factories.privilege = function() {
     return IPA.entity_builder().
         entity('privilege').
+        facet_groups([ 'role', 'settings', 'permission' ]).
         search_facet({
             columns:['cn','description']}).
         details_facet({
@@ -84,12 +89,14 @@ IPA.entity_factories.privilege = function() {
             }]}).
         association_facet({
             name: 'member_role',
+            facet_group: 'role',
             add_method: 'add_privilege',
             remove_method: 'remove_privilege',
             associator: IPA.serial_associator
         }).
         association_facet({
                 name: 'memberof_permission',
+                facet_group: 'permission',
                 add_method: 'add_permission',
                 remove_method: 'remove_permission'
         }).
@@ -105,6 +112,7 @@ IPA.entity_factories.privilege = function() {
 IPA.entity_factories.role = function() {
     return  IPA.entity_builder().
         entity('role').
+        facet_groups([ 'member', 'settings', 'privilege' ]).
         search_facet({
             columns:['cn','description']}).
         details_facet({sections:[
@@ -114,6 +122,7 @@ IPA.entity_factories.role = function() {
                 fields:['cn','description']}]}).
         association_facet({
                 name: 'memberof_privilege',
+                facet_group: 'privilege',
                 add_method: 'add_privilege',
                 remove_method: 'remove_privilege'
         }).

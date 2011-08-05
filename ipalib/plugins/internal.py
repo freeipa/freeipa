@@ -360,12 +360,9 @@ class i18n_messages(Command):
             "prospective":_("Prospective"),
             },
         "facet_groups": {
-            "managedby":_("Managed by"),
-            "member":_("Member"),
-            "memberindirect":_("Indirect Member"),
-            "memberof":_("Member Of"),
-            "memberofindirect":_("Indirect Member Of"),
-            "settings": _("Settings"),
+            "managedby":_("${primary_key} is managed by:"),
+            "member":_("Entities enrolled in ${primary_key}:"),
+            "memberof":_("${primary_key} is a member of these:"),
             },
         "facets": {
             "search":_("Search"),

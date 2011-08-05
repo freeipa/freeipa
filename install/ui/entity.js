@@ -265,8 +265,7 @@ IPA.facet_header = function(spec) {
         }).appendTo(container);
 
         $('<div/>', {
-            'class': 'facet-group-label',
-            text: facet_group.label
+            'class': 'facet-group-label'
         }).appendTo(section);
 
         var ul = $('<ul/>', {
@@ -336,7 +335,17 @@ IPA.facet_header = function(spec) {
             var facet_groups = that.facet.entity.facet_groups.values;
             for (var i=0; i<facet_groups.length; i++) {
                 var facet_group = facet_groups[i];
+
                 var span = $('.facet-group[name='+facet_group.name+']', that.facet_tabs);
+                if (!span.length) continue;
+
+                var label = facet_group.label;
+                if (label) {
+                    label = label.replace('${primary_key}', that.facet.pkey);
+
+                    var label_container = $('.facet-group-label', span);
+                    label_container.text(label);
+                }
 
                 var facets = facet_group.facets.values;
                 for (var j=0; j<facets.length; j++) {
@@ -684,10 +693,8 @@ IPA.entity_builder = function(){
 
         that.facet_groups([
             'member',
-            'memberindirect',
             'settings',
             'memberof',
-            'memberofindirect',
             'managedby'
         ]);
 
@@ -703,17 +710,7 @@ IPA.entity_builder = function(){
             facet_group = IPA.facet_group({ name: spec });
         }
 
-        if (!facet_group.label) {
-            var relationships = entity.metadata.relationships;
-            if (relationships) {
-                var relationship = relationships[facet_group.name];
-                if (relationship) {
-                    facet_group.label = relationship[0];
-                }
-            }
-        }
-
-        if (!facet_group.label) {
+        if (facet_group.label == undefined) {
             facet_group.label = IPA.messages.facet_groups[facet_group.name];
         }
 

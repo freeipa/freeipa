@@ -38,10 +38,7 @@ IPA.entity_factories.entitle = function() {
             factory: IPA.entitle.entity,
             name: 'entitle'
         }).
-        facet_groups([
-            { name: 'account', label: IPA.messages.objects.entitle.account },
-            { name: 'certificates', label: IPA.messages.objects.entitle.certificates }
-        ]).
+        facet_groups([ 'account', 'certificates' ]).
         details_facet({
             factory: IPA.entitle.details_facet,
             label: IPA.messages.objects.entitle.account,

@@ -29,12 +29,13 @@
 IPA.entity_factories.automountlocation = function() {
     return IPA.entity_builder().
         entity({ name: 'automountlocation' }).
+        facet_groups([ 'automountmap', 'settings' ]).
         search_facet({
             title: IPA.metadata.objects.automountlocation.label,
             columns:['cn']
         }).
         nested_search_facet({
-            facet_group: 'member',
+            facet_group: 'automountmap',
             nested_entity : 'automountmap',
             label : IPA.metadata.objects.automountmap.label,
             name: 'maps',
@@ -58,8 +59,9 @@ IPA.entity_factories.automountmap = function() {
     return IPA.entity_builder().
         entity({ name: 'automountmap' }).
         containing_entity('automountlocation').
+        facet_groups([ 'automountkey', 'settings' ]).
         nested_search_facet({
-            facet_group: 'member',
+            facet_group: 'automountkey',
             nested_entity : 'automountkey',
             label : IPA.metadata.objects.automountkey.label,
             name: 'keys',

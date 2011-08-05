@@ -35,6 +35,7 @@ IPA.entity_factories.dnszone = function() {
 
     return IPA.entity_builder().
         entity('dnszone').
+        facet_groups([ 'dnsrecord', 'settings' ]).
         search_facet({
             title: IPA.metadata.objects.dnszone.label,
             columns:['idnsname']
@@ -58,7 +59,7 @@ IPA.entity_factories.dnszone = function() {
                     'idnsupdatepolicy']}]
         }).
         nested_search_facet({
-            facet_group: 'member',
+            facet_group: 'dnsrecord',
             nested_entity : 'dnsrecord',
             name: 'records',
             title: IPA.metadata.objects.dnszone.label_singular,
