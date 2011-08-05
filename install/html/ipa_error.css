@@ -34,7 +34,7 @@
 
 body{
     background-image:url("../ui/outer-bg.png");
-    background-repeat:repeat-x; 
+    background-repeat:repeat-x;
     background-position:left top;
     background-color:#F9F9F9;
     border-width: 0;
@@ -548,7 +548,7 @@ span.main-separator{
 body#header-bg {
     background: url("../ui/Static-Background.png") repeat-x scroll left top #EDEDED;
 }
-   
+
 .container_1 {
     margin-left: auto;
     margin-right: auto;
@@ -645,13 +645,11 @@ form#login {
     margin-top: 5em;
     font-size: 1.1em;
 	padding-left: 3em;
-
 }
 
 .textblockkrb ul li {
 	list-style-type: none;
 	padding: .15em;
-	
 }
 
 
@@ -661,7 +659,7 @@ h3 {
     font-size: 1.5em;
     font-weight: normal;
     text-transform: uppercase;
-}	
+}
 
 h5 {
     color: #333333;
@@ -672,11 +670,14 @@ h5 {
 	margin-bottom: 3em;
 	margin-left: 5em;
 	margin-top: -3em;
-
 }
-    
-	
-	
+
+/* Browser configuration */
+
+object.browser-config {
+    width: 100%;
+}
+
 /* Search */
 
 .search-controls {

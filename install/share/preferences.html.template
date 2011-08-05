@@ -2,10 +2,33 @@
 <html>
 <head>
   <title>Automatically set browser preferences</title>
+  <style type="text/css">
+  body {
+    font-family:"Liberation Sans",Arial,Sans;
+    font-size:11px;
+  }
+  .textblock {
+    text-align: left;
+    margin-top: 1.0em;
+    font-size: 1.1em;
+  }
+  a {
+    color: #1D85D5;
+    font-weight: normal;
+    text-decoration: none;
+    text-transform: none;
+  }
+  </style>
 </head>
 <body>
 <form action="undefined" method="get">
 <input type=button onclick="setPreferences()" name="prefs" value="Configure Firefox">
+<div id="success" class="textblock" style="display:none;">
+  <p>Browser configured.</p>
+  <p>
+    <a href="/ipa/ui" id="redirect_link" target="_top">Click here to return to the Web UI.</a>
+  </p>
+</div>
 </form>
 
 <script type="text/javascript">
@@ -40,6 +63,12 @@
       netscape.security.PrivilegeManager.disablePrivilege(privilege);
 
       alert("Successfully configured Firefox for single sign-on.");
+
+      var redirect_link = document.getElementById('redirect_link');
+      redirect_link.href = "https://" + location.hostname + location.port + "/ipa/ui";
+
+      var successDiv = document.getElementById('success');
+      successDiv.style['display'] = "block";
     } catch (e) {
       alert("Unable to apply recommended settings.\n\n" +
             "Click on the Certificate Authority link and select trust for all, " +
