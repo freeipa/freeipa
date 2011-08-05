@@ -31,6 +31,9 @@ IPA.add_dialog = function (spec) {
 
     that.method = spec.method || 'add';
     that.pre_execute_hook = spec.pre_execute_hook;
+    that.on_error = spec.on_error ;
+    that.retry = typeof spec.retry !== 'undefined' ? spec.retry : true;
+    that.command = null;
 
     function show_edit_page(entity,result){
         var pkey_name = entity.metadata.primary_key;
@@ -51,9 +54,11 @@ IPA.add_dialog = function (spec) {
         var command = IPA.command({
             entity: that.entity.name,
             method: that.method,
+            retry: that.retry,
             on_success: on_success,
             on_error: on_error
         });
+        that.command = command;
 
         pkey_prefix = that.entity.get_primary_key_prefix();
 
@@ -127,8 +132,8 @@ IPA.add_dialog = function (spec) {
                 var table = facet.table;
                 table.refresh();
                 that.close();
-            }
-        );
+            },
+            that.on_error);
     });
 
     that.add_button(IPA.messages.buttons.add_and_add_another, function() {
@@ -141,8 +146,8 @@ IPA.add_dialog = function (spec) {
                 var table = facet.table;
                 table.refresh();
                 that.reset();
-            }
-        );
+            },
+            that.on_error);
     });
 
     that.add_button(IPA.messages.buttons.add_and_edit, function() {
@@ -154,8 +159,8 @@ IPA.add_dialog = function (spec) {
                 that.close();
                 var result = data.result.result;
                 that.show_edit_page(that.entity,result);
-            }
-        );
+            },
+            that.on_error);
     });
 
     that.add_button(IPA.messages.buttons.cancel, function() {

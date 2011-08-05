@@ -243,57 +243,13 @@ IPA.command = function(spec) {
     that.execute = function() {
 
         function dialog_open(xhr, text_status, error_thrown) {
-
-            IPA.error_dialog = $('<div/>', {
-                id: 'error_dialog'
+            var dialog = IPA.error_dialog({
+                xhr: xhr,
+                text_status: text_status,
+                error_thrown: error_thrown,
+                command: that
             });
-
-            if (error_thrown.url) {
-                $('<p/>', {
-                    text: 'URL: '+error_thrown.url
-                }).appendTo(IPA.error_dialog);
-            }
-
-            $('<p/>', {
-                html: error_thrown.message
-            }).appendTo(IPA.error_dialog);
-
-            function close() {
-                IPA.error_dialog.dialog('destroy');
-                IPA.error_dialog.remove();
-                IPA.error_dialog = null;
-            }
-
-            var buttons = {};
-
-            /**
-             * When a user initially opens the Web UI without a Kerberos
-             * ticket, the messages including the button labels have not
-             * been loaded yet, so the button labels need default values.
-             */
-            var label = IPA.messages.buttons ? IPA.messages.buttons.retry : 'Retry';
-            buttons[label] = function() {
-                close();
-                that.execute();
-            };
-
-            label = IPA.messages.buttons ? IPA.messages.buttons.cancel : 'Cancel';
-            buttons[label] = function() {
-                close();
-                if (that.on_error) {
-                    that.on_error.call(this, xhr, text_status, error_thrown);
-                }
-            };
-
-            IPA.error_dialog.dialog({
-                modal: true,
-                title: error_thrown.name,
-                width: 400,
-                buttons: buttons,
-                close: function() {
-                    close();
-                }
-            });
+            dialog.open();
         }
 
         function error_handler(xhr, text_status, error_thrown) {
@@ -331,6 +287,7 @@ IPA.command = function(spec) {
                 dialog_open.call(this, xhr, text_status, error_thrown);
 
             } else if (that.on_error) {
+                //custom error handling, maintaining AJAX call's context
                 that.on_error.call(this, xhr, text_status, error_thrown);
             }
         }
@@ -349,11 +306,13 @@ IPA.command = function(spec) {
                 // error_handler() calls IPA.hide_activity_icon()
                 error_handler.call(this, xhr, text_status,  /* error_thrown */ {
                     name: 'IPA Error '+data.error.code,
-                    message: data.error.message
+                    message: data.error.message,
+                    data: data
                 });
 
             } else if (that.on_success) {
                 IPA.hide_activity_icon();
+                //custom success handling, maintaining AJAX call's context
                 that.on_success.call(this, data, text_status, xhr);
             }
         }
@@ -607,6 +566,60 @@ IPA.dirty_dialog = function(spec) {
 
     that.callback = function() {
     };
+
+    return that;
+};
+
+IPA.error_dialog = function(spec) {
+    var that = IPA.dialog(spec);
+
+    var init = function() {
+        spec = spec || {};
+
+        that.id = 'error_dialog';
+        that.xhr = spec.xhr || {};
+        that.text_status = spec.text_status || '';
+        that.error_thrown = spec.error_thrown || {};
+        that.command = spec.command;
+        that.title = spec.error_thrown.name;
+    };
+
+    that.create = function() {
+        if (that.error_thrown.url) {
+            $('<p/>', {
+                text: 'URL: '+that.error_thrown.url
+            }).appendTo(that.container);
+        }
+
+        $('<p/>', {
+            html: that.error_thrown.message
+        }).appendTo(that.container);
+    };
+
+    that.create_buttons = function() {
+        /**
+        * When a user initially opens the Web UI without a Kerberos
+        * ticket, the messages including the button labels have not
+        * been loaded yet, so the button labels need default values.
+        */
+        var label = IPA.messages.buttons ? IPA.messages.buttons.retry : 'Retry';
+
+        that.add_button(label, function() {
+            that.close();
+            that.command.execute();
+        });
+
+        label = IPA.messages.buttons ? IPA.messages.buttons.cancel : 'Cancel';
+        that.add_button(label, function() {
+            that.close();
+            if (that.command.retry && that.command.on_error) {
+                that.command.on_error(that.xhr, that.text_status, that.error_thrown);
+            }
+        });
+    };
+
+    init();
+    that.create_buttons();
 
     return that;
 };

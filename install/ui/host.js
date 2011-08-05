@@ -102,6 +102,7 @@ IPA.entity_factories.host = function () {
         }).
         standard_association_facets().
         adder_dialog({
+            factory: IPA.host_adder_dialog,
             width: 400,
             height: 250,
             fields:[
@@ -126,6 +127,47 @@ IPA.entity_factories.host = function () {
             factory: IPA.host_deleter_dialog
         }).
         build();
+};
+
+IPA.host_adder_dialog = function(spec)
+{
+    spec = spec || {};
+    spec.retry = typeof spec.retry !== 'undefined' ? spec.retry : false;
+
+    var that = IPA.add_dialog(spec);
+
+    that.on_error = function(xhr, text_status, error_thrown)
+    {
+        var command = that.command;
+        var data = error_thrown.data;
+        var dialog = null;
+
+        if(data && data.error && data.error.code === 4304) {
+            dialog = IPA.message_dialog({
+                message: data.error.message,
+                title: spec.title,
+                on_ok: function() {
+                    data.result = {
+                        result: {
+                            fqdn: that.get_field('fqdn').save()
+                        }
+                    };
+                    command.on_success(data, text_status, xhr);
+                }
+            });
+        } else {
+            dialog = IPA.error_dialog({
+                xhr: xhr,
+                text_status: text_status,
+                error_thrown: error_thrown,
+                command: command
+            });
+        }
+
+        dialog.open(that.container);
+    };
+
+    return that;
 };
 
 IPA.host_deleter_dialog = function(spec) {

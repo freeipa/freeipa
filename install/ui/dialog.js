@@ -32,6 +32,7 @@ IPA.dialog = function(spec) {
 
     that.entity = spec.entity;
     that.name = spec.name;
+    that.id = spec.id;
     that.title = spec.title;
     that.width = spec.width || 400;
     that.height = spec.height;
@@ -194,7 +195,7 @@ IPA.dialog = function(spec) {
      */
     that.open = function(container) {
 
-        that.container = $('<div/>');
+        that.container = $('<div/>', { id : that.id });
         if (container) {
             container.append(that.container);
         }
@@ -257,6 +258,7 @@ IPA.dialog = function(spec) {
 
     that.dialog_create = that.create;
     that.dialog_open = that.open;
+    that.dialog_close = that.close;
 
     var fields = spec.fields || [];
     for (var i=0; i<fields.length; i++) {
@@ -653,6 +655,34 @@ IPA.deleter_dialog =  function (spec) {
     };
 
     that.deleter_dialog_create = that.create;
+
+    return that;
+};
+
+IPA.message_dialog = function(spec) {
+
+    var that = IPA.dialog(spec);
+
+    var init = function() {
+        spec = spec || {};
+        that.message = spec.message || '';
+        that.on_ok = spec.on_ok;
+    };
+
+    that.create = function() {
+        $('<p/>', {
+            'text': that.message
+        }).appendTo(that.container);
+    };
+
+    that.add_button(IPA.messages.buttons.ok, function() {
+        that.close();
+        if(that.on_ok) {
+            that.on_ok();
+        }
+    });
+
+    init();
 
     return that;
 };

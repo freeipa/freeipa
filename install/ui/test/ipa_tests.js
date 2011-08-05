@@ -162,8 +162,10 @@ test("Testing successful IPA.command().", function() {
         "Checking ajax invocation counter"
     );
 
+    var dialog = $('#error_dialog');
+
     ok(
-        !IPA.error_dialog,
+        dialog.length == 0,
         "The dialog box is not created."
     );
 
@@ -237,7 +239,8 @@ test("Testing unsuccessful IPA.command().", function() {
         on_error: error_handler
     }).execute();
 
-    var dialog = IPA.error_dialog.parent('.ui-dialog');
+    var dialog = $('#error_dialog');
+    var ui_dialog = dialog.parent('.ui-dialog');
 
     equals(
         ajax_counter, 1,
@@ -245,7 +248,7 @@ test("Testing unsuccessful IPA.command().", function() {
     );
 
     ok(
-        dialog.length == 1 && IPA.error_dialog.dialog('isOpen'),
+        ui_dialog.length == 1 && dialog.dialog('isOpen'),
         "The dialog box is created and open."
     );
 
@@ -255,7 +258,7 @@ test("Testing unsuccessful IPA.command().", function() {
     );
 
     // search the retry button from the beginning
-    var retry = $('button', dialog).first();
+    var retry = $('button', ui_dialog).first();
     retry.trigger('click');
 
     equals(
@@ -270,8 +273,8 @@ test("Testing unsuccessful IPA.command().", function() {
 
     // search the retry button from the beginning again because the dialog
     // has been recreated
-    dialog = IPA.error_dialog.parent('.ui-dialog');
-    retry = $('button', dialog).first();
+    ui_dialog = $('#error_dialog').parent('.ui-dialog');
+    retry = $('button', ui_dialog).first();
     retry.trigger('click');
 
     equals(
@@ -286,8 +289,8 @@ test("Testing unsuccessful IPA.command().", function() {
 
     // search the cancel button from the beginning because the dialog has
     // been recreated
-    dialog = IPA.error_dialog.parent('.ui-dialog');
-    var cancel = $('button', dialog).first().next();
+    ui_dialog = $('#error_dialog').parent('.ui-dialog');
+    var cancel = $('button', ui_dialog).first().next();
     cancel.trigger('click');
 
     equals(
@@ -295,8 +298,10 @@ test("Testing unsuccessful IPA.command().", function() {
         "Checking ajax invocation counter"
     );
 
+    dialog = $('#error_dialog');
+
     ok(
-        !IPA.error_dialog,
+        dialog.length == 0,
         "After cancel, the dialog box is closed."
     );
 
