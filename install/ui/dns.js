@@ -88,16 +88,21 @@ IPA.entity_factories.dnszone = function() {
             width: 500,
             height: 300,
             fields: [
-                'idnsname',
                 {
-                    factory: IPA.checkbox_widget,
-                    name: 'name_from_ip',
+                    name: 'idnsname',
+                    optional: true,
                     undo: false
                 },
+                'name_from_ip',
                 'idnssoamname',
-                'idnssoarname',
                 {
-                    factory: IPA.force_dnszone_add_checkbox_widget
+                    name: 'idnssoarname',
+                    optional: true,
+                    undo: false
+                },
+                {
+                    factory: IPA.force_dnszone_add_checkbox_widget,
+                    name: 'force'
                 }
             ]
         }).
@@ -110,36 +115,180 @@ IPA.dnszone_adder_dialog = function(spec) {
 
     var that = IPA.add_dialog(spec);
 
+    that.create = function() {
+
+        that.container.addClass('dnszone-adder-dialog');
+
+        var table = $('<table/>').appendTo(that.container);
+
+        var field = that.get_field('idnsname');
+
+        var tr = $('<tr/>').appendTo(table);
+
+        var td = $('<td/>', {
+            title: field.label
+        }).appendTo(tr);
+
+        var label = $('<label/>', {
+            'for': 'dnszone-adder-dialog-idnsname-radio'
+        }).appendTo(td);
+
+        that.idnsname_radio = $('<input/>', {
+            type: 'radio',
+            id: 'dnszone-adder-dialog-idnsname-radio',
+            name: 'type',
+            value: 'idnsname'
+        }).appendTo(label);
+
+        label.append(field.label+':');
+
+        td = $('<td/>', {
+            title: field.label
+        }).appendTo(tr);
+
+        var span = $('<span/>', {
+            name: field.name
+        }).appendTo(td);
+
+        field.create(span);
+
+        var idnsname_input = $('input', span);
+
+        field = that.get_field('name_from_ip');
+
+        tr = $('<tr/>').appendTo(table);
+
+        td = $('<td/>', {
+            title: field.label
+        }).appendTo(tr);
+
+        label = $('<label/>', {
+            'for': 'dnszone-adder-dialog-name_from_ip-radio'
+        }).appendTo(td);
+
+        var name_from_ip_radio = $('<input/>', {
+            type: 'radio',
+            id: 'dnszone-adder-dialog-name_from_ip-radio',
+            name: 'type',
+            value: 'name_from_ip'
+        }).appendTo(label);
+
+        label.append(field.label+':');
+
+        td = $('<td/>', {
+            title: field.label
+        }).appendTo(tr);
+
+        span = $('<span/>', {
+            name: field.name
+        }).appendTo(td);
+
+        field.create(span);
+
+        var name_from_ip_input = $('input', span);
+
+        that.idnsname_radio.click(function() {
+            idnsname_input.attr('disabled', false);
+            name_from_ip_input.attr('disabled', true);
+        });
+
+        name_from_ip_radio.click(function() {
+            idnsname_input.attr('disabled', true);
+            name_from_ip_input.attr('disabled', false);
+        });
+
+        idnsname_input.focus(function() {
+            that.idnsname_radio.attr('checked', true);
+        });
+
+        name_from_ip_input.focus(function() {
+            name_from_ip_radio.attr('checked', true);
+        });
+
+        that.idnsname_radio.click();
+
+        tr = $('<tr/>').appendTo(table);
+
+        td = $('<td/>', {
+            colspan: 2,
+            html: '&nbsp;'
+        }).appendTo(tr);
+
+        field = that.get_field('idnssoamname');
+
+        tr = $('<tr/>').appendTo(table);
+
+        td = $('<td/>', {
+            title: field.label
+        }).appendTo(tr);
+
+        label = $('<label/>', {
+            text: field.label+':'
+        }).appendTo(td);
+
+        td = $('<td/>', {
+            title: field.label
+        }).appendTo(tr);
+
+        span = $('<span/>', {
+            name: field.name
+        }).appendTo(td);
+
+        field.create(span);
+
+        field = that.get_field('idnssoarname');
+
+        tr = $('<tr/>').appendTo(table);
+
+        td = $('<td/>', {
+            title: field.label
+        }).appendTo(tr);
+
+        label = $('<label/>', {
+            text: field.label+':'
+        }).appendTo(td);
+
+        td = $('<td/>', {
+            title: field.label
+        }).appendTo(tr);
+
+        span = $('<span/>', {
+            name: field.name
+        }).appendTo(td);
+
+        field.create(span);
+
+        field = that.get_field('force');
+
+        tr = $('<tr/>').appendTo(table);
+
+        td = $('<td/>', {
+            title: field.label
+        }).appendTo(tr);
+
+        label = $('<label/>', {
+            text: field.label+':'
+        }).appendTo(td);
+
+        td = $('<td/>', {
+            title: field.label
+        }).appendTo(tr);
+
+        span = $('<span/>', {
+            name: field.name
+        }).appendTo(td);
+
+        field.create(span);
+    };
+
     that.save = function(record) {
 
-        var idnsname;
-        var name_from_ip;
+        that.dialog_save(record);
 
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            var field = fields[i];
-
-            if (field.name == 'idnsname') {
-
-                idnsname = field.save()[0];
-
-            } else if (field.name == 'name_from_ip') {
-
-                name_from_ip = field.save()[0];
-                if (name_from_ip) {
-                    record.name_from_ip = idnsname;
-                } else {
-                    record.idnsname = idnsname;
-                }
-
-            } else if (field.name == 'idnssoarname') {
-
-                field.optional = name_from_ip;
-
-            } else {
-                var values = field.save();
-                record[field.name] = values.join(',');
-            }
+        if (that.idnsname_radio.is(':checked')) {
+            delete record.name_from_ip;
+        } else {
+            delete record.idnsname;
         }
     };
 
@@ -376,25 +525,25 @@ IPA.dnsrecord_redirection_dialog = function(spec) {
     return that;
 };
 
-IPA.dnsrecord_host_link_widget = function(spec){
+IPA.dnsrecord_host_link_widget = function(spec) {
     var that = IPA.entity_link_widget(spec);
-    that.other_pkeys = function(){
+    that.other_pkeys = function() {
         var pkey = that.entity.get_primary_key();
         return [pkey[0]+'.'+pkey[1]];
     };
     return that;
 };
 
-IPA.dns_record_types = function(){
+IPA.dns_record_types = function() {
     var attrs = IPA.metadata.objects.dnsrecord.default_attributes;
     var record_types = [];
-    for (var i =0; i < attrs.length; i+=1){
+    for (var i=0; i<attrs.length; i++) {
         var attr = attrs[i];
         var index = attr.search('record$');
-        if (index > -1){
+        if (index > -1) {
             var rec_type = {
-                label:   attr.substring(0,index).toUpperCase(),
-                value:   attr
+                label: attr.substring(0, index).toUpperCase(),
+                value: attr
             };
             record_types.push(rec_type);
         }
@@ -402,7 +551,7 @@ IPA.dns_record_types = function(){
     return record_types;
 };
 
-IPA.dnsrecord_type_widget = function (spec){
+IPA.dnsrecord_type_widget = function(spec) {
 
     spec.options = IPA.dns_record_types();
     var that = IPA.select_widget(spec);
@@ -410,16 +559,15 @@ IPA.dnsrecord_type_widget = function (spec){
 };
 
 IPA.force_dnszone_add_checkbox_widget = function(spec) {
-    var param_info = IPA.get_method_option('dnszone_add', 'force');
-    spec.name = 'force';
+    var param_info = IPA.get_method_option('dnszone_add', spec.name);
     spec.label = param_info.label;
     spec.tooltip = param_info.doc;
     spec.undo = false;
-    return  IPA.checkbox_widget(spec);
+    return IPA.checkbox_widget(spec);
 };
 
 
-IPA.dnsrecord_get_delete_values = function(){
+IPA.dnsrecord_get_delete_values = function() {
 
     var records = {};
     var value;
