@@ -1326,3 +1326,15 @@ table.scrollable tbody {
     margin-top: -2px;
     margin-right: 3px;
 }
+
+.host-adder-dialog table[name=fqdn] {
+    width: 100%;
+}
+
+.host-adder-dialog td[name=hostname] {
+    width: 110px;
+}
+
+.host-adder-dialog input[name=hostname] {
+    width: 100%;
+}

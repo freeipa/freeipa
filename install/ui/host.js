@@ -105,21 +105,35 @@ IPA.entity_factories.host = function () {
             factory: IPA.host_adder_dialog,
             width: 400,
             height: 250,
-            fields:[
+            fields: [
+                {
+                    name: 'fqdn',
+                    optional: true,
+                    hidden: true
+                },
+                {
+                    factory: IPA.text_widget,
+                    name: 'hostname',
+                    label: IPA.messages.objects.service.host,
+                    undo: false
+                },
                 {
                     factory: IPA.dnszone_select_widget,
-                    name: 'fqdn',
-                    label: IPA.messages.objects.service.host,
+                    name: 'dnszone',
+                    label: IPA.metadata.objects.dnszone.label_singular,
                     editable: true,
                     undo: false
                 },
-                {factory:IPA.force_host_add_checkbox_widget},
                 {
-                    factory:IPA.text_widget,
-                    name:"ip_address",
-                    undo:false,
+                    factory: IPA.force_host_add_checkbox_widget,
+                    name: 'force'
+                },
+                {
+                    factory: IPA.text_widget,
+                    name: 'ip_address',
                     label:  IPA.get_method_option('host_add','ip_address')['label'],
-                    tooltip: IPA.get_method_option('host_add','ip_address')['doc']
+                    tooltip: IPA.get_method_option('host_add','ip_address')['doc'],
+                    undo: false
                 }
             ]
         }).
@@ -129,15 +143,128 @@ IPA.entity_factories.host = function () {
         build();
 };
 
-IPA.host_adder_dialog = function(spec)
-{
+IPA.host_adder_dialog = function(spec) {
+
     spec = spec || {};
     spec.retry = typeof spec.retry !== 'undefined' ? spec.retry : false;
 
     var that = IPA.add_dialog(spec);
 
-    that.on_error = function(xhr, text_status, error_thrown)
-    {
+    that.create = function() {
+
+        that.container.addClass('host-adder-dialog');
+
+        var hostname = that.get_field('hostname');
+        var dnszone = that.get_field('dnszone');
+
+        var table = $('<table/>', {
+            name: 'fqdn'
+        }).appendTo(that.container);
+
+        var tr = $('<tr/>').appendTo(table);
+
+        var td = $('<td/>', {
+            name: hostname.name,
+            title: hostname.label,
+            text: hostname.label
+        }).appendTo(tr);
+
+        td = $('<td/>', {
+            name: dnszone.name,
+            title: dnszone.label,
+            text: dnszone.label
+        }).appendTo(tr);
+
+        tr = $('<tr/>').appendTo(table);
+
+        td = $('<td/>').appendTo(tr);
+        var span = $('<span/>', {
+            name: hostname.name
+        }).appendTo(td);
+        hostname.create(span);
+
+        td = $('<td/>').appendTo(tr);
+        span = $('<span/>', {
+            name: dnszone.name
+        }).appendTo(td);
+        dnszone.create(span);
+
+        table = $('<table/>', {
+            name: 'other'
+        }).appendTo(that.container);
+
+        var force = that.get_field('force');
+
+        tr = $('<tr/>').appendTo(table);
+
+        td = $('<td/>', {
+            title: force.label,
+            text: force.label+':'
+        }).appendTo(tr);
+
+        td = $('<td/>', {
+            title: force.label
+        }).appendTo(tr);
+
+        span = $('<span/>', {
+            name: force.name
+        }).appendTo(td);
+        force.create(span);
+
+        var ip_address = that.get_field('ip_address');
+
+        tr = $('<tr/>').appendTo(table);
+
+        td = $('<td/>', {
+            title: ip_address.label,
+            text: ip_address.label+':'
+        }).appendTo(tr);
+
+        td = $('<td/>', {
+            title: ip_address.label
+        }).appendTo(tr);
+
+        span = $('<span/>', {
+            name: ip_address.name
+        }).appendTo(td);
+        ip_address.create(span);
+
+        var hostname_input = $('input', hostname.container);
+        var dnszone_input = $('input', dnszone.container);
+
+        hostname_input.keyup(function(e) {
+            var value = hostname_input.val();
+            var i = value.indexOf('.');
+            if (i >= 0) {
+                var hostname = value.substr(0, i);
+                var dnszone = value.substr(i+1);
+                hostname_input.val(hostname);
+                if (dnszone) {
+                    dnszone_input.val(dnszone);
+                    dnszone_input.focus();
+                }
+                IPA.select_range(dnszone_input, 0, dnszone_input.val().length);
+            }
+        });
+    };
+
+    that.save = function(record) {
+        var field = that.get_field('hostname');
+        var hostname = field.save()[0];
+
+        field = that.get_field('dnszone');
+        var dnszone = field.save()[0];
+
+        record.fqdn = hostname && dnszone ? hostname+'.'+dnszone : null;
+
+        field = that.get_field('force');
+        record.force = field.save()[0];
+
+        field = that.get_field('ip_address');
+        record.ip_address = field.save()[0];
+    };
+
+    that.on_error = function(xhr, text_status, error_thrown) {
         var ajax = this;
         var command = that.command;
         var data = error_thrown.data;
@@ -150,7 +277,7 @@ IPA.host_adder_dialog = function(spec)
                 on_ok: function() {
                     data.result = {
                         result: {
-                            fqdn: that.get_field('fqdn').save()
+                            fqdn: command.args[0]
                         }
                     };
                     command.on_success.call(ajax, data, text_status, xhr);
@@ -273,16 +400,15 @@ IPA.utc_date_column_format = function(value){
 };
 
 
-IPA.force_host_add_checkbox_widget = function (spec){
-    var param_info = IPA.get_method_option('host_add', 'force');
-    spec.name = 'force';
+IPA.force_host_add_checkbox_widget = function(spec) {
+    var param_info = IPA.get_method_option('host_add', spec.name);
     spec.label = param_info.label;
     spec.tooltip = param_info.doc;
     spec.undo = false;
-    return  IPA.checkbox_widget(spec);
+    return IPA.checkbox_widget(spec);
 };
 
-IPA.host_provisioning_status_widget = function (spec) {
+IPA.host_provisioning_status_widget = function(spec) {
 
     spec = spec || {};
 
