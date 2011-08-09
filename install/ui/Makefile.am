@@ -19,6 +19,7 @@ app_DATA =				\
 	background-right.png		\
 	caution.png			\
 	certificate.js 			\
+	centered-bg.png			\
 	check.png			\
 	combobox_open.png		\
 	consume.png			\
@@ -50,6 +51,7 @@ app_DATA =				\
 	Mainnav-background.png		\
 	Mainnav-offtab.png  		\
 	Mainnav-ontab.png  		\
+	modal-background.png  		\
 	nav-arrow.png			\
 	navigation.js			\
 	netgroup.js 			\
@@ -76,6 +78,9 @@ app_DATA =				\
 	spinner_small.gif		\
 	sudo.js				\
 	top-bg.png			\
+	panel-background.png		\
+	Static-Background.png		\
+	Subnav-background.png		\
 	ui-bg_flat_65_ffffff_40x100.png \
 	ui-bg_glass_40_111111_1x400.png \
 	ui-bg_glass_55_1c1c1c_1x400.png \
