@@ -826,8 +826,6 @@ def main():
     # Now put the CA cert where other instances exepct it
     ca.publish_ca_cert("/etc/ipa/ca.crt")
 
-    service.start('messagebus')
-
     # Create a directory server instance
     ds = dsinstance.DsInstance(fstore=fstore)
 
