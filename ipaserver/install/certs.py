@@ -484,6 +484,7 @@ class CertDB(object):
         Tell certmonger to track the given certificate nickname.
         """
         service.chkconfig_on("certmonger")
+        service.start("messagebus")
         service.start("certmonger")
         try:
             (stdout, stderr, rc) = certmonger.start_tracking(nickname, self.secdir, password_file)
@@ -513,6 +514,7 @@ class CertDB(object):
 
         # Always start certmonger. We can't untrack something if it isn't
         # running
+        service.start("messagebus")
         service.start("certmonger")
         try:
             certmonger.stop_tracking(self.secdir, nickname=nickname)

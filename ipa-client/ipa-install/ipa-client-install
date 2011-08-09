@@ -183,6 +183,11 @@ def uninstall(options, env):
     # Always start certmonger. We can't untrack something if it isn't
     # running
     try:
+        ipautil.service_start('messagebus')
+    except Exception, e:
+        logging.error("messagebus failed to start: %s" % str(e))
+
+    try:
         ipautil.service_start('certmonger')
     except Exception, e:
         logging.error("certmonger failed to start: %s" % str(e))
@@ -492,6 +497,11 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, c
 def configure_certmonger(fstore, subject_base, cli_realm, hostname, options):
     started = True
     principal = 'host/%s@%s' % (hostname, cli_realm)
+
+    try:
+        ipautil.service_start('messagebus')
+    except Exception, e:
+        logging.error("messagebus failed to start: %s" % str(e))
 
     # Ensure that certmonger has been started at least once to generate the
     # cas files in /var/lib/certmonger/cas.
