@@ -204,8 +204,9 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_addres
 
 def add_reverse_zone(zone, ns_hostname=None, ns_ip_address=None,
         ns_replicas=[], update_policy=None, dns_backup=None):
+    zone = normalize_zone(zone)
     if update_policy is None:
-        update_policy = "grant %s krb5-subdomain %s. PTR;" % (api.env.realm, zone)
+        update_policy = "grant %s krb5-subdomain %s PTR;" % (api.env.realm, zone)
 
     if ns_hostname is None:
         # automatically retrieve list of DNS masters
