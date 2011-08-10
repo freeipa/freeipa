@@ -24,12 +24,15 @@ Test the `ipalib.plugins.hbacsvcgroup` module.
 from ipalib import api, errors
 from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from tests.test_xmlrpc import objectclasses
+from ipalib.dn import *
 
 hbacsvcgroup1 = u'testhbacsvcgroup1'
-dn1 = u'cn=%s,cn=hbacservicegroups,cn=hbac,%s' % (hbacsvcgroup1, api.env.basedn)
+dn1 = DN(('cn',hbacsvcgroup1),('cn','hbacservicegroups'),('cn','hbac'),
+         api.env.basedn)
 
 hbacsvc1 = u'sshd'
-hbacsvc_dn1 = u'cn=%s,cn=hbacservices,cn=hbac,%s' % (hbacsvc1, api.env.basedn)
+hbacsvc_dn1 = DN(('cn',hbacsvc1),('cn','hbacservices'),('cn','hbac'),
+                 api.env.basedn)
 
 
 class test_hbacsvcgroup(Declarative):
@@ -73,7 +76,7 @@ class test_hbacsvcgroup(Declarative):
                 value=hbacsvcgroup1,
                 summary=u'Added HBAC service group "testhbacsvcgroup1"',
                 result=dict(
-                    dn=dn1,
+                    dn=lambda x: DN(x) == dn1,
                     cn=[hbacsvcgroup1],
                     objectclass=objectclasses.hbacsvcgroup,
                     description=[u'Test hbacsvcgroup 1'],
@@ -103,7 +106,7 @@ class test_hbacsvcgroup(Declarative):
                 value=hbacsvc1,
                 summary=u'Added HBAC service "%s"' % hbacsvc1,
                 result=dict(
-                    dn=hbacsvc_dn1,
+                    dn=lambda x: DN(x) == hbacsvc_dn1,
                     cn=[hbacsvc1],
                     description=[u'Test service 1'],
                     objectclass=objectclasses.hbacsvc,
@@ -126,7 +129,7 @@ class test_hbacsvcgroup(Declarative):
                     ),
                 ),
                 result={
-                    'dn': dn1,
+                    'dn': lambda x: DN(x) == dn1,
                     'cn': [hbacsvcgroup1],
                     'description': [u'Test hbacsvcgroup 1'],
                     'member_hbacsvc': [hbacsvc1],
@@ -142,7 +145,7 @@ class test_hbacsvcgroup(Declarative):
                 value=hbacsvcgroup1,
                 summary=None,
                 result={
-                    'dn': dn1,
+                    'dn': lambda x: DN(x) == dn1,
                     'member_hbacsvc': [hbacsvc1],
                     'cn': [hbacsvcgroup1],
                     'description': [u'Test hbacsvcgroup 1'],
@@ -160,7 +163,7 @@ class test_hbacsvcgroup(Declarative):
                 summary=u'1 HBAC service group matched',
                 result=[
                     {
-                        'dn': dn1,
+                        'dn': lambda x: DN(x) == dn1,
                         'member_hbacsvc': [hbacsvc1],
                         'cn': [hbacsvcgroup1],
                         'description': [u'Test hbacsvcgroup 1'],
@@ -194,7 +197,7 @@ class test_hbacsvcgroup(Declarative):
                 value=hbacsvcgroup1,
                 summary=None,
                 result={
-                    'dn': dn1,
+                    'dn': lambda x: DN(x) == dn1,
                     'member_hbacsvc': [hbacsvc1],
                     'cn': [hbacsvcgroup1],
                     'description': [u'Updated hbacsvcgroup 1'],
@@ -216,7 +219,7 @@ class test_hbacsvcgroup(Declarative):
                 ),
                 completed=1,
                 result={
-                    'dn': dn1,
+                    'dn': lambda x: DN(x) == dn1,
                     'cn': [hbacsvcgroup1],
                     'description': [u'Updated hbacsvcgroup 1'],
                 },

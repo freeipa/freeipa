@@ -32,7 +32,7 @@ from ipalib.constants import NAME_REGEX, NAME_ERROR
 import base64
 from ipalib import x509
 from nss.error import NSPRError
-
+from ipalib.dn import *
 
 # certutil -
 
@@ -92,18 +92,18 @@ class test_x509(object):
         Test retrieving the subject
         """
         subject = x509.get_subject(goodcert)
-        assert str(subject) == 'CN=ipa.example.com,O=IPA'
+        assert DN(str(subject)) == DN(('CN','ipa.example.com'),('O','IPA'))
 
         der = base64.b64decode(goodcert)
         subject = x509.get_subject(der, x509.DER)
-        assert str(subject) == 'CN=ipa.example.com,O=IPA'
+        assert DN(str(subject)) == DN(('CN','ipa.example.com'),('O','IPA'))
 
         # We should be able to pass in a tuple/list of certs too
         subject = x509.get_subject((goodcert))
-        assert str(subject) == 'CN=ipa.example.com,O=IPA'
+        assert DN(str(subject)) == DN(('CN','ipa.example.com'),('O','IPA'))
 
         subject = x509.get_subject([goodcert])
-        assert str(subject) == 'CN=ipa.example.com,O=IPA'
+        assert DN(str(subject)) == DN(('CN','ipa.example.com'),('O','IPA'))
 
     def test_2_get_serial_number(self):
         """
@@ -132,8 +132,8 @@ class test_x509(object):
 
         cert = x509.load_certificate(goodcert)
 
-        assert str(cert.subject) == 'CN=ipa.example.com,O=IPA'
-        assert str(cert.issuer) == 'CN=IPA Test Certificate Authority'
+        assert DN(str(cert.subject)) == DN(('CN','ipa.example.com'),('O','IPA'))
+        assert DN(str(cert.issuer)) == DN(('CN','IPA Test Certificate Authority'))
         assert cert.serial_number == 1093
         assert cert.valid_not_before_str == 'Fri Jun 25 13:00:42 2010 UTC'
         assert cert.valid_not_after_str == 'Thu Jun 25 13:00:42 2015 UTC'

@@ -28,6 +28,7 @@ from ipalib import errors
 from ipaserver.plugins.ldap2 import ldap2
 from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_netgroupdn
 from tests.test_xmlrpc import objectclasses
+from ipalib.dn import *
 
 # Global so we can save the value between tests
 netgroup_dn = None
@@ -39,12 +40,14 @@ netgroup1 = u'netgroup1'
 netgroup2 = u'netgroup2'
 
 host1 = u'ipatesthost.%s' % api.env.domain
-host_dn1 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (host1, api.env.basedn)
+host_dn1 = DN(('fqdn',host1),('cn','computers'),('cn','accounts'),
+              api.env.basedn)
 
 unknown_host = u'unknown'
 
 hostgroup1 = u'hg1'
-hostgroup_dn1 = u'cn=%s,cn=hostgroups,cn=accounts,%s' % (hostgroup1, api.env.basedn)
+hostgroup_dn1 = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
+                   api.env.basedn)
 
 user1 = u'jexample'
 
@@ -157,7 +160,7 @@ class test_netgroup(Declarative):
                 value=host1,
                 summary=u'Added host "%s"' % host1,
                 result=dict(
-                    dn=host_dn1,
+                    dn=lambda x: DN(x) == host_dn1,
                     fqdn=[host1],
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],
@@ -179,12 +182,13 @@ class test_netgroup(Declarative):
                 value=hostgroup1,
                 summary=u'Added hostgroup "%s"' % hostgroup1,
                 result=dict(
-                    dn=hostgroup_dn1,
+                    dn=lambda x: DN(x) == hostgroup_dn1,
                     cn=[hostgroup1],
                     objectclass=objectclasses.hostgroup,
                     description=[u'Test hostgroup 1'],
-                    mepmanagedentry=['cn=%s,cn=ng,cn=alt,%s' % (hostgroup1, api
-.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',hostgroup1),('cn','ng'),('cn','alt'),
+                            api.env.basedn)],
                     ipauniqueid=[fuzzy_uuid],
                 ),
             ),
@@ -214,10 +218,16 @@ class test_netgroup(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[u'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn)],
-                    mepmanagedentry=[u'cn=%s,cn=groups,cn=accounts,%s' % (user1, api.env.basedn)],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                            api.env.basedn)],
                     memberof_group=[u'ipausers'],
-                    dn=u'uid=%s,cn=users,cn=accounts,%s' % (user1, api.env.basedn),
+                    dn=lambda x: DN(x) == \
+                        DN(('uid',user1),('cn','users'),('cn','accounts'),
+                           api.env.basedn),
                 ),
             ),
         ),
@@ -245,10 +255,16 @@ class test_netgroup(Declarative):
                     cn=[u'Test User2'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[u'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn)],
-                    mepmanagedentry=[u'cn=%s,cn=groups,cn=accounts,%s' % (user2, api.env.basedn)],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',user2),('cn','groups'),('cn','accounts'),
+                            api.env.basedn)],
                     memberof_group=[u'ipausers'],
-                    dn=u'uid=%s,cn=users,cn=accounts,%s' % (user2, api.env.basedn),
+                    dn=lambda x: DN(x) == \
+                        DN(('uid',user2),('cn','users'),('cn','accounts'),
+                           api.env.basedn),
                 ),
             ),
         ),
@@ -268,7 +284,9 @@ class test_netgroup(Declarative):
                     gidnumber=[fuzzy_digits],
                     objectclass=objectclasses.group + [u'posixgroup'],
                     ipauniqueid=[fuzzy_uuid],
-                    dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
+                    dn=lambda x: DN(x) == \
+                        DN(('cn',group1),('cn','groups'),('cn','accounts'),
+                           api.env.basedn),
                 ),
             ),
         ),
@@ -288,7 +306,9 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn',group1),('cn','groups'),('cn','accounts'),
+                               api.env.basedn),
                         'member_user': (user2,),
                         'gidnumber': [fuzzy_digits],
                         'cn': [group1],

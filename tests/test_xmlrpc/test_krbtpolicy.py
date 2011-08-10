@@ -23,6 +23,7 @@ Test kerberos ticket policy
 from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from ipalib.dn import *
 
 user1 = u'tuser1'
 
@@ -59,7 +60,9 @@ class test_krbtpolicy(Declarative):
                 value=u'',
                 summary=None,
                 result=dict(
-                    dn=u'cn=%s,cn=kerberos,%s' % (api.env.domain, api.env.basedn),
+                    dn=lambda x: DN(x) == \
+                        DN(('cn',api.env.domain),('cn','kerberos'),
+                           api.env.basedn),
                     krbmaxticketlife=[u'86400'],
                     krbmaxrenewableage=[u'604800'],
                 ),
@@ -106,10 +109,16 @@ class test_krbtpolicy(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[u'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn)],
-                    mepmanagedentry=[u'cn=%s,cn=groups,cn=accounts,%s' % (user1, api.env.basedn)],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                            api.env.basedn)],
                     memberof_group=[u'ipausers'],
-                    dn=u'uid=%s,cn=users,cn=accounts,%s' % (user1, api.env.basedn)
+                    dn=lambda x: DN(x) == \
+                        DN(('uid',user1),('cn','users'),('cn','accounts'),
+                           api.env.basedn)
                 ),
             ),
         ),

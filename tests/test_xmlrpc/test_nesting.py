@@ -23,6 +23,7 @@ Test group nexting an indirect members
 from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from ipalib.dn import *
 
 group1 = u'testgroup1'
 group2 = u'testgroup2'
@@ -34,12 +35,15 @@ user3 = u'tuser3'
 user4 = u'tuser4'
 
 hostgroup1 = u'testhostgroup1'
-hgdn1 = u'cn=%s,cn=hostgroups,cn=accounts,%s' % (hostgroup1, api.env.basedn)
+hgdn1 = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
+           api.env.basedn)
 hostgroup2 = u'testhostgroup2'
-hgdn2 = u'cn=%s,cn=hostgroups,cn=accounts,%s' % (hostgroup2, api.env.basedn)
+hgdn2 = DN(('cn',hostgroup2),('cn','hostgroups'),('cn','accounts'),
+           api.env.basedn)
 
 fqdn1 = u'testhost1.%s' % api.env.domain
-host_dn1 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn1, api.env.basedn)
+host_dn1 = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),
+              api.env.basedn)
 
 
 class test_nesting(Declarative):
@@ -76,7 +80,9 @@ class test_nesting(Declarative):
                     objectclass=objectclasses.group + [u'posixgroup'],
                     ipauniqueid=[fuzzy_uuid],
                     gidnumber=[fuzzy_digits],
-                    dn=u'cn=testgroup1,cn=groups,cn=accounts,' + api.env.basedn,
+                    dn=lambda x: DN(x) == \
+                        DN(('cn','testgroup1'),('cn','groups'),
+                           ('cn','accounts'),api.env.basedn),
                 ),
             ),
         ),
@@ -98,7 +104,9 @@ class test_nesting(Declarative):
                     gidnumber=[fuzzy_digits],
                     objectclass=objectclasses.group + [u'posixgroup'],
                     ipauniqueid=[fuzzy_uuid],
-                    dn=u'cn=testgroup2,cn=groups,cn=accounts,' + api.env.basedn,
+                    dn=lambda x: DN(x) == \
+                        DN(('cn','testgroup2'),('cn','groups'),
+                           ('cn','accounts'),api.env.basedn),
                 ),
             ),
         ),
@@ -118,7 +126,9 @@ class test_nesting(Declarative):
                     gidnumber=[fuzzy_digits],
                     objectclass=objectclasses.group + [u'posixgroup'],
                     ipauniqueid=[fuzzy_uuid],
-                    dn=u'cn=testgroup3,cn=groups,cn=accounts,' + api.env.basedn,
+                    dn=lambda x: DN(x) == \
+                        DN(('cn','testgroup3'),('cn','groups'),
+                           ('cn','accounts'),api.env.basedn),
                 ),
             ),
         ),
@@ -138,7 +148,9 @@ class test_nesting(Declarative):
                     gidnumber=[fuzzy_digits],
                     objectclass=objectclasses.group + [u'posixgroup'],
                     ipauniqueid=[fuzzy_uuid],
-                    dn=u'cn=testgroup4,cn=groups,cn=accounts,' + api.env.basedn,
+                    dn=lambda x: DN(x) == \
+                        DN(('cn','testgroup4'),('cn','groups'),
+                           ('cn','accounts'),api.env.basedn),
                 ),
             ),
         ),
@@ -167,10 +179,16 @@ class test_nesting(Declarative):
                     cn=[u'Test User1'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[u'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn)],
-                    mepmanagedentry=[u'cn=%s,cn=groups,cn=accounts,%s' % (user1, api.env.basedn)],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                            api.env.basedn)],
                     memberof_group=[u'ipausers'],
-                    dn=u'uid=%s,cn=users,cn=accounts,%s' % (user1, api.env.basedn)
+                    dn=lambda x: DN(x) == \
+                        DN(('uid',user1),('cn','users'),('cn','accounts'),
+                           api.env.basedn)
                 ),
             ),
         ),
@@ -199,10 +217,16 @@ class test_nesting(Declarative):
                     cn=[u'Test User2'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[u'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn)],
-                    mepmanagedentry=[u'cn=%s,cn=groups,cn=accounts,%s' % (user2, api.env.basedn)],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',user2),('cn','groups'),('cn','accounts'),
+                            api.env.basedn)],
                     memberof_group=[u'ipausers'],
-                    dn=u'uid=%s,cn=users,cn=accounts,%s' % (user2, api.env.basedn)
+                    dn=lambda x: DN(x) == \
+                        DN(('uid',user2),('cn','users'),('cn','accounts'),
+                           api.env.basedn)
                 ),
             ),
         ),
@@ -231,10 +255,16 @@ class test_nesting(Declarative):
                     cn=[u'Test User3'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[u'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn)],
-                    mepmanagedentry=[u'cn=%s,cn=groups,cn=accounts,%s' % (user3, api.env.basedn)],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',user3),('cn','groups'),('cn','accounts'),
+                            api.env.basedn)],
                     memberof_group=[u'ipausers'],
-                    dn=u'uid=%s,cn=users,cn=accounts,%s' % (user3, api.env.basedn)
+                    dn=lambda x: DN(x) == \
+                        DN(('uid',user3),('cn','users'),('cn','accounts'),
+                           api.env.basedn)
                 ),
             ),
         ),
@@ -263,10 +293,16 @@ class test_nesting(Declarative):
                     cn=[u'Test User4'],
                     initials=[u'TU'],
                     ipauniqueid=[fuzzy_uuid],
-                    krbpwdpolicyreference=[u'cn=global_policy,cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn)],
-                    mepmanagedentry=[u'cn=%s,cn=groups,cn=accounts,%s' % (user4, api.env.basedn)],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',user4),('cn','groups'),('cn','accounts'),
+                            api.env.basedn)],
                     memberof_group=[u'ipausers'],
-                    dn=u'uid=%s,cn=users,cn=accounts,%s' % (user4, api.env.basedn)
+                    dn=lambda x: DN(x) == \
+                        DN(('uid',user4),('cn','users'),('cn','accounts'),
+                           api.env.basedn)
                 ),
             ),
         ),
@@ -331,7 +367,9 @@ class test_nesting(Declarative):
                     ),
                 ),
                 result={
-                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn',group1),('cn','groups'),('cn','accounts'),
+                               api.env.basedn),
                         'member_group': (group2,),
                         'gidnumber': [fuzzy_digits],
                         'cn': [group1],
@@ -355,7 +393,9 @@ class test_nesting(Declarative):
                     ),
                 ),
                 result={
-                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn',group1),('cn','groups'),('cn','accounts'),
+                               api.env.basedn),
                         'member_group': [group2, group3,],
                         'gidnumber': [fuzzy_digits],
                         'cn': [group1],
@@ -379,7 +419,9 @@ class test_nesting(Declarative):
                     ),
                 ),
                 result={
-                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group2, api.env.basedn),
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn',group2),('cn','groups'),('cn','accounts'),
+                               api.env.basedn),
                         'member_user': (u'tuser1',),
                         'memberof_group': (u'testgroup1',),
                         'gidnumber': [fuzzy_digits],
@@ -404,7 +446,9 @@ class test_nesting(Declarative):
                     ),
                 ),
                 result={
-                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group2, api.env.basedn),
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn',group2),('cn','groups'),('cn','accounts'),
+                               api.env.basedn),
                         'member_user': [user1, user2],
                         'memberof_group': [group1],
                         'gidnumber': [fuzzy_digits],
@@ -429,7 +473,9 @@ class test_nesting(Declarative):
                     ),
                 ),
                 result={
-                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group3, api.env.basedn),
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn',group3),('cn','groups'),('cn','accounts'),
+                               api.env.basedn),
                         'member_user': [user3],
                         'memberof_group': [group1],
                         'gidnumber': [fuzzy_digits],
@@ -454,7 +500,9 @@ class test_nesting(Declarative):
                     ),
                 ),
                 result={
-                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group3, api.env.basedn),
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn',group3),('cn','groups'),('cn','accounts'),
+                               api.env.basedn),
                         'member_user': [user3],
                         'memberof_group': [group1],
                         'member_group': [group4],
@@ -480,7 +528,9 @@ class test_nesting(Declarative):
                     ),
                 ),
                 result={
-                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group4, api.env.basedn),
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn',group4),('cn','groups'),('cn','accounts'),
+                               api.env.basedn),
                         'member_user': [user1],
                         'memberof_group': [group3],
                         'memberofindirect_group': [group1],
@@ -506,7 +556,9 @@ class test_nesting(Declarative):
                     ),
                 ),
                 result={
-                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group4, api.env.basedn),
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn',group4),('cn','groups'),('cn','accounts'),
+                               api.env.basedn),
                         'member_user': [user1, user4],
                         'memberof_group': [group3],
                         'memberofindirect_group': [group1],
@@ -531,7 +583,9 @@ class test_nesting(Declarative):
                     memberindirect_group = [group4],
                     member_group = [group2, group3],
                     memberindirect_user = [user1, user2, user3, user4],
-                    dn=u'cn=testgroup1,cn=groups,cn=accounts,' + api.env.basedn,
+                    dn=lambda x: DN(x) == \
+                        DN(('cn','testgroup1'),('cn','groups'),
+                           ('cn','accounts'),api.env.basedn),
                 ),
             ),
         ),
@@ -549,7 +603,9 @@ class test_nesting(Declarative):
                     gidnumber= [fuzzy_digits],
                     memberof_group = [group1],
                     member_user = [user1, user2],
-                    dn=u'cn=testgroup2,cn=groups,cn=accounts,' + api.env.basedn,
+                    dn=lambda x: DN(x) == \
+                        DN(('cn','testgroup2'),('cn','groups'),
+                           ('cn','accounts'),api.env.basedn),
                 ),
             ),
         ),
@@ -569,7 +625,9 @@ class test_nesting(Declarative):
                     member_user = [user3],
                     member_group = [group4],
                     memberindirect_user = [user1, user4],
-                    dn=u'cn=testgroup3,cn=groups,cn=accounts,' + api.env.basedn,
+                    dn=lambda x: DN(x) == \
+                        DN(('cn','testgroup3'),('cn','groups'),
+                           ('cn','accounts'),api.env.basedn),
                 ),
             ),
         ),
@@ -588,7 +646,9 @@ class test_nesting(Declarative):
                     memberof_group = [group3],
                     member_user = [user1, user4],
                     memberofindirect_group = [group1],
-                    dn=u'cn=testgroup4,cn=groups,cn=accounts,' + api.env.basedn,
+                    dn=lambda x: DN(x) == \
+                        DN(('cn','testgroup4'),('cn','groups'),
+                           ('cn','accounts'),api.env.basedn),
                 ),
             ),
         ),
@@ -608,7 +668,7 @@ class test_nesting(Declarative):
                 value=fqdn1,
                 summary=u'Added host "%s"' % fqdn1,
                 result=dict(
-                    dn=host_dn1,
+                    dn=lambda x: DN(x) == host_dn1,
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],
@@ -630,12 +690,14 @@ class test_nesting(Declarative):
                 value=hostgroup1,
                 summary=u'Added hostgroup "testhostgroup1"',
                 result=dict(
-                    dn=hgdn1,
+                    dn=lambda x: DN(x) == hgdn1,
                     cn=[hostgroup1],
                     objectclass=objectclasses.hostgroup,
                     description=[u'Test hostgroup 1'],
                     ipauniqueid=[fuzzy_uuid],
-                    mepmanagedentry=[u'cn=%s,cn=ng,cn=alt,%s' % (hostgroup1, api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',hostgroup1),('cn','ng'),('cn','alt'),
+                            api.env.basedn)],
                 ),
             ),
         ),
@@ -650,12 +712,14 @@ class test_nesting(Declarative):
                 value=hostgroup2,
                 summary=u'Added hostgroup "testhostgroup2"',
                 result=dict(
-                    dn=hgdn2,
+                    dn=lambda x: DN(x) == hgdn2,
                     cn=[hostgroup2],
                     objectclass=objectclasses.hostgroup,
                     description=[u'Test hostgroup 2'],
                     ipauniqueid=[fuzzy_uuid],
-                    mepmanagedentry=[u'cn=%s,cn=ng,cn=alt,%s' % (hostgroup2, api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',hostgroup2),('cn','ng'),('cn','alt'),
+                            api.env.basedn)],
                 ),
             ),
         ),
@@ -675,7 +739,7 @@ class test_nesting(Declarative):
                     ),
                 ),
                 result={
-                    'dn': hgdn2,
+                    'dn': lambda x: DN(x) == hgdn2,
                     'cn': [hostgroup2],
                     'description': [u'Test hostgroup 2'],
                     'member_host': [fqdn1],
@@ -698,7 +762,7 @@ class test_nesting(Declarative):
                     ),
                 ),
                 result={
-                    'dn': hgdn1,
+                    'dn': lambda x: DN(x) == hgdn1,
                     'cn': [hostgroup1],
                     'description': [u'Test hostgroup 1'],
                     'member_hostgroup': [hostgroup2],
@@ -714,7 +778,7 @@ class test_nesting(Declarative):
                 value=hostgroup1,
                 summary=None,
                 result={
-                    'dn': hgdn1,
+                    'dn': lambda x: DN(x) == hgdn1,
                     'memberindirect_host': [u'testhost1.%s' % api.env.domain],
                     'member_hostgroup': [hostgroup2],
                     'cn': [hostgroup1],
@@ -731,7 +795,7 @@ class test_nesting(Declarative):
                 value=fqdn1,
                 summary=None,
                 result=dict(
-                    dn=host_dn1,
+                    dn=lambda x: DN(x) == host_dn1,
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],

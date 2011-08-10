@@ -23,6 +23,7 @@ Test the `ipalib/plugins/sudocmdgroup.py` module.
 from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from ipalib.dn import *
 
 sudocmdgroup1 = u'testsudocmdgroup1'
 sudocmdgroup2 = u'testsudocmdgroup2'
@@ -52,8 +53,9 @@ class test_sudocmdgroup(Declarative):
                     sudocmd=[u'/usr/bin/sudotestcmd1'],
                     ipauniqueid=[fuzzy_uuid],
                     description=[u'Test sudo command 1'],
-                    dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
-                        api.env.basedn),
+                    dn=lambda x: DN(x) == \
+                        DN(('sudocmd',sudocmd1),('cn','sudocmds'),('cn','sudo'),
+                           api.env.basedn),
                 ),
             ),
         ),
@@ -68,8 +70,9 @@ class test_sudocmdgroup(Declarative):
                 result=dict(
                     sudocmd=[sudocmd1],
                     description=[u'Test sudo command 1'],
-                    dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
-                        api.env.basedn),
+                    dn=lambda x: DN(x) == \
+                        DN(('sudocmd',sudocmd1),('cn','sudocmds'),('cn','sudo'),
+                           api.env.basedn),
                 ),
             ),
         ),
@@ -113,8 +116,9 @@ class test_sudocmdgroup(Declarative):
                     description=[u'Test desc 1'],
                     objectclass=objectclasses.sudocmdgroup,
                     ipauniqueid=[fuzzy_uuid],
-                    dn=u'cn=testsudocmdgroup1,cn=sudocmdgroups,cn=sudo,' + \
-                        api.env.basedn,
+                    dn=lambda x: DN(x) == \
+                        DN(('cn','testsudocmdgroup1'),('cn','sudocmdgroups'),
+                           ('cn','sudo'),api.env.basedn),
                 ),
             ),
         ),
@@ -139,8 +143,9 @@ class test_sudocmdgroup(Declarative):
                 result=dict(
                     cn=[sudocmdgroup1],
                     description=[u'Test desc 1'],
-                    dn=u'cn=testsudocmdgroup1,cn=sudocmdgroups,cn=sudo,' + \
-                        api.env.basedn,
+                    dn=lambda x: DN(x) == \
+                        DN(('cn','testsudocmdgroup1'),('cn','sudocmdgroups'),
+                           ('cn','sudo'),api.env.basedn),
                 ),
             ),
         ),
@@ -171,8 +176,9 @@ class test_sudocmdgroup(Declarative):
                 result=dict(
                     cn=[sudocmdgroup1],
                     description=[u'New desc 1'],
-                    dn=u'cn=testsudocmdgroup1,cn=sudocmdgroups,cn=sudo,' + \
-                        api.env.basedn,
+                    dn=lambda x: DN(x) == \
+                        DN(('cn','testsudocmdgroup1'),('cn','sudocmdgroups'),
+                           ('cn','sudo'),api.env.basedn),
                 ),
                 summary=None,
             ),
@@ -187,8 +193,9 @@ class test_sudocmdgroup(Declarative):
                 truncated=False,
                 result=[
                     dict(
-                        dn=u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
-                            (sudocmdgroup1, api.env.basedn),
+                        dn=lambda x: DN(x) == \
+                            DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
+                               ('cn','sudo'),api.env.basedn),
                         cn=[sudocmdgroup1],
                         description=[u'New desc 1'],
                     ),
@@ -237,8 +244,9 @@ class test_sudocmdgroup(Declarative):
                     description=[u'Test desc 2'],
                     objectclass=objectclasses.sudocmdgroup,
                     ipauniqueid=[fuzzy_uuid],
-                    dn=u'cn=testsudocmdgroup2,cn=sudocmdgroups,cn=sudo,' + \
-                        api.env.basedn,
+                    dn=lambda x: DN(x) == \
+                        DN(('cn','testsudocmdgroup2'),('cn','sudocmdgroups'),
+                           ('cn','sudo'),api.env.basedn),
                 ),
             ),
         ),
@@ -263,8 +271,9 @@ class test_sudocmdgroup(Declarative):
                 result=dict(
                     cn=[sudocmdgroup2],
                     description=[u'Test desc 2'],
-                    dn=u'cn=testsudocmdgroup2,cn=sudocmdgroups,cn=sudo,' + \
-                        api.env.basedn,
+                    dn=lambda x: DN(x) == \
+                        DN(('cn','testsudocmdgroup2'),('cn','sudocmdgroups'),
+                           ('cn','sudo'),api.env.basedn),
                 ),
             ),
         ),
@@ -295,8 +304,9 @@ class test_sudocmdgroup(Declarative):
                 result=dict(
                     cn=[sudocmdgroup2],
                     description=[u'New desc 2'],
-                    dn=u'cn=testsudocmdgroup2,cn=sudocmdgroups,cn=sudo,' + \
-                        api.env.basedn,
+                    dn=lambda x: DN(x) == \
+                        DN(('cn','testsudocmdgroup2'),('cn','sudocmdgroups'),
+                           ('cn','sudo'),api.env.basedn),
                 ),
                 summary=None,
             ),
@@ -311,8 +321,9 @@ class test_sudocmdgroup(Declarative):
                 truncated=False,
                 result=[
                     dict(
-                        dn=u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
-                            (sudocmdgroup2, api.env.basedn),
+                        dn=lambda x: DN(x) == \
+                            DN(('cn',sudocmdgroup2),('cn','sudocmdgroups'),
+                               ('cn','sudo'),api.env.basedn),
                         cn=[sudocmdgroup2],
                         description=[u'New desc 2'],
                     ),
@@ -331,14 +342,16 @@ class test_sudocmdgroup(Declarative):
                 truncated=False,
                 result=[
                     dict(
-                        dn=u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
-                            (sudocmdgroup1, api.env.basedn),
+                        dn=lambda x: DN(x) == \
+                            DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
+                               ('cn','sudo'),api.env.basedn),
                         cn=[sudocmdgroup1],
                         description=[u'New desc 1'],
                     ),
                     dict(
-                        dn=u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
-                            (sudocmdgroup2, api.env.basedn),
+                        dn=lambda x: DN(x) == \
+                            DN(('cn',sudocmdgroup2),('cn','sudocmdgroups'),
+                               ('cn','sudo'),api.env.basedn),
                         cn=[sudocmdgroup2],
                         description=[u'New desc 2'],
                     ),
@@ -364,8 +377,9 @@ class test_sudocmdgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
-                            (sudocmdgroup1, api.env.basedn),
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
+                               ('cn','sudo'),api.env.basedn),
                         'member_sudocmd': (sudocmd1,),
                         'cn': [sudocmdgroup1],
                         'description': [u'New desc 1'],
@@ -380,8 +394,9 @@ class test_sudocmdgroup(Declarative):
                 value=sudocmd1,
                 summary=None,
                 result=dict(
-                    dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
-                        api.env.basedn),
+                    dn=lambda x: DN(x) == \
+                        DN(('sudocmd',sudocmd1),('cn','sudocmds'),('cn','sudo'),
+                           api.env.basedn),
                     sudocmd=[sudocmd1],
                     description=[u'Test sudo command 1'],
                     memberof_sudocmdgroup = [u'testsudocmdgroup1'],
@@ -403,8 +418,9 @@ class test_sudocmdgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
-                            (sudocmdgroup1, api.env.basedn),
+                        'dn': lambda x: DN(x) == \
+                            DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
+                               ('cn','sudo'),api.env.basedn),
                         'member_sudocmd': (u'/usr/bin/sudotestcmd1',),
                         'cn': [sudocmdgroup1],
                         'description': [u'New desc 1'],
@@ -425,8 +441,9 @@ class test_sudocmdgroup(Declarative):
                     ),
                 ),
                 result={
-                    'dn': u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
-                        (sudocmdgroup1, api.env.basedn),
+                    'dn': lambda x: DN(x) == \
+                        DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
+                           ('cn','sudo'),api.env.basedn),
                     'cn': [sudocmdgroup1],
                     'description': [u'New desc 1'],
                 },
@@ -447,8 +464,9 @@ class test_sudocmdgroup(Declarative):
                     ),
                 ),
                 result={
-                    'dn': u'cn=%s,cn=sudocmdgroups,cn=sudo,%s' % \
-                        (sudocmdgroup1, api.env.basedn),
+                    'dn': lambda x: DN(x) == \
+                        DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
+                           ('cn','sudo'),api.env.basedn),
                     'cn': [sudocmdgroup1],
                     'description': [u'New desc 1'],
                 },

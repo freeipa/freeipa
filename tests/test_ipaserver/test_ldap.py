@@ -33,6 +33,7 @@ from ipalib.plugins.host import host
 import nss.nss as nss
 from ipalib import api, x509, create_api
 from ipapython import ipautil
+from ipalib.dn import *
 
 class test_ldap(object):
     """
@@ -44,7 +45,8 @@ class test_ldap(object):
         self.ldapuri = 'ldap://%s' % api.env.host
         self.ccache = '/tmp/krb5cc_%d' % os.getuid()
         nss.nss_init_nodb()
-        self.dn = 'krbprincipalname=ldap/%s@%s,cn=services,cn=accounts,%s' % (api.env.host, api.env.realm, api.env.basedn)
+        self.dn = str(DN(('krbprincipalname','ldap/%s@%s' % (api.env.host, api.env.realm)),
+                         ('cn','services'),('cn','accounts'),api.env.basedn))
 
     def tearDown(self):
         if self.conn:
