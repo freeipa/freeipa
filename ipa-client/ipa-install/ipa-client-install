@@ -23,6 +23,7 @@ try:
     import sys
 
     import os
+    import stat
     import time
     import socket
     import logging
@@ -564,6 +565,9 @@ $)''', re.VERBOSE)
                             statestore.backup_state('network', 'hostname', value)
                 new_config.write(new_line)
         new_config.flush()
+        # Make sure the resulting file is readable by others before installing it
+        os.fchmod(new_config.fileno(), stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+        os.fchown(new_config.fileno(), 0, 0)
 
     # At this point new_config is closed but not removed due to 'delete=False' above
     # Now, install the temporary file as configuration and ensure old version is available as .orig
@@ -573,6 +577,12 @@ $)''', re.VERBOSE)
         ipautil.run(['/bin/hostname', hostname])
     except CalledProcessError, e:
         print >>sys.stderr, "Failed to set this machine hostname to %s (%s)." % (hostname, str(e))
+
+    # For SE Linux environments it is important to reset SE labels to the expected ones
+    try:
+        ipautil.run(['/sbin/restorecon', network_filename])
+    except CalledProcessError, e:
+        print >>sys.stderr, "Failed to set permissions for %s (%s)." % (network_filename, str(e))
 
 def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
     sssdconfig = SSSDConfig.SSSDConfig()
