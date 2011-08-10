@@ -22,6 +22,7 @@ Test the `ipalib/plugins/dns.py` module.
 
 import nose
 from ipalib import api, errors
+from ipalib.dn import *
 from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
@@ -89,7 +90,8 @@ class test_dns(Declarative):
                 'value': dnszone1,
                 'summary': None,
                 'result': {
-                    'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
+                    'dn': lambda x: DN(x) == \
+                        DN(('idnsname',dnszone1),('cn','dns'),api.env.basedn),
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'idnssoamname': [u'ns1.%s.' % dnszone1],
@@ -143,7 +145,8 @@ class test_dns(Declarative):
                 'value': dnszone2,
                 'summary': None,
                 'result': {
-                    'dn': u'idnsname=%s,cn=dns,%s' % (dnszone2, api.env.basedn),
+                    'dn': lambda x: DN(x) == \
+                        DN(('idnsname',dnszone2),('cn','dns'),api.env.basedn),
                     'idnsname': [dnszone2],
                     'idnszoneactive': [u'TRUE'],
                     'idnssoamname': [u'ns1.%s.' % dnszone2],
@@ -177,7 +180,8 @@ class test_dns(Declarative):
                 'value': dnszone1,
                 'summary': None,
                 'result': {
-                    'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
+                    'dn': lambda x: DN(x) == \
+                        DN(('idnsname',dnszone1),('cn','dns'),api.env.basedn),
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [u'ns1.%s.' % dnszone1],
@@ -229,7 +233,8 @@ class test_dns(Declarative):
                 'value': revdnszone1,
                 'summary': None,
                 'result': {
-                    'dn': u'idnsname=%s,cn=dns,%s' % (revdnszone1, api.env.basedn),
+                    'dn': lambda x: DN(x) == \
+                        DN(('idnsname',revdnszone1),('cn','dns'),api.env.basedn),
                     'idnsname': [revdnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'idnssoamname': [u'ns1.%s.' % dnszone1],
@@ -255,7 +260,8 @@ class test_dns(Declarative):
                 'count': 2,
                 'truncated': False,
                 'result': [{
-                    'dn': u'idnsname=%s,cn=dns,%s' % (revdnszone1, api.env.basedn),
+                    'dn': lambda x: DN(x) == \
+                        DN(('idnsname',revdnszone1),('cn','dns'),api.env.basedn),
                     'idnsname': [revdnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [u'ns1.%s.' % dnszone1],
@@ -268,7 +274,8 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                 },
                 {
-                    'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
+                    'dn': lambda x: DN(x) == \
+                        DN(('idnsname',dnszone1),('cn','dns'),api.env.basedn),
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [u'ns1.%s.' % dnszone1],
@@ -292,7 +299,8 @@ class test_dns(Declarative):
                 'count': 1,
                 'truncated': False,
                 'result': [{
-                    'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
+                    'dn': lambda x: DN(x) == \
+                        DN(('idnsname',dnszone1),('cn','dns'),api.env.basedn),
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [u'ns1.%s.' % dnszone1],
@@ -337,7 +345,8 @@ class test_dns(Declarative):
                 'value': dnszone1,
                 'summary': None,
                 'result': {
-                    'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
+                    'dn': lambda x: DN(x) == \
+                        DN(('idnsname',dnszone1),('cn','dns'),api.env.basedn),
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'FALSE'],
                     'nsrecord': [u'ns1.%s.' % dnszone1],
@@ -371,7 +380,8 @@ class test_dns(Declarative):
                 'value': dnszone1,
                 'summary': None,
                 'result': {
-                    'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
+                    'dn': lambda x: DN(x) == \
+                        DN(('idnsname',dnszone1),('cn','dns'),api.env.basedn),
                     'idnsname': [dnszone1],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [u'ns1.%s.' % dnszone1],
@@ -408,7 +418,9 @@ class test_dns(Declarative):
                 'value': dnsres1,
                 'summary': None,
                 'result': {
-                    'dn': u'idnsname=%s,idnsname=%s,cn=dns,%s' % (dnsres1, dnszone1, api.env.basedn),
+                    'dn': lambda x: DN(x) == \
+                        DN(('idnsname',dnsres1),('idnsname',dnszone1),
+                           ('cn','dns'),api.env.basedn),
                     'idnsname': [dnsres1],
                     'objectclass': [u'top', u'idnsrecord'],
                     'arecord': [u'127.0.0.1'],
@@ -426,17 +438,23 @@ class test_dns(Declarative):
                 'truncated': False,
                 'result': [
                     {
-                        'dn': u'idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
+                        'dn': lambda x: DN(x) == \
+                            DN(('idnsname',dnszone1),('cn','dns'),
+                               api.env.basedn),
                         'nsrecord': (u'ns1.dnszone.test.',),
                         'idnsname': [u'@'],
                     },
                     {
-                        'dn': u'idnsname=ns1,idnsname=%s,cn=dns,%s' % (dnszone1, api.env.basedn),
+                        'dn': lambda x: DN(x) == \
+                            DN(('idnsname','ns1'),('idnsname',dnszone1),
+                               ('cn','dns'),api.env.basedn),
                         'idnsname': [u'ns1'],
                         'arecord': [u'1.2.3.4'],
                     },
                     {
-                        'dn': u'idnsname=%s,idnsname=%s,cn=dns,%s' % (dnsres1, dnszone1, api.env.basedn),
+                        'dn': lambda x: DN(x) == \
+                            DN(('idnsname',dnsres1),('idnsname',dnszone1),
+                               ('cn','dns'),api.env.basedn),
                         'idnsname': [dnsres1],
                         'arecord': [u'127.0.0.1'],
                     },
@@ -452,7 +470,9 @@ class test_dns(Declarative):
                 'value': dnsres1,
                 'summary': None,
                 'result': {
-                    'dn': u'idnsname=%s,idnsname=%s,cn=dns,%s' % (dnsres1, dnszone1, api.env.basedn),
+                    'dn': lambda x: DN(x) == \
+                        DN(('idnsname',dnsres1),('idnsname',dnszone1),
+                           ('cn','dns'),api.env.basedn),
                     'idnsname': [dnsres1],
                     'arecord': [u'127.0.0.1', u'10.10.0.1'],
                     'objectclass': [u'top', u'idnsrecord'],

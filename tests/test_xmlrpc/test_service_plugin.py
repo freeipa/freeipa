@@ -26,17 +26,17 @@ from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid, fuzzy_hash
 from tests.test_xmlrpc.xmlrpc_test import fuzzy_digits, fuzzy_date, fuzzy_issuer
 from tests.test_xmlrpc import objectclasses
 import base64
-
+from ipalib.dn import *
 
 fqdn1 = u'testhost1.%s' % api.env.domain
 fqdn2 = u'testhost2.%s' % api.env.domain
 fqdn3 = u'TestHost3.%s' % api.env.domain
 service1 = u'HTTP/%s@%s' % (fqdn1, api.env.realm)
 hostprincipal1 = u'host/%s@%s'  % (fqdn1, api.env.realm)
-service1dn = u'krbprincipalname=%s,cn=services,cn=accounts,%s' % (service1.lower(), api.env.basedn)
-host1dn = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn1, api.env.basedn)
-host2dn = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn2, api.env.basedn)
-host3dn = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn3.lower(), api.env.basedn)
+service1dn = DN(('krbprincipalname',service1),('cn','services'),('cn','accounts'),api.env.basedn)
+host1dn = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),api.env.basedn)
+host2dn = DN(('fqdn',fqdn2),('cn','computers'),('cn','accounts'),api.env.basedn)
+host3dn = DN(('fqdn',fqdn3),('cn','computers'),('cn','accounts'),api.env.basedn)
 
 fd = open('tests/test_xmlrpc/service.crt', 'r')
 servercert = fd.readlines()
@@ -91,7 +91,7 @@ class test_host(Declarative):
                 value=fqdn1,
                 summary=u'Added host "%s"' % fqdn1,
                 result=dict(
-                    dn=host1dn,
+                    dn=lambda x: DN(x) == host1dn,
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],
@@ -117,7 +117,7 @@ class test_host(Declarative):
                 value=fqdn2,
                 summary=u'Added host "%s"' % fqdn2,
                 result=dict(
-                    dn=host2dn,
+                    dn=lambda x: DN(x) == host2dn,
                     fqdn=[fqdn2],
                     description=[u'Test host 2'],
                     l=[u'Undisclosed location 2'],
@@ -143,7 +143,7 @@ class test_host(Declarative):
                 value=fqdn3.lower(),
                 summary=u'Added host "%s"' % fqdn3.lower(),
                 result=dict(
-                    dn=host3dn,
+                    dn=lambda x: DN(x) == host3dn,
                     fqdn=[fqdn3.lower()],
                     description=[u'Test host 3'],
                     l=[u'Undisclosed location 3'],
@@ -167,7 +167,7 @@ class test_host(Declarative):
                 value=service1,
                 summary=u'Added service "%s"' % service1,
                 result=dict(
-                    dn=service1dn,
+                    dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
                     objectclass=objectclasses.service,
                     ipauniqueid=[fuzzy_uuid],
@@ -195,7 +195,7 @@ class test_host(Declarative):
                 value=service1,
                 summary=None,
                 result=dict(
-                    dn=service1dn,
+                    dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
                     has_keytab=False,
                     managedby_host=[fqdn1],
@@ -211,7 +211,7 @@ class test_host(Declarative):
                 value=service1,
                 summary=None,
                 result=dict(
-                    dn=service1dn,
+                    dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
                     objectclass=objectclasses.service,
                     ipauniqueid=[fuzzy_uuid],
@@ -231,7 +231,7 @@ class test_host(Declarative):
                 summary=u'1 service matched',
                 result=[
                     dict(
-                        dn=service1dn,
+                        dn=lambda x: DN(x) == service1dn,
                         krbprincipalname=[service1],
                         managedby_host=[fqdn1],
                         has_keytab=False,
@@ -250,7 +250,7 @@ class test_host(Declarative):
                 summary=u'1 service matched',
                 result=[
                     dict(
-                        dn=service1dn,
+                        dn=lambda x: DN(x) == service1dn,
                         krbprincipalname=[service1],
                         objectclass=objectclasses.service,
                         ipauniqueid=[fuzzy_uuid],
@@ -269,7 +269,7 @@ class test_host(Declarative):
                 failed=dict(managedby=dict(host=[(u'notfound', u'no such entry')])),
                 completed=0,
                 result=dict(
-                    dn=service1dn,
+                    dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                 ),
@@ -284,7 +284,7 @@ class test_host(Declarative):
                 failed=dict(managedby=dict(host=[(u'notfound', u'This entry is not a member')])),
                 completed=0,
                 result=dict(
-                    dn=service1dn,
+                    dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                 ),
@@ -299,7 +299,7 @@ class test_host(Declarative):
                 failed=dict(managedby=dict(host=[])),
                 completed=1,
                 result=dict(
-                    dn=service1dn,
+                    dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1, fqdn2],
                 ),
@@ -314,7 +314,7 @@ class test_host(Declarative):
                 failed=dict(managedby=dict(host=[])),
                 completed=1,
                 result=dict(
-                    dn=service1dn,
+                    dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                 ),
@@ -329,7 +329,7 @@ class test_host(Declarative):
                 failed=dict(managedby=dict(host=[])),
                 completed=1,
                 result=dict(
-                    dn=service1dn,
+                    dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1, fqdn3.lower()],
                 ),
@@ -344,7 +344,7 @@ class test_host(Declarative):
                 failed=dict(managedby=dict(host=[])),
                 completed=1,
                 result=dict(
-                    dn=service1dn,
+                    dn=lambda x: DN(x) == service1dn,
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                 ),
@@ -371,7 +371,8 @@ class test_host(Declarative):
                     managedby_host=[fqdn1],
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
-                    subject=u'CN=%s,O=%s' % (api.env.host, api.env.realm),
+                    subject=lambda x: DN(x) == \
+                        DN(('CN',api.env.host),('O',api.env.realm)),
                     serial_number=fuzzy_digits,
                     md5_fingerprint=fuzzy_hash,
                     sha1_fingerprint=fuzzy_hash,
@@ -388,7 +389,7 @@ class test_host(Declarative):
                 value=service1,
                 summary=None,
                 result=dict(
-                    dn=service1dn,
+                    dn=lambda x: DN(x) == service1dn,
                     usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
                     has_keytab=False,
@@ -397,7 +398,8 @@ class test_host(Declarative):
                     # test case.
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
-                    subject=u'CN=%s,O=%s' % (api.env.host, api.env.realm),
+                    subject=lambda x: DN(x) == \
+                        DN(('CN',api.env.host),('O',api.env.realm)),
                     serial_number=fuzzy_digits,
                     md5_fingerprint=fuzzy_hash,
                     sha1_fingerprint=fuzzy_hash,

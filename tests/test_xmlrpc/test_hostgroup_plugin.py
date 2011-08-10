@@ -23,15 +23,18 @@ Test the `ipalib.plugins.hostgroup` module.
 """
 
 from ipalib import api, errors
-from ipalib.dn import DN
+from ipalib.dn import *
 from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from tests.test_xmlrpc import objectclasses
+from ipalib.dn import *
 
 hostgroup1 = u'testhostgroup1'
-dn1 = u'cn=%s,cn=hostgroups,cn=accounts,%s' % (hostgroup1, api.env.basedn)
+dn1 = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
+         api.env.basedn)
 
 fqdn1 = u'testhost1.%s' % api.env.domain
-host_dn1 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn1, api.env.basedn)
+host_dn1 = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),
+              api.env.basedn)
 
 
 class test_hostgroup(Declarative):
@@ -75,12 +78,14 @@ class test_hostgroup(Declarative):
                 value=hostgroup1,
                 summary=u'Added hostgroup "testhostgroup1"',
                 result=dict(
-                    dn=dn1,
+                    dn=lambda x: DN(x) == dn1,
                     cn=[hostgroup1],
                     objectclass=objectclasses.hostgroup,
                     description=[u'Test hostgroup 1'],
                     ipauniqueid=[fuzzy_uuid],
-                    mepmanagedentry=['cn=%s,cn=ng,cn=alt,%s' % (hostgroup1, api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',hostgroup1),('cn','ng'),('cn','alt'),
+                            api.env.basedn)],
                 ),
             ),
         ),
@@ -108,7 +113,7 @@ class test_hostgroup(Declarative):
                 value=fqdn1,
                 summary=u'Added host "%s"' % fqdn1,
                 result=dict(
-                    dn=host_dn1,
+                    dn=lambda x: DN(x) == host_dn1,
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],
@@ -135,7 +140,7 @@ class test_hostgroup(Declarative):
                     ),
                 ),
                 result={
-                    'dn': dn1,
+                    'dn': lambda x: DN(x) == dn1,
                     'cn': [hostgroup1],
                     'description': [u'Test hostgroup 1'],
                     'member_host': [fqdn1],
@@ -151,7 +156,7 @@ class test_hostgroup(Declarative):
                 value=hostgroup1,
                 summary=None,
                 result={
-                    'dn': dn1,
+                    'dn': lambda x: DN(x) == dn1,
                     'member_host': [u'testhost1.%s' % api.env.domain],
                     'cn': [hostgroup1],
                     'description': [u'Test hostgroup 1'],
@@ -169,7 +174,7 @@ class test_hostgroup(Declarative):
                 summary=u'1 hostgroup matched',
                 result=[
                     {
-                        'dn': dn1,
+                        'dn': lambda x: DN(x) == dn1,
                         'member_host': [u'testhost1.%s' % api.env.domain],
                         'cn': [hostgroup1],
                         'description': [u'Test hostgroup 1'],
@@ -203,7 +208,7 @@ class test_hostgroup(Declarative):
                 value=hostgroup1,
                 summary=None,
                 result={
-                    'dn': dn1,
+                    'dn': lambda x: DN(x) == dn1,
                     'member_host': [u'testhost1.%s' % api.env.domain],
                     'cn': [hostgroup1],
                     'description': [u'Updated hostgroup 1'],
@@ -226,7 +231,7 @@ class test_hostgroup(Declarative):
                 ),
                 completed=1,
                 result={
-                    'dn': dn1,
+                    'dn': lambda x: DN(x) == dn1,
                     'cn': [hostgroup1],
                     'description': [u'Updated hostgroup 1'],
                 },

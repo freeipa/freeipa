@@ -31,6 +31,7 @@ import nose
 import tempfile
 import krbV
 from ipaserver.plugins.ldap2 import ldap2
+from ipalib.dn import *
 
 def use_keytab(principal, keytab):
     try:
@@ -61,7 +62,6 @@ class test_ipagetkeytab(cmdline_test):
     command = "ipa-client/ipa-getkeytab"
     host_fqdn = u'ipatest.%s' % api.env.domain
     service_princ = u'test/%s@%s' % (host_fqdn, api.env.realm)
-    subject = 'CN=%s,O=IPA' % host_fqdn
     [keytabfd, keytabname] = tempfile.mkstemp()
     os.close(keytabfd)
 

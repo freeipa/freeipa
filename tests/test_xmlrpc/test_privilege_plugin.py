@@ -24,22 +24,19 @@ Test the `ipalib/plugins/privilege.py` module.
 from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from ipalib.dn import *
 
 permission1 = u'testperm'
-permission1_dn = u'cn=%s,%s,%s' % (permission1,
-    api.env.container_permission,api.env.basedn,
-)
-
+permission1_dn = DN(('cn',permission1),
+                    api.env.container_permission,api.env.basedn)
 
 permission2 = u'testperm2'
-permission2_dn = u'cn=%s,%s,%s' % (permission2,
-    api.env.container_permission,api.env.basedn,
-)
+permission2_dn = DN(('cn',permission2),
+                    api.env.container_permission,api.env.basedn)
 
 privilege1 = u'testpriv1'
-privilege1_dn = u'cn=%s,%s,%s' % (
-    privilege1, api.env.container_privilege, api.env.basedn
-)
+privilege1_dn = DN(('cn',privilege1),
+                   api.env.container_privilege,api.env.basedn)
 
 
 class test_privilege(Declarative):
@@ -97,7 +94,7 @@ class test_privilege(Declarative):
                 value=permission1,
                 summary=u'Added permission "%s"' % permission1,
                 result=dict(
-                    dn=permission1_dn,
+                    dn=lambda x: DN(x) == permission1_dn,
                     cn=[permission1],
                     objectclass=objectclasses.permission,
                     type=u'user',
@@ -116,7 +113,7 @@ class test_privilege(Declarative):
                 value=privilege1,
                 summary=u'Added privilege "%s"' % privilege1,
                 result=dict(
-                    dn=privilege1_dn,
+                    dn=lambda x: DN(x) == privilege1_dn,
                     cn=[privilege1],
                     description=[u'privilege desc. 1'],
                     objectclass=objectclasses.privilege,
@@ -138,7 +135,7 @@ class test_privilege(Declarative):
                     ),
                 ),
                 result={
-                    'dn': privilege1_dn,
+                    'dn': lambda x: DN(x) == privilege1_dn,
                     'cn': [privilege1],
                     'description': [u'privilege desc. 1'],
                     'memberof_permission': [permission1],
@@ -154,7 +151,7 @@ class test_privilege(Declarative):
                 value=privilege1,
                 summary=None,
                 result={
-                    'dn': privilege1_dn,
+                    'dn': lambda x: DN(x) == privilege1_dn,
                     'cn': [privilege1],
                     'description': [u'privilege desc. 1'],
                     'memberof_permission': [permission1],
@@ -172,7 +169,7 @@ class test_privilege(Declarative):
                 summary=u'1 privilege matched',
                 result=[
                     {
-                        'dn': privilege1_dn,
+                        'dn': lambda x: DN(x) == privilege1_dn,
                         'cn': [privilege1],
                         'description': [u'privilege desc. 1'],
                         'memberof_permission': [permission1],
@@ -191,7 +188,7 @@ class test_privilege(Declarative):
                 summary=u'1 privilege matched',
                 result=[
                     {
-                        'dn': privilege1_dn,
+                        'dn': lambda x: DN(x) == privilege1_dn,
                         'cn': [privilege1],
                         'description': [u'privilege desc. 1'],
                         'memberof_permission': [permission1],
@@ -213,7 +210,7 @@ class test_privilege(Declarative):
                 value=permission2,
                 summary=u'Added permission "%s"' % permission2,
                 result=dict(
-                    dn=permission2_dn,
+                    dn=lambda x: DN(x) == permission2_dn,
                     cn=[permission2],
                     objectclass=objectclasses.permission,
                     type=u'user',
@@ -236,7 +233,7 @@ class test_privilege(Declarative):
                     ),
                 ),
                 result={
-                    'dn': privilege1_dn,
+                    'dn': lambda x: DN(x) == privilege1_dn,
                     'cn': [privilege1],
                     'description': [u'privilege desc. 1'],
                     'memberof_permission': [permission1, permission2],
@@ -258,7 +255,7 @@ class test_privilege(Declarative):
                     ),
                 ),
                 result={
-                    'dn': privilege1_dn,
+                    'dn': lambda x: DN(x) == privilege1_dn,
                     'cn': [privilege1],
                     'description': [u'privilege desc. 1'],
                     'memberof_permission': [permission1, permission2],
@@ -276,7 +273,7 @@ class test_privilege(Declarative):
                 summary=u'1 privilege matched',
                 result=[
                     {
-                        'dn': privilege1_dn,
+                        'dn': lambda x: DN(x) == privilege1_dn,
                         'cn': [privilege1],
                         'description': [u'privilege desc. 1'],
                         'memberof_permission': [permission1, permission2],
@@ -316,7 +313,7 @@ class test_privilege(Declarative):
                     ),
                 ),
                 result={
-                    'dn': privilege1_dn,
+                    'dn': lambda x: DN(x) == privilege1_dn,
                     'cn': [privilege1],
                     'description': [u'New desc 1'],
                     'memberof_permission': [permission2],
@@ -338,7 +335,7 @@ class test_privilege(Declarative):
                     ),
                 ),
                 result={
-                    'dn': privilege1_dn,
+                    'dn': lambda x: DN(x) == privilege1_dn,
                     'cn': [privilege1],
                     'description': [u'New desc 1'],
                     'memberof_permission': [permission2],

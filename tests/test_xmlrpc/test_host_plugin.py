@@ -23,6 +23,7 @@ Test the `ipalib.plugins.host` module.
 """
 
 from ipalib import api, errors, x509
+from ipalib.dn import *
 from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid, fuzzy_digits
 from tests.test_xmlrpc.xmlrpc_test import fuzzy_hash, fuzzy_date, fuzzy_issuer
 from tests.test_xmlrpc import objectclasses
@@ -31,16 +32,21 @@ import base64
 
 fqdn1 = u'testhost1.%s' % api.env.domain
 short1 = u'testhost1'
-dn1 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn1, api.env.basedn)
+dn1 = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),
+         api.env.basedn)
 service1 = u'dns/%s@%s' % (fqdn1, api.env.realm)
-service1dn = u'krbprincipalname=%s,cn=services,cn=accounts,%s' % (service1.lower(), api.env.basedn)
+service1dn = DN(('krbprincipalname',service1.lower()),('cn','services'),
+                ('cn','accounts'),api.env.basedn)
 fqdn2 = u'shouldnotexist.%s' % api.env.domain
-dn2 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn2, api.env.basedn)
+dn2 = DN(('fqdn',fqdn2),('cn','computers'),('cn','accounts'),
+         api.env.basedn)
 fqdn3 = u'testhost2.%s' % api.env.domain
 short3 = u'testhost2'
-dn3 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn3, api.env.basedn)
+dn3 = DN(('fqdn',fqdn3),('cn','computers'),('cn','accounts'),
+         api.env.basedn)
 fqdn4 = u'testhost2.lab.%s' % api.env.domain
-dn4 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn4, api.env.basedn)
+dn4 = DN(('fqdn',fqdn4),('cn','computers'),('cn','accounts'),
+         api.env.basedn)
 
 # We can use the same cert we generated for the service tests
 fd = open('tests/test_xmlrpc/service.crt', 'r')
@@ -95,7 +101,7 @@ class test_host(Declarative):
                 value=fqdn1,
                 summary=u'Added host "%s"' % fqdn1,
                 result=dict(
-                    dn=dn1,
+                    dn=lambda x: DN(x) == dn1,
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],
@@ -128,7 +134,7 @@ class test_host(Declarative):
                 value=fqdn1,
                 summary=None,
                 result=dict(
-                    dn=dn1,
+                    dn=lambda x: DN(x) == dn1,
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],
@@ -147,7 +153,7 @@ class test_host(Declarative):
                 value=fqdn1,
                 summary=None,
                 result=dict(
-                    dn=dn1,
+                    dn=lambda x: DN(x) == dn1,
                     cn=[fqdn1],
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
@@ -177,7 +183,7 @@ class test_host(Declarative):
                 summary=u'1 host matched',
                 result=[
                     dict(
-                        dn=dn1,
+                        dn=lambda x: DN(x) == dn1,
                         fqdn=[fqdn1],
                         description=[u'Test host 1'],
                         l=[u'Undisclosed location 1'],
@@ -198,7 +204,7 @@ class test_host(Declarative):
                 summary=u'1 host matched',
                 result=[
                     dict(
-                        dn=dn1,
+                        dn=lambda x: DN(x) == dn1,
                         cn=[fqdn1],
                         fqdn=[fqdn1],
                         description=[u'Test host 1'],
@@ -235,7 +241,8 @@ class test_host(Declarative):
                     usercertificate=[base64.b64decode(servercert)],
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
-                    subject=u'CN=%s,O=%s' % (api.env.host, api.env.realm),
+                    subject=lambda x: DN(x) == \
+                        DN(('CN',api.env.host),('O',api.env.realm)),
                     serial_number=fuzzy_digits,
                     md5_fingerprint=fuzzy_hash,
                     sha1_fingerprint=fuzzy_hash,
@@ -252,7 +259,7 @@ class test_host(Declarative):
                 value=fqdn1,
                 summary=None,
                 result=dict(
-                    dn=dn1,
+                    dn=lambda x: DN(x) == dn1,
                     fqdn=[fqdn1],
                     description=[u'Updated host 1'],
                     l=[u'Undisclosed location 1'],
@@ -262,7 +269,8 @@ class test_host(Declarative):
                     usercertificate=[base64.b64decode(servercert)],
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
-                    subject=u'CN=%s,O=%s' % (api.env.host, api.env.realm),
+                    subject=lambda x: DN(x) == \
+                        DN(('CN',api.env.host),('O',api.env.realm)),
                     serial_number=fuzzy_digits,
                     md5_fingerprint=fuzzy_hash,
                     sha1_fingerprint=fuzzy_hash,
@@ -284,7 +292,7 @@ class test_host(Declarative):
                 value=fqdn3,
                 summary=u'Added host "%s"' % fqdn3,
                 result=dict(
-                    dn=dn3,
+                    dn=lambda x: DN(x) == dn3,
                     fqdn=[fqdn3],
                     description=[u'Test host 2'],
                     l=[u'Undisclosed location 2'],
@@ -310,7 +318,7 @@ class test_host(Declarative):
                 value=fqdn4,
                 summary=u'Added host "%s"' % fqdn4,
                 result=dict(
-                    dn=dn4,
+                    dn=lambda x: DN(x) == dn4,
                     fqdn=[fqdn4],
                     description=[u'Test host 4'],
                     l=[u'Undisclosed location 4'],
@@ -338,7 +346,7 @@ class test_host(Declarative):
                     ),
                 ),
                 result=dict(
-                    dn=dn3,
+                    dn=lambda x: DN(x) == dn3,
                     fqdn=[fqdn3],
                     description=[u'Test host 2'],
                     l=[u'Undisclosed location 2'],
@@ -355,7 +363,7 @@ class test_host(Declarative):
                 value=fqdn3,
                 summary=None,
                 result=dict(
-                    dn=dn3,
+                    dn=lambda x: DN(x) == dn3,
                     fqdn=[fqdn3],
                     description=[u'Test host 2'],
                     l=[u'Undisclosed location 2'],
@@ -381,7 +389,7 @@ class test_host(Declarative):
                     ),
                 ),
                 result=dict(
-                    dn=dn3,
+                    dn=lambda x: DN(x) == dn3,
                     fqdn=[fqdn3],
                     description=[u'Test host 2'],
                     l=[u'Undisclosed location 2'],
@@ -452,7 +460,7 @@ class test_host(Declarative):
                 value=fqdn1,
                 summary=u'Added host "%s"' % fqdn1,
                 result=dict(
-                    dn=dn1,
+                    dn=lambda x: DN(x) == dn1,
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],
@@ -523,7 +531,7 @@ class test_host(Declarative):
                 value=fqdn2,
                 summary=u'Added host "%s"' % fqdn2,
                 result=dict(
-                    dn=dn2,
+                    dn=lambda x: DN(x) == dn2,
                     fqdn=[fqdn2],
                     description=[u'Test host 2'],
                     l=[u'Undisclosed location 2'],

@@ -30,21 +30,21 @@ from ipalib.dn import *
 search = u'test-role'
 
 role1 = u'test-role-1'
-role1_dn = u'cn=%s,%s,%s' % (
-    role1, api.env.container_rolegroup, api.env.basedn
-)
+role1_dn = DN(('cn',role1),api.env.container_rolegroup,
+              api.env.basedn)
 renamedrole1 = u'test-role'
 
 role2 = u'test-role-2'
-role2_dn = u'cn=%s,%s,%s' % (
-    role2, api.env.container_rolegroup, api.env.basedn
-)
+role2_dn = DN(('cn',role2),api.env.container_rolegroup,
+              api.env.basedn)
 
 group1 = u'testgroup1'
-group1_dn = u'cn=%s,%s,%s' % (group1, api.env.container_group, api.env.basedn)
+group1_dn = DN(('cn',group1),api.env.container_group,
+               api.env.basedn)
 
 privilege1 = u'r,w privilege 1'
-privilege1_dn = DN(('cn', privilege1), DN(api.env.container_privilege), DN(api.env.basedn))
+privilege1_dn = DN(('cn', privilege1), DN(api.env.container_privilege),
+                   api.env.basedn)
 
 def escape_comma(value):
     return value.replace(',', '\\,')
@@ -109,7 +109,7 @@ class test_role(Declarative):
                 value=role1,
                 summary=u'Added role "%s"' % role1,
                 result=dict(
-                    dn=role1_dn,
+                    dn=lambda x: DN(x) == role1_dn,
                     cn=[role1],
                     description=[u'role desc 1'],
                     objectclass=objectclasses.role,
@@ -125,7 +125,7 @@ class test_role(Declarative):
                 value=role1,
                 summary=None,
                 result=dict(
-                    dn=role1_dn,
+                    dn=lambda x: DN(x) == role1_dn,
                     cn=[role1],
                     description=[u'role desc 1'],
                 ),
@@ -143,7 +143,7 @@ class test_role(Declarative):
                 value=group1,
                 summary=u'Added group "testgroup1"',
                 result=dict(
-                    dn=group1_dn,
+                    dn=lambda x: DN(x) == group1_dn,
                     cn=[group1],
                     description=[u'group desc 1'],
                     objectclass=objectclasses.group,
@@ -162,7 +162,7 @@ class test_role(Declarative):
                 value=privilege1,
                 summary=u'Added privilege "%s"' % privilege1,
                 result=dict(
-                    dn=lambda got: DN(got) == privilege1_dn,
+                    dn=lambda x: DN(x) == privilege1_dn,
                     cn=[privilege1],
                     description=[u'privilege desc. 1'],
                     objectclass=objectclasses.privilege,
@@ -184,7 +184,7 @@ class test_role(Declarative):
                     ),
                 ),
                 result={
-                    'dn': role1_dn,
+                    'dn': lambda x: DN(x) == role1_dn,
                     'cn': [role1],
                     'description': [u'role desc 1'],
                     'memberof_privilege': [privilege1],
@@ -207,7 +207,7 @@ class test_role(Declarative):
                     ),
                 ),
                 result={
-                    'dn': role1_dn,
+                    'dn': lambda x: DN(x) == role1_dn,
                     'cn': [role1],
                     'description': [u'role desc 1'],
                     'member_group': [group1],
@@ -224,7 +224,7 @@ class test_role(Declarative):
                 value=role1,
                 summary=None,
                 result={
-                    'dn': role1_dn,
+                    'dn': lambda x: DN(x) == role1_dn,
                     'cn': [role1],
                     'description': [u'role desc 1'],
                     'member_group': [group1],
@@ -243,7 +243,7 @@ class test_role(Declarative):
                 summary=u'1 role matched',
                 result=[
                     {
-                        'dn': role1_dn,
+                        'dn': lambda x: DN(x) == role1_dn,
                         'cn': [role1],
                         'description': [u'role desc 1'],
                         'member_group': [group1],
@@ -263,7 +263,7 @@ class test_role(Declarative):
                 summary=u'1 role matched',
                 result=[
                     {
-                        'dn': role1_dn,
+                        'dn': lambda x: DN(x) == role1_dn,
                         'cn': [role1],
                         'description': [u'role desc 1'],
                         'member_group': [group1],
@@ -283,7 +283,7 @@ class test_role(Declarative):
                 value=role2,
                 summary=u'Added role "%s"' % role2,
                 result=dict(
-                    dn=role2_dn,
+                    dn=lambda x: DN(x) == role2_dn,
                     cn=[role2],
                     description=[u'role desc 2'],
                     objectclass=objectclasses.role,
@@ -301,7 +301,7 @@ class test_role(Declarative):
                 summary=u'1 role matched',
                 result=[
                     {
-                        'dn': role1_dn,
+                        'dn': lambda x: DN(x) == role1_dn,
                         'cn': [role1],
                         'description': [u'role desc 1'],
                         'member_group': [group1],
@@ -321,14 +321,14 @@ class test_role(Declarative):
                 summary=u'2 roles matched',
                 result=[
                     {
-                        'dn': role1_dn,
+                        'dn': lambda x: DN(x) == role1_dn,
                         'cn': [role1],
                         'description': [u'role desc 1'],
                         'member_group': [group1],
                         'memberof_privilege': [privilege1],
                     },
                     {
-                        'dn': role2_dn,
+                        'dn': lambda x: DN(x) == role2_dn,
                         'cn': [role2],
                         'description': [u'role desc 2'],
                     },
@@ -362,7 +362,7 @@ class test_role(Declarative):
                 value=role1,
                 summary=None,
                 result={
-                    'dn': role1_dn,
+                    'dn': lambda x: DN(x) == role1_dn,
                     'cn': [role1],
                     'description': [u'New desc 1'],
                     'member_group': [group1],
@@ -386,7 +386,7 @@ class test_role(Declarative):
                     ),
                 ),
                 result={
-                    'dn': role1_dn,
+                    'dn': lambda x: DN(x) == role1_dn,
                     'cn': [role1],
                     'description': [u'New desc 1'],
                     'memberof_privilege': [privilege1],
@@ -402,7 +402,7 @@ class test_role(Declarative):
                 value=role1,
                 summary=None,
                 result={
-                    'dn': role1_dn,
+                    'dn': lambda x: DN(x) == role1_dn,
                     'cn': [role1],
                     'description': [u'New desc 1'],
                     'memberof_privilege': [privilege1],
@@ -465,7 +465,7 @@ class test_role(Declarative):
                     ),
                 ),
                 result={
-                    'dn': role1_dn,
+                    'dn': lambda x: DN(x) == role1_dn,
                     'cn': [role1],
                     'description': [u'New desc 1'],
                 }
@@ -486,7 +486,7 @@ class test_role(Declarative):
                     ),
                 ),
                 result={
-                    'dn': role1_dn,
+                    'dn': lambda x: DN(x) == role1_dn,
                     'cn': [role1],
                     'description': [u'New desc 1'],
                 }
@@ -536,7 +536,7 @@ class test_role(Declarative):
                 summary=u'1 role matched',
                 result=[
                     {
-                        'dn': role2_dn,
+                        'dn': lambda x: DN(x) == role2_dn,
                         'cn': [role2],
                         'description': [u'role desc 2'],
                     },

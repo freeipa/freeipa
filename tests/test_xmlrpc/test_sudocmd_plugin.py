@@ -24,7 +24,7 @@ Test the `ipalib/plugins/sudocmd.py` module.
 from ipalib import api, errors
 from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from tests.test_xmlrpc import objectclasses
-
+from ipalib.dn import *
 
 sudocmd1 = u'/usr/bin/sudotestcmd1'
 
@@ -69,8 +69,9 @@ class test_sudocmd(Declarative):
                 value=sudocmd1,
                 summary=u'Added sudo command "%s"' % sudocmd1,
                 result=dict(
-                    dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
-                        api.env.basedn),
+                    dn=lambda x: DN(x) == \
+                        DN(('sudocmd',sudocmd1),('cn','sudocmds'),('cn','sudo'),
+                           api.env.basedn),
                     sudocmd=[sudocmd1],
                     description=[u'Test sudo command 1'],
                     objectclass=objectclasses.sudocmd,
@@ -98,8 +99,9 @@ class test_sudocmd(Declarative):
                 value=sudocmd1,
                 summary=None,
                 result=dict(
-                    dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
-                        api.env.basedn),
+                    dn=lambda x: DN(x) == \
+                        DN(('sudocmd',sudocmd1),('cn','sudocmds'),('cn','sudo'),
+                           api.env.basedn),
                     sudocmd=[sudocmd1],
                     description=[u'Test sudo command 1'],
                 ),
@@ -116,8 +118,9 @@ class test_sudocmd(Declarative):
                 summary=u'1 sudo command matched',
                 result=[
                     dict(
-                        dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
-                            api.env.basedn),
+                        dn=lambda x: DN(x) == \
+                            DN(('sudocmd',sudocmd1),('cn','sudocmds'),
+                               ('cn','sudo'),api.env.basedn),
                         sudocmd=[sudocmd1],
                         description=[u'Test sudo command 1'],
                     ),
@@ -148,8 +151,9 @@ class test_sudocmd(Declarative):
                 value=sudocmd1,
                 summary=None,
                 result=dict(
-                    dn=u'sudocmd=%s,cn=sudocmds,cn=sudo,%s' % (sudocmd1,
-                        api.env.basedn),
+                    dn=lambda x: DN(x) == \
+                        DN(('sudocmd',sudocmd1),('cn','sudocmds'),('cn','sudo'),
+                           api.env.basedn),
                     sudocmd=[sudocmd1],
                     description=[u'Updated sudo command 1'],
                 ),
