@@ -128,7 +128,9 @@ IPA.dialog = function(spec) {
      */
     that.create = function() {
 
-        var table = $('<table/>').appendTo(that.container);
+        var table = $('<table/>', {
+            'class': 'section-table'
+        }).appendTo(that.container);
 
         var fields = that.fields.values;
         for (var i=0; i<fields.length; i++) {
@@ -138,39 +140,39 @@ IPA.dialog = function(spec) {
             var tr = $('<tr/>').appendTo(table);
 
             var td = $('<td/>', {
-                style: 'vertical-align: top;',
-                title: field.label
+                'class': 'section-cell-label'
             }).appendTo(tr);
-            var label_text = field.label;
-            if (label_text !== null){
-                label_text += ': ';
-            }else{
-                label_text = '';
-            }
-            td.append($('<label />',{id: field.name+'-label',
-                                     text: label_text}));
+
+            $('<label/>', {
+                name: field.name,
+                title: field.label,
+                'class': 'field-label',
+                text: field.label+':'
+            }).appendTo(td);
 
             td = $('<td/>', {
-                style: 'vertical-align: top;'
+                'class': 'section-cell-field'
             }).appendTo(tr);
 
-            var span = $('<span/>', { 'name': field.name }).appendTo(td);
-            field.create(span);
-            field.field_span = span;
+            var field_container = $('<div/>', {
+                name: field.name,
+                title: field.label,
+                'class': 'field'
+            }).appendTo(td);
+
+            field.create(field_container);
 
             if (field.optional){
-                span.css('display','none');
-                td.append(
-                    $('<a/>',{
-                        text: IPA.messages.widget.optional,
-                        href:'',
-                        click: function(){
-                            var span = $(this).prev();
-                            span.css('display','inline');
-                            $(this).css('display','none');
-                            return false;
-                        }
-                    }));
+                field_container.css('display','none');
+                var link = $('<a/>', {
+                    text: IPA.messages.widget.optional,
+                    href: '',
+                    click: function(){
+                        field_container.css('display', 'inline');
+                        link.css('display', 'none');
+                        return false;
+                    }
+                }).appendTo(td);
             }
 
         }
@@ -181,7 +183,7 @@ IPA.dialog = function(spec) {
 
             var div = $('<div/>', {
                 name: section.name,
-                'class': 'details-section'
+                'class': 'dialog-section'
             }).appendTo(that.container);
 
             section.create(div);

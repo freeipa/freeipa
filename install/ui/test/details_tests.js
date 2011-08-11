@@ -58,7 +58,7 @@ module('details', {
 
 test("Testing IPA.details_section.create().", function() {
 
-    var section = IPA.details_list_section({
+    var section = IPA.details_table_section({
         entity: IPA.get_entity('user'),
         name:'IDIDID', label:'NAMENAMENAME'}).
         text({name:'cn'}).
@@ -71,45 +71,38 @@ test("Testing IPA.details_section.create().", function() {
     var container = $("<div/>");
     section.create(container);
 
-    var dl = $('dl', container);
+    var table = $('table', container);
 
     same(
-        dl.length, 1,
-        'Checking dl tag'
+        table.length, 1,
+        'Verifying table'
     );
 
+    var rows = $('tr', table);
     same(
-        dl.attr('id'), section.name,
-        'Checking section name'
-    );
-
-    var dts = $('dt', dl);
-    same(
-        dts.length, fields.length, // each field generates dt & dd
-        'Checking number of children'
+        rows.length, fields.length,
+        'Verifying table rows'
     );
 
     for (var i=0; i<fields.length; i++) {
         var field = fields[i];
 
-        var dt = dts.get(i);
+        var field_label = $('.field-label[name='+field.name+']', container);
         same(
-            dt.innerHTML, field.label+':',
-            'Checking field '+field.name+'\'s label'
+            field_label.text(), field.label+':',
+            'Verifying label for field '+field.name
         );
 
-        var field_container = $('.details-field[name='+field.name+']', dl);
+        var field_container = $('.field[name='+field.name+']', container);
 
         ok(
             field_container.length,
-            'Checking container tag for field '+field.name
+            'Verifying container for field '+field.name
         );
 
-        var dd = $('dd', field_container);
-
         ok(
-            dd.length == 0,
-            'Checking dd tag for field '+field.name
+            field_container.hasClass('widget'),
+            'Verifying field '+field.name+' was created'
         );
     }
 });
@@ -210,25 +203,25 @@ test("Testing details lifecycle: create, load.", function(){
 
     facet.load(result);
 
-    var contact = facet_container.find('dl#contact.entryattrs');
+    var contact = $('.details-section[name=contact]', facet_container);
 
     ok(
-        contact,
-        'dl tag for contact is created'
+        contact.length,
+        'Verifying section for contact is created'
     );
 
-    var identity = facet_container.find('dl#identity.entryattrs');
+    var identity = $('.details-section[name=identity]', facet_container);
 
     ok(
-        identity,
-        'dl tag for identity is created'
+        identity.length,
+        'Verifying section for identity is created'
     );
 
-    var dts = identity.find('dt');
+    var rows = $('tr', identity);
 
     same(
-        dts.length, 6,
-        'Checking dt tags for identity'
+        rows.length, 6,
+        'Verifying rows for identity'
     );
 
     facet_container.attr('id','user');
@@ -253,8 +246,8 @@ test("Testing details lifecycle: create, load.", function(){
 
 test("Testing IPA.details_section_create again()",function(){
 
-    var section = IPA.details_list_section({
-        name: 'IDIDID', label: 'NAMENAMENAME',entity: IPA.get_entity('user'),}).
+    var section = IPA.details_table_section({
+        name: 'IDIDID', label: 'NAMENAMENAME',entity: IPA.get_entity('user')}).
         text({name:'cn', label:'Entity Name'}).
         text({name:'description', label:'Description'}).
         text({name:'number', label:'Entity ID'});
@@ -268,37 +261,38 @@ test("Testing IPA.details_section_create again()",function(){
     section.create(container);
     section.load(result);
 
-    var dl = $('dl', container);
-    ok(
-        dl.length,
-        'dl is created'
-    );
+    var table = $('table', container);
 
     same(
-        dl[0].id, section.name,
-        'checking section name'
+        table.length, 1,
+        'Verifying table'
     );
 
-    var dt = $('dt', dl);
+    var rows = $('tr', table);
     same(
-        dt.length, 3,
-        '3 dt'
+        rows.length, fields.length,
+        'Verifying table rows'
     );
 
-    same(
-        dt[0].innerHTML, fields[0].label+":",
-        'inner HTML matches label'
-    );
+    for (var i=0; i<fields.length; i++) {
+        var field = fields[i];
 
-    var dd = $('dd', dl);
-    same(
-        dd.length, 3,
-        '3 dd'
-    );
+        var field_label = $('.field-label[name='+field.name+']', container);
+        same(
+            field_label.text(), field.label+':',
+            'Verifying label for field '+field.name
+        );
 
-    var field_container = $('.details-field[name="cn"]', dd[0]);
-    same(
-        field_container.length, 1,
-        '1 field container'
-    );
+        var field_container = $('.field[name='+field.name+']', container);
+
+        ok(
+            field_container.length,
+            'Verifying container for field '+field.name
+        );
+
+        ok(
+            field_container.hasClass('widget'),
+            'Verifying field '+field.name+' was created'
+        );
+    }
 });

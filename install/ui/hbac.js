@@ -141,7 +141,7 @@ IPA.hbacrule_details_facet = function(spec) {
     var that = IPA.details_facet(spec);
 
     function general_section(){
-        var section = IPA.details_list_section({
+        var section = IPA.details_table_section({
             name: 'general',
             entity:that.entity,
             label: IPA.messages.details.general

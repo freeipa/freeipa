@@ -133,7 +133,7 @@ IPA.sudorule_details_facet = function(spec) {
     var that = IPA.details_facet(spec);
 
     function general_section(){
-        var section = IPA.details_list_section({
+        var section = IPA.details_table_section({
             name: 'general',
             label: IPA.messages.details.general,
             entity: that.entity,
@@ -746,7 +746,7 @@ IPA.sudo.rule_details_command_section = function(spec) {
         var span = $('<span/>', {
             name: 'cmdcategory',
             title: param_info.doc,
-            'class': 'details-field'
+            'class': 'field'
         }).appendTo(container);
 
         $('<h3/>', {
@@ -764,7 +764,7 @@ IPA.sudo.rule_details_command_section = function(spec) {
         var table_span = $('<span/>', {
             name: 'memberallowcmd_sudocmd',
             title: param_info ? param_info.doc : 'memberallowcmd_sudocmd',
-            'class': 'details-field'
+            'class': 'field'
         }).appendTo(span);
 
         field = that.get_field('memberallowcmd_sudocmd');
@@ -776,7 +776,7 @@ IPA.sudo.rule_details_command_section = function(spec) {
         table_span = $('<span/>', {
             name: 'memberallowcmd_sudocmdgroup',
             title: param_info ? param_info.doc : 'memberallowcmd_sudocmdgroup',
-            'class': 'details-field'
+            'class': 'field'
         }).appendTo(span);
 
         field = that.get_field('memberallowcmd_sudocmdgroup');
@@ -793,7 +793,7 @@ IPA.sudo.rule_details_command_section = function(spec) {
         table_span = $('<span/>', {
             name: 'memberdenycmd_sudocmd',
             title: param_info ? param_info.doc : 'memberdenycmd_sudocmd',
-            'class': 'details-field'
+            'class': 'field'
         }).appendTo(span);
 
         field = that.get_field('memberdenycmd_sudocmd');
@@ -805,7 +805,7 @@ IPA.sudo.rule_details_command_section = function(spec) {
         table_span = $('<span/>', {
             name: 'memberdenycmd_sudocmdgroup',
             title: param_info ? param_info.doc : 'memberdenycmd_sudocmdgroup',
-            'class': 'details-field'
+            'class': 'field'
         }).appendTo(span);
 
         field = that.get_field('memberdenycmd_sudocmdgroup');
@@ -919,7 +919,7 @@ IPA.sudo.rule_details_runas_section = function(spec) {
         var span = $('<span/>', {
             name: 'ipasudorunasusercategory',
             title: param_info.doc,
-            'class': 'details-field'
+            'class': 'field'
         }).appendTo(container);
         span.append(param_info.doc+": ");
         field.create(span);
@@ -930,7 +930,7 @@ IPA.sudo.rule_details_runas_section = function(spec) {
         var table_span = $('<span/>', {
             name: 'ipasudorunas_user',
             title: param_info ? param_info.doc : 'ipasudorunas_user',
-            'class': 'details-field'
+            'class': 'field'
         }).appendTo(span);
 
         field = that.get_field('ipasudorunas_user');
@@ -941,7 +941,7 @@ IPA.sudo.rule_details_runas_section = function(spec) {
         table_span = $('<span/>', {
             name: 'ipasudorunas_group',
             title: param_info ? param_info.doc : 'ipasudorunas_group',
-            'class': 'details-field'
+            'class': 'field'
         }).appendTo(span);
 
         field = that.get_field('ipasudorunas_group');
@@ -954,7 +954,7 @@ IPA.sudo.rule_details_runas_section = function(spec) {
         span = $('<span/>', {
             name: 'ipasudorunasgroupcategory',
             title: param_info.doc,
-            'class': 'details-field'
+            'class': 'field'
         }).appendTo(container);
 
         span.append(param_info.doc+": ");
@@ -967,7 +967,7 @@ IPA.sudo.rule_details_runas_section = function(spec) {
         table_span = $('<span/>', {
             name: 'ipasudorunasgroup_group',
             title: param_info ? param_info.doc : 'ipasudorunasgroup_group',
-            'class': 'details-field'
+            'class': 'field'
         }).appendTo(span);
 
         field = that.get_field('ipasudorunasgroup_group');

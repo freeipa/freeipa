@@ -95,7 +95,8 @@ IPA.details_section = function(spec) {
             var field = fields[i];
             var field_container = $('<div/>', {
                 name: field.name,
-                'class': 'details-field'
+                title: field.label,
+                'class': 'field'
             }).appendTo(container);
             field.create(field_container);
         }
@@ -167,36 +168,7 @@ IPA.details_section = function(spec) {
     return that;
 };
 
-
-/**
- * This class creates a details section formatted as a list of
- * attributes names and values. The list is defined using a <dl> tag.
- * The attribute name is defined inside a <dt> tag. The attribute
- * value is specified within a <span> inside a <dd> tag. If the
- * attribute has multiple values the <span> will contain be
- * duplicated to display each value.
- *
- * Example:
- *   <dl class="entryattrs">
- *
- *     <dt title="givenname">First Name:</dt>
- *     <dd>
- *       <span name="givenname">
- *         John Smith
- *       </span>
- *     </dd>
- *
- *     <dt title="telephonenumber">Telephone Number:</dt>
- *     <dd>
- *       <span name="telephonenumber">
- *         <div name="value">111-1111</div>
- *         <div name="value">222-2222</div>
- *       </span>
- *     </dd>
- *
- *   </dl>
- */
-IPA.details_list_section = function(spec) {
+IPA.details_table_section = function(spec) {
 
     spec = spec || {};
 
@@ -207,33 +179,56 @@ IPA.details_list_section = function(spec) {
 
         // do not call section_create() here
 
-        var dl = $('<dl/>', {
-            'id': that.name,
-            'class': 'entryattrs'
-        }).appendTo(container);
+        var table = $('<table/>', {
+            'class': 'section-table'
+        }).appendTo(that.container);
 
         var fields = that.fields.values;
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
+            if (field.hidden) continue;
 
-            var label = field.label || '';
+            var tr = $('<tr/>').appendTo(table);
 
-            $('<dt/>', {
-                html: label+':',
-                title: label
-            }).appendTo(dl);
+            var td = $('<td/>', {
+                'class': 'section-cell-label'
+            }).appendTo(tr);
 
-            var dd = $('<dd/>').appendTo(dl);
+            $('<label/>', {
+                name: field.name,
+                title: field.label,
+                'class': 'field-label',
+                text: field.label+':'
+            }).appendTo(td);
+
+            td = $('<td/>', {
+                'class': 'section-cell-field'
+            }).appendTo(tr);
 
             var field_container = $('<div/>', {
                 name: field.name,
-                'class': 'details-field'
-            }).appendTo(dd);
+                title: field.label,
+                'class': 'field'
+            }).appendTo(td);
+
             field.create(field_container);
+
+            if (field.optional){
+                field_container.css('display', 'none');
+                var link = $('<a/>', {
+                    text: IPA.messages.widget.optional,
+                    href: '',
+                    click: function() {
+                        field_container.css('display', 'inline');
+                        link.css('display', 'none');
+                        return false;
+                    }
+                }).appendTo(td);
+            }
         }
     };
 
-    that.list_section_create = that.create;
+    that.table_section_create = that.create;
 
     return that;
 };

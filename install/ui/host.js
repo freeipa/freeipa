@@ -427,10 +427,10 @@ IPA.host_enrollment_section = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.details_list_section(spec);
+    var that = IPA.details_table_section(spec);
 
     that.create = function(container) {
-        that.list_section_create(container);
+        that.table_section_create(container);
 
         var keytab_field = that.get_field('has_keytab');
         var password_field = that.get_field('has_password');

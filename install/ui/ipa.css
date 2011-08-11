@@ -806,112 +806,46 @@ hr {
     line-height: 25px;
 }
 
+.dialog-section {
+    margin-top: 10px;
+}
+
+.section-table {
+    width: 100%;
+}
+
+.section-cell-label {
+    vertical-align: top;
+    width: 120px;
+}
+
+.section-cell-field {
+}
+
 .details-section {
+    margin-top: 1em;
     margin-left: 4.5em;
-    margin-right: 1.5em;
-    margin-top: 1.8em;
-    white-space: nowrap;
-    padding-bottom: 1.8em;
-    padding-right: 1.8em;
+    margin-right: 3.3em;
+    margin-bottom: 1em;
+}
+
+.details-section .section-table {
+    width: 100%;
+    border-spacing: 12px;
+}
+
+.details-section .section-cell-label {
+    text-align: right;
+    vertical-align: top;
+    width: 120px;
+}
+
+.details-section .section-cell-field {
+    font-weight: bold;
 }
 
 .undo {
     cursor:pointer;
-}
-
-dl.entryattrs {
-    clear: both;
-    margin-left: 1.5em;
-    margin-top: 1.8em;
-    white-space: nowrap;
-}
-
-dl.entryattrs dt {
-    clear: left;
-    float: left;
-    padding-bottom: 1.8em;
-    padding-right: 1.8em;
-    text-align: right;
-    width: 16em;
-    margin: 0.5em -0.5em 0 -6em;
-}
-
-dl.entryattrs dd {
-    float: left;
-    margin-bottom: 1em;
-    margin-left: 0;
-    margin-top: 0.5em;
-    font-weight: bold;
-}
-
-dl.entryattrs input.otp {
-    min-width: 15em;
-    width: 15em;
-}
-
-dl.aci-target{
-    clear: both;
-    margin-left: 2em;
-    margin-top: 1.8em;
-    white-space: nowrap;
-}
-
-dl.aci-target dt {
-    padding-bottom: 1.8em;
-    padding-left: 2.8em;
-
-    text-align: left;
-    width: 16em;
-    margin: 0.5em -0.5em 0 -6em;
-}
-
-dl.aci-target dd {
-}
-
-dl.aci-target dd.other {
-        margin-left: -1em;
-}
-
-dl.aci-target dd.first {
-        margin-left: 8.5em;
-        margin-top: -3.7em;
-        padding-bottom: 2em;
-
-}
-
-dl.aci-target dd.other {
-        padding-left: 0.7em;
-}
-
-
-dl.aci-target input {
-
-}
-
-#group_filter {
-        margin-right: 2em;
-}
-
-#aci_by_filter {
-        margin-right: 1em;
-}
-
-#aci_by_query {
-        margin-right: 1em;
-}
-
-#aci_by_group {
-        margin-right: 1em;
-}
-
-#aci_by_type {
-        margin-right: 1em;
-        margin-top: 2.2em;
-}
-
-#aci_attributes_table {
-        overflow-x: hidden;
-        width: 46em;
 }
 
 span.attrhint {
@@ -1101,32 +1035,6 @@ table.kerberos-key-status {
     background-color: #daa520;
 }
 
-dl.modal {
-    clear: both;
-    margin-left: 1em;
-    margin-top: 1em;
-    white-space: nowrap;
-}
-
-dl.modal dt {
-    clear: left;
-    float: left;
-    padding-bottom: 0;
-    padding-right: 0;
-    text-align: right;
-    width: 10em;
-}
-
-dl.modal dd {
-    float: left;
-    padding-bottom: 0;
-    margin-left: 0.8em;
-}
-/*
-#dns-record-type-filter {
-        margin: 0 1em 0 0.5em;
-}
-*/
 .ui-widget-content {
     border:0;
 }
