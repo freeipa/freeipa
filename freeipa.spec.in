@@ -36,8 +36,18 @@ BuildRequires:  openldap-devel
 BuildRequires:  krb5-devel
 BuildRequires:  krb5-workstation
 BuildRequires:  libuuid-devel
-BuildRequires:  xmlrpc-c-devel
+%if 0%{?fedora} >= 16
+BuildRequires:  libcurl-devel >= 7.21.7-2
+BuildRequires:  xmlrpc-c-devel >= 1.27.4
+%else
+%if 0%{?fedora} == 15
+BuildRequires:  libcurl-devel >= 7.21.3-9
+BuildRequires:  xmlrpc-c-devel >= 1.25.4
+%else
 BuildRequires:  libcurl-devel
+BuildRequires:  xmlrpc-c-devel
+%endif
+%endif
 BuildRequires:  popt-devel
 BuildRequires:  autoconf
 BuildRequires:  automake
@@ -150,7 +160,18 @@ Requires: krb5-workstation
 Requires: authconfig
 Requires: pam_krb5
 Requires: wget
-Requires: xmlrpc-c
+%if 0%{?fedora} >= 16
+Requires:  libcurl >= 7.21.7-2
+Requires:  xmlrpc-c >= 1.27.4
+%else
+%if 0%{?fedora} == 15
+Requires:  libcurl >= 7.21.3-9
+Requires:  xmlrpc-c >= 1.25.4
+%else
+Requires:  libcurl
+Requires:  xmlrpc-c
+%endif
+%endif
 Requires: sssd >= 1.5.1
 Requires: certmonger >= 0.26
 Requires: nss-tools
@@ -514,6 +535,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Thu Aug 11 2011 Martin Kosek <mkosek@redhat.com> - 2.0.90-11
+- Set min nvr of xmlrpc-c and libcurl to make sure GSSAPI delegation
+  support is in
+
 * Tue Aug 2 2011 Endi S. Dewata <edewata@redhat.com> - 2.0.90-10
 - Add *.ico files
 

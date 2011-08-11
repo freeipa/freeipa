@@ -149,11 +149,13 @@ callRPC(xmlrpc_env *            const envP,
     curlXportParmsP->no_ssl_verifypeer = 1;
     curlXportParmsP->no_ssl_verifyhost = 1;
     curlXportParmsP->cainfo = "/etc/ipa/ca.crt";
+    /* Enable GSSAPI credentials delegation */
+    curlXportParmsP->gssapi_delegation = 1;
 
     clientparms.transport = "curl";
     clientparms.transportparmsP = (struct xmlrpc_xportparms *)
             curlXportParmsP;
-    clientparms.transportparm_size = XMLRPC_CXPSIZE(cainfo);
+    clientparms.transportparm_size = XMLRPC_CXPSIZE(gssapi_delegation);
     xmlrpc_client_create(envP, XMLRPC_CLIENT_NO_FLAGS, NAME, VERSION,
                          &clientparms, sizeof(clientparms),
                          &clientP);
