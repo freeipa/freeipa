@@ -321,68 +321,43 @@ IPA.user_password_widget = function(spec) {
             width: 400
         });
 
-        dialog.create = function() {
+        var password1 = dialog.add_field(IPA.text_widget({
+            name: 'password1',
+            label: IPA.messages.objects.user.new_password,
+            type: 'password',
+            undo: false
+        }));
 
-            var dl = $('<dl/>', {
-                'class': 'modal'
-            }).appendTo(dialog.container);
-
-            $('<dt/>', {
-                html: IPA.messages.objects.user.new_password
-            }).appendTo(dl);
-
-            var dd = $('<dd/>').appendTo(dl);
-
-            dialog.password1 = $('<input/>', {
-                type: 'password'
-            }).appendTo(dd);
-
-            $('<dt/>', {
-                html: IPA.messages.objects.user.repeat_password
-            }).appendTo(dl);
-
-            dd = $('<dd/>').appendTo(dl);
-
-            dialog.password2 = $('<input/>', {
-                type: 'password'
-            }).appendTo(dd);
-        };
+        var password2 = dialog.add_field(IPA.text_widget({
+            name: 'password2',
+            label: IPA.messages.objects.user.repeat_password,
+            type: 'password',
+            undo: false
+        }));
 
         dialog.add_button(IPA.messages.objects.user.reset_password, function() {
 
-            var new_password = dialog.password1.val();
-            var repeat_password = dialog.password2.val();
+            var record = {};
+            dialog.save(record);
+
+            var new_password = record.password1;
+            var repeat_password = record.password2;
 
             if (new_password != repeat_password) {
                 alert(IPA.messages.objects.user.password_must_match);
                 return;
             }
 
-            var user_pkey = IPA.nav.get_state('user-pkey');
-
-            var args;
-            if (user_pkey === IPA.whoami.uid[0]) {
-                args = [];
-            } else {
-                args = [user_pkey];
-            }
-
-            var command = IPA.command({
-                method: 'passwd',
-                args: args,
-                options: {
-                    password: new_password
-                },
-                on_success: function(data, text_status, xhr) {
+            that.set_password(
+                new_password,
+                function(data, text_status, xhr) {
                     alert(IPA.messages.objects.user.password_change_complete);
                     dialog.close();
                 },
-                on_error: function(xhr, text_status, error_thrown) {
+                function(xhr, text_status, error_thrown) {
                     dialog.close();
                 }
-            });
-
-            command.execute();
+            );
         });
 
         dialog.add_button(IPA.messages.buttons.cancel, function() {
@@ -390,6 +365,29 @@ IPA.user_password_widget = function(spec) {
         });
 
         dialog.open(that.container);
+    };
+
+    that.set_password = function(password, on_success, on_error) {
+        var user_pkey = IPA.nav.get_state('user-pkey');
+
+        var args;
+        if (user_pkey === IPA.whoami.uid[0]) {
+            args = [];
+        } else {
+            args = [user_pkey];
+        }
+
+        var command = IPA.command({
+            method: 'passwd',
+            args: args,
+            options: {
+                password: password
+            },
+            on_success: on_success,
+            on_error: on_error
+        });
+
+        command.execute();
     };
 
     return that;
