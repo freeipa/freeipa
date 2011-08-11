@@ -110,8 +110,8 @@ Requires: selinux-policy >= 3.9.7-27
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.21
 %if 0%{?fedora} >= 15
-Requires: pki-ca >= 9.0.10
-Requires: pki-silent >= 9.0.10
+Requires: pki-ca >= 9.0.11
+Requires: pki-silent >= 9.0.11
 %else
 Requires: pki-ca >= 9.0.5
 Requires: pki-silent >= 9.0.5
@@ -538,6 +538,7 @@ fi
 * Thu Aug 11 2011 Martin Kosek <mkosek@redhat.com> - 2.0.90-12
 - Set min nvr of 389-ds-base to 1.2.9.6 for fix in BZ 725743,
   723937, and 725542
+- Set min nvr of pki-ca to 9.0.11 for fix in BZ 728332
 
 * Thu Aug 11 2011 Martin Kosek <mkosek@redhat.com> - 2.0.90-11
 - Set min nvr of xmlrpc-c and libcurl to make sure GSSAPI delegation
