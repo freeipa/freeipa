@@ -300,7 +300,9 @@ IPA.search_deleter_dialog = function(spec) {
     var that = IPA.deleter_dialog(spec);
 
     that.create_command = function() {
-        var batch = IPA.batch_command();
+        var batch = IPA.batch_command({
+            error_message: IPA.messages.search.partial_delete
+        });
 
         var pkeys = that.entity.get_primary_key_prefix();
 

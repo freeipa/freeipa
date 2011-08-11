@@ -15880,13 +15880,17 @@
                     "dialogs": {
                         "add_title": "Add ${entity}",
                         "available": "Available",
+                        "batch_error_message": "Some operations failed.",
+                        "batch_error_title": "Operations Error",
                         "confirmation": "Confirmation",
                         "dirty_message": "This page has unsaved changes. Please save or revert.",
                         "dirty_title": "Dirty",
                         "hide_already_enrolled": "Hide already enrolled.",
+                        "hide_details": "Hide details",
                         "prospective": "Prospective",
                         "remove_empty": "Select entries to be removed.",
-                        "remove_title": "Remove ${entity}"
+                        "remove_title": "Remove ${entity}",
+                        "show_details": "Show details"
                     },
                     "facet_groups": {
                         "managedby": "${primary_key} is managed by:",
@@ -16125,6 +16129,7 @@
                     },
                     "search": {
                         "delete_confirm": "Are you sure you want to delete selected entries?",
+                        "partial_delete": "Some entries were not deleted",
                         "quick_links": "Quick Links",
                         "select_all": "Select All",
                         "truncated": "Query returned more results than the configured size limit. Displaying the first ${counter} results.",

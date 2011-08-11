@@ -350,14 +350,18 @@ class i18n_messages(Command):
         "dialogs": {
             "add_title":_("Add ${entity}"),
             "available":_("Available"),
+            "batch_error_message":_("Some operations failed."),
+            "batch_error_title":_("Operations Error"),
             "confirmation":_("Confirmation"),
             "dirty_message":_("This page has unsaved changes. Please save or revert."),
             "dirty_title":_("Dirty"),
             "hide_already_enrolled":_("Hide already enrolled."),
+            "hide_details":_("Hide details"),\
             "redirection":_("Redirection"),
             "remove_empty":_("Select entries to be removed."),
             "remove_title":_("Remove ${entity}"),
             "prospective":_("Prospective"),
+            "show_details":_("Show details"),\
             },
         "facet_groups": {
             "managedby":_("${primary_key} is managed by:"),
@@ -369,6 +373,7 @@ class i18n_messages(Command):
             "details": _("Settings"),
             },
         "search": {
+            "partial_delete":_("Some entries were not deleted"),
             "quick_links":_("Quick Links"),
             "select_all":_("Select All"),
             "unselect_all":_("Unselect All"),
