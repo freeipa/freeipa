@@ -143,7 +143,7 @@ msg-stats:
                 END {untranslated = po_untranslated+undefined; \
 	             translated = pot_count - untranslated; \
 	             ratio = sprintf("%d/%d", translated, pot_count); \
-                     printf "%-7s %8s %5.1f%% %4d po untranslated, %4d missing, %4d untranslated\n", \
+                     printf "%-7s %9s %5.1f%% %4d po untranslated, %4d missing, %4d untranslated\n", \
                      po_name ":", ratio, translated/pot_count*100.0, po_untranslated, undefined, untranslated;}'; \
 	done
 
