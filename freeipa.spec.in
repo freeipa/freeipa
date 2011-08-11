@@ -24,7 +24,7 @@ Source0:        freeipa-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %if ! %{ONLY_CLIENT}
-BuildRequires:  389-ds-base-devel >= 1.2.8
+BuildRequires:  389-ds-base-devel >= 1.2.9
 BuildRequires:  svrcore-devel
 BuildRequires:  /usr/share/selinux/devel/Makefile
 BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
@@ -85,7 +85,7 @@ Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
 Requires(post): %{name}-server-selinux = %{version}-%{release}
-Requires(pre): 389-ds-base >= 1.2.8.0-1
+Requires(pre): 389-ds-base >= 1.2.9.6-1
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
@@ -535,6 +535,10 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Thu Aug 11 2011 Martin Kosek <mkosek@redhat.com> - 2.0.90-12
+- Set min nvr of 389-ds-base to 1.2.9.6 for fix in BZ 725743,
+  723937, and 725542
+
 * Thu Aug 11 2011 Martin Kosek <mkosek@redhat.com> - 2.0.90-11
 - Set min nvr of xmlrpc-c and libcurl to make sure GSSAPI delegation
   support is in
