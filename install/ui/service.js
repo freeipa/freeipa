@@ -71,7 +71,7 @@ IPA.entity_factories.service = function() {
         standard_association_facets().
         adder_dialog({
             factory: IPA.service_add_dialog,
-            width: 450,
+            width: 500,
             height: 300
         }).
         build();

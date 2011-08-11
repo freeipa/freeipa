@@ -882,7 +882,7 @@ IPA.entity_builder = function(){
         if (spec.factory) {
             section = spec.factory(spec);
         } else {
-            section = IPA.details_list_section(spec);
+            section = IPA.details_table_section(spec);
         }
         facet.add_section(section);
         var fields = spec.fields;
