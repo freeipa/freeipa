@@ -43,6 +43,7 @@
 #include "nspr.h"
 #include "prclist.h"
 #include "uuid/uuid.h"
+#include <pthread.h>
 
 #include "util.h"
 
@@ -94,7 +95,7 @@ struct configEntry {
 };
 
 static PRCList *ipauuid_global_config = NULL;
-static PRRWLock *g_ipauuid_cache_lock;
+static pthread_rwlock_t g_ipauuid_cache_lock;
 
 static void *_PluginID = NULL;
 static char *_PluginDN = NULL;
@@ -155,17 +156,17 @@ void ipauuid_dump_config_entry(struct configEntry *);
  */
 void ipauuid_read_lock(void)
 {
-    PR_RWLock_Rlock(g_ipauuid_cache_lock);
+    pthread_rwlock_rdlock(&g_ipauuid_cache_lock);
 }
 
 void ipauuid_write_lock(void)
 {
-    PR_RWLock_Wlock(g_ipauuid_cache_lock);
+    pthread_rwlock_wrlock(&g_ipauuid_cache_lock);
 }
 
 void ipauuid_unlock(void)
 {
-    PR_RWLock_Unlock(g_ipauuid_cache_lock);
+    pthread_rwlock_unlock(&g_ipauuid_cache_lock);
 }
 
 /**
@@ -324,9 +325,7 @@ ipauuid_start(Slapi_PBlock * pb)
         goto done;
     }
 
-    g_ipauuid_cache_lock = PR_NewRWLock(PR_RWLOCK_RANK_NONE, "ipaUuid");
-
-    if (!g_ipauuid_cache_lock) {
+    if (pthread_rwlock_init(&g_ipauuid_cache_lock, NULL) != 0) {
         LOG_FATAL("lock creation failed\n");
 
         return EFAIL;
