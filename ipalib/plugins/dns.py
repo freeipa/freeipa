@@ -886,6 +886,8 @@ class dnsrecord_mod(dnsrecord_mod_record):
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         for rtype in options:
             rtype_cb = '_%s_pre_callback' % rtype
+            if options[rtype] is None and rtype in _record_attributes:
+                options[rtype] = []
             if hasattr(self.obj, rtype_cb):
                 dn = getattr(self.obj, rtype_cb)(ldap, dn, entry_attrs, *keys, **options)
 
