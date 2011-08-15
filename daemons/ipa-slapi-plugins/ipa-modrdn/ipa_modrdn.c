@@ -42,6 +42,7 @@
 #include "slapi-plugin.h"
 #include "nspr.h"
 #include "prclist.h"
+#include <pthread.h>
 
 #include "util.h"
 
@@ -88,7 +89,7 @@ struct configEntry {
 };
 
 static PRCList *ipamodrdn_global_config = NULL;
-static PRRWLock *g_ipamodrdn_cache_lock;
+static pthread_rwlock_t g_ipamodrdn_cache_lock;
 
 static void *_PluginID = NULL;
 static char *_PluginDN = NULL;
@@ -144,17 +145,17 @@ void ipamodrdn_dump_config_entry(struct configEntry *);
  */
 void ipamodrdn_read_lock(void)
 {
-    PR_RWLock_Rlock(g_ipamodrdn_cache_lock);
+    pthread_rwlock_rdlock(&g_ipamodrdn_cache_lock);
 }
 
 void ipamodrdn_write_lock(void)
 {
-    PR_RWLock_Wlock(g_ipamodrdn_cache_lock);
+    pthread_rwlock_wrlock(&g_ipamodrdn_cache_lock);
 }
 
 void ipamodrdn_unlock(void)
 {
-    PR_RWLock_Unlock(g_ipamodrdn_cache_lock);
+    pthread_rwlock_unlock(&g_ipamodrdn_cache_lock);
 }
 
 /**
@@ -255,9 +256,7 @@ ipamodrdn_start(Slapi_PBlock * pb)
         goto done;
     }
 
-    g_ipamodrdn_cache_lock = PR_NewRWLock(PR_RWLOCK_RANK_NONE, "ipaModRDN");
-
-    if (!g_ipamodrdn_cache_lock) {
+    if (pthread_rwlock_init(&g_ipamodrdn_cache_lock, NULL) != 0) {
         LOG_FATAL("lock creation failed\n");
 
         return EFAIL;
