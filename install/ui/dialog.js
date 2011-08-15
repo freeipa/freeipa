@@ -431,26 +431,6 @@ IPA.adder_dialog = function (spec) {
         that.available_table.create(available_content);
 
 
-        var buttons_panel = $('<div/>', {
-            name: 'buttons',
-            'class': 'adder-dialog-buttons'
-        }).appendTo(container);
-
-        var p = $('<p/>').appendTo(buttons_panel);
-        $('<input />', {
-            type: 'button',
-            name: 'remove',
-            value: '<<'
-        }).appendTo(p);
-
-        p = $('<p/>').appendTo(buttons_panel);
-        $('<input />', {
-            type: 'button',
-            name: 'add',
-            value: '>>'
-        }).appendTo(p);
-
-
         var right_panel = $('<div/>', {
             'class': 'adder-dialog-right'
         }).appendTo(container);
@@ -470,6 +450,26 @@ IPA.adder_dialog = function (spec) {
         }).appendTo(selected_panel);
 
         that.selected_table.create(selected_content);
+
+
+        var buttons_panel = $('<div/>', {
+            name: 'buttons',
+            'class': 'adder-dialog-buttons'
+        }).appendTo(container);
+
+        var p = $('<p/>').appendTo(buttons_panel);
+        $('<input />', {
+            type: 'button',
+            name: 'remove',
+            value: '<<'
+        }).appendTo(p);
+
+        p = $('<p/>').appendTo(buttons_panel);
+        $('<input />', {
+            type: 'button',
+            name: 'add',
+            value: '>>'
+        }).appendTo(p);
 
 
         that.filter_field = $('input[name=filter]', that.container);
