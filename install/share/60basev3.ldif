@@ -1,0 +1,8 @@
+## IPA Base OID:	2.16.840.1.113730.3.8
+##
+## Attributes:		2.16.840.1.113730.3.8.11 - V2 base attributres
+## ObjectClasses:	2.16.840.1.113730.3.8.12 - V2 base objectclasses
+##
+dn: cn=schema
+attributeTypes: (2.16.840.1.113730.3.8.11.1 NAME 'ipaExternalMember' DESC 'External Group Member Identifier' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v3' )
+objectClasses: (2.16.840.1.113730.3.8.12.1 NAME 'ipaExternalGroup' SUP top STRUCTURAL MUST ( cn ) MAY ( ipaExternalMember $ memberOf $ description $ owner) X-ORIGIN 'IPA v3' )

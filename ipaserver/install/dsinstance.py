@@ -402,6 +402,7 @@ class DsInstance(service.Service):
                              "60samba.ldif",
                              "60ipaconfig.ldif",
                              "60basev2.ldif",
+                             "60basev3.ldif",
                              "60ipadns.ldif",
                              "60ipasudo.ldif"):
             target_fname = schema_dirname(self.serverid) + schema_fname
