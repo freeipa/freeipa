@@ -939,7 +939,7 @@ span.attrhint {
 .ui-widget-content {
 }
 
-a {
+a, .ui-widget-content a {
     text-decoration: none;
     color: #1d85d5;
     font-weight: normal;
