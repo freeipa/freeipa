@@ -175,6 +175,11 @@ def parse_options():
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
 
+    if options.dm_password is not None and len(options.dm_password) < 8:
+        parser.error("DS admin password must be at least 8 characters long")
+    if options.admin_password is not None and len(options.admin_password) < 8:
+        parser.error("Admin user password must be at least 8 characters long")
+
     if not options.setup_dns:
         if options.forwarders:
             parser.error("You cannot specify a --forwarder option without the --setup-dns option")
