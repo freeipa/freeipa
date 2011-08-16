@@ -172,6 +172,8 @@ def parse_options():
     parser.add_option("--no_hbac_allow", dest="hbac_allow", default=False,
                       action="store_true",
                       help="Don't install allow_all HBAC rule")
+    parser.add_option("--no-ui-redirect", dest="ui_redirect", action="store_false",
+                      default=True, help="Do not automatically redirect to the Web UI")
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
 
@@ -906,10 +908,10 @@ def main():
     http = httpinstance.HTTPInstance(fstore)
     if options.http_pkcs12:
         pkcs12_info = (options.http_pkcs12, pw_name)
-        http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=False, pkcs12_info=pkcs12_info, subject_base=options.subject)
+        http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=False, pkcs12_info=pkcs12_info, subject_base=options.subject, auto_redirect=options.ui_redirect)
         os.remove(pw_name)
     else:
-        http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=True, self_signed_ca=options.selfsign, subject_base=options.subject)
+        http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=True, self_signed_ca=options.selfsign, subject_base=options.subject, auto_redirect=options.ui_redirect)
     ipautil.run(["/sbin/restorecon", "/var/cache/ipa/sessions"])
 
     set_subject_in_config(realm_name, dm_password, util.realm_to_suffix(realm_name), options.subject)

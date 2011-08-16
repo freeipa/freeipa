@@ -67,6 +67,8 @@ def parse_options():
                       help="Do not use DNS for hostname lookup during installation")
     parser.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
                       default=True, help="disables pkinit setup steps")
+    parser.add_option("--no-ui-redirect", dest="ui_redirect", action="store_false",
+                      default=True, help="Do not automatically redirect to the Web UI")
     parser.add_option("--skip-conncheck", dest="skip_conncheck", action="store_true",
                       default=False, help="skip connection check to remote master")
     parser.add_option("--setup-ca", dest="setup_ca", action="store_true",
@@ -154,7 +156,7 @@ def install_ca_cert(config):
         print "error copying files: " + str(e)
         sys.exit(1)
 
-def install_http(config):
+def install_http(config, auto_redirect):
     # if we have a pkcs12 file, create the cert db from
     # that. Otherwise the ds setup will create the CA
     # cert
@@ -164,7 +166,7 @@ def install_http(config):
                        config.dir + "/http_pin.txt")
 
     http = httpinstance.HTTPInstance()
-    http.create_instance(config.realm_name, config.host_name, config.domain_name, config.dirman_password, False, pkcs12_info, self_signed_ca=True)
+    http.create_instance(config.realm_name, config.host_name, config.domain_name, config.dirman_password, False, pkcs12_info, self_signed_ca=True, auto_redirect=auto_redirect)
 
     # Now copy the autoconfiguration files
     if ipautil.file_exists(config.dir + "/preferences.html"):
@@ -428,7 +430,7 @@ def main():
         cs.add_cert_to_service()
 
     install_krb(config, setup_pkinit=options.setup_pkinit)
-    install_http(config)
+    install_http(config, auto_redirect=options.ui_redirect)
     if CA:
         CA.import_ra_cert(dir + "/ra.p12")
         CA.fix_ra_perms()

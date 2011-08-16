@@ -55,7 +55,7 @@ class HTTPInstance(service.Service):
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    def create_instance(self, realm, fqdn, domain_name, dm_password=None, autoconfig=True, pkcs12_info=None, self_signed_ca=False, subject_base=None):
+    def create_instance(self, realm, fqdn, domain_name, dm_password=None, autoconfig=True, pkcs12_info=None, self_signed_ca=False, subject_base=None, auto_redirect=True):
         self.fqdn = fqdn
         self.realm = realm
         self.domain = domain_name
@@ -66,7 +66,7 @@ class HTTPInstance(service.Service):
         self.principal = "HTTP/%s@%s" % (self.fqdn, self.realm)
         self.dercert = None
         self.subject_base = subject_base
-        self.sub_dict = { "REALM" : realm, "FQDN": fqdn, "DOMAIN" : self.domain }
+        self.sub_dict = {"REALM": realm, "FQDN": fqdn, "DOMAIN": self.domain, "AUTOREDIR": '' if auto_redirect else '#'}
 
         # get a connection to the DS
         self.ldap_connect()
