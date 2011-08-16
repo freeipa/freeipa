@@ -22,8 +22,8 @@
 </head>
 <body>
 <form action="undefined" method="get">
-<input type=button onclick="setPreferences()" name="prefs" value="Configure Firefox">
-<div id="success" class="textblock" style="display:none;">
+<input id="button" type=button onclick="setPreferences()" name="prefs" value="Configure Firefox">
+<div id="success" class="textblock" style="display: none;">
   <p>Browser configured.</p>
   <p>
     <a href="/ipa/ui" id="redirect_link" target="_top">Click here to return to the Web UI.</a>
@@ -66,6 +66,9 @@
 
       var redirect_link = document.getElementById('redirect_link');
       redirect_link.href = "https://" + location.hostname + location.port + "/ipa/ui";
+
+      var button = document.getElementById('button');
+      button.style['display'] = "none";
 
       var successDiv = document.getElementById('success');
       successDiv.style['display'] = "block";
