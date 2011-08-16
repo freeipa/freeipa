@@ -178,6 +178,8 @@ import ldap as _ldap
 import os
 
 DIRECT_MAP_KEY = u'/-'
+DEFAULT_MAPS = (u'auto.direct', )
+DEFAULT_KEYS = (u'/-', )
 
 class automountlocation(LDAPObject):
     """
@@ -213,6 +215,10 @@ class automountlocation_add(LDAPCreate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         # create auto.master for the new location
         self.api.Command['automountmap_add'](keys[-1], u'auto.master')
+
+        # add additional pre-created maps and keys
+        # IMPORTANT: add pre-created maps/keys to DEFAULT_MAPS/DEFAULT_KEYS
+        # so that they do not cause conflicts during import operation
         self.api.Command['automountmap_add_indirect'](
             keys[-1], u'auto.direct', key=DIRECT_MAP_KEY
         )
@@ -387,7 +393,10 @@ class automountlocation_import(LDAPQuery):
                             automountinformation=unicode(' '.join(am[1:])))
                 result['keys'].append([am[0], u'auto.master'])
             except errors.DuplicateEntry, e:
-                if options.get('continue', False):
+                if unicode(am[0]) in DEFAULT_KEYS:
+                    # ignore conflict when the key was pre-created by the framework
+                    pass
+                elif options.get('continue', False):
                     result['duplicatekeys'].append(am[0])
                     pass
                 else:
@@ -398,7 +407,10 @@ class automountlocation_import(LDAPQuery):
                     api.Command['automountmap_add'](args[0], unicode(am[1]))
                     result['maps'].append(am[1])
                 except errors.DuplicateEntry, e:
-                    if options.get('continue', False):
+                    if unicode(am[1]) in DEFAULT_MAPS:
+                        # ignore conflict when the map was pre-created by the framework
+                        pass
+                    elif options.get('continue', False):
                         result['duplicatemaps'].append(am[0])
                         pass
                     else:
