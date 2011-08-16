@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
+    <meta charset="utf-8">
     <title>IPA: Identity Policy Audit</title>
 
     <script type="text/javascript" src="../ui/jquery.js"></script>
@@ -9,32 +9,31 @@
     <link rel="stylesheet" type="text/css" href="ipa_error.css" />
 
     <script type="text/javascript">
-      $(document).ready(function() {
-      if (navigator.userAgent.indexOf("Firefox") != -1 ||
-      navigator.userAgent.indexOf("SeaMonkey") != -1)
-      {
-      $('.textblockkrb').css('display','block');
-      }
-      });
+        $(document).ready(function() {
+            if (navigator.userAgent.indexOf("Firefox") != -1 ||
+                navigator.userAgent.indexOf("SeaMonkey") != -1) {
+                $('.textblockkrb').css('display', 'block');
+            }
+        });
     </script>
 </head>
 
 <body id="header-bg">
 
-  <div class="container_1">
-    <div class="header-logo">
-      <img src="../ui/ipalogo.png" />
-    </div>
-       <div class="textblockkrb" style="display:none;">
+    <div class="container_1">
+
+        <div class="header-logo">
+            <img src="../ui/ipalogo.png" />
+        </div>
+
+        <div class="textblockkrb" style="display: none;">
         <h1>Configure Browser</h1>
         <p> Click the below button to configure your browser </p>
         <object data="jar:/ipa/errors/configure.jar!/preferences.html"
                 type="text/html" class="browser-config"></object>
        </div>
-       <div class="textblockkrb">
-         <p><a href="/ipa/ui">Return to the Web UI</a></p>
-       </div>
-   </div>
+
+    </div>
 
 </body>
 
