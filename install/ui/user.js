@@ -166,7 +166,11 @@ IPA.user_status_widget = function(spec) {
             name: 'status'
         }).appendTo(container);
 
-        container.append(': ');
+        that.link_span = $('<span/>', {
+            name: 'link'
+        }).appendTo(container);
+
+        that.link_span.append(': ');
 
         that.status_link = $('<a/>', {
             name: 'link',
@@ -191,7 +195,7 @@ IPA.user_status_widget = function(spec) {
 
                 return false;
             }
-        }).appendTo(container);
+        }).appendTo(that.link_span);
     };
 
     that.update = function() {
@@ -231,6 +235,13 @@ IPA.user_status_widget = function(spec) {
         message = message.replace('${action}', action_label);
 
         that.status_link.html(message);
+
+        if (that.writable) {
+            that.link_span.css('display', '');
+
+        } else {
+            that.link_span.css('display', 'none');
+        }
     };
 
     that.show_activation_dialog = function() {
