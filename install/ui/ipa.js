@@ -331,6 +331,7 @@ IPA.command = function(spec) {
         }
 
         function success_handler(data, text_status, xhr) {
+            var failed;
 
             if (!data) {
                 // error_handler() calls IPA.hide_activity_icon()
@@ -347,7 +348,18 @@ IPA.command = function(spec) {
                     message: data.error.message,
                     data: data
                 });
+            } else if ((failed = that.get_failed(that, data.result, text_status, xhr)) &&
+                !failed.is_empty()) {
+                var message = failed.errors[0].message;
+                for(var i = 1; i < failed.errors.length; i++) {
+                    message += '\n' + failed.errors[i].message;
+                }
 
+                error_handler.call(this, xhr, text_status,  /* error_thrown */ {
+                    name: failed.errors[0].name,
+                    message: message,
+                    data: data
+                });
             } else if (that.on_success) {
                 IPA.hide_activity_icon();
                 //custom success handling, maintaining AJAX call's context
@@ -377,6 +389,27 @@ IPA.command = function(spec) {
 
         IPA.display_activity_icon();
         $.ajax(request);
+    };
+
+    that.get_failed = function(command, result, text_status, xhr) {
+        var errors = IPA.error_list();
+        if(result && result.failed) {
+            for(var association in result.failed) {
+                for(var member_name in result.failed[association]) {
+                    var member = result.failed[association][member_name];
+                    for(var i = 0; i < member.length; i++) {
+                        if(member[i].length > 1) {
+                            var name = 'IPA Error';
+                            var message = member[i][1];
+                            if(member[i][0])
+                                message = member[i][0] + ': ' + message;
+                            errors.add(command, name, message, text_status);
+                        }
+                    }
+                }
+            }
+        }
+        return errors;
     };
 
     that.to_json = function() {
@@ -417,7 +450,7 @@ IPA.batch_command = function (spec) {
     var that = IPA.command(spec);
 
     that.commands = [];
-    that.errors = [];
+    that.errors = IPA.error_list();
     that.error_message = spec.error_message || (IPA.messages.dialogs ?
             IPA.messages.dialogs.batch_error_message : 'Some operations failed.');
     that.show_error = typeof spec.show_error == 'undefined' ?
@@ -434,21 +467,8 @@ IPA.batch_command = function (spec) {
         }
     };
 
-    var clear_errors = function() {
-        that.errors = [];
-    };
-
-    var add_error = function(command, name, message, status) {
-        that.errors.push({
-            command: command,
-            name: name,
-            message: message,
-            status: status
-        });
-    };
-
     that.execute = function() {
-        clear_errors();
+        that.errors.clear();
 
         IPA.command({
             name: that.name,
@@ -465,12 +485,13 @@ IPA.batch_command = function (spec) {
 
                     var name = '';
                     var message = '';
+                    var failed;
 
                     if (!result) {
                         name = 'Internal Error '+xhr.status;
                         message = result ? xhr.statusText : "Internal error";
 
-                        add_error(command, name, message, text_status);
+                        that.errors.add(command, name, message, text_status);
 
                         if (command.on_error) command.on_error.call(
                             this,
@@ -486,7 +507,7 @@ IPA.batch_command = function (spec) {
                         name = 'IPA Error ' + (result.error.code || '');
                         message = result.error.message || result.error;
 
-                        add_error(command, name, message, text_status);
+                        that.errors.add(command, name, message, text_status);
 
                         if (command.on_error) command.on_error.call(
                             this,
@@ -494,7 +515,28 @@ IPA.batch_command = function (spec) {
                             text_status,
                             {
                                 name: name,
-                                message: message
+                                message: message,
+                                data: result
+                            }
+                        );
+
+                    } else if ((failed = that.get_failed(command, result, text_status, xhr)) &&
+                            !failed.is_empty()) {
+                        that.errors.add_range(failed);
+
+                        message = failed.errors[0].message;
+                        for(var j = 1; j < failed.errors.length; j++) {
+                            message += '\n' + failed.errors[j].message;
+                        }
+
+                        if (command.on_error) command.on_error.call(
+                            this,
+                            xhr,
+                            text_status,
+                            {
+                                name: failed.errors[0].name,
+                                message: message,
+                                data: result
                             }
                         );
 
@@ -503,7 +545,7 @@ IPA.batch_command = function (spec) {
                     }
                 }
                 //check for partial errors and show error dialog
-                if(that.show_error && that.errors.length > 0) {
+                if(that.show_error && that.errors.errors.length > 0) {
                     var dialog = IPA.error_dialog({
                         xhr: xhr,
                         text_status: text_status,
@@ -513,7 +555,7 @@ IPA.batch_command = function (spec) {
                             message: that.error_message
                         },
                         command: that,
-                        errors: that.errors,
+                        errors: that.errors.errors,
                         visible_buttons: ['ok']
                     });
                     dialog.open();
@@ -685,7 +727,7 @@ IPA.error_dialog = function(spec) {
         }
 
         $('<p/>', {
-            html: that.error_thrown.message
+            html: that.error_thrown.message.replace('\n', '<br />')
         }).appendTo(that.container);
 
         if(that.errors && that.errors.length > 0) {
@@ -783,5 +825,33 @@ IPA.error_dialog = function(spec) {
     init();
     that.create_buttons();
 
+    return that;
+};
+
+IPA.error_list = function() {
+    var that = {};
+
+    that.clear = function() {
+        that.errors = [];
+    };
+
+    that.add = function(command, name, message, status) {
+        that.errors.push({
+            command: command,
+            name: name,
+            message: message,
+            status: status
+        });
+    };
+
+    that.add_range = function(error_list) {
+        that.errors = that.errors.concat(error_list.errors);
+    };
+
+    that.is_empty = function () {
+        return that.errors.length === 0;
+    };
+
+    that.clear();
     return that;
 };
