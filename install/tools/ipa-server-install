@@ -39,6 +39,7 @@ import traceback
 from ConfigParser import RawConfigParser
 import random
 import tempfile
+import nss.error
 
 from ipaserver.install import dsinstance
 from ipaserver.install import krbinstance
@@ -59,6 +60,7 @@ from ipalib import api, errors, util
 from ipalib.parameters import IA5Str
 from ipapython.config import IPAOptionParser
 from ipalib.dn import DN
+from ipalib.x509 import load_certificate_from_file, load_certificate_chain_from_file
 
 pw_name = None
 uninstalling = False
@@ -567,17 +569,50 @@ def main():
             # already having done the first stage of the CA install.
             print "CA is not installed yet. To install with an external CA is a two-stage process.\nFirst run the installer with --external-ca."
             sys.exit(1)
-        if not ipautil.file_exists(options.external_cert_file):
-            print "%s does not exist" % options.external_cert_file
-            sys.exit(1)
-        if not ipautil.file_exists(options.external_ca_file):
-            print "%s does not exist" % options.external_ca_file
-            sys.exit(1)
 
     # This will override any settings passed in on the cmdline
     if ipautil.file_exists(ANSWER_CACHE):
         dm_password = read_password("Directory Manager", confirm=False)
         options._update_loose(read_cache(dm_password))
+
+    if options.external_cert_file:
+        try:
+            extcert = load_certificate_from_file(options.external_cert_file)
+        except IOError, e:
+            print "Can't load the PKCS#10 certificate: %s." % str(e)
+            sys.exit(1)
+        except nss.error.NSPRError:
+            print "'%s' is not a valid PEM-encoded certificate." % options.external_cert_file
+            sys.exit(1)
+
+        certsubject = unicode(extcert.subject)
+        wantsubject = unicode(DN(('CN','Certificate Authority'), options.subject))
+        if certsubject.lower() != wantsubject.lower():
+            print "Subject of the PKCS#10 certificate is not correct (got %s, expected %s)." % (certsubject, wantsubject)
+            sys.exit(1)
+
+        try:
+            extchain = load_certificate_chain_from_file(options.external_ca_file)
+        except IOError, e:
+            print "Can't load the external CA chain: %s." % str(e)
+            sys.exit(1)
+        except nss.error.NSPRError:
+            print "'%s' is not a valid PEM-encoded certificate chain." % options.external_ca_file
+            sys.exit(1)
+
+        certdict = dict((unicode(cert.subject).lower(), cert) for cert in extchain)
+        certissuer = unicode(extcert.issuer)
+        if certissuer.lower() not in certdict:
+            print "The PKCS#10 certificate is not signed by the external CA (unknown issuer %s)." % certissuer
+            sys.exit(1)
+
+        cert = extcert
+        while cert.issuer != cert.subject:
+            certissuer = unicode(cert.issuer)
+            if certissuer.lower() not in certdict:
+                print "The external CA chain is incomplete (%s is missing from the chain)." % certissuer
+                sys.exit(1)
+            cert = certdict[certissuer.lower()]
 
     print "=============================================================================="
     print "This program will set up the FreeIPA Server."

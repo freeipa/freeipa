@@ -34,6 +34,7 @@
 import os
 import sys
 import base64
+import re
 import nss.nss as nss
 from nss.error import NSPRError
 from ipapython import ipautil
@@ -44,6 +45,8 @@ from ipalib import errors
 
 PEM = 0
 DER = 1
+
+PEM_REGEX = re.compile(r'(?<=-----BEGIN CERTIFICATE-----).*?(?=-----END CERTIFICATE-----)', re.DOTALL)
 
 def valid_issuer(issuer, realm):
     return issuer in ('CN=%s Certificate Authority' % realm,
@@ -89,6 +92,21 @@ def load_certificate(data, datatype=PEM, dbdir=None):
 
     return nss.Certificate(buffer(data))
 
+def load_certificate_chain_from_file(filename, dbdir=None):
+    """
+    Load a certificate chain from a PEM file.
+
+    Returns a list of nss.Certificate objects.
+    """
+    fd = open(filename, 'r')
+    data = fd.read()
+    fd.close()
+
+    chain = PEM_REGEX.findall(data)
+    chain = [load_certificate(cert, PEM, dbdir) for cert in chain]
+
+    return chain
+
 def load_certificate_from_file(filename, dbdir=None):
     """
     Load a certificate from a PEM file.
@@ -99,7 +117,7 @@ def load_certificate_from_file(filename, dbdir=None):
     data = fd.read()
     fd.close()
 
-    return load_certificate(file, PEM, dbdir)
+    return load_certificate(data, PEM, dbdir)
 
 def get_subject(certificate, datatype=PEM, dbdir=None):
     """
