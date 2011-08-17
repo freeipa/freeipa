@@ -1,17 +1,22 @@
+# Languages in the sort order on Transifex
+as      # Assamese
 bn_IN   # Bengali (India)
-de      # German
-es      # Spanish (Castilian)
-fr      # French
-id      # Indonesian
-he      # Hebrew
-it      # Italian (Italy)
-ja      # Japanese
-kn      # Kannada
-ko      # Korean
-pl      # Polish
-pt      # Portuguese
-pt_BR   # Portuguese (Brazilian)
-ru      # Russian
-uk      # Ukrainian
 zh_CN   # Chinese (China)
 zh_TW   # Chinese (Taiwan)
+nl      # Dutch
+fr      # French
+de      # German
+el      # Greek
+gu      # Gujarati
+id      # Indonesian
+ja_JP   # Japanese (Japan)
+ja      # Japanese
+kn      # Kannada
+fa      # Persian
+pl      # Polish
+pt_BR   # Portuguese (Brazilian)
+pt      # Portuguese
+ru      # Russian
+es      # Spanish (Castilian)
+sv      # Swedish
+uk      # Ukrainian
