@@ -60,7 +60,7 @@ test("Testing serial_associator().", function() {
                 'Checking IPA.command() parameter: primary key'
             );
 
-            that.on_success();
+            that.on_success({});
         };
 
         return that;
@@ -115,7 +115,7 @@ test("Testing bulk_associator().", function() {
                 'Checking IPA.command() parameter: options[\""+params.other_entity+"\"]'
             );
 
-            that.on_success();
+            that.on_success({});
         };
 
         return that;
