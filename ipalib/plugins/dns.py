@@ -71,7 +71,7 @@ EXAMPLES:
 
    A record: 1.2.3.4, 11.22.33.44
 
-   Delete A record '1.2.3.4'? Yes/No (default No): 
+   Delete A record '1.2.3.4'? Yes/No (default No):
    Delete A record '11.22.33.44'? Yes/No (default No): y
      Record name: www
      A record: 1.2.3.4                  (A record 11.22.33.44 has been deleted)
@@ -974,8 +974,7 @@ class dnsrecord_del(dnsrecord_mod_record):
             deleted_values = []
             for rec_value in dns_record[param.name]:
                 user_del_value = self.Backend.textui.prompt_yesno(
-                        _(u"Delete %s '%s'?"
-                        %  (param.label, rec_value)), default=False)
+                        _("Delete %s '%s'?") % (param.label, rec_value), default=False)
                 if user_del_value is True:
                      deleted_values.append(rec_value)
             if deleted_values:
