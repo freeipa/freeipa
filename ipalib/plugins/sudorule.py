@@ -179,6 +179,14 @@ class sudorule(LDAPObject):
             label=_('RunAs External Group'),
             doc=_('External Group the commands can run as (sudorule-find only)'),
         ),
+        Str('ipasudoopt?',
+            label=_('Sudo Option'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('ipasudorunasgroup_group?',
+            label=_('RunAsGroup Group'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
     )
 
 api.register(sudorule)
