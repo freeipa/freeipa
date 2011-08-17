@@ -15,6 +15,7 @@ MSGFMT = @MSGFMT@
 MSGINIT = @MSGINIT@
 MSGMERGE = @MSGMERGE@
 MSGCMP = @MSGCMP@
+TX = @TX@
 
 DOMAIN = @GETTEXT_DOMAIN@
 MSGMERGE_UPDATE = $(MSGMERGE) --update
@@ -80,7 +81,7 @@ $(po_files): $(DOMAIN).pot
 	    $(MSGINIT) --locale $$lang --no-translator -i $(DOMAIN).pot -o $@; \
 	fi; \
 	echo Merging $(DOMAIN).pot into $@; \
-	$(MSGMERGE) $@ -o $@ $(DOMAIN).pot
+	$(MSGMERGE) --no-fuzzy-matching -o $@ $@ $(DOMAIN).pot
 
 create-po: $(DOMAIN).pot
 	@for po_file in $(po_files); do \
@@ -90,6 +91,10 @@ create-po: $(DOMAIN).pot
 	        $(MSGINIT) --locale $$lang --no-translator -i $(DOMAIN).pot -o $$po_file; \
 	    fi; \
 	done
+
+
+pull-po:
+	cd ../..; $(TX) pull -f
 
 update-po: update-pot
 	$(MAKE) $(po_files)
@@ -134,17 +139,16 @@ msg-stats:
 	      printf "%s\n", groups[2];}'` ; \
 	echo "$(DOMAIN).pot has $$pot_count messages. There are $(po_count) po translation files." ; \
 	for po_file in $(po_files); do \
-	    $(MSGCMP) $$po_file $(DOMAIN).pot 2>&1 | \
+	    $(MSGFMT) --statistics $$po_file 2>&1 | \
 	    $(AWK) -v po_file=$$po_file -v pot_count=$$pot_count -v pot_file=$(DOMAIN).pot \
-                'BEGIN {po_untranslated=0; undefined=0; \
-	                po_name = gensub(/.po$$/, "", 1, po_file)} \
-                /this message is untranslated/ {po_untranslated++} \
-                /this message is used but not defined/ {undefined++} \
-                END {untranslated = po_untranslated+undefined; \
-	             translated = pot_count - untranslated; \
-	             ratio = sprintf("%d/%d", translated, pot_count); \
-                     printf "%-7s %9s %5.1f%% %4d po untranslated, %4d missing, %4d untranslated\n", \
-                     po_name ":", ratio, translated/pot_count*100.0, po_untranslated, undefined, untranslated;}'; \
+	        'BEGIN {po_name = gensub(/\.po$$/, "", 1, po_file);} \
+                 match($$0, /([[:digit:]]+) translated/,   group) {translated   = group[1]} \
+                 match($$0, /([[:digit:]]+) untranslated/, group) {untranslated = group[1]} \
+                 match($$0, /([[:digit:]]+) fuzzy/,        group) {fuzzy        = group[1]} \
+		 END {pot_untranslated = pot_count - translated; \
+		      ratio = sprintf("%d/%d", translated, pot_count); \
+		      printf "%-7s %11s %5.1f%% %5d untranslated, %5d fuzzy\n", \
+		          po_name ":", ratio, translated/pot_count*100.0, pot_untranslated, fuzzy;}'; \
 	done
 
 mo-files: $(mo_files)

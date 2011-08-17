@@ -26,27 +26,29 @@ AC_PROG_SED
 AC_PATH_PROG(XGETTEXT, xgettext, [no])
 if test "x$XGETTEXT" = "xno"; then
     AC_MSG_ERROR([xgettext not found, install gettext])
-fi                                                                       
+fi
 
 AC_PATH_PROG(MSGFMT, msgfmt, [no])
 if test "x$MSGFMT" = "xno"; then
     AC_MSG_ERROR([msgfmt not found, install gettext])
-fi                                                                       
+fi
 
 AC_PATH_PROG(MSGINIT, msginit, [no])
 if test "x$MSGINIT" = "xno"; then
     AC_MSG_ERROR([msginit not found, install gettext])
-fi                                                                       
+fi
 
 AC_PATH_PROG(MSGMERGE, msgmerge, [no])
 if test "x$MSGMERGE" = "xno"; then
     AC_MSG_ERROR([msgmerge not found, install gettext])
-fi                                                                       
+fi
 
 AC_PATH_PROG(MSGCMP, msgcmp, [no])
 if test "x$MSGCMP" = "xno"; then
     AC_MSG_ERROR([msgcmp not found, install gettext])
 fi
+
+AC_PATH_PROG(TX, tx, [/usr/bin/tx])
 
 AC_ARG_WITH([gettext_domain],
   [AS_HELP_STRING([--with-gettext-domain=name],
