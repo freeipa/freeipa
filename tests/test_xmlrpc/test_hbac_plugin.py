@@ -46,6 +46,7 @@ class test_hbac(XMLRPC_test):
     test_sourcehost = u'hbacrule._test_src_host'
     test_sourcehostgroup = u'hbacrule_test_src_hostgroup'
     test_service = u'sshd'
+    test_host_external = u'notfound.example.com'
 
     def test_0_hbacrule_add(self):
         """
@@ -333,7 +334,73 @@ class test_hbac(XMLRPC_test):
         assert 'sourcehost host' not in entry
         assert 'sourcehost hostgroup' not in entry
 
-    def test_c_hbacrule_clear_testing_data(self):
+    def test_c_hbacrule_add_external_host(self):
+        """
+        Test adding an external host using `xmlrpc.hbacrule_add_host`.
+        """
+        ret = api.Command['hbacrule_add_sourcehost'](
+            self.rule_name, host=self.test_host_external
+        )
+        assert ret['completed'] == 1
+        failed = ret['failed']
+        assert 'sourcehost' in failed
+        assert 'host' in failed['sourcehost']
+        assert not failed['sourcehost']['host']
+        assert 'hostgroup' in failed['sourcehost']
+        assert not failed['sourcehost']['hostgroup']
+        entry = ret['result']
+        assert_attr_equal(entry, 'externalhost', self.test_host_external)
+
+    def test_c_hbacrule_add_same_external(self):
+        """
+        Test adding the same external host using `xmlrpc.hbacrule_add_host`.
+        """
+        ret = api.Command['hbacrule_add_sourcehost'](
+            self.rule_name, host=self.test_host_external
+        )
+        assert ret['completed'] == 0
+        failed = ret['failed']
+        assert 'sourcehost' in failed
+        assert 'host' in failed['sourcehost']
+        assert (self.test_host_external, unicode(errors.AlreadyGroupMember())) in failed['sourcehost']['host']
+        entry = ret['result']
+        assert_attr_equal(entry, 'externalhost', self.test_host_external)
+
+    def test_c_hbacrule_remove_external_host(self):
+        """
+        Test removing external source host using `xmlrpc.hbacrule_remove_host`.
+        """
+        ret = api.Command['hbacrule_remove_sourcehost'](
+            self.rule_name, host=self.test_host_external
+        )
+        assert ret['completed'] == 1
+        failed = ret['failed']
+        assert 'sourcehost' in failed
+        assert 'host' in failed['sourcehost']
+        assert not failed['sourcehost']['host']
+        assert 'hostgroup' in failed['sourcehost']
+        assert not failed['sourcehost']['hostgroup']
+        entry = ret['result']
+        assert 'sourcehost host' not in entry
+        assert 'sourcehost hostgroup' not in entry
+
+    def test_c_hbacrule_remove_nonexist_external(self):
+        """
+        Test removing non-existent external source host using `xmlrpc.hbacrule_remove_host`.
+        """
+        ret = api.Command['hbacrule_remove_sourcehost'](
+            self.rule_name, host=self.test_host_external
+        )
+        assert ret['completed'] == 0
+        failed = ret['failed']
+        assert 'sourcehost' in failed
+        assert 'host' in failed['sourcehost']
+        assert (self.test_host_external, unicode(errors.NotGroupMember())) in failed['sourcehost']['host']
+        assert 'hostgroup' in failed['sourcehost']
+        assert not failed['sourcehost']['hostgroup']
+        entry = ret['result']
+
+    def test_c_hbacrule_zap_testing_data(self):
         """
         Clear data for HBAC plugin testing.
         """
