@@ -1680,12 +1680,12 @@ IPA.combobox_widget = function(spec) {
             name: 'list',
             size: that.list_size,
             style: 'width: 100%',
-            click: function(){
-                that.close();
+            change: function() {
                 var value = $('option:selected', that.list).val();
                 that.input.val(value);
                 IPA.select_range(that.input, 0, 0);
 
+                that.close();
                 that.validate();
                 that.set_dirty(that.test_dirty());
             }
