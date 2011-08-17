@@ -355,7 +355,6 @@ class i18n_messages(Command):
             "confirmation":_("Confirmation"),
             "dirty_message":_("This page has unsaved changes. Please save or revert."),
             "dirty_title":_("Dirty"),
-            "hide_already_enrolled":_("Hide already enrolled."),
             "hide_details":_("Hide details"),\
             "redirection":_("Redirection"),
             "remove_empty":_("Select entries to be removed."),
