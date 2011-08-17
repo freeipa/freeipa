@@ -36,6 +36,7 @@ from ipapython import version
 from ipalib import api, util
 from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
+from ipapython import ipautil
 
 CACERT="/etc/ipa/ca.crt"
 REPLICA_INFO_TOP_DIR=None
@@ -143,6 +144,9 @@ def main():
                    util.realm_to_suffix(config.realm_name))
     cs.add_simple_service('dogtagldap/%s@%s' % (config.host_name, config.realm_name))
     cs.add_cert_to_service()
+
+    # We need to restart apache as we drop a new config file in there
+    ipautil.service_restart('httpd', '', True)
 
 try:
     if not os.geteuid()==0:

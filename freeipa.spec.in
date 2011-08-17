@@ -304,6 +304,7 @@ ln -s ../../../..%{_sysconfdir}/ipa/html/ipa_error.css \
 # So we can own our Apache configuration
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d/
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa.conf
+/bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 mkdir -p %{buildroot}%{_initrddir}
 install -m755 ipa.init %{buildroot}%{_initrddir}/ipa
@@ -449,8 +450,10 @@ fi
 %config(noreplace) %{_sysconfdir}/ipa/html/hbac-deny-remove.html
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa.conf
+%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
 %{_usr}/share/ipa/ipa.conf
 %{_usr}/share/ipa/ipa-rewrite.conf
+%{_usr}/share/ipa/ipa-pki-proxy.conf
 %dir %{_usr}/share/ipa/updates/
 %{_usr}/share/ipa/updates/*
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so

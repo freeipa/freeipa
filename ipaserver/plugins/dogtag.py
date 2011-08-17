@@ -1514,7 +1514,7 @@ class ra(rabase.rabase):
 
         # Call CMS
         http_status, http_reason_phrase, http_headers, http_body = \
-            self._sslget('/ca/ee/ca/profileSubmitSSLClient',
+            self._sslget('/ca/eeca/ca/profileSubmitSSLClient',
                          self.env.ca_ee_port,
                          profileId='caIPAserviceCert',
                          cert_request_type=request_type,
