@@ -56,6 +56,7 @@ from ipaserver.install import certs
 from ipaserver.install.installutils import ReplicaConfig
 from ipalib import util
 
+HTTPD_CONFD = "/etc/httpd/conf.d/"
 DEFAULT_DSPORT=7389
 
 PKI_USER = "pkiuser"
@@ -69,6 +70,7 @@ ADMIN_SECURE_PORT=9445
 EE_CLIENT_AUTH_PORT=9446
 UNSECURE_PORT=9180
 TOMCAT_SERVER_PORT=9701
+
 
 # We need to reset the template because the CA uses the regular boot
 # information
@@ -537,6 +539,7 @@ class CAInstance(service.Service):
                 self.step("requesting RA certificate from CA", self.__request_ra_certificate)
                 self.step("issuing RA agent certificate", self.__issue_ra_cert)
                 self.step("adding RA agent as a trusted user", self.__configure_ra)
+            self.step("Configure HTTP to proxy connections", self.__http_proxy)
 
         self.start_creation("Configuring certificate server", 210)
 
@@ -557,6 +560,7 @@ class CAInstance(service.Service):
                 '-tomcat_server_port', str(TOMCAT_SERVER_PORT),
                 '-redirect', 'conf=/etc/pki-ca',
                 '-redirect', 'logs=/var/log/pki-ca',
+                '-enable_proxy'
         ]
         ipautil.run(args, env={'PKI_HOSTNAME':self.fqdn})
 
@@ -658,7 +662,7 @@ class CAInstance(service.Service):
                 args.append("-sd_hostname")
                 args.append(self.master_host)
                 args.append("-sd_admin_port")
-                args.append(str(ADMIN_SECURE_PORT))
+                args.append("443")
                 args.append("-sd_admin_name")
                 args.append("admin")
                 args.append("-sd_admin_password")
@@ -666,7 +670,7 @@ class CAInstance(service.Service):
                 args.append("-clone_start_tls")
                 args.append("true")
                 args.append("-clone_uri")
-                args.append("https://%s:%d" % (self.master_host, EE_SECURE_PORT))
+                args.append("https://%s:%d" % (self.master_host, 443))
             else:
                 args.append("-clone")
                 args.append("false")
@@ -1076,6 +1080,11 @@ class CAInstance(service.Service):
         fd.write(cert)
         fd.close()
         os.chmod(location, 0444)
+
+    def __http_proxy(self):
+        shutil.copy(ipautil.SHARE_DIR + "ipa-pki-proxy.conf",
+                    HTTPD_CONFD + "ipa-pki-proxy.conf")
+
 
 def install_replica_ca(config, postinstall=False):
     """

@@ -75,6 +75,7 @@ class HTTPInstance(service.Service):
         self.step("disabling mod_ssl in httpd", self.__disable_mod_ssl)
         self.step("setting mod_nss port to 443", self.__set_mod_nss_port)
         self.step("setting mod_nss password file", self.__set_mod_nss_passwordfile)
+        self.step("enabling mod_nss renegotiate", self.__enable_mod_nss_renegotiate)
         self.step("adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
         self.step("setting up ssl", self.__setup_ssl)
@@ -159,6 +160,10 @@ class HTTPInstance(service.Service):
 
     def __set_mod_nss_nickname(self, nickname):
         installutils.set_directive(NSS_CONF, 'NSSNickname', nickname)
+
+    def __enable_mod_nss_renegotiate(self):
+        installutils.set_directive(NSS_CONF, 'NSSRenegotiation', 'on',False)
+        installutils.set_directive(NSS_CONF, 'NSSRequireSafeNegotiation', 'on',False)
 
     def __set_mod_nss_passwordfile(self):
         installutils.set_directive(NSS_CONF, 'NSSPassPhraseDialog', 'file:/etc/httpd/conf/password.conf')

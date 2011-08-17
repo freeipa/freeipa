@@ -34,7 +34,7 @@ def get_ca_certchain(ca_host=None):
     if ca_host is None:
         ca_host = api.env.ca_host
     chain = None
-    conn = httplib.HTTPConnection(ca_host, api.env.ca_port)
+    conn = httplib.HTTPConnection(ca_host, api.env.ca_install_port)
     conn.request("GET", "/ca/ee/ca/getCertChain")
     res = conn.getresponse()
     doc = None

@@ -208,12 +208,25 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
         self._create_socket()
 
     def _create_socket(self):
+
+        #TODO remove the try block once python-nss is guaranteed to
+	#contain these values
+        try :
+                ssl_enable_renegotiation  = SSL_ENABLE_RENEGOTIATION   #pylint: disable=E0602
+                ssl_require_safe_negotiation = SSL_REQUIRE_SAFE_NEGOTIATION  #pylint: disable=E0602
+                ssl_renegotiate_requires_xtn = SSL_RENEGOTIATE_REQUIRES_XTN #pylint: disable=E0602
+        except :
+                ssl_enable_renegotiation  = 20
+                ssl_require_safe_negotiation = 21
+                ssl_renegotiate_requires_xtn = 2
+
         # Create the socket here so we can do things like let the caller
         # override the NSS callbacks
         self.sock = ssl.SSLSocket(family=self.family)
         self.sock.set_ssl_option(ssl.SSL_SECURITY, True)
         self.sock.set_ssl_option(ssl.SSL_HANDSHAKE_AS_CLIENT, True)
-
+        self.sock.set_ssl_option(ssl_require_safe_negotiation, False)
+        self.sock.set_ssl_option(ssl_enable_renegotiation, ssl_renegotiate_requires_xtn)
         # Provide a callback which notifies us when the SSL handshake is complete
         self.sock.set_handshake_callback(self.handshake_callback)
 
