@@ -344,6 +344,13 @@ class HasParam(Plugin):
         for spec in get():
             param = create_param(spec)
             if env is None or param.use_in_context(env):
+                if env is not None and not hasattr(param, 'env'):
+                    # Force specified environment. The way it is done is violation of ReadOnly promise.
+                    # Unfortunately, all alternatives are worse from both performance and code complexity
+                    # points of view. See following threads on freeipa-devel@ for references:
+                    # https://www.redhat.com/archives/freeipa-devel/2011-August/msg00000.html
+                    # https://www.redhat.com/archives/freeipa-devel/2011-August/msg00011.html
+                    object.__setattr__(param, 'env', env)
                 yield param
 
     def _create_param_namespace(self, name, env=None):
