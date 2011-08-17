@@ -176,28 +176,24 @@ IPA.association_adder_dialog = function (spec) {
             }
         }
 
-        var hide_checkbox = $('input[name=hidememb]', that.container);
+        var options = { all: true };
+        var relationships = IPA.metadata.objects[that.other_entity].relationships;
 
-        var options = {'all': true};
-        if (hide_checkbox.attr('checked')) {
-            var relationships = IPA.metadata.objects[that.other_entity].relationships;
+        /* TODO: better generic handling of different relationships! */
+        var other_attribute_member = '';
+        if (that.attribute_member == 'member')
+            other_attribute_member = 'memberof';
+        else if (that.attribute_member == 'memberuser')
+            other_attribute_member = 'memberof';
+        else if (that.attribute_member == 'memberhost')
+            other_attribute_member = 'memberof';
+        else if (that.attribute_member == 'memberof')
+            other_attribute_member = 'member';
 
-            /* TODO: better generic handling of different relationships! */
-            var other_attribute_member = '';
-            if (that.attribute_member == 'member')
-                other_attribute_member = 'memberof';
-            else if (that.attribute_member == 'memberuser')
-                other_attribute_member = 'memberof';
-            else if (that.attribute_member == 'memberhost')
-                other_attribute_member = 'memberof';
-            else if (that.attribute_member == 'memberof')
-                other_attribute_member = 'member';
-
-            var relationship = relationships[other_attribute_member];
-            if (relationship) {
-                var param_name = relationship[2] + that.entity.name;
-                options[param_name] = that.pkey;
-            }
+        var relationship = relationships[other_attribute_member];
+        if (relationship) {
+            var param_name = relationship[2] + that.entity.name;
+            options[param_name] = that.pkey;
         }
 
         IPA.command({

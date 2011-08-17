@@ -394,20 +394,6 @@ IPA.adder_dialog = function (spec) {
             value: IPA.messages.buttons.find
         }).appendTo(top_panel);
 
-        $('<input/>', {
-            type: 'checkbox',
-            name: 'hidememb',
-            id: 'hidememb',
-            checked: 'checked',
-            style: 'margin-left: 5px; vertical-align: middle'
-        }).appendTo(top_panel);
-
-        $('<label/>', {
-            'for': 'hidememb',
-            text: IPA.messages.dialogs.hide_already_enrolled,
-            style: 'margin-left: 3px'
-        }).appendTo(top_panel);
-
         top_panel.append(IPA.create_network_spinner());
 
         var left_panel = $('<div/>', {
