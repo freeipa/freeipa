@@ -117,7 +117,7 @@ class hbacrule(LDAPObject):
         'description', 'usercategory', 'hostcategory',
         'sourcehostcategory', 'servicecategory', 'ipaenabledflag',
         'memberuser', 'sourcehost', 'memberhost', 'memberservice',
-        'memberhostgroup',
+        'memberhostgroup', 'externalhost',
     ]
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
@@ -480,6 +480,34 @@ class hbacrule_add_sourcehost(LDAPAddMember):
             raise errors.MutuallyExclusiveError(reason="source hosts cannot be added when sourcehost category='all'")
         return dn
 
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        completed_external = 0
+        # Sift through the host failures. We assume that these are all
+        # hosts that aren't stored in IPA, aka external hosts.
+        if 'sourcehost' in failed and 'host' in failed['sourcehost']:
+            (dn, entry_attrs_) = ldap.get_entry(dn, ['externalhost'])
+            members = entry_attrs.get('sourcehost', [])
+            external_hosts = entry_attrs_.get('externalhost', [])
+            failed_hosts = []
+            for host in failed['sourcehost']['host']:
+                hostname = host[0].lower()
+                host_dn = self.api.Object['host'].get_dn(hostname)
+                if hostname in external_hosts:
+                    failed_hosts.append((hostname, unicode(errors.AlreadyGroupMember())))
+                elif hostname not in external_hosts and host_dn not in members:
+                    external_hosts.append(hostname)
+                    completed_external += 1
+                else:
+                    failed_hosts.append((hostname, unicode(errors.NotFound())))
+            if completed_external:
+                try:
+                    ldap.update_entry(dn, {'externalhost': external_hosts})
+                except errors.EmptyModlist:
+                    pass
+                entry_attrs['externalhost'] = external_hosts
+            failed['sourcehost']['host'] = failed_hosts
+        return (completed + completed_external, dn)
+
 api.register(hbacrule_add_sourcehost)
 
 
@@ -488,6 +516,31 @@ class hbacrule_remove_sourcehost(LDAPRemoveMember):
 
     member_attributes = ['sourcehost']
     member_count_out = ('%i object removed.', '%i objects removed.')
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        # Run through the host failures and gracefully remove any defined as
+        # as an externalhost.
+        if 'sourcehost' in failed and 'host' in failed['sourcehost']:
+            (dn, entry_attrs_) = ldap.get_entry(dn, ['externalhost'])
+            external_hosts = entry_attrs_.get('externalhost', [])
+            failed_hosts = []
+            completed_external = 0
+            for host in failed['sourcehost']['host']:
+                hostname = host[0].lower()
+                if hostname in external_hosts:
+                    external_hosts.remove(hostname)
+                    completed_external += 1
+                else:
+                    failed_hosts.append(hostname)
+            if completed_external:
+                try:
+                    ldap.update_entry(dn, {'externalhost': external_hosts})
+                except errors.EmptyModlist:
+                    pass
+                failed['sourcehost']['host'] = failed_hosts
+                entry_attrs['externalhost'] = external_hosts
+        return (completed + completed_external, dn)
+
 
 api.register(hbacrule_remove_sourcehost)
 
