@@ -1263,16 +1263,11 @@ IPA.table_widget = function (spec) {
             }).appendTo(th);
 
             select_all_checkbox.change(function() {
-                var checked = select_all_checkbox.is(':checked');
-                select_all_checkbox.attr(
-                    'title', checked ?
-                        IPA.messages.search.unselect_all :
-                        IPA.messages.search.select_all);
-                var checkboxes = $('input[name=select]', that.tbody).get();
-                for (var i=0; i<checkboxes.length; i++) {
-                    checkboxes[i].checked = checked;
+                if(select_all_checkbox.is(':checked')) {
+                    that.select_all();
+                } else {
+                    that.unselect_all();
                 }
-                that.select_changed();
                 return false;
             });
         }
@@ -1449,6 +1444,21 @@ IPA.table_widget = function (spec) {
     that.select_changed = function() {
     };
 
+    that.select_all = function() {
+        $('input[name=select]', that.thead).attr('checked', true).
+            attr('title', IPA.messages.search.unselect_all);
+        $('input[name=select]', that.tbody).attr('checked', true);
+        that.select_changed();
+    };
+
+    that.unselect_all = function() {
+        $('input[name=select]', that.thead).attr('checked', false).
+            attr('title', IPA.messages.search.select_all);
+        $('input[name=select]', that.tbody).attr('checked', false);
+
+        that.select_changed();
+    };
+
     that.empty = function() {
         that.tbody.empty();
     };
@@ -1464,6 +1474,7 @@ IPA.table_widget = function (spec) {
             var record = that.get_record(result, i);
             that.add_record(record);
         }
+        that.unselect_all();
     };
 
     that.save = function() {

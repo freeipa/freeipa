@@ -457,6 +457,7 @@ IPA.association_table_widget = function (spec) {
     that.load = function(result) {
         that.values = result[that.name] || [];
         that.reset();
+        that.unselect_all();
     };
 
     that.update = function() {
@@ -1107,6 +1108,7 @@ IPA.association_facet = function (spec) {
         that.table.current_page = 1;
 
         that.table.refresh();
+        that.table.unselect_all();
     };
 
     that.refresh = function() {
