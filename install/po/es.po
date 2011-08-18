@@ -2,6 +2,7 @@
 # Copyright (C) YEAR Red Hat
 # This file is distributed under the same license as the PACKAGE package.
 # 
+# Hugo Jiménez Hernández <hjimenezhdez@gmail.com>, 2011.
 # jdennis <jdennis@redhat.com>, 2011.
 # gguerrer <gguerrer@redhat.com>, 2011.
 # Héctor Daniel Cabrera <logan@fedoraproject.org>, 2011.
@@ -10,8 +11,8 @@ msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://bugzilla.redhat.com/enter_bug.cgi?product=freeIPA\n"
 "POT-Creation-Date: 2011-06-06 13:27-0400\n"
-"PO-Revision-Date: 2011-08-08 16:52+0000\n"
-"Last-Translator: logan <logan@fedoraproject.org>\n"
+"PO-Revision-Date: 2011-08-16 23:51+0000\n"
+"Last-Translator: merkurio <hjimenezhdez@gmail.com>\n"
 "Language-Team: Spanish (Castilian) <trans-es@lists.fedoraproject.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2506,6 +2507,73 @@ msgid ""
 "   ipa dns-resolve www.example.com\n"
 "   ipa dns-resolve www\n"
 msgstr ""
+"\n"
+"sistema de nombres de dominio (DNS)\n"
+"\n"
+"administra  zona DNS  y registros de recursos.\n"
+"\n"
+"EJEMPLOS:\n"
+" añadir nueva zona:\n"
+"   ipa dnszone-add example.com --name-server nameserver.example.com\n"
+"                               --admin-email admin@example.com\n"
+"\n"
+" Añadir segundo nombre de servidor para example.com: \n"
+"   ipa dnsrecord-add example.com @ --ns-rec nameserver2.example.com\n"
+"\n"
+" Añadir un correo de servidor para example.com:\n"
+"   ipa dnsrecord-add example.com @ --mx-rec=\"10 mail2\"\n"
+"\n"
+" Eliminar nombre de servidores añadidos previamente de example.com:\n"
+"   ipa dnsrecord-del example.com @ --ns-rec nameserver2.example.com\n"
+"\n"
+" Añadir un nuevo registro A para www.example.com: (IP aleatoria)\n"
+"   ipa dnsrecord-add example.com www --a-rec 80.142.15.2\n"
+"\n"
+" Añadir un nuevo registro PTR para www.example.com\n"
+"   ipa dnsrecord-add 15.142.80.in-addr.arpa 2 --ptr-rec www.example.com.\n"
+" \n"
+" Añadir nuevos registros SRV para servidores LDAP. Tres cuartas partes de las peticiones deberían ir a  fast.example.com, un cuarto a slow.example.com. Si ninguno están disponibles, cambia a backup.example.com.\n"
+"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"0 3 389 fast.example.com\"\n"
+"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"0 1 389 slow.example.com\"\n"
+"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"1 1 389 backup.example.com\"\n"
+"\n"
+" Cuando el comando dnsrecord-add se ejecuta sin opciones para añadir un registro especifico, se inicia un modo interactivo. Interactivamente  se van mostrando los tipos de registros mas usuales para la zona respectiva: \n"
+"   ipa dnsrecord-add example.com www\n"
+"   [A record]: 1.2.3.4,11.22.33.44      (2 interactively entered random IPs)\n"
+"   [AAAA record]:                       (no AAAA address entered)\n"
+"     Record name: www\n"
+"     A record: 1.2.3.4, 11.22.33.44\n"
+" El modo interactivo puede usar también para eliminar registros de DNS:\n"
+"   ipa dnsrecord-del example.com www\n"
+"   Ninguna opción para borrar el registro indicado.\n"
+"   ¿Borrar todos? si/No(Por defecto No):   (No borrar todos los registros)\n"
+"  Contenido actual del registro DNS:\n"
+"\n"
+"   Un registro: 1.2.3.4, 11.22.33.44\n"
+"   ¿Borrar Registro A '1.2.3.4'? Si/No (por defecto No): \n"
+"   ¿Borrar Registro A '11.22.33.44'? Si/No (por defecto No):s \n"
+"   \n"
+"     Nombre registro: www\n"
+"     registro A: 1.2.3.4                  (registro A 11.22.33.44 ha sido borrado)\n"
+"\n"
+" mostrar zona example.com:\n"
+"   ipa dnszone-show example.com\n"
+" Encontrar zona con \"example \" en su nombre de dominio:\n"
+"\n"
+"   ipa dnszone-find example\n"
+"Encontrar registros para recursos con \"www\" in su nombre en la zona example.com:\n"
+"   ipa dnsrecord-find example.com www\n"
+"Encontrar registros A con valor 10.10.0.1 en la zona example.com\n"
+"   ipa dnsrecord-find example.com --a-rec 10.10.0.1\n"
+"\n"
+" Mostrar registros para recurso www en zona example.com\n"
+"   ipa dnsrecord-show example.com www\n"
+"Borrar zona example.com con todos los registros de recursos:\n"
+"   ipa dnszone-del example.com\n"
+"\n"
+"Resolver un nombre de host para ver si existe(añadirá por dominio IPA por defecto si no hay uno incluido):\n"
+"   ipa dns-resolve www.example.com\n"
+"   ipa dns-resolve www\n"
 
 #: ipalib/plugins/dns.py:140
 msgid "Generate serial number for zones."
@@ -2792,14 +2860,19 @@ msgid ""
 "Reverse zone for PTR record should be a sub-zone of one the following fully "
 "qualified domains: %s"
 msgstr ""
+"La zona invertida para registro PTR debería ser una sub-zona de uno de los "
+"siguientes dominios integramente cualificados: %s"
 
 #: ipalib/plugins/dns.py:740
 msgid "Reverse zone %s requires exactly %d IP address components, %d given"
 msgstr ""
+"La zona invertida %s requiere exactamente %d componentes de direcciones IP, "
+"%d dados"
 
 #: ipalib/plugins/dns.py:746
 msgid "PTR record '%s' is not fully qualified (check traling '.')"
 msgstr ""
+"Registro PTR '%s' no está integramente cualificado(compruebe último '.')"
 
 #: ipalib/plugins/dns.py:789
 msgid ""
@@ -2828,6 +2901,8 @@ msgid ""
 "Neither --del-all nor options to delete a specific record provided.\n"
 "Command help may be consulted for all supported record types."
 msgstr ""
+"Ni --del-all ni opciones para borrar un registro en concreto ha sido especificado.\n"
+"El comando de ayuda puede ser consultado para ver los tipos de registros soportados."
 
 #: ipalib/plugins/dns.py:807
 msgid "Delete all associated records"
@@ -2835,19 +2910,19 @@ msgstr "Eliminar todos los registros asociados"
 
 #: ipalib/plugins/dns.py:834
 msgid "No option to delete specific record provided."
-msgstr ""
+msgstr "Ninguna opción para  borrar un registro en concreto especificado."
 
 #: ipalib/plugins/dns.py:835
 msgid "Delete all?"
-msgstr ""
+msgstr "¿Borrar todos?"
 
 #: ipalib/plugins/dns.py:845
 msgid "Current DNS record contents:\n"
-msgstr ""
+msgstr "Contenidos actuales del registro DNS:\n"
 
 #: ipalib/plugins/dns.py:875
 msgid "%s record with value %s not found"
-msgstr ""
+msgstr "registro %s con valor %s no encontrado  "
 
 #: ipalib/plugins/dns.py:889
 msgid ""
@@ -3009,7 +3084,7 @@ msgstr ""
 
 #: ipalib/plugins/entitle.py:189
 msgid "Entitlements"
-msgstr ""
+msgstr "Autorizaciones"
 
 #: ipalib/plugins/entitle.py:206
 msgid ""
@@ -3547,7 +3622,7 @@ msgstr ""
 
 #: ipalib/plugins/hbacrule.py:126
 msgid "HBAC Rule"
-msgstr ""
+msgstr "REgla HBAC"
 
 #: ipalib/plugins/hbacrule.py:131 ipalib/plugins/sudorule.py:73
 msgid "Rule name"
@@ -4225,7 +4300,7 @@ msgstr "Es necesario un nombre de equipo totalmente certificado"
 
 #: ipalib/plugins/host.py:129
 msgid "DNS reverse zone for IP address %(addr)s not found"
-msgstr ""
+msgstr "Zona invertida DNS para dirección IP %(addr)s no encontrada"
 
 #: ipalib/plugins/host.py:153 ipalib/plugins/service.py:87
 msgid "Keytab"
@@ -4657,11 +4732,11 @@ msgstr "Configuración de ubicación de automount"
 
 #: ipalib/plugins/internal.py:106
 msgid "Add Automount Map"
-msgstr ""
+msgstr "Añadir mapa de automontaje"
 
 #: ipalib/plugins/internal.py:109
 msgid "Add Automount Key"
-msgstr ""
+msgstr "Añadir Clave de Automontaje"
 
 #: ipalib/plugins/internal.py:112
 msgid "Unspecified"
@@ -4841,7 +4916,7 @@ msgstr "Los registros para la zona DNS"
 
 #: ipalib/plugins/internal.py:169
 msgid "Add Group"
-msgstr ""
+msgstr "Añadir Grupo"
 
 #: ipalib/plugins/internal.py:170
 msgid "Group Settings"
@@ -4853,7 +4928,7 @@ msgstr "¿Es esto un grupo POSIX?"
 
 #: ipalib/plugins/internal.py:174
 msgid "Add HBAC Rule"
-msgstr ""
+msgstr "Añadir regla HBAC"
 
 #: ipalib/plugins/internal.py:175 ipalib/plugins/internal.py:280
 #: ipalib/plugins/internal.py:306
@@ -4919,15 +4994,15 @@ msgstr "Desde"
 
 #: ipalib/plugins/internal.py:192
 msgid "Add HBAC Service"
-msgstr ""
+msgstr "Añadir Servicio HBAC"
 
 #: ipalib/plugins/internal.py:195
 msgid "Add HBAC Service Group"
-msgstr ""
+msgstr "Añadir Grupo de Servicio HBAC"
 
 #: ipalib/plugins/internal.py:199
 msgid "Add Host"
-msgstr ""
+msgstr "Añadir Host"
 
 #: ipalib/plugins/internal.py:200
 msgid "Host Certificate"
@@ -4995,11 +5070,11 @@ msgstr "Unprovision"
 
 #: ipalib/plugins/internal.py:219
 msgid "Add Host Group"
-msgstr ""
+msgstr "Añadir Grupo de Host"
 
 #: ipalib/plugins/internal.py:220
 msgid "Host Group Settings"
-msgstr ""
+msgstr "Configuraciones del Grupo de Host"
 
 #: ipalib/plugins/internal.py:223
 msgid "Kerberos ticket policy"
@@ -5071,7 +5146,7 @@ msgstr "Agregar definición de autoservicio"
 
 #: ipalib/plugins/internal.py:256
 msgid "Add Service"
-msgstr ""
+msgstr "Añadir Servicio"
 
 #: ipalib/plugins/internal.py:257
 msgid "Service Certificate"
@@ -5099,11 +5174,11 @@ msgstr "¿Está seguro de que desea no suministrar este servicio?"
 
 #: ipalib/plugins/internal.py:271
 msgid "Add Sudo Command"
-msgstr ""
+msgstr "Añadir comando Sudo"
 
 #: ipalib/plugins/internal.py:275
 msgid "Add Sudo Command Group"
-msgstr ""
+msgstr "Añadir  Grupo de Comando Sudo"
 
 #: ipalib/plugins/internal.py:276 ipalib/plugins/sudocmdgroup.py:80
 msgid "Commands"
@@ -5111,7 +5186,7 @@ msgstr "Comandos"
 
 #: ipalib/plugins/internal.py:279
 msgid "Add Sudo Rule"
-msgstr ""
+msgstr "Añadir regla Sudo"
 
 #: ipalib/plugins/internal.py:287
 msgid "Access this host"
@@ -5311,23 +5386,23 @@ msgstr "Prospectivo"
 
 #: ipalib/plugins/internal.py:350
 msgid "Managed by"
-msgstr ""
+msgstr "Administrado por"
 
 #: ipalib/plugins/internal.py:351
 msgid "Member"
-msgstr ""
+msgstr "Miembro"
 
 #: ipalib/plugins/internal.py:352
 msgid "Indirect Member"
-msgstr ""
+msgstr "Miembro indirecto"
 
 #: ipalib/plugins/internal.py:353
 msgid "Member Of"
-msgstr ""
+msgstr "Miembro de"
 
 #: ipalib/plugins/internal.py:354
 msgid "Indirect Member Of"
-msgstr ""
+msgstr "Miembro indirecto de"
 
 #: ipalib/plugins/internal.py:355 ipalib/plugins/internal.py:359
 msgid "Settings"
@@ -5371,7 +5446,7 @@ msgstr "Configuración de identidad"
 
 #: ipalib/plugins/internal.py:372
 msgid "${entity} ${primary_key} Settings"
-msgstr ""
+msgstr "Configuraciones de  ${entity} ${primary_key}"
 
 #: ipalib/plugins/internal.py:373
 msgid "Back to Top"
@@ -5395,7 +5470,7 @@ msgstr "Sudo"
 
 #: ipalib/plugins/internal.py:381
 msgid "Host Based Access Control"
-msgstr ""
+msgstr "Control de Acceso basado en Host"
 
 #: ipalib/plugins/internal.py:382
 msgid "Role Based Access Control"
@@ -6046,6 +6121,25 @@ msgid ""
 " Delete a netgroup:\n"
 "   ipa netgroup-del admins\n"
 msgstr ""
+"\n"
+"Grupos de Red\n"
+"Un grupo de red es un grupo usado para comprobación de permisos. Puede contener valores tanto del usuario como del host.\n"
+"EJEMPLOS:\n"
+"\n"
+" Añadir un nuevo grupo de red:\n"
+"   ipa netgroup-add --desc=\"NFS admins\" admins\n"
+"\n"
+" Añadir miembros al grupo de red:\n"
+"   ipa netgroup-add-member --users=tuser1,tuser2 admins\n"
+"\n"
+" Eliminar miembro del grupo de red:\n"
+"   ipa netgroup-remove-member --users=tuser2 admins\n"
+"\n"
+" Mostrar información sobre el grupo de red:\n"
+"   ipa netgroup-show admins\n"
+"\n"
+" Borrar un grupo de red:\n"
+"   ipa netgroup-del admins\n"
 
 #: ipalib/plugins/netgroup.py:59
 msgid "Member Host"
@@ -7589,6 +7683,19 @@ msgid ""
 "   ipa sudocmd-del /usr/bin/less\n"
 "\n"
 msgstr ""
+"\n"
+"Comandos de Sudo\n"
+"\n"
+"Comandos usados como partes integrantes de sudo\n"
+"\n"
+"EJEMPLOS:\n"
+"\n"
+" Crear un comando nuevo\n"
+"   ipa sudocmd-add --desc='For reading log files' /usr/bin/less\n"
+"\n"
+" Eliminar un comando\n"
+"   ipa sudocmd-del /usr/bin/less\n"
+"\n"
 
 #: ipalib/plugins/sudocmd.py:46
 msgid ""
@@ -7856,7 +7963,7 @@ msgstr ""
 
 #: ipalib/plugins/sudorule.py:68
 msgid "Sudo Rule"
-msgstr ""
+msgstr "Regla Sudo"
 
 #: ipalib/plugins/sudorule.py:98
 msgid "Command category"
@@ -7968,6 +8075,9 @@ msgid ""
 "    Display Sudo Rule.\n"
 "    "
 msgstr ""
+"\n"
+"    Mostrar Regla Sudo.\n"
+"    "
 
 #: ipalib/plugins/sudorule.py:221
 msgid ""
@@ -8306,10 +8416,13 @@ msgid ""
 "        Given a userid verify the user's existence and return the dn.\n"
 "        "
 msgstr ""
+"\n"
+"        Dado un id de usuario verifica la existencia de dicho usuario y devuelve el dn.\n"
+"        "
 
 #: ipalib/plugins/user.py:276
 msgid "manager %(manager)s not found"
-msgstr ""
+msgstr "Administrador %(manager)s no encontrado"
 
 #: ipalib/plugins/user.py:281
 msgid ""
@@ -8317,6 +8430,9 @@ msgid ""
 "        Convert a manager dn into a userid\n"
 "        "
 msgstr ""
+"\n"
+"        Convertir un dn de administrador en userid \n"
+"        "
 
 #: ipalib/plugins/user.py:295
 msgid ""
@@ -8333,7 +8449,7 @@ msgstr "Ha sido agregado el usuario \"%(value)s\""
 
 #: ipalib/plugins/user.py:303
 msgid "Don't create user private group"
-msgstr ""
+msgstr "No crear grupo privado de usuario"
 
 #: ipalib/plugins/user.py:333
 msgid "can be at most %(len)d characters"
@@ -8971,7 +9087,7 @@ msgstr "Permiso denegado:%(file)s "
 #: ipalib/x509.py:174
 #, python-format
 msgid "Issuer \"%(issuer)s\" does not match the expected issuer"
-msgstr ""
+msgstr "Emisor \"%(issuer)s\" no coincide con el emisor esperado "
 
 #: ipaserver/plugins/dogtag.py:1313 ipaserver/plugins/dogtag.py:1398
 #: ipaserver/plugins/dogtag.py:1463 ipaserver/plugins/dogtag.py:1541
@@ -9035,7 +9151,7 @@ msgstr "no puede stat () del archivo de configuración%s\n"
 #: ipa-client/config.c:68
 #, c-format
 msgid "out of memory\n"
-msgstr ""
+msgstr "sin Memoria\n"
 
 #: ipa-client/config.c:79
 #, c-format
@@ -9631,7 +9747,7 @@ msgstr "krb5_unparse_name %d: %s\n"
 #: ipa-client/ipa-rmkeytab.c:143
 #, c-format
 msgid "realm not found\n"
-msgstr ""
+msgstr "reino no encontrado\n"
 
 #: ipa-client/ipa-rmkeytab.c:169
 msgid "Print debugging information"

@@ -1,24 +1,22 @@
+# SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR Red Hat
 # This file is distributed under the same license as the PACKAGE package.
-#
+# 
 # Jake Li <gnozil@gmail.com>, 2010.
+# jdennis <jdennis@redhat.com>, 2011.
 msgid ""
 msgstr ""
-"Project-Id-Version: ipa\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
+"Project-Id-Version: FreeIPA\n"
+"Report-Msgid-Bugs-To: https://bugzilla.redhat.com/enter_bug.cgi?product=freeIPA\n"
 "POT-Creation-Date: 2011-06-06 13:27-0400\n"
-"PO-Revision-Date: 2010-03-18 22:43+0800\n"
-"Last-Translator: Jake Li <gnozil@gmail.com>\n"
-"Language-Team: Chinese Simplified <zh_CN>\n"
-"Language: \n"
+"PO-Revision-Date: 2011-07-27 00:01+0000\n"
+"Last-Translator: jdennis <jdennis@redhat.com>\n"
+"Language-Team: Chinese (China) (http://www.transifex.net/projects/p/fedora/team/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Poedit-Language: Chinese\n"
-"X-Poedit-Country: CHINA\n"
-"X-Generator: Lokalize 1.0\n"
+"Language: zh_CN\n"
+"Plural-Forms: nplurals=1; plural=0\n"
 
 #: ipalib/plugins/__init__.py:20
 msgid ""
@@ -41,16 +39,14 @@ msgid ""
 "permissions can be combined into roles that grant broader access. These\n"
 "roles are another type of group, roles.\n"
 "\n"
-"For example, if you have taskgroups that allow adding and modifying users "
-"you\n"
+"For example, if you have taskgroups that allow adding and modifying users you\n"
 "could create a role, useradmin. You would assign users to the useradmin\n"
 "role to allow them to do the operations defined by the taskgroups.\n"
 "\n"
 "You can create ACIs that delegate permission so users in group A can write\n"
 "attributes on group B.\n"
 "\n"
-"The type option is a map that applies to all entries in the users, groups "
-"or\n"
+"The type option is a map that applies to all entries in the users, groups or\n"
 "host location. It is primarily designed to be used when granting add\n"
 "permissions (to write new entries).\n"
 "\n"
@@ -70,8 +66,7 @@ msgid ""
 "- targetgroup: grant access to modify a specific group. This is primarily\n"
 "  designed to enable users to add or remove members of a specific group.\n"
 "- filter: A legal LDAP filter used to narrow the scope of the target.\n"
-"- subtree: Used to apply a rule across an entire set of objects. For "
-"example,\n"
+"- subtree: Used to apply a rule across an entire set of objects. For example,\n"
 "  to allow adding users you need to grant \"add\" permission to the subtree\n"
 "  ldap://uid=*,cn=users,cn=accounts,dc=example,dc=com. The subtree option\n"
 "  is a fail-safe for objects that may not be covered by the type option.\n"
@@ -93,51 +88,35 @@ msgid ""
 "taskgroups so that the rights can be easily shared through roles.\n"
 "\n"
 "For a more thorough description of access controls see\n"
-"http://www.redhat.com/docs/manuals/dir-server/ag/8.0/Managing_Access_Control."
-"html\n"
+"http://www.redhat.com/docs/manuals/dir-server/ag/8.0/Managing_Access_Control.html\n"
 "\n"
 "EXAMPLES:\n"
 "\n"
 "NOTE: ACIs are now added via the permission plugin. These examples are to\n"
-"demonstrate how the various options work but this is done via the "
-"permission\n"
+"demonstrate how the various options work but this is done via the permission\n"
 "command-line now (see last example).\n"
 "\n"
-" Add an ACI so that the group \"secretaries\" can update the address on any "
-"user:\n"
+" Add an ACI so that the group \"secretaries\" can update the address on any user:\n"
 "   ipa group-add --desc=\"Office secretaries\" secretaries\n"
-"   ipa aci-add --attrs=streetAddress --memberof=ipausers --group=secretaries "
-"--permissions=write --prefix=none \"Secretaries write addresses\"\n"
+"   ipa aci-add --attrs=streetAddress --memberof=ipausers --group=secretaries --permissions=write --prefix=none \"Secretaries write addresses\"\n"
 "\n"
 " Show the new ACI:\n"
 "   ipa aci-show --prefix=none \"Secretaries write addresses\"\n"
 "\n"
-" Add an ACI that allows members of the \"addusers\" permission to add new "
-"users:\n"
-"   ipa aci-add --type=user --permission=addusers --permissions=add --"
-"prefix=none \"Add new users\"\n"
+" Add an ACI that allows members of the \"addusers\" permission to add new users:\n"
+"   ipa aci-add --type=user --permission=addusers --permissions=add --prefix=none \"Add new users\"\n"
 "\n"
-" Add an ACI that allows members of the editors manage members of the admins "
-"group:\n"
-"   ipa aci-add --permissions=write --attrs=member --targetgroup=admins --"
-"group=editors --prefix=none \"Editors manage admins\"\n"
+" Add an ACI that allows members of the editors manage members of the admins group:\n"
+"   ipa aci-add --permissions=write --attrs=member --targetgroup=admins --group=editors --prefix=none \"Editors manage admins\"\n"
 "\n"
-" Add an ACI that allows members of the admin group to manage the street and "
-"zip code of those in the editors group:\n"
-"   ipa aci-add --permissions=write --memberof=editors --group=admins --"
-"attrs=street,postalcode --prefix=none \"admins edit the address of editors"
-"\"\n"
+" Add an ACI that allows members of the admin group to manage the street and zip code of those in the editors group:\n"
+"   ipa aci-add --permissions=write --memberof=editors --group=admins --attrs=street,postalcode --prefix=none \"admins edit the address of editors\"\n"
 "\n"
-" Add an ACI that allows the admins group manage the street and zipcode of "
-"those who work for the boss:\n"
-"   ipa aci-add --permissions=write --group=admins --attrs=street,postalcode "
-"--filter=\"(manager=uid=boss,cn=users,cn=accounts,dc=example,dc=com)\" --"
-"prefix=none \"Edit the address of those who work for the boss\"\n"
+" Add an ACI that allows the admins group manage the street and zipcode of those who work for the boss:\n"
+"   ipa aci-add --permissions=write --group=admins --attrs=street,postalcode --filter=\"(manager=uid=boss,cn=users,cn=accounts,dc=example,dc=com)\" --prefix=none \"Edit the address of those who work for the boss\"\n"
 "\n"
-" Add an entirely new kind of record to IPA that isn't covered by any of the "
-"--type options, creating a permission:\n"
-"   ipa permission-add  --permissions=add --subtree=\"cn=*,cn=orange,"
-"cn=accounts,dc=example,dc=com\" --desc=\"Add Orange Entries\" add_orange\n"
+" Add an entirely new kind of record to IPA that isn't covered by any of the --type options, creating a permission:\n"
+"   ipa permission-add  --permissions=add --subtree=\"cn=*,cn=orange,cn=accounts,dc=example,dc=com\" --desc=\"Add Orange Entries\" add_orange\n"
 "\n"
 "\n"
 "The show command shows the raw 389-ds ACI.\n"
@@ -186,9 +165,8 @@ msgid "type, filter, subtree and targetgroup are mutually exclusive"
 msgstr ""
 
 #: ipalib/plugins/aci.py:218
-#, fuzzy
 msgid "ACI prefix is required"
-msgstr "需要%(name)r"
+msgstr ""
 
 #: ipalib/plugins/aci.py:221
 msgid ""
@@ -217,9 +195,8 @@ msgid "empty filter"
 msgstr ""
 
 #: ipalib/plugins/aci.py:294
-#, fuzzy
 msgid "Syntax Error: %(error)s"
-msgstr "%(name)r无效: %(error)s"
+msgstr ""
 
 #: ipalib/plugins/aci.py:299
 msgid ""
@@ -261,9 +238,8 @@ msgid "ACI name"
 msgstr "ACI名称"
 
 #: ipalib/plugins/aci.py:422
-#, fuzzy
 msgid "Permission"
-msgstr "权限"
+msgstr ""
 
 #: ipalib/plugins/aci.py:423
 msgid "Permission ACI grants access to"
@@ -406,9 +382,8 @@ msgstr ""
 #: ipalib/plugins/aci.py:582 ipalib/plugins/aci.py:830
 #: ipalib/plugins/aci.py:871 ipalib/plugins/delegation.py:255
 #: ipalib/plugins/selfservice.py:212
-#, fuzzy
 msgid "ACI"
-msgstr "ACIs"
+msgstr ""
 
 #: ipalib/plugins/aci.py:588
 msgid "Modified ACI \"%(value)s\""
@@ -441,7 +416,6 @@ msgstr ""
 msgid "%(count)d ACI matched"
 msgid_plural "%(count)d ACIs matched"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ipalib/plugins/aci.py:823
 msgid ""
@@ -470,14 +444,12 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/aci.py:878
-#, fuzzy
 msgid "New ACI name"
-msgstr "ACI名称"
+msgstr ""
 
 #: ipalib/plugins/aci.py:882
-#, fuzzy
 msgid "Renamed ACI to \"%(value)s\""
-msgstr "已删除主机 \"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/automount.py:20
 msgid ""
@@ -486,12 +458,10 @@ msgid ""
 "\n"
 "Stores automount(8) configuration for autofs(8) in IPA.\n"
 "\n"
-"The base of an automount configuration is the configuration file auto."
-"master.\n"
+"The base of an automount configuration is the configuration file auto.master.\n"
 "This is also the base location in IPA. Multiple auto.master configurations\n"
 "can be stored in separate locations. A location is implementation-specific\n"
-"with the default being a location named 'default'. For example, you can "
-"have\n"
+"with the default being a location named 'default'. For example, you can have\n"
 "locations by geographic region, by floor, by type, etc.\n"
 "\n"
 "Automount has three basic object types: locations, maps and keys.\n"
@@ -526,8 +496,7 @@ msgid ""
 "  Remove a named automount location:\n"
 "    ipa automountlocation-del baltimore\n"
 "\n"
-"  Show what the automount maps would look like if they were in the "
-"filesystem:\n"
+"  Show what the automount maps would look like if they were in the filesystem:\n"
 "    ipa automountlocation-tofiles baltimore\n"
 "\n"
 "  Import an existing configuration into a location:\n"
@@ -555,12 +524,10 @@ msgid ""
 "\n"
 "  Create a new key for the auto.share map in location baltimore. This ties\n"
 "  the map we previously created to auto.master:\n"
-"    ipa automountkey-add baltimore auto.master --key=/share --info=auto."
-"share\n"
+"    ipa automountkey-add baltimore auto.master --key=/share --info=auto.share\n"
 "\n"
 "  Create a new key for our auto.share map, an NFS mount for man pages:\n"
-"    ipa automountkey-add baltimore auto.share --key=man --info=\"-ro,soft,"
-"rsize=8192,wsize=8192 ipa.example.com:/shared/man\"\n"
+"    ipa automountkey-add baltimore auto.share --key=man --info=\"-ro,soft,rsize=8192,wsize=8192 ipa.example.com:/shared/man\"\n"
 "\n"
 "  Find all keys for the auto.share map:\n"
 "    ipa automountkey-find baltimore auto.share\n"
@@ -759,9 +726,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/automount.py:608
-#, fuzzy
 msgid "key named %(key)s already exists"
-msgstr "条目已经存在"
+msgstr ""
 
 #: ipalib/plugins/automount.py:609
 msgid "The automount key %(key)s with info %(info)s does not exist"
@@ -850,9 +816,8 @@ msgid "Member groups"
 msgstr "成员组"
 
 #: ipalib/plugins/baseldap.py:48
-#, fuzzy
 msgid "Member of groups"
-msgstr "组成员"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:51
 msgid "Member hosts"
@@ -867,9 +832,8 @@ msgid "Member of host-groups"
 msgstr "主机组成员"
 
 #: ipalib/plugins/baseldap.py:66
-#, fuzzy
 msgid "Roles"
-msgstr "角色组"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:69 ipalib/plugins/sudocmdgroup.py:65
 #: ipalib/plugins/sudocmdgroup.py:84 ipalib/plugins/sudorule.py:139
@@ -882,49 +846,40 @@ msgid "Granting privilege to roles"
 msgstr ""
 
 #: ipalib/plugins/baseldap.py:78
-#, fuzzy
 msgid "Member netgroups"
-msgstr "成员组"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:81
-#, fuzzy
 msgid "Member of netgroups"
-msgstr "网络组成员"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:84
-#, fuzzy
 msgid "Member services"
-msgstr "成员用户"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:87
-#, fuzzy
 msgid "Member service groups"
-msgstr "成员组"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:93
-#, fuzzy
 msgid "Member HBAC service groups"
-msgstr "成员组"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:102
-#, fuzzy
 msgid "Indirect Member users"
-msgstr "成员用户"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:105
-#, fuzzy
 msgid "Indirect Member groups"
-msgstr "成员组"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:108
-#, fuzzy
 msgid "Indirect Member hosts"
-msgstr "成员主机"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:111
-#, fuzzy
 msgid "Indirect Member host-groups"
-msgstr "主机组成员"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:114
 msgid "Indirect Member of roles"
@@ -935,43 +890,36 @@ msgid "Indirect Member permissions"
 msgstr ""
 
 #: ipalib/plugins/baseldap.py:120
-#, fuzzy
 msgid "Indirect Member HBAC service"
-msgstr "成员用户"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:123
-#, fuzzy
 msgid "Indirect Member HBAC service group"
-msgstr "成员组"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:126
-#, fuzzy
 msgid "Indirect Member netgroups"
-msgstr "网络组成员"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:141
 msgid "External host"
 msgstr "外部主机"
 
 #: ipalib/plugins/baseldap.py:144
-#, fuzzy
 msgid "Failed hosts/hostgroups"
-msgstr "主机组名称"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:147
-#, fuzzy
 msgid "Failed users/groups"
-msgstr "默认用户组"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:150
-#, fuzzy
 msgid "Failed managedby"
-msgstr "失败的成员"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:153
-#, fuzzy
 msgid "Failed to remove"
-msgstr "失败的成员"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:171
 msgid ""
@@ -1071,8 +1019,7 @@ msgstr ""
 #: ipalib/plugins/baseldap.py:727
 msgid ""
 "\n"
-"    Base class for commands that need to retrieve one or more existing "
-"entries.\n"
+"    Base class for commands that need to retrieve one or more existing entries.\n"
 "    "
 msgstr ""
 
@@ -1106,9 +1053,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/baseldap.py:837
-#, fuzzy
 msgid "Rename"
-msgstr "规则名"
+msgstr ""
 
 #: ipalib/plugins/baseldap.py:838
 msgid "Rename the %(ldap_obj_name)s object"
@@ -1229,17 +1175,13 @@ msgid ""
 "\n"
 "To run this code in the lite-server\n"
 "\n"
-"curl   -H \"Content-Type:application/json\"          -H \"Accept:application/"
-"json\" -H \"Accept-Language:en\"        --negotiate -u :          --cacert /"
-"etc/ipa/ca.crt           -d  @batch_request.json -X POST       http://"
-"localhost:8888/ipa/json\n"
+"curl   -H \"Content-Type:application/json\"          -H \"Accept:application/json\" -H \"Accept-Language:en\"        --negotiate -u :          --cacert /etc/ipa/ca.crt           -d  @batch_request.json -X POST       http://localhost:8888/ipa/json\n"
 "\n"
 "where the contents of the file batch_request.json follow the below example\n"
 "\n"
 "{\"method\":\"batch\",\"params\":[[\n"
 "        {\"method\":\"group_find\",\"params\":[[],{}]},\n"
-"        {\"method\":\"user_find\",\"params\":[[],{\"whoami\":\"true\",\"all"
-"\":\"true\"}]},\n"
+"        {\"method\":\"user_find\",\"params\":[[],{\"whoami\":\"true\",\"all\":\"true\"}]},\n"
 "        {\"method\":\"user_show\",\"params\":[[\"admin\"],{\"all\":true}]}\n"
 "        ],{}],\"id\":1}\n"
 "\n"
@@ -1270,8 +1212,7 @@ msgid ""
 "\n"
 "Implements a set of commands for managing server SSL certificates.\n"
 "\n"
-"Certificate requests exist in the form of a Certificate Signing Request "
-"(CSR)\n"
+"Certificate requests exist in the form of a Certificate Signing Request (CSR)\n"
 "in PEM format.\n"
 "\n"
 "If using the selfsign back end then the subject in the CSR needs to match\n"
@@ -1284,8 +1225,7 @@ msgid ""
 "In order to request a certificate:\n"
 "\n"
 "* The host must exist\n"
-"* The service must exist (or you use the --add option to automatically add "
-"it)\n"
+"* The service must exist (or you use the --add option to automatically add it)\n"
 "\n"
 "EXAMPLES:\n"
 "\n"
@@ -1335,9 +1275,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/cert.py:112
-#, fuzzy
 msgid "Failure decoding Certificate Signing Request:"
-msgstr "不能解码项目中的证书"
+msgstr ""
 
 #: ipalib/plugins/cert.py:115
 msgid ""
@@ -1485,9 +1424,8 @@ msgid "Output filename"
 msgstr ""
 
 #: ipalib/plugins/cert.py:467
-#, fuzzy
 msgid "File to store the certificate in."
-msgstr "撤消证书的原因(0-10)"
+msgstr ""
 
 #: ipalib/plugins/cert.py:518
 msgid ""
@@ -1541,8 +1479,7 @@ msgid ""
 "User management options:\n"
 "\n"
 "  --maxusername=INT     Max. username length when creating/modifying a user\n"
-"  --homedirectory=STR   Default location of home directories (default /"
-"home)\n"
+"  --homedirectory=STR   Default location of home directories (default /home)\n"
 "  --defaultshell=STR    Default shell for new users (default /bin/sh)\n"
 "  --defaultgroup=STR    Default group for new users (default ipausers). The\n"
 "                        group must exist, or adding new users will fail.\n"
@@ -1551,11 +1488,9 @@ msgid ""
 "Search tuning options. These impact how much data is searched through and\n"
 "how many records may be returned on a given search.\n"
 "\n"
-"  --searchtimelimit=INT Max. amount of time (sec.) for a search (> 0, or -1 "
-"for\n"
+"  --searchtimelimit=INT Max. amount of time (sec.) for a search (> 0, or -1 for\n"
 "                        unlimited)\n"
-"  --searchrecordslimit=INT Max. number of records to search (-1 is "
-"unlimited)\n"
+"  --searchrecordslimit=INT Max. number of records to search (-1 is unlimited)\n"
 "\n"
 "Server Configuration.\n"
 "\n"
@@ -1566,8 +1501,7 @@ msgid ""
 "It is not currently used to notify users in advance of an expiring\n"
 "password.\n"
 "\n"
-"Some attributes are read-only, provided only for information purposes. "
-"These\n"
+"Some attributes are read-only, provided only for information purposes. These\n"
 "include:\n"
 "\n"
 "Certificate Subject base: the configured certificate subject base,\n"
@@ -1592,46 +1526,40 @@ msgid "Configuration"
 msgstr ""
 
 #: ipalib/plugins/config.py:96
-#, fuzzy
 msgid "Max. username length"
-msgstr "最大用户名长度"
+msgstr ""
 
 #: ipalib/plugins/config.py:101
 msgid "Home directory base"
 msgstr "主目录"
 
 #: ipalib/plugins/config.py:102
-#, fuzzy
 msgid "Default location of home directories."
-msgstr "主目录的默认位置"
+msgstr ""
 
 #: ipalib/plugins/config.py:106
 msgid "Default shell"
 msgstr "默认shell"
 
 #: ipalib/plugins/config.py:107
-#, fuzzy
 msgid "Default shell for new users."
-msgstr "新用户的默认shell"
+msgstr ""
 
 #: ipalib/plugins/config.py:111
 msgid "Default users group"
 msgstr "默认用户组"
 
 #: ipalib/plugins/config.py:112
-#, fuzzy
 msgid "Default group for new users."
-msgstr "新用户默认组"
+msgstr ""
 
 #: ipalib/plugins/config.py:116
-#, fuzzy
 msgid "Default e-mail domain for new users"
-msgstr "新用户的默认邮件域名"
+msgstr ""
 
 #: ipalib/plugins/config.py:117
-#, fuzzy
 msgid "Default e-mail domain new users."
-msgstr "新用户的默认邮件域名"
+msgstr ""
 
 #: ipalib/plugins/config.py:121
 msgid "Search time limit"
@@ -1666,9 +1594,8 @@ msgid "Migration mode"
 msgstr "迁移模式"
 
 #: ipalib/plugins/config.py:144
-#, fuzzy
 msgid "Enable migration mode."
-msgstr "启用迁移模式"
+msgstr ""
 
 #: ipalib/plugins/config.py:148
 msgid "Certificate Subject base"
@@ -1679,18 +1606,16 @@ msgid "Base for certificate subjects (OU=Test,O=Example)."
 msgstr ""
 
 #: ipalib/plugins/config.py:154
-#, fuzzy
 msgid "Default group objectclasses"
-msgstr "新用户默认组"
+msgstr ""
 
 #: ipalib/plugins/config.py:155
 msgid "Default group objectclassses (comma-separated list)."
 msgstr ""
 
 #: ipalib/plugins/config.py:159
-#, fuzzy
 msgid "Default user objectclasses"
-msgstr "默认用户组"
+msgstr ""
 
 #: ipalib/plugins/config.py:160
 msgid "Default user objectclassses (comma-separated list)."
@@ -1741,13 +1666,11 @@ msgid ""
 "EXAMPLES:\n"
 "\n"
 " Add a delegation rule to allow editors to edit admin's addresses:\n"
-"   ipa delegation-add --attrs=street --membergroup=admins --group=editors "
-"'editors edit admins street'\n"
+"   ipa delegation-add --attrs=street --membergroup=admins --group=editors 'editors edit admins street'\n"
 "\n"
 " When managing the list of attributes you need to include all attributes\n"
 " in the list, including existing ones. Add postalCode to the list:\n"
-"   ipa delegation-mod --attrs=street,postalCode --membergroup=admins --"
-"group=editors 'editors edit admins street'\n"
+"   ipa delegation-mod --attrs=street,postalCode --membergroup=admins --group=editors 'editors edit admins street'\n"
 "\n"
 " Display our updated rule:\n"
 "   ipa delegation-show 'editors edit admins street'\n"
@@ -1795,19 +1718,18 @@ msgid "Delegation"
 msgstr ""
 
 #: ipalib/plugins/delegation.py:107 ipalib/plugins/delegation.py:108
-#, fuzzy
 msgid "Delegation name"
-msgstr "迁移模式"
+msgstr ""
 
 #: ipalib/plugins/delegation.py:114 ipalib/plugins/selfservice.py:87
 msgid ""
-"Comma-separated list of permissions to grant (read, write). Default is write."
+"Comma-separated list of permissions to grant (read, write). Default is "
+"write."
 msgstr ""
 
 #: ipalib/plugins/delegation.py:125
-#, fuzzy
 msgid "Member user group"
-msgstr "成员组"
+msgstr ""
 
 #: ipalib/plugins/delegation.py:126
 msgid "User group to apply delegation to"
@@ -1821,9 +1743,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/delegation.py:156
-#, fuzzy
 msgid "Added delegation \"%(value)s\""
-msgstr "已添加组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/delegation.py:176
 msgid ""
@@ -1833,9 +1754,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/delegation.py:181
-#, fuzzy
 msgid "Deleted delegation \"%(value)s\""
-msgstr "已删除组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/delegation.py:197
 msgid ""
@@ -1845,9 +1765,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/delegation.py:201
-#, fuzzy
 msgid "Modified delegation \"%(value)s\""
-msgstr "已修改组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/delegation.py:219
 msgid ""
@@ -1857,11 +1776,9 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/delegation.py:223
-#, fuzzy
 msgid "%(count)d delegation matched"
 msgid_plural "%(count)d delegations matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
 
 #: ipalib/plugins/delegation.py:250
 msgid ""
@@ -1901,21 +1818,15 @@ msgid ""
 " Add new SRV records for LDAP servers. Three quarters of the requests\n"
 " should go to fast.example.com, one quarter to slow.example.com. If neither\n"
 " is available, switch to backup.example.com.\n"
-"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"0 3 389 fast.example."
-"com\"\n"
-"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"0 1 389 slow.example."
-"com\"\n"
-"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"1 1 389 backup."
-"example.com\"\n"
+"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"0 3 389 fast.example.com\"\n"
+"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"0 1 389 slow.example.com\"\n"
+"   ipa dnsrecord-add example.com _ldap._tcp --srv-rec=\"1 1 389 backup.example.com\"\n"
 "\n"
-" When dnsrecord-add command is executed with no option to add a specific "
-"record\n"
-" an interactive mode is started. The mode interactively prompts for the "
-"most\n"
+" When dnsrecord-add command is executed with no option to add a specific record\n"
+" an interactive mode is started. The mode interactively prompts for the most\n"
 " typical record types for the respective zone:\n"
 "   ipa dnsrecord-add example.com www\n"
-"   [A record]: 1.2.3.4,11.22.33.44      (2 interactively entered random "
-"IPs)\n"
+"   [A record]: 1.2.3.4,11.22.33.44      (2 interactively entered random IPs)\n"
 "   [AAAA record]:                       (no AAAA address entered)\n"
 "     Record name: www\n"
 "     A record: 1.2.3.4, 11.22.33.44\n"
@@ -1931,8 +1842,7 @@ msgid ""
 "   Delete A record '1.2.3.4'? Yes/No (default No): \n"
 "   Delete A record '11.22.33.44'? Yes/No (default No): y\n"
 "     Record name: www\n"
-"     A record: 1.2.3.4                  (A record 11.22.33.44 has been "
-"deleted)\n"
+"     A record: 1.2.3.4                  (A record 11.22.33.44 has been deleted)\n"
 "\n"
 " Show zone example.com:\n"
 "   ipa dnszone-show example.com\n"
@@ -1998,18 +1908,16 @@ msgid "Authoritative nameserver."
 msgstr ""
 
 #: ipalib/plugins/dns.py:301 ipalib/plugins/dns.py:302
-#, fuzzy
 msgid "Administrator e-mail address"
-msgstr "管理员邮件地址"
+msgstr ""
 
 #: ipalib/plugins/dns.py:308
 msgid "SOA serial"
 msgstr ""
 
 #: ipalib/plugins/dns.py:309
-#, fuzzy
 msgid "SOA record serial number"
-msgstr "序列号"
+msgstr ""
 
 #: ipalib/plugins/dns.py:316
 msgid "SOA refresh"
@@ -2072,14 +1980,12 @@ msgid "Is zone active?"
 msgstr ""
 
 #: ipalib/plugins/dns.py:372
-#, fuzzy
 msgid "Dynamic update"
-msgstr "允许动态更新？"
+msgstr ""
 
 #: ipalib/plugins/dns.py:373
-#, fuzzy
 msgid "Allow dynamic updates."
-msgstr "允许动态更新？"
+msgstr ""
 
 #: ipalib/plugins/dns.py:382
 msgid ""
@@ -2141,9 +2047,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/dns.py:472
-#, fuzzy
 msgid "Disabled DNS zone \"%(value)s\""
-msgstr "已删除用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/dns.py:490
 msgid ""
@@ -2153,9 +2058,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/dns.py:494
-#, fuzzy
 msgid "Enabled DNS zone \"%(value)s\""
-msgstr "已解锁用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/dns.py:512
 msgid ""
@@ -2165,14 +2069,12 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/dns.py:522
-#, fuzzy
 msgid "DNS resource record"
-msgstr "资源名称"
+msgstr ""
 
 #: ipalib/plugins/dns.py:527 ipalib/plugins/dns.py:528
-#, fuzzy
 msgid "Record name"
-msgstr "资源名称"
+msgstr ""
 
 #: ipalib/plugins/dns.py:533 ipalib/plugins/dns.py:534
 msgid "Time to live"
@@ -2240,9 +2142,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/dns.py:792
-#, fuzzy
 msgid "Deleted record \"%(value)s\""
-msgstr "已删除用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/dns.py:799
 msgid ""
@@ -2299,14 +2200,12 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/dns.py:936
-#, fuzzy
 msgid "Found '%(value)s'"
-msgstr "已添加组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/dns.py:940
-#, fuzzy
 msgid "Hostname"
-msgstr "主机名"
+msgstr ""
 
 #: ipalib/plugins/dns.py:962
 msgid "Host '%(host)s' not found"
@@ -2455,9 +2354,8 @@ msgstr ""
 
 #: ipalib/plugins/entitle.py:400 ipalib/plugins/host.py:162
 #: ipalib/plugins/internal.py:132 ipalib/plugins/service.py:96
-#, fuzzy
 msgid "Serial Number"
-msgstr "序列号"
+msgstr ""
 
 #: ipalib/plugins/entitle.py:435 ipalib/plugins/entitle.py:626
 #: ipalib/plugins/entitle.py:628
@@ -2483,9 +2381,8 @@ msgid "Registered to entitlement server."
 msgstr ""
 
 #: ipalib/plugins/entitle.py:483
-#, fuzzy
 msgid "Username"
-msgstr "用户名"
+msgstr ""
 
 #: ipalib/plugins/entitle.py:490 ipalib/plugins/entitle.py:603
 msgid "Enrollment UUID"
@@ -2497,9 +2394,8 @@ msgid "Password"
 msgstr "密码"
 
 #: ipalib/plugins/entitle.py:495
-#, fuzzy
 msgid "Registration password"
-msgstr "用户密码"
+msgstr ""
 
 #: ipalib/plugins/entitle.py:569
 msgid ""
@@ -2511,8 +2407,7 @@ msgstr ""
 #: ipalib/plugins/entitle.py:646
 msgid ""
 "\n"
-"        If we are adding the first entry there are no updates so "
-"EmptyModlist\n"
+"        If we are adding the first entry there are no updates so EmptyModlist\n"
 "        will get thrown. Ignore it.\n"
 "        "
 msgstr ""
@@ -2542,8 +2437,7 @@ msgid ""
 "Every group must have a description.\n"
 "\n"
 "POSIX groups must have a Group ID (GID) number. Changing a GID is\n"
-"supported but can have an impact on your file permissions. It is not "
-"necessary\n"
+"supported but can have an impact on your file permissions. It is not necessary\n"
 "to supply a GID when creating a group. IPA will generate one automatically\n"
 "if it is not provided.\n"
 "\n"
@@ -2619,9 +2513,8 @@ msgid "Added group \"%(value)s\""
 msgstr "已添加组\"%(value)s\""
 
 #: ipalib/plugins/group.py:137
-#, fuzzy
 msgid "Create as a non-POSIX group"
-msgstr "这已经是一个posix组"
+msgstr ""
 
 #: ipalib/plugins/group.py:154
 msgid ""
@@ -2646,9 +2539,8 @@ msgid "Modified group \"%(value)s\""
 msgstr "已修改组\"%(value)s\""
 
 #: ipalib/plugins/group.py:194
-#, fuzzy
 msgid "change to a POSIX group"
-msgstr "这已经是一个posix组"
+msgstr ""
 
 #: ipalib/plugins/group.py:215
 msgid ""
@@ -2660,8 +2552,7 @@ msgstr ""
 #: ipalib/plugins/group.py:220
 msgid "%(count)d group matched"
 msgid_plural "%(count)d groups matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
 
 #: ipalib/plugins/group.py:227 ipalib/plugins/netgroup.py:192
 msgid "search for private groups"
@@ -2675,12 +2566,11 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/group.py:265
-#, fuzzy
 msgid ""
 "\n"
 "    Add members to a group.\n"
 "    "
-msgstr "组成员"
+msgstr ""
 
 #: ipalib/plugins/group.py:273
 msgid ""
@@ -2697,15 +2587,13 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/group.py:285
-#, fuzzy
 msgid "Detached group \"%(value)s\" from user \"%(value)s\""
-msgstr "已删除组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/group.py:288
 msgid ""
 "\n"
-"        This requires updating both the user and the group. We first need "
-"to\n"
+"        This requires updating both the user and the group. We first need to\n"
 "        verify that both the user and group can be updated, then we go\n"
 "        about our work. We don't want a situation where only the user or\n"
 "        group can be modified and we're left in a bad state.\n"
@@ -2744,8 +2632,7 @@ msgid ""
 "\n"
 "EXAMPLES:\n"
 "\n"
-" Create a rule, \"test1\", that grants all users access to the host \"server"
-"\" from\n"
+" Create a rule, \"test1\", that grants all users access to the host \"server\" from\n"
 " anywhere:\n"
 "   ipa hbacrule-add --type=allow --usercat=all --srchostcat=all test1\n"
 "   ipa hbacrule-add-host --hosts=server.example.com test1\n"
@@ -2790,9 +2677,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/hbacrule.py:126
-#, fuzzy
 msgid "HBAC Rule"
-msgstr "HBAC"
+msgstr ""
 
 #: ipalib/plugins/hbacrule.py:131 ipalib/plugins/sudorule.py:73
 msgid "Rule name"
@@ -2803,9 +2689,8 @@ msgid "Rule type (allow or deny)"
 msgstr "规则类型(允许或禁止)"
 
 #: ipalib/plugins/hbacrule.py:137
-#, fuzzy
 msgid "Rule type"
-msgstr "记录类型"
+msgstr ""
 
 #: ipalib/plugins/hbacrule.py:143 ipalib/plugins/netgroup.py:124
 #: ipalib/plugins/sudorule.py:86
@@ -2836,9 +2721,8 @@ msgid "Source host category the rule applies to"
 msgstr ""
 
 #: ipalib/plugins/hbacrule.py:161
-#, fuzzy
 msgid "Service category"
-msgstr "用户类别"
+msgstr ""
 
 #: ipalib/plugins/hbacrule.py:162
 msgid "Service category the rule applies to"
@@ -2869,14 +2753,12 @@ msgid "Host Groups"
 msgstr "主机组"
 
 #: ipalib/plugins/hbacrule.py:194
-#, fuzzy
 msgid "Source hosts"
-msgstr "源主机类别"
+msgstr ""
 
 #: ipalib/plugins/hbacrule.py:198
-#, fuzzy
 msgid "Source host groups"
-msgstr "源主机类别"
+msgstr ""
 
 #: ipalib/plugins/hbacrule.py:202 ipalib/plugins/internal.py:196
 #: ipalib/plugins/service.py:220
@@ -2884,9 +2766,8 @@ msgid "Services"
 msgstr "服务"
 
 #: ipalib/plugins/hbacrule.py:206
-#, fuzzy
 msgid "Service Groups"
-msgstr "服务"
+msgstr ""
 
 #: ipalib/plugins/hbacrule.py:215
 msgid ""
@@ -2896,9 +2777,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/hbacrule.py:219
-#, fuzzy
 msgid "Added HBAC rule \"%(value)s\""
-msgstr "新增用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/hbacrule.py:230
 msgid ""
@@ -2908,9 +2788,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/hbacrule.py:234
-#, fuzzy
 msgid "Deleted HBAC rule \"%(value)s\""
-msgstr "已删除用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/hbacrule.py:240
 msgid ""
@@ -2920,9 +2799,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/hbacrule.py:244
-#, fuzzy
 msgid "Modified HBAC rule \"%(value)s\""
-msgstr "已修改用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/hbacrule.py:266
 msgid ""
@@ -2932,11 +2810,9 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/hbacrule.py:270
-#, fuzzy
 msgid "%(count)d HBAC rule matched"
 msgid_plural "%(count)d HBAC rules matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
 
 #: ipalib/plugins/hbacrule.py:278
 msgid ""
@@ -2953,9 +2829,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/hbacrule.py:290
-#, fuzzy
 msgid "Enabled HBAC rule \"%(value)s\""
-msgstr "已解锁用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/hbacrule.py:315
 msgid ""
@@ -2965,9 +2840,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/hbacrule.py:319
-#, fuzzy
 msgid "Disabled HBAC rule \"%(value)s\""
-msgstr "已删除用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/hbacrule.py:344
 msgid ""
@@ -3076,23 +2950,20 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/hbacsvc.py:61
-#, fuzzy
 msgid "HBAC Services"
-msgstr "服务"
+msgstr ""
 
 #: ipalib/plugins/hbacsvc.py:66
 msgid "Service name"
 msgstr "服务名"
 
 #: ipalib/plugins/hbacsvc.py:67
-#, fuzzy
 msgid "HBAC service"
-msgstr "服务"
+msgstr ""
 
 #: ipalib/plugins/hbacsvc.py:74
-#, fuzzy
 msgid "HBAC service description"
-msgstr "网络组描述"
+msgstr ""
 
 #: ipalib/plugins/hbacsvc.py:82
 msgid ""
@@ -3102,9 +2973,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/hbacsvc.py:85
-#, fuzzy
 msgid "Added HBAC service \"%(value)s\""
-msgstr "已添加组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/hbacsvc.py:91
 msgid ""
@@ -3114,9 +2984,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/hbacsvc.py:94
-#, fuzzy
 msgid "Deleted HBAC service \"%(value)s\""
-msgstr "已删除组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/hbacsvc.py:100
 msgid ""
@@ -3126,9 +2995,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/hbacsvc.py:104
-#, fuzzy
 msgid "Modified HBAC service \"%(value)s\""
-msgstr "已修改用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/hbacsvc.py:110
 msgid ""
@@ -3138,11 +3006,9 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/hbacsvc.py:114
-#, fuzzy
 msgid "%(count)d HBAC service matched"
 msgid_plural "%(count)d HBAC services matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
 
 #: ipalib/plugins/hbacsvc.py:122
 msgid ""
@@ -3179,66 +3045,56 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/hbacsvcgroup.py:51
-#, fuzzy
 msgid ""
 "\n"
 "    HBAC service group object.\n"
 "    "
-msgstr "网络组描述"
+msgstr ""
 
 #: ipalib/plugins/hbacsvcgroup.py:64
-#, fuzzy
 msgid "HBAC service Groups"
-msgstr "服务"
+msgstr ""
 
 #: ipalib/plugins/hbacsvcgroup.py:69
-#, fuzzy
 msgid "Service group name"
-msgstr "服务名"
+msgstr ""
 
 #: ipalib/plugins/hbacsvcgroup.py:76
-#, fuzzy
 msgid "HBAC service group description"
-msgstr "网络组描述"
+msgstr ""
 
 #: ipalib/plugins/hbacsvcgroup.py:84
-#, fuzzy
 msgid ""
 "\n"
 "    Add a new HBAC service group.\n"
 "    "
-msgstr "已添加组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/hbacsvcgroup.py:87
-#, fuzzy
 msgid "Added HBAC service group \"%(value)s\""
-msgstr "已添加组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/hbacsvcgroup.py:93
-#, fuzzy
 msgid ""
 "\n"
 "    Delete an HBAC service group.\n"
 "    "
-msgstr "已删除组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/hbacsvcgroup.py:96
-#, fuzzy
 msgid "Deleted HBAC service group \"%(value)s\""
-msgstr "已删除组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/hbacsvcgroup.py:102
-#, fuzzy
 msgid ""
 "\n"
 "    Modify an HBAC service group.\n"
 "    "
-msgstr "已修改用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/hbacsvcgroup.py:105
-#, fuzzy
 msgid "Modified HBAC service group \"%(value)s\""
-msgstr "已修改用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/hbacsvcgroup.py:111
 msgid ""
@@ -3248,11 +3104,9 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/hbacsvcgroup.py:114
-#, fuzzy
 msgid "%(count)d HBAC service group matched"
 msgid_plural "%(count)d HBAC service groups matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
 
 #: ipalib/plugins/hbacsvcgroup.py:122
 msgid ""
@@ -3310,8 +3164,7 @@ msgid ""
 "EXAMPLES:\n"
 "\n"
 " Add a new host:\n"
-"   ipa host-add --location=\"3rd floor lab\" --locality=Dallas test.example."
-"com\n"
+"   ipa host-add --location=\"3rd floor lab\" --locality=Dallas test.example.com\n"
 "\n"
 " Delete a host:\n"
 "   ipa host-del test.example.com\n"
@@ -3335,8 +3188,7 @@ msgstr ""
 #: ipalib/plugins/host.py:97
 msgid ""
 "\n"
-"    Require at least one dot in the hostname (to support localhost."
-"localdomain)\n"
+"    Require at least one dot in the hostname (to support localhost.localdomain)\n"
 "    "
 msgstr ""
 
@@ -3360,9 +3212,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/host.py:189
-#, fuzzy
 msgid "invalid IP address"
-msgstr "邮件地址"
+msgstr ""
 
 #: ipalib/plugins/host.py:194
 msgid ""
@@ -3420,9 +3271,8 @@ msgid "Generate a random password to be used in bulk enrollment"
 msgstr ""
 
 #: ipalib/plugins/host.py:271
-#, fuzzy
 msgid "Random password"
-msgstr "用户密码"
+msgstr ""
 
 #: ipalib/plugins/host.py:277 ipalib/plugins/service.py:233
 msgid "Base-64 encoded server certificate"
@@ -3504,7 +3354,6 @@ msgstr ""
 msgid "%(count)d host matched"
 msgid_plural "%(count)d hosts matched"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ipalib/plugins/host.py:643
 msgid ""
@@ -3514,9 +3363,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/host.py:649 ipalib/plugins/service.py:400
-#, fuzzy
 msgid "file to store certificate in"
-msgstr "Base-64 编码格式的服务器证书"
+msgstr ""
 
 #: ipalib/plugins/host.py:673 ipalib/plugins/service.py:422
 msgid "Certificate stored in file '%(file)s'"
@@ -3530,9 +3378,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/host.py:688
-#, fuzzy
 msgid "Disabled host \"%(value)s\""
-msgstr "已删除主机 \"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/host.py:770
 msgid ""
@@ -3643,7 +3490,6 @@ msgstr ""
 msgid "%(count)d hostgroup matched"
 msgid_plural "%(count)d hostgroups matched"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ipalib/plugins/hostgroup.py:136
 msgid ""
@@ -3684,9 +3530,8 @@ msgid "Name of object to export"
 msgstr ""
 
 #: ipalib/plugins/internal.py:47
-#, fuzzy
 msgid "Name of method to export"
-msgstr "主机组名称"
+msgstr ""
 
 #: ipalib/plugins/internal.py:52
 msgid "Dict of JSON encoded IPA Objects"
@@ -3701,9 +3546,8 @@ msgid "Logged In As"
 msgstr ""
 
 #: ipalib/plugins/internal.py:99
-#, fuzzy
 msgid "Attribute"
-msgstr "属性"
+msgstr ""
 
 #: ipalib/plugins/internal.py:102
 msgid "Add Automount Location"
@@ -3742,14 +3586,12 @@ msgid "Superseded"
 msgstr ""
 
 #: ipalib/plugins/internal.py:117
-#, fuzzy
 msgid "Cessation of Operation"
-msgstr "文件操作"
+msgstr ""
 
 #: ipalib/plugins/internal.py:118
-#, fuzzy
 msgid "Certificate Hold"
-msgstr "证书"
+msgstr ""
 
 #: ipalib/plugins/internal.py:119
 msgid "Remove from CRL"
@@ -3779,8 +3621,8 @@ msgstr ""
 
 #: ipalib/plugins/internal.py:126
 msgid ""
-"To confirm your intention to restore this certificate, click the \"Restore\" "
-"button."
+"To confirm your intention to restore this certificate, click the \"Restore\""
+" button."
 msgstr ""
 
 #: ipalib/plugins/internal.py:128
@@ -3788,9 +3630,8 @@ msgid "Issued To"
 msgstr ""
 
 #: ipalib/plugins/internal.py:129
-#, fuzzy
 msgid "Common Name"
-msgstr "主机名"
+msgstr ""
 
 #: ipalib/plugins/internal.py:130
 msgid "Organization"
@@ -3833,24 +3674,20 @@ msgid "Enter the Base64-encoded CSR below"
 msgstr ""
 
 #: ipalib/plugins/internal.py:141
-#, fuzzy
 msgid "Valid Certificate Present"
-msgstr "证书"
+msgstr ""
 
 #: ipalib/plugins/internal.py:142
-#, fuzzy
 msgid "New Certificate"
-msgstr "证书"
+msgstr ""
 
 #: ipalib/plugins/internal.py:143
-#, fuzzy
 msgid "Certificate Revoked"
-msgstr "证书"
+msgstr ""
 
 #: ipalib/plugins/internal.py:144
-#, fuzzy
 msgid "No Valid Certificate"
-msgstr "证书"
+msgstr ""
 
 #: ipalib/plugins/internal.py:145
 msgid "Certificate for ${entity} ${primary_key}"
@@ -3869,9 +3706,8 @@ msgid "Restore Certificate for ${entity} ${primary_key}"
 msgstr ""
 
 #: ipalib/plugins/internal.py:152
-#, fuzzy
 msgid "Name"
-msgstr "主机名"
+msgstr ""
 
 #: ipalib/plugins/internal.py:155
 msgid "Add Delegation"
@@ -3890,9 +3726,8 @@ msgid "Add DNS Resource Record"
 msgstr ""
 
 #: ipalib/plugins/internal.py:163
-#, fuzzy
 msgid "Resource"
-msgstr "资源名称"
+msgstr ""
 
 #: ipalib/plugins/internal.py:165
 msgid "Data"
@@ -3903,19 +3738,16 @@ msgid "Records for DNS Zone"
 msgstr ""
 
 #: ipalib/plugins/internal.py:169
-#, fuzzy
 msgid "Add Group"
-msgstr "组"
+msgstr ""
 
 #: ipalib/plugins/internal.py:170
-#, fuzzy
 msgid "Group Settings"
-msgstr "组描述"
+msgstr ""
 
 #: ipalib/plugins/internal.py:171 ipalib/plugins/internal.py:206
-#, fuzzy
 msgid "Is this a POSIX group?"
-msgstr "这已经是一个posix组"
+msgstr ""
 
 #: ipalib/plugins/internal.py:174
 msgid "Add HBAC Rule"
@@ -3940,9 +3772,8 @@ msgid "Inactive"
 msgstr ""
 
 #: ipalib/plugins/internal.py:179 ipalib/plugins/internal.py:296
-#, fuzzy
 msgid "Rule status"
-msgstr "请求状态"
+msgstr ""
 
 #: ipalib/plugins/internal.py:180 ipalib/plugins/internal.py:284
 msgid "Who"
@@ -3957,62 +3788,52 @@ msgid "Specified Users and Groups"
 msgstr ""
 
 #: ipalib/plugins/internal.py:183
-#, fuzzy
 msgid "Accessing"
-msgstr "访问时间"
+msgstr ""
 
 #: ipalib/plugins/internal.py:184 ipalib/plugins/internal.py:288
-#, fuzzy
 msgid "Any Host"
-msgstr "主机"
+msgstr ""
 
 #: ipalib/plugins/internal.py:185 ipalib/plugins/internal.py:289
 msgid "Specified Hosts and Groups"
 msgstr ""
 
 #: ipalib/plugins/internal.py:186
-#, fuzzy
 msgid "Via Service"
-msgstr "服务"
+msgstr ""
 
 #: ipalib/plugins/internal.py:187
-#, fuzzy
 msgid "Any Service"
-msgstr "服务"
+msgstr ""
 
 #: ipalib/plugins/internal.py:188
-#, fuzzy
 msgid "Specified Services and Groups"
-msgstr "服务"
+msgstr ""
 
 #: ipalib/plugins/internal.py:189
 msgid "From"
 msgstr ""
 
 #: ipalib/plugins/internal.py:192
-#, fuzzy
 msgid "Add HBAC Service"
-msgstr "服务"
+msgstr ""
 
 #: ipalib/plugins/internal.py:195
-#, fuzzy
 msgid "Add HBAC Service Group"
-msgstr "服务"
+msgstr ""
 
 #: ipalib/plugins/internal.py:199
-#, fuzzy
 msgid "Add Host"
-msgstr "主机"
+msgstr ""
 
 #: ipalib/plugins/internal.py:200
-#, fuzzy
 msgid "Host Certificate"
-msgstr "证书"
+msgstr ""
 
 #: ipalib/plugins/internal.py:201 ipalib/plugins/internal.py:259
-#, fuzzy
 msgid "Host Name"
-msgstr "主机名"
+msgstr ""
 
 #: ipalib/plugins/internal.py:202
 msgid "Host Settings"
@@ -4071,52 +3892,44 @@ msgid "Unprovision"
 msgstr ""
 
 #: ipalib/plugins/internal.py:219
-#, fuzzy
 msgid "Add Host Group"
-msgstr "主机组"
+msgstr ""
 
 #: ipalib/plugins/internal.py:220
-#, fuzzy
 msgid "Host Group Settings"
-msgstr "主机组"
+msgstr ""
 
 #: ipalib/plugins/internal.py:223
 msgid "Kerberos ticket policy"
 msgstr ""
 
 #: ipalib/plugins/internal.py:226
-#, fuzzy
 msgid "Add Netgroup"
-msgstr "网络组"
+msgstr ""
 
 #: ipalib/plugins/internal.py:227
-#, fuzzy
 msgid "Netgroup Settings"
-msgstr "网络组描述"
+msgstr ""
 
 #: ipalib/plugins/internal.py:230
-#, fuzzy
 msgid "Add Permission"
-msgstr "权限"
+msgstr ""
 
 #: ipalib/plugins/internal.py:231 ipalib/plugins/internal.py:376
 msgid "Identity"
 msgstr ""
 
 #: ipalib/plugins/internal.py:233
-#, fuzzy
 msgid "Target"
-msgstr "目标组"
+msgstr ""
 
 #: ipalib/plugins/internal.py:235
-#, fuzzy
 msgid "By Subtree"
-msgstr "子树"
+msgstr ""
 
 #: ipalib/plugins/internal.py:236
-#, fuzzy
 msgid "Target Group"
-msgstr "目标组"
+msgstr ""
 
 #: ipalib/plugins/internal.py:237
 msgid "Object By Type"
@@ -4135,14 +3948,12 @@ msgid "Privilege Settings"
 msgstr ""
 
 #: ipalib/plugins/internal.py:245
-#, fuzzy
 msgid "Add Password Policy"
-msgstr "密码"
+msgstr ""
 
 #: ipalib/plugins/internal.py:246 ipalib/plugins/pwpolicy.py:219
-#, fuzzy
 msgid "Password Policy"
-msgstr "密码"
+msgstr ""
 
 #: ipalib/plugins/internal.py:249
 msgid "Add Role"
@@ -4157,29 +3968,24 @@ msgid "Add Self Service Definition"
 msgstr ""
 
 #: ipalib/plugins/internal.py:256
-#, fuzzy
 msgid "Add Service"
-msgstr "服务"
+msgstr ""
 
 #: ipalib/plugins/internal.py:257
-#, fuzzy
 msgid "Service Certificate"
-msgstr "证书"
+msgstr ""
 
 #: ipalib/plugins/internal.py:258
-#, fuzzy
 msgid "Service Settings"
-msgstr "服务"
+msgstr ""
 
 #: ipalib/plugins/internal.py:260
-#, fuzzy
 msgid "Provisioning"
-msgstr "权限"
+msgstr ""
 
 #: ipalib/plugins/internal.py:261
-#, fuzzy
 msgid "Service"
-msgstr "服务"
+msgstr ""
 
 #: ipalib/plugins/internal.py:263
 msgid "Kerberos Key Present, Service Provisioned"
@@ -4190,14 +3996,12 @@ msgid "Are you sure you want to unprovision this service?"
 msgstr ""
 
 #: ipalib/plugins/internal.py:271
-#, fuzzy
 msgid "Add Sudo Command"
-msgstr "组名"
+msgstr ""
 
 #: ipalib/plugins/internal.py:275
-#, fuzzy
 msgid "Add Sudo Command Group"
-msgstr "组名"
+msgstr ""
 
 #: ipalib/plugins/internal.py:276 ipalib/plugins/sudocmdgroup.py:80
 msgid "Commands"
@@ -4208,47 +4012,40 @@ msgid "Add Sudo Rule"
 msgstr ""
 
 #: ipalib/plugins/internal.py:287
-#, fuzzy
 msgid "Access this host"
-msgstr "访问时间"
+msgstr ""
 
 #: ipalib/plugins/internal.py:290
-#, fuzzy
 msgid "Run Commands"
-msgstr "组名"
+msgstr ""
 
 #: ipalib/plugins/internal.py:291
 msgid "Any Command"
 msgstr ""
 
 #: ipalib/plugins/internal.py:292
-#, fuzzy
 msgid "Specified Commands and Groups"
-msgstr "组名"
+msgstr ""
 
 #: ipalib/plugins/internal.py:293
 msgid "As Whom"
 msgstr ""
 
 #: ipalib/plugins/internal.py:294
-#, fuzzy
 msgid "Any Group"
-msgstr "组"
+msgstr ""
 
 #: ipalib/plugins/internal.py:295
-#, fuzzy
 msgid "Specified Groups"
-msgstr "服务"
+msgstr ""
 
 #: ipalib/plugins/internal.py:297
-#, fuzzy
 msgid "External"
-msgstr "外部主机"
+msgstr ""
 
 #: ipalib/plugins/internal.py:300
-#, fuzzy
 msgid "Add User"
-msgstr "用户"
+msgstr ""
 
 #: ipalib/plugins/internal.py:301
 msgid "Account Settings"
@@ -4259,9 +4056,8 @@ msgid "Contact Settings"
 msgstr ""
 
 #: ipalib/plugins/internal.py:303
-#, fuzzy
 msgid "Mailing Address"
-msgstr "邮件地址"
+msgstr ""
 
 #: ipalib/plugins/internal.py:304
 msgid "Employee Information"
@@ -4284,28 +4080,24 @@ msgid "Error changing account status"
 msgstr ""
 
 #: ipalib/plugins/internal.py:311
-#, fuzzy
 msgid "Reset Password"
-msgstr "用户密码"
+msgstr ""
 
 #: ipalib/plugins/internal.py:312
-#, fuzzy
 msgid "New Password"
-msgstr "密码"
+msgstr ""
 
 #: ipalib/plugins/internal.py:313
-#, fuzzy
 msgid "Repeat Password"
-msgstr "密码"
+msgstr ""
 
 #: ipalib/plugins/internal.py:314
 msgid "Password change complete"
 msgstr ""
 
 #: ipalib/plugins/internal.py:315
-#, fuzzy
 msgid "Passwords must match"
-msgstr "密码不匹配"
+msgstr ""
 
 #: ipalib/plugins/internal.py:319
 msgid "Add"
@@ -4332,9 +4124,8 @@ msgid "Back to List"
 msgstr ""
 
 #: ipalib/plugins/internal.py:325
-#, fuzzy
 msgid "Cancel"
-msgstr "已取消"
+msgstr ""
 
 #: ipalib/plugins/internal.py:326
 msgid "Close"
@@ -4377,9 +4168,8 @@ msgid "Retry"
 msgstr ""
 
 #: ipalib/plugins/internal.py:336
-#, fuzzy
 msgid "Revoke"
-msgstr "撤销"
+msgstr ""
 
 #: ipalib/plugins/internal.py:337
 msgid "Update"
@@ -4402,9 +4192,8 @@ msgid "Dirty"
 msgstr ""
 
 #: ipalib/plugins/internal.py:344
-#, fuzzy
 msgid "Hide already enrolled."
-msgstr "该条目已经被锁定"
+msgstr ""
 
 #: ipalib/plugins/internal.py:345
 msgid "Select ${entity} to be removed."
@@ -4423,18 +4212,16 @@ msgid "Managed by"
 msgstr ""
 
 #: ipalib/plugins/internal.py:351
-#, fuzzy
 msgid "Member"
-msgstr "成员主机"
+msgstr ""
 
 #: ipalib/plugins/internal.py:352
 msgid "Indirect Member"
 msgstr ""
 
 #: ipalib/plugins/internal.py:353
-#, fuzzy
 msgid "Member Of"
-msgstr "成员主机"
+msgstr ""
 
 #: ipalib/plugins/internal.py:354
 msgid "Indirect Member Of"
@@ -4495,9 +4282,8 @@ msgid "Audit"
 msgstr ""
 
 #: ipalib/plugins/internal.py:379
-#, fuzzy
 msgid "IPA Server"
-msgstr "服务名"
+msgstr ""
 
 #: ipalib/plugins/internal.py:380
 msgid "Sudo"
@@ -4538,9 +4324,9 @@ msgstr ""
 #: ipalib/plugins/internal.py:395
 msgid ""
 "Your Kerberos ticket is no longer valid. Please run kinit and then click "
-"'Retry'. If this is your first time running the IPA Web UI <a href='/ipa/"
-"config/unauthorized.html'>follow these directions</a> to configure your "
-"browser."
+"'Retry'. If this is your first time running the IPA Web UI <a "
+"href='/ipa/config/unauthorized.html'>follow these directions</a> to "
+"configure your browser."
 msgstr ""
 
 #: ipalib/plugins/internal.py:399
@@ -4611,8 +4397,7 @@ msgid ""
 "\n"
 "        Return the principal name in default credential cache.\n"
 "\n"
-"        This will return something like 'admin@EXAMPLE.COM'.  If no "
-"credential\n"
+"        This will return something like 'admin@EXAMPLE.COM'.  If no credential\n"
 "        cache exists for the invoking user, None is returned.\n"
 "\n"
 "        This cannot return anything meaningful if used in the server as a\n"
@@ -4625,8 +4410,7 @@ msgid ""
 "\n"
 "        Return the realm from the default credential cache.\n"
 "\n"
-"        This will return something like 'EXAMPLE.COM'.  If no credential "
-"cache\n"
+"        This will return something like 'EXAMPLE.COM'.  If no credential cache\n"
 "        exists for the invoking user, None is returned.\n"
 "\n"
 "        This cannot return anything meaningful if used in the server as a\n"
@@ -4788,8 +4572,7 @@ msgid ""
 "\n"
 " Specify the user and group container. This can be used to migrate user and\n"
 " group data from an IPA v1 server:\n"
-"   ipa migrate-ds --user-container='cn=users,cn=accounts' --group-"
-"container='cn=groups,cn=accounts' ldap://ds.example.com:389\n"
+"   ipa migrate-ds --user-container='cn=users,cn=accounts' --group-container='cn=groups,cn=accounts' ldap://ds.example.com:389\n"
 msgstr ""
 
 #: ipalib/plugins/migration.py:78
@@ -4811,9 +4594,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/migration.py:220
-#, fuzzy
 msgid "Invalid LDAP URI."
-msgstr "LDAP URI"
+msgstr ""
 
 #: ipalib/plugins/migration.py:225
 msgid ""
@@ -4831,9 +4613,8 @@ msgid "LDAP URI of DS server to migrate from"
 msgstr ""
 
 #: ipalib/plugins/migration.py:272
-#, fuzzy
 msgid "bind password"
-msgstr "用户密码"
+msgstr ""
 
 #: ipalib/plugins/migration.py:279
 msgid "Bind DN"
@@ -4897,9 +4678,8 @@ msgid "Lists of objects that could not be migrated; categorized by type."
 msgstr ""
 
 #: ipalib/plugins/migration.py:336
-#, fuzzy
 msgid "False if migration mode was disabled."
-msgstr "启用迁移模式"
+msgstr ""
 
 #: ipalib/plugins/migration.py:340
 msgid "comma-separated list of %s to exclude from migration"
@@ -4938,8 +4718,7 @@ msgid ""
 "\n"
 "        Convert all \"exclude\" option values to lower-case.\n"
 "\n"
-"        Also, empty List parameters are converted to None, but the "
-"migration\n"
+"        Also, empty List parameters are converted to None, but the migration\n"
 "        plugin doesn't like that - convert back to empty lists.\n"
 "        "
 msgstr ""
@@ -4990,7 +4769,6 @@ msgstr ""
 msgid "%(count)d plugin loaded"
 msgid_plural "%(count)d plugins loaded"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ipalib/plugins/misc.py:126
 msgid "Number of plugins loaded"
@@ -5023,9 +4801,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/netgroup.py:59
-#, fuzzy
 msgid "Member Host"
-msgstr "成员主机"
+msgstr ""
 
 #: ipalib/plugins/netgroup.py:67
 msgid ""
@@ -5062,9 +4839,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/netgroup.py:144
-#, fuzzy
 msgid "Added netgroup \"%(value)s\""
-msgstr "已添加组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/netgroup.py:153
 msgid ""
@@ -5074,9 +4850,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/netgroup.py:156
-#, fuzzy
 msgid "Deleted netgroup \"%(value)s\""
-msgstr "已删除组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/netgroup.py:162
 msgid ""
@@ -5086,9 +4861,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/netgroup.py:166
-#, fuzzy
 msgid "Modified netgroup \"%(value)s\""
-msgstr "已修改组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/netgroup.py:180
 msgid ""
@@ -5098,11 +4872,9 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/netgroup.py:185
-#, fuzzy
 msgid "%(count)d netgroup matched"
 msgid_plural "%(count)d netgroups matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
 
 #: ipalib/plugins/netgroup.py:213
 msgid ""
@@ -5147,25 +4919,22 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/passwd.py:46
-#, fuzzy
 msgid ""
 "\n"
 "    Set a user's password\n"
 "    "
-msgstr "设置用户密码"
+msgstr ""
 
 #: ipalib/plugins/passwd.py:64
-#, fuzzy
 msgid "Changed password for \"%(value)s\""
-msgstr "新增用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/passwd.py:67
 msgid ""
 "\n"
 "        Execute the passwd operation.\n"
 "\n"
-"        The dn should not be passed as a keyword argument as it is "
-"constructed\n"
+"        The dn should not be passed as a keyword argument as it is constructed\n"
 "        by this method.\n"
 "\n"
 "        Returns the entry\n"
@@ -5181,8 +4950,7 @@ msgid ""
 "Permissions\n"
 "\n"
 "A permission enables fine-grained delegation of rights. A permission is\n"
-"a human-readable form of a 389-ds Access Control Rule, or instruction "
-"(ACI).\n"
+"a human-readable form of a 389-ds Access Control Rule, or instruction (ACI).\n"
 "A permission grants the right to perform a specific task such as adding a\n"
 "user, modifying a group, etc.\n"
 "\n"
@@ -5229,14 +4997,12 @@ msgid ""
 "   ipa permission-add --type=user --permissions=add \"Add Users\"\n"
 "\n"
 " Add a permission that grants the ability to manage group membership:\n"
-"   ipa permission-add --attrs=member --permissions=write --type=group "
-"\"Manage Group Members\"\n"
+"   ipa permission-add --attrs=member --permissions=write --type=group \"Manage Group Members\"\n"
 msgstr ""
 
 #: ipalib/plugins/permission.py:84
-#, fuzzy
 msgid "Permission Type"
-msgstr "权限"
+msgstr ""
 
 #: ipalib/plugins/permission.py:89
 msgid ""
@@ -5246,9 +5012,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/permission.py:112
-#, fuzzy
 msgid "Permission name"
-msgstr "权限"
+msgstr ""
 
 #: ipalib/plugins/permission.py:119
 msgid ""
@@ -5261,14 +5026,12 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/permission.py:138
-#, fuzzy
 msgid "Member of group"
-msgstr "组成员"
+msgstr ""
 
 #: ipalib/plugins/permission.py:139
-#, fuzzy
 msgid "Target members of a group"
-msgstr "组成员"
+msgstr ""
 
 #: ipalib/plugins/permission.py:151
 msgid "Subtree to apply permissions to"
@@ -5286,9 +5049,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/permission.py:181
-#, fuzzy
 msgid "Added permission \"%(value)s\""
-msgstr "新增用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/permission.py:236
 msgid ""
@@ -5298,9 +5060,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/permission.py:240
-#, fuzzy
 msgid "Deleted permission \"%(value)s\""
-msgstr "已删除用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/permission.py:256
 msgid ""
@@ -5310,9 +5071,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/permission.py:260
-#, fuzzy
 msgid "Modified permission \"%(value)s\""
-msgstr "已修改用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/permission.py:352
 msgid ""
@@ -5322,11 +5082,9 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/permission.py:356
-#, fuzzy
 msgid "%(count)d permission matched"
 msgid_plural "%(count)d permissions matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
 
 #: ipalib/plugins/permission.py:405
 msgid ""
@@ -5452,14 +5210,12 @@ msgid "Privileges"
 msgstr ""
 
 #: ipalib/plugins/privilege.py:70
-#, fuzzy
 msgid "Privilege name"
-msgstr "服务名"
+msgstr ""
 
 #: ipalib/plugins/privilege.py:77
-#, fuzzy
 msgid "Privilege description"
-msgstr "描述"
+msgstr ""
 
 #: ipalib/plugins/privilege.py:85
 msgid ""
@@ -5469,9 +5225,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/privilege.py:89
-#, fuzzy
 msgid "Added privilege \"%(value)s\""
-msgstr "新增用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/privilege.py:95
 msgid ""
@@ -5481,9 +5236,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/privilege.py:99
-#, fuzzy
 msgid "Deleted privilege \"%(value)s\""
-msgstr "已删除用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/privilege.py:105
 msgid ""
@@ -5493,9 +5247,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/privilege.py:109
-#, fuzzy
 msgid "Modified privilege \"%(value)s\""
-msgstr "已修改用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/privilege.py:115
 msgid ""
@@ -5505,11 +5258,9 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/privilege.py:119
-#, fuzzy
 msgid "%(count)d privilege matched"
 msgid_plural "%(count)d privileges matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
 
 #: ipalib/plugins/privilege.py:127
 msgid ""
@@ -5584,8 +5335,7 @@ msgid ""
 "   ipa pwpolicy-mod --minlength=10\n"
 "\n"
 " Add a new group password policy:\n"
-"   ipa pwpolicy-add --maxlife=90 --minlife=1 --history=10 --minclasses=3 --"
-"minlength=8 --priority=10 localadmins\n"
+"   ipa pwpolicy-add --maxlife=90 --minlife=1 --history=10 --minclasses=3 --minlength=8 --priority=10 localadmins\n"
 "\n"
 " Display the global password policy:\n"
 "   ipa pwpolicy-show\n"
@@ -5612,12 +5362,11 @@ msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
 msgstr ""
 
 #: ipalib/plugins/pwpolicy.py:172
-#, fuzzy
 msgid ""
 "\n"
 "    Password Policy object\n"
 "    "
-msgstr "密码"
+msgstr ""
 
 #: ipalib/plugins/pwpolicy.py:201
 msgid "Max failures"
@@ -5636,9 +5385,8 @@ msgid "Period after which failure count will be reset (seconds)"
 msgstr ""
 
 #: ipalib/plugins/pwpolicy.py:213
-#, fuzzy
 msgid "Lockout duration"
-msgstr "位置"
+msgstr ""
 
 #: ipalib/plugins/pwpolicy.py:214
 msgid "Period for which lockout is enforced (seconds)"
@@ -5767,8 +5515,7 @@ msgid ""
 "A role is used for fine-grained delegation. A permission grants the ability\n"
 "to perform given low-level tasks (add a user, modify a group, etc.). A\n"
 "privilege combines one or more permissions into a higher-level abstraction\n"
-"such as useradmin. A useradmin would be able to add, delete and modify "
-"users.\n"
+"such as useradmin. A useradmin would be able to add, delete and modify users.\n"
 "\n"
 "Privileges are assigned to Roles.\n"
 "\n"
@@ -5809,9 +5556,8 @@ msgid "Role"
 msgstr ""
 
 #: ipalib/plugins/role.py:86
-#, fuzzy
 msgid "Role name"
-msgstr "规则名"
+msgstr ""
 
 #: ipalib/plugins/role.py:93
 msgid "A description of this role-group"
@@ -5825,9 +5571,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/role.py:105
-#, fuzzy
 msgid "Added role \"%(value)s\""
-msgstr "已添加组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/role.py:111
 msgid ""
@@ -5837,9 +5582,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/role.py:115
-#, fuzzy
 msgid "Deleted role \"%(value)s\""
-msgstr "已删除组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/role.py:121
 msgid ""
@@ -5849,9 +5593,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/role.py:125
-#, fuzzy
 msgid "Modified role \"%(value)s\""
-msgstr "已修改组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/role.py:131
 msgid ""
@@ -5861,11 +5604,9 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/role.py:135
-#, fuzzy
 msgid "%(count)d role matched"
 msgid_plural "%(count)d roles matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
 
 #: ipalib/plugins/role.py:143
 msgid ""
@@ -5919,20 +5660,17 @@ msgid ""
 "Rules, or instructions (ACIs), grant permission to permissions to perform\n"
 "given tasks such as adding a user, modifying a group, etc.\n"
 "\n"
-"A Self-service permission defines what an object can change in its own "
-"entry.\n"
+"A Self-service permission defines what an object can change in its own entry.\n"
 "\n"
 "\n"
 "EXAMPLES:\n"
 "\n"
 " Add a self-service rule to allow users to manage their address:\n"
-"   ipa selfservice-add --permissions=write --attrs=street,postalCode,l,c,st "
-"\"Users manage their own address\"\n"
+"   ipa selfservice-add --permissions=write --attrs=street,postalCode,l,c,st \"Users manage their own address\"\n"
 "\n"
 " When managing the list of attributes you need to include all attributes\n"
 " in the list, including existing ones. Add telephoneNumber to the list:\n"
-"   ipa selfservice-mod --attrs=street,postalCode,l,c,st,telephoneNumber "
-"\"Users manage their own address\"\n"
+"   ipa selfservice-mod --attrs=street,postalCode,l,c,st,telephoneNumber \"Users manage their own address\"\n"
 "\n"
 " Display our updated rule:\n"
 "   ipa selfservice-show \"Users manage their own address\"\n"
@@ -5963,14 +5701,12 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/selfservice.py:75
-#, fuzzy
 msgid "Self Service Permissions"
-msgstr "权限"
+msgstr ""
 
 #: ipalib/plugins/selfservice.py:80 ipalib/plugins/selfservice.py:81
-#, fuzzy
 msgid "Self-service name"
-msgstr "服务名"
+msgstr ""
 
 #: ipalib/plugins/selfservice.py:114
 msgid ""
@@ -5980,9 +5716,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/selfservice.py:118
-#, fuzzy
 msgid "Added selfservice \"%(value)s\""
-msgstr "新增用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/selfservice.py:137
 msgid ""
@@ -5992,9 +5727,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/selfservice.py:142
-#, fuzzy
 msgid "Deleted selfservice \"%(value)s\""
-msgstr "已删除用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/selfservice.py:158
 msgid ""
@@ -6004,9 +5738,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/selfservice.py:162
-#, fuzzy
 msgid "Modified selfservice \"%(value)s\""
-msgstr "已修改用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/selfservice.py:181
 msgid ""
@@ -6016,11 +5749,9 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/selfservice.py:185
-#, fuzzy
 msgid "%(count)d selfservice matched"
 msgid_plural "%(count)d selfservices matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
 
 #: ipalib/plugins/selfservice.py:207
 msgid ""
@@ -6078,8 +5809,7 @@ msgid ""
 "   ipa cert-request --principal=HTTP/web.example.com example.csr\n"
 "\n"
 " Generate and retrieve a keytab for an IPA service:\n"
-"   ipa-getkeytab -s ipa.example.com -p HTTP/web.example.com -k /etc/httpd/"
-"httpd.keytab\n"
+"   ipa-getkeytab -s ipa.example.com -p HTTP/web.example.com -k /etc/httpd/httpd.keytab\n"
 "\n"
 msgstr ""
 
@@ -6146,9 +5876,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/service.py:324
-#, fuzzy
 msgid "Modified service \"%(value)s\""
-msgstr "已修改用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/service.py:356
 msgid ""
@@ -6158,11 +5887,9 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/service.py:359
-#, fuzzy
 msgid "%(count)d service matched"
 msgid_plural "%(count)d services matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
 
 #: ipalib/plugins/service.py:394
 msgid ""
@@ -6193,9 +5920,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/service.py:456
-#, fuzzy
 msgid "Disabled service \"%(value)s\""
-msgstr "已修改用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/sudocmd.py:19
 msgid ""
@@ -6222,18 +5948,16 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/sudocmd.py:64
-#, fuzzy
 msgid "Sudo Commands"
-msgstr "组名"
+msgstr ""
 
 #: ipalib/plugins/sudocmd.py:69
 msgid "Sudo Command"
 msgstr ""
 
 #: ipalib/plugins/sudocmd.py:75
-#, fuzzy
 msgid "A description of this command"
-msgstr "该角色组的描述"
+msgstr ""
 
 #: ipalib/plugins/sudocmd.py:98
 msgid ""
@@ -6243,22 +5967,19 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/sudocmd.py:102
-#, fuzzy
 msgid "Added sudo command \"%(value)s\""
-msgstr "新增主机 \"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/sudocmd.py:107
-#, fuzzy
 msgid ""
 "\n"
 "    Delete sudo command.\n"
 "    "
-msgstr "已删除主机 \"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/sudocmd.py:111
-#, fuzzy
 msgid "Deleted sudo command \"%(value)s\""
-msgstr "已删除主机 \"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/sudocmd.py:116
 msgid ""
@@ -6268,9 +5989,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/sudocmd.py:120
-#, fuzzy
 msgid "Modified sudo command \"%(value)s\""
-msgstr "已修改主机 \"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/sudocmd.py:125
 msgid ""
@@ -6280,11 +6000,9 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/sudocmd.py:129
-#, fuzzy
 msgid "%(count)d sudo command matched"
 msgid_plural "%(count)d sudo command matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
 
 #: ipalib/plugins/sudocmd.py:136
 msgid ""
@@ -6309,8 +6027,7 @@ msgid ""
 "   ipa sudocmdgroup-del admincmds\n"
 "\n"
 " Manage Sudo command group membership, commands:\n"
-"   ipa sudocmdgroup-add-member --sudocmds=/usr/bin/less,/usr/bin/vim "
-"admincmds\n"
+"   ipa sudocmdgroup-add-member --sudocmds=/usr/bin/less,/usr/bin/vim admincmds\n"
 "\n"
 " Manage Sudo command group membership, commands:\n"
 "   ipa group-remove-member --sudocmds=/usr/bin/less admincmds\n"
@@ -6327,9 +6044,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:70
-#, fuzzy
 msgid "Sudo Command Group"
-msgstr "组名"
+msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:93
 msgid ""
@@ -6339,22 +6055,19 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:97
-#, fuzzy
 msgid "Added sudo command group \"%(value)s\""
-msgstr "已添加组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:103
-#, fuzzy
 msgid ""
 "\n"
 "    Delete sudo command group.\n"
 "    "
-msgstr "已删除组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:107
-#, fuzzy
 msgid "Deleted sudo command group \"%(value)s\""
-msgstr "已删除组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:113
 msgid ""
@@ -6364,9 +6077,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:117
-#, fuzzy
 msgid "Modified sudo command group \"%(value)s\""
-msgstr "已修改组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:123
 msgid ""
@@ -6376,11 +6088,9 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:127
-#, fuzzy
 msgid "%(count)d sudo command group matched"
 msgid_plural "%(count)d sudo command groups matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
 
 #: ipalib/plugins/sudocmdgroup.py:136
 msgid ""
@@ -6390,12 +6100,11 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:144
-#, fuzzy
 msgid ""
 "\n"
 "    Add members to sudo command group.\n"
 "    "
-msgstr "已添加组\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/sudocmdgroup.py:152
 msgid ""
@@ -6416,9 +6125,7 @@ msgid ""
 "uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
 "\n"
 "To enable the binddn run the following command to set the password:\n"
-"LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W -h ipa.example.com -"
-"ZZ -D \"cn=Directory Manager\" uid=sudo,cn=sysaccounts,cn=etc,dc=example,"
-"dc=com\n"
+"LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W -h ipa.example.com -ZZ -D \"cn=Directory Manager\" uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
 "\n"
 "For more information, see the FreeIPA Documentation to Sudo.\n"
 msgstr ""
@@ -6435,27 +6142,24 @@ msgid "Sudo Rule"
 msgstr ""
 
 #: ipalib/plugins/sudorule.py:98
-#, fuzzy
 msgid "Command category"
-msgstr "主机类别"
+msgstr ""
 
 #: ipalib/plugins/sudorule.py:99
 msgid "Command category the rule applies to"
 msgstr ""
 
 #: ipalib/plugins/sudorule.py:104
-#, fuzzy
 msgid "Run As User category"
-msgstr "用户类别"
+msgstr ""
 
 #: ipalib/plugins/sudorule.py:105
 msgid "Run As User category the rule applies to"
 msgstr ""
 
 #: ipalib/plugins/sudorule.py:110
-#, fuzzy
 msgid "Run As Group category"
-msgstr "用户类别"
+msgstr ""
 
 #: ipalib/plugins/sudorule.py:111
 msgid "Run As Group category the rule applies to"
@@ -6474,32 +6178,28 @@ msgid "Run As User"
 msgstr ""
 
 #: ipalib/plugins/sudorule.py:151
-#, fuzzy
 msgid "Run As Group"
-msgstr "用户组"
+msgstr ""
 
 #: ipalib/plugins/sudorule.py:156
-#, fuzzy
 msgid "External User"
-msgstr "外部主机"
+msgstr ""
 
 #: ipalib/plugins/sudorule.py:157
 msgid "External User the rule applies to"
 msgstr ""
 
 #: ipalib/plugins/sudorule.py:161
-#, fuzzy
 msgid "RunAs External User"
-msgstr "外部主机"
+msgstr ""
 
 #: ipalib/plugins/sudorule.py:162
 msgid "External User the commands can run as"
 msgstr ""
 
 #: ipalib/plugins/sudorule.py:166
-#, fuzzy
 msgid "RunAs External Group"
-msgstr "外部主机"
+msgstr ""
 
 #: ipalib/plugins/sudorule.py:167
 msgid "External Group the commands can run as"
@@ -6513,9 +6213,8 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/sudorule.py:183
-#, fuzzy
 msgid "Added sudo rule \"%(value)s\""
-msgstr "新增用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/sudorule.py:189
 msgid ""
@@ -6654,8 +6353,7 @@ msgid ""
 "\n"
 "Manage user entries. All users are POSIX users.\n"
 "\n"
-"IPA supports a wide range of username formats, but you need to be aware of "
-"any\n"
+"IPA supports a wide range of username formats, but you need to be aware of any\n"
 "restrictions that may apply to your particular environment. For example,\n"
 "usernames that start with a digit or usernames that exceed a certain length\n"
 "may cause problems for some UNIX systems.\n"
@@ -6709,23 +6407,20 @@ msgid "Last name"
 msgstr "姓"
 
 #: ipalib/plugins/user.py:130
-#, fuzzy
 msgid "Full name"
-msgstr "规则名"
+msgstr ""
 
 #: ipalib/plugins/user.py:135
-#, fuzzy
 msgid "Display name"
-msgstr "名"
+msgstr ""
 
 #: ipalib/plugins/user.py:140
 msgid "Initials"
 msgstr ""
 
 #: ipalib/plugins/user.py:146
-#, fuzzy
 msgid "Home directory"
-msgstr "主目录"
+msgstr ""
 
 #: ipalib/plugins/user.py:150
 msgid "GECOS field"
@@ -6744,9 +6439,8 @@ msgid "Email address"
 msgstr "邮件地址"
 
 #: ipalib/plugins/user.py:173
-#, fuzzy
 msgid "Prompt to set the user password"
-msgstr "设置用户密码"
+msgstr ""
 
 #: ipalib/plugins/user.py:180
 msgid "UID"
@@ -6757,9 +6451,8 @@ msgid "User ID Number (system will assign one if not provided)"
 msgstr ""
 
 #: ipalib/plugins/user.py:188
-#, fuzzy
 msgid "Group ID Number"
-msgstr "组名"
+msgstr ""
 
 #: ipalib/plugins/user.py:193
 msgid "Street address"
@@ -6786,14 +6479,12 @@ msgid "Mobile Telephone Number"
 msgstr ""
 
 #: ipalib/plugins/user.py:214
-#, fuzzy
 msgid "Pager Number"
-msgstr "序列号"
+msgstr ""
 
 #: ipalib/plugins/user.py:218
-#, fuzzy
 msgid "Fax Number"
-msgstr "序列号"
+msgstr ""
 
 #: ipalib/plugins/user.py:222
 msgid "Org. Unit"
@@ -6845,9 +6536,8 @@ msgid "Added user \"%(value)s\""
 msgstr "新增用户\"%(value)s\""
 
 #: ipalib/plugins/user.py:303
-#, fuzzy
 msgid "Don't create user private group"
-msgstr "默认用户组"
+msgstr ""
 
 #: ipalib/plugins/user.py:333
 msgid "can be at most %(len)d characters"
@@ -6894,7 +6584,6 @@ msgstr ""
 msgid "%(count)d user matched"
 msgid_plural "%(count)d users matched"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ipalib/plugins/user.py:471
 msgid ""
@@ -6904,30 +6593,26 @@ msgid ""
 msgstr ""
 
 #: ipalib/plugins/user.py:484
-#, fuzzy
 msgid ""
 "\n"
 "    Disable a user account.\n"
 "    "
-msgstr "已删除用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/user.py:489
-#, fuzzy
 msgid "Disabled user account \"%(value)s\""
-msgstr "已删除用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/user.py:507
-#, fuzzy
 msgid ""
 "\n"
 "    Enable a user account.\n"
 "    "
-msgstr "已解锁用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/user.py:512
-#, fuzzy
 msgid "Enabled user account \"%(value)s\""
-msgstr "已解锁用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/user.py:529
 msgid ""
@@ -6936,16 +6621,14 @@ msgid ""
 "\n"
 "    An account may become locked if the password is entered incorrectly too\n"
 "    many times within a specific time period as controlled by password\n"
-"    policy. A locked account is a temporary condition and may be unlocked "
-"by\n"
+"    policy. A locked account is a temporary condition and may be unlocked by\n"
 "    an administrator.\n"
 "    "
 msgstr ""
 
 #: ipalib/plugins/user.py:538
-#, fuzzy
 msgid "Unlocked account \"%(value)s\""
-msgstr "已解锁用户\"%(value)s\""
+msgstr ""
 
 #: ipalib/plugins/virtual.py:20
 msgid ""
@@ -6966,8 +6649,7 @@ msgid ""
 "        cn=<operation>, api.env.container_virtual, api.env.basedn\n"
 "\n"
 "    Ex.\n"
-"        cn=request certificate, cn=virtual operations,cn=etc, dc=example, "
-"dc=com\n"
+"        cn=request certificate, cn=virtual operations,cn=etc, dc=example, dc=com\n"
 "    "
 msgstr ""
 
@@ -7001,9 +6683,8 @@ msgid "Cancelled."
 msgstr "已取消"
 
 #: ipalib/cli.py:819
-#, fuzzy
 msgid "Command name"
-msgstr "NIS域名"
+msgstr ""
 
 #: ipalib/cli.py:1117
 msgid "No file to read"
@@ -7101,8 +6782,7 @@ msgstr "命令 %(name)r不需要参数"
 #, python-format
 msgid "command %(name)r takes at most %(count)d argument"
 msgid_plural "command %(name)r takes at most %(count)d arguments"
-msgstr[0] "命令 %(name)r最多接受%(count)d个参数"
-msgstr[1] "命令 %(name)r最多接受%(count)d个参数"
+msgstr[0] ""
 
 #: ipalib/errors.py:691
 #, python-format
@@ -7176,32 +6856,28 @@ msgid "Principal is not of the form user@REALM: %(principal)r"
 msgstr ""
 
 #: ipalib/errors.py:938
-#, fuzzy
 msgid "This entry is already enabled"
-msgstr "该条目已经解锁"
+msgstr ""
 
 #: ipalib/errors.py:954
-#, fuzzy
 msgid "This entry is already disabled"
-msgstr "该条目已经被锁定"
+msgstr ""
 
 #: ipalib/errors.py:970
 msgid "This entry cannot be enabled or disabled"
 msgstr ""
 
 #: ipalib/errors.py:986
-#, fuzzy
 msgid "This entry is not a member"
-msgstr "该条目不是该组的成员"
+msgstr ""
 
 #: ipalib/errors.py:1002
 msgid "A group may not be a member of itself"
 msgstr "一个组不能是自己的成员"
 
 #: ipalib/errors.py:1018
-#, fuzzy
 msgid "This entry is already a member"
-msgstr "该条目已经是该组的成员"
+msgstr ""
 
 #: ipalib/errors.py:1034
 #, python-format
@@ -7259,9 +6935,9 @@ msgid "no modifications to be performed"
 msgstr ""
 
 #: ipalib/errors.py:1272
-#, fuzzy, python-format
+#, python-format
 msgid "%(desc)s: %(info)s"
-msgstr "%(desc)s:%(info)s"
+msgstr ""
 
 #: ipalib/errors.py:1288
 msgid "limits exceeded for this query"
@@ -7277,9 +6953,9 @@ msgid "modifying primary key is not allowed"
 msgstr ""
 
 #: ipalib/errors.py:1334
-#, fuzzy, python-format
+#, python-format
 msgid "%(attr)s: Only one value allowed."
-msgstr "只允许一个值"
+msgstr ""
 
 #: ipalib/errors.py:1350
 #, python-format
@@ -7457,14 +7133,12 @@ msgid "The IPA realm"
 msgstr ""
 
 #: ipaserver/plugins/join.py:68
-#, fuzzy
 msgid "Hardware platform of the host (e.g. Lenovo T61)"
-msgstr "主机硬件平台 (e.g. \"Lenovo T61\")"
+msgstr ""
 
 #: ipaserver/plugins/join.py:72
-#, fuzzy
 msgid "Operating System and version of the host (e.g. Fedora 9)"
-msgstr "主机操作系统及版本(e.g. \"Fedora 9\")"
+msgstr ""
 
 #: ipaserver/plugins/selfsign.py:99
 #, python-format
@@ -7652,12 +7326,12 @@ msgid "Contact this specific KDC Server"
 msgstr ""
 
 #: ipa-client/ipa-getkeytab.c:779
-#, fuzzy
 msgid "Server Name"
-msgstr "服务名"
+msgstr ""
 
 #: ipa-client/ipa-getkeytab.c:781 ipa-client/ipa-rmkeytab.c:171
-msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
+msgid ""
+"The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 msgstr ""
 
 #: ipa-client/ipa-getkeytab.c:782 ipa-client/ipa-rmkeytab.c:172
@@ -7693,18 +7367,16 @@ msgid "Asks for a non-random password to use for the principal"
 msgstr ""
 
 #: ipa-client/ipa-getkeytab.c:795
-#, fuzzy
 msgid "LDAP DN"
-msgstr "LDAP URI"
+msgstr ""
 
 #: ipa-client/ipa-getkeytab.c:795
 msgid "DN to bind as if not using kerberos"
 msgstr ""
 
 #: ipa-client/ipa-getkeytab.c:797
-#, fuzzy
 msgid "LDAP password"
-msgstr "密码"
+msgstr ""
 
 #: ipa-client/ipa-getkeytab.c:797
 msgid "password to use if not using kerberos"
@@ -7728,7 +7400,8 @@ msgstr ""
 #: ipa-client/ipa-getkeytab.c:873
 #, c-format
 msgid ""
-"Warning: salt types are not honored with randomized passwords (see opt. -P)\n"
+"Warning: salt types are not honored with randomized passwords (see opt. "
+"-P)\n"
 msgstr ""
 
 #: ipa-client/ipa-getkeytab.c:885
@@ -7853,9 +7526,9 @@ msgid "ldap_search_ext_s: %s\n"
 msgstr ""
 
 #: ipa-client/ipa-join.c:446
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to find host '%s'\n"
-msgstr "不能解码csr: %s"
+msgstr ""
 
 #: ipa-client/ipa-join.c:453
 #, c-format
@@ -7868,14 +7541,14 @@ msgid "Host already has principal, trying bind anyway\n"
 msgstr ""
 
 #: ipa-client/ipa-join.c:480 ipa-client/ipa-join.c:633
-#, fuzzy, c-format
+#, c-format
 msgid "Host is already joined.\n"
-msgstr "该条目已经被锁定"
+msgstr ""
 
 #: ipa-client/ipa-join.c:484
-#, fuzzy, c-format
+#, c-format
 msgid "Incorrect password.\n"
-msgstr "用户密码"
+msgstr ""
 
 #: ipa-client/ipa-join.c:495
 #, c-format
@@ -7955,8 +7628,8 @@ msgstr ""
 #: ipa-client/ipa-join.c:940
 #, c-format
 msgid ""
-"Unable to join host: Kerberos User Principal not found and host password not "
-"provided.\n"
+"Unable to join host: Kerberos User Principal not found and host password not"
+" provided.\n"
 msgstr ""
 
 #: ipa-client/ipa-join.c:954
@@ -8006,9 +7679,8 @@ msgid "Hostname of this server"
 msgstr ""
 
 #: ipa-client/ipa-join.c:1048 ipa-client/ipa-join.c:1050
-#, fuzzy
 msgid "hostname"
-msgstr "主机名"
+msgstr ""
 
 #: ipa-client/ipa-join.c:1050
 msgid "IPA Server to use"
@@ -8019,18 +7691,16 @@ msgid "Specifies where to store keytab information."
 msgstr ""
 
 #: ipa-client/ipa-join.c:1052
-#, fuzzy
 msgid "filename"
-msgstr "规则名"
+msgstr ""
 
 #: ipa-client/ipa-join.c:1054
 msgid "LDAP password (if not using Kerberos)"
 msgstr ""
 
 #: ipa-client/ipa-join.c:1054
-#, fuzzy
 msgid "password"
-msgstr "密码"
+msgstr ""
 
 #: ipa-client/ipa-rmkeytab.c:43
 #, c-format
@@ -8105,9 +7775,8 @@ msgid "Remove all principals in this realm"
 msgstr ""
 
 #: ipa-client/ipa-rmkeytab.c:176
-#, fuzzy
 msgid "Realm name"
-msgstr "规则名"
+msgstr ""
 
 #: ipa-client/ipa-rmkeytab.c:230 ipa-client/ipa-rmkeytab.c:237
 #, c-format
@@ -8124,49 +7793,4 @@ msgstr ""
 msgid "krb5_kt_close %d: %s\n"
 msgstr ""
 
-#~ msgid "Taskgroup"
-#~ msgstr "任务组"
 
-#~ msgid "Default e-mail domain"
-#~ msgstr "默认的邮件域名"
-
-#~ msgid "Record type"
-#~ msgstr "记录类型"
-
-#~ msgid "Search criteria"
-#~ msgstr "搜索条件"
-
-#, fuzzy
-#~ msgid "Description of service"
-#~ msgstr "描述"
-
-#, fuzzy
-#~ msgid "Removed kerberos key from \"%(value)s\""
-#~ msgstr "已锁定用户\"%(value)s\""
-
-#~ msgid "Net Groups"
-#~ msgstr "网络组"
-
-#~ msgid "Role Groups"
-#~ msgstr "角色组"
-
-#~ msgid "Role-group name"
-#~ msgstr "角色组名称"
-
-#~ msgid "Member of task-groups"
-#~ msgstr "任务组成员"
-
-#~ msgid "Task Groups"
-#~ msgstr "任务组"
-
-#~ msgid "Task-group name"
-#~ msgstr "任务组名称"
-
-#~ msgid "Task-group description"
-#~ msgstr "任务组描述"
-
-#~ msgid "Taskgroups"
-#~ msgstr "任务组"
-
-#~ msgid "Locked user \"%(value)s\""
-#~ msgstr "已锁定用户\"%(value)s\""
