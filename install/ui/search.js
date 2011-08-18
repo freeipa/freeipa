@@ -86,6 +86,17 @@ IPA.search_facet = function(spec) {
         that.table.refresh = function() {
             that.refresh();
         };
+
+        that.table.load = function(result) {
+            that.table.empty();
+
+            for (var i = 0; i<result.length; i++) {
+                var record = that.table.get_record(result[i], 0);
+                that.table.add_record(record);
+            }
+
+            that.table.unselect_all();
+        };
     }
 
     that.create_content = function(container) {
@@ -224,13 +235,7 @@ IPA.search_facet = function(spec) {
     };
 
     function load(result) {
-
-        that.table.empty();
-
-        for (var i = 0; i<result.length; i++) {
-            var record = that.table.get_record(result[i], 0);
-            that.table.add_record(record);
-        }
+        that.table.load(result);
     }
 
     that.load = spec.load || load;
@@ -244,8 +249,6 @@ IPA.search_facet = function(spec) {
     };
 
     that.search_refresh = function(entity){
-
-        $('input[type=checkbox]',that.table.thead).removeAttr("checked");
 
         function on_success(data, text_status, xhr) {
 

@@ -1139,6 +1139,7 @@ IPA.sudorule_association_table_widget = function(spec) {
             $.merge(that.values, external_values);
         }
         that.reset();
+        that.unselect_all();
     };
 
     return that;
