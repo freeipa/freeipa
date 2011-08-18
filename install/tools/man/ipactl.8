@@ -25,6 +25,8 @@ ipactl \fIcommand\fR
 A tool to help an administer control an IPA environment.
 
 IPA glues several discrete services together to work in concert and the order that these services are started and stopped is important. ipactl ensures that they are started and stopped in the correct order.
+
+IPA stores the available masters and the services configured on each one. The first thing ipactl does is start (if it is not already running) the IPA 389\-ds instance to query what services it controls. The hostname used in the query needs to match the hostname of the value stored in LDAP. This can be controlled with the host option in \fI/etc/ipa/default.conf\fR. This should be a fully\-qualified hostname.
 .SH "OPTIONS"
 .TP 
 start
