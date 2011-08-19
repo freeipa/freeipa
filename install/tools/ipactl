@@ -22,6 +22,7 @@ import sys
 try:
     import os
     from ipaserver.install import service
+    from ipaserver.install.dsinstance import config_dirname, realm_to_serverid
     from ipapython import sysrestore
     from ipapython import config
     from ipalib import api, errors
@@ -54,6 +55,42 @@ def check_IPA_configuration():
         # LSB status code 6: program is not configured
         raise IpactlError("IPA is not configured " +
                           "(see man pages of ipa-server-install for help)", 6)
+
+def is_dirsrv_debugging_enabled():
+    """
+    Check the IPA and PKI-CA 389-ds instances to see if debugging is
+    enabled. If so we suppress that in our output.
+
+    returns True or False
+    """
+    debugging = False
+    serverid = realm_to_serverid(api.env.realm)
+    for dse in ['/etc/dirsrv/slapd-PKI-IPA/', config_dirname(serverid)]:
+        try:
+            fd = open(dse + 'dse.ldif', 'r')
+        except IOError:
+            continue
+        lines = fd.readlines()
+        fd.close()
+        for line in lines:
+            if line.lower().startswith('nsslapd-errorlog-level'):
+                (option, value) = line.split(':')
+                if int(value) > 0:
+                    debugging = True
+
+    return debugging
+
+def get_capture_output(service, debug):
+    """
+    We want to display any output of a start/stop command with the
+    exception of 389-ds when debugging is enabled because it outputs
+    tons and tons of information.
+    """
+    if service == 'dirsrv' and not debug and is_dirsrv_debugging_enabled():
+        print '    debugging enabled, suppressing output.'
+        return True
+    else:
+        return False
 
 def parse_options():
     usage = "%prog start|stop|restart|status\n"
@@ -122,10 +159,10 @@ def get_config():
 
     return svc_list
 
-def ipa_start():
+def ipa_start(options):
     try:
         print "Starting Directory Service"
-        service.start('dirsrv', capture_output=False)
+        service.start('dirsrv', capture_output=get_capture_output('dirsrv', options.debug))
     except Exception, e:
         raise IpactlError("Failed to start Directory Service: " + str(e))
 
@@ -153,7 +190,7 @@ def ipa_start():
         svc_name = service.SERVICE_LIST[svc][0]
         try:
             print "Starting %s Service" % svc
-            service.start(svc_name, capture_output=False)
+            service.start(svc_name, capture_output=get_capture_output(svc_name, options.debug))
         except:
             emit_err("Failed to start %s Service" % svc)
             emit_err("Shutting down")
@@ -169,7 +206,7 @@ def ipa_start():
                 pass
             raise IpactlError("Aborting ipactl")
 
-def ipa_stop():
+def ipa_stop(options):
     svc_list = []
     try:
         svc_list = get_config()
@@ -208,10 +245,10 @@ def ipa_stop():
         raise IpactlError("Failed to stop Directory Service")
 
 
-def ipa_restart():
+def ipa_restart(options):
     try:
         print "Restarting Directory Service"
-        service.restart('dirsrv', capture_output=False)
+        service.restart('dirsrv', capture_output=get_capture_output('dirsrv', options.debug))
     except Exception, e:
         raise IpactlError("Failed to restart Directory Service: " + str(e))
 
@@ -239,7 +276,7 @@ def ipa_restart():
         svc_name = service.SERVICE_LIST[svc][0]
         try:
             print "Restarting %s Service" % svc
-            service.restart(svc_name, capture_output=False)
+            service.restart(svc_name, capture_output=get_capture_output(svc_name, options.debug))
         except:
             emit_err("Failed to restart %s Service" % svc)
             emit_err("Shutting down")
@@ -255,7 +292,7 @@ def ipa_restart():
                 pass
             raise IpactlError("Aborting ipactl")
 
-def ipa_status():
+def ipa_status(options):
     try:
         if service.is_running('dirsrv'):
             print "Directory Service: RUNNING"
@@ -320,13 +357,13 @@ def main():
                           "The hostname must be fully-qualified" % api.env.host)
 
     if args[0].lower() == "start":
-        ipa_start()
+        ipa_start(options)
     elif args[0].lower() == "stop":
-        ipa_stop()
+        ipa_stop(options)
     elif args[0].lower() == "restart":
-        ipa_restart()
+        ipa_restart(options)
     elif args[0].lower() == "status":
-        ipa_status()
+        ipa_status(options)
 
 try:
     if __name__ == "__main__":
