@@ -51,6 +51,7 @@ from ipalib import Str, List
 from ipalib.output import Output
 from ipalib import output
 from ipalib.text import _
+from ipalib.request import context
 from ipapython.version import API_VERSION
 
 class batch(Command):
@@ -81,17 +82,40 @@ class batch(Command):
     def execute(self, *args, **options):
         results=[]
         for arg in args[0]:
+            params = dict()
+            name = None
             try:
+                if 'method' not in arg:
+                    raise errors.RequirementError(name='method')
+                if 'params' not in arg:
+                    raise errors.RequirementError(name='params')
+                name = arg['method']
+                if name not in self.Command:
+                    raise errors.CommandError(name=name)
                 a = arg['params'][0]
                 kw = arg['params'][1]
                 newkw = {}
                 for k in kw:
                     newkw[str(k)] = kw[k]
-                result = api.Command[arg['method']](*a, **newkw)
+                params = api.Command[name].args_options_2_params(*a, **newkw)
+
+                result = api.Command[name](*a, **newkw)
+                self.info(
+                    'batch: %s(%s): SUCCESS', name, ', '.join(api.Command[name]._repr_iter(**params))
+                )
                 result['error']=None
             except Exception, e:
                 result = dict()
                 result['error'] = unicode(e)
+                if isinstance(e, errors.RequirementError) or \
+                    isinstance(e, errors.CommandError):
+                    self.info(
+                        '%s: batch: %s', context.principal, e.__class__.__name__
+                    )
+                else:
+                    self.info(
+                        '%s: batch: %s(%s): %s', context.principal, name, ', '.join(api.Command[name]._repr_iter(**params)),  e.__class__.__name__
+                    )
             results.append(result)
         return dict(count=len(results) , results=results)
 
