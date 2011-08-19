@@ -28,18 +28,18 @@ of attributes of members of another group.
 
 EXAMPLES:
 
- Add a delegation rule to allow editors to edit admin's addresses:
-   ipa delegation-add --attrs=street --membergroup=admins --group=editors 'editors edit admins street'
+ Add a delegation rule to allow managers to edit employee's addresses:
+   ipa delegation-add --attrs=street --membergroup=managers --group=employees "managers edit employees' street"
 
  When managing the list of attributes you need to include all attributes
  in the list, including existing ones. Add postalCode to the list:
-   ipa delegation-mod --attrs=street,postalCode --membergroup=admins --group=editors 'editors edit admins street'
+   ipa delegation-mod --attrs=street,postalCode --membergroup=managers --group=employees "managers edit employees' street"
 
  Display our updated rule:
-   ipa delegation-show 'editors edit admins street'
+   ipa delegation-show "managers edit employees' street"
 
  Delete a rule:
-   ipa delegation-del 'editors edit admins street'
+   ipa delegation-del "managers edit employees' street"
 """
 
 import copy
