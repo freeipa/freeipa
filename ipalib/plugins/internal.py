@@ -354,7 +354,7 @@ class i18n_messages(Command):
             "batch_error_title":_("Operations Error"),
             "confirmation":_("Confirmation"),
             "dirty_message":_("This page has unsaved changes. Please save or revert."),
-            "dirty_title":_("Dirty"),
+            "dirty_title":_("Unsaved Changes"),
             "hide_details":_("Hide details"),\
             "redirection":_("Redirection"),
             "remove_empty":_("Select entries to be removed."),
