@@ -195,6 +195,9 @@ class WSGIExecutioner(Executioner):
         error = None
         _id = None
         lang = os.environ['LANG']
+        name = None
+        args = ()
+        options = {}
         if not 'KRB5CCNAME' in environ:
             return self.marshal(result, CCacheError(), _id)
         try:
@@ -227,12 +230,14 @@ class WSGIExecutioner(Executioner):
             error = InternalError()
         finally:
             os.environ['LANG'] = lang
-        if error is None:
+        if name:
             params = self.Command[name].args_options_2_params(*args, **options)
             if error:
                 self.info('%s: %s(%s): %s', context.principal, name, ', '.join(self.Command[name]._repr_iter(**params)), e.__class__.__name__)
             else:
                 self.info('%s: %s(%s): SUCCESS', context.principal, name, ', '.join(self.Command[name]._repr_iter(**params)))
+        else:
+            self.info('%s: %s', context.principal, e.__class__.__name__)
         return self.marshal(result, error, _id)
 
     def simple_unmarshal(self, environ):
