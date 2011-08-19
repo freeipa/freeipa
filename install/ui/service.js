@@ -64,7 +64,6 @@ IPA.entity_factories.service = function() {
                 }]
             }]}).
         association_facet({
-            factory: IPA.service_managedby_host_facet,
             name: 'managedby_host',
             add_method: 'add_host',
             remove_method: 'remove_host'
@@ -337,23 +336,6 @@ IPA.service_certificate_status_widget = function (spec) {
         var values = result['usercertificate'];
         return values ? values[0].__base64__ : null;
     };
-
-    return that;
-};
-
-IPA.service_managedby_host_facet = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.association_facet(spec);
-
-    that.create_adder_column({
-        name: 'fqdn',
-        label: IPA.messages.objects.service.host,
-        primary_key: true,
-        width: '200px'
-    });
-
 
     return that;
 };

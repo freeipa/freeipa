@@ -278,6 +278,11 @@ IPA.association_config = function (spec) {
 IPA.association_table_widget = function (spec) {
 
     spec = spec || {};
+
+    var index = spec.name.indexOf('_');
+    spec.attribute_member = spec.attribute_member || spec.name.substring(0, index);
+    spec.other_entity = spec.other_entity || spec.name.substring(index+1);
+
     spec.managed_entity_name = spec.other_entity;
 
     var that = IPA.table_widget(spec);
@@ -288,6 +293,9 @@ IPA.association_table_widget = function (spec) {
     that.associator = spec.associator || IPA.bulk_associator;
     that.add_method = spec.add_method || 'add_member';
     that.remove_method = spec.remove_method || 'remove_member';
+
+    that.add_title = spec.add_title || IPA.messages.association.add.member;
+    that.remove_title = spec.remove_title || IPA.messages.association.remove.member;
 
     that.adder_columns = $.ordered_map();
 
@@ -489,11 +497,9 @@ IPA.association_table_widget = function (spec) {
     that.create_add_dialog = function() {
         var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
         var label = IPA.metadata.objects[that.other_entity].label;
-        var title = IPA.messages.association.add;
 
-        title = title.replace(
-            '${entity}',
-            that.entity.metadata.label_singular);
+        var title = that.add_title;
+        title = title.replace('${entity}', that.entity.metadata.label_singular);
         title = title.replace('${primary_key}', pkey);
         title = title.replace('${other_entity}', label);
 
@@ -561,11 +567,9 @@ IPA.association_table_widget = function (spec) {
 
         var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
         var label = IPA.metadata.objects[that.other_entity].label;
-        var title = IPA.messages.association.remove;
 
-        title = title.replace(
-            '${entity}',
-            that.entity.metadata.label_singular);
+        var title = that.remove_title;
+        title = title.replace('${entity}', that.entity.metadata.label_singular);
         title = title.replace('${primary_key}', pkey);
         title = title.replace('${other_entity}', label);
 
@@ -671,8 +675,8 @@ IPA.association_facet = function (spec) {
        link must be set before the call to the base class, to affect the  table.
      */
     spec.link = spec.link === undefined ? true : spec.link;
-
     spec.managed_entity_name = spec.other_entity;
+
     var that = IPA.table_facet(spec);
 
     that.entity = spec.entity;
@@ -689,6 +693,9 @@ IPA.association_facet = function (spec) {
     that.associator = spec.associator || IPA.bulk_associator;
     that.add_method = spec.add_method || 'add_member';
     that.remove_method = spec.remove_method || 'remove_member';
+
+    that.add_title = spec.add_title || IPA.messages.association.add.member;
+    that.remove_title = spec.remove_title || IPA.messages.association.remove.member;
 
     that.adder_columns = $.ordered_map();
 
@@ -724,7 +731,7 @@ IPA.association_facet = function (spec) {
         var i;
 
         var pkey_name;
-        if (that.other_entity){
+        if (that.other_entity) {
             pkey_name = IPA.metadata.objects[that.other_entity].primary_key;
         }
 
@@ -736,6 +743,12 @@ IPA.association_facet = function (spec) {
             });
         }
 
+        if (!that.adder_columns.length) {
+            that.create_adder_column({
+                name: pkey_name,
+                primary_key: true
+            });
+        }
 
         var label = IPA.metadata.objects[that.other_entity] ?
             IPA.metadata.objects[that.other_entity].label : that.other_entity;
@@ -911,11 +924,9 @@ IPA.association_facet = function (spec) {
 
         var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
         var label = IPA.metadata.objects[that.other_entity] ? IPA.metadata.objects[that.other_entity].label : that.other_entity;
-        var title = IPA.messages.association.add;
 
-        title = title.replace(
-            '${entity}',
-            that.entity.metadata.label_singular);
+        var title = that.add_title;
+        title = title.replace('${entity}', that.entity.metadata.label_singular);
         title = title.replace('${primary_key}', pkey);
         title = title.replace('${other_entity}', label);
 
@@ -970,11 +981,9 @@ IPA.association_facet = function (spec) {
         }
 
         var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
-        var title = IPA.messages.association.remove;
 
-        title = title.replace(
-            '${entity}',
-            that.entity.metadata.label_singular);
+        var title = that.remove_title;
+        title = title.replace('${entity}', that.entity.metadata.label_singular);
         title = title.replace('${primary_key}', pkey);
         title = title.replace('${other_entity}', label);
 

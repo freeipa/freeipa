@@ -795,6 +795,9 @@ IPA.entity_builder = function(){
         spec.other_entity = spec.other_entity ||
             spec.name.substring(index+1);
 
+        spec.add_title = IPA.messages.association.add[spec.attribute_member];
+        spec.remove_title = IPA.messages.association.remove[spec.attribute_member];
+
         spec.facet_group = spec.facet_group ||
             spec.attribute_member;
 
