@@ -15884,7 +15884,7 @@
                         "batch_error_title": "Operations Error",
                         "confirmation": "Confirmation",
                         "dirty_message": "This page has unsaved changes. Please save or revert.",
-                        "dirty_title": "Dirty",
+                        "dirty_title": "Unsaved Changes",
                         "hide_details": "Hide details",
                         "prospective": "Prospective",
                         "remove_empty": "Select entries to be removed.",
