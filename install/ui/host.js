@@ -73,8 +73,9 @@ IPA.entity_factories.host = function () {
                 ]
             }]}).
         association_facet({
-            factory: IPA.host_managedby_host_facet,
-            name: 'managedby_host'
+            name: 'managedby_host',
+            add_method: 'add_managedby',
+            remove_method: 'remove_managedby'
         }).
         association_facet({
             name: 'memberof_hostgroup',
@@ -619,24 +620,6 @@ IPA.host_certificate_status_widget = function (spec) {
         var values = result['usercertificate'];
         return values ? values[0].__base64__ : null;
     };
-
-    return that;
-};
-
-IPA.host_managedby_host_facet = function (spec) {
-
-    spec = spec || {};
-
-    var that = IPA.association_facet(spec);
-
-    that.add_method = 'add_managedby';
-    that.remove_method = 'remove_managedby';
-
-    that.create_adder_column({
-        name: 'fqdn',
-        primary_key: true,
-        width: '200px'
-    });
 
     return that;
 };

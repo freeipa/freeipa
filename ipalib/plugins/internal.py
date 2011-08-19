@@ -400,12 +400,30 @@ class i18n_messages(Command):
             "automount":_("Automount")
             },
         "association": {
-            "add":_("Add ${other_entity} into ${entity} ${primary_key}"),
+            "add": {
+                "ipasudorunas":_("Add RunAs ${other_entity} into ${entity} ${primary_key}"),
+                "ipasudorunasgroup":_("Add RunAs Groups into ${entity} ${primary_key}"),
+                "member":_("Add ${other_entity} into ${entity} ${primary_key}"),
+                "memberallowcmd":_("Add Allow ${other_entity} into ${entity} ${primary_key}"),
+                "memberdenycmd":_("Add Deny ${other_entity} into ${entity} ${primary_key}"),
+                "memberof":_("Add ${entity} ${primary_key} into ${other_entity}"),
+                "managedby":_("Add ${other_entity} Managing ${entity} ${primary_key}"),
+                "sourcehost":_("Add Source ${other_entity} into ${entity} ${primary_key}"),
+            },
             "direct_enrollment":_("Direct Enrollment"),
             "indirect_enrollment":_("Indirect Enrollment"),
             "no_entries":_("No entries."),
             "paging":_("Showing ${start} to ${end} of ${total} entries."),
-            "remove":_("Remove ${other_entity} from ${entity} ${primary_key}"),
+            "remove": {
+                "ipasudorunas":_("Remove RunAs ${other_entity} from ${entity} ${primary_key}"),
+                "ipasudorunasgroup":_("Remove RunAs Groups from ${entity} ${primary_key}"),
+                "member":_("Remove ${other_entity} from ${entity} ${primary_key}"),
+                "memberallowcmd":_("Remove Allow ${other_entity} from ${entity} ${primary_key}"),
+                "memberdenycmd":_("Remove Deny ${other_entity} from ${entity} ${primary_key}"),
+                "memberof":_("Remove ${entity} ${primary_key} from ${other_entity}"),
+                "managedby":_("Remove ${other_entity} Managing ${entity} ${primary_key}"),
+                "sourcehost":_("Remove Source ${other_entity} from ${entity} ${primary_key}"),
+            },
             "show_results":_("Show Results"),
             },
         "widget": {

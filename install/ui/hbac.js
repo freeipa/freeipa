@@ -134,44 +134,6 @@ IPA.entity_factories.hbacsvcgroup = function() {
         build();
 };
 
-IPA.hbacsvcgroup_member_hbacsvc_table_widget = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.association_table_widget(spec);
-
-
-    var column = that.create_column({
-        name: 'cn',
-        primary_key: true,
-        width: '150px',
-        entity:that.entity,
-        link: true
-    });
-
-    that.create_column({
-        name: 'description',
-        entity:that.entity,
-
-        width: '350px'
-    });
-
-    that.create_adder_column({
-        name: 'cn',
-        primary_key: true,
-        width: '100px'
-    });
-
-    that.create_adder_column({
-        name: 'description',
-        width: '100px'
-    });
-
-    return that;
-};
-
-
-
 IPA.hbacrule_details_facet = function(spec) {
 
     spec = spec || {};
@@ -224,15 +186,21 @@ IPA.hbacrule_details_facet = function(spec) {
         }));
         section.add_field(IPA.rule_association_table_widget({
             id: that.entity.name+'-memberuser_user',
-            name: 'memberuser_user', category: category,
-            other_entity: 'user', add_method: 'add_user',
-            remove_method: 'remove_user'
+            name: 'memberuser_user',
+            category: category,
+            add_method: 'add_user',
+            remove_method: 'remove_user',
+            add_title: IPA.messages.association.add.member,
+            remove_title: IPA.messages.association.remove.member
         }));
         section.add_field(IPA.rule_association_table_widget({
             id: that.entity.name+'-memberuser_group',
-            name: 'memberuser_group', category: category,
-            other_entity: 'group', add_method: 'add_user',
-            remove_method: 'remove_user'
+            name: 'memberuser_group',
+            category: category,
+            add_method: 'add_user',
+            remove_method: 'remove_user',
+            add_title: IPA.messages.association.add.member,
+            remove_title: IPA.messages.association.remove.member
         }));
         return section;
     }
@@ -259,15 +227,21 @@ IPA.hbacrule_details_facet = function(spec) {
         }));
         section.add_field(IPA.rule_association_table_widget({
             id: that.entity.name+'-memberhost_host',
-            name: 'memberhost_host', category: category,
-            other_entity: 'host', add_method: 'add_host',
-            remove_method: 'remove_host'
+            name: 'memberhost_host',
+            category: category,
+            add_method: 'add_host',
+            remove_method: 'remove_host',
+            add_title: IPA.messages.association.add.member,
+            remove_title: IPA.messages.association.remove.member
         }));
         section.add_field(IPA.rule_association_table_widget({
             id: that.entity.name+'-memberhost_hostgroup',
-            name: 'memberhost_hostgroup', category: category,
-            other_entity: 'hostgroup', add_method: 'add_host',
-        remove_method: 'remove_host'
+            name: 'memberhost_hostgroup',
+            category: category,
+            add_method: 'add_host',
+            remove_method: 'remove_host',
+            add_title: IPA.messages.association.add.member,
+            remove_title: IPA.messages.association.remove.member
         }));
         return section;
     }
@@ -295,15 +269,21 @@ IPA.hbacrule_details_facet = function(spec) {
         }));
         section.add_field(IPA.rule_association_table_widget({
             id: that.entity.name+'-memberservice_hbacsvc',
-            name: 'memberservice_hbacsvc', category: category,
-            other_entity: 'hbacsvc', add_method: 'add_service',
-            remove_method: 'remove_service'
+            name: 'memberservice_hbacsvc',
+            category: category,
+            add_method: 'add_service',
+            remove_method: 'remove_service',
+            add_title: IPA.messages.association.add.member,
+            remove_title: IPA.messages.association.remove.member
         }));
         section.add_field(IPA.rule_association_table_widget({
             id: that.entity.name+'-memberservice_hbacsvcgroup',
-            name: 'memberservice_hbacsvcgroup', category: category,
-            other_entity: 'hbacsvcgroup', add_method: 'add_service',
-            remove_method: 'remove_service'
+            name: 'memberservice_hbacsvcgroup',
+            category: category,
+            add_method: 'add_service',
+            remove_method: 'remove_service',
+            add_title: IPA.messages.association.add.member,
+            remove_title: IPA.messages.association.remove.member
         }));
         return section;
     }
@@ -330,15 +310,21 @@ IPA.hbacrule_details_facet = function(spec) {
         }));
         section.add_field(IPA.rule_association_table_widget({
             id: that.entity.name+'-sourcehost_host',
-            name: 'sourcehost_host', category: category,
-            other_entity: 'host', add_method: 'add_sourcehost',
-            remove_method: 'remove_sourcehost'
+            name: 'sourcehost_host',
+            category: category,
+            add_method: 'add_sourcehost',
+            remove_method: 'remove_sourcehost',
+            add_title: IPA.messages.association.add.sourcehost,
+            remove_title: IPA.messages.association.remove.sourcehost
         }));
         section.add_field(IPA.rule_association_table_widget({
             id: that.entity.name+'-sourcehost_hostgroup',
-            name: 'sourcehost_hostgroup', category: category,
-            other_entity: 'hostgroup', add_method: 'add_sourcehost',
-            remove_method: 'remove_sourcehost'
+            name: 'sourcehost_hostgroup',
+            category: category,
+            add_method: 'add_sourcehost',
+            remove_method: 'remove_sourcehost',
+            add_title: IPA.messages.association.add.sourcehost,
+            remove_title: IPA.messages.association.remove.sourcehost
         }));
         return section;
     }
