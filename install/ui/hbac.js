@@ -181,22 +181,20 @@ IPA.hbacrule_details_facet = function(spec) {
             ]
         });
 
-        var category = section.add_field(IPA.radio_widget({
+        section.add_field(IPA.radio_widget({
             name: 'usercategory'
         }));
-        section.add_field(IPA.rule_association_table_widget({
+        section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberuser_user',
             name: 'memberuser_user',
-            category: category,
             add_method: 'add_user',
             remove_method: 'remove_user',
             add_title: IPA.messages.association.add.member,
             remove_title: IPA.messages.association.remove.member
         }));
-        section.add_field(IPA.rule_association_table_widget({
+        section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberuser_group',
             name: 'memberuser_group',
-            category: category,
             add_method: 'add_user',
             remove_method: 'remove_user',
             add_title: IPA.messages.association.add.member,
@@ -222,22 +220,20 @@ IPA.hbacrule_details_facet = function(spec) {
         ]
         });
 
-        var category = section.add_field(IPA.radio_widget({
+        section.add_field(IPA.radio_widget({
             name: 'hostcategory'
         }));
-        section.add_field(IPA.rule_association_table_widget({
+        section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberhost_host',
             name: 'memberhost_host',
-            category: category,
             add_method: 'add_host',
             remove_method: 'remove_host',
             add_title: IPA.messages.association.add.member,
             remove_title: IPA.messages.association.remove.member
         }));
-        section.add_field(IPA.rule_association_table_widget({
+        section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberhost_hostgroup',
             name: 'memberhost_hostgroup',
-            category: category,
             add_method: 'add_host',
             remove_method: 'remove_host',
             add_title: IPA.messages.association.add.member,
@@ -264,22 +260,20 @@ IPA.hbacrule_details_facet = function(spec) {
             ]
         });
 
-        var category = section.add_field(IPA.radio_widget({
+        section.add_field(IPA.radio_widget({
             name: 'servicecategory'
         }));
-        section.add_field(IPA.rule_association_table_widget({
+        section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberservice_hbacsvc',
             name: 'memberservice_hbacsvc',
-            category: category,
             add_method: 'add_service',
             remove_method: 'remove_service',
             add_title: IPA.messages.association.add.member,
             remove_title: IPA.messages.association.remove.member
         }));
-        section.add_field(IPA.rule_association_table_widget({
+        section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberservice_hbacsvcgroup',
             name: 'memberservice_hbacsvcgroup',
-            category: category,
             add_method: 'add_service',
             remove_method: 'remove_service',
             add_title: IPA.messages.association.add.member,
@@ -305,22 +299,20 @@ IPA.hbacrule_details_facet = function(spec) {
             ]
         });
 
-        var category = section.add_field(IPA.radio_widget({
+        section.add_field(IPA.radio_widget({
             name: 'sourcehostcategory'
         }));
-        section.add_field(IPA.rule_association_table_widget({
+        section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-sourcehost_host',
             name: 'sourcehost_host',
-            category: category,
             add_method: 'add_sourcehost',
             remove_method: 'remove_sourcehost',
             add_title: IPA.messages.association.add.sourcehost,
             remove_title: IPA.messages.association.remove.sourcehost
         }));
-        section.add_field(IPA.rule_association_table_widget({
+        section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-sourcehost_hostgroup',
             name: 'sourcehost_hostgroup',
-            category: category,
             add_method: 'add_sourcehost',
             remove_method: 'remove_sourcehost',
             add_title: IPA.messages.association.add.sourcehost,

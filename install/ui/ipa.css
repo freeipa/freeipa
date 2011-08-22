@@ -130,15 +130,6 @@ body {
     cursor: pointer;
 }
 
-.input_link_disabled {
-    cursor: default;
-    color:black;
-}
-
-.input_link_label {
-
-}
-
 .icon {
     display: inline-block;
     height: 16px;
@@ -1034,7 +1025,7 @@ span.main-separator{
     padding: 0 0.2em;
 }
 
-a.action-button-disabled {
+.action-button-disabled {
     color: gray;
     cursor: default;
 }
