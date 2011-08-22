@@ -2,3 +2,7 @@
 dn: cn=ng,cn=alt,$SUFFIX
 add:aci: '(targetfilter = "(objectClass=mepManagedEntry)")(targetattr = "*")(version 3.0; acl "Managed netgroups cannot be modified"; deny (write) userdn = "ldap:///all";)'
 
+# This is used for the host/service one-time passwordn and keytab indirectors.
+# We can do a query on a DN to see if an attribute exists.
+dn: cn=accounts,$SUFFIX
+add:aci: (targetattr="userPassword || krbPrincipalKey")(version 3.0; acl "Search existence of password and kerberos keys"; allow(search) userdn = "ldap:///all";)

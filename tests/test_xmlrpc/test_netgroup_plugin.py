@@ -168,6 +168,8 @@ class test_netgroup(Declarative):
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[host1],
+                    has_keytab=False,
+                    has_password=False,
                 ),
             ),
         ),
@@ -225,6 +227,8 @@ class test_netgroup(Declarative):
                         [DN(('cn',user1),('cn','groups'),('cn','accounts'),
                             api.env.basedn)],
                     memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
                     dn=lambda x: DN(x) == \
                         DN(('uid',user1),('cn','users'),('cn','accounts'),
                            api.env.basedn),
@@ -262,6 +266,8 @@ class test_netgroup(Declarative):
                         [DN(('cn',user2),('cn','groups'),('cn','accounts'),
                             api.env.basedn)],
                     memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
                     dn=lambda x: DN(x) == \
                         DN(('uid',user2),('cn','users'),('cn','accounts'),
                            api.env.basedn),

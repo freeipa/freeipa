@@ -637,6 +637,8 @@ class test_group(Declarative):
                     dn=lambda x: DN(x) == \
                         DN(('uid',user1),('cn','users'),('cn','accounts'),
                            api.env.basedn),
+                    has_keytab=False,
+                    has_password=False,
                 ),
             ),
         ),
@@ -753,6 +755,8 @@ class test_group(Declarative):
                     dn=lambda x: DN(x) == \
                         DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
                            api.env.basedn),
+                    has_keytab=False,
+                    has_password=False,
                 ),
             ),
         ),

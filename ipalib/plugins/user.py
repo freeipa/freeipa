@@ -113,6 +113,8 @@ class user(LDAPObject):
     }
     rdnattr = 'uid'
     bindable = True
+    password_attributes = [('userpassword', 'has_password'),
+                           ('krbprincipalkey', 'has_keytab')]
 
     label = _('Users')
     label_singular = _('User')
@@ -407,6 +409,7 @@ class user_add(LDAPCreate):
                 newentry = wait_for_value(ldap, dn, 'objectclass', 'mepOriginEntry')
                 entry_from_entry(entry_attrs, newentry)
 
+        self.obj.get_password_attributes(ldap, dn, entry_attrs)
         return dn
 
 api.register(user_add)
@@ -443,6 +446,7 @@ class user_mod(LDAPUpdate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         convert_nsaccountlock(entry_attrs)
         self.obj._convert_manager(entry_attrs, **options)
+        self.obj.get_password_attributes(ldap, dn, entry_attrs)
         return dn
 
 api.register(user_mod)
@@ -472,6 +476,7 @@ class user_find(LDAPSearch):
         for entry in entries:
             (dn, attrs) = entry
             self.obj._convert_manager(attrs, **options)
+            self.obj.get_password_attributes(ldap, dn, attrs)
             convert_nsaccountlock(attrs)
 
     msg_summary = ngettext(
@@ -488,6 +493,7 @@ class user_show(LDAPRetrieve):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         convert_nsaccountlock(entry_attrs)
         self.obj._convert_manager(entry_attrs, **options)
+        self.obj.get_password_attributes(ldap, dn, entry_attrs)
         return dn
 
 api.register(user_show)
