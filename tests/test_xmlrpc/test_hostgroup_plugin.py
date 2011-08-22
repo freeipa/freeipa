@@ -121,6 +121,8 @@ class test_hostgroup(Declarative):
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[fqdn1],
+                    has_keytab=False,
+                    has_password=False,
                 ),
             ),
         ),

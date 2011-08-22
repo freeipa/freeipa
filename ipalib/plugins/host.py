@@ -162,9 +162,6 @@ def remove_fwd_ptr(ipaddr, host, domain, recordtype):
         pass
 
 host_output_params = (
-    Flag('has_keytab',
-        label=_('Keytab'),
-    ),
     Str('managedby_host',
         label='Managed by',
     ),
@@ -224,7 +221,7 @@ class host(LDAPObject):
     default_attributes = [
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
-        'krblastpwdchange', 'managedby', 'memberindirect', 'memberofindirect',
+        'managedby', 'memberindirect', 'memberofindirect',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -242,6 +239,8 @@ class host(LDAPObject):
         'managedby': ('Managed by', 'man_by_', 'not_man_by_'),
         'managing': ('Managing', 'man_', 'not_man_'),
     }
+    password_attributes = [('userpassword', 'has_password'),
+                           ('krbprincipalkey', 'has_keytab')]
 
     label = _('Hosts')
     label_singular = _('Host')
@@ -466,6 +465,11 @@ class host_add(LDAPCreate):
 
         if options.get('all', False):
                 entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
+        self.obj.get_password_attributes(ldap, dn, entry_attrs)
+        if entry_attrs['has_password']:
+            # If an OTP is set there is no keytab, at least not one
+            # fetched anywhere.
+            entry_attrs['has_keytab'] = False
 
         return dn
 
@@ -691,8 +695,13 @@ class host_find(LDAPSearch):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         for entry in entries:
-            entry_attrs = entry[1]
+            (dn, entry_attrs) = entry
             set_certificate_attrs(entry_attrs)
+            self.obj.get_password_attributes(ldap, dn, entry_attrs)
+            if entry_attrs['has_password']:
+                # If an OTP is set there is no keytab, at least not one
+                # fetched anywhere.
+                entry_attrs['has_keytab'] = False
 
             if options.get('all', False):
                 entry_attrs['managing'] = self.obj.get_managed_hosts(entry[0])
@@ -714,11 +723,10 @@ class host_show(LDAPRetrieve):
     member_attributes = ['managedby']
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        if 'krblastpwdchange' in entry_attrs:
-            entry_attrs['has_keytab'] = True
-            if not options.get('all', False):
-                del entry_attrs['krblastpwdchange']
-        else:
+        self.obj.get_password_attributes(ldap, dn, entry_attrs)
+        if entry_attrs['has_password']:
+            # If an OTP is set there is no keytab, at least not one
+            # fetched anywhere.
             entry_attrs['has_keytab'] = False
 
         set_certificate_attrs(entry_attrs)
@@ -766,7 +774,7 @@ class host_disable(LDAPQuery):
 
         dn = self.obj.get_dn(*keys, **options)
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, ['krblastpwdchange', 'usercertificate'])
+            (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -816,7 +824,8 @@ class host_disable(LDAPQuery):
             ldap.update_entry(dn, {'usercertificate': None})
             done_work = True
 
-        if 'krblastpwdchange' in entry_attrs:
+        self.obj.get_password_attributes(ldap, dn, entry_attrs)
+        if entry_attrs['has_keytab']:
             ldap.remove_principal_key(dn)
             done_work = True
 

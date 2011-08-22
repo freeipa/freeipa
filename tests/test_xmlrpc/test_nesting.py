@@ -186,6 +186,8 @@ class test_nesting(Declarative):
                         [DN(('cn',user1),('cn','groups'),('cn','accounts'),
                             api.env.basedn)],
                     memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
                     dn=lambda x: DN(x) == \
                         DN(('uid',user1),('cn','users'),('cn','accounts'),
                            api.env.basedn)
@@ -224,6 +226,8 @@ class test_nesting(Declarative):
                         [DN(('cn',user2),('cn','groups'),('cn','accounts'),
                             api.env.basedn)],
                     memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
                     dn=lambda x: DN(x) == \
                         DN(('uid',user2),('cn','users'),('cn','accounts'),
                            api.env.basedn)
@@ -262,6 +266,8 @@ class test_nesting(Declarative):
                         [DN(('cn',user3),('cn','groups'),('cn','accounts'),
                             api.env.basedn)],
                     memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
                     dn=lambda x: DN(x) == \
                         DN(('uid',user3),('cn','users'),('cn','accounts'),
                            api.env.basedn)
@@ -300,6 +306,8 @@ class test_nesting(Declarative):
                         [DN(('cn',user4),('cn','groups'),('cn','accounts'),
                             api.env.basedn)],
                     memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
                     dn=lambda x: DN(x) == \
                         DN(('uid',user4),('cn','users'),('cn','accounts'),
                            api.env.basedn)
@@ -676,6 +684,8 @@ class test_nesting(Declarative):
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[fqdn1],
+                    has_keytab=False,
+                    has_password=False,
                 ),
             ),
         ),
@@ -801,6 +811,7 @@ class test_nesting(Declarative):
                     l=[u'Undisclosed location 1'],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     has_keytab=False,
+                    has_password=False,
                     managedby_host=[fqdn1],
                     memberof_hostgroup = [u'testhostgroup2'],
                     memberofindirect_hostgroup = [u'testhostgroup1'],

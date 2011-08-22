@@ -36,6 +36,12 @@ from ipalib.util import json_serialize
 from ipalib.dn import *
 
 global_output_params = (
+    Flag('has_keytab',
+        label=_('Keytab'),
+    ),
+    Flag('has_password',
+        label=_('Password'),
+    ),
     Str('member',
         label=_('Failed members'),
     ),
@@ -319,6 +325,7 @@ class LDAPObject(Object):
     uuid_attribute = ''
     attribute_members = {}
     rdnattr = None
+    password_attributes = []
     # Can bind as this entry (has userPassword or krbPrincipalKey)
     bindable = False
     relationships = {
@@ -406,6 +413,25 @@ class LDAPObject(Object):
                             ldap_obj.get_primary_key_from_dn(member)
                         )
             del entry_attrs[attr]
+
+    def get_password_attributes(self, ldap, dn, entry_attrs):
+        """
+        Search on the entry to determine if it has a password or
+        keytab set.
+
+        A tuple is used to determine which attribute is set
+        in entry_attrs. The value is set to True/False whether a
+        given password type is set.
+        """
+        for (pwattr, attr) in self.password_attributes:
+            search_filter = '(%s=*)' % pwattr
+            try:
+                (entries, truncated) = ldap.find_entries(
+                    search_filter, [pwattr], dn, ldap.SCOPE_BASE
+                )
+                entry_attrs[attr] = True
+            except errors.NotFound:
+                entry_attrs[attr] = False
 
     def handle_not_found(self, *keys):
         pkey = ''

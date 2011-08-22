@@ -83,9 +83,6 @@ from ipapython.ipautil import file_exists
 
 
 output_params = (
-    Flag('has_keytab',
-        label=_('Keytab'),
-    ),
     Str('managedby_host',
         label='Managed by',
     ),
@@ -207,7 +204,7 @@ class service(LDAPObject):
         'ipaservice', 'pkiuser'
     ]
     search_attributes = ['krbprincipalname', 'managedby']
-    default_attributes = ['krbprincipalname', 'usercertificate', 'managedby', 'krblastpwdchange']
+    default_attributes = ['krbprincipalname', 'usercertificate', 'managedby']
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'managedby': ['host'],
@@ -216,6 +213,7 @@ class service(LDAPObject):
     relationships = {
         'managedby': ('Managed by', 'man_by_', 'not_man_by_'),
     }
+    password_attributes = [('krbprincipalkey', 'has_keytab')]
 
     label = _('Services')
     label_singular = _('Service')
@@ -379,13 +377,8 @@ class service_find(LDAPSearch):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         for entry in entries:
-            entry_attrs = entry[1]
-            if 'krblastpwdchange' in entry_attrs:
-                entry_attrs['has_keytab'] = True
-                if not options.get('all', False):
-                    del entry_attrs['krblastpwdchange']
-            else:
-                entry_attrs['has_keytab'] = False
+            (dn, entry_attrs) = entry
+            self.obj.get_password_attributes(ldap, dn, entry_attrs)
             set_certificate_attrs(entry_attrs)
 
 api.register(service_find)
@@ -403,12 +396,7 @@ class service_show(LDAPRetrieve):
     )
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        if 'krblastpwdchange' in entry_attrs:
-            entry_attrs['has_keytab'] = True
-            if not options.get('all', False):
-                del entry_attrs['krblastpwdchange']
-        else:
-            entry_attrs['has_keytab'] = False
+        self.obj.get_password_attributes(ldap, dn, entry_attrs)
 
         set_certificate_attrs(entry_attrs)
 
@@ -461,7 +449,7 @@ class service_disable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(*keys, **options)
-        (dn, entry_attrs) = ldap.get_entry(dn, ['krblastpwdchange', 'usercertificate'])
+        (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
 
         # See if we do any work at all here and if not raise an exception
         done_work = False
@@ -493,7 +481,8 @@ class service_disable(LDAPQuery):
             ldap.update_entry(dn, {'usercertificate': None})
             done_work = True
 
-        if 'krblastpwdchange' in entry_attrs:
+        self.obj.get_password_attributes(ldap, dn, entry_attrs)
+        if entry_attrs['has_keytab']:
             ldap.remove_principal_key(dn)
             done_work = True
 

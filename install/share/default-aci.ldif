@@ -79,3 +79,11 @@ dn: cn=sudo,$SUFFIX
 changetype: modify
 add: aci
 aci: (targetattr = "*")(version 3.0; acl "No anonymous access to sudo"; deny (read,search,compare) userdn != "ldap:///all";)
+
+# This is used for the host/service one-time passwordn and keytab indirectors.
+# We can do a query on a DN to see if an attribute exists.
+dn: cn=accounts,$SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr="userPassword || krbPrincipalKey")(version 3.0; acl "Search existence of password and kerberos keys"; allow(search) userdn = "ldap:///all";)
+

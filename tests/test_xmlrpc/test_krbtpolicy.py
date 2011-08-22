@@ -116,6 +116,8 @@ class test_krbtpolicy(Declarative):
                         [DN(('cn',user1),('cn','groups'),('cn','accounts'),
                             api.env.basedn)],
                     memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
                     dn=lambda x: DN(x) == \
                         DN(('uid',user1),('cn','users'),('cn','accounts'),
                            api.env.basedn)
