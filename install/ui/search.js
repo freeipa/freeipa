@@ -146,10 +146,9 @@ IPA.search_facet = function(spec) {
             label: IPA.messages.buttons.remove,
             icon: 'remove-icon',
             click: function() {
-                if (that.remove_button.hasClass('input_link_disabled')) {
-                    return false;
+                if (!that.remove_button.hasClass('action-button-disabled')) {
+                    that.remove();
                 }
-                that.remove();
                 return false;
             }
         }).appendTo(that.controls);
@@ -181,9 +180,9 @@ IPA.search_facet = function(spec) {
 
         if (that.remove_button) {
             if (values.length === 0) {
-                that.remove_button.addClass('input_link_disabled');
+                that.remove_button.addClass('action-button-disabled');
             } else {
-                that.remove_button.removeClass('input_link_disabled');
+                that.remove_button.removeClass('action-button-disabled');
             }
         }
     };

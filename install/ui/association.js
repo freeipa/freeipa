@@ -350,32 +350,32 @@ IPA.association_table_widget = function (spec) {
 
         that.table_create(container);
 
-        var button = IPA.action_button({
+        var remove_button = IPA.action_button({
             name: 'remove',
             label: IPA.messages.buttons.remove,
             icon: 'remove-icon',
             click: function() {
-                that.remove_handler();
+                if (!remove_button.hasClass('action-button-disabled')) {
+                    that.remove_handler();
+                }
                 return false;
             }
         }).appendTo(that.buttons);
 
-        button = IPA.action_button({
+        var add_button = IPA.action_button({
             name: 'add',
             label: IPA.messages.buttons.add,
             icon: 'add-icon',
             click: function() {
-                that.add_handler();
+                if (!add_button.hasClass('action-button-disabled')) {
+                    that.add_handler();
+                }
                 return false;
             }
         }).appendTo(that.buttons);
     };
 
     that.add_handler = function() {
-        if ($(this).hasClass('action-button-disabled')) {
-            return;
-        }
-
         var facet = that.entity.get_facet();
 
         if (facet.is_dirty()) {
@@ -396,10 +396,6 @@ IPA.association_table_widget = function (spec) {
     };
 
     that.remove_handler = function() {
-        if ($(this).hasClass('action-button-disabled')) {
-            return;
-        }
-
         var facet = that.entity.get_facet();
 
         if (facet.is_dirty()) {
@@ -838,7 +834,6 @@ IPA.association_facet = function (spec) {
         that.facet_create_header(container);
 
         that.pkey = IPA.nav.get_state(that.entity.name+'-pkey');
-        var other_label = IPA.metadata.objects[that.other_entity].label;
 
         if (!that.read_only) {
             that.remove_button = IPA.action_button({
@@ -846,7 +841,9 @@ IPA.association_facet = function (spec) {
                 label: IPA.messages.buttons.remove,
                 icon: 'remove-icon',
                 click: function() {
-                    that.show_remove_dialog();
+                    if (!that.remove_button.hasClass('action-button-disabled')) {
+                        that.show_remove_dialog();
+                    }
                     return false;
                 }
             }).appendTo(that.controls);
@@ -856,7 +853,9 @@ IPA.association_facet = function (spec) {
                 label: IPA.messages.buttons.enroll,
                 icon: 'add-icon',
                 click: function() {
-                    that.show_add_dialog();
+                    if (!that.add_button.hasClass('action-button-disabled')) {
+                        that.show_add_dialog();
+                    }
                     return false;
                 }
             }).appendTo(that.controls);

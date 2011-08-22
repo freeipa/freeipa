@@ -180,7 +180,7 @@ IPA.sudorule_details_facet = function(spec) {
             ]
         });
 
-        var category = section.add_field(IPA.radio_widget({
+        section.add_field(IPA.radio_widget({
             entity: that.entity,
             name: 'usercategory'
         }));
@@ -188,7 +188,6 @@ IPA.sudorule_details_facet = function(spec) {
             id: that.entity.name+'-memberuser_user',
             entity: that.entity,
             name: 'memberuser_user',
-            category: category,
             add_method: 'add_user',
             remove_method: 'remove_user',
             external: 'externaluser',
@@ -199,7 +198,6 @@ IPA.sudorule_details_facet = function(spec) {
             id: that.entity.name+'-memberuser_group',
             entity: that.entity,
             name: 'memberuser_group',
-            category: category,
             add_method: 'add_user',
             remove_method: 'remove_user',
             add_title: IPA.messages.association.add.member,
@@ -224,7 +222,7 @@ IPA.sudorule_details_facet = function(spec) {
             ]
         });
 
-        var category = section.add_field(IPA.radio_widget({
+        section.add_field(IPA.radio_widget({
             entity: that.entity,
             name: 'hostcategory'
         }));
@@ -232,7 +230,6 @@ IPA.sudorule_details_facet = function(spec) {
             id: that.entity.name+'-memberhost_host',
             entity: that.entity,
             name: 'memberhost_host',
-            category: category,
             add_method: 'add_host',
             remove_method: 'remove_host',
             external: 'externalhost',
@@ -243,7 +240,6 @@ IPA.sudorule_details_facet = function(spec) {
             id: that.entity.name+'-memberhost_hostgroup',
             entity: that.entity,
             name: 'memberhost_hostgroup',
-            category: category,
             add_method: 'add_host',
             remove_method: 'remove_host',
             add_title: IPA.messages.association.add.member,
@@ -680,26 +676,24 @@ IPA.sudo.rule_details_command_section = function(spec) {
                 ]
             }));
 
-        that.add_field(IPA.rule_association_table_widget({
+        that.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberallowcmd_sudocmd',
             name: 'memberallowcmd_sudocmd',
-            category: that.category,
             add_method: 'add_allow_command',
             remove_method: 'remove_allow_command',
             add_title: IPA.messages.association.add.memberallowcmd,
             remove_title: IPA.messages.association.remove.memberallowcmd
         }));
-        that.add_field(IPA.rule_association_table_widget({
+        that.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberallowcmd_sudocmdgroup',
             name: 'memberallowcmd_sudocmdgroup',
-            category: that.category,
             add_method: 'add_allow_command',
             remove_method: 'remove_allow_command',
             add_title: IPA.messages.association.add.memberallowcmd,
             remove_title: IPA.messages.association.remove.memberallowcmd
         }));
 
-        that.add_field(IPA.rule_association_table_widget({
+        that.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberdenycmd_sudocmd',
             name: 'memberdenycmd_sudocmd',
             add_method: 'add_deny_command',
@@ -707,7 +701,7 @@ IPA.sudo.rule_details_command_section = function(spec) {
             add_title: IPA.messages.association.add.memberdenycmd,
             remove_title: IPA.messages.association.remove.memberdenycmd
         }));
-        that.add_field(IPA.rule_association_table_widget({
+        that.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberdenycmd_sudocmdgroup',
             name: 'memberdenycmd_sudocmdgroup',
             add_method: 'add_deny_command',
@@ -834,7 +828,7 @@ IPA.sudo.rule_details_runas_section = function(spec) {
     var that = IPA.details_section(spec);
 
     function add_extra_fields(){
-        var category = that.add_field(
+        that.add_field(
             IPA.radio_widget({
                 name: 'ipasudorunasusercategory',
                 options:[
@@ -851,7 +845,6 @@ IPA.sudo.rule_details_runas_section = function(spec) {
         that.add_field(IPA.sudorule_association_table_widget({
             id: that.entity.name+'-runasruser_user',
             name: 'ipasudorunas_user',
-            category: category,
             add_method: 'add_runasuser',
             remove_method: 'remove_runasuser',
             add_title: IPA.messages.association.add.ipasudorunas,
@@ -860,14 +853,13 @@ IPA.sudo.rule_details_runas_section = function(spec) {
         that.add_field(IPA.sudorule_association_table_widget({
             id: that.entity.name+'-runasuser_group',
             name: 'ipasudorunas_group',
-            category: category,
             add_method: 'add_runasuser',
             remove_method: 'remove_runasuser',
             add_title: IPA.messages.association.add.ipasudorunas,
             remove_title: IPA.messages.association.remove.ipasudorunas
         }));
 
-        category = that.add_field(
+        that.add_field(
             IPA.radio_widget({
                 name: 'ipasudorunasgroupcategory',
                 options:[
@@ -885,7 +877,6 @@ IPA.sudo.rule_details_runas_section = function(spec) {
         that.add_field(IPA.sudorule_association_table_widget({
             id: that.entity.name+'-runasgroup_group',
             name: 'ipasudorunasgroup_group',
-            category: category,
             add_method: 'add_runasgroup',
             remove_method: 'remove_runasgroup',
             add_title: IPA.messages.association.add.ipasudorunasgroup,
@@ -1020,7 +1011,7 @@ IPA.sudorule_association_table_widget = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.rule_association_table_widget(spec);
+    var that = IPA.association_table_widget(spec);
 
     that.external = spec.external;
 
