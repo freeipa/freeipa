@@ -118,6 +118,9 @@ Requires: pki-silent >= 9.0.5
 %endif
 Requires: dogtag-pki-common-theme
 Requires: dogtag-pki-ca-theme
+%if 0%{?rhel}
+Requires: subscription-manager
+%endif
 Requires(preun):  python initscripts chkconfig
 Requires(postun): python initscripts chkconfig
 
@@ -535,6 +538,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Tue Aug 23 2011 Jan Cholasta <jcholast@redhat.com> - 2.1.0-1
+- Add subscription-manager dependency for RHEL.
+
 * Thu Aug 11 2011 Martin Kosek <mkosek@redhat.com> - 2.0.90-12
 - Set min nvr of 389-ds-base to 1.2.9.6 for fix in BZ 725743,
   723937, and 725542
