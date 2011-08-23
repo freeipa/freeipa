@@ -322,7 +322,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	char hostname[1024];
 	char *uri;
 	struct berval **ncvals;
-	char *ldap_base = NULL;
 	char *filter;
 	char *attrs[] = {"krbprincipalname", NULL};
 	char *root_attrs[] = {"namingContexts", NULL};
@@ -340,6 +339,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	int ret, rc;
 	int fd;
 	int kpwd_err = KRB5_KPASSWD_HARDERROR;
+	int i;
 
 	tmp_file = strdup(TMP_TEMPLATE);
 	if (!tmp_file) {
@@ -410,7 +410,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	}
 
 	/* find base dn */
-	/* TODO: address the case where we have multiple naming contexts */
 	tv.tv_sec = 10;
 	tv.tv_usec = 0;
 
@@ -433,10 +432,8 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 		goto done;
 	}
 
-	ldap_base = strdup(ncvals[0]->bv_val);
-
-	ldap_value_free_len(ncvals);
 	ldap_msgfree(res);
+	res = NULL;
 
 	/* find user dn */
 	ret = asprintf(&filter, "krbPrincipalName=%s", client_name);
@@ -448,8 +445,26 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	tv.tv_sec = 10;
 	tv.tv_usec = 0; 
 
-	ret = ldap_search_ext_s(ld, ldap_base, LDAP_SCOPE_SUBTREE,
-				filter, attrs, 1, NULL, NULL, &tv, 0, &res);
+	for (i = 0; !userdn && ncvals[i]; i++) {
+		ret = ldap_search_ext_s(ld, ncvals[i]->bv_val,
+					LDAP_SCOPE_SUBTREE, filter, attrs, 1,
+					NULL, NULL, &tv, 0, &res);
+
+		if (ret != LDAP_SUCCESS) {
+			break;
+		}
+
+		/* for now just use the first result we get */
+		entry = ldap_first_entry(ld, res);
+		if (entry) {
+			userdn = ldap_get_dn(ld, entry);
+		}
+
+		ldap_msgfree(res);
+		res = NULL;
+	}
+
+	ldap_value_free_len(ncvals);
 
 	if (ret != LDAP_SUCCESS) {
 		syslog(LOG_ERR, "Search for %s failed with error %d",
@@ -460,14 +475,9 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 		}
 		goto done;
 	}
+
 	free(filter);
-
-	/* for now just use the first result we get */
-	entry = ldap_first_entry(ld, res);
-	userdn = ldap_get_dn(ld, entry);
-
-	ldap_msgfree(res);
-	res = NULL;
+	filter = NULL;
 
 	if (!userdn) {
 		syslog(LOG_ERR, "No userdn, can't change password!");
@@ -651,6 +661,7 @@ done:
 	if (control) ber_bvfree(control);
 	free(exterr1);
 	free(exterr2);
+	free(filter);
 	free(userdn);
 	if (ld) ldap_unbind_ext(ld, NULL, NULL);
 	if (tmp_file) {
