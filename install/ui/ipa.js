@@ -242,6 +242,9 @@ IPA.command = function(spec) {
 
     that.retry = typeof spec.retry == 'undefined' ? true : spec.retry;
 
+    that.error_message = spec.error_message || (IPA.messages.dialogs ?
+            IPA.messages.dialogs.batch_error_message : 'Some operations failed.');
+
     that.get_command = function() {
         return (that.entity ? that.entity+'_' : '') + that.method;
     };
@@ -331,7 +334,6 @@ IPA.command = function(spec) {
         }
 
         function success_handler(data, text_status, xhr) {
-            var failed;
 
             if (!data) {
                 // error_handler() calls IPA.hide_activity_icon()
@@ -348,22 +350,37 @@ IPA.command = function(spec) {
                     message: data.error.message,
                     data: data
                 });
-            } else if ((failed = that.get_failed(that, data.result, text_status, xhr)) &&
-                !failed.is_empty()) {
-                var message = failed.errors[0].message;
-                for(var i = 1; i < failed.errors.length; i++) {
-                    message += '\n' + failed.errors[i].message;
-                }
 
-                error_handler.call(this, xhr, text_status,  /* error_thrown */ {
-                    name: failed.errors[0].name,
-                    message: message,
-                    data: data
-                });
-            } else if (that.on_success) {
+            } else {
                 IPA.hide_activity_icon();
-                //custom success handling, maintaining AJAX call's context
-                that.on_success.call(this, data, text_status, xhr);
+
+                var ajax = this;
+                var failed = that.get_failed(that, data.result, text_status, xhr);
+                if (!failed.is_empty()) {
+                    var dialog = IPA.error_dialog({
+                        xhr: xhr,
+                        text_status: text_status,
+                        error_thrown: {
+                            name: IPA.messages.dialogs ? IPA.messages.dialogs.batch_error_title :
+                                    'Operations Error',
+                            message: that.error_message
+                        },
+                        command: that,
+                        errors: failed.errors,
+                        visible_buttons: ['ok']
+                    });
+
+                    dialog.on_ok = function() {
+                        dialog.close();
+                        if (that.on_success) that.on_success.call(ajax, data, text_status, xhr);
+                    };
+
+                    dialog.open();
+
+                } else {
+                    //custom success handling, maintaining AJAX call's context
+                    if (that.on_success) that.on_success.call(this, data, text_status, xhr);
+                }
             }
         }
 
@@ -451,8 +468,6 @@ IPA.batch_command = function (spec) {
 
     that.commands = [];
     that.errors = IPA.error_list();
-    that.error_message = spec.error_message || (IPA.messages.dialogs ?
-            IPA.messages.dialogs.batch_error_message : 'Some operations failed.');
     that.show_error = typeof spec.show_error == 'undefined' ?
             true : spec.show_error;
 
@@ -485,7 +500,6 @@ IPA.batch_command = function (spec) {
 
                     var name = '';
                     var message = '';
-                    var failed;
 
                     if (!result) {
                         name = 'Internal Error '+xhr.status;
@@ -520,32 +534,16 @@ IPA.batch_command = function (spec) {
                             }
                         );
 
-                    } else if ((failed = that.get_failed(command, result, text_status, xhr)) &&
-                            !failed.is_empty()) {
+                    } else {
+                        var failed = that.get_failed(command, result, text_status, xhr);
                         that.errors.add_range(failed);
 
-                        message = failed.errors[0].message;
-                        for(var j = 1; j < failed.errors.length; j++) {
-                            message += '\n' + failed.errors[j].message;
-                        }
-
-                        if (command.on_error) command.on_error.call(
-                            this,
-                            xhr,
-                            text_status,
-                            {
-                                name: failed.errors[0].name,
-                                message: message,
-                                data: result
-                            }
-                        );
-
-                    } else {
                         if (command.on_success) command.on_success.call(this, result, text_status, xhr);
                     }
                 }
                 //check for partial errors and show error dialog
                 if(that.show_error && that.errors.errors.length > 0) {
+                    var ajax = this;
                     var dialog = IPA.error_dialog({
                         xhr: xhr,
                         text_status: text_status,
@@ -558,9 +556,17 @@ IPA.batch_command = function (spec) {
                         errors: that.errors.errors,
                         visible_buttons: ['ok']
                     });
+
+                    dialog.on_ok = function() {
+                        dialog.close();
+                        if (that.on_success) that.on_success.call(ajax, data, text_status, xhr);
+                    };
+
                     dialog.open();
+
+                } else {
+                    if (that.on_success) that.on_success.call(this, data, text_status, xhr);
                 }
-                if (that.on_success) that.on_success.call(this, data, text_status, xhr);
             },
             on_error: function(xhr, text_status, error_thrown) {
                 // TODO: undefined behavior
@@ -727,7 +733,7 @@ IPA.error_dialog = function(spec) {
         }
 
         $('<p/>', {
-            html: that.error_thrown.message.replace('\n', '<br />')
+            html: that.error_thrown.message
         }).appendTo(that.container);
 
         if(that.errors && that.errors.length > 0) {
