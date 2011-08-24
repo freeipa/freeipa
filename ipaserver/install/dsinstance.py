@@ -681,6 +681,12 @@ class DsInstance(service.Service):
             except ipautil.CalledProcessError, e:
                 logging.critical("failed to delete user %s" % e)
 
+        # Make sure some upgrade-related state is removed. This could cause
+        # re-installation problems.
+        self.restore_state('nsslapd-port')
+        self.restore_state('nsslapd-security')
+        self.restore_state('nsslapd-ldapiautobind')
+
         if self.restore_state("running"):
             self.start()
 
