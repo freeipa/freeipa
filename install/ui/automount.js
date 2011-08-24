@@ -86,32 +86,39 @@ IPA.entity_factories.automountmap = function() {
         }).
         adder_dialog({
             factory: IPA.automountmap_adder_dialog,
-            fields:[{factory:IPA.method_radio_widget,
-                     name: 'method',
-                     undo: false,
-                     label: IPA.messages.objects.automountmap.map_type,
-                     options: [
-                         { value: 'add',
-                           label: IPA.messages.objects.automountmap.direct },
-                         { value: 'add_indirect',
-                           label: IPA.messages.objects.automountmap.indirect }
-                     ]
-                    },
-                    'automountmapname','description',
-                    {
-                        name: 'key',
-                        label: IPA.get_method_option(
-                            'automountmap_add_indirect', 'key').label,
-                        conditional: true,
-                        undo: false
-                    },
-                    {
-                        name: 'parentmap',
-                        label: IPA.get_method_option(
-                            'automountmap_add_indirect', 'parentmap').label,
-                        conditional: true,
-                        undo: false
-                    }]
+            fields: [
+                {
+                    factory: IPA.radio_widget,
+                    name: 'method',
+                    undo: false,
+                    label: IPA.messages.objects.automountmap.map_type,
+                    options: [
+                        {
+                            value: 'add',
+                            label: IPA.messages.objects.automountmap.direct
+                        },
+                        {
+                            value: 'add_indirect',
+                            label: IPA.messages.objects.automountmap.indirect
+                        }
+                    ]
+                },
+                'automountmapname',
+                'description',
+                {
+                    name: 'key',
+                    label: IPA.get_method_option(
+                        'automountmap_add_indirect', 'key').label,
+                    conditional: true,
+                    undo: false
+                },
+                {
+                    name: 'parentmap',
+                    label: IPA.get_method_option(
+                        'automountmap_add_indirect', 'parentmap').label,
+                    conditional: true,
+                    undo: false
+                }]
         }).
         build();
 };
@@ -196,13 +203,35 @@ IPA.automount_key_column = function(spec){
 };
 
 
-IPA.automountmap_adder_dialog = function(spec){
+IPA.automountmap_adder_dialog = function(spec) {
+
     var that = IPA.add_dialog(spec);
 
-    that.super_create = that.create;
-    that.create = function(container) {
-        that.super_create(container);
-        that.disable_conditional_fields();
+    that.create = function() {
+        that.dialog_create();
+
+        var method_field = that.get_field('method');
+
+        var direct_input = $('input[value="add"]', method_field.container);
+        direct_input.change(function() {
+            that.disable_conditional_fields();
+        });
+
+        var indirect_input = $('input[value="add_indirect"]', method_field.container);
+        indirect_input.change(function() {
+            that.enable_conditional_fields();
+        });
+
+        direct_input.click();
+    };
+
+    that.reset = function() {
+        that.dialog_reset();
+
+        var method_field = that.get_field('method');
+
+        var direct_input = $('input[value="add"]', method_field.container);
+        direct_input.click();
     };
 
     return that;
@@ -222,38 +251,4 @@ IPA.get_option_values = function(){
         values.push (value);
     });
     return values;
-};
-
-IPA.method_radio_widget = function(spec){
-    var direct = true;
-
-    var that = IPA.radio_widget(spec);
-
-    that.radio_create = that.create;
-
-    that.create = function(container) {
-        that.radio_create(container);
-        var input = $('input[name="'+that.name+'"]', that.container);
-        input.
-            filter("[value="+ that.dialog.method+"]").
-            attr('checked', true);
-
-
-        input.change(function() {
-            that.dialog.method = this.value;
-
-            if (this.value === 'add_indirect'){
-                that.dialog.enable_conditional_fields();
-            }else{
-                that.dialog.disable_conditional_fields();
-            }
-        });
-    };
-
-    that.reset = function(){
-        var input = $('input[name="'+that.name+'"]', that.container);
-        input.filter("[value=add]").click();
-    };
-
-    return that;
 };

@@ -260,6 +260,7 @@ IPA.dialog = function(spec) {
     that.dialog_open = that.open;
     that.dialog_close = that.close;
     that.dialog_save = that.save;
+    that.dialog_reset = that.reset;
 
     var fields = spec.fields || [];
     for (var i=0; i<fields.length; i++) {
