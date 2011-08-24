@@ -748,7 +748,7 @@ class help(frontend.Local):
             self.print_commands(name)
         elif name in self.Command:
             cmd = self.Command[name]
-            print 'Purpose: %s' % unicode(cmd.doc).strip()
+            print unicode(_('Purpose: %s')) % unicode(_(cmd.doc)).strip()
             self.Backend.cli.build_parser(cmd).print_help()
         elif mod_name in sys.modules:
             self.print_commands(name)
@@ -765,19 +765,19 @@ class help(frontend.Local):
     def print_topics(self):
         topics = sorted(self._topics.keys())
 
-        print 'Usage: ipa [global-options] COMMAND ...'
+        print unicode(_('Usage: ipa [global-options] COMMAND ...'))
         print ''
-        print 'Built-in commands:'
+        print unicode(_('Built-in commands:'))
         for c in self._builtins:
-            print 'Help subtopics:'
+            print unicode(_('Help subtopics:'))
             print '  %s  %s' % (to_cli(c.name).ljust(self._mtl), c.summary)
         print ''
-        print 'Help topics:'
+        print unicode(_('Help topics:'))
         for t in topics:
             topic = self._topics[t]
             print '  %s  %s' % (to_cli(t).ljust(self._mtl), topic[0])
         print ''
-        print 'Try `ipa --help` for a list of global options.'
+        print unicode(_('Try `ipa --help` for a list of global options.'))
 
     def print_commands(self, topic):
         if topic in self._topics and type(self._topics[topic][2]) is dict:
@@ -808,7 +808,7 @@ class help(frontend.Local):
             print doc
             if len(commands) > 1:
                 print ''
-                print 'Topic commands:'
+                print unicode(_('Topic commands:'))
                 for c in commands:
                     print '  %s  %s' % (to_cli(c.name).ljust(mcl), c.summary)
             print "\n"
