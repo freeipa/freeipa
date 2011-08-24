@@ -90,6 +90,18 @@ def erase_ds_instance_data(serverid):
         os.unlink("/var/run/slapd-%s.socket" % serverid)
     except:
         pass
+    try:
+        shutil.rmtree("/var/lib/dirsrv/scripts-%s" % serverid)
+    except:
+        pass
+    try:
+        os.unlink("/etc/dirsrv/ds.keytab")
+    except:
+        pass
+    try:
+        os.unlink("/etc/sysconfig/dirsrv-%s" % serverid)
+    except:
+        pass
 #    try:
 #        shutil.rmtree("/var/log/dirsrv/slapd-%s" % serverid)
 #    except:
@@ -659,6 +671,11 @@ class DsInstance(service.Service):
         user_exists = self.restore_state("user_exists")
 
         if user_exists == False:
+            pent = pwd.getpwnam(DS_USER)
+            try:
+                os.unlink("/var/tmp/ldap_%d" % pent.pw_uid)
+            except:
+                pass
             try:
                 ipautil.run(["/usr/sbin/userdel", DS_USER])
             except ipautil.CalledProcessError, e:
