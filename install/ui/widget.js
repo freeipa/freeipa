@@ -967,6 +967,7 @@ IPA.radio_widget = function(spec) {
     };
 
     // methods that should be invoked by subclasses
+    that.radio_create = that.create;
     that.radio_save = that.save;
 
     return that;
