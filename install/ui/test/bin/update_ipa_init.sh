@@ -17,4 +17,13 @@ fi
 
 
 
-curl -v -H "Content-Type:application/json" -H "Accept:applicaton/json" --negotiate -u :  --cacert /etc/ipa/ca.crt  -d '{"method":"batch","params":[[{"method":"json_metadata","params":[[],{}]},{"method":"i18n_messages","params":[[],{}]},{"method":"user_find","params":[[],{"whoami":true,"all":true}]},{"method":"env","params":[[],{}]},{"method":"dns_is_enabled","params":[[],{}]},{"method":"hbacrule_find","params":[[],{"accessruletype":"deny"}]}],{}]}'  -X POST  https://`hostname`/ipa/json  | sed 's/[ \t]*$//' >   $INIT_FILE
+curl -v\
+ -H "Content-Type: application/json"\
+ -H "Accept: applicaton/json"\
+ --negotiate\
+ --delegation always\
+ -u :\
+ --cacert /etc/ipa/ca.crt\
+ -d '{"method":"batch","params":[[{"method":"json_metadata","params":[[],{}]},{"method":"i18n_messages","params":[[],{}]},{"method":"user_find","params":[[],{"whoami":true,"all":true}]},{"method":"env","params":[[],{}]},{"method":"dns_is_enabled","params":[[],{}]},{"method":"hbacrule_find","params":[[],{"accessruletype":"deny"}]}],{}]}'\
+ -X POST\
+ https://`hostname`/ipa/json | sed 's/[ \t]*$//' >   $INIT_FILE

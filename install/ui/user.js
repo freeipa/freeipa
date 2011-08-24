@@ -306,7 +306,7 @@ IPA.user_password_widget = function(spec) {
         $('<a/>', {
             href: 'jslink',
             title: 'userpassword',
-            text: IPA.messages.objects.user.reset_password,
+            text: IPA.messages.password.reset_password,
             click: function() {
                 that.show_dialog();
                 return false;
@@ -317,25 +317,25 @@ IPA.user_password_widget = function(spec) {
     that.show_dialog = function() {
 
         var dialog = IPA.dialog({
-            title: IPA.messages.objects.user.reset_password,
+            title: IPA.messages.password.reset_password,
             width: 400
         });
 
         var password1 = dialog.add_field(IPA.text_widget({
             name: 'password1',
-            label: IPA.messages.objects.user.new_password,
+            label: IPA.messages.password.new_password,
             type: 'password',
             undo: false
         }));
 
         var password2 = dialog.add_field(IPA.text_widget({
             name: 'password2',
-            label: IPA.messages.objects.user.repeat_password,
+            label: IPA.messages.password.verify_password,
             type: 'password',
             undo: false
         }));
 
-        dialog.add_button(IPA.messages.objects.user.reset_password, function() {
+        dialog.add_button(IPA.messages.password.reset_password, function() {
 
             var record = {};
             dialog.save(record);
@@ -344,14 +344,14 @@ IPA.user_password_widget = function(spec) {
             var repeat_password = record.password2;
 
             if (new_password != repeat_password) {
-                alert(IPA.messages.objects.user.password_must_match);
+                alert(IPA.messages.password.password_must_match);
                 return;
             }
 
             that.set_password(
                 new_password,
                 function(data, text_status, xhr) {
-                    alert(IPA.messages.objects.user.password_change_complete);
+                    alert(IPA.messages.password.password_change_complete);
                     dialog.close();
                 },
                 function(xhr, text_status, error_thrown) {
