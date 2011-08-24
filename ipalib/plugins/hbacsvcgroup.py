@@ -45,7 +45,7 @@ from ipalib import api, errors
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
-topic = ('hbac', 'Host based access control commands')
+topic = ('hbac', _('Host based access control commands'))
 
 class hbacsvcgroup(LDAPObject):
     """

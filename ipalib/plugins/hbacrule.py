@@ -85,7 +85,7 @@ from ipalib import AccessTime, Password, Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
-topic = ('hbac', 'Host-based access control commands')
+topic = ('hbac', _('Host-based access control commands'))
 
 def validate_type(ugettext, type):
     if type.lower() == 'deny':
