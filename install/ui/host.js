@@ -56,9 +56,14 @@ IPA.entity_factories.host = function () {
                 name:'enrollment',
                 fields:[
                     {
-                        factory: IPA.host_provisioning_status_widget,
-                        'name': 'provisioning_status',
-                        label: IPA.messages.objects.host.status
+                        factory: IPA.host_keytab_widget,
+                        'name': 'has_keytab',
+                        label: IPA.messages.objects.host.keytab
+                    },
+                    {
+                        factory: IPA.host_password_widget,
+                        'name': 'has_password',
+                        label: IPA.messages.objects.host.password
                     }
                 ]
             },
@@ -409,7 +414,7 @@ IPA.force_host_add_checkbox_widget = function(spec) {
     return IPA.checkbox_widget(spec);
 };
 
-IPA.host_provisioning_status_widget = function(spec) {
+IPA.host_keytab_widget = function(spec) {
 
     spec = spec || {};
 
@@ -419,98 +424,44 @@ IPA.host_provisioning_status_widget = function(spec) {
 
         that.widget_create(container);
 
-        var div = $('<div/>', {
-            name: 'kerberos-key-valid',
-            style: 'display: none;'
-        }).appendTo(container);
-
-        $('<img/>', {
-            src: 'check.png',
-            style: 'float: left;',
-            'class': 'status-icon'
-        }).appendTo(div);
-
-        var content_div = $('<div/>', {
-            style: 'float: left;'
-        }).appendTo(div);
-
-        content_div.append('<b>'+IPA.messages.objects.host.valid+':</b>');
-
-        content_div.append(' ');
-
-        $('<input/>', {
-            'type': 'button',
-            'name': 'unprovision',
-            'value': IPA.messages.objects.host.delete_key_unprovision
-        }).appendTo(content_div);
-
-        div = $('<div/>', {
-            name: 'kerberos-key-missing',
+        that.missing_span = $('<span/>', {
+            name: 'missing',
             style: 'display: none;'
         }).appendTo(container);
 
         $('<img/>', {
             src: 'caution.png',
-            style: 'float: left;',
             'class': 'status-icon'
-        }).appendTo(div);
+        }).appendTo(that.missing_span);
 
-        content_div = $('<div/>', {
-            style: 'float: left;'
-        }).appendTo(div);
+        that.missing_span.append(' ');
 
-        content_div.append('<b>'+IPA.messages.objects.host.missing+'</b>');
+        that.missing_span.append(IPA.messages.objects.host.keytab_missing);
 
-        content_div.append('<br/>');
+        that.present_span = $('<span/>', {
+            name: 'present',
+            style: 'display: none;'
+        }).appendTo(container);
 
-        content_div.append(IPA.messages.objects.host.enroll_otp+':');
+        $('<img/>', {
+            src: 'check.png',
+            'class': 'status-icon'
+        }).appendTo(that.present_span);
 
-        content_div.append('<br/>');
-        content_div.append('<br/>');
+        that.present_span.append(' ');
 
-        $('<input/>', {
-            'type': 'text',
-            'name': 'otp',
-            'class': 'otp'
-        }).appendTo(content_div);
+        that.present_span.append(IPA.messages.objects.host.keytab_present);
 
-        content_div.append(' ');
+        that.present_span.append(': ');
 
-        $('<input/>', {
-            'type': 'button',
-            'name': 'enroll',
-            'value': IPA.messages.objects.host.set_otp
-        }).appendTo(content_div);
-
-        that.status_valid = $('div[name=kerberos-key-valid]', that.container);
-        that.status_missing = $('div[name=kerberos-key-missing]',
-                                that.container);
-
-        var button = $('input[name=unprovision]', that.container);
-        that.unprovision_button = IPA.button({
+        IPA.button({
             name: 'unprovision',
             label: IPA.messages.objects.host.delete_key_unprovision,
             click: function() {
                 that.show_unprovision_dialog();
                 return false;
             }
-        });
-        button.replaceWith(that.unprovision_button);
-
-        that.otp_input = $('input[name=otp]', that.container);
-
-        that.enroll_button = $('input[name=enroll]', that.container);
-        button = IPA.button({
-            name: 'enroll',
-            label: IPA.messages.objects.host.set_otp,
-            click: function() {
-                that.set_otp();
-                return false;
-            }
-        });
-
-        that.enroll_button.replaceWith(button);
-        that.enroll_button = button;
+        }).appendTo(that.present_span);
     };
 
     that.show_unprovision_dialog = function() {
@@ -559,11 +510,136 @@ IPA.host_provisioning_status_widget = function(spec) {
         command.execute();
     };
 
-    that.set_otp = function() {
+    that.load = function(result) {
+        that.result = result;
+        var value = result[that.name];
+        set_status(value ? 'present' : 'missing');
+    };
 
+    function set_status(status) {
+        that.present_span.css('display', status == 'present' ? 'inline' : 'none');
+        that.missing_span.css('display', status == 'missing' ? 'inline' : 'none');
+    }
+
+    return that;
+};
+
+IPA.host_password_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.widget(spec);
+
+    that.create = function(container) {
+
+        that.widget_create(container);
+
+        that.missing_span = $('<span/>', {
+            name: 'missing'
+        }).appendTo(container);
+
+        $('<img/>', {
+            src: 'caution.png',
+            'class': 'status-icon'
+        }).appendTo(that.missing_span);
+
+        that.missing_span.append(' ');
+
+        that.missing_span.append(IPA.messages.objects.host.password_missing);
+
+        that.present_span = $('<span/>', {
+            name: 'present',
+            style: 'display: none;'
+        }).appendTo(container);
+
+        $('<img/>', {
+            src: 'check.png',
+            'class': 'status-icon'
+        }).appendTo(that.present_span);
+
+        that.present_span.append(' ');
+
+        that.present_span.append(IPA.messages.objects.host.password_present);
+
+        container.append(': ');
+
+        that.set_password_button = IPA.button({
+            name: 'set_password',
+            label: IPA.messages.objects.host.password_set_button,
+            click: function() {
+                that.show_password_dialog();
+                return false;
+            }
+        }).appendTo(container);
+    };
+
+    that.show_password_dialog = function() {
+
+        var title;
+        var label;
+
+        if (that.status == 'missing') {
+            title = IPA.messages.objects.host.password_set_title;
+            label = IPA.messages.objects.host.password_set_button;
+        } else {
+            title = IPA.messages.objects.host.password_reset_title;
+            label = IPA.messages.objects.host.password_reset_button;
+        }
+
+        var dialog = IPA.dialog({
+            title: title,
+            width: 400
+        });
+
+        var password1 = dialog.add_field(IPA.text_widget({
+            name: 'password1',
+            label: IPA.messages.password.new_password,
+            type: 'password',
+            undo: false
+        }));
+
+        var password2 = dialog.add_field(IPA.text_widget({
+            name: 'password2',
+            label: IPA.messages.password.verify_password,
+            type: 'password',
+            undo: false
+        }));
+
+        dialog.add_button(label, function() {
+
+            var record = {};
+            dialog.save(record);
+
+            var new_password = record.password1;
+            var repeat_password = record.password2;
+
+            if (new_password != repeat_password) {
+                alert(IPA.messages.password.password_must_match);
+                return;
+            }
+
+            that.set_password(
+                new_password,
+                function(data, text_status, xhr) {
+                    set_status('present');
+                    dialog.close();
+                },
+                function(xhr, text_status, error_thrown) {
+                    dialog.close();
+                }
+            );
+            dialog.close();
+        });
+
+        dialog.add_button(IPA.messages.buttons.cancel, function() {
+            dialog.close();
+        });
+
+        dialog.open(that.container);
+    };
+
+    that.set_password = function(password, on_success, on_error) {
         var pkey = that.entity.get_primary_key();
-        var otp = that.otp_input.val();
-        that.otp_input.val('');
 
         var command = IPA.command({
             entity: that.entity.name,
@@ -572,11 +648,10 @@ IPA.host_provisioning_status_widget = function(spec) {
             options: {
                 all: true,
                 rights: true,
-                userpassword: otp
+                userpassword: password
             },
-            on_success: function(data, text_status, xhr) {
-                alert(IPA.messages.objects.host.otp_confirmation);
-            }
+            on_success: on_success,
+            on_error: on_error
         });
 
         command.execute();
@@ -584,13 +659,25 @@ IPA.host_provisioning_status_widget = function(spec) {
 
     that.load = function(result) {
         that.result = result;
-        var krblastpwdchange = result['krblastpwdchange'];
-        set_status(krblastpwdchange ? 'valid' : 'missing');
+        var value = result[that.name];
+        set_status(value ? 'present' : 'missing');
     };
 
     function set_status(status) {
-        that.status_valid.css('display', status == 'valid' ? 'inline' : 'none');
-        that.status_missing.css('display', status == 'missing' ? 'inline' : 'none');
+
+        that.status = status;
+        var password_label = $('.button-label', that.set_password_button);
+
+        if (status == 'missing') {
+            that.missing_span.css('display', 'inline');
+            that.present_span.css('display', 'none');
+            password_label.text(IPA.messages.objects.host.password_set_button);
+
+        } else {
+            that.missing_span.css('display', 'none');
+            that.present_span.css('display', 'inline');
+            password_label.text(IPA.messages.objects.host.password_reset_button);
+        }
     }
 
     return that;

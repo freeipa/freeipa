@@ -352,7 +352,7 @@
                                 "pattern_errmsg": null,
                                 "primary_key": false,
                                 "query": false,
-                                "required": true,
+                                "required": false,
                                 "type": "unicode"
                             }
                         ]
@@ -8118,7 +8118,9 @@
                                 "default": null,
                                 "doc": "Automount key name.",
                                 "exclude": null,
-                                "flags": [],
+                                "flags": [
+                                    "req_update"
+                                ],
                                 "hint": null,
                                 "include": null,
                                 "label": "Key",
@@ -8883,6 +8885,14 @@
                             "authenticationmethod",
                             "authorityrevocationlist",
                             "authorizedservice",
+                            "automemberdefaultgroup",
+                            "automemberdisabled",
+                            "automemberexclusiveregex",
+                            "automemberfilter",
+                            "automembergroupingattr",
+                            "automemberinclusiveregex",
+                            "automemberscope",
+                            "automembertargetgroup",
                             "automountinformation",
                             "automountkey",
                             "automountmapname",
@@ -9351,6 +9361,7 @@
                             "nsslapd-changelogsuffix",
                             "nsslapd-ldapiautodnsuffix",
                             "nsslapd-parent-suffix",
+                            "nsslapd-pluginconfigarea",
                             "nsslapd-plugindescription",
                             "nsslapd-pluginenabled",
                             "nsslapd-pluginid",
@@ -10385,7 +10396,7 @@
                                 "cli_name": "name_server",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Authoritative nameserver.",
+                                "doc": "Authoritative nameserver domain name",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -11524,13 +11535,17 @@
                             "memberof",
                             "objectclass"
                         ],
-                        "attribute_members": {},
+                        "attribute_members": {
+                            "memberof": [
+                                "hbacsvcgroup"
+                            ]
+                        },
                         "bindable": false,
                         "container_dn": "cn=hbacservices,cn=hbac",
                         "default_attributes": [
                             "cn",
                             "description",
-                            "memberindirect"
+                            "memberof"
                         ],
                         "hidden_attributes": [
                             "objectclass",
@@ -11823,7 +11838,6 @@
                             "nsosversion",
                             "usercertificate",
                             "memberof",
-                            "krblastpwdchange",
                             "managedby",
                             "memberindirect",
                             "memberofindirect"
@@ -12350,7 +12364,7 @@
                         "aciattrs": [],
                         "attribute_members": {},
                         "bindable": false,
-                        "container_dn": "cn=SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM,cn=kerberos",
+                        "container_dn": "cn=IDM.LAB.BOS.REDHAT.COM,cn=kerberos",
                         "default_attributes": [
                             "krbmaxticketlife",
                             "krbmaxrenewableage"
@@ -13207,7 +13221,7 @@
                         ],
                         "attribute_members": {},
                         "bindable": false,
-                        "container_dn": "cn=SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM,cn=kerberos",
+                        "container_dn": "cn=IDM.LAB.BOS.REDHAT.COM,cn=kerberos",
                         "default_attributes": [
                             "cn",
                             "cospriority",
@@ -13777,8 +13791,7 @@
                         "default_attributes": [
                             "krbprincipalname",
                             "usercertificate",
-                            "managedby",
-                            "krblastpwdchange"
+                            "managedby"
                         ],
                         "hidden_attributes": [
                             "objectclass",
@@ -14788,7 +14801,7 @@
                                 "cli_name": "ipasudorunas_user",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "RunAs User",
+                                "doc": "Run as a user or any user within a specified group",
                                 "exclude": null,
                                 "flags": [
                                     "no_update",
@@ -14819,7 +14832,7 @@
                                 "cli_name": "ipasudorunas_group",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "RunAs Group",
+                                "doc": "Run with the gid of a specified POSIX group ",
                                 "exclude": null,
                                 "flags": [
                                     "no_update",
@@ -14850,7 +14863,7 @@
                                 "cli_name": "externaluser",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "External User the rule applies to",
+                                "doc": "External User the rule applies to (sudorule-find only)",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -14877,7 +14890,7 @@
                                 "cli_name": "runasexternaluser",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "External User the commands can run as",
+                                "doc": "External User the commands can run as (sudorule-find only)",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -14904,7 +14917,7 @@
                                 "cli_name": "runasexternalgroup",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "External Group the commands can run as",
+                                "doc": "External Group the commands can run as (sudorule-find only)",
                                 "exclude": null,
                                 "flags": [],
                                 "hint": null,
@@ -14915,6 +14928,68 @@
                                 "minlength": null,
                                 "multivalue": false,
                                 "name": "ipasudorunasextgroup",
+                                "noextrawhitespace": true,
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "ipasudoopt",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Sudo Option",
+                                "exclude": null,
+                                "flags": [
+                                    "no_update",
+                                    "no_create",
+                                    "no_search"
+                                ],
+                                "hint": null,
+                                "include": null,
+                                "label": "Sudo Option",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "ipasudoopt",
+                                "noextrawhitespace": true,
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "ipasudorunasgroup_group",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "RunAsGroup Group",
+                                "exclude": null,
+                                "flags": [
+                                    "no_update",
+                                    "no_create",
+                                    "no_search"
+                                ],
+                                "hint": null,
+                                "include": null,
+                                "label": "RunAsGroup Group",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "ipasudorunasgroup_group",
                                 "noextrawhitespace": true,
                                 "pattern": null,
                                 "pattern_errmsg": null,
@@ -15843,11 +15918,11 @@
                         "add": {
                             "ipasudorunas": "Add RunAs ${other_entity} into ${entity} ${primary_key}",
                             "ipasudorunasgroup": "Add RunAs Groups into ${entity} ${primary_key}",
+                            "managedby": "Add ${other_entity} Managing ${entity} ${primary_key}",
                             "member": "Add ${other_entity} into ${entity} ${primary_key}",
                             "memberallowcmd": "Add Allow ${other_entity} into ${entity} ${primary_key}",
                             "memberdenycmd": "Add Deny ${other_entity} into ${entity} ${primary_key}",
                             "memberof": "Add ${entity} ${primary_key} into ${other_entity}",
-                            "managedby": "Add ${other_entity} Managing ${entity} ${primary_key}",
                             "sourcehost": "Add Source ${other_entity} into ${entity} ${primary_key}"
                         },
                         "direct_enrollment": "Direct Enrollment",
@@ -15857,11 +15932,11 @@
                         "remove": {
                             "ipasudorunas": "Remove RunAs ${other_entity} from ${entity} ${primary_key}",
                             "ipasudorunasgroup": "Remove RunAs Groups from ${entity} ${primary_key}",
+                            "managedby": "Remove ${other_entity} Managing ${entity} ${primary_key}",
                             "member": "Remove ${other_entity} from ${entity} ${primary_key}",
                             "memberallowcmd": "Remove Allow ${other_entity} from ${entity} ${primary_key}",
                             "memberdenycmd": "Remove Deny ${other_entity} from ${entity} ${primary_key}",
                             "memberof": "Remove ${entity} ${primary_key} from ${other_entity}",
-                            "managedby": "Remove ${other_entity} Managing ${entity} ${primary_key}",
                             "sourcehost": "Remove Source ${other_entity} from ${entity} ${primary_key}"
                         },
                         "show_results": "Show Results"
@@ -15905,6 +15980,7 @@
                         "dirty_title": "Unsaved Changes",
                         "hide_details": "Hide details",
                         "prospective": "Prospective",
+                        "redirection": "Redirection",
                         "remove_empty": "Select entries to be removed.",
                         "remove_title": "Remove ${entity}",
                         "show_details": "Show details",
@@ -15982,7 +16058,9 @@
                         "delegation": {},
                         "dnsrecord": {
                             "data": "Data",
+                            "deleted_no_data": "DNS record was deleted because it contained no data.",
                             "other": "Other Record Types",
+                            "redirection_dnszone": "You will be redirected to DNS Zone.",
                             "standard": "Standard Record Types",
                             "title": "Records for DNS Zone",
                             "type": "Record Type"
@@ -16041,19 +16119,23 @@
                             "cn": "Host Name",
                             "delete_key_unprovision": "Delete Key, Unprovision",
                             "details": "Host Settings",
-                            "enroll_otp": "Enroll via One-Time-Password",
                             "enrolled": "Enrolled?",
                             "enrollment": "Enrollment",
                             "fqdn": "Fully Qualified Host Name",
-                            "missing": "Kerberos Key Not Present",
-                            "otp_confirmation": "One-Time-Password has been set.",
-                            "posix": "Is this a POSIX group?",
-                            "set_otp": "Set OTP",
+                            "keytab": "Kerberos Key",
+                            "keytab_missing": "Kerberos Key Not Present",
+                            "keytab_present": "Kerberos Key Present, Host Provisioned",
+                            "password": "One-Time-Password",
+                            "password_missing": "One-Time-Password Not Present",
+                            "password_present": "One-Time-Password Present",
+                            "password_reset_button": "Reset OTP",
+                            "password_reset_title": "Reset One-Time-Password",
+                            "password_set_button": "Set OTP",
+                            "password_set_title": "Set One-Time-Password",
                             "status": "Status",
                             "unprovision": "Unprovision",
                             "unprovision_confirmation": "Are you sure you want to unprovision this host?",
-                            "unprovision_title": "Unprovisioning ${entity}",
-                            "valid": "Kerberos Key Present, Host Provisioned"
+                            "unprovision_title": "Unprovisioning ${entity}"
                         },
                         "hostgroup": {
                             "identity": "Host Group Settings"
@@ -16138,13 +16220,15 @@
                             "error_changing_status": "Error changing account status",
                             "inactive": "Inactive",
                             "mailing": "Mailing Address",
-                            "misc": "Misc. Information",
-                            "new_password": "New Password",
-                            "password_change_complete": "Password change complete",
-                            "password_must_match": "Passwords must match",
-                            "repeat_password": "Repeat Password",
-                            "reset_password": "Reset Password"
+                            "misc": "Misc. Information"
                         }
+                    },
+                    "password": {
+                        "new_password": "New Password",
+                        "password_change_complete": "Password change complete",
+                        "password_must_match": "Passwords must match",
+                        "reset_password": "Reset Password",
+                        "verify_password": "Verify Password"
                     },
                     "search": {
                         "delete_confirm": "Are you sure you want to delete selected entries?",
@@ -16189,38 +16273,40 @@
                         "cn": [
                             "Administrator"
                         ],
-                        "dn": "uid=admin,cn=users,cn=accounts,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                        "dn": "uid=admin,cn=users,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
                         "gecos": [
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "349800000"
+                            "166000000"
                         ],
+                        "has_keytab": true,
+                        "has_password": true,
                         "homedirectory": [
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "3d3de554-b49b-11e0-921a-525400b55a47"
+                            "a632c9f6-cdf7-11e0-89ce-525400e135d8"
                         ],
                         "krbextradata": [
                             {
-                                "__base64__": "AALU0ylOcm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
+                                "__base64__": "AAJyYFROcm9vdC9hZG1pbkBJRE0uTEFCLkJPUy5SRURIQVQuQ09NAA=="
                             },
                             {
-                                "__base64__": "AALU0ylOcm9vdC9hZG1pbkBTRVJWRVIxNS5BWU9VTkcuQk9TVE9OLkRFVkVMLlJFREhBVC5DT00A"
+                                "__base64__": "AAgBAA=="
                             }
                         ],
                         "krblastpwdchange": [
-                            "20110722194732Z"
+                            "20110824022242Z"
                         ],
                         "krblastsuccessfulauth": [
-                            "20110725162159Z"
+                            "20110824023056Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20111020194732Z"
+                            "20111122022242Z"
                         ],
                         "krbprincipalname": [
-                            "admin@SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
+                            "admin@IDM.LAB.BOS.REDHAT.COM"
                         ],
                         "loginshell": [
                             "/bin/bash"
@@ -16245,7 +16331,7 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "349800000"
+                            "166000000"
                         ]
                     }
                 ],
@@ -16256,11 +16342,11 @@
                 "count": 68,
                 "error": null,
                 "result": {
-                    "basedn": "dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                    "basedn": "dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
                     "bin": "/var/www",
                     "ca_agent_port": 9443,
                     "ca_ee_port": 9444,
-                    "ca_host": "server15.ayoung.boston.devel.redhat.com",
+                    "ca_host": "edewata-f15.idm.lab.bos.redhat.com",
                     "ca_port": 9180,
                     "conf": "/etc/ipa/server.conf",
                     "conf_default": "/etc/ipa/default.conf",
@@ -16294,17 +16380,17 @@
                     "container_virtual": "cn=virtual operations,cn=etc",
                     "context": "server",
                     "debug": false,
-                    "domain": "ayoung.boston.devel.redhat.com",
+                    "domain": "idm.lab.bos.redhat.com",
                     "dot_ipa": "/var/www/.ipa",
                     "enable_ra": true,
                     "fallback": true,
                     "home": "/var/www",
-                    "host": "server15.ayoung.boston.devel.redhat.com",
+                    "host": "edewata-f15.idm.lab.bos.redhat.com",
                     "in_server": true,
                     "in_tree": false,
                     "interactive": true,
                     "ipalib": "/usr/lib/python2.7/site-packages/ipalib",
-                    "ldap_uri": "ldapi://%2fvar%2frun%2fslapd-SERVER15-AYOUNG-BOSTON-DEVEL-REDHAT-COM.socket",
+                    "ldap_uri": "ldapi://%2fvar%2frun%2fslapd-IDM-LAB-BOS-REDHAT-COM.socket",
                     "log": null,
                     "logdir": "/var/log/ipa",
                     "mode": "production",
@@ -16313,7 +16399,7 @@
                     "mount_xmlserver": "xml",
                     "prompt_all": false,
                     "ra_plugin": "selfsign",
-                    "realm": "SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM",
+                    "realm": "IDM.LAB.BOS.REDHAT.COM",
                     "rpc_json_uri": "http://localhost:8888/ipa/json",
                     "script": "/var/www/mod_wsgi",
                     "site_packages": "/usr/lib/python2.7/site-packages",
@@ -16323,7 +16409,7 @@
                     "wait_for_attr": false,
                     "webui_assets_dir": null,
                     "webui_prod": true,
-                    "xmlrpc_uri": "https://server15.ayoung.boston.devel.redhat.com/ipa/xml"
+                    "xmlrpc_uri": "https://edewata-f15.idm.lab.bos.redhat.com/ipa/xml"
                 },
                 "summary": "68 variables",
                 "total": 68
