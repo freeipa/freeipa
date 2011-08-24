@@ -536,7 +536,7 @@ class textui(backend.Backend):
 
         If Default parameter is not None, user can enter an empty input instead
         of Yes/No answer. Value passed to Default is returned in that case.
-        
+
         If Default parameter is None, user is asked for Yes/No answer until
         a correct answer is provided. Answer is then returned.
 
@@ -568,7 +568,7 @@ class textui(backend.Backend):
             elif default is not None and data == u'':
                 return default
 
-    def prompt_password(self, label):
+    def prompt_password(self, label, confirm=True):
         """
         Prompt user for a password or read it in via stdin depending
         on whether there is a tty or not.
@@ -577,6 +577,8 @@ class textui(backend.Backend):
             if sys.stdin.isatty():
                 while True:
                     pw1 = getpass.getpass(u'%s: ' % unicode(label))
+                    if not confirm:
+                        return self.decode(pw1)
                     pw2 = getpass.getpass(
                         unicode(_('Enter %(label)s again to verify: ') % dict(label=label))
                     )
@@ -1050,7 +1052,7 @@ class cli(backend.Executioner):
                 (param.alwaysask and honor_alwaysask) or self.env.prompt_all:
                 if param.password:
                     kw[param.name] = self.Backend.textui.prompt_password(
-                        param.label
+                        param.label, param.confirm
                     )
                 elif param.autofill:
                     kw[param.name] = param.get_default(**kw)
@@ -1070,7 +1072,7 @@ class cli(backend.Executioner):
                             error = e.error
             elif param.password and kw.get(param.name, False) is True:
                 kw[param.name] = self.Backend.textui.prompt_password(
-                    param.label
+                    param.label, param.confirm
                 )
 
         for callback in getattr(cmd, 'INTERACTIVE_PROMPT_CALLBACKS', []):
