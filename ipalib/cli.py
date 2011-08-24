@@ -674,10 +674,8 @@ class help(frontend.Local):
             __import__(module_name)
         module = sys.modules[module_name]
 
-        dir_list = dir(module)
-        if 'topic' in dir_list:
-            topic = module.topic
-        else:
+        topic = getattr(module, 'topic', None)
+        if topic is None:
             topic = (self._get_command_module(module_name), None)
 
         return topic
@@ -728,7 +726,7 @@ class help(frontend.Local):
                         mcl = max((self._topics[topic_name][2][mod_name][1], len(c.name)))
                         self._topics[topic_name][2][mod_name][1] = mcl
                     else:
-                        self._topics[topic_name] = [topic[1], 0, {mod_name: [doc, 0, [c]]}]
+                        self._topics[topic_name] = [unicode(_(topic[1])), 0, {mod_name: [doc, 0, [c]]}]
                         self._count_topic_mcl(topic_name, mod_name)
             else:
                 self._builtins.append(c)

@@ -40,7 +40,7 @@ from ipalib import Str
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
-topic = ('sudo', 'commands for controlling sudo configuration')
+topic = ('sudo', _('commands for controlling sudo configuration'))
 
 class sudocmd(LDAPObject):
     """

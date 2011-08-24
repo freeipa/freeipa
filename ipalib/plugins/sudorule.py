@@ -47,7 +47,7 @@ from ipalib import Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
-topic = ('sudo', 'Commands for controlling sudo configuration')
+topic = ('sudo', _('Commands for controlling sudo configuration'))
 
 def deprecated(attribute):
     raise errors.ValidationError(name=attribute, error=_('this option has been deprecated.'))
