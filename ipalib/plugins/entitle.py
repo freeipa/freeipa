@@ -494,6 +494,7 @@ class entitle_register(LDAPCreate):
         Password('password',
             label=_('Password'),
             doc=_('Registration password'),
+            confirm=False,
         ),
     )
 
