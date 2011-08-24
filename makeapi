@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # Authors:
 #   Rob Crittenden <rcritten@redhat.com>
+#   John Dennis <jdennis@redhat.com>
 #
 # Copyright (C) 2011  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -24,14 +25,16 @@
 import sys
 import os
 import re
+import inspect
 from ipalib import *
-from ipalib.text import Gettext
+from ipalib.text import Gettext, NGettext
 
 API_FILE='API.txt'
 
 API_FILE_DIFFERENCE = 1
 API_NEW_COMMAND = 2
 API_NO_FILE = 4
+API_DOC_ERROR = 8
 
 def parse_options():
     from optparse import OptionParser
@@ -39,6 +42,9 @@ def parse_options():
     parser = OptionParser()
     parser.add_option("--validate", dest="validate", action="store_true",
         default=False, help="Validate the API vs the stored API")
+
+    parser.add_option("--no-validate-doc", dest="validate_doc", action="store_false",
+        default=True, help="Do not validate documentation")
 
     options, args = parser.parse_args()
     return options, args
@@ -52,6 +58,104 @@ def strip_doc(line):
     newline = re.sub(r', doc=([^(,]+)(\([^()]*(\([^()]+\)[^()]*)?\))?', '', line)
 
     return newline
+
+def validate_doc():
+    """
+    Iterate over all API commands and perform the following validation:
+
+    * Every command must have documentation
+      and it must be marked for international translation
+
+    * Every module hosting a command must have documentation
+      and it must be marked for international translation
+
+    * Every module topic must be marked for international translation
+
+    For every error found emit a diagnostic.
+    Emit a summary of total errors found.
+
+    Return error flag if errors found, zero otherwise.
+    """
+
+    def is_i18n(obj):
+        'Helper utility to determine if object has been internationalized'
+        return isinstance(obj, (Gettext, NGettext))
+
+    # The return value
+    rval = 0
+
+    # Used to track if we've processed a module already
+    modules = {}
+
+    # Initialize error counters
+    n_missing_cmd_doc = 0
+    n_missing_cmd_i18n = 0
+    n_missing_mod_doc = 0
+    n_missing_mod_i18n = 0
+
+    # Iterate over every command
+    for cmd in api.Command():
+        cmd_class = cmd.__class__
+
+        # Skip commands marked as NO_CLI
+        if getattr(cmd, 'NO_CLI', False):
+            continue
+
+        # Have we processed this module yet?
+        if not modules.setdefault(cmd.module, 0):
+            # First time seeing this module, validate the module contents
+            mod = sys.modules[cmd.module]
+
+            # See if there is a module topic, if so validate it
+            topic = getattr(mod, 'topic', None)
+            if topic is not None:
+                if not is_i18n(topic[1]):
+                    src_file = inspect.getsourcefile(cmd_class)
+                    n_missing_mod_i18n += 1
+                    print "%s: topic in module \"%s\" is not internationalized" % \
+                          (src_file, cmd.module)
+
+            # Does the module have documentation?
+            if mod.__doc__ is None:
+                src_file = inspect.getsourcefile(mod)
+                n_missing_mod_doc += 1
+                print "%s: module \"%s\" has no doc" % \
+                      (src_file, cmd.module)
+            # Yes the module has doc, but is it internationalized?
+            elif not is_i18n(mod.__doc__):
+                src_file = inspect.getsourcefile(cmd_class)
+                n_missing_mod_i18n += 1
+                print "%s: module \"%s\" doc is not internationalized" % \
+                      (src_file, cmd.module)
+
+        # Increment the count of how many commands in this module
+        modules[cmd.module] = modules[cmd.module] + 1
+
+        # Does the command have documentation?
+        if cmd.__doc__ is None:
+            src_file = inspect.getsourcefile(cmd_class)
+            line_num = inspect.getsourcelines(cmd_class)[1]
+            n_missing_cmd_doc += 1
+            print "%s:%d command \"%s\" has no doc" % (src_file, line_num, cmd.name)
+        # Yes the command has doc, but is it internationalized?
+        elif not is_i18n(cmd.__doc__):
+            src_file = inspect.getsourcefile(cmd_class)
+            line_num = inspect.getsourcelines(cmd_class)[1]
+            n_missing_cmd_i18n += 1
+            print "%s:%d command \"%s\" doc is not internationalized" % (src_file, line_num, cmd.name)
+
+    # If any errors, emit summary information and adjust return value
+    if n_missing_cmd_doc > 0 or n_missing_cmd_i18n > 0:
+        rval = API_DOC_ERROR
+        print "%d commands without doc, %d commands whose doc is not i18n" % \
+              (n_missing_cmd_doc, n_missing_cmd_i18n)
+
+    if n_missing_mod_doc > 0 or n_missing_mod_i18n > 0:
+        rval = API_DOC_ERROR
+        print "%d modules without doc, %d modules whose doc is not i18n" % \
+              (n_missing_mod_doc, n_missing_mod_i18n)
+
+    return rval
 
 def make_api():
     """
@@ -242,6 +346,7 @@ def validate_api():
     return rval
 
 def main():
+    rval = 0
     options, args = parse_options()
 
     cfg = dict(
@@ -257,15 +362,18 @@ def main():
     api.bootstrap(**cfg)
     api.finalize()
 
+    if options.validate_doc:
+        rval |= validate_doc()
+
     if options.validate:
         if not os.path.exists(API_FILE):
             print 'No %s to validate' % API_FILE
-            rval = API_NO_FILE
+            rval |= API_NO_FILE
         else:
-            rval = validate_api()
+            rval |= validate_api()
     else:
         print "Writing API to API.txt"
-        rval = make_api()
+        rval |= make_api()
 
     if rval & API_FILE_DIFFERENCE:
         print ''
@@ -274,6 +382,10 @@ def main():
     if rval & API_NEW_COMMAND:
         print ''
         print 'There are one or more new commands defined.\nUpdate API.txt and increment the minor version in VERSION.'
+
+    if rval & API_DOC_ERROR:
+        print ''
+        print 'There are one or more documentation problems.\nYou must fix these before preceeding'
 
     return rval
 
