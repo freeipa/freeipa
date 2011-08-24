@@ -128,6 +128,18 @@ IPA.details_section = function(spec) {
         return false;
     };
 
+    that.is_valid = function() {
+        var fields = that.fields.values;
+        var valid = true;
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
+            if (!field.valid || !field.check_required()) {
+                valid = false;
+            }
+        }
+        return valid;
+    };
+
     // methods that should be invoked by subclasses
     that.section_create = that.create;
     that.section_setup = that.setup;
@@ -458,12 +470,12 @@ IPA.details_facet = function(spec) {
                 on_win(data, text_status, xhr);
             if (data.error)
                 return;
-            
+
             if (that.post_update_hook) {
                 that.post_update_hook(data, text_status);
                 return;
             }
-            
+
             var result = data.result.result;
             that.load(result);
         }
@@ -488,10 +500,16 @@ IPA.details_facet = function(spec) {
         });
 
         var values;
+        var valid = true;
 
         var sections = that.sections.values;
         for (var i=0; i<sections.length; i++) {
             var section = sections[i];
+
+            if(!section.is_valid() || !valid) {
+                valid = false;
+                continue;
+            }
 
             if (section.save) {
                 section.save(command.options);
@@ -526,6 +544,15 @@ IPA.details_facet = function(spec) {
                     }
                 }
             }
+        }
+
+        if(!valid) {
+            var dialog = IPA.message_dialog({
+                title: IPA.messages.dialogs.validation_title,
+                message: IPA.messages.dialogs.validation_message
+            });
+            dialog.open();
+            return;
         }
 
         //alert(JSON.stringify(command.to_json()));

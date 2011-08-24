@@ -15907,7 +15907,9 @@
                         "prospective": "Prospective",
                         "remove_empty": "Select entries to be removed.",
                         "remove_title": "Remove ${entity}",
-                        "show_details": "Show details"
+                        "show_details": "Show details",
+                        "validation_title": "Validation error",
+                        "validation_message": "Input form contains invalid or missing values."
                     },
                     "facet_groups": {
                         "managedby": "${primary_key} is managed by:",

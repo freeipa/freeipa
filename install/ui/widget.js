@@ -89,7 +89,7 @@ IPA.widget = function(spec) {
                 return;
             }
 
-            if (meta.minvalue && value < meta.minvalue) {
+            if (meta.minvalue !== undefined && value < meta.minvalue) {
                 that.valid = false;
                 message = IPA.messages.widget.validation.min_value;
                 message = message.replace('${value}', meta.minvalue);
@@ -97,7 +97,7 @@ IPA.widget = function(spec) {
                 return;
             }
 
-            if (meta.maxvalue && value > meta.maxvalue) {
+            if (meta.maxvalue !== undefined && value > meta.maxvalue) {
                 that.valid = false;
                 message = IPA.messages.widget.validation.max_value;
                 message = message.replace('${value}', meta.maxvalue);
@@ -131,7 +131,9 @@ IPA.widget = function(spec) {
         if (!values || !values.length || values[0] === '' ) {
             if (that.param_info &&
                 that.param_info.required &&
-                !that.optional) {
+                !that.optional &&
+                !that.read_only &&
+                that.writable) {
                 that.valid = false;
                 that.show_error(IPA.messages.widget.validation.required);
                 return false;
@@ -148,10 +150,10 @@ IPA.widget = function(spec) {
         that.valid = true;
 
         var values = that.save();
-        if (!values){
+        if (!values) {
             return;
         }
-        if (values.length ===0 ){
+        if (values.length === 0) {
             return;
         }
         var value = values[0];
