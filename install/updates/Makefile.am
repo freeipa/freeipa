@@ -21,6 +21,7 @@ app_DATA =				\
 	45-roles.update			\
 	50-lockout-policy.update	\
 	50-groupuuid.update		\
+	50-hbacservice.update		\
 	50-suppress-upg.update		\
 	$(NULL)
 
