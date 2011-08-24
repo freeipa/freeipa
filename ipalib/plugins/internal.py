@@ -355,12 +355,14 @@ class i18n_messages(Command):
             "confirmation":_("Confirmation"),
             "dirty_message":_("This page has unsaved changes. Please save or revert."),
             "dirty_title":_("Unsaved Changes"),
-            "hide_details":_("Hide details"),\
+            "hide_details":_("Hide details"),
             "redirection":_("Redirection"),
             "remove_empty":_("Select entries to be removed."),
             "remove_title":_("Remove ${entity}"),
             "prospective":_("Prospective"),
-            "show_details":_("Show details"),\
+            "show_details":_("Show details"),
+            "validation_title":_("Validation error"),
+            "validation_message":_("Input form contains invalid or missing values."),
             },
         "facet_groups": {
             "managedby":_("${primary_key} is managed by:"),
