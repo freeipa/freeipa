@@ -17,7 +17,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib.plugins.baseldap import *
+from ipalib import api, Int, _, ngettext
+
+__doc__ = _("""
 Groups of hosts.
 
 Manage groups of hosts. This is useful for applying access control to a
@@ -45,11 +49,7 @@ EXAMPLES:
 
  Delete a hostgroup:
    ipa hostgroup-del baltimore
-"""
-
-from ipalib.plugins.baseldap import *
-from ipalib import api, Int, _, ngettext
-
+""")
 
 class hostgroup(LDAPObject):
     """
@@ -92,9 +92,7 @@ api.register(hostgroup)
 
 
 class hostgroup_add(LDAPCreate):
-    """
-    Add a new hostgroup.
-    """
+    __doc__ = _('Add a new hostgroup.')
 
     msg_summary = _('Added hostgroup "%(value)s"')
 
@@ -110,9 +108,7 @@ api.register(hostgroup_add)
 
 
 class hostgroup_del(LDAPDelete):
-    """
-    Delete a hostgroup.
-    """
+    __doc__ = _('Delete a hostgroup.')
 
     msg_summary = _('Deleted hostgroup "%(value)s"')
 
@@ -120,9 +116,7 @@ api.register(hostgroup_del)
 
 
 class hostgroup_mod(LDAPUpdate):
-    """
-    Modify a hostgroup.
-    """
+    __doc__ = _('Modify a hostgroup.')
 
     msg_summary = _('Modified hostgroup "%(value)s"')
 
@@ -130,9 +124,8 @@ api.register(hostgroup_mod)
 
 
 class hostgroup_find(LDAPSearch):
-    """
-    Search for hostgroups.
-    """
+    __doc__ = _('Search for hostgroups.')
+
     member_attributes = ['member', 'memberof']
     msg_summary = ngettext(
         '%(count)d hostgroup matched', '%(count)d hostgroups matched', 0
@@ -142,24 +135,18 @@ api.register(hostgroup_find)
 
 
 class hostgroup_show(LDAPRetrieve):
-    """
-    Display information about a hostgroup.
-    """
+    __doc__ = _('Display information about a hostgroup.')
 
 api.register(hostgroup_show)
 
 
 class hostgroup_add_member(LDAPAddMember):
-    """
-    Add members to a hostgroup.
-    """
+    __doc__ = _('Add members to a hostgroup.')
 
 api.register(hostgroup_add_member)
 
 
 class hostgroup_remove_member(LDAPRemoveMember):
-    """
-    Remove members from a hostgroup.
-    """
+    __doc__ = _('Remove members from a hostgroup.')
 
 api.register(hostgroup_remove_member)

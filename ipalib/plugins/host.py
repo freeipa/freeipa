@@ -17,7 +17,29 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+import platform
+import os
+import sys
+from nss.error import NSPRError
+
+from ipalib import api, errors, util
+from ipalib import Str, Flag, Bytes
+from ipalib.plugins.baseldap import *
+from ipalib.plugins.service import split_principal
+from ipalib.plugins.service import validate_certificate
+from ipalib.plugins.service import set_certificate_attrs
+from ipalib.plugins.dns import dns_container_exists, _record_types
+from ipalib.plugins.dns import add_forward_record
+from ipalib import _, ngettext
+from ipalib import x509
+from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
+from ipalib.request import context
+import base64
+import nss.nss as nss
+import netaddr
+
+__doc__ = _("""
 Hosts/Machines
 
 A host represents a machine. It can be used in a number of contexts:
@@ -69,29 +91,7 @@ EXAMPLES:
 
  Add a host that can manage this host's keytab and certificate:
    ipa host-add-managedby --hosts=test2 test
-"""
-
-import platform
-import os
-import sys
-from nss.error import NSPRError
-
-from ipalib import api, errors, util
-from ipalib import Str, Flag, Bytes
-from ipalib.plugins.baseldap import *
-from ipalib.plugins.service import split_principal
-from ipalib.plugins.service import validate_certificate
-from ipalib.plugins.service import set_certificate_attrs
-from ipalib.plugins.dns import dns_container_exists, _record_types
-from ipalib.plugins.dns import add_forward_record
-from ipalib import _, ngettext
-from ipalib import x509
-from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
-from ipalib.request import context
-import base64
-import nss.nss as nss
-import netaddr
-
+""")
 
 def validate_host(ugettext, fqdn):
     """
@@ -340,9 +340,7 @@ api.register(host)
 
 
 class host_add(LDAPCreate):
-    """
-    Add a new host.
-    """
+    __doc__ = _('Add a new host.')
 
     has_output_params = LDAPCreate.has_output_params + host_output_params
     msg_summary = _('Added host "%(value)s"')
@@ -477,9 +475,7 @@ api.register(host_add)
 
 
 class host_del(LDAPDelete):
-    """
-    Delete a host.
-    """
+    __doc__ = _('Delete a host.')
 
     msg_summary = _('Deleted host "%(value)s"')
     member_attributes = ['managedby']
@@ -592,9 +588,7 @@ api.register(host_del)
 
 
 class host_mod(LDAPUpdate):
-    """
-    Modify information about a host.
-    """
+    __doc__ = _('Modify information about a host.')
 
     has_output_params = LDAPUpdate.has_output_params + host_output_params
     msg_summary = _('Modified host "%(value)s"')
@@ -682,9 +676,7 @@ api.register(host_mod)
 
 
 class host_find(LDAPSearch):
-    """
-    Search for hosts.
-    """
+    __doc__ = _('Search for hosts.')
 
     has_output_params = LDAPSearch.has_output_params + host_output_params
     msg_summary = ngettext(
@@ -715,9 +707,8 @@ api.register(host_find)
 
 
 class host_show(LDAPRetrieve):
-    """
-    Display information about a host.
-    """
+    __doc__ = _('Display information about a host.')
+
     has_output_params = LDAPRetrieve.has_output_params + host_output_params
     takes_options = LDAPRetrieve.takes_options + (
         Str('out?',
@@ -758,9 +749,8 @@ api.register(host_show)
 
 
 class host_disable(LDAPQuery):
-    """
-    Disable the Kerberos key, SSL certificate and all services of a host.
-    """
+    __doc__ = _('Disable the Kerberos key, SSL certificate and all services of a host.')
+
     has_output = output.standard_value
     msg_summary = _('Disabled host "%(value)s"')
 
@@ -845,9 +835,8 @@ class host_disable(LDAPQuery):
 api.register(host_disable)
 
 class host_add_managedby(LDAPAddMember):
-    """
-    Add hosts that can manage this host.
-    """
+    __doc__ = _('Add hosts that can manage this host.')
+
     member_attributes = ['managedby']
     has_output_params = LDAPAddMember.has_output_params + host_output_params
     allow_same = True
@@ -856,9 +845,8 @@ api.register(host_add_managedby)
 
 
 class host_remove_managedby(LDAPRemoveMember):
-    """
-    Remove hosts that can manage this host.
-    """
+    __doc__ = _('Remove hosts that can manage this host.')
+
     member_attributes = ['managedby']
     has_output_params = LDAPRemoveMember.has_output_params + host_output_params
 

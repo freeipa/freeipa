@@ -16,7 +16,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib import api, errors
+from ipalib import Str, StrEnum
+from ipalib.plugins.baseldap import *
+from ipalib import _, ngettext
+
+__doc__ = _("""
 Sudo (su "do") allows a system administrator to delegate authority to
 give certain users (or groups of users) the ability to run some (or all)
 commands as root or another user while providing an audit trail of the
@@ -40,12 +46,7 @@ LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W \
 uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com
 
 For more information, see the FreeIPA Documentation to Sudo.
-"""
-
-from ipalib import api, errors
-from ipalib import Str, StrEnum
-from ipalib.plugins.baseldap import *
-from ipalib import _, ngettext
+""")
 
 topic = ('sudo', _('Commands for controlling sudo configuration'))
 
@@ -204,9 +205,8 @@ api.register(sudorule)
 
 
 class sudorule_add(LDAPCreate):
-    """
-    Create new Sudo Rule.
-    """
+    __doc__ = _('Create new Sudo Rule.')
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         # Sudo rules are enabled by default
         entry_attrs['ipaenabledflag'] = 'TRUE'
@@ -218,27 +218,24 @@ api.register(sudorule_add)
 
 
 class sudorule_del(LDAPDelete):
-    """
-    Delete Sudo Rule.
-    """
+    __doc__ = _('Delete Sudo Rule.')
+
     msg_summary = _('Deleted sudo rule "%(value)s"')
 
 api.register(sudorule_del)
 
 
 class sudorule_mod(LDAPUpdate):
-    """
-    Modify Sudo Rule.
-    """
+    __doc__ = _('Modify Sudo Rule.')
+
     msg_summary = _('Modified sudo rule "%(value)s"')
 
 api.register(sudorule_mod)
 
 
 class sudorule_find(LDAPSearch):
-    """
-    Search for Sudo Rule.
-    """
+    __doc__ = _('Search for Sudo Rule.')
+
     msg_summary = ngettext(
         '%(count)d sudo rule matched', '%(count)d sudo rules matched', 0
     )
@@ -247,17 +244,14 @@ api.register(sudorule_find)
 
 
 class sudorule_show(LDAPRetrieve):
-    """
-    Display Sudo Rule.
-    """
+    __doc__ = _('Display Sudo Rule.')
 
 api.register(sudorule_show)
 
 
 class sudorule_enable(LDAPQuery):
-    """
-    Enable a Sudo rule.
-    """
+    __doc__ = _('Enable a Sudo rule.')
+
     def execute(self, cn):
         ldap = self.obj.backend
 
@@ -281,9 +275,8 @@ api.register(sudorule_enable)
 
 
 class sudorule_disable(LDAPQuery):
-    """
-    Disable a Sudo rule.
-    """
+    __doc__ = _('Disable a Sudo rule.')
+
     def execute(self, cn):
         ldap = self.obj.backend
 
@@ -307,9 +300,8 @@ api.register(sudorule_disable)
 
 
 class sudorule_add_allow_command(LDAPAddMember):
-    """
-    Add commands and sudo command groups affected by Sudo Rule.
-    """
+    __doc__ = _('Add commands and sudo command groups affected by Sudo Rule.')
+
     member_attributes = ['memberallowcmd']
     member_count_out = ('%i object added.', '%i objects added.')
 
@@ -317,9 +309,8 @@ api.register(sudorule_add_allow_command)
 
 
 class sudorule_remove_allow_command(LDAPRemoveMember):
-    """
-    Remove commands and sudo command groups affected by Sudo Rule.
-    """
+    __doc__ = _('Remove commands and sudo command groups affected by Sudo Rule.')
+
     member_attributes = ['memberallowcmd']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
@@ -327,9 +318,8 @@ api.register(sudorule_remove_allow_command)
 
 
 class sudorule_add_deny_command(LDAPAddMember):
-    """
-    Add commands and sudo command groups affected by Sudo Rule.
-    """
+    __doc__ = _('Add commands and sudo command groups affected by Sudo Rule.')
+
     member_attributes = ['memberdenycmd']
     member_count_out = ('%i object added.', '%i objects added.')
 
@@ -337,9 +327,8 @@ api.register(sudorule_add_deny_command)
 
 
 class sudorule_remove_deny_command(LDAPRemoveMember):
-    """
-    Remove commands and sudo command groups affected by Sudo Rule.
-    """
+    __doc__ = _('Remove commands and sudo command groups affected by Sudo Rule.')
+
     member_attributes = ['memberdenycmd']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
@@ -347,9 +336,8 @@ api.register(sudorule_remove_deny_command)
 
 
 class sudorule_add_user(LDAPAddMember):
-    """
-    Add users and groups affected by Sudo Rule.
-    """
+    __doc__ = _('Add users and groups affected by Sudo Rule.')
+
     member_attributes = ['memberuser']
     member_count_out = ('%i object added.', '%i objects added.')
 
@@ -383,9 +371,8 @@ api.register(sudorule_add_user)
 
 
 class sudorule_remove_user(LDAPRemoveMember):
-    """
-    Remove users and groups affected by Sudo Rule.
-    """
+    __doc__ = _('Remove users and groups affected by Sudo Rule.')
+
     member_attributes = ['memberuser']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
@@ -417,9 +404,8 @@ api.register(sudorule_remove_user)
 
 
 class sudorule_add_host(LDAPAddMember):
-    """
-    Add hosts and hostgroups affected by Sudo Rule.
-    """
+    __doc__ = _('Add hosts and hostgroups affected by Sudo Rule.')
+
     member_attributes = ['memberhost']
     member_count_out = ('%i object added.', '%i objects added.')
 
@@ -453,9 +439,8 @@ api.register(sudorule_add_host)
 
 
 class sudorule_remove_host(LDAPRemoveMember):
-    """
-    Remove hosts and hostgroups affected by Sudo Rule.
-    """
+    __doc__ = _('Remove hosts and hostgroups affected by Sudo Rule.')
+
     member_attributes = ['memberhost']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
@@ -488,9 +473,8 @@ api.register(sudorule_remove_host)
 
 
 class sudorule_add_runasuser(LDAPAddMember):
-    """
-    Add users and groups for Sudo to execute as.
-    """
+    __doc__ = _('Add users and groups for Sudo to execute as.')
+
     member_attributes = ['ipasudorunas']
     member_count_out = ('%i object added.', '%i objects added.')
 
@@ -524,9 +508,8 @@ api.register(sudorule_add_runasuser)
 
 
 class sudorule_remove_runasuser(LDAPRemoveMember):
-    """
-    Remove users and groups for Sudo to execute as.
-    """
+    __doc__ = _('Remove users and groups for Sudo to execute as.')
+
     member_attributes = ['ipasudorunas']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
@@ -558,9 +541,8 @@ api.register(sudorule_remove_runasuser)
 
 
 class sudorule_add_runasgroup(LDAPAddMember):
-    """
-    Add group for Sudo to execute as.
-    """
+    __doc__ = _('Add group for Sudo to execute as.')
+
     member_attributes = ['ipasudorunasgroup']
     member_count_out = ('%i object added.', '%i objects added.')
 
@@ -594,9 +576,8 @@ api.register(sudorule_add_runasgroup)
 
 
 class sudorule_remove_runasgroup(LDAPRemoveMember):
-    """
-    Remove group for Sudo to execute as.
-    """
+    __doc__ = _('Remove group for Sudo to execute as.')
+
     member_attributes = ['ipasudorunasgroup']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
@@ -628,9 +609,7 @@ api.register(sudorule_remove_runasgroup)
 
 
 class sudorule_add_option(LDAPQuery):
-    """
-    Add an option to the Sudo rule.
-    """
+    __doc__ = _('Add an option to the Sudo rule.')
 
     takes_options = (
         Str('ipasudoopt',
@@ -675,9 +654,8 @@ api.register(sudorule_add_option)
 
 
 class sudorule_remove_option(LDAPQuery):
-    """
-    Remove an option from Sudo rule.
-    """
+    __doc__ = _('Remove an option from Sudo rule.')
+
     takes_options = (
         Str('ipasudoopt',
             cli_name='sudooption',

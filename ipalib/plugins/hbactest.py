@@ -16,7 +16,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib import api, errors, output
+from ipalib import Command, List, Str, Flag
+from types import NoneType
+from ipalib.cli import to_cli
+from ipalib import _, ngettext
+import pyhbac
+
+__doc__ = _("""
 Simulate use of Host-based access controls
 
 HBAC rules control who can access what services on what hosts and from where.
@@ -116,14 +124,7 @@ EXAMPLES:
       notmatched: new-rule
       matched: allow_all
 
-"""
-
-from ipalib import api, errors, output
-from ipalib import Command, List, Str, Flag
-from types import NoneType
-from ipalib.cli import to_cli
-from ipalib import _, ngettext
-import pyhbac
+""")
 
 def convert_to_ipa_rule(rule):
     # convert a dict with a rule to an pyhbac rule
@@ -154,6 +155,7 @@ def convert_to_ipa_rule(rule):
 
 
 class hbactest(Command):
+    __doc__ = _('Simulate use of Host-based access controls')
 
     has_output = (
         output.summary,

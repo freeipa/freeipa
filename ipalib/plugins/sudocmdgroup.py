@@ -16,7 +16,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib import api
+from ipalib import Str
+from ipalib.plugins.baseldap import *
+from ipalib import _, ngettext
+
+__doc__ = _("""
 Groups of Sudo commands
 
 Manage groups of Sudo commands.
@@ -37,12 +43,7 @@ EXAMPLES:
 
  Show a Sudo command group:
    ipa group-show localadmins
-"""
-
-from ipalib import api
-from ipalib import Str
-from ipalib.plugins.baseldap import *
-from ipalib import _, ngettext
+""")
 
 topic = ('sudo', _('commands for controlling sudo configuration'))
 
@@ -91,9 +92,7 @@ api.register(sudocmdgroup)
 
 
 class sudocmdgroup_add(LDAPCreate):
-    """
-    Create new sudo command group.
-    """
+    __doc__ = _('Create new sudo command group.')
 
     msg_summary = _('Added sudo command group "%(value)s"')
 
@@ -101,9 +100,7 @@ api.register(sudocmdgroup_add)
 
 
 class sudocmdgroup_del(LDAPDelete):
-    """
-    Delete sudo command group.
-    """
+    __doc__ = _('Delete sudo command group.')
 
     msg_summary = _('Deleted sudo command group "%(value)s"')
 
@@ -111,9 +108,7 @@ api.register(sudocmdgroup_del)
 
 
 class sudocmdgroup_mod(LDAPUpdate):
-    """
-    Modify group.
-    """
+    __doc__ = _('Modify group.')
 
     msg_summary = _('Modified sudo command group "%(value)s"')
 
@@ -121,9 +116,7 @@ api.register(sudocmdgroup_mod)
 
 
 class sudocmdgroup_find(LDAPSearch):
-    """
-    Search for sudo command groups.
-    """
+    __doc__ = _('Search for sudo command groups.')
 
     msg_summary = ngettext(
         '%(count)d sudo command group matched',
@@ -134,24 +127,18 @@ api.register(sudocmdgroup_find)
 
 
 class sudocmdgroup_show(LDAPRetrieve):
-    """
-    Display sudo command group.
-    """
+    __doc__ = _('Display sudo command group.')
 
 api.register(sudocmdgroup_show)
 
 
 class sudocmdgroup_add_member(LDAPAddMember):
-    """
-    Add members to sudo command group.
-    """
+    __doc__ = _('Add members to sudo command group.')
 
 api.register(sudocmdgroup_add_member)
 
 
 class sudocmdgroup_remove_member(LDAPRemoveMember):
-    """
-    Remove members from sudo command group.
-    """
+    __doc__ = _('Remove members from sudo command group.')
 
 api.register(sudocmdgroup_remove_member)

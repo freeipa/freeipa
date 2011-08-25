@@ -16,7 +16,22 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+import logging
+import re
+import ldap as _ldap
+
+from ipalib import api, errors, output
+from ipalib import Command, List, Password, Str, Flag, StrEnum
+from ipalib.cli import to_cli
+if api.env.in_server and api.env.context in ['lite', 'server']:
+    try:
+        from ipaserver.plugins.ldap2 import ldap2
+    except StandardError, e:
+        raise e
+from ipalib import _
+
+__doc__ = _("""
 Migration to IPA
 
 Migrate users and groups from an LDAP server to IPA.
@@ -55,21 +70,7 @@ EXAMPLES:
  Specify the user and group container. This can be used to migrate user and
  group data from an IPA v1 server:
    ipa migrate-ds --user-container='cn=users,cn=accounts' --group-container='cn=groups,cn=accounts' ldap://ds.example.com:389
-"""
-
-import logging
-import re
-import ldap as _ldap
-
-from ipalib import api, errors, output
-from ipalib import Command, List, Password, Str, Flag, StrEnum
-from ipalib.cli import to_cli
-if api.env.in_server and api.env.context in ['lite', 'server']:
-    try:
-        from ipaserver.plugins.ldap2 import ldap2
-    except StandardError, e:
-        raise e
-from ipalib import _
+""")
 
 # USER MIGRATION CALLBACKS AND VARS
 
@@ -239,9 +240,8 @@ def validate_ldapuri(ugettext, ldapuri):
 
 
 class migrate_ds(Command):
-    """
-    Migrate users and groups from DS to IPA.
-    """
+    __doc__ = _('Migrate users and groups from DS to IPA.')
+
     migrate_objects = {
         # OBJECT_NAME: (search_filter, pre_callback, post_callback)
         #

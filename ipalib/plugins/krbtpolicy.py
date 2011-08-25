@@ -16,7 +16,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib import api
+from ipalib import Int, Str
+from ipalib.plugins.baseldap import *
+from ipalib import _
+
+__doc__ = _("""
 Kerberos ticket policy
 
 There is a single Kerberos ticket policy. This policy defines the
@@ -52,13 +58,7 @@ EXAMPLES:
 
  Modify per-user policy for user 'admin':
   ipa krbtpolicy-mod admin --maxlife=3600
-"""
-
-from ipalib import api
-from ipalib import Int, Str
-from ipalib.plugins.baseldap import *
-from ipalib import _
-
+""")
 
 # FIXME: load this from a config file?
 _default_values = {
@@ -109,9 +109,8 @@ api.register(krbtpolicy)
 
 
 class krbtpolicy_mod(LDAPUpdate):
-    """
-    Modify Kerberos ticket policy.
-    """
+    __doc__ = _('Modify Kerberos ticket policy.')
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         # disable all flag
         #  ticket policies are attached to objects with unrelated attributes
@@ -123,9 +122,8 @@ api.register(krbtpolicy_mod)
 
 
 class krbtpolicy_show(LDAPRetrieve):
-    """
-    Display the current Kerberos ticket policy.
-    """
+    __doc__ = _('Display the current Kerberos ticket policy.')
+
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         # disable all flag
         #  ticket policies are attached to objects with unrelated attributes
@@ -147,9 +145,8 @@ api.register(krbtpolicy_show)
 
 
 class krbtpolicy_reset(LDAPQuery):
-    """
-    Reset Kerberos ticket policy to the default values.
-    """
+    __doc__ = _('Reset Kerberos ticket policy to the default values.')
+
     has_output = output.standard_entry
 
     def execute(self, *keys, **options):

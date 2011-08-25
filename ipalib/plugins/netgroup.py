@@ -17,7 +17,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+
+from ipalib import api, errors
+from ipalib import Str, StrEnum
+from ipalib.plugins.baseldap import *
+from ipalib import _, ngettext
+from ipalib.plugins.hbacrule import is_all
+
+__doc__ = _("""
 Netgroups
 
 A netgroup is a group used for permission checking. It can contain both
@@ -39,14 +47,7 @@ EXAMPLES:
 
  Delete a netgroup:
    ipa netgroup-del admins
-"""
-
-from ipalib import api, errors
-from ipalib import Str, StrEnum
-from ipalib.plugins.baseldap import *
-from ipalib import _, ngettext
-from ipalib.plugins.hbacrule import is_all
-
+""")
 
 output_params = (
         Str('memberuser_user?',
@@ -138,9 +139,8 @@ api.register(netgroup)
 
 
 class netgroup_add(LDAPCreate):
-    """
-    Add a new netgroup.
-    """
+    __doc__ = _('Add a new netgroup.')
+
     has_output_params = LDAPCreate.has_output_params + output_params
     msg_summary = _('Added netgroup "%(value)s"')
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -151,18 +151,16 @@ api.register(netgroup_add)
 
 
 class netgroup_del(LDAPDelete):
-    """
-    Delete a netgroup.
-    """
+    __doc__ = _('Delete a netgroup.')
+
     msg_summary = _('Deleted netgroup "%(value)s"')
 
 api.register(netgroup_del)
 
 
 class netgroup_mod(LDAPUpdate):
-    """
-    Modify a netgroup.
-    """
+    __doc__ = _('Modify a netgroup.')
+
     has_output_params = LDAPUpdate.has_output_params + output_params
     msg_summary = _('Modified netgroup "%(value)s"')
 
@@ -178,9 +176,8 @@ api.register(netgroup_mod)
 
 
 class netgroup_find(LDAPSearch):
-    """
-    Search for a netgroup.
-    """
+    __doc__ = _('Search for a netgroup.')
+
     member_attributes = ['member', 'memberuser', 'memberhost', 'memberof']
     has_output_params = LDAPSearch.has_output_params + output_params
     msg_summary = ngettext(
@@ -216,18 +213,16 @@ api.register(netgroup_find)
 
 
 class netgroup_show(LDAPRetrieve):
-    """
-    Display information about a netgroup.
-    """
+    __doc__ = _('Display information about a netgroup.')
+
     has_output_params = LDAPRetrieve.has_output_params + output_params
 
 api.register(netgroup_show)
 
 
 class netgroup_add_member(LDAPAddMember):
-    """
-    Add members to a netgroup.
-    """
+    __doc__ = _('Add members to a netgroup.')
+
     member_attributes = ['memberuser', 'memberhost', 'member']
     has_output_params = LDAPAddMember.has_output_params + output_params
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
@@ -261,9 +256,8 @@ api.register(netgroup_add_member)
 
 
 class netgroup_remove_member(LDAPRemoveMember):
-    """
-    Remove members from a netgroup.
-    """
+    __doc__ = _('Remove members from a netgroup.')
+
     member_attributes = ['memberuser', 'memberhost', 'member']
     has_output_params = LDAPRemoveMember.has_output_params + output_params
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):

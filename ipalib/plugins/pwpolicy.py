@@ -17,7 +17,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib import api
+from ipalib import Int, Str
+from ipalib.plugins.baseldap import *
+from ipalib import _
+from ipalib.request import context
+from ipapython.ipautil import run
+from distutils import version
+
+__doc__ = _("""
 Password policy
 
 A password policy sets limitations on IPA passwords, including maximum
@@ -58,15 +67,7 @@ EXAMPLES:
 
  Modify a group password policy:
    ipa pwpolicy-mod --minclasses=2 localadmins
-"""
-
-from ipalib import api
-from ipalib import Int, Str
-from ipalib.plugins.baseldap import *
-from ipalib import _
-from ipalib.request import context
-from ipapython.ipautil import run
-from distutils import version
+""")
 
 class cosentry(LDAPObject):
     """
@@ -331,9 +332,8 @@ api.register(pwpolicy)
 
 
 class pwpolicy_add(LDAPCreate):
-    """
-    Add a new group password policy.
-    """
+    __doc__ = _('Add a new group password policy.')
+
     def get_args(self):
         yield self.obj.primary_key.clone(attribute=True, required=True)
 
@@ -359,9 +359,8 @@ api.register(pwpolicy_add)
 
 
 class pwpolicy_del(LDAPDelete):
-    """
-    Delete a group password policy.
-    """
+    __doc__ = _('Delete a group password policy.')
+
     def get_args(self):
         yield self.obj.primary_key.clone(
             attribute=True, required=True, multivalue=True
@@ -378,9 +377,8 @@ api.register(pwpolicy_del)
 
 
 class pwpolicy_mod(LDAPUpdate):
-    """
-    Modify a group password policy.
-    """
+    __doc__ = _('Modify a group password policy.')
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         self.obj.convert_time_on_input(entry_attrs)
         self.obj.validate_lifetime(entry_attrs, False, *keys)
@@ -421,9 +419,8 @@ api.register(pwpolicy_mod)
 
 
 class pwpolicy_show(LDAPRetrieve):
-    """
-    Display information about password policy.
-    """
+    __doc__ = _('Display information about password policy.')
+
     takes_options = LDAPRetrieve.takes_options + (
         Str('user?',
             label=_('User'),
@@ -450,9 +447,8 @@ api.register(pwpolicy_show)
 
 
 class pwpolicy_find(LDAPSearch):
-    """
-    Search for group password policies.
-    """
+    __doc__ = _('Search for group password policies.')
+
     def post_callback(self, ldap, entries, truncated, *args, **options):
         for e in entries:
             # attribute rights are not allowed for pwpolicy_find

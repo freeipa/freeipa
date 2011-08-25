@@ -17,7 +17,20 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+import netaddr
+import time
+
+from ipalib import api, errors, output
+from ipalib import Command
+from ipalib import Flag, Int, List, Str, StrEnum
+from ipalib.plugins.baseldap import *
+from ipalib import _, ngettext
+from ipapython import dnsclient
+from ipapython.ipautil import valid_ip
+from ldap import explode_dn
+
+__doc__ = _("""
 Domain Name System (DNS)
 
 Manage DNS zone and resource records.
@@ -98,19 +111,7 @@ EXAMPLES:
  if one is not included):
    ipa dns-resolve www.example.com
    ipa dns-resolve www
-"""
-
-import netaddr
-import time
-
-from ipalib import api, errors, output
-from ipalib import Command
-from ipalib import Flag, Int, List, Str, StrEnum
-from ipalib.plugins.baseldap import *
-from ipalib import _, ngettext
-from ipapython import dnsclient
-from ipapython.ipautil import valid_ip
-from ldap import explode_dn
+""")
 
 # supported resource record types
 _record_types = (
@@ -404,9 +405,8 @@ api.register(dnszone)
 
 
 class dnszone_add(LDAPCreate):
-    """
-    Create new DNS zone (SOA record).
-    """
+    __doc__ = _('Create new DNS zone (SOA record).')
+
     takes_options = LDAPCreate.takes_options + (
         Flag('force',
              label=_('Force'),
@@ -461,17 +461,14 @@ api.register(dnszone_add)
 
 
 class dnszone_del(LDAPDelete):
-    """
-    Delete DNS zone (SOA record).
-    """
+    __doc__ = _('Delete DNS zone (SOA record).')
 
 api.register(dnszone_del)
 
 
 class dnszone_mod(LDAPUpdate):
-    """
-    Modify DNS zone (SOA record).
-    """
+    __doc__ = _('Modify DNS zone (SOA record).')
+
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if 'name_from_ip' in entry_attrs:
             del entry_attrs['name_from_ip']
@@ -484,9 +481,8 @@ api.register(dnszone_mod)
 
 
 class dnszone_find(LDAPSearch):
-    """
-    Search for DNS zones (SOA records).
-    """
+    __doc__ = _('Search for DNS zones (SOA records).')
+
     def args_options_2_entry(self, *args, **options):
         if 'name_from_ip' in options:
             if 'idnsname' not in options:
@@ -517,17 +513,14 @@ api.register(dnszone_find)
 
 
 class dnszone_show(LDAPRetrieve):
-    """
-    Display information about a DNS zone (SOA record).
-    """
+    __doc__ = _('Display information about a DNS zone (SOA record).')
 
 api.register(dnszone_show)
 
 
 class dnszone_disable(LDAPQuery):
-    """
-    Disable DNS Zone.
-    """
+    __doc__ = _('Disable DNS Zone.')
+
     has_output = output.standard_value
     msg_summary = _('Disabled DNS zone "%(value)s"')
 
@@ -547,9 +540,8 @@ api.register(dnszone_disable)
 
 
 class dnszone_enable(LDAPQuery):
-    """
-    Enable DNS Zone.
-    """
+    __doc__ = _('Enable DNS Zone.')
+
     has_output = output.standard_value
     msg_summary = _('Enabled DNS zone "%(value)s"')
 
@@ -804,9 +796,8 @@ api.register(dnsrecord_add_record)
 
 
 class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
-    """
-    Add new DNS resource record.
-    """
+    __doc__ = _('Add new DNS resource record.')
+
     no_option_msg = 'No options to add a specific record provided.\n' \
             "Command help may be consulted for all supported record types."
     takes_options = LDAPCreate.takes_options + (
@@ -866,9 +857,8 @@ api.register(dnsrecord_add)
 
 
 class dnsrecord_mod(dnsrecord_mod_record):
-    """
-    Modify a DNS resource record.
-    """
+    __doc__ = _('Modify a DNS resource record.')
+
     no_option_msg = 'No options to modify a specific record provided.'
 
     def update_old_entry_callback(self, entry_attrs, old_entry_attrs):
@@ -914,9 +904,8 @@ api.register(dnsrecord_delentry)
 
 
 class dnsrecord_del(dnsrecord_mod_record):
-    """
-    Delete DNS resource record.
-    """
+    __doc__ = _('Delete DNS resource record.')
+
     no_option_msg = _('Neither --del-all nor options to delete a specific record provided.\n'\
             "Command help may be consulted for all supported record types.")
     takes_options = (
@@ -1003,9 +992,8 @@ api.register(dnsrecord_del)
 
 
 class dnsrecord_show(LDAPRetrieve, dnsrecord_cmd_w_record_options):
-    """
-    Display DNS resource.
-    """
+    __doc__ = _('Display DNS resource.')
+
     def has_output_params(self):
         for option in self.get_record_options():
             yield option
@@ -1019,9 +1007,8 @@ api.register(dnsrecord_show)
 
 
 class dnsrecord_find(LDAPSearch, dnsrecord_cmd_w_record_options):
-    """
-    Search for DNS resources.
-    """
+    __doc__ = _('Search for DNS resources.')
+
     def get_options(self):
         for option in super(dnsrecord_find, self).get_options():
             yield option
@@ -1046,9 +1033,8 @@ class dnsrecord_find(LDAPSearch, dnsrecord_cmd_w_record_options):
 api.register(dnsrecord_find)
 
 class dns_resolve(Command):
-    """
-    Resolve a host name in DNS
-    """
+    __doc__ = _('Resolve a host name in DNS.')
+
     has_output = output.standard_value
     msg_summary = _('Found \'%(value)s\'')
 

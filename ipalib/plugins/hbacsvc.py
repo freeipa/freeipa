@@ -16,7 +16,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib import api
+from ipalib import Str
+from ipalib.plugins.baseldap import LDAPObject, LDAPCreate, LDAPDelete
+from ipalib.plugins.baseldap import LDAPUpdate, LDAPSearch, LDAPRetrieve
+
+from ipalib import _, ngettext
+
+__doc__ = _("""
 HBAC Services
 
 The PAM services that HBAC can control access to. The name used here
@@ -37,13 +45,7 @@ EXAMPLES:
  Delete an HBAC service:
    ipa hbacsvc-del tftp
 
-"""
-from ipalib import api
-from ipalib import Str
-from ipalib.plugins.baseldap import LDAPObject, LDAPCreate, LDAPDelete
-from ipalib.plugins.baseldap import LDAPUpdate, LDAPSearch, LDAPRetrieve
-
-from ipalib import _, ngettext
+""")
 
 topic = ('hbac', _('Host based access control commands'))
 
@@ -83,27 +85,23 @@ api.register(hbacsvc)
 
 
 class hbacsvc_add(LDAPCreate):
-    """
-    Add a new HBAC service.
-    """
+    __doc__ = _('Add a new HBAC service.')
+
     msg_summary = _('Added HBAC service "%(value)s"')
 
 api.register(hbacsvc_add)
 
 
 class hbacsvc_del(LDAPDelete):
-    """
-    Delete an existing HBAC service.
-    """
+    __doc__ = _('Delete an existing HBAC service.')
+
     msg_summary = _('Deleted HBAC service "%(value)s"')
 
 api.register(hbacsvc_del)
 
 
 class hbacsvc_mod(LDAPUpdate):
-    """
-    Modify an HBAC service.
-    """
+    __doc__ = _('Modify an HBAC service.')
 
     msg_summary = _('Modified HBAC service "%(value)s"')
 
@@ -111,9 +109,7 @@ api.register(hbacsvc_mod)
 
 
 class hbacsvc_find(LDAPSearch):
-    """
-    Search for HBAC services.
-    """
+    __doc__ = _('Search for HBAC services.')
 
     msg_summary = ngettext(
         '%(count)d HBAC service matched', '%(count)d HBAC services matched', 0
@@ -123,8 +119,6 @@ api.register(hbacsvc_find)
 
 
 class hbacsvc_show(LDAPRetrieve):
-    """
-    Display information about an HBAC service.
-    """
+    __doc__ = _('Display information about an HBAC service.')
 
 api.register(hbacsvc_show)

@@ -16,40 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
-Entitlements
-
-Manage entitlements for client machines
-
-Entitlements can be managed either by registering with an entitlement
-server with a username and password or by manually importing entitlement
-certificates. An entitlement certificate contains embedded information
-such as the product being entitled, the quantity and the validity dates.
-
-An entitlement server manages the number of client entitlements available.
-To mark these entitlements as used by the IPA server you provide a quantity
-and they are marked as consumed on the entitlement server.
-
- Register with an entitlement server:
-   ipa entitle-register consumer
-
- Import an entitlement certificate:
-   ipa entitle-import /home/user/ipaclient.pem
-
- Display current entitlements:
-   ipa entitle-status
-
- Retrieve details on entitlement certificates:
-   ipa entitle-get
-
- Consume some entitlements from the entitlement server:
-   ipa entitle-consume 50
-
-The registration ID is a Unique Identifier (UUID). This ID will be
-IMPORTED if you have used entitle-import.
-
-Changes to /etc/rhsm/rhsm.conf require a restart of the httpd service.
-"""
 
 from ipalib import api, SkipPluginModule
 try:
@@ -82,6 +48,41 @@ from ipalib.plugins.service import validate_certificate
 from ipalib import x509
 
 import locale
+
+__doc__ = _("""
+Entitlements
+
+Manage entitlements for client machines
+
+Entitlements can be managed either by registering with an entitlement
+server with a username and password or by manually importing entitlement
+certificates. An entitlement certificate contains embedded information
+such as the product being entitled, the quantity and the validity dates.
+
+An entitlement server manages the number of client entitlements available.
+To mark these entitlements as used by the IPA server you provide a quantity
+and they are marked as consumed on the entitlement server.
+
+ Register with an entitlement server:
+   ipa entitle-register consumer
+
+ Import an entitlement certificate:
+   ipa entitle-import /home/user/ipaclient.pem
+
+ Display current entitlements:
+   ipa entitle-status
+
+ Retrieve details on entitlement certificates:
+   ipa entitle-get
+
+ Consume some entitlements from the entitlement server:
+   ipa entitle-consume 50
+
+The registration ID is a Unique Identifier (UUID). This ID will be
+IMPORTED if you have used entitle-import.
+
+Changes to /etc/rhsm/rhsm.conf require a restart of the httpd service.
+""")
 
 def read_file(filename):
     fp = open(filename, 'r')
@@ -204,9 +205,7 @@ class entitle(LDAPObject):
 api.register(entitle)
 
 class entitle_status(VirtualCommand):
-    """
-    Display current entitlements
-    """
+    __doc__ = _('Display current entitlements.')
 
     operation="show entitlement"
 
@@ -274,9 +273,7 @@ api.register(entitle_status)
 
 
 class entitle_consume(LDAPUpdate):
-    """
-    Consume an entitlement
-    """
+    __doc__ = _('Consume an entitlement.')
 
     operation="consume entitlement"
 
@@ -378,9 +375,7 @@ api.register(entitle_consume)
 
 
 class entitle_get(VirtualCommand):
-    """
-    Retrieve the entitlement certs
-    """
+    __doc__ = _('Retrieve the entitlement certs.')
 
     operation="retrieve entitlement"
 
@@ -458,9 +453,8 @@ class entitle_get(VirtualCommand):
 api.register(entitle_get)
 
 class entitle_find(LDAPSearch):
-    """
-    Search for entitlement accounts.
-    """
+    __doc__ = _('Search for entitlement accounts.')
+
     has_output_params = output_params
     INTERNAL = True
 
@@ -471,9 +465,7 @@ class entitle_find(LDAPSearch):
 api.register(entitle_find)
 
 class entitle_register(LDAPCreate):
-    """
-    Register to the entitlement system
-    """
+    __doc__ = _('Register to the entitlement system.')
 
     operation="register entitlement"
 
@@ -571,9 +563,7 @@ api.register(entitle_register)
 
 
 class entitle_import(LDAPUpdate):
-    """
-    Import an entitlement certificate.
-    """
+    __doc__ = _('Import an entitlement certificate.')
 
     has_output_params = (
         Str('product',
@@ -669,9 +659,7 @@ class entitle_import(LDAPUpdate):
 api.register(entitle_import)
 
 class entitle_sync(LDAPUpdate):
-    """
-    Re-sync the local entitlement cache with the entitlement server
-    """
+    __doc__ = _('Re-sync the local entitlement cache with the entitlement server.')
 
     operation="sync entitlement"
 

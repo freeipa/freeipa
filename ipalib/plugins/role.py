@@ -17,7 +17,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib.plugins.baseldap import *
+from ipalib import api, Str, _, ngettext
+from ipalib import Command
+from ipalib.plugins import privilege
+
+__doc__ = _("""
 Roles
 
 A role is used for fine-grained delegation. A permission grants the ability
@@ -50,13 +56,7 @@ EXAMPLES:
 
  The result of this is that any users in the group 'useradmins' can
  add users, reset passwords or add a user to the default IPA user group.
-"""
-
-from ipalib.plugins.baseldap import *
-from ipalib import api, Str, _, ngettext
-from ipalib import Command
-from ipalib.plugins import privilege
-
+""")
 
 class role(LDAPObject):
     """
@@ -99,9 +99,7 @@ api.register(role)
 
 
 class role_add(LDAPCreate):
-    """
-    Add a new role.
-    """
+    __doc__ = _('Add a new role.')
 
     msg_summary = _('Added role "%(value)s"')
 
@@ -109,9 +107,7 @@ api.register(role_add)
 
 
 class role_del(LDAPDelete):
-    """
-    Delete a role.
-    """
+    __doc__ = _('Delete a role.')
 
     msg_summary = _('Deleted role "%(value)s"')
 
@@ -119,9 +115,7 @@ api.register(role_del)
 
 
 class role_mod(LDAPUpdate):
-    """
-    Modify a role.
-    """
+    __doc__ = _('Modify a role.')
 
     msg_summary = _('Modified role "%(value)s"')
 
@@ -129,9 +123,7 @@ api.register(role_mod)
 
 
 class role_find(LDAPSearch):
-    """
-    Search for roles.
-    """
+    __doc__ = _('Search for roles.')
 
     msg_summary = ngettext(
         '%(count)d role matched', '%(count)d roles matched', 0
@@ -141,33 +133,26 @@ api.register(role_find)
 
 
 class role_show(LDAPRetrieve):
-    """
-    Display information about a role.
-    """
+    __doc__ = _('Display information about a role.')
 
 api.register(role_show)
 
 
 class role_add_member(LDAPAddMember):
-    """
-    Add members to a role.
-    """
+    __doc__ = _('Add members to a role.')
 
 api.register(role_add_member)
 
 
 class role_remove_member(LDAPRemoveMember):
-    """
-    Remove members from a role.
-    """
+    __doc__ = _('Remove members from a role.')
 
 api.register(role_remove_member)
 
 
 class role_add_privilege(LDAPAddReverseMember):
-    """
-    Add privileges to a role.
-    """
+    __doc__ = _('Add privileges to a role.')
+
     show_command = 'role_show'
     member_command = 'privilege_add_member'
     reverse_attr = 'privilege'
@@ -189,9 +174,8 @@ api.register(role_add_privilege)
 
 
 class role_remove_privilege(LDAPRemoveReverseMember):
-    """
-    Remove privileges from a role.
-    """
+    __doc__ = _('Remove privileges from a role.')
+
     show_command = 'role_show'
     member_command = 'privilege_remove_member'
     reverse_attr = 'privilege'

@@ -17,7 +17,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib import api, errors
+from ipalib import Flag, Int, Password, Str, Bool
+from ipalib.plugins.baseldap import *
+from ipalib.request import context
+from time import gmtime, strftime
+import copy
+from ipalib import _, ngettext
+
+__doc__ = _("""
 Users
 
 Manage user entries. All users are POSIX users.
@@ -54,15 +63,7 @@ EXAMPLES:
 
  Delete a user:
    ipa user-del tuser1
-"""
-
-from ipalib import api, errors
-from ipalib import Flag, Int, Password, Str, Bool
-from ipalib.plugins.baseldap import *
-from ipalib import _, ngettext
-from ipalib.request import context
-from time import gmtime, strftime
-import copy
+""")
 
 
 NO_UPG_MAGIC = '__no_upg__'
@@ -304,9 +305,8 @@ api.register(user)
 
 
 class user_add(LDAPCreate):
-    """
-    Add a new user.
-    """
+    __doc__ = _('Add a new user.')
+
     msg_summary = _('Added user "%(value)s"')
 
     takes_options = LDAPCreate.takes_options + (
@@ -416,9 +416,7 @@ api.register(user_add)
 
 
 class user_del(LDAPDelete):
-    """
-    Delete a user.
-    """
+    __doc__ = _('Delete a user.')
 
     msg_summary = _('Deleted user "%(value)s"')
 
@@ -429,9 +427,7 @@ api.register(user_del)
 
 
 class user_mod(LDAPUpdate):
-    """
-    Modify a user.
-    """
+    __doc__ = _('Modify a user.')
 
     msg_summary = _('Modified user "%(value)s"')
 
@@ -453,9 +449,8 @@ api.register(user_mod)
 
 
 class user_find(LDAPSearch):
-    """
-    Search for users.
-    """
+    __doc__ = _('Search for users.')
+
     member_attributes = ['memberof']
 
     takes_options = LDAPSearch.takes_options + (
@@ -487,9 +482,8 @@ api.register(user_find)
 
 
 class user_show(LDAPRetrieve):
-    """
-    Display information about a user.
-    """
+    __doc__ = _('Display information about a user.')
+
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         convert_nsaccountlock(entry_attrs)
         self.obj._convert_manager(entry_attrs, **options)
@@ -500,9 +494,7 @@ api.register(user_show)
 
 
 class user_disable(LDAPQuery):
-    """
-    Disable a user account.
-    """
+    __doc__ = _('Disable a user account.')
 
     has_output = output.standard_value
     msg_summary = _('Disabled user account "%(value)s"')
@@ -523,9 +515,7 @@ api.register(user_disable)
 
 
 class user_enable(LDAPQuery):
-    """
-    Enable a user account.
-    """
+    __doc__ = _('Enable a user account.')
 
     has_output = output.standard_value
     msg_summary = _('Enabled user account "%(value)s"')
@@ -545,14 +535,14 @@ class user_enable(LDAPQuery):
 api.register(user_enable)
 
 class user_unlock(LDAPQuery):
-    """
+    __doc__ = _("""
     Unlock a user account
 
     An account may become locked if the password is entered incorrectly too
     many times within a specific time period as controlled by password
     policy. A locked account is a temporary condition and may be unlocked by
-    an administrator.
-    """
+    an administrator.""")
+
     has_output = output.standard_value
     msg_summary = _('Unlocked account "%(value)s"')
 

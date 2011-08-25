@@ -16,7 +16,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+import copy
+from ipalib import api, _, ngettext
+from ipalib import Flag, Str, List
+from ipalib.request import context
+from ipalib import api, crud, errors
+from ipalib import output
+from ipalib import Object, Command
+
+__doc__ = _("""
 Self-service Permissions
 
 A permission enables fine-grained delegation of permissions. Access Control
@@ -40,15 +49,7 @@ EXAMPLES:
 
  Delete a rule:
    ipa selfservice-del "Users manage their own address"
-"""
-
-import copy
-from ipalib import api, _, ngettext
-from ipalib import Flag, Str, List
-from ipalib.request import context
-from ipalib import api, crud, errors
-from ipalib import output
-from ipalib import Object, Command
+""")
 
 ACI_PREFIX=u"selfservice"
 
@@ -112,9 +113,7 @@ api.register(selfservice)
 
 
 class selfservice_add(crud.Create):
-    """
-    Add a new self-service permission.
-    """
+    __doc__ = _('Add a new self-service permission.')
 
     msg_summary = _('Added selfservice "%(value)s"')
 
@@ -135,9 +134,7 @@ api.register(selfservice_add)
 
 
 class selfservice_del(crud.Delete):
-    """
-    Delete a self-service permission.
-    """
+    __doc__ = _('Delete a self-service permission.')
 
     has_output = output.standard_boolean
     msg_summary = _('Deleted selfservice "%(value)s"')
@@ -156,9 +153,7 @@ api.register(selfservice_del)
 
 
 class selfservice_mod(crud.Update):
-    """
-    Modify a self-service permission.
-    """
+    __doc__ = _('Modify a self-service permission.')
 
     msg_summary = _('Modified selfservice "%(value)s"')
 
@@ -179,9 +174,7 @@ api.register(selfservice_mod)
 
 
 class selfservice_find(crud.Search):
-    """
-    Search for a self-service permission.
-    """
+    __doc__ = _('Search for a self-service permission.')
 
     msg_summary = ngettext(
         '%(count)d selfservice matched', '%(count)d selfservices matched', 0
@@ -205,9 +198,8 @@ api.register(selfservice_find)
 
 
 class selfservice_show(crud.Retrieve):
-    """
-    Display information about a self-service permission.
-    """
+    __doc__ = _('Display information about a self-service permission.')
+
     has_output_params = (
         Str('aci',
             label=_('ACI'),

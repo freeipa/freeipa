@@ -17,14 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Misc plug-ins
-"""
-
 import re
 from ipalib import api, LocalOrRemote, _, ngettext
 from ipalib.output import Output, summary
 from ipalib import Flag
+
+__doc__ = _("""
+Misc plug-ins
+""")
 
 # FIXME: We should not let env return anything in_server
 # when mode == 'production'.  This would allow an attacker to see the
@@ -33,7 +33,7 @@ from ipalib import Flag
 
 
 class env(LocalOrRemote):
-    """Show environment variables"""
+    __doc__ = _('Show environment variables.')
 
     msg_summary = _('%(count)d variables')
 
@@ -103,7 +103,7 @@ api.register(env)
 
 
 class plugins(LocalOrRemote):
-    """Show all loaded plugins"""
+    __doc__ = _('Show all loaded plugins.')
 
     msg_summary = ngettext(
         '%(count)d plugin loaded', '%(count)d plugins loaded', 0

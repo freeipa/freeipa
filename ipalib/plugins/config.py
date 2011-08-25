@@ -17,7 +17,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib import api
+from ipalib import Bool, Int, Str, IA5Str
+from ipalib.plugins.baseldap import *
+from ipalib import _
+from ipalib.errors import ValidationError
+
+__doc__ = _("""
 Manage the IPA configuration
 
 Manage the default values that IPA uses and some of its tuning parameters.
@@ -62,14 +69,7 @@ Certificate Subject base: the configured certificate subject base,
   e.g. O=EXAMPLE.COM.  This is configurable only at install time.
 Password plug-in features: currently defines additional hashes that the
   password will generate (there may be other conditions).
-"""
-
-from ipalib import api
-from ipalib import Bool, Int, Str, IA5Str
-from ipalib.plugins.baseldap import *
-from ipalib import _
-from ipalib.errors import ValidationError
-
+""")
 
 def validate_searchtimelimit(ugettext, limit):
     if limit == 0:
@@ -182,9 +182,8 @@ api.register(config)
 
 
 class config_mod(LDAPUpdate):
-    """
-    Modify configuration options.
-    """
+    __doc__ = _('Modify configuration options.')
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         if 'ipamigrationenabled' in entry_attrs:
             if entry_attrs['ipamigrationenabled']:
@@ -219,8 +218,6 @@ api.register(config_mod)
 
 
 class config_show(LDAPRetrieve):
-    """
-    Show the current configuration.
-    """
+    __doc__ = _('Show the current configuration.')
 
 api.register(config_show)

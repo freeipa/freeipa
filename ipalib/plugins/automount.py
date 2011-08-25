@@ -17,7 +17,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib import api, errors
+from ipalib import Object, Command
+from ipalib import Flag, Str, IA5Str
+from ipalib.plugins.baseldap import *
+from ipalib import _, ngettext
+import ldap as _ldap
+import os
+
+__doc__ = _("""
 Automount
 
 Stores automount(8) configuration for autofs(8) in IPA.
@@ -101,7 +110,7 @@ Keys:
 
   Remove the man key from the auto.share map:
     ipa automountkey-del baltimore auto.share --key=man
-"""
+""")
 
 """
 Developer notes:
@@ -169,13 +178,6 @@ automountInformation: -ro,soft,rsize=8192,wsize=8192 nfs.example.com:/vol/arch
  ive/stuff
 
 """
-from ipalib import api, errors
-from ipalib import Object, Command
-from ipalib import Flag, Str, IA5Str
-from ipalib.plugins.baseldap import *
-from ipalib import _, ngettext
-import ldap as _ldap
-import os
 
 DIRECT_MAP_KEY = u'/-'
 DEFAULT_MAPS = (u'auto.direct', )
@@ -206,9 +208,7 @@ api.register(automountlocation)
 
 
 class automountlocation_add(LDAPCreate):
-    """
-    Create a new automount location.
-    """
+    __doc__ = _('Create a new automount location.')
 
     msg_summary = _('Added automount location "%(value)s"')
 
@@ -229,9 +229,7 @@ api.register(automountlocation_add)
 
 
 class automountlocation_del(LDAPDelete):
-    """
-    Delete an automount location.
-    """
+    __doc__ = _('Delete an automount location.')
 
     msg_summary = _('Deleted automount location "%(value)s"')
 
@@ -239,17 +237,13 @@ api.register(automountlocation_del)
 
 
 class automountlocation_show(LDAPRetrieve):
-    """
-    Display an automount location.
-    """
+    __doc__ = _('Display an automount location.')
 
 api.register(automountlocation_show)
 
 
 class automountlocation_find(LDAPSearch):
-    """
-    Search for an automount location.
-    """
+    __doc__ = _('Search for an automount location.')
 
     msg_summary = ngettext(
         '%(count)d automount location matched',
@@ -260,9 +254,8 @@ api.register(automountlocation_find)
 
 
 class automountlocation_tofiles(LDAPQuery):
-    """
-    Generate automount files for a specific location.
-    """
+    __doc__ = _('Generate automount files for a specific location.')
+
     def execute(self, *args, **options):
         ldap = self.obj.backend
 
@@ -323,9 +316,7 @@ api.register(automountlocation_tofiles)
 
 
 class automountlocation_import(LDAPQuery):
-    """
-    Import automount files for a specific location.
-    """
+    __doc__ = _('Import automount files for a specific location.')
 
     takes_args = (
         Str('masterfile',
@@ -543,9 +534,7 @@ api.register(automountmap)
 
 
 class automountmap_add(LDAPCreate):
-    """
-    Create a new automount map.
-    """
+    __doc__ = _('Create a new automount map.')
 
     msg_summary = _('Added automount map "%(value)s"')
 
@@ -553,9 +542,7 @@ api.register(automountmap_add)
 
 
 class automountmap_del(LDAPDelete):
-    """
-    Delete an automount map.
-    """
+    __doc__ = _('Delete an automount map.')
 
     msg_summary = _('Deleted automount map "%(value)s"')
 
@@ -575,9 +562,7 @@ api.register(automountmap_del)
 
 
 class automountmap_mod(LDAPUpdate):
-    """
-    Modify an automount map.
-    """
+    __doc__ = _('Modify an automount map.')
 
     msg_summary = _('Modified automount map "%(value)s"')
 
@@ -585,9 +570,7 @@ api.register(automountmap_mod)
 
 
 class automountmap_find(LDAPSearch):
-    """
-    Search for an automount map.
-    """
+    __doc__ = _('Search for an automount map.')
 
     msg_summary = ngettext(
         '%(count)d automount map matched',
@@ -598,17 +581,14 @@ api.register(automountmap_find)
 
 
 class automountmap_show(LDAPRetrieve):
-    """
-    Display an automount map.
-    """
+    __doc__ = _('Display an automount map.')
 
 api.register(automountmap_show)
 
 
 class automountkey(LDAPObject):
-    """
-    Automount key object.
-    """
+    __doc__ = _('Automount key object.')
+
     parent_object = 'automountmap'
     container_dn = api.env.container_automount
     object_name = _('automount key')
@@ -753,9 +733,7 @@ api.register(automountkey)
 
 
 class automountkey_add(LDAPCreate):
-    """
-    Create a new automount key.
-    """
+    __doc__ = _('Create a new automount key.')
 
     msg_summary = _('Added automount key "%(value)s"')
 
@@ -780,9 +758,7 @@ api.register(automountkey_add)
 
 
 class automountmap_add_indirect(LDAPCreate):
-    """
-    Create a new indirect mount point.
-    """
+    __doc__ = _('Create a new indirect mount point.')
 
     msg_summary = _('Added automount indirect map "%(value)s"')
 
@@ -818,9 +794,7 @@ api.register(automountmap_add_indirect)
 
 
 class automountkey_del(LDAPDelete):
-    """
-    Delete an automount key.
-    """
+    __doc__ = _('Delete an automount key.')
 
     msg_summary = _('Deleted automount key "%(value)s"')
 
@@ -862,9 +836,7 @@ api.register(automountkey_del)
 
 
 class automountkey_mod(LDAPUpdate):
-    """
-    Modify an automount key.
-    """
+    __doc__ = _('Modify an automount key.')
 
     msg_summary = _('Modified automount key "%(value)s"')
 
@@ -920,9 +892,7 @@ api.register(automountkey_mod)
 
 
 class automountkey_find(LDAPSearch):
-    """
-    Search for an automount key.
-    """
+    __doc__ = _('Search for an automount key.')
 
     msg_summary = ngettext(
         '%(count)d automount key matched',
@@ -933,9 +903,8 @@ api.register(automountkey_find)
 
 
 class automountkey_show(LDAPRetrieve):
-    """
-    Display an automount key.
-    """
+    __doc__ = _('Display an automount key.')
+
     takes_options = LDAPRetrieve.takes_options + (
         IA5Str('automountkey',
                cli_name='key',

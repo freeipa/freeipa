@@ -16,7 +16,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib.plugins.baseldap import *
+from ipalib import api, _, ngettext
+
+__doc__ = _("""
 Privileges
 
 A privilege combines permissions into a logical task. A permission provides
@@ -35,11 +39,7 @@ form of a privilege named "Add User" makes it easier to manage Roles.
 A privilege may not contain other privileges.
 
 See role and permission for additional information.
-"""
-
-from ipalib.plugins.baseldap import *
-from ipalib import api, _, ngettext
-
+""")
 
 class privilege(LDAPObject):
     """
@@ -83,9 +83,7 @@ api.register(privilege)
 
 
 class privilege_add(LDAPCreate):
-    """
-    Add a new privilege.
-    """
+    __doc__ = _('Add a new privilege.')
 
     msg_summary = _('Added privilege "%(value)s"')
 
@@ -93,9 +91,7 @@ api.register(privilege_add)
 
 
 class privilege_del(LDAPDelete):
-    """
-    Delete a privilege.
-    """
+    __doc__ = _('Delete a privilege.')
 
     msg_summary = _('Deleted privilege "%(value)s"')
 
@@ -103,9 +99,7 @@ api.register(privilege_del)
 
 
 class privilege_mod(LDAPUpdate):
-    """
-    Modify a privilege.
-    """
+    __doc__ = _('Modify a privilege.')
 
     msg_summary = _('Modified privilege "%(value)s"')
 
@@ -113,9 +107,7 @@ api.register(privilege_mod)
 
 
 class privilege_find(LDAPSearch):
-    """
-    Search for privileges.
-    """
+    __doc__ = _('Search for privileges.')
 
     msg_summary = ngettext(
         '%(count)d privilege matched', '%(count)d privileges matched', 0
@@ -125,17 +117,14 @@ api.register(privilege_find)
 
 
 class privilege_show(LDAPRetrieve):
-    """
-    Display information about a privilege.
-    """
+    __doc__ = _('Display information about a privilege.')
 
 api.register(privilege_show)
 
 
 class privilege_add_member(LDAPAddMember):
-    """
-    Add members to a privilege
-    """
+    __doc__ = _('Add members to a privilege.')
+
     NO_CLI=True
 
 api.register(privilege_add_member)
@@ -151,9 +140,8 @@ api.register(privilege_remove_member)
 
 
 class privilege_add_permission(LDAPAddReverseMember):
-    """
-    Add permissions to a privilege.
-    """
+    __doc__ = _('Add permissions to a privilege.')
+
     show_command = 'privilege_show'
     member_command = 'permission_add_member'
     reverse_attr = 'permission'
@@ -175,9 +163,8 @@ api.register(privilege_add_permission)
 
 
 class privilege_remove_permission(LDAPRemoveReverseMember):
-    """
-    Remove permissions from a privilege.
-    """
+    __doc__ = _('Remove permissions from a privilege.')
+
     show_command = 'privilege_show'
     member_command = 'permission_remove_member'
     reverse_attr = 'permission'
