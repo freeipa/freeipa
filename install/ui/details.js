@@ -215,6 +215,8 @@ IPA.details_list_section = function(spec) {
         }
     };
 
+    that.list_section_create = that.create;
+
     return that;
 };
 
