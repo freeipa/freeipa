@@ -255,6 +255,8 @@ class test_host(Declarative):
                     md5_fingerprint=fuzzy_hash,
                     sha1_fingerprint=fuzzy_hash,
                     issuer=fuzzy_issuer,
+                    has_keytab=False,
+                    has_password=False,
                 ),
             ),
         ),

@@ -667,6 +667,11 @@ class host_mod(LDAPUpdate):
         if options.get('random', False):
             entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
         set_certificate_attrs(entry_attrs)
+        self.obj.get_password_attributes(ldap, dn, entry_attrs)
+        if entry_attrs['has_password']:
+            # If an OTP is set there is no keytab, at least not one
+            # fetched anywhere.
+            entry_attrs['has_keytab'] = False
 
         if options.get('all', False):
             entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
