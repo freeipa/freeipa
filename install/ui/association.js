@@ -64,28 +64,30 @@ IPA.serial_associator = function(spec) {
             return;
         }
 
-        var value = that.values.shift();
-        if (!value) {
-            that.on_success();
-            return;
-        }
-
-        var args = [value];
-        var options = {};
-        options[that.entity.name] = that.pkey;
-
-        var command = IPA.command({
-            entity: that.other_entity,
-            method: that.method,
-            args: args,
-            options: options,
-            on_success: that.execute,
+        var batch = IPA.batch_command({
+            on_success: that.on_success,
             on_error: that.on_error
         });
 
+        var args, options, command;
+
+        for(var i=0; i < that.values.length; i++) {
+            args = [that.values[i]];
+            options = {};
+            options[that.entity.name] = that.pkey;
+
+            command = IPA.command({
+                entity: that.other_entity,
+                method: that.method,
+                args: args,
+                options: options
+            });
+
+            batch.add_command(command);
+        }
         //alert(JSON.stringify(command.to_json()));
 
-        command.execute();
+        batch.execute();
     };
 
     return that;

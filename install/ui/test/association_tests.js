@@ -23,11 +23,9 @@ module('association');
 
 test("Testing serial_associator().", function() {
 
-    expect(10);
+    expect(11);
 
-    var orig_ipa_command = IPA.command;
-
-    var counter = 0;
+    var orig_ipa_batch_command = IPA.batch_command;
 
     var params = {
         method: 'add_member',
@@ -38,27 +36,34 @@ test("Testing serial_associator().", function() {
 
     params.values = ['user1', 'user2', 'user3'];
 
-    IPA.command = function(spec) {
+    IPA.batch_command = function(spec) {
 
-        var that = orig_ipa_command(spec);
+        var that = orig_ipa_batch_command(spec);
 
         that.execute = function() {
-            counter++;
+            equals(that.commands.length, params.values.length,
+                   'Checking IPA.batch_command command count');
 
-            equals(
-                that.entity, params.other_entity,
-                'Checking IPA.command() parameter: entity'
-            );
+            var i, command;
 
-            equals(
-                that.method, params.method,
-                'Checking IPA.command() parameter: method'
-            );
+            for(i=0; i < params.values.length; i++) {
+                command = that.commands[i];
 
-            equals(
-                that.args[0], 'user'+counter,
-                'Checking IPA.command() parameter: primary key'
-            );
+                equals(
+                    command.entity, params.other_entity,
+                    'Checking IPA.command() parameter: entity'
+                );
+
+                equals(
+                    command.method, params.method,
+                    'Checking IPA.command() parameter: method'
+                );
+
+                equals(
+                    command.args[0], 'user'+(i+1),
+                    'Checking IPA.command() parameter: primary key'
+                );
+            }
 
             that.on_success({});
         };
@@ -73,7 +78,7 @@ test("Testing serial_associator().", function() {
     var associator = IPA.serial_associator(params);
     associator.execute();
 
-    IPA.command = orig_ipa_command;
+    IPA.batch_command = orig_ipa_batch_command;
 });
 
 test("Testing bulk_associator().", function() {
