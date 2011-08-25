@@ -29,54 +29,62 @@ IPA.entity_factories.host = function () {
     return IPA.entity_builder().
         entity('host').
         search_facet({
-            columns:['fqdn','description',{
-                name: 'krblastpwdchange',
-                label: IPA.messages.objects.host.enrolled,
-                format: IPA.utc_date_column_format
-            }]
+            columns: [
+                'fqdn',
+                'description',
+                {
+                    name: 'krblastpwdchange',
+                    label: IPA.messages.objects.host.enrolled,
+                    format: IPA.utc_date_column_format
+                }
+            ]
         }).
-        details_facet({sections:[
-            {
-                name: 'details',
-                fields: [
-                    {
-                        factory: IPA.host_dnsrecord_entity_link_widget,
-                        name: 'fqdn',
-                        other_entity:'dnsrecord'
-                    },
-                    'krbprincipalname',
-                    'description',
-                    'l',
-                    'nshostlocation',
-                    'nshardwareplatform',
-                    'nsosversion'
-                ]
-            },
-            {
-                name:'enrollment',
-                fields:[
-                    {
-                        factory: IPA.host_keytab_widget,
-                        'name': 'has_keytab',
-                        label: IPA.messages.objects.host.keytab
-                    },
-                    {
-                        factory: IPA.host_password_widget,
-                        'name': 'has_password',
-                        label: IPA.messages.objects.host.password
-                    }
-                ]
-            },
-            {
-                name:'certificate',
-                fields:[
-                    {
-                        factory: IPA.host_certificate_status_widget,
-                        'name': 'certificate_status',
-                        label: IPA.messages.objects.host.status
-                    }
-                ]
-            }]}).
+        details_facet({
+            sections: [
+                {
+                    name: 'details',
+                    fields: [
+                        {
+                            factory: IPA.host_dnsrecord_entity_link_widget,
+                            name: 'fqdn',
+                            other_entity: 'dnsrecord'
+                        },
+                        'krbprincipalname',
+                        'description',
+                        'l',
+                        'nshostlocation',
+                        'nshardwareplatform',
+                        'nsosversion'
+                    ]
+                },
+                {
+                    factory: IPA.host_enrollment_section,
+                    name: 'enrollment',
+                    fields: [
+                        {
+                            factory: IPA.host_keytab_widget,
+                            name: 'has_keytab',
+                            label: IPA.messages.objects.host.keytab
+                        },
+                        {
+                            factory: IPA.host_password_widget,
+                            name: 'has_password',
+                            label: IPA.messages.objects.host.password
+                        }
+                    ]
+                },
+                {
+                    name: 'certificate',
+                    fields: [
+                        {
+                            factory: IPA.host_certificate_status_widget,
+                            name: 'certificate_status',
+                            label: IPA.messages.objects.host.status
+                        }
+                    ]
+                }
+            ]
+        }).
         association_facet({
             name: 'managedby_host',
             add_method: 'add_managedby',
@@ -414,6 +422,42 @@ IPA.force_host_add_checkbox_widget = function(spec) {
     return IPA.checkbox_widget(spec);
 };
 
+IPA.host_enrollment_section = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.details_list_section(spec);
+
+    that.create = function(container) {
+        that.list_section_create(container);
+
+        var keytab_field = that.get_field('has_keytab');
+        var password_field = that.get_field('has_password');
+
+        /**
+         * The set_password() in the password field is being customized to
+         * update the keytab field.
+         *
+         * The customization needs to be done here because the section
+         * doesn't create the fields. The IPA.entity_builder adds the fields
+         * after creating the section. This needs to be improved.
+         */
+        var super_set_password = password_field.set_password;
+        password_field.set_password = function(password, on_success, on_error) {
+            super_set_password.call(
+                this,
+                password,
+                function(data, text_status, xhr) {
+                    keytab_field.load(data.result.result);
+                    if (on_success) on_success.call(this, data, text_status, xhr);
+                },
+                on_error);
+        };
+    };
+
+    return that;
+};
+
 IPA.host_keytab_widget = function(spec) {
 
     spec = spec || {};
@@ -621,7 +665,7 @@ IPA.host_password_widget = function(spec) {
             that.set_password(
                 new_password,
                 function(data, text_status, xhr) {
-                    set_status('present');
+                    that.load(data.result.result);
                     dialog.close();
                 },
                 function(xhr, text_status, error_thrown) {

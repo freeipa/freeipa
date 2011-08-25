@@ -46,6 +46,8 @@
             "fqdn": [
                 "test.example.com"
             ],
+            "has_keytab": false,
+            "has_password": true,
             "ipauniqueid": [
                 "ac28dca0-f3b5-11df-879f-00163e72f2d9"
             ],
