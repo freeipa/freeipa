@@ -16,7 +16,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+import platform
+import os
+import sys
+
+from ipalib import api, errors, util
+from ipalib import Str
+from ipalib.plugins.baseldap import *
+from ipalib import _, ngettext
+
+__doc__ = _("""
 Sudo Commands
 
 Commands used as building blocks for sudo
@@ -29,16 +39,7 @@ EXAMPLES:
  Remove a command
    ipa sudocmd-del /usr/bin/less
 
-"""
-
-import platform
-import os
-import sys
-
-from ipalib import api, errors, util
-from ipalib import Str
-from ipalib.plugins.baseldap import *
-from ipalib import _, ngettext
+""")
 
 topic = ('sudo', _('commands for controlling sudo configuration'))
 
@@ -96,36 +97,28 @@ class sudocmd(LDAPObject):
 api.register(sudocmd)
 
 class sudocmd_add(LDAPCreate):
-    """
-    Create new sudo command.
-    """
+    __doc__ = _('Create new sudo command.')
 
     msg_summary = _('Added sudo command "%(value)s"')
 
 api.register(sudocmd_add)
 
 class sudocmd_del(LDAPDelete):
-    """
-    Delete sudo command.
-    """
+    __doc__ = _('Delete sudo command.')
 
     msg_summary = _('Deleted sudo command "%(value)s"')
 
 api.register(sudocmd_del)
 
 class sudocmd_mod(LDAPUpdate):
-    """
-    Modify command.
-    """
+    __doc__ = _('Modify command.')
 
     msg_summary = _('Modified sudo command "%(value)s"')
 
 api.register(sudocmd_mod)
 
 class sudocmd_find(LDAPSearch):
-    """
-    Search for commands.
-    """
+    __doc__ = _('Search for commands.')
 
     msg_summary = ngettext(
         '%(count)d sudo command matched', '%(count)d sudo command matched', 0
@@ -134,8 +127,6 @@ class sudocmd_find(LDAPSearch):
 api.register(sudocmd_find)
 
 class sudocmd_show(LDAPRetrieve):
-    """
-    Display sudo command.
-    """
+    __doc__ = _('Display sudo command.')
 
 api.register(sudocmd_show)

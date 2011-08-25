@@ -16,7 +16,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib import api, errors, util
+from ipalib import Command
+from ipalib import Str, Password
+from ipalib import _
+from ipalib import output
+
+__doc__ = _("""
 Set a user's password
 
 If someone other than a user changes that user's password (e.g., Helpdesk
@@ -33,19 +40,10 @@ EXAMPLES:
 
  To change another user's password:
    ipa passwd tuser1
-"""
-
-from ipalib import api, errors, util
-from ipalib import Command
-from ipalib import Str, Password
-from ipalib import _
-from ipalib import output
-
+""")
 
 class passwd(Command):
-    """
-    Set a user's password
-    """
+    __doc__ = _("Set a user's password.")
 
     takes_args = (
         Str('principal',

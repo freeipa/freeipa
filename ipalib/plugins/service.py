@@ -18,7 +18,21 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+import base64
+import os
+
+from ipalib import api, errors, util
+from ipalib import Str, Flag, Bytes
+from ipalib.plugins.baseldap import *
+from ipalib import x509
+from ipalib import _, ngettext
+from ipalib import util
+import nss.nss as nss
+from nss.error import NSPRError
+from ipapython.ipautil import file_exists
+
+__doc__ = _("""
 Services
 
 A IPA service represents a service that runs on a host. The IPA service
@@ -67,20 +81,7 @@ EXAMPLES:
  Generate and retrieve a keytab for an IPA service:
    ipa-getkeytab -s ipa.example.com -p HTTP/web.example.com -k /etc/httpd/httpd.keytab
 
-"""
-import base64
-import os
-
-from ipalib import api, errors, util
-from ipalib import Str, Flag, Bytes
-from ipalib.plugins.baseldap import *
-from ipalib import x509
-from ipalib import _, ngettext
-from ipalib import util
-import nss.nss as nss
-from nss.error import NSPRError
-from ipapython.ipautil import file_exists
-
+""")
 
 output_params = (
     Str('managedby_host',
@@ -238,9 +239,8 @@ api.register(service)
 
 
 class service_add(LDAPCreate):
-    """
-    Add a new IPA new service.
-    """
+    __doc__ = _('Add a new IPA new service.')
+
     msg_summary = _('Added service "%(value)s"')
     member_attributes = ['managedby']
     has_output_params = LDAPCreate.has_output_params + output_params
@@ -280,9 +280,8 @@ api.register(service_add)
 
 
 class service_del(LDAPDelete):
-    """
-    Delete an IPA service.
-    """
+    __doc__ = _('Delete an IPA service.')
+
     msg_summary = _('Deleted service "%(value)s"')
     member_attributes = ['managedby']
     def pre_callback(self, ldap, dn, *keys, **options):
@@ -317,9 +316,8 @@ api.register(service_del)
 
 
 class service_mod(LDAPUpdate):
-    """
-    Modify an existing IPA service.
-    """
+    __doc__ = _('Modify an existing IPA service.')
+
     msg_summary = _('Modified service "%(value)s"')
     takes_options = LDAPUpdate.takes_options
     has_output_params = LDAPUpdate.has_output_params + output_params
@@ -352,9 +350,8 @@ api.register(service_mod)
 
 
 class service_find(LDAPSearch):
-    """
-    Search for IPA services.
-    """
+    __doc__ = _('Search for IPA services.')
+
     msg_summary = ngettext(
         '%(count)d service matched', '%(count)d services matched', 0
     )
@@ -385,9 +382,8 @@ api.register(service_find)
 
 
 class service_show(LDAPRetrieve):
-    """
-    Display information about an IPA service.
-    """
+    __doc__ = _('Display information about an IPA service.')
+
     member_attributes = ['managedby']
     takes_options = LDAPRetrieve.takes_options + (
         Str('out?',
@@ -418,9 +414,8 @@ class service_show(LDAPRetrieve):
 api.register(service_show)
 
 class service_add_host(LDAPAddMember):
-    """
-    Add hosts that can manage this service.
-    """
+    __doc__ = _('Add hosts that can manage this service.')
+
     member_attributes = ['managedby']
     has_output_params = LDAPAddMember.has_output_params + output_params
 
@@ -428,9 +423,8 @@ api.register(service_add_host)
 
 
 class service_remove_host(LDAPRemoveMember):
-    """
-    Remove hosts that can manage this service.
-    """
+    __doc__ = _('Remove hosts that can manage this service.')
+
     member_attributes = ['managedby']
     has_output_params = LDAPRemoveMember.has_output_params + output_params
 
@@ -438,9 +432,8 @@ api.register(service_remove_host)
 
 
 class service_disable(LDAPQuery):
-    """
-    Disable the Kerberos key and SSL certificate of a service.
-    """
+    __doc__ = _('Disable the Kerberos key and SSL certificate of a service.')
+
     has_output = output.standard_value
     msg_summary = _('Disabled service "%(value)s"')
     has_output_params = LDAPQuery.has_output_params + output_params

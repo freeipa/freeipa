@@ -16,7 +16,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib import api, errors
+from ipalib import Int, Str
+from ipalib import Object, Command
+from ipalib import _
+
+__doc__ = _("""
 Kerberos pkinit options
 
 Enable or disable anonymous pkinit using the principal
@@ -34,13 +40,7 @@ EXAMPLES:
 For more information on anonymous pkinit see:
 
 http://k5wiki.kerberos.org/wiki/Projects/Anonymous_pkinit
-"""
-
-from ipalib import api, errors
-from ipalib import Int, Str
-from ipalib import Object, Command
-from ipalib import _
-
+""")
 
 class pkinit(Object):
     """
@@ -64,9 +64,8 @@ def valid_arg(ugettext, action):
         )
 
 class pkinit_anonymous(Command):
-    """
-    Enable or Disable Anonymous PKINIT
-    """
+    __doc__ = _('Enable or Disable Anonymous PKINIT.')
+
     princ_name = 'WELLKNOWN/ANONYMOUS@%s' % api.env.realm
     default_dn = 'krbprincipalname=%s,cn=%s,cn=kerberos,%s' % (
         princ_name, api.env.realm, api.env.basedn

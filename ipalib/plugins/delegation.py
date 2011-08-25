@@ -16,7 +16,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+import copy
+from ipalib import api, _, ngettext
+from ipalib import Flag, Str, List
+from ipalib.request import context
+from ipalib import api, crud, errors
+from ipalib import output
+from ipalib import Object, Command
+
+__doc__ = _("""
 Group to Group Delegation
 
 A permission enables fine-grained delegation of permissions. Access Control
@@ -40,15 +49,7 @@ EXAMPLES:
 
  Delete a rule:
    ipa delegation-del "managers edit employees' street"
-"""
-
-import copy
-from ipalib import api, _, ngettext
-from ipalib import Flag, Str, List
-from ipalib.request import context
-from ipalib import api, crud, errors
-from ipalib import output
-from ipalib import Object, Command
+""")
 
 ACI_PREFIX=u"delegation"
 
@@ -150,9 +151,7 @@ api.register(delegation)
 
 
 class delegation_add(crud.Create):
-    """
-    Add a new delegation.
-    """
+    __doc__ = _('Add a new delegation.')
 
     msg_summary = _('Added delegation "%(value)s"')
 
@@ -174,9 +173,7 @@ api.register(delegation_add)
 
 
 class delegation_del(crud.Delete):
-    """
-    Delete a delegation.
-    """
+    __doc__ = _('Delete a delegation.')
 
     has_output = output.standard_boolean
     msg_summary = _('Deleted delegation "%(value)s"')
@@ -195,9 +192,7 @@ api.register(delegation_del)
 
 
 class delegation_mod(crud.Update):
-    """
-    Modify a delegation.
-    """
+    __doc__ = _('Modify a delegation.')
 
     msg_summary = _('Modified delegation "%(value)s"')
 
@@ -217,9 +212,7 @@ api.register(delegation_mod)
 
 
 class delegation_find(crud.Search):
-    """
-    Search for delegations.
-    """
+    __doc__ = _('Search for delegations.')
 
     msg_summary = ngettext(
         '%(count)d delegation matched', '%(count)d delegations matched', 0
@@ -248,9 +241,8 @@ api.register(delegation_find)
 
 
 class delegation_show(crud.Retrieve):
-    """
-    Display information about a delegation.
-    """
+    __doc__ = _('Display information about a delegation.')
+
     has_output_params = (
         Str('aci',
             label=_('ACI'),

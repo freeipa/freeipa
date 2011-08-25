@@ -16,19 +16,20 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
-Ping the remote IPA server
-"""
 
 from ipalib import api
 from ipalib import Command
 from ipalib import output
+from ipalib import _, ngettext
 from ipapython.version import VERSION, API_VERSION
 
+__doc__ = _("""
+Ping the remote IPA server
+""")
+
 class ping(Command):
-    """
-    ping a remote server
-    """
+    __doc__ = _('Ping a remote server.')
+
     has_output = (
         output.summary,
     )

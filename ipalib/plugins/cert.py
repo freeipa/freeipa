@@ -19,7 +19,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
+from ipalib import api, SkipPluginModule
+if api.env.enable_ra is not True:
+    # In this case, abort loading this plugin module...
+    raise SkipPluginModule(reason='env.enable_ra is not True')
+from ipalib import Command, Str, Int, Bytes, Flag, File
+from ipalib import errors
+from ipalib import pkcs10
+from ipalib import x509
+from ipalib import util
+from ipalib.plugins.virtual import *
+from ipalib.plugins.service import split_principal
+import base64
+import logging
+import traceback
+from ipalib.text import _
+from ipalib.request import context
+from ipalib.output import Output
+from ipalib.plugins.service import validate_principal
+import nss.nss as nss
+from nss.error import NSPRError
+
+__doc__ = _("""
 IPA certificate operations
 
 Implements a set of commands for managing server SSL certificates.
@@ -77,28 +98,7 @@ Note that reason code 7 is not used.  See RFC 5280 for more details:
 
 http://www.ietf.org/rfc/rfc5280.txt
 
-"""
-
-from ipalib import api, SkipPluginModule
-if api.env.enable_ra is not True:
-    # In this case, abort loading this plugin module...
-    raise SkipPluginModule(reason='env.enable_ra is not True')
-from ipalib import Command, Str, Int, Bytes, Flag, File
-from ipalib import errors
-from ipalib import pkcs10
-from ipalib import x509
-from ipalib import util
-from ipalib.plugins.virtual import *
-from ipalib.plugins.service import split_principal
-import base64
-import logging
-import traceback
-from ipalib.text import _
-from ipalib.request import context
-from ipalib.output import Output
-from ipalib.plugins.service import validate_principal
-import nss.nss as nss
-from nss.error import NSPRError
+""")
 
 def get_csr_hostname(csr):
     """
@@ -199,9 +199,7 @@ def get_host_from_principal(principal):
     return hostname
 
 class cert_request(VirtualCommand):
-    """
-    Submit a certificate signing request.
-    """
+    __doc__ = _('Submit a certificate signing request.')
 
     takes_args = (
         File('csr', validate_csr,
@@ -393,9 +391,7 @@ api.register(cert_request)
 
 
 class cert_status(VirtualCommand):
-    """
-    Check the status of a certificate signing request.
-    """
+    __doc__ = _('Check the status of a certificate signing request.')
 
     takes_args = (
         Str('request_id',
@@ -428,9 +424,7 @@ _serial_number = Str('serial_number',
 )
 
 class cert_show(VirtualCommand):
-    """
-    Retrieve an existing certificate.
-    """
+    __doc__ = _('Retrieve an existing certificate.')
 
     takes_args = _serial_number
 
@@ -515,9 +509,7 @@ api.register(cert_show)
 
 
 class cert_revoke(VirtualCommand):
-    """
-    Revoke a certificate.
-    """
+    __doc__ = _('Revoke a certificate.')
 
     takes_args = _serial_number
 
@@ -562,9 +554,7 @@ api.register(cert_revoke)
 
 
 class cert_remove_hold(VirtualCommand):
-    """
-    Take a revoked certificate off hold.
-    """
+    __doc__ = _('Take a revoked certificate off hold.')
 
     takes_args = _serial_number
 

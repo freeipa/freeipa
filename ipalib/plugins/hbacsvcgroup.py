@@ -16,7 +16,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib import api, errors
+from ipalib.plugins.baseldap import *
+from ipalib import _, ngettext
+
+__doc__ = _("""
 HBAC Service Groups
 
 HBAC service groups can contain any number of individual services,
@@ -39,11 +44,7 @@ EXAMPLES:
 
  Delete an HBAC service group:
    ipa hbacsvcgroup-del login
-"""
-
-from ipalib import api, errors
-from ipalib.plugins.baseldap import *
-from ipalib import _, ngettext
+""")
 
 topic = ('hbac', _('Host based access control commands'))
 
@@ -82,36 +83,32 @@ api.register(hbacsvcgroup)
 
 
 class hbacsvcgroup_add(LDAPCreate):
-    """
-    Add a new HBAC service group.
-    """
+    __doc__ = _('Add a new HBAC service group.')
+
     msg_summary = _('Added HBAC service group "%(value)s"')
 
 api.register(hbacsvcgroup_add)
 
 
 class hbacsvcgroup_del(LDAPDelete):
-    """
-    Delete an HBAC service group.
-    """
+    __doc__ = _('Delete an HBAC service group.')
+
     msg_summary = _('Deleted HBAC service group "%(value)s"')
 
 api.register(hbacsvcgroup_del)
 
 
 class hbacsvcgroup_mod(LDAPUpdate):
-    """
-    Modify an HBAC service group.
-    """
+    __doc__ = _('Modify an HBAC service group.')
+
     msg_summary = _('Modified HBAC service group "%(value)s"')
 
 api.register(hbacsvcgroup_mod)
 
 
 class hbacsvcgroup_find(LDAPSearch):
-    """
-    Search for an HBAC service group.
-    """
+    __doc__ = _('Search for an HBAC service group.')
+
     msg_summary = ngettext(
         '%(count)d HBAC service group matched', '%(count)d HBAC service groups matched', 0
     )
@@ -120,24 +117,18 @@ api.register(hbacsvcgroup_find)
 
 
 class hbacsvcgroup_show(LDAPRetrieve):
-    """
-    Display information about an HBAC service group.
-    """
+    __doc__ = _('Display information about an HBAC service group.')
 
 api.register(hbacsvcgroup_show)
 
 
 class hbacsvcgroup_add_member(LDAPAddMember):
-    """
-    Add members to an HBAC service group.
-    """
+    __doc__ = _('Add members to an HBAC service group.')
 
 api.register(hbacsvcgroup_add_member)
 
 
 class hbacsvcgroup_remove_member(LDAPRemoveMember):
-    """
-    Remove members from an HBAC service group.
-    """
+    __doc__ = _('Remove members from an HBAC service group.')
 
 api.register(hbacsvcgroup_remove_member)

@@ -16,7 +16,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+import copy
+from ipalib.plugins.baseldap import *
+from ipalib import api, _, ngettext
+from ipalib import Flag, Str, StrEnum
+from ipalib.request import context
+from ipalib import errors
+
+__doc__ = _("""
 Permissions
 
 A permission enables fine-grained delegation of rights. A permission is
@@ -68,14 +76,7 @@ EXAMPLES:
 
  Add a permission that grants the ability to manage group membership:
    ipa permission-add --attrs=member --permissions=write --type=group "Manage Group Members"
-"""
-
-import copy
-from ipalib.plugins.baseldap import *
-from ipalib import api, _, ngettext
-from ipalib import Flag, Str, StrEnum
-from ipalib.request import context
-from ipalib import errors
+""")
 
 ACI_PREFIX=u"permission"
 
@@ -175,9 +176,7 @@ api.register(permission)
 
 
 class permission_add(LDAPCreate):
-    """
-    Add a new permission.
-    """
+    __doc__ = _('Add a new permission.')
 
     msg_summary = _('Added permission "%(value)s"')
 
@@ -234,9 +233,7 @@ api.register(permission_add)
 
 
 class permission_del(LDAPDelete):
-    """
-    Delete a permission.
-    """
+    __doc__ = _('Delete a permission.')
 
     msg_summary = _('Deleted permission "%(value)s"')
 
@@ -254,9 +251,7 @@ api.register(permission_del)
 
 
 class permission_mod(LDAPUpdate):
-    """
-    Modify a permission.
-    """
+    __doc__ = _('Modify a permission.')
 
     msg_summary = _('Modified permission "%(value)s"')
     has_output_params = LDAPUpdate.has_output_params + output_params
@@ -350,9 +345,7 @@ api.register(permission_mod)
 
 
 class permission_find(LDAPSearch):
-    """
-    Search for permissions.
-    """
+    __doc__ = _('Search for permissions.')
 
     msg_summary = ngettext(
         '%(count)d permission matched', '%(count)d permissions matched', 0
@@ -403,9 +396,8 @@ api.register(permission_find)
 
 
 class permission_show(LDAPRetrieve):
-    """
-    Display information about a permission.
-    """
+    __doc__ = _('Display information about a permission.')
+
     has_output_params = LDAPRetrieve.has_output_params + output_params
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         try:

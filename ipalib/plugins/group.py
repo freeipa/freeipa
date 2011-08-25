@@ -17,7 +17,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib import api
+from ipalib import Int, Str
+from ipalib.plugins.baseldap import *
+from ipalib import _, ngettext
+
+__doc__ = _("""
 Groups of users
 
 Manage groups of users. By default, new groups are POSIX groups. You
@@ -64,13 +70,7 @@ EXAMPLES:
 
  Display information about a named group.
    ipa group-show localadmins
-"""
-
-from ipalib import api
-from ipalib import Int, Str
-from ipalib.plugins.baseldap import *
-from ipalib import _, ngettext
-
+""")
 
 class group(LDAPObject):
     """
@@ -126,9 +126,7 @@ api.register(group)
 
 
 class group_add(LDAPCreate):
-    """
-    Create a new group.
-    """
+    __doc__ = _('Create a new group.')
 
     msg_summary = _('Added group "%(value)s"')
 
@@ -152,9 +150,7 @@ api.register(group_add)
 
 
 class group_del(LDAPDelete):
-    """
-    Delete group.
-    """
+    __doc__ = _('Delete group.')
 
     msg_summary = _('Deleted group "%(value)s"')
 
@@ -184,9 +180,8 @@ api.register(group_del)
 
 
 class group_mod(LDAPUpdate):
-    """
-    Modify a group.
-    """
+    __doc__ = _('Modify a group.')
+
     msg_summary = _('Modified group "%(value)s"')
 
     takes_options = LDAPUpdate.takes_options + (
@@ -213,9 +208,8 @@ api.register(group_mod)
 
 
 class group_find(LDAPSearch):
-    """
-    Search for groups.
-    """
+    __doc__ = _('Search for groups.')
+
     member_attributes = ['member', 'memberof']
 
     msg_summary = ngettext(
@@ -255,33 +249,26 @@ api.register(group_find)
 
 
 class group_show(LDAPRetrieve):
-    """
-    Display information about a named group.
-    """
+    __doc__ = _('Display information about a named group.')
 
 api.register(group_show)
 
 
 class group_add_member(LDAPAddMember):
-    """
-    Add members to a group.
-    """
+    __doc__ = _('Add members to a group.')
 
 api.register(group_add_member)
 
 
 class group_remove_member(LDAPRemoveMember):
-    """
-    Remove members from a group.
-    """
+    __doc__ = _('Remove members from a group.')
 
 api.register(group_remove_member)
 
 
 class group_detach(LDAPQuery):
-    """
-    Detach a managed group from a user
-    """
+    __doc__ = _('Detach a managed group from a user.')
+
     has_output = output.standard_value
     msg_summary = _('Detached group "%(value)s" from user "%(value)s"')
 

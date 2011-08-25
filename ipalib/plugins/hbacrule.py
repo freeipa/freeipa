@@ -16,7 +16,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from ipalib import api, errors
+from ipalib import AccessTime, Password, Str, StrEnum
+from ipalib.plugins.baseldap import *
+from ipalib import _, ngettext
+
+__doc__ = _("""
 Host-based access control
 
 Control who can access what services on what hosts and from where. You
@@ -62,7 +68,7 @@ EXAMPLES:
 
  Remove a named HBAC rule:
    ipa hbacrule-del allow_server
-"""
+""")
 
 
 # AccessTime support is being removed for now.
@@ -79,11 +85,6 @@ EXAMPLES:
 # December 16, 2010:
 #   ipa hbacrule-add-accesstime --time='absolute 201012161032 ~ 201012161033' test1
 
-
-from ipalib import api, errors
-from ipalib import AccessTime, Password, Str, StrEnum
-from ipalib.plugins.baseldap import *
-from ipalib import _, ngettext
 
 topic = ('hbac', _('Host-based access control commands'))
 
@@ -221,9 +222,7 @@ api.register(hbacrule)
 
 
 class hbacrule_add(LDAPCreate):
-    """
-    Create a new HBAC rule.
-    """
+    __doc__ = _('Create a new HBAC rule.')
 
     msg_summary = _('Added HBAC rule "%(value)s"')
 
@@ -236,9 +235,7 @@ api.register(hbacrule_add)
 
 
 class hbacrule_del(LDAPDelete):
-    """
-    Delete an HBAC rule.
-    """
+    __doc__ = _('Delete an HBAC rule.')
 
     msg_summary = _('Deleted HBAC rule "%(value)s"')
 
@@ -246,9 +243,7 @@ api.register(hbacrule_del)
 
 
 class hbacrule_mod(LDAPUpdate):
-    """
-    Modify an HBAC rule.
-    """
+    __doc__ = _('Modify an HBAC rule.')
 
     msg_summary = _('Modified HBAC rule "%(value)s"')
 
@@ -272,9 +267,7 @@ api.register(hbacrule_mod)
 
 
 class hbacrule_find(LDAPSearch):
-    """
-    Search for HBAC rules.
-    """
+    __doc__ = _('Search for HBAC rules.')
 
     msg_summary = ngettext(
         '%(count)d HBAC rule matched', '%(count)d HBAC rules matched', 0
@@ -284,17 +277,13 @@ api.register(hbacrule_find)
 
 
 class hbacrule_show(LDAPRetrieve):
-    """
-    Display the properties of an HBAC rule.
-    """
+    __doc__ = _('Display the properties of an HBAC rule.')
 
 api.register(hbacrule_show)
 
 
 class hbacrule_enable(LDAPQuery):
-    """
-    Enable an HBAC rule.
-    """
+    __doc__ = _('Enable an HBAC rule.')
 
     msg_summary = _('Enabled HBAC rule "%(value)s"')
     has_output = output.standard_value
@@ -321,9 +310,7 @@ api.register(hbacrule_enable)
 
 
 class hbacrule_disable(LDAPQuery):
-    """
-    Disable an HBAC rule.
-    """
+    __doc__ = _('Disable an HBAC rule.')
 
     msg_summary = _('Disabled HBAC rule "%(value)s"')
     has_output = output.standard_value
@@ -431,9 +418,8 @@ class hbacrule_remove_accesstime(LDAPQuery):
 
 
 class hbacrule_add_user(LDAPAddMember):
-    """
-    Add users and groups to an HBAC rule.
-    """
+    __doc__ = _('Add users and groups to an HBAC rule.')
+
     member_attributes = ['memberuser']
     member_count_out = ('%i object added.', '%i objects added.')
 
@@ -448,9 +434,8 @@ api.register(hbacrule_add_user)
 
 
 class hbacrule_remove_user(LDAPRemoveMember):
-    """
-    Remove users and groups from an HBAC rule.
-    """
+    __doc__ = _('Remove users and groups from an HBAC rule.')
+
     member_attributes = ['memberuser']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
@@ -458,9 +443,8 @@ api.register(hbacrule_remove_user)
 
 
 class hbacrule_add_host(LDAPAddMember):
-    """
-    Add target hosts and hostgroups to an HBAC rule
-    """
+    __doc__ = _('Add target hosts and hostgroups to an HBAC rule.')
+
     member_attributes = ['memberhost']
     member_count_out = ('%i object added.', '%i objects added.')
 
@@ -475,9 +459,8 @@ api.register(hbacrule_add_host)
 
 
 class hbacrule_remove_host(LDAPRemoveMember):
-    """
-    Remove target hosts and hostgroups from an HBAC rule.
-    """
+    __doc__ = _('Remove target hosts and hostgroups from an HBAC rule.')
+
     member_attributes = ['memberhost']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
@@ -485,9 +468,8 @@ api.register(hbacrule_remove_host)
 
 
 class hbacrule_add_sourcehost(LDAPAddMember):
-    """
-    Add source hosts and hostgroups from a HBAC rule.
-    """
+    __doc__ = _('Add source hosts and hostgroups from a HBAC rule.')
+
     member_attributes = ['sourcehost']
     member_count_out = ('%i object added.', '%i objects added.')
 
@@ -502,9 +484,8 @@ api.register(hbacrule_add_sourcehost)
 
 
 class hbacrule_remove_sourcehost(LDAPRemoveMember):
-    """
-    Remove source hosts and hostgroups from an HBAC rule.
-    """
+    __doc__ = _('Remove source hosts and hostgroups from an HBAC rule.')
+
     member_attributes = ['sourcehost']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
@@ -512,9 +493,8 @@ api.register(hbacrule_remove_sourcehost)
 
 
 class hbacrule_add_service(LDAPAddMember):
-    """
-    Add services to an HBAC rule.
-    """
+    __doc__ = _('Add services to an HBAC rule.')
+
     member_attributes = ['memberservice']
     member_count_out = ('%i object added.', '%i objects added.')
 
@@ -529,9 +509,8 @@ api.register(hbacrule_add_service)
 
 
 class hbacrule_remove_service(LDAPRemoveMember):
-    """
-    Remove service and service groups from an HBAC rule.
-    """
+    __doc__ = _('Remove service and service groups from an HBAC rule.')
+
     member_attributes = ['memberservice']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
