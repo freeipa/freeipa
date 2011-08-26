@@ -1606,6 +1606,7 @@ IPA.combobox_widget = function(spec) {
     that.editable = spec.editable;
     that.searchable = spec.searchable;
     that.list_size = spec.list_size || 5;
+    that.empty_option = spec.empty_option === undefined ? true : spec.empty_option;
 
     that.create = function(container) {
         that.widget_create(container);
@@ -1800,7 +1801,11 @@ IPA.entity_select_widget = function(spec) {
 
             that.remove_options();
 
-            that.create_option();
+            var selected_option = null;
+
+            if (that.empty_option) {
+                selected_option = that.create_option();
+            }
 
             var filter = that.filter.val();
             var entries = data.result.result;
@@ -1811,12 +1816,16 @@ IPA.entity_select_widget = function(spec) {
 
                 var option = that.create_option(value, value);
 
-                if (filter === value) {
-                    option.attr('selected', 'selected');
+                if (!selected_option || filter === value) {
+                    selected_option = option;
                 }
             }
 
-            that.set_dirty(that.test_dirty());
+            if (selected_option) {
+                selected_option.attr('selected', 'selected');
+                that.input.val(selected_option.val());
+                that.set_dirty(that.test_dirty());
+            }
         };
 
         command.execute();

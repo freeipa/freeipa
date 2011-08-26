@@ -136,6 +136,7 @@ IPA.entity_factories.host = function () {
                     name: 'dnszone',
                     label: IPA.metadata.objects.dnszone.label_singular,
                     editable: true,
+                    empty_option: false,
                     undo: false
                 },
                 {
