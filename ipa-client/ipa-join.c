@@ -213,6 +213,13 @@ connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
         goto fail;
     }
 
+    /* Don't do DNS canonicalization */
+    ret = ldap_set_option(ld, LDAP_OPT_X_SASL_NOCANON, LDAP_OPT_ON);
+    if (ret != LDAP_SUCCESS) {
+        fprintf(stderr, _("Unable to set LDAP_OPT_X_SASL_NOCANON\n"));
+        goto fail;
+    }
+
     ret = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
     if (ret != LDAP_SUCCESS) {
         fprintf(stderr, _("Unable to set LDAP version\n"));

@@ -577,6 +577,13 @@ static int ldap_set_keytab(krb5_context krbctx,
 		goto error_out;
 	}
 
+        /* Don't do DNS canonicalization */
+	ret = ldap_set_option(ld, LDAP_OPT_X_SASL_NOCANON, LDAP_OPT_ON);
+	if (ret != LDAP_SUCCESS) {
+	    fprintf(stderr, _("Unable to set LDAP_OPT_X_SASL_NOCANON\n"));
+	    goto error_out;
+	}
+
 	version = LDAP_VERSION3;
 	ret = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
         if (ret != LDAP_SUCCESS) {
