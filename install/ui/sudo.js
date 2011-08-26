@@ -574,12 +574,12 @@ IPA.sudo.options_section = function(spec) {
                 options: {
                     ipasudoopt: value
                 },
-                on_success: function() {
-                    that.facet.refresh();
+                on_success: function(data) {
+                    that.load(data.result.result);
                     dialog.close();
                 },
-                on_error: function() {
-                    that.facet.refresh();
+                on_error: function(data) {
+                    that.update();
                     dialog.close();
                 }
             });
@@ -618,12 +618,24 @@ IPA.sudo.options_section = function(spec) {
         dialog.execute = function() {
 
             var batch = IPA.batch_command({
-                on_success: function() {
-                    that.facet.refresh();
+                on_success: function(data) {
+                    //last successful result of batch results contains valid data
+                    var result;
+                    for(var i = data.result.results.length - 1; i > -1; i--) {
+                        result = data.result.results[i].result;
+                        if(result) break;
+                    }
+
+                    if(result) {
+                        that.load(result);
+                    } else {
+                        that.update();
+                    }
+
                     dialog.close();
                 },
-                on_error: function() {
-                    that.facet.refresh();
+                on_error: function(data) {
+                    that.update();
                     dialog.close();
                 }
             });
@@ -644,6 +656,19 @@ IPA.sudo.options_section = function(spec) {
         };
 
         dialog.open(that.container);
+    };
+
+    that.update = function() {
+        var command = IPA.command({
+            entity: that.facet.entity.name,
+            method: 'show',
+            args: that.facet.get_primary_key(true),
+            on_success: function(data) {
+                that.load(data.result.result);
+            }
+        });
+
+        command.execute();
     };
 
     /*initialization*/

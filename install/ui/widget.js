@@ -1471,11 +1471,11 @@ IPA.table_widget = function (spec) {
         that.empty();
 
         that.values = result[that.name];
-        if (!that.values) return;
-
-        for (var i=0; i<that.values.length; i++) {
-            var record = that.get_record(result, i);
-            that.add_record(record);
+        if (that.values) {
+            for (var i=0; i<that.values.length; i++) {
+                var record = that.get_record(result, i);
+                that.add_record(record);
+            }
         }
         that.unselect_all();
     };
