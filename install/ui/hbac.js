@@ -156,8 +156,8 @@ IPA.hbacrule_details_facet = function(spec) {
         section.radio({
             name: 'ipaenabledflag',
             options:[
-                {'value': 'TRUE',label: IPA.messages['true']},
-                {'value': 'FALSE',label:IPA.messages['false']}
+                { value: 'TRUE', label: IPA.get_message('true') },
+                { value: 'FALSE', label: IPA.get_message('false') }
             ]
         });
         return section;
