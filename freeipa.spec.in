@@ -110,8 +110,8 @@ Requires: selinux-policy >= 3.9.7-27
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.21
 %if 0%{?fedora} >= 15
-Requires: pki-ca >= 9.0.11
-Requires: pki-silent >= 9.0.11
+Requires: pki-ca >= 9.0.12
+Requires: pki-silent >= 9.0.12
 %else
 Requires: pki-ca >= 9.0.5
 Requires: pki-silent >= 9.0.5
@@ -538,6 +538,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Mon Aug 29 2011 Rob Crittenden <rcritten@redhat.com> - 2.1.0-2
+- Set min nvr of pki-ca to 9.0.12 for fix in BZ 700505
+
 * Tue Aug 23 2011 Jan Cholasta <jcholast@redhat.com> - 2.1.0-1
 - Add subscription-manager dependency for RHEL.
 
