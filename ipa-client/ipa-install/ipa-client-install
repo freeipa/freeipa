@@ -571,7 +571,7 @@ $)''', re.VERBOSE)
                     option, value = m.group('option', 'value')
                     if option is not None and option == 'HOSTNAME':
                         if value is not None and hostname != value:
-                            new_line = u'HOSTNAME=%s' % (hostname)
+                            new_line = u"HOSTNAME=%s\n" % (hostname)
                             statestore.backup_state('network', 'hostname', value)
                 new_config.write(new_line)
         new_config.flush()
@@ -779,10 +779,6 @@ def main():
     if hostname != hostname.lower():
         sys.exit('Invalid hostname \'%s\', must be lower-case.' % hostname)
 
-    if options.hostname:
-        # configure /etc/sysconfig/network to contain the hostname we set.
-        backup_and_replace_hostname(fstore, options.hostname)
-
     # Create the discovery instance
     ds = ipadiscovery.IPADiscovery()
 
@@ -878,6 +874,10 @@ def main():
     print "\n"
     if not options.unattended and not user_input("Continue to configure the system with these values?", False):
         return 1
+
+    if options.hostname:
+        # configure /etc/sysconfig/network to contain the hostname we set.
+        backup_and_replace_hostname(fstore, options.hostname)
 
     if not options.unattended:
         if options.principal is None and options.password is None and options.prompt_password is False:
