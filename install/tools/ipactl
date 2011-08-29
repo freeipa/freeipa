@@ -23,6 +23,7 @@ try:
     import os
     from ipaserver.install import service
     from ipaserver.install.dsinstance import config_dirname, realm_to_serverid
+    from ipaserver.install.installutils import is_ipa_configured
     from ipapython import sysrestore
     from ipapython import config
     from ipalib import api, errors
@@ -51,7 +52,7 @@ class IpactlError(StandardError):
         return self.msg
 
 def check_IPA_configuration():
-    if not sysrestore.FileStore('/var/lib/ipa/sysrestore').has_files():
+    if not is_ipa_configured():
         # LSB status code 6: program is not configured
         raise IpactlError("IPA is not configured " +
                           "(see man pages of ipa-server-install for help)", 6)

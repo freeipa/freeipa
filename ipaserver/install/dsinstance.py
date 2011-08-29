@@ -66,42 +66,24 @@ def schema_dirname(serverid):
     return config_dirname(serverid) + "/schema/"
 
 def erase_ds_instance_data(serverid):
-    try:
-        shutil.rmtree("/etc/dirsrv/slapd-%s" % serverid)
-    except:
-        pass
-    try:
-        shutil.rmtree("/usr/lib/dirsrv/slapd-%s" % serverid)
-    except:
-        pass
-    try:
-        shutil.rmtree("/usr/lib64/dirsrv/slapd-%s" % serverid)
-    except:
-        pass
-    try:
-        shutil.rmtree("/var/lib/dirsrv/slapd-%s" % serverid)
-    except:
-        pass
-    try:
-        shutil.rmtree("/var/lock/dirsrv/slapd-%s" % serverid)
-    except:
-        pass
-    try:
-        os.unlink("/var/run/slapd-%s.socket" % serverid)
-    except:
-        pass
-    try:
-        shutil.rmtree("/var/lib/dirsrv/scripts-%s" % serverid)
-    except:
-        pass
-    try:
-        os.unlink("/etc/dirsrv/ds.keytab")
-    except:
-        pass
-    try:
-        os.unlink("/etc/sysconfig/dirsrv-%s" % serverid)
-    except:
-        pass
+    installutils.rmtree("/etc/dirsrv/slapd-%s" % serverid)
+
+    installutils.rmtree("/usr/lib/dirsrv/slapd-%s" % serverid)
+
+    installutils.rmtree("/usr/lib64/dirsrv/slapd-%s" % serverid)
+
+    installutils.rmtree("/var/lib/dirsrv/slapd-%s" % serverid)
+
+    installutils.rmtree("/var/lock/dirsrv/slapd-%s" % serverid)
+
+    installutils.remove_file("/var/run/slapd-%s.socket" % serverid)
+
+    installutils.rmtree("/var/lib/dirsrv/scripts-%s" % serverid)
+
+    installutils.remove_file("/etc/dirsrv/ds.keytab")
+
+    installutils.remove_file("/etc/sysconfig/dirsrv-%s" % serverid)
+
 #    try:
 #        shutil.rmtree("/var/log/dirsrv/slapd-%s" % serverid)
 #    except:
@@ -114,6 +96,7 @@ def check_existing_installation():
 
     serverids = []
     for d in dirs:
+        logging.debug('Found existing 389-ds instance %s' % d)
         serverids.append(os.path.basename(d).split("slapd-", 1)[1])
 
     return serverids
@@ -674,10 +657,7 @@ class DsInstance(service.Service):
 
         if user_exists == False:
             pent = pwd.getpwnam(DS_USER)
-            try:
-                os.unlink("/var/tmp/ldap_%d" % pent.pw_uid)
-            except:
-                pass
+            installutils.remove_file("/var/tmp/ldap_%d" % pent.pw_uid)
             try:
                 ipautil.run(["/usr/sbin/userdel", DS_USER])
             except ipautil.CalledProcessError, e:
