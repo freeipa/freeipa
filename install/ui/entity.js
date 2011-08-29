@@ -138,8 +138,7 @@ IPA.facet = function (spec) {
             that.entity.redirect_facet);
     };
 
-    var redirect_errors =
-        ["IPA Error 4001"];
+    var redirect_errors = [4001];
 
     that.on_error = function(xhr, text_status, error_thrown) {
 
@@ -147,7 +146,7 @@ IPA.facet = function (spec) {
           as there is nothing any other facet can do either. */
         if (that.entity.redirect_facet) {
             for (var i=0; i<redirect_errors.length; i++) {
-                if (error_thrown.name ===  redirect_errors[i]) {
+                if (error_thrown.code === redirect_errors[i]) {
                     that.redirect();
                     return;
                 }

@@ -76,7 +76,7 @@ var IPA = ( function () {
 
                 // On IE the request is missing after authentication,
                 // so the request needs to be resent.
-                if (error_thrown.name == 'IPA Error 909') {
+                if (error_thrown.code === 909) {
                     batch.execute();
 
                 } else {
@@ -208,6 +208,35 @@ var IPA = ( function () {
         }
     };
 
+    that.get_message = function(id, default_message) {
+        var messages = IPA.messages;
+        var keys = id.split(/\./);
+
+        for (var i=0; messages && i<keys.length; i++) {
+            var key = keys[i];
+            var value = messages[key];
+
+            // undefined key => not found
+            if (!value) return default_message;
+
+            // if value is string
+            if (typeof value === 'string') {
+
+                // and it's the last key => found
+                if (i === keys.length-1) return value;
+
+                // otherwise value should have been a container => not found
+                return default_message;
+            }
+
+            // value is container => check next key
+            messages = value;
+        }
+
+        // no more keys/messages => not found
+        return default_message;
+    };
+
     return that;
 }());
 
@@ -242,8 +271,7 @@ IPA.command = function(spec) {
 
     that.retry = typeof spec.retry == 'undefined' ? true : spec.retry;
 
-    that.error_message = spec.error_message || (IPA.messages.dialogs ?
-            IPA.messages.dialogs.batch_error_message : 'Some operations failed.');
+    that.error_message = spec.error_message || IPA.get_message('dialogs.batch_error_message', 'Some operations failed.');
 
     that.get_command = function() {
         return (that.entity ? that.entity+'_' : '') + that.method;
@@ -299,22 +327,19 @@ IPA.command = function(spec) {
 
             if (xhr.status === 401) {
                 error_thrown = {}; // error_thrown is string
-                error_thrown.name = 'Kerberos ticket no longer valid.';
-                if (IPA.messages && IPA.messages.ajax) {
-                    error_thrown.message = IPA.messages.ajax["401"];
-                } else {
-                    error_thrown.message =
-                        "Your kerberos ticket is no longer valid. "+
-                        "Please run kinit and then click 'Retry'. "+
-                        "If this is your first time running the IPA Web UI "+
-                        "<a href='/ipa/config/unauthorized.html'>"+
-                        "follow these directions</a> to configure your browser.";
-                }
+                error_thrown.name = IPA.get_message('ajax.401.title',
+                    'Kerberos ticket no longer valid.');
+                error_thrown.message = IPA.get_message('ajax.401.message',
+                    "Your kerberos ticket is no longer valid. "+
+                    "Please run kinit and then click 'Retry'. "+
+                    "If this is your first time running the IPA Web UI "+
+                    "<a href='/ipa/config/unauthorized.html'>"+
+                    "follow these directions</a> to configure your browser.");
 
             } else if (!error_thrown) {
                 error_thrown = {
-                    name: xhr.responseText || 'Unknown Error',
-                    message: xhr.statusText || 'Unknown Error'
+                    name: xhr.responseText || IPA.get_message('errors.unknown_error', 'Unknown Error'),
+                    message: xhr.statusText || IPA.get_message('errors.unknown_error', 'Unknown Error')
                 };
 
             } else if (typeof error_thrown == 'string') {
@@ -338,15 +363,16 @@ IPA.command = function(spec) {
             if (!data) {
                 // error_handler() calls IPA.hide_activity_icon()
                 error_handler.call(this, xhr, text_status, /* error_thrown */ {
-                    name: 'HTTP Error '+xhr.status,
+                    name: IPA.get_message('errors.http_error', 'HTTP Error')+' '+xhr.status,
                     url: this.url,
-                    message: data ? xhr.statusText : 'No response'
+                    message: data ? xhr.statusText : IPA.get_message('errors.no_response', 'No response')
                 });
 
             } else if (data.error) {
                 // error_handler() calls IPA.hide_activity_icon()
                 error_handler.call(this, xhr, text_status,  /* error_thrown */ {
-                    name: 'IPA Error '+data.error.code,
+                    name: IPA.get_message('errors.ipa_error', 'IPA Error')+' '+data.error.code,
+                    code: data.error.code,
                     message: data.error.message,
                     data: data
                 });
@@ -361,8 +387,7 @@ IPA.command = function(spec) {
                         xhr: xhr,
                         text_status: text_status,
                         error_thrown: {
-                            name: IPA.messages.dialogs ? IPA.messages.dialogs.batch_error_title :
-                                    'Operations Error',
+                            name: IPA.get_message('dialogs.batch_error_title', 'Operations Error'),
                             message: that.error_message
                         },
                         command: that,
@@ -416,7 +441,7 @@ IPA.command = function(spec) {
                     var member = result.failed[association][member_name];
                     for(var i = 0; i < member.length; i++) {
                         if(member[i].length > 1) {
-                            var name = 'IPA Error';
+                            var name = IPA.get_message('errors.ipa_error', 'IPA Error');
                             var message = member[i][1];
                             if(member[i][0])
                                 message = member[i][0] + ': ' + message;
@@ -502,8 +527,8 @@ IPA.batch_command = function (spec) {
                     var message = '';
 
                     if (!result) {
-                        name = 'Internal Error '+xhr.status;
-                        message = result ? xhr.statusText : "Internal error";
+                        name = IPA.get_message('errors.internal_error', 'Internal Error')+' '+xhr.status;
+                        message = result ? xhr.statusText : IPA.get_message('errors.internal_error', 'Internal Error');
 
                         that.errors.add(command, name, message, text_status);
 
@@ -518,7 +543,7 @@ IPA.batch_command = function (spec) {
                         );
 
                     } else if (result.error) {
-                        name = 'IPA Error ' + (result.error.code || '');
+                        name = IPA.get_message('errors.ipa_error', 'IPA Error')+(result.error.code ? ' '+result.error.code : '');
                         message = result.error.message || result.error;
 
                         that.errors.add(command, name, message, text_status);
@@ -529,6 +554,7 @@ IPA.batch_command = function (spec) {
                             text_status,
                             {
                                 name: name,
+                                code: result.error.code,
                                 message: message,
                                 data: result
                             }
@@ -548,8 +574,7 @@ IPA.batch_command = function (spec) {
                         xhr: xhr,
                         text_status: text_status,
                         error_thrown: {
-                            name: IPA.messages.dialogs ? IPA.messages.dialogs.batch_error_title :
-                                    'Operations Error',
+                            name: IPA.get_message('dialogs.batch_error_title', 'Operations Error'),
                             message: that.error_message
                         },
                         command: that,
@@ -728,7 +753,7 @@ IPA.error_dialog = function(spec) {
     that.create = function() {
         if (that.error_thrown.url) {
             $('<p/>', {
-                text: 'URL: '+that.error_thrown.url
+                text: IPA.get_message('errors.url', 'URL')+': '+that.error_thrown.url
             }).appendTo(that.container);
         }
 
@@ -794,21 +819,21 @@ IPA.error_dialog = function(spec) {
         var label;
 
         if(that.visible_buttons.indexOf('retry') > -1) {
-            label = IPA.messages.buttons ? IPA.messages.buttons.retry : 'Retry';
+            label = IPA.get_message('buttons.retry', 'Retry');
             that.add_button(label, function() {
                 that.on_retry();
             });
         }
 
         if(that.visible_buttons.indexOf('ok') > -1) {
-            label = IPA.messages.buttons ? IPA.messages.buttons.ok : 'OK';
+            label = IPA.get_message('buttons.ok', 'OK');
             that.add_button(label, function() {
                 that.on_ok();
             });
         }
 
         if(that.visible_buttons.indexOf('cancel') > -1) {
-            label = IPA.messages.buttons ? IPA.messages.buttons.cancel : 'Cancel';
+            label = IPA.get_message('buttons.cancel', 'Cancel');
             that.add_button(label, function() {
                 that.on_cancel();
             });
