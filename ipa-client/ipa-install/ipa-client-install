@@ -52,6 +52,11 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
+CLIENT_INSTALL_ERROR = 1
+CLIENT_NOT_CONFIGURED = 2
+CLIENT_ALREADY_CONFIGURED = 3
+CLIENT_UNINSTALL_ERROR = 4 # error after restoring files/state
+
 client_nss_nickname_format = 'IPA Machine Certificate - %s'
 
 def parse_options():
@@ -139,17 +144,21 @@ def nickname_exists(nickname):
         else:
             return False
 
-def uninstall(options, env):
+def emit_quiet(quiet, message):
+    if not quiet:
+        print message
+
+def uninstall(options, env, quiet=False):
 
     if not fstore.has_files():
         print "IPA client is not configured on this system."
-        return 2
+        return CLIENT_NOT_CONFIGURED
 
     server_fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
     if server_fstore.has_files() and not options.on_master:
         print "IPA client is configured as a part of IPA server on this system."
         print "Refer to ipa-server-install for uninstallation."
-        return 2
+        return CLIENT_NOT_CONFIGURED
 
     sssdconfig = SSSDConfig.SSSDConfig()
     sssdconfig.import_config()
@@ -178,7 +187,7 @@ def uninstall(options, env):
         try:
             run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", "IPA CA"])
         except Exception, e:
-            print "Failed to remove IPA CA from /etc/pki/nssdb: %s" % str(e)
+            emit_quiet(quiet, "Failed to remove IPA CA from /etc/pki/nssdb: %s" % str(e))
 
     # Always start certmonger. We can't untrack something if it isn't
     # running
@@ -201,7 +210,7 @@ def uninstall(options, env):
         try:
             run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", client_nss_nickname])
         except Exception, e:
-            print "Failed to remove %s from /etc/pki/nssdb: %s" % (client_nss_nickname, str(e))
+            emit_quiet(quiet, "Failed to remove %s from /etc/pki/nssdb: %s" % (client_nss_nickname, str(e)))
 
     try:
         ipautil.service_stop('certmonger')
@@ -214,37 +223,40 @@ def uninstall(options, env):
     try:
         ipautil.chkconfig_off('certmonger')
     except Exception, e:
-        print "Failed to disable automatic startup of the certmonger daemon"
+        emit_quiet(quiet, "Failed to disable automatic startup of the certmonger daemon")
         logging.error("Failed to disable automatic startup of the certmonger daemon: %s" % str(e))
 
-    if not options.on_master:
-        print "Unenrolling client from IPA server"
+    if not options.on_master and os.path.exists('/etc/ipa/default.conf'):
+        emit_quiet(quiet, "Unenrolling client from IPA server")
         join_args = ["/usr/sbin/ipa-join", "--unenroll", "-h", hostname]
         (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env)
         if returncode != 0:
-            print "Unenrolling host failed: %s" % stderr
+            emit_quiet(quiet, "Unenrolling host failed: %s" % stderr)
 
-    print "Removing Kerberos service principals from /etc/krb5.keytab"
-    try:
-        parser = RawConfigParser()
-        fp = open('/etc/ipa/default.conf', 'r')
-        parser.readfp(fp)
-        fp.close()
-        realm = parser.get('global', 'realm')
-        run(["/usr/sbin/ipa-rmkeytab", "-k", "/etc/krb5.keytab", "-r", realm])
-    except Exception, e:
-        print "Failed to clean up /etc/krb5.keytab"
-        logging.error("Failed to remove Kerberos service principals: %s" % str(e))
+    if os.path.exists('/etc/ipa/default.conf'):
+        emit_quiet(quiet, "Removing Kerberos service principals from /etc/krb5.keytab")
+        try:
+            parser = RawConfigParser()
+            fp = open('/etc/ipa/default.conf', 'r')
+            parser.readfp(fp)
+            fp.close()
+            realm = parser.get('global', 'realm')
+            run(["/usr/sbin/ipa-rmkeytab", "-k", "/etc/krb5.keytab", "-r", realm])
+        except Exception, e:
+            emit_quiet(quiet, "Failed to clean up /etc/krb5.keytab")
+            logging.debug("Failed to remove Kerberos service principals: %s" % str(e))
 
-    print "Disabling client Kerberos and LDAP configurations"
+    emit_quiet(quiet, "Disabling client Kerberos and LDAP configurations")
     try:
         run(["/usr/sbin/authconfig", "--disableldap", "--disablekrb5", "--disablesssd", "--disablesssdauth", "--disablemkhomedir", "--update"])
     except Exception, e:
-        print "Failed to remove krb5/LDAP configuration. " +str(e)
-        sys.exit(1)
+        emit_quiet(quiet, "Failed to remove krb5/LDAP configuration. " +str(e))
+        return CLIENT_INSTALL_ERROR
 
-    print "Restoring client configuration files"
-    fstore.restore_all_files()
+    if fstore.has_files():
+        emit_quiet(quiet, "Restoring client configuration files")
+        fstore.restore_all_files()
+
     old_hostname = statestore.restore_state('network','hostname')
     if old_hostname is not None and old_hostname != hostname:
         try:
@@ -256,12 +268,12 @@ def uninstall(options, env):
         try:
             ipautil.service_restart('nscd')
         except:
-            print "Failed to restart start the NSCD daemon"
+            emit_quiet(quiet, "Failed to restart start the NSCD daemon")
 
         try:
             ipautil.chkconfig_on('nscd')
         except:
-            print "Failed to configure automatic startup of the NSCD daemon"
+            emit_quiet(quiet, "Failed to configure automatic startup of the NSCD daemon")
     else:
         # this is optional service, just log
         logging.info("NSCD daemon is not installed, skip configuration")
@@ -270,32 +282,34 @@ def uninstall(options, env):
         try:
             ipautil.service_stop('nslcd')
         except:
-            print "Failed to stop the NSLCD daemon"
+            emit_quiet(quiet, "Failed to stop the NSLCD daemon")
 
         try:
             ipautil.chkconfig_off('nslcd')
         except:
-            print "Failed to disable automatic startup of the NSLCD daemon"
+            emit_quiet(quiet, "Failed to disable automatic startup of the NSLCD daemon")
     else:
         # this is optional service, just log
         logging.info("NSLCD daemon is not installed, skip configuration")
 
     if not options.unattended:
-        print "The original nsswitch.conf configuration has been restored."
-        print "You may need to restart services or reboot the machine."
+        emit_quiet(quiet, "The original nsswitch.conf configuration has been restored.")
+        emit_quiet(quiet, "You may need to restart services or reboot the machine.")
         if not options.on_master:
             if user_input("Do you want to reboot the machine?", False):
                 try:
                     run(["/usr/bin/reboot"])
                 except Exception, e:
-                    print "Reboot command failed to exceute. " + str(e)
-                    sys.exit(1)
+                    emit_quiet(quiet, "Reboot command failed to exceute. " + str(e))
+                    return CLIENT_UNINSTALL_ERROR
 
     # Remove the IPA configuration file
     try:
         os.remove("/etc/ipa/default.conf")
     except:
         pass
+
+    return 0
 
 def configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server):
     ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
@@ -544,7 +558,7 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options):
         except:
             print "certmonger request for host certificate failed"
 
-def backup_and_replace_hostname(fstore, hostname):
+def backup_and_replace_hostname(fstore, statestore, hostname):
     # TODO: this code is for Red Hat-based systems
     #       it need to be rewritten for cross-paltform support
     #       so that different configuration backends would be possible
@@ -742,26 +756,8 @@ def client_dns(server, hostname, dns_updates=False):
     if dns_updates or not dns_ok:
         update_dns(server, hostname)
 
-def main():
-    safe_options, options = parse_options()
-    logging_setup(options)
-    logging.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
-    logging.debug("missing options might be asked for interactively later\n")
+def install(options, env, fstore, statestore):
     dnsok = False
-    env={"PATH":"/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
-
-    global fstore
-    fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
-
-    global statestore
-    statestore = sysrestore.StateFile('/var/lib/ipa-client/sysrestore')
-
-    if options.uninstall:
-        return uninstall(options, env)
-
-    if fstore.has_files():
-        sys.exit("IPA client is already configured on this system.\n"
-                + "If you want to reinstall the IPA client, uninstall it first.")
 
     cli_domain = None
     cli_server = None
@@ -770,14 +766,16 @@ def main():
     subject_base = None
 
     if options.unattended and (options.password is None and options.principal is None and options.prompt_password is False) and not options.on_master:
-        sys.exit("One of password and principal are required.")
+        print "One of password and principal are required."
+        return CLIENT_INSTALL_ERROR
 
     if options.hostname:
         hostname = options.hostname
     else:
         hostname = socket.getfqdn()
     if hostname != hostname.lower():
-        sys.exit('Invalid hostname \'%s\', must be lower-case.' % hostname)
+        print 'Invalid hostname \'%s\', must be lower-case.' % hostname
+        return CLIENT_INSTALL_ERROR
 
     # Create the discovery instance
     ds = ipadiscovery.IPADiscovery()
@@ -787,17 +785,17 @@ def main():
     if ret == ipadiscovery.BAD_HOST_CONFIG:
         print >>sys.stderr, "Can't get the fully qualified name of this host"
         print >>sys.stderr, "Check that the client is properly configured"
-        return ret
+        return CLIENT_INSTALL_ERROR
     if ret == ipadiscovery.NOT_FQDN:
         print >>sys.stderr, "%s is not a fully-qualified hostname" % hostname
-        return ret
+        return CLIENT_INSTALL_ERROR
     if ret == ipadiscovery.NO_LDAP_SERVER or not ds.getDomainName():
         logging.debug("Domain not found")
         if options.domain:
             cli_domain = options.domain
         elif options.unattended:
             print >>sys.stderr, "Unable to discover domain, not provided on command line"
-            return ret
+            return CLIENT_INSTALL_ERROR
         else:
             print "DNS discovery failed to determine your DNS domain"
             cli_domain = user_input("Provide the domain name of your IPA server (ex: example.com)", allow_empty = False)
@@ -815,7 +813,7 @@ def main():
             cli_server = options.server
         elif options.unattended:
             print >>sys.stderr, "Unable to find IPA Server to join"
-            return ret
+            return CLIENT_INSTALL_ERROR
         else:
             print "DNS discovery failed to find the IPA Server"
             cli_server = user_input("Provide your IPA server name (ex: ipa.example.com)", allow_empty = False)
@@ -830,12 +828,12 @@ def main():
 
     if ret == ipadiscovery.NOT_IPA_SERVER:
         print >>sys.stderr, "%s is not an IPA v2 Server." % cli_server
-        return ret
+        return CLIENT_INSTALL_ERROR
     if ret != 0:
         print >>sys.stderr, "Failed to verify that "+cli_server+" is an IPA Server."
         print >>sys.stderr, "This may mean that the remote server is not up or is not reachable"
         print >>sys.stderr, "due to network or firewall settings."
-        return ret
+        return CLIENT_INSTALL_ERROR
 
     cli_kdc = ds.getKDCName()
     if dnsok and not cli_kdc:
@@ -852,12 +850,12 @@ def main():
         print "access the discovered server for all operation and will not fail over to"
         print "other servers in case of failure.\n"
         if not user_input("Proceed with fixed values and no DNS discovery?", False):
-            return ret
+            return CLIENT_INSTALL_ERROR
 
     if options.realm_name and options.realm_name != ds.getRealmName():
         if not options.unattended:
             print >>sys.stderr, "ERROR: The provided realm name: ["+options.realm_name+"] does not match with the discovered one: ["+ds.getRealmName()+"]\n"
-        return -3
+        return CLIENT_INSTALL_ERROR
 
     cli_realm = ds.getRealmName()
     logging.debug("will use cli_realm: %s\n", cli_realm)
@@ -873,11 +871,11 @@ def main():
 
     print "\n"
     if not options.unattended and not user_input("Continue to configure the system with these values?", False):
-        return 1
+        return CLIENT_INSTALL_ERROR
 
     if options.hostname:
         # configure /etc/sysconfig/network to contain the hostname we set.
-        backup_and_replace_hostname(fstore, options.hostname)
+        backup_and_replace_hostname(fstore, statestore, options.hostname)
 
     if not options.unattended:
         if options.principal is None and options.password is None and options.prompt_password is False:
@@ -895,7 +893,8 @@ def main():
     try:
         run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % cli_server])
     except CalledProcessError, e:
-        sys.exit('Retrieving CA from %s failed.\n%s' % (cli_server, str(e)))
+        print 'Retrieving CA from %s failed.\n%s' % (cli_server, str(e))
+        return CLIENT_INSTALL_ERROR
 
     if not options.on_master:
         # First test out the kerberos configuration
@@ -903,7 +902,8 @@ def main():
             (krb_fd, krb_name) = tempfile.mkstemp()
             os.close(krb_fd)
             if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, krb_name):
-                sys.exit("Test kerberos configuration failed")
+                print "Test kerberos configuration failed"
+                return CLIENT_INSTALL_ERROR
             env['KRB5_CONFIG'] = krb_name
             join_args = ["/usr/sbin/ipa-join", "-s", cli_server]
             if options.debug:
@@ -922,24 +922,28 @@ def main():
                     if not options.unattended:
                         stdin = getpass.getpass("Password for %s: " % principal)
                         if not stdin:
-                            sys.exit("Password must be provided for %s. " %
-                                principal)
+                            print "Password must be provided for %s. " % \
+                                principal
+                            return CLIENT_INSTALL_ERROR
                     else:
                         if sys.stdin.isatty():
-                            sys.exit("Password must be provided in non-interactive mode.\nThis can be done via echo password | ipa-client-install ... or\nwith the -w option.")
+                            print "Password must be provided in non-interactive mode.\nThis can be done via echo password | ipa-client-install ... or\nwith the -w option."
+                            return CLIENT_INSTALL_ERROR
                         else:
                             stdin = sys.stdin.readline()
 
                 (stderr, stdout, returncode) = run(["kinit", principal], raiseonerr=False, stdin=stdin, env=env)
                 print ""
                 if returncode != 0:
-                    sys.exit(stdout)
+                    print stdout
+                    return CLIENT_INSTALL_ERROR
             elif options.password:
                 join_args.append("-w")
                 join_args.append(options.password)
             elif options.prompt_password:
                 if options.unattended:
-                    sys.exit("Password must be provided in non-interactive mode")
+                    print "Password must be provided in non-interactive mode"
+                    return CLIENT_INSTALL_ERROR
                 password = getpass.getpass("Password: ")
                 join_args.append("-w")
                 join_args.append(password)
@@ -950,7 +954,7 @@ def main():
             if returncode != 0:
                 print >>sys.stderr, "Joining realm failed: %s" % stderr,
                 if not options.force:
-                    return 1
+                    return CLIENT_INSTALL_ERROR
                 print "  Use ipa-getkeytab to obtain a host principal for this server."
             else:
                 print "Enrolled in IPA realm %s" % cli_realm
@@ -976,7 +980,7 @@ def main():
     fstore.backup_file("/etc/sssd/sssd.conf")
     if options.sssd:
         if configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
-            return 1
+            return CLIENT_INSTALL_ERROR
         print "Configured /etc/sssd/sssd.conf"
 
     # Add the CA to the default NSS database and trust it
@@ -987,7 +991,7 @@ def main():
         # Configure krb5.conf
         fstore.backup_file("/etc/krb5.conf")
         if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, "/etc/krb5.conf"):
-            return 1
+            return CLIENT_INSTALL_ERROR
 
         print "Configured /etc/krb5.conf for IPA realm " + cli_realm
 
@@ -1054,7 +1058,7 @@ def main():
         for configurer in [configure_ldap_conf, configure_nslcd_conf]:
             (retcode, conf, filename) = configurer(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options)
             if retcode:
-                return 1
+                return CLIENT_INSTALL_ERROR
             if conf:
                 print "%s configured using configuration file %s" % (conf, filename)
 
@@ -1083,7 +1087,7 @@ def main():
             try:
                 hardcode_ldap_server(cli_server)
             except Exception, e:
-                sys.exit("Adding hardcoded server name to /etc/ldap.conf failed: " + str(e))
+                print "Adding hardcoded server name to /etc/ldap.conf failed: " + str(e)
 
     if options.conf_ntp and not options.on_master:
         if options.ntp_server:
@@ -1097,11 +1101,42 @@ def main():
 
     return 0
 
+def main():
+    safe_options, options = parse_options()
+
+    logging_setup(options)
+    logging.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
+    logging.debug("missing options might be asked for interactively later\n")
+    if not os.getegid() == 0:
+        sys.exit("\nYou must be root to run ipa-client-install.\n")
+
+    env={"PATH":"/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
+
+    global fstore
+    fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
+
+    global statestore
+    statestore = sysrestore.StateFile('/var/lib/ipa-client/sysrestore')
+
+    if options.uninstall:
+        return uninstall(options, env)
+
+    if fstore.has_files():
+        print "IPA client is already configured on this system.\n" \
+              "If you want to reinstall the IPA client, uninstall it first."
+        return CLIENT_ALREADY_CONFIGURED
+
+    rval = install(options, env, fstore, statestore)
+    if rval == CLIENT_INSTALL_ERROR:
+        if options.force:
+            print "Installation failed. Force set so not rolling back changes."
+        else:
+            print "Installation failed. Rolling back changes."
+            options.unattended = True
+            uninstall(options, env, quiet=True)
+
 try:
     if __name__ == "__main__":
-        if not os.getegid() == 0:
-            sys.exit("\nYou must be root to run ipa-client-install.\n")
-
         sys.exit(main())
 except SystemExit, e:
     sys.exit(e)
