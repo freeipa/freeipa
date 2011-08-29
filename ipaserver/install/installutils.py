@@ -30,9 +30,13 @@ import fcntl
 import netaddr
 import time
 import tempfile
+import shutil
 from ConfigParser import SafeConfigParser
 
 from ipapython import ipautil, dnsclient, sysrestore
+
+# Used to determine install status
+IPA_MODULES = ['httpd', 'ipa_kpasswd', 'dirsrv', 'pki-cad', 'pkids', 'install', 'krb5kdc', 'ntpd', 'named']
 
 class HostnameLocalhost(Exception):
     pass
@@ -508,3 +512,48 @@ def check_server_configuration():
     server_fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
     if not server_fstore.has_files():
         raise RuntimeError("IPA is not configured on this system.")
+
+def remove_file(filename):
+    """
+    Remove a file and log any exceptions raised.
+    """
+    try:
+        if os.path.exists(filename):
+            os.unlink(filename)
+    except Exception, e:
+        logging.error('Error removing %s: %s' % (filename, str(e)))
+
+def rmtree(path):
+    """
+    Remove a directory structure and log any exceptions raised.
+    """
+    try:
+        if os.path.exists(path):
+            shutil.rmtree(path)
+    except Exception, e:
+        logging.error('Error removing %s: %s' % (path, str(e)))
+
+def is_ipa_configured():
+    """
+    Using the state and index install files determine if IPA is already
+    configured.
+    """
+    installed = False
+
+    sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
+    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+
+    for module in IPA_MODULES:
+        if sstore.has_state(module):
+            logging.debug('%s is configured' % module)
+            installed = True
+        else:
+            logging.debug('%s is not configured' % module)
+
+    if fstore.has_files():
+        logging.debug('filestore has files')
+        installed = True
+    else:
+        logging.debug('filestore is tracking no files')
+
+    return installed

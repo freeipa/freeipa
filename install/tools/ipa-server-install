@@ -428,6 +428,8 @@ def check_dirsrv(unattended):
 
 def uninstall():
 
+    rv = 0
+
     print "Shutting down all IPA services"
     try:
         (stdout, stderr, rc) = run(["/usr/sbin/ipactl", "stop"], raiseonerr=False)
@@ -441,6 +443,7 @@ def uninstall():
             logging.debug("ipa-client-install returned %d" % rc)
             raise RuntimeError(stdout)
     except Exception, e:
+        rv = 1
         print "Uninstall of client side components failed!"
         print "ipa-client-install returned: " + str(e)
 
@@ -474,12 +477,32 @@ def uninstall():
                 ipautil.run(["/usr/sbin/groupdel", dsinstance.DS_GROUP])
             except ipautil.CalledProcessError, e:
                 logging.critical("failed to delete group %s" % e)
+                rv = 1
         except KeyError:
             logging.info("Group %s already removed", dsinstance.DS_GROUP)
 
     service.chkconfig_off('ipa')
 
-    return 0
+    # Now for some sanity checking. Make sure everything was really
+    # uninstalled.
+    serverids = dsinstance.check_existing_installation()
+    if len(serverids):
+        rv = 1
+        logging.error('IPA cannot be re-installed without removing existing 389-ds instance(s)')
+
+    if fstore.has_files():
+        logging.error('Some files have not been restored, see /var/lib/ipa/sysrestore/sysrestore.index')
+    has_state = False
+    for module in IPA_MODULES: # from installutils
+        if sstore.has_state(module):
+            logging.error('Some installation state for %s has not been restored, see /var/lib/ipa/sysrestore/sysrestore.state' % module)
+            has_state = True
+            rv = 1
+
+    if has_state:
+        logging.warn('Some installation state has not been restored.\nThis will cause re-installation to fail.\nIt should be safe to remove /var/lib/ipa/sysrestore.state but it may\nmean your system hasn\'t be restored to its pre-installation state.')
+
+    return rv
 
 
 def set_subject_in_config(realm_name, dm_password, suffix, subject_base):
@@ -518,7 +541,7 @@ def main():
     else:
         standard_logging_setup("/var/log/ipaserver-install.log", options.debug)
         print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
-        if not options.external_ca and not options.external_cert_file and (dsinstance.DsInstance().is_configured() or cainstance.CADSInstance().is_configured()):
+        if not options.external_ca and not options.external_cert_file and is_ipa_configured():
             sys.exit("IPA server is already configured on this system.\n"
                      + "If you want to reinstall the IPA server please uninstall it first.")
 
