@@ -188,7 +188,6 @@ class test_netgroup(Declarative):
                     cn=[hostgroup1],
                     objectclass=objectclasses.hostgroup,
                     description=[u'Test hostgroup 1'],
-                    memberof_netgroup=[hostgroup1],
                     mepmanagedentry=lambda x: [DN(i) for i in x] == \
                         [DN(('cn',hostgroup1),('cn','ng'),('cn','alt'),
                             api.env.basedn)],
