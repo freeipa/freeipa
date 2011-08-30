@@ -38,6 +38,10 @@ IPA.entity_factories.hostgroup = function() {
             associator: IPA.serial_associator
         }).
         association_facet({
+            name: 'memberof_netgroup',
+            associator: IPA.serial_associator
+        }).
+        association_facet({
             name: 'memberof_hbacrule',
             associator: IPA.serial_associator,
             add_method: 'add_host',
