@@ -356,13 +356,14 @@ class DsInstance(service.Service):
         self.sub_dict['BASEDC'] = self.realm_name.split('.')[0].lower()
         base_txt = ipautil.template_str(BASE_TEMPLATE, self.sub_dict)
         logging.debug(base_txt)
-        old_umask = os.umask(022)   # must be readable for dirsrv
-        try:
-            base_fd = open("/var/lib/dirsrv/boot.ldif", "w")
-            base_fd.write(base_txt)
-            base_fd.close()
-        finally:
-            os.umask(old_umask)
+
+        target_fname = '/var/lib/dirsrv/boot.ldif'
+        base_fd = open(target_fname, "w")
+        base_fd.write(base_txt)
+        base_fd.close()
+
+        # Must be readable for dirsrv
+        os.chmod(target_fname, 0440)
 
         inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
         logging.debug("writing inf template")

@@ -282,13 +282,15 @@ class KrbInstance(service.Service):
     def __add_default_acis(self):
         self._ldap_mod("default-aci.ldif", self.sub_dict)
 
-    def __template_file(self, path):
+    def __template_file(self, path, chmod=0644):
         template = os.path.join(ipautil.SHARE_DIR, os.path.basename(path) + ".template")
         conf = ipautil.template_file(template, self.sub_dict)
         self.fstore.backup_file(path)
         fd = open(path, "w+")
         fd.write(conf)
         fd.close()
+        if chmod is not None:
+            os.chmod(path, chmod)
 
     def __init_ipa_kdb(self):
         #populate the directory with the realm structure
@@ -301,7 +303,7 @@ class KrbInstance(service.Service):
             print "Failed to initialize the realm container"
 
     def __configure_instance(self):
-        self.__template_file("/var/kerberos/krb5kdc/kdc.conf")
+        self.__template_file("/var/kerberos/krb5kdc/kdc.conf", chmod=None)
         self.__template_file("/etc/krb5.conf")
         self.__template_file("/usr/share/ipa/html/krb5.ini")
         self.__template_file("/usr/share/ipa/html/krb.con")
