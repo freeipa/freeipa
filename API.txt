@@ -1486,7 +1486,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: hostgroup_find
-args: 1,17,4
+args: 1,19,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='hostgroup_name', label=Gettext('Host-group', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -1501,6 +1501,8 @@ option: List('hostgroup?', cli_name='hostgroups', label=Gettext('host group', do
 option: List('no_hostgroup?', cli_name='no_hostgroups', label=Gettext('host group', domain='ipa', localedir=None), multivalue=True)
 option: List('in_hostgroup?', cli_name='in_hostgroups', label=Gettext('host group', domain='ipa', localedir=None), multivalue=True)
 option: List('not_in_hostgroup?', cli_name='not_in_hostgroups', label=Gettext('host group', domain='ipa', localedir=None), multivalue=True)
+option: List('in_netgroup?', cli_name='in_netgroups', label=Gettext('netgroup', domain='ipa', localedir=None), multivalue=True)
+option: List('not_in_netgroup?', cli_name='not_in_netgroups', label=Gettext('netgroup', domain='ipa', localedir=None), multivalue=True)
 option: List('in_hbacrule?', cli_name='in_hbacrules', label=Gettext('HBAC rule', domain='ipa', localedir=None), multivalue=True)
 option: List('not_in_hbacrule?', cli_name='not_in_hbacrules', label=Gettext('HBAC rule', domain='ipa', localedir=None), multivalue=True)
 option: List('in_sudorule?', cli_name='in_sudorules', label=Gettext('sudo rule', domain='ipa', localedir=None), multivalue=True)

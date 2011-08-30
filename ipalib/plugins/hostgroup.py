@@ -65,7 +65,7 @@ class hostgroup(LDAPObject):
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'member': ['host', 'hostgroup'],
-        'memberof': ['hostgroup', 'hbacrule', 'sudorule'],
+        'memberof': ['hostgroup', 'netgroup', 'hbacrule', 'sudorule'],
         'memberindirect': ['host', 'hostgroup'],
         'memberofindirect': ['hostgroup', 'hbacrule', 'sudorule'],
     }
