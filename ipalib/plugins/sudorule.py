@@ -23,6 +23,8 @@ from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
 __doc__ = _("""
+Sudo Rules
+
 Sudo (su "do") allows a system administrator to delegate authority to
 give certain users (or groups of users) the ability to run some (or all)
 commands as root or another user while providing an audit trail of the
@@ -64,7 +66,7 @@ def validate_runasextgroup(ugettext, value):
 
 class sudorule(LDAPObject):
     """
-    Sudo Rule management
+    Sudo Rule object.
     """
     container_dn = api.env.container_sudorule
     object_name = _('sudo rule')
@@ -208,11 +210,11 @@ class sudorule_add(LDAPCreate):
     __doc__ = _('Create new Sudo Rule.')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        # Sudo rules are enabled by default
+        # Sudo Rules are enabled by default
         entry_attrs['ipaenabledflag'] = 'TRUE'
         return dn
 
-    msg_summary = _('Added sudo rule "%(value)s"')
+    msg_summary = _('Added Sudo Rule "%(value)s"')
 
 api.register(sudorule_add)
 
@@ -220,7 +222,7 @@ api.register(sudorule_add)
 class sudorule_del(LDAPDelete):
     __doc__ = _('Delete Sudo Rule.')
 
-    msg_summary = _('Deleted sudo rule "%(value)s"')
+    msg_summary = _('Deleted Sudo Rule "%(value)s"')
 
 api.register(sudorule_del)
 
@@ -228,7 +230,7 @@ api.register(sudorule_del)
 class sudorule_mod(LDAPUpdate):
     __doc__ = _('Modify Sudo Rule.')
 
-    msg_summary = _('Modified sudo rule "%(value)s"')
+    msg_summary = _('Modified Sudo Rule "%(value)s"')
 
 api.register(sudorule_mod)
 
@@ -237,7 +239,7 @@ class sudorule_find(LDAPSearch):
     __doc__ = _('Search for Sudo Rule.')
 
     msg_summary = ngettext(
-        '%(count)d sudo rule matched', '%(count)d sudo rules matched', 0
+        '%(count)d Sudo Rule matched', '%(count)d Sudo Rules matched', 0
     )
 
 api.register(sudorule_find)
@@ -250,7 +252,7 @@ api.register(sudorule_show)
 
 
 class sudorule_enable(LDAPQuery):
-    __doc__ = _('Enable a Sudo rule.')
+    __doc__ = _('Enable a Sudo Rule.')
 
     def execute(self, cn):
         ldap = self.obj.backend
@@ -268,14 +270,13 @@ class sudorule_enable(LDAPQuery):
         return dict(result=True)
 
     def output_for_cli(self, textui, result, cn):
-        textui.print_name(self.name)
-        textui.print_dashed('Enabled Sudo rule "%s".' % cn)
+        textui.print_dashed(_('Enabled Sudo Rule "%s"') % cn)
 
 api.register(sudorule_enable)
 
 
 class sudorule_disable(LDAPQuery):
-    __doc__ = _('Disable a Sudo rule.')
+    __doc__ = _('Disable a Sudo Rule.')
 
     def execute(self, cn):
         ldap = self.obj.backend
@@ -293,8 +294,7 @@ class sudorule_disable(LDAPQuery):
         return dict(result=True)
 
     def output_for_cli(self, textui, result, cn):
-        textui.print_name(self.name)
-        textui.print_dashed('Disabled Sudo rule "%s".' % cn)
+        textui.print_dashed(_('Disabled Sudo Rule "%s"') % cn)
 
 api.register(sudorule_disable)
 
@@ -609,7 +609,7 @@ api.register(sudorule_remove_runasgroup)
 
 
 class sudorule_add_option(LDAPQuery):
-    __doc__ = _('Add an option to the Sudo rule.')
+    __doc__ = _('Add an option to the Sudo Rule.')
 
     takes_options = (
         Str('ipasudoopt',
@@ -650,11 +650,18 @@ class sudorule_add_option(LDAPQuery):
 
         return dict(result=entry_attrs)
 
+    def output_for_cli(self, textui, result, cn, **options):
+        textui.print_dashed(_('Added option "%s" to Sudo Rule "%s"') % \
+                (options['ipasudoopt'], cn))
+        super(sudorule_add_option, self).output_for_cli(textui, result, cn, options)
+
+
+
 api.register(sudorule_add_option)
 
 
 class sudorule_remove_option(LDAPQuery):
-    __doc__ = _('Remove an option from Sudo rule.')
+    __doc__ = _('Remove an option from Sudo Rule.')
 
     takes_options = (
         Str('ipasudoopt',
@@ -697,5 +704,10 @@ class sudorule_remove_option(LDAPQuery):
             )
 
         return dict(result=entry_attrs)
+
+    def output_for_cli(self, textui, result, cn, **options):
+        textui.print_dashed(_('Removed option "%s" from Sudo Rule "%s"') % \
+                (options['ipasudoopt'], cn))
+        super(sudorule_remove_option, self).output_for_cli(textui, result, cn, options)
 
 api.register(sudorule_remove_option)

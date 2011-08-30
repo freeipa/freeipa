@@ -47,7 +47,7 @@ class test_sudocmdgroup(Declarative):
             ),
             expected=dict(
                 value=sudocmd1,
-                summary=u'Added sudo command "%s"' % sudocmd1,
+                summary=u'Added Sudo Command "%s"' % sudocmd1,
                 result=dict(
                     objectclass=objectclasses.sudocmd,
                     sudocmd=[u'/usr/bin/sudotestcmd1'],
@@ -110,7 +110,7 @@ class test_sudocmdgroup(Declarative):
             ),
             expected=dict(
                 value=sudocmdgroup1,
-                summary=u'Added sudo command group "testsudocmdgroup1"',
+                summary=u'Added Sudo Command Group "testsudocmdgroup1"',
                 result=dict(
                     cn=[sudocmdgroup1],
                     description=[u'Test desc 1'],
@@ -162,7 +162,7 @@ class test_sudocmdgroup(Declarative):
                     cn=[sudocmdgroup1],
                     description=[u'New desc 1'],
                 ),
-                summary=u'Modified sudo command group "testsudocmdgroup1"',
+                summary=u'Modified Sudo Command Group "testsudocmdgroup1"',
                 value=sudocmdgroup1,
             ),
         ),
@@ -200,7 +200,7 @@ class test_sudocmdgroup(Declarative):
                         description=[u'New desc 1'],
                     ),
                 ],
-                summary=u'1 sudo command group matched',
+                summary=u'1 Sudo Command Group matched',
             ),
         ),
 
@@ -238,7 +238,7 @@ class test_sudocmdgroup(Declarative):
             ),
             expected=dict(
                 value=sudocmdgroup2,
-                summary=u'Added sudo command group "testsudocmdgroup2"',
+                summary=u'Added Sudo Command Group "testsudocmdgroup2"',
                 result=dict(
                     cn=[sudocmdgroup2],
                     description=[u'Test desc 2'],
@@ -290,7 +290,7 @@ class test_sudocmdgroup(Declarative):
                     cn=[sudocmdgroup2],
                     description=[u'New desc 2'],
                 ),
-                summary=u'Modified sudo command group "testsudocmdgroup2"',
+                summary=u'Modified Sudo Command Group "testsudocmdgroup2"',
                 value=sudocmdgroup2,
             ),
         ),
@@ -328,7 +328,7 @@ class test_sudocmdgroup(Declarative):
                         description=[u'New desc 2'],
                     ),
                 ],
-                summary=u'1 sudo command group matched',
+                summary=u'1 Sudo Command Group matched',
             ),
         ),
 
@@ -337,7 +337,7 @@ class test_sudocmdgroup(Declarative):
             desc='Search for all sudocmdgroups',
             command=('sudocmdgroup_find', [], {}),
             expected=dict(
-                summary=u'2 sudo command groups matched',
+                summary=u'2 Sudo Command Groups matched',
                 count=2,
                 truncated=False,
                 result=[
@@ -482,7 +482,7 @@ class test_sudocmdgroup(Declarative):
             expected=dict(
                 result=dict(failed=u''),
                 value=sudocmdgroup1,
-                summary=u'Deleted sudo command group "testsudocmdgroup1"',
+                summary=u'Deleted Sudo Command Group "testsudocmdgroup1"',
             )
         ),
 
@@ -517,7 +517,7 @@ class test_sudocmdgroup(Declarative):
             expected=dict(
                 result=dict(failed=u''),
                 value=sudocmdgroup2,
-                summary=u'Deleted sudo command group "testsudocmdgroup2"',
+                summary=u'Deleted Sudo Command Group "testsudocmdgroup2"',
             )
         ),
 
@@ -552,7 +552,7 @@ class test_sudocmdgroup(Declarative):
             expected=dict(
                 result=dict(failed=u''),
                 value=sudocmd1,
-                summary=u'Deleted sudo command "%s"' % sudocmd1,
+                summary=u'Deleted Sudo Command "%s"' % sudocmd1,
             )
         ),
 

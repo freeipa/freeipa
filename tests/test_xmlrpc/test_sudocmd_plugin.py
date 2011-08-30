@@ -67,7 +67,7 @@ class test_sudocmd(Declarative):
             ),
             expected=dict(
                 value=sudocmd1,
-                summary=u'Added sudo command "%s"' % sudocmd1,
+                summary=u'Added Sudo Command "%s"' % sudocmd1,
                 result=dict(
                     dn=lambda x: DN(x) == \
                         DN(('sudocmd',sudocmd1),('cn','sudocmds'),('cn','sudo'),
@@ -115,7 +115,7 @@ class test_sudocmd(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 sudo command matched',
+                summary=u'1 Sudo Command matched',
                 result=[
                     dict(
                         dn=lambda x: DN(x) == \
@@ -135,7 +135,7 @@ class test_sudocmd(Declarative):
                 description=u'Updated sudo command 1')),
             expected=dict(
                 value=sudocmd1,
-                summary=u'Modified sudo command "%s"' % sudocmd1,
+                summary=u'Modified Sudo Command "%s"' % sudocmd1,
                 result=dict(
                     sudocmd=[sudocmd1],
                     description=[u'Updated sudo command 1'],
@@ -166,7 +166,7 @@ class test_sudocmd(Declarative):
             command=('sudocmd_del', [sudocmd1], {}),
             expected=dict(
                 value=sudocmd1,
-                summary=u'Deleted sudo command "%s"' % sudocmd1,
+                summary=u'Deleted Sudo Command "%s"' % sudocmd1,
                 result=dict(failed=u''),
             ),
         ),
