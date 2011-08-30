@@ -62,6 +62,8 @@ IPA.widget = function(spec) {
     that.dirty = false;
     that.valid = true;
 
+    that.dirty_changed = IPA.observer();
+
 
     function set_param_info(){
         if (!that.param_info  && that.entity){
@@ -296,6 +298,7 @@ IPA.widget = function(spec) {
     };
 
     that.set_dirty = function(dirty) {
+        var old = that.dirty;
         that.dirty = dirty;
         if (that.undo) {
             if (dirty) {
@@ -303,6 +306,10 @@ IPA.widget = function(spec) {
             } else {
                 that.hide_undo();
             }
+        }
+
+        if(old !== dirty) {
+            that.dirty_changed.notify([], that);
         }
     };
 
@@ -496,6 +503,7 @@ IPA.multivalued_text_widget = function(spec) {
     };
 
     that.set_dirty = function(dirty, index) {
+        var old = that.dirty;
         that.dirty = dirty;
 
         if (that.undo) {
@@ -509,6 +517,10 @@ IPA.multivalued_text_widget = function(spec) {
                 // update undo all
                 that.set_dirty(that.test_dirty());
             }
+        }
+
+        if(old !== dirty) {
+            that.dirty_changed.notify([], that);
         }
     };
 
@@ -1939,3 +1951,33 @@ IPA.button = function(spec) {
     return button;
 };
 
+IPA.observer = function(spec) {
+
+    var that = {};
+
+    that.listeners = [];
+
+    that.attach = function(callback) {
+        that.listeners.push(callback);
+    };
+
+    that.detach = function(callback) {
+        for(var i=0; i < that.listeners.length; i++) {
+            if(callback === that.listeners[i]) {
+                that.listeners.splice(i,1);
+                break;
+            }
+        }
+    };
+
+    that.notify = function(args, context) {
+        args = args || [];
+        context = context || this;
+
+        for(var i=0; i < that.listeners.length; i++) {
+            that.listeners[i].apply(context, args);
+        }
+    };
+
+    return that;
+};
