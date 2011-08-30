@@ -23,25 +23,25 @@ from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
 __doc__ = _("""
-Groups of Sudo commands
+Groups of Sudo Commands
 
-Manage groups of Sudo commands.
+Manage groups of Sudo Commands.
 
 EXAMPLES:
 
- Add a new Sudo command group:
+ Add a new Sudo Command Group:
    ipa sudocmdgroup-add --desc='administrators commands' admincmds
 
- Remove a Sudo command group:
+ Remove a Sudo Command Group:
    ipa sudocmdgroup-del admincmds
 
- Manage Sudo command group membership, commands:
+ Manage Sudo Command Group membership, commands:
    ipa sudocmdgroup-add-member --sudocmds=/usr/bin/less,/usr/bin/vim admincmds
 
- Manage Sudo command group membership, commands:
+ Manage Sudo Command Group membership, commands:
    ipa group-remove-member --sudocmds=/usr/bin/less admincmds
 
- Show a Sudo command group:
+ Show a Sudo Command Group:
    ipa group-show localadmins
 """)
 
@@ -49,7 +49,7 @@ topic = ('sudo', _('commands for controlling sudo configuration'))
 
 class sudocmdgroup(LDAPObject):
     """
-    Sudo Group object.
+    Sudo Command Group object.
     """
     container_dn = api.env.container_sudocmdgroup
     object_name = _('sudo command group')
@@ -92,53 +92,53 @@ api.register(sudocmdgroup)
 
 
 class sudocmdgroup_add(LDAPCreate):
-    __doc__ = _('Create new sudo command group.')
+    __doc__ = _('Create new Sudo Command Group.')
 
-    msg_summary = _('Added sudo command group "%(value)s"')
+    msg_summary = _('Added Sudo Command Group "%(value)s"')
 
 api.register(sudocmdgroup_add)
 
 
 class sudocmdgroup_del(LDAPDelete):
-    __doc__ = _('Delete sudo command group.')
+    __doc__ = _('Delete Sudo Command Group.')
 
-    msg_summary = _('Deleted sudo command group "%(value)s"')
+    msg_summary = _('Deleted Sudo Command Group "%(value)s"')
 
 api.register(sudocmdgroup_del)
 
 
 class sudocmdgroup_mod(LDAPUpdate):
-    __doc__ = _('Modify group.')
+    __doc__ = _('Modify Sudo Command Group.')
 
-    msg_summary = _('Modified sudo command group "%(value)s"')
+    msg_summary = _('Modified Sudo Command Group "%(value)s"')
 
 api.register(sudocmdgroup_mod)
 
 
 class sudocmdgroup_find(LDAPSearch):
-    __doc__ = _('Search for sudo command groups.')
+    __doc__ = _('Search for Sudo Command Groups.')
 
     msg_summary = ngettext(
-        '%(count)d sudo command group matched',
-        '%(count)d sudo command groups matched', 0
+        '%(count)d Sudo Command Group matched',
+        '%(count)d Sudo Command Groups matched', 0
     )
 
 api.register(sudocmdgroup_find)
 
 
 class sudocmdgroup_show(LDAPRetrieve):
-    __doc__ = _('Display sudo command group.')
+    __doc__ = _('Display Sudo Command Group.')
 
 api.register(sudocmdgroup_show)
 
 
 class sudocmdgroup_add_member(LDAPAddMember):
-    __doc__ = _('Add members to sudo command group.')
+    __doc__ = _('Add members to Sudo Command Group.')
 
 api.register(sudocmdgroup_add_member)
 
 
 class sudocmdgroup_remove_member(LDAPRemoveMember):
-    __doc__ = _('Remove members from sudo command group.')
+    __doc__ = _('Remove members from Sudo Command Group.')
 
 api.register(sudocmdgroup_remove_member)

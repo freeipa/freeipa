@@ -97,36 +97,36 @@ class sudocmd(LDAPObject):
 api.register(sudocmd)
 
 class sudocmd_add(LDAPCreate):
-    __doc__ = _('Create new sudo command.')
+    __doc__ = _('Create new Sudo Command.')
 
-    msg_summary = _('Added sudo command "%(value)s"')
+    msg_summary = _('Added Sudo Command "%(value)s"')
 
 api.register(sudocmd_add)
 
 class sudocmd_del(LDAPDelete):
-    __doc__ = _('Delete sudo command.')
+    __doc__ = _('Delete Sudo Command.')
 
-    msg_summary = _('Deleted sudo command "%(value)s"')
+    msg_summary = _('Deleted Sudo Command "%(value)s"')
 
 api.register(sudocmd_del)
 
 class sudocmd_mod(LDAPUpdate):
-    __doc__ = _('Modify command.')
+    __doc__ = _('Modify Sudo Command.')
 
-    msg_summary = _('Modified sudo command "%(value)s"')
+    msg_summary = _('Modified Sudo Command "%(value)s"')
 
 api.register(sudocmd_mod)
 
 class sudocmd_find(LDAPSearch):
-    __doc__ = _('Search for commands.')
+    __doc__ = _('Search for Sudo Commands.')
 
     msg_summary = ngettext(
-        '%(count)d sudo command matched', '%(count)d sudo command matched', 0
+        '%(count)d Sudo Command matched', '%(count)d Sudo Commands matched', 0
     )
 
 api.register(sudocmd_find)
 
 class sudocmd_show(LDAPRetrieve):
-    __doc__ = _('Display sudo command.')
+    __doc__ = _('Display Sudo Command.')
 
 api.register(sudocmd_show)
