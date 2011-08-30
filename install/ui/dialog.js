@@ -201,6 +201,7 @@ IPA.dialog = function(spec) {
         }
 
         that.create();
+        that.reset();
 
         that.container.dialog({
             title: that.title,
