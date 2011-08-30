@@ -40,6 +40,9 @@ IPA.details_section = function(spec) {
     that.entity = spec.entity;
     that.fields = $.ordered_map();
 
+    that.dirty = false;
+    that.dirty_changed = IPA.observer();
+
     that.get_field = function(name) {
         return that.fields.get(name);
     };
@@ -47,6 +50,7 @@ IPA.details_section = function(spec) {
     that.add_field = function(field) {
         field.entity = that.entity;
         that.fields.put(field.name, field);
+        field.dirty_changed.attach(that.field_dirty_changed);
         return field;
     };
 
@@ -114,6 +118,20 @@ IPA.details_section = function(spec) {
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
             field.reset();
+        }
+    };
+
+    that.field_dirty_changed = function(dirty) {
+        var old = that.dirty;
+
+        if(dirty) {
+            that.dirty = true;
+        } else {
+            that.dirty = that.is_dirty();
+        }
+
+        if(old !== that.dirty) {
+            that.dirty_changed.notify([that.dirty], that);
         }
     };
 
@@ -235,10 +253,12 @@ IPA.details_facet = function(spec) {
 
     that.sections = $.ordered_map();
 
+    that.dirty = false;
 
     that.add_section = function(section) {
         section.entity = that.entity;
         that.sections.put(section.name, section);
+        section.dirty_changed.attach(that.section_dirty_changed);
         return section;
     };
 
@@ -297,9 +317,11 @@ IPA.details_facet = function(spec) {
             name: 'reset',
             label: IPA.messages.buttons.reset,
             icon: 'reset-icon',
-            'class': 'details-reset',
+            'class': 'details-reset action-button-disabled',
             click: function() {
-                that.reset();
+                if(!that.update_button.hasClass('action-button-disabled')) {
+                    that.reset();
+                }
                 return false;
             }
         }).appendTo(that.controls);
@@ -308,9 +330,11 @@ IPA.details_facet = function(spec) {
             name: 'update',
             label: IPA.messages.buttons.update,
             icon: 'update-icon',
-            'class': 'details-update',
+            'class': 'details-update action-button-disabled',
             click: function() {
-                that.update();
+                if(!that.update_button.hasClass('action-button-disabled')) {
+                    that.update();
+                }
                 return false;
             }
         }).appendTo(that.controls);
@@ -437,6 +461,16 @@ IPA.details_facet = function(spec) {
         return pkey != that.pkey;
     };
 
+    that.section_dirty_changed = function(dirty) {
+        if(dirty) {
+            that.dirty = true;
+        } else {
+            that.dirty = that.is_dirty();
+        }
+
+        that.enable_update(that.dirty);
+    };
+
     that.is_dirty = function() {
         var sections = that.sections.values;
         for (var i=0; i<sections.length; i++) {
@@ -447,6 +481,16 @@ IPA.details_facet = function(spec) {
         return false;
     };
 
+    that.enable_update = function(value) {
+        if(value) {
+            that.reset_button.removeClass('action-button-disabled');
+            that.update_button.removeClass('action-button-disabled');
+        } else {
+            that.reset_button.addClass('action-button-disabled');
+            that.update_button.addClass('action-button-disabled');
+        }
+    };
+
     that.load = function(data) {
         that.facet_load(data);
 
@@ -455,6 +499,7 @@ IPA.details_facet = function(spec) {
             var section = sections[i];
             section.load(data);
         }
+        that.enable_update(false);
     };
 
     that.reset = function() {
@@ -463,6 +508,7 @@ IPA.details_facet = function(spec) {
             var section = sections[i];
             section.reset();
         }
+        that.enable_update(false);
     };
 
     that.update = function(on_win, on_fail) {

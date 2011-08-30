@@ -312,3 +312,35 @@ test("Testing unsuccessful IPA.command().", function() {
 
     $.ajax = orig;
 });
+
+test("Testing observer.", function() {
+    expect(6);
+    var obj = {};
+    var param1_value = 'p1';
+    var param2_value = 'p2';
+
+    obj.event = IPA.observer();
+
+    obj.event.attach(function(param1, param2) {
+        ok(true, "Proper function 1 callback");
+    });
+
+    var first = true;
+
+    var func = function(param1, param2) {
+        if(first) {
+            ok(true, "Proper function 2 callback");
+            equals(param1, param1_value, "Testing Parameter 1");
+            equals(param2, param2_value, "Testing Parameter 2");
+            equals(this, obj, "Testing Context");
+            first = false;
+        } else {
+            ok(false, "Fail function 2 callback");
+        }
+    }
+
+    obj.event.attach(func);
+    obj.event.notify([param1_value, param2_value], obj);
+    obj.event.detach(func);
+    obj.event.notify([param1_value, param2_value], obj);
+});
