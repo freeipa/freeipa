@@ -359,11 +359,11 @@ IPA.dnszone_select_widget = function(spec) {
 
     var that = IPA.entity_select_widget(spec);
 
-    that.create_search_command = function() {
+    that.create_search_command = function(filter) {
         return IPA.command({
             entity: that.other_entity,
             method: 'find',
-            args: [that.filter.val()],
+            args: [filter],
             options: {
                 forward_only: true
             }

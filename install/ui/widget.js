@@ -1686,7 +1686,13 @@ IPA.combobox_widget = function(spec) {
                 name: 'filter',
                 keypress: function(e) {
                     if (e.which == 13) { // Enter
-                        that.search();
+                        var filter = that.filter.val();
+                        that.search(
+                            filter,
+                            function(data, text_status, xhr) {
+                                that.select(filter);
+                            }
+                        );
                     }
                 }
             }).appendTo(div);
@@ -1695,7 +1701,13 @@ IPA.combobox_widget = function(spec) {
                 name: 'search',
                 icon: 'search-icon',
                 click: function() {
-                    that.search();
+                    var filter = that.filter.val();
+                    that.search(
+                        filter,
+                        function(data, text_status, xhr) {
+                            that.select(filter);
+                        }
+                    );
                     return false;
                 }
             }).appendTo(div);
@@ -1707,12 +1719,14 @@ IPA.combobox_widget = function(spec) {
             name: 'list',
             size: that.list_size,
             style: 'width: 100%',
+            click: function() {
+                that.close();
+            },
             change: function() {
                 var value = $('option:selected', that.list).val();
                 that.input.val(value);
                 IPA.select_range(that.input, 0, 0);
 
-                that.close();
                 that.validate();
                 that.set_dirty(that.test_dirty());
             }
@@ -1729,8 +1743,6 @@ IPA.combobox_widget = function(spec) {
         }
 
         that.create_error_link(container);
-
-        that.search();
     };
 
     that.open = function() {
@@ -1745,27 +1757,66 @@ IPA.combobox_widget = function(spec) {
         return that.list_container.css('visibility') == 'visible';
     };
 
-    that.search = function() {
+    that.search = function(filter) {
     };
 
     that.update = function() {
         that.close();
+
         if (that.writable) {
             that.text.css('display', 'none');
             that.input.css('display', 'inline');
-            that.input.val(that.values[0]);
             that.open_button.css('display', 'inline');
         } else {
             that.text.css('display', 'inline');
-            that.text.html(that.values[0]);
             that.input.css('display', 'none');
             that.open_button.css('display', 'none');
-            that.input.val(that.values[0]);
         }
+
         if (that.searchable) {
             that.filter.empty();
-            that.search();
         }
+
+        // In a details page the following code will get the stored value.
+        // In a dialog box the value will be null.
+        var value = that.values.length ? that.values[0] : null;
+
+        // In a details page the following code will show the stored
+        // value immediately without waiting to populate the list.
+        // In a dialog box it will show blank.
+        that.set_value(value || '');
+
+        // In a details page the following code will populate the list
+        // and select the stored value.
+        // In a dialog box it will populate the list and select the first
+        // available option.
+        that.search(
+            null,
+            function(data, text_status, xhr) {
+                that.select(value);
+            }
+        );
+    };
+
+    that.set_value = function(value) {
+        that.text.html(value);
+        that.input.val(value);
+    };
+
+    that.select = function(value) {
+
+        var option;
+
+        if (value) {
+            option = $('option[value="'+value+'"]', that.list);
+        } else {
+            option = $('option', that.list).first();
+        }
+
+        option.attr('selected', 'selected');
+
+        that.set_value(option.val());
+        that.set_dirty(that.test_dirty());
     };
 
     that.save = function() {
@@ -1797,48 +1848,39 @@ IPA.entity_select_widget = function(spec) {
     that.other_entity = spec.other_entity;
     that.other_field = spec.other_field;
 
-    that.create_search_command = function() {
+    that.create_search_command = function(filter) {
         return IPA.command({
             entity: that.other_entity,
             method: 'find',
-            args: [that.filter.val()]
+            args: [filter]
         });
     };
 
-    that.search = function() {
+    that.search = function(filter, on_success, on_error) {
 
-        var command = that.create_search_command();
+        var command = that.create_search_command(filter);
 
         command.on_success = function(data, text_status, xhr) {
 
             that.remove_options();
 
-            var selected_option = null;
-
             if (that.empty_option) {
-                selected_option = that.create_option();
+                that.create_option();
             }
 
-            var filter = that.filter.val();
             var entries = data.result.result;
             for (var i=0; i<data.result.count; i++) {
                 var entry = entries[i];
                 var values = entry[that.other_field];
                 var value = values[0];
 
-                var option = that.create_option(value, value);
-
-                if (!selected_option || filter === value) {
-                    selected_option = option;
-                }
+                that.create_option(value, value);
             }
 
-            if (selected_option) {
-                selected_option.attr('selected', 'selected');
-                that.input.val(selected_option.val());
-                that.set_dirty(that.test_dirty());
-            }
+            if (on_success) on_success.call(this, data, text_status, xhr);
         };
+
+        command.on_error = on_error;
 
         command.execute();
     };
