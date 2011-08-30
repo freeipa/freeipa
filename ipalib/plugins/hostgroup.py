@@ -19,7 +19,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib.plugins.baseldap import *
-from ipalib import api, Int, _, ngettext
+from ipalib import api, Int, _, ngettext, errors
+from ipalib.dn import DN
 
 __doc__ = _("""
 Groups of hosts.
@@ -88,6 +89,24 @@ class hostgroup(LDAPObject):
         ),
     )
 
+    def suppress_netgroup_memberof(self, dn, entry_attrs):
+        """
+        We don't want to show managed netgroups so remove them from the
+        memberOf list.
+        """
+        if 'memberof' in entry_attrs:
+            hgdn = DN(dn)
+            for member in entry_attrs['memberof']:
+                ngdn = DN(member)
+                if ngdn['cn'] == hgdn['cn']:
+                    try:
+                        netgroup = api.Command['netgroup_show'](ngdn['cn'], all=True)['result']
+                        if self.has_objectclass(netgroup['objectclass'], 'mepmanagedentry'):
+                            entry_attrs['memberof'].remove(member)
+                            return
+                    except errors.NotFound:
+                        pass
+
 api.register(hostgroup)
 
 
@@ -97,9 +116,11 @@ class hostgroup_add(LDAPCreate):
     msg_summary = _('Added hostgroup "%(value)s"')
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        if self.api.env.wait_for_attr:
-            newentry = wait_for_value(ldap, dn, 'objectclass', 'mepOriginEntry')
-            entry_from_entry(entry_attrs, newentry)
+        # Always wait for the associated netgroup to be created so we can
+        # be sure to ignore it in memberOf
+        newentry = wait_for_value(ldap, dn, 'objectclass', 'mepOriginEntry')
+        entry_from_entry(entry_attrs, newentry)
+        self.obj.suppress_netgroup_memberof(dn, entry_attrs)
 
         return dn
 
@@ -120,6 +141,10 @@ class hostgroup_mod(LDAPUpdate):
 
     msg_summary = _('Modified hostgroup "%(value)s"')
 
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.suppress_netgroup_memberof(dn, entry_attrs)
+        return dn
+
 api.register(hostgroup_mod)
 
 
@@ -131,11 +156,20 @@ class hostgroup_find(LDAPSearch):
         '%(count)d hostgroup matched', '%(count)d hostgroups matched', 0
     )
 
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        for entry in entries:
+            (dn, entry_attrs) = entry
+            self.obj.suppress_netgroup_memberof(dn, entry_attrs)
+
 api.register(hostgroup_find)
 
 
 class hostgroup_show(LDAPRetrieve):
     __doc__ = _('Display information about a hostgroup.')
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.suppress_netgroup_memberof( dn, entry_attrs)
+        return dn
 
 api.register(hostgroup_show)
 
@@ -143,10 +177,18 @@ api.register(hostgroup_show)
 class hostgroup_add_member(LDAPAddMember):
     __doc__ = _('Add members to a hostgroup.')
 
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        self.obj.suppress_netgroup_memberof(dn, entry_attrs)
+        return (completed, dn)
+
 api.register(hostgroup_add_member)
 
 
 class hostgroup_remove_member(LDAPRemoveMember):
     __doc__ = _('Remove members from a hostgroup.')
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        self.obj.suppress_netgroup_memberof(dn, entry_attrs)
+        return (completed, dn)
 
 api.register(hostgroup_remove_member)
