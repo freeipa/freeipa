@@ -601,17 +601,17 @@ IPA.target_section = function(spec) {
 
     var target_type = target_types[0];
 
-    function show_target_type(type_to_show){
-        for (var i =0 ; i < target_types.length; i +=1){
-            if ( target_types[i].name === type_to_show){
+    function show_target_type(type_to_show) {
+        for (var i=0; i<target_types.length; i++) {
+            if (target_types[i].name === type_to_show) {
                 target_type = target_types[i];
                 target_type.container.css('display', 'block');
-            }else{
+            } else {
                 target_types[i].container.css('display', 'none');
             }
         }
-
     }
+
     that.create = function(container) {
 
         var dl =  $('<dl/>', {
@@ -646,15 +646,9 @@ IPA.target_section = function(spec) {
             target_type.create(dl);
             target_type.container = dl;
         }
-        /*
-           default for the add dialog
-        */
-        target_type = target_types[0];
-        that.target_type_select.val( target_type.name);
-        target_type.container.css('display', 'block');
     };
 
-    function reset_target_widgets(){
+    function reset_target_widgets() {
         that.filter_text.record = null;
         that.subtree_textarea.record = null;
         that.group_select.record = null;
@@ -685,25 +679,26 @@ IPA.target_section = function(spec) {
             return;
         }
 
-        target_type.container.css('display', 'block');
-        that.target_type_select.val( target_type_name);
+        that.target_type_select.val(target_type_name);
+        show_target_type(target_type_name);
         target_type.load(record);
     }
+
     that.load = function(record){
         that.section_load(record);
         that.reset();
     };
+
     that.reset = function() {
         that.section_reset();
 
-        for (var i = 0 ; i < target_types.length ; i +=1 ){
-            target_types[i].container.css('display', 'none');
-        }
-        if (that.record){
+        if (that.record) {
             set_target_type(that.record);
             that.attribute_table.object_type = that.record.type;
-        }else{
+
+        } else {
             reset_target_widgets();
+            show_target_type(target_types[0].name);
         }
     };
 
