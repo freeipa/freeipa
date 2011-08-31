@@ -15994,6 +15994,7 @@
                         "validation_title": "Validation error"
                     },
                     "errors": {
+                        "error": "Error",
                         "http_error": "HTTP Error",
                         "internal_error": "Internal Error",
                         "ipa_error": "IPA Error",

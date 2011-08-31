@@ -173,6 +173,7 @@ class i18n_messages(Command):
             "validation_message": _("Input form contains invalid or missing values."),
         },
         "errors": {
+            "error": _("Error"),
             "http_error": _("HTTP Error"),
             "internal_error": _("Internal Error"),
             "ipa_error": _("IPA Error"),
