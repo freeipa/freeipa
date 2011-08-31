@@ -250,6 +250,7 @@ class DsInstance(service.Service):
         self.step("configuring user private groups", self.__user_private_groups)
         self.step("configuring netgroups from hostgroups", self.__host_nis_groups)
         self.step("creating default Sudo bind user", self.__add_sudo_binduser)
+        self.step("creating default Auto Member layout", self.__add_automember_config)
         if hbac_allow:
             self.step("creating default HBAC rule allow_all", self.add_hbac)
 
@@ -283,6 +284,8 @@ class DsInstance(service.Service):
 
         self.step("setting up initial replication", self.__setup_replica)
         self.step("adding replication acis", self.__add_replication_acis)
+        # See LDIFs for automember configuration during replica install
+        self.step("setting Auto Member configuration", self.__add_replica_automember_config)
 
         # Managed Entries configuration is done via update files
 
@@ -781,6 +784,12 @@ class DsInstance(service.Service):
 
     def __add_sudo_binduser(self):
         self._ldap_mod("sudobind.ldif", self.sub_dict)
+
+    def __add_automember_config(self):
+        self._ldap_mod("automember.ldif", self.sub_dict)
+
+    def __add_replica_automember_config(self):
+        self._ldap_mod("replica-automember.ldif", self.sub_dict)
 
     def replica_populate(self):
         self.ldap_connect()
