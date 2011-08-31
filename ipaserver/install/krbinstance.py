@@ -183,13 +183,12 @@ class KrbInstance(service.Service):
     def create_replica(self, realm_name,
                        master_fqdn, host_name,
                        domain_name, admin_password,
-                       ldap_passwd_filename, kpasswd_filename,
+                       kpasswd_filename,
                        setup_pkinit=False, pkcs12_info=None,
                        self_signed_ca=False, subject_base=None):
         self.pkcs12_info = pkcs12_info
         self.self_signed_ca = self_signed_ca
         self.subject_base = subject_base
-        self.__copy_ldap_passwd(ldap_passwd_filename)
         self.__copy_kpasswd_keytab(kpasswd_filename)
         self.master_fqdn = master_fqdn
 
@@ -211,11 +210,6 @@ class KrbInstance(service.Service):
 
         self.kpasswd = KpasswdInstance()
         self.kpasswd.create_instance('KPASSWD', self.fqdn, self.admin_password, self.suffix)
-
-    def __copy_ldap_passwd(self, filename):
-        self.fstore.backup_file("/var/kerberos/krb5kdc/ldappwd")
-        shutil.copy(filename, "/var/kerberos/krb5kdc/ldappwd")
-        os.chmod("/var/kerberos/krb5kdc/ldappwd", 0600)
 
     def __copy_kpasswd_keytab(self, filename):
         self.fstore.backup_file("/var/kerberos/krb5kdc/kpasswd.keytab")
@@ -463,7 +457,7 @@ class KrbInstance(service.Service):
         except:
             pass
 
-        for f in ["/var/kerberos/krb5kdc/ldappwd", "/var/kerberos/krb5kdc/kdc.conf", "/etc/krb5.conf"]:
+        for f in ["/var/kerberos/krb5kdc/kdc.conf", "/etc/krb5.conf"]:
             try:
                 self.fstore.restore_file(f)
             except ValueError, error:
