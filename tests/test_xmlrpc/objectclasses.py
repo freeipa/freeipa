@@ -120,3 +120,8 @@ netgroup = [
     u'ipaassociation',
     u'ipanisnetgroup',
 ]
+
+automember = [
+    u'top',
+    u'automemberregexrule'
+]

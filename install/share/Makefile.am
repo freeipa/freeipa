@@ -49,6 +49,8 @@ app_DATA =				\
 	entryusn.ldif			\
 	root-autobind.ldif		\
 	sudobind.ldif			\
+	automember.ldif			\
+	replica-automember.ldif		\
 	$(NULL)
 
 EXTRA_DIST =				\

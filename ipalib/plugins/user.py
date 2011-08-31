@@ -391,6 +391,9 @@ class user_add(LDAPCreate):
         def_primary_group = config.get('ipadefaultprimarygroup')
         group_dn = self.api.Object['group'].get_dn(def_primary_group)
         ldap.add_entry_to_group(dn, group_dn)
+        if self.api.env.wait_for_attr:
+            newentry = wait_for_value(ldap, dn, 'memberOf', def_primary_group)
+            entry_from_entry(entry_attrs, newentry)
         self.obj._convert_manager(entry_attrs, **options)
         # delete description attribute NO_UPG_MAGIC if present
         if options.get('noprivate', False):
