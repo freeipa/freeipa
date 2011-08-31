@@ -29,6 +29,7 @@ from ipapython import version
 from ipapython import ipautil, sysrestore
 from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
+from ipalib.constants import DNS_ZONE_REFRESH
 import krbV
 import ldap
 
@@ -49,6 +50,14 @@ def parse_options():
                       default=False, help="Do not create reverse DNS zone")
     parser.add_option("--zonemgr", dest="zonemgr", 
                       help="DNS zone manager e-mail address. Defaults to root")
+    parser.add_option("--zone-notif", dest="zone_notif",
+                      action="store_true", default=False,
+                      help="Let name server receive notification when a new zone is added." \
+                           "Zone refresh is turned off when zone notification is enabled")
+    parser.add_option("--zone-refresh", dest="zone_refresh",
+                      default=DNS_ZONE_REFRESH, type="int",
+                      help="A delay between checks for new DNS zones. Defaults to %d" \
+                              % DNS_ZONE_REFRESH)
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
                       default=False, help="unattended installation never prompts the user")
 
@@ -63,6 +72,12 @@ def parse_options():
     if options.unattended:
         if not options.forwarders and not options.no_forwarders:
             parser.error("You must specify at least one --forwarder option or --no-forwarders option")
+
+    if options.zone_refresh < 0:
+        parser.error("negative numbers not allowed for --zone-refresh")
+
+    if options.zone_notif:   # mutually exclusive features
+        options.zone_refresh = 0
 
     return safe_options, options
 
@@ -179,7 +194,10 @@ def main():
         print "Please wait until the prompt is returned."
         print ""
 
-    bind.setup(api.env.host, ip_address, api.env.realm, api.env.domain, dns_forwarders, conf_ntp, reverse_zone, zonemgr=options.zonemgr)
+    bind.setup(api.env.host, ip_address, api.env.realm, api.env.domain,
+               dns_forwarders, conf_ntp, reverse_zone, zonemgr=options.zonemgr,
+               zone_refresh=options.zone_refresh,
+               zone_notif=options.zone_notif)
     bind.create_instance()
 
 

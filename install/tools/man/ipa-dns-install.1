@@ -49,6 +49,12 @@ Do not create reverse DNS zone
 \fB\-\-zonemgr\fR
 The e\-mail address of the DNS zone manager. Defaults too root@host.domain
 .TP
+\fB\-\-zone\-notif\fR
+Let name server receive notifications when a new zone is added. New zone is then immediately loaded by the name server. This feature uses an LDAP Persistent Search mechanism to receive the data. Zone refresh is turned off when zone notifications are enabled.
+.TP
+\fB\-\-zone\-refresh=\fIZONE_REFRESH\fR
+Number of seconds between regular checks for new DNS zones. When set to 0 the name server does not check for new zones and it needs to be reloaded when a new DNS zone is added.
+.TP
 \fB\-U\fR, \fB\-\-unattended\fR
 An unattended installation that will never prompt for user input
 .SH "EXIT STATUS"
