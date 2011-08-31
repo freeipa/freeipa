@@ -50,16 +50,16 @@ class CheckedPort(object):
 BASE_PORTS = [
                 CheckedPort(389, True, "Directory Service: Unsecure port"),
                 CheckedPort(636, True, "Directory Service: Secure port"),
-                CheckedPort(88, False, "Kerberos"),
+                CheckedPort(88, True, "Kerberos KDC: TCP"),
+                CheckedPort(88, False, "Kerberos KDC: UDP"),
+                CheckedPort(464, True, "Kerberos Kpasswd: TCP"),
+                CheckedPort(464, False, "Kerberos Kpasswd: UDP"),
+                CheckedPort(80, True, "HTTP Server: port 80"),
+                CheckedPort(443, True, "HTTP Server: port 443(https)"),
              ]
 
 CA_PORTS  = [
                 CheckedPort(7389, True, "PKI-CA: Directory Service port"),
-                CheckedPort(9443, True, "PKI-CA: Agent secure port"),
-                CheckedPort(9444, True, "PKI-CA: EE secure port"),
-                CheckedPort(9445, True, "PKI-CA: Admin secure port"),
-                CheckedPort(9446, True, "PKI-CA: EE secure client auth port"),
-                CheckedPort(9180, True, "PKI-CA: Unsecure port"),
             ]
 
 def print_info(msg):
