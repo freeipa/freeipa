@@ -129,7 +129,6 @@ def install_replica_ds(config):
 
 def install_krb(config, setup_pkinit=False):
     krb = krbinstance.KrbInstance()
-    kpasswd_filename = config.dir + "/kpasswd.keytab"
 
     #pkinit files
     pkcs12_info = None
@@ -140,7 +139,6 @@ def install_krb(config, setup_pkinit=False):
     krb.create_replica(config.realm_name,
                        config.master_host_name, config.host_name,
                        config.domain_name, config.dirman_password,
-                       kpasswd_filename,
                        setup_pkinit, pkcs12_info)
 
 def install_ca_cert(config):

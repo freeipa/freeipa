@@ -167,7 +167,6 @@ class KrbInstance(service.Service):
         self.step("adding default ACIs", self.__add_default_acis)
         self.step("creating a keytab for the directory", self.__create_ds_keytab)
         self.step("creating a keytab for the machine", self.__create_host_keytab)
-        self.step("exporting the kadmin keytab", self.__export_kadmin_changepw_keytab)
         self.step("adding the password extension to the directory", self.__add_pwd_extop_module)
         if setup_pkinit:
             self.step("creating X509 Certificate for PKINIT", self.__setup_pkinit)
@@ -183,13 +182,11 @@ class KrbInstance(service.Service):
     def create_replica(self, realm_name,
                        master_fqdn, host_name,
                        domain_name, admin_password,
-                       kpasswd_filename,
                        setup_pkinit=False, pkcs12_info=None,
                        self_signed_ca=False, subject_base=None):
         self.pkcs12_info = pkcs12_info
         self.self_signed_ca = self_signed_ca
         self.subject_base = subject_base
-        self.__copy_kpasswd_keytab(kpasswd_filename)
         self.master_fqdn = master_fqdn
 
         self.__common_setup(realm_name, host_name, domain_name, admin_password)
@@ -210,11 +207,6 @@ class KrbInstance(service.Service):
 
         self.kpasswd = KpasswdInstance()
         self.kpasswd.create_instance('KPASSWD', self.fqdn, self.admin_password, self.suffix)
-
-    def __copy_kpasswd_keytab(self, filename):
-        self.fstore.backup_file("/var/kerberos/krb5kdc/kpasswd.keytab")
-        shutil.copy(filename, "/var/kerberos/krb5kdc/kpasswd.keytab")
-        os.chmod("/var/kerberos/krb5kdc/kpasswd.keytab", 0600)
 
 
     def __enable(self):
@@ -398,12 +390,6 @@ class KrbInstance(service.Service):
         os.chmod("/etc/krb5.keytab", 0600)
 
         self.move_service_to_host(host_principal)
-
-    def __export_kadmin_changepw_keytab(self):
-        installutils.kadmin_modprinc("kadmin/changepw", "+requires_preauth")
-
-        self.fstore.backup_file("/var/kerberos/krb5kdc/kpasswd.keytab")
-        installutils.create_keytab("/var/kerberos/krb5kdc/kpasswd.keytab", "kadmin/changepw")
 
     def __setup_pkinit(self):
         if self.self_signed_ca:
