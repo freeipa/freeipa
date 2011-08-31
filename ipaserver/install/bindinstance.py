@@ -31,6 +31,7 @@ from ipaserver.install.dsinstance import realm_to_serverid
 from ipaserver.install.installutils import resolve_host
 from ipapython import sysrestore
 from ipapython import ipautil
+from ipalib.constants import DNS_ZONE_REFRESH
 
 import ipalib
 from ipalib import api, util, errors
@@ -342,7 +343,9 @@ class BindInstance(service.Service):
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp, reverse_zone, named_user="named", zonemgr=None):
+    def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp,
+              reverse_zone, named_user="named", zonemgr=None,
+              zone_refresh=DNS_ZONE_REFRESH, zone_notif=False):
         self.named_user = named_user
         self.fqdn = fqdn
         self.ip_address = ip_address
@@ -354,6 +357,8 @@ class BindInstance(service.Service):
         self.suffix = util.realm_to_suffix(self.realm)
         self.ntp = ntp
         self.reverse_zone = reverse_zone
+        self.zone_refresh = zone_refresh
+        self.zone_notif = zone_notif
 
         if zonemgr:
             self.zonemgr = zonemgr.replace('@','.')
@@ -439,7 +444,9 @@ class BindInstance(service.Service):
                              FORWARDERS=fwds,
                              SUFFIX=self.suffix,
                              OPTIONAL_NTP=optional_ntp,
-                             ZONEMGR=self.zonemgr)
+                             ZONEMGR=self.zonemgr,
+                             ZONE_REFRESH=self.zone_refresh,
+                             PERSISTENT_SEARCH=self.zone_notif and "yes" or "no")
 
     def __setup_dns_container(self):
         self._ldap_mod("dns.ldif", self.sub_dict)

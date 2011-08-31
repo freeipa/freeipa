@@ -44,4 +44,6 @@ dynamic-db "ipa" {
 	arg "auth_method sasl";
 	arg "sasl_mech GSSAPI";
 	arg "sasl_user DNS/$FQDN";
+	arg "zone_refresh $ZONE_REFRESH";
+	arg "psearch $PERSISTENT_SEARCH";
 };

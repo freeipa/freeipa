@@ -195,3 +195,6 @@ DEFAULT_CONFIG = (
     ('log', object),  # Path to context specific log file
 
 )
+
+# Default DNS zone refresh interval in seconds (0 = disabled)
+DNS_ZONE_REFRESH = 30
