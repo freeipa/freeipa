@@ -85,7 +85,7 @@ Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
 Requires(post): %{name}-server-selinux = %{version}-%{release}
-Requires(pre): 389-ds-base >= 1.2.9.6-1
+Requires(pre): 389-ds-base >= 1.2.9.7-1
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
@@ -541,6 +541,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Wed Aug 31 2011 Rob Crittenden <rcritten@redhat.com> - 2.1.0-3
+- Set min nvr of 389-ds-base to 1.2.9.7-1 for BZ 728605
+
 * Mon Aug 29 2011 Rob Crittenden <rcritten@redhat.com> - 2.1.0-2
 - Set min nvr of pki-ca to 9.0.12 for fix in BZ 700505
 
