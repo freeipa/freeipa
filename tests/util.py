@@ -286,7 +286,7 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
       type(got) = <type 'str'>
       expected = u'how are you?'
       got = 'how are you?'
-      path = (1, 'world')
+      path = (0, 'world')
     """
     if isinstance(expected, tuple):
         expected = list(expected)
@@ -301,8 +301,10 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
             raise AssertionError(
                 LEN % (doc, len(expected), len(got), expected, got, stack)
             )
-        for (i, e_sub) in enumerate(expected):
-            g_sub = got[i]
+        s_got = sorted(got)
+        s_expected = sorted(expected)
+        for (i, e_sub) in enumerate(s_expected):
+            g_sub = s_got[i]
             assert_deepequal(e_sub, g_sub, doc, stack + (i,))
     elif isinstance(expected, dict):
         missing = set(expected).difference(got)
