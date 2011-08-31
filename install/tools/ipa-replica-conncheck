@@ -323,6 +323,15 @@ def main():
             if returncode != 0:
                 raise RuntimeError("Cannot acquire Kerberos ticket: %s" % stderr)
 
+            # Verify kinit was actually successful
+            stderr=''
+            (stdout, stderr, returncode) = ipautil.run(['/usr/bin/kvno',
+                 'host/%s' % options.master],
+                 env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME':CCACHE_FILE},
+                 raiseonerr=False)
+            if returncode != 0:
+                raise RuntimeError("Could not get ticket for master server: %s" % stderr)
+
             remote_check_opts = ['--replica %s' % options.hostname]
             if options.check_ca:
                 remote_check_opts.append('--check-ca')
