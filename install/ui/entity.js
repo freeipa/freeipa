@@ -117,14 +117,12 @@ IPA.facet = function (spec) {
         return false;
     };
 
-    that.get_content = function() {
-        return $('.content', that.container);
-    };
-
-    that.report_error = function(error_thrown){
-        var details = $('.details', that.container).empty();
-        details.append('<p>Error: '+error_thrown.name+'</p>');
-        details.append('<p>'+error_thrown.message+'</p>');
+    that.report_error = function(error_thrown) {
+        // TODO: The error message should be displayed in the facet footer.
+        // There should be a standard footer section for all facets.
+        that.content.empty();
+        that.content.append('<p>'+IPA.get_message('errors.error', 'Error')+': '+error_thrown.name+'</p>');
+        that.content.append('<p>'+error_thrown.message+'</p>');
     };
 
     that.redirect = function() {
