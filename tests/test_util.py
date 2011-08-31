@@ -180,7 +180,7 @@ def test_assert_deepequal():
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        'foo', unicode, str, u'hello', 'hello', (0,)
+        'foo', unicode, str, u'hello', 'hello', (2,)
     )
 
     b = [
@@ -200,7 +200,7 @@ def test_assert_deepequal():
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        'foo', int, float, 18, 18.0, (2,)
+        'foo', int, float, 18, 18.0, (0,)
     )
 
     # List length mismatch
