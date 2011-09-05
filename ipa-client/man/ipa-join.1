@@ -42,6 +42,11 @@ If a client host has already been joined to the IPA realm the ipa\-join command 
 This command is normally executed by the ipa\-client\-install command as part of the enrollment process.
 
 The reverse is unenrollment. Unenrolling a host removes the Kerberos key on the IPA server. This prepares the host to be re\-enrolled. This uses the host principal stored in /etc/krb5.conf to authenticate to the IPA server to perform the unenrollment.
+
+Please note, that while the ipa\-join option removes the client from the domain, it does not actually uninstall the client or properly remove all of the IPA\-related configuration. The only way to uninstall a client completely is to use ipa\-client\-install \-\-uninstall
+(see
+.BR ipa\-client\-install (1)).
+
 .SH "OPTIONS"
 .TP
 \fB\-h,\-\-hostname hostname\fR
@@ -57,7 +62,9 @@ The keytab file where to append the new key (will be created if it does not exis
 The password to use if not using Kerberos to authenticate. Use a password of this particular host (one time password created on IPA server)
 .TP
 \fB\-u,\-\-unenroll\fR
-Unenroll this host from the IPA server
+Unenroll this host from the IPA server. No keytab entry is removed in the process
+(see
+.BR ipa-rmkeytab (1)).
 .TP
 \fB\-q,\-\-quiet\fR
 Quiet mode. Only errors are displayed.
@@ -123,3 +130,7 @@ The exit status is 0 on success, nonzero on error.
 20 Unenrollment result not in XML\-RPC response
 
 21 Failed to get default Kerberos realm
+
+.SH "SEE ALSO"
+.BR ipa-rmkeytab (1)
+.BR ipa-client-instal (1)
