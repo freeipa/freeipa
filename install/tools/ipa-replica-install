@@ -23,6 +23,7 @@ import socket
 
 import os, pwd, traceback, logging, shutil
 import grp
+from optparse import OptionGroup
 
 from ipapython import ipautil
 
@@ -45,36 +46,45 @@ REPLICA_INFO_TOP_DIR=None
 def parse_options():
     usage = "%prog [options] REPLICA_FILE"
     parser = IPAOptionParser(usage=usage, version=version.VERSION)
-    parser.add_option("-N", "--no-ntp", dest="conf_ntp", action="store_false",
-                      help="do not configure ntp", default=True)
-    parser.add_option("-d", "--debug", dest="debug", action="store_true",
-                      default=False, help="gather extra debugging information")
-    parser.add_option("-p", "--password", dest="password", sensitive=True,
+
+    basic_group = OptionGroup(parser, "basic options")
+    basic_group.add_option("--setup-ca", dest="setup_ca", action="store_true",
+                      default=False, help="configure a dogtag CA")
+    basic_group.add_option("-p", "--password", dest="password", sensitive=True,
                       help="Directory Manager (existing master) password")
-    parser.add_option("-w", "--admin-password", dest="admin_password", sensitive=True,
+    basic_group.add_option("-w", "--admin-password", dest="admin_password", sensitive=True,
                       help="Admin user Kerberos password used for connection check")
-    parser.add_option("--setup-dns", dest="setup_dns", action="store_true",
+    basic_group.add_option("-N", "--no-ntp", dest="conf_ntp", action="store_false",
+                      help="do not configure ntp", default=True)
+    basic_group.add_option("--no-ui-redirect", dest="ui_redirect", action="store_false",
+                      default=True, help="Do not automatically redirect to the Web UI")
+    basic_group.add_option("--skip-conncheck", dest="skip_conncheck", action="store_true",
+                      default=False, help="skip connection check to remote master")
+    basic_group.add_option("-d", "--debug", dest="debug", action="store_true",
+                      default=False, help="gather extra debugging information")
+    basic_group.add_option("-U", "--unattended", dest="unattended", action="store_true",
+                      default=False, help="unattended installation never prompts the user")
+    parser.add_option_group(basic_group)
+
+    cert_group = OptionGroup(parser, "certificate system options")
+    cert_group.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
+                      default=True, help="disables pkinit setup steps")
+    parser.add_option_group(cert_group)
+
+    dns_group = OptionGroup(parser, "DNS options")
+    dns_group.add_option("--setup-dns", dest="setup_dns", action="store_true",
                       default=False, help="configure bind with our zone")
-    parser.add_option("--forwarder", dest="forwarders", action="append",
+    dns_group.add_option("--forwarder", dest="forwarders", action="append",
                       type="ip", help="Add a DNS forwarder")
-    parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
+    dns_group.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
-    parser.add_option("--reverse-zone", dest="reverse_zone", help="The reverse DNS zone to use")
-    parser.add_option("--no-reverse", dest="no_reverse", action="store_true",
+    dns_group.add_option("--reverse-zone", dest="reverse_zone", help="The reverse DNS zone to use")
+    dns_group.add_option("--no-reverse", dest="no_reverse", action="store_true",
                       default=False, help="Do not create reverse DNS zone")
-    parser.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
+    dns_group.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
                       default=False,
                       help="Do not use DNS for hostname lookup during installation")
-    parser.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
-                      default=True, help="disables pkinit setup steps")
-    parser.add_option("--no-ui-redirect", dest="ui_redirect", action="store_false",
-                      default=True, help="Do not automatically redirect to the Web UI")
-    parser.add_option("--skip-conncheck", dest="skip_conncheck", action="store_true",
-                      default=False, help="skip connection check to remote master")
-    parser.add_option("--setup-ca", dest="setup_ca", action="store_true",
-                      default=False, help="configure a dogtag CA")
-    parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
-                      default=False, help="unattended installation never prompts the user")
+    parser.add_option_group(dns_group)
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)

@@ -16,7 +16,7 @@
 .\"
 .\" Author: Rob Crittenden <rcritten@redhat.com>
 .\"
-.TH "ipa-replica-install" "1" "Mar 14 2008" "freeipa" ""
+.TH "ipa-replica-install" "1" "Sep 5 2011" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa\-replica\-install \- Create an IPA replica
 .SH "SYNOPSIS"
@@ -26,12 +26,11 @@ Configures a new IPA server that is a replica of the server that generated it. O
 
 The replica_file is created using the ipa\-replica\-prepare utility.
 .SH "OPTIONS"
+.SS "BASIC OPTIONS"
 .TP
-\fB\-N\fR, \fB\-\-no\-ntp\fR
-Do not configure NTP
-.TP
-\fB\-d\fR, \fB\-\-debug
-Enable debug logging when more verbose output is needed
+\fB\-\-setup\-ca\fR
+Install and configure a CA on this replica. If a CA is not configured then
+certificate operations will be forwarded to a master with a CA installed.
 .TP
 \fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 Directory Manager (existing master) password
@@ -39,9 +38,27 @@ Directory Manager (existing master) password
 \fB\-w\fR \fIADMIN_PASSWORD\fR, \fB\-\-admin\-password\fR=\fIADMIN_PASSWORD\fR
 Admin user Kerberos password used for connection check
 .TP
-\fB\-\-setup\-ca\fR
-Install and configure a CA on this replica. If a CA is not configured then
-certificate operations will be forwarded to a master with a CA installed.
+\fB\-N\fR, \fB\-\-no\-ntp\fR
+Do not configure NTP
+.TP
+\fB\-\-no\-ui\-redirect\fR
+Do not automatically redirect to the Web UI.
+.TP
+\fB\-\-skip\-conncheck\fR
+Skip connection check to remote master
+.TP
+\fB\-d\fR, \fB\-\-debug
+Enable debug logging when more verbose output is needed
+.TP
+\fB\-U\fR, \fB\-\-unattended\fR
+An unattended installation that will never prompt for user input
+
+.SS "CERTIFICATE SYSTEM OPTIONS"
+.TP
+\fB\-\-no\-pkinit\fR
+Disables pkinit setup steps
+
+.SS "DNS OPTIONS"
 .TP
 \fB\-\-setup\-dns\fR
 Generate a DNS zone if it does not exist already and configure the DNS server.
@@ -64,18 +81,7 @@ Do not create reverse DNS zone
 .TP
 \fB\-\-no\-host\-dns\fR
 Do not use DNS for hostname lookup during installation
-.TP
-\fB\-\-no\-pkinit\fR
-Disables pkinit setup steps
-.TP
-\fB\-\-no\-ui\-redirect\fR
-Do not automatically redirect to the Web UI.
-.TP
-\fB\-\-skip\-conncheck\fR
-Skip connection check to remote master
-.TP
-\fB\-U\fR, \fB\-\-unattended\fR
-An unattended installation that will never prompt for user input
+
 .SH "EXIT STATUS"
 0 if the command was successful
 
