@@ -864,7 +864,7 @@ class AttributeValueCompleter:
             readline.redisplay()
             return None
         else:
-            # lhs and operator are complete, if the the rhs is blank
+            # lhs and operator are complete, if the rhs is blank
             # (either empty or only only whitespace) then attempt
             # to complete by inserting the default value, otherwise
             # there is nothing we can complete to so we're done.

@@ -927,7 +927,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 
 kpreply:
 
-	/* set-up the the clear text reply */
+	/* set-up the clear text reply */
 	kdec.length = 2 + strlen(result_string);
 	kdec.data = malloc(kdec.length);
 	if (!kdec.data) {

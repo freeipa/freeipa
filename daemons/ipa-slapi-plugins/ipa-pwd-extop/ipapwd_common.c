@@ -16,7 +16,7 @@
  *
  * In the following paragraph, "GPL" means the GNU General Public
  * License, version 3 or any later version, and "Non-GPL Code" means
- * code that is governed neither by the the GPL nor a license
+ * code that is governed neither by the GPL nor a license
  * compatible with the GPL.
  *
  * You may link the code of this Program with Non-GPL Code and convey
@@ -54,7 +54,7 @@ extern const char *ipa_pwd_config_dn;
 
 /* These are the default enc:salt types if nothing is defined.
  * TODO: retrieve the configure set of ecntypes either from the
- * kfc.conf file or by synchronizing the the file content into
+ * kfc.conf file or by synchronizing the file content into
  * the directory */
 static const char *ipapwd_def_encsalts[] = {
     "des3-hmac-sha1:normal",
