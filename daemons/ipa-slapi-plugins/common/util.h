@@ -16,7 +16,7 @@
  *
  * In the following paragraph, "GPL" means the GNU General Public
  * License, version 3 or any later version, and "Non-GPL Code" means
- * code that is governed neither by the the GPL nor a license
+ * code that is governed neither by the GPL nor a license
  * compatible with the GPL.
  *
  * You may link the code of this Program with Non-GPL Code and convey

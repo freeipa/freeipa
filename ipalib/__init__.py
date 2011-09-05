@@ -768,7 +768,7 @@ session.  The global environment will have an ``api`` variable, which is the
 standard `plugable.API` instance found at ``ipalib.api``.  All plugins will
 have been loaded (well, except the backend plugins if ``in_server`` is False)
 and ``api`` will be fully initialized.  To launch the console from within the
-top-level directory in the the source tree, just run ``ipa console`` from a
+top-level directory in the source tree, just run ``ipa console`` from a
 terminal, like this:
 
     ::

@@ -62,7 +62,7 @@ The targets include:
   ldap://uid=*,cn=users,cn=accounts,dc=example,dc=com. The subtree option
   is a fail-safe for objects that may not be covered by the type option.
 
-The permissions define what the the ACI is allowed to do, and are one or
+The permissions define what the ACI is allowed to do, and are one or
 more of:
 1. write - write one or more attributes
 2. read - read one or more attributes
@@ -100,7 +100,7 @@ command-line now (see last example).
  Add an ACI that allows members of the editors manage members of the admins group:
    ipa aci-add --permissions=write --attrs=member --targetgroup=admins --group=editors --prefix=none "Editors manage admins"
 
- Add an ACI that allows members of the admin group to manage the street and zip code of those in the editors group:
+ Add an ACI that allows members of the admins group to manage the street and zip code of those in the editors group:
    ipa aci-add --permissions=write --memberof=editors --group=admins --attrs=street,postalcode --prefix=none "admins edit the address of editors"
 
  Add an ACI that allows the admins group manage the street and zipcode of those who work for the boss:
