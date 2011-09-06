@@ -127,6 +127,11 @@ def verify_fqdn(host_name,no_host_dns=False):
     if ipautil.valid_ip(host_name):
         raise RuntimeError("IP address not allowed as a hostname")
 
+    system_host_name = socket.gethostname()
+    if not (host_name + '.').startswith(system_host_name + '.'):
+        print "Warning: The host name '%s' does not match the system host name '%s'." % (host_name, system_host_name)
+        print "         Some services may not work properly."
+
     if no_host_dns:
         print "Warning: skipping DNS resolution of host", host_name
         return
