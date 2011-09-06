@@ -42,7 +42,7 @@ try:
     from ipapython.config import IPAOptionParser
     import SSSDConfig
     from ConfigParser import RawConfigParser
-    from optparse import SUPPRESS_HELP
+    from optparse import SUPPRESS_HELP, OptionGroup
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -61,46 +61,61 @@ client_nss_nickname_format = 'IPA Machine Certificate - %s'
 
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
-    parser.add_option("--domain", dest="domain", help="domain name")
-    parser.add_option("--server", dest="server", help="IPA server")
-    parser.add_option("--realm", dest="realm_name", help="realm name")
-    parser.add_option("-f", "--force", dest="force", action="store_true",
-                      default=False, help="force setting of LDAP/Kerberos conf")
-    parser.add_option("-d", "--debug", dest="debug", action="store_true",
-                      default=False, help="print debugging information")
-    parser.add_option("-U", "--unattended", dest="unattended",
-                      action="store_true",
-                      help="unattended installation never prompts the user")
-    parser.add_option("--ntp-server", dest="ntp_server", help="ntp server to use")
-    parser.add_option("-S", "--no-sssd", action="store_false",
-                      help="Do not configure the client to use SSSD for authentication", default=True, dest="sssd")
-    parser.add_option("-N", "--no-ntp", action="store_false",
-                      help="do not configure ntp", default=True, dest="conf_ntp")
-    parser.add_option("-w", "--password", dest="password", sensitive=True,
+
+    basic_group = OptionGroup(parser, "basic options")
+    basic_group.add_option("--domain", dest="domain", help="domain name")
+    basic_group.add_option("--server", dest="server", help="IPA server")
+    basic_group.add_option("--realm", dest="realm_name", help="realm name")
+    basic_group.add_option("-p", "--principal", dest="principal",
+                      help="principal to use to join the IPA realm"),
+    basic_group.add_option("-w", "--password", dest="password", sensitive=True,
                       help="password to join the IPA realm (assumes bulk password unless principal is also set)"),
-    parser.add_option("-W", dest="prompt_password", action="store_true",
+    basic_group.add_option("-W", dest="prompt_password", action="store_true",
                       default=False,
                       help="Prompt for a password to join the IPA realm"),
-    parser.add_option("-p", "--principal", dest="principal",
-                      help="principal to use to join the IPA realm"),
-    # --on-master is used in ipa-server-install and ipa-replica-install
-    # only, it isn't meant to be used on clients.
-    parser.add_option("--on-master", dest="on_master", action="store_true",
-                      help=SUPPRESS_HELP, default=False)
-    parser.add_option("--permit", dest="permit", action="store_true",
-                      help="disable access rules by default, permit all access.", default=False)
-    parser.add_option("--mkhomedir", dest="mkhomedir", action="store_true",
-                      help="create home directories for users on their first login", default=False)
-    parser.add_option("", "--uninstall", dest="uninstall", action="store_true",
-                      default=False, help="uninstall an existing installation")
-    parser.add_option("", "--hostname", dest="hostname",
+    basic_group.add_option("--mkhomedir", dest="mkhomedir",
+                      action="store_true", default=False,
+                      help="create home directories for users on their first login")
+    basic_group.add_option("", "--hostname", dest="hostname",
                       help="The hostname of this server (FQDN). If specified, the hostname will be set and "
                            "the system configuration will be updated to persist over reboot. "
                            "By default a nodename result from uname(2) is used.")
-    parser.add_option("", "--enable-dns-updates", dest="dns_updates", action="store_true", default=False,
+    basic_group.add_option("--ntp-server", dest="ntp_server", help="ntp server to use")
+    basic_group.add_option("-N", "--no-ntp", action="store_false",
+                      help="do not configure ntp", default=True, dest="conf_ntp")
+    basic_group.add_option("-f", "--force", dest="force", action="store_true",
+                      default=False, help="force setting of LDAP/Kerberos conf")
+    basic_group.add_option("-d", "--debug", dest="debug", action="store_true",
+                      default=False, help="print debugging information")
+    basic_group.add_option("-U", "--unattended", dest="unattended",
+                      action="store_true",
+                      help="unattended (un)installation never prompts the user")
+    # --on-master is used in ipa-server-install and ipa-replica-install
+    # only, it isn't meant to be used on clients.
+    basic_group.add_option("--on-master", dest="on_master", action="store_true",
+                      help=SUPPRESS_HELP, default=False)
+    parser.add_option_group(basic_group)
+
+    sssd_group = OptionGroup(parser, "SSSD options")
+    sssd_group.add_option("--permit", dest="permit",
+                      action="store_true", default=False,
+                      help="disable access rules by default, permit all access.")
+    sssd_group.add_option("", "--enable-dns-updates", dest="dns_updates",
+                      action="store_true", default=False,
                       help="Configures the machine to attempt dns updates when the ip address changes.")
-    parser.add_option("--no-krb5-offline-passwords", dest="krb5_offline_passwords", action="store_false",
-                      help="Configure SSSD not to store user password when the server is offline", default=True)
+    sssd_group.add_option("--no-krb5-offline-passwords", dest="krb5_offline_passwords",
+                      action="store_false", default=True,
+                      help="Configure SSSD not to store user password when the server is offline")
+    sssd_group.add_option("-S", "--no-sssd", dest="sssd",
+                      action="store_false", default=True,
+                      help="Do not configure the client to use SSSD for authentication")
+    parser.add_option_group(sssd_group)
+
+    uninstall_group = OptionGroup(parser, "uninstall options")
+    uninstall_group.add_option("", "--uninstall", dest="uninstall", action="store_true",
+                      default=False, help="uninstall an existing installation. The uninstall can " \
+                                          "be run with --unattended option")
+    parser.add_option_group(uninstall_group)
 
     options, args = parser.parse_args()
     safe_opts = parser.get_safe_opts(options)
