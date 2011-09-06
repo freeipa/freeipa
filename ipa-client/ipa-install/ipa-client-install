@@ -345,8 +345,10 @@ def configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server):
     opts.append({'name':'global', 'type':'section', 'value':defopts})
     opts.append({'name':'empty', 'type':'empty'})
 
-    fstore.backup_file("/etc/ipa/default.conf")
-    ipaconf.newConf("/etc/ipa/default.conf", opts)
+    target_fname = '/etc/ipa/default.conf'
+    fstore.backup_file(target_fname)
+    ipaconf.newConf(target_fname, opts)
+    os.chmod(target_fname, 0644)
 
     return 0
 
@@ -519,7 +521,8 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, c
     logging.debug("Writing Kerberos configuration to %s:\n%s"
             % (filename, krbconf.dump(opts)))
 
-    krbconf.newConf(filename, opts);
+    krbconf.newConf(filename, opts)
+    os.chmod(filename, 0644)
 
     return 0
 

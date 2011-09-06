@@ -136,17 +136,21 @@ class HTTPInstance(service.Service):
         os.chown("/etc/httpd/conf/ipa.keytab", pent.pw_uid, pent.pw_gid)
 
     def __configure_http(self):
+        target_fname = '/etc/httpd/conf.d/ipa.conf'
         http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa.conf", self.sub_dict)
         self.fstore.backup_file("/etc/httpd/conf.d/ipa.conf")
-        http_fd = open("/etc/httpd/conf.d/ipa.conf", "w")
+        http_fd = open(target_fname, "w")
         http_fd.write(http_txt)
         http_fd.close()
+        os.chmod(target_fname, 0644)
 
+        target_fname = '/etc/httpd/conf.d/ipa-rewrite.conf'
         http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa-rewrite.conf", self.sub_dict)
         self.fstore.backup_file("/etc/httpd/conf.d/ipa-rewrite.conf")
-        http_fd = open("/etc/httpd/conf.d/ipa-rewrite.conf", "w")
+        http_fd = open(target_fname, "w")
         http_fd.write(http_txt)
         http_fd.close()
+        os.chmod(target_fname, 0644)
 
     def __disable_mod_ssl(self):
         if os.path.exists(SSL_CONF):
@@ -227,10 +231,12 @@ class HTTPInstance(service.Service):
             os.chmod(certs.CA_SERIALNO, 0664)
 
     def __setup_autoconfig(self):
+        target_fname = '/usr/share/ipa/html/preferences.html'
         prefs_txt = ipautil.template_file(ipautil.SHARE_DIR + "preferences.html.template", self.sub_dict)
-        prefs_fd = open("/usr/share/ipa/html/preferences.html", "w")
+        prefs_fd = open(target_fname, "w")
         prefs_fd.write(prefs_txt)
         prefs_fd.close()
+        os.chmod(target_fname, 0644)
 
         # The signing cert is generated in __setup_ssl
         db = certs.CertDB(self.realm, subject_base=self.subject_base)
@@ -240,12 +246,14 @@ class HTTPInstance(service.Service):
         pwdfile.close()
 
         tmpdir = tempfile.mkdtemp(prefix = "tmp-")
+        target_fname = '/usr/share/ipa/html/configure.jar'
         shutil.copy("/usr/share/ipa/html/preferences.html", tmpdir)
         db.run_signtool(["-k", "Signing-Cert",
-                         "-Z", "/usr/share/ipa/html/configure.jar",
+                         "-Z", target_fname,
                          "-e", ".html", "-p", pwd,
                          tmpdir])
         shutil.rmtree(tmpdir)
+        os.chmod(target_fname, 0755)    # everyone can execute the jar
 
     def __publish_ca_cert(self):
         ca_db = certs.CertDB(self.realm)

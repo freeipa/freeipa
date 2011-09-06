@@ -820,23 +820,23 @@ def main():
     logging.debug("will use dns_forwarders: %s\n" % str(dns_forwarders))
 
     # Create the management framework config file and finalize api
-    old_umask = os.umask(022)   # must be readable for httpd
-    try:
-        fd = open("/etc/ipa/default.conf", "w")
-        fd.write("[global]\n")
-        fd.write("host=" + host_name + "\n")
-        fd.write("basedn=" + util.realm_to_suffix(realm_name) + "\n")
-        fd.write("realm=" + realm_name + "\n")
-        fd.write("domain=" + domain_name + "\n")
-        fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % host_name)
-        fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(realm_name))
-        fd.write("enable_ra=True\n")
-        if not options.selfsign:
-            fd.write("ra_plugin=dogtag\n")
-        fd.write("mode=production\n")
-        fd.close()
-    finally:
-        os.umask(old_umask)
+    target_fname = '/etc/ipa/default.conf'
+    fd = open(target_fname, "w")
+    fd.write("[global]\n")
+    fd.write("host=" + host_name + "\n")
+    fd.write("basedn=" + util.realm_to_suffix(realm_name) + "\n")
+    fd.write("realm=" + realm_name + "\n")
+    fd.write("domain=" + domain_name + "\n")
+    fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % host_name)
+    fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(realm_name))
+    fd.write("enable_ra=True\n")
+    if not options.selfsign:
+        fd.write("ra_plugin=dogtag\n")
+    fd.write("mode=production\n")
+    fd.close()
+
+    # Must be readable for everyone
+    os.chmod(target_fname, 0644)
 
     api.bootstrap(**cfg)
     api.finalize()
