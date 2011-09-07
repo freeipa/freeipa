@@ -253,7 +253,7 @@ class HTTPInstance(service.Service):
                          "-e", ".html", "-p", pwd,
                          tmpdir])
         shutil.rmtree(tmpdir)
-        os.chmod(target_fname, 0755)    # everyone can execute the jar
+        os.chmod(target_fname, 0644)
 
     def __publish_ca_cert(self):
         ca_db = certs.CertDB(self.realm)
