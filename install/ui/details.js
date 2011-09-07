@@ -482,12 +482,20 @@ IPA.details_facet = function(spec) {
     };
 
     that.enable_update = function(value) {
-        if(value) {
-            that.reset_button.removeClass('action-button-disabled');
-            that.update_button.removeClass('action-button-disabled');
-        } else {
-            that.reset_button.addClass('action-button-disabled');
-            that.update_button.addClass('action-button-disabled');
+        if(that.reset_button) {
+            if(value) {
+                that.reset_button.removeClass('action-button-disabled');
+            } else {
+                that.reset_button.addClass('action-button-disabled');
+            }
+        }
+
+        if(that.update_button) {
+            if(value) {
+                that.update_button.removeClass('action-button-disabled');
+            } else {
+                that.update_button.addClass('action-button-disabled');
+            }
         }
     };
 
