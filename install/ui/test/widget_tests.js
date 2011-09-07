@@ -288,9 +288,9 @@ test("IPA.entity_select_widget" ,function(){
         other_field: 'uid' };
 
     base_widget_test('test_value');
-    ok( $('option',widget.list ).length > 1,"options come from AJAX");
     mock_record = {'uid':'kfrog'};
     widget.load(mock_record);
+    ok( $('option',widget.list ).length > 1,"options come from AJAX");
     same(widget.values[0],'kfrog','select set from values');
 });
 
