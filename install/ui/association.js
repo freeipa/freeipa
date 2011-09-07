@@ -352,24 +352,25 @@ IPA.association_table_widget = function (spec) {
 
         that.table_create(container);
 
-        var remove_button = IPA.action_button({
+        that.remove_button = IPA.action_button({
             name: 'remove',
             label: IPA.messages.buttons.remove,
             icon: 'remove-icon',
+            'class': 'action-button-disabled',
             click: function() {
-                if (!remove_button.hasClass('action-button-disabled')) {
+                if (!that.remove_button.hasClass('action-button-disabled')) {
                     that.remove_handler();
                 }
                 return false;
             }
         }).appendTo(that.buttons);
 
-        var add_button = IPA.action_button({
+        that.add_button = IPA.action_button({
             name: 'add',
             label: IPA.messages.buttons.add,
             icon: 'add-icon',
             click: function() {
-                if (!add_button.hasClass('action-button-disabled')) {
+                if (!that.add_button.hasClass('action-button-disabled')) {
                     that.add_handler();
                 }
                 return false;
@@ -420,9 +421,25 @@ IPA.association_table_widget = function (spec) {
     that.set_enabled = function(enabled) {
         that.table_set_enabled(enabled);
         if (enabled) {
-            $('.action-button', that.table).removeClass('action-button-disabled');
+            if(that.add_button) {
+                that.add_button.removeClass('action-button-disabled');
+            }
         } else {
             $('.action-button', that.table).addClass('action-button-disabled');
+            that.unselect_all();
+        }
+    };
+
+    that.select_changed = function() {
+
+        var values = that.get_selected_values();
+
+        if (that.remove_button) {
+            if (values.length === 0) {
+                that.remove_button.addClass('action-button-disabled');
+            } else {
+                that.remove_button.removeClass('action-button-disabled');
+            }
         }
     };
 
@@ -831,6 +848,18 @@ IPA.association_facet = function (spec) {
             that.refresh_table();
         };
 
+        that.table.select_changed = function() {
+
+            var values = that.table.get_selected_values();
+
+            if (that.remove_button) {
+                if (values.length === 0) {
+                    that.remove_button.addClass('action-button-disabled');
+                } else {
+                    that.remove_button.removeClass('action-button-disabled');
+                }
+            }
+        };
     }
 
     that.create_header = function(container) {
@@ -844,6 +873,7 @@ IPA.association_facet = function (spec) {
                 name: 'remove',
                 label: IPA.messages.buttons.remove,
                 icon: 'remove-icon',
+                'class': 'action-button-disabled',
                 click: function() {
                     if (!that.remove_button.hasClass('action-button-disabled')) {
                         that.show_remove_dialog();
