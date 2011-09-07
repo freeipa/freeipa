@@ -8,6 +8,7 @@ sbin_SCRIPTS =			\
 	ipa-ca-install		\
 	ipa-dns-install		\
 	ipa-server-install	\
+	ipa-adtrust-install	\
 	ipa-replica-conncheck	\
 	ipa-replica-install	\
 	ipa-replica-prepare	\

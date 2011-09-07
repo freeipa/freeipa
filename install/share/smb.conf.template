@@ -1,0 +1,28 @@
+[global]
+workgroup = $NETBIOS_NAME
+realm = $REALM
+kerberos method = system keytab
+create krb5 conf = no
+security = user
+domain master = yes
+domain logons = yes
+log level = 1
+max log size = 100000
+log file = /var/log/samba/log.%m
+passdb backend = IPA_ldapsam:ldapi://$LDAPI_SOCKET
+ldapsam:trusted=yes
+ldap ssl = off
+ldap admin dn = $SMB_DN
+ldap suffix = $SUFFIX
+ldap user suffix = cn=users,cn=accounts
+ldap group suffix = cn=groups,cn=accounts
+ldap machine suffix = cn=computers,cn=accounts
+rpc_server:epmapper = external
+rpc_server:lsarpc = external
+rpc_server:lsass = external
+rpc_server:lsasd = external
+rpc_server:samr = external
+rpc_server:netlogon = external
+rpc_server:tcpip = yes
+rpc_daemon:epmd = fork
+rpc_daemon:lsasd = fork

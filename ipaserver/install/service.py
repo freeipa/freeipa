@@ -38,7 +38,8 @@ SERVICE_LIST = {
     'KPASSWD':('kadmin', 20),
     'DNS':('named', 30),
     'HTTP':('httpd', 40),
-    'CA':('pki-cad', 50)
+    'CA':('pki-cad', 50),
+    'ADTRUST':('smb', 60)
 }
 
 def print_msg(message, output_fd=sys.stdout):

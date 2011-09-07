@@ -1,0 +1,47 @@
+.\" A man page for ipa-adtrust-install
+.\" Copyright (C) 2011 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Sumit Bose <sbose@redhat.com>
+.\"
+.TH "ipa-adtrust-install" "1" "Aug 23 2011" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-adtrust\-install \- Prepare an IPA server to be able to establish trust relationships with AD domains
+.SH "SYNOPSIS"
+ipa\-adtrust\-install [\fIOPTION\fR]...
+.SH "DESCRIPTION"
+Adds all necesary objects and configuration to allow an IPA server to create a
+trust to an Active Directory domain. This requires that the IPA server is
+already installed and configured.
+.SH "OPTIONS"
+.TP
+\fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-ds\-password\fR=\fIDM_PASSWORD\fR
+The password to be used by the Directory Server for the Directory Manager user
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Enable debug logging when more verbose output is needed
+.TP
+\fB\-\-ip\-address\fR=\fIIP_ADDRESS\fR
+The IP address of the IPA server. If not provided then this is determined based on the hostname of the server.
+.TP
+\fB\-\-netbios\-name\fR=\fINETBIOS_NAME\fR
+The NetBIOS name for the IPA domain. If not provided then this is determined based on the leading component of the DNS domain name.
+.TP
+\fB\-U\fR, \fB\-\-unattended\fR
+An unattended installation that will never prompt for user input
+.SH "EXIT STATUS"
+0 if the installation was successful
+
+1 if an error occurred

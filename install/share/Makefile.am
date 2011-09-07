@@ -32,6 +32,7 @@ app_DATA =				\
 	krb.con.template		\
 	krbrealm.con.template		\
 	preferences.html.template 	\
+	smb.conf.template		\
 	referint-conf.ldif		\
 	dna.ldif			\
 	master-entry.ldif		\

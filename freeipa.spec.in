@@ -401,6 +401,7 @@ fi
 %doc COPYING README Contributors.txt
 %{_sbindir}/ipa-ca-install
 %{_sbindir}/ipa-dns-install
+%{_sbindir}/ipa-adtrust-install
 %{_sbindir}/ipa-server-install
 %{_sbindir}/ipa-replica-conncheck
 %{_sbindir}/ipa-replica-install
@@ -482,6 +483,7 @@ fi
 %{_mandir}/man1/ipa-server-certinstall.1.gz
 %{_mandir}/man1/ipa-server-install.1.gz
 %{_mandir}/man1/ipa-dns-install.1.gz
+%{_mandir}/man1/ipa-adtrust-install.1.gz
 %{_mandir}/man1/ipa-ca-install.1.gz
 %{_mandir}/man1/ipa-compat-manage.1.gz
 %{_mandir}/man1/ipa-nis-manage.1.gz
