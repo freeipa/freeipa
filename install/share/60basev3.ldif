@@ -1,8 +1,19 @@
 ## IPA Base OID:	2.16.840.1.113730.3.8
 ##
-## Attributes:		2.16.840.1.113730.3.8.11 - V2 base attributres
-## ObjectClasses:	2.16.840.1.113730.3.8.12 - V2 base objectclasses
+## Attributes:		2.16.840.1.113730.3.8.11 - V3 base attributres
+## ObjectClasses:	2.16.840.1.113730.3.8.12 - V3 base objectclasses
 ##
 dn: cn=schema
 attributeTypes: (2.16.840.1.113730.3.8.11.1 NAME 'ipaExternalMember' DESC 'External Group Member Identifier' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v3' )
+attributeTypes: (2.16.840.1.113730.3.8.11.2 NAME 'ipaNTSecurityIdentfier' DESC 'NT Security ID' EQUALITY caseIgnoreIA5Match OREDRING caseIgnoreIA5OrderingMatch SUBSTR caseIgnoreIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE X-ORIGIN 'IPA v3' )
+attributeTypes: (2.16.840.1.113730.3.8.11.3 NAME 'ipaNTFlatName' DESC 'Flat/Netbios Name' EQUALITY caseIgnoreMatch OREDRING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v3' )
+attributeTypes: (2.16.840.1.113730.3.8.11.4 NAME 'ipaNTFallbackPrimaryGroup' DESC 'Fallback Group to set the Primary group Security Identifier for users with UPGs' SUP distinguishedName X-ORIGIN 'IPA v3' )
+attributeTypes: (2.16.840.1.113730.3.8.11.5 NAME 'ipaNTHash' DESC 'NT Hash of user password' EQUALITY caseIgnoreMatch OREDRING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 SINGLE-VALUE X-ORIGIN 'IPA v3' )
+attributeTypes: (2.16.840.1.113730.3.8.11.6 NAME 'ipaNTLogonScript' DESC 'User Logon Script Name' EQUALITY caseIgnoreMatch OREDRING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v3' )
+attributeTypes: (2.16.840.1.113730.3.8.11.7 NAME 'ipaNTProfilePath' DESC 'User Profile Path' EQUALITY caseIgnoreMatch OREDRING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v3' )
+attributeTypes: (2.16.840.1.113730.3.8.11.8 NAME 'ipaNTHomeDirectory' DESC 'User Home Directory Path' EQUALITY caseIgnoreMatch OREDRING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v3' )
+attributeTypes: (2.16.840.1.113730.3.8.11.9 NAME 'ipaNTHomeDirectoryDrive' DESC 'User Home Drive Letter' EQUALITY caseIgnoreMatch OREDRING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v3' )
 objectClasses: (2.16.840.1.113730.3.8.12.1 NAME 'ipaExternalGroup' SUP top STRUCTURAL MUST ( cn ) MAY ( ipaExternalMember $ memberOf $ description $ owner) X-ORIGIN 'IPA v3' )
+objectClasses: (2.16.840.1.113730.3.8.12.2 NAME 'ipaNTUserAttrs' SUP top AUXILIARY MUST ( ipaNTSecurityIdentifier ) MAY ( ipaNTHash $ ipaNTLogonScript $ ipaNTProfilePath $ ipaNTHomeDirectory $ ipaNTHomeDirectotryDrive ) X-ORIGIN 'IPA v3' )
+objectClasses: (2.16.840.1.113730.3.8.12.3 NAME 'ipaNTGroupAttrs' SUP top AUXILIARY MUST ( ipaNTSecurityIdentifier ) X-ORIGIN 'IPA v3' )
+objectClasses: (2.16.840.1.113730.3.8.12.4 NAME 'ipaNTDomainAttrs' SUP top AUXILIARY MUST ( ipaNTSecurityIdentifier $ ipaNTFlatName ) MAY ( ipaNTFallbackPrimaryGroup ) X-ORIGIN 'IPA v3' )
