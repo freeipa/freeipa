@@ -493,13 +493,15 @@ IPA.association_table_widget = function (spec) {
     };
 
     that.create_add_dialog = function() {
+
+        var entity_label = that.entity.metadata.label_singular;
         var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
-        var label = IPA.metadata.objects[that.other_entity].label;
+        var other_entity_label = IPA.metadata.objects[that.other_entity].label;
 
         var title = that.add_title;
-        title = title.replace('${entity}', that.entity.metadata.label_singular);
+        title = title.replace('${entity}', entity_label);
         title = title.replace('${primary_key}', pkey);
-        title = title.replace('${other_entity}', label);
+        title = title.replace('${other_entity}', other_entity_label);
 
         return IPA.association_adder_dialog({
             title: title,
