@@ -1042,18 +1042,21 @@ IPA.sudorule_association_table_widget = function(spec) {
 
     that.create_add_dialog = function() {
 
+        var entity_label = that.entity.metadata.label_singular;
         var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        var other_entity_label = IPA.metadata.objects[that.other_entity].label;
 
         var title = that.add_title;
-        title = title.replace('${other_entity}', IPA.metadata.objects[that.other_entity].label);
-        title = title.replace('${entity}', IPA.metadata.objects[that.entity.name].label_singular);
+        title = title.replace('${entity}', entity_label);
         title = title.replace('${primary_key}', pkey);
+        title = title.replace('${other_entity}', other_entity_label);
 
         return IPA.sudo.rule_association_adder_dialog({
             title: title,
             pkey: pkey,
             other_entity: that.other_entity,
-            entity:that.entity,
+            attribute_member: that.attribute_member,
+            entity: that.entity,
             external: that.external
         });
     };
@@ -1085,7 +1088,7 @@ IPA.sudo.rule_association_adder_dialog = function(spec) {
         if (!that.columns.length) {
             var pkey_name = IPA.metadata.objects[that.other_entity].primary_key;
             that.create_column({
-                entity:that.entity,
+                entity: that.entity,
                 name: pkey_name,
                 label: IPA.metadata.objects[that.other_entity].label,
                 primary_key: true,
