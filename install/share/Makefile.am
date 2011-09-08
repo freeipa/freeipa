@@ -42,6 +42,8 @@ app_DATA =				\
 	schema_compat.uldif		\
 	ldapi.ldif			\
 	wsgi.py				\
+	repoint-managed-entries.ldif	\
+	managed-entries.ldif		\
 	user_private_groups.ldif	\
 	host_nis_groups.ldif		\
 	uuid-ipauniqueid.ldif		\

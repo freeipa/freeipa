@@ -201,6 +201,7 @@ class DsInstance(service.Service):
         self.step("configuring ssl for ds instance", self.__enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("configure autobind for root", self.__root_autobind)
+        self.step("configure new location for managed entries", self.__repoint_managed_entries)
         self.step("restarting directory server", self.__restart_instance)
 
     def __common_post_setup(self):
@@ -237,6 +238,7 @@ class DsInstance(service.Service):
         self.step("adding default layout", self.__add_default_layout)
         self.step("adding delegation layout", self.__add_delegation_layout)
         self.step("adding replication acis", self.__add_replication_acis)
+        self.step("creating container for managed entries", self.__managed_entries)
         self.step("configuring user private groups", self.__user_private_groups)
         self.step("configuring netgroups from hostgroups", self.__host_nis_groups)
         self.step("creating default Sudo bind user", self.__add_sudo_binduser)
@@ -276,8 +278,6 @@ class DsInstance(service.Service):
         self.step("adding replication acis", self.__add_replication_acis)
         # See LDIFs for automember configuration during replica install
         self.step("setting Auto Member configuration", self.__add_replica_automember_config)
-
-        # Managed Entries configuration is done via update files
 
         self.__common_post_setup()
 
@@ -484,6 +484,16 @@ class DsInstance(service.Service):
 
     def __config_lockout_module(self):
         self._ldap_mod("lockout-conf.ldif")
+
+    def __repoint_managed_entries(self):
+        if not has_managed_entries(self.fqdn, self.dm_password):
+            raise errors.NotFound(reason='Missing Managed Entries Plugin')
+        self._ldap_mod("repoint-managed-entries.ldif", self.sub_dict)
+
+    def __managed_entries(self):
+        if not has_managed_entries(self.fqdn, self.dm_password):
+            raise errors.NotFound(reason='Missing Managed Entries Plugin')
+        self._ldap_mod("managed-entries.ldif", self.sub_dict)
 
     def __user_private_groups(self):
         if not has_managed_entries(self.fqdn, self.dm_password):

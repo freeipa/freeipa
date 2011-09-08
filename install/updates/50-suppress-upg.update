@@ -1,2 +1,0 @@
-dn: cn=UPG Definition,cn=Managed Entries,cn=plugins,cn=config
-replace: originFilter:objectclass=posixAccount::(&(objectclass=posixAccount)(!(description=__no_upg__)))

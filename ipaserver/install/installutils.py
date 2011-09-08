@@ -440,6 +440,27 @@ def wait_for_open_ports(host, ports, timeout=0):
                 else:
                     raise e
 
+def wait_for_open_socket(socket_name, timeout=0):
+    """
+    Wait until the specified socket on the local host is open. Timeout
+    in seconds may be specified to limit the wait.
+    """
+    op_timeout = time.time() + timeout
+
+    while True:
+        try:
+            s = socket.socket(socket.AF_UNIX)
+            s.connect(socket_name)
+            s.close()
+            break;
+        except socket.error, e:
+            if e.errno == 111:  # 111: Connection refused
+                if timeout and time.time() > op_timeout: # timeout exceeded
+                    raise e
+                time.sleep(1)
+            else:
+                raise e
+
 def resolve_host(host_name):
     try:
         addrinfos = socket.getaddrinfo(host_name, None,
