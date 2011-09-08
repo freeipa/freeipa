@@ -26,6 +26,7 @@ UPDATES_DIR="/usr/share/ipa/updates/"
 
 import sys
 from ipaserver.install import installutils
+from ipaserver.install import service
 from ipaserver import ipaldap
 from ipapython import entity, ipautil
 from ipalib import util
@@ -48,6 +49,24 @@ class BadSyntax(Exception):
     def __str__(self):
         return repr(self.value)
 
+class IPARestart(service.Service):
+    """
+    Restart the 389 DS service prior to performing deletions.
+    """
+    def __init__(self, live_run=True):
+        """
+        This class is present to provide ldapupdate the means to
+        restart 389 DS to apply updates prior to performing deletes.
+        """
+
+        service.Service.__init__(self, "dirsrv")
+        self.live_run = live_run
+
+    def create_instance(self):
+        self.step("stopping directory server", self.stop)
+        self.step("starting directory server", self.start)
+        self.start_creation("Restarting IPA to initialize updates before performing deletes:")
+
 class LDAPUpdate:
     def __init__(self, dm_password, sub_dict={}, live_run=True,
                  online=True, ldapi=False):
@@ -64,7 +83,6 @@ class LDAPUpdate:
         self.modified = False
         self.online = online
         self.ldapi = ldapi
-
         self.pw_name = pwd.getpwuid(os.geteuid()).pw_name
 
         if sub_dict.get("REALM"):
@@ -418,6 +436,54 @@ class LDAPUpdate:
 
         return self.conn.getList(dn, scope, searchfilter, sattrs)
 
+    def __update_managed_entries(self):
+        """Update and move legacy Managed Entry Plugins."""
+
+        suffix = ipautil.realm_to_suffix(self.realm)
+        searchfilter = '(objectclass=*)'
+        definitions_managed_entries = []
+        old_template_container = 'cn=etc,%s' % suffix
+        old_definition_container = 'cn=Managed Entries,cn=plugins,cn=config'
+        new = 'cn=Managed Entries,cn=etc,%s' % suffix
+        sub = ['cn=Definitions,', 'cn=Templates,']
+        new_managed_entries = []
+        old_templates = []
+        template = None
+        try:
+            definitions_managed_entries = self.conn.getList(old_definition_container, ldap.SCOPE_ONELEVEL, searchfilter,[])
+        except errors.NotFound, e:
+            return new_managed_entries
+        for entry in definitions_managed_entries:
+            new_definition = {}
+            definition_managed_entry_updates = {}
+            definitions_managed_entries
+            old_definition = {'dn': entry.dn, 'deleteentry': ['dn: %s' % entry.dn]}
+            old_template = entry.getValue('managedtemplate')
+            entry.setValues('managedtemplate', entry.getValue('managedtemplate').replace(old_template_container, sub[1] + new))
+            new_definition['dn'] = entry.dn.replace(old_definition_container, sub[0] + new)
+            new_definition['default'] = str(entry).strip().replace(': ', ':').split('\n')[1:]
+            definition_managed_entry_updates[new_definition['dn']] = new_definition
+            definition_managed_entry_updates[old_definition['dn']] = old_definition
+            old_templates.append(old_template)
+            new_managed_entries.append(definition_managed_entry_updates)
+        for old_template in old_templates:
+            try:
+                template = self.conn.getEntry(old_template, ldap.SCOPE_BASE, searchfilter,[])
+                new_template = {}
+                template_managed_entry_updates = {}
+                old_template = {'dn': template.dn, 'deleteentry': ['dn: %s' % template.dn]}
+                new_template['dn'] = template.dn.replace(old_template_container, sub[1] + new)
+                new_template['default'] = str(template).strip().replace(': ', ':').split('\n')[1:]
+                template_managed_entry_updates[new_template['dn']] = new_template
+                template_managed_entry_updates[old_template['dn']] = old_template
+                new_managed_entries.append(template_managed_entry_updates)
+            except errors.NotFound, e:
+                pass
+        if len(new_managed_entries) > 0:
+            new_managed_entries.sort(reverse=True)
+
+        return new_managed_entries
+
     def __apply_updates(self, updates, entry):
         """updates is a list of changes to apply
            entry is the thing to apply them to
@@ -431,7 +497,6 @@ class LDAPUpdate:
         for u in updates:
             # We already do syntax-parsing so this is safe
             (utype, k, values) = u.split(':',2)
-
             values = self.__parse_values(values)
 
             e = entry.getValues(k)
@@ -440,7 +505,6 @@ class LDAPUpdate:
                     e = []
                 else:
                     e = [e]
-
             for v in values:
                 if utype == 'remove':
                     logging.debug("remove: '%s' from %s, current value %s", v, k, e)
@@ -629,6 +693,18 @@ class LDAPUpdate:
         and child in the wrong order.
         """
         dn = updates['dn']
+        deletes = updates.get('deleteentry', [])
+        for d in deletes:
+            try:
+               if self.live_run:
+                   self.conn.deleteEntry(dn)
+               self.modified = True
+            except errors.NotFound, e:
+                logging.info("Deleting non-existent entry %s", e)
+                self.modified = True
+            except errors.DatabaseError, e:
+                logging.error("Delete failed: %s", e)
+
         updates = updates.get('updates', [])
         for u in updates:
             # We already do syntax-parsing so this is safe
@@ -659,6 +735,31 @@ class LDAPUpdate:
         f.sort()
         return f
 
+    def create_connection(self):
+        if self.online:
+            if self.ldapi:
+                self.conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
+            else:
+                self.conn = ipaldap.IPAdmin(self.sub_dict['FQDN'],
+                                            ldapi=False,
+                                            realm=self.realm)
+            try:
+                if self.dm_password:
+                    self.conn.do_simple_bind(binddn="cn=directory manager", bindpw=self.dm_password)
+                elif os.getegid() == 0:
+                    try:
+                        # autobind
+                        self.conn.do_external_bind(self.pw_name)
+                    except errors.NotFound:
+                        # Fall back
+                        self.conn.do_sasl_gssapi_bind()
+                else:
+                    self.conn.do_sasl_gssapi_bind()
+            except ldap.LOCAL_ERROR, e:
+                raise RuntimeError('%s' % e.args[0].get('info', '').strip())
+        else:
+            raise RuntimeError("Offline updates are not supported.")
+
     def update(self, files):
         """Execute the update. files is a list of the update files to use.
 
@@ -666,29 +767,7 @@ class LDAPUpdate:
         """
 
         try:
-            if self.online:
-                if self.ldapi:
-                    self.conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
-                else:
-                    self.conn = ipaldap.IPAdmin(self.sub_dict['FQDN'],
-                                                ldapi=False,
-                                                realm=self.realm)
-                try:
-                    if self.dm_password:
-                        self.conn.do_simple_bind(binddn="cn=directory manager", bindpw=self.dm_password)
-                    elif os.getegid() == 0:
-                        try:
-                            # autobind
-                            self.conn.do_external_bind(self.pw_name)
-                        except errors.NotFound:
-                            # Fall back
-                            self.conn.do_sasl_gssapi_bind()
-                    else:
-                        self.conn.do_sasl_gssapi_bind()
-                except ldap.LOCAL_ERROR, e:
-                    raise RuntimeError('%s' % e.args[0].get('info', '').strip())
-            else:
-                raise RuntimeError("Offline updates are not supported.")
+            self.create_connection()
             all_updates = {}
             dn_list = {}
             for f in files:
@@ -701,6 +780,20 @@ class LDAPUpdate:
 
                 (all_updates, dn_list) = self.parse_update_file(data, all_updates, dn_list)
 
+            # Process Managed Entry Updates
+            managed_entries = self.__update_managed_entries()
+            if managed_entries:
+                managed_entry_dns = [[m[entry]['dn'] for entry in m] for m in managed_entries]
+                l = len(dn_list.keys())
+
+                # Add Managed Entry DN's to the DN List
+                for dn in managed_entry_dns:
+                    l+=1
+                    dn_list[l] = dn
+                # Add Managed Entry Updates to All Updates List
+                for managed_entry in managed_entries:
+                    all_updates.update(managed_entry)
+
             # For adds and updates we want to apply updates from shortest
             # to greatest length of the DN. For deletes we want the reverse.
             sortedkeys = dn_list.keys()
@@ -708,6 +801,13 @@ class LDAPUpdate:
             for k in sortedkeys:
                 for dn in dn_list[k]:
                     self.__update_record(all_updates[dn])
+
+            # Restart 389 Directory Service
+            socket_name = '/var/run/slapd-%s.socket' % self.realm.replace('.','-')
+            iparestart = IPARestart()
+            iparestart.create_instance()
+            installutils.wait_for_open_socket(socket_name)
+            self.create_connection()
 
             sortedkeys.reverse()
             for k in sortedkeys:

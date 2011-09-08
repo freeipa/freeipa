@@ -1,0 +1,17 @@
+dn: cn=Managed Entries,cn=plugins,cn=config
+only: nsslapd-pluginConfigArea: 'cn=Definitions,cn=Managed Entries,cn=etc,$SUFFIX'
+
+dn: cn=Managed Entries,cn=etc,$SUFFIX
+default: objectClass: nsContainer
+default: objectClass: top
+default: cn: Managed Entries
+
+dn: cn=Templates,cn=Managed Entries,cn=etc,$SUFFIX
+default: objectClass: nsContainer
+default: objectClass: top
+default: cn: Templates
+
+dn: cn=Definitions,cn=Managed Entries,cn=etc,$SUFFIX
+default: objectClass: nsContainer
+default: objectClass: top
+default: cn: Definitions

@@ -7,6 +7,7 @@ app_DATA =				\
 	10-RFC4876.update		\
 	10-config.update		\
 	10-sudo.update			\
+	19-managed-entries.update	\
 	20-aci.update			\
 	20-dna.update			\
 	20-host_nis_groups.update	\
@@ -22,7 +23,6 @@ app_DATA =				\
 	50-lockout-policy.update	\
 	50-groupuuid.update		\
 	50-hbacservice.update		\
-	50-suppress-upg.update		\
 	$(NULL)
 
 EXTRA_DIST =				\

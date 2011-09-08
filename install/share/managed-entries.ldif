@@ -1,0 +1,17 @@
+dn: cn=Managed Entries,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: Managed Entries
+
+dn: cn=Templates,cn=Managed Entries,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: Templates
+
+dn: cn=Definitions,cn=Managed Entries,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: Definitions
