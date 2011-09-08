@@ -604,6 +604,14 @@ class host_mod(LDAPUpdate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        # Allow an existing OTP to be reset but don't allow a OTP to be
+        # added to an enrolled host.
+        if 'userpassword' in options:
+            entry = {}
+            self.obj.get_password_attributes(ldap, dn, entry)
+            if not entry['has_password'] and entry['has_keytab']:
+                raise errors.ValidationError(name='password', error=_('Password cannot be set on enrolled host.'))
+
         # Once a principal name is set it cannot be changed
         if 'cn' in entry_attrs:
             raise errors.ACIError(info='cn is immutable')
