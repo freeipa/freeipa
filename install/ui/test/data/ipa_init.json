@@ -25,6 +25,657 @@
                     "aci_show": {
                         "__base64__": ""
                     },
+                    "automember_add": {
+                        "takes_args": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "automember_rule",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Automember Rule",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Automember Rule",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "cn",
+                                "noextrawhitespace": true,
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            }
+                        ],
+                        "takes_options": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "StrEnum",
+                                "cli_name": "type",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Grouping to which the rule applies",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Grouping Type",
+                                "multivalue": false,
+                                "name": "type",
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode",
+                                "values": [
+                                    "group",
+                                    "hostgroup"
+                                ]
+                            }
+                        ]
+                    },
+                    "automember_add_condition": {
+                        "takes_args": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "automember_rule",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Automember Rule",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Automember Rule",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "cn",
+                                "noextrawhitespace": true,
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            }
+                        ],
+                        "takes_options": [
+                            {
+                                "alwaysask": true,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "List",
+                                "cli_name": "inclusive_regex",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Inclusive Regex",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Inclusive Regex",
+                                "multivalue": true,
+                                "name": "automemberinclusiveregex",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "separator": ",",
+                                "skipspace": true,
+                                "type": "tuple"
+                            },
+                            {
+                                "alwaysask": true,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "List",
+                                "cli_name": "exclusive_regex",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Exclusive Regex",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Exclusive Regex",
+                                "multivalue": true,
+                                "name": "automemberexclusiveregex",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "separator": ",",
+                                "skipspace": true,
+                                "type": "tuple"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "key",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Attribute to filter via regex. For example fqdn for a host, or manager for a user",
+                                "exclude": null,
+                                "flags": [
+                                    "no_update",
+                                    "no_create",
+                                    "no_search"
+                                ],
+                                "hint": null,
+                                "include": null,
+                                "label": "Attribute Key",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "key",
+                                "noextrawhitespace": true,
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "StrEnum",
+                                "cli_name": "type",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Grouping to which the rule applies",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Grouping Type",
+                                "multivalue": false,
+                                "name": "type",
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode",
+                                "values": [
+                                    "group",
+                                    "hostgroup"
+                                ]
+                            }
+                        ]
+                    },
+                    "automember_default_group_remove": {
+                        "takes_args": [],
+                        "takes_options": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "StrEnum",
+                                "cli_name": "type",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Grouping to which the rule applies",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Grouping Type",
+                                "multivalue": false,
+                                "name": "type",
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode",
+                                "values": [
+                                    "group",
+                                    "hostgroup"
+                                ]
+                            }
+                        ]
+                    },
+                    "automember_default_group_set": {
+                        "takes_args": [],
+                        "takes_options": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "default_group",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Default group for entires to land",
+                                "exclude": null,
+                                "flags": [
+                                    "no_update",
+                                    "no_create"
+                                ],
+                                "hint": null,
+                                "include": null,
+                                "label": "Default Group",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "automemberdefaultgroup",
+                                "noextrawhitespace": true,
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "StrEnum",
+                                "cli_name": "type",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Grouping to which the rule applies",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Grouping Type",
+                                "multivalue": false,
+                                "name": "type",
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode",
+                                "values": [
+                                    "group",
+                                    "hostgroup"
+                                ]
+                            }
+                        ]
+                    },
+                    "automember_default_group_show": {
+                        "takes_args": [],
+                        "takes_options": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "StrEnum",
+                                "cli_name": "type",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Grouping to which the rule applies",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Grouping Type",
+                                "multivalue": false,
+                                "name": "type",
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode",
+                                "values": [
+                                    "group",
+                                    "hostgroup"
+                                ]
+                            }
+                        ]
+                    },
+                    "automember_del": {
+                        "takes_args": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "automember_rule",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Automember Rule",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Automember Rule",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "cn",
+                                "noextrawhitespace": true,
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            }
+                        ],
+                        "takes_options": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "StrEnum",
+                                "cli_name": "type",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Grouping to which the rule applies",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Grouping Type",
+                                "multivalue": false,
+                                "name": "type",
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode",
+                                "values": [
+                                    "group",
+                                    "hostgroup"
+                                ]
+                            }
+                        ]
+                    },
+                    "automember_find": {
+                        "takes_options": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "StrEnum",
+                                "cli_name": "type",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Grouping to which the rule applies",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Grouping Type",
+                                "multivalue": false,
+                                "name": "type",
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode",
+                                "values": [
+                                    "group",
+                                    "hostgroup"
+                                ]
+                            }
+                        ]
+                    },
+                    "automember_mod": {
+                        "takes_args": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "automember_rule",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Automember Rule",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Automember Rule",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "cn",
+                                "noextrawhitespace": true,
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            }
+                        ],
+                        "takes_options": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "StrEnum",
+                                "cli_name": "type",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Grouping to which the rule applies",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Grouping Type",
+                                "multivalue": false,
+                                "name": "type",
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode",
+                                "values": [
+                                    "group",
+                                    "hostgroup"
+                                ]
+                            }
+                        ]
+                    },
+                    "automember_remove_condition": {
+                        "takes_args": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "automember_rule",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Automember Rule",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Automember Rule",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "cn",
+                                "noextrawhitespace": true,
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            }
+                        ],
+                        "takes_options": [
+                            {
+                                "alwaysask": true,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "List",
+                                "cli_name": "inclusive_regex",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Inclusive Regex",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Inclusive Regex",
+                                "multivalue": true,
+                                "name": "automemberinclusiveregex",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "separator": ",",
+                                "skipspace": true,
+                                "type": "tuple"
+                            },
+                            {
+                                "alwaysask": true,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "List",
+                                "cli_name": "exclusive_regex",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Exclusive Regex",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Exclusive Regex",
+                                "multivalue": true,
+                                "name": "automemberexclusiveregex",
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "separator": ",",
+                                "skipspace": true,
+                                "type": "tuple"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "key",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Attribute to filter via regex. For example fqdn for a host, or manager for a user",
+                                "exclude": null,
+                                "flags": [
+                                    "no_update",
+                                    "no_create",
+                                    "no_search"
+                                ],
+                                "hint": null,
+                                "include": null,
+                                "label": "Attribute Key",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "key",
+                                "noextrawhitespace": true,
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "StrEnum",
+                                "cli_name": "type",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Grouping to which the rule applies",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Grouping Type",
+                                "multivalue": false,
+                                "name": "type",
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode",
+                                "values": [
+                                    "group",
+                                    "hostgroup"
+                                ]
+                            }
+                        ]
+                    },
+                    "automember_show": {
+                        "takes_args": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "automember_rule",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Automember Rule",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Automember Rule",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "cn",
+                                "noextrawhitespace": true,
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode"
+                            }
+                        ],
+                        "takes_options": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "StrEnum",
+                                "cli_name": "type",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Grouping to which the rule applies",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Grouping Type",
+                                "multivalue": false,
+                                "name": "type",
+                                "primary_key": false,
+                                "query": false,
+                                "required": true,
+                                "type": "unicode",
+                                "values": [
+                                    "group",
+                                    "hostgroup"
+                                ]
+                            }
+                        ]
+                    },
                     "automountkey_add": {
                         "takes_args": [],
                         "takes_options": [
@@ -8048,6 +8699,138 @@
                     "aci": {
                         "__base64__": ""
                     },
+                    "automember": {
+                        "aciattrs": [
+                            "automemberexclusiveregex",
+                            "automemberinclusiveregex",
+                            "automembertargetgroup",
+                            "cn",
+                            "description",
+                            "objectclass"
+                        ],
+                        "attribute_members": {},
+                        "bindable": false,
+                        "container_dn": "cn=automember,cn=etc",
+                        "default_attributes": [
+                            "automemberinclusiveregex",
+                            "automemberexclusiveregex",
+                            "cn",
+                            "automembertargetgroup",
+                            "description",
+                            "automemberdefaultgroup"
+                        ],
+                        "hidden_attributes": [
+                            "objectclass",
+                            "aci"
+                        ],
+                        "label": "Auto Membership Rule",
+                        "label_singular": "Entry",
+                        "methods": [
+                            "add",
+                            "add_condition",
+                            "default_group_remove",
+                            "default_group_set",
+                            "default_group_show",
+                            "del",
+                            "find",
+                            "mod",
+                            "remove_condition",
+                            "show"
+                        ],
+                        "name": "automember",
+                        "object_class": [
+                            "top",
+                            "automemberregexrule"
+                        ],
+                        "object_class_config": null,
+                        "object_name": "auto_member_rule",
+                        "object_name_plural": "auto_member_rules",
+                        "parent_object": "",
+                        "rdn_attribute": "",
+                        "relationships": {
+                            "member": [
+                                "Member",
+                                "",
+                                "no_"
+                            ],
+                            "memberindirect": [
+                                "Indirect Member",
+                                null,
+                                "no_indirect_"
+                            ],
+                            "memberof": [
+                                "Member Of",
+                                "in_",
+                                "not_in_"
+                            ],
+                            "memberofindirect": [
+                                "Indirect Member Of",
+                                null,
+                                "not_in_indirect_"
+                            ]
+                        },
+                        "takes_params": [
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "desc",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "A description of this auto member rule",
+                                "exclude": null,
+                                "flags": [],
+                                "hint": null,
+                                "include": null,
+                                "label": "Description",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "description",
+                                "noextrawhitespace": true,
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            },
+                            {
+                                "alwaysask": false,
+                                "attribute": false,
+                                "autofill": false,
+                                "class": "Str",
+                                "cli_name": "default_group",
+                                "cli_short_name": null,
+                                "default": null,
+                                "doc": "Default group for entires to land",
+                                "exclude": null,
+                                "flags": [
+                                    "no_update",
+                                    "no_create",
+                                    "no_search"
+                                ],
+                                "hint": null,
+                                "include": null,
+                                "label": "Default Group",
+                                "length": null,
+                                "maxlength": null,
+                                "minlength": null,
+                                "multivalue": false,
+                                "name": "automemberdefaultgroup",
+                                "noextrawhitespace": true,
+                                "pattern": null,
+                                "pattern_errmsg": null,
+                                "primary_key": false,
+                                "query": false,
+                                "required": false,
+                                "type": "unicode"
+                            }
+                        ],
+                        "uuid_attribute": ""
+                    },
                     "automountkey": {
                         "aciattrs": [
                             "automountinformation",
@@ -9058,7 +9841,6 @@
                             "ipadefaultprimarygroup",
                             "ipaenabledflag",
                             "ipaentitlementid",
-                            "ipaexternalmember",
                             "ipagroupobjectclasses",
                             "ipagroupsearchfields",
                             "ipahomesrootdir",
@@ -11002,7 +11784,8 @@
                             "sourcehost",
                             "memberhost",
                             "memberservice",
-                            "memberhostgroup"
+                            "memberhostgroup",
+                            "externalhost"
                         ],
                         "hidden_attributes": [
                             "objectclass",
@@ -11317,7 +12100,7 @@
                                 "cli_name": "memberuser_group",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Groups",
+                                "doc": "User Groups",
                                 "exclude": null,
                                 "flags": [
                                     "no_update",
@@ -11326,7 +12109,7 @@
                                 ],
                                 "hint": null,
                                 "include": null,
-                                "label": "Groups",
+                                "label": "User Groups",
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
@@ -11410,7 +12193,7 @@
                                 "cli_name": "sourcehost_host",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Source hosts",
+                                "doc": "Source Hosts",
                                 "exclude": null,
                                 "flags": [
                                     "no_update",
@@ -11419,7 +12202,7 @@
                                 ],
                                 "hint": null,
                                 "include": null,
-                                "label": "Source hosts",
+                                "label": "Source Hosts",
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
@@ -11441,7 +12224,7 @@
                                 "cli_name": "sourcehost_hostgroup",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Source host groups",
+                                "doc": "Source Host Groups",
                                 "exclude": null,
                                 "flags": [
                                     "no_update",
@@ -11450,7 +12233,7 @@
                                 ],
                                 "hint": null,
                                 "include": null,
-                                "label": "Source host groups",
+                                "label": "Source Host Groups",
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
@@ -12237,6 +13020,7 @@
                             ],
                             "memberof": [
                                 "hostgroup",
+                                "netgroup",
                                 "hbacrule",
                                 "sudorule"
                             ],
@@ -14586,7 +15370,7 @@
                                 "cli_name": "memberuser_group",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Groups",
+                                "doc": "User Groups",
                                 "exclude": null,
                                 "flags": [
                                     "no_update",
@@ -14595,7 +15379,7 @@
                                 ],
                                 "hint": null,
                                 "include": null,
-                                "label": "Groups",
+                                "label": "User Groups",
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
@@ -14741,7 +15525,7 @@
                                 "cli_name": "memberallowcmd_sudocmdgroup",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Sudo Command Groups",
+                                "doc": "Sudo Allow Command Groups",
                                 "exclude": null,
                                 "flags": [
                                     "no_update",
@@ -14750,7 +15534,7 @@
                                 ],
                                 "hint": null,
                                 "include": null,
-                                "label": "Sudo Command Groups",
+                                "label": "Sudo Allow Command Groups",
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
@@ -14772,7 +15556,7 @@
                                 "cli_name": "memberdenycmd_sudocmdgroup",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Sudo Command Groups",
+                                "doc": "Sudo Deny Command Groups",
                                 "exclude": null,
                                 "flags": [
                                     "no_update",
@@ -14781,7 +15565,7 @@
                                 ],
                                 "hint": null,
                                 "include": null,
-                                "label": "Sudo Command Groups",
+                                "label": "Sudo Deny Command Groups",
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
@@ -14803,7 +15587,7 @@
                                 "cli_name": "ipasudorunas_user",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Run as a user or any user within a specified group",
+                                "doc": "Run as a user",
                                 "exclude": null,
                                 "flags": [
                                     "no_update",
@@ -14812,7 +15596,7 @@
                                 ],
                                 "hint": null,
                                 "include": null,
-                                "label": "RunAs User",
+                                "label": "RunAs Users",
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
@@ -14834,7 +15618,7 @@
                                 "cli_name": "ipasudorunas_group",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "Run with the gid of a specified POSIX group ",
+                                "doc": "Run as any user within a specified group",
                                 "exclude": null,
                                 "flags": [
                                     "no_update",
@@ -14843,7 +15627,7 @@
                                 ],
                                 "hint": null,
                                 "include": null,
-                                "label": "RunAs Group",
+                                "label": "Groups of RunAs Users",
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
@@ -14977,7 +15761,7 @@
                                 "cli_name": "ipasudorunasgroup_group",
                                 "cli_short_name": null,
                                 "default": null,
-                                "doc": "RunAsGroup Group",
+                                "doc": "Run with the gid of a specified POSIX group",
                                 "exclude": null,
                                 "flags": [
                                     "no_update",
@@ -14986,7 +15770,7 @@
                                 ],
                                 "hint": null,
                                 "include": null,
-                                "label": "RunAsGroup Group",
+                                "label": "RunAs Groups",
                                 "length": null,
                                 "maxlength": null,
                                 "minlength": null,
@@ -16293,7 +17077,7 @@
                             "Administrator"
                         ],
                         "gidnumber": [
-                            "1890800000"
+                            "719000000"
                         ],
                         "has_keytab": true,
                         "has_password": true,
@@ -16301,18 +17085,24 @@
                             "/home/admin"
                         ],
                         "ipauniqueid": [
-                            "dcc874a0-d2d1-11e0-83f8-525400e135d8"
+                            "03400b10-ddc8-11e0-9103-525400e135d8"
                         ],
                         "krbextradata": [
                             {
-                                "__base64__": "AAJ/hFxOcm9vdC9hZG1pbkBJRE0uTEFCLkJPUy5SRURIQVQuQ09NAA=="
+                                "__base64__": "AAJF6G5Ocm9vdC9hZG1pbkBJRE0uTEFCLkJPUy5SRURIQVQuQ09NAA=="
+                            },
+                            {
+                                "__base64__": "AAgBAA=="
                             }
                         ],
                         "krblastpwdchange": [
-                            "20110830063439Z"
+                            "20110913052109Z"
+                        ],
+                        "krblastsuccessfulauth": [
+                            "20110913053553Z"
                         ],
                         "krbpasswordexpiration": [
-                            "20111128063439Z"
+                            "20111212052109Z"
                         ],
                         "krbprincipalname": [
                             "admin@IDM.LAB.BOS.REDHAT.COM"
@@ -16340,7 +17130,7 @@
                             "admin"
                         ],
                         "uidnumber": [
-                            "1890800000"
+                            "719000000"
                         ]
                     }
                 ],
@@ -16348,21 +17138,25 @@
                 "truncated": false
             },
             {
-                "count": 68,
+                "count": 72,
                 "error": null,
                 "result": {
                     "basedn": "dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
                     "bin": "/var/www",
-                    "ca_agent_port": 9443,
-                    "ca_ee_port": 9444,
+                    "ca_agent_install_port": 9443,
+                    "ca_agent_port": 443,
+                    "ca_ee_install_port": 9444,
+                    "ca_ee_port": 443,
                     "ca_host": "edewata-f15.idm.lab.bos.redhat.com",
-                    "ca_port": 9180,
+                    "ca_install_port": 9180,
+                    "ca_port": 80,
                     "conf": "/etc/ipa/server.conf",
                     "conf_default": "/etc/ipa/default.conf",
                     "confdir": "/etc/ipa",
                     "config_loaded": true,
                     "container_accounts": "cn=accounts",
                     "container_applications": "cn=applications,cn=configs,cn=policies",
+                    "container_automember": "cn=automember,cn=etc",
                     "container_automount": "cn=automount",
                     "container_configs": "cn=configs,cn=policies",
                     "container_dns": "cn=dns",
@@ -16420,8 +17214,8 @@
                     "webui_prod": true,
                     "xmlrpc_uri": "https://edewata-f15.idm.lab.bos.redhat.com/ipa/xml"
                 },
-                "summary": "68 variables",
-                "total": 68
+                "summary": "72 variables",
+                "total": 72
             },
             {
                 "error": null,

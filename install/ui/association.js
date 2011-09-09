@@ -324,7 +324,7 @@ IPA.association_table_widget = function (spec) {
         if (!that.columns.length) {
             that.create_column({
                 name: that.name,
-                label: IPA.metadata.objects[that.other_entity].label,
+                label: that.label,
                 entity_name: that.other_entity,
                 primary_key: true,
                 link: true
