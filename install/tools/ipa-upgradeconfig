@@ -52,7 +52,13 @@ def backup_file(filename, ext):
     while os.path.exists(backupfile):
         backupfile = backupfile + "." + str(ext)
 
-    shutil.copy2(filename, backupfile)
+    try:
+        shutil.copy2(filename, backupfile)
+    except IOError, e:
+        if e.errno == 2: # No such file or directory
+            pass
+        else:
+            raise e
 
 def update_conf(sub_dict, filename, template_filename):
     template = ipautil.template_file(template_filename, sub_dict)
@@ -93,18 +99,24 @@ def find_version(filename):
     else:
         return -1
 
-def upgrade(sub_dict, filename, template):
+def upgrade(sub_dict, filename, template, add=False):
+    """
+    Get the version from the current and template files and update the
+    installed configuration file if there is a new template.
+
+    If add is True then create a new configuration file.
+    """
     old = int(find_version(filename))
     new = int(find_version(template))
 
-    if old < 0:
+    if old < 0 and not add:
         print "%s not found." % filename
         sys.exit(1)
 
     if new < 0:
         print "%s not found." % template
 
-    if old < new:
+    if old < new or add:
         backup_file(filename, new)
         update_conf(sub_dict, filename, template)
         print "Upgraded %s to version %d" % (filename, new)
@@ -149,6 +161,7 @@ def main():
 
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa.conf", ipautil.SHARE_DIR + "ipa.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-rewrite.conf", ipautil.SHARE_DIR + "ipa-rewrite.conf")
+    upgrade(sub_dict, "/etc/httpd/conf.d/ipa-pki-proxy.conf", ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
 
 try:
     if __name__ == "__main__":

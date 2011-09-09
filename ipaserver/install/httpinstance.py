@@ -282,6 +282,11 @@ class HTTPInstance(service.Service):
                 logging.debug(error)
                 pass
 
+        # Remove the configuration files we create
+        installutils.remove_file("/etc/httpd/conf.d/ipa-rewrite.conf")
+        installutils.remove_file("/etc/httpd/conf.d/ipa.conf")
+        installutils.remove_file("/etc/httpd/conf.d/ipa-pki-proxy.conf")
+
         sebool_state = self.restore_state("httpd_can_network_connect")
         if not sebool_state is None:
             try:
