@@ -491,12 +491,8 @@ def uninstall():
         os.remove(ANSWER_CACHE)
     except Exception:
         pass
+
     # ipa-client-install removes /etc/ipa/default.conf
-    try:
-        os.remove("/etc/httpd/conf.d/ipa-rewrite.conf")
-        os.remove("/etc/httpd/conf.d/ipa.conf")
-    except:
-        pass
 
     sstore._load()
     group_exists = sstore.restore_state("install", "group_exists")
