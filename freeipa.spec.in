@@ -124,6 +124,12 @@ Requires: subscription-manager
 Requires(preun):  python initscripts chkconfig
 Requires(postun): python initscripts chkconfig
 
+# We have a soft-requires on bind. It is an optional part of
+# IPA but if it is configured we need a way to require versions
+# that work for us.
+Conflicts: bind-dyndb-ldap < 1.0.0-0.1.b1
+Conflicts: bind < 9.8.1-1
+
 Obsoletes: ipa-server >= 1.0
 
 %description server
@@ -537,6 +543,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Fri Sep 9 2011 Martin Kosek <mkosek@redhat.com> - 2.99.0-4
+- Add soft dependency for bind and bind-dyndb-ldap required versions
+
 * Wed Aug 31 2011 Rob Crittenden <rcritten@redhat.com> - 2.99.0-3
 - Set min nvr of 389-ds-base to 1.2.9.7-1 for BZ 728605
 
