@@ -450,12 +450,12 @@ IPA.sudorule_details_facet = function(spec) {
     that.add_section(options_section());
     that.add_section(user_section());
     that.add_section(host_section());
-    that.add_section( IPA.sudo.rule_details_command_section({
-            name: 'command',
-            entity: that.entity,
-            label: IPA.messages.objects.sudorule.command
+    that.add_section(IPA.sudo.rule_details_command_section({
+        name: 'command',
+        entity: that.entity,
+        label: IPA.messages.objects.sudorule.command
     }));
-    that.add_section( IPA.sudo.rule_details_runas_section({
+    that.add_section(IPA.sudo.rule_details_runas_section({
         name: 'runas',
         entity: that.entity,
         label: IPA.messages.objects.sudorule.runas
@@ -704,6 +704,7 @@ IPA.sudo.rule_details_command_section = function(spec) {
         that.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberallowcmd_sudocmd',
             name: 'memberallowcmd_sudocmd',
+            entity: that.entity,
             add_method: 'add_allow_command',
             remove_method: 'remove_allow_command',
             add_title: IPA.messages.association.add.memberallowcmd,
@@ -712,6 +713,7 @@ IPA.sudo.rule_details_command_section = function(spec) {
         that.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberallowcmd_sudocmdgroup',
             name: 'memberallowcmd_sudocmdgroup',
+            entity: that.entity,
             add_method: 'add_allow_command',
             remove_method: 'remove_allow_command',
             add_title: IPA.messages.association.add.memberallowcmd,
@@ -721,6 +723,7 @@ IPA.sudo.rule_details_command_section = function(spec) {
         that.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberdenycmd_sudocmd',
             name: 'memberdenycmd_sudocmd',
+            entity: that.entity,
             add_method: 'add_deny_command',
             remove_method: 'remove_deny_command',
             add_title: IPA.messages.association.add.memberdenycmd,
@@ -729,6 +732,7 @@ IPA.sudo.rule_details_command_section = function(spec) {
         that.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberdenycmd_sudocmdgroup',
             name: 'memberdenycmd_sudocmdgroup',
+            entity: that.entity,
             add_method: 'add_deny_command',
             remove_method: 'remove_deny_command',
             add_title: IPA.messages.association.add.memberdenycmd,
@@ -870,6 +874,7 @@ IPA.sudo.rule_details_runas_section = function(spec) {
         that.add_field(IPA.sudorule_association_table_widget({
             id: that.entity.name+'-runasruser_user',
             name: 'ipasudorunas_user',
+            entity: that.entity,
             add_method: 'add_runasuser',
             remove_method: 'remove_runasuser',
             add_title: IPA.messages.association.add.ipasudorunas,
@@ -878,6 +883,7 @@ IPA.sudo.rule_details_runas_section = function(spec) {
         that.add_field(IPA.sudorule_association_table_widget({
             id: that.entity.name+'-runasuser_group',
             name: 'ipasudorunas_group',
+            entity: that.entity,
             add_method: 'add_runasuser',
             remove_method: 'remove_runasuser',
             add_title: IPA.messages.association.add.ipasudorunas,
@@ -902,6 +908,7 @@ IPA.sudo.rule_details_runas_section = function(spec) {
         that.add_field(IPA.sudorule_association_table_widget({
             id: that.entity.name+'-runasgroup_group',
             name: 'ipasudorunasgroup_group',
+            entity: that.entity,
             add_method: 'add_runasgroup',
             remove_method: 'remove_runasgroup',
             add_title: IPA.messages.association.add.ipasudorunasgroup,

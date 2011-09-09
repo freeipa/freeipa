@@ -187,6 +187,7 @@ IPA.hbacrule_details_facet = function(spec) {
         section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberuser_user',
             name: 'memberuser_user',
+            entity: that.entity,
             add_method: 'add_user',
             remove_method: 'remove_user',
             add_title: IPA.messages.association.add.member,
@@ -195,6 +196,7 @@ IPA.hbacrule_details_facet = function(spec) {
         section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberuser_group',
             name: 'memberuser_group',
+            entity: that.entity,
             add_method: 'add_user',
             remove_method: 'remove_user',
             add_title: IPA.messages.association.add.member,
@@ -226,6 +228,7 @@ IPA.hbacrule_details_facet = function(spec) {
         section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberhost_host',
             name: 'memberhost_host',
+            entity: that.entity,
             add_method: 'add_host',
             remove_method: 'remove_host',
             add_title: IPA.messages.association.add.member,
@@ -234,6 +237,7 @@ IPA.hbacrule_details_facet = function(spec) {
         section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberhost_hostgroup',
             name: 'memberhost_hostgroup',
+            entity: that.entity,
             add_method: 'add_host',
             remove_method: 'remove_host',
             add_title: IPA.messages.association.add.member,
@@ -266,6 +270,7 @@ IPA.hbacrule_details_facet = function(spec) {
         section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberservice_hbacsvc',
             name: 'memberservice_hbacsvc',
+            entity: that.entity,
             add_method: 'add_service',
             remove_method: 'remove_service',
             add_title: IPA.messages.association.add.member,
@@ -274,6 +279,7 @@ IPA.hbacrule_details_facet = function(spec) {
         section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-memberservice_hbacsvcgroup',
             name: 'memberservice_hbacsvcgroup',
+            entity: that.entity,
             add_method: 'add_service',
             remove_method: 'remove_service',
             add_title: IPA.messages.association.add.member,
@@ -305,6 +311,7 @@ IPA.hbacrule_details_facet = function(spec) {
         section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-sourcehost_host',
             name: 'sourcehost_host',
+            entity: that.entity,
             add_method: 'add_sourcehost',
             remove_method: 'remove_sourcehost',
             add_title: IPA.messages.association.add.sourcehost,
@@ -313,6 +320,7 @@ IPA.hbacrule_details_facet = function(spec) {
         section.add_field(IPA.association_table_widget({
             id: that.entity.name+'-sourcehost_hostgroup',
             name: 'sourcehost_hostgroup',
+            entity: that.entity,
             add_method: 'add_sourcehost',
             remove_method: 'remove_sourcehost',
             add_title: IPA.messages.association.add.sourcehost,
