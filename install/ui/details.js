@@ -213,17 +213,21 @@ IPA.details_table_section = function(spec) {
 
             field.create(field_container);
 
-            if (field.optional){
+            if (field.optional) {
                 field_container.css('display', 'none');
+
                 var link = $('<a/>', {
                     text: IPA.messages.widget.optional,
-                    href: '',
-                    click: function() {
+                    href: ''
+                }).appendTo(td);
+
+                link.click(function(field_container, link) {
+                    return function() {
                         field_container.css('display', 'inline');
                         link.css('display', 'none');
                         return false;
-                    }
-                }).appendTo(td);
+                    };
+                }(field_container, link));
             }
         }
     };
