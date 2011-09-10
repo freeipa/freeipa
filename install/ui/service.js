@@ -110,31 +110,31 @@ IPA.service_add_dialog = function(spec) {
     var that = IPA.add_dialog(spec).
         field(IPA.widget({
             name: 'krbprincipalname',
-            optional:true,
-            entity:spec.entity,
+            optional: true,
+            entity: spec.entity,
             hidden: true
         })).
         field(IPA.service_select_widget({
             name: 'service',
             label: IPA.messages.objects.service.service,
             size: 20,
-            entity:spec.entity,
+            entity: spec.entity,
+            param_info: { required: true },
             undo: false
         })).
         field(IPA.entity_select_widget({
             name: 'host',
             other_entity: 'host',
             other_field: 'fqdn',
-            entity:spec.entity,
+            entity: spec.entity,
             label: IPA.messages.objects.service.host,
+            param_info: { required: true },
             undo: false
         })).
-        field(
-        IPA.checkbox_widget({
+        field(IPA.checkbox_widget({
             name: 'force',
-            entity:spec.entity,
-            label: IPA.get_method_option('service_add', 'force').label,
-            tooltip: IPA.get_method_option('service_add', 'force').doc,
+            entity: spec.entity,
+            param_info: IPA.get_method_option('service_add', 'force'),
             undo: false
         }));
 
@@ -147,10 +147,10 @@ IPA.service_add_dialog = function(spec) {
         field = that.get_field('host');
         var host = field.save()[0];
 
-        record['krbprincipalname'] = service+'/'+host;
+        record['krbprincipalname'] = [ service+'/'+host ];
 
         field = that.get_field('force');
-        record['force'] = field.save()[0];
+        record['force'] = field.save();
     };
 
     return that;

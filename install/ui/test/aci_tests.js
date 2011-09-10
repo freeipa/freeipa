@@ -152,7 +152,7 @@ test("Testing type target.", function() {
     $("input[type=checkbox]").attr("checked",true);
     var response_record = {};
     target_section.save(response_record);
-    same(response_record.type, sample_data_filter_only.type,
+    same(response_record.type[0], sample_data_filter_only.type,
          "saved type matches sample data");
     ok((response_record.attrs.length > 10),
        "response length shows some attrs set");
@@ -180,7 +180,7 @@ test("Testing subtree target.", function() {
     target_section.load(sample_data);
     var record = {};
     target_section.save(record);
-    same(record.subtree, sample_data.subtree, 'subtree set correctly');
+    same(record.subtree[0], sample_data.subtree, 'subtree set correctly');
 });
 
 

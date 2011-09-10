@@ -65,12 +65,20 @@ IPA.entity_factories.permission = function() {
         adder_dialog({
             width: 500,
             height: 400,
-            fields: [
-                'cn',
+            sections: [
                 {
-                    factory: IPA.rights_widget,
-                    name: 'permissions',
-                    join: true, undo: false
+                    name: 'general',
+                    fields: [
+                        {
+                            name: 'cn',
+                            undo: false
+                        },
+                        {
+                            factory: IPA.rights_widget,
+                            name: 'permissions',
+                            join: true, undo: false
+                        }
+                    ]
                 },
                 {
                     factory: IPA.target_section,
@@ -274,7 +282,7 @@ IPA.attributes_widget = function(spec) {
         }
 
         if (that.object_type){
-            that.populate (that.object_type);
+            that.populate(that.object_type);
         }
     };
 
@@ -392,7 +400,6 @@ IPA.target_section = function(spec) {
     spec = spec || {};
 
     var that = IPA.details_section(spec);
-    that.section = true;
     that.undo = typeof spec.undo == 'undefined' ? true : spec.undo;
 
     var target_types = [
@@ -406,7 +413,7 @@ IPA.target_section = function(spec) {
                 that.filter_text.load(record);
             },
             save: function(record) {
-                record.filter = that.filter_text.save()[0];
+                record.filter = that.filter_text.save();
             }
         },
         {
@@ -419,7 +426,7 @@ IPA.target_section = function(spec) {
                 that.subtree_textarea.load(record);
             },
             save: function(record) {
-                record.subtree = that.subtree_textarea.save()[0];
+                record.subtree = that.subtree_textarea.save();
             }
         },
         {
@@ -432,7 +439,7 @@ IPA.target_section = function(spec) {
                 that.group_select.list.val(record.targetgroup);
             },
             save: function(record) {
-                record.targetgroup = that.group_select.save()[0];
+                record.targetgroup = that.group_select.save();
             }
         },
         {
@@ -478,17 +485,17 @@ IPA.target_section = function(spec) {
                     that.type_select.select_update();
                     that.attribute_table.object_type =
                         that.type_select.save()[0];
-                 that.attribute_table.reset();
-             };
+                    that.attribute_table.reset();
+                };
             },
-            load: function(record){
+            load: function(record) {
                 that.type_select.load(record);
                 that.attribute_table.object_type = record.type;
                 that.attribute_table.reset();
             },
-            save: function(record){
-                record.type = that.type_select.save()[0];
-                record.attrs =  that.attribute_table.save().join(',');
+            save: function(record) {
+                record.type = that.type_select.save();
+                record.attrs = that.attribute_table.save();
             }
         }] ;
 
@@ -507,12 +514,14 @@ IPA.target_section = function(spec) {
             undo: that.undo
         });
         that.group_select = IPA.entity_select_widget({
+            entity: spec.entity,
             name: 'targetgroup',
             other_entity: 'group',
             other_field: 'cn',
             undo: that.undo
         });
         that.type_select = IPA.select_widget({
+            entity: spec.entity,
             name: 'type',
             undo: that.undo
         });

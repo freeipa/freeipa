@@ -43,15 +43,40 @@ IPA.details_section = function(spec) {
     that.dirty = false;
     that.dirty_changed = IPA.observer();
 
+    that.undo = typeof spec.undo == 'undefined' ? true : spec.undo;
+
+    var init = function() {
+        var fields = spec.fields || [];
+        that.add_fields(fields);
+    };
+
     that.get_field = function(name) {
         return that.fields.get(name);
     };
 
     that.add_field = function(field) {
         field.entity = that.entity;
+        field.undo = that.undo;
         that.fields.put(field.name, field);
         field.dirty_changed.attach(that.field_dirty_changed);
         return field;
+    };
+
+    that.add_fields = function(fields) {
+        for (var i=0; i<fields.length; i++) {
+            var field_spec = fields[i];
+            var field;
+
+            if (field_spec instanceof Object) {
+                var factory = field_spec.factory || IPA.text_widget;
+                field_spec.entity = that.entity;
+                field = factory(field_spec);
+                that.add_field(field);
+
+            } else {
+                that.text({ name: field_spec });
+            }
+        }
     };
 
     that.field = function(field) {
@@ -93,6 +118,8 @@ IPA.details_section = function(spec) {
         var fields = that.fields.values;
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
+            if (field.hidden) continue;
+
             var field_container = $('<div/>', {
                 name: field.name,
                 title: field.label,
@@ -102,7 +129,6 @@ IPA.details_section = function(spec) {
         }
     };
 
-
     that.load = function(record) {
 
         that.record = record;
@@ -111,6 +137,14 @@ IPA.details_section = function(spec) {
         for (var j=0; j<fields.length; j++) {
             var field = fields[j];
             field.load(record);
+        }
+    };
+
+    that.save = function(record) {
+        var fields = that.fields.values;
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
+            record[field.name] = field.save();
         }
     };
 
@@ -158,6 +192,16 @@ IPA.details_section = function(spec) {
         }
         return valid;
     };
+
+    that.set_visible = function(visible) {
+        if (visible) {
+            that.container.show();
+        } else {
+            that.container.hide();
+        }
+    };
+
+    init();
 
     // methods that should be invoked by subclasses
     that.section_create = that.create;
@@ -270,6 +314,15 @@ IPA.details_facet = function(spec) {
         var section = IPA.details_section(spec);
         that.add_section(section);
         return section;
+    };
+
+    that.get_fields = function() {
+        var fields = [];
+        for (var i=0; i<that.sections.length; i++) {
+            var section = that.sections.values[i];
+            $.merge(fields, section.fields.values);
+        }
+        return fields;
     };
 
     /* the primary key used for show and update is built as an array.
@@ -509,6 +562,14 @@ IPA.details_facet = function(spec) {
         that.enable_update(false);
     };
 
+    that.save = function(record) {
+        var sections = that.sections.values;
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
+            section.save(record);
+        }
+    };
+
     that.reset = function() {
         var sections = that.sections.values;
         for (var i=0; i<sections.length; i++) {
@@ -554,20 +615,22 @@ IPA.details_facet = function(spec) {
             on_error: on_error
         });
 
-        var values;
+        var record = {};
+        that.save(record);
+
+        var fields = that.get_fields();
+        for (var i=0; i<fields.length; i++) {
+            fields[i].validate();
+        }
+
         var valid = true;
 
         var sections = that.sections.values;
-        for (var i=0; i<sections.length; i++) {
+        for (i=0; i<sections.length; i++) {
             var section = sections[i];
 
-            if(!section.is_valid() || !valid) {
+            if (!section.is_valid() || !valid) {
                 valid = false;
-                continue;
-            }
-
-            if (section.save) {
-                section.save(command.options);
                 continue;
             }
 
@@ -576,9 +639,10 @@ IPA.details_facet = function(spec) {
                 var field = section_fields[j];
                 if (!field.is_dirty()) continue;
 
-                values = field.save();
+                var values = record[field.name];
                 if (!values) continue;
-                var param_info =  field.param_info;
+
+                var param_info = field.param_info;
                 if (param_info) {
                     if (param_info.primary_key) continue;
                     if (values.length === 1) {
@@ -588,7 +652,7 @@ IPA.details_facet = function(spec) {
                     } else {
                         command.set_option(field.name, values);
                     }
-                }  else {
+                } else {
                     if (values.length) {
                         command.add_option('setattr', field.name+'='+values[0]);
                     } else {
@@ -601,7 +665,7 @@ IPA.details_facet = function(spec) {
             }
         }
 
-        if(!valid) {
+        if (!valid) {
             var dialog = IPA.message_dialog({
                 title: IPA.messages.dialogs.validation_title,
                 message: IPA.messages.dialogs.validation_message

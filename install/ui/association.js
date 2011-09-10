@@ -650,7 +650,7 @@ IPA.association_table_widget = function (spec) {
             entity: that.entity.name,
             method: 'show',
             args: [pkey],
-            options: {'all': true, 'rights': true},
+            options: { all: true, rights: true },
             on_success: on_success,
             on_error: on_error
         }).execute();

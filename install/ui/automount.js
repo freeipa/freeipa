@@ -36,25 +36,26 @@ IPA.entity_factories.automountlocation = function() {
         }).
         nested_search_facet({
             facet_group: 'automountmap',
-            nested_entity : 'automountmap',
-            label : IPA.metadata.objects.automountmap.label,
+            nested_entity: 'automountmap',
+            label: IPA.metadata.objects.automountmap.label,
             name: 'maps',
-            columns:['automountmapname']
+            columns: [ 'automountmapname' ]
         }).
         details_facet({
             sections:[
                 {
-                    name:'identity',
+                    name: 'identity',
                     label: IPA.messages.details.identity,
-                    fields:['cn']
+                    fields: [ 'cn' ]
                 }
             ]
         }).
         adder_dialog({
-            fields:['cn']
+            fields: [ 'cn' ]
         }).
         build();
 };
+
 IPA.entity_factories.automountmap = function() {
     return IPA.entity_builder().
         entity({ name: 'automountmap' }).
@@ -62,63 +63,78 @@ IPA.entity_factories.automountmap = function() {
         facet_groups([ 'automountkey', 'settings' ]).
         nested_search_facet({
             facet_group: 'automountkey',
-            nested_entity : 'automountkey',
-            label : IPA.metadata.objects.automountkey.label,
+            nested_entity: 'automountkey',
+            label: IPA.metadata.objects.automountkey.label,
             name: 'keys',
             get_values: IPA.get_option_values,
-            columns:[
+            columns: [
                 {
                     factory: IPA.automount_key_column,
-                    name:'automountkey',
-                    label:IPA.get_entity_param('automountkey', 'automountkey').
-                        label
+                    name: 'automountkey',
+                    label: IPA.get_entity_param('automountkey', 'automountkey').label
                 },
-                'automountinformation']
+                'automountinformation'
+            ]
         }).
         details_facet({
-            sections:[
+            sections: [
                 {
-                    name:'identity',
+                    name: 'identity',
                     label: IPA.messages.details.identity,
-                    fields:['automountmapname','description']
+                    fields: [ 'automountmapname', 'description' ]
                 }
             ]
         }).
         adder_dialog({
             factory: IPA.automountmap_adder_dialog,
-            fields: [
+            sections: [
                 {
-                    factory: IPA.radio_widget,
-                    name: 'method',
-                    undo: false,
-                    label: IPA.messages.objects.automountmap.map_type,
-                    options: [
+                    name: 'general',
+                    fields: [
                         {
-                            value: 'add',
-                            label: IPA.messages.objects.automountmap.direct
+                            factory: IPA.radio_widget,
+                            name: 'method',
+                            label: IPA.messages.objects.automountmap.map_type,
+                            options: [
+                                {
+                                    value: 'add',
+                                    label: IPA.messages.objects.automountmap.direct
+                                },
+                                {
+                                    value: 'add_indirect',
+                                    label: IPA.messages.objects.automountmap.indirect
+                                }
+                            ],
+                            undo: false
                         },
                         {
-                            value: 'add_indirect',
-                            label: IPA.messages.objects.automountmap.indirect
+                            name: 'automountmapname',
+                            undo: false
+                        },
+                        {
+                            name: 'description',
+                            undo: false
                         }
                     ]
                 },
-                'automountmapname',
-                'description',
                 {
-                    name: 'key',
-                    label: IPA.get_method_option(
-                        'automountmap_add_indirect', 'key').label,
-                    conditional: true,
-                    undo: false
-                },
-                {
-                    name: 'parentmap',
-                    label: IPA.get_method_option(
-                        'automountmap_add_indirect', 'parentmap').label,
-                    conditional: true,
-                    undo: false
-                }]
+                    name: 'indirect',
+                    fields: [
+                        {
+                            name: 'key',
+                            label: IPA.get_method_option(
+                                'automountmap_add_indirect', 'key').label,
+                            undo: false
+                        },
+                        {
+                            name: 'parentmap',
+                            label: IPA.get_method_option(
+                                'automountmap_add_indirect', 'parentmap').label,
+                            undo: false
+                        }
+                    ]
+                }
+            ]
         }).
         build();
 };
@@ -202,7 +218,6 @@ IPA.automount_key_column = function(spec){
     return that;
 };
 
-
 IPA.automountmap_adder_dialog = function(spec) {
 
     var that = IPA.add_dialog(spec);
@@ -214,12 +229,14 @@ IPA.automountmap_adder_dialog = function(spec) {
 
         var direct_input = $('input[value="add"]', method_field.container);
         direct_input.change(function() {
-            that.disable_conditional_fields();
+            that.method = 'add';
+            that.get_section('indirect').set_visible(false);
         });
 
         var indirect_input = $('input[value="add_indirect"]', method_field.container);
         indirect_input.change(function() {
-            that.enable_conditional_fields();
+            that.method = 'add_indirect';
+            that.get_section('indirect').set_visible(true);
         });
 
         direct_input.click();
@@ -236,7 +253,6 @@ IPA.automountmap_adder_dialog = function(spec) {
 
     return that;
 };
-
 
 IPA.get_option_values = function(){
 

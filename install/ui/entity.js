@@ -885,25 +885,6 @@ IPA.entity_builder = function(){
             section = IPA.details_table_section(spec);
         }
         facet.add_section(section);
-        var fields = spec.fields;
-        if (fields) {
-            for (var i=0; i<fields.length; i++) {
-                var field_spec = fields[i];
-                var field;
-
-                if (field_spec instanceof Object) {
-                    field_spec.entity = entity;
-                    var factory = field_spec.factory || IPA.text_widget;
-                    field = factory(field_spec);
-                } else {
-                    field = IPA.text_widget({
-                        name: field_spec,
-                        entity: entity
-                    });
-                }
-                section.add_field(field);
-            }
-        }
     };
 
     function add_redirect_info(facet_name){
