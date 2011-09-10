@@ -119,37 +119,50 @@ IPA.entity_factories.host = function () {
             factory: IPA.host_adder_dialog,
             width: 400,
             height: 250,
-            fields: [
+            sections: [
                 {
-                    factory: IPA.widget,
+                    factory: IPA.host_fqdn_section,
                     name: 'fqdn',
-                    optional: true,
-                    hidden: true
+                    fields: [
+                        {
+                            factory: IPA.widget,
+                            name: 'fqdn',
+                            optional: true,
+                            hidden: true
+                        },
+                        {
+                            factory: IPA.text_widget,
+                            name: 'hostname',
+                            label: IPA.messages.objects.service.host,
+                            param_info: { required: true },
+                            undo: false
+                        },
+                        {
+                            factory: IPA.dnszone_select_widget,
+                            name: 'dnszone',
+                            label: IPA.metadata.objects.dnszone.label_singular,
+                            editable: true,
+                            empty_option: false,
+                            param_info: { required: true },
+                            undo: false
+                        }
+                    ]
                 },
                 {
-                    factory: IPA.text_widget,
-                    name: 'hostname',
-                    label: IPA.messages.objects.service.host,
-                    undo: false
-                },
-                {
-                    factory: IPA.dnszone_select_widget,
-                    name: 'dnszone',
-                    label: IPA.metadata.objects.dnszone.label_singular,
-                    editable: true,
-                    empty_option: false,
-                    undo: false
-                },
-                {
-                    factory: IPA.force_host_add_checkbox_widget,
-                    name: 'force'
-                },
-                {
-                    factory: IPA.text_widget,
-                    name: 'ip_address',
-                    label:  IPA.get_method_option('host_add','ip_address')['label'],
-                    tooltip: IPA.get_method_option('host_add','ip_address')['doc'],
-                    undo: false
+                    name: 'other',
+                    fields: [
+                        {
+                            factory: IPA.text_widget,
+                            name: 'ip_address',
+                            param_info: IPA.get_method_option('host_add', 'ip_address'),
+                            undo: false
+                        },
+                        {
+                            factory: IPA.force_host_add_checkbox_widget,
+                            name: 'force',
+                            param_info: IPA.get_method_option('host_add', 'force')
+                        }
+                    ]
                 }
             ]
         }).
@@ -159,91 +172,55 @@ IPA.entity_factories.host = function () {
         build();
 };
 
-IPA.host_adder_dialog = function(spec) {
+IPA.host_fqdn_section = function(spec) {
 
     spec = spec || {};
-    spec.retry = typeof spec.retry !== 'undefined' ? spec.retry : false;
 
-    var that = IPA.add_dialog(spec);
+    var that = IPA.details_section(spec);
 
-    that.create = function() {
-
-        that.container.addClass('host-adder-dialog');
+    that.create = function(container) {
+        that.container = container;
 
         var hostname = that.get_field('hostname');
         var dnszone = that.get_field('dnszone');
 
         var table = $('<table/>', {
-            name: 'fqdn'
+            'class': 'fqdn'
         }).appendTo(that.container);
 
         var tr = $('<tr/>').appendTo(table);
 
-        var td = $('<td/>', {
-            name: hostname.name,
+        var th = $('<th/>', {
+            'class': 'hostname',
             title: hostname.label,
             text: hostname.label
         }).appendTo(tr);
 
-        td = $('<td/>', {
-            name: dnszone.name,
+        th = $('<th/>', {
+            'class': 'dnszone',
             title: dnszone.label,
             text: dnszone.label
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
 
-        td = $('<td/>').appendTo(tr);
+        var td = $('<td/>', {
+            'class': 'hostname'
+        }).appendTo(tr);
+
         var span = $('<span/>', {
             name: hostname.name
         }).appendTo(td);
         hostname.create(span);
 
-        td = $('<td/>').appendTo(tr);
+        td = $('<td/>', {
+            'class': 'dnszone'
+        }).appendTo(tr);
+
         span = $('<span/>', {
             name: dnszone.name
         }).appendTo(td);
         dnszone.create(span);
-
-        table = $('<table/>', {
-            name: 'other'
-        }).appendTo(that.container);
-
-        var force = that.get_field('force');
-
-        tr = $('<tr/>').appendTo(table);
-
-        td = $('<td/>', {
-            title: force.label,
-            text: force.label+':'
-        }).appendTo(tr);
-
-        td = $('<td/>', {
-            title: force.label
-        }).appendTo(tr);
-
-        span = $('<span/>', {
-            name: force.name
-        }).appendTo(td);
-        force.create(span);
-
-        var ip_address = that.get_field('ip_address');
-
-        tr = $('<tr/>').appendTo(table);
-
-        td = $('<td/>', {
-            title: ip_address.label,
-            text: ip_address.label+':'
-        }).appendTo(tr);
-
-        td = $('<td/>', {
-            title: ip_address.label
-        }).appendTo(tr);
-
-        span = $('<span/>', {
-            name: ip_address.name
-        }).appendTo(td);
-        ip_address.create(span);
 
         var hostname_input = $('input', hostname.container);
         var dnszone_input = $('input', dnszone.container);
@@ -271,13 +248,22 @@ IPA.host_adder_dialog = function(spec) {
         field = that.get_field('dnszone');
         var dnszone = field.save()[0];
 
-        record.fqdn = hostname && dnszone ? hostname+'.'+dnszone : null;
+        record.fqdn = hostname && dnszone ? [ hostname+'.'+dnszone ] : [];
+    };
 
-        field = that.get_field('force');
-        record.force = field.save()[0];
+    return that;
+};
 
-        field = that.get_field('ip_address');
-        record.ip_address = field.save()[0];
+IPA.host_adder_dialog = function(spec) {
+
+    spec = spec || {};
+    spec.retry = typeof spec.retry !== 'undefined' ? spec.retry : false;
+
+    var that = IPA.add_dialog(spec);
+
+    that.create = function() {
+        that.dialog_create();
+        that.container.addClass('host-adder-dialog');
     };
 
     that.on_error = function(xhr, text_status, error_thrown) {
@@ -660,8 +646,8 @@ IPA.host_password_widget = function(spec) {
             var record = {};
             dialog.save(record);
 
-            var new_password = record.password1;
-            var repeat_password = record.password2;
+            var new_password = record.password1[0];
+            var repeat_password = record.password2[0];
 
             if (new_password != repeat_password) {
                 alert(IPA.messages.password.password_must_match);

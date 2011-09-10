@@ -807,7 +807,7 @@ hr {
 }
 
 .dialog-section {
-    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .section-table {
@@ -1231,12 +1231,20 @@ table.scrollable tbody {
     margin-right: 3px;
 }
 
-.host-adder-dialog table[name=fqdn] {
+.host-adder-dialog table.fqdn {
     width: 100%;
 }
 
-.host-adder-dialog td[name=hostname] {
+.host-adder-dialog th.hostname {
     width: 110px;
+}
+
+.host-adder-dialog td.hostname {
+    vertical-align: top;
+}
+
+.host-adder-dialog td.dnszone {
+    vertical-align: top;
 }
 
 .host-adder-dialog input[name=hostname] {

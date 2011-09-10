@@ -340,8 +340,8 @@ IPA.user_password_widget = function(spec) {
             var record = {};
             dialog.save(record);
 
-            var new_password = record.password1;
-            var repeat_password = record.password2;
+            var new_password = record.password1[0];
+            var repeat_password = record.password2[0];
 
             if (new_password != repeat_password) {
                 alert(IPA.messages.password.password_must_match);

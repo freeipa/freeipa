@@ -105,7 +105,8 @@ IPA.entity_factories.dnszone = function() {
                 },
                 {
                     factory: IPA.force_dnszone_add_checkbox_widget,
-                    name: 'force'
+                    name: 'force',
+                    param_info: IPA.get_method_option('dnszone_add', 'force')
                 }
             ]
         }).

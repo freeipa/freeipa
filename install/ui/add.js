@@ -46,9 +46,8 @@ IPA.add_dialog = function (spec) {
 
     that.show_edit_page = spec.show_edit_page || show_edit_page;
 
-    that.add = function(record, on_success, on_error) {
+    that.add = function(on_success, on_error) {
 
-        var field, value, pkey_prefix;
         var pkey_name = that.entity.metadata.primary_key;
 
         var command = IPA.command({
@@ -60,46 +59,36 @@ IPA.add_dialog = function (spec) {
         });
         that.command = command;
 
-        pkey_prefix = that.entity.get_primary_key_prefix();
+        command.add_args(that.entity.get_primary_key_prefix());
 
-        for (var h=0; h<pkey_prefix.length; h++) {
-            command.add_arg(pkey_prefix[h]);
-        }
+        var record = {};
+        that.save(record);
 
-        var fields = that.fields.values;
+        var fields = that.get_fields();
         for (var i=0; i<fields.length; i++) {
             fields[i].validate();
         }
-        var required_fields_filled = true;
-        for (i=0; i<fields.length; i++) {
-            field = fields[i];
-            if (!field.valid) return;
 
-            required_fields_filled = field.check_required() &&
-                required_fields_filled;
-
-            value = record[field.name];
-            if (!value) continue;
-
-            if (field.name == pkey_name) {
-                command.add_arg(value);
-            } else {
-                command.set_option(field.name, value);
-            }
-        }
+        var valid = true;
 
         var sections = that.sections.values;
-        for (var j=0; j<sections.length; j++) {
-            var section = sections[j];
+        for (i=0; i<sections.length; i++) {
+            var section = sections[i];
+
+            if (!section.is_valid() || !valid) {
+                valid = false;
+                continue;
+            }
 
             var section_fields = section.fields.values;
-            for (var k=0; k<section_fields.length; k++) {
-                field = section_fields[k];
-                if (!field.valid) return;
-                required_fields_filled = field.check_required()  &&
-                    required_fields_filled;
+            for (var j=0; j<section_fields.length; j++) {
+                var field = section_fields[j];
 
-                value = record[field.name];
+                var values = record[field.name];
+                if (!values) continue;
+
+                // TODO: Handle multi-valued attributes like in detail facet's update()
+                var value = values.join(',');
                 if (!value) continue;
 
                 if (field.name == pkey_name) {
@@ -110,23 +99,20 @@ IPA.add_dialog = function (spec) {
             }
         }
 
+        if (!valid) return;
+
         //alert(JSON.stringify(command.to_json()));
 
-        if (that.pre_execute_hook){
+        if (that.pre_execute_hook) {
             that.pre_execute_hook(command);
         }
-        if (required_fields_filled){
-            command.execute();
-        }
 
+        command.execute();
     };
 
     /*dialog initialization*/
     that.add_button(IPA.messages.buttons.add, function() {
-        var record = {};
-        that.save(record);
         that.add(
-            record,
             function(data, text_status, xhr) {
                 var facet = IPA.current_entity.get_facet();
                 var table = facet.table;
@@ -137,10 +123,7 @@ IPA.add_dialog = function (spec) {
     });
 
     that.add_button(IPA.messages.buttons.add_and_add_another, function() {
-        var record = {};
-        that.save(record);
         that.add(
-            record,
             function(data, text_status, xhr) {
                 var facet = IPA.current_entity.get_facet();
                 var table = facet.table;
@@ -151,14 +134,11 @@ IPA.add_dialog = function (spec) {
     });
 
     that.add_button(IPA.messages.buttons.add_and_edit, function() {
-        var record = {};
-        that.save(record);
         that.add(
-            record,
             function(data, text_status, xhr) {
                 that.close();
                 var result = data.result.result;
-                that.show_edit_page(that.entity,result);
+                that.show_edit_page(that.entity, result);
             },
             that.on_error);
     });
@@ -166,7 +146,6 @@ IPA.add_dialog = function (spec) {
     that.add_button(IPA.messages.buttons.cancel, function() {
         that.close();
     });
-
 
     return that;
 };

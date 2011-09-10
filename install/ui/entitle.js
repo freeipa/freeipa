@@ -580,9 +580,9 @@ IPA.entitle.register_online_dialog = function(spec) {
         that.save(record);
 
         that.entity.register_online(
-            record.username,
-            record.password,
-            record.ipaentitlementid,
+            record.username[0],
+            record.password[0],
+            record.ipaentitlementid[0],
             function() {
                 var facet = that.entity.get_facet();
                 facet.refresh();
@@ -638,7 +638,7 @@ IPA.entitle.consume_dialog = function(spec) {
         that.save(record);
 
         that.entity.consume(
-            record.quantity,
+            record.quantity[0],
             function() {
                 var facet = that.entity.get_facet();
                 facet.refresh();

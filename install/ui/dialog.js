@@ -39,32 +39,22 @@ IPA.dialog = function(spec) {
 
     that.buttons = {};
 
-    that.fields = $.ordered_map();
     that.sections = $.ordered_map();
 
-    that.conditional_fields = [];
+    var init = function() {
 
-    that.enable_conditional_fields = function(){
-        for (var i =0; i < that.conditional_fields.length; i+=1) {
-            $('label[id='+
-               that.conditional_fields[i] +'-label]',
-              that.container).css('visibility','visible');
-            $('input[name='+
-               that.conditional_fields[i] +
-              ']',that.container).css('visibility','visible');
+        var sections = spec.sections || [];
+
+        for (var i=0; i<sections.length; i++) {
+            var section_spec = sections[i];
+            that.create_section(section_spec);
         }
-    };
 
-    that.disable_conditional_fields = function(){
-        for (var i =0; i < that.conditional_fields.length; i+=1) {
-            $('label[id='+
-               that.conditional_fields[i] +'-label]',
-              that.container).css('visibility','hidden');
+        var fields = spec.fields || [];
 
-            $('input[name='+
-              that.conditional_fields[i] +
-              ']',that.container).css('visibility','hidden');
-        }
+        // add fields to the default section
+        var section = that.get_section();
+        section.add_fields(fields);
     };
 
     that.add_button = function(name, handler) {
@@ -72,15 +62,29 @@ IPA.dialog = function(spec) {
     };
 
     that.get_field = function(name) {
-        return that.fields.get(name);
+        for (var i=0; i<that.sections.length; i++) {
+            var section = that.sections.values[i];
+            var field = section.fields.get(name);
+            if (field) return field;
+        }
+        return null;
+    };
+
+    that.get_fields = function() {
+        var fields = [];
+        for (var i=0; i<that.sections.length; i++) {
+            var section = that.sections.values[i];
+            $.merge(fields, section.fields.values);
+        }
+        return fields;
     };
 
     that.add_field = function(field) {
         field.dialog = that;
-        that.fields.put(field.name, field);
-        if (field.conditional){
-            that.conditional_fields.push(field.name);
-        }
+
+        var section = that.get_section();
+        section.add_field(field);
+
         return field;
     };
 
@@ -90,21 +94,11 @@ IPA.dialog = function(spec) {
     };
 
     that.is_valid = function() {
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            var field = fields[i];
-            if (!field.valid) return false;
+        for (var i=0; i<that.sections.length; i++) {
+            var section = that.sections.values[i];
+            if (!section.is_valid()) return false;
         }
         return true;
-    };
-
-    that.text = function(name){
-        that.field(IPA.text_widget({
-            name: name,
-            undo: false,
-            entity : that.entity
-        }));
-        return that;
     };
 
     that.add_section = function(section) {
@@ -118,9 +112,32 @@ IPA.dialog = function(spec) {
     };
 
     that.create_section = function(spec) {
-        var section = IPA.details_section(spec);
+
+        var factory = spec.factory || IPA.details_table_section;
+        spec.entity = that.entity;
+        spec.undo = false;
+
+        var section = factory(spec);
         that.add_section(section);
+
         return section;
+    };
+
+    that.get_section = function(name) {
+
+        if (name) {
+            return that.sections.get(name);
+
+        } else {
+            var length = that.sections.length;
+            if (length) {
+                // get the last section
+                return that.sections.values[length-1];
+            } else {
+                // create a default section
+                return that.create_section({ name: 'general' });
+            }
+        }
     };
 
     /**
@@ -128,62 +145,9 @@ IPA.dialog = function(spec) {
      */
     that.create = function() {
 
-        var table = $('<table/>', {
-            'class': 'section-table'
-        }).appendTo(that.container);
-
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            var field = fields[i];
-            if (field.hidden) continue;
-
-            var tr = $('<tr/>').appendTo(table);
-
-            var td = $('<td/>', {
-                'class': 'section-cell-label'
-            }).appendTo(tr);
-
-            $('<label/>', {
-                name: field.name,
-                title: field.label,
-                'class': 'field-label',
-                text: field.label+':'
-            }).appendTo(td);
-
-            td = $('<td/>', {
-                'class': 'section-cell-field'
-            }).appendTo(tr);
-
-            var field_container = $('<div/>', {
-                name: field.name,
-                title: field.label,
-                'class': 'field'
-            }).appendTo(td);
-
-            field.create(field_container);
-
-            if (field.optional) {
-                field_container.css('display', 'none');
-
-                var link = $('<a/>', {
-                    text: IPA.messages.widget.optional,
-                    href: ''
-                }).appendTo(td);
-
-                link.click(function(field_container, link) {
-                    return function() {
-                        field_container.css('display', 'inline');
-                        link.css('display', 'none');
-                        return false;
-                    };
-                }(field_container, link));
-            }
-
-        }
-
         var sections = that.sections.values;
-        for (var j=0; j<sections.length; j++) {
-            var section = sections[j];
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
 
             var div = $('<div/>', {
                 name: section.name,
@@ -228,20 +192,10 @@ IPA.dialog = function(spec) {
     };
 
     that.save = function(record) {
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            var field = fields[i];
-            var values = field.save();
-            record[field.name] = values.join(',');
-        }
-
         var sections = that.sections.values;
-        for (var j=0; j<sections.length; j++) {
-            var section = sections[j];
-
-            if (section.save) {
-                section.save(record);
-            }
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
+            section.save(record);
         }
     };
 
@@ -251,54 +205,19 @@ IPA.dialog = function(spec) {
     };
 
     that.reset = function() {
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            var field = fields[i];
-            field.reset();
-        }
-
         var sections = that.sections.values;
-        for (var j=0; j<sections.length; j++) {
-            sections[j].reset();
+        for (var i=0; i<sections.length; i++) {
+            sections[i].reset();
         }
     };
+
+    init();
 
     that.dialog_create = that.create;
     that.dialog_open = that.open;
     that.dialog_close = that.close;
     that.dialog_save = that.save;
     that.dialog_reset = that.reset;
-
-    var fields = spec.fields || [];
-    for (var i=0; i<fields.length; i++) {
-        var field_spec = fields[i];
-        var field;
-
-        if (field_spec instanceof Object) {
-            var factory = field_spec.factory || IPA.text_widget;
-            field_spec.entity = that.entity;
-            field = factory(field_spec);
-
-            /* This is a bit of a hack, and is here to support ACI
-               permissions. The target section is a group of several
-               widgets together. It makes more sense to do them as a
-               section than as a widget. However, since they can be mixed
-               into the flow with the other widgets, the section needs to
-               be defined here with the fields to get the order correct.*/
-            if (field.section) {
-                that.add_section(field);
-            } else {
-                that.add_field(field);
-            }
-
-        } else {
-            field = IPA.text_widget({
-                name: field_spec,
-                entity:that.entity,
-                undo: false });
-            that.add_field(field);
-        }
-    }
 
     return that;
 };

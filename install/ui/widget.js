@@ -40,7 +40,6 @@ IPA.widget = function(spec) {
 
     that.disabled = spec.disabled;
     that.hidden = spec.hidden;
-    that.conditional = spec.conditional;
     that.optional = spec.optional || false;
 
     // read_only is set when widget is created
@@ -65,8 +64,8 @@ IPA.widget = function(spec) {
     that.dirty_changed = IPA.observer();
 
 
-    function set_param_info(){
-        if (!that.param_info  && that.entity){
+    function set_param_info() {
+        if (!that.param_info && that.entity) {
             that.param_info =
                 IPA.get_entity_param(that.entity.name, that.name);
         }
@@ -88,7 +87,7 @@ IPA.widget = function(spec) {
             if (!value.match(/^-?\d+$/)) {
                 that.valid = false;
                 that.show_error(IPA.messages.widget.validation.integer);
-                return;
+                return that.valid;
             }
 
             if (meta.minvalue !== undefined && value < meta.minvalue) {
@@ -96,7 +95,7 @@ IPA.widget = function(spec) {
                 message = IPA.messages.widget.validation.min_value;
                 message = message.replace('${value}', meta.minvalue);
                 that.show_error(message);
-                return;
+                return that.valid;
             }
 
             if (meta.maxvalue !== undefined && value > meta.maxvalue) {
@@ -104,7 +103,7 @@ IPA.widget = function(spec) {
                 message = IPA.messages.widget.validation.max_value;
                 message = message.replace('${value}', meta.maxvalue);
                 that.show_error(message);
-                return;
+                return that.valid;
             }
         }
         if (meta.pattern) {
@@ -112,11 +111,13 @@ IPA.widget = function(spec) {
             if (!value.match(regex)) {
                 that.valid = false;
                 that.show_error(meta.pattern_errmsg);
-                return;
+                return that.valid;
             }
         }
 
+        return that.valid;
     }
+
     that.create_error_link = function(container){
         container.append(' ');
 
@@ -153,22 +154,25 @@ IPA.widget = function(spec) {
 
         var values = that.save();
         if (!values) {
-            return;
+            return that.valid;
         }
         if (values.length === 0) {
-            return;
+            return that.valid;
         }
         var value = values[0];
         if (!value) {
-            return;
+            return that.valid;
         }
 
         if (that.metadata) {
-            meta_validate(that.metadata,value);
+            meta_validate(that.metadata, value);
         }
-        if (that.param_info) {
-            meta_validate(that.param_info,value);
+
+        if (that.valid && that.param_info) {
+            meta_validate(that.param_info, value);
         }
+
+        return that.valid;
     };
 
 

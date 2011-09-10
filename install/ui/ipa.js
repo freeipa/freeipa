@@ -281,6 +281,10 @@ IPA.command = function(spec) {
         that.args.push(arg);
     };
 
+    that.add_args = function(args) {
+        $.merge(that.args, args);
+    };
+
     that.set_option = function(name, value) {
         that.options[name] = value;
     };
