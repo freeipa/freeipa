@@ -63,6 +63,7 @@ from ipapython.config import IPAOptionParser
 from ipalib.dn import DN
 from ipalib.x509 import load_certificate_from_file, load_certificate_chain_from_file
 from ipalib.constants import DNS_ZONE_REFRESH
+from ipapython import services as ipaservices
 
 pw_name = None
 uninstalling = False
@@ -438,7 +439,7 @@ def check_dirsrv(unattended):
             sys.exit(1)
 
         try:
-            service.stop("dirsrv")
+            ipaservices.knownservices.dirsrv.stop()
         except:
             pass
 
@@ -510,7 +511,7 @@ def uninstall():
         except KeyError:
             logging.info("Group %s already removed", dsinstance.DS_GROUP)
 
-    service.chkconfig_off('ipa')
+    ipaservices.knownservices.ipa.disable()
 
     # Now for some sanity checking. Make sure everything was really
     # uninstalled.
@@ -999,7 +1000,7 @@ def main():
         os.remove(pw_name)
     else:
         http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=True, self_signed_ca=options.selfsign, subject_base=options.subject, auto_redirect=options.ui_redirect)
-    ipautil.run(["/sbin/restorecon", "/var/cache/ipa/sessions"])
+    ipaservices.restore_context("/var/cache/ipa/sessions")
 
     set_subject_in_config(realm_name, dm_password, util.realm_to_suffix(realm_name), options.subject)
 
@@ -1043,7 +1044,7 @@ def main():
 
 
     #Everything installed properly, activate ipa service.
-    service.chkconfig_on('ipa')
+    ipaservices.knownservices.ipa.enable()
 
     print "=============================================================================="
     print "Setup complete"
@@ -1067,7 +1068,7 @@ def main():
     print "\t   This ticket will allow you to use the IPA tools (e.g., ipa user-add)"
     print "\t   and the web user interface."
 
-    if not service.is_running("ntpd"):
+    if not ipaservices.knownservices.ntpd.is_running():
         print "\t3. Kerberos requires time synchronization between clients"
         print "\t   and servers for correct operation. You should consider enabling ntpd."
 

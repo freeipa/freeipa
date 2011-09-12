@@ -22,6 +22,7 @@ import sys
 try:
     import os
     from ipaserver.install import service
+    from ipapython import services as ipaservices
     from ipaserver.install.dsinstance import config_dirname, realm_to_serverid
     from ipaserver.install.installutils import is_ipa_configured
     from ipapython import sysrestore
@@ -161,9 +162,10 @@ def get_config():
     return svc_list
 
 def ipa_start(options):
+    dirsrv = ipaservices.knownservices.dirsrv
     try:
         print "Starting Directory Service"
-        service.start('dirsrv', capture_output=get_capture_output('dirsrv', options.debug))
+        dirsrv.start(capture_output=get_capture_output('dirsrv', options.debug))
     except Exception, e:
         raise IpactlError("Failed to start Directory Service: " + str(e))
 
@@ -174,7 +176,7 @@ def ipa_start(options):
         emit_err("Failed to read data from Directory Service: " + str(e))
         emit_err("Shutting down")
         try:
-            service.stop('dirsrv', capture_output=False)
+            dirsrv.stop(capture_output=False)
         except:
             pass
         if isinstance(e, IpactlError):
@@ -189,25 +191,28 @@ def ipa_start(options):
 
     for (order, svc) in sorted(svc_list):
         svc_name = service.SERVICE_LIST[svc][0]
+        svchandle = ipaservices.service(svc_name)
         try:
             print "Starting %s Service" % svc
-            service.start(svc_name, capture_output=get_capture_output(svc_name, options.debug))
+            svchandle.start(capture_output=get_capture_output(svc_name, options.debug))
         except:
             emit_err("Failed to start %s Service" % svc)
             emit_err("Shutting down")
             for (order, svc) in sorted(svc_list):
                 svc_name = service.SERVICE_LIST[svc][0]
+                svc_off = ipaservices.service(svc_name)
                 try:
-                    service.stop(svc_name, capture_output=False)
+                    svc_off.stop(capture_output=False)
                 except:
                     pass
             try:
-                service.stop('dirsrv', capture_output=False)
+                svchandle.stop('dirsrv', capture_output=False)
             except:
                 pass
             raise IpactlError("Aborting ipactl")
 
 def ipa_stop(options):
+    dirsrv = ipaservices.knownservices.dirsrv
     svc_list = []
     try:
         svc_list = get_config()
@@ -216,14 +221,14 @@ def ipa_stop(options):
         # and see if we can get anything. If not throw our hands up and just
         # exit
         try:
-            service.start('dirsrv', capture_output=False)
+            dirsrv.start(capture_output=False)
             svc_list = get_config()
         except Exception, e:
             emit_err("Failed to read data from Directory Service: " + str(e))
             emit_err("Shutting down")
             try:
                 # just try to stop it, do not read a result
-                service.stop('dirsrv')
+                dirsrv.stop()
             finally:
                 raise IpactlError(None)
 
@@ -233,23 +238,25 @@ def ipa_stop(options):
 
     for (order, svc) in sorted(svc_list, reverse=True):
         svc_name = service.SERVICE_LIST[svc][0]
+        svchandle = ipaservices.service(svc_name)
         try:
             print "Stopping %s Service" % svc
-            service.stop(svc_name, capture_output=False)
+            svchandle.stop(capture_output=False)
         except:
             emit_err("Failed to stop %s Service" % svc)
 
     try:
         print "Stopping Directory Service"
-        service.stop('dirsrv', capture_output=False)
+        dirsrv.stop('dirsrv', capture_output=False)
     except:
         raise IpactlError("Failed to stop Directory Service")
 
 
 def ipa_restart(options):
+    dirsrv = ipaservices.knownservices.dirsrv
     try:
         print "Restarting Directory Service"
-        service.restart('dirsrv', capture_output=get_capture_output('dirsrv', options.debug))
+        dirsrv.restart(capture_output=get_capture_output('dirsrv', options.debug))
     except Exception, e:
         raise IpactlError("Failed to restart Directory Service: " + str(e))
 
@@ -260,7 +267,7 @@ def ipa_restart(options):
         emit_err("Failed to read data from Directory Service: " + str(e))
         emit_err("Shutting down")
         try:
-            service.stop('dirsrv', capture_output=False)
+            dirsrv.stop(capture_output=False)
         except:
             pass
         if isinstance(e, IpactlError):
@@ -275,27 +282,30 @@ def ipa_restart(options):
 
     for (order, svc) in sorted(svc_list):
         svc_name = service.SERVICE_LIST[svc][0]
+        svchandle = ipaservices.service(svc_name)
         try:
             print "Restarting %s Service" % svc
-            service.restart(svc_name, capture_output=get_capture_output(svc_name, options.debug))
+            svchandle.restart(capture_output=get_capture_output(svc_name, options.debug))
         except:
             emit_err("Failed to restart %s Service" % svc)
             emit_err("Shutting down")
             for (order, svc) in sorted(svc_list):
                 svc_name = service.SERVICE_LIST[svc][0]
+                svc_off = ipaservices.service(svc_name)
                 try:
-                    service.stop(svc_name, capture_output=False)
+                    svc_off.stop(capture_output=False)
                 except:
                     pass
             try:
-                service.stop('dirsrv', capture_output=False)
+                dirsrv.stop(capture_output=False)
             except:
                 pass
             raise IpactlError("Aborting ipactl")
 
 def ipa_status(options):
+    dirsrv = ipaservices.knownservices.dirsrv
     try:
-        if service.is_running('dirsrv'):
+        if dirsrv.is_running():
             print "Directory Service: RUNNING"
         else:
             print "Directory Service: STOPPED"
@@ -315,8 +325,9 @@ def ipa_status(options):
 
     for (order, svc) in sorted(svc_list):
         svc_name = service.SERVICE_LIST[svc][0]
+        svchandle = ipaservices.service(svc_name)
         try:
-            if service.is_running(svc_name):
+            if svchandle.is_running():
                 print "%s Service: RUNNING" % svc
             else:
                 print "%s Service: STOPPED" % svc
