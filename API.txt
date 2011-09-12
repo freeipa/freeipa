@@ -1837,7 +1837,7 @@ output: Output('result', <type 'bool'>, 'True means the operation was successful
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: permission_add
 args: 1,12,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, primary_key=True, required=True)
 option: List('permissions', attribute=True, cli_name='permissions', label=Gettext('Permissions', domain='ipa', localedir=None), multivalue=True, required=True)
 option: List('attrs', alwaysask=True, attribute=True, autofill=False, cli_name='attrs', flags=('ask_create', 'ask_update'), label=Gettext('Attributes', domain='ipa', localedir=None), multivalue=True, normalizer=<lambda>, query=True, required=False)
 option: StrEnum('type', alwaysask=True, attribute=True, autofill=False, cli_name='type', flags=('ask_create', 'ask_update'), label=Gettext('Type', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'user', u'group', u'host', u'service', u'hostgroup', u'netgroup', u'dnsrecord'))
@@ -1855,7 +1855,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: permission_add_member
 args: 1,4,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -1865,7 +1865,7 @@ output: Output('failed', <type 'dict'>, Gettext('Members that could not be added
 output: Output('completed', <type 'int'>, Gettext('Number of members added', domain='ipa', localedir=None))
 command: permission_del
 args: 1,1,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=True, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
@@ -1873,7 +1873,7 @@ output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e
 command: permission_find
 args: 1,13,4
 arg: Str('criteria?', noextrawhitespace=False)
-option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
+option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: List('permissions', attribute=True, autofill=False, cli_name='permissions', label=Gettext('Permissions', domain='ipa', localedir=None), multivalue=True, query=True, required=False)
 option: List('attrs', attribute=True, autofill=False, cli_name='attrs', flags=('ask_create', 'ask_update'), label=Gettext('Attributes', domain='ipa', localedir=None), multivalue=True, normalizer=<lambda>, query=True, required=False)
 option: StrEnum('type', attribute=True, autofill=False, cli_name='type', flags=('ask_create', 'ask_update'), label=Gettext('Type', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'user', u'group', u'host', u'service', u'hostgroup', u'netgroup', u'dnsrecord'))
@@ -1892,7 +1892,7 @@ output: Output('count', <type 'int'>, 'Number of entries returned')
 output: Output('truncated', <type 'bool'>, 'True if not all results were returned')
 command: permission_mod
 args: 1,14,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: List('permissions', attribute=True, autofill=False, cli_name='permissions', label=Gettext('Permissions', domain='ipa', localedir=None), multivalue=True, required=False)
 option: List('attrs', alwaysask=True, attribute=True, autofill=False, cli_name='attrs', flags=('ask_create', 'ask_update'), label=Gettext('Attributes', domain='ipa', localedir=None), multivalue=True, normalizer=<lambda>, query=True, required=False)
 option: StrEnum('type', alwaysask=True, attribute=True, autofill=False, cli_name='type', flags=('ask_create', 'ask_update'), label=Gettext('Type', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'user', u'group', u'host', u'service', u'hostgroup', u'netgroup', u'dnsrecord'))
@@ -1906,13 +1906,13 @@ option: Flag('rights', autofill=True, default=False, label=Gettext('Rights', dom
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
-option: Str('rename', cli_name='rename', label=Gettext('Rename', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=False)
+option: Str('rename', cli_name='rename', label=Gettext('Rename', domain='ipa', localedir=None), multivalue=False, primary_key=True, required=False)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: permission_remove_member
 args: 1,4,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -1922,7 +1922,7 @@ output: Output('failed', <type 'dict'>, Gettext('Members that could not be remov
 output: Output('completed', <type 'int'>, Gettext('Number of members removed', domain='ipa', localedir=None))
 command: permission_show
 args: 1,4,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('rights', autofill=True, default=False, label=Gettext('Rights', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
@@ -1946,7 +1946,7 @@ output: Output('count', <type 'int'>, Gettext('Number of plugins loaded', domain
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 command: privilege_add
 args: 1,6,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, required=True)
 option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
 option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
@@ -1958,7 +1958,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: privilege_add_member
 args: 1,4,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -1968,7 +1968,7 @@ output: Output('failed', <type 'dict'>, Gettext('Members that could not be added
 output: Output('completed', <type 'int'>, Gettext('Number of members added', domain='ipa', localedir=None))
 command: privilege_add_permission
 args: 1,4,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -1978,7 +1978,7 @@ output: Output('failed', <type 'dict'>, Gettext('Members that could not be added
 output: Output('completed', <type 'int'>, Gettext('Number of permissions added', domain='ipa', localedir=None))
 command: privilege_del
 args: 1,1,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=True, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
@@ -1986,7 +1986,7 @@ output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e
 command: privilege_find
 args: 1,7,4
 arg: Str('criteria?', noextrawhitespace=False)
-option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
+option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
 option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('Size Limit', domain='ipa', localedir=None), minvalue=0)
@@ -1999,7 +1999,7 @@ output: Output('count', <type 'int'>, 'Number of entries returned')
 output: Output('truncated', <type 'bool'>, 'True if not all results were returned')
 command: privilege_mod
 args: 1,8,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
 option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
@@ -2007,13 +2007,13 @@ option: Flag('rights', autofill=True, default=False, label=Gettext('Rights', dom
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
-option: Str('rename', cli_name='rename', label=Gettext('Rename', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=False)
+option: Str('rename', cli_name='rename', label=Gettext('Rename', domain='ipa', localedir=None), multivalue=False, primary_key=True, required=False)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: privilege_remove_member
 args: 1,4,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -2023,7 +2023,7 @@ output: Output('failed', <type 'dict'>, Gettext('Members that could not be remov
 output: Output('completed', <type 'int'>, Gettext('Number of members removed', domain='ipa', localedir=None))
 command: privilege_remove_permission
 args: 1,4,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -2033,7 +2033,7 @@ output: Output('failed', <type 'dict'>, Gettext('Members that could not be added
 output: Output('completed', <type 'int'>, Gettext('Number of permissions removed', domain='ipa', localedir=None))
 command: privilege_show
 args: 1,4,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('rights', autofill=True, default=False, label=Gettext('Rights', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
@@ -2124,7 +2124,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: role_add
 args: 1,6,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, required=True)
 option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
 option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
@@ -2136,7 +2136,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: role_add_member
 args: 1,7,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -2149,7 +2149,7 @@ output: Output('failed', <type 'dict'>, Gettext('Members that could not be added
 output: Output('completed', <type 'int'>, Gettext('Number of members added', domain='ipa', localedir=None))
 command: role_add_privilege
 args: 1,4,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -2159,7 +2159,7 @@ output: Output('failed', <type 'dict'>, Gettext('Members that could not be added
 output: Output('completed', <type 'int'>, Gettext('Number of privileges added', domain='ipa', localedir=None))
 command: role_del
 args: 1,1,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=True, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
@@ -2167,7 +2167,7 @@ output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e
 command: role_find
 args: 1,7,4
 arg: Str('criteria?', noextrawhitespace=False)
-option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
+option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
 option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('Size Limit', domain='ipa', localedir=None), minvalue=0)
@@ -2180,7 +2180,7 @@ output: Output('count', <type 'int'>, 'Number of entries returned')
 output: Output('truncated', <type 'bool'>, 'True if not all results were returned')
 command: role_mod
 args: 1,8,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('addattr*', validate_add_attribute, cli_name='addattr', exclude='webui')
 option: Str('setattr*', validate_set_attribute, cli_name='setattr', exclude='webui')
@@ -2188,13 +2188,13 @@ option: Flag('rights', autofill=True, default=False, label=Gettext('Rights', dom
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
-option: Str('rename', cli_name='rename', label=Gettext('Rename', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=False)
+option: Str('rename', cli_name='rename', label=Gettext('Rename', domain='ipa', localedir=None), multivalue=False, primary_key=True, required=False)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: role_remove_member
 args: 1,7,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -2207,7 +2207,7 @@ output: Output('failed', <type 'dict'>, Gettext('Members that could not be remov
 output: Output('completed', <type 'int'>, Gettext('Number of members removed', domain='ipa', localedir=None))
 command: role_remove_privilege
 args: 1,4,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -2217,7 +2217,7 @@ output: Output('failed', <type 'dict'>, Gettext('Members that could not be added
 output: Output('completed', <type 'int'>, Gettext('Number of privileges removed', domain='ipa', localedir=None))
 command: role_show
 args: 1,4,3
-arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('cn', attribute=True, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('rights', autofill=True, default=False, label=Gettext('Rights', domain='ipa', localedir=None))
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])

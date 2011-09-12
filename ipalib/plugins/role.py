@@ -86,7 +86,6 @@ class role(LDAPObject):
             cli_name='name',
             label=_('Role name'),
             primary_key=True,
-            normalizer=lambda value: value.lower(),
         ),
         Str('description',
             cli_name='desc',
