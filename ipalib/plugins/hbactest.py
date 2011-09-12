@@ -255,12 +255,41 @@ class hbactest(Command):
                     'error': testrules, 'matched': None, 'notmatched': None,
                     'value' : False}
 
-        # Rules are converted to pyhbac format, we can test them
+        # Rules are converted to pyhbac format, build request and then test it
         request = pyhbac.HbacRequest()
-        request.user.name = options['user']
-        request.service.name = options['service']
-        request.srchost.name = options['sourcehost']
-        request.targethost.name = options['targethost']
+
+        if options['user'] != u'all':
+            try:
+                request.user.name = options['user']
+                request.user.groups = self.api.Command.user_show(request.user.name)['result']['memberof_group']
+            except:
+                pass
+
+        if options['service'] != u'all':
+            try:
+                request.service.name = options['service']
+                request.service.groups = \
+                    self.api.Command.hbacsvcgroup_show(request.service.name)['result']['member_hbacsvc']
+            except:
+                pass
+
+        if options['sourcehost'] != u'all':
+            try:
+                request.srchost.name = options['sourcehost']
+                srchost_result = self.api.Command.host_show(request.srchost.name)['result']
+                srchost_groups = srchost_result['memberof_hostgroup']
+                request.srchost.groups = sorted(set(srchost_groups))
+            except:
+                 pass
+
+        if options['targethost'] != u'all':
+            try:
+                request.targethost.name = options['targethost']
+                tgthost_result = self.api.Command.host_show(request.targethost.name)['result']
+                tgthost_groups = tgthost_result['memberof_hostgroup']
+                request.targethost.groups = sorted(set(tgthost_groups))
+            except:
+                pass
 
         matched_rules = []
         notmatched_rules = []
