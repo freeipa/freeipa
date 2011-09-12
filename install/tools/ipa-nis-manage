@@ -24,6 +24,7 @@ import os
 try:
     from optparse import OptionParser
     from ipapython import ipautil, config
+    from ipapython import services as ipaservices
     from ipaserver.install import installutils
     from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax
     from ipaserver.plugins.ldap2 import ldap2
@@ -143,15 +144,17 @@ def main():
 
             # Enable either the portmap or rpcbind service
             try:
-                ipautil.run(["/sbin/chkconfig", "portmap", "on"])
-                servicemsg = "portmap"
+                portmap = ipaservices.knownservices.portmap
+                portmap.enable()
+                servicemsg = portmap.service_name
             except ipautil.CalledProcessError, cpe:
                 if cpe.returncode == 1:
                     try:
-                        ipautil.run(["/sbin/chkconfig", "rpcbind", "on"])
-                        servicemsg = "rpcbind"
+                        rpcbind = ipaservices.knownservices.rpcbind
+                        rpcbind.enable()
+                        servicemsg = rpcbind.service_name
                     except ipautil.CalledProcessError, cpe:
-                        print "Unable to enable either portmap or rpcbind"
+                        print "Unable to enable either %s or %s" % (portmap.service_name, rpcbind.service_name)
                         retval = 3
 
             # The cn=config entry for the plugin may already exist but it

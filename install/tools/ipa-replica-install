@@ -39,6 +39,7 @@ from ipapython import version
 from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
+from ipapython import services as ipaservices
 
 CACERT="/etc/ipa/ca.crt"
 REPLICA_INFO_TOP_DIR=None
@@ -258,7 +259,7 @@ def check_dirsrv():
             sys.exit(1)
 
         try:
-            service.stop("dirsrv")
+            ipaservices.knownservices.dirsrv.stop()
         except:
             pass
 
@@ -441,7 +442,7 @@ def main():
     if CA:
         CA.import_ra_cert(dir + "/ra.p12")
         CA.fix_ra_perms()
-        service.restart("httpd")
+        ipaservices.knownservices.httpd.restart()
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated
@@ -451,9 +452,9 @@ def main():
     service.print_msg("Applying LDAP updates")
     ds.apply_updates()
 
-    service.restart("dirsrv")
-    service.restart("krb5kdc")
-    service.restart("httpd")
+    ipaservices.knownservices.dirsrv.restart()
+    ipaservices.knownservices.krb5kdc.restart()
+    ipaservices.knownservices.httpd.restart()
 
     if options.setup_dns:
         install_bind(config, options)
@@ -470,7 +471,7 @@ def main():
     ds.init_memberof()
 
     #Everything installed properly, activate ipa service.
-    service.chkconfig_on('ipa')
+    ipaservices.knownservices.ipa.enable()
 
 try:
     if not os.geteuid()==0:

@@ -24,6 +24,7 @@ import socket
 import os, traceback, logging, shutil
 
 from ipapython import ipautil
+from ipapython import services as ipaservices
 
 from ipaserver.install import installutils, service
 from ipaserver.install import certs
@@ -36,7 +37,6 @@ from ipapython import version
 from ipalib import api, util
 from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
-from ipapython import ipautil
 
 CACERT="/etc/ipa/ca.crt"
 REPLICA_INFO_TOP_DIR=None
@@ -146,7 +146,7 @@ def main():
     cs.add_cert_to_service()
 
     # We need to restart apache as we drop a new config file in there
-    ipautil.service_restart('httpd', '', True)
+    ipaservices.knownservices.httpd.restart(capture_output=True)
 
 try:
     if not os.geteuid()==0:
