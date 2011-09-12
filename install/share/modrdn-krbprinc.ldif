@@ -9,4 +9,3 @@ ipaModRDNtargetAttr: krbPrincipalName
 ipaModRDNsuffix: @$REALM
 ipaModRDNfilter: (&(objectclass=posixaccount)(objectclass=krbPrincipalAux))
 ipaModRDNscope: $SUFFIX
-nsslapd-pluginPrecedence: 60
