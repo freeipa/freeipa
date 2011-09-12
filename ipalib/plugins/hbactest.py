@@ -60,7 +60,7 @@ having access to the production environment.
 EXAMPLES:
 
     1. Use all enabled HBAC rules in IPA database to simulate:
-    $ ipa  hbactest --user=a1a --srchost=foo --host=bar --service=ssh
+    $ ipa  hbactest --user=a1a --srchost=foo --host=bar --service=sshd
     --------------------
     Access granted: True
     --------------------
@@ -70,13 +70,13 @@ EXAMPLES:
       matched: allow_all
 
     2. Disable detailed summary of how rules were applied:
-    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=ssh --nodetail
+    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=sshd --nodetail
     --------------------
     Access granted: True
     --------------------
 
     3. Test explicitly specified HBAC rules:
-    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=ssh \
+    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=sshd \
           --rules=my-second-rule,myrule
     ---------------------
     Access granted: False
@@ -85,7 +85,7 @@ EXAMPLES:
       notmatched: myrule
 
     4. Use all enabled HBAC rules in IPA database + explicitly specified rules:
-    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=ssh \
+    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=sshd \
           --rules=my-second-rule,myrule --enabled
     --------------------
     Access granted: True
@@ -96,14 +96,14 @@ EXAMPLES:
       matched: allow_all
 
     5. Test all disabled HBAC rules in IPA database:
-    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=ssh --disabled
+    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=sshd --disabled
     ---------------------
     Access granted: False
     ---------------------
       notmatched: new-rule
 
     6. Test all disabled HBAC rules in IPA database + explicitly specified rules:
-    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=ssh \
+    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=sshd \
           --rules=my-second-rule,myrule --disabled
     ---------------------
     Access granted: False
@@ -113,7 +113,7 @@ EXAMPLES:
       notmatched: myrule
 
     7. Test all (enabled and disabled) HBAC rules in IPA database:
-    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=ssh \
+    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=sshd \
           --enabled --disabled
     --------------------
     Access granted: True
