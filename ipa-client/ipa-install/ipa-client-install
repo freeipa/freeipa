@@ -34,6 +34,7 @@ try:
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
     from ipapython.ipautil import run, user_input, CalledProcessError, file_exists, install_file
+    import ipapython.services as ipaservices
     from ipapython import ipautil
     from ipapython import dnsclient
     from ipapython import sysrestore
@@ -151,6 +152,9 @@ def logging_setup(options):
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
+def log_service_error(name, action, error):
+    logging.error("%s failed to %s: %s" % (name, action, str(error)))
+
 def nickname_exists(nickname):
         (sout, serr, returncode) = run(["/usr/bin/certutil", "-L", "-d", "/etc/pki/nssdb", "-n", nickname], raiseonerr=False)
 
@@ -206,20 +210,22 @@ def uninstall(options, env, quiet=False):
 
     # Always start certmonger. We can't untrack something if it isn't
     # running
+    messagebus = ipaservices.knownservices.messagebus
     try:
-        ipautil.service_start('messagebus')
+        messagebus.start()
     except Exception, e:
-        logging.error("messagebus failed to start: %s" % str(e))
+        log_service_error(messagebus.service_name, 'start', e)
 
+    cmonger = ipaservices.knownservices.certmonger
     try:
-        ipautil.service_start('certmonger')
+        cmonger.start()
     except Exception, e:
-        logging.error("certmonger failed to start: %s" % str(e))
+        log_service_error(cmonger.service_name, 'start', e)
 
     try:
         certmonger.stop_tracking('/etc/pki/nssdb', nickname=client_nss_nickname)
     except (CalledProcessError, RuntimeError), e:
-        logging.error("certmonger failed to stop tracking certificate: %s" % str(e))
+        logging.error("%s failed to stop tracking certificate: %s" % (cmonger.service_name, str(e)))
 
     if nickname_exists(client_nss_nickname):
         try:
@@ -228,18 +234,18 @@ def uninstall(options, env, quiet=False):
             emit_quiet(quiet, "Failed to remove %s from /etc/pki/nssdb: %s" % (client_nss_nickname, str(e)))
 
     try:
-        ipautil.service_stop('certmonger')
+        cmonger.stop()
     except Exception, e:
-        logging.error("certmonger failed to stop: %s" % str(e))
+        log_service_error(cmonger.service_name, 'stop', e)
 
     # Remove any special principal names we added to the IPA CA helper
     certmonger.remove_principal_from_cas()
 
     try:
-        ipautil.chkconfig_off('certmonger')
+        cmonger.disable()
     except Exception, e:
-        emit_quiet(quiet, "Failed to disable automatic startup of the certmonger daemon")
-        logging.error("Failed to disable automatic startup of the certmonger daemon: %s" % str(e))
+        emit_quiet(quiet, "Failed to disable automatic startup of the %s service" % (cmonger.service_name))
+        logging.error("Failed to disable automatic startup of the %s service: %s" % (cmonger.service_name, str(e)))
 
     if not options.on_master and os.path.exists('/etc/ipa/default.conf'):
         emit_quiet(quiet, "Unenrolling client from IPA server")
@@ -263,7 +269,14 @@ def uninstall(options, env, quiet=False):
 
     emit_quiet(quiet, "Disabling client Kerberos and LDAP configurations")
     try:
-        run(["/usr/sbin/authconfig", "--disableldap", "--disablekrb5", "--disablesssd", "--disablesssdauth", "--disablemkhomedir", "--update"])
+        auth_config = ipaservices.authconfig()
+        auth_config.disable("ldap").\
+                    disable("krb5").\
+                    disable("sssd").\
+                    disable("sssdauth").\
+                    disable("mkhomedir").\
+                    add_option("update")
+        auth_config.execute()
     except Exception, e:
         emit_quiet(quiet, "Failed to remove krb5/LDAP configuration. " +str(e))
         return CLIENT_INSTALL_ERROR
@@ -279,33 +292,35 @@ def uninstall(options, env, quiet=False):
         except CalledProcessError, e:
             print >>sys.stderr, "Failed to set this machine hostname to %s (%s)." % (old_hostname, str(e))
 
-    if ipautil.service_is_installed('nscd'):
+    nscd = ipaservices.knownservices.nscd
+    if nscd.is_installed():
         try:
-            ipautil.service_restart('nscd')
+            nscd.restart()
         except:
-            emit_quiet(quiet, "Failed to restart start the NSCD daemon")
+            emit_quiet(quiet, "Failed to restart the %s daemon" % (nscd.service_name))
 
         try:
-            ipautil.chkconfig_on('nscd')
+            nscd.enable()
         except:
-            emit_quiet(quiet, "Failed to configure automatic startup of the NSCD daemon")
+            emit_quiet(quiet, "Failed to configure automatic startup of the %s daemon" % (nscd.service_name))
     else:
         # this is optional service, just log
-        logging.info("NSCD daemon is not installed, skip configuration")
+        logging.info("%s daemon is not installed, skip configuration" % (nscd.service_name))
 
-    if ipautil.service_is_installed('nslcd'):
+    nslcd = ipaservices.knownservices.nslcd
+    if nslcd.is_installed():
         try:
-            ipautil.service_stop('nslcd')
+            nslcd.stop()
         except:
-            emit_quiet(quiet, "Failed to stop the NSLCD daemon")
+            emit_quiet(quiet, "Failed to stop the %s daemon" % (nslcd.service_name))
 
         try:
-            ipautil.chkconfig_off('nslcd')
+            nslcd.disable()
         except:
-            emit_quiet(quiet, "Failed to disable automatic startup of the NSLCD daemon")
+            emit_quiet(quiet, "Failed to disable automatic startup of the %s daemon" % (nslcd.service_name))
     else:
         # this is optional service, just log
-        logging.info("NSLCD daemon is not installed, skip configuration")
+        logging.info("%s daemon is not installed, skip configuration" % (nslcd.service_name))
 
     if not options.unattended:
         emit_quiet(quiet, "The original nsswitch.conf configuration has been restored.")
@@ -429,19 +444,20 @@ def configure_nslcd_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, 
             print "Creation of %s: %s" % ('/etc/nslcd.conf', str(e))
             return (1, None, None)
 
-    if ipautil.service_is_installed('nslcd'):
+    nslcd = ipaservices.knownservices.nslcd
+    if nslcd.is_installed():
         try:
-            ipautil.service_restart('nslcd')
+            nslcd.restart()
         except Exception, e:
-            logging.error("nslcd failed to restart: %s" % str(e))
+            log_service_error(nslcd.service_name, 'restart', e)
 
         try:
-            ipautil.chkconfig_on('nslcd')
+            nslcd.enable()
         except Exception, e:
-            print "Failed to configure automatic startup of the NSLCD daemon"
-            logging.error("Failed to enable automatic startup of the NSLCD daemon: %s" % str(e))
+            print "Failed to configure automatic startup of the %s daemon" % (nslcd.service_name)
+            logging.error("Failed to enable automatic startup of the %s daemon: %s" % (nslcd.service_name, str(e)))
     else:
-        logging.debug("NSLCD daemon is not installed, skip configuration")
+        logging.debug("%s daemon is not installed, skip configuration" % (nslcd.service_name))
         return (0, None, None)
 
     return (0, 'NSLCD', '/etc/nslcd.conf')
@@ -530,42 +546,44 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options):
     started = True
     principal = 'host/%s@%s' % (hostname, cli_realm)
 
+    messagebus = ipaservices.knownservices.messagebus
     try:
-        ipautil.service_start('messagebus')
+        messagebus.start()
     except Exception, e:
-        logging.error("messagebus failed to start: %s" % str(e))
+        log_service_error(messagebus.service_name, 'start', e)
 
     # Ensure that certmonger has been started at least once to generate the
     # cas files in /var/lib/certmonger/cas.
+    cmonger = ipaservices.knownservices.certmonger
     try:
-        ipautil.service_restart('certmonger')
+        cmonger.restart()
     except Exception, e:
-        logging.error("certmonger failed to restart: %s" % str(e))
+        log_service_error(cmonger.service_name, 'restart', e)
 
     if options.hostname:
         # It needs to be stopped if we touch them
         try:
-            ipautil.service_stop('certmonger')
+            cmonger.stop()
         except Exception, e:
-            logging.error("certmonger failed to stop: %s" % str(e))
+            log_service_error(cmonger.service_name, 'stop', e)
         # If the hostname is explicitly set then we need to tell certmonger
         # which principal name to use when requesting certs.
         certmonger.add_principal_to_cas(principal)
 
     try:
-        ipautil.service_restart('certmonger')
+        cmonger.restart()
     except Exception, e:
-        print "Failed to start the certmonger daemon"
+        print "Failed to start the %s daemon" % (cmonger.service_name)
         print "Automatic certificate management will not be available"
-        logging.error("certmonger failed to restart: %s" % str(e))
+        log_service_error(cmonger.service_name, 'restart', e)
         started = False
 
     try:
-        ipautil.chkconfig_on('certmonger')
+        cmonger.enable()
     except Exception, e:
-        print "Failed to configure automatic startup of the certmonger daemon"
+        print "Failed to configure automatic startup of the %s daemon" % (cmonger.service_name)
         print "Automatic certificate management will not be available"
-        logging.error("Failed to disable automatic startup of the certmonger daemon: %s" % str(e))
+        logging.error("Failed to disable automatic startup of the %s daemon: %s" % (cmonger.service_name, str(e)))
 
     # Request our host cert
     if started:
@@ -574,57 +592,7 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options):
         try:
             run(["ipa-getcert", "request", "-d", "/etc/pki/nssdb", "-n", client_nss_nickname, "-N", subject, "-K", principal])
         except:
-            print "certmonger request for host certificate failed"
-
-def backup_and_replace_hostname(fstore, statestore, hostname):
-    # TODO: this code is for Red Hat-based systems
-    #       it need to be rewritten for cross-paltform support
-    #       so that different configuration backends would be possible
-    #       (GNU/Debian stores this information in a different place)
-    network_filename = "/etc/sysconfig/network"
-    # Backup original /etc/sysconfig/network
-    fstore.backup_file(network_filename)
-    hostname_pattern = re.compile('''
-(^
-                        \s*
-        (?P<option>     [^\#;]+?)
-                        (\s*=\s*)
-        (?P<value>      .+?)?
-                        (\s*((\#|;).*)?)?
-$)''', re.VERBOSE)
-    temp_filename = None
-    with tempfile.NamedTemporaryFile(delete=False) as new_config:
-        temp_filename = new_config.name
-        with open(network_filename, 'r') as f:
-            for line in f:
-                new_line = line
-                m = hostname_pattern.match(line)
-                if m:
-                    option, value = m.group('option', 'value')
-                    if option is not None and option == 'HOSTNAME':
-                        if value is not None and hostname != value:
-                            new_line = u"HOSTNAME=%s\n" % (hostname)
-                            statestore.backup_state('network', 'hostname', value)
-                new_config.write(new_line)
-        new_config.flush()
-        # Make sure the resulting file is readable by others before installing it
-        os.fchmod(new_config.fileno(), stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
-        os.fchown(new_config.fileno(), 0, 0)
-
-    # At this point new_config is closed but not removed due to 'delete=False' above
-    # Now, install the temporary file as configuration and ensure old version is available as .orig
-    # While .orig file is not used during uninstall, it is left there for administrator.
-    install_file(temp_filename, network_filename)
-    try:
-        ipautil.run(['/bin/hostname', hostname])
-    except CalledProcessError, e:
-        print >>sys.stderr, "Failed to set this machine hostname to %s (%s)." % (hostname, str(e))
-
-    # For SE Linux environments it is important to reset SE labels to the expected ones
-    try:
-        ipautil.run(['/sbin/restorecon', network_filename])
-    except CalledProcessError, e:
-        print >>sys.stderr, "Failed to set permissions for %s (%s)." % (network_filename, str(e))
+            print "%s request for host certificate failed" % (cmonger.service_name)
 
 def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
     sssdconfig = SSSDConfig.SSSDConfig()
@@ -893,7 +861,7 @@ def install(options, env, fstore, statestore):
 
     if options.hostname:
         # configure /etc/sysconfig/network to contain the hostname we set.
-        backup_and_replace_hostname(fstore, statestore, options.hostname)
+        ipaservices.backup_and_replace_hostname(fstore, statestore, options.hostname)
 
     if not options.unattended:
         if options.principal is None and options.password is None and options.prompt_password is False:
@@ -1020,54 +988,63 @@ def install(options, env, fstore, statestore):
         client_dns(cli_server, hostname, options.dns_updates)
 
     #Name Server Caching Daemon. Disable for SSSD, use otherwise (if installed)
-    if ipautil.service_is_installed("nscd"):
-        if options.sssd:
-            nscd_service_action = "stop"
-            nscd_service_cmd = ipautil.service_stop
-            nscd_chkconfig_cmd = ipautil.chkconfig_off
-        else:
-            nscd_service_action = "restart"
-            nscd_service_cmd = ipautil.service_restart
-            nscd_chkconfig_cmd = ipautil.chkconfig_on
-
+    nscd = ipaservices.knownservices.nscd
+    if nscd.is_installed():
         try:
-            nscd_service_cmd('nscd')
+            if options.sssd:
+                nscd_service_action = 'stop'
+                nscd.stop()
+            else:
+                nscd_service_action = 'restart'
+                nscd.restart()
         except:
-            print >>sys.stderr, "Failed to %s the NSCD daemon" % nscd_service_action
+            print >>sys.stderr, "Failed to %s the %s daemon" % (nscd_service_action, nscd.service_name)
             if not options.sssd:
                 print >>sys.stderr, "Caching of users/groups will not be available"
 
         try:
-            nscd_chkconfig_cmd('nscd')
+            if options.sssd:
+                nscd.disable()
+            else:
+                nscd.enable()
         except:
             if not options.sssd:
-                print >>sys.stderr, "Failed to configure automatic startup of the NSCD daemon"
+                print >>sys.stderr, "Failed to configure automatic startup of the %s daemon" % (nscd.service_name)
                 print >>sys.stderr, "Caching of users/groups will not be available after reboot"
             else:
-                print >>sys.stderr, "Failed to disable NSCD daemon. Disable it manually."
+                print >>sys.stderr, "Failed to disable %s daemon. Disable it manually." % (nscd.service_name)
 
     else:
         # this is optional service, just log
         if not options.sssd:
-            logging.info("NSCD daemon is not installed, skip configuration")
+            logging.info("%s daemon is not installed, skip configuration" % (nscd.service_name))
 
     retcode, conf, filename = (0, None, None)
     # Modify nsswitch/pam stack
+    auth_config = ipaservices.authconfig()
     if options.sssd:
-        cmd = ["/usr/sbin/authconfig", "--enablesssd", "--enablesssdauth", "--update"]
+        auth_config.enable("sssd").\
+                    enable("sssdauth")
         message = "SSSD enabled"
         conf = 'SSSD'
     else:
-        cmd = ["/usr/sbin/authconfig", "--enableldap", "--enableforcelegacy", "--update"]
+        auth_config.enable("ldap").\
+                    enable("forcelegacy")
         message = "LDAP enabled"
 
     if options.mkhomedir:
-        cmd.append("--enablemkhomedir")
-    run(cmd)
+        auth_config.enable("mkhomedir")
+
+    auth_config.add_option("update")
+    auth_config.execute()
     print message
 
     #Modify pam to add pam_krb5
-    run(["/usr/sbin/authconfig", "--enablekrb5", "--update", "--nostart"])
+    auth_config.reset()
+    auth_config.enable("krb5").\
+                add_option("update").\
+                add_option("nostart")
+    auth_config.execute()
     print "Kerberos 5 enabled"
 
     # Update non-SSSD LDAP configuration after authconfig calls as it would
@@ -1089,7 +1066,7 @@ def install(options, env, fstore, statestore):
         # provider.
         while n < 5 and not found:
             try:
-                run(["getent", "passwd", "admin"])
+                ipautil.run(["getent", "passwd", "admin"])
                 found = True
             except Exception, e:
                 time.sleep(1)
