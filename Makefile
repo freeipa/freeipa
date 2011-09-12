@@ -8,6 +8,8 @@ PRJ_PREFIX=freeipa
 RPMBUILD ?= $(PWD)/rpmbuild
 TARGET ?= master
 
+SUPPORTED_PLATFORM=redhat
+
 # After updating the version in VERSION you should run the version-update
 # target.
 
@@ -109,6 +111,12 @@ version-update: release-update
 		ipa-client/ipa-client.spec.in > ipa-client/ipa-client.spec
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-client/version.m4.in \
 		> ipa-client/version.m4
+
+	if [ "$(SUPPORTED_PLATFORM)" != "" ]; then \
+		sed -e s/SUPPORTED_PLATFORM/$(SUPPORTED_PLATFORM)/ ipapython/services.py.in \
+			> ipapython/services.py; \
+	fi
+
 	if [ "$(SKIP_API_VERSION_CHECK)" != "yes" ]; then \
 		./makeapi --validate; \
 	fi

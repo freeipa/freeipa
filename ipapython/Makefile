@@ -27,7 +27,7 @@ clean:
 	done
 
 distclean: clean
-	rm -f setup.py ipa-python.spec version.py
+	rm -f setup.py ipa-python.spec version.py services.py
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done

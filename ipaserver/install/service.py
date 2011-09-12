@@ -22,6 +22,7 @@ import os, socket
 import tempfile
 from ipapython import sysrestore
 from ipapython import ipautil
+from ipapython import services as ipaservices
 from ipalib import errors
 import ldap
 from ipaserver import ipaldap
@@ -40,36 +41,6 @@ SERVICE_LIST = {
     'CA':('pki-cad', 50)
 }
 
-def stop(service_name, instance_name="", capture_output=True):
-    ipautil.service_stop(service_name, instance_name, capture_output)
-
-def start(service_name, instance_name="", capture_output=True):
-    ipautil.service_start(service_name, instance_name, capture_output)
-
-def restart(service_name, instance_name="", capture_output=True):
-    ipautil.service_restart(service_name, instance_name, capture_output)
-
-def is_running(service_name, instance_name=""):
-    return ipautil.service_is_running(service_name, instance_name)
-
-def is_installed(service_name):
-    return ipautil.service_is_installed(service_name)
-
-def chkconfig_on(service_name):
-    ipautil.chkconfig_on(service_name)
-
-def chkconfig_off(service_name):
-    ipautil.chkconfig_on(service_name)
-
-def chkconfig_add(service_name):
-    ipautil.chkconfig_on(service_name)
-
-def chkconfig_del(service_name):
-    ipautil.chkconfig_on(service_name)
-
-def is_enabled(service_name):
-    return ipautil.service_is_enabled(service_name)
-
 def print_msg(message, output_fd=sys.stdout):
     logging.debug(message)
     output_fd.write(message)
@@ -79,6 +50,7 @@ def print_msg(message, output_fd=sys.stdout):
 class Service(object):
     def __init__(self, service_name, sstore=None, dm_password=None):
         self.service_name = service_name
+        self.service = ipaservices.service(service_name)
         self.steps = []
         self.output_fd = sys.stdout
         self.dm_password = dm_password
@@ -213,31 +185,31 @@ class Service(object):
         self.output_fd = fd
 
     def stop(self, instance_name="", capture_output=True):
-        stop(self.service_name, instance_name, capture_output=capture_output)
+        self.service.stop(instance_name, capture_output=capture_output)
 
     def start(self, instance_name="", capture_output=True):
-        start(self.service_name, instance_name, capture_output=capture_output)
+        self.service.start(instance_name, capture_output=capture_output)
 
     def restart(self, instance_name="", capture_output=True):
-        restart(self.service_name, instance_name, capture_output=capture_output)
+        self.service.restart(instance_name, capture_output=capture_output)
 
     def is_running(self):
-        return is_running(self.service_name)
+        return self.service.is_running()
 
-    def chkconfig_add(self):
-        chkconfig_add(self.service_name)
+    def install(self):
+        self.service.install()
 
-    def chkconfig_del(self):
-        chkconfig_del(self.service_name)
+    def remove(self):
+        self.service.remove()
 
-    def chkconfig_on(self):
-        chkconfig_on(self.service_name)
+    def enable(self):
+        self.service.enable()
 
-    def chkconfig_off(self):
-        chkconfig_off(self.service_name)
+    def disable(self):
+        self.service.disable()
 
     def is_enabled(self):
-        return is_enabled(self.service_name)
+        return self.service.is_enabled()
 
     def backup_state(self, key, value):
         self.sstore.backup_state(self.service_name, key, value)
@@ -300,7 +272,7 @@ class Service(object):
         return conn
 
     def ldap_enable(self, name, fqdn, dm_password, ldap_suffix):
-        self.chkconfig_off()
+        self.disable()
         conn = self.__get_conn(fqdn, dm_password)
 
         entry_name = "cn=%s,cn=%s,%s,%s" % (name, fqdn,
@@ -336,10 +308,10 @@ class SimpleServiceInstance(Service):
         self.restart()
 
     def __enable(self):
-        self.chkconfig_add()
+        self.enable()
         self.backup_state("enabled", self.is_enabled())
         if self.gensvc_name == None:
-            self.chkconfig_on()
+            self.enable()
         else:
             self.ldap_enable(self.gensvc_name, self.fqdn,
                              self.dm_password, self.suffix)
@@ -354,5 +326,5 @@ class SimpleServiceInstance(Service):
         if not running is None and not running:
             self.stop()
         if not enabled is None and not enabled:
-            self.chkconfig_off()
-            self.chkconfig_del()
+            self.disable()
+            self.remove()

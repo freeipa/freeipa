@@ -1,0 +1,48 @@
+# Authors: Alexander Bokovoy <abokovoy@redhat.com>
+#
+# Copyright (C) 2011  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# authconfig is an entry point to platform-provided AuthConfig implementation
+# (instance of ipapython.platform.base.AuthConfig)
+authconfig = None
+
+# knownservices is an entry point to known platform services
+# (instance of ipapython.platform.base.KnownServices) 
+knownservices = None
+
+# service is a class to instantiate ipapython.platform.base.PlatformService
+service = None
+
+# restore context default implementation  that does nothing
+def restore_context_default(filepath):
+    return
+
+# Restore security context for a path
+# If the platform has security features where context is important, implement your own
+# version in platform services
+restore_context = restore_context_default
+
+# Default implementation of backup and replace hostname that does nothing
+def backup_and_replace_hostname_default(fstore, statestore, hostname):
+    return
+
+# Backup and replace system's hostname
+# Since many platforms have their own way how to store system's hostname, this method must be
+# implemented in platform services
+backup_and_replace_hostname = backup_and_replace_hostname_default
+
+from ipapython.platform.SUPPORTED_PLATFORM import *
