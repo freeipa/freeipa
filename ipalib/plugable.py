@@ -625,7 +625,7 @@ class API(DictProxy):
             namespace = NameSpace(
                 plugin_iter(base, (magic[k] for k in magic))
             )
-	    if not production_mode:
+            if not production_mode:
                 assert not (
                     name in self.__d or hasattr(self, name)
                 )
@@ -634,12 +634,12 @@ class API(DictProxy):
 
         for p in plugins.itervalues():
             p.instance.set_api(self)
-	    if not production_mode:
+            if not production_mode:
                 assert p.instance.api is self
 
         for p in plugins.itervalues():
             p.instance.finalize()
-	    if not production_mode:
+            if not production_mode:
                 assert islocked(p.instance) is True
         object.__setattr__(self, '_API__finalized', True)
         tuple(PluginInfo(p) for p in plugins.itervalues())
