@@ -30,6 +30,7 @@ import service
 import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
+from ipapython import services as ipaservices
 from ipalib import util
 from ipalib import errors
 
@@ -226,7 +227,7 @@ class KrbInstance(service.Service):
 
     def __configure_kdc_account_password(self):
         hexpwd = ''
-	for x in self.kdc_password:
+        for x in self.kdc_password:
             hexpwd += (hex(ord(x))[2:])
         self.fstore.backup_file("/var/kerberos/krb5kdc/ldappwd")
         pwd_fd = open("/var/kerberos/krb5kdc/ldappwd", "w")
@@ -464,7 +465,7 @@ class KrbInstance(service.Service):
                 keydata = stash.read(keylen)
         except os.error:
             logging.critical("Failed to retrieve Master Key from Stash file: %s")
-	#encode it in the asn.1 attribute
+        #encode it in the asn.1 attribute
         MasterKey = univ.Sequence()
         MasterKey.setComponentByPosition(0, univ.Integer(keytype))
         MasterKey.setComponentByPosition(1, univ.OctetString(keydata))
@@ -574,7 +575,7 @@ class KrbInstance(service.Service):
                 pass
 
         if not enabled is None and not enabled:
-            self.chkconfig_off()
+            self.disable()
 
         if not running is None and running:
             self.start()

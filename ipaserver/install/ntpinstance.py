@@ -23,6 +23,7 @@ import logging
 import service
 from ipapython import sysrestore
 from ipapython import ipautil
+from ipapython import services as ipaservices
 
 class NTPInstance(service.Service):
     def __init__(self, fstore=None):
@@ -143,7 +144,7 @@ class NTPInstance(service.Service):
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
-        self.chkconfig_on()
+        self.enable()
 
     def create_instance(self):
 
@@ -168,13 +169,13 @@ class NTPInstance(service.Service):
             self.stop()
 
         try:
-	    self.fstore.restore_file("/etc/ntp.conf")
+            self.fstore.restore_file("/etc/ntp.conf")
         except ValueError, error:
             logging.debug(error)
             pass
 
         if not enabled is None and not enabled:
-            self.chkconfig_off()
+            self.disable()
 
         if not running is None and running:
             self.start()

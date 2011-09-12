@@ -30,6 +30,7 @@ import dsinstance
 import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
+from ipapython import services as ipaservices
 from ipalib import util, api
 
 HTTPD_DIR = "/etc/httpd"
@@ -220,13 +221,13 @@ class HTTPInstance(service.Service):
         os.chown(certs.NSS_DIR + "/pwdfile.txt", 0, pent.pw_gid )
 
         # Fix SELinux permissions on the database
-        ipautil.run(["/sbin/restorecon", certs.NSS_DIR + "/cert8.db"])
-        ipautil.run(["/sbin/restorecon", certs.NSS_DIR + "/key3.db"])
+        ipaservices.restore_context(certs.NSS_DIR + "/cert8.db")
+        ipaservices.restore_context(certs.NSS_DIR + "/key3.db")
 
         # In case this got generated as part of the install, reset the
         # context
         if ipautil.file_exists(certs.CA_SERIALNO):
-            ipautil.run(["/sbin/restorecon", certs.CA_SERIALNO])
+            ipaservices.restore_context(certs.CA_SERIALNO)
             os.chown(certs.CA_SERIALNO, 0, pent.pw_gid)
             os.chmod(certs.CA_SERIALNO, 0664)
 
@@ -272,7 +273,7 @@ class HTTPInstance(service.Service):
         db = certs.CertDB(api.env.realm)
         db.untrack_server_cert("Server-Cert")
         if not enabled is None and not enabled:
-            self.chkconfig_off()
+            self.disable()
 
         for f in ["/etc/httpd/conf.d/ipa.conf", SSL_CONF, NSS_CONF]:
             try:
