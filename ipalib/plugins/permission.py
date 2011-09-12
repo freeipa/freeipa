@@ -113,7 +113,6 @@ class permission(LDAPObject):
             cli_name='name',
             label=_('Permission name'),
             primary_key=True,
-            normalizer=lambda value: value.lower(),
         ),
         List('permissions',
             cli_name='permissions',

@@ -70,7 +70,6 @@ class privilege(LDAPObject):
             cli_name='name',
             label=_('Privilege name'),
             primary_key=True,
-            normalizer=lambda value: value.lower(),
         ),
         Str('description',
             cli_name='desc',
