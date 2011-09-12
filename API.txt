@@ -1451,7 +1451,7 @@ output: Output('error', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>), Gett
 output: Output('value', <type 'bool'>, Gettext('Result of simulation', domain='ipa', localedir=None))
 command: host_add
 args: 1,14,3
-arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, required=True)
+arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('l', attribute=True, cli_name='locality', label=Gettext('Locality', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('nshostlocation', attribute=True, cli_name='location', label=Gettext('Location', domain='ipa', localedir=None), multivalue=False, required=False)
@@ -1471,7 +1471,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: host_add_managedby
 args: 1,4,3
-arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -1481,21 +1481,21 @@ output: Output('failed', <type 'dict'>, Gettext('Members that could not be added
 output: Output('completed', <type 'int'>, Gettext('Number of members added', domain='ipa', localedir=None))
 command: host_del
 args: 1,1,3
-arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), multivalue=True, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), maxlength=255, multivalue=True, normalizer=<lambda>, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, query=True, required=True)
 option: Flag('updatedns?', autofill=True, default=False)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: host_disable
 args: 1,0,3
-arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, query=True, required=True)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: host_find
 args: 1,27,4
 arg: Str('criteria?', noextrawhitespace=False)
-option: Str('fqdn', validate_host, attribute=True, autofill=False, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
+option: Str('fqdn', validate_host, attribute=True, autofill=False, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Str('l', attribute=True, autofill=False, cli_name='locality', label=Gettext('Locality', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Str('nshostlocation', attribute=True, autofill=False, cli_name='location', label=Gettext('Location', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -1528,7 +1528,7 @@ output: Output('count', <type 'int'>, 'Number of entries returned')
 output: Output('truncated', <type 'bool'>, 'True if not all results were returned')
 command: host_mod
 args: 1,15,3
-arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('l', attribute=True, autofill=False, cli_name='locality', label=Gettext('Locality', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('nshostlocation', attribute=True, autofill=False, cli_name='location', label=Gettext('Location', domain='ipa', localedir=None), multivalue=False, required=False)
@@ -1549,7 +1549,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: host_remove_managedby
 args: 1,4,3
-arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
@@ -1559,7 +1559,7 @@ output: Output('failed', <type 'dict'>, Gettext('Members that could not be remov
 output: Output('completed', <type 'int'>, Gettext('Number of members removed', domain='ipa', localedir=None))
 command: host_show
 args: 1,5,3
-arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=True)
+arg: Str('fqdn', validate_host, attribute=True, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, query=True, required=True)
 option: Flag('rights', autofill=True, default=False, label=Gettext('Rights', domain='ipa', localedir=None))
 option: Str('out?')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
