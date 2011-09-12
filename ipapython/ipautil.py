@@ -1,6 +1,6 @@
 # Authors: Simo Sorce <ssorce@redhat.com>
 #
-# Copyright (C) 2007    Red Hat
+# Copyright (C) 2007-2011  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -1053,51 +1053,6 @@ def get_gsserror(e):
     return (major, minor)
 
 
-def service_stop(service_name, instance_name="", capture_output=True):
-    run(["/sbin/service", service_name, "stop", instance_name],
-                capture_output=capture_output)
-
-def service_start(service_name, instance_name="", capture_output=True):
-    run(["/sbin/service", service_name, "start", instance_name],
-                capture_output=capture_output)
-
-def service_restart(service_name, instance_name="", capture_output=True):
-    run(["/sbin/service", service_name, "restart", instance_name],
-                capture_output=capture_output)
-
-def service_is_running(service_name, instance_name=""):
-    ret = True
-    try:
-        run(["/sbin/service", service_name, "status", instance_name])
-    except CalledProcessError:
-        ret = False
-    return ret
-
-def service_is_installed(service_name):
-    installed = True
-    try:
-        run(["/sbin/service", service_name, "status"])
-    except CalledProcessError, e:
-        if e.returncode == 1:
-            # service is not installed or there is other serious issue
-            installed = False
-    return installed
-
-def service_is_enabled(service_name):
-    (stdout, stderr, returncode) = run(["/sbin/chkconfig", service_name], raiseonerr=False)
-    return (returncode == 0)
-
-def chkconfig_on(service_name):
-    run(["/sbin/chkconfig", service_name, "on"])
-
-def chkconfig_off(service_name):
-    run(["/sbin/chkconfig", service_name, "off"])
-
-def chkconfig_add(service_name):
-    run(["/sbin/chkconfig", "--add", service_name])
-
-def chkconfig_del(service_name):
-    run(["/sbin/chkconfig", "--del", service_name])
 
 def host_port_open(host, port, socket_stream=True, socket_timeout=None):
     families = (socket.AF_INET, socket.AF_INET6)
@@ -1171,3 +1126,4 @@ def bind_port_responder(port, socket_stream=True, socket_timeout=None, responder
                 s.sendto(responder_data, addr)
     finally:
         s.close()
+

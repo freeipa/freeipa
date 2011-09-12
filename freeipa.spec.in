@@ -535,7 +535,9 @@ fi
 %defattr(-,root,root,-)
 %doc COPYING README Contributors.txt
 %dir %{python_sitelib}/ipapython
+%dir %{python_sitelib}/ipapython/platform
 %{python_sitelib}/ipapython/*.py*
+%{python_sitelib}/ipapython/platform/*.py*
 %dir %{python_sitelib}/ipalib
 %{python_sitelib}/ipalib/*
 %{python_sitearch}/default_encoding_utf8.so
@@ -547,6 +549,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Mon Sep 12 2011 Alexander Bokovoy <abokovoy@redhat.com> - 2.1.1-1
+- Make sure platform adaptation is packaged in -python sub-package
+
 * Fri Sep 9 2011 Martin Kosek <mkosek@redhat.com> - 2.1.0-4
 - Add soft dependency for bind and bind-dyndb-ldap required versions
 

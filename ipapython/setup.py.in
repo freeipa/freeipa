@@ -65,7 +65,7 @@ def setup_package():
             classifiers=filter(None, CLASSIFIERS.split('\n')),
             platforms = ["Linux", "Solaris", "Unix"],
             package_dir = {'ipapython': ''},
-            packages = [ "ipapython" ],
+            packages = [ "ipapython", "ipapython.platform" ],
         )
     finally:
         del sys.path[0]
