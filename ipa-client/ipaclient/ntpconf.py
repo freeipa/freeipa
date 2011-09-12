@@ -18,6 +18,7 @@
 #
 
 from ipapython import ipautil
+from ipapython import services as ipaservices
 import shutil
 
 ntp_conf = """# Permit time synchronization with our time source, but do not
@@ -105,7 +106,7 @@ def config_ntp(server_fqdn, fstore = None):
     fd.close()
 
     # Set the ntpd to start on boot
-    ipautil.run(["/sbin/chkconfig", "ntpd", "on"])
+    ipaservices.knownservices.ntpd.enable()
 
     # Restart ntpd
-    ipautil.run(["/sbin/service", "ntpd", "restart"])
+    ipaservices.knownservices.ntpd.restart()
