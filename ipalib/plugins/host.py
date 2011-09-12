@@ -247,6 +247,9 @@ class host(LDAPObject):
 
     takes_params = (
         Str('fqdn', validate_host,
+            pattern='^[a-zA-Z0-9][a-zA-Z0-9-\.]{0,254}$',
+            pattern_errmsg='may only include letters, numbers, and -',
+            maxlength=255,
             cli_name='hostname',
             label=_('Host name'),
             primary_key=True,
