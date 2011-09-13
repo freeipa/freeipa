@@ -23,6 +23,7 @@ from ipalib import api, SkipPluginModule
 if api.env.enable_ra is not True:
     # In this case, abort loading this plugin module...
     raise SkipPluginModule(reason='env.enable_ra is not True')
+import os
 from ipalib import Command, Str, Int, Bytes, Flag, File
 from ipalib import errors
 from ipalib import pkcs10
@@ -129,6 +130,11 @@ def validate_csr(ugettext, csr):
     Ensure the CSR is base64-encoded and can be decoded by our PKCS#10
     parser.
     """
+    if api.env.context == 'cli':
+        # If we are passed in a pointer to a valid file on the client side
+        # escape and let the load_files() handle things
+        if csr and os.path.exists(csr):
+            return
     try:
         request = pkcs10.load_certificate_request(csr)
     except TypeError, e:
@@ -203,6 +209,7 @@ class cert_request(VirtualCommand):
 
     takes_args = (
         File('csr', validate_csr,
+            label=_('CSR'),
             cli_name='csr_file',
             normalizer=normalize_csr,
         ),

@@ -420,7 +420,7 @@ arg: Str('serial_number', validate_serial_number, label=Gettext('Serial number',
 output: Output('result', None, None)
 command: cert_request
 args: 1,3,1
-arg: File('csr', validate_csr, cli_name='csr_file', normalizer=normalize_csr)
+arg: File('csr', validate_csr, cli_name='csr_file', label=Gettext('CSR', domain='ipa', localedir=None), normalizer=normalize_csr)
 option: Str('principal', label=Gettext('Principal', domain='ipa', localedir=None))
 option: Str('request_type', autofill=True, default=u'pkcs10')
 option: Flag('add', autofill=True, default=False)
