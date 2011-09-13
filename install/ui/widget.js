@@ -287,7 +287,15 @@ IPA.widget = function(spec) {
         return that.dirty;
     };
 
-    that.create_undo = function(container) {
+    /**
+     * This function creates an undo link in the container.
+     * On_undo is a link click callback. It can be specified to custom
+     * callback. If a callback isn't set, default callback is used. If
+     * spefified to value other than a function, no callback is registered.
+     */
+    that.create_undo = function(container, on_undo) {
+        container.append(' ');
+
         that.undo_span =
             $('<span/>', {
                 name: 'undo',
@@ -295,6 +303,16 @@ IPA.widget = function(spec) {
                 'class': 'ui-state-highlight ui-corner-all undo',
                 html: 'undo'
             }).appendTo(container);
+
+        if(on_undo === undefined) {
+            on_undo = function() {
+                that.reset();
+            };
+        }
+
+        if(typeof on_undo === 'function') {
+            that.undo_span.click(on_undo);
+        }
     };
 
     that.set_dirty = function(dirty) {
@@ -389,61 +407,48 @@ IPA.text_widget = function(spec) {
         IPA.select_range(that.input, start, end);
     };
 
-
     that.create = function(container) {
 
         that.widget_create(container);
 
         container.addClass('text-widget');
 
-        $('<label/>', {
+        that.display_control = $('<label/>', {
             name: that.name,
             style: 'display: none;'
         }).appendTo(container);
 
-        $('<input/>', {
+        that.input = $('<input/>', {
             type: that.type,
             name: that.name,
             disabled: that.disabled,
             size: that.size,
-            title: that.tooltip
+            title: that.tooltip,
+            keyup: function() {
+                that.set_dirty(that.test_dirty());
+                that.validate();
+            }
         }).appendTo(container);
 
         if (that.undo) {
-            container.append(' ');
             that.create_undo(container);
         }
 
         that.create_error_link(container);
-
-        var input = $('input[name="'+that.name+'"]', that.container);
-        input.keyup(function() {
-            that.set_dirty(that.test_dirty());
-            that.validate();
-        });
-
-        var undo = that.get_undo();
-        undo.click(function() {
-            that.reset();
-        });
-        that.input = input;
     };
 
     that.update = function() {
         var value = that.values && that.values.length ? that.values[0] : '';
 
-        var label = $('label[name="'+that.name+'"]', that.container);
-        var input = $('input[name="'+that.name+'"]', that.container);
-
         if (that.read_only || !that.writable) {
-            label.html(value);
-            label.css('display', 'inline');
-            input.css('display', 'none');
+            that.display_control.html(value);
+            that.display_control.css('display', 'inline');
+            that.input.css('display', 'none');
 
         } else {
-            $('input[name="'+that.name+'"]', that.container).val(value);
-            label.css('display', 'none');
-            input.css('display', 'inline');
+            that.input.val(value);
+            that.display_control.css('display', 'none');
+            that.input.css('display', 'inline');
         }
     };
 
@@ -452,8 +457,7 @@ IPA.text_widget = function(spec) {
             return null;
 
         } else {
-            var input = $('input[name="'+that.name+'"]', that.container);
-            var value = input.val();
+            var value = that.input.val();
             return value === '' ? [] : [value];
         }
     };
@@ -540,9 +544,11 @@ IPA.multivalued_text_widget = function(spec) {
 
         container.addClass('multivalued-text-widget');
 
-        var div = $('<div/>', {
+        //create template row
+
+        that.template = $('<div/>', {
             name: 'value'
-        }).appendTo(container);
+        });
 
         $('<input/>', {
             type: 'text',
@@ -550,20 +556,19 @@ IPA.multivalued_text_widget = function(spec) {
             disabled: that.disabled,
             size: that.size,
             title: that.tooltip
-        }).appendTo(div);
+        }).appendTo(that.template);
 
-        div.append(' ');
+        that.template.append(' ');
 
         $('<a/>', {
             name: 'remove',
             href: 'jslink',
             title: IPA.messages.buttons.remove,
             html: IPA.messages.buttons.remove
-        }).appendTo(div);
+        }).appendTo(that.template);
 
         if (that.undo) {
-            div.append(' ');
-            that.create_undo(div);
+            that.create_undo(that.template, false /* no callback */);
         }
 
         that.create_error_link(container);
@@ -572,8 +577,16 @@ IPA.multivalued_text_widget = function(spec) {
             name: 'add',
             href: 'jslink',
             title: IPA.messages.buttons.add,
-            html: IPA.messages.buttons.add
+            html: IPA.messages.buttons.add,
+            click: function() {
+                that.add_row('');
+                var input = $('input[name="'+that.name+'"]:last', that.container);
+                input.focus();
+                return false;
+            }
         }).appendTo(container);
+
+        //create other
 
         container.append(' ');
 
@@ -581,24 +594,11 @@ IPA.multivalued_text_widget = function(spec) {
             name: 'undo_all',
             style: 'display: none;',
             'class': 'ui-state-highlight ui-corner-all undo',
-            html: 'undo all'
+            html: 'undo all',
+            click: function() {
+                that.reset();
+            }
         }).appendTo(container);
-
-        that.template = $('div[name=value]', that.container);
-        that.template.detach();
-
-        var undo = that.get_undo();
-        undo.click(function() {
-            that.reset();
-        });
-
-        var add_link = $('a[name=add]', that.container);
-        add_link.click(function() {
-            that.add_row('');
-            var input = $('input[name="'+that.name+'"]:last', that.container);
-            input.focus();
-            return false;
-        });
     };
 
     that.save = function() {
@@ -770,26 +770,19 @@ IPA.checkbox_widget = function (spec) {
 
         container.addClass('checkbox-widget');
 
-        $('<input/>', {
+        that.input = $('<input/>', {
             type: 'checkbox',
             name: that.name,
             checked : that.checked,
-            title: that.tooltip
+            title: that.tooltip,
+            change: function() {
+                that.set_dirty(that.test_dirty());
+            }
         }).appendTo(container);
 
         if (that.undo) {
             that.create_undo(container);
         }
-
-        var input = $('input[name="'+that.name+'"]', that.container);
-        input.change(function() {
-            that.set_dirty(that.test_dirty());
-        });
-
-        var undo = that.get_undo();
-        undo.click(function() {
-            that.reset();
-        });
     };
 
     that.load = function(record) {
@@ -798,7 +791,7 @@ IPA.checkbox_widget = function (spec) {
     };
 
     that.save = function() {
-        var value = $('input[name="'+that.name+'"]', that.container).is(':checked');
+        var value = that.input.is(':checked');
         return [value];
     };
 
@@ -811,7 +804,7 @@ IPA.checkbox_widget = function (spec) {
             value = true;
         }
 
-        $('input[name="'+that.name+'"]', that.container).get(0).checked = value;
+        that.input.attr('checked', value);
     };
 
     return that;
@@ -865,11 +858,6 @@ IPA.checkboxes_widget = function (spec) {
         input.change(function() {
             that.set_dirty(that.test_dirty());
         });
-
-        var undo = that.get_undo();
-        undo.click(function() {
-            that.reset();
-        });
     };
 
 
@@ -890,10 +878,7 @@ IPA.checkboxes_widget = function (spec) {
 
     that.update = function() {
         var inputs = $('input[name="'+that.name+'"]', that.container);
-
-        for (var i=0; i<inputs.length; i++) {
-            inputs.get(i).checked = false;
-        }
+        inputs.attr('checked', false);
 
         for (var j=0; that.values && j<that.values.length; j++) {
             var value = that.values[j];
@@ -942,11 +927,6 @@ IPA.radio_widget = function(spec) {
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
             that.set_dirty(that.test_dirty());
-        });
-
-        var undo = that.get_undo();
-        undo.click(function() {
-            that.reset();
         });
     };
 
@@ -1013,18 +993,12 @@ IPA.select_widget = function(spec) {
         }
 
         if (that.undo) {
-            container.append(' ');
             that.create_undo(container);
         }
 
         that.select = $('select[name="'+that.name+'"]', that.container);
         that.select.change(function() {
             that.set_dirty(that.test_dirty());
-        });
-
-        var undo = that.get_undo();
-        undo.click(function() {
-            that.reset();
         });
     };
 
@@ -1077,32 +1051,23 @@ IPA.textarea_widget = function (spec) {
 
         container.addClass('textarea-widget');
 
-        $('<textarea/>', {
+        that.input = $('<textarea/>', {
             name: that.name,
             rows: that.rows,
             cols: that.cols,
             disabled: that.disabled,
-            title: that.tooltip
+            title: that.tooltip,
+            keyup: function() {
+                that.set_dirty(that.test_dirty());
+                that.validate();
+            }
         }).appendTo(container);
 
         if (that.undo) {
-            container.append(' ');
             that.create_undo(container);
         }
 
         that.create_error_link(container);
-
-        var input = $('textarea[name="'+that.name+'"]', that.container);
-        input.keyup(function() {
-            that.set_dirty(that.test_dirty());
-            that.validate();
-
-        });
-
-        var undo = that.get_undo();
-        undo.click(function() {
-            that.reset();
-        });
     };
 
     that.load = function(record) {
@@ -1116,13 +1081,13 @@ IPA.textarea_widget = function (spec) {
     };
 
     that.save = function() {
-        var value = $('textarea[name="'+that.name+'"]', that.container).val();
+        var value = that.input.val();
         return [value];
     };
 
     that.update = function() {
         var value = that.values && that.values.length ? that.values[0] : '';
-        $('textarea[name="'+that.name+'"]', that.container).val(value);
+        that.input.val(value);
     };
 
     return that;
@@ -1154,7 +1119,6 @@ IPA.column = function (spec) {
     }
 
     function setup(container, record) {
-
 
         container.empty();
 
@@ -1731,13 +1695,7 @@ IPA.combobox_widget = function(spec) {
         }).appendTo(div);
 
         if (that.undo) {
-            container.append(' ');
             that.create_undo(container);
-
-            var undo = that.get_undo();
-            undo.click(function() {
-                that.reset();
-            });
         }
 
         that.create_error_link(container);
