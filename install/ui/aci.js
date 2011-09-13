@@ -271,9 +271,6 @@ IPA.attributes_widget = function(spec) {
 
         if (that.undo) {
             that.create_undo(container);
-            that.get_undo().click(function(){
-                that.reset();
-            });
         }
 
         if (that.object_type){
