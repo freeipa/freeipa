@@ -30,6 +30,7 @@ import service
 import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
+from ipapython import services as ipaservices
 from ipalib import util
 from ipalib import errors
 
@@ -453,7 +454,7 @@ class KrbInstance(service.Service):
                 pass
 
         if not enabled is None and not enabled:
-            self.chkconfig_off()
+            self.disable()
 
         if not running is None and running:
             self.start()

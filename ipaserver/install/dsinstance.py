@@ -30,6 +30,7 @@ import tempfile
 
 from ipapython import ipautil
 from ipapython import sysrestore
+from ipapython import services as ipaservices
 
 import service
 import installutils
@@ -107,18 +108,7 @@ def check_ports():
     return (ds_unsecure, ds_secure)
 
 def is_ds_running():
-    """The DS init script always returns 0 when requesting status so it cannot
-       be used to determine if the server is running. We have to look at the
-       output.
-    """
-    ret = True
-    try:
-        (sout, serr, rcode) = ipautil.run(["/sbin/service", "dirsrv", "status"])
-        if sout.find("is stopped") >= 0:
-            ret = False
-    except ipautil.CalledProcessError:
-        ret = False
-    return ret
+    return ipaservices.knownservices.dirsrv.is_running()
 
 def has_managed_entries(host_name, dm_password):
     """Check to see if the Managed Entries plugin is available"""
@@ -310,8 +300,7 @@ class DsInstance(service.Service):
         self.backup_state("enabled", self.is_enabled())
         # At the end of the installation ipa-server-install will enable the
         # 'ipa' service wich takes care of starting/stopping dirsrv
-        # self.chkconfig_on()
-        self.chkconfig_off()
+        self.disable()
 
     def __setup_sub_dict(self):
         server_root = find_server_root()
@@ -329,10 +318,10 @@ class DsInstance(service.Service):
 
     def __create_ds_user(self):
         user_exists = True
-	try:
+        try:
             pwd.getpwnam(DS_USER)
             logging.debug("ds user %s exists" % DS_USER)
-	except KeyError:
+        except KeyError:
             user_exists = False
             logging.debug("adding ds user %s" % DS_USER)
             args = ["/usr/sbin/useradd", "-g", DS_GROUP,
@@ -646,7 +635,7 @@ class DsInstance(service.Service):
             pass
 
         if not enabled is None and not enabled:
-            self.chkconfig_off()
+            self.disable()
 
         serverid = self.restore_state("serverid")
         if not serverid is None:

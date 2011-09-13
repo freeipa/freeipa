@@ -36,7 +36,7 @@ from ipapython import certmonger
 from ipapython.certdb import get_ca_nickname
 from ipalib import pkcs10
 from ConfigParser import RawConfigParser, MissingSectionHeaderError
-import service
+from ipapython import services as ipaservices
 from ipalib import x509
 from ipalib.dn import DN
 from ipalib.errors import CertificateOperationError
@@ -483,29 +483,30 @@ class CertDB(object):
         """
         Tell certmonger to track the given certificate nickname.
         """
-        service.chkconfig_on("certmonger")
-        service.start("messagebus")
-        service.start("certmonger")
+        cmonger = ipaservices.knownservices.certmonger
+        cmonger.enable()
+        ipaservices.knownservices.messagebus.start()
+        cmonger.start()
         try:
             (stdout, stderr, rc) = certmonger.start_tracking(nickname, self.secdir, password_file)
         except (ipautil.CalledProcessError, RuntimeError), e:
             logging.error("certmonger failed starting to track certificate: %s" % str(e))
             return
 
-        service.stop("certmonger")
+        cmonger.stop()
         cert = self.get_cert_from_db(nickname)
         nsscert = x509.load_certificate(cert, dbdir=self.secdir)
         subject = str(nsscert.subject)
         m = re.match('New tracking request "(\d+)" added', stdout)
         if not m:
-            logging.error('Didn\'t get new certmonger request, got %s' % stdout)
-            raise RuntimeError('certmonger did not issue new tracking request for \'%s\' in \'%s\'. Use \'ipa-getcert list\' to list existing certificates.' % (nickname, self.secdir))
+            logging.error('Didn\'t get new %s request, got %s' % (cmonger.service_name, stdout))
+            raise RuntimeError('%s did not issue new tracking request for \'%s\' in \'%s\'. Use \'ipa-getcert list\' to list existing certificates.' % (cmonger.service_name, nickname, self.secdir))
         request_id = m.group(1)
 
         certmonger.add_principal(request_id, principal)
         certmonger.add_subject(request_id, subject)
 
-        service.start("certmonger")
+        cmonger.start()
 
     def untrack_server_cert(self, nickname):
         """
@@ -514,13 +515,14 @@ class CertDB(object):
 
         # Always start certmonger. We can't untrack something if it isn't
         # running
-        service.start("messagebus")
-        service.start("certmonger")
+        cmonger = ipaservices.knownservices.certmonger
+        ipaservices.knownservices.messagebus.start()
+        cmonger.start()
         try:
             certmonger.stop_tracking(self.secdir, nickname=nickname)
         except (ipautil.CalledProcessError, RuntimeError), e:
             logging.error("certmonger failed to stop tracking certificate: %s" % str(e))
-        service.stop("certmonger")
+        cmonger.stop()
 
     def create_server_cert(self, nickname, hostname, other_certdb=None, subject=None):
         """
@@ -770,6 +772,7 @@ class CertDB(object):
         f.write(pwdfile.read())
         f.close()
         pwdfile.close()
+        # TODO: replace explicit uid by a platform-specific one
         self.set_perms(self.pwd_conf, uid="apache")
 
     def find_root_cert(self, nickname):

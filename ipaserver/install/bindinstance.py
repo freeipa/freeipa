@@ -615,7 +615,7 @@ class BindInstance(service.Service):
                 pass
 
         if not enabled is None and not enabled:
-            self.chkconfig_off()
+            self.disable()
 
         if not running is None and running:
             self.start()

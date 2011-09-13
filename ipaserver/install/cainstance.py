@@ -47,6 +47,7 @@ import nss.nss as nss
 
 from ipapython import ipautil
 from ipapython import nsslib
+from ipapython import services as ipaservices
 
 from ipaserver import ipaldap
 from ipaserver.install import service
@@ -373,11 +374,7 @@ class CADSInstance(service.Service):
 
     def restart_instance(self):
         try:
-            # Have to trick the base class to use the right service name
-            sav_name = self.service_name
-            self.service_name="dirsrv"
-            self.restart(self.serverid)
-            self.service_name=sav_name
+            ipaservices.knownservices.dirsrv.restart(self.serverid)
             if not dsinstance.is_ds_running():
                 logging.critical("Failed to restart the directory server. See the installation log for details.")
                 sys.exit(1)
@@ -392,14 +389,12 @@ class CADSInstance(service.Service):
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
         serverid = self.restore_state("serverid")
-        sav_name = self.service_name
-        self.service_name="dirsrv"
 
         if not running is None:
-            self.stop(serverid)
+            ipaservices.knownservices.dirsrv.stop(self.serverid)
 
         if not enabled is None and not enabled:
-            self.chkconfig_off()
+            ipaservices.knownservices.dirsrv.disable()
 
         if not serverid is None:
             # drop the trailing / off the config_dirname so the directory
@@ -409,7 +404,6 @@ class CADSInstance(service.Service):
             dsdb.untrack_server_cert("Server-Cert")
             dsinstance.erase_ds_instance_data(serverid)
 
-        self.service_name="pkids"
         user_exists = self.restore_state("user_exists")
 
         if user_exists == False:
@@ -417,7 +411,6 @@ class CADSInstance(service.Service):
                 ipautil.run(["/usr/sbin/userdel", PKI_DS_USER])
             except ipautil.CalledProcessError, e:
                 logging.critical("failed to delete user %s" % e)
-        self.service_name = sav_name
 
 class CAInstance(service.Service):
     """
@@ -1044,7 +1037,7 @@ class CAInstance(service.Service):
         # Fix the CRL URI in the profile
         installutils.set_directive('/var/lib/%s/profiles/ca/caIPAserviceCert.cfg' % PKI_INSTANCE_NAME, 'policyset.serverCertSet.9.default.params.crlDistPointsPointName_0', 'https://%s/ipa/crl/MasterCRL.bin' % self.fqdn, quotes=False, separator='=')
 
-        ipautil.run(["/sbin/restorecon", publishdir])
+        ipaservices.restore_context(publishdir)
 
     def __set_subject_in_config(self):
         # dogtag ships with an IPA-specific profile that forces a subject
@@ -1058,7 +1051,7 @@ class CAInstance(service.Service):
 
         enabled = self.restore_state("enabled")
         if not enabled is None and not enabled:
-            self.chkconfig_off()
+            self.disable()
 
         try:
             ipautil.run(["/usr/bin/pkiremove", "-pki_instance_root=/var/lib",
@@ -1148,14 +1141,11 @@ def install_replica_ca(config, postinstall=False):
     # internally. In the case of the dogtag DS the name doesn't match the
     # unix service.
 
-    service_name = cs.service_name
     service.print_msg("Restarting the directory and certificate servers")
-    cs.service_name = "dirsrv"
     ca.stop()
-    cs.stop("PKI-IPA")
-    cs.start("PKI-IPA")
+    ipaservices.knownservices.dirsrv.stop("PKI-IPA")
+    ipaservices.knownservices.dirsrv.start("PKI-IPA")
     ca.start()
-    cs.service_name = service_name
 
     return (ca, cs)
 
