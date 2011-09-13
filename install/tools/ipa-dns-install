@@ -87,13 +87,13 @@ def main():
     if os.getegid() != 0:
         sys.exit("Must be root to setup server")
 
-    installutils.check_server_configuration()
-
     standard_logging_setup("/var/log/ipaserver-install.log", options.debug, filemode='a')
     print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
 
     logging.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
     logging.debug("missing options might be asked for interactively later\n")
+
+    installutils.check_server_configuration()
 
     global fstore
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
