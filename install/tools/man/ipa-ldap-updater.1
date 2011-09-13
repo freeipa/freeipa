@@ -23,9 +23,11 @@ ipa\-ldap\-updater \- Update the IPA LDAP configuration
 ipa\-ldap\-updater [options] input_file(s)
 ipa\-ldap\-updater [options]
 .SH "DESCRIPTION"
-Run with no file arguments, ipa\-ldap\-updater will process all files with the extension .update in /usr/share/ipa/updates.
+ipa\-ldap\-updater is used to apply updates to the IPA LDAP server when the IPA packages are being updated. It is not intended to be executed by end\-users.
 
-An update file describes an LDAP entry and a set of operations to be performed on that entry. It can be used to add new entries or modify existing entries. It cannot remove entries, just specific values in a given attribute.
+When run with no file arguments, ipa\-ldap\-updater will process all files with the extension .update in /usr/share/ipa/updates.
+
+An update file describes an LDAP entry and a set of operations to be performed on that entry. It can be used to add new entries or modify existing entries.
 
 Blank lines and lines beginning with # are ignored.
 
@@ -37,7 +39,7 @@ There are 7 keywords:
     * only: set an attribute to this
     * deleteentry: remove the entry
     * replace: replace an existing value, format is old: new
-    * addifnew: add a new attribute and value only if the attribute doesn't already exist. Only works with single-value attributes.
+    * addifnew: add a new attribute and value only if the attribute doesn't already exist. Only works with single\-value attributes.
 
 Values is a comma\-separated field so multi\-values may be added at one time. Double or single quotes may be put around individual values that contain embedded commas.
 
@@ -51,7 +53,7 @@ The available template variables are:
     * $FQDN \- the fully\-qualified domain name of the IPA server being updated (ipa.example.com)
     * $DOMAIN \- the domain name (example.com)
     * $SUFFIX \- the IPA LDAP suffix (dc=example,dc=com)
-    * $ESCAPED_SUFFIX \- the ldap-escaped IPA LDAP suffix
+    * $ESCAPED_SUFFIX \- the ldap\-escaped IPA LDAP suffix
     * $LIBARCH \- set to 64 on x86_64 systems to be used for plugin paths
     * $TIME \- an integer representation of current time
 
@@ -64,6 +66,8 @@ A few rules:
    5. If a DN doesn't exist it is created from the 'default' entry and all updates are applied
    6. If a DN does exist the default values are skipped
    7. Only the first rule on a line is respected
+
+Adds and updates are applied from shortest to longest length of DN. Deletes are done from longest to shortest.
 .SH "OPTIONS"
 .TP
 \fB\-d\fR, \fB\-\-debug
