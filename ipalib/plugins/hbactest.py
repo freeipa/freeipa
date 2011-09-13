@@ -131,7 +131,8 @@ def convert_to_ipa_rule(rule):
     ipa_rule = pyhbac.HbacRule(rule['cn'][0])
     ipa_rule.enabled = rule['ipaenabledflag'][0]
     # Following code attempts to process rule systematically
-    structure = (('user',       'memberuser',    'user',    'group',        ipa_rule.users),
+    structure = \
+        (('user',       'memberuser',    'user',    'group',        ipa_rule.users),
          ('host',       'memberhost',    'host',    'hostgroup',    ipa_rule.targethosts),
          ('sourcehost', 'sourcehost',    'host',    'hostgroup',    ipa_rule.srchosts),
          ('service',    'memberservice', 'hbacsvc', 'hbacsvcgroup', ipa_rule.services),
@@ -151,6 +152,8 @@ def convert_to_ipa_rule(rule):
             attr_name = '%s_%s' % (element[1], element[3])
             if attr_name in rule:
                 element[4].groups = rule[attr_name]
+    if 'externalhost' in rule:
+            ipa_rule.srchosts.names.extend(rule['externalhost'])
     return ipa_rule
 
 
