@@ -92,13 +92,28 @@ IPA.entity_factories.group =  function () {
                 'cn',
                 'description',
                 {
-                    factory:IPA.checkbox_widget,
-                    name: 'posix',
+                    factory: IPA.group_nonposix_checkbox_widget,
+                    name: 'nonposix',
                     label: IPA.messages.objects.group.posix,
                     undo: false,
-                    checked: 'checked'
+                    checked: true
                 },
                 'gidnumber']
         }).
         build();
+};
+
+IPA.group_nonposix_checkbox_widget = function (spec) {
+
+    spec = spec || {};
+
+    var that = IPA.checkbox_widget(spec);
+
+    that.save = function() {
+        var value = that.checkbox_save()[0];
+        // convert posix into non-posix
+        return [!value];
+    };
+
+    return that;
 };
