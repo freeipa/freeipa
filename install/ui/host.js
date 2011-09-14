@@ -121,6 +121,7 @@ IPA.entity_factories.host = function () {
             height: 250,
             fields: [
                 {
+                    factory: IPA.widget,
                     name: 'fqdn',
                     optional: true,
                     hidden: true
