@@ -193,6 +193,13 @@ body {
     padding-right: 0.3em;
 }
 
+.ui-state-error,
+.ui-widget-content .ui-state-error,
+.ui-widget-header .ui-state-error {
+    font-weight: bold;
+    padding: 0.2em;
+}
+
 /*  ----  Header  ----  */
 #header {
     position: absolute;
@@ -698,12 +705,13 @@ span.main-nav-off > a:visited {
     padding: 0.5em 0 0 1em;
     border-top: 1px solid #dfdfdf;
     height: 25px;
+    line-height: 25px;
     margin-top: 1em;
 }
 
 .search-table span[name=summary] {
     float: left;
-    line-height: 25px;
+    margin-right: 4em;
 }
 
 .search-table span[name=pagination] {
@@ -846,6 +854,7 @@ hr {
 
 .undo {
     cursor:pointer;
+    padding: 0.2em;
 }
 
 span.attrhint {
