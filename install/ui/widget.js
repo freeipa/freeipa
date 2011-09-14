@@ -760,9 +760,11 @@ IPA.multivalued_text_widget = function(spec) {
 IPA.checkbox_widget = function (spec) {
 
     spec = spec || {};
+
     var that = IPA.widget(spec);
 
-    that.checked = spec.checked || '';
+    // default value
+    that.checked = spec.checked || false;
 
     that.create = function(container) {
 
@@ -773,7 +775,7 @@ IPA.checkbox_widget = function (spec) {
         that.input = $('<input/>', {
             type: 'checkbox',
             name: that.name,
-            checked : that.checked,
+            checked: that.checked,
             title: that.tooltip,
             change: function() {
                 that.set_dirty(that.test_dirty());
@@ -786,6 +788,7 @@ IPA.checkbox_widget = function (spec) {
     };
 
     that.load = function(record) {
+        that.widget_load(record);
         that.values = record[that.name] || [false];
         that.reset();
     };
@@ -796,16 +799,28 @@ IPA.checkbox_widget = function (spec) {
     };
 
     that.update = function() {
-        var value = that.values && that.values.length ? that.values[0] : false;
-        if (value ==="FALSE"){
-            value = false;
+        var value;
+
+        if (that.values && that.values.length) {
+            // use loaded value
+            value = that.values[0];
+        } else {
+            // use default value
+            value = that.checked;
         }
-        if (value ==="TRUE"){
+
+        // convert string into boolean
+        if (value === 'TRUE') {
             value = true;
+        } else if (value === 'FALSE') {
+            value = false;
         }
 
         that.input.attr('checked', value);
     };
+
+    that.checkbox_save = that.save;
+    that.checkbox_load = that.load;
 
     return that;
 };

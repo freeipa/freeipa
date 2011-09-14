@@ -241,7 +241,7 @@ test("Testing checkbox widget.", function() {
     spec = {name:'title'};
     base_widget_test('test_value');
 
-    mock_record = {'title':'something'};
+    mock_record = { 'title': 'TRUE' };
 
     widget.load(mock_record);
     same(widget.save(),[true], "Checkbox is set");
