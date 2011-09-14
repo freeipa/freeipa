@@ -149,7 +149,7 @@ IPA.widget = function(spec) {
       the validation pattern.  If the field value does not pass validation,
       displays the error message and returns false. */
     that.validate = function() {
-        hide_error();
+        that.hide_error();
         that.valid = true;
 
         var values = that.save();
@@ -357,10 +357,10 @@ IPA.widget = function(spec) {
         error_link.css('display', 'block');
     };
 
-    function hide_error() {
+    that.hide_error = function() {
         var error_link = that.get_error_link();
         error_link.css('display', 'none');
-    }
+    };
 
     that.set_enabled = function() {
     };
@@ -374,10 +374,12 @@ IPA.widget = function(spec) {
 
     // methods that should be invoked by subclasses
     that.widget_create = that.create;
+    that.widget_hide_error = that.hide_error;
     that.widget_load = that.load;
     that.widget_reset = that.reset;
     that.widget_save = that.save;
     that.widget_set_dirty = that.set_dirty;
+    that.widget_show_error = that.show_error;
     that.widget_test_dirty = that.test_dirty;
 
     return that;
@@ -789,6 +791,8 @@ IPA.checkbox_widget = function (spec) {
         if (that.undo) {
             that.create_undo(container);
         }
+
+        that.create_error_link(container);
     };
 
     that.load = function(record) {
@@ -877,6 +881,8 @@ IPA.checkboxes_widget = function (spec) {
         input.change(function() {
             that.set_dirty(that.test_dirty());
         });
+
+        that.create_error_link(container);
     };
 
 
@@ -947,6 +953,8 @@ IPA.radio_widget = function(spec) {
         input.change(function() {
             that.set_dirty(that.test_dirty());
         });
+
+        that.create_error_link(container);
     };
 
     that.load = function(record) {
@@ -1019,6 +1027,8 @@ IPA.select_widget = function(spec) {
         that.select.change(function() {
             that.set_dirty(that.test_dirty());
         });
+
+        that.create_error_link(container);
     };
 
     that.load = function(record) {
@@ -1359,6 +1369,8 @@ IPA.table_widget = function (spec) {
             colspan: columns.length + (that.selectable ? 1 : 0)
         }).appendTo(tr);
 
+        that.create_error_link(td);
+
         that.summary = $('<span/>', {
             'name': 'summary'
         }).appendTo(td);
@@ -1566,6 +1578,12 @@ IPA.table_widget = function (spec) {
         return rows;
     };
 
+    that.show_error = function(message) {
+        var error_link = that.get_error_link();
+        error_link.html(message);
+        error_link.css('display', 'inline');
+    };
+
     that.set_enabled = function(enabled) {
         if (enabled) {
             $('input[name="select"]', that.table).attr('disabled', false);
@@ -1582,10 +1600,11 @@ IPA.table_widget = function (spec) {
 
     // methods that should be invoked by subclasses
     that.table_create = that.create;
-    that.table_set_enabled = that.set_enabled;
-    that.table_prev_page = that.prev_page;
     that.table_next_page = that.next_page;
+    that.table_prev_page = that.prev_page;
+    that.table_set_enabled = that.set_enabled;
     that.table_set_page = that.set_page;
+    that.table_show_error = that.show_error;
 
     return that;
 };

@@ -314,6 +314,8 @@ IPA.attributes_widget = function(spec) {
         if (that.object_type) {
             that.populate(that.object_type);
         }
+
+        that.create_error_link(container);
     };
 
     that.load = function(record) {
@@ -407,6 +409,10 @@ IPA.attributes_widget = function(spec) {
                 }));
             }
         }
+    };
+
+    that.show_undo = function() {
+        $(that.undo_span).css('display', 'inline-block');
     };
 
     return that;
