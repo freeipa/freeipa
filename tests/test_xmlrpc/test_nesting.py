@@ -815,7 +815,7 @@ class test_nesting(Declarative):
                     managedby_host=[fqdn1],
                     memberof_hostgroup = [u'testhostgroup2'],
                     memberofindirect_hostgroup = [u'testhostgroup1'],
-                    memberofindirect_netgroup = [u'testhostgroup1', u'testhostgroup2'],
+                    memberofindirect_netgroup = [u'testhostgroup2'],
                 ),
             ),
         ),

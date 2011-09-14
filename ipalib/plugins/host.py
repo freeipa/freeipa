@@ -336,6 +336,23 @@ class host(LDAPObject):
 
         return managed_hosts
 
+    def suppress_netgroup_memberof(self, entry_attrs):
+        """
+        We don't want to show managed netgroups so remove them from the
+        memberofindirect list.
+        """
+        ng_container = DN(api.env.container_netgroup, api.env.basedn)
+        if 'memberofindirect' in entry_attrs:
+            for member in entry_attrs['memberofindirect']:
+                memberdn = DN(member)
+                if memberdn.endswith(ng_container):
+                    try:
+                        netgroup = api.Command['netgroup_show'](memberdn['cn'], all=True)['result']
+                        if self.has_objectclass(netgroup['objectclass'], 'mepmanagedentry'):
+                            entry_attrs['memberofindirect'].remove(member)
+                    except errors.NotFound:
+                        pass
+
 api.register(host)
 
 
@@ -678,6 +695,8 @@ class host_mod(LDAPUpdate):
         if options.get('all', False):
             entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
 
+        self.obj.suppress_netgroup_memberof(entry_attrs)
+
         return dn
 
 api.register(host_mod)
@@ -703,6 +722,7 @@ class host_find(LDAPSearch):
             (dn, entry_attrs) = entry
             set_certificate_attrs(entry_attrs)
             self.obj.get_password_attributes(ldap, dn, entry_attrs)
+            self.obj.suppress_netgroup_memberof(entry_attrs)
             if entry_attrs['has_password']:
                 # If an OTP is set there is no keytab, at least not one
                 # fetched anywhere.
@@ -737,6 +757,8 @@ class host_show(LDAPRetrieve):
 
         if options.get('all', False):
             entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
+
+        self.obj.suppress_netgroup_memberof(entry_attrs)
 
         return dn
 
@@ -840,6 +862,10 @@ class host_disable(LDAPQuery):
             value=keys[0],
         )
 
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.suppress_netgroup_memberof(entry_attrs)
+        return dn
+
 api.register(host_disable)
 
 class host_add_managedby(LDAPAddMember):
@@ -849,6 +875,10 @@ class host_add_managedby(LDAPAddMember):
     has_output_params = LDAPAddMember.has_output_params + host_output_params
     allow_same = True
 
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        self.obj.suppress_netgroup_memberof(entry_attrs)
+        return (completed, dn)
+
 api.register(host_add_managedby)
 
 
@@ -857,5 +887,9 @@ class host_remove_managedby(LDAPRemoveMember):
 
     member_attributes = ['managedby']
     has_output_params = LDAPRemoveMember.has_output_params + host_output_params
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        self.obj.suppress_netgroup_memberof(entry_attrs)
+        return (completed, dn)
 
 api.register(host_remove_managedby)
