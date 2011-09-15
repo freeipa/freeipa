@@ -84,7 +84,7 @@ Group: System Environment/Base
 Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
-Requires(post): %{name}-server-selinux = %{version}-%{release}
+Requires: %{name}-server-selinux = %{version}-%{release}
 Requires(pre): 389-ds-base >= 1.2.9.7-1
 Requires: openldap-clients
 Requires: nss
@@ -144,7 +144,8 @@ this package).
 %package server-selinux
 Summary: SELinux rules for freeipa-server daemons
 Group: System Environment/Base
-Requires: %{name}-server = %{version}-%{release}
+Requires(post): %{name}-server = %{version}-%{release}
+Requires(postun): %{name}-server = %{version}-%{release}
 Requires(pre): policycoreutils >= %{POLICYCOREUTILSVER}
 
 Obsoletes: ipa-server-selinux >= 1.0
