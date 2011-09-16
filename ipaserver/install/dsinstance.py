@@ -149,6 +149,7 @@ class DsInstance(service.Service):
         self.idmax = None
         self.subject_base = None
         self.open_ports = []
+        self.run_init_memberof = True
         if realm_name:
             self.suffix = util.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()
@@ -275,6 +276,7 @@ class DsInstance(service.Service):
         repl.setup_replication(self.master_fqdn,
                                r_binddn="cn=Directory Manager",
                                r_bindpw=self.dm_password)
+        self.run_init_memberof = repl.needs_memberof_fixup()
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
@@ -413,6 +415,10 @@ class DsInstance(service.Service):
         self._ldap_mod("memberof-conf.ldif")
 
     def init_memberof(self):
+
+        if not self.run_init_memberof:
+            return
+
         self._ldap_mod("memberof-task.ldif", self.sub_dict)
         # Note, keep dn in sync with dn in install/share/memberof-task.ldif
         dn = "cn=IPA install %s,cn=memberof task,cn=tasks,cn=config" % self.sub_dict["TIME"]
