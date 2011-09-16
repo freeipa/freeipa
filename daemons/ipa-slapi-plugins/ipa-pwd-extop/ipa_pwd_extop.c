@@ -271,7 +271,7 @@ parse_req_done:
 		dn = slapi_ch_strdup(bindDN);
 		LOG_TRACE("Missing userIdentity in request, "
                           "using the bind DN instead.\n");
-	 }
+	}
 
 	 if (slapi_pblock_set( pb, SLAPI_ORIGINAL_TARGET, dn )) {
 		LOG_FATAL("slapi_pblock_set failed!\n");
@@ -288,6 +288,69 @@ parse_req_done:
 		rc = LDAP_NO_SUCH_OBJECT;
 		goto free_and_return;
 	 }
+
+    if (dn) {
+        Slapi_DN *bind_sdn;
+        Slapi_DN *target_sdn;
+
+        /* if the user changing the password is self, we must request the
+         * old password and verify it matches the current one before
+         * proceeding with the password change */
+        bind_sdn = slapi_sdn_new_dn_byref(bindDN);
+        target_sdn = slapi_sdn_new_dn_byref(dn);
+        if (!bind_sdn || !target_sdn) {
+            LOG_OOM();
+            rc = LDAP_OPERATIONS_ERROR;
+            goto free_and_return;
+        }
+        /* this one will normalize and compare, so difference in case will be
+         * correctly handled */
+        ret = slapi_sdn_compare(bind_sdn, target_sdn);
+        if (ret == 0) {
+            Slapi_Value *cpw[2] = { NULL, NULL };
+            Slapi_Value *pw;
+            char *cur_pw;
+
+            if (oldPasswd == NULL || *oldPasswd == '\0') {
+                LOG_FATAL("Old password was not provided!\n");
+                rc = LDAP_INVALID_CREDENTIALS;
+                goto free_and_return;
+            }
+
+            /* if the user is changing his own password we need to check that
+             * oldPasswd matches the current password */
+            cur_pw = slapi_entry_attr_get_charptr(targetEntry,
+                                                  "userPassword");
+            if (!cur_pw) {
+                LOG_FATAL("User has no current password?\n");
+                rc = LDAP_UNWILLING_TO_PERFORM;
+                goto free_and_return;
+            }
+
+            cpw[0] = slapi_value_new_string(cur_pw);
+            pw = slapi_value_new_string(oldPasswd);
+            if (!cpw[0] || !pw) {
+                LOG_OOM();
+                rc = LDAP_OPERATIONS_ERROR;
+                goto free_and_return;
+            }
+
+            ret = slapi_pw_find_sv(cpw, pw);
+
+            slapi_value_free(&cpw[0]);
+            slapi_value_free(&pw);
+
+            if (ret != 0) {
+                LOG_TRACE("Invalid password!\n");
+                rc = LDAP_INVALID_CREDENTIALS;
+                goto free_and_return;
+            }
+        }
+    } else {
+        LOG_TRACE("Undefined target DN!\n");
+        rc = LDAP_OPERATIONS_ERROR;
+        goto free_and_return;
+    }
 
 	 rc = ipapwd_entry_checks(pb, targetEntry,
 				&is_root, &is_krb, &is_smb,
