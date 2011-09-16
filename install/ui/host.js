@@ -50,7 +50,10 @@ IPA.entity_factories.host = function () {
                             other_entity: 'dnsrecord'
                         },
                         'krbprincipalname',
-                        'description',
+                        {
+                            factory: IPA.textarea_widget,
+                            name: 'description'
+                        },
                         'l',
                         'nshostlocation',
                         'nshardwareplatform',

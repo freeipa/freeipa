@@ -81,7 +81,13 @@ IPA.entity_factories.automountmap = function() {
                 {
                     name: 'identity',
                     label: IPA.messages.details.identity,
-                    fields: [ 'automountmapname', 'description' ]
+                    fields: [
+                        'automountmapname',
+                        {
+                            factory: IPA.textarea_widget,
+                            name: 'description'
+                        }
+                    ]
                 }
             ]
         }).
@@ -107,7 +113,10 @@ IPA.entity_factories.automountmap = function() {
                             ]
                         },
                         'automountmapname',
-                        'description'
+                        {
+                            factory: IPA.textarea_widget,
+                            name: 'description'
+                        }
                     ]
                 },
                 {

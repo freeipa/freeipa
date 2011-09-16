@@ -29,13 +29,27 @@ IPA.entity_factories.group =  function () {
     return IPA.entity_builder().
         entity('group').
         search_facet({
-            columns:['cn','gidnumber','description']
+            columns: [
+                'cn',
+                'gidnumber',
+                'description'
+            ]
         }).
-        details_facet({sections:
-            [{
-                name:'details',
-                fields:['cn','description','gidnumber']
-            }]}).
+        details_facet({
+            sections: [
+                {
+                    name: 'details',
+                    fields: [
+                        'cn',
+                        {
+                            factory: IPA.textarea_widget,
+                            name: 'description'
+                        },
+                        'gidnumber'
+                    ]
+                }
+            ]
+        }).
         association_facet({
             name: 'member_user',
             columns:[
@@ -90,14 +104,18 @@ IPA.entity_factories.group =  function () {
         adder_dialog({
             fields: [
                 'cn',
-                'description',
+                {
+                    factory: IPA.textarea_widget,
+                    name: 'description'
+                },
                 {
                     factory: IPA.group_nonposix_checkbox_widget,
                     name: 'nonposix',
                     label: IPA.messages.objects.group.posix,
                     checked: true
                 },
-                'gidnumber']
+                'gidnumber'
+            ]
         }).
         build();
 };

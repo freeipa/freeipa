@@ -46,15 +46,28 @@ IPA.entity_factories.sudorule = function() {
 IPA.entity_factories.sudocmd = function() {
 
     return IPA.entity_builder().
-        entity( 'sudocmd').
+        entity('sudocmd').
         search_facet({
-            columns:['sudocmd','description']}).
-        details_facet({sections:[
-            {
-                name: 'general',
-                label: IPA.messages.details.general,
-                fields:['sudocmd','description']
-            }]}).
+            columns: [
+                'sudocmd',
+                'description'
+            ]
+        }).
+        details_facet({
+            sections: [
+                {
+                    name: 'general',
+                    label: IPA.messages.details.general,
+                    fields: [
+                        'sudocmd',
+                        {
+                            factory: IPA.textarea_widget,
+                            name: 'description'
+                        }
+                    ]
+                }
+            ]
+        }).
         association_facet({
             name: 'memberof_sudocmdgroup',
             associator: IPA.serial_associator,
@@ -66,7 +79,7 @@ IPA.entity_factories.sudocmd = function() {
                 },
                 { name: 'description' }
             ],
-            adder_columns:[
+            adder_columns: [
                 {
                     name: 'cn',
                     primary_key: true,
@@ -80,7 +93,13 @@ IPA.entity_factories.sudocmd = function() {
         }).
         standard_association_facets().
         adder_dialog({
-            fields:['sudocmd','description']
+            fields: [
+                'sudocmd',
+                {
+                    factory: IPA.textarea_widget,
+                    name: 'description'
+                }
+            ]
         }).
         build();
 
@@ -90,18 +109,29 @@ IPA.entity_factories.sudocmdgroup = function() {
     return IPA.entity_builder().
         entity('sudocmdgroup').
         search_facet({
-            columns:['cn','description']
+            columns: [
+                'cn',
+                'description'
+            ]
         }).
-        details_facet({sections:[
-            {
-
-                name: 'general',
-                label: IPA.messages.details.general,
-                fields:['cn','description']
-            }]}).
+        details_facet({
+            sections: [
+                {
+                    name: 'general',
+                    label: IPA.messages.details.general,
+                    fields: [
+                        'cn',
+                        {
+                            factory: IPA.textarea_widget,
+                            name: 'description'
+                        }
+                    ]
+                }
+            ]
+        }).
         association_facet({
             name: 'member_sudocmd',
-            columns:[
+            columns: [
                 {
                     name: 'sudocmd',
                     primary_key: true,
@@ -123,7 +153,13 @@ IPA.entity_factories.sudocmdgroup = function() {
         }).
         standard_association_facets().
         adder_dialog({
-            fields:['cn','description']
+            fields: [
+                'cn',
+                {
+                    factory: IPA.textarea_widget,
+                    name: 'description'
+                }
+            ]
         }).
         build();
 };
