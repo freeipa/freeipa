@@ -27,19 +27,25 @@ IPA.entity_factories.netgroup = function() {
     return IPA.entity_builder().
         entity('netgroup').
         search_facet({
-            columns:[
+            columns: [
                 'cn',
                 'description'
             ]
         }).
         details_facet({
-            sections:[{
-                name:'identity',
-                fields:[
-                    'cn',
-                    'description',
-                    'nisdomainname']
-            }]
+            sections: [
+                {
+                    name: 'identity',
+                    fields: [
+                        'cn',
+                        {
+                            factory: IPA.textarea_widget,
+                            name: 'description'
+                        },
+                        'nisdomainname'
+                    ]
+                }
+            ]
         }).
         association_facet({
             name: 'memberhost_host',
@@ -63,9 +69,12 @@ IPA.entity_factories.netgroup = function() {
         }).
         standard_association_facets().
         adder_dialog({
-            fields:[
+            fields: [
                 'cn',
-                'description'
+                {
+                    factory: IPA.textarea_widget,
+                    name: 'description'
+                }
             ]
         }).
         build();

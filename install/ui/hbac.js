@@ -60,11 +60,26 @@ IPA.entity_factories.hbacsvc = function() {
     return IPA.entity_builder().
         entity('hbacsvc').
         search_facet({
-            columns:['cn','description']}).
-        details_facet({sections:[{
-            name: 'general',
-            label: IPA.messages.details.general,
-            fields:[ 'cn', 'description']}]}).
+            columns: [
+                'cn',
+                'description'
+            ]
+        }).
+        details_facet({
+            sections: [
+                {
+                    name: 'general',
+                    label: IPA.messages.details.general,
+                    fields: [
+                        'cn',
+                        {
+                            factory: IPA.textarea_widget,
+                            name: 'description'
+                        }
+                    ]
+                }
+            ]
+        }).
         association_facet({
             name: 'memberof_hbacsvcgroup',
             associator: IPA.serial_associator,
@@ -90,7 +105,13 @@ IPA.entity_factories.hbacsvc = function() {
         }).
         standard_association_facets().
         adder_dialog({
-            fields:['cn','description']
+            fields: [
+                'cn',
+                {
+                    factory: IPA.textarea_widget,
+                    name: 'description'
+                }
+            ]
         }).
         build();
 };
@@ -100,13 +121,26 @@ IPA.entity_factories.hbacsvcgroup = function() {
     return IPA.entity_builder().
         entity('hbacsvcgroup').
         search_facet({
-            columns:['cn', 'description']}).
-        details_facet({sections:[
-            {
-                name: 'general',
-                label: IPA.messages.details.general,
-                fields:['cn','description']
-            }]}).
+            columns: [
+                'cn',
+                'description'
+            ]
+        }).
+        details_facet({
+            sections: [
+                {
+                    name: 'general',
+                    label: IPA.messages.details.general,
+                    fields: [
+                        'cn',
+                        {
+                            factory: IPA.textarea_widget,
+                            name: 'description'
+                        }
+                    ]
+                }
+            ]
+        }).
         association_facet({
             name: 'member_hbacsvc',
             columns:[
@@ -131,7 +165,13 @@ IPA.entity_factories.hbacsvcgroup = function() {
         }).
         standard_association_facets().
         adder_dialog({
-            fields:['cn', 'description']
+            fields: [
+                'cn',
+                {
+                    factory: IPA.textarea_widget,
+                    name: 'description'
+                }
+            ]
         }).
         build();
 };

@@ -92,14 +92,26 @@ IPA.entity_factories.privilege = function() {
         entity('privilege').
         facet_groups([ 'role', 'settings', 'permission' ]).
         search_facet({
-            columns:['cn','description']}).
+            columns: [
+                'cn',
+                'description'
+            ]
+        }).
         details_facet({
-            sections:
-            [{
-                name:'identity',
-                label: IPA.messages.details.identity,
-                fields:['cn','description']
-            }]}).
+            sections: [
+                {
+                    name: 'identity',
+                    label: IPA.messages.details.identity,
+                    fields: [
+                        'cn',
+                        {
+                            factory: IPA.textarea_widget,
+                            name: 'description'
+                        }
+                    ]
+                }
+            ]
+        }).
         association_facet({
             name: 'member_role',
             facet_group: 'role',
@@ -115,7 +127,13 @@ IPA.entity_factories.privilege = function() {
         }).
         standard_association_facets().
         adder_dialog({
-            fields:['cn', 'description']
+            fields: [
+                'cn',
+                {
+                    factory: IPA.textarea_widget,
+                    name: 'description'
+                }
+            ]
         }).
         build();
 
@@ -127,12 +145,26 @@ IPA.entity_factories.role = function() {
         entity('role').
         facet_groups([ 'member', 'settings', 'privilege' ]).
         search_facet({
-            columns:['cn','description']}).
-        details_facet({sections:[
-            {
-                name:'identity',
-                label:IPA.messages.objects.role.identity,
-                fields:['cn','description']}]}).
+            columns: [
+                'cn',
+                'description'
+            ]
+        }).
+        details_facet({
+            sections: [
+                {
+                    name: 'identity',
+                    label: IPA.messages.objects.role.identity,
+                    fields: [
+                        'cn',
+                        {
+                            factory: IPA.textarea_widget,
+                            name: 'description'
+                        }
+                    ]
+                }
+            ]
+        }).
         association_facet({
                 name: 'memberof_privilege',
                 facet_group: 'privilege',
@@ -141,7 +173,13 @@ IPA.entity_factories.role = function() {
         }).
         standard_association_facets().
         adder_dialog({
-            fields:['cn', 'description']
+            fields: [
+                'cn',
+                {
+                    factory: IPA.textarea_widget,
+                    name: 'description'
+                }
+            ]
         }).
         build();
 };

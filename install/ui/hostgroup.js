@@ -27,12 +27,27 @@ IPA.entity_factories.hostgroup = function() {
 
     return IPA.entity_builder().
         entity('hostgroup').
-        search_facet({columns:['cn','description']}).
-        details_facet({sections:[{
-            name:'identity',
-            label: IPA.messages.objects.hostgroup.identity,
-            fields:['cn','description']
-        }]}).
+        search_facet({
+            columns: [
+                'cn',
+                'description'
+            ]
+        }).
+        details_facet({
+            sections: [
+                {
+                    name: 'identity',
+                    label: IPA.messages.objects.hostgroup.identity,
+                    fields: [
+                        'cn',
+                        {
+                            factory: IPA.textarea_widget,
+                            name: 'description'
+                        }
+                    ]
+                }
+            ]
+        }).
         association_facet({
             name: 'memberof_hostgroup',
             associator: IPA.serial_associator
@@ -55,7 +70,13 @@ IPA.entity_factories.hostgroup = function() {
         }).
         standard_association_facets().
         adder_dialog({
-            fields:['cn','description']
+            fields: [
+                'cn',
+                {
+                    factory: IPA.textarea_widget,
+                    name: 'description'
+                }
+            ]
         }).
         build();
 };
