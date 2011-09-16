@@ -76,7 +76,6 @@ IPA.admin_navigation = function(spec) {
              ]},
             {entity: 'selfservice'},
             {entity: 'delegation'},
-            {entity: 'entitle'},
             {entity: 'config'}
         ]}];
 
