@@ -1598,8 +1598,9 @@ IPA.combobox_widget = function(spec) {
 
     that.editable = spec.editable;
     that.searchable = spec.searchable;
-    that.list_size = spec.list_size || 5;
+    that.size = spec.size || 5;
     that.empty_option = spec.empty_option === undefined ? true : spec.empty_option;
+    that.options = spec.options || [];
 
     that.create = function(container) {
         that.widget_create(container);
@@ -1688,7 +1689,7 @@ IPA.combobox_widget = function(spec) {
 
         that.list = $('<select/>', {
             name: 'list',
-            size: that.list_size,
+            size: that.size,
             style: 'width: 100%',
             change: function() {
                 var value = $('option:selected', that.list).val();
@@ -1720,7 +1721,30 @@ IPA.combobox_widget = function(spec) {
         return that.list_container.css('visibility') == 'visible';
     };
 
-    that.search = function(filter) {
+    that.search = function(filter, on_success, on_error) {
+
+        that.remove_options();
+
+        if (that.empty_option) {
+            that.create_option();
+        }
+
+        for (var i=0; i<that.options.length; i++) {
+            var option = that.options[i];
+
+            var label, value;
+            if (option instanceof Object) {
+                label = option.label;
+                value = option.value;
+            } else {
+                label = option;
+                value = option;
+            }
+
+            that.create_option(label, value);
+        }
+
+        if (on_success) on_success.call(this);
     };
 
     that.update = function() {
@@ -1792,9 +1816,9 @@ IPA.combobox_widget = function(spec) {
         return value === '' ? [] : [value];
     };
 
-    that.create_option = function(text, value) {
+    that.create_option = function(label, value) {
         return $('<option/>', {
-            text: text,
+            text: label,
             value: value
         }).appendTo(that.list);
     };
