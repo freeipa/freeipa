@@ -38,12 +38,13 @@ IPA.entity_factories.dnszone = function() {
         facet_groups([ 'dnsrecord', 'settings' ]).
         search_facet({
             title: IPA.metadata.objects.dnszone.label,
-            columns:['idnsname']
+            columns: [ 'idnsname' ]
         }).
         details_facet({
-            sections:[{
-                name:'identity',
-                fields:[
+            factory: IPA.dnszone_details_facet,
+            sections: [{
+                name: 'identity',
+                fields: [
                     'idnsname',
                     'idnszoneactive',
                     'idnssoamname',
@@ -56,7 +57,9 @@ IPA.entity_factories.dnszone = function() {
                     'dnsttl',
                     'dnsclass',
                     'idnsallowdynupdate',
-                    'idnsupdatepolicy']}]
+                    'idnsupdatepolicy'
+                ]
+            }]
         }).
         nested_search_facet({
             facet_group: 'dnsrecord',
@@ -66,7 +69,7 @@ IPA.entity_factories.dnszone = function() {
             label: IPA.metadata.objects.dnsrecord.label,
             load: IPA.dns_record_search_load,
             get_values: IPA.dnsrecord_get_delete_values,
-            columns:[
+            columns: [
                 {
                     name: 'idnsname',
                     label: IPA.get_entity_param('dnsrecord', 'idnsname').label,
@@ -107,6 +110,110 @@ IPA.entity_factories.dnszone = function() {
             ]
         }).
         build();
+};
+
+IPA.dnszone_details_facet = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.details_facet(spec);
+
+    that.update = function(on_success, on_error) {
+
+        var args = that.get_primary_key();
+
+        var modify_operation = {
+            execute: false,
+            command: IPA.command({
+                entity: that.entity.name,
+                method: 'mod',
+                args: args,
+                options: { all: true, rights: true }
+            })
+        };
+
+        var enable_operation = {
+            execute: false,
+            command: IPA.command({
+                entity: that.entity.name,
+                method: 'enable',
+                args: args,
+                options: { all: true, rights: true }
+            })
+        };
+
+        var sections = that.sections.values;
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
+
+            var section_fields = section.fields.values;
+            for (var j=0; j<section_fields.length; j++) {
+                var field = section_fields[j];
+                if (!field.is_dirty()) continue;
+
+                var values = field.save();
+                if (!values) continue;
+
+                var param_info = field.param_info;
+
+                // skip primary key
+                if (param_info && param_info.primary_key) continue;
+
+                // check enable/disable
+                if (field.name == 'idnszoneactive') {
+                    if (values[0] == 'FALSE') enable_operation.command.method = 'disable';
+                    enable_operation.execute = true;
+                    continue;
+                }
+
+                if (param_info) {
+                    if (values.length == 1) {
+                        modify_operation.command.set_option(field.name, values[0]);
+                    } else if (field.join) {
+                        modify_operation.command.set_option(field.name, values.join(','));
+                    } else {
+                        modify_operation.command.set_option(field.name, values);
+                    }
+
+                } else {
+                    if (values.length) {
+                        modify_operation.command.set_option('setattr', field.name+'='+values[0]);
+                    } else {
+                        modify_operation.command.set_option('setattr', field.name+'=');
+                    }
+                    for (var l=1; l<values.length; l++) {
+                        modify_operation.command.set_option('addattr', field.name+'='+values[l]);
+                    }
+                }
+
+                modify_operation.execute = true;
+            }
+        }
+
+        var batch = IPA.batch_command({
+            name: 'dnszone_details_update',
+            on_success: function(data, text_status, xhr) {
+                that.refresh();
+                if (on_success) on_success.call(this, data, text_status, xhr);
+            },
+            on_error: function(xhr, text_status, error_thrown) {
+                that.refresh();
+                if (on_error) on_error.call(this, xhr, text_status, error_thrown);
+            }
+        });
+
+        if (modify_operation.execute) batch.add_command(modify_operation.command);
+        if (enable_operation.execute) batch.add_command(enable_operation.command);
+
+        if (!batch.commands.length) {
+            that.refresh();
+            return;
+        }
+
+        batch.execute();
+    };
+
+    return that;
 };
 
 IPA.dnszone_adder_dialog = function(spec) {

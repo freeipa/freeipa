@@ -321,14 +321,14 @@ IPA.hbacrule_details_facet = function(spec) {
 
     that.update = function(on_success, on_error) {
 
-        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        var args = that.get_primary_key();
 
         var modify_operation = {
             'execute': false,
             'command': IPA.command({
                 entity: that.entity.name,
                 method: 'mod',
-                args: [pkey],
+                args: args,
                 options: {all: true, rights: true}
             })
         };
@@ -355,7 +355,7 @@ IPA.hbacrule_details_facet = function(spec) {
                 'command': IPA.command({
                     entity: that.entity.name,
                     method: 'remove_user',
-                    args: [pkey],
+                    args: args,
                     options: {all: true, rights: true}
                 })
             },
@@ -365,7 +365,7 @@ IPA.hbacrule_details_facet = function(spec) {
                 'command': IPA.command({
                     entity: that.entity.name,
                     method: 'remove_host',
-                    args: [pkey],
+                    args: args,
                     options: {all: true, rights: true}
                 })
             },
@@ -375,7 +375,7 @@ IPA.hbacrule_details_facet = function(spec) {
                 'command': IPA.command({
                     entity: that.entity.name,
                     method: 'remove_service',
-                    args: [pkey],
+                    args: args,
                     options: {all: true, rights: true}
                 })
             },
@@ -385,7 +385,7 @@ IPA.hbacrule_details_facet = function(spec) {
                 'command': IPA.command({
                     entity: that.entity.name,
                     method: 'remove_sourcehost',
-                    args: [pkey],
+                    args: args,
                     options: {all: true, rights: true}
                 })
             }
@@ -396,7 +396,7 @@ IPA.hbacrule_details_facet = function(spec) {
             'command': IPA.command({
                 entity: that.entity.name,
                 method: 'enable',
-                args: [pkey],
+                args: args,
                 options: {all: true, rights: true}
             })
         };
@@ -408,15 +408,17 @@ IPA.hbacrule_details_facet = function(spec) {
             var section_fields = section.fields.values;
             for (var j=0; j<section_fields.length; j++) {
                 var field = section_fields[j];
-                if (!field.is_dirty()) continue;
+
+                // association tables are never dirty, so call
+                // is_dirty() after checking table values
 
                 var values = field.save();
                 if (!values) continue;
 
-                var param_info = IPA.get_entity_param(that.entity.name, field.name);
+                var param_info = field.param_info;
 
                 // skip primary key
-                if (param_info && param_info['primary_key']) continue;
+                if (param_info && param_info.primary_key) continue;
 
                 var p = field.name.indexOf('_');
                 if (p >= 0) {
@@ -475,11 +477,11 @@ IPA.hbacrule_details_facet = function(spec) {
             'name': 'hbac_details_update',
             'on_success': function(data, text_status, xhr) {
                 that.refresh();
-                if (on_success) on_success(data, text_status, xhr);
+                if (on_success) on_success.call(this, data, text_status, xhr);
             },
             'on_error': function(xhr, text_status, error_thrown) {
                 that.refresh();
-                if (on_error) on_error(xhr, text_status, error_thrown);
+                if (on_error) on_error.call(this, xhr, text_status, error_thrown);
             }
         });
 
