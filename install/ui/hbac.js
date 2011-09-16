@@ -27,29 +27,31 @@ IPA.entity_factories.hbacrule = function() {
     return IPA.entity_builder().
         entity('hbacrule').
         search_facet({
-            search_all:true,
-            columns:['cn',
-                     {
-                         factory: IPA.column,
-                         name:'accessruletype',
-                         setup : function(container,record){
-                             container.empty();
-                             var value = record[this.name];
-                             value = value ? value.toString() : '';
-                             if (value === 'deny'){
-                                 container.addClass('hbac-deny-rule');
-                             }
-                             container.append(value);
-                         }
-                     },
-                     'usercategory','hostcategory','ipaenabledflag',
-                     'servicecategory','sourcehostcategory']
+            search_all: true,
+            columns: [
+                'cn',
+                {
+                    factory: IPA.column,
+                    name: 'accessruletype',
+                    setup: function(container, record) {
+                        container.empty();
+                        var value = record[this.name];
+                        value = value ? value.toString() : '';
+                        if (value === 'deny') {
+                            container.addClass('hbac-deny-rule');
+                        }
+                        container.append(value);
+                    }
+                },
+                'ipaenabledflag',
+                'description'
+            ]
         }).
         details_facet({
             factory: IPA.hbacrule_details_facet
         }).
         adder_dialog({
-            fields:['cn']
+            fields: [ 'cn' ]
         }).
         build();
 };
@@ -143,19 +145,24 @@ IPA.hbacrule_details_facet = function(spec) {
     function general_section(){
         var section = IPA.details_table_section({
             name: 'general',
-            entity:that.entity,
+            entity: that.entity,
             label: IPA.messages.details.general
         });
 
-        section.text({name: 'cn', read_only: true});
+        section.text({
+            name: 'cn',
+            read_only: true
+        });
         section.text({
             name: 'accessruletype',
-            read_only:true
+            read_only: true
         });
-        section.textarea({name: 'description'});
+        section.textarea({
+            name: 'description'
+        });
         section.radio({
             name: 'ipaenabledflag',
-            options:[
+            options: [
                 { value: 'TRUE', label: IPA.get_message('true') },
                 { value: 'FALSE', label: IPA.get_message('false') }
             ]
