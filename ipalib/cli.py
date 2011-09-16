@@ -1048,12 +1048,14 @@ class cli(backend.Executioner):
         for param in cmd.params():
             if (param.required and param.name not in kw) or \
                 (param.alwaysask and honor_alwaysask) or self.env.prompt_all:
+                if param.autofill:
+                    kw[param.name] = param.get_default(**kw)
+                if param.name in kw and kw[param.name] is not None:
+                    continue
                 if param.password:
                     kw[param.name] = self.Backend.textui.prompt_password(
                         param.label, param.confirm
                     )
-                elif param.autofill:
-                    kw[param.name] = param.get_default(**kw)
                 else:
                     default = param.get_default(**kw)
                     error = None

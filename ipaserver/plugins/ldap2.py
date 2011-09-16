@@ -899,6 +899,17 @@ class ldap2(CrudBackend, Encoder):
     def modify_password(self, dn, new_pass, old_pass=''):
         """Set user password."""
         dn = self.normalize_dn(dn)
+
+        # The python-ldap passwd command doesn't verify the old password
+        # so we'll do a simple bind to validate it.
+        if old_pass != '':
+            try:
+                conn = _ldap.initialize(self.ldap_uri)
+                conn.simple_bind_s(dn, old_pass)
+                conn.unbind()
+            except _ldap.LDAPError, e:
+                _handle_errors(e, **{})
+
         try:
             self.conn.passwd_s(dn, old_pass, new_pass)
         except _ldap.LDAPError, e:

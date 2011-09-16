@@ -317,6 +317,7 @@ class Param(ReadOnly):
         ('flags', frozenset, frozenset()),
         ('hint', (str, Gettext), None),
         ('alwaysask', bool, False),
+        ('sortorder', int, 2), # see finalize()
 
         # The 'default' kwarg gets appended in Param.__init__():
         # ('default', self.type, None),

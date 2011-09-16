@@ -777,6 +777,8 @@ class Command(HasParam):
         self._create_param_namespace('options')
         def get_key(p):
             if p.required:
+                if p.sortorder < 0:
+                    return p.sortorder
                 if p.default_from is None:
                     return 0
                 return 1
