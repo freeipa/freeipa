@@ -3273,6 +3273,7 @@
                     "nsds5replicaroot",
                     "nsds5replicasessionpausetime",
                     "nsds5replicatedattributelist",
+                    "nsds5replicatedattributelisttotal",
                     "nsds5replicatimeout",
                     "nsds5replicatombstonepurgeinterval",
                     "nsds5replicatransportinfo",

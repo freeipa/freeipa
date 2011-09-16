@@ -107,6 +107,7 @@ class ReplicationManager(object):
         self.starttls = starttls
         tmp = util.realm_to_suffix(realm)
         self.suffix = str(DN(tmp)).lower()
+        self.need_memberof_fixup = False
 
         # If we are passed a password we'll use it as the DM password
         # otherwise we'll do a GSSAPI bind.
@@ -433,6 +434,7 @@ class ReplicationManager(object):
         which use a different name on each side. If master is None then
         isn't a dogtag replication agreement.
         """
+
         cn, dn = self.agreement_dn(b_hostname, master=master)
         try:
             a_conn.getEntry(dn, ldap.SCOPE_BASE)
@@ -440,11 +442,14 @@ class ReplicationManager(object):
         except errors.NotFound:
             pass
 
-        # List of attributes that need to be excluded from replication.
-        excludes = ('memberof', 'entryusn',
-                    'krblastsuccessfulauth',
-                    'krblastfailedauth',
-                    'krbloginfailedcount')
+        # List of attributes that need to be excluded from replication initialization.
+        totalexcludes = ('entryusn',
+                         'krblastsuccessfulauth',
+                         'krblastfailedauth',
+                         'krbloginfailedcount')
+
+        # List of attributes that need to be excluded from normal replication.
+        excludes = ('memberof', ) + totalexcludes
 
         entry = ipaldap.Entry(dn)
         entry.setValues('objectclass', "nsds5replicationagreement")
@@ -472,7 +477,20 @@ class ReplicationManager(object):
 
         a_conn.add_s(entry)
 
+        try:
+            mod = [(ldap.MOD_ADD, 'nsDS5ReplicatedAttributeListTotal',
+                   '(objectclass=*) $ EXCLUDE %s' % " ".join(totalexcludes))]
+            a_conn.modify_s(dn, mod)
+        except ldap.LDAPError, e:
+            # Apparently there are problems set the total list
+            # Probably the master is an old 389-ds server, tell the caller
+            # that we will have to set the memberof fixup task
+            self.need_memberof_fixup = True
+
         entry = a_conn.waitForEntry(entry)
+
+    def needs_memberof_fixup(self):
+        return self.need_memberof_fixup
 
     def setup_krb_princs_as_replica_binddns(self, a, b):
         """
