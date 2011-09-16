@@ -46,7 +46,14 @@ IPA.entity_factories.dnszone = function() {
                 name: 'identity',
                 fields: [
                     'idnsname',
-                    'idnszoneactive',
+                    {
+                        factory: IPA.radio_widget,
+                        name: 'idnszoneactive',
+                        options: [
+                            { value: 'TRUE', label: IPA.get_message('true') },
+                            { value: 'FALSE', label: IPA.get_message('false') }
+                        ]
+                    },
                     'idnssoamname',
                     'idnssoarname',
                     'idnssoaserial',
@@ -56,8 +63,18 @@ IPA.entity_factories.dnszone = function() {
                     'idnssoaminimum',
                     'dnsttl',
                     'dnsclass',
-                    'idnsallowdynupdate',
-                    'idnsupdatepolicy'
+                    {
+                        factory: IPA.radio_widget,
+                        name: 'idnsallowdynupdate',
+                        options: [
+                            { value: 'TRUE', label: IPA.get_message('true') },
+                            { value: 'FALSE', label: IPA.get_message('false') }
+                        ]
+                    },
+                    {
+                        factory: IPA.textarea_widget,
+                        name: 'idnsupdatepolicy'
+                    }
                 ]
             }]
         }).
