@@ -77,31 +77,6 @@ IPA.entity_factories.service = function() {
 };
 
 
-IPA.service_select_widget = function(spec) {
-
-    var that = IPA.text_widget(spec);
-    var known_services = ["", "cifs", "DNS", "ftp", "HTTP","imap", "ldap",
-                          "libvirt","nfs","qpidd","smtp"];
-
-    that.parent_create = that.create;
-
-    that.create = function(container) {
-
-        var select_widget = $('<select/>');
-        for (var i = 0; i < known_services.length; i += 1){
-            select_widget.append($('<option/>',{
-                text: known_services[i],
-                click: function(){
-                    that.input.val(this.value);
-                }
-            }));
-        }
-        container.append(select_widget);
-        that.parent_create(container);
-    };
-    return that;
-};
-
 IPA.service_add_dialog = function(spec) {
 
     spec = spec || {};
@@ -113,10 +88,23 @@ IPA.service_add_dialog = function(spec) {
             entity: spec.entity,
             hidden: true
         })).
-        field(IPA.service_select_widget({
+        field(IPA.combobox_widget({
             name: 'service',
             label: IPA.messages.objects.service.service,
-            size: 20,
+            options: [
+                'cifs',
+                'DNS',
+                'ftp',
+                'HTTP',
+                'imap',
+                'ldap',
+                'libvirt',
+                'nfs',
+                'smtp',
+                'qpidd'
+            ],
+            editable: true,
+            size: 10,
             entity: spec.entity,
             param_info: { required: true }
         })).
