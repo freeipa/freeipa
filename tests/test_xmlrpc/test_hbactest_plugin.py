@@ -42,9 +42,9 @@ class test_hbactest(XMLRPC_test):
 
     test_user = u'hbacrule_test_user'
     test_group = u'hbacrule_test_group'
-    test_host = u'hbacrule._test_host'
+    test_host = u'hbacrule.test-host'
     test_hostgroup = u'hbacrule_test_hostgroup'
-    test_sourcehost = u'hbacrule._test_src_host'
+    test_sourcehost = u'hbacrule.test-src-host'
     test_sourcehostgroup = u'hbacrule_test_src_hostgroup'
     test_service = u'ssh'
 
