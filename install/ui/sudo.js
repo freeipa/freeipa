@@ -28,13 +28,17 @@ IPA.entity_factories.sudorule = function() {
     return IPA.entity_builder().
         entity('sudorule').
         search_facet({
-            columns:['cn','description','cmdcategory']
+            columns: [
+                'cn',
+                'ipaenabledflag',
+                'description'
+            ]
         }).
         details_facet({
             factory: IPA.sudorule_details_facet
         }).
         adder_dialog({
-            fields:['cn']
+            fields: [ 'cn' ]
         }).
         build();
 };
@@ -140,14 +144,20 @@ IPA.sudorule_details_facet = function(spec) {
             facet: that
         });
 
-        section.text({name: 'cn', read_only: true});
-        section.textarea({name: 'description'});
+        section.text({
+            name: 'cn',
+            read_only: true
+        });
+        section.textarea({
+            name: 'description'
+        });
         section.radio({
             name: 'ipaenabledflag',
-            options:[
-                {'value': 'TRUE',label: IPA.messages['true']},
-                {'value': 'FALSE',label:IPA.messages['false']}
-            ]});
+            options: [
+                { value: 'TRUE', label: IPA.get_message('true') },
+                { value: 'FALSE', label: IPA.get_message('false') }
+            ]
+        });
         return section;
     }
 
