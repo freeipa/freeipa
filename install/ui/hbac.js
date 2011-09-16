@@ -30,19 +30,6 @@ IPA.entity_factories.hbacrule = function() {
             search_all: true,
             columns: [
                 'cn',
-                {
-                    factory: IPA.column,
-                    name: 'accessruletype',
-                    setup: function(container, record) {
-                        container.empty();
-                        var value = record[this.name];
-                        value = value ? value.toString() : '';
-                        if (value === 'deny') {
-                            container.addClass('hbac-deny-rule');
-                        }
-                        container.append(value);
-                    }
-                },
                 'ipaenabledflag',
                 'description'
             ]
@@ -151,10 +138,6 @@ IPA.hbacrule_details_facet = function(spec) {
 
         section.text({
             name: 'cn',
-            read_only: true
-        });
-        section.text({
-            name: 'accessruletype',
             read_only: true
         });
         section.textarea({
