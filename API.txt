@@ -1830,7 +1830,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: passwd
 args: 2,0,3
-arg: Str('principal', autofill=True, cli_name='user', create_default=<lambda>, label=Gettext('User name', domain='ipa', localedir=None), primary_key=True)
+arg: Str('principal', validate_principal, autofill=True, cli_name='user', create_default=<lambda>, label=Gettext('User name', domain='ipa', localedir=None), normalizer=<lambda>, primary_key=True)
 arg: Password('password', label=Gettext('Password', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
@@ -2729,7 +2729,7 @@ option: Str('initials', attribute=True, autofill=True, cli_name='initials', defa
 option: Str('homedirectory', attribute=True, cli_name='homedir', default_from=DefaultFrom(<lambda>, 'uid'), label=Gettext('Home directory', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('gecos', attribute=True, autofill=True, cli_name='gecos', default_from=DefaultFrom(<lambda>, 'givenname', 'sn'), label=Gettext('GECOS field', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Str('loginshell', attribute=True, cli_name='shell', default=u'/bin/sh', label=Gettext('Login shell', domain='ipa', localedir=None), multivalue=False, required=False)
-option: Str('krbprincipalname', attribute=True, autofill=True, cli_name='principal', default_from=DefaultFrom(<lambda>, 'uid'), flags=['no_update'], label=Gettext('Kerberos principal', domain='ipa', localedir=None), multivalue=False, required=False)
+option: Str('krbprincipalname', validate_principal, attribute=True, autofill=True, cli_name='principal', default_from=DefaultFrom(<lambda>, 'uid'), flags=['no_update'], label=Gettext('Kerberos principal', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, required=False)
 option: Str('mail', attribute=True, cli_name='email', label=Gettext('Email address', domain='ipa', localedir=None), multivalue=True, required=False)
 option: Password('userpassword', attribute=True, cli_name='password', exclude='webui', label=Gettext('Password', domain='ipa', localedir=None), multivalue=False, required=False)
 option: Int('uidnumber', attribute=True, autofill=True, cli_name='uid', default=999, label=Gettext('UID', domain='ipa', localedir=None), minvalue=1, multivalue=False, required=False)
@@ -2786,7 +2786,7 @@ option: Str('initials', attribute=True, autofill=False, cli_name='initials', def
 option: Str('homedirectory', attribute=True, autofill=False, cli_name='homedir', default_from=DefaultFrom(<lambda>, 'uid'), label=Gettext('Home directory', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Str('gecos', attribute=True, autofill=False, cli_name='gecos', default_from=DefaultFrom(<lambda>, 'givenname', 'sn'), label=Gettext('GECOS field', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Str('loginshell', attribute=True, autofill=False, cli_name='shell', default=u'/bin/sh', label=Gettext('Login shell', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
-option: Str('krbprincipalname', attribute=True, autofill=False, cli_name='principal', default_from=DefaultFrom(<lambda>, 'uid'), flags=['no_update'], label=Gettext('Kerberos principal', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
+option: Str('krbprincipalname', validate_principal, attribute=True, autofill=False, cli_name='principal', default_from=DefaultFrom(<lambda>, 'uid'), flags=['no_update'], label=Gettext('Kerberos principal', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, query=True, required=False)
 option: Str('mail', attribute=True, autofill=False, cli_name='email', label=Gettext('Email address', domain='ipa', localedir=None), multivalue=True, query=True, required=False)
 option: Password('userpassword', attribute=True, autofill=False, cli_name='password', exclude='webui', label=Gettext('Password', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
 option: Int('uidnumber', attribute=True, autofill=False, cli_name='uid', default=999, label=Gettext('UID', domain='ipa', localedir=None), minvalue=1, multivalue=False, query=True, required=False)

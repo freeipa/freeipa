@@ -466,7 +466,6 @@ class test_user(Declarative):
         ),
 
 
-
         dict(
             desc='Create %r' % user1,
             command=(
@@ -701,6 +700,67 @@ class test_user(Declarative):
                 summary=u'Deleted user "tuser1"',
                 value=user1,
             ),
+        ),
+
+
+        dict(
+            desc='Create user %r with upper-case principal' % user1,
+            command=(
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
+                krbprincipalname=user1.upper())
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "tuser1"',
+                result=dict(
+                    gecos=[u'Test User1'],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    krbprincipalname=[u'tuser1@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    displayname=[u'Test User1'],
+                    cn=[u'Test User1'],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                            api.env.basedn)],
+                    memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
+                    dn=lambda x: DN(x) == \
+                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                           api.env.basedn),
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Create user %r with bad realm in principal' % user1,
+            command=(
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
+                krbprincipalname='%s@NOTFOUND.ORG' % user1)
+            ),
+            expected=errors.RealmMismatch()
+        ),
+
+
+        dict(
+            desc='Create user %r with malformed principal' % user1,
+            command=(
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
+                krbprincipalname='%s@BAD@NOTFOUND.ORG' % user1)
+            ),
+            expected=errors.MalformedUserPrincipal(principal='%s@BAD@NOTFOUND.ORG' % user1),
         ),
 
 

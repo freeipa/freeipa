@@ -84,6 +84,48 @@ def convert_nsaccountlock(entry_attrs):
         nsaccountlock = Bool('temp')
         entry_attrs['nsaccountlock'] = nsaccountlock.convert(entry_attrs['nsaccountlock'][0])
 
+def split_principal(principal):
+    """
+    Split the principal into its components and do some basic validation.
+
+    Automatically append our realm if it wasn't provided.
+    """
+    realm = None
+    parts = principal.split('@')
+    user = parts[0].lower()
+    if len(parts) > 2:
+        raise errors.MalformedUserPrincipal(
+            principal=principal
+        )
+
+    if len(parts) == 2:
+        realm = parts[1].upper()
+        # At some point we'll support multiple realms
+        if realm != api.env.realm:
+            raise errors.RealmMismatch()
+    else:
+        realm = api.env.realm
+
+    return (user, realm)
+
+def validate_principal(ugettext, principal):
+    """
+    All the real work is done in split_principal.
+    """
+    (user, realm) = split_principal(principal)
+    return None
+
+def normalize_principal(principal):
+    """
+    Ensure that the name in the principal is lower-case. The realm is
+    upper-case by convention but it isn't required.
+
+    The principal is validated at this point.
+    """
+    (user, realm) = split_principal(principal)
+    return unicode('%s@%s' % (user, realm))
+
+
 class user(LDAPObject):
     """
     User object.
@@ -169,12 +211,13 @@ class user(LDAPObject):
             label=_('Login shell'),
             default=u'/bin/sh',
         ),
-        Str('krbprincipalname?',
+        Str('krbprincipalname?', validate_principal,
             cli_name='principal',
             label=_('Kerberos principal'),
-            default_from=lambda uid: '%s@%s' % (uid, api.env.realm),
+            default_from=lambda uid: '%s@%s' % (uid.lower(), api.env.realm),
             autofill=True,
             flags=['no_update'],
+            normalizer=lambda value: normalize_principal(value),
         ),
         Str('mail*',
             cli_name='email',

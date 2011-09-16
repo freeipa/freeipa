@@ -22,6 +22,7 @@ from ipalib import Command
 from ipalib import Str, Password
 from ipalib import _
 from ipalib import output
+from ipalib.plugins.user import split_principal, validate_principal, normalize_principal
 
 __doc__ = _("""
 Set a user's password
@@ -46,12 +47,13 @@ class passwd(Command):
     __doc__ = _("Set a user's password.")
 
     takes_args = (
-        Str('principal',
+        Str('principal', validate_principal,
             cli_name='user',
             label=_('User name'),
             primary_key=True,
             autofill=True,
             create_default=lambda **kw: util.get_current_principal(),
+            normalizer=lambda value: normalize_principal(value),
         ),
         Password('password',
                  label=_('Password'),
@@ -74,13 +76,6 @@ class passwd(Command):
         :param password: the new password
         """
         ldap = self.api.Backend.ldap2
-
-        if principal.find('@') != -1:
-            principal_parts = principal.split('@')
-            if len(principal_parts) > 2:
-                raise errors.MalformedUserPrincipal(principal=principal)
-        else:
-            principal = '%s@%s' % (principal, self.api.env.realm)
 
         (dn, entry_attrs) = ldap.find_entry_by_attr(
             'krbprincipalname', principal, 'posixaccount', [''],
