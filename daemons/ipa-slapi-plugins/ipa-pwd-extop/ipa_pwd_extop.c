@@ -150,6 +150,13 @@ static int ipapwd_chpwop(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	/* Get the ber value of the extended operation */
 	slapi_pblock_get(pb, SLAPI_EXT_OP_REQ_VALUE, &extop_value);
 
+    if (extop_value == NULL ||
+        (extop_value->bv_len == 0 || extop_value->bv_val == NULL)) {
+        errMesg = "PasswdModify Request empty.\n";
+        rc = LDAP_UNWILLING_TO_PERFORM;
+        goto free_and_return;
+    }
+
 	if ((ber = ber_init(extop_value)) == NULL)
 	{
 		errMesg = "PasswdModify Request decode failed.\n";
