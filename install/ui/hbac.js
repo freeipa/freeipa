@@ -40,19 +40,6 @@ IPA.hbac.rule_entity = function(spec) {
             search_all: true,
             columns: [
                 'cn',
-                {
-                    factory: IPA.column,
-                    name: 'accessruletype',
-                    setup: function(container, record) {
-                        container.empty();
-                        var value = record[this.name];
-                        value = value ? value.toString() : '';
-                        if (value === 'deny') {
-                            container.addClass('hbac-deny-rule');
-                        }
-                        container.append(value);
-                    }
-                },
                 'ipaenabledflag',
                 'description'
             ]
