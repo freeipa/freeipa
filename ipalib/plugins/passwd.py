@@ -23,6 +23,7 @@ from ipalib import Str, Password
 from ipalib import _
 from ipalib import output
 from ipalib.plugins.user import split_principal, validate_principal, normalize_principal
+from ipalib.request import context
 
 __doc__ = _("""
 Set a user's password
@@ -43,6 +44,22 @@ EXAMPLES:
    ipa passwd tuser1
 """)
 
+# We only need to prompt for the current password when changing a password
+# for yourself, but the parameter is still required
+MAGIC_VALUE = u'CHANGING_PASSWORD_FOR_ANOTHER_USER'
+
+def get_current_password(principal):
+    """
+    If the user is changing their own password then return None so the
+    current password is prompted for, otherwise return a fixed value to
+    be ignored later.
+    """
+    current_principal = util.get_current_principal()
+    if current_principal == normalize_principal(principal):
+        return None
+    else:
+        return MAGIC_VALUE
+
 class passwd(Command):
     __doc__ = _("Set a user's password.")
 
@@ -56,14 +73,21 @@ class passwd(Command):
             normalizer=lambda value: normalize_principal(value),
         ),
         Password('password',
-                 label=_('Password'),
+                 label=_('New Password'),
+        ),
+        Password('current_password',
+                 label=_('Current Password'),
+                 confirm=False,
+                 default_from=lambda principal: get_current_password(principal),
+                 autofill=True,
+                 sortorder=-1,
         ),
     )
 
     has_output = output.standard_value
     msg_summary = _('Changed password for "%(value)s"')
 
-    def execute(self, principal, password):
+    def execute(self, principal, password, current_password):
         """
         Execute the passwd operation.
 
@@ -74,6 +98,7 @@ class passwd(Command):
 
         :param principal: The login name or principal of the user
         :param password: the new password
+        :param current_password: the existing password, if applicable
         """
         ldap = self.api.Backend.ldap2
 
@@ -82,7 +107,16 @@ class passwd(Command):
             ",".join([api.env.container_user, api.env.basedn])
         )
 
-        ldap.modify_password(dn, password)
+        if principal == getattr(context, 'principal') and \
+            current_password == MAGIC_VALUE:
+            # No cheating
+            self.log.warn('User attempted to change password using magic value')
+            raise errors.ACIError(info='Invalid credentials')
+
+        if current_password == MAGIC_VALUE:
+            ldap.modify_password(dn, password)
+        else:
+            ldap.modify_password(dn, password, current_password)
 
         return dict(
             result=True,

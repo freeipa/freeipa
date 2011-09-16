@@ -1829,9 +1829,10 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: passwd
-args: 2,0,3
+args: 3,0,3
 arg: Str('principal', validate_principal, autofill=True, cli_name='user', create_default=<lambda>, label=Gettext('User name', domain='ipa', localedir=None), normalizer=<lambda>, primary_key=True)
-arg: Password('password', label=Gettext('Password', domain='ipa', localedir=None))
+arg: Password('password', label=Gettext('New Password', domain='ipa', localedir=None))
+arg: Password('current_password', autofill=True, confirm=False, default_from=<lambda>, label=Gettext('Current Password', domain='ipa', localedir=None), sortorder=-1)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
