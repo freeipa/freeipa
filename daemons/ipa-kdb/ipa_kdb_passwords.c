@@ -269,3 +269,49 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
     return 0;
 }
 
+/*
+ * Check who actually changed the password, if it is not 'self' then
+ * we need to expire it if it is a user principal.
+ */
+krb5_error_code ipadb_get_pwd_expiration(krb5_context context,
+                                         krb5_db_entry *entry,
+                                         struct ipadb_e_data *ied,
+                                         time_t *expire_time)
+{
+    krb5_error_code kerr;
+    krb5_timestamp mod_time;
+    krb5_principal mod_princ = NULL;
+    krb5_boolean truexp = true;
+
+
+    /* Assume all principals with just one component as user principals */
+    if (entry->princ->length == 1) {
+        kerr = krb5_dbe_lookup_mod_princ_data(context, entry,
+                                              &mod_time, &mod_princ);
+        if (kerr) {
+            goto done;
+        }
+
+        /* If the mod principal is kadmind then we have to assume an actual
+         * password change for now. Apparently kadmind does not properly pass
+         * the actual user principal down when said user is performing a
+         * password change */
+        if (mod_princ->length == 1 &&
+            strcmp(mod_princ->data[0].data, "kadmind") != 0) {
+            truexp = krb5_principal_compare(context, mod_princ, entry->princ);
+        }
+    }
+
+    if (truexp) {
+        *expire_time = mod_time + ied->pol.max_pwd_life;
+    } else {
+        /* not 'self', so reset */
+        *expire_time = mod_time;
+    }
+
+    kerr = 0;
+
+done:
+    krb5_free_principal(context, mod_princ);
+    return kerr;
+}

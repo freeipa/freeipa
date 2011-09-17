@@ -1362,7 +1362,8 @@ done:
     return kerr;
 }
 
-static krb5_error_code ipadb_entry_to_mods(struct ipadb_mods *imods,
+static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
+                                           struct ipadb_mods *imods,
                                            krb5_db_entry *entry,
                                            char *principal,
                                            int mod_op)
@@ -1561,10 +1562,11 @@ static krb5_error_code ipadb_entry_to_mods(struct ipadb_mods *imods,
 
     /* KADM5_LOAD */
 
-    /* Store saved password if any and password history */
+    /* Handle password change related operations. */
     if (entry->e_data) {
         struct ipadb_e_data *ied;
         time_t now = time(NULL);
+        time_t expire_time;
         char **new_history;
         int nh_len;
         int ret;
@@ -1602,6 +1604,22 @@ static krb5_error_code ipadb_entry_to_mods(struct ipadb_mods *imods,
             if (kerr) {
                 goto done;
             }
+        }
+
+        /* Also set new password expiration time.
+         * Have to do it here because kadmin doesn't know policies and resets
+         * entry->mask after we have gone through the password change code.
+         */
+        kerr = ipadb_get_pwd_expiration(kcontext, entry, ied, &expire_time);
+        if (kerr) {
+            goto done;
+        }
+
+        kerr = ipadb_get_ldap_mod_time(imods,
+                                       "krbPasswordExpiration",
+                                       expire_time, mod_op);
+        if (kerr) {
+            goto done;
         }
     }
 
@@ -1689,7 +1707,8 @@ static krb5_error_code ipadb_add_principal(krb5_context kcontext,
         goto done;
     }
 
-    kerr = ipadb_entry_to_mods(imods, entry, principal, LDAP_MOD_ADD);
+    kerr = ipadb_entry_to_mods(kcontext, imods,
+                               entry, principal, LDAP_MOD_ADD);
     if (kerr != 0) {
         goto done;
     }
@@ -1752,7 +1771,8 @@ static krb5_error_code ipadb_modify_principal(krb5_context kcontext,
         goto done;
     }
 
-    kerr = ipadb_entry_to_mods(imods, entry, principal, LDAP_MOD_REPLACE);
+    kerr = ipadb_entry_to_mods(kcontext, imods,
+                               entry, principal, LDAP_MOD_REPLACE);
     if (kerr != 0) {
         goto done;
     }

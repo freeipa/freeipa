@@ -178,3 +178,7 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
                                  int new_kvno, krb5_boolean keepold,
                                  krb5_db_entry *db_entry);
 
+krb5_error_code ipadb_get_pwd_expiration(krb5_context context,
+                                         krb5_db_entry *entry,
+                                         struct ipadb_e_data *ied,
+                                         time_t *expire_time);
