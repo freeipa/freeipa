@@ -144,17 +144,9 @@ IPA.bulk_associator = function(spec) {
 /**
  * This dialog is used for adding associations between two entities.
  */
-IPA.association_adder_dialog = function (spec) {
+IPA.association_adder_dialog = function(spec) {
 
     spec = spec || {};
-    /*
-      TODO: columns map in IPA.adder_dialog should be removed and add_column()
-      should be modified to add the column directly into the available_table
-      and selected_table. This way IPA.association_adder_dialog can call
-      create_column() from the initialization area, no need to modify the
-      parameters.
-    */
-    default_columns(spec);
 
     var that = IPA.adder_dialog(spec);
 
@@ -162,17 +154,35 @@ IPA.association_adder_dialog = function (spec) {
     that.pkey = spec.pkey;
     that.other_entity = spec.other_entity;
     that.attribute_member = spec.attribute_member;
+    that.exclude = spec.exclude || [];
+
+    var init = function() {
+        if (!that.get_columns().length) {
+            var pkey_name = IPA.metadata.objects[spec.other_entity].primary_key;
+            that.create_column({
+                entity: that.entity,
+                name: pkey_name,
+                label: IPA.metadata.objects[spec.other_entity].label,
+                primary_key: true,
+                width: '600px'
+            });
+        }
+    };
 
     that.search = function() {
         function on_success(data, text_status, xhr) {
-            var results = data.result;
+
             that.clear_available_values();
 
-            var pkey_attr = that.entity.metadata.primary_key;
+            var other_entity = IPA.get_entity(that.other_entity);
+            var pkey_attr = other_entity.metadata.primary_key;
 
-            for (var i=0; i<results.count; i++){
+            var results = data.result;
+            for (var i=0; i<results.count; i++) {
                 var result = results.result[i];
-                if (result[pkey_attr] != spec.pkey){
+                var pkey = result[pkey_attr][0];
+
+                if (that.exclude.indexOf(pkey) < 0) {
                     that.add_available_value(result);
                 }
             }
@@ -207,18 +217,7 @@ IPA.association_adder_dialog = function (spec) {
         }).execute();
     };
 
-    /*initialization*/
-    function default_columns(spec){
-        if (!spec.columns) {
-            var pkey_name = IPA.metadata.objects[spec.other_entity].primary_key;
-            spec.columns = [{
-                name: pkey_name,
-                label: IPA.metadata.objects[spec.other_entity].label,
-                primary_key: true,
-                width: '600px'
-            }];
-        }
-    }
+    init();
 
     return that;
 };
@@ -526,7 +525,8 @@ IPA.association_table_widget = function (spec) {
             pkey: pkey,
             other_entity: that.other_entity,
             attribute_member: that.attribute_member,
-            method: that.add_method
+            method: that.add_method,
+            exclude: that.values
         });
     };
 
@@ -963,12 +963,15 @@ IPA.association_facet = function (spec) {
         title = title.replace('${primary_key}', pkey);
         title = title.replace('${other_entity}', label);
 
+        var pkeys = that.data[that.get_attribute_name()];
+
         var dialog = IPA.association_adder_dialog({
-            'title': title,
-            'entity': that.entity,
-            'pkey': pkey,
-            'other_entity': that.other_entity,
-            'attribute_member': that.attribute_member
+            title: title,
+            entity: that.entity,
+            pkey: pkey,
+            other_entity: that.other_entity,
+            attribute_member: that.attribute_member,
+            exclude: pkeys
         });
 
         var adder_columns = that.adder_columns.values;
@@ -1165,7 +1168,7 @@ IPA.association_facet = function (spec) {
             if (that.remove_button) that.remove_button.css('display', 'none');
         }
 
-        var pkey = IPA.get_entity(that.entity.name).get_primary_key();
+        var pkey = that.entity.get_primary_key();
 
         var command = IPA.command({
             entity: that.entity.name,
