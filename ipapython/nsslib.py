@@ -293,6 +293,17 @@ class NSSHTTPS(httplib.HTTP):
             port = None
         self._setup(self._connection_class(host, port, strict, dbdir=dbdir))
 
+    def getreply(self):
+        """
+        Override so we can close duplicated file connection on non-200
+        responses. This was causing nss_shutdown() to fail with a busy
+        error.
+        """
+        (status, reason, msg) = httplib.HTTP.getreply(self)
+        if status != 200:
+            self.file.close()
+        return (status, reason, msg)
+
 #------------------------------------------------------------------------------
 
 if __name__ == "__main__":
