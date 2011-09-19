@@ -123,10 +123,14 @@ knownservices = RedHatServices()
 def restore_context(filepath):
     """
     restore security context on the file path
-    SE Linux equivalent is /sbin/restorecon <filepath>
-    """
-    ipautil.run(["/sbin/restorecon", filepath])
+    SELinux equivalent is /sbin/restorecon <filepath>
 
+    restorecon's return values are not reliable so we have to
+    ignore them (BZ #739604).
+
+    ipautil.run() will do the logging.
+    """
+    ipautil.run(["/sbin/restorecon", filepath], raiseonerr=False)
 
 def backup_and_replace_hostname(fstore, statestore, hostname):
     network_filename = "/etc/sysconfig/network"
