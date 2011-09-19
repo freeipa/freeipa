@@ -102,9 +102,20 @@ class ADTRUSTInstance(service.Service):
         self.admin_conn.add_s(entry)
 
         # And finally grant it permission to read NT passwords, we do not want
-        # to support LM passwords so there is no need to allow access to them
+        # to support LM passwords so there is no need to allow access to them.
+        # Also the premission to create trusted domain objects below the
+        # domain object is granted.
         mod = [(ldap.MOD_ADD, 'aci',
-            str(['(targetattr = "sambaNTPassword")(version 3.0; acl "Samba user can read NT passwords"; allow (read) userdn="ldap:///%s";)' % self.smb_dn]))]
+            str('(targetattr = "sambaNTPassword")' \
+                '(version 3.0; acl "Samba user can read NT passwords";' \
+                'allow (read) userdn="ldap:///%s";)' % self.smb_dn)),
+               (ldap.MOD_ADD, 'aci',
+            str('(target = "ldap:///cn=ad,cn=trusts,%s")' \
+                '(targetattr = "sambaTrustType || sambaTrustAttributes || sambaTrustDirection || sambaTrustPartner || sambaFlatName || sambaTrustAuthOutgoing || sambaTrustAuthIncoming || sambaSecurityIdentifier || sambaTrustForestTrustInfo || sambaTrustPosixOffset || sambaSupportedEncryptionTypes")' \
+                '(version 3.0;acl "Allow samba user to create and delete trust accounts";' \
+                'allow (write,add,delete) userdn = "ldap:///%s";)' % \
+                 (self.suffix, self.smb_dn)))]
+
         try:
             self.admin_conn.modify_s(self.suffix, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
