@@ -307,7 +307,7 @@ IPA.dialog = function(spec) {
  * This dialog provides an interface for searching and selecting
  * values from the available results.
  */
-IPA.adder_dialog = function (spec) {
+IPA.adder_dialog = function(spec) {
 
     spec = spec || {};
 
@@ -316,7 +316,7 @@ IPA.adder_dialog = function (spec) {
     that.width = spec.width || 600;
     that.height = spec.height || 360;
 
-    if (!that.entity){
+    if (!that.entity) {
         var except = {
             expected: false,
             message:'Adder dialog created without entity.'
@@ -324,15 +324,37 @@ IPA.adder_dialog = function (spec) {
         throw except;
     }
 
-    that.columns = $.ordered_map();
+    var init = function() {
+        that.available_table = IPA.table_widget({
+            entity: that.entity,
+            name: 'available',
+            scrollable: true
+        });
 
+        that.selected_table = IPA.table_widget({
+            entity: that.entity,
+            name: 'selected',
+            scrollable: true
+        });
+
+        if (spec.columns) {
+            for (var i=0; i<spec.columns.length; i++) {
+                that.create_column(spec.columns[i]);
+            }
+        }
+    };
 
     that.get_column = function(name) {
-        return that.columns.get(name);
+        return that.available_table.get_column(name);
+    };
+
+    that.get_columns = function() {
+        return that.available_table.get_columns();
     };
 
     that.add_column = function(column) {
-        that.columns.put(column.name, column);
+        that.available_table.add_column(column);
+        that.selected_table.add_column(column);
     };
 
     that.set_columns = function(columns) {
@@ -343,7 +365,8 @@ IPA.adder_dialog = function (spec) {
     };
 
     that.clear_columns = function() {
-        that.columns.empty();
+        that.available_table.clear_columns();
+        that.selected_table.clear_columns();
     };
 
     that.create_column = function(spec) {
@@ -353,31 +376,7 @@ IPA.adder_dialog = function (spec) {
         return column;
     };
 
-    function initialize_table(){
-        that.available_table = IPA.table_widget({
-            entity: that.entity,
-            name: 'available',
-            scrollable: true
-        });
-
-        var columns = that.columns.values;
-        that.available_table.set_columns(columns);
-
-        that.selected_table = IPA.table_widget({
-            entity: that.entity,
-            name: 'selected',
-            scrollable: true
-        });
-
-        that.selected_table.set_columns(columns);
-    }
     that.create = function() {
-
-        /*TODO:  move this earlier
-          The table initialization should be done earlier.  However,
-          the adder columns are not added until after initialization is over,
-          and thus we have to dleay the creation of the table.*/
-        initialize_table();
 
         // do not call that.dialog_create();
 
@@ -528,7 +527,6 @@ IPA.adder_dialog = function (spec) {
         that.search();
     };
 
-
     that.open = function(container) {
 
         that.buttons[IPA.messages.buttons.enroll] = that.execute;
@@ -571,13 +569,7 @@ IPA.adder_dialog = function (spec) {
         return that.selected_table.save();
     };
 
-    /*dialog initialization */
-   if (spec.columns){
-        for (var i =0; i < spec.columns.length; i +=1){
-            that.create_column(spec.columns[i]);
-        }
-    }
-
+    init();
 
     that.adder_dialog_create = that.create;
 

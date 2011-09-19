@@ -1076,7 +1076,8 @@ IPA.sudorule_association_table_widget = function(spec) {
             other_entity: that.other_entity,
             attribute_member: that.attribute_member,
             entity: that.entity,
-            external: that.external
+            external: that.external,
+            exclude: that.values
         });
     };
 
@@ -1102,24 +1103,6 @@ IPA.sudo.rule_association_adder_dialog = function(spec) {
 
     that.external = spec.external;
 
-
-    function setup_table(){
-        if (!that.columns.length) {
-            var pkey_name = IPA.metadata.objects[that.other_entity].primary_key;
-            that.create_column({
-                entity: that.entity,
-                name: pkey_name,
-                label: IPA.metadata.objects[that.other_entity].label,
-                primary_key: true,
-                width: '200px'
-            });
-        }
-    }
-
-    that.create = function() {
-        that.adder_dialog_create();
-    };
-
     that.add = function() {
         var rows = that.available_table.remove_selected_rows();
         that.selected_table.add_rows(rows);
@@ -1135,8 +1118,6 @@ IPA.sudo.rule_association_adder_dialog = function(spec) {
             that.external_field.val('');
         }
     };
-
-    setup_table();
 
     return that;
 };
