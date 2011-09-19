@@ -53,6 +53,7 @@ static char *std_principal_attrs[] = {
     "nsaccountlock",
     "passwordHistory",
 
+    "objectClass",
     NULL
 };
 

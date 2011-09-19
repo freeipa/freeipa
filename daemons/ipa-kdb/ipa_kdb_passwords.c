@@ -283,9 +283,7 @@ krb5_error_code ipadb_get_pwd_expiration(krb5_context context,
     krb5_principal mod_princ = NULL;
     krb5_boolean truexp = true;
 
-
-    /* Assume all principals with just one component as user principals */
-    if (entry->princ->length == 1) {
+    if (ied->ipa_user) {
         kerr = krb5_dbe_lookup_mod_princ_data(context, entry,
                                               &mod_time, &mod_princ);
         if (kerr) {
