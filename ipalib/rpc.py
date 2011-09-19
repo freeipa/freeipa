@@ -325,7 +325,15 @@ class xmlclient(Connectible):
         servers = list(set(servers))
         # the list/set conversion won't preserve order so stick in the
         # local config file version here.
-        servers.insert(0, self.env.xmlrpc_uri)
+        cfg_server = self.env.xmlrpc_uri
+        if cfg_server in servers:
+            # make sure the configured master server is there just once and
+            # it is the first one
+            servers.remove(cfg_server)
+            servers.insert(0, cfg_server)
+        else:
+            servers.insert(0, cfg_server)
+
         return servers
 
     def create_connection(self, ccache=None, verbose=False, fallback=True):
