@@ -648,8 +648,13 @@ def resolve_ipaddress(server):
     """
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
-    s.connect((server, 389))
-    addr, port = s.getsockname()
+    try:
+        s.connect((server, 389))
+        addr, port = s.getsockname()
+    except socket.gaierror:
+        s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM, socket.IPPROTO_TCP)
+        s.connect((server, 389))
+        addr, port, foo, bar = s.getsockname()
     s.close()
 
     return addr
