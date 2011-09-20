@@ -247,7 +247,7 @@ def ipa_stop(options):
 
     try:
         print "Stopping Directory Service"
-        dirsrv.stop('dirsrv', capture_output=False)
+        dirsrv.stop(capture_output=False)
     except:
         raise IpactlError("Failed to stop Directory Service")
 
