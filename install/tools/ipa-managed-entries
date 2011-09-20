@@ -1,0 +1,252 @@
+#!/usr/bin/python
+# Authors: Jr Aquino <jr.aquino@citrix.com>
+#
+# Copyright (C) 2011  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+import ldap
+import re
+import sys
+try:
+    from optparse import OptionParser
+    from ipapython import ipautil, config
+    from ipaserver.install import installutils
+    from ipaserver import ipaldap
+    from ipaserver.plugins.ldap2 import ldap2
+    from ipalib import api, errors
+    from ipalib.dn import *
+    import logging
+except ImportError:
+    print >> sys.stderr, """\
+There was a problem importing one of the required Python modules. The
+error was:
+
+    %s
+""" % sys.exc_value
+    sys.exit(1)
+
+CACERT = "/etc/ipa/ca.crt"
+
+def parse_options():
+    usage = "%prog [options] <status|enable|disable>\n"
+    usage += "%prog [options]\n"
+    parser = OptionParser(usage=usage, formatter=config.IPAFormatter())
+
+    parser.add_option("-d", "--debug", action="store_true", dest="debug",
+                      help="Display debugging information about the update(s)")
+    parser.add_option("-e", "--entry", dest="managed_entry",
+                      default=None, type="string",
+                      help="DN for the Managed Entry Definition")
+    parser.add_option("-l", "--list", dest="list_managed_entries",
+                      action="store_true",
+                      help="DN for the Managed Entry Definition")
+    parser.add_option("-p", dest="dirman_password",
+                      help="Directory Manager password")
+
+    config.add_standard_options(parser)
+    options, args = parser.parse_args()
+
+    config.init_config(options)
+
+    return options, args
+
+def get_dirman_password():
+    """Prompt the user for the Directory Manager password and verify its
+       correctness.
+    """
+    password = installutils.read_password("Directory Manager", confirm=False,
+        validate=True)
+
+    return password
+
+def main():
+    retval = 0
+    loglevel = logging.ERROR
+    def_dn = None
+    options, args = parse_options()
+    if options.debug:
+        loglevel = logging.DEBUG
+
+    if options.list_managed_entries:
+        pass
+    elif len(args) != 1:
+        sys.exit("You must specify an action, either status, enable or disable")
+    elif args[0] != "enable" and args[0] != "disable" and args[0] != "status":
+        sys.exit("Unrecognized action [" + args[0] + "]")
+    logging.basicConfig(level=loglevel,
+                        format='%(levelname)s %(message)s')
+
+    host = installutils.get_fqdn()
+    api.bootstrap(context='cli', debug=options.debug)
+    api.finalize()
+
+    managed_entry_definitions_dn = DN(
+        ('cn', 'Definitions'),
+        ('cn', 'Managed Entries'),
+        ('cn', 'etc'),
+        DN(api.env.basedn)
+    )
+    managed_entry_definitions_dn = str(managed_entry_definitions_dn)
+
+    conn = None
+    try:
+        filter = '(objectClass=extensibleObject)'
+        conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
+        conn.do_sasl_gssapi_bind()
+    except ldap.LOCAL_ERROR:
+        if options.dirman_password:
+            dirman_password = options.dirman_password
+        else:
+            dirman_password = get_dirman_password()
+        conn.do_simple_bind(bindpw=dirman_password)
+    except errors.ExecutionError, lde:
+        sys.exit("An error occurred while connecting to the server.\n%s\n" %
+            str(lde))
+    except errors.ACIError, e:
+        sys.exit("Authentication failed: %s" % e.info)
+
+    if options.list_managed_entries:
+        # List available Managed Entry Plugins
+        managed_entries = None
+        entries = conn.search_s(
+            managed_entry_definitions_dn, ldap.SCOPE_SUBTREE, filter
+            )
+        managed_entries = [entry.dn for entry in entries]
+        if managed_entries:
+            print "Available Managed Entry Definitions:"
+            for managed_entry in managed_entries:
+                rdn = DN(managed_entry)
+                managed_entry = rdn[0].value
+                print managed_entry
+        retval = 0
+        sys.exit()
+
+    if not options.managed_entry:
+        sys.exit("\nYou must specify a managed entry definition")
+    else:
+        rdn = DN(
+            ('cn', options.managed_entry),
+            DN(managed_entry_definitions_dn)
+        )
+        def_dn = str(rdn)
+
+        disabled = True
+        try:
+            entries = conn.search_s(def_dn,
+                ldap.SCOPE_BASE,
+                filter,
+                ['originfilter'],
+            )
+            disable_attr = '(objectclass=disable)'
+            try:
+                org_filter = entries[0].originfilter
+                disabled = re.search(r'%s' % disable_attr, org_filter)
+            except KeyError:
+                sys.exit("%s is not a valid Managed Entry" % def_dn)
+        except ldap.NO_SUCH_OBJECT:
+            sys.exit("%s is not a valid Managed Entry" % def_dn)
+        except errors.NotFound:
+            sys.exit("%s is not a valid Managed Entry" % def_dn)
+        except errors.ExecutionError, lde:
+            print "An error occurred while talking to the server."
+            print lde
+
+        if args[0] == "status":
+            if not disabled:
+                print "Plugin Enabled"
+            else:
+                print "Plugin Disabled"
+            return 0
+
+        if args[0] == "enable":
+            try:
+                if not disabled:
+                    print "Plugin already Enabled"
+                    retval = 2
+                else:
+                    # Remove disable_attr from filter
+                    enable_attr = org_filter.replace(disable_attr, '')
+                    #enable_attr = {'originfilter': enable_attr}
+                    conn.modify_s(
+                        def_dn,
+                        [(ldap.MOD_REPLACE,
+                        'originfilter',
+                        enable_attr)]
+                    )
+                    print "Enabling Plugin"
+                    retval = 0
+            except errors.NotFound:
+                print "Enabling Plugin"
+            except errors.ExecutionError, lde:
+                print "An error occurred while talking to the server."
+                print lde
+                retval = 1
+
+        elif args[0] == "disable":
+            # Set originFilter to objectclass=disabled
+            # In future we should we should dedicate an attribute for enabling/
+            # disabling.
+            try:
+                if disabled:
+                    print "Plugin already disabled"
+                    retval = 2
+                else:
+                    if org_filter[:2] == '(&' and org_filter[-1] == ')':
+                        disable_attr = org_filter[:2] + disable_attr + org_filter[2:]
+                    else:
+                        disable_attr = '(&%s(%s))' % (disable_attr, org_filter)
+                    conn.modify_s(
+                        def_dn,
+                        [(ldap.MOD_REPLACE,
+                        'originfilter',
+                        disable_attr)]
+                    )
+                    print "Disabling Plugin"
+            except errors.NotFound:
+                print "Plugin is already disabled"
+                retval = 2
+            except errors.DatabaseError, dbe:
+                print "An error occurred while talking to the server."
+                print dbe
+                retval = 1
+            except errors.ExecutionError, lde:
+                print "An error occurred while talking to the server."
+                print lde
+                retval = 1
+
+        else:
+            retval = 1
+
+    return retval
+
+try:
+    if __name__ == "__main__":
+        sys.exit(main())
+except RuntimeError, e:
+    print "%s" % e
+    sys.exit(1)
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt, e:
+    sys.exit(1)
+except config.IPAConfigError, e:
+    print "An IPA server to update cannot be found. Has one been configured yet?"
+    print "The error was: %s" % e
+    sys.exit(1)
+except errors.LDAPError, e:
+    print "An error occurred while performing operations: %s" % e
+    sys.exit(1)

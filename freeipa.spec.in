@@ -413,7 +413,7 @@ fi
 %{_sbindir}/ipa-ldap-updater
 %{_sbindir}/ipa-compat-manage
 %{_sbindir}/ipa-nis-manage
-%{_sbindir}/ipa-host-net-manage
+%{_sbindir}/ipa-managed-entries
 %{_sbindir}/ipactl
 %{_sbindir}/ipa-upgradeconfig
 %{_sbindir}/ipa-compliance
@@ -488,7 +488,7 @@ fi
 %{_mandir}/man1/ipa-ca-install.1.gz
 %{_mandir}/man1/ipa-compat-manage.1.gz
 %{_mandir}/man1/ipa-nis-manage.1.gz
-%{_mandir}/man1/ipa-host-net-manage.1.gz
+%{_mandir}/man1/ipa-managed-entries.1.gz
 %{_mandir}/man1/ipa-ldap-updater.1.gz
 %{_mandir}/man8/ipactl.8.gz
 %{_mandir}/man1/ipa-compliance.1.gz
