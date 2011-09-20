@@ -445,7 +445,7 @@ IPA.text_widget = function(spec) {
         var value = that.values && that.values.length ? that.values[0] : '';
 
         if (that.read_only || !that.writable) {
-            that.display_control.html(value);
+            that.display_control.text(value);
             that.display_control.css('display', 'inline');
             that.input.css('display', 'none');
 
@@ -639,8 +639,8 @@ IPA.multivalued_text_widget = function(spec) {
 
         if (that.read_only || !that.writable) {
             var label = $('<label/>', {
-                'name': that.name,
-                'html': value
+                name: that.name,
+                text: value
             });
             input.replaceWith(label);
 
@@ -1137,7 +1137,7 @@ IPA.column = function (spec) {
         throw except;
     }
 
-    function setup(container, record) {
+    that.setup = function(container, record) {
 
         container.empty();
 
@@ -1150,18 +1150,16 @@ IPA.column = function (spec) {
         if (that.link) {
             $('<a/>', {
                 href: '#'+value,
-                html: value,
+                text: value,
                 click: function() {
                     return that.link_handler(value);
                 }
             }).appendTo(container);
 
         } else {
-            container.append(value);
+            container.text(value);
         }
-    }
-
-    that.setup = spec.setup || setup;
+    };
 
     that.link_handler = function(value) {
         return false;
@@ -1764,7 +1762,7 @@ IPA.combobox_widget = function(spec) {
     };
 
     that.set_value = function(value) {
-        that.text.html(value);
+        that.text.text(value);
         that.input.val(value);
     };
 
@@ -1890,8 +1888,8 @@ IPA.entity_link_widget = function(spec) {
     that.load = function (record){
         that.widget_load(record);
         if (that.values || that.values.length > 0){
-            that.nonlink.html(that.values[0]);
-            that.link.html(that.values[0]);
+            that.nonlink.text(that.values[0]);
+            that.link.text(that.values[0]);
             that.link.css('display','none');
             that.nonlink.css('display','inline');
         }else{

@@ -232,25 +232,25 @@ IPA.cert.view_dialog = function(spec) {
         tr = $('<tr/>').appendTo(table);
         $('<td>'+IPA.messages.objects.cert.common_name+':</td>').appendTo(tr);
         $('<td/>', {
-            'html': that.subject.cn
+            text: that.subject.cn
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
         $('<td>'+IPA.messages.objects.cert.organization+':</td>').appendTo(tr);
         $('<td/>', {
-            'html': that.subject.o
+            text: that.subject.o
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
         $('<td>'+IPA.messages.objects.cert.organizational_unit+':</td>').appendTo(tr);
         $('<td/>', {
-            'html': that.subject.ou
+            text: that.subject.ou
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
         $('<td>'+IPA.messages.objects.cert.serial_number+':</td>').appendTo(tr);
         $('<td/>', {
-            'html': that.serial_number
+            text: that.serial_number
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
@@ -262,19 +262,19 @@ IPA.cert.view_dialog = function(spec) {
         tr = $('<tr/>').appendTo(table);
         $('<td>'+IPA.messages.objects.cert.common_name+':</td>').appendTo(tr);
         $('<td/>', {
-            'html': that.issuer.cn
+            text: that.issuer.cn
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
         $('<td>'+IPA.messages.objects.cert.organization+':</td>').appendTo(tr);
         $('<td/>', {
-            'html': that.issuer.o
+            text: that.issuer.o
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
         $('<td>'+IPA.messages.objects.cert.organizational_unit+':</td>').appendTo(tr);
         $('<td/>', {
-            'html': that.issuer.ou
+            text: that.issuer.ou
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
@@ -286,13 +286,13 @@ IPA.cert.view_dialog = function(spec) {
         tr = $('<tr/>').appendTo(table);
         $('<td>'+IPA.messages.objects.cert.issued_on+':</td>').appendTo(tr);
         $('<td/>', {
-            'html': that.issued_on
+            text: that.issued_on
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
         $('<td>'+IPA.messages.objects.cert.expires_on+':</td>').appendTo(tr);
         $('<td/>', {
-            'html': that.expires_on
+            text: that.expires_on
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
@@ -304,13 +304,13 @@ IPA.cert.view_dialog = function(spec) {
         tr = $('<tr/>').appendTo(table);
         $('<td>'+IPA.messages.objects.cert.sha1_fingerprint+':</td>').appendTo(tr);
         $('<td/>', {
-            'html': that.sha1_fingerprint
+            text: that.sha1_fingerprint
         }).appendTo(tr);
 
         tr = $('<tr/>').appendTo(table);
         $('<td>'+IPA.messages.objects.cert.md5_fingerprint+':</td>').appendTo(tr);
         $('<td/>', {
-            'html': that.md5_fingerprint
+            text: that.md5_fingerprint
         }).appendTo(tr);
     };
 

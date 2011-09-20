@@ -183,7 +183,8 @@ IPA.entity_factories.automountkey = function() {
         build();
 };
 
-IPA.automount_key_column = function(spec){
+IPA.automount_key_column = function(spec) {
+
     var that = IPA.column(spec);
 
     that.setup = function(container, record) {
@@ -193,7 +194,7 @@ IPA.automount_key_column = function(spec){
 
         $('<a/>', {
             href: '#'+key,
-            html: key,
+            text: key,
             click: function() {
                 var state = IPA.nav.get_path_state(that.entity_name);
                 state[that.entity_name + '-facet'] = 'default';

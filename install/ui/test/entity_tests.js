@@ -101,10 +101,5 @@ test('Testing IPA.entity_set_search_definition().', function() {
         'column.label'
     );
 
-    ok(
-        column.setup,
-        'column.setup not null'
-    );
-
 });
 

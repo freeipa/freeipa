@@ -509,9 +509,9 @@ IPA.entitle.certificate_column = function(spec) {
         var certificate = record[that.name];
 
         $('<a/>', {
-            'href': '#download',
-            'html': IPA.messages.objects.entitle.download,
-            'click': function() {
+            href: '#download',
+            html: IPA.messages.objects.entitle.download,
+            click: function() {
                 var dialog = IPA.cert.download_dialog({
                     title: IPA.messages.objects.entitle.download_certificate,
                     certificate: certificate,
