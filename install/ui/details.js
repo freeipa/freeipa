@@ -205,7 +205,6 @@ IPA.details_section = function(spec) {
 
     // methods that should be invoked by subclasses
     that.section_create = that.create;
-    that.section_setup = that.setup;
     that.section_load = that.load;
     that.section_reset = that.reset;
 
@@ -720,7 +719,6 @@ IPA.details_facet = function(spec) {
 
     that.details_facet_create_content = that.create_content;
     that.details_facet_load = that.load;
-    that.details_facet_setup = that.setup;
 
     return that;
 };

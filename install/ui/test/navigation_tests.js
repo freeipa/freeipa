@@ -118,8 +118,8 @@ test("Testing IPA.navigation.update() with valid index.", function() {
         content: entity_container,
         tabs: [
             { name:'identity', label:'IDENTITY', children: [
-                {name:'one', label:'One', setup: function (){}},
-                {name:'two', label:'Two', setup: function (){}}
+                {name:'one', label:'One'},
+                {name:'two', label:'Two'}
             ]}
         ]
     });

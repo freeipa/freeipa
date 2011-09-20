@@ -196,6 +196,7 @@ IPA.facet_header = function(spec) {
 
             while (entity) {
                 breadcrumb.unshift($('<a/>', {
+                    'class': 'breadcrumb-element',
                     text: IPA.nav.get_state(entity.name+'-pkey'),
                     title: entity.name,
                     click: function(entity) {
@@ -217,7 +218,11 @@ IPA.facet_header = function(spec) {
             }
 
             that.path.append(' &raquo; ');
-            that.path.append(value);
+
+            $('<span>', {
+                'class': 'breadcrumb-element',
+                text: value
+            }).appendTo(that.path);
         }
 
         that.title_container.empty();
