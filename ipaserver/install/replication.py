@@ -75,21 +75,6 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
     else:
         print "Connection check OK"
 
-
-def check_replication_plugin():
-    """
-    Confirm that the 389-ds replication is installed.
-
-    Emit a message and return True/False
-    """
-    if not os.path.exists('/usr/lib/dirsrv/plugins/libreplication-plugin.so') and \
-       not os.path.exists('/usr/lib64/dirsrv/plugins/libreplication-plugin.so'):
-        print "The 389-ds replication plug-in was not found on this system."
-        print "Please install the 'ds-replication' package and start the installation again"
-        return False
-
-    return True
-
 def enable_replication_version_checking(hostname, realm, dirman_passwd):
     """
     Check the replication version checking plugin. If it is not

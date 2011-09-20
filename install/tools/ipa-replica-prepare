@@ -28,7 +28,7 @@ import krbV
 from ipapython import ipautil
 from ipaserver.install import bindinstance, dsinstance, installutils, certs
 from ipaserver.install.bindinstance import add_zone, add_reverse_zone, add_fwd_rr, add_ptr_rr
-from ipaserver.install.replication import check_replication_plugin, enable_replication_version_checking
+from ipaserver.install.replication import enable_replication_version_checking
 from ipaserver.install.installutils import resolve_host
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
@@ -229,8 +229,6 @@ def get_dirman_password():
 
 def main():
     installutils.check_server_configuration()
-    if not check_replication_plugin():
-        sys.exit(1)
     options, args = parse_options()
 
     replica_fqdn = args[0]
