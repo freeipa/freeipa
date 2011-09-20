@@ -206,7 +206,7 @@ def ipa_start(options):
                 except:
                     pass
             try:
-                svchandle.stop('dirsrv', capture_output=False)
+                dirsrv.stop(capture_output=False)
             except:
                 pass
             raise IpactlError("Aborting ipactl")
