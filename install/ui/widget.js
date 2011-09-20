@@ -1670,12 +1670,7 @@ IPA.combobox_widget = function(spec) {
                 keypress: function(e) {
                     if (e.which == 13) { // Enter
                         var filter = that.filter.val();
-                        that.search(
-                            filter,
-                            function(data, text_status, xhr) {
-                                that.select(filter);
-                            }
-                        );
+                        that.search(filter);
                     }
                 }
             }).appendTo(div);
@@ -1685,12 +1680,7 @@ IPA.combobox_widget = function(spec) {
                 icon: 'search-icon',
                 click: function() {
                     var filter = that.filter.val();
-                    that.search(
-                        filter,
-                        function(data, text_status, xhr) {
-                            that.select(filter);
-                        }
-                    );
+                    that.search(filter);
                     return false;
                 }
             }).appendTo(div);
@@ -1783,10 +1773,15 @@ IPA.combobox_widget = function(spec) {
         var option;
 
         if (value) {
+            // select specified value
             option = $('option[value="'+value+'"]', that.list);
         } else {
+            // select first available option
             option = $('option', that.list).first();
         }
+
+        // if no option found, skip
+        if (!option.length) return;
 
         option.attr('selected', 'selected');
 
