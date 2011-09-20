@@ -17,7 +17,7 @@ man1_MANS = 				\
 	ipa-ldap-updater.1		\
 	ipa-compat-manage.1		\
 	ipa-nis-manage.1		\
-	ipa-host-net-manage.1		\
+	ipa-managed-entries.1		\
 	ipa-compliance.1
 
 man8_MANS =				\

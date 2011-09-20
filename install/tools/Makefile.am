@@ -17,7 +17,7 @@ sbin_SCRIPTS =			\
 	ipactl			\
 	ipa-compat-manage	\
 	ipa-nis-manage		\
-	ipa-host-net-manage     \
+	ipa-managed-entries     \
 	ipa-ldap-updater	\
 	ipa-upgradeconfig	\
 	ipa-compliance		\
