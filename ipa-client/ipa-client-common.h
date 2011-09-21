@@ -23,6 +23,7 @@
 #include <libintl.h>
 #define _(STRING) gettext(STRING)
 
+#include <stdint.h>
 #ifndef discard_const
 #define discard_const(ptr) ((void *)((uintptr_t)(ptr)))
 #endif

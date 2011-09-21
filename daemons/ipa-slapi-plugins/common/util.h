@@ -40,6 +40,7 @@
 #define EOK 0
 #define EFAIL -1
 
+#include <stdint.h>
 #ifndef discard_const
 #define discard_const(ptr) ((void *)((uintptr_t)(ptr)))
 #endif
