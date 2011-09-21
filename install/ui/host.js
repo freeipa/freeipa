@@ -536,6 +536,10 @@ IPA.host_keytab_widget = function(spec) {
             );
         });
 
+        dialog.add_button(IPA.messages.buttons.cancel, function() {
+            dialog.close();
+        });
+
         dialog.open(that.container);
     };
 
