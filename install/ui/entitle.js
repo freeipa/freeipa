@@ -120,20 +120,17 @@ IPA.entity_factories.entitle = function() {
             fields: [
                 {
                     name: 'username',
-                    label: IPA.get_method_arg('entitle_register', 'username').label,
-                    undo: false
+                    label: IPA.get_method_arg('entitle_register', 'username').label
                 },
                 {
                     name: 'password',
                     label: IPA.get_method_option('entitle_register', 'password').label,
-                    type: 'password',
-                    undo: false
+                    type: 'password'
                 }
 /* currently not supported
                 , {
                     name: 'ipaentitlementid',
-                    label: IPA.get_method_option('entitle_register', 'ipaentitlementid').label,
-                    undo: false
+                    label: IPA.get_method_option('entitle_register', 'ipaentitlementid').label
                 }
 */
             ]
@@ -146,8 +143,7 @@ IPA.entity_factories.entitle = function() {
             fields: [
                 {
                     name: 'certificate',
-                    label: IPA.messages.objects.entitle.certificate,
-                    undo: false
+                    label: IPA.messages.objects.entitle.certificate
                 }
             ]
         }).
@@ -159,7 +155,6 @@ IPA.entity_factories.entitle = function() {
                 {
                     name: 'quantity',
                     label: IPA.get_method_arg('entitle_consume', 'quantity').label,
-                    undo: false,
                     metadata: IPA.get_method_arg('entitle_consume', 'quantity')
                 }
             ]
@@ -172,8 +167,7 @@ IPA.entity_factories.entitle = function() {
             fields: [
                 {
                     name: 'certificate',
-                    label: IPA.messages.objects.entitle.certificate,
-                    undo: false
+                    label: IPA.messages.objects.entitle.certificate
                 }
             ]
         });

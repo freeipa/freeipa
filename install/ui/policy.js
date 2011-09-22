@@ -49,8 +49,7 @@ IPA.entity_factories.pwpolicy = function() {
                     factory: IPA.entity_select_widget,
                     name: 'cn',
                     other_entity: 'group',
-                    other_field: 'cn',
-                    undo: false
+                    other_field: 'cn'
                 },
                 'cospriority'],
             width: 400,

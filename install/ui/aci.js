@@ -69,22 +69,18 @@ IPA.entity_factories.permission = function() {
                 {
                     name: 'general',
                     fields: [
-                        {
-                            name: 'cn',
-                            undo: false
-                        },
+                        'cn',
                         {
                             factory: IPA.rights_widget,
                             name: 'permissions',
-                            join: true, undo: false
+                            join: true
                         }
                     ]
                 },
                 {
                     factory: IPA.target_section,
                     name: 'target',
-                    label: IPA.messages.objects.permission.target,
-                    undo: false
+                    label: IPA.messages.objects.permission.target
                 }
             ]
         }).
@@ -173,8 +169,7 @@ IPA.entity_factories.selfservice = function() {
                 'aciname',
                 {factory:IPA.attributes_widget,
                  object_type:'user',
-                 name:'attrs',
-                 undo: false
+                 name:'attrs'
                 }]
         }).
         build();
@@ -218,21 +213,20 @@ IPA.entity_factories.delegation = function() {
                     factory: IPA.entity_select_widget,
                     name: 'group',
                     other_entity: 'group',
-                    other_field: 'cn',
-                    undo: false
+                    other_field: 'cn'
                 },
                 {
                     factory: IPA.entity_select_widget,
                     name: 'memberof',
                     other_entity: 'group',
                     other_field: 'cn',
-                    join: true,
-                    undo: false
+                    join: true
                 },
                 {
-                    factory:IPA.attributes_widget,
-                    name: 'attrs', object_type: 'user',
-                    join: true, undo: false
+                    factory: IPA.attributes_widget,
+                    name: 'attrs',
+                    object_type: 'user',
+                    join: true
                 }]
         }).
         build();
@@ -400,7 +394,6 @@ IPA.target_section = function(spec) {
     spec = spec || {};
 
     var that = IPA.details_section(spec);
-    that.undo = typeof spec.undo == 'undefined' ? true : spec.undo;
 
     var target_types = [
         {
@@ -504,31 +497,26 @@ IPA.target_section = function(spec) {
     var init = function() {
         that.filter_text = IPA.text_widget({
             name: 'filter',
-            undo: that.undo,
             entity: spec.entity
         });
         that.subtree_textarea = IPA.textarea_widget({
             entity: spec.entity,
             name: 'subtree',
-            cols: 30, rows: 1,
-            undo: that.undo
+            cols: 30, rows: 1
         });
         that.group_select = IPA.entity_select_widget({
             entity: spec.entity,
             name: 'targetgroup',
             other_entity: 'group',
-            other_field: 'cn',
-            undo: that.undo
+            other_field: 'cn'
         });
         that.type_select = IPA.select_widget({
             entity: spec.entity,
-            name: 'type',
-            undo: that.undo
+            name: 'type'
         });
         that.attribute_table = IPA.attributes_widget({
             entity: spec.entity,
-            name: 'attrs',
-            undo: that.undo
+            name: 'attrs'
         });
 
         that.add_field(that.filter_text);

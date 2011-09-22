@@ -95,7 +95,6 @@ IPA.entity_factories.group =  function () {
                     factory: IPA.group_nonposix_checkbox_widget,
                     name: 'nonposix',
                     label: IPA.messages.objects.group.posix,
-                    undo: false,
                     checked: true
                 },
                 'gidnumber']

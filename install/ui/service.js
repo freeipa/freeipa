@@ -119,8 +119,7 @@ IPA.service_add_dialog = function(spec) {
             label: IPA.messages.objects.service.service,
             size: 20,
             entity: spec.entity,
-            param_info: { required: true },
-            undo: false
+            param_info: { required: true }
         })).
         field(IPA.entity_select_widget({
             name: 'host',
@@ -128,14 +127,12 @@ IPA.service_add_dialog = function(spec) {
             other_field: 'fqdn',
             entity: spec.entity,
             label: IPA.messages.objects.service.host,
-            param_info: { required: true },
-            undo: false
+            param_info: { required: true }
         })).
         field(IPA.checkbox_widget({
             name: 'force',
             entity: spec.entity,
-            param_info: IPA.get_method_option('service_add', 'force'),
-            undo: false
+            param_info: IPA.get_method_option('service_add', 'force')
         }));
 
 

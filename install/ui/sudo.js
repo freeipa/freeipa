@@ -570,8 +570,7 @@ IPA.sudo.options_section = function(spec) {
 
         var ipasudoopt = dialog.add_field(IPA.text_widget({
             name: 'ipasudoopt',
-            label: label,
-            undo: false
+            label: label
         }));
 
         dialog.add_button(IPA.messages.buttons.add, function() {

@@ -142,11 +142,12 @@ IPA.entity_factories.user = function() {
             fields: [
                 {
                     factory : IPA.text_widget,
-                    undo: false,
                     optional: true,
                     name:'uid'
                 },
-                'givenname', 'sn']
+                'givenname',
+                'sn'
+            ]
         });
 
     return builder.build();
@@ -324,15 +325,13 @@ IPA.user_password_widget = function(spec) {
         var password1 = dialog.add_field(IPA.text_widget({
             name: 'password1',
             label: IPA.messages.password.new_password,
-            type: 'password',
-            undo: false
+            type: 'password'
         }));
 
         var password2 = dialog.add_field(IPA.text_widget({
             name: 'password2',
             label: IPA.messages.password.verify_password,
-            type: 'password',
-            undo: false
+            type: 'password'
         }));
 
         dialog.add_button(IPA.messages.password.reset_password, function() {
