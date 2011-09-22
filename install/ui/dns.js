@@ -93,15 +93,13 @@ IPA.entity_factories.dnszone = function() {
             fields: [
                 {
                     name: 'idnsname',
-                    optional: true,
-                    undo: false
+                    optional: true
                 },
                 'name_from_ip',
                 'idnssoamname',
                 {
                     name: 'idnssoarname',
-                    optional: true,
-                    undo: false
+                    optional: true
                 },
                 {
                     factory: IPA.force_dnszone_add_checkbox_widget,
@@ -583,28 +581,26 @@ IPA.entity_factories.dnsrecord = function() {
             ]
         }).
         adder_dialog({
-            pre_execute_hook:function(command){
+            pre_execute_hook: function(command) {
                 var record_type = command.options.record_type;
                 var record_data = command.options.record_data;
 
-                delete  command.options.record_type;
-                delete  command.options.record_data;
+                delete command.options.record_type;
+                delete command.options.record_data;
                 command.options[record_type] = record_data;
             },
             fields: [
                 'idnsname',
                 {
-                    name:'record_type',
-                    label:IPA.messages.objects.dnsrecord.type,
-                    factory:IPA.dnsrecord_type_widget,
-                    undo: false
+                    name: 'record_type',
+                    label: IPA.messages.objects.dnsrecord.type,
+                    factory: IPA.dnsrecord_type_widget
                 },
                 {
-                    name:'record_data',
-                    label:IPA.messages.objects.dnsrecord.data,
-                    factory:IPA.text_widget,
-                    param_info:{required:true},
-                    undo: false
+                    name: 'record_data',
+                    label: IPA.messages.objects.dnsrecord.data,
+                    factory: IPA.text_widget,
+                    param_info: {required:true}
                 }
             ]
         }).
@@ -670,7 +666,6 @@ IPA.force_dnszone_add_checkbox_widget = function(spec) {
     var param_info = IPA.get_method_option('dnszone_add', spec.name);
     spec.label = param_info.label;
     spec.tooltip = param_info.doc;
-    spec.undo = false;
     return IPA.checkbox_widget(spec);
 };
 

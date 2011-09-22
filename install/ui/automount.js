@@ -104,17 +104,10 @@ IPA.entity_factories.automountmap = function() {
                                     value: 'add_indirect',
                                     label: IPA.messages.objects.automountmap.indirect
                                 }
-                            ],
-                            undo: false
+                            ]
                         },
-                        {
-                            name: 'automountmapname',
-                            undo: false
-                        },
-                        {
-                            name: 'description',
-                            undo: false
-                        }
+                        'automountmapname',
+                        'description'
                     ]
                 },
                 {
@@ -123,14 +116,12 @@ IPA.entity_factories.automountmap = function() {
                         {
                             name: 'key',
                             label: IPA.get_method_option(
-                                'automountmap_add_indirect', 'key').label,
-                            undo: false
+                                'automountmap_add_indirect', 'key').label
                         },
                         {
                             name: 'parentmap',
                             label: IPA.get_method_option(
-                                'automountmap_add_indirect', 'parentmap').label,
-                            undo: false
+                                'automountmap_add_indirect', 'parentmap').label
                         }
                     ]
                 }

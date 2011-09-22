@@ -134,8 +134,7 @@ IPA.entity_factories.host = function () {
                             factory: IPA.text_widget,
                             name: 'hostname',
                             label: IPA.messages.objects.service.host,
-                            param_info: { required: true },
-                            undo: false
+                            param_info: { required: true }
                         },
                         {
                             factory: IPA.dnszone_select_widget,
@@ -143,8 +142,7 @@ IPA.entity_factories.host = function () {
                             label: IPA.metadata.objects.dnszone.label_singular,
                             editable: true,
                             empty_option: false,
-                            param_info: { required: true },
-                            undo: false
+                            param_info: { required: true }
                         }
                     ]
                 },
@@ -154,8 +152,7 @@ IPA.entity_factories.host = function () {
                         {
                             factory: IPA.text_widget,
                             name: 'ip_address',
-                            param_info: IPA.get_method_option('host_add', 'ip_address'),
-                            undo: false
+                            param_info: IPA.get_method_option('host_add', 'ip_address')
                         },
                         {
                             factory: IPA.force_host_add_checkbox_widget,
@@ -406,7 +403,6 @@ IPA.force_host_add_checkbox_widget = function(spec) {
     var param_info = IPA.get_method_option('host_add', spec.name);
     spec.label = param_info.label;
     spec.tooltip = param_info.doc;
-    spec.undo = false;
     return IPA.checkbox_widget(spec);
 };
 
@@ -630,15 +626,13 @@ IPA.host_password_widget = function(spec) {
         var password1 = dialog.add_field(IPA.text_widget({
             name: 'password1',
             label: IPA.messages.password.new_password,
-            type: 'password',
-            undo: false
+            type: 'password'
         }));
 
         var password2 = dialog.add_field(IPA.text_widget({
             name: 'password2',
             label: IPA.messages.password.verify_password,
-            type: 'password',
-            undo: false
+            type: 'password'
         }));
 
         dialog.add_button(label, function() {
