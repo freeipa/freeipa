@@ -23,17 +23,15 @@ try:
     import sys
 
     import os
-    import stat
     import time
     import socket
     import logging
     import tempfile
     import getpass
-    import re
     from ipaclient import ipadiscovery
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
-    from ipapython.ipautil import run, user_input, CalledProcessError, file_exists, install_file
+    from ipapython.ipautil import run, user_input, CalledProcessError, file_exists
     import ipapython.services as ipaservices
     from ipapython import ipautil
     from ipapython import dnsclient
@@ -888,6 +886,7 @@ def install(options, env, fstore, statestore):
         return CLIENT_INSTALL_ERROR
 
     if not options.on_master:
+        nolog = tuple()
         # First test out the kerberos configuration
         try:
             (krb_fd, krb_name) = tempfile.mkstemp()
@@ -929,6 +928,7 @@ def install(options, env, fstore, statestore):
                     print stdout
                     return CLIENT_INSTALL_ERROR
             elif options.password:
+                nolog = (options.password,)
                 join_args.append("-w")
                 join_args.append(options.password)
             elif options.prompt_password:
@@ -938,9 +938,10 @@ def install(options, env, fstore, statestore):
                 password = getpass.getpass("Password: ")
                 join_args.append("-w")
                 join_args.append(password)
+                nolog = (password,)
 
             # Now join the domain
-            (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env)
+            (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env, nolog=nolog)
 
             if returncode != 0:
                 print >>sys.stderr, "Joining realm failed: %s" % stderr,
