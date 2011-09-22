@@ -280,7 +280,7 @@ class IPADiscovery:
 
         finally:
             os.remove("%s/ca.crt" % temp_ca_dir)
-            os.removedirs(temp_ca_dir)
+            os.rmdir(temp_ca_dir)
 
 
     def ipadnssearchldap(self, tdomain):
