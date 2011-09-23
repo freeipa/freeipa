@@ -964,30 +964,17 @@ span.main-separator{
     cursor: default;
 }
 
-
-.aci-attribute-table {
-
-}
-
-.aci-attribute-table thead{
-    display: block;
-}
-
-
-.aci-attribute-table tbody{
-    width: 100%;
-    height:10em;
-    overflow:auto;
+.aci-attribute-table tbody {
     border-bottom: 1px solid #8a8a8a;
-    display: block;
+    height:10em;
 }
 
-.aci-attribute-table th.aci-attribute-column{
-    width: 20.5em;
+.aci-attribute-table .aci-attribute-column {
+    width: 200em; /* it will fit actual width */
 }
 
 .entity-views{
-     list-style-type:none;
+    list-style-type:none;
 }
 
 .entity-views li {

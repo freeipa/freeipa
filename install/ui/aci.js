@@ -248,7 +248,7 @@ IPA.attributes_widget = function(spec) {
 
         that.table = $('<table/>', {
             id:id,
-            'class':'search-table aci-attribute-table'
+            'class':'search-table aci-attribute-table scrollable'
         }).
             append('<thead/>').
             append('<tbody/>').
@@ -257,10 +257,9 @@ IPA.attributes_widget = function(spec) {
         var tr = $('<tr></tr>').appendTo($('thead', that.table));
 
         tr.append($('<th/>', {
-            style:"height:2em; vertical-align:bottom;",
-            html:$('<input/>',{
+            html: $('<input/>', {
                 type: "checkbox",
-                click: function(){
+                click: function() {
                     $('.aci-attribute', that.table).
                         attr('checked', $(this).attr('checked'));
                     that.set_dirty(that.test_dirty());
@@ -275,7 +274,7 @@ IPA.attributes_widget = function(spec) {
             that.create_undo(container);
         }
 
-        if (that.object_type){
+        if (that.object_type) {
             that.populate(that.object_type);
         }
     };
