@@ -116,7 +116,7 @@ def upgrade(sub_dict, filename, template, add=False):
     if new < 0:
         print "%s not found." % template
 
-    if old < new or add:
+    if old < new:
         backup_file(filename, new)
         update_conf(sub_dict, filename, template)
         print "Upgraded %s to version %d" % (filename, new)
