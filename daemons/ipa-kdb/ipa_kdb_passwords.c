@@ -279,7 +279,7 @@ krb5_error_code ipadb_get_pwd_expiration(krb5_context context,
                                          time_t *expire_time)
 {
     krb5_error_code kerr;
-    krb5_timestamp mod_time;
+    krb5_timestamp mod_time = 0;
     krb5_principal mod_princ = NULL;
     krb5_boolean truexp = true;
 

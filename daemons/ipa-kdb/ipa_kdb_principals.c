@@ -1587,6 +1587,23 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
             if (kerr) {
                 goto done;
             }
+
+            /* Also set new password expiration time.
+             * Have to do it here because kadmin doesn't know policies and
+             * resets entry->mask after we have gone through the password
+             * change code.  */
+            kerr = ipadb_get_pwd_expiration(kcontext, entry,
+                                            ied, &expire_time);
+            if (kerr) {
+                goto done;
+            }
+
+            kerr = ipadb_get_ldap_mod_time(imods,
+                                           "krbPasswordExpiration",
+                                           expire_time, mod_op);
+            if (kerr) {
+                goto done;
+            }
         }
 
         if (ied->ipa_user && ied->passwd && ied->pol.history_length) {
@@ -1604,22 +1621,6 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
             if (kerr) {
                 goto done;
             }
-        }
-
-        /* Also set new password expiration time.
-         * Have to do it here because kadmin doesn't know policies and resets
-         * entry->mask after we have gone through the password change code.
-         */
-        kerr = ipadb_get_pwd_expiration(kcontext, entry, ied, &expire_time);
-        if (kerr) {
-            goto done;
-        }
-
-        kerr = ipadb_get_ldap_mod_time(imods,
-                                       "krbPasswordExpiration",
-                                       expire_time, mod_op);
-        if (kerr) {
-            goto done;
         }
     }
 
