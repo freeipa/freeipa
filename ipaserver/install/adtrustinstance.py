@@ -125,26 +125,72 @@ class ADTRUSTInstance(service.Service):
         sub_ids = struct.unpack("<LLL", os.urandom(12))
         return "S-1-5-21-%d-%d-%d" % (sub_ids[0], sub_ids[1], sub_ids[2])
 
-    def __create_samba_domain_object(self):
-        trust_dn = "cn=trusts,%s" % self.suffix
-        smb_dom_dn = "cn=ad,%s" % trust_dn
+    def __add_admin_sids(self):
+        admin_dn = "uid=admin,cn=users,cn=accounts,%s" % self.suffix
+        admin_group_dn = "cn=admins,cn=groups,cn=accounts,%s" % self.suffix
 
         try:
-            self.admin_conn.getEntry(smb_dom_dn, ldap.SCOPE_BASE)
+            dom_entry = self.admin_conn.getEntry(self.smb_dom_dn, \
+                                                 ldap.SCOPE_BASE)
+        except errors.NotFound:
+            print "Samba domain object not found"
+            return
+
+        dom_sid = dom_entry.getValue("sambaSID")
+        if not dom_sid:
+            print "Samba domain object does not have a SID"
+            return
+
+        try:
+            admin_entry = self.admin_conn.getEntry(admin_dn, ldap.SCOPE_BASE)
+        except:
+            print "IPA admin object not found"
+            return
+
+        try:
+            admin_group_entry = self.admin_conn.getEntry(admin_group_dn, \
+                                                         ldap.SCOPE_BASE)
+        except:
+            print "IPA admin group object not found"
+            return
+
+        if admin_entry.getValue("sambaSID") or \
+           admin_group_entry.getValue("sambaSID"):
+            print "Admin SID already set, nothing to do"
+            return
+
+        try:
+            self.admin_conn.modify_s(admin_dn, \
+                        [(ldap.MOD_ADD, "objectclass", "sambaSamAccount"), \
+                         (ldap.MOD_ADD, "sambaSID", dom_sid + "-500")])
+        except:
+            print "Failed to modify IPA admin object"
+
+        try:
+            self.admin_conn.modify_s(admin_group_dn, \
+                        [(ldap.MOD_ADD, "objectclass", "sambaSidEntry"), \
+                         (ldap.MOD_ADD, "sambaSID", dom_sid + "-512")])
+        except:
+            print "Failed to modify IPA admin group object"
+
+    def __create_samba_domain_object(self):
+
+        try:
+            self.admin_conn.getEntry(self.smb_dom_dn, ldap.SCOPE_BASE)
             print "Samba domain object already exists"
             return
         except errors.NotFound:
             pass
 
         try:
-            self.admin_conn.getEntry(trust_dn, ldap.SCOPE_BASE)
+            self.admin_conn.getEntry(self.trust_dn, ldap.SCOPE_BASE)
         except errors.NotFound:
-            entry = ipaldap.Entry(trust_dn)
+            entry = ipaldap.Entry(self.trust_dn)
             entry.setValues("objectclass", ["nsContainer"])
             entry.setValues("cn", "trusts")
             self.admin_conn.add_s(entry)
 
-        entry = ipaldap.Entry(smb_dom_dn)
+        entry = ipaldap.Entry(self.smb_dom_dn)
         entry.setValues("objectclass", ["sambaDomain", "nsContainer"])
         entry.setValues("cn", "ad")
         entry.setValues("sambaDomainName", self.netbios_name)
@@ -247,6 +293,9 @@ class ADTRUSTInstance(service.Service):
         self.smb_dn = "uid=samba,cn=sysaccounts,cn=etc,%s" % self.suffix
         self.smb_dn_pwd = ipautil.ipa_generate_password()
 
+        self.trust_dn = "cn=trusts,%s" % self.suffix
+        self.smb_dom_dn = "cn=ad,%s" % self.trust_dn
+
         self.__setup_sub_dict()
 
 
@@ -261,6 +310,7 @@ class ADTRUSTInstance(service.Service):
         self.step("writing samba config file", self.__write_smb_conf)
         self.step("setting password for the samba user", self.__set_smb_ldap_password)
         self.step("Adding cifs Kerberos principal", self.__setup_principal)
+        self.step("Adding admin(group) SIDs", self.__add_admin_sids)
         self.step("configuring smbd to start on boot", self.__enable)
         self.step("starting smbd", self.__start)
 
