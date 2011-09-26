@@ -40,7 +40,7 @@ from ConfigParser import RawConfigParser
 import random
 import tempfile
 import nss.error
-from optparse import OptionGroup
+from optparse import OptionGroup, OptionValueError
 
 from ipaserver.install import dsinstance
 from ipaserver.install import krbinstance
@@ -92,14 +92,30 @@ def subject_callback(option, opt_str, value, parser):
     """
     name = opt_str.replace('--','')
     v = unicode(value, 'utf-8')
+    if any(ord(c) < 0x20 for c in v):
+        raise OptionValueError("Subject base must not contain control characters")
+    if '&' in v:
+        raise OptionValueError("Subject base must not contain an ampersand (\"&\")")
     try:
         dn = DN(v)
         for rdn in dn:
             if rdn.attr.lower() not in VALID_SUBJECT_ATTRS:
-                raise ValueError('invalid attribute: %s' % rdn.attr)
+                raise OptionValueError('invalid attribute: %s' % rdn.attr)
     except ValueError, e:
-        raise ValueError('Invalid subject base format: %s' % str(e))
+        raise OptionValueError('Invalid subject base format: %s' % str(e))
     parser.values.subject = str(dn) # may as well normalize it
+
+def validate_dm_password(password):
+    if len(password) < 8:
+        raise ValueError("Password must be at least 8 characters long")
+    if any(ord(c) < 0x20 for c in password):
+        raise ValueError("Password must not contain control characters")
+    if ' ' in password:
+        raise ValueError("Password must not contain a space (\" \")")
+    if '&' in password:
+        raise ValueError("Password must not contain an ampersand (\"&\")")
+    if '\\' in password:
+        raise ValueError("Password must not contain a backslash (\"\\\")")
 
 def parse_options():
     # Guaranteed to give a random 200k range below the 2G mark (uint32_t limit)
@@ -204,8 +220,11 @@ def parse_options():
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
 
-    if options.dm_password is not None and len(options.dm_password) < 8:
-        parser.error("DS admin password must be at least 8 characters long")
+    if options.dm_password is not None:
+        try:
+            validate_dm_password(options.dm_password)
+        except ValueError, e:
+            parser.error("DS admin password: " + str(e))
     if options.admin_password is not None and len(options.admin_password) < 8:
         parser.error("Admin user password must be at least 8 characters long")
 
@@ -417,7 +436,7 @@ def read_dm_password():
     print "The password must be at least 8 characters long."
     print ""
     #TODO: provide the option of generating a random password
-    dm_password = read_password("Directory Manager")
+    dm_password = read_password("Directory Manager", validator=validate_dm_password)
     return dm_password
 
 def read_admin_password():

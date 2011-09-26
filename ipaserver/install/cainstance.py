@@ -593,34 +593,34 @@ class CAInstance(service.Service):
                     "-cs_hostname", self.fqdn,
                     "-cs_port", str(ADMIN_SECURE_PORT),
                     "-client_certdb_dir", self.ca_agent_db,
-                    "-client_certdb_pwd", "'%s'" % self.admin_password,
+                    "-client_certdb_pwd", self.admin_password,
                     "-preop_pin" , preop_pin,
                     "-domain_name", self.domain_name,
                     "-admin_user", "admin",
                     "-admin_email",  "root@localhost",
-                    "-admin_password", "'%s'" % self.admin_password,
+                    "-admin_password", self.admin_password,
                     "-agent_name", "ipa-ca-agent",
                     "-agent_key_size", "2048",
                     "-agent_key_type", "rsa",
-                    "-agent_cert_subject", "\"CN=ipa-ca-agent,%s\"" % self.subject_base,
+                    "-agent_cert_subject", "CN=ipa-ca-agent,%s" % self.subject_base,
                     "-ldap_host", self.fqdn,
                     "-ldap_port", str(self.ds_port),
-                    "-bind_dn", "\"cn=Directory Manager\"",
-                    "-bind_password", "'%s'" % self.dm_password,
+                    "-bind_dn", "cn=Directory Manager",
+                    "-bind_password", self.dm_password,
                     "-base_dn", self.basedn,
                     "-db_name", "ipaca",
                     "-key_size", "2048",
                     "-key_type", "rsa",
                     "-key_algorithm", "SHA256withRSA",
                     "-save_p12", "true",
-                    "-backup_pwd", "'%s'" % self.admin_password,
+                    "-backup_pwd", self.admin_password,
                     "-subsystem_name", self.service_name,
                     "-token_name", "internal",
-                    "-ca_subsystem_cert_subject_name", "\"CN=CA Subsystem,%s\"" % self.subject_base,
-                    "-ca_ocsp_cert_subject_name", "\"CN=OCSP Subsystem,%s\"" % self.subject_base,
-                    "-ca_server_cert_subject_name", "\"CN=%s,%s\"" % (self.fqdn, self.subject_base),
-                    "-ca_audit_signing_cert_subject_name", "\"CN=CA Audit,%s\"" % self.subject_base,
-                    "-ca_sign_cert_subject_name", "\"CN=Certificate Authority,%s\"" % self.subject_base ]
+                    "-ca_subsystem_cert_subject_name", "CN=CA Subsystem,%s" % self.subject_base,
+                    "-ca_ocsp_cert_subject_name", "CN=OCSP Subsystem,%s" % self.subject_base,
+                    "-ca_server_cert_subject_name", "CN=%s,%s" % (self.fqdn, self.subject_base),
+                    "-ca_audit_signing_cert_subject_name", "CN=CA Audit,%s" % self.subject_base,
+                    "-ca_sign_cert_subject_name", "CN=Certificate Authority,%s" % self.subject_base ]
             if self.external == 1:
                 args.append("-external")
                 args.append("true")
@@ -651,7 +651,7 @@ class CAInstance(service.Service):
                 args.append("-clone_p12_file")
                 args.append("ca.p12")
                 args.append("-clone_p12_password")
-                args.append("'%s'" % self.dm_password)
+                args.append(self.dm_password)
                 args.append("-sd_hostname")
                 args.append(self.master_host)
                 args.append("-sd_admin_port")
@@ -659,7 +659,7 @@ class CAInstance(service.Service):
                 args.append("-sd_admin_name")
                 args.append("admin")
                 args.append("-sd_admin_password")
-                args.append("'%s'" % self.admin_password)
+                args.append(self.admin_password)
                 args.append("-clone_start_tls")
                 args.append("true")
                 args.append("-clone_uri")
@@ -667,6 +667,9 @@ class CAInstance(service.Service):
             else:
                 args.append("-clone")
                 args.append("false")
+
+            # pkisilent does not escape the arguments before passing them to shell
+            args[2:] = [ipautil.shell_quote(i) for i in args[2:]]
 
             # Define the things we don't want logged
             nolog = (self.admin_password, self.dm_password,)
