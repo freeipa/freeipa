@@ -167,7 +167,7 @@ def _validate_ipaddr(ugettext, ipaddr):
 def _validate_ipnet(ugettext, ipnet):
     try:
         net = netaddr.IPNetwork(ipnet)
-    except (UnboundLocalError, ValueError):
+    except (netaddr.AddrFormatError, ValueError, UnboundLocalError):
         return u'invalid format'
     return None
 
@@ -417,6 +417,13 @@ class dnszone_add(LDAPCreate):
         ),
     )
 
+    def args_options_2_params(self, *args, **options):
+        # FIXME: Check if name_from_ip is valid. The framework should do that,
+        #        but it does not. Before it's fixed, this should suffice.
+        if 'name_from_ip' in options:
+            self.obj.params['name_from_ip'](unicode(options['name_from_ip']))
+        return super(dnszone_add, self).args_options_2_params(*args, **options)
+
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if not dns_container_exists(self.api.Backend.ldap2):
             raise errors.NotFound(reason=_('DNS is not configured'))
@@ -469,6 +476,13 @@ api.register(dnszone_del)
 class dnszone_mod(LDAPUpdate):
     __doc__ = _('Modify DNS zone (SOA record).')
 
+    def args_options_2_params(self, *args, **options):
+        # FIXME: Check if name_from_ip is valid. The framework should do that,
+        #        but it does not. Before it's fixed, this should suffice.
+        if 'name_from_ip' in options:
+            self.obj.params['name_from_ip'](unicode(options['name_from_ip']))
+        return super(dnszone_mod, self).args_options_2_params(*args, **options)
+
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if 'name_from_ip' in entry_attrs:
             del entry_attrs['name_from_ip']
@@ -482,6 +496,13 @@ api.register(dnszone_mod)
 
 class dnszone_find(LDAPSearch):
     __doc__ = _('Search for DNS zones (SOA records).')
+
+    def args_options_2_params(self, *args, **options):
+        # FIXME: Check if name_from_ip is valid. The framework should do that,
+        #        but it does not. Before it's fixed, this should suffice.
+        if 'name_from_ip' in options:
+            self.obj.params['name_from_ip'](unicode(options['name_from_ip']))
+        return super(dnszone_find, self).args_options_2_params(*args, **options)
 
     def args_options_2_entry(self, *args, **options):
         if 'name_from_ip' in options:
