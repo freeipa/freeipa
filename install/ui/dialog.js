@@ -314,10 +314,13 @@ IPA.adder_dialog = function(spec) {
 
         top_panel.append(' ');
 
-        $('<input/>', {
-            type: 'button',
+        that.find_button = IPA.button({
             name: 'find',
-            value: IPA.messages.buttons.find
+            label: IPA.messages.buttons.find,
+            click: function() {
+                that.search();
+                return false;
+            }
         }).appendTo(top_panel);
 
         top_panel.append(IPA.create_network_spinner());
@@ -370,54 +373,26 @@ IPA.adder_dialog = function(spec) {
         }).appendTo(container);
 
         var p = $('<p/>').appendTo(buttons_panel);
-        $('<input />', {
-            type: 'button',
-            name: 'add',
-            value: '>>'
-        }).appendTo(p);
-
-        p = $('<p/>').appendTo(buttons_panel);
-        $('<input />', {
-            type: 'button',
-            name: 'remove',
-            value: '<<'
-        }).appendTo(p);
-
-
-        that.filter_field = $('input[name=filter]', that.container);
-
-        var button = $('input[name=find]', that.container);
-        that.find_button = IPA.button({
-            name: 'find',
-            'label': button.val(),
-            'click': function() {
-                that.search();
-                return false;
-            }
-        });
-        button.replaceWith(that.find_button);
-
-        button = $('input[name=remove]', that.container);
-        that.remove_button = IPA.button({
-            name: 'remove',
-            'label': button.val(),
-            'click': function() {
-                that.remove();
-                return false;
-            }
-        });
-        button.replaceWith(that.remove_button);
-
-        button = $('input[name=add]', that.container);
         that.add_button = IPA.button({
             name: 'add',
-            'label': button.val(),
-            'click': function() {
+            label: '>>',
+            click: function() {
                 that.add();
                 return false;
             }
-        });
-        button.replaceWith(that.add_button);
+        }).appendTo(p);
+
+        p = $('<p/>').appendTo(buttons_panel);
+        that.remove_button = IPA.button({
+            name: 'remove',
+            label: '<<',
+            click: function() {
+                that.remove();
+                return false;
+            }
+        }).appendTo(p);
+
+        that.filter_field = $('input[name=filter]', that.container);
 
         if (that.external) {
             container.addClass('adder-dialog-with-external');
@@ -440,7 +415,6 @@ IPA.adder_dialog = function(spec) {
                 type: 'text',
                 name: 'external'
             }).appendTo(external_content);
-
         }
 
         that.search();
