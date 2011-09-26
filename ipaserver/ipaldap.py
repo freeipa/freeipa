@@ -1,5 +1,6 @@
 # Authors: Rich Megginson <richm@redhat.com>
-#          Rob Crittenden <rcritten@redhat.com
+#          Rob Crittenden <rcritten@redhat.com>
+#          John Dennis <jdennis@redhat.com>
 #
 # Copyright (C) 2007  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -35,6 +36,7 @@ from ldap.ldapobject import SimpleLDAPObject
 from ipaserver import ipautil
 from ipalib import errors
 from ipapython.ipautil import format_netloc
+from ipapython.entity import Entity
 
 # Global variable to define SASL auth
 SASL_AUTH = ldap.sasl.sasl({},'GSSAPI')
@@ -263,7 +265,7 @@ class IPAdmin(SimpleLDAPObject):
 
             self.dbdir = os.path.dirname(ent.getValue('nsslapd-directory'))
         except ldap.LDAPError, e:
-            self.__handle_errors(e, **{})
+            self.__handle_errors(e)
 
     def __str__(self):
         return self.host + ":" + str(self.port)
@@ -304,8 +306,8 @@ class IPAdmin(SimpleLDAPObject):
             # re-raise the error so we can handle it
             raise e
         except ldap.NO_SUCH_OBJECT, e:
-            args = kw.get('args', ["entry not found"])
-            raise errors.NotFound(reason=notfound(args))
+            arg_desc = kw.get('arg_desc', "entry not found")
+            raise errors.NotFound(reason=arg_desc)
         except ldap.ALREADY_EXISTS, e:
             raise errors.DuplicateEntry()
         except ldap.CONSTRAINT_VIOLATION, e:
@@ -344,7 +346,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.principal = principal
             self.proxydn = None
         except ldap.LDAPError, e:
-            self.__handle_errors(e, **{})
+            self.__handle_errors(e)
 
     def do_simple_bind(self, binddn="cn=directory manager", bindpw=""):
         self.binddn = binddn
@@ -361,7 +363,7 @@ class IPAdmin(SimpleLDAPObject):
         self.sasl_interactive_bind_s("", auth_tokens)
         self.__lateinit()
 
-    def getEntry(self,*args):
+    def getEntry(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
         """This wraps the search function.  It is common to just get one entry"""
 
         sctrl = self.__get_server_controls()
@@ -370,21 +372,22 @@ class IPAdmin(SimpleLDAPObject):
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
 
         try:
-            res = self.search(*args)
+            res = self.search(base, scope, filterstr, attrlist, attrsonly)
             objtype, obj = self.result(res)
         except ldap.LDAPError, e:
-            kw = {'args': args}
-            self.__handle_errors(e, **kw)
+            arg_desc = 'base="%s", scope=%s, filterstr="%s"' % (base, scope, filterstr)
+            self.__handle_errors(e, arg_desc=arg_desc)
 
         if not obj:
-            raise errors.NotFound(reason=notfound(args))
+            arg_desc = 'base="%s", scope=%s, filterstr="%s"' % (base, scope, filterstr)
+            raise errors.NotFound(reason=arg_desc)
 
         elif isinstance(obj,Entry):
             return obj
         else: # assume list/tuple
             return obj[0]
 
-    def getList(self,*args):
+    def getList(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
         """This wraps the search function to find multiple entries."""
 
         sctrl = self.__get_server_controls()
@@ -392,14 +395,15 @@ class IPAdmin(SimpleLDAPObject):
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
 
         try:
-            res = self.search(*args)
+            res = self.search(base, scope, filterstr, attrlist, attrsonly)
             objtype, obj = self.result(res)
         except ldap.LDAPError, e:
-            kw = {'args': args}
-            self.__handle_errors(e, **kw)
+            arg_desc = 'base="%s", scope=%s, filterstr="%s"' % (base, scope, filterstr)
+            self.__handle_errors(e, arg_desc=arg_desc)
 
         if not obj:
-            raise errors.NotFound(reason=notfound(args))
+            arg_desc = 'base="%s", scope=%s, filterstr="%s"' % (base, scope, filterstr)
+            raise errors.NotFound(reason=arg_desc)
 
         entries = []
         for s in obj:
@@ -407,7 +411,8 @@ class IPAdmin(SimpleLDAPObject):
 
         return entries
 
-    def getListAsync(self,*args):
+    def getListAsync(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0,
+                     serverctrls=None, clientctrls=None, timeout=-1, sizelimit=0):
         """This version performs an asynchronous search, to allow
            results even if we hit a limit.
 
@@ -423,7 +428,8 @@ class IPAdmin(SimpleLDAPObject):
         partial = 0
 
         try:
-            msgid = self.search_ext(*args)
+            msgid = self.search_ext(base, scope, filterstr, attrlist, attrsonly,
+                                    serverctrls, clientctrls, timeout, sizelimit)
             objtype, result_list = self.result(msgid, 0)
             while result_list:
                 for result in result_list:
@@ -433,11 +439,13 @@ class IPAdmin(SimpleLDAPObject):
                 ldap.TIMELIMIT_EXCEEDED), e:
             partial = 1
         except ldap.LDAPError, e:
-            kw = {'args': args}
-            self.__handle_errors(e, **kw)
+            arg_desc = 'base="%s", scope=%s, filterstr="%s", timeout=%s, sizelimit=%s' % \
+                       (base, scope, filterstr, timeout, sizelimit)
+            self.__handle_errors(e, arg_desc=arg_desc)
 
         if not entries:
-            raise errors.NotFound(reason=notfound(args))
+            arg_desc = 'base="%s", scope=%s, filterstr="%s"' % (base, scope, filterstr)
+            raise errors.NotFound(reason=arg_desc)
 
         if partial == 1:
             counter = -1
@@ -446,19 +454,22 @@ class IPAdmin(SimpleLDAPObject):
 
         return [counter] + entries
 
-    def addEntry(self,*args):
+    def addEntry(self, entry):
         """This wraps the add function. It assumes that the entry is already
            populated with all of the desired objectclasses and attributes"""
+
+        if not isinstance(entry, (Entry, Entity)):
+            raise TypeError('addEntry expected an Entry or Entity object, got %s instead' % entry.__class__)
 
         sctrl = self.__get_server_controls()
 
         try:
             if sctrl is not None:
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
-            self.add_s(*args)
+            self.add_s(entry.dn, entry.toTupleList())
         except ldap.LDAPError, e:
-            kw = {'args': args}
-            self.__handle_errors(e, **kw)
+            arg_desc = 'entry=%s, modlist=%s' % (entry)
+            self.__handle_errors(e, arg_desc=arg_desc)
         return True
 
     def updateRDN(self, dn, newrdn):
@@ -475,7 +486,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modrdn_s(dn, newrdn, delold=1)
         except ldap.LDAPError, e:
-            self.__handle_errors(e, **{})
+            self.__handle_errors(e)
         return True
 
     def updateEntry(self,dn,oldentry,newentry):
@@ -494,7 +505,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
         except ldap.LDAPError, e:
-            self.__handle_errors(e, **{})
+            self.__handle_errors(e)
         return True
 
     def generateModList(self, old_entry, new_entry):
@@ -575,10 +586,10 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
         except ldap.LDAPError, e:
-            self.__handle_errors(e, **{})
+            self.__handle_errors(e)
         return True
 
-    def deleteEntry(self,*args):
+    def deleteEntry(self, dn):
         """This wraps the delete function. Use with caution."""
 
         sctrl = self.__get_server_controls()
@@ -586,10 +597,10 @@ class IPAdmin(SimpleLDAPObject):
         try:
             if sctrl is not None:
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
-            self.delete_s(*args)
+            self.delete_s(dn)
         except ldap.LDAPError, e:
-            kw = {'args': args}
-            self.__handle_errors(e, **kw)
+            arg_desc = 'dn=%s' % (dn)
+            self.__handle_errors(e, arg_desc=arg_desc)
         return True
 
     def modifyPassword(self,dn,oldpass,newpass):
@@ -607,7 +618,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.passwd_s(dn, oldpass, newpass)
         except ldap.LDAPError, e:
-            self.__handle_errors(e, **{})
+            self.__handle_errors(e)
         return True
 
     def __wrapmethods(self):
@@ -737,22 +748,3 @@ class IPAdmin(SimpleLDAPObject):
         keys.sort(reverse=reverse)
 
         return map(res.get, keys)
-
-
-def notfound(args):
-    """Return a string suitable for displaying as an error when a
-       search returns no results.
-
-       This just returns whatever is after the equals sign"""
-    if len(args) > 2:
-        searchfilter = args[2]
-        try:
-            # Python re doesn't do paren counting so the string could
-            # have a trailing paren "foo)"
-            target = re.match(r'\(.*=(.*)\)', searchfilter).group(1)
-            target = target.replace(")","")
-        except:
-            target = searchfilter
-        return "%s not found" % str(target)
-    else:
-        return args[0]

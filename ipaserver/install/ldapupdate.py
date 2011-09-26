@@ -344,7 +344,7 @@ class LDAPUpdate:
         root_logger.debug("Task id: %s", dn)
 
         if self.live_run:
-            self.conn.addEntry(e.dn, e.toTupleList())
+            self.conn.addEntry(e)
 
         return dn
 
@@ -644,7 +644,7 @@ class LDAPUpdate:
                         # addifexist may result in an entry with only a
                         # dn defined. In that case there is nothing to do.
                         # It means the entry doesn't exist, so skip it.
-                        self.conn.addEntry(entry.dn, entry.toTupleList())
+                        self.conn.addEntry(entry)
                 self.modified = True
             except Exception, e:
                 root_logger.error("Add failure %s", e)
