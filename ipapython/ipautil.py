@@ -196,6 +196,9 @@ def write_tmp_file(txt):
 
     return fd
 
+def shell_quote(string):
+    return "'" + string.replace("'", "'\\''") + "'"
+
 def run(args, stdin=None, raiseonerr=True,
         nolog=(), env=None, capture_output=True):
     """
@@ -248,7 +251,8 @@ def run(args, stdin=None, raiseonerr=True,
             continue
 
         quoted = urllib2.quote(value)
-        for nolog_value in (value, quoted):
+        shquoted = shell_quote(value)
+        for nolog_value in (shquoted, value, quoted):
             if capture_output:
                 stdout = stdout.replace(nolog_value, 'XXXXXXXX')
                 stderr = stderr.replace(nolog_value, 'XXXXXXXX')
