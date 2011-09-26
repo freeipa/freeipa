@@ -424,7 +424,10 @@ class hbacrule_add_user(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
-        (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        try:
+            (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
         if 'usercategory' in entry_attrs and \
             entry_attrs['usercategory'][0].lower() == 'all':
             raise errors.MutuallyExclusiveError(reason="users cannot be added when user category='all'")
@@ -449,7 +452,10 @@ class hbacrule_add_host(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
-        (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        try:
+            (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
         if 'hostcategory' in entry_attrs and \
             entry_attrs['hostcategory'][0].lower() == 'all':
             raise errors.MutuallyExclusiveError(reason="hosts cannot be added when host category='all'")
@@ -474,7 +480,10 @@ class hbacrule_add_sourcehost(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
-        (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        try:
+            (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
         if 'sourcehostcategory' in entry_attrs and \
             entry_attrs['sourcehostcategory'][0].lower() == 'all':
             raise errors.MutuallyExclusiveError(reason="source hosts cannot be added when sourcehost category='all'")
@@ -552,7 +561,10 @@ class hbacrule_add_service(LDAPAddMember):
     member_count_out = ('%i object added.', '%i objects added.')
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
-        (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        try:
+            (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
         if 'servicecategory' in entry_attrs and \
             entry_attrs['servicecategory'][0].lower() == 'all':
             raise errors.MutuallyExclusiveError(reason="services cannot be added when service category='all'")
