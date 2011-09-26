@@ -39,10 +39,52 @@ from ipaserver.install import installutils
 from ipalib import errors
 from ipapython.ipautil import format_netloc
 from ipapython.entity import Entity
+from ipaserver.plugins.ldap2 import IPASimpleLDAPObject
 
 # Global variable to define SASL auth
 SASL_AUTH = ldap.sasl.sasl({},'GSSAPI')
 DEFAULT_TIMEOUT = 10
+
+class IPAEntryLDAPObject(IPASimpleLDAPObject):
+    def __init__(self, *args, **kwds):
+        IPASimpleLDAPObject.__init__(self, *args, **kwds)
+
+    def result(self, msgid=ldap.RES_ANY, all=1, timeout=None):
+        objtype, data = IPASimpleLDAPObject.result(self, msgid, all, timeout)
+        # data is either a 2-tuple or a list of 2-tuples
+        if data:
+            if isinstance(data, tuple):
+                return objtype, Entry(data)
+            elif isinstance(data, list):
+                return objtype, [Entry(x) for x in data]
+            else:
+                raise TypeError, "unknown data type %s returned by result" % type(data)
+        else:
+            return objtype, data
+
+    def add(self, dn, modlist):
+        if isinstance(dn, Entry):
+            return IPASimpleLDAPObject.add(self, dn.dn, dn.toTupleList())
+        else:
+            return IPASimpleLDAPObject.add(self, dn, modlist)
+
+    def add_s(self, dn, modlist):
+        if isinstance(dn, Entry):
+            return IPASimpleLDAPObject.add_s(self, dn.dn, dn.toTupleList())
+        else:
+            return IPASimpleLDAPObject.add_s(self, dn, modlist)
+
+    def add_ext(self, dn, modlist, serverctrls=None, clientctrls=None):
+        if isinstance(dn, Entry):
+            return IPASimpleLDAPObject.add_ext(self, dn.dn, dn.toTupleList(), serverctrls, clientctrls)
+        else:
+            return IPASimpleLDAPObject.add_ext(self, dn, modlist, serverctrls, clientctrls)
+
+    def add_ext_s(self, dn, modlist, serverctrls=None, clientctrls=None):
+        if isinstance(dn, Entry):
+            return IPASimpleLDAPObject.add_ext_s(self, dn.dn, dn.toTupleList(), serverctrls, clientctrls)
+        else:
+            return IPASimpleLDAPObject.add_ext_s(self, dn, modlist, serverctrls, clientctrls)
 
 class Entry:
     """
@@ -168,49 +210,7 @@ class Entry:
         ldif.LDIFWriter(sio,Entry.base64_attrs,1000).unparse(self.dn,newdata)
         return sio.getvalue()
 
-def wrapper(f,name):
-    """This is the method that wraps all of the methods of the superclass.
-       This seems to need to be an unbound method, that's why it's outside
-       of IPAdmin.  Perhaps there is some way to do this with the new
-       classmethod or staticmethod of 2.4. Basically, we replace every call
-       to a method in SimpleLDAPObject (the superclass of IPAdmin) with a
-       call to inner.  The f argument to wrapper is the bound method of
-       IPAdmin (which is inherited from the superclass).  Bound means that it
-       will implicitly be called with the self argument, it is not in the
-       args list.  name is the name of the method to call.  If name is a
-       method that returns entry objects (e.g. result), we wrap the data
-       returned by an Entry class.  If name is a method that takes an entry
-       argument, we extract the raw data from the entry object to pass in.
-    """
-    def inner(*args, **kargs):
-        if name == 'result':
-            objtype, data = f(*args, **kargs)
-            # data is either a 2-tuple or a list of 2-tuples
-            # print data
-            if data:
-                if isinstance(data,tuple):
-                    return objtype, Entry(data)
-                elif isinstance(data,list):
-                    return objtype, [Entry(x) for x in data]
-                else:
-                    raise TypeError, "unknown data type %s returned by result" % type(data)
-            else:
-                return objtype, data
-        elif name.startswith('add'):
-            # the first arg is self
-            # the second and third arg are the dn and the data to send
-            # We need to convert the Entry into the format used by
-            # python-ldap
-            ent = args[0]
-            if isinstance(ent,Entry):
-                return f(ent.dn, ent.toTupleList(), *args[2:])
-            else:
-                return f(*args, **kargs)
-        else:
-            return f(*args, **kargs)
-    return inner
-
-class IPAdmin(SimpleLDAPObject):
+class IPAdmin(IPAEntryLDAPObject):
 
     def __localinit(self):
         """If a CA certificate is provided then it is assumed that we are
@@ -221,12 +221,12 @@ class IPAdmin(SimpleLDAPObject):
            its own encryption.
         """
         if self.cacert is not None:
-            SimpleLDAPObject.__init__(self,'ldaps://%s' % format_netloc(self.host, self.port))
+            IPAEntryLDAPObject.__init__(self,'ldaps://%s' % format_netloc(self.host, self.port))
         else:
             if self.ldapi:
-                SimpleLDAPObject.__init__(self,'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % "-".join(self.realm.split(".")))
+                IPAEntryLDAPObject.__init__(self,'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % "-".join(self.realm.split(".")))
             else:
-                SimpleLDAPObject.__init__(self,'ldap://%s' % format_netloc(self.host, self.port))
+                IPAEntryLDAPObject.__init__(self,'ldap://%s' % format_netloc(self.host, self.port))
 
     def __init__(self,host='',port=389,cacert=None,bindcert=None,bindkey=None,proxydn=None,debug=None,ldapi=False,realm=None):
         """We just set our instance variables and wrap the methods - the real
@@ -243,7 +243,6 @@ class IPAdmin(SimpleLDAPObject):
         if bindkey is not None:
             ldap.set_option(ldap.OPT_X_TLS_KEYFILE,bindkey)
 
-        self.__wrapmethods()
         self.port = port
         self.host = host
         self.cacert = cacert
@@ -491,7 +490,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.add_s(entry.dn, entry.toTupleList())
         except ldap.LDAPError, e:
-            arg_desc = 'entry=%s, modlist=%s' % (entry)
+            arg_desc = 'entry=%s' % (entry)
             self.__handle_errors(e, arg_desc=arg_desc)
         return True
 
@@ -643,16 +642,6 @@ class IPAdmin(SimpleLDAPObject):
         except ldap.LDAPError, e:
             self.__handle_errors(e)
         return True
-
-    def __wrapmethods(self):
-        """This wraps all methods of SimpleLDAPObject, so that we can intercept
-        the methods that deal with entries.  Instead of using a raw list of tuples
-        of lists of hashes of arrays as the entry object, we want to wrap entries
-        in an Entry class that provides some useful methods"""
-        for name in dir(self.__class__.__bases__[0]):
-            attr = getattr(self, name)
-            if callable(attr):
-                setattr(self, name, wrapper(attr, name))
 
     def waitForEntry(self, dn, timeout=7200, attr='', quiet=True):
         scope = ldap.SCOPE_BASE
