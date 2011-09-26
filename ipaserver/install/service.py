@@ -289,7 +289,7 @@ class Service(object):
                         "enabledService", "startOrder " + str(order))
 
         try:
-            conn.add_s(entry)
+            conn.addEntry(entry)
         except ldap.ALREADY_EXISTS, e:
             root_logger.critical("failed to add %s Service startup entry" % name)
             raise e
