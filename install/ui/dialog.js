@@ -372,15 +372,15 @@ IPA.adder_dialog = function(spec) {
         var p = $('<p/>').appendTo(buttons_panel);
         $('<input />', {
             type: 'button',
-            name: 'remove',
-            value: '<<'
+            name: 'add',
+            value: '>>'
         }).appendTo(p);
 
         p = $('<p/>').appendTo(buttons_panel);
         $('<input />', {
             type: 'button',
-            name: 'add',
-            value: '>>'
+            name: 'remove',
+            value: '<<'
         }).appendTo(p);
 
 
