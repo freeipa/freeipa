@@ -246,7 +246,7 @@ def main():
         options.setup_pkinit = False
 
     try:
-        installutils.verify_fqdn(replica_fqdn)
+        installutils.verify_fqdn(replica_fqdn, system_name_check=False)
     except RuntimeError, e:
         msg = str(e)
         if msg.startswith('Unable to resolve host name'):

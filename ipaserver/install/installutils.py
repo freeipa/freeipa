@@ -117,7 +117,16 @@ def verify_dns_records(host_name, responses, resaddr, family):
         raise RuntimeError("The DNS forward record %s does not match the reverse address %s" % (rec.dns_name, rev.rdata.ptrdname))
 
 
-def verify_fqdn(host_name,no_host_dns=False):
+def verify_fqdn(host_name, no_host_dns=False, system_name_check=True):
+    """
+    Verify that the given host name is fully-qualified.
+
+    Raises `RuntimeError` if the host name is not fully-qualified.
+
+    :param host_name: The host name to verify.
+    :param no_host_dns: If true, skip DNS resolution of the host name.
+    :param system_name_check: If true, check if the host name matches the system host name.
+    """
     if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":
         raise RuntimeError("Invalid hostname '%s', must be fully-qualified." % host_name)
 
@@ -127,10 +136,11 @@ def verify_fqdn(host_name,no_host_dns=False):
     if ipautil.valid_ip(host_name):
         raise RuntimeError("IP address not allowed as a hostname")
 
-    system_host_name = socket.gethostname()
-    if not (host_name + '.').startswith(system_host_name + '.'):
-        print "Warning: The host name '%s' does not match the system host name '%s'." % (host_name, system_host_name)
-        print "         Some services may not work properly."
+    if system_name_check:
+        system_host_name = socket.gethostname()
+        if not (host_name + '.').startswith(system_host_name + '.'):
+            print "Warning: The host name '%s' does not match the system host name '%s'." % (host_name, system_host_name)
+            print "         Some services may not work properly."
 
     if no_host_dns:
         print "Warning: skipping DNS resolution of host", host_name
