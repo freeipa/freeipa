@@ -177,14 +177,17 @@ IPA.association_adder_dialog = function(spec) {
             var other_entity = IPA.get_entity(that.other_entity);
             var pkey_attr = other_entity.metadata.primary_key;
 
+            var selected = that.get_selected_values();
+
             var results = data.result;
             for (var i=0; i<results.count; i++) {
                 var result = results.result[i];
                 var pkey = result[pkey_attr][0];
 
-                if (that.exclude.indexOf(pkey) < 0) {
-                    that.add_available_value(result);
-                }
+                if (that.exclude.indexOf(pkey) >= 0) continue;
+                if (selected.indexOf(pkey) >= 0) continue;
+
+                that.add_available_value(result);
             }
         }
 
