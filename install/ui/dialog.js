@@ -34,7 +34,7 @@ IPA.dialog = function(spec) {
     that.name = spec.name;
     that.id = spec.id;
     that.title = spec.title;
-    that.width = spec.width || 400;
+    that.width = spec.width || 500;
     that.height = spec.height;
 
     that.buttons = {};

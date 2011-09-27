@@ -291,7 +291,7 @@ div.tabs {
     -moz-border-radius: 0 !important;
         -webkit-border-radius: 0 !important;
     font-family: "Overpass Bold","Liberation Sans", Arial, sans-serif;
-    width: 5em;
+    min-width: 5em;
     height: 20px;
     color: #858585;
     margin: 0 auto;
@@ -1223,7 +1223,7 @@ table.scrollable tbody {
 }
 
 .host-adder-dialog th.hostname {
-    width: 110px;
+    width: 200px;
 }
 
 .host-adder-dialog td.hostname {
