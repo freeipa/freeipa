@@ -80,22 +80,15 @@ static const char *ipa_realm_dn;
 static int
 ipaenrollement_secure(Slapi_PBlock *pb, char **errMesg)
 {
-    int sasl_ssf, is_ssl;
+    int ssf;
     int rc = LDAP_SUCCESS;
 
     LOG_TRACE("=> ipaenrollment_secure\n");
 
-    /* Allow enrollment only for SSL/TLS established connections and
-     * connections using SASL privacy layers */
-    if (slapi_pblock_get(pb, SLAPI_CONN_SASL_SSF, &sasl_ssf) != 0) {
-        LOG_TRACE("Could not get SASL SSF from connection\n");
-        *errMesg = "Operation requires a secure connection.\n";
-        rc = LDAP_OPERATIONS_ERROR;
-        goto done;
-    }
-
-    if (slapi_pblock_get(pb, SLAPI_CONN_IS_SSL_SESSION, &is_ssl) != 0) {
-        LOG_TRACE("Could not get IS SSL from connection\n");
+    /* Allow enrollment on all connections with a Security Strength
+     * Factor (SSF) higher than 1 */
+    if (slapi_pblock_get(pb, SLAPI_OPERATION_SSF, &ssf) != 0) {
+        LOG_TRACE("Could not get SSF from connection\n");
         *errMesg = "Operation requires a secure connection.\n";
         rc = LDAP_OPERATIONS_ERROR;
         goto done;
@@ -108,7 +101,7 @@ ipaenrollement_secure(Slapi_PBlock *pb, char **errMesg)
         goto done;
     }
 
-    if ((0 == is_ssl) && (sasl_ssf <= 1)) {
+    if (ssf <= 1) {
         *errMesg = "Operation requires a secure connection.\n";
         rc = LDAP_CONFIDENTIALITY_REQUIRED;
         goto done;

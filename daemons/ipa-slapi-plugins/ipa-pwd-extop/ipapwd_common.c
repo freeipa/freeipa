@@ -544,7 +544,7 @@ done:
 int ipapwd_gen_checks(Slapi_PBlock *pb, char **errMesg,
                       struct ipapwd_krbcfg **config, int check_flags)
 {
-    int ret, sasl_ssf, is_ssl;
+    int ret, ssf;
     int rc = LDAP_SUCCESS;
     Slapi_Backend *be;
     const Slapi_DN *psdn;
@@ -555,23 +555,16 @@ int ipapwd_gen_checks(Slapi_PBlock *pb, char **errMesg,
 
 #ifdef LDAP_EXTOP_PASSMOD_CONN_SECURE
     if (check_flags & IPAPWD_CHECK_CONN_SECURE) {
-        /* Allow password modify only for SSL/TLS established connections and
-         * connections using SASL privacy layers */
-        if (slapi_pblock_get(pb, SLAPI_CONN_SASL_SSF, &sasl_ssf) != 0) {
-            LOG("Could not get SASL SSF from connection\n");
+       /* Allow password modify on all connections with a Security Strength
+        * Factor (SSF) higher than 1 */
+        if (slapi_pblock_get(pb, SLAPI_OPERATION_SSF, &ssf) != 0) {
+            LOG("Could not get SSF from connection\n");
             *errMesg = "Operation requires a secure connection.\n";
             rc = LDAP_OPERATIONS_ERROR;
             goto done;
         }
 
-        if (slapi_pblock_get(pb, SLAPI_CONN_IS_SSL_SESSION, &is_ssl) != 0) {
-            LOG("Could not get IS SSL from connection\n");
-            *errMesg = "Operation requires a secure connection.\n";
-            rc = LDAP_OPERATIONS_ERROR;
-            goto done;
-        }
-
-        if ((0 == is_ssl) && (sasl_ssf <= 1)) {
+        if (ssf <= 1) {
             *errMesg = "Operation requires a secure connection.\n";
             rc = LDAP_CONFIDENTIALITY_REQUIRED;
             goto done;
