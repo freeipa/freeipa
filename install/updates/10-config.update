@@ -12,3 +12,23 @@ remove: nsslapd-pluginPrecedence: 60
 # plugins (the default is 50).
 dn: cn=IPA MODRDN,cn=plugins,cn=config
 only: nsslapd-pluginPrecedence: 60
+
+# Set limits to suite better IPA deployment sizes, defaults are too
+# conservative
+dn: cn=config
+default: nsslapd-sizelimit:100000
+
+dn: cn=config,cn=ldbm database,cn=plugins,cn=config
+replace: nsslapd-lookthroughlimit:5000::100000
+replace: nsslapd-idlistscanlimit:4000::100000
+
+#Set much lower limits for anonymous searhes
+dn: cn=anonymous-limits,cn=etc,$SUFFIX
+default:objectclass:nsContainer
+default:objectclass:top
+default:cn: anonymous-limits
+default:nsSizeLimit: 5000
+default:nsLookThroughLimit: 5000
+
+dn: cn=config
+add:nsslapd-anonlimitsdn:cn=anonymous-limits,cn=etc,$SUFFIX
