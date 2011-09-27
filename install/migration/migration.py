@@ -25,9 +25,24 @@ import errno
 import glob
 import ldap
 import wsgiref
+import logging
+from ipapython.ipautil import get_ipa_basedn
 
 BASE_DN = ''
 LDAP_URI = 'ldaps://localhost:636'
+
+def convert_exception(error):
+    """
+    Convert an LDAP exception into something more readable.
+    """
+    if not isinstance(error, ldap.TIMEOUT):
+        desc = error.args[0]['desc'].strip()
+        info = error.args[0].get('info', '').strip()
+    else:
+        desc = ''
+        info = ''
+
+    return '%s (%s)' % (desc, info)
 
 def wsgi_redirect(start_response, loc):
     start_response('302 Found', [('Location', loc)])
@@ -44,39 +59,44 @@ def get_base_dn():
     """
     Retrieve LDAP server base DN.
     """
+    global BASE_DN
+
     if BASE_DN:
         return BASE_DN
     try:
         conn = ldap.initialize(LDAP_URI)
         conn.simple_bind_s('', '')
-        entries = conn.search_ext_s(
-            '', scope=ldap.SCOPE_BASE, attrlist=['namingcontexts']
-        )
-    except ldap.LDAPError:
+        BASE_DN = get_ipa_basedn(conn)
+    except ldap.LDAPError, e:
+        logging.error('migration context search failed: %s' % e)
         return ''
-    conn.unbind_s()
-    try:
-        return entries[0][1]['namingcontexts'][0]
-    except (IndexError, KeyError):
-        return ''
+    finally:
+        conn.unbind_s()
+
+    return BASE_DN
 
 def bind(username, password):
     base_dn = get_base_dn()
     if not base_dn:
+        logging.error('migration unable to get base dn')
         raise IOError(errno.EIO, 'Cannot get Base DN')
     bind_dn = 'uid=%s,cn=users,cn=accounts,%s' % (username, base_dn)
     try:
         conn = ldap.initialize(LDAP_URI)
         conn.simple_bind_s(bind_dn, password)
     except (ldap.INVALID_CREDENTIALS, ldap.UNWILLING_TO_PERFORM,
-            ldap.NO_SUCH_OBJECT):
+            ldap.NO_SUCH_OBJECT), e:
+        logging.error('migration invalid credentials for %s: %s' % (bind_dn, convert_exception(e)))
         raise IOError(errno.EPERM, 'Invalid LDAP credentials for user %s' % username)
-    except ldap.LDAPError:
+    except ldap.LDAPError, e:
+        logging.error('migration bind failed: %s' % convert_exception(e))
         raise IOError(errno.EIO, 'Bind error')
-
-    conn.unbind_s()
+    finally:
+        conn.unbind_s()
 
 def application(environ, start_response):
+    global LDAP_URI
+
     if environ.get('REQUEST_METHOD', None) != 'POST':
         return wsgi_redirect(start_response, 'index.html')
 
@@ -98,4 +118,3 @@ def application(environ, start_response):
 
     ui_url = get_ui_url(environ)
     return wsgi_redirect(start_response, ui_url)
-
