@@ -245,6 +245,9 @@ def main():
     if not options.pkinit_pkcs12 and not certs.ipa_self_signed():
         options.setup_pkinit = False
 
+    if certs.ipa_self_signed_master() == False:
+        sys.exit('A selfsign CA backend can only prepare on the original master')
+
     try:
         installutils.verify_fqdn(replica_fqdn, system_name_check=False)
     except RuntimeError, e:
