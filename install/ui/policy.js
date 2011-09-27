@@ -52,7 +52,6 @@ IPA.entity_factories.pwpolicy = function() {
                     other_field: 'cn'
                 },
                 'cospriority'],
-            width: 400,
             height: 250
         }).
         build();

@@ -88,7 +88,6 @@ IPA.entity_factories.dnszone = function() {
         standard_association_facets().
         adder_dialog({
             factory: IPA.dnszone_adder_dialog,
-            width: 500,
             height: 300,
             fields: [
                 {
