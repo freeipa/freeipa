@@ -180,10 +180,12 @@ IPA.association_adder_dialog = function(spec) {
             var selected = that.get_selected_values();
 
             var results = data.result;
+            var same_entity = that.entity.name === other_entity.name;
             for (var i=0; i<results.count; i++) {
                 var result = results.result[i];
                 var pkey = result[pkey_attr][0];
 
+                if (same_entity && pkey === that.pkey) continue;
                 if (that.exclude.indexOf(pkey) >= 0) continue;
                 if (selected.indexOf(pkey) >= 0) continue;
 
