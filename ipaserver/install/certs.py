@@ -65,6 +65,19 @@ def ipa_self_signed():
     else:
         return False
 
+def ipa_self_signed_master():
+    """
+    The selfsign backend is enabled only one a single master.
+
+    Return True/False whether this is that master.
+
+    Returns None if not a self-signed server.
+    """
+    if ipa_self_signed():
+        return api.env.enable_ra
+    else:
+        return None
+
 def find_cert_from_txt(cert, start=0):
     """
     Given a cert blob (str) which may or may not contian leading and

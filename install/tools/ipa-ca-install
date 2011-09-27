@@ -83,6 +83,12 @@ def main():
     if not dsinstance.DsInstance().is_configured():
         sys.exit("IPA server is not configured on this system.\n")
 
+    api.bootstrap(in_server=True)
+    api.finalize()
+
+    if certs.ipa_self_signed():
+        sys.exit('A selfsign CA can not be added')
+
     # get the directory manager password
     dirman_password = options.password
     if not dirman_password:
@@ -129,15 +135,8 @@ def main():
     if not options.skip_conncheck:
         replica_conn_check(config.master_host_name, config.host_name, config.realm_name, True, options.admin_password)
 
-    api.bootstrap(in_server=True)
-    api.finalize()
-
     # Configure the CA if necessary
     (CA, cs) = cainstance.install_replica_ca(config, postinstall=True)
-
-    if not CA:
-        # not a dogtag CA replica
-        sys.exit("Not a dogtag CA installation!")
 
     # We need to ldap_enable the CA now that DS is up and running
     CA.ldap_enable('CA', config.host_name, config.dirman_password,
