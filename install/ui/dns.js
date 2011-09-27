@@ -231,6 +231,9 @@ IPA.dnszone_details_facet = function(spec) {
     return that;
 };
 
+// TODO: Remove the custom create() by moving the fields into sections.
+// The idnsname and name_from_ip should be moved into a custom section.
+// The idnssoamname, idnssoarname, and force into a standard section.
 IPA.dnszone_adder_dialog = function(spec) {
 
     spec = spec || {};
@@ -240,6 +243,11 @@ IPA.dnszone_adder_dialog = function(spec) {
     that.create = function() {
 
         that.container.addClass('dnszone-adder-dialog');
+
+        that.message_container = $('<div/>', {
+            style: 'display: none',
+            'class': 'dialog-message ui-state-highlight ui-corner-all'
+        }).appendTo(that.container);
 
         var table = $('<table/>').appendTo(that.container);
 

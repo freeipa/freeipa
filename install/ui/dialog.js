@@ -119,11 +119,8 @@ IPA.dialog = function(spec) {
     };
 
     that.add_field = function(field) {
-        field.dialog = that;
-
         var section = that.get_section();
         section.add_field(field);
-
         return field;
     };
 
@@ -184,6 +181,11 @@ IPA.dialog = function(spec) {
      */
     that.create = function() {
 
+        that.message_container = $('<div/>', {
+            style: 'display: none',
+            'class': 'dialog-message ui-state-highlight ui-corner-all'
+        }).appendTo(that.container);
+
         var sections = that.sections.values;
         for (var i=0; i<sections.length; i++) {
             var section = sections[i];
@@ -198,6 +200,14 @@ IPA.dialog = function(spec) {
 
     };
 
+    that.show_message = function(message) {
+        that.message_container.text(message);
+        that.message_container.css('display', '');
+    };
+
+    that.hide_message = function() {
+        that.message_container.css('display', 'none');
+    };
 
     /**
      * Open dialog

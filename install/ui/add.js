@@ -115,6 +115,7 @@ IPA.add_dialog = function (spec) {
         name: 'add',
         label: IPA.messages.buttons.add,
         click: function() {
+            that.hide_message();
             that.add(
                 function(data, text_status, xhr) {
                     var facet = IPA.current_entity.get_facet();
@@ -130,8 +131,14 @@ IPA.add_dialog = function (spec) {
         name: 'add_and_add_another',
         label: IPA.messages.buttons.add_and_add_another,
         click: function() {
+            that.hide_message();
             that.add(
                 function(data, text_status, xhr) {
+                    var label = that.entity.metadata.label_singular;
+                    var message = IPA.messages.dialogs.add_confirmation;
+                    message = message.replace('${entity}', label);
+                    that.show_message(message);
+
                     var facet = IPA.current_entity.get_facet();
                     var table = facet.table;
                     table.refresh();
@@ -145,6 +152,7 @@ IPA.add_dialog = function (spec) {
         name: 'add_and_edit',
         label: IPA.messages.buttons.add_and_edit,
         click: function() {
+            that.hide_message();
             that.add(
                 function(data, text_status, xhr) {
                     that.close();
@@ -159,6 +167,7 @@ IPA.add_dialog = function (spec) {
         name: 'cancel',
         label: IPA.messages.buttons.cancel,
         click: function() {
+            that.hide_message();
             that.close();
         }
     });
