@@ -16761,6 +16761,7 @@
                         "to_top": "Back to Top"
                     },
                     "dialogs": {
+                        "add_confirmation": "${entity} successfully added",
                         "add_title": "Add ${entity}",
                         "available": "Available",
                         "batch_error_message": "Some operations failed.",

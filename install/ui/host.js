@@ -120,7 +120,7 @@ IPA.entity_factories.host = function () {
         standard_association_facets().
         adder_dialog({
             factory: IPA.host_adder_dialog,
-            height: 250,
+            height: 300,
             sections: [
                 {
                     factory: IPA.host_fqdn_section,

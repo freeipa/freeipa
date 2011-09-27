@@ -279,7 +279,7 @@ div.tabs {
 
 .tabs1 > .ui-tabs-nav li {
     -moz-border-radius: 0 !important;
-        -webkit-border-radius: 0 !important;
+    -webkit-border-radius: 0 !important;
     background-image: url("Mainnav-offtab.png");
     margin: 0 0.4em 0 0;
     border-width: 0;
@@ -296,7 +296,7 @@ div.tabs {
 
 .tabs1 > .ui-tabs-nav > li > a {
     -moz-border-radius: 0 !important;
-        -webkit-border-radius: 0 !important;
+    -webkit-border-radius: 0 !important;
     font-family: "Overpass Bold","Liberation Sans", Arial, sans-serif;
     min-width: 5em;
     height: 20px;
@@ -636,7 +636,7 @@ span.main-nav-off > a:visited {
 	float: right;
 	width: 215px;
 	-moz-border-radius: 15px !important;
-        -webkit-border-radius: 15px !important;
+    -webkit-border-radius: 15px !important;
     border-radius: 15px !important;
 	border: 1px solid #9f9e9e;
 	background: url("search-bg.png");
@@ -660,10 +660,10 @@ span.main-nav-off > a:visited {
 
 .search-controls {
     -moz-border-radius: .7em .7em 0 0;
-        -webkit-border-radius: .7em .7em 0 0;
+    -webkit-border-radius: .7em .7em 0 0;
     height:2.5em;
     background: -moz-linear-gradient(top,  #eeeeee,  #dfdfdf);
-        background: -webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#dfdfdf));
+    background: -webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#dfdfdf));
     position: relative;
     padding: 1em 1.5em;
     margin-top: .8em;
@@ -922,6 +922,15 @@ a, .ui-widget-content a {
 }
 */
 
+.dialog-message {
+    margin: 5px 5px 10px;
+    padding: 10px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    text-align: center;
+}
+
 .ui-widget input, .ui-widget select,
 .ui-widget textarea, .ui-widget button {
     font-family: "Liberation Sans", Arial, sans-serif;
@@ -931,13 +940,13 @@ a, .ui-widget-content a {
 
 .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, #content .ui-state-default {
     -moz-border-radius: .3em;
-        -webkit-border-radius: .3em;
-     background: -moz-linear-gradient(top,  #959595,  #5e5e5e);
-         background: -webkit-gradient(linear, left top, left bottom, from(#959595), to(#5e5e5e));
-     border: 1px solid #777777;
-     color: #fff;
-     font-weight: normal;
-         padding: 0.4em 1em;
+    -webkit-border-radius: .3em;
+    background: -moz-linear-gradient(top,  #959595,  #5e5e5e);
+    background: -webkit-gradient(linear, left top, left bottom, from(#959595), to(#5e5e5e));
+    border: 1px solid #777777;
+    color: #fff;
+    font-weight: normal;
+    padding: 0.4em 1em;
 }
 
 [title=">>"] {

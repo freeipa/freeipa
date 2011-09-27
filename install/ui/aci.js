@@ -63,7 +63,7 @@ IPA.entity_factories.permission = function() {
             facet_group: 'privilege'
         }).
         adder_dialog({
-            height: 400,
+            height: 450,
             sections: [
                 {
                     name: 'general',

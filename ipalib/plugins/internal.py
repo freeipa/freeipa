@@ -156,6 +156,7 @@ class i18n_messages(Command):
             "to_top": _("Back to Top")
         },
         "dialogs": {
+            "add_confirmation": _("${entity} successfully added"),
             "add_title": _("Add ${entity}"),
             "available": _("Available"),
             "batch_error_message": _("Some operations failed."),
