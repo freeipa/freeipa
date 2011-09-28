@@ -638,9 +638,13 @@ IPA.dnsrecord_redirection_dialog = function(spec) {
         }).appendTo(that.container);
     };
     
-    that.add_button(IPA.messages.buttons.ok, function() {         
-        that.close();
-        IPA.nav.show_page('dnszone','default');       
+    that.create_button({
+        name: 'ok',
+        label: IPA.messages.buttons.ok,
+        click: function() {
+            that.close();
+            IPA.nav.show_page('dnszone','default');
+        }
     });
     return that;
 };

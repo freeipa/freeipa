@@ -609,33 +609,41 @@ IPA.sudo.options_section = function(spec) {
             label: label
         }));
 
-        dialog.add_button(IPA.messages.buttons.add, function() {
-            var value = ipasudoopt.save()[0];
+        dialog.create_button({
+            name: 'add',
+            label: IPA.messages.buttons.add,
+            click: function() {
+                var value = ipasudoopt.save()[0];
 
-            var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+                var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
 
-            var command = IPA.command({
-                entity: 'sudorule',
-                method: 'add_option',
-                args: [pkey],
-                options: {
-                    ipasudoopt: value
-                },
-                on_success: function(data) {
-                    that.load(data.result.result);
-                    dialog.close();
-                },
-                on_error: function(data) {
-                    that.update();
-                    dialog.close();
-                }
-            });
+                var command = IPA.command({
+                    entity: 'sudorule',
+                    method: 'add_option',
+                    args: [pkey],
+                    options: {
+                        ipasudoopt: value
+                    },
+                    on_success: function(data) {
+                        that.load(data.result.result);
+                        dialog.close();
+                    },
+                    on_error: function(data) {
+                        that.update();
+                        dialog.close();
+                    }
+                });
 
-            command.execute();
+                command.execute();
+            }
         });
 
-        dialog.add_button(IPA.messages.buttons.cancel, function() {
-            dialog.close();
+        dialog.create_button({
+            name: 'cancel',
+            label: IPA.messages.buttons.cancel,
+            click: function() {
+                dialog.close();
+            }
         });
 
         dialog.open(that.container);

@@ -569,24 +569,32 @@ IPA.entitle.register_online_dialog = function(spec) {
 
     var that = IPA.dialog(spec);
 
-    that.add_button(IPA.messages.objects.entitle.register, function() {
-        var record = {};
-        that.save(record);
+    that.create_button({
+        name: 'register',
+        label: IPA.messages.objects.entitle.register,
+        click: function() {
+            var record = {};
+            that.save(record);
 
-        that.entity.register_online(
-            record.username[0],
-            record.password[0],
-            record.ipaentitlementid[0],
-            function() {
-                var facet = that.entity.get_facet();
-                facet.refresh();
-                that.close();
-            }
-        );
+            that.entity.register_online(
+                record.username[0],
+                record.password[0],
+                record.ipaentitlementid[0],
+                function() {
+                    var facet = that.entity.get_facet();
+                    facet.refresh();
+                    that.close();
+                }
+            );
+        }
     });
 
-    that.add_button(IPA.messages.buttons.cancel, function() {
-        that.close();
+    that.create_button({
+        name: 'cancel',
+        label: IPA.messages.buttons.cancel,
+        click: function() {
+            that.close();
+        }
     });
 
     return that;
@@ -598,19 +606,27 @@ IPA.entitle.register_offline_dialog = function(spec) {
 
     var that = IPA.entitle.certificate_dialog(spec);
 
-    that.add_button(that.label, function() {
-        that.entity.register_offline(
-            that.get_certificate(),
-            function() {
-                var facet = that.entity.get_facet();
-                facet.refresh();
-                that.close();
-            }
-        );
+    that.create_button({
+        name: 'register',
+        label: that.label,
+        click: function() {
+            that.entity.register_offline(
+                that.get_certificate(),
+                function() {
+                    var facet = that.entity.get_facet();
+                    facet.refresh();
+                    that.close();
+                }
+            );
+        }
     });
 
-    that.add_button(IPA.messages.buttons.cancel, function() {
-        that.close();
+    that.create_button({
+        name: 'cancel',
+        label: IPA.messages.buttons.cancel,
+        click: function() {
+            that.close();
+        }
     });
 
     return that;
@@ -622,27 +638,35 @@ IPA.entitle.consume_dialog = function(spec) {
 
     var that = IPA.dialog(spec);
 
-    that.add_button(IPA.messages.objects.entitle.consume, function() {
+    that.create_button({
+        name: 'consume',
+        label: IPA.messages.objects.entitle.consume,
+        click: function() {
 
-        if (!that.is_valid()) {
-            return;
-        }
-
-        var record = {};
-        that.save(record);
-
-        that.entity.consume(
-            record.quantity[0],
-            function() {
-                var facet = that.entity.get_facet();
-                facet.refresh();
-                that.close();
+            if (!that.is_valid()) {
+                return;
             }
-        );
+
+            var record = {};
+            that.save(record);
+
+            that.entity.consume(
+                record.quantity[0],
+                function() {
+                    var facet = that.entity.get_facet();
+                    facet.refresh();
+                    that.close();
+                }
+            );
+        }
     });
 
-    that.add_button(IPA.messages.buttons.cancel, function() {
-        that.close();
+    that.create_button({
+        name: 'cancel',
+        label: IPA.messages.buttons.cancel,
+        click: function() {
+            that.close();
+        }
     });
 
     return that;
@@ -654,19 +678,27 @@ IPA.entitle.import_dialog = function(spec) {
 
     var that = IPA.entitle.certificate_dialog(spec);
 
-    that.add_button(IPA.messages.objects.entitle.import_button, function() {
-        that.entity.import_certificate(
-            that.get_certificate(),
-            function() {
-                var facet = that.entity.get_facet();
-                facet.refresh();
-                that.close();
-            }
-        );
+    that.create_button({
+        name: 'import',
+        label: IPA.messages.objects.entitle.import_button,
+        click: function() {
+            that.entity.import_certificate(
+                that.get_certificate(),
+                function() {
+                    var facet = that.entity.get_facet();
+                    facet.refresh();
+                    that.close();
+                }
+            );
+        }
     });
 
-    that.add_button(IPA.messages.buttons.cancel, function() {
-        that.close();
+    that.create_button({
+        name: 'cancel',
+        label: IPA.messages.buttons.cancel,
+        click: function() {
+            that.close();
+        }
     });
 
     return that;

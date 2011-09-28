@@ -714,21 +714,33 @@ IPA.dirty_dialog = function(spec) {
         that.container.append(that.message);
     };
 
-    that.add_button(IPA.messages.buttons.update, function() {
-        that.facet.update(function() {
+    that.create_button({
+        name: 'update',
+        label: IPA.messages.buttons.update,
+        click: function() {
+            that.facet.update(function() {
+                that.close();
+                that.callback();
+            });
+        }
+    });
+
+    that.create_button({
+        name: 'reset',
+        label: IPA.messages.buttons.reset,
+        click: function() {
+            that.facet.reset();
             that.close();
             that.callback();
-        });
+        }
     });
 
-    that.add_button(IPA.messages.buttons.reset, function() {
-        that.facet.reset();
-        that.close();
-        that.callback();
-    });
-
-    that.add_button(IPA.messages.buttons.cancel, function() {
-        that.close();
+    that.create_button({
+        name: 'cancel',
+        label: IPA.messages.buttons.cancel,
+        click: function() {
+            that.close();
+        }
     });
 
     that.callback = function() {
@@ -824,22 +836,34 @@ IPA.error_dialog = function(spec) {
 
         if(that.visible_buttons.indexOf('retry') > -1) {
             label = IPA.get_message('buttons.retry', 'Retry');
-            that.add_button(label, function() {
-                that.on_retry();
+            that.create_button({
+                name: 'retry',
+                label: label,
+                click: function() {
+                    that.on_retry();
+                }
             });
         }
 
         if(that.visible_buttons.indexOf('ok') > -1) {
             label = IPA.get_message('buttons.ok', 'OK');
-            that.add_button(label, function() {
-                that.on_ok();
+            that.create_button({
+                name: 'ok',
+                label: label,
+                click: function() {
+                    that.on_ok();
+                }
             });
         }
 
         if(that.visible_buttons.indexOf('cancel') > -1) {
             label = IPA.get_message('buttons.cancel', 'Cancel');
-            that.add_button(label, function() {
-                that.on_cancel();
+            that.create_button({
+                name: 'cancel',
+                label: label,
+                click: function() {
+                    that.on_cancel();
+                }
             });
         }
     };

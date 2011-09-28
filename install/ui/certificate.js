@@ -86,8 +86,12 @@ IPA.cert.download_dialog = function(spec) {
 
     that.certificate = spec.certificate || '';
 
-    that.add_button(IPA.messages.buttons.close, function() {
-        that.close();
+    that.create_button({
+        name: 'close',
+        label: IPA.messages.buttons.close,
+        click: function() {
+            that.close();
+        }
     });
 
     that.create = function() {
@@ -121,17 +125,25 @@ IPA.cert.revoke_dialog = function(spec) {
 
     that.revoke = spec.revoke;
 
-    that.add_button(IPA.messages.buttons.revoke, function() {
-        var values = {};
-        values['reason'] = that.select.val();
-        if (that.revoke) {
-            that.revoke(values);
+    that.create_button({
+        name: 'revoke',
+        label: IPA.messages.buttons.revoke,
+        click: function() {
+            var values = {};
+            values['reason'] = that.select.val();
+            if (that.revoke) {
+                that.revoke(values);
+            }
+            that.close();
         }
-        that.close();
     });
 
-    that.add_button(IPA.messages.buttons.cancel, function() {
-        that.close();
+    that.create_button({
+        name: 'cancel',
+        label: IPA.messages.buttons.cancel,
+        click: function() {
+            that.close();
+        }
     });
 
     that.create = function() {
@@ -178,16 +190,24 @@ IPA.cert.restore_dialog = function(spec) {
 
     that.restore = spec.restore;
 
-    that.add_button(IPA.messages.buttons.restore, function() {
-        var values = {};
-        if (that.restore) {
-            that.restore(values);
+    that.create_button({
+        name: 'restore',
+        label: IPA.messages.buttons.restore,
+        click: function() {
+            var values = {};
+            if (that.restore) {
+                that.restore(values);
+            }
+            that.close();
         }
-        that.close();
     });
 
-    that.add_button(IPA.messages.buttons.cancel, function() {
-        that.close();
+    that.create_button({
+        name: 'cancel',
+        label: IPA.messages.buttons.cancel,
+        click: function() {
+            that.close();
+        }
     });
 
     that.create = function() {
@@ -215,8 +235,12 @@ IPA.cert.view_dialog = function(spec) {
     that.md5_fingerprint = spec.md5_fingerprint || '';
     that.sha1_fingerprint = spec.sha1_fingerprint || '';
 
-    that.add_button(IPA.messages.buttons.close, function() {
-        that.close();
+    that.create_button({
+        name: 'close',
+        label: IPA.messages.buttons.close,
+        click: function() {
+            that.close();
+        }
     });
 
     that.create = function() {
@@ -328,22 +352,30 @@ IPA.cert.request_dialog = function(spec) {
 
     that.request = spec.request;
 
-    that.add_button(IPA.messages.buttons.issue, function() {
-        var values = {};
-        var request = that.textarea.val();
-        request =
-            IPA.cert.BEGIN_CERTIFICATE_REQUEST+'\n'+
-            $.trim(request)+'\n'+
-            IPA.cert.END_CERTIFICATE_REQUEST+'\n';
-        values['request'] = request;
-        if (that.request) {
-            that.request(values);
+    that.create_button({
+        name: 'issue',
+        label: IPA.messages.buttons.issue,
+        click: function() {
+            var values = {};
+            var request = that.textarea.val();
+            request =
+                IPA.cert.BEGIN_CERTIFICATE_REQUEST+'\n'+
+                $.trim(request)+'\n'+
+                IPA.cert.END_CERTIFICATE_REQUEST+'\n';
+            values['request'] = request;
+            if (that.request) {
+                that.request(values);
+            }
+            that.close();
         }
-        that.close();
     });
 
-    that.add_button(IPA.messages.buttons.cancel, function() {
-        that.close();
+    that.create_button({
+        name: 'cancel',
+        label: IPA.messages.buttons.cancel,
+        click: function() {
+            that.close();
+        }
     });
 
     that.create = function() {

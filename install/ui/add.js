@@ -111,40 +111,56 @@ IPA.add_dialog = function (spec) {
     };
 
     /*dialog initialization*/
-    that.add_button(IPA.messages.buttons.add, function() {
-        that.add(
-            function(data, text_status, xhr) {
-                var facet = IPA.current_entity.get_facet();
-                var table = facet.table;
-                table.refresh();
-                that.close();
-            },
-            that.on_error);
+    that.create_button({
+        name: 'add',
+        label: IPA.messages.buttons.add,
+        click: function() {
+            that.add(
+                function(data, text_status, xhr) {
+                    var facet = IPA.current_entity.get_facet();
+                    var table = facet.table;
+                    table.refresh();
+                    that.close();
+                },
+                that.on_error);
+        }
     });
 
-    that.add_button(IPA.messages.buttons.add_and_add_another, function() {
-        that.add(
-            function(data, text_status, xhr) {
-                var facet = IPA.current_entity.get_facet();
-                var table = facet.table;
-                table.refresh();
-                that.reset();
-            },
-            that.on_error);
+    that.create_button({
+        name: 'add_and_add_another',
+        label: IPA.messages.buttons.add_and_add_another,
+        click: function() {
+            that.add(
+                function(data, text_status, xhr) {
+                    var facet = IPA.current_entity.get_facet();
+                    var table = facet.table;
+                    table.refresh();
+                    that.reset();
+                },
+                that.on_error);
+        }
     });
 
-    that.add_button(IPA.messages.buttons.add_and_edit, function() {
-        that.add(
-            function(data, text_status, xhr) {
-                that.close();
-                var result = data.result.result;
-                that.show_edit_page(that.entity, result);
-            },
-            that.on_error);
+    that.create_button({
+        name: 'add_and_edit',
+        label: IPA.messages.buttons.add_and_edit,
+        click: function() {
+            that.add(
+                function(data, text_status, xhr) {
+                    that.close();
+                    var result = data.result.result;
+                    that.show_edit_page(that.entity, result);
+                },
+                that.on_error);
+        }
     });
 
-    that.add_button(IPA.messages.buttons.cancel, function() {
-        that.close();
+    that.create_button({
+        name: 'cancel',
+        label: IPA.messages.buttons.cancel,
+        click: function() {
+            that.close();
+        }
     });
 
     return that;
