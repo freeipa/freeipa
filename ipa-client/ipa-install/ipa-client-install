@@ -818,6 +818,13 @@ def install(options, env, fstore, statestore):
     if ret == ipadiscovery.NOT_IPA_SERVER:
         print >>sys.stderr, "%s is not an IPA v2 Server." % cli_server
         return CLIENT_INSTALL_ERROR
+
+    if ret == ipadiscovery.NO_ACCESS_TO_LDAP:
+        print "Warning: Anonymous access to the LDAP server is disabled."
+        print "Proceeding without strict verification."
+        print "Note: This is not an error if anonymous access has been explicitly restricted."
+        ret = 0
+
     if ret != 0:
         print >>sys.stderr, "Failed to verify that "+cli_server+" is an IPA Server."
         print >>sys.stderr, "This may mean that the remote server is not up or is not reachable"
