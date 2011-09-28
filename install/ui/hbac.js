@@ -557,13 +557,21 @@ IPA.hbac_deny_warning_dialog = function(container) {
         })).appendTo(dialog.container);
     };
 
-    dialog.add_button('Edit HBAC Rules', function() {
-        dialog.close();
-        IPA.nav.show_page('hbacrule', 'search');
+    dialog.create_button({
+        name: 'edit',
+        label: 'Edit HBAC Rules',
+        click: function() {
+            dialog.close();
+            IPA.nav.show_page('hbacrule', 'search');
+        }
     });
 
-    dialog.add_button('Ignore for now', function() {
-        dialog.close();
+    dialog.create_button({
+        name: 'ignore',
+        label: 'Ignore for now',
+        click: function() {
+            dialog.close();
+        }
     });
 
     dialog.open();

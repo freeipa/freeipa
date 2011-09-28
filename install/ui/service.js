@@ -273,20 +273,24 @@ IPA.service_provisioning_status_widget = function (spec) {
             dialog.container.append(IPA.messages.objects.service.unprovision_confirmation);
         };
 
-        dialog.add_button(IPA.messages.objects.service.unprovision, function() {
-            var pkey = that.result['krbprincipalname'][0];
-            IPA.command({
-                entity: that.entity.name,
-                method: 'disable',
-                args: [pkey],
-                on_success: function(data, text_status, xhr) {
-                    set_status('missing');
-                    dialog.close();
-                },
-                on_error: function(xhr, text_status, error_thrown) {
-                    dialog.close();
-                }
-            }).execute();
+        dialog.create_button({
+            name: 'unprovision',
+            label: IPA.messages.objects.service.unprovision,
+            click: function() {
+                var pkey = that.result['krbprincipalname'][0];
+                IPA.command({
+                    entity: that.entity.name,
+                    method: 'disable',
+                    args: [pkey],
+                    on_success: function(data, text_status, xhr) {
+                        set_status('missing');
+                        dialog.close();
+                    },
+                    on_error: function(xhr, text_status, error_thrown) {
+                        dialog.close();
+                    }
+                }).execute();
+            }
         });
 
         dialog.open(that.container);

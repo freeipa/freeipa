@@ -505,20 +505,28 @@ IPA.host_keytab_widget = function(spec) {
             dialog.container.append(IPA.messages.objects.host.unprovision_confirmation);
         };
 
-        dialog.add_button(IPA.messages.objects.host.unprovision, function() {
-            that.unprovision(
-                function(data, text_status, xhr) {
-                    set_status('missing');
-                    dialog.close();
-                },
-                function(xhr, text_status, error_thrown) {
-                    dialog.close();
-                }
-            );
+        dialog.create_button({
+            name: 'unprovision',
+            label: IPA.messages.objects.host.unprovision,
+            click: function() {
+                that.unprovision(
+                    function(data, text_status, xhr) {
+                        set_status('missing');
+                        dialog.close();
+                    },
+                    function(xhr, text_status, error_thrown) {
+                        dialog.close();
+                    }
+                );
+            }
         });
 
-        dialog.add_button(IPA.messages.buttons.cancel, function() {
-            dialog.close();
+        dialog.create_button({
+            name: 'cancel',
+            label: IPA.messages.buttons.cancel,
+            click: function() {
+                dialog.close();
+            }
         });
 
         dialog.open(that.container);
@@ -634,34 +642,42 @@ IPA.host_password_widget = function(spec) {
             type: 'password'
         }));
 
-        dialog.add_button(label, function() {
+        dialog.create_button({
+            name: 'set_password',
+            label: label,
+            click: function() {
 
-            var record = {};
-            dialog.save(record);
+                var record = {};
+                dialog.save(record);
 
-            var new_password = record.password1[0];
-            var repeat_password = record.password2[0];
+                var new_password = record.password1[0];
+                var repeat_password = record.password2[0];
 
-            if (new_password != repeat_password) {
-                alert(IPA.messages.password.password_must_match);
-                return;
-            }
-
-            that.set_password(
-                new_password,
-                function(data, text_status, xhr) {
-                    that.load(data.result.result);
-                    dialog.close();
-                },
-                function(xhr, text_status, error_thrown) {
-                    dialog.close();
+                if (new_password != repeat_password) {
+                    alert(IPA.messages.password.password_must_match);
+                    return;
                 }
-            );
-            dialog.close();
+
+                that.set_password(
+                    new_password,
+                    function(data, text_status, xhr) {
+                        that.load(data.result.result);
+                        dialog.close();
+                    },
+                    function(xhr, text_status, error_thrown) {
+                        dialog.close();
+                    }
+                );
+                dialog.close();
+            }
         });
 
-        dialog.add_button(IPA.messages.buttons.cancel, function() {
-            dialog.close();
+        dialog.create_button({
+            name: 'cancel',
+            label: IPA.messages.buttons.cancel,
+            click: function() {
+                dialog.close();
+            }
         });
 
         dialog.open(that.container);

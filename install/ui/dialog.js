@@ -21,6 +21,34 @@
 
 /* REQUIRES: widget.js */
 
+IPA.dialog_button = function(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    that.name = spec.name;
+    that.label = spec.label || spec.name;
+    that.click = spec.click || click;
+
+    function click() {
+    }
+
+    that.set_enabled = function(enabled) {
+        if (enabled) {
+            that.element.removeClass('ui-state-disabled');
+        } else {
+            that.element.addClass('ui-state-disabled');
+        }
+    };
+
+    that.is_enabled = function() {
+        return !that.element.hasClass('ui-state-disabled');
+    };
+
+    return that;
+};
+
 /**
  * This is a base class for dialog boxes.
  */
@@ -37,7 +65,7 @@ IPA.dialog = function(spec) {
     that.width = spec.width || 500;
     that.height = spec.height;
 
-    that.buttons = {};
+    that.buttons = $.ordered_map();
 
     that.sections = $.ordered_map();
 
@@ -57,8 +85,19 @@ IPA.dialog = function(spec) {
         section.add_fields(fields);
     };
 
-    that.add_button = function(name, handler) {
-        that.buttons[name] = handler;
+    that.create_button = function(spec) {
+        var factory = spec.factory || IPA.dialog_button;
+        var button = factory(spec);
+        that.add_button(button);
+        return button;
+    };
+
+    that.add_button = function(button) {
+        that.buttons.put(button.name, button);
+    };
+
+    that.get_button = function(name) {
+        return that.buttons.get(name);
     };
 
     that.get_field = function(name) {
@@ -173,6 +212,13 @@ IPA.dialog = function(spec) {
         that.create();
         that.reset();
 
+        // create a map of button labels and handlers
+        var dialog_buttons = {};
+        for (var i=0; i<that.buttons.values.length; i++) {
+            var button = that.buttons.values[i];
+            dialog_buttons[button.label] = button.click;
+        }
+
         that.container.dialog({
             title: that.title,
             modal: true,
@@ -180,10 +226,19 @@ IPA.dialog = function(spec) {
             minWidth: that.width,
             height: that.height,
             minHeight: that.height,
-            buttons: that.buttons,
+            buttons: dialog_buttons,
             close: function(event, ui) {
                 that.close();
             }
+        });
+
+        // find button elements
+        var parent = that.container.parent();
+        var buttons = $('.ui-dialog-buttonpane .ui-dialog-buttonset button', parent);
+
+        buttons.each(function(index) {
+            var button = that.buttons.values[index];
+            button.element = $(this);
         });
     };
 
@@ -231,6 +286,7 @@ IPA.adder_dialog = function(spec) {
     spec = spec || {};
 
     var that = IPA.dialog(spec);
+
     that.external = spec.external;
     that.width = spec.width || 600;
     that.height = spec.height || 360;
@@ -373,21 +429,23 @@ IPA.adder_dialog = function(spec) {
         }).appendTo(container);
 
         var p = $('<p/>').appendTo(buttons_panel);
-        that.add_button = IPA.button({
+        IPA.button({
             name: 'add',
             label: '>>',
             click: function() {
                 that.add();
+                that.update_buttons();
                 return false;
             }
         }).appendTo(p);
 
         p = $('<p/>').appendTo(buttons_panel);
-        that.remove_button = IPA.button({
+        IPA.button({
             name: 'remove',
             label: '<<',
             click: function() {
                 that.remove();
+                that.update_buttons();
                 return false;
             }
         }).appendTo(p);
@@ -422,10 +480,26 @@ IPA.adder_dialog = function(spec) {
 
     that.open = function(container) {
 
-        that.buttons[IPA.messages.buttons.enroll] = that.execute;
-        that.buttons[IPA.messages.buttons.cancel] = that.close;
+        var add_button = that.create_button({
+            name: 'add',
+            label: IPA.messages.buttons.enroll,
+            click: function() {
+                if (!add_button.is_enabled()) return;
+                that.execute();
+            }
+        });
+
+        that.create_button({
+            name: 'cancel',
+            label: IPA.messages.buttons.cancel,
+            click: function() {
+                that.close();
+            }
+        });
 
         that.dialog_open(container);
+
+        that.update_buttons();
     };
 
     that.add = function() {
@@ -438,12 +512,16 @@ IPA.adder_dialog = function(spec) {
         that.available_table.add_rows(rows);
     };
 
-    that.get_filter = function() {
-        return that.filter_field.val();
+    that.update_buttons = function() {
+
+        var values = that.selected_table.save();
+
+        var button = that.get_button('add');
+        button.set_enabled(values && values.length);
     };
 
-    that.get_hide_checkbox = function() {
-        return that.hide_checkbox.checked;
+    that.get_filter = function() {
+        return that.filter_field.val();
     };
 
     that.clear_available_values = function() {
@@ -460,6 +538,9 @@ IPA.adder_dialog = function(spec) {
 
     that.get_selected_values = function() {
         return that.selected_table.save();
+    };
+
+    that.execute = function() {
     };
 
     init();
@@ -528,10 +609,26 @@ IPA.deleter_dialog =  function (spec) {
 
     that.open = function(container) {
 
-        that.buttons[IPA.messages.buttons.remove] = that.execute;
-        that.buttons[IPA.messages.buttons.cancel] = that.close;
+        that.create_button({
+            name: 'remove',
+            label: IPA.messages.buttons.remove,
+            click: function() {
+                that.execute();
+            }
+        });
+
+        that.create_button({
+            name: 'cancel',
+            label: IPA.messages.buttons.cancel,
+            click: function() {
+                that.close();
+            }
+        });
 
         that.dialog_open(container);
+    };
+
+    that.execute = function() {
     };
 
     that.deleter_dialog_create = that.create;
@@ -555,10 +652,14 @@ IPA.message_dialog = function(spec) {
         }).appendTo(that.container);
     };
 
-    that.add_button(IPA.messages.buttons.ok, function() {
-        that.close();
-        if(that.on_ok) {
-            that.on_ok();
+    that.create_button({
+        name: 'ok',
+        label: IPA.messages.buttons.ok,
+        click: function() {
+            that.close();
+            if(that.on_ok) {
+                that.on_ok();
+            }
         }
     });
 
