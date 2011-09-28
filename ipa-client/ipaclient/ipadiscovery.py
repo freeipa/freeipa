@@ -31,7 +31,9 @@ NOT_FQDN = -1
 NO_LDAP_SERVER = -2
 REALM_NOT_FOUND = -3
 NOT_IPA_SERVER = -4
+NO_ACCESS_TO_LDAP = -5
 BAD_HOST_CONFIG = -10
+UNKNOWN_ERROR = -15
 
 class IPADiscovery:
 
@@ -170,13 +172,15 @@ class IPADiscovery:
         # check ldap now
         ldapret = self.ipacheckldap(self.server, self.realm)
 
-        if not ldapret:
-            return NOT_IPA_SERVER
+        if ldapret[0] == 0:
+            self.server = ldapret[1]
+            self.realm = ldapret[2]
 
-        self.server = ldapret[0]
-        self.realm = ldapret[1]
+        if ldapret[0] == NO_ACCESS_TO_LDAP and self.realm == None:
+            # Assume realm is the same as domain.upper()
+            self.realm = self.domain.upper()
 
-        return 0
+        return ldapret[0]
 
     def ipacheckldap(self, thost, trealm):
         """
@@ -185,7 +189,12 @@ class IPADiscovery:
         so the remote IPA CA cert must be available at
         http://HOST/ipa/config/ca.crt
 
-        Returns a list [host, realm] or an empty list on error.
+        Returns a list [errno, host, realm] or an empty list on error.
+        Errno is an error number:
+            0 means all ok
+            1 means we could not check the info in LDAP (may happend when
+                anonymous binds are siabled)
+            2 means the server is certainly not an IPA server
         """
 
         lret = []
@@ -207,7 +216,7 @@ class IPADiscovery:
             run(["/usr/bin/wget", "-O", "%s/ca.crt" % temp_ca_dir, "http://%s/ipa/config/ca.crt" % thost])
         except CalledProcessError, e:
             logging.debug('Retrieving CA from %s failed.\n%s' % (thost, str(e)))
-            return []
+            return [NOT_IPA_SERVER]
 
         #now verify the server is really an IPA server
         try:
@@ -229,7 +238,7 @@ class IPADiscovery:
             logging.debug("Search for (info=*) in "+self.basedn+"(base)")
             lret = lh.search_s(self.basedn, ldap.SCOPE_BASE, "(info=IPA*)")
             if not lret:
-                return []
+                return [NOT_IPA_SERVER]
             logging.debug("Found: "+str(lret))
 
             for lattr in lret[0][1]:
@@ -238,14 +247,14 @@ class IPADiscovery:
                     break
 
             if not linfo or linfo.lower() != 'ipa v2.0':
-                return []
+                return [NOT_IPA_SERVER]
 
             #search and return known realms
             logging.debug("Search for (objectClass=krbRealmContainer) in "+self.basedn+"(sub)")
             lret = lh.search_s("cn=kerberos,"+self.basedn, ldap.SCOPE_SUBTREE, "(objectClass=krbRealmContainer)")
             if not lret:
                 #something very wrong
-                return []
+                return [REALM_NOT_FOUND]
             logging.debug("Found: "+str(lret))
 
             for lres in lret:
@@ -257,26 +266,31 @@ class IPADiscovery:
             if trealm:
                 for r in lrealms:
                     if trealm == r:
-                        return [thost, trealm]
+                        return [0, thost, trealm]
                 # must match or something is very wrong
-                return []
+                return [REALM_NOT_FOUND]
             else:
                 if len(lrealms) != 1:
                     #which one? we can't attach to a multi-realm server without DNS working
-                    return []
+                    return [REALM_NOT_FOUND]
                 else:
-                    return [thost, lrealms[0]]
+                    return [0, thost, lrealms[0]]
 
             #we shouldn't get here
-            return []
+            return [UNKNOWN_ERROR]
 
         except LDAPError, err:
-            if not isinstance(err, ldap.TIMEOUT):
-                logging.error("LDAP Error: %s: %s" %
-                   (err.args[0]['desc'], err.args[0].get('info', '')))
-            else:
+            if isinstance(err, ldap.TIMEOUT):
                 logging.error("LDAP Error: timeout")
-            return []
+                return [NO_LDAP_SERVER]
+
+            if isinstance(err, ldap.INAPPROPRIATE_AUTH):
+                logging.debug("LDAP Error: Anonymous acces not allowed")
+                return [NO_ACCESS_TO_LDAP]
+
+            logging.error("LDAP Error: %s: %s" %
+               (err.args[0]['desc'], err.args[0].get('info', '')))
+            return [UNKNOWN_ERROR]
 
         finally:
             os.remove("%s/ca.crt" % temp_ca_dir)
@@ -307,8 +321,8 @@ class IPADiscovery:
         return servers
 
     def ipadnssearchkrb(self, tdomain):
-        realm = ""
-        kdc = ""
+        realm = None
+        kdc = None
         # now, check for a Kerberos realm the local host or domain is in
         qname = "_kerberos." + tdomain
         # terminate the name
