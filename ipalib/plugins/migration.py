@@ -24,6 +24,7 @@ import ldap as _ldap
 from ipalib import api, errors, output
 from ipalib import Command, List, Password, Str, Flag, StrEnum
 from ipalib.cli import to_cli
+from ipalib.dn import *
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         from ipaserver.plugins.ldap2 import ldap2
@@ -77,6 +78,7 @@ EXAMPLES:
 _krb_err_msg = _('Kerberos principal %s already exists. Use \'ipa user-mod\' to set it manually.')
 _grp_err_msg = _('Failed to add user to the default group. Use \'ipa group-add-member\' to add manually.')
 _ref_err_msg = _('Migration of LDAP search reference is not supported.')
+_dn_err_msg = _('Malformed DN')
 
 _supported_schemas = (u'RFC2307bis', u'RFC2307')
 
@@ -496,7 +498,21 @@ can use their Kerberos accounts.''')
                     failed[ldap_obj_name][entry_attrs[0]] = unicode(_ref_err_msg)
                     continue
 
-                pkey = entry_attrs[ldap_obj.primary_key.name][0].lower()
+                try:
+                    dn = DN(dn)
+                except ValueError:
+                    failed[ldap_obj_name][dn] = unicode(_dn_err_msg)
+                    continue
+
+                ava = dn[0][0]
+                if ava.attr == ldap_obj.primary_key.name:
+                    # In case if pkey attribute is in the migrated object DN
+                    # and the original LDAP is multivalued, make sure that
+                    # we pick the correct value (the unique one stored in DN)
+                    pkey = ava.value.lower()
+                else:
+                    pkey = entry_attrs[ldap_obj.primary_key.name][0].lower()
+
                 if pkey in exclude:
                     continue
 
