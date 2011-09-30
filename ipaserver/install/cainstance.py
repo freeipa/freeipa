@@ -663,7 +663,7 @@ class CAInstance(service.Service):
                 args.append("-clone_start_tls")
                 args.append("true")
                 args.append("-clone_uri")
-                args.append("https://%s:%d" % (self.master_host, 443))
+                args.append("https://%s" % ipautil.format_netloc(self.master_host, 443))
             else:
                 args.append("-clone")
                 args.append("false")
@@ -747,7 +747,7 @@ class CAInstance(service.Service):
             '-p', self.admin_password,
             '-d', self.ca_agent_db,
             '-r', '/ca/agent/ca/profileReview?requestId=%s' % self.requestId,
-            '%s:%d' % (self.fqdn, AGENT_SECURE_PORT),
+            '%s' % ipautil.format_netloc(self.fqdn, AGENT_SECURE_PORT),
         ]
         (stdout, stderr, returncode) = ipautil.run(args, nolog=(self.admin_password,))
 
@@ -767,7 +767,7 @@ class CAInstance(service.Service):
             '-d', self.ca_agent_db,
             '-e', params,
             '-r', '/ca/agent/ca/profileProcess',
-            '%s:%d' % (self.fqdn, AGENT_SECURE_PORT),
+            '%s' % ipautil.format_netloc(self.fqdn, AGENT_SECURE_PORT),
         ]
         (stdout, stderr, returncode) = ipautil.run(args, nolog=(self.admin_password,))
 
@@ -810,7 +810,7 @@ class CAInstance(service.Service):
         # Create an RA user in the CA LDAP server and add that user to
         # the appropriate groups so it can issue certificates without
         # manual intervention.
-        ld = ldap.initialize("ldap://%s:%d" % (self.fqdn, self.ds_port))
+        ld = ldap.initialize("ldap://%s" % ipautil.format_netloc(self.fqdn, self.ds_port))
         ld.protocol_version=ldap.VERSION3
         ld.simple_bind_s("cn=Directory Manager", self.dm_password)
 
@@ -1035,7 +1035,7 @@ class CAInstance(service.Service):
         installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapXCertRule.enable', 'false', quotes=False, separator='=')
 
         # Fix the CRL URI in the profile
-        installutils.set_directive('/var/lib/%s/profiles/ca/caIPAserviceCert.cfg' % PKI_INSTANCE_NAME, 'policyset.serverCertSet.9.default.params.crlDistPointsPointName_0', 'https://%s/ipa/crl/MasterCRL.bin' % self.fqdn, quotes=False, separator='=')
+        installutils.set_directive('/var/lib/%s/profiles/ca/caIPAserviceCert.cfg' % PKI_INSTANCE_NAME, 'policyset.serverCertSet.9.default.params.crlDistPointsPointName_0', 'https://%s/ipa/crl/MasterCRL.bin' % ipautil.format_netloc(self.fqdn), quotes=False, separator='=')
 
         ipaservices.restore_context(publishdir)
 

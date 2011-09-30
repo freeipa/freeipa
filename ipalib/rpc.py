@@ -306,7 +306,7 @@ class xmlclient(Connectible):
             scheme = "https"
         else:
             scheme = "http"
-        server = '%s://%s%s' % (scheme, self.conn._ServerProxy__host, self.conn._ServerProxy__handler)
+        server = '%s://%s%s' % (scheme, ipautil.format_netloc(self.conn._ServerProxy__host), self.conn._ServerProxy__handler)
         return server
 
     def get_url_list(self):
@@ -321,7 +321,7 @@ class xmlclient(Connectible):
         for r in rs:
             if r.dns_type == dnsclient.DNS_T_SRV:
                 rsrv = r.rdata.server.rstrip('.')
-                servers.append('https://%s%s' % (rsrv, path))
+                servers.append('https://%s%s' % (ipautil.format_netloc(rsrv), path))
         servers = list(set(servers))
         # the list/set conversion won't preserve order so stick in the
         # local config file version here.

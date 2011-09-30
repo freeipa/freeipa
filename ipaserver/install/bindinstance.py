@@ -96,7 +96,7 @@ def dns_container_exists(fqdn, suffix):
             return True
 
     try:
-        server = ldap.initialize("ldap://" + fqdn)
+        server = ldap.initialize("ldap://" + ipautil.format_netloc(fqdn))
         server.simple_bind_s()
     except ldap.SERVER_DOWN:
         raise RuntimeError('LDAP server on %s is not responding. Is IPA installed?' % fqdn)

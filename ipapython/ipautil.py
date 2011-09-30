@@ -151,6 +151,24 @@ class CheckedIPAddress(netaddr.IPAddress):
 def valid_ip(addr):
     return netaddr.valid_ipv4(addr) or netaddr.valid_ipv6(addr)
 
+def format_netloc(host, port=None):
+    """
+    Format network location (host:port).
+
+    If the host part is a literal IPv6 address, it must be enclosed in square
+    brackets (RFC 2732).
+    """
+    host = str(host)
+    try:
+        socket.inet_pton(socket.AF_INET6, host)
+        host = '[%s]' % host
+    except socket.error:
+        pass
+    if port is None:
+        return host
+    else:
+        return '%s:%s' % (host, str(port))
+
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")
     terms = ["dc=" + x.lower() for x in s]

@@ -25,7 +25,7 @@ import tempfile
 import ldap
 from ldap import LDAPError
 from ipapython.ipautil import run, CalledProcessError, valid_ip, get_ipa_basedn, \
-                              realm_to_suffix
+                              realm_to_suffix, format_netloc
 
 
 NOT_FQDN = -1
@@ -220,15 +220,15 @@ class IPADiscovery:
             raise RuntimeError("Creating temporary directory failed: %s" % str(e))
 
         try:
-            run(["/usr/bin/wget", "-O", "%s/ca.crt" % temp_ca_dir, "http://%s/ipa/config/ca.crt" % thost])
+            run(["/usr/bin/wget", "-O", "%s/ca.crt" % temp_ca_dir, "http://%s/ipa/config/ca.crt" % format_netloc(thost)])
         except CalledProcessError, e:
             logging.debug('Retrieving CA from %s failed.\n%s' % (thost, str(e)))
             return [NOT_IPA_SERVER]
 
         #now verify the server is really an IPA server
         try:
-            logging.debug("Init ldap with: ldap://"+thost+":389")
-            lh = ldap.initialize("ldap://"+thost+":389")
+            logging.debug("Init ldap with: ldap://"+format_netloc(thost, 389))
+            lh = ldap.initialize("ldap://"+format_netloc(thost, 389))
             ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, True)
             ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, "%s/ca.crt" % temp_ca_dir)
             lh.set_option(ldap.OPT_PROTOCOL_VERSION, 3)

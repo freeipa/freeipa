@@ -112,7 +112,7 @@ def is_ds_running():
 
 def has_managed_entries(host_name, dm_password):
     """Check to see if the Managed Entries plugin is available"""
-    ldapuri = 'ldap://%s' % host_name
+    ldapuri = 'ldap://%s' % ipautil.format_netloc(host_name)
     conn = None
     try:
         conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='cn=config')

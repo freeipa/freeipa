@@ -319,7 +319,7 @@ class ReplicationManager(object):
         return cn
 
     def to_ldap_url(self, conn):
-        return "ldap://%s:%d/" % (conn.host, conn.port)
+        return "ldap://%s/" % ipautil.format_netloc(conn.host, conn.port)
 
     def setup_chaining_farm(self, conn):
         try:
@@ -544,7 +544,7 @@ class ReplicationManager(object):
         dn = 'cn=%s,cn=mapping tree,cn=config' % esc1_suffix
         # TODO: should we detect proto/port somehow ?
         mod = [(ldap.MOD_DELETE, 'nsslapd-referral',
-                'ldap://%s:389/%s' % (hostname, esc2_suffix))]
+                'ldap://%s/%s' % (ipautil.format_netloc(hostname, 389), esc2_suffix))]
 
         try:
             self.conn.modify_s(dn, mod)
@@ -700,7 +700,7 @@ class ReplicationManager(object):
         self.ad_suffix = ""
         try:
             # Validate AD connection
-            ad_conn = ldap.initialize('ldap://%s' % ad_dc_name)
+            ad_conn = ldap.initialize('ldap://%s' % ipautil.format_netloc(ad_dc_name))
             #the next one is to workaround bugs arounf opendalp libs+NSS db
             ad_conn.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
             ad_conn.set_option(ldap.OPT_X_TLS_CACERTFILE, cacert)
