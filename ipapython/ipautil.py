@@ -22,6 +22,8 @@ PLUGINS_SHARE_DIR = "/usr/share/ipa/plugins"
 
 GEN_PWD_LEN = 12
 
+IPA_BASEDN_INFO = 'ipa v2.0'
+
 import string
 import tempfile
 import logging
@@ -33,6 +35,7 @@ import stat
 import shutil
 import urllib2
 import socket
+import ldap
 
 from ipapython import ipavalidate
 from types import *
@@ -1126,3 +1129,37 @@ def bind_port_responder(port, socket_stream=True, socket_timeout=None, responder
                 s.sendto(responder_data, addr)
     finally:
         s.close()
+
+def get_ipa_basedn(conn):
+    """
+    Get base DN of IPA suffix in given LDAP server.
+
+    None is returned if the suffix is not found
+
+    :param conn: Bound LDAP connection that will be used for searching
+    """
+    entries = conn.search_ext_s(
+        '', scope=ldap.SCOPE_BASE, attrlist=['namingcontexts']
+    )
+
+    contexts = entries[0][1]['namingcontexts']
+    for context in contexts:
+        logging.debug("Check if naming context '%s' is for IPA" % context)
+        try:
+            entry = conn.search_s(context, ldap.SCOPE_BASE, "(info=IPA*)")
+        except ldap.NO_SUCH_OBJECT:
+            logging.debug("LDAP server did not return info attribute to check for IPA version")
+            continue
+        if len(entry) == 0:
+            logging.debug("Info attribute with IPA server version not found")
+            continue
+        info = entry[0][1]['info'][0].lower()
+        if info != IPA_BASEDN_INFO:
+            logging.debug("Detected IPA server version (%s) did not match the client (%s)" \
+                % (info, IPA_BASEDN_INFO))
+            continue
+        logging.debug("Naming context '%s' is a valid IPA context" % context)
+        return context
+
+    return None
+

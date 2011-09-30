@@ -24,7 +24,8 @@ import ipapython.dnsclient
 import tempfile
 import ldap
 from ldap import LDAPError
-from ipapython.ipautil import run, CalledProcessError, valid_ip
+from ipapython.ipautil import run, CalledProcessError, valid_ip, get_ipa_basedn, \
+                              realm_to_suffix
 
 
 NOT_FQDN = -1
@@ -176,9 +177,15 @@ class IPADiscovery:
             self.server = ldapret[1]
             self.realm = ldapret[2]
 
-        if ldapret[0] == NO_ACCESS_TO_LDAP and self.realm == None:
+        if ldapret[0] == NO_ACCESS_TO_LDAP and self.realm is None:
             # Assume realm is the same as domain.upper()
             self.realm = self.domain.upper()
+            logging.debug("Assuming realm is the same as domain: %s" % self.realm)
+
+        if ldapret[0] == NO_ACCESS_TO_LDAP and self.basedn is None:
+            # Generate suffix from realm
+            self.basedn = realm_to_suffix(self.realm)
+            logging.debug("Generate basedn from realm: %s" % self.basedn)
 
         return ldapret[0]
 
@@ -229,25 +236,14 @@ class IPADiscovery:
             lh.start_tls_s()
             lh.simple_bind_s("","")
 
-            logging.debug("Search rootdse")
-            lret = lh.search_s("", ldap.SCOPE_BASE, "(objectClass=*)")
-            for lattr in lret[0][1]:
-                if lattr.lower() == "namingcontexts":
-                    self.basedn = lret[0][1][lattr][0]
+            # get IPA base DN
+            logging.debug("Search LDAP server for IPA base DN")
+            basedn = get_ipa_basedn(lh)
 
-            logging.debug("Search for (info=*) in "+self.basedn+"(base)")
-            lret = lh.search_s(self.basedn, ldap.SCOPE_BASE, "(info=IPA*)")
-            if not lret:
+            if basedn is None:
                 return [NOT_IPA_SERVER]
-            logging.debug("Found: "+str(lret))
 
-            for lattr in lret[0][1]:
-                if lattr.lower() == "info":
-                    linfo = lret[0][1][lattr][0].lower()
-                    break
-
-            if not linfo or linfo.lower() != 'ipa v2.0':
-                return [NOT_IPA_SERVER]
+            self.basedn = basedn
 
             #search and return known realms
             logging.debug("Search for (objectClass=krbRealmContainer) in "+self.basedn+"(sub)")
