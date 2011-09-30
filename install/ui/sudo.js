@@ -539,25 +539,43 @@ IPA.sudo.options_section = function(spec) {
 
             that.table.table_create(container);
 
-            var button = IPA.action_button({
+            that.remove_button = IPA.action_button({
                 name: 'remove',
                 label: IPA.messages.buttons.remove,
                 icon: 'remove-icon',
+                'class': 'action-button-disabled',
                 click: function() {
-                    that.remove_handler();
+                    if (!that.remove_button.hasClass('action-button-disabled')) {
+                        that.remove_handler();
+                    }
                     return false;
                 }
             }).appendTo(that.table.buttons);
 
-            button = IPA.action_button({
+            that.add_button = IPA.action_button({
                 name: 'add',
                 label: IPA.messages.buttons.add,
                 icon: 'add-icon',
                 click: function() {
-                    that.add_handler();
+                    if (!that.add_button.hasClass('action-button-disabled')) {
+                        that.add_handler();
+                    }
                     return false;
                 }
             }).appendTo(that.table.buttons);
+        };
+
+        that.table.select_changed = function() {
+
+            var values = that.table.get_selected_values();
+
+            if (that.remove_button) {
+                if (values.length === 0) {
+                    that.remove_button.addClass('action-button-disabled');
+                } else {
+                    that.remove_button.removeClass('action-button-disabled');
+                }
+            }
         };
     }
 
