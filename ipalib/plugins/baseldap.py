@@ -739,8 +739,13 @@ class LDAPCreate(CallbackInterface, crud.Create):
 
         try:
             if self.obj.rdn_attribute:
+                # make sure objectclass is either set or None
+                if self.obj.object_class:
+                    object_class = self.obj.object_class
+                else:
+                    object_class = None
                 (dn, entry_attrs) = ldap.find_entry_by_attr(
-                    self.obj.primary_key.name, keys[-1], None, attrs_list,
+                    self.obj.primary_key.name, keys[-1], object_class, attrs_list,
                     self.obj.container_dn
                 )
             else:
