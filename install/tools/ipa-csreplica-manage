@@ -111,7 +111,7 @@ class CSReplicationManager(replication.ReplicationManager):
         dn = 'cn=%s,cn=mapping tree,cn=config' % esc1_suffix
         # TODO: should we detect proto/port somehow ?
         mod = [(ldap.MOD_DELETE, 'nsslapd-referral',
-                'ldap://%s:%s/%s' % (hostname, PORT, esc2_suffix))]
+                'ldap://%s/%s' % (ipautil.format_netloc(hostname, PORT), esc2_suffix))]
 
         try:
             self.conn.modify_s(dn, mod)
@@ -226,7 +226,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
     except errors.NotFound:
         sys.exit("'%s' has no replication agreement for '%s'" % (replica1, replica2))
     except ldap.SERVER_DOWN, e:
-        sys.exit("Unable to connect to %s:%d: %s" % (replica1, PORT, convert_error(e)))
+        sys.exit("Unable to connect to %s: %s" % (ipautil.format_netloc(replica1, PORT), convert_error(e)))
     except Exception, e:
         sys.exit("Failed to get data from '%s': %s" % (replica1, convert_error(e)))
 
@@ -322,7 +322,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
     except ldap.NO_SUCH_OBJECT:
         sys.exit('%s does not have a CA configured.' % replica2)
     except ldap.SERVER_DOWN, e:
-        sys.exit("Unable to connect to %s:636: %s" % (replica2, convert_error(e)))
+        sys.exit("Unable to connect to %s: %s" % (ipautil.format_netloc(replica2, 636), convert_error(e)))
     except Exception, e:
         sys.exit("Failed to get data from '%s': %s" % (replica1, convert_error(e)))
 
@@ -337,7 +337,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
     except ldap.NO_SUCH_OBJECT:
         sys.exit("Cannot find replica '%s'" % replica1)
     except ldap.SERVER_DOWN, e:
-        sys.exit("Unable to connect to %s:%d %s" % (replica1, PORT, convert_error(e)))
+        sys.exit("Unable to connect to %s %s" % (ipautil.format_netloc(replica1, PORT), convert_error(e)))
     except Exception, e:
         sys.exit("Failed to get data from '%s': %s" % (replica1, convert_error(e)))
 

@@ -230,7 +230,7 @@ def install_dns_records(config, options):
     # before our DS server is installed.
     cur_uri = api.Backend.ldap2.ldap_uri
     object.__setattr__(api.Backend.ldap2, 'ldap_uri',
-                       'ldaps://%s' % config.master_host_name)
+                       'ldaps://%s' % ipautil.format_netloc(config.master_host_name))
     api.Backend.ldap2.connect(bind_dn="cn=Directory Manager",
                               bind_pw=config.dirman_password,
                               tls_cacertfile=CACERT)
@@ -358,7 +358,7 @@ def main():
         fd.write("basedn=" + util.realm_to_suffix(config.realm_name) + "\n")
         fd.write("realm=" + config.realm_name + "\n")
         fd.write("domain=" + config.domain_name + "\n")
-        fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % config.host_name)
+        fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % ipautil.format_netloc(config.host_name))
         fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(config.realm_name))
         if ipautil.file_exists(config.dir + "/cacert.p12"):
             fd.write("enable_ra=True\n")
@@ -395,7 +395,7 @@ def main():
     install_ca_cert(config)
 
     # Try out the password
-    ldapuri = 'ldaps://%s' % config.master_host_name
+    ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
     try:
         conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
         conn.connect(bind_dn='cn=directory manager',

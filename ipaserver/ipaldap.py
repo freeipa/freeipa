@@ -34,6 +34,7 @@ from ldap.controls import LDAPControl,DecodeControlTuples,EncodeControlTuples
 from ldap.ldapobject import SimpleLDAPObject
 from ipaserver import ipautil
 from ipalib import errors
+from ipapython.ipautil import format_netloc
 
 # Global variable to define SASL auth
 SASL_AUTH = ldap.sasl.sasl({},'GSSAPI')
@@ -215,12 +216,12 @@ class IPAdmin(SimpleLDAPObject):
            its own encryption.
         """
         if self.cacert is not None:
-            SimpleLDAPObject.__init__(self,'ldaps://%s:%d' % (self.host,self.port))
+            SimpleLDAPObject.__init__(self,'ldaps://%s' % format_netloc(self.host, self.port))
         else:
             if self.ldapi:
                 SimpleLDAPObject.__init__(self,'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % "-".join(self.realm.split(".")))
             else:
-                SimpleLDAPObject.__init__(self,'ldap://%s:%d' % (self.host,self.port))
+                SimpleLDAPObject.__init__(self,'ldap://%s' % format_netloc(self.host, self.port))
 
     def __init__(self,host='',port=389,cacert=None,bindcert=None,bindkey=None,proxydn=None,debug=None,ldapi=False,realm=None):
         """We just set our instance variables and wrap the methods - the real
@@ -330,7 +331,7 @@ class IPAdmin(SimpleLDAPObject):
             raise errors.DatabaseError(desc=desc,info=info)
 
     def toLDAPURL(self):
-        return "ldap://%s:%d/" % (self.host,self.port)
+        return "ldap://%s/" % format_netloc(self.host, self.port)
 
     def set_proxydn(self, proxydn):
         self.proxydn = proxydn

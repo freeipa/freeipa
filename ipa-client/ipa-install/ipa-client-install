@@ -352,7 +352,7 @@ def configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server):
                {'name':'realm', 'type':'option', 'value':cli_realm},
                {'name':'domain', 'type':'option', 'value':cli_domain},
                {'name':'server', 'type':'option', 'value':cli_server},
-               {'name':'xmlrpc_uri', 'type':'option', 'value':'https://%s/ipa/xml' % cli_server},
+               {'name':'xmlrpc_uri', 'type':'option', 'value':'https://%s/ipa/xml' % ipautil.format_netloc(cli_server)},
                {'name':'enable_ra', 'type':'option', 'value':'True'}]
 
     opts.append({'name':'global', 'type':'section', 'value':defopts})
@@ -389,7 +389,7 @@ def configure_ldap_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
         if options.on_master:
             opts.append({'name':'uri', 'type':'option', 'value':'ldap://localhost'})
         else:
-            opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+cli_server})
+            opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+ipautil.format_netloc(cli_server)})
     else:
         opts.append({'name':'nss_srv_domain', 'type':'option', 'value':cli_domain})
 
@@ -428,7 +428,7 @@ def configure_nslcd_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, 
         if options.on_master:
             opts.append({'name':'uri', 'type':'option', 'value':'ldap://localhost'})
         else:
-            opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+cli_server})
+            opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+ipautil.format_netloc(cli_server)})
     else:
         opts.append({'name':'uri', 'type':'option', 'value':'DNS'})
 
@@ -471,7 +471,7 @@ def hardcode_ldap_server(cli_server):
     ldapconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
     ldapconf.setOptionAssignment(" ")
 
-    opts = [{'name':'uri', 'type':'option', 'action':'set', 'value':'ldap://'+cli_server},
+    opts = [{'name':'uri', 'type':'option', 'action':'set', 'value':'ldap://'+ipautil.format_netloc(cli_server)},
             {'name':'empty', 'type':'empty'}]
 
     # Errors raised by this should be caught by the caller
@@ -509,8 +509,8 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, c
     #the following are necessary only if DNS discovery does not work
     if not dnsok or not cli_kdc or options.force:
         #[realms]
-        kropts =[{'name':'kdc', 'type':'option', 'value':cli_server+':88'},
-                 {'name':'admin_server', 'type':'option', 'value':cli_server+':749'},
+        kropts =[{'name':'kdc', 'type':'option', 'value':ipautil.format_netloc(cli_server, 88)},
+                 {'name':'admin_server', 'type':'option', 'value':ipautil.format_netloc(cli_server, 749)},
                  {'name':'default_domain', 'type':'option', 'value':cli_domain}]
     else:
         kropts = []
@@ -887,7 +887,7 @@ def install(options, env, fstore, statestore):
         pass
 
     try:
-        run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % cli_server])
+        run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % ipautil.format_netloc(cli_server)])
     except CalledProcessError, e:
         print 'Retrieving CA from %s failed.\n%s' % (cli_server, str(e))
         return CLIENT_INSTALL_ERROR

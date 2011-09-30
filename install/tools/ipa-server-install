@@ -830,7 +830,7 @@ def main():
     fd.write("basedn=" + util.realm_to_suffix(realm_name) + "\n")
     fd.write("realm=" + realm_name + "\n")
     fd.write("domain=" + domain_name + "\n")
-    fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % host_name)
+    fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % format_netloc(host_name))
     fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(realm_name))
     fd.write("enable_ra=True\n")
     if not options.selfsign:

@@ -20,7 +20,7 @@
 from ipalib import api, errors
 import httplib
 import xml.dom.minidom
-from ipapython import nsslib
+from ipapython import nsslib, ipautil
 import nss.nss as nss
 from nss.error import NSPRError
 from ipalib.errors import NetworkError, CertificateOperationError
@@ -72,7 +72,7 @@ def https_request(host, port, url, secdir, password, nickname, **kw):
     """
     if isinstance(host, unicode):
         host = host.encode('utf-8')
-    uri = 'https://%s:%d%s' % (host, port, url)
+    uri = 'https://%s%s' % (ipautil.format_netloc(host, port), url)
     post = urlencode(kw)
     logging.info('sslget %r', uri)
     logging.debug('sslget post %r', post)
@@ -110,7 +110,7 @@ def http_request(host, port, url, **kw):
         """
         if isinstance(host, unicode):
             host = host.encode('utf-8')
-        uri = 'http://%s:%s%s' % (host, port, url)
+        uri = 'http://%s%s' % (ipautil.format_netloc(host, port), url)
         post = urlencode(kw)
         logging.info('request %r', uri)
         logging.debug('request post %r', post)

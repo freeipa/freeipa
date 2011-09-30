@@ -42,7 +42,7 @@ class test_ldap(object):
 
     def setUp(self):
         self.conn = None
-        self.ldapuri = 'ldap://%s' % api.env.host
+        self.ldapuri = 'ldap://%s' % ipautil.format_netloc(api.env.host)
         self.ccache = '/tmp/krb5cc_%d' % os.getuid()
         nss.nss_init_nodb()
         self.dn = str(DN(('krbprincipalname','ldap/%s@%s' % (api.env.host, api.env.realm)),

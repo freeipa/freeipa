@@ -201,8 +201,8 @@ def configure_krb5_conf(realm, kdc, filename):
 
     #the following are necessary only if DNS discovery does not work
     #[realms]
-    realms_info =[{'name':'kdc', 'type':'option', 'value':kdc+':88'},
-                 {'name':'admin_server', 'type':'option', 'value':kdc+':749'}]
+    realms_info =[{'name':'kdc', 'type':'option', 'value':ipautil.format_netloc(kdc, 88)},
+                 {'name':'admin_server', 'type':'option', 'value':ipautil.format_netloc(kdc, 749)}]
     realms = [{'name':realm, 'type':'subsection', 'value':realms_info}]
 
     opts.append({'name':'realms', 'type':'section', 'value':realms})
