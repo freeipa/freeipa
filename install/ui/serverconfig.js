@@ -55,6 +55,7 @@ IPA.entity_factories.config = function(){
                             other_field: 'cn'
                         },
                         'ipahomesrootdir',
+                        'ipadefaultloginshell',
                         'ipamaxusernamelength',
                         'ipapwdexpadvnotify',
                         {
