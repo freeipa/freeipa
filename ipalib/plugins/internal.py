@@ -453,6 +453,8 @@ class i18n_messages(Command):
             "optional": _("Optional field: click to show"),
             "page": _("Page"),
             "prev": _("Prev"),
+            "undo": _("undo"),
+            "undo_all": _("undo all"),
             "validation": {
                 "error": _("Text does not match field pattern"),
                 "integer": _("Must be an integer"),
