@@ -305,7 +305,7 @@ IPA.widget = function(spec) {
                 name: 'undo',
                 style: 'display: none;',
                 'class': 'ui-state-highlight ui-corner-all undo',
-                html: 'undo'
+                html: IPA.messages.widget.undo
             }).appendTo(container);
 
         if(on_undo === undefined) {
@@ -600,7 +600,7 @@ IPA.multivalued_text_widget = function(spec) {
             name: 'undo_all',
             style: 'display: none;',
             'class': 'ui-state-highlight ui-corner-all undo',
-            html: 'undo all',
+            html: IPA.messages.widget.undo_all,
             click: function() {
                 that.reset();
             }

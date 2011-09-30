@@ -17054,6 +17054,8 @@
                         "optional": "Optional field: click to show",
                         "page": "Page",
                         "prev": "Prev",
+                        "undo": "undo",
+                        "undo_all": "undo all",
                         "validation": {
                             "error": "Text does not match field pattern",
                             "integer": "Must be an integer",
