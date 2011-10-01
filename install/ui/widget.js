@@ -936,13 +936,23 @@ IPA.radio_widget = function(spec) {
         for (var i=0; i<that.options.length; i++) {
             var option = that.options[i];
 
+            // TODO: Use ID generator or accept ID from spec to avoid conflicts.
+            // Currently this ID is unique enough, but it will not work if the
+            // radio button is used multiple times for the same attribute, for
+            // example both in adder dialog and details facet.
+            var id = that.entity.name+'-'+that.name+'-'+i+'-radio';
+
             $('<input/>', {
-                'type': 'radio',
-                'name': that.name,
-                'value': option.value
+                id: id,
+                type: 'radio',
+                name: that.name,
+                value: option.value
             }).appendTo(container);
 
-            container.append(option.label);
+            $('<label/>', {
+                text: option.label,
+                'for': id
+            }).appendTo(container);
         }
 
         if (that.undo) {

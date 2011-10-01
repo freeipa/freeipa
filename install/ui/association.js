@@ -908,7 +908,10 @@ IPA.association_facet = function (spec) {
             span.append(IPA.messages.association.show_results);
             span.append(' ');
 
+            var direct_id = that.entity.name+'-'+that.attribute_member+'-'+that.other_entity+'-direct-radio';
+
             that.direct_radio = $('<input/>', {
+                id: direct_id,
                 type: 'radio',
                 name: 'type',
                 value: 'direct',
@@ -919,11 +922,17 @@ IPA.association_facet = function (spec) {
                 }
             }).appendTo(span);
 
-            span.append(' ');
-            span.append(IPA.messages.association.direct_enrollment);
+            $('<label/>', {
+                text: IPA.messages.association.direct_enrollment,
+                'for': direct_id
+            }).appendTo(span);
+
             span.append(' ');
 
+            var indirect_id = that.entity.name+'-'+that.attribute_member+'-'+that.other_entity+'-indirect-radio';
+
             that.indirect_radio = $('<input/>', {
+                id: indirect_id,
                 type: 'radio',
                 name: 'type',
                 value: 'indirect',
@@ -934,8 +943,10 @@ IPA.association_facet = function (spec) {
                 }
             }).appendTo(span);
 
-            span.append(' ');
-            span.append(IPA.messages.association.indirect_enrollment);
+            $('<label/>', {
+                text: IPA.messages.association.indirect_enrollment,
+                'for': indirect_id
+            }).appendTo(span);
         }
     };
 
