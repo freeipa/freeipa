@@ -71,6 +71,15 @@ EXAMPLES:
  Specify the user and group container. This can be used to migrate user and
  group data from an IPA v1 server:
    ipa migrate-ds --user-container='cn=users,cn=accounts' --group-container='cn=groups,cn=accounts' ldap://ds.example.com:389
+
+ Since IPA v2 server already contain predefined groups that may collide with
+ groups in migrated (IPA v1) server (for example admins, ipausers), users having
+ colliding group as their primary group may happen to belong to an unknown group
+ on new IPA v2 server.
+ Use --group-overwrite-gid option to overwrite GID of already existing groups
+ to prevent this issue:
+    ipa migrate-ds --group-overwrite-gid --user-container='cn=users,cn=accounts' --group-container='cn=groups,cn=accounts' ldap://ds.example.com:389
+
 """)
 
 # USER MIGRATION CALLBACKS AND VARS
@@ -228,6 +237,28 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
     return dn
 
 
+def _group_exc_callback(ldap, dn, entry_attrs, exc, options):
+    if isinstance(exc, errors.DuplicateEntry):
+        if options.get('groupoverwritegid', False) and \
+           entry_attrs.get('gidnumber') is not None:
+            try:
+                new_entry_attrs = {'gidnumber':entry_attrs['gidnumber']}
+                ldap.update_entry(dn, new_entry_attrs)
+            except errors.EmptyModlist:
+                # no change to the GID
+                pass
+            # mark as success
+            return
+        elif not options.get('groupoverwritegid', False) and \
+             entry_attrs.get('gidnumber') is not None:
+            msg = unicode(exc)
+            # add information about possibility to overwrite GID
+            msg = msg + unicode(_('. Check GID of the existing group. ' \
+                    'Use --group-overwrite-gid option to overwrite the GID'))
+            raise errors.DuplicateEntry(message=msg)
+
+    raise exc
+
 # DS MIGRATION PLUGIN
 
 def construct_filter(template, oc_list):
@@ -252,6 +283,7 @@ class migrate_ds(Command):
         # pre_callback - is called for each object just after it was
         #                retrieved from DS and before being added to IPA
         # post_callback - is called for each object after it was added to IPA
+        # exc_callback - is called when adding entry to IPA raises an exception
         #
         # {pre, post}_callback parameters:
         #  ldap - ldap2 instance connected to IPA
@@ -270,7 +302,8 @@ class migrate_ds(Command):
             'oc_blacklist_option' : 'userignoreobjectclass',
             'attr_blacklist_option' : 'userignoreattribute',
             'pre_callback' : _pre_migrate_user,
-            'post_callback' : _post_migrate_user
+            'post_callback' : _post_migrate_user,
+            'exc_callback' : None
         },
         'group': {
             'filter_template' : '(&(|%s)(cn=*))',
@@ -278,7 +311,8 @@ class migrate_ds(Command):
             'oc_blacklist_option' : 'groupignoreobjectclass',
             'attr_blacklist_option' : 'groupignoreattribute',
             'pre_callback' : _pre_migrate_group,
-            'post_callback' : None
+            'post_callback' : None,
+            'exc_callback' : _group_exc_callback,
         },
     }
     migrate_order = ('user', 'group')
@@ -292,6 +326,7 @@ class migrate_ds(Command):
         Password('bindpw',
             cli_name='password',
             label=_('Password'),
+            confirm=False,
             doc=_('bind password'),
         ),
     )
@@ -359,6 +394,12 @@ class migrate_ds(Command):
             default=tuple(),
             autofill=True,
         ),
+        Flag('groupoverwritegid',
+            cli_name='group_overwrite_gid',
+            label=_('Overwrite GID'),
+            doc=_('When migrating a group already existing in IPA domain overwrite the '\
+                  'group GID and report as success'),
+        ),
         StrEnum('schema?',
             cli_name='schema',
             label=_('LDAP schema'),
@@ -368,6 +409,7 @@ class migrate_ds(Command):
             autofill=True,
         ),
         Flag('continue?',
+            label=_('Continue'),
             doc=_('Continuous operation mode. Errors are reported but the process continues'),
             default=False,
         ),
@@ -539,16 +581,25 @@ can use their Kerberos accounts.''')
                 try:
                     ldap.add_entry(dn, entry_attrs)
                 except errors.ExecutionError, e:
-                    failed[ldap_obj_name][pkey] = unicode(e)
-                else:
-                    migrated[ldap_obj_name].append(pkey)
-
-                    callback = self.migrate_objects[ldap_obj_name]['post_callback']
+                    callback = self.migrate_objects[ldap_obj_name]['exc_callback']
                     if callable(callback):
-                        callback(
-                            ldap, pkey, dn, entry_attrs, failed[ldap_obj_name],
-                            config, context
-                        )
+                        try:
+                            callback(ldap, dn, entry_attrs, e, options)
+                        except errors.ExecutionError, e:
+                            failed[ldap_obj_name][pkey] = unicode(e)
+                            continue
+                    else:
+                        failed[ldap_obj_name][pkey] = unicode(e)
+                        continue
+
+                migrated[ldap_obj_name].append(pkey)
+
+                callback = self.migrate_objects[ldap_obj_name]['post_callback']
+                if callable(callback):
+                    callback(
+                        ldap, pkey, dn, entry_attrs, failed[ldap_obj_name],
+                        config, context,
+                    )
 
         return (migrated, failed)
 
