@@ -141,8 +141,6 @@ def parse_options():
     parser.add_option_group(basic_group)
 
     cert_group = OptionGroup(parser, "certificate system options")
-    cert_group.add_option("", "--selfsign", dest="selfsign", action="store_true",
-                      default=False, help="Configure a self-signed CA instance rather than a dogtag CA")
     cert_group.add_option("", "--external-ca", dest="external_ca", action="store_true",
                       default=False, help="Generate a CSR to be signed by an external CA")
     cert_group.add_option("", "--external_cert_file", dest="external_cert_file",
@@ -166,6 +164,9 @@ def parse_options():
     cert_group.add_option("--subject", action="callback", callback=subject_callback,
                       type="string",
                       help="The certificate subject base (default O=<realm-name>)")
+    cert_group.add_option("", "--selfsign", dest="selfsign", action="store_true",
+                      default=False, help="Configure a self-signed CA instance rather than a dogtag CA. " \
+                      "WARNING: Certificate management capabilities will be limited")
     parser.add_option_group(cert_group)
 
     dns_group = OptionGroup(parser, "DNS options")
@@ -667,6 +668,11 @@ def main():
     print "This program will set up the FreeIPA Server."
     print ""
     print "This includes:"
+    if options.selfsign:
+        print "  * Configure NSS to handle a self-signed CA"
+        print "    WARNING: certificate management capabilities will be limited"
+    else:
+        print "  * Configure a stand-alone CA (dogtag) for certificate management"
     if options.conf_ntp:
         print "  * Configure the Network Time Daemon (ntpd)"
     print "  * Create and configure an instance of Directory Server"
