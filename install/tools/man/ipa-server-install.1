@@ -71,9 +71,6 @@ An unattended installation that will never prompt for user input
 
 .SS "CERTIFICATE SYSTEM OPTIONS"
 .TP
-\fB\-\-selfsign\fR
-Configure a self\-signed CA instance for issuing server certificates instead of using dogtag for certificates
-.TP
 \fB\-\-external\-ca\fR
 Generate a CSR to be signed by an external CA
 .TP
@@ -106,6 +103,11 @@ The password of the Kerberos KDC PKCS#12 file
 .TP
 \fB\-\-subject\fR=\fISUBJECT\fR
 The certificate subject base (default O=REALM.NAME)
+.TP
+\fB\-\-selfsign\fR
+Configure a self\-signed CA instance for issuing server certificates instead of using dogtag for certificates.
+
+WARNING: Using this option will restrain the server certificate management capabilities. Please, keep in mind that there is no way to change this setting later.
 
 .SS "DNS OPTIONS"
 .TP
