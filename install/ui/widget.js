@@ -468,6 +468,15 @@ IPA.text_widget = function(spec) {
         }
     };
 
+    that.set_enabled = function(value) {
+
+        if(value) {
+            that.input.removeAttr('disabled');
+        } else {
+            that.input.attr('disabled', 'disabled');
+        }
+    };
+
     // methods that should be invoked by subclasses
     that.text_load = that.load;
 
@@ -771,6 +780,7 @@ IPA.checkbox_widget = function (spec) {
 
     // default value
     that.checked = spec.checked || false;
+    that.value_changed = IPA.observer();
 
     that.create = function(container) {
 
@@ -785,6 +795,7 @@ IPA.checkbox_widget = function (spec) {
             title: that.tooltip,
             change: function() {
                 that.set_dirty(that.test_dirty());
+                that.value_changed.notify(that.save(), that);
             }
         }).appendTo(container);
 
