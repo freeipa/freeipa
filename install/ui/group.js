@@ -102,6 +102,7 @@ IPA.entity_factories.group =  function () {
         }).
         standard_association_facets().
         adder_dialog({
+            factory: IPA.group_adder_dialog,
             fields: [
                 'cn',
                 {
@@ -131,6 +132,32 @@ IPA.group_nonposix_checkbox_widget = function (spec) {
         // convert posix into non-posix
         return [!value];
     };
+
+    return that;
+};
+
+IPA.group_adder_dialog = function (spec) {
+
+    spec = spec || {};
+
+    var that = IPA.add_dialog(spec);
+
+    var init = function() {
+
+        var posix_field = that.get_field('nonposix');
+        posix_field.value_changed.attach(that.on_posix_change);
+    };
+
+    that.on_posix_change = function (value) {
+
+        var gid_field = that.get_field('gidnumber');
+        if(value) {
+            gid_field.reset();
+        }
+        gid_field.set_enabled(!value);
+    };
+
+    init();
 
     return that;
 };
