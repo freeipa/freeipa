@@ -1052,13 +1052,14 @@ def install(options, env, fstore, statestore):
     auth_config.execute()
     print message
 
-    #Modify pam to add pam_krb5
-    auth_config.reset()
-    auth_config.enable("krb5").\
-                add_option("update").\
-                add_option("nostart")
-    auth_config.execute()
-    print "Kerberos 5 enabled"
+    if not options.sssd:
+        #Modify pam to add pam_krb5 only when sssd is not in use
+        auth_config.reset()
+        auth_config.enable("krb5").\
+                    add_option("update").\
+                    add_option("nostart")
+        auth_config.execute()
+        print "Kerberos 5 enabled"
 
     # Update non-SSSD LDAP configuration after authconfig calls as it would
     # change its configuration otherways
