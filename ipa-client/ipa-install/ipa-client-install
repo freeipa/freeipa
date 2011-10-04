@@ -320,6 +320,30 @@ def uninstall(options, env, quiet=False):
         # this is optional service, just log
         logging.info("%s daemon is not installed, skip configuration" % (nslcd.service_name))
 
+    ntp_configured = statestore.has_state('ntp')
+    if ntp_configured:
+        ntp_enabled = statestore.restore_state('ntp', 'enabled')
+        ntp_step_tickers = statestore.restore_state('ntp', 'step-tickers')
+
+        try:
+            # Restore might fail due to file missing in backup
+            # the reason for it might be that freeipa-client was updated
+            # to this version but not unenrolled/enrolled again
+            # In such case it is OK to fail
+            restored = fstore.restore_file("/etc/ntp.conf")
+            restored |= fstore.restore_file("/etc/sysconfig/ntpd")
+            if ntp_step_tickers:
+               restored |= fstore.restore_file("/etc/ntp/step-tickers")
+        except:
+            pass
+
+        if not ntp_enabled:
+           ipaservices.knownservices.ntpd.stop()
+           ipaservices.knownservices.ntpd.disable()
+        else:
+           if restored:
+               ipaservices.knownservices.ntpd.restart()
+
     if not options.unattended:
         emit_quiet(quiet, "The original nsswitch.conf configuration has been restored.")
         emit_quiet(quiet, "You may need to restart services or reboot the machine.")
@@ -1103,7 +1127,7 @@ def install(options, env, fstore, statestore):
             ntp_server = options.ntp_server
         else:
             ntp_server = cli_server
-        ipaclient.ntpconf.config_ntp(ntp_server, fstore)
+        ipaclient.ntpconf.config_ntp(ntp_server, fstore, statestore)
         print "NTP enabled"
 
     print "Client configuration complete."

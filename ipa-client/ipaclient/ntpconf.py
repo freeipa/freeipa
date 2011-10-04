@@ -20,6 +20,7 @@
 from ipapython import ipautil
 from ipapython import services as ipaservices
 import shutil
+import os
 
 ntp_conf = """# Permit time synchronization with our time source, but do not
 # permit the source to query or modify the service on this system.
@@ -80,30 +81,51 @@ SYNC_HWCLOCK=yes
 # Additional options for ntpdate
 NTPDATE_OPTIONS=""
 """
+ntp_step_tickers = """# Use IPA-provided NTP server for initial time
+$SERVER
+"""
+def __backup_config(path, fstore = None):
+    if fstore:
+        fstore.backup_file(path)
+    else:
+        shutil.copy(path, "%s.ipasave" % (path))
 
-def config_ntp(server_fqdn, fstore = None):
+def __write_config(path, content):
+    fd = open(path, "w")
+    fd.write(content)
+    fd.close()
+
+def config_ntp(server_fqdn, fstore = None, sysstore = None):
+    path_step_tickers = "/etc/ntp/step-tickers"
+    path_ntp_conf = "/etc/ntp.conf"
+    path_ntp_sysconfig = "/etc/sysconfig/ntpd"
     sub_dict = { }
     sub_dict["SERVER"] = server_fqdn
 
     nc = ipautil.template_str(ntp_conf, sub_dict)
+    config_step_tickers = False
 
-    if fstore:
-        fstore.backup_file("/etc/ntp.conf")
-    else:
-        shutil.copy("/etc/ntp.conf", "/etc/ntp.conf.ipasave")
 
-    fd = open("/etc/ntp.conf", "w")
-    fd.write(nc)
-    fd.close()
+    if os.path.exists(path_step_tickers):
+        config_step_tickers = True
+        ns = ipautil.template_str(ntp_step_tickers, sub_dict)
+        __backup_config(path_step_tickers, fstore)
+        __write_config(path_step_tickers, ns)
+        ipaservices.restore_context(path_step_tickers)
 
-    if fstore:
-        fstore.backup_file("/etc/sysconfig/ntpd")
-    else:
-        shutil.copy("/etc/sysconfig/ntpd", "/etc/sysconfig/ntpd.ipasave")
+    if sysstore:
+        module = 'ntp'
+        sysstore.backup_state(module, "enabled", ipaservices.knownservices.ntpd.is_enabled())
+        if config_step_tickers:
+            sysstore.backup_state(module, "step-tickers", True)
 
-    fd = open("/etc/sysconfig/ntpd", "w")
-    fd.write(ntp_sysconfig)
-    fd.close()
+    __backup_config(path_ntp_conf, fstore)
+    __write_config(path_ntp_conf, nc)
+    ipaservices.restore_context(path_ntp_conf)
+
+    __backup_config(path_ntp_sysconfig, fstore)
+    __write_config(path_ntp_sysconfig, ntp_sysconfig)
+    ipaservices.restore_context(path_ntp_sysconfig)
 
     # Set the ntpd to start on boot
     ipaservices.knownservices.ntpd.enable()
