@@ -34,10 +34,13 @@ Once the file has been created it will be named replica\-hostname. This file can
 .SH "OPTIONS"
 .TP
 \fB\-\-dirsrv_pkcs12\fR=\fIFILE\fR
-PKCS#12 file containing the Directory Server SSL Certificate
+PKCS#12 file containing the Directory Server SSL Certificate and Private Key
 .TP
 \fB\-\-http_pkcs12\fR=\fIFILE\fR
-PKCS#12 file containing the Apache Server SSL Certificate
+PKCS#12 file containing the Apache Server SSL Certificate and Private Key
+.TP
+\fB\-\-pkinit_pkcs12\fR=\fIFILE\fR
+PKCS#12 file containing the Kerberos KDC Certificate and Private Key
 .TP
 \fB\-\-dirsrv_pin\fR=\fIDIRSRV_PIN\fR
 The password of the Directory Server PKCS#12 file
@@ -46,7 +49,7 @@ The password of the Directory Server PKCS#12 file
 The password of the Apache Server PKCS#12 file
 .TP
 \fB\-\-pkinit_pin\fR=\fIPKINIT_PIN\fR
-The password of the Apache Server PKCS#12 file
+The password of the Kerberos KDC PKCS#12 file
 .TP
 \fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 Directory Manager (existing master) password
