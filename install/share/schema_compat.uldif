@@ -46,7 +46,7 @@ default:schema-compat-entry-rdn: cn=%{cn}
 default:schema-compat-entry-attribute: objectclass=posixGroup
 default:schema-compat-entry-attribute: gidNumber=%{gidNumber}
 default:schema-compat-entry-attribute: memberUid=%{memberUid}
-default:schema-compat-entry-attribute: memberUid=%deref("member","uid")
+default:schema-compat-entry-attribute: memberUid=%deref_r("member","uid")
 
 dn: cn=ng,cn=Schema Compatibility,cn=plugins,cn=config
 add:objectClass: top
