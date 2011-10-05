@@ -42,6 +42,7 @@ import ldap.sasl as _ldap_sasl
 from ldap.controls import LDAPControl
 # for backward compatibility
 from ldap.functions import explode_dn
+from ipalib.dn import DN
 
 import krbV
 
@@ -987,6 +988,13 @@ class ldap2(CrudBackend, Encoder):
         if membertype == MEMBERS_ALL or membertype == MEMBERS_INDIRECT:
             checkmembers = copy.deepcopy(members)
             for member in checkmembers:
+                # No need to check entry types that are not nested for
+                # additional members
+                dn = DN(member)
+                if dn.endswith(DN(api.env.container_user, api.env.basedn)) or \
+                   dn.endswith(DN(api.env.container_host, api.env.basedn)):
+                        results.append([member, {}])
+                        continue
                 try:
                     (result, truncated) = self.find_entries(searchfilter,
                         attr_list, member, time_limit=time_limit,
