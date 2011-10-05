@@ -115,6 +115,17 @@ class hostgroup_add(LDAPCreate):
 
     msg_summary = _('Added hostgroup "%(value)s"')
 
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        try:
+            netgroup = api.Command['netgroup_show'](keys[-1])
+            raise errors.DuplicateEntry(message=unicode(_(\
+                    u'netgroup with name "%s" already exists' % keys[-1]\
+                    )))
+        except errors.NotFound:
+            pass
+
+        return dn
+
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         # Always wait for the associated netgroup to be created so we can
         # be sure to ignore it in memberOf
