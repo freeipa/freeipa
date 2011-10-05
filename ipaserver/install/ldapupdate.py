@@ -267,7 +267,7 @@ class LDAPUpdate:
     def parse_update_file(self, data, all_updates, dn_list):
         """Parse the update file into a dictonary of lists and apply the update
            for each DN in the file."""
-        valid_keywords = ["default", "add", "remove", "only", "deleteentry", "replace", "addifnew"]
+        valid_keywords = ["default", "add", "remove", "only", "deleteentry", "replace", "addifnew", "addifexist"]
         update = {}
         d = ""
         index = ""
@@ -533,6 +533,14 @@ class LDAPUpdate:
                         e.append(v)
                         logging.debug('addifnew: set %s to %s', k, e)
                         entry.setValues(k, e)
+                elif utype == 'addifexist':
+                    logging.debug("addifexist: '%s' to %s, current value %s", v, k, e)
+                    # Only add the attribute if the entry doesn't exist. We
+                    # determine this based on whether it has an objectclass
+                    if entry.getValues('objectclass'):
+                        e.append(v)
+                        logging.debug('addifexist: set %s to %s', k, e)
+                        entry.setValues(k, e)
                 elif utype == 'only':
                     logging.debug("only: set %s to '%s', current value %s", k, v, e)
                     if only.get(k):
@@ -645,7 +653,11 @@ class LDAPUpdate:
             # entry.orig_data = {}
             try:
                 if self.live_run:
-                    self.conn.addEntry(entry.dn, entry.toTupleList())
+                    if len(entry.toTupleList()) > 0:
+                        # addifexist may result in an entry with only a
+                        # dn defined. In that case there is nothing to do.
+                        # It means the entry doesn't exist, so skip it.
+                        self.conn.addEntry(entry.dn, entry.toTupleList())
                 self.modified = True
             except Exception, e:
                 logging.error("Add failure %s", e)

@@ -19,6 +19,7 @@ app_DATA =				\
 	20-winsync_index.update		\
 	21-replicas_container.update	\
 	40-delegation.update		\
+	40-dns.update			\
 	45-roles.update			\
 	50-lockout-policy.update	\
 	50-groupuuid.update		\

@@ -1,0 +1,22 @@
+# Add missing member values to attach permissions to their respective
+# privileges and run a memberOf task.
+dn: cn=add dns entries,cn=permissions,cn=pbac,$SUFFIX
+addifexist:member: 'cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX'
+addifexist:member: 'cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX'
+
+dn: cn=remove dns entries,cn=permissions,cn=pbac,$SUFFIX
+addifexist:member: 'cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX'
+addifexist:member: 'cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX'
+
+dn: cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX
+addifexist:member: 'cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX'
+addifexist:member: 'cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX'
+
+dn: cn=Update PBAC memberOf $TIME, cn=memberof task, cn=tasks, cn=config
+add: objectClass: top
+add: objectClass: extensibleObject
+add: cn: IPA PBAC memberOf $TIME
+add: basedn: 'cn=privileges,cn=pbac,$SUFFIX'
+add: filter: (objectclass=*)
+add: ttl: 10
+
