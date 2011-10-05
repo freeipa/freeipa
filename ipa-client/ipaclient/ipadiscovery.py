@@ -316,6 +316,27 @@ class IPADiscovery:
 
         return servers
 
+    def ipadnssearchntp(self, tdomain):
+        servers = ""
+        rserver = ""
+
+        qname = "_ntp._udp."+tdomain
+        # terminate the name
+        if not qname.endswith("."):
+            qname += "."
+        results = ipapython.dnsclient.query(qname, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_SRV)
+
+        for result in results:
+            if result.dns_type == ipapython.dnsclient.DNS_T_SRV:
+                rserver = result.rdata.server.rstrip(".")
+                if servers:
+                    servers += "," + rserver
+                else:
+                    servers = rserver
+                break
+
+        return servers
+
     def ipadnssearchkrb(self, tdomain):
         realm = None
         kdc = None

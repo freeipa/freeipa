@@ -921,6 +921,21 @@ def install(options, env, fstore, statestore):
         nolog = tuple()
         # First test out the kerberos configuration
         try:
+            # Attempt to sync time with IPA server.
+            # We assume that NTP servers are discoverable through SRV records in the DNS
+            # If that fails, we try to sync directly with IPA server, assuming it runs NTP
+            print 'Synchronizing time with KDC...'
+            ntp_servers = ipautil.parse_items(ds.ipadnssearchntp(cli_domain))
+            synced_ntp = False
+            if len(ntp_servers) > 0:
+                for s in ntp_servers:
+                   synced_ntp = ipaclient.ntpconf.synconce_ntp(s)
+                   if synced_ntp:
+                       break
+            if not synced_ntp:
+                synced_ntp = ipaclient.ntpconf.synconce_ntp(cli_server)
+            if not synced_ntp:
+                print "Unable to sync time with IPA NTP server, assuming the time is in sync."
             (krb_fd, krb_name) = tempfile.mkstemp()
             os.close(krb_fd)
             if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, krb_name):
