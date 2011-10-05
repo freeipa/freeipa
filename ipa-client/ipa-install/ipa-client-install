@@ -324,6 +324,7 @@ def uninstall(options, env, quiet=False):
     if ntp_configured:
         ntp_enabled = statestore.restore_state('ntp', 'enabled')
         ntp_step_tickers = statestore.restore_state('ntp', 'step-tickers')
+        restored = False
 
         try:
             # Restore might fail due to file missing in backup
