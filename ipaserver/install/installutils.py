@@ -38,7 +38,19 @@ from ipapython import ipautil, dnsclient, sysrestore
 # Used to determine install status
 IPA_MODULES = ['httpd', 'kadmin', 'dirsrv', 'pki-cad', 'pkids', 'install', 'krb5kdc', 'ntpd', 'named']
 
-class HostnameLocalhost(Exception):
+class BadHostError(Exception):
+    pass
+
+class HostLookupError(BadHostError):
+    pass
+
+class HostForwardLookupError(HostLookupError):
+    pass
+
+class HostReverseLookupError(HostLookupError):
+    pass
+
+class HostnameLocalhost(HostLookupError):
     pass
 
 class ReplicaConfig:
@@ -119,22 +131,25 @@ def verify_dns_records(host_name, responses, resaddr, family):
 
 def verify_fqdn(host_name, no_host_dns=False, system_name_check=True):
     """
-    Verify that the given host name is fully-qualified.
+    Run fqdn checks for given host:
+        - test hostname format
+        - test that hostname is fully qualified
+        - test forward and reverse hostname DNS lookup
 
-    Raises `RuntimeError` if the host name is not fully-qualified.
+    Raises `BadHostError` or derived Exceptions if there is an error
 
     :param host_name: The host name to verify.
-    :param no_host_dns: If true, skip DNS resolution of the host name.
+    :param no_host_dns: If true, skip DNS resolution tests of the host name.
     :param system_name_check: If true, check if the host name matches the system host name.
     """
     if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":
-        raise RuntimeError("Invalid hostname '%s', must be fully-qualified." % host_name)
+        raise BadHostError("Invalid hostname '%s', must be fully-qualified." % host_name)
 
     if host_name != host_name.lower():
-        raise RuntimeError("Invalid hostname '%s', must be lower-case." % host_name)
+        raise BadHostError("Invalid hostname '%s', must be lower-case." % host_name)
 
     if ipautil.valid_ip(host_name):
-        raise RuntimeError("IP address not allowed as a hostname")
+        raise BadHostError("IP address not allowed as a hostname")
 
     if system_name_check:
         system_host_name = socket.gethostname()
@@ -149,28 +164,28 @@ def verify_fqdn(host_name, no_host_dns=False, system_name_check=True):
     try:
         hostaddr = socket.getaddrinfo(host_name, None)
     except:
-        raise RuntimeError("Unable to resolve host name, check /etc/hosts or DNS name resolution")
+        raise HostForwardLookupError("Unable to resolve host name, check /etc/hosts or DNS name resolution")
 
     if len(hostaddr) == 0:
-        raise RuntimeError("Unable to resolve host name, check /etc/hosts or DNS name resolution")
+        raise HostForwardLookupError("Unable to resolve host name, check /etc/hosts or DNS name resolution")
 
     for a in hostaddr:
         if a[4][0] == '127.0.0.1' or a[4][0] == '::1':
-            raise RuntimeError("The IPA Server hostname must not resolve to localhost (%s). A routable IP address must be used. Check /etc/hosts to see if %s is an alias for %s" % (a[4][0], host_name, a[4][0]))
+            raise HostForwardLookupError("The IPA Server hostname must not resolve to localhost (%s). A routable IP address must be used. Check /etc/hosts to see if %s is an alias for %s" % (a[4][0], host_name, a[4][0]))
         try:
             resaddr = a[4][0]
             revname = socket.gethostbyaddr(a[4][0])[0]
         except:
-            raise RuntimeError("Unable to resolve the reverse ip address, check /etc/hosts or DNS name resolution")
+            raise HostReverseLookupError("Unable to resolve the reverse ip address, check /etc/hosts or DNS name resolution")
         if revname != host_name:
-            raise RuntimeError("The host name %s does not match the reverse lookup %s" % (host_name, revname))
+            raise HostReverseLookupError("The host name %s does not match the reverse lookup %s" % (host_name, revname))
 
     # Verify this is NOT a CNAME
     rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_CNAME)
     if len(rs) != 0:
         for rsn in rs:
             if rsn.dns_type == dnsclient.DNS_T_CNAME:
-                raise RuntimeError("The IPA Server Hostname cannot be a CNAME, only A and AAAA names are allowed.")
+                raise HostReverseLookupError("The IPA Server Hostname cannot be a CNAME, only A and AAAA names are allowed.")
 
     # Verify that it is a DNS A or AAAA record
     rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
