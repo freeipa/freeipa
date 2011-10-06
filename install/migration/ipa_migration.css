@@ -34,7 +34,7 @@
 
 body{
     background-image:url("../ui/outer-bg.png");
-    background-repeat:repeat-x; 
+    background-repeat:repeat-x;
     background-position:left top;
     background-color:#F9F9F9;
     border-width: 0;
@@ -546,15 +546,15 @@ span.main-separator{
 /* Migration */
 
 body#header-bg {
-    background: url("Static-Background.png") repeat-x scroll left top #EDEDED;
+    background: url("../ui/Static-Background.png") repeat-x scroll left top #EDEDED;
 }
-   
+
 .container_1 {
     margin-left: auto;
     margin-right: auto;
     width: 960px;
-	background: url("centered-bg.png") no-repeat scroll 0 7em transparent;
-	min-height: 40em;
+    background: url("../ui/centered-bg.png") no-repeat scroll 0 7em transparent;
+    min-height: 40em;
 }
 
 #formwindow {
@@ -582,7 +582,7 @@ body#header-bg {
 }
 
 .# {
-    background: url("ipalogo.png") no-repeat scroll left top transparent;
+    background: url("../ui/ipalogo.png") no-repeat scroll left top transparent;
     border: none;
     float: left;
     height: 36px;
@@ -651,7 +651,7 @@ form#login {
 .textblockkrb ul li {
 	list-style-type: none;
 	padding: .15em;
-	
+
 }
 
 
@@ -661,7 +661,7 @@ h3 {
     font-size: 1.5em;
     font-weight: normal;
     text-transform: uppercase;
-}	
+}
 
 h5 {
     color: #333333;
@@ -674,9 +674,9 @@ h5 {
 	margin-top: -3em;
 
 }
-    
-	
-	
+
+
+
 /* Search */
 
 .search-controls {

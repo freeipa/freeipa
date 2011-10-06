@@ -5,23 +5,23 @@
     <title>IPA: Identity Policy Audit</title>
 
     <script type="text/javascript" src="../ui/jquery.js"></script>
-    <link rel="stylesheet" type="text/css" href="jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" href="../ui/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="ipa_error.css" />
 </head>
 
 <body id="header-bg">
- 
-  <div class="container_1"> 
+
+  <div class="container_1">
     <div class="header-logo">
-            <img src="../ui/ipalogo.png" />
-        </div>  
-       <div class="textblockkrb"> 
+            <img src="../ui/ipalogo.png" /><img src="../ui/ipabanner.png" />
+        </div>
+       <div class="textblockkrb">
         <h3>Browser Kerberos Setup</h3>
-        <img alt="Internet Explorer" src="ie-icon.png"><h5>Internet Explorer Configuration</h5>
+        <img alt="Internet Explorer" src="../ui/ie-icon.png"><h5>Internet Explorer Configuration</h5>
         <p>Once you are able to log into the workstation with your kerberos key you are now able to use that ticket in Internet Explorer. </p>
-        
+
           <strong>Login to the Windows machine using an account of your Kerberos realm (administrative domain)</strong><br>
-    	  <strong>In Internet Explorer, click Tools, and then click Internet Options.</strong> 
+          <strong>In Internet Explorer, click Tools, and then click Internet Options.</strong>
             <br>
             <ul>
             <li> 1. Click the Security tab </li>
@@ -38,15 +38,15 @@
             <li> Visit a kerberized web site using IE (You must use the fully-qualified Domain Name in the URL)</li>
             <li><strong> You are all set. </strong></li>
             </ul>
-            
+
             <br>
-            
-        <img alt="Firefox" src="firefox-icon.png"><h5>Firefox Configuration</h5>
-       
+
+        <img alt="Firefox" src="../ui/firefox-icon.png"><h5>Firefox Configuration</h5>
+
         <p>You can configure Firefox to use Kerberos for Single Sign-on. The following instructions will guide you in configuring your web browser <br>
          to send your Kerberos credentials to the appropriate Key Distribution Center which enables Single Sign-on.  </p>
-        
-        	<ul><li> 1. In the address bar of Firefox, type <tt>about:config</tt> to display the list of current configuration options.</li>
+
+            <ul><li> 1. In the address bar of Firefox, type <tt>about:config</tt> to display the list of current configuration options.</li>
                 <li> 2. In the Filter field, type <tt>negotiate</tt> to restrict the list of options. </li>
                 <li> 3. Double-click the <tt>network.negotiate-auth.trusted-uris</tt> entry to display the Enter string value dialog box. </li>
                 <li> 4. Enter the name of the domain against which you want to authenticate, for example, <tt>.example.com.</tt> </li>
@@ -54,10 +54,10 @@
                 <br>
                 <li><strong> You are all set. </strong></li>
             </ul>
-        
-             
+
+
         </div>
-        
+
    </div>
 
 </body>
