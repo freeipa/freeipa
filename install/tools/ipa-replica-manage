@@ -328,7 +328,8 @@ def del_master(realm, hostname, options):
 
     # 5. And clean up the removed replica DNS entries if any.
     try:
-        if bindinstance.dns_container_exists(options.host, thisrepl.suffix):
+        if bindinstance.dns_container_exists(options.host, thisrepl.suffix,
+                                             dm_password=options.dirman_passwd):
             if options.dirman_passwd:
                 api.Backend.ldap2.connect(bind_dn='cn=Directory Manager',
                                           bind_pw=options.dirman_passwd)

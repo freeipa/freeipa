@@ -79,7 +79,7 @@ def named_conf_exists():
             return True
     return False
 
-def dns_container_exists(fqdn, suffix):
+def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None):
     """
     Test whether the dns container exists.
     """
@@ -89,20 +89,29 @@ def dns_container_exists(fqdn, suffix):
         Test whether the given object exists in LDAP.
         """
         try:
-            server.search_ext_s(dn, ldap.SCOPE_BASE)
+            conn.search_ext_s(dn, ldap.SCOPE_BASE)
         except ldap.NO_SUCH_OBJECT:
             return False
         else:
             return True
 
     try:
-        server = ldap.initialize("ldap://" + ipautil.format_netloc(fqdn))
-        server.simple_bind_s()
+        # At install time we may need to use LDAPI to avoid chicken/egg
+        # issues with SSL certs and truting CAs
+        if ldapi:
+            conn = ipaldap.IPAdmin(host=fqdn, ldapi=True, realm=realm)
+        else:
+            conn = ipaldap.IPAdmin(host=fqdn, port=636, cacert=service.CACERT)
+
+        if dm_password:
+            conn.do_simple_bind(bindpw=dm_password)
+        else:
+            conn.do_sasl_gssapi_bind()
     except ldap.SERVER_DOWN:
         raise RuntimeError('LDAP server on %s is not responding. Is IPA installed?' % fqdn)
 
     ret = object_exists("cn=dns,%s" % suffix)
-    server.unbind_s()
+    conn.unbind_s()
 
     return ret
 
@@ -337,6 +346,7 @@ class BindInstance(service.Service):
         self.forwarders = None
         self.sub_dict = None
         self.reverse_zone = None
+        self.dm_password = dm_password
 
         if fstore:
             self.fstore = fstore
@@ -387,7 +397,8 @@ class BindInstance(service.Service):
         if not installutils.record_in_hosts(self.ip_address, self.fqdn):
             installutils.add_record_to_hosts(self.ip_address, self.fqdn)
 
-        if not dns_container_exists(self.fqdn, self.suffix):
+        if not dns_container_exists(self.fqdn, self.suffix, realm=self.realm,
+                                    ldapi=True, dm_password=self.dm_password):
             self.step("adding DNS container", self.__setup_dns_container)
         if dns_zone_exists(self.domain):
             self.step("adding NS record to the zone", self.__add_self_ns)

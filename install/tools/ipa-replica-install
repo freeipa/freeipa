@@ -220,7 +220,8 @@ def install_bind(config, options):
 def install_dns_records(config, options):
 
     if not bindinstance.dns_container_exists(config.master_host_name,
-                                             util.realm_to_suffix(config.realm_name)):
+                                             util.realm_to_suffix(config.realm_name),
+                                             dm_password=config.dirman_password):
         return
 
     # We have to force to connect to the remote master because we do this step
