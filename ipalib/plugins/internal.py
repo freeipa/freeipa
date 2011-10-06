@@ -54,25 +54,29 @@ class json_metadata(Command):
     )
 
     def execute(self, objname, methodname):
+        objects = dict()
+        methods = dict()
 
-        if objname and objname in self.api.Object:
-
-            objects = dict(
-                (objname, json_serialize(self.api.Object[objname]))
-            )
-
+        if objname :
+            if objname in self.api.Object:
+                o = self.api.Object[objname]
+                objects = dict([(o.name, json_serialize(o))])
+            elif objname == "all":
+                objects = dict(
+                    (o.name, json_serialize(o)) for o in self.api.Object()
+                )
+        elif methodname:
+            if  methodname in self.api.Method:
+                m = self.api.Method[methodname]
+                methods = dict([(m.name, json_serialize(m))])
+            elif methodname == "all":
+                methods = dict(
+                    (m.name, json_serialize(m)) for m in self.api.Method()
+                )
         else:
             objects = dict(
                 (o.name, json_serialize(o)) for o in self.api.Object()
             )
-
-        if methodname and methodname in self.api.Method:
-
-            methods = dict(
-                (methodname, json_serialize(self.api.Method[methodname]))
-            )
-
-        else:
             methods = dict(
                 (m.name, json_serialize(m)) for m in self.api.Method()
             )
