@@ -30,7 +30,7 @@ from ipaserver.install import installutils, service
 from ipaserver.install import certs
 from ipaserver.install.installutils import HostnameLocalhost
 from ipaserver.install.installutils import ReplicaConfig, expand_replica_info, read_replica_info
-from ipaserver.install.installutils import get_host_name
+from ipaserver.install.installutils import get_host_name, BadHostError
 from ipaserver.install import dsinstance, cainstance
 from ipaserver.install.replication import replica_conn_check
 from ipapython import version
@@ -119,7 +119,7 @@ def main():
     config.dirman_password = dirman_password
     try:
         host = get_host_name(options.no_host_dns)
-    except RuntimeError, e:
+    except BadHostError, e:
         logging.error(str(e))
         sys.exit(1)
     if config.host_name != host:

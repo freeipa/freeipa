@@ -388,15 +388,10 @@ def read_host_name(host_default,no_host_dns=False):
     print ""
     if host_default == "":
         host_default = "master.example.com"
-    while True:
-        host_name = user_input("Server host name", host_default, allow_empty = False)
-        print ""
-        try:
-            verify_fqdn(host_name,no_host_dns)
-        except Exception, e:
-            raise e
-        else:
-            break
+    host_name = user_input("Server host name", host_default, allow_empty = False)
+    print ""
+    verify_fqdn(host_name,no_host_dns)
+
     return host_name
 
 def read_domain_name(domain_name, unattended):
@@ -750,7 +745,7 @@ def main():
             host_name = host_default
         else:
             host_name = read_host_name(host_default,options.no_host_dns)
-    except RuntimeError, e:
+    except BadHostError, e:
         sys.exit(str(e) + "\n")
 
     host_name = host_name.lower()

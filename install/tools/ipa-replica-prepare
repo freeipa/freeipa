@@ -29,7 +29,7 @@ from ipapython import ipautil
 from ipaserver.install import bindinstance, dsinstance, installutils, certs
 from ipaserver.install.bindinstance import add_zone, add_reverse_zone, add_fwd_rr, add_ptr_rr, dns_container_exists
 from ipaserver.install.replication import enable_replication_version_checking
-from ipaserver.install.installutils import resolve_host
+from ipaserver.install.installutils import resolve_host, BadHostError, HostLookupError
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
 from ipapython.config import IPAOptionParser
@@ -270,9 +270,9 @@ def main():
 
     try:
         installutils.verify_fqdn(replica_fqdn, system_name_check=False)
-    except RuntimeError, e:
+    except BadHostError, e:
         msg = str(e)
-        if msg.startswith('Unable to resolve host name'):
+        if isinstance(e, HostLookupError):
             if options.ip_address is None:
                 if dns_container_exists(api.env.host, api.env.basedn,
                                         dm_password=dirman_password,
