@@ -25,14 +25,13 @@ import tempfile
 
 import traceback
 
-import krbV, getpass
+import krbV
 
 from ipapython.ipautil import user_input
 
 from ipaserver.install import certs, dsinstance, httpinstance, installutils
 from ipalib import api
 from ipaserver.plugins.ldap2 import ldap2
-from ipaserver.install import installutils
 
 def get_realm_name():
     c = krbV.default_context()
@@ -132,7 +131,10 @@ def main():
 
     try:
         if options.dirsrv:
-            dm_password = getpass.getpass("Directory Manager password: ")
+            dm_password = installutils.read_password("Directory Manager",
+                confirm=False, validate=False, retry=False)
+            if dm_password is None:
+                sys.exit("\nDirectory Manager password required")
             realm = get_realm_name()
             dirname = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm))
             fd = open(dirname + "/pwdfile.txt")

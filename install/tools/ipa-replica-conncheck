@@ -22,6 +22,7 @@ from ipapython.config import IPAOptionParser
 from ipapython import version
 from ipapython import ipautil
 from ipapython.ipautil import CalledProcessError
+from ipaserver.install import installutils
 import ipaclient.ipachangeconf
 from optparse import OptionGroup
 import logging
@@ -29,7 +30,6 @@ import sys
 import os
 import signal
 import tempfile
-import getpass
 import socket
 import time
 import threading
@@ -314,7 +314,11 @@ def main():
             if options.password:
                 password=options.password
             else:
-                password = getpass.getpass("Password for %s: " % principal)
+                password = installutils.read_password(principal, confirm=False,
+                           validate=False, retry=False)
+                if password is None:
+                    sys.exit("\nPrincipal password required")
+
 
             stderr=''
             (stdout, stderr, returncode) = ipautil.run(['/usr/bin/kinit', principal],

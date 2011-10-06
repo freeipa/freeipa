@@ -642,6 +642,8 @@ def main():
     # This will override any settings passed in on the cmdline
     if ipautil.file_exists(ANSWER_CACHE):
         dm_password = read_password("Directory Manager", confirm=False)
+        if dm_password is None:
+            sys.exit("\nDirectory Manager password required")
         options._update_loose(read_cache(dm_password))
 
     if options.external_cert_file:
@@ -807,6 +809,9 @@ def main():
 
     if not options.dm_password:
         dm_password = read_dm_password()
+
+        if dm_password is None:
+            sys.exit("\nDirectory Manager password required")
     else:
         dm_password = options.dm_password
 
@@ -817,6 +822,8 @@ def main():
 
     if not options.admin_password:
         admin_password = read_admin_password()
+        if admin_password is None:
+            sys.exit("\nIPA admin password required")
     else:
         admin_password = options.admin_password
 

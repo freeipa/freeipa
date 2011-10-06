@@ -942,7 +942,10 @@ def install(options, env, fstore, statestore):
                     stdin = options.password
                 else:
                     if not options.unattended:
-                        stdin = getpass.getpass("Password for %s: " % principal)
+                        try:
+                            stdin = getpass.getpass("Password for %s: " % principal)
+                        except EOFError:
+                            stdin = None
                         if not stdin:
                             print "Password must be provided for %s. " % \
                                 principal
@@ -967,7 +970,13 @@ def install(options, env, fstore, statestore):
                 if options.unattended:
                     print "Password must be provided in non-interactive mode"
                     return CLIENT_INSTALL_ERROR
-                password = getpass.getpass("Password: ")
+                try:
+                    password = getpass.getpass("Password: ")
+                except EOFError:
+                    password = None
+                if not password:
+                    print "Password must be provided."
+                    return CLIENT_INSTALL_ERROR
                 join_args.append("-w")
                 join_args.append(password)
                 nolog = (password,)

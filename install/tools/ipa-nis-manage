@@ -111,6 +111,8 @@ def main():
         dirman_password = pw.strip()
     else:
         dirman_password = get_dirman_password()
+        if dirman_password is None:
+            sys.exit("\nDirectory Manager password required")
 
     if not dirman_password:
         sys.exit("No password supplied")
