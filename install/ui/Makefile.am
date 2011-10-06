@@ -31,11 +31,13 @@ app_DATA =				\
 	facet-tab_off.png		\
 	facet-tab_on.png		\
 	favicon.ico			\
+	firefox-icon.png		\
 	group.js 			\
 	hbac.js 			\
 	host.js 			\
 	hostgroup.js 			\
 	hover-tab.png 			\
+	ie-icon.png 			\
 	import.png 			\
 	index.html 			\
 	ipa.css				\

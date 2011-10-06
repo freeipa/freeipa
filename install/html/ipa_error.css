@@ -644,7 +644,8 @@ form#login {
     text-align: left;
     margin-top: 5em;
     font-size: 1.1em;
-	padding-left: 3em;
+    padding-left: 3em;
+    padding-right: 3em;
 }
 
 .textblockkrb ul li {
