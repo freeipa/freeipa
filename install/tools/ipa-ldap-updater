@@ -96,6 +96,8 @@ def main():
     else:
         if (options.ask_password or not options.ldapi) and not options.upgrade:
             dirman_password = get_dirman_password()
+            if dirman_password is None:
+                sys.exit("\nDirectory Manager password required")
 
     files = []
     if len(args) > 0:

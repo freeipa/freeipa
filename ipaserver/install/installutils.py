@@ -319,30 +319,33 @@ def _read_password_default_validator(password):
 
 def read_password(user, confirm=True, validate=True, retry=True, validator=_read_password_default_validator):
     correct = False
-    pwd = ""
-    while not correct:
-        if not retry:
-            correct = True
-        pwd = get_password(user + " password: ")
-        if not pwd:
-            continue
-        if validate:
-            try:
-                validator(pwd)
-            except ValueError, e:
-                print str(e)
-                pwd = ""
+    pwd = None
+    try:
+        while not correct:
+            if not retry:
+                correct = True
+            pwd = get_password(user + " password: ")
+            if not pwd:
                 continue
-        if not confirm:
-            correct = True
-            continue
-        pwd_confirm = get_password("Password (confirm): ")
-        if pwd != pwd_confirm:
-            print "Password mismatch!"
-            print ""
-            pwd = ""
-        else:
-            correct = True
+            if validate:
+                try:
+                    validator(pwd)
+                except ValueError, e:
+                    print str(e)
+                    pwd = None
+                    continue
+            if not confirm:
+                correct = True
+                continue
+            pwd_confirm = get_password("Password (confirm): ")
+            if pwd != pwd_confirm:
+                print "Password mismatch!"
+                print ""
+                pwd = None
+            else:
+                correct = True
+    except EOFError:
+        return None
     print ""
     return pwd
 

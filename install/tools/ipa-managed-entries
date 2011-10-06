@@ -112,6 +112,8 @@ def main():
             dirman_password = options.dirman_password
         else:
             dirman_password = get_dirman_password()
+            if dirman_password is None:
+                sys.exit("\nDirectory Manager password required")
         conn.do_simple_bind(bindpw=dirman_password)
     except errors.ExecutionError, lde:
         sys.exit("An error occurred while connecting to the server.\n%s\n" %

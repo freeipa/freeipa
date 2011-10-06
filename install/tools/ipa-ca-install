@@ -98,6 +98,8 @@ def main():
             dirman_password = get_dirman_password()
         except KeyboardInterrupt:
             sys.exit(0)
+        if dirman_password is None:
+            sys.exit("\nDirectory Manager password required")
 
     if not options.admin_password and not options.skip_conncheck and \
         options.unattended:
