@@ -27,7 +27,7 @@ import krbV
 
 from ipapython import ipautil
 from ipaserver.install import bindinstance, dsinstance, installutils, certs
-from ipaserver.install.bindinstance import add_zone, add_reverse_zone, add_fwd_rr, add_ptr_rr
+from ipaserver.install.bindinstance import add_zone, add_reverse_zone, add_fwd_rr, add_ptr_rr, dns_container_exists
 from ipaserver.install.replication import enable_replication_version_checking
 from ipaserver.install.installutils import resolve_host
 from ipaserver.plugins.ldap2 import ldap2
@@ -248,14 +248,35 @@ def main():
     if certs.ipa_self_signed_master() == False:
         sys.exit('A selfsign CA backend can only prepare on the original master')
 
+    # get the directory manager password
+    dirman_password = options.password
+    if not options.password:
+        try:
+            dirman_password = get_dirman_password()
+        except KeyboardInterrupt:
+            sys.exit(0)
+        if dirman_password is None:
+            sys.exit("\nDirectory Manager password required")
+
+    # Try out the password
+    try:
+        conn = ldap2(shared_instance=False)
+        conn.connect(bind_dn='cn=directory manager', bind_pw=dirman_password)
+        conn.disconnect()
+    except errors.ACIError:
+        sys.exit("\nThe password provided is incorrect for LDAP server %s" % api.env.host)
+    except errors.LDAPError:
+        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
+
     try:
         installutils.verify_fqdn(replica_fqdn, system_name_check=False)
     except RuntimeError, e:
         msg = str(e)
         if msg.startswith('Unable to resolve host name'):
             if options.ip_address is None:
-                if bindinstance.dns_container_exists(api.env.host,
-                    api.env.basedn):
+                if dns_container_exists(api.env.host, api.env.basedn,
+                                        dm_password=dirman_password,
+                                        ldapi=True, realm=api.env.realm):
                     msg += '\nAdd the --ip-address argument to create a DNS entry.'
                 sys.exit(msg)
             else:
@@ -265,7 +286,9 @@ def main():
             sys.exit(msg)
 
     if options.ip_address:
-        if not bindinstance.dns_container_exists(api.env.host, api.env.basedn):
+        if not dns_container_exists(api.env.host, api.env.basedn,
+                                    dm_password=dirman_password,
+                                    ldapi=True, realm=api.env.realm):
             print "You can't add a DNS record because DNS is not set up."
             sys.exit(1)
         if options.reverse_zone and not bindinstance.verify_reverse_zone(options.reverse_zone, options.ip_address):
@@ -286,26 +309,6 @@ def main():
         print "You can't create a replica on itself"
         sys.exit(1)
     ds_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(api.env.realm))
-
-    # get the directory manager password
-    dirman_password = options.password
-    if not options.password:
-        try:
-            dirman_password = get_dirman_password()
-        except KeyboardInterrupt:
-            sys.exit(0)
-        if dirman_password is None:
-            sys.exit("\nDirectory Manager password required")
-
-    # Try out the password
-    try:
-        conn = ldap2(shared_instance=False)
-        conn.connect(bind_dn='cn=directory manager', bind_pw=dirman_password)
-        conn.disconnect()
-    except errors.ACIError:
-        sys.exit("\nThe password provided is incorrect for LDAP server %s" % api.env.host)
-    except errors.LDAPError:
-        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
 
     print "Preparing replica for %s from %s" % (replica_fqdn, api.env.host)
     enable_replication_version_checking(api.env.host, api.env.realm,
