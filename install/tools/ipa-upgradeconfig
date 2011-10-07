@@ -25,7 +25,10 @@ Upgrade configuration files to a newer template.
 
 import sys
 try:
-    from ipapython import ipautil
+    from ipapython import ipautil, sysrestore
+    from ipaserver.install import installutils
+    from ipaserver.install import dsinstance
+    from ipaserver.install import httpinstance
     import krbV
     import re
     import os
@@ -135,6 +138,22 @@ def check_certs():
             print "Missing Certification Authority file."
             print "You should place a copy of the CA certificate in /usr/share/ipa/html/ca.crt"
 
+def upgrade_pki():
+    """
+    Update/add the dogtag proxy configuration. The IPA side of this is
+    handled in ipa-pki-proxy.conf.
+
+    This requires enabling SSL renegotiation.
+    """
+    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+    http = httpinstance.HTTPInstance(fstore)
+    http.enable_mod_nss_renegotiate()
+    if not installutils.get_directive('/etc/pki-ca/CS.cfg',
+                                      'proxy.securePort', '=') and \
+            os.path.exists('/usr/bin/pki-setup-proxy'):
+        ipautil.run(['/usr/bin/pki-setup-proxy', '-pki_instance_root=/var/lib'
+                     ,'-pki_instance_name=pki-ca','-subsystem_type=ca'])
+
 def main():
     """
     Get some basics about the system. If getting those basics fail then
@@ -162,7 +181,7 @@ def main():
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa.conf", ipautil.SHARE_DIR + "ipa.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-rewrite.conf", ipautil.SHARE_DIR + "ipa-rewrite.conf")
     upgrade(sub_dict, "/etc/httpd/conf.d/ipa-pki-proxy.conf", ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
-
+    upgrade_pki()
 try:
     if __name__ == "__main__":
         sys.exit(main())
