@@ -68,10 +68,44 @@ var IPA = ( function () {
 
         $.ajaxSetup(that.ajax_options);
 
+        var methods = IPA.command({
+            name: 'ipa_init_methods',
+            method: 'json_metadata',
+            options: {
+                methodname: 'all'
+            },
+            on_success: function(data, text_status, xhr) {
+                if(!that.metadata) that.metadata = {};
+                that.metadata.methods = data.result.methods;
+            }
+        });
+
+        var objects = IPA.command({
+            name: 'ipa_init_objects',
+            method: 'json_metadata',
+            options: {
+                objname: 'all'
+            },
+            on_success: function(data, text_status, xhr) {
+                if(!that.metadata) that.metadata = {};
+                that.metadata.objects = data.result.objects;
+            }
+        });
+
+        var metadata_command = IPA.concurrent_command({
+            commands: [
+                methods,
+                objects
+            ],
+            on_success: on_success
+        });
+
         var batch = IPA.batch_command({
             name: 'ipa_init',
             retry: false,
-            on_success: on_success,
+            on_success: function() {
+                metadata_command.execute();
+            },
             on_error: function(xhr, text_status, error_thrown) {
 
                 // On IE the request is missing after authentication,
@@ -100,13 +134,6 @@ var IPA = ( function () {
                 }
             }
         });
-
-        batch.add_command(IPA.command({
-            method: 'json_metadata',
-            on_success: function(data, text_status, xhr) {
-                that.metadata = data;
-            }
-        }));
 
         batch.add_command(IPA.command({
             method: 'i18n_messages',
@@ -605,6 +632,145 @@ IPA.batch_command = function (spec) {
             }
         }).execute();
     };
+
+    return that;
+};
+
+
+IPA.concurrent_command = function(spec) {
+
+    spec = spec || {};
+    var that = {};
+
+    that.commands = [];
+    that.on_success = spec.on_success;
+    that.on_error = spec.on_error;
+
+    that.add_commands = function(commands) {
+
+        if(commands && commands.length) {
+            for(var i=0; i < commands.length; i++) {
+                that.commands.push({
+                    command: commands[i]
+                });
+            }
+        }
+    };
+
+    that.execute = function() {
+
+        var command_info, command, i;
+
+        //prepare for execute
+        for(i=0; i < that.commands.length; i++) {
+            command_info = that.commands[i];
+            command = command_info.command;
+            if(!command) {
+                var dialog = IPA.message_dialog({
+                    title: IPA.get_message('errors.error', 'Error'),
+                    message: IPA.get_message('errors.internal_error', 'Internal error.')
+                });
+                break;
+            }
+            command_info.completed = false;
+            command_info.success = false;
+            command_info.on_success = command_info.on_success || command.on_success;
+            command_info.on_error = command_info.on_error || command.on_error;
+            command.on_success = function(command_info) {
+                return function(data, text_status, xhr) {
+                    that.success_handler.call(this, command_info, data, text_status, xhr);
+                };
+            }(command_info);
+            command.on_error = function(command_info) {
+                return function(xhr, text_status, error_thrown) {
+                    that.error_handler.call(this, command_info, xhr, text_status, error_thrown);
+                };
+            }(command_info);
+        }
+
+        //execute
+        for(i=0; i < that.commands.length; i++) {
+            command = that.commands[i].command;
+            command.execute();
+        }
+    };
+
+    that.error_handler = function(command_info, xhr, text_status, error_thrown) {
+
+        command_info.completed = true;
+        command_info.success = false;
+        command_info.xhr = xhr;
+        command_info.text_status = text_status;
+        command_info.error_thrown = error_thrown;
+        command_info.context = this;
+        that.command_completed();
+    };
+
+    that.success_handler = function(command_info, data, text_status, xhr) {
+
+        command_info.completed = true;
+        command_info.success = true;
+        command_info.data = data;
+        command_info.text_status = text_status;
+        command_info.xhr = xhr;
+        command_info.context = this;
+        that.command_completed();
+    };
+
+    that.command_completed = function() {
+
+        var all_completed = true;
+        var all_success = true;
+
+        for(var i=0; i < that.commands.length; i++) {
+            var command_info = that.commands[i];
+            all_completed &= command_info.completed;
+            all_success &= command_info.success;
+        }
+
+        if(all_completed) {
+            if(all_success) {
+                that.on_success_all();
+            } else {
+                that.on_error_all();
+            }
+        }
+    };
+
+    that.on_success_all = function() {
+
+        for(var i=0; i < that.commands.length; i++) {
+            var command_info = that.commands[i];
+            if(command_info.on_success) {
+                command_info.on_success.call(
+                                command_info.context,
+                                command_info.data,
+                                command_info.text_status,
+                                command_info.xhr);
+            }
+        }
+
+        if(that.on_success) {
+            that.on_success();
+        }
+    };
+
+    that.on_error_all = function() {
+
+        if(that.on_error) {
+            that.on_error();
+
+        } else {
+            var dialog = IPA.message_dialog({
+                title: IPA.get_message('dialogs.batch_error_title', 'Operations Error'),
+                message: IPA.get_message('dialogs.batch_error_message', 'Some operations failed.')
+            });
+
+            dialog.open();
+        }
+    };
+
+    that.add_commands(spec.commands);
 
     return that;
 };
