@@ -269,7 +269,7 @@ def main():
         sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
 
     try:
-        installutils.verify_fqdn(replica_fqdn, system_name_check=False)
+        installutils.verify_fqdn(replica_fqdn, local_hostname=False)
     except BadHostError, e:
         msg = str(e)
         if isinstance(e, HostLookupError):

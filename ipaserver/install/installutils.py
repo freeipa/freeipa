@@ -129,7 +129,7 @@ def verify_dns_records(host_name, responses, resaddr, family):
         raise RuntimeError("The DNS forward record %s does not match the reverse address %s" % (rec.dns_name, rev.rdata.ptrdname))
 
 
-def verify_fqdn(host_name, no_host_dns=False, system_name_check=True):
+def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
     """
     Run fqdn checks for given host:
         - test hostname format
@@ -140,7 +140,7 @@ def verify_fqdn(host_name, no_host_dns=False, system_name_check=True):
 
     :param host_name: The host name to verify.
     :param no_host_dns: If true, skip DNS resolution tests of the host name.
-    :param system_name_check: If true, check if the host name matches the system host name.
+    :param local_hostname: If true, run additional checks for local hostnames
     """
     if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":
         raise BadHostError("Invalid hostname '%s', must be fully-qualified." % host_name)
@@ -151,7 +151,15 @@ def verify_fqdn(host_name, no_host_dns=False, system_name_check=True):
     if ipautil.valid_ip(host_name):
         raise BadHostError("IP address not allowed as a hostname")
 
-    if system_name_check:
+    if local_hostname:
+        try:
+            ex_name = socket.gethostbyaddr(host_name)
+            if host_name != ex_name[0]:
+                raise HostLookupError("The host name %s does not match the primary host name %s. "\
+                        "Please check /etc/hosts or DNS name resolution" % (host_name, ex_name[0]))
+        except socket.gaierror:
+            pass
+
         system_host_name = socket.gethostname()
         if not (host_name + '.').startswith(system_host_name + '.'):
             print "Warning: The host name '%s' does not match the system host name '%s'." % (host_name, system_host_name)
