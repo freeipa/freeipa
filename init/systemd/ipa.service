@@ -1,0 +1,14 @@
+[Unit]
+Description=Identity, Policy, Audit
+Requires=syslog.target network.target
+After=syslog.target network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/ipactl start
+ExecStop=/usr/sbin/ipactl stop
+RemainAfterExit=yes
+TimeoutSec=0
+
+[Install]
+WantedBy=multi-user.target

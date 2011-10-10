@@ -66,20 +66,20 @@ class RedHatService(base.PlatformService):
                 installed = False
         return installed
 
-    def is_enabled(self):
+    def is_enabled(self, instance_name=""):
         (stdout, stderr, returncode) = ipautil.run(["/sbin/chkconfig", self.service_name],raiseonerr=False)
         return (returncode == 0)
 
-    def enable(self):
+    def enable(self, instance_name=""):
         ipautil.run(["/sbin/chkconfig", self.service_name, "on"])
 
-    def disable(self):
+    def disable(self, instance_name=""):
         ipautil.run(["/sbin/chkconfig", self.service_name, "off"])
 
-    def install(self):
+    def install(self, instance_name=""):
         ipautil.run(["/sbin/chkconfig", "--add", self.service_name])
 
-    def remove(self):
+    def remove(self, instance_name=""):
         ipautil.run(["/sbin/chkconfig", "--del", self.service_name])
 
 class RedHatAuthConfig(base.AuthConfig):
