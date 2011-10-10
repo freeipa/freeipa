@@ -375,7 +375,7 @@ class CADSInstance(service.Service):
     def restart_instance(self):
         try:
             ipaservices.knownservices.dirsrv.restart(self.serverid)
-            if not dsinstance.is_ds_running():
+            if not dsinstance.is_ds_running(self.serverid):
                 logging.critical("Failed to restart the directory server. See the installation log for details.")
                 sys.exit(1)
         except Exception:
@@ -693,7 +693,7 @@ class CAInstance(service.Service):
 
     def __restart_instance(self):
         try:
-            self.restart()
+            self.restart(PKI_INSTANCE_NAME)
             installutils.wait_for_open_ports('localhost', 9180, 300)
         except Exception:
             # TODO: roll back here?

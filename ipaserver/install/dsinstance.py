@@ -107,8 +107,8 @@ def check_ports():
     ds_secure = installutils.port_available(636)
     return (ds_unsecure, ds_secure)
 
-def is_ds_running():
-    return ipaservices.knownservices.dirsrv.is_running()
+def is_ds_running(server_id=''):
+    return ipaservices.knownservices.dirsrv.is_running(instance_name=server_id)
 
 def has_managed_entries(host_name, dm_password):
     """Check to see if the Managed Entries plugin is available"""
@@ -411,7 +411,7 @@ class DsInstance(service.Service):
     def restart(self, instance=''):
         try:
             super(DsInstance, self).restart(instance)
-            if not is_ds_running():
+            if not is_ds_running(instance):
                 logging.critical("Failed to restart the directory server. See the installation log for details.")
                 sys.exit(1)
             installutils.wait_for_open_ports('localhost', self.open_ports, 300)

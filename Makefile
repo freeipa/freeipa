@@ -8,7 +8,7 @@ PRJ_PREFIX=freeipa
 RPMBUILD ?= $(PWD)/rpmbuild
 TARGET ?= master
 
-SUPPORTED_PLATFORM=redhat
+SUPPORTED_PLATFORM ?= redhat
 
 # After updating the version in VERSION you should run the version-update
 # target.

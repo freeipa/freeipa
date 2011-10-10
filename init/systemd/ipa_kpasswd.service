@@ -1,0 +1,10 @@
+[Unit]
+Description=IPA Kerberos password service
+Requires=krb5kdc.service
+Wants=krb5kdc.service
+
+[Service]
+Type=forking
+PIDFile=/var/run/ipa_kpasswd.pid
+ExecStart=/usr/sbin/ipa_kpasswd
+

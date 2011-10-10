@@ -24,7 +24,7 @@ try:
     from ipaserver.install import service
     from ipapython import services as ipaservices
     from ipaserver.install.dsinstance import config_dirname, realm_to_serverid
-    from ipaserver.install.installutils import is_ipa_configured
+    from ipaserver.install.installutils import is_ipa_configured, wait_for_open_ports, wait_for_open_socket
     from ipapython import sysrestore
     from ipapython import config
     from ipalib import api, errors
@@ -32,6 +32,7 @@ try:
     import logging
     import ldap
     import ldap.sasl
+    import ldapurl
     import socket
 except ImportError:
     print >> sys.stderr, """\
@@ -117,6 +118,15 @@ def get_config():
     attrs = ['cn', 'ipaConfigString']
 
     try:
+        # systemd services are so fast that we come here before
+        # Directory Server actually starts listening. Wait for
+        # the socket/port be really available.
+        lurl = ldapurl.LDAPUrl(api.env.ldap_uri)
+        if lurl.urlscheme == 'ldapi':
+            wait_for_open_socket(lurl.hostport, timeout=6)
+        else:
+            (host,port) = lurl.hostport.split(':')
+            wait_for_open_ports(host, [int(port)], timeout=6)
         con = ldap.initialize(api.env.ldap_uri)
         con.sasl_interactive_bind_s('', SASL_EXTERNAL)
         res = con.search_st(base,

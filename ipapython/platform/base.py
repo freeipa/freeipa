@@ -22,7 +22,7 @@ from ipalib.plugable import MagicDict
 # set them as in Red Hat distributions. Actual implementation should make them available
 # through knownservices.<name> and take care of remapping internally, if needed
 wellknownservices = ['certmonger', 'dirsrv', 'httpd', 'ipa', 'krb5kdc', 'messagebus',
-                     'nslcd', 'nscd', 'ntpd', 'portmap', 'rpcbind']
+                     'nslcd', 'nscd', 'ntpd', 'portmap', 'rpcbind', 'kadmin']
 
 class AuthConfig(object):
     """
@@ -120,25 +120,25 @@ class PlatformService(object):
     def restart(self, instance_name="", capture_output=True):
         return
 
-    def is_running(self):
+    def is_running(self, instance_name=""):
         return False
 
     def is_installed(self):
         return False
 
-    def is_enabled(self):
+    def is_enabled(self, instance_name=""):
         return False
 
-    def enable(self):
+    def enable(self, instance_name=""):
         return
 
-    def disable(self):
+    def disable(self, instance_name=""):
         return
 
-    def install(self):
+    def install(self, instance_name=""):
         return
 
-    def remove(self):
+    def remove(self, instance_name=""):
         return
 
 class KnownServices(MagicDict):
