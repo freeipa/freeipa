@@ -174,7 +174,7 @@ IPA.navigation = function(spec) {
         // update new facet state with new state
         $.extend(facet.state, param_state);
 
-        var entity = tab.entity.containing_entity;
+        var entity = tab.entity.get_containing_entity();
         while (entity) {
             var facet2 = entity.get_facet();
 
@@ -186,7 +186,7 @@ IPA.navigation = function(spec) {
                 if (key_value) facet.state[key_name] = key_value;
             }
 
-            entity = entity.containing_entity;
+            entity = entity.get_containing_entity();
         }
 
         // push entity path and facet state
@@ -233,7 +233,7 @@ IPA.navigation = function(spec) {
                 var current_entity = entity;
                 while (current_entity){
                     state[current_entity.name + '-pkey'] = pkeys.pop();
-                    current_entity = current_entity.containing_entity;
+                    current_entity = current_entity.get_containing_entity();
                 }
             }else{
                 state[entity.name + '-pkey'] = pkeys;

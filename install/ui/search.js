@@ -100,9 +100,6 @@ IPA.search_facet = function(spec) {
     }
 
     that.create_content = function(container) {
-        /*should be in the initialize section, but can not, due to
-          get_entity circular references.*/
-        initialize_table_columns();
         that.table.create(container);
     };
 
@@ -268,11 +265,11 @@ IPA.search_facet = function(spec) {
         var filter = [];
         var current_entity = entity;
         filter.unshift(IPA.nav.get_state(current_entity.name+'-filter'));
-        current_entity = current_entity.containing_entity;
+        current_entity = current_entity.get_containing_entity();
         while(current_entity !== null){
             filter.unshift(
                 IPA.nav.get_state(current_entity.name+'-pkey'));
-            current_entity = current_entity.containing_entity;
+            current_entity = current_entity.get_containing_entity();
         }
 
         var command = IPA.command({
@@ -291,6 +288,9 @@ IPA.search_facet = function(spec) {
 
     // methods that should be invoked by subclasses
     that.search_facet_create_content = that.create_content;
+
+    //initialization
+    initialize_table_columns();
 
     return that;
 };
