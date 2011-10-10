@@ -556,6 +556,12 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
 
     entry->e_data = (krb5_octet *)ied;
 
+    ied->entry_dn = ldap_get_dn(lcontext, lentry);
+    if (!ied->entry_dn) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
     /* mark this as an ipa_user if it has the posixaccount objectclass */
     ret = ipadb_ldap_attr_has_value(lcontext, lentry,
                                     "objectClass", "posixAccount");
@@ -919,6 +925,7 @@ void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
         if (entry->e_data) {
             ied = (struct ipadb_e_data *)entry->e_data;
             if (ied->magic == IPA_E_DATA_MAGIC) {
+                ldap_memfree(ied->entry_dn);
                 free(ied->passwd);
                 free(ied->pw_policy_dn);
                 for (i = 0; ied->pw_history && ied->pw_history[i]; i++) {

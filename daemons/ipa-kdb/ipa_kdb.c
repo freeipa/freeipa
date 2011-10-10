@@ -259,6 +259,11 @@ int ipadb_get_connection(struct ipadb_context *ipactx)
     ipactx->supp_encs = kst;
     ipactx->n_supp_encs = n_kst;
 
+    ret = ipadb_reinit_mspac(ipactx);
+    if (ret && ret != ENOENT) {
+        /* TODO: log that there is an issue with adtrust settings */
+    }
+
     ret = 0;
 
 done:
@@ -447,7 +452,7 @@ kdb_vftabl kdb_function_table = {
     NULL,                               /* promote_db */
     NULL,                               /* decrypt_key_data */
     NULL,                               /* encrypt_key_data */
-    NULL,                               /* sign_authdata */
+    ipadb_sign_authdata,                /* sign_authdata */
     NULL,                               /* check_transited_realms */
     NULL,                               /* check_policy_as */
     NULL,                               /* check_policy_tgs */

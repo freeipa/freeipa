@@ -1,0 +1,756 @@
+/*
+ * MIT Kerberos KDC database backend for FreeIPA
+ *
+ * Authors: Simo Sorce <ssorce@redhat.com>
+ *
+ * Copyright (C) 2011  Simo Sorce, Red Hat
+ * see file 'COPYING' for use and warranty information
+ *
+ * This program is free software you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "ipa_kdb.h"
+#include <talloc.h>
+#include "util/time.h"
+#include "gen_ndr/ndr_krb5pac.h"
+
+#define KRB5INT_PAC_SIGN_AVAILABLE 1
+
+#if KRB5INT_PAC_SIGN_AVAILABLE
+krb5_error_code
+krb5int_pac_sign(krb5_context context,
+                 krb5_pac pac,
+                 krb5_timestamp authtime,
+                 krb5_const_principal principal,
+                 const krb5_keyblock *server_key,
+                 const krb5_keyblock *privsvr_key,
+                 krb5_data *data);
+#define krb5_pac_sign krb5int_pac_sign
+#define KRB5_PAC_LOGON_INFO 1
+#endif
+
+
+
+static char *user_pac_attrs[] = {
+    "objectClass",
+    "uid",
+    "cn",
+    "gidNumber",
+    "krbPrincipalName",
+    "krbCanonicalName",
+    "krbTicketPolicyReference",
+    "krbPrincipalExpiration",
+    "krbPasswordExpiration",
+    "krbPwdPolicyReference",
+    "krbPrincipalType",
+    "krbLastPwdChange",
+    "krbPrincipalAliases",
+    "krbLastSuccessfulAuth",
+    "krbLastFailedAuth",
+    "krbLoginFailedCount",
+    "krbLastAdminUnlock",
+    "krbTicketFlags",
+    "ipaNTSecurityIdentifier",
+    "ipaNTLogonScript",
+    "ipaNTProfilePath",
+    "ipaNTHomeDirectory",
+    "ipaNTHomeDirectoryDrive",
+    NULL
+};
+
+static char *memberof_pac_attrs[] = {
+    "gidNumber",
+    "ipaNTSecurityIdentifier",
+    NULL
+};
+
+#define SID_SUB_AUTHS 15
+
+static int string_to_sid(char *str, struct dom_sid *sid)
+{
+    unsigned long val;
+    char *s, *t;
+    int i;
+
+    memset(sid, '\0', sizeof(struct dom_sid));
+
+    s = str;
+
+    if (strncasecmp(s, "S-", 2) != 0) {
+        return EINVAL;
+    }
+    s += 2;
+
+    val = strtoul(s, &t, 10);
+    if (s == t || !t || *t != '-') {
+        return EINVAL;
+    }
+    s = t + 1;
+    sid->sid_rev_num = val;
+
+    val = strtoul(s, &t, 10);
+    if (s == t || !t) {
+        return EINVAL;
+    }
+    sid->id_auth[2] = (val & 0xff000000) >> 24;
+    sid->id_auth[3] = (val & 0x00ff0000) >> 16;
+    sid->id_auth[4] = (val & 0x0000ff00) >> 8;
+    sid->id_auth[5] = (val & 0x000000ff);
+
+    for (i = 0; i < SID_SUB_AUTHS; i++) {
+        switch (*t) {
+        case '\0':
+            /* no (more) subauths, we are done with it */
+            sid->num_auths = i;
+            return 0;
+        case '-':
+            /* there are (more) subauths */
+            s = t + 1;;
+            break;
+        default:
+            /* garbage */
+            return EINVAL;
+        }
+
+        val = strtoul(s, &t, 10);
+        if (s == t || !t) {
+            return EINVAL;
+        }
+        sid->sub_auths[i] = val;
+    }
+
+    if (*t != '\0') {
+        return EINVAL;
+    }
+
+    sid->num_auths = i;
+    return 0;
+}
+
+/**
+* @brief Takes a user sid and removes the rid.
+*        The sid is changed by this function,
+*        the removed rid is returned too.
+*
+* @param sid    A user/group SID
+* @param rid    The actual RID found.
+*
+* @return 0 on success, EINVAL otherwise.
+*/
+static int sid_split_rid(struct dom_sid *sid, uint32_t *rid)
+{
+    if (sid->num_auths == 0) {
+        return EINVAL;
+    }
+
+    sid->num_auths--;
+    *rid = sid->sub_auths[sid->num_auths];
+    sid->sub_auths[sid->num_auths] = 0;
+
+    return 0;
+}
+
+static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
+                                        LDAPMessage *lentry,
+                                        TALLOC_CTX *memctx,
+                                        struct netr_SamInfo3 *info3)
+{
+    LDAP *lcontext = ipactx->lcontext;
+    LDAPDerefRes *deref_results = NULL;
+    struct dom_sid sid;
+    gid_t prigid = -1;
+    time_t timeres;
+    char *strres;
+    int intres;
+    int ret;
+
+    ret = ipadb_ldap_attr_to_int(lcontext, lentry, "gidNumber", &intres);
+    if (ret) {
+        /* gidNumber is mandatory */
+        return ret;
+    }
+    prigid = intres;
+
+
+    info3->base.logon_time = 0; /* do not have this info yet */
+    info3->base.logoff_time = -1; /* do not force logoff */
+
+/* TODO: is krbPrinciplaExpiration what we want to use in kickoff_time ?
+ * Needs more investigation */
+#if 0
+    ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
+                                    "krbPrincipalExpiration", &timeres);
+    switch (ret) {
+    case 0:
+        unix_to_nt_time(&info3->base.acct_expiry, timeres);
+        break;
+    case ENOENT:
+        info3->base.acct_expiry = -1;
+        break;
+    default:
+        return ret;
+    }
+#else
+    info3->base.kickoff_time = -1;
+#endif
+
+    ret = ipadb_ldap_attr_to_time_t(lcontext, lentry,
+                                    "krbLastPwdChange", &timeres);
+    switch (ret) {
+    case 0:
+        unix_to_nt_time(&info3->base.last_password_change, timeres);
+        break;
+    case ENOENT:
+        info3->base.last_password_change = 0;
+        break;
+    default:
+        return ret;
+    }
+
+    /* TODO: from pw policy (ied->pol) */
+    info3->base.allow_password_change = 0;
+    info3->base.force_password_change = -1;
+
+    /* FIXME: handle computer accounts they do not use 'uid' */
+    ret = ipadb_ldap_attr_to_str(lcontext, lentry, "uid", &strres);
+    if (ret) {
+        /* uid is mandatory */
+        return ret;
+    }
+    info3->base.account_name.string = talloc_strdup(memctx, strres);
+    free(strres);
+
+    ret = ipadb_ldap_attr_to_str(lcontext, lentry, "cn", &strres);
+    switch (ret) {
+    case 0:
+        info3->base.full_name.string = talloc_strdup(memctx, strres);
+        free(strres);
+        break;
+    case ENOENT:
+        info3->base.full_name.string = "";
+        break;
+    default:
+        return ret;
+    }
+
+    ret = ipadb_ldap_attr_to_str(lcontext, lentry,
+                                 "ipaNTLogonScript", &strres);
+    switch (ret) {
+    case 0:
+        info3->base.logon_script.string = talloc_strdup(memctx, strres);
+        free(strres);
+        break;
+    case ENOENT:
+        info3->base.logon_script.string = "";
+        break;
+    default:
+        return ret;
+    }
+
+    ret = ipadb_ldap_attr_to_str(lcontext, lentry,
+                                 "ipaNTProfilePath", &strres);
+    switch (ret) {
+    case 0:
+        info3->base.profile_path.string = talloc_strdup(memctx, strres);
+        free(strres);
+        break;
+    case ENOENT:
+        info3->base.profile_path.string = "";
+        break;
+    default:
+        return ret;
+    }
+
+    ret = ipadb_ldap_attr_to_str(lcontext, lentry,
+                                 "ipaNTHomeDirectory", &strres);
+    switch (ret) {
+    case 0:
+        info3->base.home_directory.string = talloc_strdup(memctx, strres);
+        free(strres);
+        break;
+    case ENOENT:
+        info3->base.home_directory.string = "";
+        break;
+    default:
+        return ret;
+    }
+
+    ret = ipadb_ldap_attr_to_str(lcontext, lentry,
+                                 "ipaNTHomeDirectoryDrive", &strres);
+    switch (ret) {
+    case 0:
+        info3->base.home_drive.string = talloc_strdup(memctx, strres);
+        free(strres);
+        break;
+    case ENOENT:
+        info3->base.home_drive.string = "";
+        break;
+    default:
+        return ret;
+    }
+
+    info3->base.logon_count = 0; /* we do not have this info yet */
+    info3->base.bad_password_count = 0; /* we do not have this info yet */
+
+    ret = ipadb_ldap_attr_to_str(lcontext, lentry,
+                                 "ipaNTSecurityIdentifier", &strres);
+    if (ret) {
+        /* SID is mandatory */
+        return ret;
+    }
+    ret = string_to_sid(strres, &sid);
+    free(strres);
+    if (ret) {
+        return ret;
+    }
+
+    ret = sid_split_rid(&sid, &info3->base.rid);
+    if (ret) {
+        return ret;
+    }
+
+    ret = ipadb_ldap_deref_results(lcontext, lentry, &deref_results);
+    switch (ret) {
+    LDAPDerefRes *dres;
+    LDAPDerefVal *dval;
+    struct dom_sid gsid;
+    uint32_t trid;
+    gid_t tgid;
+    char *s;
+    int count;
+    case 0:
+        count = 0;
+        for (dres = deref_results; dres; dres = dres->next) {
+            count++; /* count*/
+        }
+        info3->base.groups.rids = talloc_array(memctx,
+                                        struct samr_RidWithAttribute, count);
+        if (!info3->base.groups.rids) {
+            ldap_derefresponse_free(deref_results);
+            return ENOMEM;
+        }
+
+        count = 0;
+        info3->base.primary_gid = 0;
+        for (dres = deref_results; dres; dres = dres->next) {
+            gsid.sid_rev_num = 0;
+            tgid = 0;
+            for (dval = dres->attrVals; dval; dval = dval->next) {
+                if (strcasecmp(dval->type, "gidNumber") == 0) {
+                    tgid = strtoul((char *)dval->vals[0].bv_val, &s, 10);
+                    if (tgid == 0) {
+                        continue;
+                    }
+                }
+                if (strcasecmp(dval->type, "ipaNTSecurityIdentifier") == 0) {
+                    ret = string_to_sid((char *)dval->vals[0].bv_val, &gsid);
+                    if (ret) {
+                        continue;
+                    }
+                }
+            }
+            if (tgid && gsid.sid_rev_num) {
+                ret = sid_split_rid(&gsid, &trid);
+                if (ret) {
+                    continue;
+                }
+                if (tgid == prigid) {
+                    info3->base.primary_gid = trid;
+                    continue;
+                }
+                info3->base.groups.rids[count].rid = trid;
+                info3->base.groups.rids[count].attributes =
+                                            SE_GROUP_ENABLED |
+                                            SE_GROUP_MANDATORY |
+                                            SE_GROUP_ENABLED_BY_DEFAULT;
+                count++;
+            }
+        }
+        info3->base.groups.count = count;
+
+        ldap_derefresponse_free(deref_results);
+        break;
+    case ENOENT:
+        info3->base.groups.count = 0;
+        info3->base.groups.rids = NULL;
+        break;
+    default:
+        return ret;
+    }
+
+    if (info3->base.primary_gid == 0) {
+        if (ipactx->wc.fallback_rid) {
+            info3->base.primary_gid = ipactx->wc.fallback_rid;
+        } else {
+            /* can't give a pack without a primary group rid */
+            return ENOENT;
+        }
+    }
+
+    /* always zero out, only valid flags are for extra sids with Krb */
+    info3->base.user_flags = 0; /* netr_UserFlags */
+
+    /* always zero out, not used for Krb, only NTLM */
+    memset(&info3->base.key, '\0', sizeof(info3->base.key));
+
+    if (ipactx->wc.flat_server_name) {
+        info3->base.logon_server.string =
+                    talloc_strdup(memctx, ipactx->wc.flat_server_name);
+        if (!info3->base.logon_server.string) {
+            return ENOMEM;
+        }
+    } else {
+        /* can't give a pack without Server NetBIOS Name :-| */
+        return ENOENT;
+    }
+
+    if (ipactx->wc.flat_domain_name) {
+        info3->base.logon_domain.string =
+                    talloc_strdup(memctx, ipactx->wc.flat_domain_name);
+        if (!info3->base.logon_domain.string) {
+            return ENOMEM;
+        }
+    } else {
+        /* can't give a pack without Domain NetBIOS Name :-| */
+        return ENOENT;
+    }
+
+    /* we got the domain SID for the user sid */
+    info3->base.domain_sid = &sid;
+
+    /* always zero out, not used for Krb, only NTLM */
+    memset(&info3->base.LMSessKey, '\0', sizeof(info3->base.key));
+
+    /* TODO: fill based on objectclass, user vs computer, etc... */
+    info3->base.acct_flags = ACB_NORMAL; /* samr_AcctFlags */
+
+    info3->base.sub_auth_status = 0;
+    info3->base.last_successful_logon = 0;
+    info3->base.last_failed_logon = 0;
+    info3->base.failed_logon_count = 0; /* We do not have it */
+    info3->base.reserved = 0; /* Reserved */
+
+    return 0;
+}
+
+static krb5_error_code ipadb_get_pac(krb5_context kcontext,
+                                     krb5_db_entry *client,
+                                     krb5_pac *pac)
+{
+    TALLOC_CTX *tmpctx;
+    struct ipadb_e_data *ied;
+    struct ipadb_context *ipactx;
+    LDAPMessage *results;
+    LDAPMessage *lentry;
+    DATA_BLOB pac_data;
+    krb5_data data;
+    union PAC_INFO pac_info;
+    krb5_error_code kerr;
+    enum ndr_err_code ndr_err;
+
+    ipactx = ipadb_get_context(kcontext);
+    if (!ipactx) {
+        return KRB5_KDB_DBNOTINITED;
+    }
+
+    tmpctx = talloc_new(NULL);
+    if (!tmpctx) {
+        return ENOMEM;
+    }
+
+    ied = (struct ipadb_e_data *)client->e_data;
+    if (ied->magic != IPA_E_DATA_MAGIC) {
+        return EINVAL;
+    }
+
+    if (!ied->ipa_user) {
+        return 0;
+    }
+
+    memset(&pac_info, 0, sizeof(pac_info));
+    pac_info.logon_info.info = talloc_zero(tmpctx, struct PAC_LOGON_INFO);
+    if (!tmpctx) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
+
+    /* == Search PAC info == */
+    kerr = ipadb_deref_search(ipactx, ied->entry_dn, user_pac_attrs,
+                              "memberOf", memberof_pac_attrs, &results);
+    if (kerr) {
+        goto done;
+    }
+
+    lentry = ldap_first_entry(ipactx->lcontext, results);
+    if (!lentry) {
+        kerr = ENOENT;
+        goto done;
+    }
+
+    /* == Fill Info3 == */
+    kerr = ipadb_fill_info3(ipactx, lentry, tmpctx,
+                            &pac_info.logon_info.info->info3);
+    if (kerr) {
+        goto done;
+    }
+
+    /* == Package PAC == */
+    ndr_err = ndr_push_union_blob(&pac_data, tmpctx, &pac_info,
+                                  PAC_TYPE_LOGON_INFO,
+                                  (ndr_push_flags_fn_t)ndr_push_PAC_INFO);
+    if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
+        kerr = KRB5_KDB_INTERNAL_ERROR;
+        goto done;
+    }
+
+    kerr = krb5_pac_init(kcontext, pac);
+    if (kerr) {
+        goto done;
+    }
+
+    data.magic = KV5M_DATA;
+    data.data = (char *)pac_data.data;
+    data.length = pac_data.length;
+
+    kerr = krb5_pac_add_buffer(kcontext, *pac, KRB5_PAC_LOGON_INFO, &data);
+
+done:
+    talloc_free(tmpctx);
+    return kerr;
+}
+
+
+krb5_error_code ipadb_sign_authdata(krb5_context context,
+                                    unsigned int flags,
+                                    krb5_const_principal client_princ,
+                                    krb5_db_entry *client,
+                                    krb5_db_entry *server,
+                                    krb5_db_entry *krbtgt,
+                                    krb5_keyblock *client_key,
+                                    krb5_keyblock *server_key,
+                                    krb5_keyblock *krbtgt_key,
+                                    krb5_keyblock *session_key,
+                                    krb5_timestamp authtime,
+                                    krb5_authdata **tgt_auth_data,
+                                    krb5_authdata ***signed_auth_data)
+{
+    krb5_const_principal ks_client_princ;
+    krb5_authdata *authdata[2] = { NULL, NULL };
+    krb5_authdata ad;
+    krb5_boolean is_as_req;
+    krb5_error_code kerr;
+    krb5_pac pac = NULL;
+    krb5_data pac_data;
+
+    /* Prefer canonicalised name from client entry */
+    if (client != NULL) {
+        ks_client_princ = client->princ;
+    } else {
+        ks_client_princ = client_princ;
+    }
+
+    is_as_req = ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) != 0);
+
+    if (is_as_req && (flags & KRB5_KDB_FLAG_INCLUDE_PAC)) {
+
+        kerr = ipadb_get_pac(context, client, &pac);
+        if (kerr != 0) {
+            goto done;
+        }
+    }
+#if 0
+    if (!is_as_req) {
+        code = ks_verify_pac(context, flags, ks_client_princ, client,
+                             server_key, krbtgt_key, authtime,
+                             tgt_auth_data, &pac);
+        if (code != 0) {
+            goto done;
+        }
+    }
+
+    if (pac == NULL && client != NULL) {
+
+        code = ks_get_pac(context, client, &pac);
+        if (code != 0) {
+            goto done;
+        }
+    }
+#endif
+    if (pac == NULL) {
+        kerr = KRB5_PLUGIN_OP_NOTSUPP;
+/*        kerr = KRB5_KDB_DBTYPE_NOSUP; */
+        goto done;
+    }
+
+    kerr = krb5_pac_sign(context, pac, authtime, ks_client_princ,
+                         server_key, krbtgt_key, &pac_data);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    /* put in signed data */
+    ad.magic = KV5M_AUTHDATA;
+    ad.ad_type = KRB5_AUTHDATA_WIN2K_PAC;
+    ad.contents = (krb5_octet *)pac_data.data;
+    ad.length = pac_data.length;
+    authdata[0] = &ad;
+
+    kerr = krb5_encode_authdata_container(context,
+                                          KRB5_AUTHDATA_IF_RELEVANT,
+                                          &authdata,
+                                          signed_auth_data);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    kerr = 0;
+
+done:
+    krb5_pac_free(context, pac);
+    return kerr;
+}
+
+static char *get_server_netbios_name(void)
+{
+    char hostname[MAXHOSTNAMELEN + 1]; /* NOTE: this is 64, too little ? */
+    char *p;
+    int ret;
+
+    ret = gethostname(hostname, MAXHOSTNAMELEN);
+    if (ret) {
+        return NULL;
+    }
+    /* May miss termination */
+    hostname[MAXHOSTNAMELEN] = '\0';
+    for (p = hostname; *p; p++) {
+        if (*p == '.') {
+            *p = 0;
+            break;
+        } else {
+            *p = toupper(*p);
+        }
+    }
+
+    return strdup(hostname);
+}
+
+krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx)
+{
+    char *dom_attrs[] = { "ipaNTFlatName",
+                          "ipaNTFallbackPrimaryGroup",
+                          NULL };
+    char *grp_attrs[] = { "ipaNTSecurityIdentifier", NULL };
+    krb5_error_code kerr;
+    LDAPMessage *result = NULL;
+    LDAPMessage *lentry;
+    struct dom_sid gsid;
+    char *resstr;
+    int ret;
+
+    /* clean up in case we had old values around */
+    free(ipactx->wc.flat_domain_name);
+    ipactx->wc.flat_domain_name = NULL;
+    free(ipactx->wc.fallback_group);
+    ipactx->wc.fallback_group = NULL;
+    ipactx->wc.fallback_rid = 0;
+
+    kerr = ipadb_simple_search(ipactx, ipactx->base, LDAP_SCOPE_SUBTREE,
+                               "(objectclass=ipaNTDomainAttrs)", dom_attrs,
+                                &result);
+    if (kerr == KRB5_KDB_NOENTRY) {
+        return ENOENT;
+    } else if (kerr != 0) {
+        return EIO;
+    }
+
+    lentry = ldap_first_entry(ipactx->lcontext, result);
+    if (!lentry) {
+        kerr = ENOENT;
+        goto done;
+    }
+
+    ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
+                                 "ipaNTFlatName",
+                                 &ipactx->wc.flat_domain_name);
+    if (ret) {
+        kerr = ret;
+        goto done;
+    }
+
+    free(ipactx->wc.flat_server_name);
+    ipactx->wc.flat_server_name = get_server_netbios_name();
+    if (!ipactx->wc.flat_server_name) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
+    ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
+                                 "ipaNTFallbackPrimaryGroup",
+                                 &ipactx->wc.fallback_group);
+    if (ret && ret != ENOENT) {
+        kerr = ret;
+        goto done;
+    }
+
+    /* result and lentry not valid any more from here on */
+    ldap_msgfree(result);
+    result = NULL;
+    lentry = NULL;
+
+    if (ret != ENOENT) {
+        kerr = ipadb_simple_search(ipactx, ipactx->wc.fallback_group,
+                                   LDAP_SCOPE_BASE,
+                                   "(objectclass=posixGroup)",
+                                   grp_attrs, &result);
+        if (kerr && kerr != KRB5_KDB_NOENTRY) {
+            kerr = ret;
+            goto done;
+        }
+
+        lentry = ldap_first_entry(ipactx->lcontext, result);
+        if (!lentry) {
+            kerr = ENOENT;
+            goto done;
+        }
+
+        if (kerr == 0) {
+            ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
+                                         "ipaNTSecurityIdentifier",
+                                         &resstr);
+            if (ret && ret != ENOENT) {
+                kerr = ret;
+                goto done;
+            }
+            if (ret == 0) {
+                ret = string_to_sid(resstr, &gsid);
+                if (ret) {
+                    kerr = ret;
+                    goto done;
+                }
+                ret = sid_split_rid(&gsid, &ipactx->wc.fallback_rid);
+                if (ret) {
+                    kerr = ret;
+                    goto done;
+                }
+            }
+        }
+    }
+
+    kerr = 0;
+
+done:
+    ldap_msgfree(result);
+    return kerr;
+}
