@@ -145,6 +145,9 @@ def upgrade_pki():
 
     This requires enabling SSL renegotiation.
     """
+    if not os.path.exists('/etc/pki-ca/CS.cfg'):
+        return
+
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
     http = httpinstance.HTTPInstance(fstore)
     http.enable_mod_nss_renegotiate()
