@@ -264,6 +264,56 @@ done:
     return kerr;
 }
 
+krb5_error_code ipadb_deref_search(struct ipadb_context *ipactx,
+                                   char *entry_dn, char **entry_attrs,
+                                   char *deref_attr_name, char **deref_attrs,
+                                   LDAPMessage **res)
+{
+    struct berval derefval = { 0, NULL };
+    LDAPControl *ctrl[2] = { NULL, NULL };
+    LDAPDerefSpec ds[2];
+    krb5_error_code kerr;
+    int times;
+    int ret;
+
+    ds[0].derefAttr = deref_attr_name;
+    ds[0].attributes = deref_attrs;
+    ds[1].derefAttr = NULL;
+
+    ret = ldap_create_deref_control_value(ipactx->lcontext, ds, &derefval);
+    if (ret != LDAP_SUCCESS) {
+        return ENOMEM;
+    }
+
+    ret = ldap_control_create(LDAP_CONTROL_X_DEREF,
+                              1, &derefval, 1, &ctrl[0]);
+    if (ret != LDAP_SUCCESS) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
+    /* retry once if connection errors (tot. max. 2 tries) */
+    times = 2;
+    ret = LDAP_SUCCESS;
+    while (!ipadb_need_retry(ipactx, ret) && times > 0) {
+        times--;
+        ret = ldap_search_ext_s(ipactx->lcontext, entry_dn,
+                                LDAP_SCOPE_BASE, "(objectclass=*)",
+                                entry_attrs, 0,
+                                ctrl, NULL,
+                                &std_timeout, LDAP_NO_LIMIT,
+                                res);
+    }
+
+    kerr = ipadb_simple_ldap_to_kerr(ret);
+
+done:
+    ldap_memfree(derefval.bv_val);
+    return kerr;
+}
+
+/* result extraction */
+
 int ipadb_ldap_attr_to_int(LDAP *lcontext, LDAPMessage *le,
                            char *attrname, int *result)
 {
@@ -428,5 +478,40 @@ int ipadb_ldap_attr_has_value(LDAP *lcontext, LDAPMessage *le,
         ldap_value_free_len(vals);
     }
 
+    return ret;
+}
+
+int ipadb_ldap_deref_results(LDAP *lcontext, LDAPMessage *le,
+                             LDAPDerefRes **results)
+{
+    LDAPControl **ctrls = NULL;
+    LDAPControl *derefctrl = NULL;
+    int ret;
+
+    ret = ldap_get_entry_controls(lcontext, le, &ctrls);
+    if (ret != LDAP_SUCCESS) {
+        return EINVAL;
+    }
+
+    if (!ctrls) {
+        return ENOENT;
+    }
+
+    derefctrl = ldap_control_find(LDAP_CONTROL_X_DEREF, ctrls, NULL);
+    if (!derefctrl) {
+        ret = ENOENT;
+        goto done;
+    }
+
+    ret = ldap_parse_derefresponse_control(lcontext, derefctrl, results);
+    if (ret) {
+        ret = EINVAL;
+        goto done;
+    }
+
+    ret = 0;
+
+done:
+    ldap_controls_free(ctrls);
     return ret;
 }

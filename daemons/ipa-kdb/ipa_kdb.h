@@ -39,9 +39,14 @@
 #include <ctype.h>
 #include <arpa/inet.h>
 #include <endian.h>
+#include <unistd.h>
 
 #include "ipa_krb5.h"
 #include "ipa_pwd.h"
+
+#ifndef MAXHOSTNAMELEN
+#define MAXHOSTNAMELEN 64
+#endif
 
 /* easier to copy the defines here than to mess with kadm5/admin.h
  * for now */
@@ -69,6 +74,13 @@
 
 #define IPA_SETUP "ipa-setup-override-restrictions"
 
+struct ipadb_wincompat {
+    char *flat_domain_name;
+    char *flat_server_name;
+    char *fallback_group;
+    uint32_t fallback_rid;
+};
+
 struct ipadb_context {
     char *uri;
     char *base;
@@ -79,12 +91,14 @@ struct ipadb_context {
     bool override_restrictions;
     krb5_key_salt_tuple *supp_encs;
     int n_supp_encs;
+    struct ipadb_wincompat wc;
 };
 
 #define IPA_E_DATA_MAGIC 0x0eda7a
 struct ipadb_e_data {
     int magic;
     bool ipa_user;
+    char *entry_dn;
     char *passwd;
     time_t last_pwd_change;
     char *pw_policy_dn;
@@ -108,6 +122,10 @@ krb5_error_code ipadb_simple_modify(struct ipadb_context *ipactx,
                                     char *dn, LDAPMod **mods);
 krb5_error_code ipadb_simple_delete_val(struct ipadb_context *ipactx,
                                         char *dn, char *attr, char *value);
+krb5_error_code ipadb_deref_search(struct ipadb_context *ipactx,
+                                   char *entry_dn, char **entry_attrs,
+                                   char *deref_attr_name, char **deref_attrs,
+                                   LDAPMessage **res);
 
 int ipadb_ldap_attr_to_int(LDAP *lcontext, LDAPMessage *le,
                            char *attrname, int *result);
@@ -124,6 +142,8 @@ int ipadb_ldap_attr_to_time_t(LDAP *lcontext, LDAPMessage *le,
 
 int ipadb_ldap_attr_has_value(LDAP *lcontext, LDAPMessage *le,
                               char *attrname, char *value);
+int ipadb_ldap_deref_results(LDAP *lcontext, LDAPMessage *le,
+                             LDAPDerefRes **results);
 
 /* PRINCIPALS FUNCTIONS */
 krb5_error_code ipadb_get_principal(krb5_context kcontext,
@@ -182,3 +202,21 @@ krb5_error_code ipadb_get_pwd_expiration(krb5_context context,
                                          krb5_db_entry *entry,
                                          struct ipadb_e_data *ied,
                                          time_t *expire_time);
+
+/* MS-PAC FUNCTIONS */
+
+krb5_error_code ipadb_sign_authdata(krb5_context context,
+                                    unsigned int flags,
+                                    krb5_const_principal client_princ,
+                                    krb5_db_entry *client,
+                                    krb5_db_entry *server,
+                                    krb5_db_entry *krbtgt,
+                                    krb5_keyblock *client_key,
+                                    krb5_keyblock *server_key,
+                                    krb5_keyblock *krbtgt_key,
+                                    krb5_keyblock *session_key,
+                                    krb5_timestamp authtime,
+                                    krb5_authdata **tgt_auth_data,
+                                    krb5_authdata ***signed_auth_data);
+
+krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx);

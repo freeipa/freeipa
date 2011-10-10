@@ -227,6 +227,16 @@ if test "x$PYTHON" = "x" ; then
 fi
 
 dnl ---------------------------------------------------------------------------
+dnl Check for ndr_krb5pac
+dnl ---------------------------------------------------------------------------
+
+PKG_PROG_PKG_CONFIG()
+PKG_CHECK_MODULES([TALLOC], [talloc])
+PKG_CHECK_MODULES([TEVENT], [tevent])
+PKG_CHECK_MODULES([NDRPAC], [ndr_krb5pac])
+
+
+dnl ---------------------------------------------------------------------------
 dnl - Set the data install directory since we don't use pkgdatadir
 dnl ---------------------------------------------------------------------------
 
