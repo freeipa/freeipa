@@ -295,6 +295,27 @@ IPA.details_facet = function(spec) {
 
     that.sections = $.ordered_map();
 
+    that.add_sections = function(sections) {
+
+        if(sections) {
+            for(var i=0; i < sections.length; i++) {
+
+                    var section_spec = sections[i];
+                    section_spec.entity = that.entity;
+
+                    if (!section_spec.label) {
+                        var obj_messages = IPA.messages.objects[that.entity.name];
+                        section_spec.label = obj_messages[section_spec.name];
+                    }
+
+                    section_spec.factory = section_spec.factory || IPA.details_table_section;
+                    var section = section_spec.factory(section_spec);
+
+                    that.add_section(section);
+            }
+        }
+    };
+
     that.dirty = false;
 
     that.add_section = function(section) {
@@ -716,6 +737,8 @@ IPA.details_facet = function(spec) {
 
         command.execute();
     };
+
+    that.add_sections(spec.sections);
 
     that.details_facet_create_content = that.create_content;
     that.details_facet_load = that.load;
