@@ -43,6 +43,7 @@ from ldap.controls import LDAPControl
 # for backward compatibility
 from ldap.functions import explode_dn
 from ipalib.dn import DN
+from ipalib import _
 
 import krbV
 
@@ -268,7 +269,7 @@ class ldap2(CrudBackend, Encoder):
         else:
             return None
 
-    def get_allowed_attributes(self, objectclasses):
+    def get_allowed_attributes(self, objectclasses, raise_on_unknown=False):
         if not self.schema:
             self.get_schema()
         allowed_attributes = []
@@ -276,6 +277,8 @@ class ldap2(CrudBackend, Encoder):
             obj = self.schema.get_obj(_ldap.schema.ObjectClass, oc)
             if obj is not None:
                 allowed_attributes += obj.must + obj.may
+            elif raise_on_unknown:
+                raise errors.NotFound(reason=_('objectclass %s not found') % oc)
         return [unicode(a).lower() for a in list(set(allowed_attributes))]
 
     def get_single_value(self, attr):
