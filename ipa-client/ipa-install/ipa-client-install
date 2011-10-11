@@ -1124,10 +1124,10 @@ def install(options, env, fstore, statestore):
     if not options.on_master:
         n = 0
         found = False
-        # Loop for up to 5 seconds to see if nss is working properly.
-        # It can sometimes take a few seconds to connect to the remote
-        # provider.
-        while n < 5 and not found:
+        # Loop for up to 10 seconds to see if nss is working properly.
+        # It can sometimes take a few seconds to connect to the remote provider.
+        # Particulary, SSSD might take longer than 6-8 seconds.
+        while n < 10 and not found:
             try:
                 ipautil.run(["getent", "passwd", "admin"])
                 found = True
