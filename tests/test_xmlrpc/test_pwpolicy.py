@@ -36,6 +36,7 @@ class test_pwpolicy(XMLRPC_test):
     user = u'testuser12'
     kw = {'cospriority': 1, 'krbminpwdlife': 30, 'krbmaxpwdlife': 40, 'krbpwdhistorylength': 5, 'krbpwdminlength': 6 }
     kw2 = {'cospriority': 2, 'krbminpwdlife': 40, 'krbmaxpwdlife': 60, 'krbpwdhistorylength': 8, 'krbpwdminlength': 9 }
+    global_policy = u'global_policy'
 
     def test_1_pwpolicy_add(self):
         """
@@ -171,6 +172,18 @@ class test_pwpolicy(XMLRPC_test):
         except errors.NotFound:
             pass
         else:
+            assert False
+
+        # Verify that global policy cannot be deleted
+        try:
+            api.Command['pwpolicy_del'](self.global_policy)
+        except errors.ValidationError:
+            pass
+        else:
+            assert False
+        try:
+            api.Command['pwpolicy_show'](self.global_policy)
+        except errors.NotFound:
             assert False
 
         # Remove the groups we created
