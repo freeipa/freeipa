@@ -39,8 +39,16 @@ IPA.entity_factories.pwpolicy = function() {
                             name: 'cn',
                             other_entity: 'group'
                         },
-                        'krbmaxpwdlife','krbminpwdlife','krbpwdhistorylength',
-                        'krbpwdmindiffchars','krbpwdminlength']
+                        'krbmaxpwdlife',
+                        'krbminpwdlife',
+                        'krbpwdhistorylength',
+                        'krbpwdmindiffchars',
+                        'krbpwdminlength',
+                        'krbpwdmaxfailure',
+                        'krbpwdfailurecountinterval',
+                        'krbpwdlockoutduration',
+                        'cospriority'
+                    ]
                 }]}).
         standard_association_facets().
         adder_dialog({
