@@ -231,7 +231,14 @@ class WSGIExecutioner(Executioner):
         finally:
             os.environ['LANG'] = lang
         if name:
-            params = self.Command[name].args_options_2_params(*args, **options)
+            try:
+                params = self.Command[name].args_options_2_params(*args, **options)
+            except Exception, e:
+                self.info(
+                   'exception %s caught when converting options: %s', e.__class__.__name__, str(e)
+                )
+                # get at least some context of what is going on
+                params = options
             if error:
                 self.info('%s: %s(%s): %s', context.principal, name, ', '.join(self.Command[name]._repr_iter(**params)), e.__class__.__name__)
             else:
