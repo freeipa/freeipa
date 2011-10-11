@@ -204,6 +204,14 @@ class hbactest(Command):
         ),
     )
 
+    def canonicalize(self, host):
+        """
+        Canonicalize the host name -- add default IPA domain if that is missing
+        """
+        if host.find('.') == -1:
+            return u'%s.%s' % (host, self.env.domain)
+        return host
+
     def execute(self, *args, **options):
         # First receive all needed information:
         # 1. HBAC rules (whether enabled or disabled)
@@ -264,7 +272,11 @@ class hbactest(Command):
         if options['user'] != u'all':
             try:
                 request.user.name = options['user']
-                request.user.groups = self.api.Command.user_show(request.user.name)['result']['memberof_group']
+                search_result = self.api.Command.user_show(request.user.name)['result']
+                groups = search_result['memberof_group']
+                if 'memberofindirect_group' in search_result:
+                    groups += search_result['memberofindirect_group']
+                request.user.groups = sorted(set(groups))
             except:
                 pass
 
@@ -278,19 +290,23 @@ class hbactest(Command):
 
         if options['sourcehost'] != u'all':
             try:
-                request.srchost.name = options['sourcehost']
+                request.srchost.name = self.canonicalize(options['sourcehost'])
                 srchost_result = self.api.Command.host_show(request.srchost.name)['result']
-                srchost_groups = srchost_result['memberof_hostgroup']
-                request.srchost.groups = sorted(set(srchost_groups))
+                groups = srchost_result['memberof_hostgroup']
+                if 'memberofindirect_hostgroup' in srchost_result:
+                    groups += search_result['memberofindirect_hostgroup']
+                request.srchost.groups = sorted(set(groups))
             except:
                  pass
 
         if options['targethost'] != u'all':
             try:
-                request.targethost.name = options['targethost']
+                request.targethost.name = self.canonicalize(options['targethost'])
                 tgthost_result = self.api.Command.host_show(request.targethost.name)['result']
-                tgthost_groups = tgthost_result['memberof_hostgroup']
-                request.targethost.groups = sorted(set(tgthost_groups))
+                groups = tgthost_result['memberof_hostgroup']
+                if 'memberofindirect_hostgroup' in tgthost_result:
+                    groups += search_result['memberofindirect_hostgroup']
+                request.targethost.groups = sorted(set(groups))
             except:
                 pass
 
