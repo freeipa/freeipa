@@ -178,7 +178,7 @@ def __discover_config(discover_server = True):
 
         if not config.default_domain:
             #try once with REALM -> domain
-            dom_name = config.default_realm.lower()
+            dom_name = str(config.default_realm).lower()
             name = "_ldap._tcp."+dom_name+"."
             rs = ipapython.dnsclient.query(name, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_SRV)
             rl = len(rs)
