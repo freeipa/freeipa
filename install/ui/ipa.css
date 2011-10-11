@@ -1,11 +1,11 @@
 
 /* Authors:
- *   Pavel Zuna <pzuna@redhat.com>
- *   Adam Young <ayoung@redhat.com>
- *   Endi Sukma Dewata <edewata@redhat.com>
- *   Kyle Baker <kybaker@redhat.com>
- *
- * Copyright (C) 2010 Red Hat
+*   Pavel Zuna <pzuna@redhat.com>
+*   Adam Young <ayoung@redhat.com>
+*   Endi Sukma Dewata <edewata@redhat.com>
+*   Kyle Baker <kybaker@redhat.com>
+*
+* Copyright (C) 2010 Red Hat
 */
 
 
@@ -54,8 +54,8 @@ body {
 .network-activity-indicator {
     visibility: hidden;
     padding-right: 11px;
-	float: right;
-	padding-top: 3px;
+    float: right;
+    padding-top: 3px;
 }
 
 /* ---- Container ---- */
@@ -150,42 +150,42 @@ body {
 }
 
 .search-icon {
-	background: url(search-icon.png) no-repeat;
+    background: url(search-icon.png) no-repeat;
 }
 
 .add-icon {
-	background: url(add-icon.png);
-	margin: -4px 0 0 1px;
+    background: url(add-icon.png);
+    margin: -4px 0 0 1px;
 }
 
 .remove-icon {
-	background: url(remove-icon.png);
-	margin: -4px 0 0 1px;
+    background: url(remove-icon.png);
+    margin: -4px 0 0 1px;
 }
 
 .update-icon {
-	background: url(update-icon.png);
-	margin: -4px 0 0 1px;
+    background: url(update-icon.png);
+    margin: -4px 0 0 1px;
 }
 
 .reset-icon {
-	background: url(reset-icon.png);
-	margin: -4px 0 0 1px;
+    background: url(reset-icon.png);
+    margin: -4px 0 0 1px;
 }
 
 .register-icon {
-	background: url(register.png);
-	margin: -4px 0 0 1px;
+    background: url(register.png);
+    margin: -4px 0 0 1px;
 }
 
 .import-icon {
-	background: url(import.png);
-	margin: -4px 0 0 1px;
+    background: url(import.png);
+    margin: -4px 0 0 1px;
 }
 
 .consume-icon {
-	background: url(consume.png);
-	margin: -4px 0 0 1px;
+    background: url(consume.png);
+    margin: -4px 0 0 1px;
 }
 
 .ipa-icon {
@@ -266,7 +266,7 @@ div.tabs {
 }
 
 .tabs1 > .ui-tabs-nav > .ui-state-hover {
-	background: url("hover-tab.png");
+    background: url("hover-tab.png");
 }
 
 .tabs1 > .ui-tabs-nav {
@@ -285,8 +285,8 @@ div.tabs {
     border-width: 0;
     text-align: center;
     vertical-align:baseline;
-        border: 1px solid #A0A0A0;
- }
+    border: 1px solid #A0A0A0;
+}
 
 .tabs1 > .ui-tabs-nav > li.ui-tabs-selected {
     padding: 0 0;
@@ -304,7 +304,7 @@ div.tabs {
     margin: 0 auto;
     text-align:center;
     font-size:1.5em;
-        text-shadow: 1px 1px 0 #FFFFFF;
+    text-shadow: 1px 1px 0 #FFFFFF;
 }
 
 .tabs1 > .ui-tabs-nav > li > a:link,
@@ -515,7 +515,7 @@ span.main-nav-off > a:visited {
     right: 0;
     bottom: 30px;
     z-index: 1; /* need to be above facet header */
-	border-bottom: 1px solid #C9C3BA;
+    border-bottom: 1px solid #C9C3BA;
 }
 
 .facet-group {
@@ -540,20 +540,20 @@ span.main-nav-off > a:visited {
 .facet-tab li {
     display: inline-block;
     position: relative;
-	padding-right: 1px;
+    padding-right: 1px;
 }
 
 .facet-tab li a {
     background-color: #dedbde;
     border-left: 1px solid #c9c3ba;
-	border-right: 1px solid #c9c3ba;
+    border-right: 1px solid #c9c3ba;
     margin: 0 0 0;
     padding: 6px 16px;
     text-decoration: none;
     display: inline-block;
     line-height: 19px;
-	background-image: url("facet-tab_off.png");
-	color: #666666;
+    background-image: url("facet-tab_off.png");
+    color: #666666;
 }
 
 .facet-tab li a:hover {
@@ -565,7 +565,7 @@ span.main-nav-off > a:visited {
     background-color: #f1f0ee;
     font-weight: bold;
     background-image: url("facet-tab_on.png");
-	height: 20px;
+    height: 20px;
 }
 
 .facet-tab li.settings {
@@ -591,8 +591,8 @@ span.main-nav-off > a:visited {
 }
 
 .facet-controls a {
-	font-size: 1.3em !important;
-	margin: 0 6px 0 0;
+    font-size: 1.3em !important;
+    margin: 0 6px 0 0;
 }
 
 /* ---- Facet Content ---- */
@@ -633,24 +633,24 @@ span.main-nav-off > a:visited {
 }
 
 .search-filter {
-	float: right;
-	width: 215px;
-	-moz-border-radius: 15px !important;
+    float: right;
+    width: 215px;
+    -moz-border-radius: 15px !important;
     -webkit-border-radius: 15px !important;
     border-radius: 15px !important;
-	border: 1px solid #9f9e9e;
-	background: url("search-bg.png");
-	height: 20px;
+    border: 1px solid #9f9e9e;
+    background: url("search-bg.png");
+    height: 20px;
     line-height: 20px;
-	padding: 0 8px 0;
+    padding: 0 8px 0;
     margin: 5px 0 5px;
 }
 
 .search-filter input {
-	width: 193px;
-	border: none;
-	background: transparent;
-	height: 18px;
+    width: 193px;
+    border: none;
+    background: transparent;
+    height: 18px;
 }
 
 .search-filter a {
@@ -754,7 +754,7 @@ h1 {
     font-weight: normal;
     color: #555555;
     text-transform: uppercase;
-        text-shadow: 1px 1px 0 #FFFFFF;
+    text-shadow: 1px 1px 0 #FFFFFF;
 }
 
 
@@ -774,7 +774,7 @@ h3 {
     font-size: 1.8em;
     color: #3c3c3c;
     text-transform: uppercase;
-        text-shadow: 1px 1px 0 #FFFFFF;
+    text-shadow: 1px 1px 0 #FFFFFF;
 }
 
 .section-expand{
@@ -800,7 +800,7 @@ hr {
     bottom: 32px;
     overflow: auto;
     border: none;
-	border-top: 1px solid #DFDFDF;
+    border-top: 1px solid #DFDFDF;
 }
 
 .details-summary {
@@ -1255,3 +1255,42 @@ table.scrollable tbody {
 .host-adder-dialog input[name=hostname] {
     width: 100%;
 }
+
+/* Info and simple pages (not main app) */
+
+body.info-page  {
+    background: url("Static-Background.png") repeat-x scroll left top #EDEDED;
+}
+
+.info-page h1 {
+    color: #333333;
+    margin-bottom: 1.5em;
+}
+
+.info-page .container_1 {
+    margin-left: auto;
+    margin-right: auto;
+    width: 960px;
+    background: url("centered-bg.png") no-repeat scroll 0 7em transparent;
+    min-height: 40em;
+}
+
+.info-page .textblock {
+    text-align: center;
+    margin-top: 6em;
+    font-size: 1.1em;
+}
+
+.info-page .textblockkrb {
+    text-align: left;
+    margin-top: 5em;
+    font-size: 1.1em;
+    padding-left: 3em;
+    padding-right: 3em;
+}
+
+.info-page .textblockkrb ul li {
+    list-style-type: none;
+    padding: .15em;
+}
+
