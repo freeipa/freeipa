@@ -24,6 +24,10 @@ from ipalib.plugins.baseldap import *
 from ipalib import _
 from ipalib.errors import ValidationError
 
+# 389-ds attributes that should be skipped in attribute checks
+OPERATIONAL_ATTRIBUTES = ('nsaccountlock', 'member', 'memberof',
+    'memberindirect', 'memberofindirect',)
+
 __doc__ = _("""
 Manage the IPA configuration
 
@@ -212,6 +216,25 @@ class config_mod(LDAPUpdate):
                         raise errors.ValidationError(
                             name=k, error='attribute "%s" not allowed' % a
                         )
+
+        for (attr, obj) in (('ipauserobjectclasses', 'user'),
+                            ('ipagroupobjectclasses', 'group')):
+            if attr in entry_attrs:
+                objectclasses = list(set(entry_attrs[attr] \
+                                         + self.api.Object[obj].possible_objectclasses))
+                new_allowed_attrs = ldap.get_allowed_attributes(objectclasses,
+                                        raise_on_unknown=True)
+                checked_attrs = self.api.Object[obj].default_attributes
+                if self.api.Object[obj].uuid_attribute:
+                    checked_attrs = checked_attrs + [self.api.Object[obj].uuid_attribute]
+                for obj_attr in checked_attrs:
+                    if obj_attr in OPERATIONAL_ATTRIBUTES:
+                        continue
+                    if obj_attr not in new_allowed_attrs:
+                        raise errors.ValidationError(name=attr,
+                                error=_('%s default attribute %s would not be allowed!') \
+                                % (obj, obj_attr))
+
         return dn
 
 api.register(config_mod)
