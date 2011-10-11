@@ -199,7 +199,7 @@ class config_mod(LDAPUpdate):
             try:
                 api.Command['group_show'](group)
             except errors.NotFound:
-                raise errors.NotFound(message=unicode("The group doesn't exist"))
+                raise errors.NotFound(message=_("The group doesn't exist"))
         kw = {}
         if 'ipausersearchfields' in entry_attrs:
             kw['ipausersearchfields'] = 'ipauserobjectclasses'
@@ -214,7 +214,7 @@ class config_mod(LDAPUpdate):
                     a = a.strip()
                     if a not in allowed_attrs:
                         raise errors.ValidationError(
-                            name=k, error='attribute "%s" not allowed' % a
+                            name=k, error=_('attribute "%s" not allowed') % a
                         )
 
         for (attr, obj) in (('ipauserobjectclasses', 'user'),
