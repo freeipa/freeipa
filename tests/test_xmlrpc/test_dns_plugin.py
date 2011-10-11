@@ -29,6 +29,7 @@ from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 dnszone1 = u'dnszone.test'
 dnszone2 = u'dnszone2.test'
 revdnszone1 = u'15.142.80.in-addr.arpa.'
+revdnszone1_ip = u'80.142.15.0/24'
 dnsres1 = u'testdnsres'
 
 class test_dns(Declarative):
@@ -546,6 +547,53 @@ class test_dns(Declarative):
                 'value': dnsres1,
                 'summary': u'Deleted record "%s"' % dnsres1,
                 'result': {'failed': u''},
+            },
+        ),
+
+
+        dict(
+            desc='Try to create a reverse zone from invalid IP',
+            command=(
+                'dnszone_add', [], {
+                    'name_from_ip': u'foo',
+                    'idnssoamname': u'ns1.%s' % dnszone1,
+                    'idnssoarname': u'root.%s' % dnszone1,
+                    'ip_address' : u'1.2.3.4',
+                }
+            ),
+            expected=errors.ValidationError(name='name_from_ip', error='invalid format'),
+        ),
+
+
+        dict(
+            desc='Create reverse from IP %s zone using name_from_ip option' % revdnszone1_ip,
+            command=(
+                'dnszone_add', [], {
+                    'name_from_ip': revdnszone1_ip,
+                    'idnssoamname': u'ns1.%s' % dnszone1,
+                    'idnssoarname': u'root.%s' % dnszone1,
+                    'ip_address' : u'1.2.3.4',
+                }
+            ),
+            expected={
+                'value': revdnszone1,
+                'summary': None,
+                'result': {
+                    'dn': lambda x: DN(x) == \
+                        DN(('idnsname',revdnszone1),('cn','dns'),api.env.basedn),
+                    'idnsname': [revdnszone1],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [u'ns1.%s.' % dnszone1],
+                    'nsrecord': [u'ns1.%s.' % dnszone1],
+                    'idnssoarname': [u'root.%s.' % dnszone1],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'objectclass': [u'top', u'idnsrecord', u'idnszone'],
+                },
             },
         ),
 
