@@ -31,7 +31,7 @@ try:
     from ipaclient import ipadiscovery
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
-    from ipapython.ipautil import run, user_input, CalledProcessError, file_exists
+    from ipapython.ipautil import run, user_input, CalledProcessError, file_exists, realm_to_suffix
     import ipapython.services as ipaservices
     from ipapython import ipautil
     from ipapython import dnsclient
@@ -942,7 +942,7 @@ def install(options, env, fstore, statestore):
                 print "Test kerberos configuration failed"
                 return CLIENT_INSTALL_ERROR
             env['KRB5_CONFIG'] = krb_name
-            join_args = ["/usr/sbin/ipa-join", "-s", cli_server]
+            join_args = ["/usr/sbin/ipa-join", "-s", cli_server, "-b", realm_to_suffix(cli_realm)]
             if options.debug:
                 join_args.append("-d")
             if options.hostname:
