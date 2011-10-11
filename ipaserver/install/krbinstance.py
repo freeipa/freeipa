@@ -295,11 +295,17 @@ class KrbInstance(service.Service):
 
     def __init_ipa_kdb(self):
         #populate the directory with the realm structure
-        args = ["kdb5_util", "create", "-s", "-P", self.master_password,
+        args = ["kdb5_util", "create", "-s",
                                        "-r", self.realm,
                                        "-x", "ipa-setup-override-restrictions"]
+        dialogue = (
+            # Enter KDC database master key:
+            self.master_password + '\n',
+            # Re-enter KDC database master key to verify:
+            self.master_password + '\n',
+        )
         try:
-            ipautil.run(args, nolog=(self.master_password))
+            ipautil.run(args, nolog=(self.master_password), stdin=''.join(dialogue))
         except ipautil.CalledProcessError, e:
             print "Failed to initialize the realm container"
 
