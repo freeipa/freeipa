@@ -366,6 +366,14 @@ class pwpolicy_del(LDAPDelete):
             attribute=True, required=True, multivalue=True
         )
 
+    def pre_callback(self, ldap, dn, *keys, **options):
+        if dn.lower() == global_policy_dn.lower():
+            raise errors.ValidationError(
+                name='group',
+                error=_('cannot delete global password policy')
+            )
+        return dn
+
     def post_callback(self, ldap, dn, *keys, **options):
         try:
             self.api.Command.cosentry_del(keys[-1])
