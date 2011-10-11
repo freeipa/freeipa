@@ -260,9 +260,11 @@ get_root_dn(const char *ipaserver, char **ldap_base)
 {
     LDAP *ld = NULL;
     char *root_attrs[] = {"namingContexts", NULL};
+    char *info_attrs[] = {"info", NULL};
     LDAPMessage *entry, *res = NULL;
     struct berval **ncvals;
-    int ret, rval = 0;
+    struct berval **infovals;
+    int i, ret, rval = 0;
 
     ld = connect_ldap(ipaserver, NULL, NULL);
     if (!ld) {
@@ -281,7 +283,9 @@ get_root_dn(const char *ipaserver, char **ldap_base)
         goto done;
     }
 
-    /* for now just use the first result we get */
+   *ldap_base = NULL;
+
+    /* loop through to find the IPA context */
     entry = ldap_first_entry(ld, res);
     ncvals = ldap_get_values_len(ld, entry, root_attrs[0]);
     if (!ncvals) {
@@ -289,10 +293,37 @@ get_root_dn(const char *ipaserver, char **ldap_base)
         rval = 14;
         goto done;
     }
+    for (i = 0; !*ldap_base && ncvals[i]; i++) {
+        ret = ldap_search_ext_s(ld, ncvals[i]->bv_val,
+                                LDAP_SCOPE_BASE, "(info=IPA*)", info_attrs,
+                                0, NULL, NULL, NULL, 0, &res);
 
-    *ldap_base = strdup(ncvals[0]->bv_val);
+        if (ret != LDAP_SUCCESS) {
+            break;
+        }
+
+        entry = ldap_first_entry(ld, res);
+        infovals = ldap_get_values_len(ld, entry, info_attrs[0]);
+        if (!strcmp(infovals[0]->bv_val, "IPA V2.0"))
+            *ldap_base = strdup(ncvals[i]->bv_val);
+        ldap_msgfree(res);
+        res = NULL;
+    }
 
     ldap_value_free_len(ncvals);
+
+    if (ret != LDAP_SUCCESS) {
+        fprintf(stderr, _("Search for IPA namingContext failed with error %d\n"), ret);
+        rval = 14;
+        goto done;
+    }
+
+    if (!*ldap_base) {
+        fprintf(stderr, _("IPA namingContext not found\n"));
+        rval = 14;
+        goto done;
+    }
+
 
 done:
     if (res) ldap_msgfree(res);
@@ -303,24 +334,30 @@ done:
     return rval;
 }
 
+/*
+ * Get the certificate subject base from the IPA configuration.
+ *
+ * Not considered a show-stopper if this fails for some reason.
+ *
+ * The caller is responsible for binding/unbinding to LDAP.
+ */
 static int
-get_subject(const char *ipaserver, char *ldap_base, const char **subject)
+get_subject(LDAP *ld, char *ldap_base, const char **subject, int quiet)
 {
-    LDAP *ld = NULL;
     char *attrs[] = {"ipaCertificateSubjectBase", NULL};
-    char base[LINE_MAX];
+    char *base = NULL;
     LDAPMessage *entry, *res = NULL;
     struct berval **ncvals;
     int ret, rval = 0;
 
-    ld = connect_ldap(ipaserver, NULL, NULL);
-    if (!ld) {
-        rval = 14;
+    ret = asprintf(&base, "cn=ipaconfig,cn=etc,%s", ldap_base);
+    if (ret == -1)
+    {
+        if (!quiet)
+            fprintf(stderr, _("Out of memory!\n"));
+        rval = 3;
         goto done;
     }
-
-    strcpy(base, "cn=ipaconfig,cn=etc,");
-    strcat(base, ldap_base);
 
     ret = ldap_search_ext_s(ld, base, LDAP_SCOPE_BASE,
                             "objectclass=*", attrs, 0,
@@ -347,10 +384,8 @@ get_subject(const char *ipaserver, char *ldap_base, const char **subject)
     ldap_value_free_len(ncvals);
 
 done:
+    free(base);
     if (res) ldap_msgfree(res);
-    if (ld != NULL) {
-        ldap_unbind_ext(ld, NULL, NULL);
-    }
 
     return rval;
 }
@@ -374,52 +409,41 @@ done:
  * the state of the entry.
  */
 static int
-join_ldap(const char *ipaserver, char *hostname, const char ** binddn, const char *bindpw, const char **princ, const char **subject, int quiet)
+join_ldap(const char *ipaserver, char *hostname, char ** binddn, const char *bindpw, const char *basedn, const char **princ, const char **subject, int quiet)
 {
     LDAP *ld;
     char *filter = NULL;
     int rval = 0;
-    char *oidresult;
+    char *oidresult = NULL;
     struct berval valrequest;
     struct berval *valresult = NULL;
     int rc, ret;
-    LDAPMessage *result, *e;
     char *ldap_base = NULL;
     char *search_base = NULL;
-    char * attrs[] = {"krbPrincipalName", NULL};
-    struct berval **ncvals;
-    int has_principal = 0;
 
     *binddn = NULL;
     *princ = NULL;
     *subject = NULL;
 
-    if (get_root_dn(ipaserver, &ldap_base) != 0) {
-        if (!quiet)
-            fprintf(stderr, _("Unable to determine root DN of %s\n"),
-                            ipaserver);
-        rval = 14;
-        goto done;
+    if (NULL != basedn) {
+        ldap_base = strdup(basedn);
+        if (!ldap_base) {
+            if (!quiet)
+                fprintf(stderr, _("Out of memory!\n"));
+            rval = 3;
+            goto done;
+        }
+    } else {
+        if (get_root_dn(ipaserver, &ldap_base) != 0) {
+            if (!quiet)
+                fprintf(stderr, _("Unable to determine root DN of %s\n"),
+                                ipaserver);
+            rval = 14;
+            goto done;
+        }
     }
 
-    if (get_subject(ipaserver, ldap_base, subject) != 0) {
-        if (!quiet)
-            fprintf(stderr,
-                    _("Unable to determine certificate subject of %s\n"),
-                    ipaserver);
-        /* Not a critical failure */
-    }
-
-    ld = connect_ldap(ipaserver, NULL, NULL);
-    if (!ld) {
-        if (!quiet)
-            fprintf(stderr, _("Unable to make an LDAP connection to %s\n"),
-                    ipaserver);
-        rval = 14;
-        goto done;
-    }
-    /* Search for the entry. */
-    ret = asprintf(&filter, "(fqdn=%s)", hostname);
+    ret = asprintf(binddn, "fqdn=%s,cn=computers,cn=accounts,%s", hostname, ldap_base);
     if (ret == -1)
     {
         if (!quiet)
@@ -427,67 +451,20 @@ join_ldap(const char *ipaserver, char *hostname, const char ** binddn, const cha
         rval = 3;
         goto done;
     }
-
-    ret = asprintf(&search_base, "cn=computers,cn=accounts,%s", ldap_base);
-    if (ret == -1)
-    {
-        if (!quiet)
-            fprintf(stderr, _("Out of memory!\n"));
-        rval = 3;
-        goto done;
-    }
-
-    if (debug) {
-        fprintf(stderr, _("Searching with %s in %s\n"), filter, search_base);
-    }
-    if ((ret = ldap_search_ext_s(ld, ldap_base, LDAP_SCOPE_SUB,
-         filter, attrs, 0, NULL, NULL, LDAP_NO_LIMIT,
-         LDAP_NO_LIMIT, &result)) != LDAP_SUCCESS) {
-        if (!quiet)
-            fprintf(stderr, _("ldap_search_ext_s: %s\n"),
-                    ldap_err2string(ret));
-        rval = 14;
-        goto ldap_done;
-    }
-    e = ldap_first_entry(ld, result);
-    if (!e) {
-        if (!quiet)
-            fprintf(stderr, _("Unable to find host '%s'\n"), hostname);
-        rval = 14;
-        goto ldap_done;
-    }
-    if ((*binddn = ldap_get_dn(ld, e)) == NULL) {
-        if (!quiet)
-            fprintf(stderr,
-                    _("Unable to get binddn for host '%s'\n"), hostname);
-        rval = 14;
-        goto ldap_done;
-    }
-    ncvals = ldap_get_values_len(ld, e, attrs[0]);
-    if (ncvals != NULL) {
-        /* This host is probably already registered. The krbprincipalname
-         * is not set on password protected entries, but lets try to bind
-         * anyway.
-         */
-        has_principal = 1;
-        if (debug)
-            fprintf(stderr,
-                    _("Host already has principal, trying bind anyway\n"));
-    }
-
-    ldap_value_free_len(ncvals);
-    ldap_msgfree(result);
-    if (ld != NULL) {
-        ldap_unbind_ext(ld, NULL, NULL);
-    }
-
-    /* Now rebind as the host */
     ld = connect_ldap(ipaserver, *binddn, bindpw);
     if (!ld) {
         if (!quiet)
             fprintf(stderr, _("Incorrect password.\n"));
         rval = 15;
         goto done;
+    }
+
+    if (get_subject(ld, ldap_base, subject, quiet) != 0) {
+        if (!quiet)
+            fprintf(stderr,
+                    _("Unable to determine certificate subject of %s\n"),
+                    ipaserver);
+        /* Not a critical failure */
     }
 
     valrequest.bv_val = (char *)hostname;
@@ -525,11 +502,12 @@ ldap_done:
 
 done:
     if (valresult) ber_bvfree(valresult);
+    if (oidresult) free(oidresult);
     return rval;
 }
 
 static int
-join_krb5(const char *ipaserver, char *hostname, const char **hostdn, const char **princ, const char **subject, int quiet) {
+join_krb5(const char *ipaserver, char *hostname, char **hostdn, const char **princ, const char **subject, int quiet) {
     xmlrpc_env env;
     xmlrpc_value * argArrayP = NULL;
     xmlrpc_value * paramArrayP = NULL;
@@ -607,7 +585,7 @@ join_krb5(const char *ipaserver, char *hostname, const char **hostdn, const char
      * DN, the second a struct of attribute values
      */
     xmlrpc_array_read_item(&env, resultP, 0, &hostdnP);
-    xmlrpc_read_string(&env, hostdnP, &*hostdn);
+    xmlrpc_read_string(&env, hostdnP, (const char **)hostdn);
     xmlrpc_DECREF(hostdnP);
     xmlrpc_array_read_item(&env, resultP, 1, &structP);
 
@@ -883,7 +861,7 @@ cleanup:
 
 
 static int
-join(const char *server, const char *hostname, const char *bindpw, const char *keytab, int quiet)
+join(const char *server, const char *hostname, const char *bindpw, const char *basedn, const char *keytab, int quiet)
 {
     int rval = 0;
     pid_t childpid = 0;
@@ -893,7 +871,7 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
     char * host = NULL;
     const char * princ = NULL;
     const char * subject = NULL;
-    const char * hostdn = NULL;
+    char * hostdn = NULL;
     struct utsname uinfo;
 
     krb5_context krbctx = NULL;
@@ -927,7 +905,7 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
     }
 
     if (bindpw)
-        rval = join_ldap(ipaserver, host, &hostdn, bindpw, &princ, &subject, quiet);
+        rval = join_ldap(ipaserver, host, &hostdn, bindpw, basedn, &princ, &subject, quiet);
     else {
         krberr = krb5_init_context(&krbctx);
         if (krberr) {
@@ -1017,6 +995,7 @@ cleanup:
 
     free((char *)princ);
     free((char *)subject);
+    free(host);
 
     if (bindpw)
         ldap_memfree((void *)hostdn);
@@ -1044,6 +1023,7 @@ main(int argc, const char **argv) {
     static const char *server = NULL;
     static const char *keytab = NULL;
     static const char *bindpw = NULL;
+    static const char *basedn = NULL;
     int quiet = 0;
     int unenroll = 0;
     struct poptOption options[] = {
@@ -1061,6 +1041,8 @@ main(int argc, const char **argv) {
           _("Specifies where to store keytab information."), _("filename") },
         { "bindpw", 'w', POPT_ARG_STRING, &bindpw, 0,
           _("LDAP password (if not using Kerberos)"), _("password") },
+        { "basedn", 'b', POPT_ARG_STRING, &basedn, 0,
+          _("LDAP basedn"), _("basedn") },
         POPT_AUTOHELP
         POPT_TABLEEND
     };
@@ -1093,7 +1075,7 @@ main(int argc, const char **argv) {
     } else {
         ret = check_perms(keytab);
         if (ret == 0)
-            ret = join(server, hostname, bindpw, keytab, quiet);
+            ret = join(server, hostname, bindpw, basedn, keytab, quiet);
     }
 
     exit(ret);
