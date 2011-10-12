@@ -1001,7 +1001,8 @@ class ldap2(CrudBackend, Encoder):
                 try:
                     (result, truncated) = self.find_entries(searchfilter,
                         attr_list, member, time_limit=time_limit,
-                        size_limit=size_limit, normalize=normalize)
+                        size_limit=size_limit, scope=_ldap.SCOPE_BASE,
+                        normalize=normalize)
                     results.append(list(result[0]))
                     for m in result[0][1].get('member', []):
                         # This member may contain other members, add it to our
@@ -1066,18 +1067,16 @@ class ldap2(CrudBackend, Encoder):
             try:
                 (result, truncated) = self.find_entries(searchfilter, attr_list,
                     group, time_limit=time_limit,size_limit=size_limit,
-                    normalize=normalize)
+                    scope=_ldap.SCOPE_BASE, normalize=normalize)
                 results.extend(list(result))
             except errors.NotFound:
                 pass
 
         direct = []
-        indirect = []
         # If there is an exception here, it is likely due to a failure in
         # referential integrity. All members should have corresponding
         # memberOf entries.
-        for m in memberof:
-            indirect.append(m.lower())
+        indirect = [ m.lower() for m in memberof ]
         for r in results:
             direct.append(r[0])
             try:
