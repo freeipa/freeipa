@@ -797,7 +797,8 @@ def install(options, env, fstore, statestore):
     if ret == ipadiscovery.NOT_FQDN:
         print >>sys.stderr, "%s is not a fully-qualified hostname" % hostname
         return CLIENT_INSTALL_ERROR
-    if ret == ipadiscovery.NO_LDAP_SERVER or not ds.getDomainName():
+    if ret in (ipadiscovery.NO_LDAP_SERVER, ipadiscovery.NOT_IPA_SERVER) \
+            or not ds.getDomainName():
         logging.debug("Domain not found")
         if options.domain:
             cli_domain = options.domain
@@ -815,7 +816,8 @@ def install(options, env, fstore, statestore):
             cli_domain = ds.getDomainName()
             logging.debug("will use domain: %s\n", cli_domain)
 
-    if ret == ipadiscovery.NO_LDAP_SERVER or not ds.getServerName():
+    if ret in (ipadiscovery.NO_LDAP_SERVER, ipadiscovery.NOT_IPA_SERVER) \
+            or not ds.getServerName():
         logging.debug("IPA Server not found")
         if options.server:
             cli_server = options.server

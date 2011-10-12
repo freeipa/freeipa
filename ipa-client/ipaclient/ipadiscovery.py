@@ -220,7 +220,8 @@ class IPADiscovery:
             raise RuntimeError("Creating temporary directory failed: %s" % str(e))
 
         try:
-            run(["/usr/bin/wget", "-O", "%s/ca.crt" % temp_ca_dir, "http://%s/ipa/config/ca.crt" % format_netloc(thost)])
+            run(["/usr/bin/wget", "-O", "%s/ca.crt" % temp_ca_dir, "-T", "15", "-t", "2",
+                 "http://%s/ipa/config/ca.crt" % format_netloc(thost)])
         except CalledProcessError, e:
             logging.debug('Retrieving CA from %s failed.\n%s' % (thost, str(e)))
             return [NOT_IPA_SERVER]
