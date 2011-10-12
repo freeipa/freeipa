@@ -551,12 +551,6 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, c
     opts.append({'name':'domain_realm', 'type':'section', 'value':dropts})
     opts.append({'name':'empty', 'type':'empty'})
 
-    #[appdefaults]
-    pamopts = [{'name':'debug', 'type':'option', 'value':'false'},
-               {'name':'krb4_convert', 'type':'option', 'value':'false'}]
-    appopts = [{'name':'pam', 'type':'subsection', 'value':pamopts}]
-    opts.append({'name':'appdefaults', 'type':'section', 'value':appopts})
-
     logging.debug("Writing Kerberos configuration to %s:\n%s"
             % (filename, krbconf.dump(opts)))
 

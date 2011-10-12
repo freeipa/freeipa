@@ -23,12 +23,6 @@
  .$DOMAIN = $REALM
  $DOMAIN = $REALM
 
-[appdefaults]
- pam = {
-   debug = false
-   krb4_convert = false
- }
-
 [dbmodules]
   $REALM = {
     db_library = kldap
