@@ -133,48 +133,15 @@ def restore_context(filepath):
     ipautil.run(["/sbin/restorecon", filepath], raiseonerr=False)
 
 def backup_and_replace_hostname(fstore, statestore, hostname):
-    network_filename = "/etc/sysconfig/network"
-    # Backup original /etc/sysconfig/network
-    fstore.backup_file(network_filename)
-    hostname_pattern = re.compile('''
-(^
-                        \s*
-        (?P<option>     [^\#;]+?)
-                        (\s*=\s*)
-        (?P<value>      .+?)?
-                        (\s*((\#|;).*)?)?
-$)''', re.VERBOSE)
-    temp_filename = None
-    with tempfile.NamedTemporaryFile(delete=False) as new_config:
-        temp_filename = new_config.name
-        with open(network_filename, 'r') as f:
-            for line in f:
-                new_line = line
-                m = hostname_pattern.match(line)
-                if m:
-                    option, value = m.group('option', 'value')
-                    if option is not None and option == 'HOSTNAME':
-                        if value is not None and hostname != value:
-                            new_line = u"HOSTNAME=%s\n" % (hostname)
-                            statestore.backup_state('network', 'hostname', value)
-                new_config.write(new_line)
-        new_config.flush()
-        # Make sure the resulting file is readable by others before installing it
-        os.fchmod(new_config.fileno(), stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
-        os.fchown(new_config.fileno(), 0, 0)
-
-    # At this point new_config is closed but not removed due to 'delete=False' above
-    # Now, install the temporary file as configuration and ensure old version is available as .orig
-    # While .orig file is not used during uninstall, it is left there for administrator.
-    ipautil.install_file(temp_filename, network_filename)
     try:
         ipautil.run(['/bin/hostname', hostname])
     except ipautil.CalledProcessError, e:
         print >>sys.stderr, "Failed to set this machine hostname to %s (%s)." % (hostname, str(e))
-
-    # For SE Linux environments it is important to reset SE labels to the expected ones
-    try:
-        restore_context(network_filename)
-    except ipautil.CalledProcessError, e:
-        print >>sys.stderr, "Failed to set permissions for %s (%s)." % (network_filename, str(e))
+    replacevars = {'HOSTNAME':hostname}
+    old_values = ipautil.backup_config_and_replace_variables(fstore,
+                                                          "/etc/sysconfig/network",
+                                                          replacevars=replacevars)
+    restore_context("/etc/sysconfig/network")
+    if 'HOSTNAME' in old_values:
+        statestore.backup_state('network', 'hostname', old_values['HOSTNAME'])
 

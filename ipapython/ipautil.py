@@ -1185,3 +1185,93 @@ def get_ipa_basedn(conn):
 
     return None
 
+def config_replace_variables(filepath, replacevars=dict(), appendvars=dict()):
+    """
+    Take a key=value based configuration file, and write new version
+    with certain values replaced or appended
+
+    All (key,value) pairs from replacevars and appendvars that were not found
+    in the configuration file, will be added there.
+
+    It is responsibility of a caller to ensure that replacevars and
+    appendvars do not overlap.
+
+    It is responsibility of a caller to back up file.
+
+    returns dictionary of affected keys and their previous values
+
+    One have to run restore_context(filepath) afterwards or
+    security context of the file will not be correct after modification
+    """
+    pattern = re.compile('''
+(^
+                        \s*
+        (?P<option>     [^\#;]+?)
+                        (\s*=\s*)
+        (?P<value>      .+?)?
+                        (\s*((\#|;).*)?)?
+$)''', re.VERBOSE)
+    orig_stat = os.stat(filepath)
+    old_values = dict()
+    temp_filename = None
+    with tempfile.NamedTemporaryFile(delete=False) as new_config:
+        temp_filename = new_config.name
+        with open(filepath, 'r') as f:
+            for line in f:
+                new_line = line
+                m = pattern.match(line)
+                if m:
+                    option, value = m.group('option', 'value')
+                    if option is not None:
+                        if replacevars and option in replacevars:
+                            # replace value completely
+                            new_line = u"%s=%s\n" % (option, replacevars[option])
+                            old_values[option] = value
+                        if appendvars and option in appendvars:
+                            # append new value unless it is already existing in the original one
+                            if value.find(appendvars[option]) == -1:
+                                new_line = u"%s=%s %s\n" % (option, value, appendvars[option])
+                            old_values[option] = value
+                new_config.write(new_line)
+        # Now add all options from replacevars and appendvars that were not found in the file
+        new_vars = replacevars.copy()
+        new_vars.update(appendvars)
+        newvars_view = new_vars.viewkeys() - old_values.viewkeys()
+        append_view = (appendvars.viewkeys() - replacevars.viewkeys()) - old_values.viewkeys()
+        for item in newvars_view:
+            new_config.write("%s=%s\n" % (item,new_vars[item]))
+        for item in append_view:
+            new_config.write("%s=%s\n" % (item,appendvars[item]))
+        new_config.flush()
+        # Make sure the resulting file is readable by others before installing it
+        os.fchmod(new_config.fileno(), orig_stat.st_mode)
+        os.fchown(new_config.fileno(), orig_stat.st_uid, orig_stat.st_gid)
+
+    # At this point new_config is closed but not removed due to 'delete=False' above
+    # Now, install the temporary file as configuration and ensure old version is available as .orig
+    # While .orig file is not used during uninstall, it is left there for administrator.
+    install_file(temp_filename, filepath)
+
+    return old_values
+
+def backup_config_and_replace_variables(fstore, filepath, replacevars=dict(), appendvars=dict()):
+    """
+    Take a key=value based configuration file, back up it, and
+    write new version with certain values replaced or appended
+
+    All (key,value) pairs from replacevars and appendvars that
+    were not found in the configuration file, will be added there.
+
+    It is responsibility of a caller to ensure that replacevars and
+    appendvars do not overlap.
+
+    returns dictionary of affected keys and their previous values
+
+    One have to run restore_context(filepath) afterwards or
+    security context of the file will not be correct after modification
+    """
+    # Backup original filepath
+    fstore.backup_file(filepath)
+    old_values = config_replace_variables(filepath, replacevars, appendvars)
+
+    return old_values
