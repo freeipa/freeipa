@@ -352,28 +352,16 @@ class KrbInstance(service.Service):
             min = version.LooseVersion(MIN_KRB5KDC_WITH_WORKERS)
             if ver >= min:
                 workers = True
+        # Write down config file
+        # We write realm and also number of workers (for multi-CPU systems)
+        replacevars = {'KRB5REALM':self.realm}
+        appendvars = {}
         if workers and cpus > 1:
-            #read in memory, find KRB5KDC_ARGS, check/change it, then overwrite file
-            self.fstore.backup_file("/etc/sysconfig/krb5kdc")
-
-            need_w = True
-            fd = open("/etc/sysconfig/krb5kdc", "r")
-            lines = fd.readlines()
-            fd.close()
-            for line in lines:
-                sline = line.strip()
-                if not sline.startswith('KRB5KDC_ARGS'):
-                    continue
-                sline = sline.replace('"', '')
-                if sline.find("-w") != -1:
-                    need_w = False
-
-            if need_w:
-                fd = open("/etc/sysconfig/krb5kdc", "w")
-                for line in lines:
-                    fd.write(line)
-                fd.write('KRB5KDC_ARGS="${KRB5KDC_ARGS} -w %s"\n' % str(cpus))
-                fd.close()
+            appendvars = {'KRB5KDC_ARGS': "-w %s" % str(cpus)}
+        ipautil.backup_config_and_replace_variables(self.fstore, "/etc/sysconfig/krb5kdc",
+                                                    replacevars=replacevars,
+                                                    appendvars=appendvars)
+        ipaservices.restore_context("/etc/sysconfig/krb5kdc")
 
     def __write_stash_from_ds(self):
         try:
