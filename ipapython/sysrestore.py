@@ -130,6 +130,19 @@ class FileStore:
         self.files[filename] = string.join([str(stat.st_mode),str(stat.st_uid),str(stat.st_gid),path], ',')
         self.save()
 
+    def has_file(self, path):
+        """Checks whether file at @path was added to the file store
+
+        Returns #True if the file exists in the file store, #False otherwise
+        """
+        result = False
+        for (key, value) in self.files.items():
+            (mode,uid,gid,filepath) = string.split(value, ',', 3)
+            if (filepath == path):
+                result = True
+                break
+        return result
+
     def restore_file(self, path):
         """Restore the copy of a file at @path to its original
         location and delete the copy.

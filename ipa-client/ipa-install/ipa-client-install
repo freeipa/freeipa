@@ -108,6 +108,9 @@ def parse_options():
     sssd_group.add_option("-S", "--no-sssd", dest="sssd",
                       action="store_false", default=True,
                       help="Do not configure the client to use SSSD for authentication")
+    sssd_group.add_option("--preserve-sssd", dest="preserve_sssd",
+                      action="store_true", default=False,
+                      help="Preserve old SSSD configuration if possible")
     parser.add_option_group(sssd_group)
 
     uninstall_group = OptionGroup(parser, "uninstall options")
@@ -177,22 +180,33 @@ def uninstall(options, env, quiet=False):
         print "Refer to ipa-server-install for uninstallation."
         return CLIENT_NOT_CONFIGURED
 
-    sssdconfig = SSSDConfig.SSSDConfig()
-    sssdconfig.import_config()
-    domains = sssdconfig.list_active_domains()
-
     hostname = None
-    for name in domains:
-        domain = sssdconfig.get_domain(name)
-        try:
-            provider = domain.get_option('id_provider')
-        except SSSDConfig.NoOptionError:
-            continue
-        if provider == "ipa":
+    was_sssd_configured = False
+    try:
+        sssdconfig = SSSDConfig.SSSDConfig()
+        sssdconfig.import_config()
+        domains = sssdconfig.list_active_domains()
+        if len(domains) > 1:
+            # There was more than IPA domain configured
+            was_sssd_configured = True
+        for name in domains:
+            domain = sssdconfig.get_domain(name)
             try:
-                hostname = domain.get_option('ipa_hostname')
+                provider = domain.get_option('id_provider')
             except SSSDConfig.NoOptionError:
                 continue
+            if provider == "ipa":
+                try:
+                    hostname = domain.get_option('ipa_hostname')
+                except SSSDConfig.NoOptionError:
+                    continue
+    except Exception, e:
+        # We were unable to read existing SSSD config. This might mean few things:
+        # - sssd wasn't installed
+        # - sssd was removed after install and before uninstall
+        # - there are no active domains
+        # in both cases we cannot continue with SSSD
+        pass
 
     if hostname is None:
         hostname = socket.getfqdn()
@@ -266,14 +280,31 @@ def uninstall(options, env, quiet=False):
             logging.debug("Failed to remove Kerberos service principals: %s" % str(e))
 
     emit_quiet(quiet, "Disabling client Kerberos and LDAP configurations")
+    was_sssd_installed = False
+    if fstore.has_files():
+        was_sssd_installed = fstore.has_file("/etc/sssd/sssd.conf")
     try:
         auth_config = ipaservices.authconfig()
-        auth_config.disable("ldap").\
-                    disable("krb5").\
-                    disable("sssd").\
-                    disable("sssdauth").\
-                    disable("mkhomedir").\
-                    add_option("update")
+        if statestore.has_state('authconfig'):
+            # disable only those configurations that we enabled during install
+            for conf in ('ldap', 'krb5', 'sssd', 'sssdauth', 'mkhomedir'):
+                cnf = statestore.restore_state('authconfig', conf)
+                if cnf:
+                    auth_config.disable(conf)
+        else:
+            # There was no authconfig status store
+            # It means the code was upgraded after original install
+            # Fall back to old logic
+            auth_config.disable("ldap").\
+                        disable("krb5")
+            if not(was_sssd_installed and was_sssd_configured):
+                # assume there was sssd.conf before install and there were more than one domain in it
+                # In such case restoring sssd.conf will require us to keep SSSD running
+                auth_config.disable("sssd").\
+                            disable("sssdauth")
+            auth_config.disable("mkhomedir")
+
+        auth_config.add_option("update")
         auth_config.execute()
     except Exception, e:
         emit_quiet(quiet, "Failed to remove krb5/LDAP configuration. " +str(e))
@@ -344,6 +375,13 @@ def uninstall(options, env, quiet=False):
         else:
            if restored:
                ipaservices.knownservices.ntpd.restart()
+
+    if was_sssd_installed and was_sssd_configured:
+        # SSSD was installed before our installation, config now is restored, restart it
+        emit_quiet(quiet, "The original configuration of SSSD included other domains than IPA-based one.")
+        emit_quiet(quiet, "Original configuration file is restored, restarting SSSD service.")
+        sssd = ipaservices.service('sssd')
+        sssd.restart()
 
     if not options.unattended:
         emit_quiet(quiet, "The original nsswitch.conf configuration has been restored.")
@@ -612,8 +650,35 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options):
             print "%s request for host certificate failed" % (cmonger.service_name)
 
 def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
-    sssdconfig = SSSDConfig.SSSDConfig()
-    sssdconfig.new_config()
+    try:
+        sssdconfig = SSSDConfig.SSSDConfig()
+        sssdconfig.import_config()
+    except Exception, e:
+        if os.path.exists("/etc/sssd/sssd.conf") and options.preserve_sssd:
+            # SSSD config is in place but we are unable to read it
+            # In addition, we are instructed to preserve it
+            # This all means we can't use it and have to bail out
+            print "SSSD config exists but cannot be parsed: %s" % (str(e))
+            print "Correct errors in /etc/sssd/sssd.conf and re-run installation"
+            logging.error("Failed to parse SSSD configuration and was instructed to preserve existing SSSD config: %s" % (str(e)))
+            return 1
+
+        # SSSD configuration does not exist or we are not asked to preserve it, create new one
+        # We do make new SSSDConfig instance because IPAChangeConf-derived classes have no
+        # means to reset their state and ParseError exception could come due to parsing
+        # error from older version which cannot be upgraded anymore, leaving sssdconfig
+        # instance practically unusable
+        # Note that we already backed up sssd.conf before going into this routine
+        if type(e) is IOError:
+            print "New SSSD config will be created."
+        else:
+            # It was not IOError so it must have been parsing error
+            print "Unable to parse existing SSSD config. As option --preserve-sssd was not specified, new config will override the old one."
+            print "The old /etc/sssd/sssd.conf is backed up and will be restored during uninstall."
+            logging.error("Unable to parse existing SSSD config and --preserve-sssd was not specified: %s" % (str(e)))
+        logging.info("New SSSD config will be created")
+        sssdconfig = SSSDConfig.SSSDConfig()
+        sssdconfig.new_config()
 
     domain = sssdconfig.new_domain(cli_domain)
     domain.add_provider('ipa', 'id')
@@ -1081,16 +1146,20 @@ def install(options, env, fstore, statestore):
     # Modify nsswitch/pam stack
     auth_config = ipaservices.authconfig()
     if options.sssd:
+        statestore.backup_state('authconfig', 'sssd', True)
+        statestore.backup_state('authconfig', 'sssdauth', True)
         auth_config.enable("sssd").\
                     enable("sssdauth")
         message = "SSSD enabled"
         conf = 'SSSD'
     else:
+        statestore.backup_state('authconfig', 'ldap', True)
         auth_config.enable("ldap").\
                     enable("forcelegacy")
         message = "LDAP enabled"
 
     if options.mkhomedir:
+        statestore.backup_state('authconfig', 'mkhomedir', True)
         auth_config.enable("mkhomedir")
 
     auth_config.add_option("update")
@@ -1100,6 +1169,7 @@ def install(options, env, fstore, statestore):
     if not options.sssd:
         #Modify pam to add pam_krb5 only when sssd is not in use
         auth_config.reset()
+        statestore.backup_state('authconfig', 'krb5', True)
         auth_config.enable("krb5").\
                     add_option("update").\
                     add_option("nostart")
