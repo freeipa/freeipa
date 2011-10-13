@@ -23,6 +23,7 @@ import re
 import os
 import stat
 import sys
+import socket
 from ipapython import ipautil
 from ipapython.platform import base
 
@@ -133,6 +134,7 @@ def restore_context(filepath):
     ipautil.run(["/sbin/restorecon", filepath], raiseonerr=False)
 
 def backup_and_replace_hostname(fstore, statestore, hostname):
+    old_hostname = socket.gethostname()
     try:
         ipautil.run(['/bin/hostname', hostname])
     except ipautil.CalledProcessError, e:
@@ -144,4 +146,5 @@ def backup_and_replace_hostname(fstore, statestore, hostname):
     restore_context("/etc/sysconfig/network")
     if 'HOSTNAME' in old_values:
         statestore.backup_state('network', 'hostname', old_values['HOSTNAME'])
-
+    else:
+        statestore.backup_state('network', 'hostname', old_hostname)
