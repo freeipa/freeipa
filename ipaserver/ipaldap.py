@@ -505,7 +505,7 @@ class IPAdmin(SimpleLDAPObject):
 
         # Some attributes, like those in cn=config, need to be replaced
         # not deleted/added.
-        FORCE_REPLACE_ON_UPDATE_ATTRS = ('nsslapd-ssl-check-hostname',)
+        FORCE_REPLACE_ON_UPDATE_ATTRS = ('nsslapd-ssl-check-hostname', 'nsslapd-lookthroughlimit', 'nsslapd-idlistscanlimit')
         modlist = []
 
         old_entry = ipautil.CIDict(old_entry)
