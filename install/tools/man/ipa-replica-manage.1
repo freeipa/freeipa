@@ -46,7 +46,7 @@ The connect and disconnect options are used to manage the replication topology. 
 .TP
 The disconnect option cannot be used to remove the last link of a replica. To remove a replica from the topology use the del option.
 .TP
-If a replica is deleted and then re\-added within a short time-frame then the 389\-ds instance on the master that created it should be restarted before re\-installing the replica. The master will have the old service principals cached which will cause replication to fail.
+If a replica is deleted and then re\-added within a short time\-frame then the 389\-ds instance on the master that created it should be restarted before re\-installing the replica. The master will have the old service principals cached which will cause replication to fail.
 .SH "OPTIONS"
 .TP
 \fB\-H\fR \fIHOST\fR, \fB\-\-host\fR=\fIHOST\fR
@@ -79,7 +79,7 @@ Full path and filename of CA certificate to use with TLS/SSL to the remote serve
 DN of Windows subtree containing the users you want to sync (default cn=Users,<domain suffix> \- this is typically what Windows AD uses as the default value) \- Be careful to quote this value on the command line
 .TP
 \fB\-\-passsync\fR=\fIPASSSYNC_PWD\fR
-Password for the Windows PassSync user.
+Password for the Windows PassSync user. Required when using \-\-winsync. This does not mean you have to use the PassSync service.
 .TP
 \fB\-\-from\fR=\fISERVER\fR
 The server to pull the data from, used by the re\-initialize and force\-sync commands.
@@ -112,6 +112,33 @@ Completely remove a replica:
  # ipa replica\-manage del srv4.example.com
 .TP
 Using connect/disconnect you can manage the replication topology.
+.SH "WINSYNC"
+Creating a Windows AD Synchronization agreement is similar to creating an IPA replication agreement, there are just a couple of extra steps.
+
+A special user entry is created for the PassSync service. The DN of this entry is uid=passsync,cn=sysaccounts,cn=etc,<basedn>. You are not required to use PassSync to use a Windows synchronization agreement but setting a password for the user is required.
+
+The following examples use the AD administrator account as the synchronization user. This is not mandatory but the user must have read\-access to the subtree.
+
+.TP
+1. Transfer the base64\-encoded Windows AD CA Certficate to your IPA Server
+.TP
+2. Remove any existing kerberos credentials
+  # kdestroy
+.TP
+3) Add the winsync replication agreement
+  # ipa\-replica\-manage connect \-\-winsync \-\-passsync=<bindpwd_for_syncuser_that will_be_used_for_agreement> \-\-cacert=/path/to/adscacert/WIN\-CA.cer \-\-binddn "cn=administrator,cn=users,dc=ad,dc=example,dc=com" \-\-bindpw <ads_administrator_password> \-v <adserver.fqdn>
+.TP
+You will be prompted to supply the Directory Manager's password.
+.TP
+Create a winsync replication agreement:
+
+ # ipa\-replica\-manage connect \-\-winsync \-\-passsync=MySecret
+\-\-cacert=/root/WIN\-CA.cer \-\-binddn "cn=administrator,cn=users,dc=ad,dc=example,dc=com"
+\-\-bindpw MySecret \-v windows.ad.example.com
+
+.TP
+Remove a winsync replication agreement:
+ # ipa\-replica\-manage disconnect windows.ad.example.com
 .SH "EXIT STATUS"
 0 if the command was successful
 
