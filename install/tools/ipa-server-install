@@ -524,6 +524,14 @@ def uninstall():
 
     ipaservices.knownservices.ipa.disable()
 
+    old_hostname = sstore.restore_state('network','hostname')
+    system_hostname = get_fqdn()
+    if old_hostname is not None and old_hostname != system_hostname:
+        try:
+            ipautil.run(['/bin/hostname', old_hostname])
+        except CalledProcessError, e:
+            print >>sys.stderr, "Failed to set this machine hostname back to %s (%s)." % (old_hostname, str(e))
+
     # Now for some sanity checking. Make sure everything was really
     # uninstalled.
     serverids = dsinstance.check_existing_installation()
@@ -751,6 +759,15 @@ def main():
     host_name = host_name.lower()
     logging.debug("will use host_name: %s\n" % host_name)
 
+    system_hostname = get_fqdn()
+    if host_name != system_hostname:
+        print >>sys.stderr
+        print >>sys.stderr, "Warning: hostname %s does not match system hostname %s." \
+                            % (host_name, system_hostname)
+        print >>sys.stderr, "System hostname will be updated during the installation process"
+        print >>sys.stderr, "to prevent service failures."
+        print >>sys.stderr
+
     if not options.domain_name:
         domain_name = read_domain_name(host_name[host_name.find(".")+1:], options.unattended)
         logging.debug("read domain_name: %s\n" % domain_name)
@@ -870,6 +887,12 @@ def main():
         print "The following operations may take some minutes to complete."
         print "Please wait until the prompt is returned."
         print ""
+
+    if host_name != system_hostname:
+        logging.debug("Chosen hostname (%s) differs from system hostname (%s) - change it" \
+                      % (host_name, system_hostname))
+        # configure /etc/sysconfig/network to contain the custom hostname
+        ipaservices.backup_and_replace_hostname(fstore, sstore, host_name)
 
     # Create DS group if it doesn't exist yet
     try:

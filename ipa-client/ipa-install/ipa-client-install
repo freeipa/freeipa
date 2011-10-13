@@ -955,8 +955,10 @@ def install(options, env, fstore, statestore):
     if not options.unattended and not user_input("Continue to configure the system with these values?", False):
         return CLIENT_INSTALL_ERROR
 
-    if options.hostname:
+    if options.hostname and not options.on_master:
         # configure /etc/sysconfig/network to contain the hostname we set.
+        # skip this step when run by ipa-server-install as it always configures
+        # hostname if different from system hostname
         ipaservices.backup_and_replace_hostname(fstore, statestore, options.hostname)
 
     if not options.unattended:
