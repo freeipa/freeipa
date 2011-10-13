@@ -203,7 +203,18 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
     else:
         print "Warning: Hostname (%s) not found in DNS" % host_name
 
-def record_in_hosts(ip, host_name, file="/etc/hosts"):
+def record_in_hosts(ip, host_name=None, file="/etc/hosts"):
+    """
+    Search record in /etc/hosts - static table lookup for hostnames
+
+    In case of match, returns a tuple of ip address and a list of
+    hostname aliases
+    When no record is matched, None is returned
+
+    :param ip: IP address
+    :param host_name: Optional hostname to search
+    :param file: Optional path to the lookup table
+    """
     hosts = open(file, 'r').readlines()
     for line in hosts:
         line = line.rstrip('\n')
@@ -217,13 +228,17 @@ def record_in_hosts(ip, host_name, file="/etc/hosts"):
 
             if hosts_ip != ip:
                 continue
-            if host_name in names:
-                return True
+            if host_name is not None:
+                if host_name in names:
+                    return (hosts_ip, names)
+                else:
+                    return None
+            return (hosts_ip, names)
         except IndexError:
             print "Warning: Erroneous line '%s' in %s" % (line, file)
             continue
 
-    return False
+    return None
 
 def add_record_to_hosts(ip, host_name, file="/etc/hosts"):
     hosts_fd = open(file, 'r+')
@@ -241,11 +256,6 @@ def read_ip_address(host_name, fstore):
             continue
         else:
             break
-
-    ip = str(ip_parsed)
-    print "Adding ["+ip+" "+host_name+"] to your /etc/hosts file"
-    fstore.backup_file("/etc/hosts")
-    add_record_to_hosts(ip, host_name)
 
     return ip_parsed
 
