@@ -160,11 +160,6 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
         except socket.gaierror:
             pass
 
-        system_host_name = socket.gethostname()
-        if not (host_name + '.').startswith(system_host_name + '.'):
-            print "Warning: The host name '%s' does not match the system host name '%s'." % (host_name, system_host_name)
-            print "         Some services may not work properly."
-
     if no_host_dns:
         print "Warning: skipping DNS resolution of host", host_name
         return
