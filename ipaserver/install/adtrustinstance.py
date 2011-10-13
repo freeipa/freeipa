@@ -25,7 +25,9 @@ import tempfile
 import installutils
 from ipaserver import ipaldap
 from ipaserver.install.dsinstance import realm_to_serverid
-from ipalib import errors
+from ipaserver.install.bindinstance import get_rr, add_rr, del_rr, \
+                                           dns_zone_exists
+from ipalib import errors, api
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython.ipa_log_manager import *
@@ -245,6 +247,56 @@ class ADTRUSTInstance(service.Service):
         except ipautil.CalledProcessError, e:
             root_logger.critical("Failed to add key for %s" % cifs_principal)
 
+    def __add_dns_service_records(self):
+        """
+        Add DNS service records for Windows if DNS is enabled and the DNS zone
+        is managed. If there are already service records for LDAP and Kerberos
+        their values are used. Otherwise default values are used.
+        """
+
+        zone = self.domain_name
+        host = self.fqdn.split(".")[0]
+
+        ipa_srv_rec = (
+            ("_ldap._tcp", ["0 100 389 %s" % host]),
+            ("_kerberos._tcp", ["0 100 88 %s" % host]),
+            ("_kerberos._udp", ["0 100 88 %s" % host])
+        )
+        win_srv_suffix = (".Default-First-Site-Name._sites.dc._msdcs",
+                          ".dc._msdcs")
+
+        err_msg = None
+        ret = api.Command.dns_is_enabled()
+        if not ret['result']:
+            err_msg = "DNS management was not enabled at install time."
+        else:
+            if not dns_zone_exists(zone):
+                err_msg = "DNS zone %s cannot be managed " \
+                          "as it is not defined in IPA" % zone
+
+        if err_msg:
+            print err_msg
+            print "Add the following service records to your DNS server " \
+                  "for DNS zone %s: " % zone
+            for (srv, rdata) in ipa_srv_rec:
+                for suff in win_srv_suffix:
+                    print " - %s%s"  % (srv, suff)
+            return
+
+        for (srv, rdata) in ipa_srv_rec:
+            ipa_rdata = get_rr(zone, srv, "SRV")
+            if not ipa_rdata:
+                ipa_rdata = rdata
+
+            for suff in win_srv_suffix:
+                win_srv = srv+suff
+                win_rdata = get_rr(zone, win_srv, "SRV")
+                if win_rdata:
+                    for rec in win_rdata:
+                        del_rr(zone, win_srv, "SRV", rec)
+                for rec in ipa_rdata:
+                    add_rr(zone, win_srv, "SRV", rec)
+
     def __start(self):
         try:
             self.start()
@@ -277,12 +329,13 @@ class ADTRUSTInstance(service.Service):
                              LDAPI_SOCKET = self.ldapi_socket)
 
     def setup(self, fqdn, ip_address, realm_name, domain_name, netbios_name,
-              smbd_user="samba"):
+              no_msdcs=False, smbd_user="samba"):
         self.fqdn =fqdn
         self.ip_address = ip_address
         self.realm_name = realm_name
         self.domain_name = domain_name
         self.netbios_name = netbios_name
+        self.no_msdcs = no_msdcs
         self.smbd_user = smbd_user
         self.suffix = ipautil.realm_to_suffix(self.realm_name)
         self.ldapi_socket = "%%2fvar%%2frun%%2fslapd-%s.socket" % realm_to_serverid(self.realm_name)
@@ -311,6 +364,8 @@ class ADTRUSTInstance(service.Service):
         self.step("Adding cifs Kerberos principal", self.__setup_principal)
         self.step("Adding admin(group) SIDs", self.__add_admin_sids)
         self.step("configuring smbd to start on boot", self.__enable)
+        if not self.no_msdcs:
+            self.step("adding special DNS service records", self.__add_dns_service_records)
         self.step("starting smbd", self.__start)
 
         self.start_creation("Configuring smbd:")
