@@ -33,6 +33,7 @@ import string
 import shutil
 import tempfile
 import time
+import re
 
 import krbV
 import logging
@@ -191,9 +192,6 @@ def get_schema(url, conn=None):
 
 # Global schema
 _schema = None
-
-# The UPG setting will be cached the first time a module checks it
-_upg = None
 
 class ldap2(CrudBackend, Encoder):
     """
@@ -707,23 +705,24 @@ class ldap2(CrudBackend, Encoder):
     def has_upg(self):
         """Returns True/False whether User-Private Groups are enabled.
            This is determined based on whether the UPG Template exists.
-           We determine this at module load so we don't have to test for
-           it every time.
         """
-        global _upg
 
-        if _upg is None:
-            try:
-                upg_entry = self.conn.search_s(
-                    'cn=UPG Template,cn=etc,%s' % api.env.basedn,
-                    _ldap.SCOPE_BASE,
-                    attrlist=['*']
-                )[0]
-                _upg = True
-            except _ldap.NO_SUCH_OBJECT, e:
-                _upg = False
+        upg_dn = str(DN('cn=UPG Definition,cn=Definitions,cn=Managed Entries,cn=etc', api.env.basedn))
 
-        return _upg
+        try:
+            upg_entry = self.conn.search_s(
+                upg_dn,
+                _ldap.SCOPE_BASE,
+                attrlist=['*']
+            )[0]
+            disable_attr = '(objectclass=disable)'
+            if 'originfilter' in upg_entry[1]:
+                org_filter = upg_entry[1]['originfilter']
+                return not bool(re.search(r'%s' % disable_attr, org_filter[0]))
+            else:
+                return False
+        except _ldap.NO_SUCH_OBJECT, e:
+            return False
 
     @encode_args(1, 2)
     def get_effective_rights(self, dn, entry_attrs):
