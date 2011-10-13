@@ -394,7 +394,7 @@ class BindInstance(service.Service):
         # get a connection to the DS
         self.ldap_connect()
 
-        if not installutils.record_in_hosts(self.ip_address, self.fqdn):
+        if installutils.record_in_hosts(self.ip_address, self.fqdn) is None:
             installutils.add_record_to_hosts(self.ip_address, self.fqdn)
 
         if not dns_container_exists(self.fqdn, self.suffix, realm=self.realm,

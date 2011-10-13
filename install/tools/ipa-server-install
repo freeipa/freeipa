@@ -796,10 +796,32 @@ def main():
 
         ip = options.ip_address
 
+    ip_add_to_hosts = False
     if ip is None:
         ip = read_ip_address(host_name, fstore)
         logging.debug("read ip_address: %s\n" % str(ip))
+        ip_add_to_hosts = True
+
     ip_address = str(ip)
+
+    # check /etc/hosts sanity, add a record when needed
+    hosts_record = record_in_hosts(ip_address)
+
+    if hosts_record is None:
+        if ip_add_to_hosts:
+            print "Adding ["+ip_address+" "+host_name+"] to your /etc/hosts file"
+            fstore.backup_file("/etc/hosts")
+            add_record_to_hosts(ip_address, host_name)
+    else:
+        primary_host = hosts_record[1][0]
+        if primary_host != host_name:
+            print >>sys.stderr, "Error: there is already a record in /etc/hosts for IP address %s:" \
+                    % ip_address
+            print >>sys.stderr, hosts_record[0], " ".join(hosts_record[1])
+            print >>sys.stderr, "Chosen hostname %s does not match configured canonical hostname %s" \
+                    % (host_name, primary_host)
+            print >>sys.stderr, "Please fix your /etc/hosts file and restart the installation."
+            return 1
 
     if options.reverse_zone and not bindinstance.verify_reverse_zone(options.reverse_zone, ip):
         sys.exit(1)
