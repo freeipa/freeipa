@@ -69,9 +69,15 @@ def get_domain_name():
     return domain_name
 
 class CheckedIPAddress(netaddr.IPAddress):
+
+    # Use inet_pton() rather than inet_aton() for IP address parsing. We
+    # will use the same function in IPv4/IPv6 conversions + be stricter
+    # and don't allow IP addresses such as '1.1.1' in the same time
+    netaddr_ip_flags = netaddr.INET_PTON
+
     def __init__(self, addr, match_local=False, parse_netmask=True):
         if isinstance(addr, CheckedIPAddress):
-            super(CheckedIPAddress, self).__init__(addr)
+            super(CheckedIPAddress, self).__init__(addr, flags=self.netaddr_ip_flags)
             self.prefixlen = addr.prefixlen
             self.defaultnet = addr.defaultnet
             self.interface = addr.interface
@@ -88,7 +94,7 @@ class CheckedIPAddress(netaddr.IPAddress):
             pass
         else:
             try:
-                addr = netaddr.IPAddress(addr)
+                addr = netaddr.IPAddress(addr, flags=self.netaddr_ip_flags)
             except ValueError:
                 net = netaddr.IPNetwork(addr)
                 if not parse_netmask:
@@ -140,7 +146,7 @@ class CheckedIPAddress(netaddr.IPAddress):
         if addr.version == 4 and addr == net.broadcast:
             raise ValueError("cannot use broadcast IP address")
 
-        super(CheckedIPAddress, self).__init__(addr)
+        super(CheckedIPAddress, self).__init__(addr, flags=self.netaddr_ip_flags)
         self.prefixlen = net.prefixlen
         self.defaultnet = defnet
         self.interface = iface
