@@ -85,7 +85,7 @@ Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
 Requires: %{name}-server-selinux = %{version}-%{release}
-Requires(pre): 389-ds-base >= 1.2.9.7-1
+Requires(pre): 389-ds-base >= 1.2.10-0.4.a4
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
@@ -549,6 +549,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Fri Oct 14 2011 Rob Crittenden <rcritten@redhat.com> - 2.99.0-7
+- Set min nvr of 389-ds-base to 1.2.10-0.4.a4 for limits fixes (740942, 742324)
+
 * Fri Oct  7 2011 Adam Young <ayoung@redhat.com> - 2.99.0-6
 - Add explicit dependency on pki-setup.
 
