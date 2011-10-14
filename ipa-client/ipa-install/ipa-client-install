@@ -459,6 +459,7 @@ def configure_ldap_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
     opts.append({'name':'empty', 'type':'empty'})
 
     ret = (0, None, None)
+    files = []
     # Depending on the release and distribution this may exist in any
     # number of different file names, update what we find
     for filename in ['/etc/ldap.conf', '/etc/nss_ldap.conf', '/etc/libnss-ldap.conf', '/etc/pam_ldap.conf']:
@@ -466,11 +467,13 @@ def configure_ldap_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
             try:
                 fstore.backup_file(filename)
                 ldapconf.newConf(filename, opts)
-                return (0, 'LDAP', filename)
+                files.append(filename)
             except Exception, e:
                 print "Creation of %s: %s" % (filename, str(e))
                 return (1, 'LDAP', filename)
 
+    if files:
+        return (0, 'LDAP', ', '.join(files))
     return ret
 
 def configure_nslcd_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options):
@@ -1186,7 +1189,7 @@ def install(options, env, fstore, statestore):
             if retcode:
                 return CLIENT_INSTALL_ERROR
             if conf:
-                print "%s configured using configuration file %s" % (conf, filename)
+                print "%s configured using configuration file(s) %s" % (conf, filename)
 
     #Check that nss is working properly
     if not options.on_master:
