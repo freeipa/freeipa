@@ -1235,7 +1235,9 @@ $)''', re.VERBOSE)
                             old_values[option] = value
                         if appendvars and option in appendvars:
                             # append new value unless it is already existing in the original one
-                            if value.find(appendvars[option]) == -1:
+                            if not value:
+                                new_line = u"%s=%s\n" % (option, appendvars[option])
+                            elif value.find(appendvars[option]) == -1:
                                 new_line = u"%s=%s %s\n" % (option, value, appendvars[option])
                             old_values[option] = value
                 new_config.write(new_line)
