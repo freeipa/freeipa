@@ -648,7 +648,7 @@ class dnsrecord(LDAPObject):
         for ptr in options['ptrrecord']:
             if not ptr.endswith('.'):
                 raise errors.ValidationError(name='ptr-rec',
-                        error=unicode(_('PTR record \'%s\' is not fully qualified (check traling \'.\')') % ptr))
+                        error=unicode(_('PTR record \'%s\' is not fully qualified (check trailing \'.\')') % ptr))
 
         return dn
 
