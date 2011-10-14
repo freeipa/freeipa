@@ -85,6 +85,15 @@ Configure SSSD not to store user password when the server is offline.
 .TP
 \fB\-S\fR, \fB\-\-no\-sssd\fR
 Do not configure the client to use SSSD for authentication, use nss_ldap instead.
+.TP
+\fB\-\-preserve\-sssd\fR
+Disabled by default. When enabled, preserves old SSSD configuration if it is
+not possible to merge it with a new one. Effectively, if the merge is not
+possible due to SSSDConfig reader encountering unsupported options,
+\fBipa\-client\-install\fR will not run further and ask to fix SSSD config
+first. When this option is not specified, \fBipa\-client\-install\fR will back
+up SSSD config and create new one. The back up version will be restored during
+uninstall. 
 
 .SS "UNINSTALL OPTIONS"
 .TP
