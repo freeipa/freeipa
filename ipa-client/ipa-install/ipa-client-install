@@ -680,10 +680,21 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
             print "The old /etc/sssd/sssd.conf is backed up and will be restored during uninstall."
             logging.error("Unable to parse existing SSSD config and --preserve-sssd was not specified: %s" % (str(e)))
         logging.info("New SSSD config will be created")
+        del sssdconfig
         sssdconfig = SSSDConfig.SSSDConfig()
         sssdconfig.new_config()
 
-    domain = sssdconfig.new_domain(cli_domain)
+    try:
+        domain = sssdconfig.new_domain(cli_domain)
+    except SSSDConfig.DomainAlreadyExistsError:
+        print "Domain %s is already configured in existing SSSD config, creating a new one." % cli_domain
+        print "The old /etc/sssd/sssd.conf is backed up and will be restored during uninstall."
+        logging.debug("Domain %s is already configured in existing SSSD config, creating a new one." % cli_domain)
+        del sssdconfig
+        sssdconfig = SSSDConfig.SSSDConfig()
+        sssdconfig.new_config()
+        domain = sssdconfig.new_domain(cli_domain)
+
     domain.add_provider('ipa', 'id')
 
     if not options.on_master:
