@@ -1244,8 +1244,8 @@ $)''', re.VERBOSE)
         # Now add all options from replacevars and appendvars that were not found in the file
         new_vars = replacevars.copy()
         new_vars.update(appendvars)
-        newvars_view = new_vars.viewkeys() - old_values.viewkeys()
-        append_view = (appendvars.viewkeys() - replacevars.viewkeys()) - old_values.viewkeys()
+        newvars_view = set(new_vars.keys()) - set(old_values.keys())
+        append_view = (set(appendvars.keys()) - set(replacevars.keys())) - set(old_values.keys())
         for item in newvars_view:
             new_config.write("%s=%s\n" % (item,new_vars[item]))
         for item in append_view:
