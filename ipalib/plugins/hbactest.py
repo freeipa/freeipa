@@ -283,8 +283,9 @@ class hbactest(Command):
         if options['service'] != u'all':
             try:
                 request.service.name = options['service']
-                request.service.groups = \
-                    self.api.Command.hbacsvcgroup_show(request.service.name)['result']['member_hbacsvc']
+                service_result = self.api.Command.hbacsvc_show(request.service.name)['result']
+                if 'memberof_hbacsvcgroup' in service_result:
+                    request.service.groups = service_result['memberof_hbacsvcgroup']
             except:
                 pass
 
