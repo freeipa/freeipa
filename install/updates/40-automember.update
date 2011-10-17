@@ -1,0 +1,22 @@
+# Add all supported automember LDAP objects
+dn: cn=Auto Membership Plugin,cn=plugins,cn=config
+addifnew: nsslapd-pluginConfigArea: 'cn=automember,cn=etc,$SUFFIX'
+
+dn: cn=automember,cn=etc,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: cn: automember
+
+dn: cn=Hostgroup,cn=automember,cn=etc,$SUFFIX
+default: objectclass: autoMemberDefinition
+default: cn: Hostgroup
+default: autoMemberScope: cn=computers,cn=accounts,$SUFFIX
+default: autoMemberFilter: objectclass=ipaHost
+default: autoMemberGroupingAttr: member:dn
+
+dn: cn=Group,cn=automember,cn=etc,$SUFFIX
+default: objectclass: autoMemberDefinition
+default: cn: Group
+default: autoMemberScope: cn=users,cn=accounts,$SUFFIX
+default: autoMemberFilter: objectclass=posixAccount
+default: autoMemberGroupingAttr: member:dn
