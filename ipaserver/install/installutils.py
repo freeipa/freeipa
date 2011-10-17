@@ -508,7 +508,7 @@ def wait_for_open_socket(socket_name, timeout=0):
             s.close()
             break;
         except socket.error, e:
-            if e.errno == 111:  # 111: Connection refused
+            if e.errno in (2,111):  # 111: Connection refused, 2: File not found
                 if timeout and time.time() > op_timeout: # timeout exceeded
                     raise e
                 time.sleep(1)
