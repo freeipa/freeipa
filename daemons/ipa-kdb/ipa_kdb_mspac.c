@@ -26,6 +26,7 @@
 #include "gen_ndr/ndr_krb5pac.h"
 
 #define KRB5INT_PAC_SIGN_AVAILABLE 1
+#define KRB5INT_FIND_AUTHDATA_AVAILABLE 1
 
 #if KRB5INT_PAC_SIGN_AVAILABLE
 krb5_error_code
@@ -40,6 +41,14 @@ krb5int_pac_sign(krb5_context context,
 #define KRB5_PAC_LOGON_INFO 1
 #endif
 
+#if KRB5INT_FIND_AUTHDATA_AVAILABLE
+krb5_error_code
+krb5int_find_authdata(krb5_context context,
+                      krb5_authdata *const *ticket_authdata,
+                      krb5_authdata *const *ap_req_authdata,
+                      krb5_authdatatype ad_type, krb5_authdata ***results);
+#define krb5_find_authdata krb5int_find_authdata
+#endif
 
 
 static char *user_pac_attrs[] = {
@@ -531,6 +540,51 @@ done:
     return kerr;
 }
 
+static krb5_error_code ipadb_verify_pac(krb5_context context,
+                                        unsigned int flags,
+                                        krb5_const_principal client_princ,
+                                        krb5_db_entry *client,
+                                        krb5_keyblock *server_key,
+                                        krb5_keyblock *krbtgt_key,
+                                        krb5_timestamp authtime,
+                                        krb5_authdata **tgt_auth_data,
+                                        krb5_pac *pac)
+{
+    krb5_authdata **authdata = NULL;
+    krb5_error_code kerr;
+
+    /* find the existing PAC, if present */
+    kerr = krb5_find_authdata(context, tgt_auth_data, NULL,
+                              KRB5_AUTHDATA_WIN2K_PAC, &authdata);
+    if (kerr != 0) {
+        return kerr;
+    }
+
+    /* check pac data */
+    if (authdata == NULL || authdata[0] == NULL) {
+        kerr = 0; /* none */
+        goto done;
+    }
+    if (authdata[1] != NULL) {
+        kerr = KRB5KDC_ERR_BADOPTION; /* FIXME: right error ? */
+        goto done;
+    }
+
+    kerr = krb5_pac_parse(context,
+                          authdata[0]->contents,
+                          authdata[0]->length,
+                          pac);
+    if (kerr) {
+        goto done;
+    }
+
+    kerr = krb5_pac_verify(context, *pac, authtime,
+                            client_princ, krbtgt_key, NULL);
+
+done:
+    krb5_free_authdata(context, authdata);
+    return kerr;
+}
 
 krb5_error_code ipadb_sign_authdata(krb5_context context,
                                     unsigned int flags,
@@ -566,20 +620,21 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     if (is_as_req && (flags & KRB5_KDB_FLAG_INCLUDE_PAC)) {
 
         kerr = ipadb_get_pac(context, client, &pac);
+        if (kerr != 0 && kerr != ENOENT) {
+            goto done;
+        }
+    }
+
+    if (!is_as_req) {
+        kerr = ipadb_verify_pac(context, flags,
+                                ks_client_princ, client,
+                                server_key, krbtgt_key,
+                                authtime, tgt_auth_data, &pac);
         if (kerr != 0) {
             goto done;
         }
     }
 #if 0
-    if (!is_as_req) {
-        code = ks_verify_pac(context, flags, ks_client_princ, client,
-                             server_key, krbtgt_key, authtime,
-                             tgt_auth_data, &pac);
-        if (code != 0) {
-            goto done;
-        }
-    }
-
     if (pac == NULL && client != NULL) {
 
         code = ks_get_pac(context, client, &pac);
