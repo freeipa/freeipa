@@ -117,10 +117,20 @@ class hostgroup_add(LDAPCreate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         try:
+            # check duplicity with hostgroups first to provide proper error
+            netgroup = api.Command['hostgroup_show'](keys[-1])
+            self.obj.handle_duplicate_entry(*keys)
+        except errors.NotFound:
+            pass
+
+        try:
+            # when enabled, a managed netgroup is created for every hostgroup
+            # make sure that the netgroup can be created
             netgroup = api.Command['netgroup_show'](keys[-1])
             raise errors.DuplicateEntry(message=unicode(_(\
-                    u'netgroup with name "%s" already exists' % keys[-1]\
-                    )))
+                    u'netgroup with name "%s" already exists. ' \
+                    u'Hostgroups and netgroups share a common namespace'\
+                    ) % keys[-1]))
         except errors.NotFound:
             pass
 
