@@ -514,8 +514,7 @@ IPA.entitle.certificate_column = function(spec) {
             click: function() {
                 var dialog = IPA.cert.download_dialog({
                     title: IPA.messages.objects.entitle.download_certificate,
-                    certificate: certificate,
-                    add_pem_delimiters: false
+                    certificate: certificate
                 });
                 dialog.open();
                 return false;
@@ -723,6 +722,12 @@ IPA.entitle.download_widget = function(spec) {
                             return;
                         }
 
+                        /*
+                         * WARNING - despite using cert.download_dialog() and passing
+                         * a certificate, it's NOT a certificate, it's a binary
+                         * PKCS12 file that's been base64 encoded!
+                         * Hence the reason add_pem_delimiters is false.
+                         */
                         var dialog = IPA.cert.download_dialog({
                             title: IPA.messages.objects.entitle.download_certificate,
                             certificate: userpkcs12[0].__base64__,
