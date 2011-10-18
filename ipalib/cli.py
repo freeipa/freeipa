@@ -748,6 +748,8 @@ class help(frontend.Local):
             self.print_commands(name)
         elif name in self.Command:
             cmd = self.Command[name]
+            if cmd.NO_CLI:
+                raise HelpError(topic=name)
             print unicode(_('Purpose: %s')) % unicode(_(cmd.doc)).strip()
             self.Backend.cli.build_parser(cmd).print_help()
         elif mod_name in sys.modules:
@@ -805,6 +807,9 @@ class help(frontend.Local):
             m = '%s.%s' % (self._PLUGIN_BASE_MODULE, topic)
             doc = (unicode(_(sys.modules[m].__doc__)) or '').strip()
 
+            if topic not in self.Command and len(commands) == 0:
+                raise HelpError(topic=topic)
+
             print doc
             if len(commands) > 1:
                 print ''
@@ -814,6 +819,9 @@ class help(frontend.Local):
             print "\n"
 
 class show_mappings(frontend.Command):
+    """
+    Show mapping of LDAP attributes to command-line option.
+    """
     takes_args = (
         Str('command_name',
             label=_('Command name'),
