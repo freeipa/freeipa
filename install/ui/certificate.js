@@ -28,6 +28,27 @@ IPA.cert.END_CERTIFICATE   = '-----END CERTIFICATE-----';
 IPA.cert.BEGIN_CERTIFICATE_REQUEST = '-----BEGIN CERTIFICATE REQUEST-----';
 IPA.cert.END_CERTIFICATE_REQUEST   = '-----END CERTIFICATE REQUEST-----';
 
+/*
+ * Pre-compiled regular expression to match a PEM cert.
+ *
+ * regexp group 1: entire canonical cert (delimiters plus base64)
+ * regexp group 2: base64 data inside PEM delimiters
+ */
+IPA.cert.PEM_CERT_REGEXP = RegExp('(-----BEGIN CERTIFICATE-----([^-]*)-----END CERTIFICATE-----)');
+
+/*
+ * Pre-compiled regular expression to match a CSR (Certificate Signing Request).
+ * The delimiter "CERTIFICATE REQUEST" is the cononical standard, however some legacy
+ * software will produce a delimiter with "NEW" in it, i.e. "NEW CERTIFICATE REQUEST"
+ * This regexp will work with either form.
+ *
+ * regexp group 1: entire canonical CSR (delimiters plus base64)
+ * regexp group 2: base64 data inside canonical CSR delimiters
+ * regexp group 3: entire legacy CSR (delimiters plus base64)
+ * regexp group 4: base64 data inside legacy CSR delimiters
+ */
+IPA.cert.PEM_CSR_REGEXP = RegExp('(-----BEGIN CERTIFICATE REQUEST-----([^-]*)-----END CERTIFICATE REQUEST-----)|(-----BEGIN NEW CERTIFICATE REQUEST-----([^-]*)-----END NEW CERTIFICATE REQUEST-----)');
+
 IPA.cert.CERTIFICATE_STATUS_MISSING = 0;
 IPA.cert.CERTIFICATE_STATUS_VALID   = 1;
 IPA.cert.CERTIFICATE_STATUS_REVOKED = 2;
@@ -74,6 +95,77 @@ IPA.cert.parse_dn = function(dn) {
     return result;
 };
 
+IPA.cert.pem_format_base64 = function(text) {
+    /*
+     * Input is assumed to be base64 possibly with embedded whitespace.
+     * Format the base64 text such that it conforms to PEM, which is a
+     * sequence of 64 character lines, except for the last line which
+     * may be less than 64 characters. The last line does NOT have a
+     * new line appended to it.
+     */
+    var formatted = "";
+
+    /* Strip out any whitespace including line endings */
+    text = text.replace(/\s*/g,"");
+
+    /*
+     * Break up into lines with 64 chars each.
+     * Do not add a newline to final line.
+     */
+    for (var i = 0; i < text.length; i+=64) {
+        formatted += text.substring(i, i+64);
+        if (i+64 < text.length) {
+            formatted += "\n";
+        }
+    }
+    return (formatted);
+};
+
+IPA.cert.pem_cert_format = function(text) {
+    /*
+     * Input is assumed to be either PEM formated data or the
+     * base64 encoding of DER binary certificate data. Return data
+     * in PEM format. The function checks if the input text is PEM
+     * formatted, if so it just returns the input text. Otherwise
+     * the input is treated as base64 which is formatted to be PEM>
+     */
+
+    /*
+     * Does the text already have the PEM delimiters?
+     * If so just return the text unmodified.
+     */
+    if (text.match(IPA.cert.PEM_CERT_REGEXP)) {
+        return text;
+    }
+    /* No PEM delimiters so format the base64 & add the delimiters. */
+    return IPA.cert.BEGIN_CERTIFICATE + "\n" +
+           IPA.cert.pem_format_base64(text) + "\n" +
+           IPA.cert.END_CERTIFICATE;
+};
+
+IPA.cert.pem_csr_format = function(text) {
+    /*
+     * Input is assumed to be either PEM formated data or the base64
+     * encoding of DER binary certificate request (csr) data. Return
+     * data in PEM format. The function checks if the input text is
+     * PEM formatted, if so it just returns the input text. Otherwise
+     * the input is treated as base64 which is formatted to be PEM>
+     */
+
+    /*
+     * Does the text already have the PEM delimiters?
+     * If so just return the text unmodified.
+     */
+    if (text.match(IPA.cert.PEM_CSR_REGEXP)) {
+        return text;
+    }
+
+    /* No PEM delimiters so format the base64 & add the delimiters. */
+    return IPA.cert.BEGIN_CERTIFICATE_REQUEST + "\n" +
+           IPA.cert.pem_format_base64(text) + "\n" +
+           IPA.cert.END_CERTIFICATE_REQUEST;
+};
+
 IPA.cert.download_dialog = function(spec) {
 
     spec = spec || {};
@@ -103,9 +195,7 @@ IPA.cert.download_dialog = function(spec) {
         var certificate = that.certificate;
 
         if (that.add_pem_delimiters) {
-            certificate = IPA.cert.BEGIN_CERTIFICATE+'\n'+
-                that.certificate+'\n'+
-                IPA.cert.END_CERTIFICATE;
+            certificate = IPA.cert.pem_cert_format(that.certificate);
         }
 
         textarea.val(certificate);
@@ -357,11 +447,8 @@ IPA.cert.request_dialog = function(spec) {
         label: IPA.messages.buttons.issue,
         click: function() {
             var values = {};
-            var request = that.textarea.val();
-            request =
-                IPA.cert.BEGIN_CERTIFICATE_REQUEST+'\n'+
-                $.trim(request)+'\n'+
-                IPA.cert.END_CERTIFICATE_REQUEST+'\n';
+            var request = $.trim(that.textarea.val());
+            request = IPA.cert.pem_csr_format(request);
             values['request'] = request;
             if (that.request) {
                 that.request(values);
@@ -383,15 +470,10 @@ IPA.cert.request_dialog = function(spec) {
         that.container.append('<br/>');
         that.container.append('<br/>');
 
-        that.container.append(IPA.cert.BEGIN_CERTIFICATE_REQUEST);
-        that.container.append('<br/>');
-
         that.textarea = $('<textarea/>', {
             style: 'width: 100%; height: 225px;'
         }).appendTo(that.container);
 
-        that.container.append('<br/>');
-        that.container.append(IPA.cert.END_CERTIFICATE_REQUEST);
     };
 
     return that;
