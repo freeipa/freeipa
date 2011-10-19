@@ -35,11 +35,7 @@ IPA.entity_factories.permission = function() {
             {
                 name: 'identity',
                 fields: [
-                    {
-                        factory: IPA.text_widget,
-                        name: 'cn',
-                        read_only: true
-                    }
+                    'cn'
                 ]
             },
             {

@@ -361,7 +361,6 @@
                     "true": "True",
                     "widget": {
                         "next": "Next",
-                        "optional": "Optional field: click to show",
                         "page": "Page",
                         "prev": "Prev",
                         "undo": "undo",

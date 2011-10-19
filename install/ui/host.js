@@ -124,14 +124,14 @@ IPA.entity_factories.host = function () {
                         {
                             factory: IPA.widget,
                             name: 'fqdn',
-                            optional: true,
+                            required: false,
                             hidden: true
                         },
                         {
                             factory: IPA.text_widget,
                             name: 'hostname',
                             label: IPA.messages.objects.service.host,
-                            param_info: { required: true }
+                            required: true
                         },
                         {
                             factory: IPA.dnszone_select_widget,
@@ -139,7 +139,7 @@ IPA.entity_factories.host = function () {
                             label: IPA.metadata.objects.dnszone.label_singular,
                             editable: true,
                             empty_option: false,
-                            param_info: { required: true }
+                            required: true
                         }
                     ]
                 },
@@ -190,11 +190,21 @@ IPA.host_fqdn_section = function(spec) {
             text: hostname.label
         }).appendTo(tr);
 
+        $('<span/>', {
+            'class': 'required-indicator',
+            text: IPA.required_indicator
+        }).appendTo(th);
+
         th = $('<th/>', {
             'class': 'dnszone',
             title: dnszone.label,
             text: dnszone.label
         }).appendTo(tr);
+
+        $('<span/>', {
+            'class': 'required-indicator',
+            text: IPA.required_indicator
+        }).appendTo(th);
 
         tr = $('<tr/>').appendTo(table);
 
@@ -256,7 +266,7 @@ IPA.host_adder_dialog = function(spec) {
     var that = IPA.add_dialog(spec);
 
     that.create = function() {
-        that.dialog_create();
+        that.add_dialog_create();
         that.container.addClass('host-adder-dialog');
     };
 

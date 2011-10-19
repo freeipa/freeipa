@@ -455,7 +455,6 @@ class i18n_messages(Command):
         "true": _("True"),
         "widget": {
             "next": _("Next"),
-            "optional": _("Optional field: click to show"),
             "page": _("Page"),
             "prev": _("Prev"),
             "undo": _("undo"),

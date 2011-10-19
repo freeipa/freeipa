@@ -1256,6 +1256,10 @@ table.scrollable tbody {
     width: 100%;
 }
 
+.dnszone-adder-dialog .section-cell-label {
+    width: 180px;
+}
+
 /* Info and simple pages (not main app) */
 
 body.info-page  {
@@ -1294,3 +1298,6 @@ body.info-page  {
     padding: .15em;
 }
 
+.required-indicator {
+     color: red;
+}
