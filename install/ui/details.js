@@ -234,44 +234,29 @@ IPA.details_table_section = function(spec) {
             var tr = $('<tr/>').appendTo(table);
 
             var td = $('<td/>', {
-                'class': 'section-cell-label'
+                'class': 'section-cell-label',
+                title: field.label
             }).appendTo(tr);
 
             $('<label/>', {
                 name: field.name,
-                title: field.label,
                 'class': 'field-label',
                 text: field.label+':'
             }).appendTo(td);
 
+            field.create_required(td);
+
             td = $('<td/>', {
-                'class': 'section-cell-field'
+                'class': 'section-cell-field',
+                title: field.label
             }).appendTo(tr);
 
             var field_container = $('<div/>', {
                 name: field.name,
-                title: field.label,
                 'class': 'field'
             }).appendTo(td);
 
             field.create(field_container);
-
-            if (field.optional) {
-                field_container.css('display', 'none');
-
-                var link = $('<a/>', {
-                    text: IPA.messages.widget.optional,
-                    href: ''
-                }).appendTo(td);
-
-                link.click(function(field_container, link) {
-                    return function() {
-                        field_container.css('display', 'inline');
-                        link.css('display', 'none');
-                        return false;
-                    };
-                }(field_container, link));
-            }
         }
     };
 

@@ -141,9 +141,8 @@ IPA.entity_factories.user = function() {
         adder_dialog({
             fields: [
                 {
-                    factory : IPA.text_widget,
-                    optional: true,
-                    name:'uid'
+                    name: 'uid',
+                    required: false
                 },
                 'givenname',
                 'sn'

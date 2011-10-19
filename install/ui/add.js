@@ -35,7 +35,72 @@ IPA.add_dialog = function (spec) {
     that.retry = typeof spec.retry !== 'undefined' ? spec.retry : true;
     that.command = null;
 
-    function show_edit_page(entity,result){
+    that.show_edit_page = spec.show_edit_page || show_edit_page;
+
+    var init = function() {
+        that.create_button({
+            name: 'add',
+            label: IPA.messages.buttons.add,
+            click: function() {
+                that.hide_message();
+                that.add(
+                    function(data, text_status, xhr) {
+                        var facet = IPA.current_entity.get_facet();
+                        var table = facet.table;
+                        table.refresh();
+                        that.close();
+                    },
+                    that.on_error);
+            }
+        });
+
+        that.create_button({
+            name: 'add_and_add_another',
+            label: IPA.messages.buttons.add_and_add_another,
+            click: function() {
+                that.hide_message();
+                that.add(
+                    function(data, text_status, xhr) {
+                        var label = that.entity.metadata.label_singular;
+                        var message = IPA.messages.dialogs.add_confirmation;
+                        message = message.replace('${entity}', label);
+                        that.show_message(message);
+
+                        var facet = IPA.current_entity.get_facet();
+                        var table = facet.table;
+                        table.refresh();
+                        that.reset();
+                    },
+                    that.on_error);
+            }
+        });
+
+        that.create_button({
+            name: 'add_and_edit',
+            label: IPA.messages.buttons.add_and_edit,
+            click: function() {
+                that.hide_message();
+                that.add(
+                    function(data, text_status, xhr) {
+                        that.close();
+                        var result = data.result.result;
+                        that.show_edit_page(that.entity, result);
+                    },
+                    that.on_error);
+            }
+        });
+
+        that.create_button({
+            name: 'cancel',
+            label: IPA.messages.buttons.cancel,
+            click: function() {
+                that.hide_message();
+                that.close();
+            }
+        });
+    };
+
+    function show_edit_page(entity,result) {
         var pkey_name = entity.metadata.primary_key;
         var pkey = result[pkey_name];
         if (pkey instanceof Array) {
@@ -43,8 +108,6 @@ IPA.add_dialog = function (spec) {
         }
         IPA.nav.show_entity_page(that.entity, 'default', pkey);
     }
-
-    that.show_edit_page = spec.show_edit_page || show_edit_page;
 
     that.add = function(on_success, on_error) {
 
@@ -110,67 +173,28 @@ IPA.add_dialog = function (spec) {
         command.execute();
     };
 
-    /*dialog initialization*/
-    that.create_button({
-        name: 'add',
-        label: IPA.messages.buttons.add,
-        click: function() {
-            that.hide_message();
-            that.add(
-                function(data, text_status, xhr) {
-                    var facet = IPA.current_entity.get_facet();
-                    var table = facet.table;
-                    table.refresh();
-                    that.close();
-                },
-                that.on_error);
-        }
-    });
+    that.create = function() {
+        that.dialog_create();
 
-    that.create_button({
-        name: 'add_and_add_another',
-        label: IPA.messages.buttons.add_and_add_another,
-        click: function() {
-            that.hide_message();
-            that.add(
-                function(data, text_status, xhr) {
-                    var label = that.entity.metadata.label_singular;
-                    var message = IPA.messages.dialogs.add_confirmation;
-                    message = message.replace('${entity}', label);
-                    that.show_message(message);
+        var div = $('<div/>', {
+        }).appendTo(that.container);
 
-                    var facet = IPA.current_entity.get_facet();
-                    var table = facet.table;
-                    table.refresh();
-                    that.reset();
-                },
-                that.on_error);
-        }
-    });
+        $('<span/>', {
+            'class': 'required-indicator',
+            text: IPA.required_indicator
+        }).appendTo(div);
 
-    that.create_button({
-        name: 'add_and_edit',
-        label: IPA.messages.buttons.add_and_edit,
-        click: function() {
-            that.hide_message();
-            that.add(
-                function(data, text_status, xhr) {
-                    that.close();
-                    var result = data.result.result;
-                    that.show_edit_page(that.entity, result);
-                },
-                that.on_error);
-        }
-    });
+        div.append(' ');
 
-    that.create_button({
-        name: 'cancel',
-        label: IPA.messages.buttons.cancel,
-        click: function() {
-            that.hide_message();
-            that.close();
-        }
-    });
+        $('<span/>', {
+            text: IPA.messages.widget.validation.required
+        }).appendTo(div);
+    };
+
+    // methods that should be invoked by subclasses
+    that.add_dialog_create = that.create;
+
+    init();
 
     return that;
 };

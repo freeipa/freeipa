@@ -30,39 +30,48 @@ IPA.entity_factories.service = function() {
         search_facet({
             columns: [ 'krbprincipalname' ]
         }).
-        details_facet({sections:[
-            {
-                name: 'details',
-                fields:['krbprincipalname',
+        details_facet({
+            sections: [
+                {
+                    name: 'details',
+                    fields: [
+                        'krbprincipalname',
                         {
-                            factory:IPA.service_name_widget,
+                            factory: IPA.service_name_widget,
                             name: 'service',
                             label: IPA.messages.objects.service.service,
                             read_only: true
                         },
                         {
-                            factory:IPA.service_host_widget,
+                            factory: IPA.service_host_widget,
                             name: 'host',
                             label: IPA.messages.objects.service.host,
                             read_only: true
-                        }]
-            },
-            {
-                name: 'provisioning',
-                fields:[{
-                    factory:IPA.service_provisioning_status_widget,
-                    name: 'provisioning_status',
-                    label: IPA.messages.objects.service.status
-                }]
-            },
-            {
-                name: 'certificate',
-                fields:[{
-                    factory:IPA.service_certificate_status_widget,
-                    name: 'certificate_status',
-                    label: IPA.messages.objects.service.status
-                }]
-            }]}).
+                        }
+                    ]
+                },
+                {
+                    name: 'provisioning',
+                    fields: [
+                        {
+                            factory: IPA.service_provisioning_status_widget,
+                            name: 'provisioning_status',
+                            label: IPA.messages.objects.service.status
+                        }
+                    ]
+                },
+                {
+                    name: 'certificate',
+                    fields: [
+                        {
+                            factory: IPA.service_certificate_status_widget,
+                            name: 'certificate_status',
+                            label: IPA.messages.objects.service.status
+                        }
+                    ]
+                }
+            ]
+        }).
         association_facet({
             name: 'managedby_host',
             add_method: 'add_host',
@@ -84,7 +93,7 @@ IPA.service_add_dialog = function(spec) {
     var that = IPA.add_dialog(spec).
         field(IPA.widget({
             name: 'krbprincipalname',
-            optional: true,
+            required: false,
             entity: spec.entity,
             hidden: true
         })).
@@ -106,7 +115,7 @@ IPA.service_add_dialog = function(spec) {
             editable: true,
             size: 10,
             entity: spec.entity,
-            param_info: { required: true }
+            required: true
         })).
         field(IPA.entity_select_widget({
             name: 'host',
@@ -114,7 +123,7 @@ IPA.service_add_dialog = function(spec) {
             other_field: 'fqdn',
             entity: spec.entity,
             label: IPA.messages.objects.service.host,
-            param_info: { required: true }
+            required: true
         })).
         field(IPA.checkbox_widget({
             name: 'force',

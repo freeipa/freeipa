@@ -190,8 +190,7 @@ IPA.hbacrule_details_facet = function(spec) {
         });
 
         section.text({
-            name: 'cn',
-            read_only: true
+            name: 'cn'
         });
         section.text({
             name: 'accessruletype',

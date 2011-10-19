@@ -144,17 +144,17 @@ IPA.entity_factories.automountkey = function() {
         entity({ name: 'automountkey' }).
         containing_entity('automountmap').
         details_facet({
-            sections:[
+            sections: [
                 {
                     name:'identity',
                     label: IPA.messages.details.identity,
-                    fields:[
+                    fields: [
                         {
-                            factory: IPA.text_widget,
-                            read_only: true,
-                            name:   'automountkey'
+                            name: 'automountkey',
+                            read_only: true
                         },
-                        'automountinformation']
+                        'automountinformation'
+                    ]
                 }
             ],
             disable_breadcrumb: false,
@@ -224,20 +224,26 @@ IPA.automountmap_adder_dialog = function(spec) {
     var that = IPA.add_dialog(spec);
 
     that.create = function() {
-        that.dialog_create();
+        that.add_dialog_create();
 
         var method_field = that.get_field('method');
+        var indirect_section = that.get_section('indirect');
+        var key_field = that.get_field('key');
 
         var direct_input = $('input[value="add"]', method_field.container);
         direct_input.change(function() {
             that.method = 'add';
-            that.get_section('indirect').set_visible(false);
+
+            key_field.set_required(false);
+            indirect_section.set_visible(false);
         });
 
         var indirect_input = $('input[value="add_indirect"]', method_field.container);
         indirect_input.change(function() {
             that.method = 'add_indirect';
-            that.get_section('indirect').set_visible(true);
+
+            key_field.set_required(true);
+            indirect_section.set_visible(true);
         });
 
         direct_input.click();

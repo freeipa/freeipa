@@ -24,6 +24,7 @@
 /* REQUIRES: ipa.js */
 
 IPA.checkbox_column_width = 22;
+IPA.required_indicator = '*';
 
 IPA.widget = function(spec) {
 
@@ -40,7 +41,9 @@ IPA.widget = function(spec) {
 
     that.disabled = spec.disabled;
     that.hidden = spec.hidden;
-    that.optional = spec.optional || false;
+
+    // override the required flag in metadata
+    that.required = spec.required;
 
     // read_only is set when widget is created
     that.read_only = spec.read_only;
@@ -51,7 +54,7 @@ IPA.widget = function(spec) {
     that.width = spec.width;
     that.height = spec.height;
 
-    that.undo = typeof spec.undo == 'undefined' ? true : spec.undo;
+    that.undo = spec.undo === undefined ? true : spec.undo;
     that.join = spec.join;
 
     that.param_info = spec.param_info;
@@ -129,14 +132,38 @@ IPA.widget = function(spec) {
         }).appendTo(container);
     };
 
-    that.check_required = function(){
+    that.create_required = function(container) {
+        that.required_indicator = $('<span/>', {
+            'class': 'required-indicator',
+            text: IPA.required_indicator,
+            style: 'display: none; float: right;'
+        }).appendTo(container);
+    };
+
+    that.is_required = function() {
+        if (that.read_only) return false;
+        if (!that.writable) return false;
+
+        if (that.required !== undefined) return that.required;
+        return that.param_info && that.param_info.required;
+    };
+
+    that.set_required = function(required) {
+        that.required = required;
+
+        that.update_required();
+    };
+
+    that.update_required = function() {
+        if (that.required_indicator) {
+            that.required_indicator.css('display', that.is_required() ? 'inline' : 'none');
+        }
+    };
+
+    that.check_required = function() {
         var values = that.save();
-        if (!values || !values.length || values[0] === '' ) {
-            if (that.param_info &&
-                that.param_info.required &&
-                !that.optional &&
-                !that.read_only &&
-                that.writable) {
+        if (!values || !values.length || values[0] === '') {
+            if (that.is_required()) {
                 that.valid = false;
                 that.show_error(IPA.messages.widget.validation.required);
                 return false;
@@ -265,6 +292,7 @@ IPA.widget = function(spec) {
     };
 
     that.reset = function() {
+        that.update_required();
         that.update();
         that.validate();
         that.set_dirty(false);
@@ -838,6 +866,11 @@ IPA.checkbox_widget = function (spec) {
         that.input.attr('checked', value);
     };
 
+    // a checkbox will always have a value, so it's never required
+    that.is_required = function() {
+        return false;
+    };
+
     that.checkbox_save = that.save;
     that.checkbox_load = that.load;
 
@@ -1004,6 +1037,11 @@ IPA.radio_widget = function(spec) {
         if (input.length) {
             input.attr('checked', true);
         }
+    };
+
+    // a radio will always have a value, so it's never required
+    that.is_required = function() {
+        return false;
     };
 
     // methods that should be invoked by subclasses

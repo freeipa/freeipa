@@ -52,14 +52,16 @@ IPA.entity_factories.pwpolicy = function() {
                 }]}).
         standard_association_facets().
         adder_dialog({
-            fields:[
+            fields: [
                 {
                     factory: IPA.entity_select_widget,
                     name: 'cn',
                     other_entity: 'group',
-                    other_field: 'cn'
+                    other_field: 'cn',
+                    required: true
                 },
-                'cospriority'],
+                'cospriority'
+            ],
             height: 300
         }).
         build();

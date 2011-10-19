@@ -181,8 +181,7 @@ IPA.sudorule_details_facet = function(spec) {
         });
 
         section.text({
-            name: 'cn',
-            read_only: true
+            name: 'cn'
         });
         section.textarea({
             name: 'description'
