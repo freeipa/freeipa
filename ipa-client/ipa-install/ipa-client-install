@@ -264,6 +264,9 @@ def uninstall(options, env, quiet=False):
     if not options.on_master and os.path.exists('/etc/ipa/default.conf'):
         emit_quiet(quiet, "Unenrolling client from IPA server")
         join_args = ["/usr/sbin/ipa-join", "--unenroll", "-h", hostname]
+        if options.debug:
+            join_args.append("-d")
+            env['XMLRPC_TRACE_CURL'] = 'yes'
         (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env)
         if returncode != 0:
             emit_quiet(quiet, "Unenrolling host failed: %s" % stderr)
@@ -1037,6 +1040,7 @@ def install(options, env, fstore, statestore):
             join_args = ["/usr/sbin/ipa-join", "-s", cli_server, "-b", realm_to_suffix(cli_realm)]
             if options.debug:
                 join_args.append("-d")
+                env['XMLRPC_TRACE_CURL'] = 'yes'
             if options.hostname:
                 join_args.append("-h")
                 join_args.append(options.hostname)

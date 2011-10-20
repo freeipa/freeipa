@@ -19,6 +19,7 @@
 
 #define _GNU_SOURCE
 
+#include "config.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -40,7 +41,6 @@
 #include "ipa-client-common.h"
 
 #define NAME "ipa-join"
-#define VERSION "1.0"
 
 #define JOIN_OID "2.16.840.1.113730.3.8.10.3"
 
@@ -119,12 +119,32 @@ static int check_perms(const char *keytab)
 }
 
 /*
+ * There is no API in xmlrpc-c to set arbitrary headers but we can fake it
+ * by using a specially-crafted User-Agent string.
+ *
+ * The caller is responsible for freeing the return value.
+ */
+char *
+set_user_agent(const char *ipaserver) {
+    int ret;
+    char *user_agent = NULL;
+
+    ret = asprintf(&user_agent, "%s/%s\r\nReferer: https://%s/ipa/xml\r\nX-Original-User-Agent:", NAME, VERSION, ipaserver);
+    if (ret == -1) {
+        fprintf(stderr, _("Out of memory!"));
+        return NULL;
+    }
+    return user_agent;
+}
+
+/*
  * Make an XML-RPC call to methodName. This uses the curl client to make
  * a connection over SSL using the CA cert that should have been installed
  * by ipa-client-install.
  */
 static void
-callRPC(xmlrpc_env *            const envP,
+callRPC(char * user_agent,
+     xmlrpc_env *            const envP,
      xmlrpc_server_info * const serverInfoP,
      const char *               const methodName,
      xmlrpc_value *             const paramArrayP,
@@ -149,6 +169,7 @@ callRPC(xmlrpc_env *            const envP,
     curlXportParmsP->no_ssl_verifypeer = 1;
     curlXportParmsP->no_ssl_verifyhost = 1;
     curlXportParmsP->cainfo = "/etc/ipa/ca.crt";
+    curlXportParmsP->user_agent = user_agent;
     /* Enable GSSAPI credentials delegation */
     curlXportParmsP->gssapi_delegation = 1;
 
@@ -523,6 +544,7 @@ join_krb5(const char *ipaserver, char *hostname, char **hostdn, const char **pri
     xmlrpc_value *hostdnP = NULL;
     const char *krblastpwdchange = NULL;
     char * url = NULL;
+    char * user_agent = NULL;
     int rval = 0;
     int ret;
 
@@ -575,7 +597,11 @@ join_krb5(const char *ipaserver, char *hostname, char **hostdn, const char **pri
     xmlrpc_array_append_item(&env, paramArrayP, optionsP);
     xmlrpc_DECREF(optionsP);
 
-    callRPC(&env, serverInfoP, "join", paramArrayP, &resultP);
+    if ((user_agent = set_user_agent(ipaserver)) == NULL) {
+        rval = 3;
+        goto cleanup;
+    }
+    callRPC(user_agent, &env, serverInfoP, "join", paramArrayP, &resultP);
     if (handle_fault(&env)) {
         rval = 17;
         goto cleanup_xmlrpc;
@@ -640,6 +666,7 @@ cleanup:
     if (resultP) xmlrpc_DECREF(resultP);
 
 cleanup_xmlrpc:
+    free(user_agent);
     free(url);
     free((char *)krblastpwdchange);
     xmlrpc_env_clean(&env);
@@ -676,6 +703,7 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
     xmlrpc_server_info * serverInfoP = NULL;
     xmlrpc_value *princP = NULL;
     char * url = NULL;
+    char * user_agent = NULL;
 
     if (server) {
         ipaserver = strdup(server);
@@ -817,7 +845,11 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
     xmlrpc_array_append_item(&env, paramArrayP, argArrayP);
     xmlrpc_DECREF(paramP);
 
-    callRPC(&env, serverInfoP, "host_disable", paramArrayP, &resultP);
+    if ((user_agent = set_user_agent(ipaserver)) == NULL) {
+        rval = 3;
+        goto cleanup;
+    }
+    callRPC(user_agent, &env, serverInfoP, "host_disable", paramArrayP, &resultP);
     if (handle_fault(&env)) {
         rval = 17;
         goto cleanup;
@@ -845,6 +877,7 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
 
 cleanup:
 
+    free(user_agent);
     if (keytab) krb5_kt_close(krbctx, keytab);
     free((char *)principal);
     free((char *)ipaserver);

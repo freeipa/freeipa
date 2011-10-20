@@ -441,6 +441,23 @@ class XMLRPCMarshallError(PublicError):
     errno = 910
     format = _('error marshalling data for XML-RPC transport: %(error)s')
 
+
+class RefererError(PublicError):
+    """
+    **911** Raised when the the request does not contain an HTTP referer
+
+    For example:
+
+    >>> raise RefererError()
+    Traceback (most recent call last):
+      ...
+    RefererError: Missing or invalid HTTP Referer
+    """
+
+    errno = 911
+    format = _('Missing or invalid HTTP Referer, %(referer)s')
+
+
 ##############################################################################
 # 1000 - 1999: Authentication errors
 class AuthenticationError(PublicError):

@@ -208,6 +208,9 @@ class LanguageAwareTransport(Transport):
         extra_headers.append(
             ('Accept-Language', lang.replace('_', '-'))
         )
+        extra_headers.append(
+            ('Referer', 'https://%s/ipa/xml' % str(host))
+        )
 
         return (host, extra_headers, x509)
 

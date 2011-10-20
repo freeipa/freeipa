@@ -27,7 +27,7 @@ from cgi import parse_qs
 from xml.sax.saxutils import escape
 from xmlrpclib import Fault
 from ipalib.backend import Executioner
-from ipalib.errors import PublicError, InternalError, CommandError, JSONError, ConversionError, CCacheError
+from ipalib.errors import PublicError, InternalError, CommandError, JSONError, ConversionError, CCacheError, RefererError
 from ipalib.request import context, Connection, destroy_context
 from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import make_repr
@@ -200,6 +200,11 @@ class WSGIExecutioner(Executioner):
         options = {}
         if not 'KRB5CCNAME' in environ:
             return self.marshal(result, CCacheError(), _id)
+        self.debug('Request environment: %s' % environ)
+        if not 'HTTP_REFERER' in environ:
+            return self.marshal(result, RefererError(referer='missing'), _id)
+        if not environ['HTTP_REFERER'].startswith('https://%s/ipa' % self.api.env.host) and not self.env.in_tree:
+            return self.marshal(result, RefererError(referer=environ['HTTP_REFERER']), _id)
         try:
             if ('HTTP_ACCEPT_LANGUAGE' in environ):
                 lang_reg_w_q = environ['HTTP_ACCEPT_LANGUAGE'].split(',')[0]
