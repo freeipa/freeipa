@@ -45,9 +45,15 @@ test("Testing IPA.navigation.create().", function() {
     IPA.entities = $.ordered_map();
 
     IPA.entity_factories.user =  function() {
-        var that = IPA.entity({name: 'user',
-                               metadata:IPA.metadata.objects.user});
-        that.add_facet(IPA.search_facet({'entity':that}));
+        var that = IPA.entity({
+            name: 'user',
+            metadata:IPA.metadata.objects.user,
+            facets: [
+                {
+                    type: 'search'
+                }
+            ]
+        });
 
         that.display = function(container){
             user_mock_called = true;
