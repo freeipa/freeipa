@@ -262,6 +262,7 @@ int ipadb_get_connection(struct ipadb_context *ipactx)
     ret = 0;
 
 done:
+    ldap_msgfree(res);
     if (ret) {
         if (ipactx->lcontext) {
             ldap_unbind_ext_s(ipactx->lcontext, NULL, NULL);
