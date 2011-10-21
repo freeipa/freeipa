@@ -31,12 +31,7 @@ IPA.entity_factories.host = function () {
         search_facet({
             columns: [
                 'fqdn',
-                'description',
-                {
-                    name: 'krblastpwdchange',
-                    label: IPA.messages.objects.host.enrolled,
-                    format: IPA.utc_date_column_format
-                }
+                'description'
             ]
         }).
         details_facet({
