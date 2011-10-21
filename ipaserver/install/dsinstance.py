@@ -90,18 +90,6 @@ def erase_ds_instance_data(serverid):
 #    except:
 #        pass
 
-def check_existing_installation():
-    dirs = glob.glob("/etc/dirsrv/slapd-*")
-    if not dirs:
-        return []
-
-    serverids = []
-    for d in dirs:
-        logging.debug('Found existing 389-ds instance %s' % d)
-        serverids.append(os.path.basename(d).split("slapd-", 1)[1])
-
-    return serverids
-
 def check_ports():
     ds_unsecure = installutils.port_available(389)
     ds_secure = installutils.port_available(636)
@@ -648,7 +636,7 @@ class DsInstance(service.Service):
         self.restore_state('nsslapd-security')
         self.restore_state('nsslapd-ldapiautobind')
 
-        if self.restore_state("running"):
+        if running:
             self.start()
 
     # we could probably move this function into the service.Service
