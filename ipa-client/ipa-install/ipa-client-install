@@ -546,7 +546,7 @@ def hardcode_ldap_server(cli_server):
 
     return
 
-def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, filename):
+def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, filename, client_domain):
 
     krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
     krbconf.setOptionAssignment(" = ")
@@ -589,6 +589,12 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, c
     #[domain_realm]
     dropts = [{'name':'.'+cli_domain, 'type':'option', 'value':cli_realm},
               {'name':cli_domain, 'type':'option', 'value':cli_realm}]
+
+    #add client domain mapping if different from server domain
+    if cli_domain != client_domain:
+        dropts.append({'name':'.'+client_domain, 'type':'option', 'value':cli_realm})
+        dropts.append({'name':client_domain, 'type':'option', 'value':cli_realm})
+
     opts.append({'name':'domain_realm', 'type':'section', 'value':dropts})
     opts.append({'name':'empty', 'type':'empty'})
 
@@ -895,6 +901,8 @@ def install(options, env, fstore, statestore):
             cli_domain = ds.getDomainName()
             logging.debug("will use domain: %s\n", cli_domain)
 
+    client_domain = hostname[hostname.find(".")+1:]
+
     if ret in (ipadiscovery.NO_LDAP_SERVER, ipadiscovery.NOT_IPA_SERVER) \
             or not ds.getServerName():
         logging.debug("IPA Server not found")
@@ -1015,7 +1023,7 @@ def install(options, env, fstore, statestore):
                 print "Unable to sync time with IPA NTP server, assuming the time is in sync."
             (krb_fd, krb_name) = tempfile.mkstemp()
             os.close(krb_fd)
-            if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, krb_name):
+            if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, krb_name, client_domain):
                 print "Test kerberos configuration failed"
                 return CLIENT_INSTALL_ERROR
             env['KRB5_CONFIG'] = krb_name
@@ -1115,16 +1123,14 @@ def install(options, env, fstore, statestore):
     if not options.on_master:
         # Configure krb5.conf
         fstore.backup_file("/etc/krb5.conf")
-        if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, "/etc/krb5.conf"):
+        if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, cli_kdc, dnsok, options, "/etc/krb5.conf", client_domain):
             return CLIENT_INSTALL_ERROR
 
         print "Configured /etc/krb5.conf for IPA realm " + cli_realm
 
-        configure_certmonger(fstore, subject_base, cli_realm, hostname, options)
-
-    #Try to update the DNS records, failure is not fatal
-    if not options.on_master:
         client_dns(cli_server, hostname, options.dns_updates)
+
+        configure_certmonger(fstore, subject_base, cli_realm, hostname, options)
 
     #Name Server Caching Daemon. Disable for SSSD, use otherwise (if installed)
     nscd = ipaservices.knownservices.nscd
