@@ -301,6 +301,11 @@ IPA.service_provisioning_status_widget = function (spec) {
         set_status(krblastpwdchange ? 'valid' : 'missing');
     };
 
+    that.clear = function() {
+        that.status_valid.css('display', 'none');
+        that.status_missing.css('display', 'none');
+    };
+
     function set_status(status) {
         that.status_valid.css('display', status == 'valid' ? 'inline' : 'none');
         that.status_missing.css('display', status == 'missing' ? 'inline' : 'none');

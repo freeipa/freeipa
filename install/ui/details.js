@@ -199,6 +199,14 @@ IPA.details_section = function(spec) {
         }
     };
 
+    that.clear = function() {
+        var fields = that.fields.values;
+
+        for (var i=0; i< fields.length; i++) {
+            fields[i].clear();
+        }
+    };
+
     init();
 
     // methods that should be invoked by subclasses
@@ -409,8 +417,6 @@ IPA.details_facet = function(spec) {
 
         that.facet_create_header(container);
 
-        that.pkey = IPA.nav.get_state(that.entity.name+'-pkey');
-
         that.create_controls();
 
         that.expand_button = IPA.action_button({
@@ -523,7 +529,7 @@ IPA.details_facet = function(spec) {
 
     that.needs_update = function() {
         var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
-        return pkey != that.pkey;
+        return pkey !== that.pkey;
     };
 
     that.section_dirty_changed = function(dirty) {
@@ -718,6 +724,15 @@ IPA.details_facet = function(spec) {
         }
 
         command.execute();
+    };
+
+    that.clear = function() {
+        that.header.clear();
+        var sections = that.sections.values;
+
+        for (var i=0; i< sections.length; i++) {
+            sections[i].clear();
+        }
     };
 
     that.add_sections(spec.sections);

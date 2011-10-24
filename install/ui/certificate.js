@@ -725,6 +725,15 @@ IPA.cert.status_widget = function(spec) {
         }
     };
 
+    that.clear = function() {
+        that.status_valid.css('display', 'none');
+        that.status_missing.css('display', 'none');
+        that.status_revoked.css('display', 'none');
+        that.revoke_button.css('display', 'none');
+        that.restore_button.css('display', 'none');
+        that.revocation_reason.text('');
+    };
+
     function set_status(status, revocation_reason) {
         that.status_valid.css('display', status == IPA.cert.CERTIFICATE_STATUS_VALID ? 'inline' : 'none');
         that.status_missing.css('display', status == IPA.cert.CERTIFICATE_STATUS_MISSING ? 'inline' : 'none');

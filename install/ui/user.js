@@ -292,6 +292,11 @@ IPA.user_status_widget = function(spec) {
         }
     };
 
+    that.clear = function() {
+        that.link_span.css('display', 'none');
+        that.status_span.text('');
+    };
+
     that.show_activation_dialog = function() {
 
         var action = that.status_link.attr('href');
