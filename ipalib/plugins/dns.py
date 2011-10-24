@@ -26,6 +26,7 @@ from ipalib import Command
 from ipalib import Flag, Int, List, Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
+from ipalib.util import validate_zonemgr
 from ipapython import dnsclient
 from ipapython.ipautil import valid_ip
 from ldap import explode_dn
@@ -135,6 +136,13 @@ _record_attributes = [str('%srecord' % t.lower()) for t in _record_types]
 
 # supported DNS classes, IN = internet, rest is almost never used
 _record_classes = (u'IN', u'CS', u'CH', u'HS')
+
+def _rname_validator(ugettext, zonemgr):
+    try:
+        validate_zonemgr(zonemgr)
+    except ValueError, e:
+        return unicode(e)
+    return None
 
 # normalizer for admin email
 def _rname_normalizer(value):
@@ -323,6 +331,7 @@ class dnszone(LDAPObject):
             doc=_('Authoritative nameserver domain name'),
         ),
         Str('idnssoarname',
+            _rname_validator,
             cli_name='admin_email',
             label=_('Administrator e-mail address'),
             doc=_('Administrator e-mail address'),

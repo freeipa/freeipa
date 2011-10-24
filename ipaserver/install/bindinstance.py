@@ -32,6 +32,8 @@ from ipaserver.install.installutils import resolve_host
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipalib.constants import DNS_ZONE_REFRESH
+from ipalib.parameters import IA5Str
+from ipalib.util import validate_zonemgr
 
 import ipalib
 from ipalib import api, util, errors
@@ -286,6 +288,21 @@ def get_rr(zone, name, type):
 
     return []
 
+def zonemgr_callback(option, opt_str, value, parser):
+    """
+    Properly validate and convert --zonemgr Option to IA5String
+    """
+    # validate the value first
+    try:
+        validate_zonemgr(value)
+    except ValueError, e:
+        parser.error("invalid zonemgr: " + unicode(e))
+
+    name = opt_str.replace('--','')
+    v = unicode(value, 'utf-8')
+    ia = IA5Str(name)
+    ia._convert_scalar(v)
+    parser.values.zonemgr = value
 
 class DnsBackup(object):
     def __init__(self, service):
