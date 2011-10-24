@@ -109,6 +109,9 @@ IPA.facet = function (spec) {
         that.header.load(data);
     };
 
+    that.clear = function() {
+    };
+
     that.needs_update = function() {
         return true;
     };
@@ -336,6 +339,11 @@ IPA.facet_header = function(spec) {
 
     that.load = function(data) {
         if (!that.facet.disable_facet_tabs) {
+            var pkey = that.facet.pkey;
+            if(!pkey || !data) {
+                pkey = '';
+            }
+
             var facet_groups = that.facet.entity.facet_groups.values;
             for (var i=0; i<facet_groups.length; i++) {
                 var facet_group = facet_groups[i];
@@ -345,7 +353,7 @@ IPA.facet_header = function(spec) {
 
                 var label = facet_group.label;
                 if (label) {
-                    label = label.replace('${primary_key}', that.facet.pkey);
+                    label = label.replace('${primary_key}', pkey);
 
                     var label_container = $('.facet-group-label', span);
                     label_container.text(label);
@@ -356,7 +364,7 @@ IPA.facet_header = function(spec) {
                     var facet = facets[j];
                     var link = $('li[name='+facet.name+'] a', span);
 
-                    var values = data[facet.name];
+                    var values = data ? data[facet.name] : null;
                     if (values) {
                         link.text(facet.label+' ('+values.length+')');
                     } else {
@@ -365,6 +373,10 @@ IPA.facet_header = function(spec) {
                 }
             }
         }
+    };
+
+    that.clear = function() {
+        that.load();
     };
 
     return that;
@@ -589,9 +601,15 @@ IPA.entity = function (spec) {
             that.facet.create(facet_container);
         }
 
-        that.facet.show();
-        that.facet.header.select_tab();
-        that.facet.refresh();
+        if (that.facet.needs_update()) {
+            that.facet.clear();
+            that.facet.show();
+            that.facet.header.select_tab();
+            that.facet.refresh();
+        } else {
+            that.facet.show();
+            that.facet.header.select_tab();
+        }
     };
 
     that.get_primary_key_prefix = function() {

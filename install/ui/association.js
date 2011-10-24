@@ -871,8 +871,6 @@ IPA.association_facet = function (spec) {
 
         that.facet_create_header(container);
 
-        that.pkey = IPA.nav.get_state(that.entity.name+'-pkey');
-
         if (!that.read_only) {
             that.remove_button = IPA.action_button({
                 name: 'remove',
@@ -908,12 +906,13 @@ IPA.association_facet = function (spec) {
             span.append(IPA.messages.association.show_results);
             span.append(' ');
 
-            var direct_id = that.entity.name+'-'+that.attribute_member+'-'+that.other_entity+'-direct-radio';
+            var name = that.entity.name+'-'+that.attribute_member+'-'+that.other_entity+'-type-radio';
+            var direct_id = name + '-direct';
 
             that.direct_radio = $('<input/>', {
                 id: direct_id,
                 type: 'radio',
-                name: 'type',
+                name: name,
                 value: 'direct',
                 click: function() {
                     that.association_type = $(this).val();
@@ -929,12 +928,12 @@ IPA.association_facet = function (spec) {
 
             span.append(' ');
 
-            var indirect_id = that.entity.name+'-'+that.attribute_member+'-'+that.other_entity+'-indirect-radio';
+            var indirect_id = name + '-indirect';
 
             that.indirect_radio = $('<input/>', {
                 id: indirect_id,
                 type: 'radio',
-                name: 'type',
+                name: name,
                 value: 'indirect',
                 click: function() {
                     that.association_type = $(this).val();
@@ -1199,6 +1198,16 @@ IPA.association_facet = function (spec) {
         command.on_error = that.on_error;
 
         command.execute();
+    };
+
+    that.clear = function() {
+        that.header.clear();
+        that.table.clear();
+    };
+
+    that.needs_update = function() {
+        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        return that.pkey !== pkey;
     };
 
     /*initialization*/

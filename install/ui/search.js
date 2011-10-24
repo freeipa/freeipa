@@ -165,8 +165,10 @@ IPA.search_facet = function(spec) {
     that.show = function() {
         that.facet_show();
 
+        var filter = IPA.nav.get_state(that.entity.name+'-filter');
+        that.old_filter = filter || '';
+
         if (that.filter) {
-            var filter = IPA.nav.get_state(that.entity.name+'-filter');
             that.filter.val(filter);
         }
     };
@@ -266,9 +268,8 @@ IPA.search_facet = function(spec) {
         var current_entity = entity;
         filter.unshift(IPA.nav.get_state(current_entity.name+'-filter'));
         current_entity = current_entity.get_containing_entity();
-        while(current_entity !== null){
-            filter.unshift(
-                IPA.nav.get_state(current_entity.name+'-pkey'));
+        while (current_entity !== null) {
+            filter.unshift(IPA.nav.get_state(current_entity.name+'-pkey'));
             current_entity = current_entity.get_containing_entity();
         }
 
@@ -284,6 +285,17 @@ IPA.search_facet = function(spec) {
         });
 
         command.execute();
+    };
+
+    that.clear = function() {
+        if(that.needs_clear()) {
+            that.table.clear();
+        }
+    };
+
+    that.needs_clear = function() {
+        var filter = IPA.nav.get_state(that.entity.name+'-filter') || '';
+        return that.old_filter !== '' || that.old_filter !== filter;
     };
 
     // methods that should be invoked by subclasses

@@ -567,6 +567,11 @@ IPA.host_keytab_widget = function(spec) {
         set_status(value ? 'present' : 'missing');
     };
 
+    that.clear = function() {
+        that.present_span.css('display', 'none');
+        that.missing_span.css('display', 'none');
+    };
+
     function set_status(status) {
         that.present_span.css('display', status == 'present' ? 'inline' : 'none');
         that.missing_span.css('display', status == 'missing' ? 'inline' : 'none');
@@ -718,6 +723,13 @@ IPA.host_password_widget = function(spec) {
         that.result = result;
         var value = result[that.name];
         set_status(value ? 'present' : 'missing');
+    };
+
+    that.clear = function() {
+        that.missing_span.css('display', 'none');
+        that.present_span.css('display', 'none');
+        var password_label = $('.button-label', that.set_password_button);
+        password_label.text('');
     };
 
     function set_status(status) {

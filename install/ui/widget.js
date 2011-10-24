@@ -379,6 +379,9 @@ IPA.widget = function(spec) {
         error_link.css('display', 'none');
     };
 
+    that.clear = function() {
+    };
+
     that.set_enabled = function() {
     };
 
@@ -490,6 +493,11 @@ IPA.text_widget = function(spec) {
         } else {
             that.input.attr('disabled', 'disabled');
         }
+    };
+
+    that.clear = function() {
+        that.input.val('');
+        that.display_control.text('');
     };
 
     // methods that should be invoked by subclasses
@@ -756,6 +764,10 @@ IPA.multivalued_text_widget = function(spec) {
         that.set_dirty(false, index);
     };
 
+    that.clear = function() {
+        that.remove_rows();
+    };
+
     that.update = function(index) {
 
         var value;
@@ -858,6 +870,10 @@ IPA.checkbox_widget = function (spec) {
         return false;
     };
 
+    that.clear = function() {
+        that.input.attr('checked', false);
+    };
+
     that.checkbox_save = that.save;
     that.checkbox_load = that.load;
 
@@ -945,6 +961,10 @@ IPA.checkboxes_widget = function (spec) {
         }
     };
 
+    that.clear = function() {
+        $('input[name="'+that.name+'"]').attr('checked', false);
+    };
+
     // methods that should be invoked by subclasses
     that.checkboxes_update = that.update;
 
@@ -965,19 +985,18 @@ IPA.radio_widget = function(spec) {
 
         container.addClass('radio-widget');
 
+        var name = IPA.html_util.get_next_id(that.entity.name+'-'+that.name+'-');
+        that.selector = 'input[name="'+name+'"]';
+
         for (var i=0; i<that.options.length; i++) {
             var option = that.options[i];
 
-            // TODO: Use ID generator or accept ID from spec to avoid conflicts.
-            // Currently this ID is unique enough, but it will not work if the
-            // radio button is used multiple times for the same attribute, for
-            // example both in adder dialog and details facet.
-            var id = that.entity.name+'-'+that.name+'-'+i+'-radio';
+            var id = name+'-'+i;
 
             $('<input/>', {
                 id: id,
                 type: 'radio',
-                name: that.name,
+                name: name,
                 value: option.value
             }).appendTo(container);
 
@@ -991,7 +1010,7 @@ IPA.radio_widget = function(spec) {
             that.create_undo(container);
         }
 
-        var input = $('input[name="'+that.name+'"]', that.container);
+        var input = $(that.selector, that.container);
         input.change(function() {
             that.set_dirty(that.test_dirty());
         });
@@ -1008,20 +1027,20 @@ IPA.radio_widget = function(spec) {
     };
 
     that.save = function() {
-        var input = $('input[name="'+that.name+'"]:checked', that.container);
+        var input = $(that.selector+':checked', that.container);
         if (!input.length) return [];
         return [input.val()];
     };
 
     that.update = function() {
 
-        $('input[name="'+that.name+'"]', that.container).each(function() {
+        $(that.selector, that.container).each(function() {
             var input = this;
             input.checked = false;
         });
 
         var value = that.values && that.values.length ? that.values[0] : '';
-        var input = $('input[name="'+that.name+'"][value="'+value+'"]', that.container);
+        var input = $(that.selector+'[value="'+value+'"]', that.container);
         if (input.length) {
             input.attr('checked', true);
         }
@@ -1030,6 +1049,10 @@ IPA.radio_widget = function(spec) {
     // a radio will always have a value, so it's never required
     that.is_required = function() {
         return false;
+    };
+
+    that.clear = function() {
+        $(that.selector, that.container).attr('checked', false);
     };
 
     // methods that should be invoked by subclasses
@@ -1104,6 +1127,10 @@ IPA.select_widget = function(spec) {
         $('option', that.select).remove();
     };
 
+    that.clear = function() {
+        that.empty();
+    };
+
     // methods that should be invoked by subclasses
     that.select_load = that.load;
     that.select_save = that.save;
@@ -1164,6 +1191,10 @@ IPA.textarea_widget = function (spec) {
     that.update = function() {
         var value = that.values && that.values.length ? that.values[0] : '';
         that.input.val(value);
+    };
+
+    that.clear = function() {
+        that.input.val('');
     };
 
     return that;
@@ -1639,6 +1670,12 @@ IPA.table_widget = function (spec) {
         }
     };
 
+    that.clear = function() {
+        that.empty();
+        that.summary.text('');
+    };
+
+    //column initialization
     if (spec.columns) {
         for (var i=0; i<spec.columns; i++) {
             that.create_column(spec.columns[i]);
@@ -1893,6 +1930,11 @@ IPA.combobox_widget = function(spec) {
         that.list.empty();
     };
 
+    that.clear = function() {
+        that.input.val('');
+        that.remove_options();
+    };
+
     return that;
 };
 
@@ -2008,6 +2050,11 @@ IPA.entity_link_widget = function(spec) {
         }).execute();
     };
 
+    that.clear = function() {
+        that.nonlink.text('');
+        that.link.text('');
+    };
+
 
     return that;
 };
@@ -2081,3 +2128,16 @@ IPA.observer = function(spec) {
 
     return that;
 };
+
+IPA.html_util = function() {
+
+    var that = {};
+    that.id_count = 0;
+
+    that.get_next_id = function(prefix) {
+        that.id_count++;
+        return prefix ? prefix + that.id_count : that.id_count;
+    };
+
+    return that;
+}();
