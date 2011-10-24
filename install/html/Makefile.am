@@ -5,7 +5,6 @@ app_DATA =                              \
 	ssbrowser.html			\
 	browserconfig.html       	\
 	unauthorized.html       	\
-        hbac-deny-remove.html		\
 	ipa_error.css			\
 	$(NULL)
 

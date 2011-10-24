@@ -169,15 +169,6 @@ var IPA = ( function () {
             }
         }));
 
-        batch.add_command(IPA.command({
-            entity: 'hbacrule',
-            method: 'find',
-            options:{"accessruletype":"deny"},
-            on_success: function(data, text_status, xhr) {
-                that.hbac_deny_rules = data;
-            }
-        }));
-
         batch.execute();
     };
 

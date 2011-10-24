@@ -342,8 +342,6 @@ ln -s ../../../..%{_sysconfdir}/ipa/html/unauthorized.html \
     %{buildroot}%{_usr}/share/ipa/html/unauthorized.html
 ln -s ../../../..%{_sysconfdir}/ipa/html/browserconfig.html \
     %{buildroot}%{_usr}/share/ipa/html/browserconfig.html
-ln -s ../../../..%{_sysconfdir}/ipa/html/hbac-deny-remove.html \
-    %{buildroot}%{_usr}/share/ipa/html/hbac-deny-remove.html
 ln -s ../../../..%{_sysconfdir}/ipa/html/ipa_error.css \
     %{buildroot}%{_usr}/share/ipa/html/ipa_error.css
 
@@ -501,7 +499,6 @@ fi
 %{_usr}/share/ipa/html/ssbrowser.html
 %{_usr}/share/ipa/html/browserconfig.html
 %{_usr}/share/ipa/html/unauthorized.html
-%{_usr}/share/ipa/html/hbac-deny-remove.html
 %{_usr}/share/ipa/html/ipa_error.css
 %dir %{_usr}/share/ipa/migration
 %{_usr}/share/ipa/migration/error.html
@@ -526,7 +523,6 @@ fi
 %config(noreplace) %{_sysconfdir}/ipa/html/ipa_error.css
 %config(noreplace) %{_sysconfdir}/ipa/html/unauthorized.html
 %config(noreplace) %{_sysconfdir}/ipa/html/browserconfig.html
-%config(noreplace) %{_sysconfdir}/ipa/html/hbac-deny-remove.html
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
@@ -619,6 +615,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Mon Oct 24 2011 Endi S. Dewata <edewata@redhat.com> - 2.99.0-9
+- Removed hbac-deny-remove.html
+
 * Fri Oct 21 2011 Alexander Bokovoy <abokovoy@redhat.com> - 2.99.0-8
 - Default to systemd for Fedora 16 and onwards
 

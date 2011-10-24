@@ -2,7 +2,7 @@
     "error": null,
     "id": null,
     "result": {
-        "count": 5,
+        "count": 4,
         "results": [
             {
                 "error": null,
@@ -204,11 +204,9 @@
                         },
                         "hbacrule": {
                             "active": "Active",
-                            "allow": "Allow",
                             "any_host": "Any Host",
                             "any_service": "Any Service",
                             "anyone": "Anyone",
-                            "deny": "Deny",
                             "host": "Accessing",
                             "inactive": "Inactive",
                             "ipaenabledflag": "Rule status",
@@ -533,13 +531,6 @@
                 "result": true,
                 "summary": null,
                 "value": ""
-            },
-            {
-                "count": 0,
-                "error": null,
-                "result": [],
-                "summary": "0 HBAC rules matched",
-                "truncated": false
             }
         ]
     }

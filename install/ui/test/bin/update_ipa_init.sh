@@ -15,7 +15,30 @@ then
         exit 1
 fi
 
-
+json="{
+    \"method\": \"batch\",
+    \"params\": [
+        [
+            {
+                \"method\": \"i18n_messages\",
+                \"params\": [[], {}]
+            },
+            {
+                \"method\": \"user_find\",
+                \"params\":[[], { \"whoami\": true, \"all\": true }]
+            },
+            {
+                \"method\": \"env\",
+                \"params\": [[], {}]
+            },
+            {
+                \"method\": \"dns_is_enabled\",
+                \"params\": [[], {}]
+            }
+        ],
+        {}
+    ]
+}"
 
 curl -v\
  -H "Content-Type: application/json"\
@@ -24,6 +47,6 @@ curl -v\
  --delegation always\
  -u :\
  --cacert /etc/ipa/ca.crt\
- -d '{"method":"batch","params":[[{"method":"json_metadata","params":[[],{}]},{"method":"i18n_messages","params":[[],{}]},{"method":"user_find","params":[[],{"whoami":true,"all":true}]},{"method":"env","params":[[],{}]},{"method":"dns_is_enabled","params":[[],{}]},{"method":"hbacrule_find","params":[[],{"accessruletype":"deny"}]}],{}]}'\
+ -d "$json"\
  -X POST\
  https://`hostname`/ipa/json | sed 's/[ \t]*$//' >   $INIT_FILE

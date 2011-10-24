@@ -296,11 +296,9 @@ class i18n_messages(Command):
             },
             "hbacrule": {
                 "active": _("Active"),
-                "allow": _("Allow"),
                 "any_host": _("Any Host"),
                 "any_service": _("Any Service"),
                 "anyone": _("Anyone"),
-                "deny": _("Deny"),
                 "host": _("Accessing"),
                 "inactive": _("Inactive"),
                 "ipaenabledflag": _("Rule status"),
