@@ -203,3 +203,33 @@ def check_writable_file(filename):
             fp.close()
     except (IOError, OSError), e:
         raise errors.FileError(reason=str(e))
+
+
+def validate_zonemgr(zonemgr):
+    """ See RFC 1033, 1035 """
+    regex_domain = re.compile(r'^[a-z0-9][a-z0-9-]*$', re.IGNORECASE)
+    regex_name = re.compile(r'^[a-z0-9][a-z0-9-_]*$', re.IGNORECASE)
+
+    if len(zonemgr) > 255:
+        raise ValueError(_('cannot be longer that 255 characters'))
+
+    if zonemgr.count('@') == 1:
+        name, dot, domain = zonemgr.partition('@')
+    elif zonemgr.count('@') > 1:
+        raise ValueError(_('too many \'@\' characters'))
+    else:
+        # address in SOA format already (without @)
+        name, dot, domain = zonemgr.partition('.')
+
+    if domain.endswith('.'):
+        domain = domain[:-1]
+
+    if '.' not in domain:
+        raise ValueError(_('address domain is not fully qualified ' \
+                          '("example.com" instead of just "example")'))
+
+    if not regex_name.match(name):
+        raise ValueError(_('mail account may only include letters, numbers, -, and _'))
+
+    if not all(regex_domain.match(part) for part in domain.split(".")):
+        raise ValueError(_('domain name may only include letters, numbers, and -'))

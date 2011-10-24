@@ -58,7 +58,6 @@ from ipaserver.plugins.ldap2 import ldap2
 from ipapython import sysrestore
 from ipapython.ipautil import *
 from ipalib import api, errors, util
-from ipalib.parameters import IA5Str
 from ipapython.config import IPAOptionParser
 from ipalib.dn import DN
 from ipalib.x509 import load_certificate_from_file, load_certificate_chain_from_file
@@ -75,16 +74,6 @@ VALID_SUBJECT_ATTRS = ['cn', 'st', 'o', 'ou', 'dnqualifier', 'c',
                        'houseidentifier', 'e', 'street', 'pseudonym',
                        'incorporationlocality', 'incorporationstate',
                        'incorporationcountry', 'businesscategory']
-
-def zonemgr_callback(option, opt_str, value, parser):
-    """
-    Make sure the zonemgr is an IA5String.
-    """
-    name = opt_str.replace('--','')
-    v = unicode(value, 'utf-8')
-    ia = IA5Str(name)
-    ia._convert_scalar(v)
-    parser.values.zonemgr = value
 
 def subject_callback(option, opt_str, value, parser):
     """
@@ -195,7 +184,7 @@ def parse_options():
     dns_group.add_option("--reverse-zone", dest="reverse_zone", help="The reverse DNS zone to use")
     dns_group.add_option("--no-reverse", dest="no_reverse", action="store_true",
                       default=False, help="Do not create reverse DNS zone")
-    dns_group.add_option("--zonemgr", action="callback", callback=zonemgr_callback,
+    dns_group.add_option("--zonemgr", action="callback", callback=bindinstance.zonemgr_callback,
                       type="string",
                       help="DNS zone manager e-mail address. Defaults to root")
     dns_group.add_option("--zone-notif", dest="zone_notif",
