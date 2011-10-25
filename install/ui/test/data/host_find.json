@@ -1,6 +1,6 @@
 {
     "error": null,
-    "id": 0,
+    "id": null,
     "result": {
         "count": 2,
         "result": [
@@ -8,46 +8,44 @@
                 "cn": [
                     "dev.example.com"
                 ],
-                "dn": "fqdn=dev.example.com,cn=computers,cn=accounts,dc=dev,dc=example,dc=com",
+                "dn": "fqdn=dev.example.com,cn=computers,cn=accounts,dc=example,dc=com",
+                "enrolledby_user": [
+                    "admin"
+                ],
                 "fqdn": [
                     "dev.example.com"
                 ],
+                "has_keytab": true,
+                "has_password": false,
                 "ipauniqueid": [
-                    "fc6a6d5a-f388-11df-9c01-00163e72f2d9"
+                    "d2c1f41c-ff41-11e0-bde8-525400e135d8"
                 ],
                 "krbextradata": [
                     {
-                        "__base64__": "AAL+5+VMYWRtaW4vYWRtaW5AREVWLkVYQU1QTEUuQ09NAA=="
-                    },
-                    {
-                        "__base64__": "AAgBAA=="
+                        "__base64__": "AAIIEqdOaG9zdC9kZXYuZXhhbXBsZS5jb21ASURNLkxBQi5CT1MuUkVESEFULkNPTQA="
                     }
                 ],
                 "krblastpwdchange": [
-                    "20101119025910Z"
-                ],
-                "krbpasswordexpiration": [
-                    "19700101000000Z"
+                    "20111025194616Z"
                 ],
                 "krbprincipalname": [
-                    "host/dev.example.com@DEV.EXAMPLE.COM"
+                    "host/dev.example.com@EXAMPLE.COM"
                 ],
-                "krbticketflags": [
-                    "0"
+                "managedby_host": [
+                    "dev.example.com"
                 ],
-                "managedby": [
-                    "fqdn=dev.example.com,cn=computers,cn=accounts,dc=dev,dc=example,dc=com"
+                "managing_host": [
+                    "dev.example.com"
                 ],
                 "objectclass": [
-                    "top",
                     "ipaobject",
                     "nshost",
                     "ipahost",
-                    "ipaservice",
                     "pkiuser",
+                    "ipaservice",
                     "krbprincipalaux",
                     "krbprincipal",
-                    "krbticketpolicyaux"
+                    "top"
                 ],
                 "serverhostname": [
                     "dev"
@@ -57,18 +55,31 @@
                 "cn": [
                     "test.example.com"
                 ],
-                "dn": "fqdn=test.example.com,cn=computers,cn=accounts,dc=dev,dc=example,dc=com",
+                "dn": "fqdn=test.example.com,cn=computers,cn=accounts,dc=example,dc=com",
+                "enrolledby_user": [
+                    "admin"
+                ],
                 "fqdn": [
                     "test.example.com"
                 ],
+                "has_keytab": false,
+                "has_password": false,
                 "ipauniqueid": [
-                    "ac28dca0-f3b5-11df-879f-00163e72f2d9"
+                    "d5d1400e-ff41-11e0-9a21-525400e135d8"
+                ],
+                "krbextradata": [
+                    {
+                        "__base64__": "AAIiEqdOaG9zdC90ZXN0LmV4YW1wbGUuY29tQElETS5MQUIuQk9TLlJFREhBVC5DT00A"
+                    }
                 ],
                 "krbprincipalname": [
-                    "host/test.example.com@DEV.EXAMPLE.COM"
+                    "host/test.example.com@EXAMPLE.COM"
                 ],
-                "managedby": [
-                    "fqdn=test.example.com,cn=computers,cn=accounts,dc=dev,dc=example,dc=com"
+                "managedby_host": [
+                    "test.example.com"
+                ],
+                "managing_host": [
+                    "test.example.com"
                 ],
                 "objectclass": [
                     "ipaobject",

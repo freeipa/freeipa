@@ -31,7 +31,11 @@ IPA.entity_factories.host = function () {
         search_facet({
             columns: [
                 'fqdn',
-                'description'
+                'description',
+                {
+                    name: 'has_keytab',
+                    label: IPA.messages.objects.host.enrolled
+                }
             ]
         }).
         details_facet({
