@@ -642,7 +642,7 @@ IPA.entitle.consume_dialog = function(spec) {
         label: IPA.messages.objects.entitle.consume,
         click: function() {
 
-            if (!that.is_valid()) {
+            if (!that.validate()) {
                 return;
             }
 

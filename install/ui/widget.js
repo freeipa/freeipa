@@ -118,7 +118,7 @@ IPA.widget = function(spec) {
         }
     };
 
-    that.check_required = function() {
+    that.validate_required = function() {
         var values = that.save();
         if (!values || !values.length || values[0] === '') {
             if (that.is_required()) {
