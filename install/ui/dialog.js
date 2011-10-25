@@ -492,7 +492,7 @@ IPA.adder_dialog = function(spec) {
 
         var add_button = that.create_button({
             name: 'add',
-            label: IPA.messages.buttons.enroll,
+            label: IPA.messages.buttons.add,
             click: function() {
                 if (!add_button.is_enabled()) return;
                 that.execute();

@@ -140,7 +140,7 @@ IPA.group_adder_dialog = function (spec) {
 
     spec = spec || {};
 
-    var that = IPA.add_dialog(spec);
+    var that = IPA.entity_adder_dialog(spec);
 
     var init = function() {
 

@@ -889,7 +889,7 @@ IPA.association_facet = function (spec) {
 
             that.add_button = IPA.action_button({
                 name: 'add',
-                label: IPA.messages.buttons.enroll,
+                label: IPA.messages.buttons.add,
                 icon: 'add-icon',
                 click: function() {
                     if (!that.add_button.hasClass('action-button-disabled')) {
@@ -923,7 +923,7 @@ IPA.association_facet = function (spec) {
             }).appendTo(span);
 
             $('<label/>', {
-                text: IPA.messages.association.direct_enrollment,
+                text: IPA.messages.association.direct_membership,
                 'for': direct_id
             }).appendTo(span);
 
@@ -944,7 +944,7 @@ IPA.association_facet = function (spec) {
             }).appendTo(span);
 
             $('<label/>', {
-                text: IPA.messages.association.indirect_enrollment,
+                text: IPA.messages.association.indirect_membership,
                 'for': indirect_id
             }).appendTo(span);
         }

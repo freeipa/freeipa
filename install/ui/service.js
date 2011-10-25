@@ -79,18 +79,18 @@ IPA.entity_factories.service = function() {
         }).
         standard_association_facets().
         adder_dialog({
-            factory: IPA.service_add_dialog,
+            factory: IPA.service_adder_dialog,
             height: 350
         }).
         build();
 };
 
 
-IPA.service_add_dialog = function(spec) {
+IPA.service_adder_dialog = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.add_dialog(spec).
+    var that = IPA.entity_adder_dialog(spec).
         field(IPA.widget({
             name: 'krbprincipalname',
             required: false,

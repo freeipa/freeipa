@@ -24,8 +24,8 @@
                             "memberof": "Add ${entity} ${primary_key} into ${other_entity}",
                             "sourcehost": "Add Source ${other_entity} into ${entity} ${primary_key}"
                         },
-                        "direct_enrollment": "Direct Enrollment",
-                        "indirect_enrollment": "Indirect Enrollment",
+                        "direct_membership": "Direct Membership",
+                        "indirect_membership": "Indirect Membership",
                         "no_entries": "No entries.",
                         "paging": "Showing ${start} to ${end} of ${total} entries.",
                         "remove": {
@@ -48,7 +48,6 @@
                         "add_many": "Add Many",
                         "cancel": "Cancel",
                         "close": "Close",
-                        "enroll": "Enroll",
                         "find": "Find",
                         "get": "Get",
                         "issue": "Issue",
@@ -98,8 +97,8 @@
                     },
                     "facet_groups": {
                         "managedby": "${primary_key} is managed by:",
-                        "member": "Entities enrolled in ${primary_key}:",
-                        "memberof": "${primary_key} is a member of these:"
+                        "member": "${primary_key} members:",
+                        "memberof": "${primary_key} is a member of:"
                     },
                     "facets": {
                         "details": "Settings",
