@@ -106,15 +106,21 @@ def main():
     try:
         filter = '(objectClass=extensibleObject)'
         conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
-        conn.do_sasl_gssapi_bind()
-    except ldap.LOCAL_ERROR:
+
         if options.dirman_password:
-            dirman_password = options.dirman_password
+            conn.do_simple_bind(bindpw=options.dirman_password)
         else:
-            dirman_password = get_dirman_password()
-            if dirman_password is None:
-                sys.exit("\nDirectory Manager password required")
-        conn.do_simple_bind(bindpw=dirman_password)
+            conn.do_sasl_gssapi_bind()
+    except ldap.LOCAL_ERROR:
+        dirman_password = get_dirman_password()
+        if dirman_password is None:
+            sys.exit("\nDirectory Manager password required")
+        try:
+            conn.do_simple_bind(bindpw=dirman_password)
+        except ldap.INVALID_CREDENTIALS:
+            sys.exit("Invalid credentials")
+    except ldap.INVALID_CREDENTIALS:
+        sys.exit("Invalid credentials")
     except errors.ExecutionError, lde:
         sys.exit("An error occurred while connecting to the server.\n%s\n" %
             str(lde))
