@@ -15,6 +15,7 @@ export AM_CFLAGS
 SUBDIRS =			\
 	ipa-kdb			\
 	ipa-slapi-plugins	\
+	ipa-sam			\
 	$(NULL)
 
 DISTCLEANFILES =		\
