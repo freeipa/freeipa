@@ -23,7 +23,7 @@
 
 /* REQUIRES: ipa.js */
 
-IPA.add_dialog = function (spec) {
+IPA.entity_adder_dialog = function(spec) {
 
     spec = spec || {};
 
@@ -192,7 +192,7 @@ IPA.add_dialog = function (spec) {
     };
 
     // methods that should be invoked by subclasses
-    that.add_dialog_create = that.create;
+    that.entity_adder_dialog_create = that.create;
 
     init();
 

@@ -914,7 +914,7 @@ IPA.entity_builder = function(){
     };
 
     that.adder_dialog = function(spec) {
-        spec.factory = spec.factory || IPA.add_dialog;
+        spec.factory = spec.factory || IPA.entity_adder_dialog;
         spec.name = spec.name || 'add';
 
         if (!spec.title) {

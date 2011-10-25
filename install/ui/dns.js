@@ -383,10 +383,10 @@ IPA.dnszone_adder_dialog = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.add_dialog(spec);
+    var that = IPA.entity_adder_dialog(spec);
 
     that.create = function() {
-        that.add_dialog_create();
+        that.entity_adder_dialog_create();
         that.container.addClass('dnszone-adder-dialog');
     };
 

@@ -267,10 +267,10 @@ IPA.host_adder_dialog = function(spec) {
     spec = spec || {};
     spec.retry = typeof spec.retry !== 'undefined' ? spec.retry : false;
 
-    var that = IPA.add_dialog(spec);
+    var that = IPA.entity_adder_dialog(spec);
 
     that.create = function() {
-        that.add_dialog_create();
+        that.entity_adder_dialog_create();
         that.container.addClass('host-adder-dialog');
     };
 

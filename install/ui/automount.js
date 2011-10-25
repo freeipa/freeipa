@@ -221,10 +221,10 @@ IPA.automount_key_column = function(spec) {
 
 IPA.automountmap_adder_dialog = function(spec) {
 
-    var that = IPA.add_dialog(spec);
+    var that = IPA.entity_adder_dialog(spec);
 
     that.create = function() {
-        that.add_dialog_create();
+        that.entity_adder_dialog_create();
 
         var method_field = that.get_field('method');
         var indirect_section = that.get_section('indirect');

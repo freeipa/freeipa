@@ -114,8 +114,8 @@ class i18n_messages(Command):
                 "memberof": _("Add ${entity} ${primary_key} into ${other_entity}"),
                 "sourcehost": _("Add Source ${other_entity} into ${entity} ${primary_key}"),
             },
-            "direct_enrollment": _("Direct Enrollment"),
-            "indirect_enrollment": _("Indirect Enrollment"),
+            "direct_membership": _("Direct Membership"),
+            "indirect_membership": _("Indirect Membership"),
             "no_entries": _("No entries."),
             "paging": _("Showing ${start} to ${end} of ${total} entries."),
             "remove": {
@@ -138,7 +138,6 @@ class i18n_messages(Command):
             "add_many": _("Add Many"),
             "cancel": _("Cancel"),
             "close": _("Close"),
-            "enroll": _("Enroll"),
             "find": _("Find"),
             "get": _("Get"),
             "issue": _("Issue"),
@@ -188,8 +187,8 @@ class i18n_messages(Command):
         },
         "facet_groups": {
             "managedby": _("${primary_key} is managed by:"),
-            "member": _("Entities enrolled in ${primary_key}:"),
-            "memberof": _("${primary_key} is a member of these:"),
+            "member": _("${primary_key} members:"),
+            "memberof": _("${primary_key} is a member of:"),
         },
         "facets": {
             "details": _("Settings"),
