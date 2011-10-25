@@ -136,7 +136,7 @@ IPA.widget = function(spec) {
         that.required_indicator = $('<span/>', {
             'class': 'required-indicator',
             text: IPA.required_indicator,
-            style: 'display: none; float: right;'
+            style: 'display: none;'
         }).appendTo(container);
     };
 
