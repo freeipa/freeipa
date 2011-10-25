@@ -331,7 +331,7 @@ class KrbInstance(service.Service):
         replacevars = {'KRB5REALM':self.realm}
         appendvars = {}
         if workers and cpus > 1:
-            appendvars = {'KRB5KDC_ARGS': "-w %s" % str(cpus)}
+            appendvars = {'KRB5KDC_ARGS': "'-w %s'" % str(cpus)}
         ipautil.backup_config_and_replace_variables(self.fstore, "/etc/sysconfig/krb5kdc",
                                                     replacevars=replacevars,
                                                     appendvars=appendvars)
