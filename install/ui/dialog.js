@@ -284,6 +284,7 @@ IPA.dialog = function(spec) {
     that.dialog_close = that.close;
     that.dialog_save = that.save;
     that.dialog_reset = that.reset;
+    that.dialog_validate = that.validate;
 
     return that;
 };
