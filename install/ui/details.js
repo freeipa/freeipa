@@ -181,14 +181,12 @@ IPA.details_section = function(spec) {
         return false;
     };
 
-    that.is_valid = function() {
-        var fields = that.fields.values;
+    that.validate = function() {
         var valid = true;
+        var fields = that.fields.values;
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
-            if (!field.valid || !field.check_required()) {
-                valid = false;
-            }
+            valid &= field.validate() && field.validate_required();
         }
         return valid;
     };
@@ -584,6 +582,16 @@ IPA.details_facet = function(spec) {
         that.enable_update(false);
     };
 
+    that.validate = function() {
+        var valid = true;
+        var sections = that.sections.values;
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
+            valid &= section.validate();
+        }
+        return valid;
+    };
+
     that.update = function(on_win, on_fail) {
 
         function on_success(data, text_status, xhr) {
@@ -620,24 +628,21 @@ IPA.details_facet = function(spec) {
             on_error: on_error
         });
 
+        if (!that.validate()) {
+            var dialog = IPA.message_dialog({
+                title: IPA.messages.dialogs.validation_title,
+                message: IPA.messages.dialogs.validation_message
+            });
+            dialog.open();
+            return;
+        }
+
         var record = {};
         that.save(record);
 
-        var fields = that.get_fields();
-        for (var i=0; i<fields.length; i++) {
-            fields[i].validate();
-        }
-
-        var valid = true;
-
         var sections = that.sections.values;
-        for (i=0; i<sections.length; i++) {
+        for (var i=0; i<sections.length; i++) {
             var section = sections[i];
-
-            if (!section.is_valid() || !valid) {
-                valid = false;
-                continue;
-            }
 
             var section_fields = section.fields.values;
             for (var j=0; j<section_fields.length; j++) {
@@ -668,15 +673,6 @@ IPA.details_facet = function(spec) {
                     }
                 }
             }
-        }
-
-        if (!valid) {
-            var dialog = IPA.message_dialog({
-                title: IPA.messages.dialogs.validation_title,
-                message: IPA.messages.dialogs.validation_message
-            });
-            dialog.open();
-            return;
         }
 
         //alert(JSON.stringify(command.to_json()));

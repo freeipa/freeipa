@@ -311,6 +311,8 @@ IPA.user_password_widget = function(spec) {
 
     that.create = function(container) {
 
+        that.widget_create(container);
+
         $('<a/>', {
             href: 'jslink',
             title: 'userpassword',

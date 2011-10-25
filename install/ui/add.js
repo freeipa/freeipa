@@ -124,24 +124,14 @@ IPA.entity_adder_dialog = function(spec) {
 
         command.add_args(that.entity.get_primary_key_prefix());
 
+        if (!that.validate()) return;
+
         var record = {};
         that.save(record);
 
-        var fields = that.get_fields();
-        for (var i=0; i<fields.length; i++) {
-            fields[i].validate();
-        }
-
-        var valid = true;
-
         var sections = that.sections.values;
-        for (i=0; i<sections.length; i++) {
+        for (var i=0; i<sections.length; i++) {
             var section = sections[i];
-
-            if (!section.is_valid() || !valid) {
-                valid = false;
-                continue;
-            }
 
             var section_fields = section.fields.values;
             for (var j=0; j<section_fields.length; j++) {
@@ -161,8 +151,6 @@ IPA.entity_adder_dialog = function(spec) {
                 }
             }
         }
-
-        if (!valid) return;
 
         //alert(JSON.stringify(command.to_json()));
 

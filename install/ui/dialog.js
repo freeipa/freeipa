@@ -66,7 +66,6 @@ IPA.dialog = function(spec) {
     that.height = spec.height;
 
     that.buttons = $.ordered_map();
-
     that.sections = $.ordered_map();
 
     var init = function() {
@@ -129,12 +128,14 @@ IPA.dialog = function(spec) {
         return that;
     };
 
-    that.is_valid = function() {
-        for (var i=0; i<that.sections.length; i++) {
-            var section = that.sections.values[i];
-            if (!section.is_valid()) return false;
+    that.validate = function() {
+        var valid = true;
+        var sections = that.sections.values;
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
+            valid &= section.validate();
         }
-        return true;
+        return valid;
     };
 
     that.add_section = function(section) {
