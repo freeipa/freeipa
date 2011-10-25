@@ -1300,4 +1300,15 @@ body.info-page  {
 
 .required-indicator {
      color: red;
+     font-weight: bold;
+     font-size: 120%;
+}
+
+.section-cell-label .required-indicator {
+    float: right;
+    margin-right: -10px;
+}
+
+.dialog-section .section-cell-label .required-indicator {
+    margin-right: 0px;
 }
