@@ -139,17 +139,65 @@ IPA.entity_factories.user = function() {
             link: link
         }).
         adder_dialog({
-            fields: [
+            factory: IPA.user_adder_dialog,
+            sections: [
                 {
-                    name: 'uid',
-                    required: false
+                    fields: [
+                        {
+                            name: 'uid',
+                            required: false
+                        },
+                        'givenname',
+                        'sn'
+                    ]
                 },
-                'givenname',
-                'sn'
+                {
+                    fields: [
+                        {
+                            name: 'userpassword',
+                            label: IPA.messages.password.new_password,
+                            type: 'password'
+                        },
+                        {
+                            name: 'userpassword2',
+                            label: IPA.messages.password.verify_password,
+                            type: 'password'
+                        }
+                    ]
+                }
             ]
         });
 
     return builder.build();
+};
+
+IPA.user_adder_dialog = function(spec) {
+
+    var that = IPA.entity_adder_dialog(spec);
+
+    that.validate = function() {
+        var valid = that.dialog_validate();
+
+        var field1 = that.get_field('userpassword');
+        var field2 = that.get_field('userpassword2');
+
+        var password1 = field1.save()[0];
+        var password2 = field2.save()[0];
+
+        if (password1 !== password2) {
+            field2.show_error(IPA.messages.password.password_must_match);
+            valid = false;
+        }
+
+        return valid;
+    };
+
+    that.save = function(record) {
+        that.dialog_save(record);
+        delete record.userpassword2;
+    };
+
+    return that;
 };
 
 IPA.user_status_widget = function(spec) {
