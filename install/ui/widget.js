@@ -57,7 +57,6 @@ IPA.widget = function(spec) {
     that.undo = spec.undo === undefined ? true : spec.undo;
     that.join = spec.join;
 
-    that.param_info = spec.param_info;
     that.metadata = spec.metadata;
 
     that.values = [];
@@ -66,62 +65,21 @@ IPA.widget = function(spec) {
 
     that.dirty_changed = IPA.observer();
 
-
-    function set_param_info() {
-        if (!that.param_info && that.entity) {
-            that.param_info =
-                IPA.get_entity_param(that.entity.name, that.name);
+    var init = function() {
+        if (!that.metadata && that.entity) {
+            that.metadata = IPA.get_entity_param(that.entity.name, that.name);
         }
-        if (that.param_info) {
+        if (that.metadata) {
             if (that.label === undefined) {
-                that.label = that.param_info.label;
+                that.label = that.metadata.label;
             }
             if (that.tooltip === undefined) {
-                that.tooltip = that.param_info.doc;
+                that.tooltip = that.metadata.doc;
             }
         }
-    }
+    };
 
-
-    function meta_validate(meta, value){
-        var message;
-
-        if (meta.type == 'int') {
-            if (!value.match(/^-?\d+$/)) {
-                that.valid = false;
-                that.show_error(IPA.messages.widget.validation.integer);
-                return that.valid;
-            }
-
-            if (meta.minvalue !== undefined && value < meta.minvalue) {
-                that.valid = false;
-                message = IPA.messages.widget.validation.min_value;
-                message = message.replace('${value}', meta.minvalue);
-                that.show_error(message);
-                return that.valid;
-            }
-
-            if (meta.maxvalue !== undefined && value > meta.maxvalue) {
-                that.valid = false;
-                message = IPA.messages.widget.validation.max_value;
-                message = message.replace('${value}', meta.maxvalue);
-                that.show_error(message);
-                return that.valid;
-            }
-        }
-        if (meta.pattern) {
-            var regex = new RegExp(meta.pattern);
-            if (!value.match(regex)) {
-                that.valid = false;
-                that.show_error(meta.pattern_errmsg);
-                return that.valid;
-            }
-        }
-
-        return that.valid;
-    }
-
-    that.create_error_link = function(container){
+    that.create_error_link = function(container) {
         container.append(' ');
 
         $('<span/>', {
@@ -145,7 +103,7 @@ IPA.widget = function(spec) {
         if (!that.writable) return false;
 
         if (that.required !== undefined) return that.required;
-        return that.param_info && that.param_info.required;
+        return that.metadata && that.metadata.required;
     };
 
     that.set_required = function(required) {
@@ -191,12 +149,43 @@ IPA.widget = function(spec) {
             return that.valid;
         }
 
-        if (that.metadata) {
-            meta_validate(that.metadata, value);
+        if (!that.metadata) {
+            return that.valid;
         }
 
-        if (that.valid && that.param_info) {
-            meta_validate(that.param_info, value);
+        var message;
+
+        if (that.metadata.type == 'int') {
+            if (!value.match(/^-?\d+$/)) {
+                that.valid = false;
+                that.show_error(IPA.messages.widget.validation.integer);
+                return that.valid;
+            }
+
+            if (that.metadata.minvalue !== undefined && value < that.metadata.minvalue) {
+                that.valid = false;
+                message = IPA.messages.widget.validation.min_value;
+                message = message.replace('${value}', that.metadata.minvalue);
+                that.show_error(message);
+                return that.valid;
+            }
+
+            if (that.metadata.maxvalue !== undefined && value > that.metadata.maxvalue) {
+                that.valid = false;
+                message = IPA.messages.widget.validation.max_value;
+                message = message.replace('${value}', that.metadata.maxvalue);
+                that.show_error(message);
+                return that.valid;
+            }
+        }
+
+        if (that.metadata.pattern) {
+            var regex = new RegExp(that.metadata.pattern);
+            if (!value.match(regex)) {
+                that.valid = false;
+                that.show_error(that.metadata.pattern_errmsg);
+                return that.valid;
+            }
         }
 
         return that.valid;
@@ -271,12 +260,12 @@ IPA.widget = function(spec) {
 
         that.writable = true;
 
-        if (that.param_info) {
-            if (that.param_info.primary_key) {
+        if (that.metadata) {
+            if (that.metadata.primary_key) {
                 that.writable = false;
             }
 
-            if (that.param_info.flags && 'no_update' in that.param_info.flags) {
+            if (that.metadata.flags && 'no_update' in that.metadata.flags) {
                 that.writable = false;
             }
         }
@@ -396,9 +385,7 @@ IPA.widget = function(spec) {
     that.refresh = function() {
     };
 
-
-    /*widget initialization*/
-    set_param_info();
+    init();
 
     // methods that should be invoked by subclasses
     that.widget_create = that.create;
@@ -1238,9 +1225,9 @@ IPA.column = function (spec) {
 
     /*column initialization*/
     if (that.entity_name && !that.label) {
-        var param_info = IPA.get_entity_param(that.entity_name, that.name);
-        if (param_info) {
-            that.label = param_info.label;
+        var metadata = IPA.get_entity_param(that.entity_name, that.name);
+        if (metadata) {
+            that.label = metadata.label;
         }
     }
 

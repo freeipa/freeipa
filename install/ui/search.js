@@ -65,8 +65,8 @@ IPA.search_facet = function(spec) {
         for (var i=0; i<columns.length; i++) {
             var column = columns[i];
             column.entity = entity;
-            var param_info = IPA.get_entity_param(entity.name, column.name);
-            column.primary_key = param_info && param_info['primary_key'];
+            var metadata = IPA.get_entity_param(entity.name, column.name);
+            column.primary_key = metadata && metadata.primary_key;
             column.link = column.primary_key;
 
             if (column.link) {

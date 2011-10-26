@@ -129,7 +129,7 @@ IPA.entity_factories.dnszone = function() {
                         {
                             factory: IPA.force_dnszone_add_checkbox_widget,
                             name: 'force',
-                            param_info: IPA.get_method_option('dnszone_add', 'force')
+                            metadata: IPA.get_method_option('dnszone_add', 'force')
                         }
                     ]
                 }
@@ -180,10 +180,10 @@ IPA.dnszone_details_facet = function(spec) {
                 var values = field.save();
                 if (!values) continue;
 
-                var param_info = field.param_info;
+                var metadata = field.metadata;
 
                 // skip primary key
-                if (param_info && param_info.primary_key) continue;
+                if (metadata && metadata.primary_key) continue;
 
                 // check enable/disable
                 if (field.name == 'idnszoneactive') {
@@ -192,7 +192,7 @@ IPA.dnszone_details_facet = function(spec) {
                     continue;
                 }
 
-                if (param_info) {
+                if (metadata) {
                     if (values.length == 1) {
                         modify_operation.command.set_option(field.name, values[0]);
                     } else if (field.join) {
@@ -464,42 +464,42 @@ IPA.entity_factories.dnsrecord = function() {
                     fields:[
                         { factory: IPA.multivalued_text_widget,
                           name: 'arecord',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           label:'A'
                         },
                         { factory: IPA.multivalued_text_widget,
                           name: 'aaaarecord',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           label:'AAAA'
                         },
                         { factory: IPA.multivalued_text_widget,
                           name: 'ptrrecord',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           label:'PTR'
                         },
                         { factory: IPA.multivalued_text_widget,
                           name: 'srvrecord',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           label:'SRV'
                         },
                         { factory: IPA.multivalued_text_widget,
                           name: 'txtrecord',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           label:'TXT'
                         },
                         { factory: IPA.multivalued_text_widget,
                           name: 'cnamerecord',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           label:'CNAME'
                         },
                         { factory: IPA.multivalued_text_widget,
                           label:'MX',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           name:"mxrecord"
                         },
                         { factory: IPA.multivalued_text_widget,
                           label:'NS',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           name:"nsrecord"
                         }
 
@@ -511,37 +511,37 @@ IPA.entity_factories.dnsrecord = function() {
                     fields:[
                         { factory: IPA.multivalued_text_widget,
                           label:'AFSDB',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           name: "afsdbrecord"
                         },
                         { factory: IPA.multivalued_text_widget,
                           label:'CERT',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           name:"certrecord"
                         },
                         { factory: IPA.multivalued_text_widget,
                           label:'DNAME',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           name:"dnamerecord"
                         },
                         { factory: IPA.multivalued_text_widget,
                           label:'DSRECORD',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           name:"dsrecord"
                         },
                         { factory: IPA.multivalued_text_widget,
                           label:'KEY',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           name:"keyrecord"
                         },
                         { factory: IPA.multivalued_text_widget,
                           label:'KX',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           name:"kxrecord"
                         },
                         { factory: IPA.multivalued_text_widget,
                           label:'LOC',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           name:"locrecord"
                         },
                         { factory: IPA.multivalued_text_widget,
@@ -550,22 +550,22 @@ IPA.entity_factories.dnsrecord = function() {
                         },
                         { factory: IPA.multivalued_text_widget,
                           label:'NSEC',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           name:"nsecrecord"
                         },
                         { factory: IPA.multivalued_text_widget,
                           label:'RRSIG',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           name:"rrsigrecord"
                         },
                         { factory: IPA.multivalued_text_widget,
                           label:'SIG',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           name:"sigrecord"
                         },
                         { factory: IPA.multivalued_text_widget,
                           label:'SSHFP',
-                          param_info: {primary_key: false},
+                          metadata: {primary_key: false},
                           name:"sshfprecord"
                         }
                     ]
@@ -659,9 +659,9 @@ IPA.dnsrecord_type_widget = function(spec) {
 };
 
 IPA.force_dnszone_add_checkbox_widget = function(spec) {
-    var param_info = IPA.get_method_option('dnszone_add', spec.name);
-    spec.label = param_info.label;
-    spec.tooltip = param_info.doc;
+    var metadata = IPA.get_method_option('dnszone_add', spec.name);
+    spec.label = metadata.label;
+    spec.tooltip = metadata.doc;
     return IPA.checkbox_widget(spec);
 };
 

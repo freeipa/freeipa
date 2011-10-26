@@ -38,13 +38,13 @@ IPA.rule_details_section = function(spec) {
         that.container = container;
 
         var field = that.get_field(that.field_name);
-        var param_info = IPA.get_entity_param(that.entity.name, that.field_name);
+        var metadata = IPA.get_entity_param(that.entity.name, that.field_name);
 
-        container.append(param_info.doc+':');
+        container.append(metadata.doc+':');
 
         var span = $('<span/>', {
             name: that.field_name,
-            title: param_info.doc,
+            title: metadata.doc,
             'class': 'field'
         }).appendTo(container);
 
@@ -87,11 +87,11 @@ IPA.rule_details_section = function(spec) {
         for (var j=0; j<that.tables.length; j++) {
             var table = that.tables[j];
 
-            param_info = IPA.get_entity_param(that.entity.name, table.field_name);
+            metadata = IPA.get_entity_param(that.entity.name, table.field_name);
 
             var table_span = $('<span/>', {
                 name: table.field_name,
-                title: param_info ? param_info.doc : table.field_name,
+                title: metadata ? metadata.doc : table.field_name,
                 'class': 'field'
             }).appendTo(span);
 
