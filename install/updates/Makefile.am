@@ -24,6 +24,7 @@ app_DATA =				\
 	50-lockout-policy.update	\
 	50-groupuuid.update		\
 	50-hbacservice.update		\
+	50-nis.update			\
 	$(NULL)
 
 EXTRA_DIST =				\
