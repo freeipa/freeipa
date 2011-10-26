@@ -1465,6 +1465,13 @@ class LDAPSearch(CallbackInterface, crud.Search):
     def get_options(self):
         for option in super(LDAPSearch, self).get_options():
             yield option
+        if self.obj.primary_key and \
+                'no_output' not in self.obj.primary_key.flags:
+            yield Flag('pkey_only?',
+                       label=_('Primary key only'),
+                       doc=_('Results should contain primary key attribute only ("%s")') \
+                               % to_cli(self.obj.primary_key.cli_name),
+                      )
         for attr in self.member_attributes:
             for ldap_obj_name in self.obj.attribute_members[attr]:
                 ldap_obj = self.api.Object[ldap_obj_name]
@@ -1539,7 +1546,10 @@ class LDAPSearch(CallbackInterface, crud.Search):
             defattrs = self.obj.search_display_attributes
         else:
             defattrs = self.obj.default_attributes
-        if options.get('all', False):
+
+        if options.get('pkey_only', False):
+            attrs_list = [self.obj.primary_key.name]
+        elif options.get('all', False):
             attrs_list = ['*'] + defattrs
         else:
             attrs_list = list(

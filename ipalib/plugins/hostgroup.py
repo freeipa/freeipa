@@ -178,6 +178,8 @@ class hostgroup_find(LDAPSearch):
     )
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
+        if options.get('pkey_only', False):
+            return
         for entry in entries:
             (dn, entry_attrs) = entry
             self.obj.suppress_netgroup_memberof(dn, entry_attrs)

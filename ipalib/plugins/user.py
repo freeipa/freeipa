@@ -514,6 +514,8 @@ class user_find(LDAPSearch):
         return (filter, base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
+        if options.get('pkey_only', False):
+            return
         for entry in entries:
             (dn, attrs) = entry
             self.obj._convert_manager(attrs, **options)

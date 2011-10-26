@@ -301,7 +301,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: automountlocation_find
-args: 1,6,4
+args: 1,7,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='location', label=Gettext('Location', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
@@ -309,6 +309,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -370,7 +371,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: automountmap_find
-args: 2,7,4
+args: 2,8,4
 arg: Str('automountlocationcn', cli_name='automountlocation', label=Gettext('Location', domain='ipa', localedir=None), query=True, required=True)
 arg: Str('criteria?', noextrawhitespace=False)
 option: IA5Str('automountmapname', attribute=True, autofill=False, cli_name='map', label=Gettext('Map', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
@@ -380,6 +381,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -493,7 +495,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: cosentry_find
-args: 1,8,4
+args: 1,9,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='cn', label=FixMe('cn'), multivalue=False, primary_key=True, query=True, required=False)
 option: Str('krbpwdpolicyreference', attribute=True, autofill=False, cli_name='krbpwdpolicyreference', label=FixMe('krbpwdpolicyreference'), multivalue=False, query=True, required=False)
@@ -503,6 +505,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -745,7 +748,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnsrecord_find
-args: 2,42,4
+args: 2,43,4
 arg: Str('dnszoneidnsname', cli_name='dnszone', label=Gettext('Zone name', domain='ipa', localedir=None), query=True, required=True)
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('idnsname', attribute=True, autofill=False, cli_name='name', label=Gettext('Record name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
@@ -756,6 +759,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 option: List('arecord', _validate_ipaddr, attribute=True, cli_name='a_rec', label='A record', multivalue=True, query=True, required=False)
 option: List('aaaarecord', _validate_ipaddr, attribute=True, cli_name='aaaa_rec', label='AAAA record', multivalue=True, query=True, required=False)
 option: List('a6record', attribute=True, cli_name='a6_rec', label='A6 record', multivalue=True, query=True, required=False)
@@ -894,7 +898,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: dnszone_find
-args: 1,20,4
+args: 1,21,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('idnsname', attribute=True, autofill=False, cli_name='name', default_from=DefaultFrom(<lambda>, 'name_from_ip'), label=Gettext('Zone name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('name_from_ip', _validate_ipnet, attribute=True, autofill=False, cli_name='name_from_ip', label=Gettext('Reverse zone IP network', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -916,6 +920,7 @@ option: Flag('forward_only', autofill=True, cli_name='forward_only', default=Fal
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -1065,7 +1070,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: group_find
-args: 1,23,4
+args: 1,24,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='group_name', label=Gettext('Group name', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -1076,6 +1081,7 @@ option: Flag('private', autofill=True, cli_name='private', default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 option: List('user?', cli_name='users', label=Gettext('user', domain='ipa', localedir=None), multivalue=True)
 option: List('no_user?', cli_name='no_users', label=Gettext('user', domain='ipa', localedir=None), multivalue=True)
 option: List('group?', cli_name='groups', label=Gettext('group', domain='ipa', localedir=None), multivalue=True)
@@ -1212,7 +1218,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: hbacrule_find
-args: 1,12,4
+args: 1,13,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Rule name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: StrEnum('accessruletype', validate_type, attribute=True, autofill=False, cli_name='type', default=u'allow', exclude='webui', flags=['no_option', 'no_output'], label=Gettext('Rule type', domain='ipa', localedir=None), multivalue=False, query=True, required=False, values=(u'allow', u'deny'))
@@ -1226,6 +1232,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -1322,7 +1329,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: hbacsvc_find
-args: 1,7,4
+args: 1,8,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='service', label=Gettext('Service name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -1331,6 +1338,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -1388,7 +1396,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: hbacsvcgroup_find
-args: 1,7,4
+args: 1,8,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Service group name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -1397,6 +1405,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -1493,7 +1502,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: host_find
-args: 1,27,4
+args: 1,28,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('fqdn', validate_host, attribute=True, autofill=False, cli_name='hostname', label=Gettext('Host name', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -1508,6 +1517,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 option: List('in_hostgroup?', cli_name='in_hostgroups', label=Gettext('host group', domain='ipa', localedir=None), multivalue=True)
 option: List('not_in_hostgroup?', cli_name='not_in_hostgroups', label=Gettext('host group', domain='ipa', localedir=None), multivalue=True)
 option: List('in_netgroup?', cli_name='in_netgroups', label=Gettext('netgroup', domain='ipa', localedir=None), multivalue=True)
@@ -1599,7 +1609,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: hostgroup_find
-args: 1,19,4
+args: 1,20,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='hostgroup_name', label=Gettext('Host-group', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -1608,6 +1618,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 option: List('host?', cli_name='hosts', label=Gettext('host', domain='ipa', localedir=None), multivalue=True)
 option: List('no_host?', cli_name='no_hosts', label=Gettext('host', domain='ipa', localedir=None), multivalue=True)
 option: List('hostgroup?', cli_name='hostgroups', label=Gettext('host group', domain='ipa', localedir=None), multivalue=True)
@@ -1758,7 +1769,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: netgroup_find
-args: 1,25,4
+args: 1,26,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Netgroup name', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -1773,6 +1784,7 @@ option: Flag('managed', autofill=True, cli_name='managed', default=False, defaul
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 option: List('netgroup?', cli_name='netgroups', label=Gettext('netgroup', domain='ipa', localedir=None), multivalue=True)
 option: List('no_netgroup?', cli_name='no_netgroups', label=Gettext('netgroup', domain='ipa', localedir=None), multivalue=True)
 option: List('user?', cli_name='users', label=Gettext('user', domain='ipa', localedir=None), multivalue=True)
@@ -1873,7 +1885,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: permission_find
-args: 1,13,4
+args: 1,14,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Permission name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: List('permissions', attribute=True, autofill=False, cli_name='permissions', label=Gettext('Permissions', domain='ipa', localedir=None), multivalue=True, query=True, required=False)
@@ -1888,6 +1900,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -1986,7 +1999,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: privilege_find
-args: 1,7,4
+args: 1,8,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Privilege name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -1995,6 +2008,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -2071,7 +2085,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: pwpolicy_find
-args: 1,15,4
+args: 1,16,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='group', label=Gettext('Group', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Int('krbmaxpwdlife', attribute=True, autofill=False, cli_name='maxlife', label=Gettext('Max lifetime (days)', domain='ipa', localedir=None), minvalue=0, multivalue=False, query=True, required=False)
@@ -2088,6 +2102,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -2167,7 +2182,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: role_find
-args: 1,7,4
+args: 1,8,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='name', label=Gettext('Role name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -2176,6 +2191,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -2312,7 +2328,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: service_find
-args: 1,8,4
+args: 1,9,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('krbprincipalname', validate_principal, attribute=True, autofill=False, cli_name='principal', label=Gettext('Principal', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Int('timelimit?', autofill=False, flags=['no_display'], label=Gettext('Time Limit', domain='ipa', localedir=None), minvalue=0)
@@ -2320,6 +2336,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 option: List('man_by_host?', cli_name='man_by_hosts', label=Gettext('host', domain='ipa', localedir=None), multivalue=True)
 option: List('not_man_by_host?', cli_name='not_man_by_hosts', label=Gettext('host', domain='ipa', localedir=None), multivalue=True)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
@@ -2380,7 +2397,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: sudocmd_find
-args: 1,7,4
+args: 1,8,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('sudocmd', attribute=True, autofill=False, cli_name='command', label=Gettext('Sudo Command', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -2389,6 +2406,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -2446,7 +2464,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'dict'>, 'list of deletions that failed')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: sudocmdgroup_find
-args: 1,7,4
+args: 1,8,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='sudocmdgroup_name', label=Gettext('Sudo Command Group', domain='ipa', localedir=None), multivalue=False, normalizer=<lambda>, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -2455,6 +2473,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -2598,7 +2617,7 @@ args: 1,0,1
 arg: Str('cn', attribute=True, cli_name='sudorule_name', label=Gettext('Rule name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=True)
 output: Output('result', None, None)
 command: sudorule_find
-args: 1,15,4
+args: 1,16,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('cn', attribute=True, autofill=False, cli_name='sudorule_name', label=Gettext('Rule name', domain='ipa', localedir=None), multivalue=False, primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', label=Gettext('Description', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -2615,6 +2634,7 @@ option: Int('sizelimit?', autofill=False, flags=['no_display'], label=Gettext('S
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly description of action performed')
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, 'Number of entries returned')
@@ -2777,7 +2797,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), 'User-friendly 
 output: Output('result', <type 'bool'>, 'True means the operation was successful')
 output: Output('value', <type 'unicode'>, "The primary_key value of the entry, e.g. 'jdoe' for a user")
 command: user_find
-args: 1,42,4
+args: 1,43,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('uid', attribute=True, autofill=False, cli_name='login', default_from=DefaultFrom(<lambda>, 'givenname', 'sn'), label=Gettext('User login', domain='ipa', localedir=None), maxlength=255, multivalue=False, normalizer=<lambda>, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, query=True, required=False)
 option: Str('givenname', attribute=True, autofill=False, cli_name='first', label=Gettext('First name', domain='ipa', localedir=None), multivalue=False, query=True, required=False)
@@ -2811,6 +2831,7 @@ option: Flag('whoami', autofill=True, default=False, label=Gettext('Self', domai
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui', flags=['no_output'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui', flags=['no_output'])
 option: Str('version?', exclude='webui', flags=['no_option', 'no_output'])
+option: Flag('pkey_only?', autofill=True, default=False', label=Gettext('Primary key only', domain='ipa', localedir=None))
 option: List('in_group?', cli_name='in_groups', label=Gettext('group', domain='ipa', localedir=None), multivalue=True)
 option: List('not_in_group?', cli_name='not_in_groups', label=Gettext('group', domain='ipa', localedir=None), multivalue=True)
 option: List('in_netgroup?', cli_name='in_netgroups', label=Gettext('netgroup', domain='ipa', localedir=None), multivalue=True)
