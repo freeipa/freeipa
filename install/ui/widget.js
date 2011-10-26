@@ -924,6 +924,7 @@ IPA.checkboxes_widget = function (spec) {
         var input = $('input[name="'+that.name+'"]', that.container);
         input.change(function() {
             that.set_dirty(that.test_dirty());
+            that.validate();
         });
 
         that.create_error_link(container);
