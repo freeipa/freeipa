@@ -38,37 +38,37 @@ test("Testing ipa_init().", function() {
     );
 });
 
-test("Testing IPA.get_param_info().", function() {
+test("Testing IPA.get_entity_param().", function() {
 
-    var param_info = IPA.get_entity_param("user", "uid");
+    var metadata = IPA.get_entity_param("user", "uid");
     ok(
-        param_info,
-        "IPA.get_param_info(\"user\", \"uid\") not null"
+        metadata,
+        "IPA.get_entity_param(\"user\", \"uid\") not null"
     );
 
     equals(
-        param_info["label"], "User login",
-        "IPA.get_param_info(\"user\", \"uid\")[\"label\"]"
+        metadata["label"], "User login",
+        "IPA.get_entity_param(\"user\", \"uid\")[\"label\"]"
     );
 
     equals(
         IPA.get_entity_param("user", "wrong_attribute"), null,
-        "IPA.get_param_info(\"user\", \"wrong_attribute\")"
+        "IPA.get_entity_param(\"user\", \"wrong_attribute\")"
     );
 
     equals(
         IPA.get_entity_param("user", null), null,
-        "IPA.get_param_info(\"user\", null)"
+        "IPA.get_entity_param(\"user\", null)"
     );
 
     equals(
         IPA.get_entity_param("wrong_entity", "uid"), null,
-        "IPA.get_param_info(\"wrong_entity\", \"uid\")"
+        "IPA.get_entity_param(\"wrong_entity\", \"uid\")"
     );
 
     equals(
         IPA.get_entity_param(null, "uid"), null,
-        "IPA.get_param_info(null, \"uid\")"
+        "IPA.get_entity_param(null, \"uid\")"
     );
 });
 

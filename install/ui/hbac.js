@@ -454,10 +454,10 @@ IPA.hbacrule_details_facet = function(spec) {
                 var values = field.save();
                 if (!values) continue;
 
-                var param_info = field.param_info;
+                var metadata = field.metadata;
 
                 // skip primary key
-                if (param_info && param_info.primary_key) continue;
+                if (metadata && metadata.primary_key) continue;
 
                 var p = field.name.indexOf('_');
                 if (p >= 0) {
@@ -488,7 +488,7 @@ IPA.hbacrule_details_facet = function(spec) {
                     }
                 }
 
-                if (param_info) {
+                if (metadata) {
                     if (values.length == 1) {
                         modify_operation.command.set_option(field.name, values[0]);
                     } else if (field.join) {

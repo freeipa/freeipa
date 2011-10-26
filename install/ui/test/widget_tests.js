@@ -106,9 +106,9 @@ function text_tests(widget,input){
     same(widget.is_dirty(),false, "Undo Clears is_dirty");
 
 
-    var old_pattern =  widget.param_info.pattern;
+    var old_pattern =  widget.metadata.pattern;
 
-    widget.param_info.pattern ='abc';
+    widget.metadata.pattern ='abc';
     input.val('not right');
     input.keyup();
     same(widget.valid,false, 'Field is not valid');
@@ -122,7 +122,7 @@ function text_tests(widget,input){
     same(widget.valid,true, 'Field is valid');
     same(error_field.css('display'),'none','error field not visible');
 
-    widget.param_info.pattern = old_pattern;
+    widget.metadata.pattern = old_pattern;
 
 }
 

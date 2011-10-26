@@ -153,12 +153,12 @@ IPA.entity_factories.host = function () {
                         {
                             factory: IPA.text_widget,
                             name: 'ip_address',
-                            param_info: IPA.get_method_option('host_add', 'ip_address')
+                            metadata: IPA.get_method_option('host_add', 'ip_address')
                         },
                         {
                             factory: IPA.force_host_add_checkbox_widget,
                             name: 'force',
-                            param_info: IPA.get_method_option('host_add', 'force')
+                            metadata: IPA.get_method_option('host_add', 'force')
                         }
                     ]
                 }
@@ -411,9 +411,9 @@ IPA.utc_date_column_format = function(value){
 
 
 IPA.force_host_add_checkbox_widget = function(spec) {
-    var param_info = IPA.get_method_option('host_add', spec.name);
-    spec.label = param_info.label;
-    spec.tooltip = param_info.doc;
+    var metadata = IPA.get_method_option('host_add', spec.name);
+    spec.label = metadata.label;
+    spec.tooltip = metadata.doc;
     return IPA.checkbox_widget(spec);
 };
 

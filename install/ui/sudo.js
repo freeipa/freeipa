@@ -403,10 +403,10 @@ IPA.sudorule_details_facet = function(spec) {
                 var values = field.save();
                 if (!values) continue;
 
-                var param_info = field.param_info;
+                var metadata = field.metadata;
 
                 // skip primary key
-                if (param_info && param_info.primary_key) continue;
+                if (metadata && metadata.primary_key) continue;
 
                 var p = field.name.indexOf('_');
                 if (p >= 0) {
@@ -436,7 +436,7 @@ IPA.sudorule_details_facet = function(spec) {
                     categories[field.name].remove_values = true;
                 }
 
-                if (param_info) {
+                if (metadata) {
                     if (values.length == 1) {
                         modify_operation.command.set_option(field.name, values[0]);
                     } else if (field.join) {
@@ -817,11 +817,11 @@ IPA.sudo.rule_details_command_section = function(spec) {
         that.container = container;
 
         var field = that.get_field('cmdcategory');
-        var param_info = IPA.get_entity_param(that.entity.name, 'cmdcategory');
+        var metadata = IPA.get_entity_param(that.entity.name, 'cmdcategory');
 
         var span = $('<span/>', {
             name: 'cmdcategory',
-            title: param_info.doc,
+            title: metadata.doc,
             'class': 'field'
         }).appendTo(container);
 
@@ -830,28 +830,28 @@ IPA.sudo.rule_details_command_section = function(spec) {
             title: IPA.messages.objects.sudorule.allow
         }).appendTo(span);
 
-        span.append(param_info.doc+": ");
+        span.append(metadata.doc+": ");
 
         that.category.create(span);
 
-        param_info = IPA.get_entity_param(
+        metadata = IPA.get_entity_param(
             that.entity.name, 'memberallowcmd_sudocmd');
 
         var table_span = $('<span/>', {
             name: 'memberallowcmd_sudocmd',
-            title: param_info ? param_info.doc : 'memberallowcmd_sudocmd',
+            title: metadata ? metadata.doc : 'memberallowcmd_sudocmd',
             'class': 'field'
         }).appendTo(span);
 
         field = that.get_field('memberallowcmd_sudocmd');
         field.create(table_span);
 
-        param_info = IPA.get_entity_param(
+        metadata = IPA.get_entity_param(
             that.entity.name, 'memberallowcmd_sudocmdgroup');
 
         table_span = $('<span/>', {
             name: 'memberallowcmd_sudocmdgroup',
-            title: param_info ? param_info.doc : 'memberallowcmd_sudocmdgroup',
+            title: metadata ? metadata.doc : 'memberallowcmd_sudocmdgroup',
             'class': 'field'
         }).appendTo(span);
 
@@ -863,24 +863,24 @@ IPA.sudo.rule_details_command_section = function(spec) {
             title: IPA.messages.objects.sudorule.deny
         }).appendTo(span);
 
-        param_info = IPA.get_entity_param(
+        metadata = IPA.get_entity_param(
             that.entity.name, 'memberdenycmd_sudocmd');
 
         table_span = $('<span/>', {
             name: 'memberdenycmd_sudocmd',
-            title: param_info ? param_info.doc : 'memberdenycmd_sudocmd',
+            title: metadata ? metadata.doc : 'memberdenycmd_sudocmd',
             'class': 'field'
         }).appendTo(span);
 
         field = that.get_field('memberdenycmd_sudocmd');
         field.create(table_span);
 
-        param_info = IPA.get_entity_param(
+        metadata = IPA.get_entity_param(
             that.entity.name, 'memberdenycmd_sudocmdgroup');
 
         table_span = $('<span/>', {
             name: 'memberdenycmd_sudocmdgroup',
-            title: param_info ? param_info.doc : 'memberdenycmd_sudocmdgroup',
+            title: metadata ? metadata.doc : 'memberdenycmd_sudocmdgroup',
             'class': 'field'
         }).appendTo(span);
 
@@ -994,34 +994,34 @@ IPA.sudo.rule_details_runas_section = function(spec) {
         that.container = container;
 
         var field = that.get_field('ipasudorunasusercategory');
-        var param_info = IPA.get_entity_param(
+        var metadata = IPA.get_entity_param(
             that.entity.name, 'ipasudorunasusercategory');
 
         var span = $('<span/>', {
             name: 'ipasudorunasusercategory',
-            title: param_info.doc,
+            title: metadata.doc,
             'class': 'field'
         }).appendTo(container);
-        span.append(param_info.doc+": ");
+        span.append(metadata.doc+": ");
         field.create(span);
         span.append('<br/>');
 
-        param_info = IPA.get_entity_param(that.entity.name, 'ipasudorunas_user');
+        metadata = IPA.get_entity_param(that.entity.name, 'ipasudorunas_user');
 
         var table_span = $('<span/>', {
             name: 'ipasudorunas_user',
-            title: param_info ? param_info.doc : 'ipasudorunas_user',
+            title: metadata ? metadata.doc : 'ipasudorunas_user',
             'class': 'field'
         }).appendTo(span);
 
         field = that.get_field('ipasudorunas_user');
         field.create(table_span);
 
-        param_info = IPA.get_entity_param(that.entity.name, 'ipasudorunas_group');
+        metadata = IPA.get_entity_param(that.entity.name, 'ipasudorunas_group');
 
         table_span = $('<span/>', {
             name: 'ipasudorunas_group',
-            title: param_info ? param_info.doc : 'ipasudorunas_group',
+            title: metadata ? metadata.doc : 'ipasudorunas_group',
             'class': 'field'
         }).appendTo(span);
 
@@ -1029,25 +1029,25 @@ IPA.sudo.rule_details_runas_section = function(spec) {
         field.create(table_span);
 
         field = that.get_field('ipasudorunasgroupcategory');
-        param_info = IPA.get_entity_param(
+        metadata = IPA.get_entity_param(
             that.entity.name, 'ipasudorunasgroupcategory');
 
         span = $('<span/>', {
             name: 'ipasudorunasgroupcategory',
-            title: param_info.doc,
+            title: metadata.doc,
             'class': 'field'
         }).appendTo(container);
 
-        span.append(param_info.doc+": ");
+        span.append(metadata.doc+": ");
         field.create(span);
         span.append('<br/>');
 
-        param_info = IPA.get_entity_param(
+        metadata = IPA.get_entity_param(
             that.entity.name, 'ipasudorunasgroup_group');
 
         table_span = $('<span/>', {
             name: 'ipasudorunasgroup_group',
-            title: param_info ? param_info.doc : 'ipasudorunasgroup_group',
+            title: metadata ? metadata.doc : 'ipasudorunasgroup_group',
             'class': 'field'
         }).appendTo(span);
 

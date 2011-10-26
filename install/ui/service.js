@@ -128,7 +128,7 @@ IPA.service_adder_dialog = function(spec) {
         field(IPA.checkbox_widget({
             name: 'force',
             entity: spec.entity,
-            param_info: IPA.get_method_option('service_add', 'force')
+            metadata: IPA.get_method_option('service_add', 'force')
         }));
 
 

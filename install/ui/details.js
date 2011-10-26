@@ -647,9 +647,9 @@ IPA.details_facet = function(spec) {
                 var values = record[field.name];
                 if (!values) continue;
 
-                var param_info = field.param_info;
-                if (param_info) {
-                    if (param_info.primary_key) continue;
+                var metadata = field.metadata;
+                if (metadata) {
+                    if (metadata.primary_key) continue;
                     if (values.length === 1) {
                         command.set_option(field.name, values[0]);
                     } else if (field.join) {
