@@ -721,6 +721,8 @@ class host_find(LDAPSearch):
         return (filter.replace('locality', 'l'), base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
+        if options.get('pkey_only', False):
+            return
         for entry in entries:
             (dn, entry_attrs) = entry
             set_certificate_attrs(entry_attrs)

@@ -458,6 +458,8 @@ class pwpolicy_find(LDAPSearch):
     __doc__ = _('Search for group password policies.')
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
+        if options.get('pkey_only', False):
+            return False
         for e in entries:
             # attribute rights are not allowed for pwpolicy_find
             self.obj.add_cospriority(e[1], e[1]['cn'][0], rights=False)

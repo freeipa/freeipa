@@ -196,6 +196,26 @@ class test_user(Declarative):
 
 
         dict(
+            desc='Search for %r with pkey-only=True' % user1,
+            command=(
+                'user_find', [user1], {'pkey_only': True}
+            ),
+            expected=dict(
+                result=[
+                    {
+                        'dn':lambda x: DN(x) == \
+                                DN(('uid',user1),('cn','users'),
+                                   ('cn','accounts'),api.env.basedn),
+                        'uid': [user1],
+                    },
+                ],
+                summary=u'1 user matched',
+                count=1, truncated=False,
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r with minimal attributes' % user1,
             command=(
                 'user_find', [user1], {}

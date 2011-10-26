@@ -352,6 +352,8 @@ class permission_find(LDAPSearch):
     has_output_params = LDAPSearch.has_output_params + output_params
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
+        if options.get('pkey_only', False):
+            return
         for entry in entries:
             (dn, attrs) = entry
             try:
