@@ -854,7 +854,7 @@ IPA.get_member_attribute = function(obj_name, member) {
 IPA.create_network_spinner = function(){
     return $('<span />',{
         'class':'network-activity-indicator',
-        html: '<img src="spinner_small.gif" />'});
+        html: '<img src="images/spinner-small.gif" />'});
 };
 
 IPA.dirty_dialog = function(spec) {

@@ -508,7 +508,7 @@ IPA.cert.status_widget = function(spec) {
         }).appendTo(container);
 
         $('<img/>', {
-            src: 'check.png',
+            src: 'images/check-icon.png',
             style: 'float: left;',
             'class': 'status-icon'
         }).appendTo(div);
@@ -560,7 +560,7 @@ IPA.cert.status_widget = function(spec) {
             }).appendTo(container);
 
             $('<img/>', {
-                src: 'caution.png',
+                src: 'images/caution-icon.png',
                 style: 'float: left;',
                 'class': 'status-icon'
             }).appendTo(div);
@@ -600,7 +600,7 @@ IPA.cert.status_widget = function(spec) {
         }).appendTo(container);
 
         $('<img/>', {
-            src: 'caution.png',
+            src: 'images/caution-icon.png',
             style: 'float: left;',
             'class': 'status-icon'
         }).appendTo(div);

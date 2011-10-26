@@ -469,7 +469,7 @@ IPA.host_keytab_widget = function(spec) {
         }).appendTo(container);
 
         $('<img/>', {
-            src: 'caution.png',
+            src: 'images/caution-icon.png',
             'class': 'status-icon'
         }).appendTo(that.missing_span);
 
@@ -483,7 +483,7 @@ IPA.host_keytab_widget = function(spec) {
         }).appendTo(container);
 
         $('<img/>', {
-            src: 'check.png',
+            src: 'images/check-icon.png',
             'class': 'status-icon'
         }).appendTo(that.present_span);
 
@@ -590,7 +590,7 @@ IPA.host_password_widget = function(spec) {
         }).appendTo(container);
 
         $('<img/>', {
-            src: 'caution.png',
+            src: 'images/caution-icon.png',
             'class': 'status-icon'
         }).appendTo(that.missing_span);
 
@@ -604,7 +604,7 @@ IPA.host_password_widget = function(spec) {
         }).appendTo(container);
 
         $('<img/>', {
-            src: 'check.png',
+            src: 'images/check-icon.png',
             'class': 'status-icon'
         }).appendTo(that.present_span);
 

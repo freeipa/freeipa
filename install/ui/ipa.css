@@ -39,7 +39,7 @@ html {
 
 body {
     overflow: auto;
-    background: url("outer-bg.png");
+    background: url(images/outer-background.png);
     background-repeat: repeat-x;
     background-position: left top;
     background-color: #FFFFFF;
@@ -78,7 +78,7 @@ body {
     left: 0;
     right: 0;
     height: 34px;
-    background: url("top-bg.png") #0C3B00;
+    background: url(images/top-background.png) #0C3B00;
 }
 
 #background-navigation {
@@ -87,7 +87,7 @@ body {
     left: 0;
     right: 0;
     height: 72px;
-    background: url("Mainnav-background.png");
+    background: url(images/mainnav-background.png);
 }
 
 #background-left {
@@ -96,7 +96,7 @@ body {
     left: 0;
     width: 10px;
     bottom: 0;
-    background: url("background-left.png");
+    background: url(images/background-left.png);
     background-repeat: no-repeat;
 }
 
@@ -106,7 +106,7 @@ body {
     left: 10px;
     right: 10px;
     bottom: 0;
-    background: url("background-center.png");
+    background: url(images/background-center.png);
     background-repeat: repeat-x;
 }
 
@@ -116,7 +116,7 @@ body {
     right: 0;
     width: 10px;
     bottom: 0;
-    background: url("background-right.png");
+    background: url(images/background-right.png);
     background-repeat: no-repeat;
 }
 
@@ -138,53 +138,53 @@ body {
 }
 
 .combobox-icon {
-    background: url(combobox_open.png);
+    background: url(images/combobox-open.png);
 }
 
 .expanded-icon {
-    background: url(arrow_expanded.png);
+    background: url(images/arrow-expanded.png);
 }
 
 .collapsed-icon {
-    background: url(arrow_collapsed.png);
+    background: url(images/arrow-collapsed.png);
 }
 
 .search-icon {
-    background: url(search-icon.png) no-repeat;
+    background: url(images/search-icon.png) no-repeat;
 }
 
 .add-icon {
-    background: url(add-icon.png);
+    background: url(images/add-icon.png);
     margin: -4px 0 0 1px;
 }
 
 .remove-icon {
-    background: url(remove-icon.png);
+    background: url(images/remove-icon.png);
     margin: -4px 0 0 1px;
 }
 
 .update-icon {
-    background: url(update-icon.png);
+    background: url(images/update-icon.png);
     margin: -4px 0 0 1px;
 }
 
 .reset-icon {
-    background: url(reset-icon.png);
+    background: url(images/reset-icon.png);
     margin: -4px 0 0 1px;
 }
 
 .register-icon {
-    background: url(register.png);
+    background: url(images/entitle-register.png);
     margin: -4px 0 0 1px;
 }
 
 .import-icon {
-    background: url(import.png);
+    background: url(images/entitle-import.png);
     margin: -4px 0 0 1px;
 }
 
 .consume-icon {
-    background: url(consume.png);
+    background: url(images/entitle-consume.png);
     margin: -4px 0 0 1px;
 }
 
@@ -266,7 +266,7 @@ div.tabs {
 }
 
 .tabs1 > .ui-tabs-nav > .ui-state-hover {
-    background: url("hover-tab.png");
+    background: url(images/hover-tab.png);
 }
 
 .tabs1 > .ui-tabs-nav {
@@ -280,7 +280,7 @@ div.tabs {
 .tabs1 > .ui-tabs-nav li {
     -moz-border-radius: 0 !important;
     -webkit-border-radius: 0 !important;
-    background-image: url("Mainnav-offtab.png");
+    background-image: url(images/mainnav-tab-off.png);
     margin: 0 0.4em 0 0;
     border-width: 0;
     text-align: center;
@@ -290,7 +290,7 @@ div.tabs {
 
 .tabs1 > .ui-tabs-nav > li.ui-tabs-selected {
     padding: 0 0;
-    background-image: url("Mainnav-ontab.png");
+    background-image: url(images/mainnav-tab-on.png);
     text-align: center;
 }
 
@@ -347,7 +347,7 @@ span.main-nav-off > a:visited{
 }
 
 .tabs2 > .ui-tabs-nav > li.ui-tabs-selected  {
-    background: url("nav-arrow.png") no-repeat scroll center 2.1em transparent !important;
+    background: url(images/nav-arrow.png) no-repeat scroll center 2.1em transparent !important;
     height: 3.1em;
     border: none;
     margin: 0;
@@ -552,7 +552,7 @@ span.main-nav-off > a:visited {
     text-decoration: none;
     display: inline-block;
     line-height: 19px;
-    background-image: url("facet-tab_off.png");
+    background-image: url(images/facet-tab-off.png);
     color: #666666;
 }
 
@@ -564,7 +564,7 @@ span.main-nav-off > a:visited {
     color: #6C6F73;
     background-color: #f1f0ee;
     font-weight: bold;
-    background-image: url("facet-tab_on.png");
+    background-image: url(images/facet-tab-on.png);
     height: 20px;
 }
 
@@ -639,7 +639,7 @@ span.main-nav-off > a:visited {
     -webkit-border-radius: 15px !important;
     border-radius: 15px !important;
     border: 1px solid #9f9e9e;
-    background: url("search-bg.png");
+    background: url(images/search-background.png);
     height: 20px;
     line-height: 20px;
     padding: 0 8px 0;
@@ -1011,7 +1011,7 @@ table.kerberos-key-status {
 }
 
 .status-valid {
-    background-image:url('check.png');
+    background-image: url(images/check-icon.png);
     border: 0.2em solid #008000;
 }
 
@@ -1258,7 +1258,7 @@ table.scrollable tbody {
 /* Info and simple pages (not main app) */
 
 body.info-page  {
-    background: url("Static-Background.png") repeat-x scroll left top #EDEDED;
+    background: url(images/static-background.png) repeat-x scroll left top #EDEDED;
 }
 
 .info-page h1 {
@@ -1270,7 +1270,7 @@ body.info-page  {
     margin-left: auto;
     margin-right: auto;
     width: 960px;
-    background: url("centered-bg.png") no-repeat scroll 0 7em transparent;
+    background: url(images/centered-background.png) no-repeat scroll 0 7em transparent;
     min-height: 40em;
 }
 
