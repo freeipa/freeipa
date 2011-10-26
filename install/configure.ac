@@ -75,6 +75,7 @@ AC_CONFIG_FILES([
     migration/Makefile
     share/Makefile
     ui/Makefile
+    ui/images/Makefile
     tools/Makefile
     tools/man/Makefile
     updates/Makefile

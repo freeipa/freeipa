@@ -506,8 +506,6 @@ fi
 %{_usr}/share/ipa/migration/migration.py*
 %dir %{_usr}/share/ipa/ui
 %{_usr}/share/ipa/ui/index.html
-%{_usr}/share/ipa/ui/*.png
-%{_usr}/share/ipa/ui/*.gif
 %{_usr}/share/ipa/ui/*.ico
 %{_usr}/share/ipa/ui/*.css
 %{_usr}/share/ipa/ui/*.js
@@ -515,6 +513,9 @@ fi
 %{_usr}/share/ipa/ui/*.svg
 %{_usr}/share/ipa/ui/*.ttf
 %{_usr}/share/ipa/ui/*.woff
+%dir %{_usr}/share/ipa/ui/images
+%{_usr}/share/ipa/ui/images/*.png
+%{_usr}/share/ipa/ui/images/*.gif
 %dir %{_sysconfdir}/ipa
 %dir %{_sysconfdir}/ipa/html
 %config(noreplace) %{_sysconfdir}/ipa/html/ssbrowser.html
@@ -613,6 +614,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Mon Jan  9 2012 Endi S. Dewata <edewata@redhat.com> - 2.2.0-2
+- Moved UI images into install/ui/images
+
 * Mon Jan  9 2012 Simo Sorce <ssorce@redhat.com> - 2.2.0-1
 - Remove ipa_kpasswd.
 
