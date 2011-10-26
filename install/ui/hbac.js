@@ -457,6 +457,9 @@ IPA.hbacrule_details_facet = function(spec) {
             })
         };
 
+        var record = {};
+        that.save(record);
+
         var sections = that.sections.values;
         for (var i=0; i<sections.length; i++) {
             var section = sections[i];
@@ -468,7 +471,7 @@ IPA.hbacrule_details_facet = function(spec) {
                 // association tables are never dirty, so call
                 // is_dirty() after checking table values
 
-                var values = field.save();
+                var values = record[field.name];
                 if (!values) continue;
 
                 var metadata = field.metadata;

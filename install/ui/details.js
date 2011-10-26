@@ -374,7 +374,7 @@ IPA.details_facet = function(spec) {
             icon: 'reset-icon',
             'class': 'details-reset action-button-disabled',
             click: function() {
-                if(!that.update_button.hasClass('action-button-disabled')) {
+                if (!that.update_button.hasClass('action-button-disabled')) {
                     that.reset();
                 }
                 return false;
@@ -387,9 +387,19 @@ IPA.details_facet = function(spec) {
             icon: 'update-icon',
             'class': 'details-update action-button-disabled',
             click: function() {
-                if(!that.update_button.hasClass('action-button-disabled')) {
-                    that.update();
+                if (that.update_button.hasClass('action-button-disabled')) return false;
+
+                if (!that.validate()) {
+                    var dialog = IPA.message_dialog({
+                        title: IPA.messages.dialogs.validation_title,
+                        message: IPA.messages.dialogs.validation_message
+                    });
+                    dialog.open();
+                    return false;
                 }
+
+                that.update();
+
                 return false;
             }
         }).appendTo(that.controls);
@@ -627,15 +637,6 @@ IPA.details_facet = function(spec) {
             on_success: on_success,
             on_error: on_error
         });
-
-        if (!that.validate()) {
-            var dialog = IPA.message_dialog({
-                title: IPA.messages.dialogs.validation_title,
-                message: IPA.messages.dialogs.validation_message
-            });
-            dialog.open();
-            return;
-        }
 
         var record = {};
         that.save(record);
