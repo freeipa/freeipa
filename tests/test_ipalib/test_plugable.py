@@ -247,7 +247,7 @@ class test_Plugin(ClassChecker):
             info = 'whatever'
         e = raises(StandardError, check)
         assert str(e) == \
-            "check.info attribute ('whatever') conflicts with Plugin logger"
+            "info is already bound to tests.test_ipalib.test_plugable.check()"
 
     def test_set_api(self):
         """

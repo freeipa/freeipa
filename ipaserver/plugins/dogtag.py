@@ -1200,6 +1200,7 @@ import os, random, ldap
 from ipaserver.plugins import rabase
 from ipalib.errors import NetworkError, CertificateOperationError
 from ipalib.constants import TYPE_ERROR
+from ipalib.util import cachedproperty
 from ipapython import dogtag
 from ipalib import _
 
@@ -1218,7 +1219,6 @@ class ra(rabase.rabase):
         self.ipa_key_size = "2048"
         self.ipa_certificate_nickname = "ipaCert"
         self.ca_certificate_nickname = "caCert"
-        self.ca_host = None
         try:
             f = open(self.pwd_file, "r")
             self.password = f.readline().strip()
@@ -1266,7 +1266,8 @@ class ra(rabase.rabase):
             pass
         return None
 
-    def _select_ca(self):
+    @cachedproperty
+    def ca_host(self):
         """
         :return:   host
                    as str
@@ -1293,8 +1294,6 @@ class ra(rabase.rabase):
 
         Perform an HTTP request.
         """
-        if self.ca_host == None:
-            self.ca_host = self._select_ca()
         return dogtag.http_request(self.ca_host, port, url, **kw)
 
     def _sslget(self, url, port, **kw):
@@ -1306,9 +1305,6 @@ class ra(rabase.rabase):
 
         Perform an HTTPS request
         """
-
-        if self.ca_host == None:
-            self.ca_host = self._select_ca()
         return dogtag.https_request(self.ca_host, port, url, self.sec_dir, self.password, self.ipa_certificate_nickname, **kw)
 
     def get_parse_result_xml(self, xml_text, parse_func):

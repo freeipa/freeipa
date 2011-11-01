@@ -1092,7 +1092,7 @@ class DN(object):
                 return rdns
         elif isinstance(value, (tuple, list)):
             if len(value) != 2:
-                raise ValueError("tuple or list must be 2-valued, not \"%s\"" % (rdn))
+                raise ValueError("tuple or list must be 2-valued, not \"%s\"" % (value))
             rdn = RDN(value, first_key_match=self.first_key_match)
             return rdn
         else:
