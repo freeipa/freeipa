@@ -314,7 +314,7 @@ class IPAdmin(IPAEntryLDAPObject):
             raise errors.DuplicateEntry()
         except ldap.CONSTRAINT_VIOLATION, e:
             # This error gets thrown by the uniqueness plugin
-            if info == 'Another entry with the same attribute value already exists':
+            if info.startswith('Another entry with the same attribute value already exists'):
                 raise errors.DuplicateEntry()
             else:
                 raise errors.DatabaseError(desc=desc,info=info)

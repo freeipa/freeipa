@@ -448,10 +448,10 @@ class RefererError(PublicError):
 
     For example:
 
-    >>> raise RefererError()
+    >>> raise RefererError(referer='referer')
     Traceback (most recent call last):
       ...
-    RefererError: Missing or invalid HTTP Referer
+    RefererError: Missing or invalid HTTP Referer, referer
     """
 
     errno = 911
@@ -1537,7 +1537,7 @@ class DependentEntry(ExecutionError):
     >>> raise DependentEntry(label=u'SELinux User Map', key=u'test', dependent=u'test1')
     Traceback (most recent call last):
       ...
-    DependentEntry: Not registered yet
+    DependentEntry: test cannot be deleted because SELinux User Map test1 requires it
 
     """
 

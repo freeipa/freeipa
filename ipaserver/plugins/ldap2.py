@@ -210,7 +210,7 @@ def _handle_errors(e, **kw):
         raise errors.DuplicateEntry()
     except _ldap.CONSTRAINT_VIOLATION:
         # This error gets thrown by the uniqueness plugin
-        if info == 'Another entry with the same attribute value already exists':
+        if info.startswith('Another entry with the same attribute value already exists'):
             raise errors.DuplicateEntry()
         else:
             raise errors.DatabaseError(desc=desc, info=info)

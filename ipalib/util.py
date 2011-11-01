@@ -27,6 +27,7 @@ import time
 import socket
 import re
 from types import NoneType
+from weakref import WeakKeyDictionary
 
 from ipalib import errors
 from ipalib.text import _
@@ -272,3 +273,36 @@ def validate_hostname(hostname):
     if not all(regex_name.match(part) for part in hostname.split(".")):
         raise ValueError(_('hostname parts may only include letters, numbers, and - ' \
                            '(which is not allowed as the last character)'))
+
+class cachedproperty(object):
+    """
+    A property-like attribute that caches the return value of a method call.
+
+    When the attribute is first read, the method is called and its return
+    value is saved and returned. On subsequent reads, the saved value is
+    returned.
+
+    Typical usage:
+    class C(object):
+        @cachedproperty
+        def attr(self):
+            return 'value'
+    """
+    __slots__ = ('getter', 'store')
+
+    def __init__(self, getter):
+        self.getter = getter
+        self.store = WeakKeyDictionary()
+
+    def __get__(self, obj, cls):
+        if obj is None:
+            return None
+        if obj not in self.store:
+            self.store[obj] = self.getter(obj)
+        return self.store[obj]
+
+    def __set__(self, obj, value):
+        raise AttributeError("can't set attribute")
+
+    def __delete__(self, obj):
+        raise AttributeError("can't delete attribute")

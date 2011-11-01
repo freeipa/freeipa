@@ -112,7 +112,15 @@ class test_ldap(object):
         myapi.register(service)
         myapi.register(service_show)
         myapi.finalize()
-        myapi.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw='password')
+
+        pwfile = api.env.dot_ipa + os.sep + ".dmpw"
+        if ipautil.file_exists(pwfile):
+            fp = open(pwfile, "r")
+            dm_password = fp.read().rstrip()
+            fp.close()
+        else:
+            raise nose.SkipTest("No directory manager password in %s" % pwfile)
+        myapi.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
 
         result = myapi.Command['service_show']('ldap/%s@%s' %  (api.env.host, api.env.realm,))
         entry_attrs = result['result']

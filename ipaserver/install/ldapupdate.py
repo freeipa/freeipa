@@ -700,7 +700,7 @@ class LDAPUpdate:
                     self.conn.deleteEntry(dn)
                 self.modified = True
             except errors.NotFound, e:
-                root_logger.info("%s did not exist:%s", (dn, e))
+                root_logger.info("%s did not exist:%s", dn, e)
                 self.modified = True
             except errors.DatabaseError, e:
                 root_logger.error("Delete failed: %s", e)
@@ -717,7 +717,7 @@ class LDAPUpdate:
                         self.conn.deleteEntry(dn)
                     self.modified = True
                 except errors.NotFound, e:
-                    root_logger.info("%s did not exist:%s", (dn, e))
+                    root_logger.info("%s did not exist:%s", dn, e)
                     self.modified = True
                 except errors.DatabaseError, e:
                     root_logger.error("Delete failed: %s", e)
