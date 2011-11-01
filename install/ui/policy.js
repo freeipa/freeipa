@@ -28,7 +28,7 @@ IPA.entity_factories.pwpolicy = function() {
     return IPA.entity_builder().
         entity('pwpolicy').
         search_facet({
-            columns:['cn']}).
+            columns:['cn','cospriority']}).
         details_facet({
             sections:[
                 {
