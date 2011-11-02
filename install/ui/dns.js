@@ -21,7 +21,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js, widget.js */
+/* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js, widget.js */
 
 /* DNS */
 IPA.entity_factories.dnszone = function() {
