@@ -22,12 +22,15 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
 
+IPA.hostgroup = {};
 
-IPA.entity_factories.hostgroup = function() {
+IPA.hostgroup.entity = function(spec) {
 
-    return IPA.entity_builder().
-        entity('hostgroup').
-        search_facet({
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.search_facet({
             columns: [
                 'cn',
                 'description'
@@ -77,9 +80,10 @@ IPA.entity_factories.hostgroup = function() {
                     name: 'description'
                 }
             ]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
-
-
+IPA.register('hostgroup', IPA.hostgroup.entity);

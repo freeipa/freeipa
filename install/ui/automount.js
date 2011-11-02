@@ -23,13 +23,15 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
 
+IPA.automount = {};
 
-/**Automount*/
+IPA.automount.location_entity = function(spec) {
 
-IPA.entity_factories.automountlocation = function() {
-    return IPA.entity_builder().
-        entity({ name: 'automountlocation' }).
-        facet_groups([ 'automountmap', 'settings' ]).
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.facet_groups([ 'automountmap', 'settings' ]).
         search_facet({
             title: IPA.metadata.objects.automountlocation.label,
             columns:['cn']
@@ -52,14 +54,19 @@ IPA.entity_factories.automountlocation = function() {
         }).
         adder_dialog({
             fields: [ 'cn' ]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
-IPA.entity_factories.automountmap = function() {
-    return IPA.entity_builder().
-        entity({ name: 'automountmap' }).
-        containing_entity('automountlocation').
+IPA.automount.map_entity = function(spec) {
+
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.containing_entity('automountlocation').
         facet_groups([ 'automountkey', 'settings' ]).
         nested_search_facet({
             facet_group: 'automountkey',
@@ -135,14 +142,19 @@ IPA.entity_factories.automountmap = function() {
                     ]
                 }
             ]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
-IPA.entity_factories.automountkey = function() {
-    return IPA.entity_builder().
-        entity({ name: 'automountkey' }).
-        containing_entity('automountmap').
+IPA.automount.key_entity = function(spec) {
+
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.containing_entity('automountmap').
         details_facet({
             sections: [
                 {
@@ -188,8 +200,10 @@ IPA.entity_factories.automountkey = function() {
                 return false;
             },
             fields:['automountkey','automountinformation']
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
 IPA.automount_key_column = function(spec) {
@@ -275,3 +289,7 @@ IPA.get_option_values = function(){
     });
     return values;
 };
+
+IPA.register('automountlocation', IPA.automount.location_entity);
+IPA.register('automountmap', IPA.automount.map_entity);
+IPA.register('automountkey', IPA.automount.key_entity);

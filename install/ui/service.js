@@ -23,11 +23,15 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
 
-IPA.entity_factories.service = function() {
+IPA.service = {};
 
-    return  IPA.entity_builder().
-        entity('service').
-        search_facet({
+IPA.service.entity = function(spec) {
+
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.search_facet({
             columns: [ 'krbprincipalname' ]
         }).
         details_facet({
@@ -81,10 +85,11 @@ IPA.entity_factories.service = function() {
         adder_dialog({
             factory: IPA.service_adder_dialog,
             height: 350
-        }).
-        build();
-};
+        });
+    };
 
+    return that;
+};
 
 IPA.service_adder_dialog = function(spec) {
 
@@ -341,3 +346,5 @@ IPA.service_certificate_status_widget = function (spec) {
 
     return that;
 };
+
+IPA.register('service', IPA.service.entity);

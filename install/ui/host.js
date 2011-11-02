@@ -24,11 +24,15 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
 
-IPA.entity_factories.host = function () {
+IPA.host = {};
 
-    return IPA.entity_builder().
-        entity('host').
-        search_facet({
+IPA.host.entity = function(spec) {
+
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.search_facet({
             columns: [
                 'fqdn',
                 'description',
@@ -166,8 +170,10 @@ IPA.entity_factories.host = function () {
         }).
         deleter_dialog({
             factory: IPA.host_deleter_dialog
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
 IPA.host_fqdn_section = function(spec) {
@@ -779,3 +785,5 @@ IPA.host_certificate_status_widget = function (spec) {
 
     return that;
 };
+
+IPA.register('host', IPA.host.entity);

@@ -22,12 +22,15 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
 
+IPA.sudo = {};
 
-IPA.entity_factories.sudorule = function() {
+IPA.sudo.rule_entity = function(spec) {
 
-    return IPA.entity_builder().
-        entity('sudorule').
-        search_facet({
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.search_facet({
             columns: [
                 'cn',
                 'ipaenabledflag',
@@ -39,15 +42,19 @@ IPA.entity_factories.sudorule = function() {
         }).
         adder_dialog({
             fields: [ 'cn' ]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
-IPA.entity_factories.sudocmd = function() {
+IPA.sudo.command_entity = function(spec) {
 
-    return IPA.entity_builder().
-        entity('sudocmd').
-        search_facet({
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.search_facet({
             columns: [
                 'sudocmd',
                 'description'
@@ -100,15 +107,19 @@ IPA.entity_factories.sudocmd = function() {
                     name: 'description'
                 }
             ]
-        }).
-        build();
+        });
+    };
 
+    return that;
 };
 
-IPA.entity_factories.sudocmdgroup = function() {
-    return IPA.entity_builder().
-        entity('sudocmdgroup').
-        search_facet({
+IPA.sudo.command_group_entity = function(spec) {
+
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.search_facet({
             columns: [
                 'cn',
                 'description'
@@ -160,11 +171,11 @@ IPA.entity_factories.sudocmdgroup = function() {
                     name: 'description'
                 }
             ]
-        }).
-        build();
-};
+        });
+    };
 
-IPA.sudo = {};
+    return that;
+};
 
 IPA.sudorule_details_facet = function(spec) {
 
@@ -1186,3 +1197,7 @@ IPA.sudo.rule_association_adder_dialog = function(spec) {
 
     return that;
 };
+
+IPA.register('sudorule', IPA.sudo.rule_entity);
+IPA.register('sudocmd', IPA.sudo.command_entity);
+IPA.register('sudocmdgroup', IPA.sudo.command_group_entity);

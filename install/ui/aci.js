@@ -23,11 +23,15 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
 
-IPA.entity_factories.permission = function() {
+IPA.aci = {};
 
-    return IPA.entity_builder().
-        entity('permission').
-        facet_groups([ 'privilege' , 'settings' ]).
+IPA.aci.permission_entity = function(spec) {
+
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.facet_groups([ 'privilege' , 'settings' ]).
         search_facet({
             columns:['cn']
         }).
@@ -78,15 +82,19 @@ IPA.entity_factories.permission = function() {
                     label: IPA.messages.objects.permission.target
                 }
             ]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
+IPA.aci.privilege_entity = function(spec) {
 
-IPA.entity_factories.privilege = function() {
-    return IPA.entity_builder().
-        entity('privilege').
-        facet_groups([ 'role', 'settings', 'permission' ]).
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.facet_groups([ 'role', 'settings', 'permission' ]).
         search_facet({
             columns: [
                 'cn',
@@ -130,16 +138,19 @@ IPA.entity_factories.privilege = function() {
                     name: 'description'
                 }
             ]
-        }).
-        build();
+        });
+    };
 
+    return that;
 };
 
+IPA.aci.role_entity = function(spec) {
 
-IPA.entity_factories.role = function() {
-    return  IPA.entity_builder().
-        entity('role').
-        facet_groups([ 'member', 'settings', 'privilege' ]).
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.facet_groups([ 'member', 'settings', 'privilege' ]).
         search_facet({
             columns: [
                 'cn',
@@ -176,15 +187,19 @@ IPA.entity_factories.role = function() {
                     name: 'description'
                 }
             ]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
+IPA.aci.selfservice_entity = function(spec) {
 
-IPA.entity_factories.selfservice = function() {
-    return IPA.entity_builder().
-        entity('selfservice').
-        search_facet({
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.search_facet({
             columns:['aciname']}).
         details_facet({
             sections:[{
@@ -204,15 +219,19 @@ IPA.entity_factories.selfservice = function() {
                  object_type:'user',
                  name:'attrs'
                 }]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
+IPA.aci.delegation_entity = function(spec) {
 
-IPA.entity_factories.delegation = function() {
-    return IPA.entity_builder().
-        entity('delegation').
-        search_facet({
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.search_facet({
             columns:['aciname']}).
         details_facet({sections:[
             {
@@ -261,8 +280,10 @@ IPA.entity_factories.delegation = function() {
                     object_type: 'user',
                     join: true
                 }]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
 
@@ -738,3 +759,9 @@ IPA.target_section = function(spec) {
 
     return that;
 };
+
+IPA.register('permission', IPA.aci.permission_entity);
+IPA.register('privilege', IPA.aci.privilege_entity);
+IPA.register('role', IPA.aci.role_entity);
+IPA.register('selfservice', IPA.aci.selfservice_entity);
+IPA.register('delegation', IPA.aci.delegation_entity);

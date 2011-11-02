@@ -23,19 +23,20 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
 
+IPA.user = {};
 
-IPA.entity_factories.user = function() {
+IPA.user.entity = function(spec) {
+
+    var that = IPA.entity(spec);
 
     var link = true;
     if (IPA.nav && IPA.nav.name == 'self-service') {
         link = false;
     }
 
-    var builder = IPA.entity_builder();
+    that.init = function(params) {
 
-    builder.
-        entity('user').
-        search_facet({
+        params.builder.search_facet({
             columns: [
                 'uid',
                 'givenname',
@@ -105,7 +106,8 @@ IPA.entity_factories.user = function() {
             {
                 name: 'misc',
                 fields: ['carlicense']
-            }]}).
+            }]
+        }).
         association_facet({
             name: 'memberof_group',
             associator: IPA.serial_associator,
@@ -167,8 +169,9 @@ IPA.entity_factories.user = function() {
                 }
             ]
         });
+    };
 
-    return builder.build();
+    return that;
 };
 
 IPA.user_adder_dialog = function(spec) {
@@ -461,3 +464,5 @@ IPA.user_password_widget = function(spec) {
 
     return that;
 };
+
+IPA.register('user', IPA.user.entity);

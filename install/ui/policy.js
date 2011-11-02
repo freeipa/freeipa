@@ -23,11 +23,15 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
 
-/**pwpolicy*/
-IPA.entity_factories.pwpolicy = function() {
-    return IPA.entity_builder().
-        entity('pwpolicy').
-        search_facet({
+IPA.pwpolicy = {};
+
+IPA.pwpolicy.entity = function(spec) {
+
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.search_facet({
             columns:['cn','cospriority']}).
         details_facet({
             sections:[
@@ -63,18 +67,21 @@ IPA.entity_factories.pwpolicy = function() {
                 'cospriority'
             ],
             height: 300
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
-/**
-   krbtpolicy
-   Does not have search
-*/
-IPA.entity_factories.krbtpolicy =  function() {
-    return IPA.entity_builder().
-        entity('krbtpolicy').
-        details_facet({
+IPA.krbtpolicy = {};
+
+IPA.krbtpolicy.entity = function(spec) {
+
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.details_facet({
             title: IPA.metadata.objects.krbtpolicy.label,
             sections: [
                 {
@@ -86,6 +93,11 @@ IPA.entity_factories.krbtpolicy =  function() {
                 }
             ],
             needs_update: true
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
+
+IPA.register('pwpolicy', IPA.pwpolicy.entity);
+IPA.register('krbtpolicy', IPA.krbtpolicy.entity);

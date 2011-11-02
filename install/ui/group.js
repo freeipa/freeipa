@@ -24,11 +24,15 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
 
-IPA.entity_factories.group =  function () {
+IPA.group = {};
 
-    return IPA.entity_builder().
-        entity('group').
-        search_facet({
+IPA.group.entity = function(spec) {
+
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.search_facet({
             columns: [
                 'cn',
                 'gidnumber',
@@ -117,8 +121,10 @@ IPA.entity_factories.group =  function () {
                 },
                 'gidnumber'
             ]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
 IPA.group_nonposix_checkbox_widget = function (spec) {
@@ -136,7 +142,7 @@ IPA.group_nonposix_checkbox_widget = function (spec) {
     return that;
 };
 
-IPA.group_adder_dialog = function (spec) {
+IPA.group_adder_dialog = function(spec) {
 
     spec = spec || {};
 
@@ -161,3 +167,5 @@ IPA.group_adder_dialog = function (spec) {
 
     return that;
 };
+
+IPA.register('group', IPA.group.entity);
