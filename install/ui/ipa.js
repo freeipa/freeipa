@@ -25,7 +25,7 @@
 /* REQUIRES: jquery.ordered-map.js */
 /*global $:true, location:true */
 
-var IPA = ( function () {
+var IPA = function() {
 
     var that = {
         jsonrpc_id: 0
@@ -181,22 +181,37 @@ var IPA = ( function () {
         batch.execute();
     };
 
+    that.register = function(name, factory) {
+        that.entity_factories[name] = factory;
+    };
+
     that.get_entities = function() {
         return that.entities.values;
     };
 
-
-
     that.get_entity = function(name) {
         var entity = that.entities.get(name);
-        if (!entity){
+        if (!entity) {
             var factory = that.entity_factories[name];
-            if (!factory){
+            if (!factory) {
                 return null;
             }
+
             try {
-                entity = factory();
+                var builder = that.entity_builder();
+
+                builder.entity({
+                    factory: factory,
+                    name: name
+                });
+
+                entity = builder.build();
+                entity.init({
+                    builder: builder
+                });
+
                 that.add_entity(entity);
+
             } catch (e) {
                 if (e.expected){
                     /*expected exceptions thrown by builder just mean that
@@ -265,7 +280,7 @@ var IPA = ( function () {
     };
 
     return that;
-}());
+}();
 
 /**
  * Call an IPA command over JSON-RPC.

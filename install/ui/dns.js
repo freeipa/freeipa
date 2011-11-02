@@ -23,8 +23,11 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js, widget.js */
 
-/* DNS */
-IPA.entity_factories.dnszone = function() {
+IPA.dns = {};
+
+IPA.dns.zone_entity = function(spec) {
+
+    var that = IPA.entity(spec);
 
     if (!IPA.dns_enabled) {
         var except = {
@@ -33,9 +36,9 @@ IPA.entity_factories.dnszone = function() {
         throw except;
     }
 
-    return IPA.entity_builder().
-        entity('dnszone').
-        facet_groups([ 'dnsrecord', 'settings' ]).
+    that.init = function(params) {
+
+        params.builder.facet_groups([ 'dnsrecord', 'settings' ]).
         search_facet({
             title: IPA.metadata.objects.dnszone.label,
             columns: [ 'idnsname' ]
@@ -140,8 +143,10 @@ IPA.entity_factories.dnszone = function() {
                     ]
                 }
             ]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
 IPA.dnszone_details_facet = function(spec) {
@@ -429,7 +434,9 @@ IPA.dns_record_search_load = function (result) {
     }
 };
 
-IPA.entity_factories.dnsrecord = function() {
+IPA.dns.record_entity = function(spec) {
+
+    var that = IPA.entity(spec);
 
     if (!IPA.dns_enabled) {
         var except = {
@@ -438,9 +445,9 @@ IPA.entity_factories.dnsrecord = function() {
         throw except;
     }
 
-    return IPA.entity_builder().
-        entity('dnsrecord').
-        containing_entity('dnszone').
+    that.init = function(params) {
+
+        params.builder.containing_entity('dnszone').
         details_facet({
             post_update_hook:function(data){
                 var result = data.result.result;
@@ -604,8 +611,10 @@ IPA.entity_factories.dnsrecord = function() {
                     required: true
                 }
             ]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
 IPA.dnsrecord_redirection_dialog = function(spec) {
@@ -710,3 +719,6 @@ IPA.dnsrecord_get_delete_values = function() {
 
     return value_array;
 };
+
+IPA.register('dnszone', IPA.dns.zone_entity);
+IPA.register('dnsrecord', IPA.dns.record_entity);

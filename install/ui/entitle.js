@@ -29,16 +29,17 @@ IPA.entitle.unregistered = 'unregistered';
 IPA.entitle.online = 'online';
 IPA.entitle.offline = 'offline';
 
-IPA.entity_factories.entitle = function() {
+IPA.entitle.entity = function(spec) {
 
-    var builder = IPA.entity_builder();
+    spec = spec || {};
 
-    builder.
-        entity({
-            factory: IPA.entitle.entity,
-            name: 'entitle'
-        }).
-        facet_groups([ 'account', 'certificates' ]).
+    var that = IPA.entity(spec);
+
+    that.status = IPA.entitle.unregistered;
+
+    that.init = function(params) {
+
+        params.builder.facet_groups([ 'account', 'certificates' ]).
         details_facet({
             factory: IPA.entitle.details_facet,
             label: IPA.messages.objects.entitle.account,
@@ -171,17 +172,7 @@ IPA.entity_factories.entitle = function() {
                 }
             ]
         });
-
-    return builder.build();
-};
-
-IPA.entitle.entity = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.entity(spec);
-
-    that.status = IPA.entitle.unregistered;
+    };
 
     that.get_accounts = function(on_success, on_error) {
 
@@ -751,3 +742,5 @@ IPA.entitle.download_widget = function(spec) {
 
     return that;
 };
+
+IPA.register('entitle', IPA.entitle.entity);

@@ -23,10 +23,15 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
 
-IPA.entity_factories.hbacrule = function() {
-    return IPA.entity_builder().
-        entity('hbacrule').
-        search_facet({
+IPA.hbac = {};
+
+IPA.hbac.rule_entity = function(spec) {
+
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.search_facet({
             search_all: true,
             columns: [
                 'cn',
@@ -52,14 +57,19 @@ IPA.entity_factories.hbacrule = function() {
         }).
         adder_dialog({
             fields: [ 'cn' ]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
-IPA.entity_factories.hbacsvc = function() {
-    return IPA.entity_builder().
-        entity('hbacsvc').
-        search_facet({
+IPA.hbac.service_entity = function(spec) {
+
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.search_facet({
             columns: [
                 'cn',
                 'description'
@@ -112,15 +122,19 @@ IPA.entity_factories.hbacsvc = function() {
                     name: 'description'
                 }
             ]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
+IPA.hbac.service_group_entity = function(spec) {
 
-IPA.entity_factories.hbacsvcgroup = function() {
-    return IPA.entity_builder().
-        entity('hbacsvcgroup').
-        search_facet({
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.search_facet({
             columns: [
                 'cn',
                 'description'
@@ -172,8 +186,10 @@ IPA.entity_factories.hbacsvcgroup = function() {
                     name: 'description'
                 }
             ]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
 
 IPA.hbacrule_details_facet = function(spec) {
@@ -575,7 +591,6 @@ IPA.hbacrule_details_facet = function(spec) {
     return that;
 };
 
-
 IPA.hbac_deny_warning_dialog = function(container) {
     var dialog = IPA.dialog({
         'title': 'HBAC Deny Rules found'
@@ -618,3 +633,7 @@ IPA.hbac_deny_warning_dialog = function(container) {
 
     dialog.open();
 };
+
+IPA.register('hbacrule', IPA.hbac.rule_entity);
+IPA.register('hbacsvc', IPA.hbac.service_entity);
+IPA.register('hbacsvcgroup', IPA.hbac.service_group_entity);

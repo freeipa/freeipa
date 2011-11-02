@@ -23,14 +23,15 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
 
+IPA.config = {};
 
+IPA.config.entity = function(spec) {
 
-/* Configuration */
+    var that = IPA.entity(spec);
 
-IPA.entity_factories.config = function(){
-    return IPA.entity_builder().
-        entity('config').
-        details_facet({
+    that.init = function(params) {
+
+        params.builder.details_facet({
             title: IPA.metadata.objects.config.label,
             sections: [
                 {
@@ -80,6 +81,10 @@ IPA.entity_factories.config = function(){
                 }
             ],
             needs_update: true
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
+
+IPA.register('config', IPA.config.entity);

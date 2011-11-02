@@ -52,6 +52,9 @@ IPA.entity = function(spec) {
     that.redirect_facet = spec.redirect_facet;
     that.containing_entity = null;
 
+    that.init = function(params) {
+    };
+
     that.get_containing_entity = function() {
         return that.containing_entity ?
                 IPA.get_entity(that.containing_entity) : null;
@@ -282,7 +285,7 @@ IPA.nested_tabs = function(entity_name) {
     return siblings;
 };
 
-IPA.entity_builder = function(){
+IPA.entity_builder = function() {
 
     var that = {};
 
@@ -523,10 +526,7 @@ IPA.entity_builder = function(){
     };
 
     that.build = function(){
-        var item = entity;
-        entity = null;
-
-        return item;
+        return entity;
     };
 
     return that;

@@ -22,11 +22,15 @@
 
 /* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js */
 
-IPA.entity_factories.netgroup = function() {
+IPA.netgroup = {};
 
-    return IPA.entity_builder().
-        entity('netgroup').
-        search_facet({
+IPA.netgroup.entity = function(spec) {
+
+    var that = IPA.entity(spec);
+
+    that.init = function(params) {
+
+        params.builder.search_facet({
             columns: [
                 'cn',
                 'description'
@@ -76,6 +80,10 @@ IPA.entity_factories.netgroup = function() {
                     name: 'description'
                 }
             ]
-        }).
-        build();
+        });
+    };
+
+    return that;
 };
+
+IPA.register('netgroup', IPA.netgroup.entity);
