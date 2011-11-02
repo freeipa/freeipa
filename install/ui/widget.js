@@ -59,6 +59,8 @@ IPA.widget = function(spec) {
 
     that.metadata = spec.metadata;
 
+    that.priority = spec.priority;
+
     that.values = [];
     that.dirty = false;
     that.valid = true;
@@ -288,6 +290,17 @@ IPA.widget = function(spec) {
     };
 
     that.update = function() {
+    };
+
+    that.get_update_info = function() {
+
+        var update_info = IPA.update_info_builder.new_update_info();
+        if(that.is_dirty()) {
+            update_info.fields.push(IPA.update_info_builder.new_field_info(
+                that,
+                that.save()));
+        }
+        return update_info;
     };
 
     /**

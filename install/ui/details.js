@@ -207,6 +207,20 @@ IPA.details_section = function(spec) {
         }
     };
 
+    that.get_update_info = function() {
+
+        var update_info = IPA.update_info_builder.new_update_info();
+
+        var fields = that.fields.values;
+        for(var i=0; i < fields.length; i++) {
+            update_info = IPA.update_info_builder.merge(
+                update_info,
+                fields[i].get_update_info());
+        }
+
+        return update_info;
+    };
+
     init();
 
     // methods that should be invoked by subclasses
@@ -280,6 +294,8 @@ IPA.details_facet = function(spec) {
     that.entity = spec.entity;
     that.pre_execute_hook = spec.pre_execute_hook;
     that.post_update_hook = spec.post_update_hook;
+    that.update_command_name = spec.update_command_name || 'mod';
+    that.command_mode = spec.command_mode || 'save'; // [save, info]
 
     that.label = spec.label || IPA.messages && IPA.messages.facets && IPA.messages.facets.details;
     that.facet_group = spec.facet_group || 'settings';
@@ -398,11 +414,7 @@ IPA.details_facet = function(spec) {
                 if (that.update_button.hasClass('action-button-disabled')) return false;
 
                 if (!that.validate()) {
-                    var dialog = IPA.message_dialog({
-                        title: IPA.messages.dialogs.validation_title,
-                        message: IPA.messages.dialogs.validation_message
-                    });
-                    dialog.open();
+                    that.show_validation_error();
                     return false;
                 }
 
@@ -590,6 +602,32 @@ IPA.details_facet = function(spec) {
         }
     };
 
+    that.save_as_update_info = function(only_dirty, require_value) {
+
+        var record = {};
+        var update_info = IPA.update_info_builder.new_update_info();
+        var sections = that.sections.values;
+
+        that.save(record);
+
+        for (var i=0; i<sections.length; i++) {
+            var section = sections[i];
+
+            var section_fields = section.fields.values;
+            for (var j=0; j<section_fields.length; j++) {
+                var field = section_fields[j];
+                if (only_dirty && !field.is_dirty()) continue;
+
+                var values = record[field.name];
+                if (require_value && !values) continue;
+
+                update_info.append_field(field, values);
+            }
+        }
+
+        return update_info;
+    };
+
     that.reset = function() {
         var sections = that.sections.values;
         for (var i=0; i<sections.length; i++) {
@@ -598,6 +636,7 @@ IPA.details_facet = function(spec) {
         }
         that.enable_update(false);
     };
+
 
     that.validate = function() {
         var valid = true;
@@ -609,81 +648,123 @@ IPA.details_facet = function(spec) {
         return valid;
     };
 
-    that.update = function(on_win, on_fail) {
 
-        function on_success(data, text_status, xhr) {
-            if (on_win)
-                on_win(data, text_status, xhr);
-            if (data.error)
-                return;
+    that.on_update_success = function(data, text_status, xhr) {
 
-            if (that.post_update_hook) {
-                that.post_update_hook(data, text_status);
-                return;
-            }
+        if (data.error)
+            return;
 
-            var result = data.result.result;
-            that.load(result);
+        if (that.post_update_hook) {
+            that.post_update_hook(data, text_status);
+            return;
         }
 
-        function on_error(xhr, text_status, error_thrown) {
-            if (on_fail)
-                on_fail(xhr, text_status, error_thrown);
+        var result = data.result.result;
+        that.load(result);
+    };
+
+    that.on_update_error = function(xhr, text_status, error_thrown) {
+    };
+
+    that.add_fields_to_command = function(update_info, command) {
+
+        for (var i=0; i < update_info.fields.length; i++) {
+            var field_info = update_info.fields[i];
+            var values = field_info.field.save();
+            IPA.command_builder.add_field_option(
+                command,
+                field_info.field,
+                values);
         }
+    };
+
+    that.create_fields_update_command = function(update_info, on_win, on_fail) {
 
         var args = that.get_primary_key();
-
         var command = IPA.command({
             entity: that.entity.name,
-            method: 'mod',
+            method: that.update_command_name,
             args: args,
             options: {
                 all: true,
                 rights: true
             },
-            on_success: on_success,
-            on_error: on_error
+            on_success: on_win,
+            on_error: on_fail
         });
 
-        var record = {};
-        that.save(record);
+        //set command options
+        that.add_fields_to_command(update_info, command);
 
-        var sections = that.sections.values;
-        for (var i=0; i<sections.length; i++) {
-            var section = sections[i];
+        return command;
+    };
 
-            var section_fields = section.fields.values;
-            for (var j=0; j<section_fields.length; j++) {
-                var field = section_fields[j];
-                if (!field.is_dirty()) continue;
+    that.create_batch_update_command = function(update_info, on_win, on_fail) {
 
-                var values = record[field.name];
-                if (!values) continue;
+        var batch = IPA.batch_command({
+            'name': that.entity.name + '_details_update',
+            'on_success': on_win,
+            'on_error': on_fail
+        });
 
-                var metadata = field.metadata;
-                if (metadata) {
-                    if (metadata.primary_key) continue;
-                    if (values.length === 1) {
-                        command.set_option(field.name, values[0]);
-                    } else if (field.join) {
-                        command.set_option(field.name, values.join(','));
-                    } else {
-                        command.set_option(field.name, values);
-                    }
-                } else {
-                    if (values.length) {
-                        command.add_option('setattr', field.name+'='+values[0]);
-                    } else {
-                        command.add_option('setattr', field.name+'=');
-                    }
-                    for (var k=1; k<values.length; k++) {
-                        command.add_option('addattr', field.name+'='+values[k]);
-                    }
-                }
-            }
+        var new_update_info = IPA.update_info_builder.copy(update_info);
+
+        if (update_info.fields.length > 0) {
+            new_update_info.append_command(
+                that.create_fields_update_command(update_info),
+                IPA.config.default_priority);
         }
 
-        //alert(JSON.stringify(command.to_json()));
+        new_update_info.commands.sort(function(a, b) {
+            return a.priority - b.priority;
+        });
+
+        for (var i=0; i < new_update_info.commands.length; i++) {
+            batch.add_command(new_update_info.commands[i].command);
+        }
+
+        return batch;
+    };
+
+    that.show_validation_error = function() {
+        var dialog = IPA.message_dialog({
+            title: IPA.messages.dialogs.validation_title,
+            message: IPA.messages.dialogs.validation_message
+        });
+        dialog.open();
+    };
+
+    that.update = function(on_win, on_fail) {
+
+        var on_success = function(data, text_status, xhr) {
+            that.on_update_success(data, text_status, xhr);
+            if (on_win) on_win.call(this, data, text_status, xhr);
+        };
+
+        var on_error = function(xhr, text_status, error_thrown) {
+            that.on_update_error(xhr, text_status, error_thrown);
+            if (on_fail) on_fail.call(this, xhr, text_status, error_thrown);
+        };
+
+        var command, update_info;
+
+        if(that.command_mode === 'info') {
+            update_info = that.get_update_info();
+        } else {
+            update_info = that.save_as_update_info(true, true);
+        }
+
+        if (update_info.commands.length <= 0) {
+            //normal command
+            command = that.create_fields_update_command(update_info,
+                                                        on_success,
+                                                        on_error);
+        } else {
+            //batch command
+            command = that.create_batch_update_command(update_info,
+                                                        on_success,
+                                                        on_error);
+        }
 
         if (that.pre_execute_hook){
             that.pre_execute_hook(command);
@@ -720,7 +801,7 @@ IPA.details_facet = function(spec) {
 
         command.on_error = that.on_error;
 
-        if (that.pre_execute_hook){
+        if (that.pre_execute_hook) {
             that.pre_execute_hook(command);
         }
 
@@ -736,6 +817,22 @@ IPA.details_facet = function(spec) {
         }
     };
 
+    that.get_update_info = function() {
+
+        var update_info = IPA.update_info_builder.new_update_info();
+
+        for (var i = 0; i < that.sections.length; i++) {
+            var section = that.sections.values[i];
+            if(section.get_update_info) {
+                update_info = IPA.update_info_builder.merge(
+                    update_info,
+                    section.get_update_info());
+            }
+        }
+
+        return update_info;
+    };
+
     that.add_sections(spec.sections);
 
     that.details_facet_create_content = that.create_content;
@@ -744,3 +841,112 @@ IPA.details_facet = function(spec) {
     return that;
 };
 
+IPA.update_info = function(spec) {
+
+    var that = {};
+
+    that.fields = spec.fields || [];
+    that.commands = spec.commands || [];
+
+    that.append_field = function(field, value) {
+        that.fields.push(IPA.update_info_builder.new_field_info(field, value));
+    };
+
+    that.append_command = function (command, priority) {
+        that.commands.push(IPA.update_info_builder.new_command_info(command,
+                                                                    priority));
+    };
+
+    return that;
+};
+
+IPA.command_info = function(spec) {
+
+    var that = {};
+
+    that.command = spec.command;
+    that.priority = spec.priority || IPA.config.default_priority;
+
+    return that;
+};
+
+IPA.field_info = function(spec) {
+
+    var that = {};
+
+    that.field = spec.field;
+    that.value = spec.value;
+
+    return that;
+};
+
+IPA.update_info_builder = function() {
+
+    var that = {};
+
+    that.new_update_info = function (fields, commands) {
+        return IPA.update_info({
+            fields: fields,
+            commands: commands
+        });
+    };
+
+    that.new_field_info = function(field, value) {
+        return IPA.field_info({
+            field: field,
+            value: value
+        });
+    };
+
+    that.new_command_info = function(command, priority) {
+        return IPA.command_info({
+            command: command,
+            priority: priority
+        });
+    };
+
+    that.merge = function(a, b) {
+        return that.new_update_info(
+            a.fields.concat(b.fields),
+            a.commands.concat(b.commands));
+    };
+
+    that.copy = function(original) {
+        return that.new_update_info(
+            original.fields.concat([]),
+            original.commands.concat([]));
+    };
+
+    return that;
+}();
+
+IPA.command_builder = function() {
+
+    var that = {};
+
+    that.add_field_option = function(command, field, values) {
+        if (!field || !values) return;
+
+        if (field.metadata) {
+            if (field.metadata.primary_key) return;
+            if (values.length === 1) {
+                command.set_option(field.name, values[0]);
+            } else if (field.join) {
+                command.set_option(field.name, values.join(','));
+            } else {
+                command.set_option(field.name, values);
+            }
+        } else {
+            if (values.length) {
+                command.add_option('setattr', field.name+'='+values[0]);
+            } else {
+                command.add_option('setattr', field.name+'=');
+            }
+            for (var k=1; k<values.length; k++) {
+                command.add_option('addattr', field.name+'='+values[k]);
+            }
+        }
+    };
+
+    return that;
+}();
