@@ -204,14 +204,14 @@ var IPA = function() {
                 that.add_entity(entity);
 
             } catch (e) {
-                if (e.expected){
+                if (e.expected) {
                     /*expected exceptions thrown by builder just mean that
                       entities are not to be registered. */
                     return null;
                 }
-                if (e.message){
+                if (e.message) {
                     alert(e.message);
-                }else{
+                } else {
                     alert(e);
                 }
                 return null;
@@ -1085,4 +1085,8 @@ IPA.error_list = function() {
 
     that.clear();
     return that;
+};
+
+IPA.config = {
+    default_priority: 500
 };
