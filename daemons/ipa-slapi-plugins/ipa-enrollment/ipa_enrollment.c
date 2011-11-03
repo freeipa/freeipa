@@ -451,7 +451,7 @@ ipaenrollment_init(Slapi_PBlock *pb)
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&pdesc);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_EXT_OP_OIDLIST, ipaenrollment_oid_list);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_EXT_OP_NAMELIST, ipaenrollment_name_list);
-    if (!ret) slapi_pblock_set(pb, SLAPI_PLUGIN_EXT_OP_FN, (void *)ipaenrollment_extop);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_EXT_OP_FN, (void *)ipaenrollment_extop);
 
     if (ret) {
         LOG("Failed to set plug-in version, function, and OID.\n");
