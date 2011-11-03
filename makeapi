@@ -397,6 +397,7 @@ def main():
         validate_api=True,
         enable_ra=True,
         mode='developer',
+        plugins_on_demand=False,
     )
 
     api.bootstrap(**cfg)

@@ -388,17 +388,20 @@ class Command(HasParam):
     ipalib.frontend.my_command()
     """
 
+    finalize_early = False
+
     takes_options = tuple()
     takes_args = tuple()
-    args = None
-    options = None
-    params = None
+    # Create stubs for attributes that are set in _on_finalize()
+    args = Plugin.finalize_attr('args')
+    options = Plugin.finalize_attr('options')
+    params = Plugin.finalize_attr('params')
     obj = None
 
     use_output_validation = True
-    output = None
+    output = Plugin.finalize_attr('output')
     has_output = ('result',)
-    output_params = None
+    output_params = Plugin.finalize_attr('output_params')
     has_output_params = tuple()
 
     msg_summary = None
@@ -411,6 +414,7 @@ class Command(HasParam):
         If not in a server context, the call will be forwarded over
         XML-RPC and the executed an the nearest IPA server.
         """
+        self.ensure_finalized()
         params = self.args_options_2_params(*args, **options)
         self.debug(
             'raw: %s(%s)', self.name, ', '.join(self._repr_iter(**params))
@@ -769,7 +773,7 @@ class Command(HasParam):
         """
         return self.Backend.xmlclient.forward(self.name, *args, **kw)
 
-    def finalize(self):
+    def _on_finalize(self):
         """
         Finalize plugin initialization.
 
@@ -799,7 +803,7 @@ class Command(HasParam):
         )
         self.output = NameSpace(self._iter_output(), sort=False)
         self._create_param_namespace('output_params')
-        super(Command, self).finalize()
+        super(Command, self)._on_finalize()
 
     def _iter_output(self):
         if type(self.has_output) is not tuple:
@@ -1040,19 +1044,21 @@ class Local(Command):
 
 
 class Object(HasParam):
-    backend = None
-    methods = None
-    properties = None
-    params = None
-    primary_key = None
-    params_minus_pk = None
+    finalize_early = False
+
+    # Create stubs for attributes that are set in _on_finalize()
+    backend = Plugin.finalize_attr('backend')
+    methods = Plugin.finalize_attr('methods')
+    properties = Plugin.finalize_attr('properties')
+    params = Plugin.finalize_attr('params')
+    primary_key = Plugin.finalize_attr('primary_key')
+    params_minus_pk = Plugin.finalize_attr('params_minus_pk')
 
     # Can override in subclasses:
     backend_name = None
     takes_params = tuple()
 
-    def set_api(self, api):
-        super(Object, self).set_api(api)
+    def _on_finalize(self):
         self.methods = NameSpace(
             self.__get_attrs('Method'), sort=False, name_attr='attr_name'
         )
@@ -1074,10 +1080,13 @@ class Object(HasParam):
                 filter(lambda p: not p.primary_key, self.params()), sort=False  #pylint: disable=E1102
             )
         else:
+            self.primary_key = None
             self.params_minus_pk = self.params
 
         if 'Backend' in self.api and self.backend_name in self.api.Backend:
             self.backend = self.api.Backend[self.backend_name]
+
+        super(Object, self)._on_finalize()
 
     def params_minus(self, *names):
         """
@@ -1166,16 +1175,20 @@ class Attribute(Plugin):
     only the base class for the `Method` and `Property` classes.  Also see
     the `Object` class.
     """
-    __obj = None
+    finalize_early = False
+
+    NAME_REGEX = re.compile(
+        '^(?P<obj>[a-z][a-z0-9]+)_(?P<attr>[a-z][a-z0-9]+(?:_[a-z][a-z0-9]+)*)$'
+    )
+
+    # Create stubs for attributes that are set in _on_finalize()
+    __obj = Plugin.finalize_attr('_Attribute__obj')
 
     def __init__(self):
-        m = re.match(
-            '^([a-z][a-z0-9]+)_([a-z][a-z0-9]+(?:_[a-z][a-z0-9]+)*)$',
-            self.__class__.__name__
-        )
+        m = self.NAME_REGEX.match(type(self).__name__)
         assert m
-        self.__obj_name = m.group(1)
-        self.__attr_name = m.group(2)
+        self.__obj_name = m.group('obj')
+        self.__attr_name = m.group('attr')
         super(Attribute, self).__init__()
 
     def __get_obj_name(self):
@@ -1194,9 +1207,9 @@ class Attribute(Plugin):
         return self.__obj
     obj = property(__get_obj)
 
-    def set_api(self, api):
-        self.__obj = api.Object[self.obj_name]
-        super(Attribute, self).set_api(api)
+    def _on_finalize(self):
+        self.__obj = self.api.Object[self.obj_name]
+        super(Attribute, self)._on_finalize()
 
 
 class Method(Attribute, Command):

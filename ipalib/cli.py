@@ -684,7 +684,7 @@ class help(frontend.Local):
         mcl = max((self._topics[topic_name][1], len(mod_name)))
         self._topics[topic_name][1] = mcl
 
-    def finalize(self):
+    def _on_finalize(self):
         # {topic: ["description", mcl, {"subtopic": ["description", mcl, [commands]]}]}
         # {topic: ["description", mcl, [commands]]}
         self._topics = {}
@@ -736,7 +736,7 @@ class help(frontend.Local):
             len(s) for s in (self._topics.keys() + [c.name for c in self._builtins])
         )
 
-        super(help, self).finalize()
+        super(help, self)._on_finalize()
 
     def run(self, key):
         name = from_cli(key)

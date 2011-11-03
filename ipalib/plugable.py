@@ -172,10 +172,15 @@ class Plugin(ReadOnly):
     Base class for all plugins.
     """
 
+    finalize_early = True
+
     label = None
 
     def __init__(self):
         self.__api = None
+        self.__finalize_called = False
+        self.__finalized = False
+        self.__finalize_lock = threading.RLock()
         cls = self.__class__
         self.name = cls.__name__
         self.module = cls.__module__
@@ -210,18 +215,85 @@ class Plugin(ReadOnly):
 
     def __get_api(self):
         """
-        Return `API` instance passed to `finalize()`.
+        Return `API` instance passed to `set_api()`.
 
-        If `finalize()` has not yet been called, None is returned.
+        If `set_api()` has not yet been called, None is returned.
         """
         return self.__api
     api = property(__get_api)
 
     def finalize(self):
         """
+        Finalize plugin initialization.
+
+        This method calls `_on_finalize()` and locks the plugin object.
+
+        Subclasses should not override this method. Custom finalization is done
+        in `_on_finalize()`.
         """
-        if not is_production_mode(self):
-            lock(self)
+        with self.__finalize_lock:
+            assert self.__finalized is False
+            if self.__finalize_called:
+                # No recursive calls!
+                return
+            self.__finalize_called = True
+            self._on_finalize()
+            self.__finalized = True
+            if not is_production_mode(self):
+                lock(self)
+
+    def _on_finalize(self):
+        """
+        Do custom finalization.
+
+        This method is called from `finalize()`. Subclasses can override this
+        method in order to add custom finalization.
+        """
+        pass
+
+    def ensure_finalized(self):
+        """
+        Finalize plugin initialization if it has not yet been finalized.
+        """
+        with self.__finalize_lock:
+            if not self.__finalized:
+                self.finalize()
+
+    class finalize_attr(object):
+        """
+        Create a stub object for plugin attribute that isn't set until the
+        finalization of the plugin initialization.
+
+        When the stub object is accessed, it calls `ensure_finalized()` to make
+        sure the plugin initialization is finalized. The stub object is expected
+        to be replaced with the actual attribute value during the finalization
+        (preferably in `_on_finalize()`), otherwise an `AttributeError` is
+        raised.
+
+        This is used to implement on-demand finalization of plugin
+        initialization.
+        """
+        __slots__ = ('name', 'value')
+
+        def __init__(self, name, value=None):
+            self.name = name
+            self.value = value
+
+        def __get__(self, obj, cls):
+            if obj is None or obj.api is None:
+                return self.value
+            obj.ensure_finalized()
+            try:
+                return getattr(obj, self.name)
+            except RuntimeError:
+                # If the actual attribute value is not set in _on_finalize(),
+                # getattr() calls __get__() again, which leads to infinite
+                # recursion. This can happen only if the plugin is written
+                # badly, so advise the developer about that instead of giving
+                # them a generic "maximum recursion depth exceeded" error.
+                raise AttributeError(
+                    "attribute '%s' of plugin '%s' was not set in finalize()" % (self.name, obj.name)
+                )
 
     def set_api(self, api):
         """
@@ -607,6 +679,7 @@ class API(DictProxy):
                     lock(self)
 
         plugins = {}
+        tofinalize = set()
         def plugin_iter(base, subclasses):
             for klass in subclasses:
                 assert issubclass(klass, base)
@@ -616,6 +689,8 @@ class API(DictProxy):
                 if not is_production_mode(self):
                     assert base not in p.bases
                 p.bases.append(base)
+                if klass.finalize_early or not self.env.plugins_on_demand:
+                    tofinalize.add(p)
                 yield p.instance
 
         production_mode = is_production_mode(self)
@@ -637,8 +712,8 @@ class API(DictProxy):
             if not production_mode:
                 assert p.instance.api is self
 
-        for p in plugins.itervalues():
-            p.instance.finalize()
+        for p in tofinalize:
+            p.instance.ensure_finalized()
             if not production_mode:
                 assert islocked(p.instance) is True
         object.__setattr__(self, '_API__finalized', True)
