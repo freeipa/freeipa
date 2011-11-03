@@ -528,6 +528,7 @@ IPA.details_facet = function(spec) {
     };
 
     that.needs_update = function() {
+        if (that._needs_update !== undefined) return that._needs_update;
         var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
         return pkey !== that.pkey;
     };

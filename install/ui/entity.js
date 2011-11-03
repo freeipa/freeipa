@@ -44,6 +44,7 @@ IPA.facet = function (spec) {
     that.header = spec.header || IPA.facet_header({ facet: that });
 
     that.entity_name = spec.entity_name;
+    that._needs_update = spec.needs_update;
 
     that.dialogs = $.ordered_map();
 
@@ -113,6 +114,7 @@ IPA.facet = function (spec) {
     };
 
     that.needs_update = function() {
+        if (that._needs_update !== undefined) return that._needs_update;
         return true;
     };
 

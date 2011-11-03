@@ -32,12 +32,11 @@ IPA.entity_factories.config = function(){
         entity('config').
         details_facet({
             title: IPA.metadata.objects.config.label,
-            sections:
-            [
+            sections: [
                 {
                     name: 'search',
                     label: IPA.messages.objects.config.search,
-                    fields:[
+                    fields: [
                         'ipasearchrecordslimit',
                         'ipasearchtimelimit'
                     ]
@@ -45,7 +44,7 @@ IPA.entity_factories.config = function(){
                 {
                     name: 'user',
                     label: IPA.messages.objects.config.user,
-                    fields:[
+                    fields: [
                         'ipausersearchfields',
                         'ipadefaultemaildomain',
                         {
@@ -71,7 +70,7 @@ IPA.entity_factories.config = function(){
                 {
                     name: 'group',
                     label: IPA.messages.objects.config.group,
-                    fields:[
+                    fields: [
                         'ipagroupsearchfields',
                         {
                             factory: IPA.multivalued_text_widget,
@@ -79,6 +78,8 @@ IPA.entity_factories.config = function(){
                         }
                     ]
                 }
-            ]}).
+            ],
+            needs_update: true
+        }).
         build();
 };
