@@ -52,7 +52,7 @@ krb5_error_code ipadb_get_pwd_policy(krb5_context kcontext, char *name,
     krb5_error_code kerr;
     LDAPMessage *res = NULL;
     LDAPMessage *lentry;
-    osa_policy_ent_t pentry;
+    osa_policy_ent_t pentry = NULL;
     uint32_t result;
     int ret;
 
@@ -150,6 +150,9 @@ krb5_error_code ipadb_get_pwd_policy(krb5_context kcontext, char *name,
     *policy = pentry;
 
 done:
+    if (kerr) {
+        free(pentry);
+    }
     free(esc_name);
     free(src_filter);
     ldap_msgfree(res);
