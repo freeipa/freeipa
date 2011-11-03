@@ -128,6 +128,7 @@ static int ipadb_ldap_attr_to_tl_data(LDAP *lcontext, LDAPMessage *le,
 
 done:
     if (ret) {
+        free(next);
         if (*result) {
             prev = *result;
             while (prev) {
