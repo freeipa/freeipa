@@ -85,7 +85,7 @@ krb5_error_code ipadb_get_pwd_policy(krb5_context kcontext, char *name,
         goto done;
     }
 
-    pentry = calloc(1, sizeof(osa_policy_ent_t));
+    pentry = calloc(1, sizeof(osa_policy_ent_rec));
     if (!pentry) {
         kerr = ENOMEM;
         goto done;
