@@ -263,6 +263,13 @@ int ipadb_get_connection(struct ipadb_context *ipactx)
 
 done:
     ldap_msgfree(res);
+
+    ldap_value_free_len(vals);
+    for (i = 0; i < c && cvals[i]; i++) {
+        free(cvals[i]);
+    }
+    free(cvals);
+
     if (ret) {
         if (ipactx->lcontext) {
             ldap_unbind_ext_s(ipactx->lcontext, NULL, NULL);
@@ -273,12 +280,6 @@ done:
         }
         return EIO;
     }
-
-    ldap_value_free_len(vals);
-    for (i = 0; i < c; i++) {
-        free(cvals[i]);
-    }
-    free(cvals);
 
     return 0;
 }
