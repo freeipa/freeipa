@@ -203,6 +203,7 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
             ret = asprintf(&ied->pw_policy_dn,
                            "cn=global_policy,%s", ipactx->realm_base);
             if (ret == -1) {
+                free(ied);
                 return ENOMEM;
             }
             db_entry->e_data = (krb5_octet *)ied;
