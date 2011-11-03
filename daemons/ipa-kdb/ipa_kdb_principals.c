@@ -334,6 +334,7 @@ done:
             free(keys[i].key_data_contents[0]);
             free(keys[i].key_data_contents[1]);
         }
+        free(keys);
         *result = NULL;
         *num = 0;
     }
