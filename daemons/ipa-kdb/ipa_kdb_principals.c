@@ -1571,6 +1571,7 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
         char **new_history;
         int nh_len;
         int ret;
+        int i;
 
         ied = (struct ipadb_e_data *)entry->e_data;
         if (ied->magic != IPA_E_DATA_MAGIC) {
@@ -1619,6 +1620,12 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
 
             kerr = ipadb_get_ldap_mod_str_list(imods, "passwordHistory",
                                                new_history, nh_len, mod_op);
+
+            for (i = 0; i < nh_len; i++) {
+                free(new_history[i]);
+            }
+            free(new_history);
+
             if (kerr) {
                 goto done;
             }
