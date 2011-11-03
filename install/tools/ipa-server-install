@@ -36,7 +36,7 @@ import signal
 import shutil
 import glob
 import traceback
-from ConfigParser import RawConfigParser
+import pickle
 import random
 import tempfile
 import nss.error
@@ -313,45 +313,36 @@ ANSWER_CACHE = "/root/.ipa_cache"
 
 def read_cache(dm_password):
     """
-    Returns a dict of cached answers or None if no cache file exists.
+    Returns a dict of cached answers or empty dict if no cache file exists.
     """
     if not ipautil.file_exists(ANSWER_CACHE):
         return {}
 
     top_dir = tempfile.mkdtemp("ipa")
+    fname = "%s/cache" % top_dir
     try:
-        clearfile = "%s/cache" % top_dir
-        decrypt_file(ANSWER_CACHE, clearfile, dm_password, top_dir)
+        decrypt_file(ANSWER_CACHE, fname, dm_password, top_dir)
     except Exception, e:
         shutil.rmtree(top_dir)
-        raise RuntimeError("Problem decrypting answer cache in %s, check your password." % ANSWER_CACHE)
+        raise Exception("Decryption of answer cache in %s failed, please check your password." % ANSWER_CACHE)
 
-    optdict={}
-    parser = RawConfigParser()
     try:
-        fp = open(clearfile, "r")
-        parser.readfp(fp)
-        optlist = parser.items('options')
-        fp.close()
-
+        with open(fname, 'rb') as f:
+            try:
+                optdict = pickle.load(f)
+            except Exception, e:
+                raise Exception("Parse error in %s: %s" % (ANSWER_CACHE, str(e)))
     except IOError, e:
-        raise RuntimeError("Error reading cache file %s: %s" % (ANSWER_CACHE, str(e)))
+        raise Exception("Read error in %s: %s" % (ANSWER_CACHE, str(e)))
     finally:
         shutil.rmtree(top_dir)
 
-    for opt in optlist:
-        value = opt[1]
-        if value.lower() in ['true', 'false']:
-            value = value.lower() == 'true'
-        if value == 'None':
-            value = None
-        optdict[opt[0]] = value
-
     # These are the only ones that may be overridden
-    if 'external_ca_file' in optdict:
-        del optdict['external_ca_file']
-    if 'external_cert_file' in optdict:
-        del optdict['external_cert_file']
+    for opt in ('external_ca_file', 'external_cert_file'):
+        try:
+            del optdict[opt]
+        except KeyError:
+            pass
 
     return optdict
 
@@ -359,21 +350,14 @@ def write_cache(options):
     """
     Takes a dict as input and writes a cached file of answers
     """
-
-    # convert the options instance into a dict
-    optdict = eval(str(options))
-    parser = RawConfigParser()
     top_dir = tempfile.mkdtemp("ipa")
+    fname = "%s/cache" % top_dir
     try:
-        fp = open("%s/cache" % top_dir, "w")
-        parser.add_section('options')
-        for opt in optdict:
-            parser.set('options', opt, optdict[opt])
-        parser.write(fp)
-        fp.close()
-        ipautil.encrypt_file("%s/cache" % top_dir, ANSWER_CACHE, options.dm_password, top_dir);
+        with open(fname, 'wb') as f:
+            pickle.dump(options, f)
+        ipautil.encrypt_file(fname, ANSWER_CACHE, options['dm_password'], top_dir)
     except IOError, e:
-        raise RuntimeError("Unable to cache command-line options %s" % str(e))
+        raise Exception("Unable to cache command-line options %s" % str(e))
     finally:
         shutil.rmtree(top_dir)
 
@@ -647,7 +631,10 @@ def main():
         dm_password = read_password("Directory Manager", confirm=False)
         if dm_password is None:
             sys.exit("\nDirectory Manager password required")
-        options._update_loose(read_cache(dm_password))
+        try:
+            options._update_loose(read_cache(dm_password))
+        except Exception, e:
+            sys.exit("Cannot process the cache file: %s" % str(e))
 
     if options.external_cert_file:
         try:
@@ -975,7 +962,7 @@ def main():
             options.unattended = True
             options.forwarders = dns_forwarders
             options.reverse_zone = reverse_zone
-            write_cache(options)
+            write_cache(vars(options))
             ca.configure_instance(host_name, dm_password, dm_password,
                                   csr_file="/root/ipa.csr",
                                   subject_base=options.subject)
