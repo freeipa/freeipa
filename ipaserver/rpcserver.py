@@ -143,9 +143,9 @@ class session(Executioner):
         finally:
             destroy_context()
 
-    def finalize(self):
+    def _on_finalize(self):
         self.url = self.env['mount_ipa']
-        super(session, self).finalize()
+        super(session, self)._on_finalize()
 
     def route(self, environ, start_response):
         key = shift_path_info(environ)
@@ -186,9 +186,9 @@ class WSGIExecutioner(Executioner):
         if 'session' in self.api.Backend:
             self.api.Backend.session.mount(self, self.key)
 
-    def finalize(self):
+    def _on_finalize(self):
         self.url = self.env.mount_ipa + self.key
-        super(WSGIExecutioner, self).finalize()
+        super(WSGIExecutioner, self)._on_finalize()
 
     def wsgi_execute(self, environ):
         result = None
@@ -285,13 +285,13 @@ class xmlserver(WSGIExecutioner):
     content_type = 'text/xml'
     key = 'xml'
 
-    def finalize(self):
+    def _on_finalize(self):
         self.__system = {
             'system.listMethods': self.listMethods,
             'system.methodSignature': self.methodSignature,
             'system.methodHelp': self.methodHelp,
         }
-        super(xmlserver, self).finalize()
+        super(xmlserver, self)._on_finalize()
 
     def listMethods(self, *params):
         return tuple(name.decode('UTF-8') for name in self.Command)

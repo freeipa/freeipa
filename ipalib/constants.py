@@ -188,6 +188,7 @@ DEFAULT_CONFIG = (
     ('confdir', object),  # Directory containing config files
     ('conf', object),  # File containing context specific config
     ('conf_default', object),  # File containing context independent config
+    ('plugins_on_demand', object),  # Whether to finalize plugins on-demand (bool)
 
     # Set in Env._finalize_core():
     ('in_server', object),  # Whether or not running in-server (bool)

@@ -942,7 +942,8 @@ class test_Object(ClassChecker):
                 parameters.Str('four', primary_key=True),
             )
         o = example3()
-        e = raises(ValueError, o.set_api, api)
+        o.set_api(api)
+        e = raises(ValueError, o.finalize)
         assert str(e) == \
             'example3 (Object) has multiple primary keys: one, two, four'
 

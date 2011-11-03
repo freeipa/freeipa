@@ -492,6 +492,10 @@ class Env(object):
         if 'conf_default' not in self:
             self.conf_default = self._join('confdir', 'default.conf')
 
+        # Set plugins_on_demand:
+        if 'plugins_on_demand' not in self:
+            self.plugins_on_demand = (self.context == 'cli')
+
     def _finalize_core(self, **defaults):
         """
         Complete initialization of standard IPA environment.
