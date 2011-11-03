@@ -554,6 +554,8 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     }
     ied->magic = IPA_E_DATA_MAGIC;
 
+    entry->e_data = (krb5_octet *)ied;
+
     /* mark this as an ipa_user if it has the posixaccount objectclass */
     ret = ipadb_ldap_attr_has_value(lcontext, lentry,
                                     "objectClass", "posixAccount");
@@ -609,8 +611,6 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
 
         ied->last_pwd_change = restime;
     }
-
-    entry->e_data = (krb5_octet *)ied;
 
     kerr = 0;
 
