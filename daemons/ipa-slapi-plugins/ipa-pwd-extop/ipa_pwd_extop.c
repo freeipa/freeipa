@@ -504,9 +504,15 @@ free_and_return:
 	/* Either this is the same pointer that we allocated and set above,
 	 * or whoever used it should have freed it and allocated a new
 	 * value that we need to free here */
-	slapi_pblock_get(pb, SLAPI_ORIGINAL_TARGET, &dn);
+    ret = slapi_pblock_get(pb, SLAPI_ORIGINAL_TARGET, &dn);
+    if (ret) {
+        LOG_TRACE("Failed to get SLAPI_ORIGINAL_TARGET\n");
+    }
 	slapi_ch_free_string(&dn);
-	slapi_pblock_set(pb, SLAPI_ORIGINAL_TARGET, NULL);
+    ret = slapi_pblock_set(pb, SLAPI_ORIGINAL_TARGET, NULL);
+    if (ret) {
+        LOG_TRACE("Failed to clear SLAPI_ORIGINAL_TARGET\n");
+    }
 	slapi_ch_free_string(&authmethod);
     slapi_ch_free_string(&principal);
 
