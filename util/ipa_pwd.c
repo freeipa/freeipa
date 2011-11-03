@@ -560,7 +560,7 @@ int ipapwd_generate_new_history(char *password,
     unsigned char *hash = NULL;
     unsigned int hash_len;
     char *new_element;
-    char **ordered;
+    char **ordered = NULL;
     int c, i, n;
     int len;
     int ret;
@@ -626,9 +626,11 @@ int ipapwd_generate_new_history(char *password,
 
     *new_pwd_history = ordered;
     *new_pwd_hlen = n;
+    ordered = NULL;
     ret = IPAPWD_POLICY_OK;
 
 done:
+    free(ordered);
     free(hash);
     return ret;
 }
