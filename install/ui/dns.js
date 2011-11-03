@@ -62,7 +62,13 @@ IPA.entity_factories.dnszone = function() {
                     'idnssoaexpire',
                     'idnssoaminimum',
                     'dnsttl',
-                    'dnsclass',
+                    {
+                        factory: IPA.combobox_widget,
+                        name: 'dnsclass',
+                        options: [
+                            'IN', 'CS', 'CH', 'HS'
+                        ]
+                    },
                     {
                         factory: IPA.radio_widget,
                         name: 'idnsallowdynupdate',
@@ -435,14 +441,14 @@ IPA.entity_factories.dnsrecord = function() {
     return IPA.entity_builder().
         entity('dnsrecord').
         containing_entity('dnszone').
-        details_facet({            
+        details_facet({
             post_update_hook:function(data){
                 var result = data.result.result;
                  if (result.idnsname) {
                     this.load(result);
                 } else {
                     this.reset();
-                    var dialog = IPA.dnsrecord_redirection_dialog();                
+                    var dialog = IPA.dnsrecord_redirection_dialog();
                     dialog.open(this.container);
                 }
             },
@@ -603,11 +609,11 @@ IPA.entity_factories.dnsrecord = function() {
 };
 
 IPA.dnsrecord_redirection_dialog = function(spec) {
-    spec = spec || {};    
-    spec.title = spec.title || IPA.messages.dialogs.redirection;  
-        
-    var that = IPA.dialog(spec);    
-    
+    spec = spec || {};
+    spec.title = spec.title || IPA.messages.dialogs.redirection;
+
+    var that = IPA.dialog(spec);
+
     that.create = function() {
         $('<p/>', {
             'text': IPA.messages.objects.dnsrecord.deleted_no_data
@@ -616,7 +622,7 @@ IPA.dnsrecord_redirection_dialog = function(spec) {
             'text': IPA.messages.objects.dnsrecord.redirection_dnszone
         }).appendTo(that.container);
     };
-    
+
     that.create_button({
         name: 'ok',
         label: IPA.messages.buttons.ok,
