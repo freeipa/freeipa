@@ -13,7 +13,7 @@ static krb5_error_code ipa_get_random_salt(krb5_context krbctx,
                                            krb5_data *salt)
 {
     krb5_error_code kerr;
-    int i;
+    int i, v;
 
     /* make random salt */
     salt->length = KRB5P_SALT_SIZE;
@@ -30,8 +30,10 @@ static krb5_error_code ipa_get_random_salt(krb5_context krbctx,
      * To avoid any compatibility issue, limits octects only to
      * the ASCII printable range, or 0x20 <= val <= 0x7E */
     for (i = 0; i < salt->length; i++) {
-        salt->data[i] %= 0x5E; /* 7E - 20 */
-        salt->data[i] += 0x20; /* add base */
+        v = (unsigned char)salt->data[i];
+        v %= 0x5E; /* 7E - 20 */
+        v += 0x20; /* add base */
+        salt->data[i] = v;
     }
 
     return 0;
