@@ -54,8 +54,8 @@ BASE_PORTS = [
                 CheckedPort(88, False, "Kerberos KDC: UDP"),
                 CheckedPort(464, True, "Kerberos Kpasswd: TCP"),
                 CheckedPort(464, False, "Kerberos Kpasswd: UDP"),
-                CheckedPort(80, True, "HTTP Server: port 80"),
-                CheckedPort(443, True, "HTTP Server: port 443(https)"),
+                CheckedPort(80, True, "HTTP Server: Unsecure port"),
+                CheckedPort(443, True, "HTTP Server: Secure port"),
              ]
 
 CA_PORTS  = [
