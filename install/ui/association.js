@@ -1165,7 +1165,7 @@ IPA.association_facet = function (spec) {
             that.table.total_pages = 1;
         }
 
-        that.table.current_page = 1;
+        delete that.table.current_page;
 
         that.table.refresh();
         that.table.unselect_all();
@@ -1207,8 +1207,14 @@ IPA.association_facet = function (spec) {
 
     that.needs_update = function() {
         if (that._needs_update !== undefined) return that._needs_update;
+
         var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
-        return that.pkey !== pkey;
+        if (that.pkey !== pkey) return true;
+
+        var page = parseInt(IPA.nav.get_state(that.entity_name+'-page'), 10) || 1;
+        if (that.table.current_page !== page) return true;
+
+        return false;
     };
 
     /*initialization*/
