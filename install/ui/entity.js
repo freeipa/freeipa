@@ -156,8 +156,10 @@ IPA.entity = function(spec) {
         var facet_name = IPA.nav.get_state(that.name+'-facet');
         that.facet = that.get_facet(facet_name);
 
+        var needs_update = that.facet.needs_update();
+
         // same entity, same facet, and doesn't need updating => return
-        if (that == prev_entity && that.facet == prev_facet && !that.facet.needs_update()) {
+        if (that == prev_entity && that.facet == prev_facet && !needs_update) {
             return;
         }
 
@@ -175,7 +177,7 @@ IPA.entity = function(spec) {
             that.facet.create(facet_container);
         }
 
-        if (that.facet.needs_update()) {
+        if (needs_update) {
             that.facet.clear();
             that.facet.show();
             that.facet.header.select_tab();
