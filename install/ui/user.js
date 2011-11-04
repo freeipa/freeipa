@@ -382,18 +382,29 @@ IPA.user_password_widget = function(spec) {
 
     that.show_dialog = function() {
 
+        that.pkey = IPA.nav.get_state('user-pkey');
+        that.self_service = that.pkey === IPA.whoami.uid[0];
+
         var dialog = IPA.dialog({
             title: IPA.messages.password.reset_password,
             width: 400
         });
 
-        var password1 = dialog.add_field(IPA.text_widget({
+        if (that.self_service) {
+            dialog.add_field(IPA.text_widget({
+                name: 'current_password',
+                label: IPA.messages.password.current_password,
+                type: 'password'
+            }));
+        }
+
+        dialog.add_field(IPA.text_widget({
             name: 'password1',
             label: IPA.messages.password.new_password,
             type: 'password'
         }));
 
-        var password2 = dialog.add_field(IPA.text_widget({
+        dialog.add_field(IPA.text_widget({
             name: 'password2',
             label: IPA.messages.password.verify_password,
             type: 'password'
@@ -407,6 +418,16 @@ IPA.user_password_widget = function(spec) {
                 var record = {};
                 dialog.save(record);
 
+                var current_password;
+
+                if (that.self_service) {
+                    current_password = record.current_password[0];
+                    if (!current_password) {
+                        alert(IPA.messages.password.current_password_required);
+                        return;
+                    }
+                }
+
                 var new_password = record.password1[0];
                 var repeat_password = record.password2[0];
 
@@ -416,6 +437,7 @@ IPA.user_password_widget = function(spec) {
                 }
 
                 that.set_password(
+                    current_password,
                     new_password,
                     function(data, text_status, xhr) {
                         alert(IPA.messages.password.password_change_complete);
@@ -439,20 +461,20 @@ IPA.user_password_widget = function(spec) {
         dialog.open(that.container);
     };
 
-    that.set_password = function(password, on_success, on_error) {
-        var user_pkey = IPA.nav.get_state('user-pkey');
+    that.set_password = function(current_password, password, on_success, on_error) {
 
         var args;
-        if (user_pkey === IPA.whoami.uid[0]) {
+        if (that.self_service) {
             args = [];
         } else {
-            args = [user_pkey];
+            args = [that.pkey];
         }
 
         var command = IPA.command({
             method: 'passwd',
             args: args,
             options: {
+                current_password: current_password,
                 password: password
             },
             on_success: on_success,

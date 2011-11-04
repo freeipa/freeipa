@@ -330,6 +330,8 @@
                         }
                     },
                     "password": {
+                        "current_password": "Current Password",
+                        "current_password_required": "Current password is required",
                         "new_password": "New Password",
                         "password_change_complete": "Password change complete",
                         "password_must_match": "Passwords must match",
