@@ -426,6 +426,8 @@ class i18n_messages(Command):
             },
         },
         "password": {
+            "current_password": _("Current Password"),
+            "current_password_required": _("Current password is required"),
             "new_password": _("New Password"),
             "password_change_complete": _("Password change complete"),
             "password_must_match": _("Passwords must match"),
