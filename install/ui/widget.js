@@ -1305,6 +1305,7 @@ IPA.table_widget = function (spec) {
     };
 
     that.add_column = function(column) {
+        column.entity = that.entity;
         that.columns.put(column.name, column);
     };
 
@@ -1566,13 +1567,12 @@ IPA.table_widget = function (spec) {
 
         that.empty();
 
-        that.values = result[that.name];
-        if (that.values) {
-            for (var i=0; i<that.values.length; i++) {
-                var record = that.get_record(result, i);
-                that.add_record(record);
-            }
+        that.values = result[that.name] || [];
+        for (var i=0; i<that.values.length; i++) {
+            var record = that.get_record(result, i);
+            that.add_record(record);
         }
+
         that.unselect_all();
     };
 
@@ -1617,7 +1617,7 @@ IPA.table_widget = function (spec) {
 
             if (values instanceof Array){
                 record[name] = values[index];
-            }else{
+            } else {
                 record[name] = values;
             }
         }

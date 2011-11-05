@@ -46,8 +46,7 @@ IPA.entity_adder_dialog = function(spec) {
                 that.add(
                     function(data, text_status, xhr) {
                         var facet = IPA.current_entity.get_facet();
-                        var table = facet.table;
-                        table.refresh();
+                        facet.refresh();
                         that.close();
                     },
                     that.on_error);
@@ -67,8 +66,7 @@ IPA.entity_adder_dialog = function(spec) {
                         that.show_message(message);
 
                         var facet = IPA.current_entity.get_facet();
-                        var table = facet.table;
-                        table.refresh();
+                        facet.refresh();
                         that.reset();
                     },
                     that.on_error);

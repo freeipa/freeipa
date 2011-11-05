@@ -71,6 +71,7 @@ IPA.automount.map_entity = function(spec) {
         nested_search_facet({
             facet_group: 'automountkey',
             nested_entity: 'automountkey',
+            pagination: false,
             label: IPA.metadata.objects.automountkey.label,
             name: 'keys',
             get_values: IPA.get_option_values,
