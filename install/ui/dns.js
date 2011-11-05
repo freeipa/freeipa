@@ -88,12 +88,13 @@ IPA.dns.zone_entity = function(spec) {
             }]
         }).
         nested_search_facet({
+            factory: IPA.dns.record_search_facet,
             facet_group: 'dnsrecord',
             nested_entity : 'dnsrecord',
             name: 'records',
+            pagination: false,
             title: IPA.metadata.objects.dnszone.label_singular,
             label: IPA.metadata.objects.dnsrecord.label,
-            load: IPA.dns_record_search_load,
             get_values: IPA.dnsrecord_get_delete_values,
             columns: [
                 {
@@ -407,31 +408,41 @@ IPA.dnszone_adder_dialog = function(spec) {
     return that;
 };
 
-IPA.dns_record_search_load = function (result) {
-    this.table.empty();
-    var normalized_record;
-    var dns_record_types = IPA.dns_record_types();
-    for (var i = 0; i<result.length; i++) {
-        var record = result[i];
-        for (var j =0; j < dns_record_types.length; j += 1){
-            var record_type = dns_record_types[j].value;
-            if (record[record_type]){
-                var record_of_type = record[record_type];
-                for (var k =0;
-                     k < record_of_type.length;
-                     k+=1)
-                {
-                    normalized_record = {
-                        idnsname:record.idnsname,
-                        type:record_type,
-                        data:record_of_type[k]
-                    };
-                    this.table.add_record(normalized_record);
+IPA.dns.record_search_facet = function(spec) {
 
+    var that = IPA.nested_search_facet(spec);
+
+    var init = function() {
+
+        that.table.load = function(result) {
+
+            that.table.empty();
+
+            var types = IPA.dns_record_types();
+
+            for (var i=0; i<result.length; i++) {
+                var record = result[i];
+
+                for (var j=0; j<types.length; j++) {
+                    var type = types[j].value;
+                    if (!record[type]) continue;
+
+                    var data = record[type];
+                    for (var k=0; k<data.length; k++) {
+                        that.table.add_record({
+                            idnsname: record.idnsname,
+                            type: type,
+                            data: data[k]
+                        });
+                    }
                 }
             }
-        }
-    }
+        };
+    };
+
+    init();
+
+    return that;
 };
 
 IPA.dns.record_entity = function(spec) {

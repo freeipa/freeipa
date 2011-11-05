@@ -391,8 +391,20 @@ IPA.table_facet = function(spec) {
     var that = IPA.facet(spec);
 
     that.managed_entity_name = spec.managed_entity_name || that.entity.name;
+    that.page_length = spec.page_length === undefined ? 20 : spec.page_length;
+
+    that.pagination = spec.pagination === undefined ? true : spec.pagination;
+    that.search_all = spec.search_all;
+    that.selectable = spec.selectable === undefined ? true : spec.selectable;
 
     that.columns = $.ordered_map();
+
+    var init = function() {
+        var columns = spec.columns || [];
+        for (var i=0; i<columns.length; i++) {
+            that.create_column(columns[i]);
+        }
+    };
 
     that.get_columns = function() {
         return that.columns.values;
@@ -428,10 +440,217 @@ IPA.table_facet = function(spec) {
         return that;
     };
 
-    var columns = spec.columns || [];
-    for (var i=0; i<columns.length; i++) {
-        that.create_column(columns[i]);
-    }
+    that.load = function(result) {
+        that.facet_load(result);
+
+        that.table.current_page = 1;
+        that.table.total_pages = 1;
+
+        if (that.pagination) {
+            that.table.load_page(result);
+        } else {
+            that.table.load(result);
+        }
+
+        that.table.current_page_input.val(that.table.current_page);
+        that.table.total_pages_span.text(that.table.total_pages);
+
+        that.table.unselect_all();
+    };
+
+    that.get_records_command_name = function() {
+        return that.entity.name+'_get_records';
+    };
+
+    that.get_records = function(on_success, on_error) {
+
+        var length = that.values.length;
+        if (!length) return;
+
+        var batch = IPA.batch_command({
+            name: that.get_records_command_name(),
+            on_success: on_success,
+            on_error: on_error
+        });
+
+        for (var i=0; i<length; i++) {
+            var pkey = that.values[i];
+
+            var command = IPA.command({
+                entity: that.table.entity.name,
+                method: 'show',
+                args: [pkey],
+                options: { all: true }
+            });
+
+            batch.add_command(command);
+        }
+
+        batch.execute();
+    };
+
+    that.select_changed = function() {
+
+        var values = that.table.get_selected_values();
+
+        if (that.remove_button) {
+            if (values.length === 0) {
+                that.remove_button.addClass('action-button-disabled');
+            } else {
+                that.remove_button.removeClass('action-button-disabled');
+            }
+        }
+    };
+
+    that.init_table = function(entity) {
+
+        that.table = IPA.table_widget({
+            'class': 'content-table',
+            name: entity.metadata.primary_key,
+            label: entity.metadata.label,
+            entity: entity,
+            page_length: that.page_length,
+            search_all: that.search_all,
+            scrollable: true,
+            selectable: that.selectable && !that.read_only
+        });
+
+        var columns = that.columns.values;
+        for (var i=0; i<columns.length; i++) {
+            var column = columns[i];
+
+            if (column.link) {
+                column.link_handler = function(value) {
+                    IPA.nav.show_page(entity.name, 'default', value);
+                    return false;
+                };
+            }
+
+            that.table.add_column(column);
+        }
+
+        that.table.select_changed = function() {
+            that.select_changed();
+        };
+
+        that.table.prev_page = function() {
+            if (that.table.current_page > 1) {
+                var state = {};
+                state[that.entity_name+'-page'] = that.table.current_page - 1;
+                IPA.nav.push_state(state);
+            }
+        };
+
+        that.table.next_page = function() {
+            if (that.table.current_page < that.table.total_pages) {
+                var state = {};
+                state[that.entity_name+'-page'] = that.table.current_page + 1;
+                IPA.nav.push_state(state);
+            }
+        };
+
+        that.table.set_page = function(page) {
+            if (page < 1) {
+                page = 1;
+            } else if (page > that.total_pages) {
+                page = that.total_pages;
+            }
+            var state = {};
+            state[that.entity_name+'-page'] = page;
+            IPA.nav.push_state(state);
+        };
+
+        that.table.load = function(result) {
+
+            that.table.empty();
+
+            for (var i=0; i<result.length; i++) {
+                var record = that.table.get_record(result[i], 0);
+                that.table.add_record(record);
+            }
+
+            that.table.unselect_all();
+        };
+
+        that.table.load_page = function(result) {
+
+            that.load_pkeys(result);
+
+            if (that.pkeys.length) {
+                that.table.total_pages =
+                    Math.ceil(that.pkeys.length / that.table.page_length);
+            } else {
+                that.table.total_pages = 1;
+            }
+
+            delete that.table.current_page;
+
+            var state = {};
+            var page = parseInt(IPA.nav.get_state(that.entity_name+'-page'), 10) || 1;
+            if (page < 1) {
+                state[that.entity_name+'-page'] = 1;
+                IPA.nav.push_state(state);
+                return;
+            } else if (page > that.table.total_pages) {
+                state[that.entity_name+'-page'] = that.table.total_pages;
+                IPA.nav.push_state(state);
+                return;
+            }
+            that.table.current_page = page;
+
+            if (!that.pkeys || !that.pkeys.length) {
+                that.table.empty();
+                that.table.summary.text(IPA.messages.association.no_entries);
+                return;
+            }
+
+            that.pkeys.sort();
+            var total = that.pkeys.length;
+
+            var start = (that.table.current_page - 1) * that.table.page_length + 1;
+            var end = that.table.current_page * that.table.page_length;
+            end = end > total ? total : end;
+
+            var summary = IPA.messages.association.paging;
+            summary = summary.replace('${start}', start);
+            summary = summary.replace('${end}', end);
+            summary = summary.replace('${total}', total);
+            that.table.summary.text(summary);
+
+            that.values = that.pkeys.slice(start-1, end);
+
+            var columns = that.table.columns.values;
+            if (columns.length == 1) { // show pkey only
+                var name = columns[0].name;
+                that.table.empty();
+                for (var i=0; i<that.values.length; i++) {
+                    var entry = {};
+                    entry[name] = that.values[i];
+                    that.table.add_record(entry);
+                }
+                return;
+            }
+
+            // get and show additional fields
+            that.get_records(
+                function(data, text_status, xhr) {
+                    var results = data.result.results;
+                    that.table.empty();
+                    for (var i=0; i<results.length; i++) {
+                        var record = results[i].result;
+                        that.table.add_record(record);
+                    }
+                },
+                function(xhr, text_status, error_thrown) {
+                    that.table.empty();
+                    var summary = that.table.summary.empty();
+                    summary.append(error_thrown.name+': '+error_thrown.message);
+                }
+            );
+        };
+    };
+
+    init();
 
     return that;
 };

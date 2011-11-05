@@ -457,9 +457,9 @@ IPA.association_table_widget = function (spec) {
         }
 
         var batch = IPA.batch_command({
-            'name': that.entity.name+'_'+that.name,
-            'on_success': on_success,
-            'on_error': on_error
+            name: that.entity.name+'_'+that.name,
+            on_success: on_success,
+            on_error: on_error
         });
 
         for (var i=0; i<length; i++) {
@@ -701,7 +701,6 @@ IPA.association_facet = function (spec) {
 
     var that = IPA.table_facet(spec);
 
-    that.entity = spec.entity;
     that.attribute_member = spec.attribute_member;
     that.indirect_attribute_member = spec.indirect_attribute_member;
 
@@ -720,8 +719,6 @@ IPA.association_facet = function (spec) {
     that.remove_title = spec.remove_title || IPA.messages.association.remove.member;
 
     that.adder_columns = $.ordered_map();
-
-    that.page_length = spec.page_length === undefined ? 20 : spec.page_length;
 
     that.get_adder_column = function(name) {
         return that.adder_columns.get(name);
@@ -748,9 +745,15 @@ IPA.association_facet = function (spec) {
         return column;
     };
 
-    function setup_columns(){
+    var init = function() {
+
         var column;
         var i;
+
+        var adder_columns = spec.adder_columns || [];
+        for (i=0; i<adder_columns.length; i++) {
+            that.create_adder_column(adder_columns[i]);
+        }
 
         var pkey_name;
         if (that.other_entity) {
@@ -772,100 +775,19 @@ IPA.association_facet = function (spec) {
             });
         }
 
-        var label = IPA.metadata.objects[that.other_entity] ?
-            IPA.metadata.objects[that.other_entity].label : that.other_entity;
-
-        that.table = IPA.table_widget({
-            id: that.entity.name+'-'+that.other_entity,
-            'class': 'content-table',
-            name: pkey_name,
-            label: label,
-            entity: that.entity,
-            other_entity: that.other_entity,
-            page_length: that.page_length,
-            scrollable: true,
-            selectable: !that.read_only
-        });
-
-        var columns = that.columns.values;
-
-        that.table.set_columns(columns);
-
-        for (i=0; i<columns.length; i++) {
-            column = columns[i];
-            column.entity_name = that.other_entity;
-
-            if (column.link) {
-                column.link_handler = function(value) {
-                    IPA.nav.show_page(that.other_entity, 'default', value);
-                    return false;
-                };
-            }
-        }
-
-        var adder_columns = that.adder_columns.values;
+        adder_columns = that.adder_columns.values;
         for (i=0; i<adder_columns.length; i++) {
             column = adder_columns[i];
             column.entity_name = that.other_entity;
         }
 
-        that.table.prev_page = function() {
-            if (that.table.current_page > 1) {
-                var state = {};
-                state[that.entity_name+'-page'] = that.table.current_page - 1;
-                IPA.nav.push_state(state);
-            }
-        };
+        var other_entity = IPA.get_entity(that.other_entity);
+        that.init_table(other_entity);
+    };
 
-        that.table.next_page = function() {
-            if (that.table.current_page < that.table.total_pages) {
-                var state = {};
-                state[that.entity_name+'-page'] = that.table.current_page + 1;
-                IPA.nav.push_state(state);
-            }
-        };
-
-        that.table.set_page = function(page) {
-            if (page < 1) {
-                page = 1;
-            } else if (page > that.total_pages) {
-                page = that.total_pages;
-            }
-            var state = {};
-            state[that.entity_name+'-page'] = page;
-            IPA.nav.push_state(state);
-        };
-
-        that.table.refresh = function() {
-            var state = {};
-            var page = parseInt(IPA.nav.get_state(that.entity_name+'-page'), 10) || 1;
-            if (page < 1) {
-                state[that.entity_name+'-page'] = 1;
-                IPA.nav.push_state(state);
-                return;
-            } else if (page > that.table.total_pages) {
-                state[that.entity_name+'-page'] = that.table.total_pages;
-                IPA.nav.push_state(state);
-                return;
-            }
-            that.table.current_page = page;
-            that.table.current_page_input.val(page);
-            that.refresh_table();
-        };
-
-        that.table.select_changed = function() {
-
-            var values = that.table.get_selected_values();
-
-            if (that.remove_button) {
-                if (values.length === 0) {
-                    that.remove_button.addClass('action-button-disabled');
-                } else {
-                    that.remove_button.removeClass('action-button-disabled');
-                }
-            }
-        };
-    }
+    that.get_records_command_name = function() {
+        return that.entity.name+'_'+that.get_attribute_name();
+    };
 
     that.create_header = function(container) {
 
@@ -1070,105 +992,8 @@ IPA.association_facet = function (spec) {
         dialog.open(that.container);
     };
 
-    that.refresh_table = function() {
-
-        that.table.current_page_input.val(that.table.current_page);
-        that.table.total_pages_span.text(that.table.total_pages);
-
-        var pkeys = that.data[that.get_attribute_name()];
-        if (!pkeys || !pkeys.length) {
-            that.table.empty();
-            that.table.summary.text(IPA.messages.association.no_entries);
-            return;
-        }
-
-        pkeys.sort();
-        var total = pkeys.length;
-
-        var start = (that.table.current_page - 1) * that.table.page_length + 1;
-        var end = that.table.current_page * that.table.page_length;
-        end = end > total ? total : end;
-
-        var summary = IPA.messages.association.paging;
-        summary = summary.replace('${start}', start);
-        summary = summary.replace('${end}', end);
-        summary = summary.replace('${total}', total);
-        that.table.summary.text(summary);
-
-        var list = pkeys.slice(start-1, end);
-
-        var columns = that.table.columns.values;
-        if (columns.length == 1) { // show pkey only
-            var name = columns[0].name;
-            that.table.empty();
-            for (var i=0; i<list.length; i++) {
-                var entry = {};
-                entry[name] = list[i];
-                that.table.add_record(entry);
-            }
-
-        } else { // get and show additional fields
-            that.get_records(
-                list,
-                function(data, text_status, xhr) {
-                    var results = data.result.results;
-                    that.table.empty();
-                    for (var i=0; i<results.length; i++) {
-                        var record = results[i].result;
-                        that.table.add_record(record);
-                    }
-                },
-                function(xhr, text_status, error_thrown) {
-                    that.table.empty();
-                    var summary = that.table.summary.empty();
-                    summary.append(error_thrown.name+': '+error_thrown.message);
-                }
-            );
-        }
-    };
-
-    that.get_records = function(pkeys, on_success, on_error) {
-
-        var length = pkeys.length;
-        if (!length) return;
-
-        var batch = IPA.batch_command({
-            'name': that.entity.name+'_'+that.get_attribute_name(),
-            'on_success': on_success,
-            'on_error': on_error
-        });
-
-        for (var i=0; i<length; i++) {
-            var pkey = pkeys[i];
-
-            var command = IPA.command({
-                entity: that.other_entity,
-                method: 'show',
-                args: [pkey],
-                options: { all: true }
-            });
-
-            batch.add_command(command);
-        }
-
-        batch.execute();
-    };
-
-    that.load = function(data) {
-        that.facet_load(data);
-
-        var pkeys = that.data[that.get_attribute_name()];
-        if (pkeys) {
-            that.table.total_pages =
-                Math.ceil(pkeys.length / that.table.page_length);
-        } else {
-            that.table.total_pages = 1;
-        }
-
-        delete that.table.current_page;
-
-        that.table.refresh();
-        that.table.unselect_all();
+    that.load_pkeys = function(result) {
+        that.pkeys = that.data[that.get_attribute_name()] || [];
     };
 
     that.refresh = function() {
@@ -1217,11 +1042,7 @@ IPA.association_facet = function (spec) {
         return false;
     };
 
-    /*initialization*/
-    var adder_columns = spec.adder_columns || [];
-    for (var i=0; i<adder_columns.length; i++) {
-        that.create_adder_column(adder_columns[i]);
-    }
-    setup_columns();
+    init();
+
     return that;
 };
