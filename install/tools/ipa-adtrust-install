@@ -111,7 +111,7 @@ def main():
     print ""
 
     # Check if samba packages are installed
-    if not adtrustinstance.check_inst(options.unattended):
+    if not adtrustinstance.check_inst():
         sys.exit("Aborting installation.")
 
     # Initialize the ipalib api

@@ -20,10 +20,11 @@
 import os
 import errno
 import ldap
-import service
 import tempfile
 import uuid
 from ipaserver import ipaldap
+from ipaserver.install import installutils
+from ipaserver.install import service
 from ipaserver.install.dsinstance import realm_to_serverid
 from ipaserver.install.bindinstance import get_rr, add_rr, del_rr, \
                                            dns_zone_exists
@@ -32,17 +33,17 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython.ipa_log_manager import *
 
-import random
 import string
 import struct
 
-allowed_netbios_chars = string.ascii_uppercase + string.digits
+ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits
 
-def check_inst(unattended):
-    for f in ['/usr/sbin/smbd', '/usr/bin/net', '/usr/bin/smbpasswd']:
-        if not os.path.exists(f):
-            print "%s was not found on this system" % f
-            print "Please install the 'samba' packages and start the installation again"
+def check_inst():
+    for smbfile in ['/usr/sbin/smbd', '/usr/bin/net', '/usr/bin/smbpasswd']:
+        if not os.path.exists(smbfile):
+            print "%s was not found on this system" % file
+            print "Please install the 'samba' packages and " \
+                  "start the installation again"
             return False
 
     #TODO: Add check for needed samba4 libraries
@@ -51,13 +52,13 @@ def check_inst(unattended):
 
 def ipa_smb_conf_exists():
     try:
-        fd = open('/etc/samba/smb.conf', 'r')
-    except IOError, e:
-        if e.errno == errno.ENOENT:
+        conf_fd = open('/etc/samba/smb.conf', 'r')
+    except IOError, err:
+        if err.errno == errno.ENOENT:
             return False
 
-    lines = fd.readlines()
-    fd.close()
+    lines = conf_fd.readlines()
+    conf_fd.close()
     for line in lines:
         if line.startswith('### Added by IPA Installer ###'):
             return True
@@ -66,13 +67,15 @@ def ipa_smb_conf_exists():
 
 def check_netbios_name(s):
     # NetBIOS names may not be longer than 15 allowed characters
-    if not s or len(s) > 15 or ''.join([c for c in s if c not in allowed_netbios_chars]):
+    if not s or len(s) > 15 or \
+       ''.join([c for c in s if c not in ALLOWED_NETBIOS_CHARS]):
         return False
 
     return True
 
 def make_netbios_name(s):
-    return ''.join([c for c in s.split('.')[0].upper() if c in allowed_netbios_chars])[:15]
+    return ''.join([c for c in s.split('.')[0].upper() \
+                    if c in ALLOWED_NETBIOS_CHARS])[:15]
 
 class ADTRUSTInstance(service.Service):
 
@@ -84,6 +87,22 @@ class ADTRUSTInstance(service.Service):
     OBJC_DOMAIN = "ipaNTDomainAttrs"
 
     def __init__(self, fstore=None, dm_password=None):
+        self.fqdn = None
+        self.ip_address = None
+        self.realm_name = None
+        self.domain_name = None
+        self.netbios_name = None
+        self.no_msdcs = None
+        self.smbd_user = None
+        self.suffix = None
+        self.ldapi_socket = None
+        self.smb_conf = None
+        self.smb_dn = None
+        self.smb_dn_pwd = None
+        self.trust_dn = None
+        self.smb_dom_dn = None
+        self.sub_dict = None
+
         service.Service.__init__(self, "smb", dm_password=dm_password)
 
         if fstore:
@@ -97,7 +116,8 @@ class ADTRUSTInstance(service.Service):
             self.admin_conn.getEntry(self.smb_dn, ldap.SCOPE_BASE)
             print "Samba user entry exists, resetting password"
 
-            self.admin_conn.modify_s(self.smb_dn, [(ldap.MOD_REPLACE, "userPassword", self.smb_dn_pwd)])
+            self.admin_conn.modify_s(self.smb_dn, \
+                          [(ldap.MOD_REPLACE, "userPassword", self.smb_dn_pwd)])
             return
 
         except errors.NotFound:
@@ -108,7 +128,7 @@ class ADTRUSTInstance(service.Service):
         entry.setValues("objectclass", ["account", "simplesecurityobject"])
         entry.setValues("uid", "samba")
         entry.setValues("userPassword", self.smb_dn_pwd)
-        self.admin_conn.add_s(entry)
+        self.admin_conn.addEntry(entry)
 
         # And finally grant it permission to read NT passwords, we do not want
         # to support LM passwords so there is no need to allow access to them.
@@ -204,13 +224,14 @@ class ADTRUSTInstance(service.Service):
                        "cn=ad,"+self.trust_dn, \
                        "cn=ad,cn=etc,"+self.suffix):
             try:
-                self.admin_conn.getEntry(dn, ldap.SCOPE_BASE)
+                self.admin_conn.getEntry(new_dn, ldap.SCOPE_BASE)
             except errors.NotFound:
-                entry = ipaldap.Entry(dn)
+                entry = ipaldap.Entry(new_dn)
                 entry.setValues("objectclass", ["nsContainer"])
-                name = dn.split('=')[1].split(',')[0]
+                name = new_dn.split('=')[1].split(',')[0]
                 if not name:
-                    print "Cannot extract RDN attribute value from [%s]" % dn
+                    print "Cannot extract RDN attribute value from [%s]" % \
+                          new_dn
                     return
                 entry.setValues("cn", name)
                 self.admin_conn.addEntry(entry)
@@ -222,23 +243,23 @@ class ADTRUSTInstance(service.Service):
         entry.setValues(self.ATTR_SID, self.__gen_sid_string())
         entry.setValues(self.ATTR_GUID, str(uuid.uuid4()))
         #TODO: which MAY attributes do we want to set ?
-        self.admin_conn.add_s(entry)
+        self.admin_conn.addEntry(entry)
 
     def __write_smb_conf(self):
         self.fstore.backup_file(self.smb_conf)
 
-        fd = open(self.smb_conf, "w")
-        fd.write('### Added by IPA Installer ###\n')
-        fd.write('[global]\n')
-        fd.write('config backend = registry\n')
-        fd.close()
+        conf_fd = open(self.smb_conf, "w")
+        conf_fd.write('### Added by IPA Installer ###\n')
+        conf_fd.write('[global]\n')
+        conf_fd.write('config backend = registry\n')
+        conf_fd.close()
 
     def __write_smb_registry(self):
         template = os.path.join(ipautil.SHARE_DIR, "smb.conf.template")
         conf = ipautil.template_file(template, self.sub_dict)
-        [fd, tmp_name] = tempfile.mkstemp()
-        os.write(fd, conf)
-        os.close(fd)
+        [tmp_fd, tmp_name] = tempfile.mkstemp()
+        os.write(tmp_fd, conf)
+        os.close(tmp_fd)
 
         args = ["/usr/bin/net", "conf", "import", tmp_name]
 
@@ -250,7 +271,8 @@ class ADTRUSTInstance(service.Service):
     def __set_smb_ldap_password(self):
         args = ["/usr/bin/smbpasswd", "-c", self.smb_conf, "-s", "-W" ]
 
-        ipautil.run(args, stdin = self.smb_dn_pwd + "\n" + self.smb_dn_pwd + "\n" )
+        ipautil.run(args, stdin = self.smb_dn_pwd + "\n" + \
+                                  self.smb_dn_pwd + "\n" )
 
     def __setup_principal(self):
         cifs_principal = "cifs/" + self.fqdn + "@" + self.realm_name
@@ -291,7 +313,7 @@ class ADTRUSTInstance(service.Service):
                           ".dc._msdcs")
 
         err_msg = None
-        ret = api.Command.dns_is_enabled()
+        ret = api.Command['dns_is_enabled']()
         if not ret['result']:
             err_msg = "DNS management was not enabled at install time."
         else:
@@ -341,7 +363,8 @@ class ADTRUSTInstance(service.Service):
         # Instead we reply on the IPA init script to start only enabled
         # components as found in our LDAP configuration tree
         try:
-            self.ldap_enable('ADTRUST', self.fqdn, self.dm_password, self.suffix)
+            self.ldap_enable('ADTRUST', self.fqdn, self.dm_password, \
+                             self.suffix)
         except ldap.ALREADY_EXISTS:
             root_logger.critical("ADTRUST Service startup entry already exists.")
             pass
@@ -355,7 +378,7 @@ class ADTRUSTInstance(service.Service):
 
     def setup(self, fqdn, ip_address, realm_name, domain_name, netbios_name,
               no_msdcs=False, smbd_user="samba"):
-        self.fqdn =fqdn
+        self.fqdn = fqdn
         self.ip_address = ip_address
         self.realm_name = realm_name
         self.domain_name = domain_name
@@ -363,7 +386,8 @@ class ADTRUSTInstance(service.Service):
         self.no_msdcs = no_msdcs
         self.smbd_user = smbd_user
         self.suffix = ipautil.realm_to_suffix(self.realm_name)
-        self.ldapi_socket = "%%2fvar%%2frun%%2fslapd-%s.socket" % realm_to_serverid(self.realm_name)
+        self.ldapi_socket = "%%2fvar%%2frun%%2fslapd-%s.socket" % \
+                            realm_to_serverid(self.realm_name)
 
         self.smb_conf = "/etc/samba/smb.conf"
 
@@ -383,15 +407,18 @@ class ADTRUSTInstance(service.Service):
 
         self.step("stopping smbd", self.__stop)
         self.step("create samba user", self.__create_samba_user)
-        self.step("create samba domain object", self.__create_samba_domain_object)
+        self.step("create samba domain object", \
+                  self.__create_samba_domain_object)
         self.step("create samba config registry", self.__write_smb_registry)
         self.step("writing samba config file", self.__write_smb_conf)
-        self.step("setting password for the samba user", self.__set_smb_ldap_password)
+        self.step("setting password for the samba user", \
+                  self.__set_smb_ldap_password)
         self.step("Adding cifs Kerberos principal", self.__setup_principal)
         self.step("Adding admin(group) SIDs", self.__add_admin_sids)
         self.step("configuring smbd to start on boot", self.__enable)
         if not self.no_msdcs:
-            self.step("adding special DNS service records", self.__add_dns_service_records)
+            self.step("adding special DNS service records", \
+                      self.__add_dns_service_records)
         self.step("starting smbd", self.__start)
 
         self.start_creation("Configuring smbd:")
@@ -408,9 +435,9 @@ class ADTRUSTInstance(service.Service):
         except:
             pass
 
-        for f in [self.smb_conf]:
+        for r_file in [self.smb_conf]:
             try:
-                self.fstore.restore_file(f)
+                self.fstore.restore_file(r_file)
             except ValueError, error:
                 root_logger.debug(error)
                 pass
