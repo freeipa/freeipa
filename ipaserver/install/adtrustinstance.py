@@ -22,7 +22,7 @@ import errno
 import ldap
 import service
 import tempfile
-import installutils
+import uuid
 from ipaserver import ipaldap
 from ipaserver.install.dsinstance import realm_to_serverid
 from ipaserver.install.bindinstance import get_rr, add_rr, del_rr, \
@@ -75,6 +75,14 @@ def make_netbios_name(s):
     return ''.join([c for c in s.split('.')[0].upper() if c in allowed_netbios_chars])[:15]
 
 class ADTRUSTInstance(service.Service):
+
+    ATTR_SID = "ipaNTSecurityIdentifier"
+    ATTR_FLAT_NAME = "ipaNTFlatName"
+    ATTR_GUID = "ipaNTDomainGUID"
+    OBJC_USER = "ipaNTUserAttrs"
+    OBJC_GROUP = "ipaNTGroupAttrs"
+    OBJC_DOMAIN = "ipaNTDomainAttrs"
+
     def __init__(self, fstore=None, dm_password=None):
         service.Service.__init__(self, "smb", dm_password=dm_password)
 
@@ -107,13 +115,22 @@ class ADTRUSTInstance(service.Service):
         # Also the premission to create trusted domain objects below the
         # domain object is granted.
         mod = [(ldap.MOD_ADD, 'aci',
-            str('(targetattr = "sambaNTPassword")' \
+            str('(targetattr = "ipaNTHash")' \
                 '(version 3.0; acl "Samba user can read NT passwords";' \
                 'allow (read) userdn="ldap:///%s";)' % self.smb_dn)),
                (ldap.MOD_ADD, 'aci',
             str('(target = "ldap:///cn=ad,cn=trusts,%s")' \
-                '(targetattr = "sambaTrustType || sambaTrustAttributes || sambaTrustDirection || sambaTrustPartner || sambaFlatName || sambaTrustAuthOutgoing || sambaTrustAuthIncoming || sambaSecurityIdentifier || sambaTrustForestTrustInfo || sambaTrustPosixOffset || sambaSupportedEncryptionTypes")' \
-                '(version 3.0;acl "Allow samba user to create and delete trust accounts";' \
+                '(targetattr = "ipaNTTrustType || ipaNTTrustAttributes || ' \
+                               'ipaNTTrustDirection || ' \
+                               'ipaNTTrustPartner || ipaNTFlatName || ' \
+                               'ipaNTTrustAuthOutgoing || ' \
+                               'ipaNTTrustAuthIncoming || ' \
+                               'ipaNTSecurityIdentifier || ' \
+                               'ipaNTTrustForestTrustInfo || ' \
+                               'ipaNTTrustPosixOffset || ' \
+                               'ipaNTSupportedEncryptionTypes")' \
+                '(version 3.0;acl "Allow samba user to create and delete ' \
+                                  'trust accounts";' \
                 'allow (write,add,delete) userdn = "ldap:///%s";)' % \
                  (self.suffix, self.smb_dn)))]
 
@@ -137,7 +154,7 @@ class ADTRUSTInstance(service.Service):
             print "Samba domain object not found"
             return
 
-        dom_sid = dom_entry.getValue("sambaSID")
+        dom_sid = dom_entry.getValue(self.ATTR_SID)
         if not dom_sid:
             print "Samba domain object does not have a SID"
             return
@@ -155,22 +172,22 @@ class ADTRUSTInstance(service.Service):
             print "IPA admin group object not found"
             return
 
-        if admin_entry.getValue("sambaSID") or \
-           admin_group_entry.getValue("sambaSID"):
+        if admin_entry.getValue(self.ATTR_SID) or \
+           admin_group_entry.getValue(self.ATTR_SID):
             print "Admin SID already set, nothing to do"
             return
 
         try:
             self.admin_conn.modify_s(admin_dn, \
-                        [(ldap.MOD_ADD, "objectclass", "sambaSamAccount"), \
-                         (ldap.MOD_ADD, "sambaSID", dom_sid + "-500")])
+                        [(ldap.MOD_ADD, "objectclass", self.OBJC_USER), \
+                         (ldap.MOD_ADD, self.ATTR_SID, dom_sid + "-500")])
         except:
             print "Failed to modify IPA admin object"
 
         try:
             self.admin_conn.modify_s(admin_group_dn, \
-                        [(ldap.MOD_ADD, "objectclass", "sambaSidEntry"), \
-                         (ldap.MOD_ADD, "sambaSID", dom_sid + "-512")])
+                        [(ldap.MOD_ADD, "objectclass", self.OBJC_GROUP), \
+                         (ldap.MOD_ADD, self.ATTR_SID, dom_sid + "-512")])
         except:
             print "Failed to modify IPA admin group object"
 
@@ -199,10 +216,11 @@ class ADTRUSTInstance(service.Service):
                 self.admin_conn.addEntry(entry)
 
         entry = ipaldap.Entry(self.smb_dom_dn)
-        entry.setValues("objectclass", ["sambaDomain", "nsContainer"])
+        entry.setValues("objectclass", [self.OBJC_DOMAIN, "nsContainer"])
         entry.setValues("cn", self.domain_name)
-        entry.setValues("sambaDomainName", self.netbios_name)
-        entry.setValues("sambaSID", self.__gen_sid_string())
+        entry.setValues(self.ATTR_FLAT_NAME, self.netbios_name)
+        entry.setValues(self.ATTR_SID, self.__gen_sid_string())
+        entry.setValues(self.ATTR_GUID, str(uuid.uuid4()))
         #TODO: which MAY attributes do we want to set ?
         self.admin_conn.add_s(entry)
 
