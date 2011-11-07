@@ -22,7 +22,8 @@
 var target_container;
 var target_widget;
 var target_facet;
-var entity = IPA.entity({ name:'bogus', metadata: {} });
+var entity = IPA.entity({ name: 'bogus' });
+var group_entity = IPA.entity({ name: 'group' });
 
 module('aci', {
         setup: function() {
@@ -74,6 +75,7 @@ module('aci', {
                     {
                         type: 'permission_target',
                         container_factory: IPA.details_table_section,
+                        group_entity: group_entity,
                         name: 'target',
                         label: 'Target',
                         show_target: false

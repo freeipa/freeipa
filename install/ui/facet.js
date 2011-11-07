@@ -31,7 +31,7 @@ IPA.facet = function(spec) {
 
     var that = {};
 
-    that.entity = spec.entity;
+    that.entity = IPA.get_entity(spec.entity);
 
     that.name = spec.name;
     that.label = spec.label;
@@ -43,7 +43,6 @@ IPA.facet = function(spec) {
 
     that.header = spec.header || IPA.facet_header({ facet: that });
 
-    that.entity_name = spec.entity_name;
     that._needs_update = spec.needs_update;
 
     that.dialogs = $.ordered_map();
@@ -407,7 +406,7 @@ IPA.table_facet = function(spec) {
 
     var that = IPA.facet(spec);
 
-    that.managed_entity_name = spec.managed_entity_name || that.entity.name;
+    that.managed_entity = spec.managed_entity ? IPA.get_entity(spec.managed_entity) : that.entity;
 
     that.pagination = spec.pagination === undefined ? true : spec.pagination;
     that.search_all = spec.search_all;
@@ -431,7 +430,7 @@ IPA.table_facet = function(spec) {
     };
 
     that.add_column = function(column) {
-        column.entity_name = that.managed_entity_name;
+        column.entity = that.managed_entity;
         that.columns.put(column.name, column);
     };
 
@@ -444,7 +443,7 @@ IPA.table_facet = function(spec) {
             spec = { name: spec };
         }
 
-        spec.entity_name = that.managed_entity_name;
+        spec.entity = that.managed_entity;
         column = factory(spec);
 
         that.add_column(column);
@@ -523,13 +522,13 @@ IPA.table_facet = function(spec) {
         delete that.table.current_page;
 
         var state = {};
-        var page = parseInt(IPA.nav.get_state(that.entity_name+'-page'), 10) || 1;
+        var page = parseInt(IPA.nav.get_state(that.entity.name+'-page'), 10) || 1;
         if (page < 1) {
-            state[that.entity_name+'-page'] = 1;
+            state[that.entity.name+'-page'] = 1;
             IPA.nav.push_state(state);
             return;
         } else if (page > that.table.total_pages) {
-            state[that.entity_name+'-page'] = that.table.total_pages;
+            state[that.entity.name+'-page'] = that.table.total_pages;
             IPA.nav.push_state(state);
             return;
         }
@@ -597,7 +596,7 @@ IPA.table_facet = function(spec) {
     };
 
     that.get_records_command_name = function() {
-        return that.managed_entity_name+'_get_records';
+        return that.managed_entity.name+'_get_records';
     };
 
     that.get_records = function(on_success, on_error) {
@@ -682,7 +681,7 @@ IPA.table_facet = function(spec) {
         that.table.prev_page = function() {
             if (that.table.current_page > 1) {
                 var state = {};
-                state[that.entity_name+'-page'] = that.table.current_page - 1;
+                state[that.entity.name+'-page'] = that.table.current_page - 1;
                 IPA.nav.push_state(state);
             }
         };
@@ -690,7 +689,7 @@ IPA.table_facet = function(spec) {
         that.table.next_page = function() {
             if (that.table.current_page < that.table.total_pages) {
                 var state = {};
-                state[that.entity_name+'-page'] = that.table.current_page + 1;
+                state[that.entity.name+'-page'] = that.table.current_page + 1;
                 IPA.nav.push_state(state);
             }
         };
@@ -702,7 +701,7 @@ IPA.table_facet = function(spec) {
                 page = that.total_pages;
             }
             var state = {};
-            state[that.entity_name+'-page'] = page;
+            state[that.entity.name+'-page'] = page;
             IPA.nav.push_state(state);
         };
     };

@@ -658,7 +658,7 @@ IPA.sudo.options_section = function(spec) {
         that.table.create_column({
             name: 'ipasudoopt',
             label: IPA.get_command_option('sudorule_add_option', 'ipasudoopt').label,
-            entity_name:that.entity.name,
+            entity: that.entity,
             primary_key: true
         });
 

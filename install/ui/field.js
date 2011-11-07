@@ -29,7 +29,7 @@ IPA.field = function(spec) {
 
     var that = {};
 
-    that.entity = spec.entity;
+    that.entity = IPA.get_entity(spec.entity);
     that.container = null;
     that.name = spec.name;
     that.label = spec.label;
@@ -532,7 +532,7 @@ IPA.link_field = function(spec) {
 
     var that = IPA.field(spec);
 
-    var other_entity = spec.other_entity;
+    that.other_entity = IPA.get_entity(spec.other_entity);
 
     function other_pkeys () {
         return that.entity.get_primary_key();
@@ -542,7 +542,7 @@ IPA.link_field = function(spec) {
     that.on_link_clicked = function() {
 
         IPA.nav.show_entity_page(
-            IPA.get_entity(other_entity),
+            that.other_entity,
             'default',
             that.other_pkeys());
     };
@@ -556,7 +556,7 @@ IPA.link_field = function(spec) {
     that.check_entity_link = function() {
 
         IPA.command({
-            entity: other_entity,
+            entity: that.other_entity.name,
             method: 'show',
             args: that.other_pkeys(),
             options: {},

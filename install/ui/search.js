@@ -29,7 +29,7 @@ IPA.search_facet = function(spec) {
     spec = spec || {};
 
     spec.name = spec.name || 'search';
-    spec.managed_entity_name = spec.managed_entity_name || spec.entity.name;
+    spec.managed_entity = spec.managed_entity ? IPA.get_entity(spec.managed_entity) : spec.entity;
 
     spec.disable_breadcrumb =
         spec.disable_breadcrumb === undefined ? true : spec.disable_breadcrumb;
@@ -45,8 +45,6 @@ IPA.search_facet = function(spec) {
     that.get_values = spec.get_values || get_values;
 
     var init = function() {
-
-        that.managed_entity = IPA.get_entity(that.managed_entity_name);
 
         that.init_table(that.managed_entity);
     };
@@ -160,7 +158,7 @@ IPA.search_facet = function(spec) {
     that.find = function() {
         var filter = that.filter.val();
         var state = {};
-        state[that.managed_entity_name + '-filter'] = filter;
+        state[that.managed_entity.name + '-filter'] = filter;
         IPA.nav.push_state(state);
     };
 
@@ -311,7 +309,7 @@ IPA.nested_search_facet = function(spec) {
 
     spec = spec || {};
 
-    spec.managed_entity_name = spec.nested_entity;
+    spec.managed_entity = IPA.get_entity(spec.nested_entity);
 
     spec.disable_breadcrumb = false;
     spec.disable_facet_tabs = false;
@@ -325,7 +323,7 @@ IPA.nested_search_facet = function(spec) {
             IPA.nav.get_state(IPA.current_entity.name+'-pkey'));
 
         if (that.filter) {
-            var filter = IPA.nav.get_state(that.managed_entity_name+'-filter');
+            var filter = IPA.nav.get_state(that.managed_entity.name+'-filter');
             that.filter.val(filter);
         }
     };

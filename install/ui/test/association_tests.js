@@ -27,11 +27,14 @@ test("Testing serial_associator().", function() {
 
     var orig_ipa_batch_command = IPA.batch_command;
 
+    var user = IPA.entity({ name: 'user' });
+    var group = IPA.entity({ name: 'group' });
+
     var params = {
         method: 'add_member',
         pkey: 'test',
-        entity: {name:'user'},
-        other_entity: 'group'
+        entity: user,
+        other_entity: group
     };
 
     params.values = ['user1', 'user2', 'user3'];
@@ -50,7 +53,7 @@ test("Testing serial_associator().", function() {
                 command = that.commands[i];
 
                 equals(
-                    command.entity, params.other_entity,
+                    command.entity, params.other_entity.name,
                     'Checking IPA.command() parameter: entity');
 
                 equals(
@@ -86,11 +89,14 @@ test("Testing bulk_associator().", function() {
 
     var counter = 0;
 
+    var user = IPA.entity({ name: 'user' });
+    var group = IPA.entity({ name: 'group' });
+
     var params = {
-        method: "add_member",
-        pkey: "test",
-        entity: {name:"user"},
-        other_entity: "group"
+        method: 'add_member',
+        pkey: 'test',
+        entity: user,
+        other_entity: group
     };
 
     params.values = ['user1', 'user2', 'user3'];
@@ -111,7 +117,7 @@ test("Testing bulk_associator().", function() {
                 'Checking IPA.command() parameter: primary key');
 
             equals(
-                that.options[params.other_entity], 'user1,user2,user3',
+                that.options[params.other_entity.name], 'user1,user2,user3',
                 'Checking IPA.command() parameter: options[\""+params.other_entity+"\"]');
 
             that.on_success({});

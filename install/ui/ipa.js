@@ -187,12 +187,11 @@ var IPA = function() {
         if (!factory) return null;
 
         try {
-            var builder = that.entity_builder();
+            var builder = IPA.entity_builder();
 
             builder.entity({
                 factory: factory,
-                name: name,
-                builder: builder
+                name: name
             });
 
             var entity = builder.build();
@@ -222,6 +221,7 @@ var IPA = function() {
     };
 
     that.get_entity = function(name) {
+        if (typeof name === 'object') return name;
         var entity = that.entities.get(name);
         if (!entity) {
             entity = that.create_entity(name);

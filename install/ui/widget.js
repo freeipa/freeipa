@@ -36,7 +36,7 @@ IPA.widget = function(spec) {
     that.id = spec.id;
     that.label = spec.label;
     that.tooltip = spec.tooltip;
-    that.entity = spec.entity; //some old widgets still need it
+    that.entity = IPA.get_entity(spec.entity); //some old widgets still need it
 
     that.create = function(container) {
         container.addClass('widget');
@@ -932,20 +932,20 @@ IPA.column = function (spec) {
 
     var that = {};
 
+    that.entity = IPA.get_entity(spec.entity);
     that.name = spec.name;
+
     that.label = spec.label;
     that.width = spec.width;
-    that.entity_name = spec.entity ? spec.entity.name : spec.entity_name;
     that.primary_key = spec.primary_key;
     that.link = spec.link;
     that.format = spec.format;
 
-    if (!that.entity_name){
-        var except = {
+    if (!that.entity) {
+        throw {
             expected: false,
-            message:'Column created without an entity_name.'
+            message: 'Column created without an entity.'
         };
-        throw except;
     }
 
     that.setup = function(container, record, suppress_link) {
@@ -978,8 +978,8 @@ IPA.column = function (spec) {
 
 
     /*column initialization*/
-    if (that.entity_name && !that.label) {
-        var metadata = IPA.get_entity_param(that.entity_name, that.name);
+    if (that.entity && !that.label) {
+        var metadata = IPA.get_entity_param(that.entity.name, that.name);
         if (metadata) {
             that.label = metadata.label;
         }
@@ -1726,14 +1726,14 @@ IPA.entity_select_widget = function(spec) {
 
     var that = IPA.combobox_widget(spec);
 
-    that.other_entity = spec.other_entity;
+    that.other_entity = IPA.get_entity(spec.other_entity);
     that.other_field = spec.other_field;
 
     that.options = spec.options || [];
 
     that.create_search_command = function(filter) {
         return IPA.command({
-            entity: that.other_entity,
+            entity: that.other_entity.name,
             method: 'find',
             args: [filter]
         });

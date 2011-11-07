@@ -40,7 +40,7 @@ IPA.hbac.test_entity = function(spec) {
             factory: IPA.hbac.test_select_facet,
             name: 'user',
             label: IPA.messages.objects.hbacrule.user,
-            managed_entity_name: 'user',
+            managed_entity: 'user',
             disable_breadcrumb: true,
             facet_group: 'default',
             columns: [
@@ -53,7 +53,7 @@ IPA.hbac.test_entity = function(spec) {
             factory: IPA.hbac.test_select_facet,
             name: 'targethost',
             label: IPA.messages.objects.hbacrule.host,
-            managed_entity_name: 'host',
+            managed_entity: 'host',
             disable_breadcrumb: true,
             facet_group: 'default',
             columns: [
@@ -70,7 +70,7 @@ IPA.hbac.test_entity = function(spec) {
             factory: IPA.hbac.test_select_facet,
             name: 'service',
             label: IPA.messages.objects.hbacrule.service,
-            managed_entity_name: 'hbacsvc',
+            managed_entity: 'hbacsvc',
             disable_breadcrumb: true,
             facet_group: 'default',
             columns: [
@@ -82,7 +82,7 @@ IPA.hbac.test_entity = function(spec) {
             factory: IPA.hbac.test_select_facet,
             name: 'sourcehost',
             label: IPA.messages.objects.hbacrule.sourcehost,
-            managed_entity_name: 'host',
+            managed_entity: 'host',
             disable_breadcrumb: true,
             facet_group: 'default',
             columns: [
@@ -99,7 +99,7 @@ IPA.hbac.test_entity = function(spec) {
             factory: IPA.hbac.test_rules_facet,
             name: 'rules',
             label: IPA.messages.objects.hbactest.rules,
-            managed_entity_name: 'hbacrule',
+            managed_entity: 'hbacrule',
             disable_breadcrumb: true,
             facet_group: 'default',
             columns: [
@@ -115,7 +115,7 @@ IPA.hbac.test_entity = function(spec) {
             factory: IPA.hbac.test_run_facet,
             name: 'run_test',
             label: IPA.messages.objects.hbactest.run_test,
-            managed_entity_name: 'hbacrule',
+            managed_entity: 'hbacrule',
             disable_breadcrumb: true,
             facet_group: 'default',
             columns: [
@@ -145,13 +145,13 @@ IPA.hbac.test_facet = function(spec) {
 
     var init = function() {
 
-        that.managed_entity = IPA.get_entity(that.managed_entity_name);
+        that.managed_entity = IPA.get_entity(that.managed_entity);
 
         var columns = that.columns.values;
         for (var i=0; i<columns.length; i++) {
             var column = columns[i];
 
-            var metadata = IPA.get_entity_param(that.managed_entity_name, column.name);
+            var metadata = IPA.get_entity_param(that.managed_entity.name, column.name);
             column.primary_key = metadata && metadata.primary_key;
             column.link = column.primary_key;
         }
@@ -753,7 +753,7 @@ IPA.hbac.test_run_facet = function(spec) {
         if (!that.show_matched && that.show_unmatched) {
             return 'hbactest_unmatched';
         }
-        return that.managed_entity_name+'_get_records';
+        return that.managed_entity.name+'_get_records';
     };
 
     that.load_records = function(records) {
@@ -761,7 +761,7 @@ IPA.hbac.test_run_facet = function(spec) {
         that.table.empty();
         for (var i=0; i<records.length; i++) {
             var record = records[i];
-            var pkey = record[pkey_name];
+            var pkey = record[pkey_name][0];
             record.matched = that.matched[pkey];
             that.table.add_record(record);
         }
