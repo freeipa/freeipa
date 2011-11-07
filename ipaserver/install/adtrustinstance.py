@@ -183,17 +183,24 @@ class ADTRUSTInstance(service.Service):
         except errors.NotFound:
             pass
 
-        try:
-            self.admin_conn.getEntry(self.trust_dn, ldap.SCOPE_BASE)
-        except errors.NotFound:
-            entry = ipaldap.Entry(self.trust_dn)
-            entry.setValues("objectclass", ["nsContainer"])
-            entry.setValues("cn", "trusts")
-            self.admin_conn.add_s(entry)
+        for new_dn in (self.trust_dn, \
+                       "cn=ad,"+self.trust_dn, \
+                       "cn=ad,cn=etc,"+self.suffix):
+            try:
+                self.admin_conn.getEntry(dn, ldap.SCOPE_BASE)
+            except errors.NotFound:
+                entry = ipaldap.Entry(dn)
+                entry.setValues("objectclass", ["nsContainer"])
+                name = dn.split('=')[1].split(',')[0]
+                if not name:
+                    print "Cannot extract RDN attribute value from [%s]" % dn
+                    return
+                entry.setValues("cn", name)
+                self.admin_conn.addEntry(entry)
 
         entry = ipaldap.Entry(self.smb_dom_dn)
         entry.setValues("objectclass", ["sambaDomain", "nsContainer"])
-        entry.setValues("cn", "ad")
+        entry.setValues("cn", self.domain_name)
         entry.setValues("sambaDomainName", self.netbios_name)
         entry.setValues("sambaSID", self.__gen_sid_string())
         #TODO: which MAY attributes do we want to set ?
@@ -346,7 +353,8 @@ class ADTRUSTInstance(service.Service):
         self.smb_dn_pwd = ipautil.ipa_generate_password()
 
         self.trust_dn = "cn=trusts,%s" % self.suffix
-        self.smb_dom_dn = "cn=ad,%s" % self.trust_dn
+        self.smb_dom_dn = "cn=%s,cn=ad,cn=etc,%s" % (self.domain_name, \
+                                                     self.suffix)
 
         self.__setup_sub_dict()
 
