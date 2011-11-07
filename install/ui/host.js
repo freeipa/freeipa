@@ -432,7 +432,7 @@ IPA.dnszone_select_widget = function(spec) {
 
     that.create_search_command = function(filter) {
         return IPA.command({
-            entity: that.other_entity,
+            entity: that.other_entity.name,
             method: 'find',
             args: [filter],
             options: {

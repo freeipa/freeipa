@@ -121,7 +121,7 @@ IPA.rule_association_table_widget = function(spec) {
                 that.create_column({
                     name: that.external,
                     label: IPA.messages.objects.sudorule.external,
-                    entity_name: that.other_entity,
+                    entity: that.other_entity,
                     format: IPA.boolean_format,
                     width: '200px'
                 });
@@ -133,7 +133,7 @@ IPA.rule_association_table_widget = function(spec) {
 
         var entity_label = that.entity.metadata.label_singular;
         var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
-        var other_entity_label = IPA.metadata.objects[that.other_entity].label;
+        var other_entity_label = that.other_entity.metadata.label;
 
         var title = that.add_title;
         title = title.replace('${entity}', entity_label);
@@ -213,7 +213,7 @@ IPA.rule_association_table_field = function(spec) {
                     options: {all: true, rights: true}
                 });
 
-                command.set_option(that.widget.other_entity, values.join(','));
+                command.set_option(that.widget.other_entity.name, values.join(','));
                 update_info.append_command(command, that.priority);
             }
         }
@@ -240,7 +240,7 @@ IPA.rule_association_adder_dialog = function(spec) {
         that.selected_table.add_rows(rows);
 
         if (that.external) {
-            var pkey_name = IPA.metadata.objects[that.other_entity].primary_key;
+            var pkey_name = that.other_entity.metadata.primary_key;
             var value = that.external_field.val();
             if (!value) return;
 

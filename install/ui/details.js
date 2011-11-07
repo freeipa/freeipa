@@ -234,7 +234,7 @@ IPA.details_facet = function(spec) {
 
     var that = IPA.facet(spec);
 
-    that.entity = spec.entity;
+    that.entity = IPA.get_entity(spec.entity);
     that.update_command_name = spec.update_command_name || 'mod';
     that.command_mode = spec.command_mode || 'save'; // [save, info]
 

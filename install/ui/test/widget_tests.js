@@ -55,7 +55,6 @@ function base_widget_test(value){
 
     widget = factory(spec);
 
-    var entity_name = 'user';
     var field_name = widget.name;
     ok (widget, "Created Widget");
 
@@ -151,16 +150,14 @@ test("IPA.table_widget" ,function(){
         name:'uid',
         label:'User ID',
         primary_key:'uid',
-        width:'20em',
-        entity_name:'user'
+        width:'20em'
     }));
     widget.add_column(IPA.column({
         entity: spec.entity,
         name:'title',
         lable:'Title',
         primary_key:'uid',
-        width:'20em',
-        entity_name:'user'
+        width:'20em'
     }));
 
     ok(!widget.container,'widget has no container before create');
@@ -269,13 +266,14 @@ test("IPA.select_widget" ,function(){
 });
 
 
-test("IPA.entity_select_widget" ,function(){
-    factory =  IPA.entity_select_widget;
+test("IPA.entity_select_widget" ,function() {
+    var user = IPA.entity({ name: 'user' });
+    factory = IPA.entity_select_widget;
     spec = {
         name: 'uid',
-        other_entity:'user',
-        field_name:'uid',
-        other_field: 'uid' };
+        other_entity: user,
+        other_field: 'uid'
+    };
 
     base_widget_test('test_value');
     var mock_record = { uid: ['kfrog']};

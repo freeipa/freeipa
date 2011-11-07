@@ -353,6 +353,8 @@ IPA.aci.delegation_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
+    that.group_entity = IPA.get_entity(spec.group_entity || 'group');
+
     that.init = function() {
         that.entity_init();
 
@@ -370,13 +372,13 @@ IPA.aci.delegation_entity = function(spec) {
                         {
                             type: 'entity_select',
                             name: 'group',
-                            other_entity: 'group',
+                            other_entity: that.group_entity,
                             other_field: 'cn'
                         },
                         {
                             type: 'entity_select',
                             name: 'memberof',
-                            other_entity: 'group',
+                            other_entity: that.group_entity,
                             other_field: 'cn',
                             join: true
                         },
@@ -397,13 +399,13 @@ IPA.aci.delegation_entity = function(spec) {
                 {
                     type: 'entity_select',
                     name: 'group',
-                    other_entity: 'group',
+                    other_entity: that.group_entity,
                     other_field: 'cn'
                 },
                 {
                     type: 'entity_select',
                     name: 'memberof',
-                    other_entity: 'group',
+                    other_entity: that.group_entity,
                     other_field: 'cn',
                     join: true
                 },
@@ -591,6 +593,8 @@ IPA.permission_target_widget = function(spec) {
 
     var that = factory(spec);
 
+    that.group_entity = IPA.get_entity(spec.group_entity || 'group');
+
     that.targets = [ 'filter', 'subtree', 'targetgroup', 'type' ];
     that.target = that.targets[0];
     that.show_target = spec.show_target;
@@ -638,7 +642,7 @@ IPA.permission_target_widget = function(spec) {
         that.group_select = IPA.entity_select_widget({
             entity: that.entity,
             name: 'targetgroup',
-            other_entity: 'group',
+            other_entity: that.group_entity,
             other_field: 'cn',
             hidden: true
         });

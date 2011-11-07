@@ -72,8 +72,7 @@ IPA.entity = function(spec) {
     };
 
     that.get_containing_entity = function() {
-        return that.containing_entity ?
-                IPA.get_entity(that.containing_entity) : null;
+        return that.containing_entity;
     };
 
     that.get_dialog = function(name) {
@@ -93,7 +92,7 @@ IPA.entity = function(spec) {
     };
 
     that.dialog = function(dialog) {
-        dialog.entity_name = that.name;
+        dialog.entity = that;
         that.dialogs.put(dialog.name, dialog);
         return that;
     };
@@ -143,7 +142,6 @@ IPA.entity = function(spec) {
     };
 
     that.add_facet = function(facet) {
-        facet.entity_name = that.name;
         facet.entity = that;
 
         that.facets.put(facet.name, facet);
@@ -321,6 +319,7 @@ IPA.entity_builder = function() {
         } else {
             spec = { name: spec };
         }
+        spec.builder = that;
 
         entity = factory(spec);
 
@@ -495,7 +494,7 @@ IPA.entity_builder = function() {
 
     that.containing_entity = function(entity_name) {
         add_redirect_info();
-        entity.containing_entity = entity_name;
+        entity.containing_entity = IPA.get_entity(entity_name);
         return that;
     };
 

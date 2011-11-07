@@ -59,7 +59,7 @@ IPA.dialog = function(spec) {
 
     var that = {};
 
-    that.entity = spec.entity;
+    that.entity = IPA.get_entity(spec.entity);
     that.name = spec.name;
     that.id = spec.id;
     that.title = spec.title;

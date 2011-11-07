@@ -245,10 +245,10 @@ IPA.automount_key_column = function(spec) {
             href: '#'+key,
             text: key,
             click: function() {
-                var state = IPA.nav.get_path_state(that.entity_name);
-                state[that.entity_name + '-facet'] = 'default';
-                state[that.entity_name + '-info'] = info;
-                state[that.entity_name + '-pkey'] = key;
+                var state = IPA.nav.get_path_state(that.entity.name);
+                state[that.entity.name + '-facet'] = 'default';
+                state[that.entity.name + '-info'] = info;
+                state[that.entity.name + '-pkey'] = key;
                 IPA.nav.push_state(state);
                 return false;
             }
