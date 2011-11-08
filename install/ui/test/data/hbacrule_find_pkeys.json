@@ -1,0 +1,17 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "count": 1,
+        "result": [
+            {
+                "cn": [
+                    "allow_all"
+                ],
+                "dn": "ipauniqueid=ca842a42-a445-11e0-87ff-525400b55a47,cn=hbac,dc=dev,dc=example,dc=com"
+            }
+        ],
+        "summary": "1 HBAC rule matched",
+        "truncated": false
+    }
+}

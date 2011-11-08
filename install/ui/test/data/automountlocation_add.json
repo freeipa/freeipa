@@ -6,7 +6,7 @@
             "cn": [
                 "YYZ"
             ],
-            "dn": "cn=yyz,cn=automount,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "cn=yyz,cn=automount,dc=dev,dc=example,dc=com",
             "objectclass": [
                 "nscontainer",
                 "top"

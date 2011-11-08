@@ -1,0 +1,85 @@
+{
+    "error": null,
+    "id": 6,
+    "result": {
+        "count": 3,
+        "results": [
+            {
+                "error": null,
+                "result": {
+                    "cn": "GLOBAL",
+                    "dn": "cn=accounts,dc=example,dc=com",
+                    "krbmaxpwdlife": [
+                        "90"
+                    ],
+                    "krbminpwdlife": [
+                        "1"
+                    ],
+                    "krbpwdhistorylength": [
+                        "0"
+                    ],
+                    "krbpwdmindiffchars": [
+                        "0"
+                    ],
+                    "krbpwdminlength": [
+                        "8"
+                    ]
+                },
+                "summary": null,
+                "value": "GLOBAL"
+            },
+            {
+                "error": null,
+                "result": {
+                    "cn": [
+                        "testgroup12"
+                    ],
+                    "cospriority": [
+                        "1"
+                    ],
+                    "dn": "cn=testgroup12,cn=example.com,cn=kerberos,dc=example,dc=com",
+                    "krbmaxpwdlife": [
+                        "40"
+                    ],
+                    "krbminpwdlife": [
+                        "50"
+                    ],
+                    "krbpwdhistorylength": [
+                        "5"
+                    ],
+                    "krbpwdminlength": [
+                        "6"
+                    ]
+                },
+                "summary": null,
+                "value": "testgroup12"
+            },
+            {
+                "error": null,
+                "result": {
+                    "cn": [
+                        "testgroup22"
+                    ],
+                    "cospriority": [
+                        "2"
+                    ],
+                    "dn": "cn=testgroup22,cn=example.com,cn=kerberos,dc=example,dc=com",
+                    "krbmaxpwdlife": [
+                        "60"
+                    ],
+                    "krbminpwdlife": [
+                        "40"
+                    ],
+                    "krbpwdhistorylength": [
+                        "8"
+                    ],
+                    "krbpwdminlength": [
+                        "9"
+                    ]
+                },
+                "summary": null,
+                "value": "testgroup22"
+            }
+        ]
+    }
+}

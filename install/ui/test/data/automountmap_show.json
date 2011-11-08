@@ -6,7 +6,7 @@
             "automountmapname": [
                 "live"
             ],
-            "dn": "automountmapname=live,cn=bos,cn=automount,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+            "dn": "automountmapname=live,cn=bos,cn=automount,dc=example,dc=com"
         },
         "summary": null,
         "value": "live"

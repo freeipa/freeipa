@@ -16,7 +16,7 @@
             "description": [
                 "Muppets moonlighting for CTW"
             ],
-            "dn": "cn=muppets,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "cn=muppets,cn=groups,cn=accounts,dc=example,dc=com",
             "gidnumber": [
                 "1950316043"
             ],

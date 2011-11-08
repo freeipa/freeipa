@@ -1,0 +1,41 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "count": 1,
+        "results": [
+            {
+                "error": null,
+                "result": {
+                    "accessruletype": [
+                        "allow"
+                    ],
+                    "cn": [
+                        "allow_all"
+                    ],
+                    "description": [
+                        "Allow all users to access any host from any host"
+                    ],
+                    "dn": "ipauniqueid=ca842a42-a445-11e0-87ff-525400b55a47,cn=hbac,dc=dev,dc=example,dc=com",
+                    "hostcategory": [
+                        "all"
+                    ],
+                    "ipaenabledflag": [
+                        "TRUE"
+                    ],
+                    "servicecategory": [
+                        "all"
+                    ],
+                    "sourcehostcategory": [
+                        "all"
+                    ],
+                    "usercategory": [
+                        "all"
+                    ]
+                },
+                "summary": null,
+                "value": "allow_all"
+            }
+        ]
+    }
+}

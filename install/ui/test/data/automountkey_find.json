@@ -14,7 +14,7 @@
                 "description": [
                     "nfsserver:/var/log/dirsrv /var/log/dirsrv"
                 ],
-                "dn": "description=nfsserver:/var/log/dirsrv /var/log/dirsrv,automountmapname=auto.log,cn=bos,cn=automount,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "description=nfsserver:/var/log/dirsrv /var/log/dirsrv,automountmapname=auto.log,cn=bos,cn=automount,dc=dev,dc=example,dc=com",
                 "objectclass": [
                     "automount",
                     "top"
@@ -30,7 +30,7 @@
                 "description": [
                     "nfsserver:/var/log/ipa /var/log/ipa"
                 ],
-                "dn": "description=nfsserver:/var/log/ipa /var/log/ipa,automountmapname=auto.log,cn=bos,cn=automount,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "description=nfsserver:/var/log/ipa /var/log/ipa,automountmapname=auto.log,cn=bos,cn=automount,dc=dev,dc=example,dc=com",
                 "objectclass": [
                     "automount",
                     "top"

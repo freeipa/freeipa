@@ -9,7 +9,7 @@
             "description": [
                 "The People in Your Neighborhood"
             ],
-            "dn": "cn=neighbors,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "cn=neighbors,cn=groups,cn=accounts,dc=example,dc=com",
             "gidnumber": [
                 "123456"
             ],

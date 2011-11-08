@@ -28,15 +28,15 @@
             "cn": [
                 "ipaConfig"
             ],
-            "dn": "cn=ipaconfig,cn=etc,dc=ipa14,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "cn=ipaconfig,cn=etc,dc=dev,dc=example,dc=com",
             "ipacertificatesubjectbase": [
-                "O=IPA14.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
+                "O=DEV.EXAMPLE.COM"
             ],
             "ipaconfigstring": [
                 "AllowNThash"
             ],
             "ipadefaultemaildomain": [
-                "ayoung.boston.devel.redhat.com"
+                "example.com"
             ],
             "ipadefaultloginshell": [
                 "/bin/sh"

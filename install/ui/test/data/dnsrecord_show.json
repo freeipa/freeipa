@@ -48,7 +48,7 @@
                 "sshfprecord": "rscwo",
                 "txtrecord": "rscwo"
             },
-            "dn": "idnsname=testrec,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "idnsname=testrec,idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
             "idnsname": [
                 "testrec"
             ],
@@ -60,7 +60,7 @@
                 "idnsrecord"
             ],
             "srvrecord": [
-                "1 1 80 server15"
+                "1 1 80 dev"
             ],
             "txtrecord": [
                 "A Text Record",

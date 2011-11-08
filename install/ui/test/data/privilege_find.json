@@ -11,7 +11,7 @@
                 "description": [
                     "User Administrators"
                 ],
-                "dn": "cn=useradmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "cn=useradmin,cn=privileges,cn=accounts,dc=example,dc=com",
                 "memberof_permission": [
                     "addusers",
                     "change_password",
@@ -27,7 +27,7 @@
                 "description": [
                     "Group Administrators"
                 ],
-                "dn": "cn=groupadmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "cn=groupadmin,cn=privileges,cn=accounts,dc=example,dc=com",
                 "memberof_permission": [
                     "addgroups",
                     "removegroups",
@@ -42,7 +42,7 @@
                 "description": [
                     "Host Administrators"
                 ],
-                "dn": "cn=hostadmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "cn=hostadmin,cn=privileges,cn=accounts,dc=example,dc=com",
                 "memberof_permission": [
                     "addhosts",
                     "removehosts",
@@ -58,7 +58,7 @@
                 "description": [
                     "Host Group Administrators"
                 ],
-                "dn": "cn=hostgroupadmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "cn=hostgroupadmin,cn=privileges,cn=accounts,dc=example,dc=com",
                 "memberof_permission": [
                     "addhostgroups",
                     "removehostgroups",
@@ -73,7 +73,7 @@
                 "description": [
                     "Role administration"
                 ],
-                "dn": "cn=delegationadmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "cn=delegationadmin,cn=privileges,cn=accounts,dc=example,dc=com",
                 "memberof_permission": [
                     "addroles",
                     "removeroles",
@@ -89,7 +89,7 @@
                 "description": [
                     "Service Administrators"
                 ],
-                "dn": "cn=serviceadmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "cn=serviceadmin,cn=privileges,cn=accounts,dc=example,dc=com",
                 "memberof_permission": [
                     "addservices",
                     "removeservices",
@@ -104,7 +104,7 @@
                 "description": [
                     "Automount Administrators"
                 ],
-                "dn": "cn=automountadmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "cn=automountadmin,cn=privileges,cn=accounts,dc=example,dc=com",
                 "memberof_permission": [
                     "addautomountmaps",
                     "removeautomountmaps",
@@ -119,7 +119,7 @@
                 "description": [
                     "Netgroups Administrators"
                 ],
-                "dn": "cn=netgroupadmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "cn=netgroupadmin,cn=privileges,cn=accounts,dc=example,dc=com",
                 "memberof_permission": [
                     "addnetgroups",
                     "removenetgroups",
@@ -134,7 +134,7 @@
                 "description": [
                     "Certificate Administrators"
                 ],
-                "dn": "cn=certadmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "cn=certadmin,cn=privileges,cn=accounts,dc=example,dc=com",
                 "memberof_permission": [
                     "retrieve_certs",
                     "request_certs",
@@ -151,9 +151,9 @@
                 "description": [
                     "Replication Administrators"
                 ],
-                "dn": "cn=replicaadmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "cn=replicaadmin,cn=privileges,cn=accounts,dc=example,dc=com",
                 "memberindirect": [
-                    "uid=admin,cn=users,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+                    "uid=admin,cn=users,cn=accounts,dc=example,dc=com"
                 ],
                 "memberof_permission": [
                     "managereplica",
@@ -167,7 +167,7 @@
                 "description": [
                     "Host Enrollment"
                 ],
-                "dn": "cn=enrollhost,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "cn=enrollhost,cn=privileges,cn=accounts,dc=example,dc=com",
                 "memberof_permission": [
                     "manage_host_keytab",
                     "enroll_host"
@@ -180,7 +180,7 @@
                 "description": [
                     "Entitlement Administrators"
                 ],
-                "dn": "cn=entitlementadmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "cn=entitlementadmin,cn=privileges,cn=accounts,dc=example,dc=com",
                 "memberof_permission": [
                     "addentitlements",
                     "removeentitlements",
@@ -194,7 +194,7 @@
                 "description": [
                     "DNS Administrators"
                 ],
-                "dn": "cn=dnsadmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+                "dn": "cn=dnsadmin,cn=privileges,cn=accounts,dc=example,dc=com"
             },
             {
                 "cn": [
@@ -203,9 +203,9 @@
                 "description": [
                     "DNS Servers"
                 ],
-                "dn": "cn=dnsserver,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "cn=dnsserver,cn=privileges,cn=accounts,dc=example,dc=com",
                 "memberindirect": [
-                    "krbprincipalname=dns/ipa.ayoung.boston.devel.redhat.com@ayoung.boston.devel.redhat.com,cn=services,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+                    "krbprincipalname=dns/ipa.example.com@example.com,cn=services,cn=accounts,dc=example,dc=com"
                 ]
             }
         ],

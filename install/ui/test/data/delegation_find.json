@@ -9,9 +9,9 @@
                 "attrs": [
                     "cn"
                 ], 
-                "filter": "(memberOf=cn=ipausers,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com)", 
+                "filter": "(memberOf=cn=ipausers,cn=groups,cn=accounts,dc=example,dc=com)",
                 "group": "muppets", 
-                "membergroup": "cn=ipausers,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "membergroup": "cn=ipausers,cn=groups,cn=accounts,dc=example,dc=com",
                 "permissions": [
                     "write"
                 ]
@@ -21,9 +21,9 @@
                 "attrs": [
                     "title"
                 ], 
-                "filter": "(memberOf=cn=monsters,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com)", 
+                "filter": "(memberOf=cn=monsters,cn=groups,cn=accounts,dc=example,dc=com)",
                 "group": "muppets", 
-                "membergroup": "cn=monsters,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "membergroup": "cn=monsters,cn=groups,cn=accounts,dc=example,dc=com",
                 "permissions": [
                     "write"
                 ]

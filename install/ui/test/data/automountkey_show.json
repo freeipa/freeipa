@@ -20,7 +20,7 @@
             "description": [
                 "/home auto.home"
             ],
-            "dn": "description=/home auto.home,automountmapname=auto.master,cn=default,cn=automount,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "description=/home auto.home,automountmapname=auto.master,cn=default,cn=automount,dc=dev,dc=example,dc=com",
             "objectclass": [
                 "automount",
                 "top"

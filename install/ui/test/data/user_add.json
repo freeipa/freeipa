@@ -3,7 +3,7 @@
     "id": 10,
     "result": {
         "result": {
-            "dn": "uid=snuffy,cn=users,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "uid=snuffy,cn=users,cn=accounts,dc=example,dc=com",
             "gecos": [
                 "snuffy"
             ],
@@ -17,7 +17,7 @@
                 "a4ce7d19-b439-11df-a9ae-525400674dcd"
             ],
             "krbprincipalname": [
-                "snuffy@AYOUNG.BOSTON.DEVEL.REDHAT.COM"
+                "snuffy@EXAMPLE.COM"
             ],
             "loginshell": [
                 "/bin/sh"

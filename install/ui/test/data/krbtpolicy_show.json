@@ -27,9 +27,9 @@
                 "objectclass": "rscwo"
             },
             "cn": [
-                "IPA14.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
+                "DEV.EXAMPLE.COM"
             ],
-            "dn": "cn=ipa14.ayoung.boston.devel.redhat.com,cn=kerberos,dc=ipa14,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "cn=dev.example.com,cn=kerberos,dc=dev,dc=example,dc=com",
             "krbdefaultencsalttypes": [
                 "aes256-cts:special",
                 "aes128-cts:special",
@@ -46,7 +46,7 @@
                 "2"
             ],
             "krbsubtrees": [
-                "dc=ipa14,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+                "dc=dev,dc=example,dc=com"
             ],
             "krbsupportedencsalttypes": [
                 "aes256-cts:normal",

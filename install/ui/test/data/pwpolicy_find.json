@@ -6,7 +6,7 @@
         "result": [
             {
                 "cn": "GLOBAL", 
-                "dn": "cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "dn": "cn=accounts,dc=example,dc=com",
                 "krbmaxpwdlife": [
                     "90"
                 ], 
@@ -30,7 +30,7 @@
                 "cospriority": [
                     "1"
                 ], 
-                "dn": "cn=testgroup12,cn=ayoung.boston.devel.redhat.com,cn=kerberos,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "dn": "cn=testgroup12,cn=example.com,cn=kerberos,dc=example,dc=com",
                 "krbmaxpwdlife": [
                     "40"
                 ], 
@@ -51,7 +51,7 @@
                 "cospriority": [
                     "2"
                 ], 
-                "dn": "cn=testgroup22,cn=ayoung.boston.devel.redhat.com,cn=kerberos,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "dn": "cn=testgroup22,cn=example.com,cn=kerberos,dc=example,dc=com",
                 "krbmaxpwdlife": [
                     "60"
                 ], 

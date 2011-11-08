@@ -1,0 +1,27 @@
+{
+    "error": null,
+    "id": 6,
+    "result": {
+        "count": 3,
+        "result": [
+            {
+                "cn": "GLOBAL",
+                "dn": "cn=accounts,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "testgroup12"
+                ],
+                "dn": "cn=testgroup12,cn=example.com,cn=kerberos,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "testgroup22"
+                ],
+                "dn": "cn=testgroup22,cn=example.com,cn=kerberos,dc=example,dc=com"
+            }
+        ],
+        "summary": null,
+        "truncated": false
+    }
+}

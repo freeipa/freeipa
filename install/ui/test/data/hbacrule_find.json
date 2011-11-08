@@ -14,7 +14,7 @@
                 "description": [
                     "Allow all users to access any host from any host"
                 ],
-                "dn": "ipauniqueid=ca842a42-a445-11e0-87ff-525400b55a47,cn=hbac,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "ipauniqueid=ca842a42-a445-11e0-87ff-525400b55a47,cn=hbac,dc=dev,dc=example,dc=com",
                 "hostcategory": [
                     "all"
                 ],

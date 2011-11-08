@@ -47,12 +47,12 @@
                 "sshfprecord": "rscwo",
                 "txtrecord": "rscwo"
             },
-            "dn": "idnsname=henson.ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "idnsname=dev.example.com,cn=dns,dc=example,dc=com",
             "idnsallowdynupdate": [
                 "FALSE"
             ],
             "idnsname": [
-                "henson.ayoung.boston.devel.redhat.com"
+                "dev.example.com"
             ],
             "idnssoaexpire": [
                 "1209600"
@@ -61,7 +61,7 @@
                 "3600"
             ],
             "idnssoamname": [
-                "ayoung.boston.devel.redhat.com"
+                "example.com"
             ],
             "idnssoarefresh": [
                 "3600"
@@ -70,7 +70,7 @@
                 "900"
             ],
             "idnssoarname": [
-                "root.henson.ayoung.boston.devel.redhat.com."
+                "root.dev.example.com."
             ],
             "idnssoaserial": [
                 "2010021201"
@@ -85,6 +85,6 @@
             ]
         },
         "summary": null,
-        "value": "henson.ayoung.boston.devel.redhat.com"
+        "value": "dev.example.com"
     }
 }
