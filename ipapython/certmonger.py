@@ -29,6 +29,9 @@ from ipapython import ipautil
 REQUEST_DIR='/var/lib/certmonger/requests/'
 CA_DIR='/var/lib/certmonger/cas/'
 
+# Normalizer types for critera in get_request_id()
+NPATH = 1
+
 def find_request_value(filename, directive):
     """
     Return a value from a certmonger request file for the requested directive
@@ -83,7 +86,7 @@ def get_request_id(criteria):
     through all the request files. An alternative would be to parse the
     ipa-getcert list output but this seems cleaner.
 
-    criteria is a tuple of key/value pairs to search for. The more specific
+    criteria is a tuple of key/value/type to search for. The more specific
     the better. An error is raised if multiple request_ids are returned for
     the same criteria.
 
@@ -95,8 +98,10 @@ def get_request_id(criteria):
     fileList=os.listdir(REQUEST_DIR)
     for file in fileList:
         match = True
-        for (key, value) in criteria:
+        for (key, value, valtype) in criteria:
             rv = find_request_value('%s/%s' % (REQUEST_DIR, file), key)
+            if rv and valtype == NPATH:
+                rv = os.path.abspath(rv)
             if rv is None or rv.rstrip() != value:
                 match = False
                 break
@@ -157,7 +162,7 @@ def request_cert(nssdb, nickname, subject, principal, passwd_fname=None):
     ]
     if passwd_fname:
         args.append('-p')
-        args.append(passwd_fname)
+        args.append(os.path.abspath(passwd_fname))
     (stdout, stderr, returncode) = ipautil.run(args)
     # FIXME: should be some error handling around this
     m = re.match('New signing request "(\d+)" added', stdout)
@@ -175,7 +180,7 @@ def cert_exists(nickname, secdir):
     the database.
     """
     args = ["/usr/bin/certutil", "-L",
-           "-d", secdir,
+           "-d", os.path.abspath(secdir),
            "-n", nickname
           ]
     (stdout, stderr, rc) = ipautil.run(args, raiseonerr=False)
@@ -193,14 +198,14 @@ def start_tracking(nickname, secdir, password_file=None):
 
     This assumes that certmonger is already running.
     """
-    if not cert_exists(nickname, secdir):
+    if not cert_exists(nickname, os.path.abspath(secdir)):
         raise RuntimeError('Nickname "%s" doesn\'t exist in NSS database "%s"' % (nickname, secdir))
     args = ["/usr/bin/ipa-getcert", "start-tracking",
-            "-d", secdir,
+            "-d", os.path.abspath(secdir),
             "-n", nickname]
     if password_file:
         args.append("-p")
-        args.append(password_file)
+        args.append(os.path.abspath(password_file))
 
     (stdout, stderr, returncode) = ipautil.run(args)
 
@@ -216,7 +221,7 @@ def stop_tracking(secdir, request_id=None, nickname=None):
         raise RuntimeError('Both request_id and nickname are missing.')
     if nickname:
         # Using the nickname find the certmonger request_id
-        criteria = (('cert_storage_location','%s' % secdir),('cert_nickname', '%s' % nickname))
+        criteria = (('cert_storage_location', os.path.abspath(secdir), NPATH),('cert_nickname', nickname, None))
         try:
             request_id = get_request_id(criteria)
             if request_id is None:
@@ -236,7 +241,7 @@ def stop_tracking(secdir, request_id=None, nickname=None):
         args.append('-n')
         args.append(nickname)
         args.append('-d')
-        args.append(secdir)
+        args.append(os.path.abspath(secdir))
 
     (stdout, stderr, returncode) = ipautil.run(args)
 
