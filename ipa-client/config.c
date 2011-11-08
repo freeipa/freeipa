@@ -45,28 +45,29 @@
 char *
 read_config_file(const char *filename)
 {
-    int fd;
+    int fd = -1;
     struct stat st;
-    char *data, *dest;
+    char *data = NULL;
+    char *dest;
     size_t left;
 
     fd = open(filename, O_RDONLY);
     if (fd == -1) {
         fprintf(stderr, _("cannot open configuration file %s\n"), filename);
-        return NULL;
+        goto error_out;
     }
 
     /* stat() the file so we know the size and can pre-allocate the right
      * amount of memory. */
     if (fstat(fd, &st) == -1) {
         fprintf(stderr, _("cannot stat() configuration file %s\n"), filename);
-        return NULL;
+        goto error_out;
     }
     left = st.st_size;
     data = malloc(st.st_size + 1);
     if (data == NULL) {
         fprintf(stderr, _("out of memory\n"));
-        return NULL;
+        goto error_out;
     }
     dest = data;
     while (left != 0) {
@@ -77,9 +78,7 @@ read_config_file(const char *filename)
             break;
         if (res < 0) {
             fprintf(stderr, _("read error\n"));
-            close(fd);
-            free(dest);
-            return NULL;
+            goto error_out;
         }
         dest += res;
         left -= res;
@@ -87,6 +86,11 @@ read_config_file(const char *filename)
     close(fd);
     *dest = 0;
     return data;
+
+error_out:
+    if (fd != -1) close(fd);
+    free(data);
+    return NULL;
 }
 
 char *
