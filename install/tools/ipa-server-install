@@ -67,6 +67,7 @@ from ipapython import services as ipaservices
 
 pw_name = None
 uninstalling = False
+installation_cleanup = True
 
 VALID_SUBJECT_ATTRS = ['cn', 'st', 'o', 'ou', 'dnqualifier', 'c',
                        'serialnumber', 'l', 'title', 'sn', 'givenname',
@@ -558,6 +559,7 @@ def main():
     global ds
     global pw_name
     global uninstalling
+    global installation_cleanup
     ds = None
 
     safe_options, options = parse_options()
@@ -570,16 +572,19 @@ def main():
 
     if options.uninstall:
         uninstalling = True
+        installation_cleanup = False
         standard_logging_setup("/var/log/ipaserver-uninstall.log", options.debug)
     else:
         standard_logging_setup("/var/log/ipaserver-install.log", options.debug)
         print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
         if not options.external_ca and not options.external_cert_file and is_ipa_configured():
+            installation_cleanup = False
             sys.exit("IPA server is already configured on this system.\n"
                      + "If you want to reinstall the IPA server please uninstall it first.")
 
         client_fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
         if client_fstore.has_files():
+            installation_cleanup = False
             sys.exit("IPA client is already configured on this system.\n"
                      + "Please uninstall it first before configuring the IPA server.")
 
@@ -764,7 +769,17 @@ def main():
     domain_name = domain_name.lower()
 
     # Check we have a public IP that is associated with the hostname
-    hostaddr = resolve_host(host_name)
+    try:
+        hostaddr = resolve_host(host_name)
+    except HostnameLocalhost:
+        print >> sys.stderr, "The hostname resolves to the localhost address (127.0.0.1/::1)"
+        print >> sys.stderr, "Please change your /etc/hosts file so that the hostname"
+        print >> sys.stderr, "resolves to the ip address of your network interface."
+        print >> sys.stderr, "The KDC service does not listen on localhost"
+        print >> sys.stderr, ""
+        print >> sys.stderr, "Please fix your /etc/hosts file and restart the setup program"
+        sys.exit(1)
+
     if hostaddr is not None:
         ip = CheckedIPAddress(hostaddr, match_local=True)
     else:
@@ -868,6 +883,10 @@ def main():
     else:
         dns_forwarders = ()
     logging.debug("will use dns_forwarders: %s\n" % str(dns_forwarders))
+
+    # Installation has started. No IPA sysrestore items are restored in case of
+    # failure to enable root cause investigation
+    installation_cleanup = False
 
     # Create the management framework config file and finalize api
     target_fname = '/etc/ipa/default.conf'
@@ -1147,18 +1166,18 @@ def main():
     return 0
 
 try:
+    success = True
     try:
-        sys.exit(main())
+        rval = main()
+        if rval != 0:
+            success = False
+        sys.exit(rval)
     except SystemExit, e:
+        if e.code is not None or e.code != 0:
+            success = False
         sys.exit(e)
-    except HostnameLocalhost:
-        print "The hostname resolves to the localhost address (127.0.0.1/::1)"
-        print "Please change your /etc/hosts file so that the hostname"
-        print "resolves to the ip address of your network interface."
-        print "The KDC service does not listen on localhost"
-        print ""
-        print "Please fix your /etc/hosts file and restart the setup program"
     except Exception, e:
+        success = False
         if uninstalling:
             message = "Unexpected error - see ipaserver-uninstall.log for details:\n %s" % str(e)
         else:
@@ -1172,3 +1191,11 @@ try:
 finally:
     if pw_name and ipautil.file_exists(pw_name):
         os.remove(pw_name)
+
+    if not success and installation_cleanup:
+        # Do a cautious clean up as we don't know what failed and what is
+        # the state of the environment
+        try:
+            fstore.restore_file('/etc/hosts')
+        except:
+            pass
