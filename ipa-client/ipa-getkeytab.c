@@ -82,14 +82,24 @@ static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *s
 			krberr = krb5_init_context(&krbctx);
 
 			if (krberr) {
-				fprintf(stderr, _("Kerberos context initialization failed\n"));
+				fprintf(stderr, _("Kerberos context initialization failed: %s (%d)\n"),
+                                error_message(krberr), krberr);
 				in->result = NULL;
 				in->len = 0;
 				ret = LDAP_LOCAL_ERROR;
 				break;
 			}
 
-			krb5_unparse_name(krbctx, princ, &outname);
+			krberr = krb5_unparse_name(krbctx, princ, &outname);
+
+			if (krberr) {
+                fprintf(stderr, _("Unable to parse principal: %s (%d)\n"),
+                                error_message(krberr), krberr);
+				in->result = NULL;
+				in->len = 0;
+				ret = LDAP_LOCAL_ERROR;
+				break;
+			}
 
 			in->result = outname;
 			in->len = strlen(outname);
