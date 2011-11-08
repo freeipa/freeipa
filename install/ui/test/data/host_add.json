@@ -6,7 +6,7 @@
             "cn": [
                 "www.pbs.org"
             ],
-            "dn": "fqdn=www.pbs.org,cn=computers,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "fqdn=www.pbs.org,cn=computers,cn=accounts,dc=example,dc=com",
             "fqdn": [
                 "www.pbs.org"
             ],
@@ -15,10 +15,10 @@
                 "3ad2e63d-b43a-11df-8dd1-525400674dcd"
             ],
             "krbprincipalname": [
-                "host/www.pbs.org@AYOUNG.BOSTON.DEVEL.REDHAT.COM"
+                "host/www.pbs.org@EXAMPLE.COM"
             ],
             "managedby": [
-                "fqdn=www.pbs.org,cn=computers,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+                "fqdn=www.pbs.org,cn=computers,cn=accounts,dc=example,dc=com"
             ],
             "objectclass": [
                 "ipaobject",

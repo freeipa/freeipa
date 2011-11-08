@@ -5,102 +5,102 @@
         "count": 12,
         "result": [
             {
-                "dn": "idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
                 "idnsname": [
                     "@"
                 ],
                 "nsrecord": [
-                    "server15.ayoung.boston.devel.redhat.com."
+                    "dev.example.com."
                 ]
             },
             {
-                "dn": "idnsname=_kerberos,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_kerberos,idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
                 "idnsname": [
                     "_kerberos"
                 ],
                 "txtrecord": [
-                    "SERVER15.AYOUNG.BOSTON.DEVEL.REDHAT.COM"
+                    "DEV.EXAMPLE.COM"
                 ]
             },
             {
-                "dn": "idnsname=_kerberos-master._tcp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_kerberos-master._tcp,idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
                 "idnsname": [
                     "_kerberos-master._tcp"
                 ],
                 "srvrecord": [
-                    "0 100 88 server15"
+                    "0 100 88 dev"
                 ]
             },
             {
-                "dn": "idnsname=_kerberos-master._udp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_kerberos-master._udp,idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
                 "idnsname": [
                     "_kerberos-master._udp"
                 ],
                 "srvrecord": [
-                    "0 100 88 server15"
+                    "0 100 88 dev"
                 ]
             },
             {
-                "dn": "idnsname=_kerberos._tcp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_kerberos._tcp,idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
                 "idnsname": [
                     "_kerberos._tcp"
                 ],
                 "srvrecord": [
-                    "0 100 88 server15"
+                    "0 100 88 dev"
                 ]
             },
             {
-                "dn": "idnsname=_kerberos._udp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_kerberos._udp,idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
                 "idnsname": [
                     "_kerberos._udp"
                 ],
                 "srvrecord": [
-                    "0 100 88 server15"
+                    "0 100 88 dev"
                 ]
             },
             {
-                "dn": "idnsname=_kpasswd._tcp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_kpasswd._tcp,idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
                 "idnsname": [
                     "_kpasswd._tcp"
                 ],
                 "srvrecord": [
-                    "0 100 464 server15"
+                    "0 100 464 dev"
                 ]
             },
             {
-                "dn": "idnsname=_kpasswd._udp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_kpasswd._udp,idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
                 "idnsname": [
                     "_kpasswd._udp"
                 ],
                 "srvrecord": [
-                    "0 100 464 server15"
+                    "0 100 464 dev"
                 ]
             },
             {
-                "dn": "idnsname=_ldap._tcp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_ldap._tcp,idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
                 "idnsname": [
                     "_ldap._tcp"
                 ],
                 "srvrecord": [
-                    "0 100 389 server15"
+                    "0 100 389 dev"
                 ]
             },
             {
-                "dn": "idnsname=_ntp._udp,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=_ntp._udp,idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
                 "idnsname": [
                     "_ntp._udp"
                 ],
                 "srvrecord": [
-                    "0 100 123 server15"
+                    "0 100 123 dev"
                 ]
             },
             {
                 "aaaarecord": [
                     "fec0::5054:ff:feb5:5a47"
                 ],
-                "dn": "idnsname=server15,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=dev,idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
                 "idnsname": [
-                    "server15"
+                    "dev"
                 ]
             },
             {
@@ -114,7 +114,7 @@
                     "1.3.5.7",
                     "10.10.2.1"
                 ],
-                "dn": "idnsname=testrec,idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=server15,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "dn": "idnsname=testrec,idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
                 "idnsname": [
                     "testrec"
                 ],
@@ -122,10 +122,10 @@
                     "key"
                 ],
                 "srvrecord": [
-                    "1 1 80 server15"
+                    "1 1 80 dev"
                 ],
                 "txtrecord": [
-                    "A TExt Record",
+                    "A Text Record",
                     "Another Text Record"
                 ]
             }

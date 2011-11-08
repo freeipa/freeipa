@@ -382,7 +382,7 @@
                         "cn": [
                             "Administrator"
                         ],
-                        "dn": "uid=admin,cn=users,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
+                        "dn": "uid=admin,cn=users,cn=accounts,dc=example,dc=com",
                         "gecos": [
                             "Administrator"
                         ],
@@ -415,7 +415,7 @@
                             "20111212052109Z"
                         ],
                         "krbprincipalname": [
-                            "admin@IDM.LAB.BOS.REDHAT.COM"
+                            "admin@EXAMPLE.COM"
                         ],
                         "loginshell": [
                             "/bin/bash"
@@ -451,13 +451,13 @@
                 "count": 72,
                 "error": null,
                 "result": {
-                    "basedn": "dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
+                    "basedn": "dc=example,dc=com",
                     "bin": "/var/www",
                     "ca_agent_install_port": 9443,
                     "ca_agent_port": 443,
                     "ca_ee_install_port": 9444,
                     "ca_ee_port": 443,
-                    "ca_host": "edewata-f15.idm.lab.bos.redhat.com",
+                    "ca_host": "dev.example.com",
                     "ca_install_port": 9180,
                     "ca_port": 80,
                     "conf": "/etc/ipa/server.conf",
@@ -493,17 +493,17 @@
                     "container_virtual": "cn=virtual operations,cn=etc",
                     "context": "server",
                     "debug": false,
-                    "domain": "idm.lab.bos.redhat.com",
+                    "domain": "example.com",
                     "dot_ipa": "/var/www/.ipa",
                     "enable_ra": true,
                     "fallback": true,
                     "home": "/var/www",
-                    "host": "edewata-f15.idm.lab.bos.redhat.com",
+                    "host": "dev.example.com",
                     "in_server": true,
                     "in_tree": false,
                     "interactive": true,
                     "ipalib": "/usr/lib/python2.7/site-packages/ipalib",
-                    "ldap_uri": "ldapi://%2fvar%2frun%2fslapd-IDM-LAB-BOS-REDHAT-COM.socket",
+                    "ldap_uri": "ldapi://%2fvar%2frun%2fslapd-EXAMPLE-COM.socket",
                     "log": null,
                     "logdir": "/var/log/ipa",
                     "mode": "production",
@@ -512,7 +512,7 @@
                     "mount_xmlserver": "xml",
                     "prompt_all": false,
                     "ra_plugin": "selfsign",
-                    "realm": "IDM.LAB.BOS.REDHAT.COM",
+                    "realm": "EXAMPLE.COM",
                     "rpc_json_uri": "http://localhost:8888/ipa/json",
                     "script": "/var/www/mod_wsgi",
                     "site_packages": "/usr/lib/python2.7/site-packages",
@@ -522,7 +522,7 @@
                     "wait_for_attr": false,
                     "webui_assets_dir": null,
                     "webui_prod": true,
-                    "xmlrpc_uri": "https://edewata-f15.idm.lab.bos.redhat.com/ipa/xml"
+                    "xmlrpc_uri": "https://dev.example.com/ipa/xml"
                 },
                 "summary": "72 variables",
                 "total": 72

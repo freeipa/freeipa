@@ -4542,7 +4542,7 @@
                 "aciattrs": [],
                 "attribute_members": {},
                 "bindable": false,
-                "container_dn": "cn=VM-021.IDM.LAB.BOS.REDHAT.COM,cn=kerberos",
+                "container_dn": "cn=DEV.EXAMPLE.COM,cn=kerberos",
                 "default_attributes": [
                     "krbmaxticketlife",
                     "krbmaxrenewableage"
@@ -5418,7 +5418,7 @@
                 ],
                 "attribute_members": {},
                 "bindable": false,
-                "container_dn": "cn=VM-021.IDM.LAB.BOS.REDHAT.COM,cn=kerberos",
+                "container_dn": "cn=DEV.EXAMPLE.COM,cn=kerberos",
                 "default_attributes": [
                     "cn",
                     "cospriority",

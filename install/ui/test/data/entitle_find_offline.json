@@ -5,7 +5,7 @@
         "count": 1,
         "result": [
             {
-                "dn": "ipaentitlementid=b788ccee-4b09-48f0-8a9a-2c769f7b41e0,cn=entitlements,cn=etc,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
+                "dn": "ipaentitlementid=b788ccee-4b09-48f0-8a9a-2c769f7b41e0,cn=entitlements,cn=etc,dc=example,dc=com",
                 "ipaentitlementid": [
                     "IMPORTED"
                 ],

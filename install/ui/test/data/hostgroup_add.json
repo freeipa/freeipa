@@ -9,7 +9,7 @@
             "description": [
                 "Special Guest Stars"
             ],
-            "dn": "cn=guest_hosts,cn=hostgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "cn=guest_hosts,cn=hostgroups,cn=accounts,dc=example,dc=com",
             "ipauniqueid": [
                 "7f8c57ae-b43a-11df-8016-525400674dcd"
             ],

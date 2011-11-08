@@ -91,7 +91,7 @@
             "cn": [
                 "Kermit The Frog"
             ],
-            "dn": "uid=kfrog,cn=users,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "uid=kfrog,cn=users,cn=accounts,dc=example,dc=com",
             "gecos": [
                 "kfrog"
             ],
@@ -114,10 +114,10 @@
                 "20101105172205Z"
             ],
             "krbprincipalname": [
-                "kfrog@AYOUNG.BOSTON.DEVEL.REDHAT.COM"
+                "kfrog@EXAMPLE.COM"
             ],
             "krbpwdpolicyreference": [
-                "cn=global_policy,cn=AYOUNG.BOSTON.DEVEL.REDHAT.COM,cn=kerberos,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+                "cn=global_policy,cn=EXAMPLE.COM,cn=kerberos,dc=example,dc=com"
             ],
             "loginshell": [
                 "/bin/sh"
@@ -133,7 +133,7 @@
                 "editors"
             ],
             "mepmanagedentry": [
-                "cn=kfrog,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+                "cn=kfrog,cn=groups,cn=accounts,dc=example,dc=com"
             ],
             "nsaccountlock": [
                 "False"

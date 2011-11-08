@@ -1,0 +1,20 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "count": 1,
+        "results": [
+            {
+                "error": null,
+                "result": {
+                    "cn": [
+                        "test"
+                    ],
+                    "dn": "ipauniqueid=4fc57a02-f23311df-b268e50e-a3b3ef71,cn=sudorules,cn=sudo,dc=dev,dc=example,dc=com"
+                },
+                "summary": null,
+                "value": "test"
+            }
+        ]
+    }
+}

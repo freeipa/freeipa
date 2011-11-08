@@ -16,7 +16,7 @@
             "description": [
                 "testgroup"
             ],
-            "dn": "cn=testgroup,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "cn=testgroup,cn=groups,cn=accounts,dc=example,dc=com",
             "member_user": [
                 "kfrog"
             ]

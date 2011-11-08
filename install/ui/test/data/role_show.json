@@ -23,7 +23,7 @@
             "description": [
                 "Helpdesk"
             ], 
-            "dn": "cn=helpdesk,cn=roles,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+            "dn": "cn=helpdesk,cn=roles,cn=accounts,dc=example,dc=com",
             "objectclass": [
                 "top", 
                 "groupofnames", 

@@ -3,7 +3,7 @@
     "id": 0,
     "result": {
         "result": {
-            "dn": "ipaentitlementid=cf9d9755-7445-438c-a40c-23b1c60e1f9b,cn=entitlements,cn=etc,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
+            "dn": "ipaentitlementid=cf9d9755-7445-438c-a40c-23b1c60e1f9b,cn=entitlements,cn=etc,dc=example,dc=com",
             "ipaentitlementid": [
                 "cf9d9755-7445-438c-a40c-23b1c60e1f9b"
             ],

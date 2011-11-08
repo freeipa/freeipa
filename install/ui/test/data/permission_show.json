@@ -27,9 +27,9 @@
             "description": [
                 "Test Permission"
             ],
-            "dn": "cn=test,cn=permissions,cn=hbac,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "dn": "cn=test,cn=permissions,cn=hbac,dc=example,dc=com",
             "member": [
-                "cn=useradmin,cn=privileges,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+                "cn=useradmin,cn=privileges,cn=accounts,dc=example,dc=com"
             ],
             "objectclass": [
                 "groupofnames",
