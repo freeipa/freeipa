@@ -23,7 +23,7 @@ import time
 
 from ipalib import api, errors, output
 from ipalib import Command
-from ipalib import Flag, Int, List, Str, StrEnum
+from ipalib import Flag, Bool, Int, List, Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.util import validate_zonemgr
@@ -41,6 +41,10 @@ EXAMPLES:
  Add new zone:
    ipa dnszone-add example.com --name-server nameserver.example.com
                                --admin-email admin@example.com
+
+ Modify the zone to allow dynamic updates for hosts own records in realm EXAMPLE.COM:
+   ipa dnszone-mod example.com --dynamic-update=TRUE \\
+        --update-policy="grant EXAMPLE.COM krb5-self * A; grant EXAMPLE.COM krb5-self * AAAA;"
 
  Add new reverse zone specified by network IP address:
    ipa dnszone-add --name-from-ip 80.142.15.0/24
@@ -395,18 +399,20 @@ class dnszone(LDAPObject):
             label=_('BIND update policy'),
             doc=_('BIND update policy'),
         ),
-        Flag('idnszoneactive?',
+        Bool('idnszoneactive?',
             cli_name='zone_active',
             label=_('Active zone'),
             doc=_('Is zone active?'),
             flags=['no_create', 'no_update'],
             attribute=True,
         ),
-        Flag('idnsallowdynupdate',
-            cli_name='allow_dynupdate',
+        Bool('idnsallowdynupdate?',
+            cli_name='dynamic_update',
             label=_('Dynamic update'),
             doc=_('Allow dynamic updates.'),
             attribute=True,
+            default=False,
+            autofill=True
         ),
     )
 
@@ -441,9 +447,6 @@ class dnszone_add(LDAPCreate):
             del entry_attrs['name_from_ip']
 
         entry_attrs['idnszoneactive'] = 'TRUE'
-        entry_attrs['idnsallowdynupdate'] = str(
-            entry_attrs.get('idnsallowdynupdate', False)
-        ).upper()
 
         # Check nameserver has a forward record
         nameserver = entry_attrs['idnssoamname']
@@ -495,9 +498,6 @@ class dnszone_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if 'name_from_ip' in entry_attrs:
             del entry_attrs['name_from_ip']
-        entry_attrs['idnsallowdynupdate'] = str(
-            entry_attrs.get('idnsallowdynupdate', False)
-        ).upper()
         return dn
 
 api.register(dnszone_mod)
