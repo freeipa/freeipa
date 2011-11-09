@@ -307,6 +307,7 @@ class Param(ReadOnly):
         ('multivalue', bool, False),
         ('primary_key', bool, False),
         ('normalizer', callable, None),
+        ('encoder', callable, None),
         ('default_from', DefaultFrom, None),
         ('create_default', callable, None),
         ('autofill', bool, False),
@@ -767,6 +768,34 @@ class Param(ReadOnly):
                     error=error,
                     rule=rule,
                 )
+
+    def encode(self, value):
+        """
+        Encode Python native type value to chosen backend format. Encoding is
+        applied for parameters representing actual attributes (attribute=True).
+
+        The default encode method `Param._encode` can be overriden in a `Param`
+        instance with `encoder` attribute:
+
+        >>> s = Str('my_str', encoder=lambda x:encode(x))
+
+        Note that the default method of encoding values is defined in
+        `Param._encode()`.
+
+        :param value: Encoded value
+        """
+        if not self.attribute: #pylint: disable=E1101
+            return value
+        if self.encoder is not None: #pylint: disable=E1101
+            return self.encoder(value) #pylint: disable=E1101
+
+        return self._encode(value)
+
+    def _encode(self, value):
+        """
+        Encode a value to backend format.
+        """
+        return value
 
     def get_default(self, **kw):
         """
