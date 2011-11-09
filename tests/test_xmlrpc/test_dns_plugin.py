@@ -215,7 +215,6 @@ class test_dns(Declarative):
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
                 },
             },
         ),
