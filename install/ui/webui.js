@@ -153,7 +153,7 @@ $(function() {
     }
 
 
-    function init_on_win(data, text_status, xhr) {
+    function init_on_success(data, text_status, xhr) {
         $(window).bind('hashchange', window_hashchange);
 
         var whoami = IPA.whoami;
@@ -182,6 +182,8 @@ $(function() {
         container.append('<p>'+error_thrown.message+'</p>');
     }
 
-    IPA.init(null, null, init_on_win, init_on_error);
-
+    IPA.init({
+        on_success: init_on_success,
+        on_error: init_on_error
+    });
 });

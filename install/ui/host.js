@@ -43,6 +43,7 @@ IPA.host.entity = function(spec) {
             ]
         }).
         details_facet({
+            factory: IPA.host.details_facet,
             sections: [
                 {
                     name: 'details',
@@ -171,6 +172,17 @@ IPA.host.entity = function(spec) {
         deleter_dialog({
             factory: IPA.host_deleter_dialog
         });
+    };
+
+    return that;
+};
+
+IPA.host.details_facet = function(spec) {
+
+    var that = IPA.details_facet(spec);
+
+    that.get_refresh_command_name = function() {
+        return that.entity.name+'_show_'+that.pkey;
     };
 
     return that;

@@ -27,10 +27,9 @@ module('entity',{
 
         IPA.ajax_options.async = false;
 
-        IPA.init(
-            "data",
-            true,
-            function(data, text_status, xhr) {
+        IPA.init({
+            url: 'data',
+            on_success: function(data, text_status, xhr) {
 
                 IPA.entity_factories.user = function(){
                     return IPA.
@@ -41,10 +40,10 @@ module('entity',{
                         build();
                 };
             },
-            function(xhr, text_status, error_thrown) {
+            on_error: function(xhr, text_status, error_thrown) {
                 ok(false, "ipa_init() failed: "+error_thrown);
             }
-        );
+        });
 
         entities_container = $('<div id="entities"/>').appendTo(document.body);
 

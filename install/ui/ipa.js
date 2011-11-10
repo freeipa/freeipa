@@ -31,11 +31,8 @@ var IPA = function() {
         jsonrpc_id: 0
     };
 
-    that.use_static_files = false;
-    that.json_url = '/ipa/json';
-    if (that.use_static_files){
-        that.json_url = 'test/data';
-    }
+    // live server path
+    that.url = '/ipa/ui/';
 
     that.ajax_options = {
         type: 'POST',
@@ -54,16 +51,15 @@ var IPA = function() {
 
     that.network_call_count = 0;
 
-    /* initialize the IPA JSON-RPC helper
-     * arguments:
-     *   url - JSON-RPC URL to use (optional) */
-    that.init = function (url, use_static_files, on_success, on_error) {
-        if (url) {
-            that.json_url = url;
-        }
+    /* initialize the IPA JSON-RPC helper */
+    that.init = function(params) {
 
-        if (use_static_files) {
-            that.use_static_files = use_static_files;
+        // if current path matches live server path, use live data
+        if (that.url && window.location.pathname.substring(0, that.url.length) === that.url) {
+            that.json_url = params.url || '/ipa/json';
+
+        } else { // otherwise use fixtures
+            that.json_path = params.url || "test/data";
         }
 
         $.ajaxSetup(that.ajax_options);
@@ -75,7 +71,6 @@ var IPA = function() {
                 methodname: 'all'
             },
             on_success: function(data, text_status, xhr) {
-                if(!that.metadata) that.metadata = {};
                 that.metadata.methods = data.result.methods;
             }
         });
@@ -87,7 +82,6 @@ var IPA = function() {
                 objname: 'all'
             },
             on_success: function(data, text_status, xhr) {
-                if(!that.metadata) that.metadata = {};
                 that.metadata.objects = data.result.objects;
             }
         });
@@ -97,7 +91,7 @@ var IPA = function() {
                 methods,
                 objects
             ],
-            on_success: on_success
+            on_success: params.on_success
         });
 
         var batch = IPA.batch_command({
@@ -125,8 +119,8 @@ var IPA = function() {
 
                     dialog.on_cancel = function() {
                         dialog.close();
-                        if (on_error) {
-                            on_error.call(ajax, xhr, text_status, error_thrown);
+                        if (params.on_error) {
+                            params.on_error.call(ajax, xhr, text_status, error_thrown);
                         }
                     };
 
@@ -455,21 +449,13 @@ IPA.command = function(spec) {
             }
         }
 
-        var url = IPA.json_url;
-
-        var command = that.get_command();
-
-        if (IPA.use_static_files) {
-            url += '/' + (that.name ? that.name : command) + '.json';
-        }
-
         var data = {
-            method: command,
+            method: that.get_command(),
             params: [that.args, that.options]
         };
 
         var request = {
-            url: url,
+            url: IPA.json_url || IPA.json_path + '/' + (that.name || data.method) + '.json',
             data: JSON.stringify(data),
             success: success_handler,
             error: error_handler

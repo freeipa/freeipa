@@ -23,15 +23,12 @@ module('navigation', {
 
     setup: function() {
         IPA.ajax_options.async = false;
-        IPA.init(
-            'data',
-            true,
-            function(data, text_status, xhr) {
-            },
-            function(xhr, text_status, error_thrown) {
+        IPA.init({
+            url: 'data',
+            on_error: function(xhr, text_status, error_thrown) {
                 ok(false, 'ipa_init() failed: '+error_thrown);
             }
-        );
+        });
     }
 
 });

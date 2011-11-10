@@ -800,19 +800,20 @@ IPA.details_facet = function(spec) {
         command.execute();
     };
 
+    that.get_refresh_command_name = function() {
+        return that.entity.name+'_show';
+    };
+
     that.refresh = function() {
 
         that.pkey = IPA.nav.get_state(that.entity.name+'-pkey');
 
         var command = IPA.command({
+            name: that.get_refresh_command_name(),
             entity: that.entity.name,
             method: 'show',
             options: { all: true, rights: true }
         });
-
-        if (IPA.details_refresh_devel_hook) {
-            IPA.details_refresh_devel_hook(that.entity.name, command, that.pkey);
-        }
 
         if (that.pkey) {
             command.args = that.get_primary_key(true);
