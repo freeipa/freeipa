@@ -162,6 +162,9 @@ def remove_fwd_ptr(ipaddr, host, domain, recordtype):
         pass
 
 host_output_params = (
+    Flag('has_keytab',
+        label=_('Keytab'),
+    ),
     Str('managedby_host',
         label='Managed by',
     ),

@@ -68,6 +68,12 @@ EXAMPLES:
 
 NO_UPG_MAGIC = '__no_upg__'
 
+user_output_params = (
+    Flag('has_keytab',
+        label=_('Kerberos keys available'),
+    ),
+   )
+
 def validate_nsaccountlock(entry_attrs):
     if 'nsaccountlock' in entry_attrs:
         nsaccountlock = entry_attrs['nsaccountlock']
@@ -352,6 +358,8 @@ class user_add(LDAPCreate):
 
     msg_summary = _('Added user "%(value)s"')
 
+    has_output_params = LDAPCreate.has_output_params + user_output_params
+
     takes_options = LDAPCreate.takes_options + (
         Flag('noprivate',
             cli_name='noprivate',
@@ -477,6 +485,8 @@ class user_mod(LDAPUpdate):
 
     msg_summary = _('Modified user "%(value)s"')
 
+    has_output_params = LDAPUpdate.has_output_params + user_output_params
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         if 'mail' in entry_attrs:
             entry_attrs['mail'] = self.obj._normalize_email(entry_attrs['mail'])
@@ -498,6 +508,7 @@ class user_find(LDAPSearch):
     __doc__ = _('Search for users.')
 
     member_attributes = ['memberof']
+    has_output_params = LDAPSearch.has_output_params + user_output_params
 
     takes_options = LDAPSearch.takes_options + (
         Flag('whoami',
@@ -531,6 +542,8 @@ api.register(user_find)
 
 class user_show(LDAPRetrieve):
     __doc__ = _('Display information about a user.')
+
+    has_output_params = LDAPRetrieve.has_output_params + user_output_params
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         convert_nsaccountlock(entry_attrs)
@@ -566,6 +579,7 @@ class user_enable(LDAPQuery):
     __doc__ = _('Enable a user account.')
 
     has_output = output.standard_value
+    has_output_params = LDAPQuery.has_output_params + user_output_params
     msg_summary = _('Enabled user account "%(value)s"')
 
     def execute(self, *keys, **options):

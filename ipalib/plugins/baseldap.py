@@ -36,9 +36,6 @@ from ipalib.util import json_serialize
 from ipalib.dn import *
 
 global_output_params = (
-    Flag('has_keytab',
-        label=_('Keytab'),
-    ),
     Flag('has_password',
         label=_('Password'),
     ),
