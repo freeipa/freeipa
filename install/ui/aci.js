@@ -36,6 +36,7 @@ IPA.aci.permission_entity = function(spec) {
             columns: [ 'cn' ]
         }).
         details_facet({
+            factory: IPA.aci.permission_details_facet,
             sections: [
                 {
                     name: 'identity',
@@ -85,6 +86,17 @@ IPA.aci.permission_entity = function(spec) {
                 }
             ]
         });
+    };
+
+    return that;
+};
+
+IPA.aci.permission_details_facet = function(spec) {
+
+    var that = IPA.details_facet(spec);
+
+    that.get_refresh_command_name = function() {
+        return that.entity.name+'_show_'+that.pkey;
     };
 
     return that;

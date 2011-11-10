@@ -18,6 +18,7 @@ app_DATA =				\
 	dns.js				\
 	entitle.js 			\
 	entity.js 			\
+	extension.js 			\
 	facet.js 			\
 	favicon.ico			\
 	group.js 			\

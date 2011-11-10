@@ -26,16 +26,15 @@ test("Testing ipa_init().", function() {
 
     IPA.ajax_options.async = false;
 
-    IPA.init(
-        "data",
-        true,
-        function(data, text_status, xhr) {
+    IPA.init({
+        url: 'data',
+        on_success: function(data, text_status, xhr) {
             ok(true, "ipa_init() succeeded.");
         },
-        function(xhr, text_status, error_thrown) {
+        on_error: function(xhr, text_status, error_thrown) {
             ok(false, "ipa_init() failed: "+error_thrown);
         }
-    );
+    });
 });
 
 test("Testing IPA.get_entity_param().", function() {
