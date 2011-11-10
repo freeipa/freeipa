@@ -29,42 +29,15 @@ OPERATIONAL_ATTRIBUTES = ('nsaccountlock', 'member', 'memberof',
     'memberindirect', 'memberofindirect',)
 
 __doc__ = _("""
-Manage the IPA configuration
+Server configuration
 
 Manage the default values that IPA uses and some of its tuning parameters.
 
- To show the current configuration:
-   ipa config-show
+NOTES:
 
- To modify the configuration:
-   ipa config-mod --maxusername=99
-
-The available options are:
-
-User management options:
-
-  --maxusername=INT     Max. username length when creating/modifying a user
-  --homedirectory=STR   Default location of home directories (default /home)
-  --defaultshell=STR    Default shell for new users (default /bin/sh)
-  --defaultgroup=STR    Default group for new users (default ipausers). The
-                        group must exist, or adding new users will fail.
-  --emaildomain=STR     Default e-mail domain for new users
-
-Search tuning options. These impact how much data is searched through and
-how many records may be returned on a given search.
-
-  --searchtimelimit=INT Max. amount of time (sec.) for a search (> 0, or -1 for
-                        unlimited)
-  --searchrecordslimit=INT Max. number of records to search (-1 is unlimited)
-
-Server Configuration.
-
-  --enable-migration=BOOL Enable migration mode
-  --pwdexpnotify=INT      Password Expiration Notification (days)
-
-The password notification value is stored here so it will be replicated.
-It is not currently used to notify users in advance of an expiring
-password.
+The password notification value (--pwdexpnotify) is stored here so it will
+be replicated. It is not currently used to notify users in advance of an
+expiring password.
 
 Some attributes are read-only, provided only for information purposes. These
 include:
@@ -73,6 +46,26 @@ Certificate Subject base: the configured certificate subject base,
   e.g. O=EXAMPLE.COM.  This is configurable only at install time.
 Password plug-in features: currently defines additional hashes that the
   password will generate (there may be other conditions).
+
+EXAMPLES:
+
+ Show basic server configuration:
+   ipa config-show
+
+ Show all configuration options:
+   ipa config-show --all
+
+ Change maximum username length to 99 characters:
+   ipa config-mod --maxusername=99
+
+ Increase default time and size limits for maximum IPA server search:
+   ipa config-mod --searchtimelimit=10 --searchrecordslimit=2000
+
+ Set default user e-mail domain:
+   ipa config-mod --emaildomain=example.com
+
+ Enable migration mode to make "ipa migrate-ds" command operational:
+   ipa config-mod --enable-migration=TRUE
 """)
 
 def validate_searchtimelimit(ugettext, limit):
@@ -99,82 +92,82 @@ class config(LDAPObject):
     takes_params = (
         Int('ipamaxusernamelength?',
             cli_name='maxusername',
-            label=_('Max. username length'),
+            label=_('Maximum username length'),
             minvalue=1,
         ),
         IA5Str('ipahomesrootdir?',
             cli_name='homedirectory',
             label=_('Home directory base'),
-            doc=_('Default location of home directories.'),
+            doc=_('Default location of home directories'),
         ),
         Str('ipadefaultloginshell?',
             cli_name='defaultshell',
             label=_('Default shell'),
-            doc=_('Default shell for new users.'),
+            doc=_('Default shell for new users'),
         ),
         Str('ipadefaultprimarygroup?',
             cli_name='defaultgroup',
             label=_('Default users group'),
-            doc=_('Default group for new users.'),
+            doc=_('Default group for new users'),
         ),
         Str('ipadefaultemaildomain?',
             cli_name='emaildomain',
-            label=_('Default e-mail domain for new users'),
-            doc=_('Default e-mail domain new users.'),
+            label=_('Default e-mail domain'),
+            doc=_('Default e-mail domain'),
         ),
         Int('ipasearchtimelimit?', validate_searchtimelimit,
             cli_name='searchtimelimit',
             label=_('Search time limit'),
-            doc=_('Max. amount of time (sec.) for a search (> 0, or -1 for unlimited).'),
+            doc=_('Maximum amount of time (seconds) for a search (> 0, or -1 for unlimited)'),
             minvalue=-1,
         ),
         Int('ipasearchrecordslimit?',
             cli_name='searchrecordslimit',
             label=_('Search size limit'),
-            doc=_('Max. number of records to search (-1 is unlimited).'),
+            doc=_('Maximum number of records to search (-1 is unlimited)'),
             minvalue=-1,
         ),
         IA5Str('ipausersearchfields?',
             cli_name='usersearch',
             label=_('User search fields'),
-            doc=_('A comma-separated list of fields to search when searching for users.'),
+            doc=_('A comma-separated list of fields to search in when searching for users'),
         ),
         IA5Str('ipagroupsearchfields?',
             cli_name='groupsearch',
             label='Group search fields',
-            doc=_('A comma-separated list of fields to search when searching for groups.'),
+            doc=_('A comma-separated list of fields to search in when searching for groups'),
         ),
         Bool('ipamigrationenabled?',
             cli_name='enable_migration',
             label=_('Enable migration mode'),
-            doc=_('Enable migration mode.'),
+            doc=_('Enable migration mode'),
         ),
         Str('ipacertificatesubjectbase?',
             cli_name='subject',
             label=_('Certificate Subject base'),
-            doc=_('Base for certificate subjects (OU=Test,O=Example).'),
+            doc=_('Base for certificate subjects (OU=Test,O=Example)'),
             flags=['no_update'],
         ),
         List('ipagroupobjectclasses?',
             cli_name='groupobjectclasses',
             label=_('Default group objectclasses'),
-            doc=_('Default group objectclasses (comma-separated list).'),
+            doc=_('Default group objectclasses (comma-separated list)'),
         ),
         List('ipauserobjectclasses?',
             cli_name='userobjectclasses',
             label=_('Default user objectclasses'),
-            doc=_('Default user objectclasses (comma-separated list).'),
+            doc=_('Default user objectclasses (comma-separated list)'),
         ),
         Int('ipapwdexpadvnotify?',
             cli_name='pwdexpnotify',
             label=_('Password Expiration Notification (days)'),
-            doc=_('Number of days\'s notice of impending password expiration.'),
+            doc=_('Number of days\'s notice of impending password expiration'),
             minvalue=0,
         ),
         Str('ipaconfigstring?',
             cli_name='ipaconfigstring',
             label=_('Password plugin features'),
-            doc=_('Extra hashes to generate in password plug-in.'),
+            doc=_('Extra hashes to generate in password plug-in'),
             flags=['no_update'],
         ),
     )
