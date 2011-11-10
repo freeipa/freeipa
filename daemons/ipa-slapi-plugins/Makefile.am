@@ -1,6 +1,7 @@
 NULL =
 
 SUBDIRS =			\
+	ipa-cldap		\
 	ipa-enrollment		\
 	ipa-lockout		\
 	ipa-modrdn		\

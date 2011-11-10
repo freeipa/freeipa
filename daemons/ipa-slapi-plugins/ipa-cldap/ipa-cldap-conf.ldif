@@ -1,0 +1,16 @@
+dn: cn=ipa_cldap,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: nsSlapdPlugin
+objectclass: extensibleObject
+cn: ipa_cldap
+nsslapd-pluginpath: libipa_cldap
+nsslapd-plugininitfunc: ipa_cldap_init
+nsslapd-plugintype: postoperation
+nsslapd-pluginenabled: on
+nsslapd-pluginid: ipa_cldap_init
+nsslapd-pluginversion: @PACKAGE_VERSION@
+nsslapd-pluginvendor: RedHat
+nsslapd-plugindescription: CLDAP Server to interoperate with AD
+nsslapd-plugin-depends-on-type: database
+nsslapd-basedn: $SUFFIX

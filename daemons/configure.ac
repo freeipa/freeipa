@@ -234,6 +234,7 @@ PKG_PROG_PKG_CONFIG()
 PKG_CHECK_MODULES([TALLOC], [talloc])
 PKG_CHECK_MODULES([TEVENT], [tevent])
 PKG_CHECK_MODULES([NDRPAC], [ndr_krb5pac])
+PKG_CHECK_MODULES([NDRNBT], [ndr_nbt])
 
 
 dnl ---------------------------------------------------------------------------
@@ -300,6 +301,7 @@ AC_CONFIG_FILES([
     Makefile
     ipa-kdb/Makefile
     ipa-slapi-plugins/Makefile
+    ipa-slapi-plugins/ipa-cldap/Makefile
     ipa-slapi-plugins/ipa-enrollment/Makefile
     ipa-slapi-plugins/ipa-lockout/Makefile
     ipa-slapi-plugins/ipa-pwd-extop/Makefile
