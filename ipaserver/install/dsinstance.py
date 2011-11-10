@@ -110,26 +110,6 @@ def check_ports():
 def is_ds_running(server_id=''):
     return ipaservices.knownservices.dirsrv.is_running(instance_name=server_id)
 
-def has_managed_entries(host_name, dm_password):
-    """Check to see if the Managed Entries plugin is available"""
-    ldapuri = 'ldap://%s' % ipautil.format_netloc(host_name)
-    conn = None
-    try:
-        conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='cn=config')
-        conn.connect(bind_dn='cn=Directory Manager', bind_pw=dm_password)
-        (dn, attrs) = conn.get_entry('cn=Managed Entries,cn=plugins',
-                      ['*'], time_limit=2, size_limit=3000)
-        return True
-    except errors.NotFound:
-        return False
-    except errors.ExecutionError, e:
-        logging.critical("Could not connect to the Directory Server on %s" % host_name)
-        raise e
-    finally:
-        if conn.isconnected():
-            conn.disconnect()
-
-
 INF_TEMPLATE = """
 [General]
 FullMachineName=   $FQHN
@@ -457,8 +437,6 @@ class DsInstance(service.Service):
         self._ldap_mod("unique-attributes.ldif", self.sub_dict)
 
     def __config_uidgid_gen(self):
-        if not has_managed_entries(self.fqdn, self.dm_password):
-            raise errors.NotFound(reason='Missing Managed Entries Plugin')
         self._ldap_mod("dna.ldif", self.sub_dict)
 
     def __add_master_entry(self):
@@ -488,23 +466,15 @@ class DsInstance(service.Service):
         self._ldap_mod("lockout-conf.ldif")
 
     def __repoint_managed_entries(self):
-        if not has_managed_entries(self.fqdn, self.dm_password):
-            raise errors.NotFound(reason='Missing Managed Entries Plugin')
         self._ldap_mod("repoint-managed-entries.ldif", self.sub_dict)
 
     def __managed_entries(self):
-        if not has_managed_entries(self.fqdn, self.dm_password):
-            raise errors.NotFound(reason='Missing Managed Entries Plugin')
         self._ldap_mod("managed-entries.ldif", self.sub_dict)
 
     def __user_private_groups(self):
-        if not has_managed_entries(self.fqdn, self.dm_password):
-            raise errors.NotFound(reason='Missing Managed Entries Plugin')
         self._ldap_mod("user_private_groups.ldif", self.sub_dict)
 
     def __host_nis_groups(self):
-        if not has_managed_entries(self.fqdn, self.dm_password):
-            raise errors.NotFound(reason='Missing Managed Entries Plugin')
         self._ldap_mod("host_nis_groups.ldif", self.sub_dict)
 
     def __add_enrollment_module(self):
