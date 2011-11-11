@@ -543,7 +543,7 @@ class aci_del(crud.Delete):
         """
         Execute the aci-delete operation.
 
-        :param aciname: The name of the ACI being added.
+        :param aciname: The name of the ACI being deleted.
         :param kw: unused
         """
         assert 'aciname' not in kw
