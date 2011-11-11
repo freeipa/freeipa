@@ -15,6 +15,7 @@ Developers:
 	Jakub Hrozek
 	Martin Kosek
 	Nathan Kinder
+	Ondrej Hamada
 	Rich Megginson
 	Martin Nagy
 	Simo Sorce
