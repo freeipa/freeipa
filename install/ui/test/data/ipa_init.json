@@ -255,14 +255,10 @@
                             "identity": "Netgroup Settings"
                         },
                         "permission": {
-                            "filter": "Filter",
                             "identity": "Identity",
                             "invalid_target": "Permission with invalid target specification",
                             "rights": "Rights",
-                            "subtree": "By Subtree",
-                            "target": "Target",
-                            "targetgroup": "Target Group",
-                            "type": "Object By Type"
+                            "target": "Target"
                         },
                         "privilege": {
                             "identity": "Privilege Settings"

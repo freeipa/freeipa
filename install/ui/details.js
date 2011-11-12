@@ -118,13 +118,19 @@ IPA.details_section = function(spec) {
         var fields = that.fields.values;
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
-            if (field.hidden) continue;
 
             var field_container = $('<div/>', {
                 name: field.name,
                 title: field.label,
                 'class': 'field'
-            }).appendTo(container);
+            });
+
+            if (field.hidden) {
+                field_container.css('display', 'none');
+            }
+
+            field_container.appendTo(container);
+
             field.create(field_container);
         }
     };
@@ -237,6 +243,8 @@ IPA.details_table_section = function(spec) {
 
     var that = IPA.details_section(spec);
 
+    that.rows = $.ordered_map();
+
     that.create = function(container) {
         that.container = container;
 
@@ -249,9 +257,15 @@ IPA.details_table_section = function(spec) {
         var fields = that.fields.values;
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
-            if (field.hidden) continue;
 
-            var tr = $('<tr/>').appendTo(table);
+            var tr = $('<tr/>');
+            that.add_row(field.name, tr);
+
+            if (field.hidden) {
+                tr.css('display', 'none');
+            }
+
+            tr.appendTo(table);
 
             var td = $('<td/>', {
                 'class': 'section-cell-label',
@@ -278,6 +292,19 @@ IPA.details_table_section = function(spec) {
 
             field.create(field_container);
         }
+    };
+
+    that.add_row = function(name, row) {
+        that.rows.put(name, row);
+    };
+
+    that.get_row = function(name) {
+        return that.rows.get(name);
+    };
+
+    that.set_row_visible = function(name, visible) {
+        var row = that.get_row(name);
+        row.css('display', visible ? '' : 'none');
     };
 
     that.table_section_create = that.create;

@@ -348,14 +348,10 @@ class i18n_messages(Command):
                 "identity": _("Netgroup Settings"),
                 },
             "permission": {
-                "filter": _("Filter"),
                 "identity": _("Identity"),
                 "invalid_target": _("Permission with invalid target specification"),
                 "rights": _("Rights"),
-                "subtree": _("By Subtree"),
                 "target": _("Target"),
-                "targetgroup": _("Target Group"),
-                "type": _("Object By Type"),
             },
             "privilege": {
                 "identity": _("Privilege Settings"),

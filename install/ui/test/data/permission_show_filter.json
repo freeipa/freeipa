@@ -8,13 +8,17 @@
                 "businesscategory": "rscwo",
                 "cn": "rscwo",
                 "description": "rscwo",
+                "filter": "rscwo",
                 "member": "rscwo",
                 "nsaccountlock": "rscwo",
                 "o": "rscwo",
                 "objectclass": "rscwo",
                 "ou": "rscwo",
                 "owner": "rscwo",
-                "seealso": "rscwo"
+                "seealso": "rscwo",
+                "subtree": "rscwo",
+                "targetgroup": "rscwo",
+                "type": "rscwo"
             },
             "cn": [
                 "filter"
