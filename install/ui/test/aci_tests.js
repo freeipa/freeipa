@@ -37,7 +37,7 @@ module('aci',{
            );
 
            target_container = $('<div id="target"/>').appendTo(document.body);
-           target_section = IPA.target_section({
+           target_section = IPA.permission_target_section({
                name: 'target',
                label: 'Target',
                entity:entity

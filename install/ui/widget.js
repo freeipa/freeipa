@@ -66,6 +66,7 @@ IPA.widget = function(spec) {
     that.valid = true;
 
     that.dirty_changed = IPA.observer();
+    that.value_changed = IPA.observer();
 
     var init = function() {
         if (!that.metadata && that.entity) {
@@ -820,7 +821,6 @@ IPA.checkbox_widget = function (spec) {
 
     // default value
     that.checked = spec.checked || false;
-    that.value_changed = IPA.observer();
 
     that.create = function(container) {
 
@@ -1109,6 +1109,7 @@ IPA.select_widget = function(spec) {
         that.select = $('select[name="'+that.name+'"]', that.container);
         that.select.change(function() {
             that.set_dirty(that.test_dirty());
+            that.value_changed.notify(that.save(), that);
         });
 
         that.create_error_link(container);
@@ -1141,7 +1142,7 @@ IPA.select_widget = function(spec) {
     };
 
     that.clear = function() {
-        that.empty();
+        $('option', that.select).attr('selected', '');
     };
 
     // methods that should be invoked by subclasses
