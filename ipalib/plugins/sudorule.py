@@ -472,12 +472,33 @@ class sudorule_remove_host(LDAPRemoveMember):
 
 api.register(sudorule_remove_host)
 
-
 class sudorule_add_runasuser(LDAPAddMember):
     __doc__ = _('Add users and groups for Sudo to execute as.')
 
     member_attributes = ['ipasudorunas']
     member_count_out = ('%i object added.', '%i objects added.')
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        def check_validity(runas):
+            v = unicode(runas)
+            if v.upper() == u'ALL':
+                return False
+            return True
+
+        if 'user' in options:
+            for name in options['user']:
+                if not check_validity(name):
+                    raise errors.ValidationError(name='runas-user',
+                          error=unicode(_("RunAsUser does not accept '%(name)s' as a user name")) %
+                          dict(name=name))
+        if 'group' in options:
+            for name in options['group']:
+                if not check_validity(name):
+                    raise errors.ValidationError(name='runas-user',
+                          error=unicode(_("RunAsUser does not accept '%(name)s' as a group name")) %
+                          dict(name=name))
+
+        return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         completed_external = 0
@@ -546,6 +567,22 @@ class sudorule_add_runasgroup(LDAPAddMember):
 
     member_attributes = ['ipasudorunasgroup']
     member_count_out = ('%i object added.', '%i objects added.')
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        def check_validity(runas):
+            v = unicode(runas)
+            if v.upper() == u'ALL':
+                return False
+            return True
+
+        if 'group' in options:
+            for name in options['group']:
+                if not check_validity(name):
+                    raise errors.ValidationError(name='runas-group',
+                          error=unicode(_("RunAsGroup does not accept '%(name)s' as a group name")) %
+                          dict(name=name))
+
+        return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         completed_external = 0
