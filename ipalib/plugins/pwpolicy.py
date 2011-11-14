@@ -263,6 +263,7 @@ class pwpolicy(LDAPObject):
             label=_('Priority'),
             doc=_('Priority of the policy (higher number means lower priority'),
             minvalue=0,
+            flags=('virtual_attribute',),
         ),
     ) + lockout_params
 
@@ -344,8 +345,6 @@ class pwpolicy_add(LDAPCreate):
             keys[-1], krbpwdpolicyreference=dn,
             cospriority=options.get('cospriority')
         )
-        if 'cospriority' in entry_attrs:
-            del entry_attrs['cospriority']
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -406,7 +405,6 @@ class pwpolicy_mod(LDAPUpdate):
                     raise e
             else:
                 setattr(context, 'cosupdate', True)
-            del entry_attrs['cospriority']
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):

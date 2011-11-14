@@ -665,6 +665,7 @@ class dnszone(LDAPObject):
         Str('name_from_ip?', _validate_ipnet,
             label=_('Reverse zone IP network'),
             doc=_('IP network to create reverse zone name from'),
+            flags=('virtual_attribute',),
         ),
         Str('idnssoamname',
             cli_name='name_server',
@@ -780,9 +781,6 @@ class dnszone_add(LDAPCreate):
         if not dns_container_exists(self.api.Backend.ldap2):
             raise errors.NotFound(reason=_('DNS is not configured'))
 
-        if 'name_from_ip' in entry_attrs:
-            del entry_attrs['name_from_ip']
-
         entry_attrs['idnszoneactive'] = 'TRUE'
 
         # Check nameserver has a forward record
@@ -831,11 +829,6 @@ class dnszone_mod(LDAPUpdate):
         if 'name_from_ip' in options:
             self.obj.params['name_from_ip'](unicode(options['name_from_ip']))
         return super(dnszone_mod, self).args_options_2_params(*args, **options)
-
-    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        if 'name_from_ip' in entry_attrs:
-            del entry_attrs['name_from_ip']
-        return dn
 
 api.register(dnszone_mod)
 
