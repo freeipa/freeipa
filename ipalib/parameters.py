@@ -285,6 +285,68 @@ def _(message):
 class Param(ReadOnly):
     """
     Base class for all parameters.
+
+    Param attributes:
+    =================
+    The behavior of Param class and subclasses can be controlled using the
+    following set of attributes:
+
+      - cli_name: option name in CLI
+      - cli_short_name: one character version of cli_name
+      - label: very short description of the parameter. This value is used in
+        when the Command output is printed to CLI or in a Command help
+      - doc: parameter long description used in help
+      - required: the parameter is marked as required for given Command
+      - multivalue: indicates if the attribute is multivalued
+      - primary_key: Command's parameter primary key is used for unique
+        identification of an LDAP object and for sorting
+      - normalizer: a custom function for Param value normalization
+      - encoder: a custom function used to override Param subclass default
+        encoder
+      - default_from: a custom function for generating default values of
+        parameter instance
+      - create_default: a custom function for generating default values of
+        parameter instance. Unlike default_from attribute, this function
+        is not wrapped. `Param.get_default()` documentation provides further
+        details
+      - autofill: by default, only `required` parameters get a default value
+        from default_from or create_default functions. When autofill is
+        enabled, optional attributes get the default value filled too
+      - query: this attribute is controlled by framework. When the `query`
+        is enabled, framework assumes that the value is only queried and not
+        inserted in the LDAP. Validation is then relaxed - custom
+        parameter validators are skipped and only basic class validators are
+        executed to check the parameter value
+      - attribute: this attribute is controlled by framework and enabled for
+        all LDAP objects parameters (unless parameter has "virtual_attribute"
+        flag). All parameters with enabled `attribute` are being encoded and
+        placed to an entry passed to LDAP Create/Update calls
+      - include: a list of contexts where this parameter should be included.
+        `Param.use_in_context()` provides further information.
+      - exclude: a list of contexts where this parameter should be excluded.
+        `Param.use_in_context()` provides further information.
+      - flags: there are several flags that can be used to further tune the
+        parameter behavior:
+            * no_display (Output parameters only): do not display the parameter
+            * no_create: do not include the parameter for crud.Create based
+              commands
+            * no_update: do not include the parameter for crud.update based
+              commands
+            * virtual_attribute: the parameter is not stored physically in the
+              LDAP and thus attribute `attribute` is not enabled
+            * suppress_empty (Output parameters only): do not display parameter
+              value when empty
+            * ask_create: CLI asks for parameter value even when the parameter
+              is not `required`. Applied for all crud.Create based commands
+            * ask_update: CLI asks for parameter value even when the parameter
+              is not `required`. Applied for all crud.Update based commands
+            * req_update: The parameter is `required` in all crud.Update based
+              commands
+      - hint: This attribute is currently not used
+      - alwaysask: when enabled, CLI asks for parameter value even when the
+        parameter is not `required`
+      - sortorder: used to sort a list of parameters for Command. See
+        `Command.finalize()` for further information
     """
 
     # This is a dummy type so that most of the functionality of Param can be

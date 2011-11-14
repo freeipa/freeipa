@@ -290,12 +290,12 @@ class host(LDAPObject):
         ),
         Flag('random?',
             doc=_('Generate a random password to be used in bulk enrollment'),
-            flags=['no_search'],
+            flags=('no_search', 'virtual_attribute'),
             default=False,
         ),
         Str('randompassword?',
             label=_('Random password'),
-            flags=['no_create', 'no_update', 'no_search'],
+            flags=('no_create', 'no_update', 'no_search', 'virtual_attribute'),
         ),
         Bytes('usercertificate?', validate_certificate,
             cli_name='certificate',
@@ -432,12 +432,10 @@ class host_add(LDAPCreate):
                 entry_attrs['objectclass'].remove('krbprincipalaux')
             if 'krbprincipal' in entry_attrs['objectclass']:
                 entry_attrs['objectclass'].remove('krbprincipal')
-        if 'random' in options:
-            if options.get('random'):
-                entry_attrs['userpassword'] = ipa_generate_password()
-                # save the password so it can be displayed in post_callback
-                setattr(context, 'randompassword', entry_attrs['userpassword'])
-            del entry_attrs['random']
+        if options.get('random'):
+            entry_attrs['userpassword'] = ipa_generate_password()
+            # save the password so it can be displayed in post_callback
+            setattr(context, 'randompassword', entry_attrs['userpassword'])
         cert = options.get('usercertificate')
         if cert:
             cert = x509.normalize_certificate(cert)
@@ -680,11 +678,9 @@ class host_mod(LDAPUpdate):
                         raise nsprerr
 
             entry_attrs['usercertificate'] = cert
-        if 'random' in options:
-            if options.get('random'):
-                entry_attrs['userpassword'] = ipa_generate_password()
-                setattr(context, 'randompassword', entry_attrs['userpassword'])
-            del entry_attrs['random']
+        if options.get('random'):
+            entry_attrs['userpassword'] = ipa_generate_password()
+            setattr(context, 'randompassword', entry_attrs['userpassword'])
 
         return dn
 

@@ -139,15 +139,16 @@ class Create(Method):
             for option in super(Create, self).get_options():
                 yield option
         for option in self.obj.params_minus(self.args):
+            attribute = 'virtual_attribute' not in option.flags
             if 'no_create' in option.flags:
                 continue
             if 'ask_create' in option.flags:
                 yield option.clone(
-                    attribute=True, query=True, required=False,
+                    attribute=attribute, query=True, required=False,
                     autofill=False, alwaysask=True
                 )
             else:
-                yield option.clone(attribute=True)
+                yield option.clone(attribute=attribute)
         if not self.extra_options_first:
             for option in super(Create, self).get_options():
                 yield option
@@ -183,19 +184,20 @@ class Update(PKQuery):
             for option in super(Update, self).get_options():
                 yield option
         for option in self.obj.params_minus_pk():
+            attribute = 'virtual_attribute' not in option.flags
             if 'no_update' in option.flags:
                 continue
             if 'ask_update' in option.flags:
                 yield option.clone(
-                    attribute=True, query=True, required=False,
+                    attribute=attribute, query=True, required=False,
                     autofill=False, alwaysask=True
                 )
             elif 'req_update' in option.flags:
                 yield option.clone(
-                    attribute=True, required=True, alwaysask=False,
+                    attribute=attribute, required=True, alwaysask=False,
                 )
             else:
-                yield option.clone(attribute=True, required=False, autofill=False)
+                yield option.clone(attribute=attribute, required=False, autofill=False)
         if not self.extra_options_first:
             for option in super(Update, self).get_options():
                 yield option
@@ -224,21 +226,22 @@ class Search(Method):
             for option in super(Search, self).get_options():
                 yield option
         for option in self.obj.params_minus(self.args):
+            attribute = 'virtual_attribute' not in option.flags
             if 'no_search' in option.flags:
                 continue
             if 'ask_search' in option.flags:
                 yield option.clone(
-                    attribute=True, query=True, required=False,
+                    attribute=attribute, query=True, required=False,
                     autofill=False, alwaysask=True
                 )
             elif isinstance(option, parameters.Flag):
                 yield option.clone_retype(
                     option.name, parameters.Bool,
-                    attribute=True, query=True, required=False, autofill=False
+                    attribute=attribute, query=True, required=False, autofill=False
                 )
             else:
                 yield option.clone(
-                    attribute=True, query=True, required=False, autofill=False
+                    attribute=attribute, query=True, required=False, autofill=False
                 )
         if not self.extra_options_first:
             for option in super(Search, self).get_options():
