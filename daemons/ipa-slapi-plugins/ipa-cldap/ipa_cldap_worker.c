@@ -38,12 +38,81 @@
  * END COPYRIGHT BLOCK **/
 
 #include "ipa_cldap.h"
+#include <poll.h>
+
+static void ipa_cldap_process(struct ipa_cldap_ctx *ctx,
+                              struct ipa_cldap_req *req)
+{
+    free(req);
+    return;
+}
+
+static struct ipa_cldap_req *ipa_cldap_recv_dgram(struct ipa_cldap_ctx *ctx)
+{
+    struct ipa_cldap_req *req;
+
+    req = calloc(1, sizeof(struct ipa_cldap_req));
+    if (!req) {
+        LOG("Failed to allocate memory for req");
+        return NULL;
+    }
+
+    req->fd = ctx->sd;
+    req->ss_len = sizeof(struct sockaddr_storage);
+
+    req->dgsize = recvfrom(req->fd, req->dgram, MAX_DG_SIZE, 0,
+                           (struct sockaddr *)&req->ss, &req->ss_len);
+    if (req->dgsize == -1) {
+        LOG_TRACE("Failed to get datagram\n");
+        free(req);
+        return NULL;
+    }
+
+    return req;
+}
 
 void *ipa_cldap_worker(struct ipa_cldap_ctx *ctx)
 {
+    struct ipa_cldap_req *req;
+    struct pollfd fds[2];
     bool stop = false;
+    int ret;
 
     while (!stop) {
-        sleep(1);
+
+        fds[0].fd = ctx->stopfd[0];
+        fds[0].events = POLLIN;
+        fds[0].revents = 0;
+        fds[1].fd = ctx->sd;
+        fds[1].events = POLLIN;
+        fds[1].revents = 0;
+
+        /* wait until a request comes in */
+        ret = poll(fds, 2, -1);
+        if (ret == -1) {
+            if (errno != EINTR) {
+                LOG_FATAL("poll() failed with [%d, %s]. Can't continue.\n",
+                          errno, strerror(errno));
+                stop = true;
+            }
+        }
+        if (ret <= 0) {
+            continue;
+        }
+
+        /* got a stop signal, exit the loop */
+        if (fds[0].revents & POLLIN) {
+            stop = true;
+            continue;
+        }
+
+        /* got a CLDAP packet, handle it */
+        if (fds[1].revents & POLLIN) {
+            req = ipa_cldap_recv_dgram(ctx);
+            if (req) {
+                ipa_cldap_process(ctx, req);
+            }
+        }
     }
+    return NULL;
 }

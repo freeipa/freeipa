@@ -58,6 +58,7 @@
 
 #define IPA_PLUGIN_NAME IPA_CLDAP_PLUGIN_NAME
 #define CLDAP_PORT 389
+#define MAX_DG_SIZE 4096
 
 struct ipa_cldap_ctx {
     Slapi_ComponentId *plugin_id;
@@ -65,6 +66,16 @@ struct ipa_cldap_ctx {
     char *base_dn;
     int stopfd[2];
     int sd;
+};
+
+struct ipa_cldap_req {
+    int fd;
+
+    struct sockaddr_storage ss;
+    socklen_t ss_len;
+
+    char dgram[MAX_DG_SIZE];
+    size_t dgsize;
 };
 
 void *ipa_cldap_worker(struct ipa_cldap_ctx *ctx);
