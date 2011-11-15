@@ -25,7 +25,7 @@ import errno
 import glob
 import ldap
 import wsgiref
-import logging
+from ipapython.ipa_log_manager import *
 from ipapython.ipautil import get_ipa_basedn
 
 BASE_DN = ''
@@ -68,7 +68,7 @@ def get_base_dn():
         conn.simple_bind_s('', '')
         BASE_DN = get_ipa_basedn(conn)
     except ldap.LDAPError, e:
-        logging.error('migration context search failed: %s' % e)
+        root_logger.error('migration context search failed: %s' % e)
         return ''
     finally:
         conn.unbind_s()
@@ -78,7 +78,7 @@ def get_base_dn():
 def bind(username, password):
     base_dn = get_base_dn()
     if not base_dn:
-        logging.error('migration unable to get base dn')
+        root_logger.error('migration unable to get base dn')
         raise IOError(errno.EIO, 'Cannot get Base DN')
     bind_dn = 'uid=%s,cn=users,cn=accounts,%s' % (username, base_dn)
     try:
@@ -86,10 +86,10 @@ def bind(username, password):
         conn.simple_bind_s(bind_dn, password)
     except (ldap.INVALID_CREDENTIALS, ldap.UNWILLING_TO_PERFORM,
             ldap.NO_SUCH_OBJECT), e:
-        logging.error('migration invalid credentials for %s: %s' % (bind_dn, convert_exception(e)))
+        root_logger.error('migration invalid credentials for %s: %s' % (bind_dn, convert_exception(e)))
         raise IOError(errno.EPERM, 'Invalid LDAP credentials for user %s' % username)
     except ldap.LDAPError, e:
-        logging.error('migration bind failed: %s' % convert_exception(e))
+        root_logger.error('migration bind failed: %s' % convert_exception(e))
         raise IOError(errno.EIO, 'Bind error')
     finally:
         conn.unbind_s()

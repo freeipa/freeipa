@@ -36,7 +36,7 @@ import time
 import re
 
 import krbV
-import logging
+from ipapython.ipa_log_manager import *
 import ldap as _ldap
 import ldap.filter as _ldap_filter
 import ldap.sasl as _ldap_sasl
@@ -1098,8 +1098,7 @@ class ldap2(CrudBackend, Encoder):
             try:
                 indirect.remove(r[0].lower())
             except ValueError, e:
-                logging.info('Failed to remove'
-                    ' indirect entry %s from %s' % r[0], entry_dn)
+                root_logger.info('Failed to remove indirect entry %s from %s' % r[0], entry_dn)
                 raise e
 
         return (direct, indirect)

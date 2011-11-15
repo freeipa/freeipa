@@ -21,7 +21,7 @@
 import sys
 import socket
 
-import os, pwd, traceback, logging, shutil
+import os, pwd, traceback, shutil
 import grp
 from optparse import OptionGroup
 
@@ -40,6 +40,7 @@ from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
 from ipapython import services as ipaservices
+from ipapython.ipa_log_manager import *
 
 CACERT="/etc/ipa/ca.crt"
 REPLICA_INFO_TOP_DIR=None
@@ -266,8 +267,8 @@ def check_bind():
 def main():
     installutils.bootstrap_logging()
     safe_options, options, filename = parse_options()
-    installutils.standard_logging_setup("/var/log/ipareplica-install.log", options.debug)
-    logging.debug('%s was invoked with argument "%s" and options: %s' % (sys.argv[0], filename, safe_options))
+    standard_logging_setup("/var/log/ipareplica-install.log", debug=options.debug)
+    root_logger.debug('%s was invoked with argument "%s" and options: %s' % (sys.argv[0], filename, safe_options))
 
     if not ipautil.file_exists(filename):
         sys.exit("Replica file %s does not exist" % filename)
@@ -311,7 +312,7 @@ def main():
     try:
         host = get_host_name(options.no_host_dns)
     except BadHostError, e:
-        logging.error(str(e))
+        root_logger.error(str(e))
         sys.exit(1)
     if config.host_name != host:
         try:
@@ -356,16 +357,16 @@ def main():
     # Create DS group if it doesn't exist yet
     try:
         grp.getgrnam(dsinstance.DS_GROUP)
-        logging.debug("ds group %s exists" % dsinstance.DS_GROUP)
+        root_logger.debug("ds group %s exists" % dsinstance.DS_GROUP)
         group_exists = True
     except KeyError:
         group_exists = False
         args = ["/usr/sbin/groupadd", "-r", dsinstance.DS_GROUP]
         try:
             ipautil.run(args)
-            logging.debug("done adding DS group")
+            root_logger.debug("done adding DS group")
         except ipautil.CalledProcessError, e:
-            logging.critical("failed to add DS group: %s" % e)
+            root_logger.critical("failed to add DS group: %s" % e)
     sstore.backup_state("install", "group_exists", group_exists)
 
     #Automatically disable pkinit w/ dogtag until that is supported
@@ -476,9 +477,9 @@ except Exception, e:
     message = str(e)
     for str in traceback.format_tb(sys.exc_info()[2]):
         message = message + "\n" + str
-    logging.debug(message)
+    root_logger.debug(message)
 except KeyboardInterrupt:
-    print "Installation cancelled." 
+    print "Installation cancelled."
 finally:
     # always try to remove decrypted replica file
     try:
@@ -488,7 +489,7 @@ finally:
         pass
 
 print ""
-print "Your system may be partly configured." 
+print "Your system may be partly configured."
 print "Run /usr/sbin/ipa-server-install --uninstall to clean up."
 
 # the only way to get here is on error or ^C

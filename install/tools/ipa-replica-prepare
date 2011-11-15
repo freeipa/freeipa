@@ -20,7 +20,8 @@
 
 import sys
 
-import logging, tempfile, shutil, os, pwd
+import tempfile, shutil, os, pwd
+from ipapython.ipa_log_manager import *
 import traceback
 from ConfigParser import SafeConfigParser
 import krbV
@@ -51,7 +52,7 @@ def parse_options():
                       help="PIN for the Apache Server PKCS#12 file")
     parser.add_option("--pkinit_pin", dest="pkinit_pin",
                       help="PIN for the KDC pkinit PKCS#12 file")
-    parser.add_option("-p", "--password", dest="password", 
+    parser.add_option("-p", "--password", dest="password",
                       help="Directory Manager (existing master) password")
     parser.add_option("--ip-address", dest="ip_address",
                       type="ip", help="Add A and PTR records of the future replica")
@@ -100,7 +101,7 @@ def get_subject_base(host_name, dm_password, suffix):
         conn = ldap2(shared_instance=False, base_dn=suffix)
         conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
     except errors.ExecutionError, e:
-        logging.critical("Could not connect to the Directory Server on %s" % host_name)
+        root_logger.critical("Could not connect to the Directory Server on %s" % host_name)
         raise e
     (dn, entry_attrs) = conn.get_ipa_config()
     conn.disconnect()
@@ -109,7 +110,7 @@ def get_subject_base(host_name, dm_password, suffix):
 def check_ipa_configuration(realm_name):
     config_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
     if not ipautil.dir_exists(config_dir):
-        logging.error("could not find directory instance: %s" % config_dir)
+        root_logger.error("could not find directory instance: %s" % config_dir)
         sys.exit(1)
 
 def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, hostname, subject_base=None, is_kdc=False):
@@ -472,6 +473,6 @@ except Exception, e:
     message = str(e)
     for str in traceback.format_tb(sys.exc_info()[2]):
         message = message + "\n" + str
-    logging.debug(message)
+    root_logger.debug(message)
     print message
     sys.exit(1)

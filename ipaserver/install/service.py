@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import logging, sys
+import sys
 import os, socket
 import tempfile
 from ipapython import sysrestore
@@ -30,6 +30,7 @@ import base64
 import time
 import datetime
 from ipaserver.install import installutils
+from ipapython.ipa_log_manager import *
 
 CACERT = "/etc/ipa/ca.crt"
 
@@ -42,7 +43,7 @@ SERVICE_LIST = {
 }
 
 def print_msg(message, output_fd=sys.stdout):
-    logging.debug(message)
+    root_logger.debug(message)
     output_fd.write(message)
     output_fd.write("\n")
 
@@ -109,7 +110,7 @@ class Service(object):
             try:
                 ipautil.run(args, nolog=nologlist)
             except ipautil.CalledProcessError, e:
-                logging.critical("Failed to load %s: %s" % (ldif, str(e)))
+                root_logger.critical("Failed to load %s: %s" % (ldif, str(e)))
         finally:
             if pw_name:
                 os.remove(pw_name)
@@ -176,7 +177,7 @@ class Service(object):
         try:
             self.admin_conn.modify_s(dn, mod)
         except Exception, e:
-            logging.critical("Could not add certificate to service %s entry: %s" % (self.principal, str(e)))
+            root_logger.critical("Could not add certificate to service %s entry: %s" % (self.principal, str(e)))
 
     def is_configured(self):
         return self.sstore.has_state(self.service_name)
@@ -248,7 +249,7 @@ class Service(object):
             method()
             e = datetime.datetime.now()
             d = e - s
-            logging.debug("  duration: %d seconds" % d.seconds)
+            root_logger.debug("  duration: %d seconds" % d.seconds)
             step += 1
 
         self.print_msg("done configuring %s." % self.service_name)
@@ -266,7 +267,7 @@ class Service(object):
             else:
                 conn.do_sasl_gssapi_bind()
         except Exception, e:
-            logging.debug("Could not connect to the Directory Server on %s: %s" % (fqdn, str(e)))
+            root_logger.debug("Could not connect to the Directory Server on %s: %s" % (fqdn, str(e)))
             raise e
 
         return conn
@@ -289,7 +290,7 @@ class Service(object):
         try:
             conn.addEntry(entry)
         except ldap.ALREADY_EXISTS, e:
-            logging.critical("failed to add %s Service startup entry" % name)
+            root_logger.critical("failed to add %s Service startup entry" % name)
             raise e
 
 class SimpleServiceInstance(Service):

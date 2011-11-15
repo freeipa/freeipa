@@ -26,7 +26,7 @@
 import os
 import os.path
 import shutil
-import logging
+from ipapython.ipa_log_manager import *
 import ConfigParser
 import random
 import string
@@ -61,7 +61,7 @@ class FileStore:
         be an empty dictionary if the file doesn't exist.
         """
 
-        logging.debug("Loading Index file from '%s'", self._index)
+        root_logger.debug("Loading Index file from '%s'", self._index)
 
         self.files = {}
 
@@ -78,10 +78,10 @@ class FileStore:
         """Save the file list to @_index. If @files is an empty
         dict, then @_index should be removed.
         """
-        logging.debug("Saving Index File to '%s'", self._index)
+        root_logger.debug("Saving Index File to '%s'", self._index)
 
         if len(self.files) == 0:
-            logging.debug("  -> no files, removing file")
+            root_logger.debug("  -> no files, removing file")
             if os.path.exists(self._index):
                 os.remove(self._index)
             return
@@ -101,13 +101,13 @@ class FileStore:
         does not already exist - which will be restored to its
         original location by restore_files().
         """
-        logging.debug("Backing up system configuration file '%s'", path)
+        root_logger.debug("Backing up system configuration file '%s'", path)
 
         if not os.path.isabs(path):
             raise ValueError("Absolute path required")
 
         if not os.path.isfile(path):
-            logging.debug("  -> Not backing up - '%s' doesn't exist", path)
+            root_logger.debug("  -> Not backing up - '%s' doesn't exist", path)
             return
 
         (reldir, backupfile) = os.path.split(path)
@@ -120,7 +120,7 @@ class FileStore:
 
         backup_path = os.path.join(self._path, filename)
         if os.path.exists(backup_path):
-            logging.debug("  -> Not backing up - already have a copy of '%s'", path)
+            root_logger.debug("  -> Not backing up - already have a copy of '%s'", path)
             return
 
         shutil.copy2(path, backup_path)
@@ -151,7 +151,7 @@ class FileStore:
         was no backup file to restore
         """
 
-        logging.debug("Restoring system configuration file '%s'", path)
+        root_logger.debug("Restoring system configuration file '%s'", path)
 
         if not os.path.isabs(path):
             raise ValueError("Absolute path required")
@@ -172,7 +172,7 @@ class FileStore:
 
         backup_path = os.path.join(self._path, filename)
         if not os.path.exists(backup_path):
-            logging.debug("  -> Not restoring - '%s' doesn't exist", backup_path)
+            root_logger.debug("  -> Not restoring - '%s' doesn't exist", backup_path)
             return False
 
         shutil.move(backup_path, path)
@@ -203,7 +203,7 @@ class FileStore:
 
             backup_path = os.path.join(self._path, filename)
             if not os.path.exists(backup_path):
-                logging.debug("  -> Not restoring - '%s' doesn't exist", backup_path)
+                root_logger.debug("  -> Not restoring - '%s' doesn't exist", backup_path)
                 continue
 
             shutil.move(backup_path, path)
@@ -257,7 +257,7 @@ class StateFile:
         """Load the modules from the file @_path. @modules will
         be an empty dictionary if the file doesn't exist.
         """
-        logging.debug("Loading StateFile from '%s'", self._path)
+        root_logger.debug("Loading StateFile from '%s'", self._path)
 
         self.modules = {}
 
@@ -277,14 +277,14 @@ class StateFile:
         """Save the modules to @_path. If @modules is an empty
         dict, then @_path should be removed.
         """
-        logging.debug("Saving StateFile to '%s'", self._path)
+        root_logger.debug("Saving StateFile to '%s'", self._path)
 
         for module in self.modules.keys():
             if len(self.modules[module]) == 0:
                 del self.modules[module]
 
         if len(self.modules) == 0:
-            logging.debug("  -> no modules, removing file")
+            root_logger.debug("  -> no modules, removing file")
             if os.path.exists(self._path):
                 os.remove(self._path)
             return

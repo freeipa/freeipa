@@ -25,7 +25,7 @@ import nss.nss as nss
 from nss.error import NSPRError
 from ipalib.errors import NetworkError, CertificateOperationError
 from urllib import urlencode
-import logging
+from ipapython.ipa_log_manager import *
 
 def get_ca_certchain(ca_host=None):
     """
@@ -74,8 +74,8 @@ def https_request(host, port, url, secdir, password, nickname, **kw):
         host = host.encode('utf-8')
     uri = 'https://%s%s' % (ipautil.format_netloc(host, port), url)
     post = urlencode(kw)
-    logging.info('sslget %r', uri)
-    logging.debug('sslget post %r', post)
+    root_logger.info('sslget %r', uri)
+    root_logger.debug('sslget post %r', post)
     request_headers = {"Content-type": "application/x-www-form-urlencoded",
                        "Accept": "text/plain"}
     try:
@@ -112,8 +112,8 @@ def http_request(host, port, url, **kw):
             host = host.encode('utf-8')
         uri = 'http://%s%s' % (ipautil.format_netloc(host, port), url)
         post = urlencode(kw)
-        logging.info('request %r', uri)
-        logging.debug('request post %r', post)
+        root_logger.info('request %r', uri)
+        root_logger.debug('request post %r', post)
         conn = httplib.HTTPConnection(host, port)
         try:
             conn.request('POST', url,
@@ -130,9 +130,9 @@ def http_request(host, port, url, **kw):
         except NSPRError, e:
             raise NetworkError(uri=uri, error=str(e))
 
-        logging.debug('request status %d',        http_status)
-        logging.debug('request reason_phrase %r', http_reason_phrase)
-        logging.debug('request headers %s',       http_headers)
-        logging.debug('request body %r',          http_body)
+        root_logger.debug('request status %d',        http_status)
+        root_logger.debug('request reason_phrase %r', http_reason_phrase)
+        root_logger.debug('request headers %s',       http_headers)
+        root_logger.debug('request body %r',          http_body)
 
         return http_status, http_reason_phrase, http_headers, http_body

@@ -29,7 +29,6 @@ try:
     from ipapython import config
     from ipalib import api, errors
     from ipalib.dn import DN
-    import logging
     import ldap
     import ldap.sasl
     import ldapurl

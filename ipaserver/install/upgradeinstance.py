@@ -21,7 +21,7 @@ import os
 import sys
 import shutil
 import random
-import logging
+from ipapython.ipa_log_manager import *
 
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
@@ -111,7 +111,7 @@ class IPAUpgrade(service.Service):
             # Bad things happened, return gracefully
             self.modified = False
             self.upgradefailed = True
-            logging.error('Upgrade failed with %s' % str(e))
+            root_logger.error('Upgrade failed with %s' % str(e))
 
 def main():
     if os.getegid() != 0:

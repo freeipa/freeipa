@@ -18,7 +18,6 @@
 #
 
 import shutil
-import logging
 import fileinput
 import re
 import sys
@@ -33,6 +32,7 @@ from ipapython import ipautil
 from ipapython import services as ipaservices
 from ipalib import util
 from ipalib import errors
+from ipapython.ipa_log_manager import *
 
 from ipaserver import ipaldap
 from ipaserver.install import replication
@@ -220,7 +220,7 @@ class KrbInstance(service.Service):
         try:
             self.start()
         except:
-            logging.critical("krb5kdc service failed to start")
+            root_logger.critical("krb5kdc service failed to start")
 
     def __setup_sub_dict(self):
         self.sub_dict = dict(FQDN=self.fqdn,
@@ -244,10 +244,10 @@ class KrbInstance(service.Service):
                 try:
                     self.admin_conn.delete_s(r.dn)
                 except LDAPError, e:
-                    logging.critical("Error during SASL mapping removal: %s" % str(e))
+                    root_logger.critical("Error during SASL mapping removal: %s" % str(e))
                     raise e
         except LDAPError, e:
-            logging.critical("Error while enumerating SASL mappings %s" % str(e))
+            root_logger.critical("Error while enumerating SASL mappings %s" % str(e))
             raise e
 
         entry = ipaldap.Entry("cn=Full Principal,cn=mapping,cn=sasl,cn=config")
@@ -260,7 +260,7 @@ class KrbInstance(service.Service):
         try:
             self.admin_conn.addEntry(entry)
         except ldap.ALREADY_EXISTS:
-            logging.critical("failed to add Full Principal Sasl mapping")
+            root_logger.critical("failed to add Full Principal Sasl mapping")
             raise e
 
         entry = ipaldap.Entry("cn=Name Only,cn=mapping,cn=sasl,cn=config")
@@ -273,7 +273,7 @@ class KrbInstance(service.Service):
         try:
             self.admin_conn.addEntry(entry)
         except ldap.ALREADY_EXISTS:
-            logging.critical("failed to add Name Only Sasl mapping")
+            root_logger.critical("failed to add Name Only Sasl mapping")
             raise e
 
     def __add_krb_container(self):
@@ -341,7 +341,7 @@ class KrbInstance(service.Service):
             entry = self.admin_conn.getEntry(self.get_realm_suffix(),
                                              ldap.SCOPE_SUBTREE)
         except errors.NotFound, e:
-            logging.critical("Could not find master key in DS")
+            root_logger.critical("Could not find master key in DS")
             raise e
 
         krbMKey = pyasn1.codec.ber.decoder.decode(entry.krbmkey)
@@ -355,7 +355,7 @@ class KrbInstance(service.Service):
             fd.write(s)
             fd.close()
         except os.error, e:
-            logging.critical("failed to write stash file")
+            root_logger.critical("failed to write stash file")
             raise e
 
     #add the password extop module
@@ -444,7 +444,7 @@ class KrbInstance(service.Service):
             try:
                 self.fstore.restore_file(f)
             except ValueError, error:
-                logging.debug(error)
+                root_logger.debug(error)
                 pass
 
         if not enabled is None and not enabled:

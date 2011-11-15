@@ -18,12 +18,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import logging
-
 import service
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import services as ipaservices
+from ipapython.ipa_log_manager import *
 
 class NTPInstance(service.Service):
     def __init__(self, fstore=None):
@@ -171,7 +170,7 @@ class NTPInstance(service.Service):
         try:
             self.fstore.restore_file("/etc/ntp.conf")
         except ValueError, error:
-            logging.debug(error)
+            root_logger.debug(error)
             pass
 
         if not enabled is None and not enabled:

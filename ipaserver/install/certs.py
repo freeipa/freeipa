@@ -21,7 +21,7 @@ import os, stat, subprocess, re
 import errno
 import tempfile
 import shutil
-import logging
+from ipapython.ipa_log_manager import *
 import urllib
 import xml.dom.minidom
 import pwd
@@ -503,7 +503,7 @@ class CertDB(object):
         try:
             (stdout, stderr, rc) = certmonger.start_tracking(nickname, self.secdir, password_file)
         except (ipautil.CalledProcessError, RuntimeError), e:
-            logging.error("certmonger failed starting to track certificate: %s" % str(e))
+            root_logger.error("certmonger failed starting to track certificate: %s" % str(e))
             return
 
         cmonger.stop()
@@ -512,7 +512,7 @@ class CertDB(object):
         subject = str(nsscert.subject)
         m = re.match('New tracking request "(\d+)" added', stdout)
         if not m:
-            logging.error('Didn\'t get new %s request, got %s' % (cmonger.service_name, stdout))
+            root_logger.error('Didn\'t get new %s request, got %s' % (cmonger.service_name, stdout))
             raise RuntimeError('%s did not issue new tracking request for \'%s\' in \'%s\'. Use \'ipa-getcert list\' to list existing certificates.' % (cmonger.service_name, nickname, self.secdir))
         request_id = m.group(1)
 
@@ -534,7 +534,7 @@ class CertDB(object):
         try:
             certmonger.stop_tracking(self.secdir, nickname=nickname)
         except (ipautil.CalledProcessError, RuntimeError), e:
-            logging.error("certmonger failed to stop tracking certificate: %s" % str(e))
+            root_logger.error("certmonger failed to stop tracking certificate: %s" % str(e))
         cmonger.stop()
 
     def create_server_cert(self, nickname, hostname, other_certdb=None, subject=None):
@@ -859,17 +859,17 @@ class CertDB(object):
 
     def trust_root_cert(self, root_nickname):
         if root_nickname is None:
-            logging.debug("Unable to identify root certificate to trust. Continueing but things are likely to fail.")
+            root_logger.debug("Unable to identify root certificate to trust. Continueing but things are likely to fail.")
             return
 
         if root_nickname[:7] == "Builtin":
-            logging.debug("No need to add trust for built-in root CA's, skipping %s" % root_nickname)
+            root_logger.debug("No need to add trust for built-in root CA's, skipping %s" % root_nickname)
         else:
             try:
                 self.run_certutil(["-M", "-n", root_nickname,
                                    "-t", "CT,CT,"])
             except ipautil.CalledProcessError, e:
-                logging.error("Setting trust on %s failed" % root_nickname)
+                root_logger.error("Setting trust on %s failed" % root_nickname)
 
     def find_server_certs(self):
         p = subprocess.Popen(["/usr/bin/certutil", "-d", self.secdir,

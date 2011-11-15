@@ -126,7 +126,7 @@ from ipalib import output
 from ipalib import _, ngettext
 if api.env.in_server and api.env.context in ['lite', 'server']:
     from ldap import explode_dn
-import logging
+from ipapython.ipa_log_manager import *
 
 ACI_NAME_PREFIX_SEP = ":"
 
@@ -368,7 +368,7 @@ def _convert_strings_to_acis(acistrs):
         try:
             acis.append(ACI(a))
         except SyntaxError, e:
-            logging.warn("Failed to parse: %s" % a)
+            root_logger.warning("Failed to parse: %s" % a)
     return acis
 
 def _find_aci_by_name(acis, aciprefix, aciname):

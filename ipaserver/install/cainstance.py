@@ -19,7 +19,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import logging
 import pwd
 import os
 import sys
@@ -56,6 +55,7 @@ from ipaserver.install import dsinstance
 from ipaserver.install import certs
 from ipaserver.install.installutils import ReplicaConfig
 from ipalib import util
+from ipapython.ipa_log_manager import *
 
 HTTPD_CONFD = "/etc/httpd/conf.d/"
 DEFAULT_DSPORT=7389
@@ -115,7 +115,7 @@ def get_preop_pin(instance_root, instance_name):
     try:
         f=open(filename)
     except IOError, e:
-        logging.error("Cannot open configuration file." + str(e))
+        root_logger.error("Cannot open configuration file." + str(e))
         raise e
     data = f.read()
     data = data.split('\n')
@@ -277,10 +277,10 @@ class CADSInstance(service.Service):
         user_exists = True
         try:
             pwd.getpwnam(PKI_DS_USER)
-            logging.debug("ds user %s exists" % PKI_DS_USER)
+            root_logger.debug("ds user %s exists" % PKI_DS_USER)
         except KeyError:
             user_exists = False
-            logging.debug("adding ds user %s" % PKI_DS_USER)
+            root_logger.debug("adding ds user %s" % PKI_DS_USER)
             args = ["/usr/sbin/useradd", "-g", dsinstance.DS_GROUP,
                                          "-c", "PKI DS System User",
                                          "-d", "/var/lib/dirsrv",
@@ -288,9 +288,9 @@ class CADSInstance(service.Service):
                                          "-M", "-r", PKI_DS_USER]
             try:
                 ipautil.run(args)
-                logging.debug("done adding user")
+                root_logger.debug("done adding user")
             except ipautil.CalledProcessError, e:
-                logging.critical("failed to add user %s" % e)
+                root_logger.critical("failed to add user %s" % e)
 
         self.backup_state("user_exists", user_exists)
 
@@ -299,21 +299,21 @@ class CADSInstance(service.Service):
         self.backup_state("serverid", self.serverid)
 
         inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
-        logging.debug("writing inf template")
+        root_logger.debug("writing inf template")
         inf_fd = ipautil.write_tmp_file(inf_txt)
         inf_txt = re.sub(r"RootDNPwd=.*\n", "", inf_txt)
-        logging.debug(inf_txt)
+        root_logger.debug(inf_txt)
         if ipautil.file_exists("/usr/sbin/setup-ds.pl"):
             args = ["/usr/sbin/setup-ds.pl", "--silent", "--logfile", "-", "-f", inf_fd.name]
-            logging.debug("calling setup-ds.pl")
+            root_logger.debug("calling setup-ds.pl")
         else:
             args = ["/usr/bin/ds_newinst.pl", inf_fd.name]
-            logging.debug("calling ds_newinst.pl")
+            root_logger.debug("calling ds_newinst.pl")
         try:
             ipautil.run(args)
-            logging.debug("completed creating ds instance")
+            root_logger.debug("completed creating ds instance")
         except ipautil.CalledProcessError, e:
-            logging.critical("failed to restart ds instance %s" % e)
+            root_logger.critical("failed to restart ds instance %s" % e)
         inf_fd.close()
 
     def load_pkcs12(self):
@@ -376,11 +376,11 @@ class CADSInstance(service.Service):
         try:
             ipaservices.knownservices.dirsrv.restart(self.serverid)
             if not dsinstance.is_ds_running(self.serverid):
-                logging.critical("Failed to restart the directory server. See the installation log for details.")
+                root_logger.critical("Failed to restart the directory server. See the installation log for details.")
                 sys.exit(1)
         except Exception:
             # TODO: roll back here?
-            logging.critical("Failed to restart the directory server. See the installation log for details.")
+            root_logger.critical("Failed to restart the directory server. See the installation log for details.")
 
     def uninstall(self):
         if self.is_configured():
@@ -410,7 +410,7 @@ class CADSInstance(service.Service):
             try:
                 ipautil.run(["/usr/sbin/userdel", PKI_DS_USER])
             except ipautil.CalledProcessError, e:
-                logging.critical("failed to delete user %s" % e)
+                root_logger.critical("failed to delete user %s" % e)
 
 class CAInstance(service.Service):
     """
@@ -569,19 +569,19 @@ class CAInstance(service.Service):
         user_exists = True
         try:
             pwd.getpwnam(PKI_USER)
-            logging.debug("ca user %s exists" % PKI_USER)
+            root_logger.debug("ca user %s exists" % PKI_USER)
         except KeyError:
             user_exists = False
-            logging.debug("adding ca user %s" % PKI_USER)
+            root_logger.debug("adding ca user %s" % PKI_USER)
             args = ["/usr/sbin/useradd", "-c", "CA System User",
                                          "-d", "/var/lib",
                                          "-s", "/sbin/nologin",
                                          "-M", "-r", PKI_USER]
             try:
                 ipautil.run(args)
-                logging.debug("done adding user")
+                root_logger.debug("done adding user")
             except ipautil.CalledProcessError, e:
-                logging.critical("failed to add user %s" % e)
+                root_logger.critical("failed to add user %s" % e)
 
         self.backup_state("user_exists", user_exists)
 
@@ -676,7 +676,7 @@ class CAInstance(service.Service):
 
             ipautil.run(args, env={'PKI_HOSTNAME':self.fqdn}, nolog=nolog)
         except ipautil.CalledProcessError, e:
-            logging.critical("failed to configure ca instance %s" % e)
+            root_logger.critical("failed to configure ca instance %s" % e)
             raise RuntimeError('Configuration of CA failed')
 
         if self.external == 1:
@@ -689,7 +689,7 @@ class CAInstance(service.Service):
         if ipautil.file_exists("/root/tmp-ca.p12"):
             shutil.move("/root/tmp-ca.p12", "/root/cacert.p12")
 
-        logging.debug("completed creating ca instance")
+        root_logger.debug("completed creating ca instance")
 
     def __restart_instance(self):
         try:
@@ -697,7 +697,7 @@ class CAInstance(service.Service):
             installutils.wait_for_open_ports('localhost', 9180, 300)
         except Exception:
             # TODO: roll back here?
-            logging.critical("Failed to restart the certificate server. See the installation log for details.")
+            root_logger.critical("Failed to restart the certificate server. See the installation log for details.")
 
     def __disable_nonce(self):
         # Turn off Nonces
@@ -1060,14 +1060,14 @@ class CAInstance(service.Service):
             ipautil.run(["/usr/bin/pkiremove", "-pki_instance_root=/var/lib",
                          "-pki_instance_name=%s" % PKI_INSTANCE_NAME, "--force"])
         except ipautil.CalledProcessError, e:
-            logging.critical("failed to uninstall CA instance %s" % e)
+            root_logger.critical("failed to uninstall CA instance %s" % e)
 
         user_exists = self.restore_state("user_exists")
         if user_exists == False:
             try:
                 ipautil.run(["/usr/sbin/userdel", PKI_USER])
             except ipautil.CalledProcessError, e:
-                logging.critical("failed to delete user %s" % e)
+                root_logger.critical("failed to delete user %s" % e)
 
     def publish_ca_cert(self, location):
         args = ["-L", "-n", self.canickname, "-a"]
@@ -1153,7 +1153,7 @@ def install_replica_ca(config, postinstall=False):
     return (ca, cs)
 
 if __name__ == "__main__":
-    installutils.standard_logging_setup("install.log", False)
+    standard_logging_setup("install.log")
     cs = CADSInstance()
     cs.create_instance("EXAMPLE.COM", "catest.example.com", "example.com", "password")
     ca = CAInstance("EXAMPLE.COM", "/etc/httpd/alias")

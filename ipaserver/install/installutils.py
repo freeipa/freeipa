@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import logging
 import socket
 import errno
 import getpass
@@ -34,6 +33,7 @@ import shutil
 from ConfigParser import SafeConfigParser
 
 from ipapython import ipautil, dnsclient, sysrestore
+from ipapython.ipa_log_manager import *
 
 # Used to determine install status
 IPA_MODULES = ['httpd', 'kadmin', 'dirsrv', 'pki-cad', 'pkids', 'install', 'krb5kdc', 'ntpd', 'named']
@@ -502,7 +502,7 @@ def create_keytab(path, principal):
         if ipautil.file_exists(path):
             os.remove(path)
     except os.error:
-        logging.critical("Failed to remove %s." % path)
+        root_logger.critical("Failed to remove %s." % path)
 
     kadmin("ktadd -k " + path + " " + principal)
 
@@ -639,7 +639,7 @@ def remove_file(filename):
         if os.path.exists(filename):
             os.unlink(filename)
     except Exception, e:
-        logging.error('Error removing %s: %s' % (filename, str(e)))
+        root_logger.error('Error removing %s: %s' % (filename, str(e)))
 
 def rmtree(path):
     """
@@ -649,7 +649,7 @@ def rmtree(path):
         if os.path.exists(path):
             shutil.rmtree(path)
     except Exception, e:
-        logging.error('Error removing %s: %s' % (path, str(e)))
+        root_logger.error('Error removing %s: %s' % (path, str(e)))
 
 def is_ipa_configured():
     """
@@ -663,15 +663,15 @@ def is_ipa_configured():
 
     for module in IPA_MODULES:
         if sstore.has_state(module):
-            logging.debug('%s is configured' % module)
+            root_logger.debug('%s is configured' % module)
             installed = True
         else:
-            logging.debug('%s is not configured' % module)
+            root_logger.debug('%s is not configured' % module)
 
     if fstore.has_files():
-        logging.debug('filestore has files')
+        root_logger.debug('filestore has files')
         installed = True
     else:
-        logging.debug('filestore is tracking no files')
+        root_logger.debug('filestore is tracking no files')
 
     return installed

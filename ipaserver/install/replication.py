@@ -17,7 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import time, logging
+import time
+from ipapython.ipa_log_manager import *
 
 import os
 import sys
@@ -152,10 +153,10 @@ class ReplicationManager(object):
         try:
             replica = master_conn.search_s(dn, ldap.SCOPE_BASE, "objectclass=*")[0]
             if not replica.getValue('nsDS5ReplicaId'):
-                logging.debug("Unable to retrieve nsDS5ReplicaId from remote server")
+                root_logger.debug("Unable to retrieve nsDS5ReplicaId from remote server")
                 raise RuntimeError("Unable to retrieve nsDS5ReplicaId from remote server")
         except ldap.NO_SUCH_OBJECT:
-            logging.debug("Unable to retrieve nsDS5ReplicaId from remote server")
+            root_logger.debug("Unable to retrieve nsDS5ReplicaId from remote server")
             raise
 
         # Now update the value on the master
@@ -165,7 +166,7 @@ class ReplicationManager(object):
         try:
             master_conn.modify_s(dn, mod)
         except Exception, e:
-            logging.debug("Problem updating nsDS5ReplicaID %s" % e)
+            root_logger.debug("Problem updating nsDS5ReplicaID %s" % e)
             raise
 
         return retval
@@ -327,14 +328,14 @@ class ReplicationManager(object):
             conn.modify_s(self.suffix, [(ldap.MOD_ADD, 'aci',
                                     [ "(targetattr = \"*\")(version 3.0; acl \"Proxied authorization for database links\"; allow (proxy) userdn = \"ldap:///%s\";)" % self.repl_man_dn ])])
         except ldap.TYPE_OR_VALUE_EXISTS:
-            logging.debug("proxy aci already exists in suffix %s on %s" % (self.suffix, conn.host))
+            root_logger.debug("proxy aci already exists in suffix %s on %s" % (self.suffix, conn.host))
 
     def get_mapping_tree_entry(self):
         try:
             entry = self.conn.getEntry("cn=mapping tree,cn=config", ldap.SCOPE_ONELEVEL,
                                        "(cn=\"%s\")" % (self.suffix))
         except errors.NotFound, e:
-            logging.debug("failed to find mappting tree entry for %s" % self.suffix)
+            root_logger.debug("failed to find mappting tree entry for %s" % self.suffix)
             raise e
 
         return entry
@@ -356,7 +357,7 @@ class ReplicationManager(object):
         try:
             self.conn.modify_s(dn, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
-            logging.debug("chainOnUpdate already enabled for %s" % self.suffix)
+            root_logger.debug("chainOnUpdate already enabled for %s" % self.suffix)
 
     def setup_chain_on_update(self, other_conn):
         chainbe = self.setup_chaining_backend(other_conn)
@@ -397,7 +398,7 @@ class ReplicationManager(object):
         try:
             conn.modify_s(self.suffix, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
-            logging.debug("passsync aci already exists in suffix %s on %s" % (self.suffix, conn.host))
+            root_logger.debug("passsync aci already exists in suffix %s on %s" % (self.suffix, conn.host))
 
     def setup_winsync_agmt(self, entry, win_subtree=None):
         if win_subtree is None:
@@ -508,9 +509,9 @@ class ReplicationManager(object):
         b_pn = a.search_s(self.suffix, ldap.SCOPE_SUBTREE, filterstr=filter_b)
 
         if a_pn is None:
-            logging.critical('Unable to find entry for %s on %s' % (filter_a, str(b)))
+            root_logger.critical('Unable to find entry for %s on %s' % (filter_a, str(b)))
         if b_pn is None:
-            logging.critical('Unable to find entry for %s on %s' % (filter_b, str(a)))
+            root_logger.critical('Unable to find entry for %s on %s' % (filter_b, str(a)))
         if a_pn is None or b_pn is None:
             raise RuntimeError('Replication agreement cannot be converted')
 
@@ -567,7 +568,7 @@ class ReplicationManager(object):
         try:
             self.conn.modify_s(dn, mod)
         except Exception, e:
-            logging.debug("Failed to remove referral value: %s" % str(e))
+            root_logger.debug("Failed to remove referral value: %s" % str(e))
 
     def check_repl_init(self, conn, agmtdn):
         done = False
@@ -623,7 +624,7 @@ class ReplicationManager(object):
             end = entry.nsds5ReplicaLastUpdateEnd
             # incremental update is done if inprogress is false and end >= start
             done = inprogress and inprogress.lower() == 'false' and start and end and (start <= end)
-            logging.info("Replication Update in progress: %s: status: %s: start: %s: end: %s" %
+            root_logger.info("Replication Update in progress: %s: status: %s: start: %s: end: %s" %
                          (inprogress, status, start, end))
             if not done and status: # check for errors
                 # status will usually be a number followed by a string
@@ -729,14 +730,14 @@ class ReplicationManager(object):
             for dn,entry in res:
                 if dn == "":
                     self.ad_suffix = entry['defaultNamingContext'][0]
-                    logging.info("AD Suffix is: %s" % self.ad_suffix)
+                    root_logger.info("AD Suffix is: %s" % self.ad_suffix)
             if self.ad_suffix == "":
                 raise RuntimeError("Failed to lookup AD's Ldap suffix")
             ad_conn.unbind_s()
             del ad_conn
         except Exception, e:
-            logging.info("Failed to connect to AD server %s" % ad_dc_name)
-            logging.info("The error was: %s" % e)
+            root_logger.info("Failed to connect to AD server %s" % ad_dc_name)
+            root_logger.info("The error was: %s" % e)
             raise RuntimeError("Failed to setup winsync replication")
 
         # Setup the only half.
@@ -751,10 +752,10 @@ class ReplicationManager(object):
         self.setup_agreement(self.conn, ad_dc_name,
                              repl_man_dn=ad_binddn, repl_man_passwd=ad_pwd,
                              iswinsync=True, win_subtree=ad_subtree)
-        logging.info("Added new sync agreement, waiting for it to become ready . . .")
+        root_logger.info("Added new sync agreement, waiting for it to become ready . . .")
         cn, dn = self.agreement_dn(ad_dc_name)
         self.wait_for_repl_update(self.conn, dn, 30)
-        logging.info("Agreement is ready, starting replication . . .")
+        root_logger.info("Agreement is ready, starting replication . . .")
 
         # Add winsync replica to the public DIT
         dn = str(DN(('cn',ad_dc_name),('cn','replicas'),('cn','ipa'),('cn','etc'), self.suffix))
@@ -766,7 +767,7 @@ class ReplicationManager(object):
         try:
             self.conn.add_s(entry)
         except Exception, e:
-            logging.info("Failed to create public entry for winsync replica")
+            root_logger.info("Failed to create public entry for winsync replica")
 
         #Finally start replication
         ret = self.start_replication(self.conn, ad_dc_name)
@@ -833,12 +834,12 @@ class ReplicationManager(object):
                      '(objectclass=nsds5ReplicationAgreement)))' % hostname
         entry = conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
         if len(entry) == 0:
-            logging.error("Unable to find replication agreement for %s" %
+            root_logger.error("Unable to find replication agreement for %s" %
                           (hostname))
             raise RuntimeError("Unable to proceed")
         if len(entry) > 1:
-            logging.error("Found multiple agreements for %s" % hostname)
-            logging.error("Using the first one only (%s)" % entry[0].dn)
+            root_logger.error("Found multiple agreements for %s" % hostname)
+            root_logger.error("Using the first one only (%s)" % entry[0].dn)
 
         dn = entry[0].dn
         schedule = entry[0].nsds5replicaupdateschedule
@@ -850,12 +851,12 @@ class ReplicationManager(object):
         # it back.
         if newschedule == schedule:
             newschedule = '2358-2359 1'
-        logging.info("Changing agreement %s schedule to %s to force synch" %
+        root_logger.info("Changing agreement %s schedule to %s to force synch" %
                      (dn, newschedule))
         mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaUpdateSchedule', [ newschedule ])]
         conn.modify_s(dn, mod)
         time.sleep(1)
-        logging.info("Changing agreement %s to restore original schedule %s" %
+        root_logger.info("Changing agreement %s to restore original schedule %s" %
                      (dn, schedule))
         mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaUpdateSchedule', [ schedule ])]
         conn.modify_s(dn, mod)

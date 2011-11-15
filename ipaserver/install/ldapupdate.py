@@ -33,7 +33,7 @@ from ipalib import util
 from ipalib import errors
 import ldap
 from ldap.dn import escape_dn_chars
-import logging
+from ipapython.ipa_log_manager import *
 import krbV
 import platform
 import time
@@ -258,7 +258,7 @@ class LDAPUpdate:
             else:
                 e['updates'] = update['updates']
         else:
-            logging.debug("Unknown key in updates %s" % update.keys())
+            root_logger.debug("Unknown key in updates %s" % update.keys())
 
         all_updates[dn] = e
 
@@ -353,8 +353,8 @@ class LDAPUpdate:
         e.setValue('nsInstance', 'userRoot')
         e.setValues('nsIndexAttribute', attribute)
 
-        logging.info("Creating task to index attribute: %s", attribute)
-        logging.debug("Task id: %s", dn)
+        root_logger.info("Creating task to index attribute: %s", attribute)
+        root_logger.debug("Task id: %s", dn)
 
         if self.live_run:
             self.conn.addEntry(e.dn, e.toTupleList())
@@ -379,10 +379,10 @@ class LDAPUpdate:
             try:
                 entry = self.conn.getEntry(dn, ldap.SCOPE_BASE, "(objectclass=*)", attrlist)
             except errors.NotFound, e:
-                logging.error("Task not found: %s", dn)
+                root_logger.error("Task not found: %s", dn)
                 return
             except errors.DatabaseError, e:
-                logging.error("Task lookup failure %s", e)
+                root_logger.error("Task lookup failure %s", e)
                 return
 
             status = entry.getValue('nstaskstatus')
@@ -392,10 +392,10 @@ class LDAPUpdate:
                 continue
 
             if status.lower().find("finished") > -1:
-                logging.info("Indexing finished")
+                root_logger.info("Indexing finished")
                 break
 
-            logging.debug("Indexing in progress")
+            root_logger.debug("Indexing in progress")
             time.sleep(1)
 
         return
@@ -507,49 +507,49 @@ class LDAPUpdate:
                     e = [e]
             for v in values:
                 if utype == 'remove':
-                    logging.debug("remove: '%s' from %s, current value %s", v, k, e)
+                    root_logger.debug("remove: '%s' from %s, current value %s", v, k, e)
                     try:
                         e.remove(v)
                     except ValueError:
-                        logging.warn("remove: '%s' not in %s", v, k)
+                        root_logger.warning("remove: '%s' not in %s", v, k)
                         pass
                     entry.setValues(k, e)
-                    logging.debug('remove: updated value %s', e)
+                    root_logger.debug('remove: updated value %s', e)
                 elif utype == 'add':
-                    logging.debug("add: '%s' to %s, current value %s", v, k, e)
+                    root_logger.debug("add: '%s' to %s, current value %s", v, k, e)
                     # Remove it, ignoring errors so we can blindly add it later
                     try:
                         e.remove(v)
                     except ValueError:
                         pass
                     e.append(v)
-                    logging.debug('add: updated value %s', e)
+                    root_logger.debug('add: updated value %s', e)
                     entry.setValues(k, e)
                 elif utype == 'addifnew':
-                    logging.debug("addifnew: '%s' to %s, current value %s", v, k, e)
+                    root_logger.debug("addifnew: '%s' to %s, current value %s", v, k, e)
                     # Only add the attribute if it doesn't exist. Only works
                     # with single-value attributes.
                     if len(e) == 0:
                         e.append(v)
-                        logging.debug('addifnew: set %s to %s', k, e)
+                        root_logger.debug('addifnew: set %s to %s', k, e)
                         entry.setValues(k, e)
                 elif utype == 'addifexist':
-                    logging.debug("addifexist: '%s' to %s, current value %s", v, k, e)
+                    root_logger.debug("addifexist: '%s' to %s, current value %s", v, k, e)
                     # Only add the attribute if the entry doesn't exist. We
                     # determine this based on whether it has an objectclass
                     if entry.getValues('objectclass'):
                         e.append(v)
-                        logging.debug('addifexist: set %s to %s', k, e)
+                        root_logger.debug('addifexist: set %s to %s', k, e)
                         entry.setValues(k, e)
                 elif utype == 'only':
-                    logging.debug("only: set %s to '%s', current value %s", k, v, e)
+                    root_logger.debug("only: set %s to '%s', current value %s", k, v, e)
                     if only.get(k):
                         e.append(v)
                     else:
                         e = [v]
                         only[k] = True
                     entry.setValues(k, e)
-                    logging.debug('only: updated value %s', e)
+                    root_logger.debug('only: updated value %s', e)
                 elif utype == 'deleteentry':
                     # skip this update type, it occurs in  __delete_entries()
                     return None
@@ -562,10 +562,10 @@ class LDAPUpdate:
                     try:
                         e.remove(old)
                         e.append(new)
-                        logging.debug('replace: updated value %s', e)
+                        root_logger.debug('replace: updated value %s', e)
                         entry.setValues(k, e)
                     except ValueError:
-                        logging.debug('replace: %s not found, skipping', old)
+                        root_logger.debug('replace: %s not found, skipping', old)
 
                 self.print_entity(entry)
 
@@ -573,19 +573,19 @@ class LDAPUpdate:
 
     def print_entity(self, e, message=None):
         """The entity object currently lacks a str() method"""
-        logging.debug("---------------------------------------------")
+        root_logger.debug("---------------------------------------------")
         if message:
-            logging.debug("%s", message)
-        logging.debug("dn: " + e.dn)
+            root_logger.debug("%s", message)
+        root_logger.debug("dn: " + e.dn)
         attr = e.attrList()
         for a in attr:
             value = e.getValues(a)
             if isinstance(value,str):
-                logging.debug(a + ": " + value)
+                root_logger.debug(a + ": " + value)
             else:
-                logging.debug(a + ": ")
+                root_logger.debug(a + ": ")
                 for l in value:
-                    logging.debug("\t" + l)
+                    root_logger.debug("\t" + l)
 
     def is_schema_updated(self, s):
         """Compare the schema in 's' with the current schema in the DS to
@@ -626,15 +626,15 @@ class LDAPUpdate:
                 raise BadSyntax, "More than 1 entry returned on a dn search!? %s" % new_entry.dn
             entry = self.__entry_to_entity(e[0])
             found = True
-            logging.info("Updating existing entry: %s", entry.dn)
+            root_logger.info("Updating existing entry: %s", entry.dn)
         except errors.NotFound:
             # Doesn't exist, start with the default entry
             entry = new_entry
-            logging.info("New entry: %s", entry.dn)
+            root_logger.info("New entry: %s", entry.dn)
         except errors.DatabaseError:
             # Doesn't exist, start with the default entry
             entry = new_entry
-            logging.info("New entry, using default value: %s", entry.dn)
+            root_logger.info("New entry, using default value: %s", entry.dn)
 
         self.print_entity(entry)
 
@@ -660,7 +660,7 @@ class LDAPUpdate:
                         self.conn.addEntry(entry.dn, entry.toTupleList())
                 self.modified = True
             except Exception, e:
-                logging.error("Add failure %s", e)
+                root_logger.error("Add failure %s", e)
         else:
             # Update LDAP
             try:
@@ -671,19 +671,19 @@ class LDAPUpdate:
                 else:
                     if len(changes) >= 1:
                         updated = True
-                logging.debug("%s" % changes)
-                logging.debug("Live %d, updated %d" % (self.live_run, updated))
+                root_logger.debug("%s" % changes)
+                root_logger.debug("Live %d, updated %d" % (self.live_run, updated))
                 if self.live_run and updated:
                     self.conn.updateEntry(entry.dn, entry.origDataDict(), entry.toDict())
-                logging.info("Done")
+                root_logger.info("Done")
             except errors.EmptyModlist:
-                logging.info("Entry already up-to-date")
+                root_logger.info("Entry already up-to-date")
                 updated = False
             except errors.DatabaseError, e:
-                logging.error("Update failed: %s", e)
+                root_logger.error("Update failed: %s", e)
                 updated = False
             except errors.ACIError, e:
-                logging.error("Update failed: %s", e)
+                root_logger.error("Update failed: %s", e)
                 updated = False
 
             if ("cn=index" in entry.dn and
@@ -712,10 +712,10 @@ class LDAPUpdate:
                    self.conn.deleteEntry(dn)
                self.modified = True
             except errors.NotFound, e:
-                logging.info("Deleting non-existent entry %s", e)
+                root_logger.info("Deleting non-existent entry %s", e)
                 self.modified = True
             except errors.DatabaseError, e:
-                logging.error("Delete failed: %s", e)
+                root_logger.error("Delete failed: %s", e)
 
         updates = updates.get('updates', [])
         for u in updates:
@@ -728,10 +728,10 @@ class LDAPUpdate:
                        self.conn.deleteEntry(dn)
                    self.modified = True
                 except errors.NotFound, e:
-                    logging.info("Deleting non-existent entry %s", e)
+                    root_logger.info("Deleting non-existent entry %s", e)
                     self.modified = True
                 except errors.DatabaseError, e:
-                    logging.error("Delete failed: %s", e)
+                    root_logger.error("Delete failed: %s", e)
 
         return
 
@@ -784,7 +784,7 @@ class LDAPUpdate:
             dn_list = {}
             for f in files:
                 try:
-                    logging.info("Parsing file %s" % f)
+                    root_logger.info("Parsing file %s" % f)
                     data = self.read_file(f)
                 except Exception, e:
                     print e

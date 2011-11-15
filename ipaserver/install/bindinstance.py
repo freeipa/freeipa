@@ -20,7 +20,6 @@
 import tempfile
 import os
 import pwd
-import logging
 import netaddr
 
 import installutils
@@ -34,6 +33,7 @@ from ipapython import ipautil
 from ipalib.constants import DNS_ZONE_REFRESH
 from ipalib.parameters import IA5Str
 from ipalib.util import validate_zonemgr
+from ipapython.ipa_log_manager import *
 
 import ipalib
 from ipalib import api, util, errors
@@ -482,9 +482,9 @@ class BindInstance(service.Service):
     def __setup_zone(self):
         if self.host_domain != self.domain:
             # add DNS domain for host first
-            logging.debug("Host domain (%s) is different from DNS domain (%s)!" \
+            root_logger.debug("Host domain (%s) is different from DNS domain (%s)!" \
                     % (self.host_domain, self.domain))
-            logging.debug("Add DNS zone for host first.")
+            root_logger.debug("Add DNS zone for host first.")
 
             add_zone(self.host_domain, self.zonemgr, dns_backup=self.dns_backup,
                     ns_hostname=api.env.host, ns_ip_address=self.ip_address)
@@ -557,7 +557,7 @@ class BindInstance(service.Service):
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
         except Exception, e:
-            logging.critical("Could not modify principal's %s entry" % dns_principal)
+            root_logger.critical("Could not modify principal's %s entry" % dns_principal)
             raise e
 
     def __setup_named_conf(self):
@@ -639,7 +639,7 @@ class BindInstance(service.Service):
             try:
                 self.fstore.restore_file(f)
             except ValueError, error:
-                logging.debug(error)
+                root_logger.debug(error)
                 pass
 
         if not enabled is None and not enabled:
