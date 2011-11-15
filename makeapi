@@ -2,6 +2,7 @@
 # Authors:
 #   Rob Crittenden <rcritten@redhat.com>
 #   John Dennis <jdennis@redhat.com>
+#   Martin Kosek <mkosek@redhat.com>
 #
 # Copyright (C) 2011  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -26,7 +27,9 @@ import sys
 import os
 import re
 import inspect
-from ipalib import *
+from ipalib import api
+from ipalib.parameters import Param
+from ipalib.output import Output
 from ipalib.text import Gettext, NGettext
 
 API_FILE='API.txt'
@@ -35,6 +38,21 @@ API_FILE_DIFFERENCE = 1
 API_NEW_COMMAND = 2
 API_NO_FILE = 4
 API_DOC_ERROR = 8
+
+# attributes removed from Param.__kw dictionary
+PARAM_IGNORED_KW_ATTRIBUTES = ('label',
+                               'doc',
+                               'normalizer',
+                               'encoder',
+                               'default_from',
+                               'create_default',
+                               'hint',
+                               'flags',
+                               'sortorder',)
+
+# attributes removed from Output object
+OUTPUT_IGNORED_ATTRIBUTES = ('doc',
+                             'flags',)
 
 def parse_options():
     from optparse import OptionParser
@@ -49,15 +67,37 @@ def parse_options():
     options, args = parser.parse_args()
     return options, args
 
-def strip_doc(line):
+def param_repr(p):
     """
-    Remove the doc= part from the repr() of a Parameter.
+    Return parameter repr() for API.txt purposes.
+
+    Some Param attributes do not cause API incompatibility (e.g. doc,
+    label or callables) and should not be added to API.txt. These attributes
+    are removed from the parameter before repr() is called.
+
+    NOTE: since the parameter is not not deepcopy()'ed before attributes are
+    removed, the original parameter is changed in the process. This is OK
+    for ./makeapi since we don't need this attributes anyway (except for
+    validate_doc() which is, however, called before any param_repr() call).
     """
-
-    # this pattern allows up to 2 nested parentheses in doc part
-    newline = re.sub(r', doc=([^(,]+)(\([^()]*(\([^()]+\)[^()]*)?\))?', '', line)
-
-    return newline
+    if isinstance(p, Output):
+        for attr in OUTPUT_IGNORED_ATTRIBUTES:
+            try:
+                object.__delattr__(p, attr)
+            except AttributeError:
+                pass
+        return repr(p)
+    elif isinstance(p, Param):
+        param_kw = p.__dict__['_Param__kw']
+        for attr in PARAM_IGNORED_KW_ATTRIBUTES:
+            try:
+                del param_kw[attr]
+            except KeyError:
+                pass
+        object.__setattr__(p, 'rules', {})
+        return repr(p)
+    else:
+        raise ValueError('Unsupported parameter type!')
 
 def validate_doc():
     """
@@ -166,11 +206,11 @@ def make_api():
         fd.write('command: %s\n' % cmd.name)
         fd.write('args: %d,%d,%d\n' % (len(cmd.args), len(cmd.options), len(cmd.output)))
         for a in cmd.args():
-            fd.write('arg: %s\n' % strip_doc(repr(a)))
+            fd.write('arg: %s\n' % param_repr(a))
         for o in cmd.options():
-            fd.write('option: %s\n' % strip_doc(repr(o)))
+            fd.write('option: %s\n' % param_repr(o))
         for o in cmd.output():
-            fd.write('output: %s\n' % strip_doc(repr(o)))
+            fd.write('output: %s\n' % param_repr(o))
     fd.close()
 
     return 0
@@ -211,17 +251,17 @@ def _finalize_command_validation(cmd, found_args, expected_args,
     for a in cmd.args():
         if a.param_spec not in found_args:
             print 'Argument %s of command %s in ipalib, not in API file:\n%s' % (
-                a.param_spec, cmd.name, strip_doc(repr(a)))
+                a.param_spec, cmd.name, param_repr(a))
             passed = False
     for o in cmd.options():
         if o.param_spec not in found_options:
             print 'Option %s of command %s in ipalib, not in API file:\n%s' % (
-                o.param_spec, cmd.name, strip_doc(repr(o)))
+                o.param_spec, cmd.name, param_repr(o))
             passed = False
     for o in cmd.output():
         if o.name not in found_output:
             print 'Output %s of command %s in ipalib, not in API file:\n%s' % (
-                o.name, cmd.name, strip_doc(repr(o)))
+                o.name, cmd.name, param_repr(o))
             passed = False
 
     return passed
@@ -280,13 +320,13 @@ def validate_api():
             found = False
             arg = find_name(line)
             for a in cmd.args():
-                if strip_doc(repr(a)) == line:
+                if param_repr(a) == line:
                     found = True
                 else:
                     if a.name == arg:
                         found = True
                         print 'Arg in %s doesn\'t match.\nGot      %s\nExpected %s' % (
-                            name, strip_doc(repr(a)), line)
+                            name, param_repr(a), line)
                         rval |= API_FILE_DIFFERENCE
             if found:
                 found_args.append(arg)
@@ -299,7 +339,7 @@ def validate_api():
             found = False
             option = find_name(line)
             for o in cmd.options():
-                if strip_doc(repr(o)) == line:
+                if param_repr(o) == line:
                     found = True
                 else:
                     if o.name == option:
@@ -317,7 +357,7 @@ def validate_api():
             found = False
             output = find_name(line)
             for o in cmd.output():
-                if strip_doc(repr(o)) == line:
+                if param_repr(o) == line:
                     found = True
                 else:
                     if o.name == output:
