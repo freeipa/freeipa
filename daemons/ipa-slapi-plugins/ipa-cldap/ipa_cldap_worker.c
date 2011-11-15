@@ -207,6 +207,7 @@ done:
 static void ipa_cldap_process(struct ipa_cldap_ctx *ctx,
                               struct ipa_cldap_req *req)
 {
+    struct berval reply;
     int ret;
 
     ret = ipa_cldap_decode(req);
@@ -215,6 +216,11 @@ static void ipa_cldap_process(struct ipa_cldap_ctx *ctx,
     }
 
     LOG_TRACE("CLDAP Request received");
+
+    ret = ipa_cldap_netlogon(ctx, req, &reply);
+    if (ret) {
+        goto done;
+    }
 
 done:
     ipa_cldap_free_kvps(&req->kvps);

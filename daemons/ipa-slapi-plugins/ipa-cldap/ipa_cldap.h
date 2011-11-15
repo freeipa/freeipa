@@ -60,6 +60,10 @@
 #define CLDAP_PORT 389
 #define MAX_DG_SIZE 4096
 
+#ifndef MAXHOSTNAMELEN
+#define MAXHOSTNAMELEN 64
+#endif
+
 struct ipa_cldap_ctx {
     Slapi_ComponentId *plugin_id;
     pthread_t tid;
@@ -95,5 +99,9 @@ struct ipa_cldap_req {
 };
 
 void *ipa_cldap_worker(struct ipa_cldap_ctx *ctx);
+
+int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
+                       struct ipa_cldap_req *req,
+                       struct berval *reply);
 
 #endif /* _IPA_CLDAP_H_ */
