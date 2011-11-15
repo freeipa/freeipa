@@ -17,8 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import logging
-
 import os
 import errno
 import ldap
@@ -30,6 +28,7 @@ from ipaserver.install.dsinstance import realm_to_serverid
 from ipalib import errors
 from ipapython import sysrestore
 from ipapython import ipautil
+from ipapython.ipa_log_manager import *
 
 import random
 import string
@@ -119,7 +118,7 @@ class ADTRUSTInstance(service.Service):
         try:
             self.admin_conn.modify_s(self.suffix, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
-            logging.debug("samba user aci already exists in suffix %s on %s" % (self.suffix, self.admin_conn.host))
+            root_logger.debug("samba user aci already exists in suffix %s on %s" % (self.suffix, self.admin_conn.host))
 
     def __gen_sid_string(self):
         sub_ids = struct.unpack("<LLL", os.urandom(12))
@@ -237,20 +236,20 @@ class ADTRUSTInstance(service.Service):
                                          "-k", "/etc/krb5.keytab"])
         except ipautil.CalledProcessError, e:
             if e.returncode != 5:
-                logging.critical("Failed to remove old key for %s" % cifs_principal)
+                root_logger.critical("Failed to remove old key for %s" % cifs_principal)
 
         try:
             ipautil.run(["ipa-getkeytab", "--server", self.fqdn,
                                           "--principal", cifs_principal,
                                           "-k", "/etc/krb5.keytab"])
         except ipautil.CalledProcessError, e:
-            logging.critical("Failed to add key for %s" % cifs_principal)
+            root_logger.critical("Failed to add key for %s" % cifs_principal)
 
     def __start(self):
         try:
             self.start()
         except:
-            logging.critical("smbd service failed to start")
+            root_logger.critical("smbd service failed to start")
 
     def __stop(self):
         self.backup_state("running", self.is_running())
@@ -267,7 +266,7 @@ class ADTRUSTInstance(service.Service):
         try:
             self.ldap_enable('ADTRUST', self.fqdn, self.dm_password, self.suffix)
         except ldap.ALREADY_EXISTS:
-            logging.critical("ADTRUST Service startup entry already exists.")
+            root_logger.critical("ADTRUST Service startup entry already exists.")
             pass
 
     def __setup_sub_dict(self):
@@ -332,7 +331,7 @@ class ADTRUSTInstance(service.Service):
             try:
                 self.fstore.restore_file(f)
             except ValueError, error:
-                logging.debug(error)
+                root_logger.debug(error)
                 pass
 
         if not enabled is None and not enabled:

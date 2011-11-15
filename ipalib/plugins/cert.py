@@ -32,7 +32,6 @@ from ipalib import util
 from ipalib.plugins.virtual import *
 from ipalib.plugins.service import split_principal
 import base64
-import logging
 import traceback
 from ipalib.text import _
 from ipalib.request import context

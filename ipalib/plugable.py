@@ -29,7 +29,6 @@ import re
 import sys
 import inspect
 import threading
-import logging
 import os
 from os import path
 import subprocess
@@ -40,7 +39,8 @@ import util
 import text
 from text import _
 from base import ReadOnly, NameSpace, lock, islocked, check_name
-from constants import DEFAULT_CONFIG, FORMAT_STDERR, FORMAT_FILE
+from constants import DEFAULT_CONFIG
+from ipapython.ipa_log_manager import *
 
 # FIXME: Updated constants.TYPE_ERROR to use this clearer format from wehjit:
 TYPE_ERROR = '%s: need a %r; got a %r: %r'
@@ -193,14 +193,7 @@ class Plugin(ReadOnly):
             self.summary = '<%s>' % self.fullname
         else:
             self.summary = unicode(self.doc).split('\n\n', 1)[0].strip()
-        log = logging.getLogger(self.fullname)
-        for name in ('debug', 'info', 'warning', 'error', 'critical', 'exception'):
-            if hasattr(self, name):
-                raise StandardError(
-                    '%s.%s attribute (%r) conflicts with Plugin logger' % (
-                        self.name, name, getattr(self, name))
-                )
-            setattr(self, name, getattr(log, name))
+        log_mgr.get_logger(self, True)
         if self.label is None:
             self.label = text.FixMe(self.name + '.label')
         if not isinstance(self.label, text.LazyText):
@@ -307,8 +300,7 @@ class Plugin(ReadOnly):
         for name in api:
             assert not hasattr(self, name)
             setattr(self, name, api[name])
-        # FIXME: the 'log' attribute is depreciated.  See Plugin.__init__()
-        for name in ('env', 'context', 'log'):
+        for name in ('env', 'context'):
             if hasattr(api, name):
                 assert not hasattr(self, name)
                 setattr(self, name, getattr(api, name))
@@ -469,34 +461,32 @@ class API(DictProxy):
         self.__doing('bootstrap')
         self.env._bootstrap(**overrides)
         self.env._finalize_core(**dict(DEFAULT_CONFIG))
-        log = logging.getLogger()
+        object.__setattr__(self, 'log_mgr', log_mgr)
+        log = log_mgr.root_logger
         object.__setattr__(self, 'log', log)
-
         # If logging has already been configured somewhere else (like in the
         # installer), don't add handlers or change levels:
-        if len(log.handlers) > 0 or self.env.validate_api:
+        if log_mgr.configure_state != 'default' or self.env.validate_api:
             return
 
-        if self.env.debug:
-            log.setLevel(logging.DEBUG)
-        else:
-            log.setLevel(logging.INFO)
-
+        log_mgr.configure_from_env(self.env, configure_state='api')
         # Add stderr handler:
-        stderr = logging.StreamHandler()
+        level = 'info'
         if self.env.debug:
-            stderr.setLevel(logging.DEBUG)
+            level = 'debug'
         else:
             if self.env.context == 'cli':
                 if self.env.verbose > 0:
-                    stderr.setLevel(logging.INFO)
+                    level = 'info'
                 else:
-                    stderr.setLevel(logging.WARNING)
-            else:
-                stderr.setLevel(logging.INFO)
-        stderr.setFormatter(util.LogFormatter(FORMAT_STDERR))
-        log.addHandler(stderr)
+                    level = 'warning'
 
+        if log_mgr.handlers.has_key('console'):
+            log_mgr.remove_handler('console')
+        log_mgr.create_log_handlers([dict(name='console',
+                                          stream=sys.stderr,
+                                          level=level,
+                                          format=LOGGING_FORMAT_STDERR)])
         # Add file handler:
         if self.env.mode in ('dummy', 'unit_test'):
             return  # But not if in unit-test mode
@@ -509,17 +499,19 @@ class API(DictProxy):
             except OSError:
                 log.error('Could not create log_dir %r', log_dir)
                 return
-        try:
-            handler = logging.FileHandler(self.env.log)
-        except IOError, e:
-            log.error('Cannot open log file %r: %s', self.env.log, e.strerror)
-            return
-        handler.setFormatter(util.LogFormatter(FORMAT_FILE))
+
+
+        level = 'info'
         if self.env.debug:
-            handler.setLevel(logging.DEBUG)
-        else:
-            handler.setLevel(logging.INFO)
-        log.addHandler(handler)
+            level = 'debug'
+        try:
+            log_mgr.create_log_handlers([dict(name='file',
+                                              filename=self.env.log,
+                                              level=level,
+                                              format=LOGGING_FORMAT_FILE)])
+        except IOError, e:
+            log.error('Cannot open log file %r: %s', self.env.log, e)
+            return
 
     def build_global_parser(self, parser=None, context=None):
         """

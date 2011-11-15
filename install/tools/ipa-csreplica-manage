@@ -23,7 +23,7 @@ import sys
 import os
 
 import ldap, krbV
-import logging
+from ipapython.ipa_log_manager import *
 
 from ipapython import ipautil
 from ipaserver.install import replication, installutils
@@ -116,7 +116,7 @@ class CSReplicationManager(replication.ReplicationManager):
         try:
             self.conn.modify_s(dn, mod)
         except Exception, e:
-            logging.debug("Failed to remove referral value: %s" % convert_error(e))
+            root_logger.debug("Failed to remove referral value: %s" % convert_error(e))
 
 def parse_options():
     from optparse import OptionParser
@@ -154,13 +154,6 @@ def parse_options():
         cmdstr = " | ".join(commands.keys())
         parser.error("must provide a command [%s]" % cmdstr)
 
-    # set log level
-    if options.verbose:
-        # if verbose, output events at INFO level if not already
-        mylogger = logging.getLogger()
-        if mylogger.getEffectiveLevel() > logging.INFO:
-            mylogger.setLevel(logging.INFO)
-        # else user has already configured logging externally lower
     return options, args
 
 def list_replicas(realm, host, replica, dirman_passwd, verbose):
@@ -357,10 +350,10 @@ def re_initialize(realm, options):
     filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % thishost
     entry = repl.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
     if len(entry) == 0:
-        logging.error("Unable to find %s -> %s replication agreement" % (options.fromhost, thishost))
+        root_logger.error("Unable to find %s -> %s replication agreement" % (options.fromhost, thishost))
         sys.exit(1)
     if len(entry) > 1:
-        logging.error("Found multiple agreements for %s. Only initializing the first one returned: %s" % (thishost, entry[0].dn))
+        root_logger.error("Found multiple agreements for %s. Only initializing the first one returned: %s" % (thishost, entry[0].dn))
 
     repl.initialize_replication(entry[0].dn, repl.conn)
     repl.wait_for_repl_init(repl.conn, entry[0].dn)
@@ -378,8 +371,9 @@ def main():
 
     # Just initialize the environment. This is so the installer can have
     # access to the plugin environment
-    api_env = {}
-    api_env['in_server'] = True
+    api_env = {'in_server' : True,
+               'verbose'   : options.verbose,
+              }
 
     if os.getegid() != 0:
         api_env['log'] = None # turn off logging for non-root

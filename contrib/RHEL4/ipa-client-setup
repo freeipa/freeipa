@@ -26,7 +26,7 @@ import os
 import string
 import shutil
 import socket
-import logging
+from ipapython.ipa_log_manager import *
 from optparse import OptionParser
 import ipachangeconf
 import ldap
@@ -53,55 +53,55 @@ class ipaserver:
         return str(self.basedn)
 
     def check(self):
-    
+
         lret = []
         lres = []
         lattr = ""
         linfo = ""
         lrealms = []
-    
+
         i = 0
-    
+
         #now verify the server is really an IPA server
         try:
-            logging.debug("Init ldap with: ldap://"+self.server+":389")
+            root_logger.debug("Init ldap with: ldap://"+self.server+":389")
             lh = ldap.initialize("ldap://"+self.server+":389")
             lh.simple_bind_s("","")
-    
-            logging.debug("Search rootdse")
+
+            root_logger.debug("Search rootdse")
             lret = lh.search_s("", ldap.SCOPE_BASE, "(objectClass=*)")
             for lattr in lret[0][1]:
                 if lattr.lower() == "namingcontexts":
                     self.basedn = lret[0][1][lattr][0]
-    
-            logging.debug("Search for (info=*) in "+self.basedn+"(base)")
+
+            root_logger.debug("Search for (info=*) in "+self.basedn+"(base)")
             lret = lh.search_s(self.basedn, ldap.SCOPE_BASE, "(info=IPA*)")
             if not lret:
                 return False
-            logging.debug("Found: "+str(lret))
-    
+            root_logger.debug("Found: "+str(lret))
+
             for lattr in lret[0][1]:
                 if lattr.lower() == "info":
                     linfo = lret[0][1][lattr][0].lower()
                     break
-    
+
             if not linfo:
                 return False
-    
+
             #search and return known realms
-            logging.debug("Search for (objectClass=krbRealmContainer) in "+self.basedn+"(sub)")
+            root_logger.debug("Search for (objectClass=krbRealmContainer) in "+self.basedn+"(sub)")
             lret = lh.search_s("cn=kerberos,"+self.basedn, ldap.SCOPE_SUBTREE, "(objectClass=krbRealmContainer)")
             if not lret:
                 #something very wrong
                 return False
-            logging.debug("Found: "+str(lret))
-    
+            root_logger.debug("Found: "+str(lret))
+
             for lres in lret:
                 for lattr in lres[1]:
                     if lattr.lower() == "cn":
                         lrealms.append(lres[1][lattr][0])
-    
-    
+
+
             if len(lrealms) != 1:
                 #which one? we can't attach to a multi-realm server without DNS working
                 return False
@@ -109,10 +109,10 @@ class ipaserver:
                 self.realm = lrealms[0]
                 self.domain = lrealms[0].lower()
                 return True
-    
+
         except LDAPError, err:
             #no good
-            logging.error("Ldap Error: "+str(err))
+            root_logger.error("Ldap Error: "+str(err))
             return False
 
 ntp_conf = """# Permit time synchronization with our time source, but do not
@@ -123,7 +123,7 @@ restrict -6 default kod nomodify notrap nopeer noquery
 # Permit all access over the loopback interface.  This could
 # be tightened as well, but to do so would effect some of
 # the administrative functions.
-restrict 127.0.0.1 
+restrict 127.0.0.1
 restrict -6 ::1
 
 # Hosts on local network are less restricted.
@@ -141,9 +141,9 @@ server $SERVER
 #manycastclient 239.255.254.254 key 42	# manycast client
 
 # Undisciplined Local Clock. This is a fake driver intended for backup
-# and when no outside source of synchronized time is available. 
+# and when no outside source of synchronized time is available.
 server	127.127.1.0	# local clock
-#fudge	127.127.1.0 stratum 10	
+#fudge	127.127.1.0 stratum 10
 
 # Drift file.  Put this in a directory which the daemon can write to.
 # No symbolic links allowed, either, since the daemon updates the file
@@ -152,7 +152,7 @@ server	127.127.1.0	# local clock
 driftfile /var/lib/ntp/drift
 
 # Key file containing the keys and key identifiers used when operating
-# with symmetric key cryptography. 
+# with symmetric key cryptography.
 keys /etc/ntp/keys
 
 # Specify the key identifiers which are trusted.
@@ -222,26 +222,11 @@ def ask_for_confirmation(message):
     return True
 
 def logging_setup(options):
-    # Always log everything (i.e., DEBUG) to the log
-    # file.
-    logger = logging.getLogger('ipa-client-setup')
-    fh = logging.FileHandler('ipaclient-install.log')
-    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
-    
-    # If the debug option is set, also log debug messages to the console
-    if options.debug:
-        logger.setLevel(logging.DEBUG)
-    else:
-        # Otherwise, log critical and error messages
-        logger.setLevel(logging.ERROR)
-
-    return logger
+    standard_logging_setup('ipaclient-install.log', debug=options.debug)
 
 def main():
     options = parse_options()
-    logger = logging_setup(options)
+    logging_setup(options)
     dnsok = True
 
     ipasrv = ipaserver(options.server)

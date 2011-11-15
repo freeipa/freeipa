@@ -32,8 +32,8 @@ try:
     from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
     from ipaserver.install.upgradeinstance import IPAUpgrade
     from ipapython import sysrestore
-    import logging
     import krbV
+    from ipapython.ipa_log_manager import *
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -76,13 +76,10 @@ def get_dirman_password():
     return password
 
 def main():
-    loglevel = logging.INFO
     badsyntax = False
     upgradefailed = False
 
     safe_options, options, args = parse_options()
-    if options.debug:
-        loglevel = logging.DEBUG
 
     if os.getegid() == 0:
         installutils.check_server_configuration()
@@ -103,19 +100,11 @@ def main():
     if len(args) > 0:
         files = args
 
-    # Clear all existing log handler
-    loggers = logging.getLogger()
-    if loggers.handlers:
-        for handler in loggers.handlers:
-            loggers.removeHandler(handler)
     if options.upgrade:
         if os.getegid() != 0:
             sys.exit('Upgrade can only be done as root')
-        logging.basicConfig(level=loglevel,
-                            format='%(asctime)s %(levelname)s %(message)s',
-                            filename='/var/log/ipaupgrade.log',
-                            filemode='a')
-        logging.debug('%s was invoked with arguments %s and options: %s' % (sys.argv[0], args, safe_options))
+        standard_logging_setup('/var/log/ipaupgrade.log', verbose=True, debug=options.debug, filemode='a')
+        root_logger.debug('%s was invoked with arguments %s and options: %s' % (sys.argv[0], args, safe_options))
         realm = krbV.default_context().default_realm
         upgrade = IPAUpgrade(realm, files, live_run=not options.test)
         upgrade.create_instance()
@@ -123,8 +112,7 @@ def main():
         badsyntax = upgrade.badsyntax
         upgradefailed = upgrade.upgradefailed
     else:
-        logging.basicConfig(level=loglevel,
-                            format='%(levelname)s %(message)s')
+        standard_logging_setup(None, verbose=True, debug=options.debug)
         ld = LDAPUpdate(dm_password=dirman_password, sub_dict={}, live_run=not options.test, ldapi=options.ldapi)
         if len(files) < 1:
             files = ld.get_all_files(UPDATES_DIR)

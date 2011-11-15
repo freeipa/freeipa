@@ -59,23 +59,6 @@ CLI_TAB = '  '  # Two spaces
 # The section to read in the config files, i.e. [global]
 CONFIG_SECTION = 'global'
 
-# Log format for stderr:
-FORMAT_STDERR = ': '.join([
-    'ipa',
-    '%(levelname)s',
-    '%(message)s',
-])
-
-# Log format for log file:
-FORMAT_FILE = '\t'.join([
-    '%(created)f',
-    '%(process)d',
-    '%(threadName)s',
-    '%(levelname)s',
-    '%(message)s',
-])
-
-
 # The default configuration for api.env
 # This is a tuple instead of a dict so that it is immutable.
 # To create a dict with this config, just "d = dict(DEFAULT_CONFIG)".

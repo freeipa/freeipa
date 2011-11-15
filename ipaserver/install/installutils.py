@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import logging
 import socket
 import errno
 import getpass
@@ -34,6 +33,7 @@ import shutil
 from ConfigParser import SafeConfigParser
 
 from ipapython import ipautil, dnsclient, sysrestore
+from ipapython.ipa_log_manager import *
 
 # Used to determine install status
 IPA_MODULES = ['httpd', 'kadmin', 'dirsrv', 'pki-cad', 'pkids', 'install', 'krb5kdc', 'ntpd', 'named']
@@ -314,27 +314,6 @@ def port_available(port):
 
     return rv
 
-def standard_logging_setup(log_filename, debug=False, filemode='w'):
-    old_umask = os.umask(077)
-    # Always log everything (i.e., DEBUG) to the log
-    # file.
-    logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s %(levelname)s %(message)s',
-                        filename=log_filename,
-                        filemode=filemode)
-    os.umask(old_umask)
-
-    console = logging.StreamHandler()
-    # If the debug option is set, also log debug messages to the console
-    if debug:
-        console.setLevel(logging.DEBUG)
-    else:
-        # Otherwise, log critical and error messages
-        console.setLevel(logging.ERROR)
-    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
-
 def get_password(prompt):
     if os.isatty(sys.stdin.fileno()):
         return getpass.getpass(prompt)
@@ -459,7 +438,7 @@ def create_keytab(path, principal):
         if ipautil.file_exists(path):
             os.remove(path)
     except os.error:
-        logging.critical("Failed to remove %s." % path)
+        root_logger.critical("Failed to remove %s." % path)
 
     kadmin("ktadd -k " + path + " " + principal)
 
@@ -596,7 +575,7 @@ def remove_file(filename):
         if os.path.exists(filename):
             os.unlink(filename)
     except Exception, e:
-        logging.error('Error removing %s: %s' % (filename, str(e)))
+        root_logger.error('Error removing %s: %s' % (filename, str(e)))
 
 def rmtree(path):
     """
@@ -606,7 +585,7 @@ def rmtree(path):
         if os.path.exists(path):
             shutil.rmtree(path)
     except Exception, e:
-        logging.error('Error removing %s: %s' % (path, str(e)))
+        root_logger.error('Error removing %s: %s' % (path, str(e)))
 
 def is_ipa_configured():
     """
@@ -620,15 +599,15 @@ def is_ipa_configured():
 
     for module in IPA_MODULES:
         if sstore.has_state(module):
-            logging.debug('%s is configured' % module)
+            root_logger.debug('%s is configured' % module)
             installed = True
         else:
-            logging.debug('%s is not configured' % module)
+            root_logger.debug('%s is not configured' % module)
 
     if fstore.has_files():
-        logging.debug('filestore has files')
+        root_logger.debug('filestore has files')
         installed = True
     else:
-        logging.debug('filestore is tracking no files')
+        root_logger.debug('filestore is tracking no files')
 
     return installed

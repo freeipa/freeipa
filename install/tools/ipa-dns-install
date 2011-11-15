@@ -32,6 +32,7 @@ from ipapython.config import IPAOptionParser
 from ipalib.constants import DNS_ZONE_REFRESH
 import krbV
 import ldap
+from ipapython.ipa_log_manager import *
 
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
@@ -88,11 +89,11 @@ def main():
     if os.getegid() != 0:
         sys.exit("Must be root to setup server")
 
-    standard_logging_setup("/var/log/ipaserver-install.log", options.debug, filemode='a')
+    standard_logging_setup("/var/log/ipaserver-install.log", debug=options.debug, filemode='a')
     print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
 
-    logging.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
-    logging.debug("missing options might be asked for interactively later\n")
+    root_logger.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
+    root_logger.debug("missing options might be asked for interactively later\n")
 
     installutils.check_server_configuration()
 
@@ -157,7 +158,7 @@ def main():
         else:
             ip = read_ip_address(api.env.host, fstore)
     ip_address = str(ip)
-    logging.debug("will use ip_address: %s\n", ip_address)
+    root_logger.debug("will use ip_address: %s\n", ip_address)
 
     if options.reverse_zone and not bindinstance.verify_reverse_zone(options.reverse_zone, ip):
         sys.exit(1)
@@ -168,7 +169,7 @@ def main():
         dns_forwarders = options.forwarders
     else:
         dns_forwarders = read_dns_forwarders()
-    logging.debug("will use dns_forwarders: %s\n", str(dns_forwarders))
+    root_logger.debug("will use dns_forwarders: %s\n", str(dns_forwarders))
 
     if bind.dm_password:
         api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=bind.dm_password)
@@ -236,5 +237,5 @@ except Exception, e:
     message = str(e)
     for str in traceback.format_tb(sys.exc_info()[2]):
         message = message + "\n" + str
-    logging.debug(message)
+    root_logger.debug(message)
     sys.exit(1)

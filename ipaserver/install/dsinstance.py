@@ -19,7 +19,7 @@
 #
 
 import shutil
-import logging
+from ipapython.ipa_log_manager import *
 import pwd
 import glob
 import sys
@@ -290,10 +290,10 @@ class DsInstance(service.Service):
         user_exists = True
         try:
             pwd.getpwnam(DS_USER)
-            logging.debug("ds user %s exists" % DS_USER)
+            root_logger.debug("ds user %s exists" % DS_USER)
         except KeyError:
             user_exists = False
-            logging.debug("adding ds user %s" % DS_USER)
+            root_logger.debug("adding ds user %s" % DS_USER)
             args = ["/usr/sbin/useradd", "-g", DS_GROUP,
                                          "-c", "DS System User",
                                          "-d", "/var/lib/dirsrv",
@@ -301,9 +301,9 @@ class DsInstance(service.Service):
                                          "-M", "-r", DS_USER]
             try:
                 ipautil.run(args)
-                logging.debug("done adding user")
+                root_logger.debug("done adding user")
             except ipautil.CalledProcessError, e:
-                logging.critical("failed to add user %s" % e)
+                root_logger.critical("failed to add user %s" % e)
 
         self.backup_state("user_exists", user_exists)
 
@@ -314,7 +314,7 @@ class DsInstance(service.Service):
 
         self.sub_dict['BASEDC'] = self.realm_name.split('.')[0].lower()
         base_txt = ipautil.template_str(BASE_TEMPLATE, self.sub_dict)
-        logging.debug(base_txt)
+        root_logger.debug(base_txt)
 
         target_fname = '/var/lib/dirsrv/boot.ldif'
         base_fd = open(target_fname, "w")
@@ -325,32 +325,32 @@ class DsInstance(service.Service):
         os.chmod(target_fname, 0440)
 
         inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
-        logging.debug("writing inf template")
+        root_logger.debug("writing inf template")
         inf_fd = ipautil.write_tmp_file(inf_txt)
         inf_txt = re.sub(r"RootDNPwd=.*\n", "", inf_txt)
-        logging.debug(inf_txt)
+        root_logger.debug(inf_txt)
         if ipautil.file_exists("/usr/sbin/setup-ds.pl"):
             args = ["/usr/sbin/setup-ds.pl", "--silent", "--logfile", "-", "-f", inf_fd.name]
-            logging.debug("calling setup-ds.pl")
+            root_logger.debug("calling setup-ds.pl")
         else:
             args = ["/usr/bin/ds_newinst.pl", inf_fd.name]
-            logging.debug("calling ds_newinst.pl")
+            root_logger.debug("calling ds_newinst.pl")
         try:
             ipautil.run(args)
-            logging.debug("completed creating ds instance")
+            root_logger.debug("completed creating ds instance")
         except ipautil.CalledProcessError, e:
-            logging.critical("failed to restart ds instance %s" % e)
+            root_logger.critical("failed to restart ds instance %s" % e)
 
         # check for open port 389 from now on
         self.open_ports.append(389)
 
-        logging.debug("restarting ds instance")
+        root_logger.debug("restarting ds instance")
         try:
             self.__restart_instance()
-            logging.debug("done restarting ds instance")
+            root_logger.debug("done restarting ds instance")
         except ipautil.CalledProcessError, e:
             print "failed to restart ds instance", e
-            logging.debug("failed to restart ds instance %s" % e)
+            root_logger.debug("failed to restart ds instance %s" % e)
         inf_fd.close()
         os.remove("/var/lib/dirsrv/boot.ldif")
 
@@ -384,14 +384,14 @@ class DsInstance(service.Service):
         try:
             super(DsInstance, self).restart(instance)
             if not is_ds_running(instance):
-                logging.critical("Failed to restart the directory server. See the installation log for details.")
+                root_logger.critical("Failed to restart the directory server. See the installation log for details.")
                 sys.exit(1)
             installutils.wait_for_open_ports('localhost', self.open_ports, 300)
         except SystemExit, e:
             raise e
         except Exception, e:
             # TODO: roll back here?
-            logging.critical("Failed to restart the directory server (%s). See the installation log for details." % e)
+            root_logger.critical("Failed to restart the directory server (%s). See the installation log for details." % e)
 
     def __restart_instance(self):
         self.restart(self.serverid)
@@ -410,7 +410,7 @@ class DsInstance(service.Service):
         self._ldap_mod("memberof-task.ldif", self.sub_dict)
         # Note, keep dn in sync with dn in install/share/memberof-task.ldif
         dn = "cn=IPA install %s,cn=memberof task,cn=tasks,cn=config" % self.sub_dict["TIME"]
-        logging.debug("Waiting for memberof task to complete.")
+        root_logger.debug("Waiting for memberof task to complete.")
         conn = ipaldap.IPAdmin("127.0.0.1")
         if self.dm_password:
             conn.simple_bind_s("cn=directory manager", self.dm_password)
@@ -558,7 +558,7 @@ class DsInstance(service.Service):
         self._ldap_mod("default-hbac.ldif", self.sub_dict)
 
     def change_admin_password(self, password):
-        logging.debug("Changing admin password")
+        root_logger.debug("Changing admin password")
         dirname = config_dirname(self.serverid)
         dmpwdfile = ""
         admpwdfile = ""
@@ -580,10 +580,10 @@ class DsInstance(service.Service):
                 env = { 'LDAPTLS_CACERTDIR':os.path.dirname(CACERT),
                         'LDAPTLS_CACERT':CACERT }
                 ipautil.run(args, env=env)
-                logging.debug("ldappasswd done")
+                root_logger.debug("ldappasswd done")
             except ipautil.CalledProcessError, e:
                 print "Unable to set admin password", e
-                logging.debug("Unable to set admin password %s" % e)
+                root_logger.debug("Unable to set admin password %s" % e)
 
         finally:
             if os.path.isfile(dmpwdfile):
@@ -605,7 +605,7 @@ class DsInstance(service.Service):
             self.fstore.restore_file("/etc/security/limits.conf")
             self.fstore.restore_file("/etc/sysconfig/dirsrv")
         except ValueError, error:
-            logging.debug(error)
+            root_logger.debug(error)
             pass
 
         if not enabled is None and not enabled:
@@ -628,7 +628,7 @@ class DsInstance(service.Service):
             try:
                 ipautil.run(["/usr/sbin/userdel", DS_USER])
             except ipautil.CalledProcessError, e:
-                logging.critical("failed to delete user %s" % e)
+                root_logger.critical("failed to delete user %s" % e)
 
         # Make sure some upgrade-related state is removed. This could cause
         # re-installation problems.
@@ -653,12 +653,12 @@ class DsInstance(service.Service):
         # first make sure we have a valid cacert_fname
         try:
             if not os.access(cacert_fname, os.R_OK):
-                logging.critical("The given CA cert file named [%s] could not be read" %
-                                 cacert_fname)
+                root_logger.critical("The given CA cert file named [%s] could not be read" %
+                                             cacert_fname)
                 return False
         except OSError, e:
-            logging.critical("The given CA cert file named [%s] could not be read: %s" %
-                             (cacert_fname, str(e)))
+            root_logger.critical("The given CA cert file named [%s] could not be read: %s" %
+                                         (cacert_fname, str(e)))
             return False
         # ok - ca cert file can be read
         # shutdown the server
@@ -674,8 +674,8 @@ class DsInstance(service.Service):
         try:
             certdb.load_cacert(cacert_fname)
         except ipautil.CalledProcessError, e:
-            logging.critical("Error importing CA cert file named [%s]: %s" %
-                             (cacert_fname, str(e)))
+            root_logger.critical("Error importing CA cert file named [%s]: %s" %
+                                         (cacert_fname, str(e)))
             status = False
         # restart the directory server
         self.start()
@@ -729,7 +729,7 @@ class DsInstance(service.Service):
             fd.close()
 
         else:
-            logging.info("Custom file limits are already set! Skipping\n")
+            root_logger.info("Custom file limits are already set! Skipping\n")
             print "Custom file limits are already set! Skipping\n"
             return
 

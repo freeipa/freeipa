@@ -27,7 +27,7 @@ try:
     from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax
     from ipaserver.plugins.ldap2 import ldap2
     from ipalib import api, errors
-    import logging
+    from ipapython.ipa_log_manager import *
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -79,20 +79,16 @@ def get_entry(dn, conn):
 
 def main():
     retval = 0
-    loglevel = logging.ERROR
     files = ['/usr/share/ipa/schema_compat.uldif']
 
     options, args = parse_options()
-    if options.debug:
-        loglevel = logging.DEBUG
 
     if len(args) != 1:
         sys.exit("You must specify one action, either enable or disable")
     elif args[0] != "enable" and args[0] != "disable" and args[0] != "status":
         sys.exit("Unrecognized action [" + args[0] + "]")
 
-    logging.basicConfig(level=loglevel,
-                        format='%(levelname)s %(message)s')
+    standard_logging_setup(None, debug=options.debug)
 
     dirman_password = ""
     if options.password:

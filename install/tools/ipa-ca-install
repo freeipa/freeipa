@@ -21,7 +21,7 @@
 import sys
 import socket
 
-import os, traceback, logging, shutil
+import os, traceback, shutil
 
 from ipapython import ipautil
 from ipapython import services as ipaservices
@@ -37,6 +37,7 @@ from ipapython import version
 from ipalib import api, util
 from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
+from ipapython.ipa_log_manager import *
 
 CACERT="/etc/ipa/ca.crt"
 REPLICA_INFO_TOP_DIR=None
@@ -71,8 +72,8 @@ def get_dirman_password():
 
 def main():
     safe_options, options, filename = parse_options()
-    installutils.standard_logging_setup("/var/log/ipareplica-ca-install.log", options.debug)
-    logging.debug('%s was invoked with argument "%s" and options: %s' % (sys.argv[0], filename, safe_options))
+    standard_logging_setup("/var/log/ipareplica-ca-install.log", debug=options.debug)
+    root_logger.debug('%s was invoked with argument "%s" and options: %s' % (sys.argv[0], filename, safe_options))
 
     if not ipautil.file_exists(filename):
         sys.exit("Replica file %s does not exist" % filename)
@@ -120,7 +121,7 @@ def main():
     try:
         host = get_host_name(options.no_host_dns)
     except BadHostError, e:
-        logging.error(str(e))
+        root_logger.error(str(e))
         sys.exit(1)
     if config.host_name != host:
         try:
@@ -170,7 +171,7 @@ except Exception, e:
     message = str(e)
     for str in traceback.format_tb(sys.exc_info()[2]):
         message = message + "\n" + str
-    logging.debug(message)
+    root_logger.debug(message)
 except KeyboardInterrupt:
     print "Installation cancelled."
 finally:

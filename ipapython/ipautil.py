@@ -26,7 +26,7 @@ IPA_BASEDN_INFO = 'ipa v2.0'
 
 import string
 import tempfile
-import logging
+from ipapython.ipa_log_manager import *
 import subprocess
 import random
 import os, sys, traceback, readline
@@ -264,10 +264,10 @@ def run(args, stdin=None, raiseonerr=True,
                 stderr = stderr.replace(nolog_value, 'XXXXXXXX')
             args = args.replace(nolog_value, 'XXXXXXXX')
 
-    logging.debug('args=%s' % args)
+    root_logger.debug('args=%s' % args)
     if capture_output:
-        logging.debug('stdout=%s' % stdout)
-        logging.debug('stderr=%s' % stderr)
+        root_logger.debug('stdout=%s' % stdout)
+        root_logger.debug('stderr=%s' % stderr)
 
     if p.returncode != 0 and raiseonerr:
         raise CalledProcessError(p.returncode, args)
@@ -1172,21 +1172,21 @@ def get_ipa_basedn(conn):
 
     contexts = entries[0][1]['namingcontexts']
     for context in contexts:
-        logging.debug("Check if naming context '%s' is for IPA" % context)
+        root_logger.debug("Check if naming context '%s' is for IPA" % context)
         try:
             entry = conn.search_s(context, ldap.SCOPE_BASE, "(info=IPA*)")
         except ldap.NO_SUCH_OBJECT:
-            logging.debug("LDAP server did not return info attribute to check for IPA version")
+            root_logger.debug("LDAP server did not return info attribute to check for IPA version")
             continue
         if len(entry) == 0:
-            logging.debug("Info attribute with IPA server version not found")
+            root_logger.debug("Info attribute with IPA server version not found")
             continue
         info = entry[0][1]['info'][0].lower()
         if info != IPA_BASEDN_INFO:
-            logging.debug("Detected IPA server version (%s) did not match the client (%s)" \
+            root_logger.debug("Detected IPA server version (%s) did not match the client (%s)" \
                 % (info, IPA_BASEDN_INFO))
             continue
-        logging.debug("Naming context '%s' is a valid IPA context" % context)
+        root_logger.debug("Naming context '%s' is a valid IPA context" % context)
         return context
 
     return None

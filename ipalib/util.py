@@ -23,7 +23,6 @@ Various utility functions.
 
 import os
 import imp
-import logging
 import time
 import socket
 import re
@@ -114,13 +113,6 @@ def import_plugins_subpackage(name):
     for name in find_modules_in_dir(src_dir):
         full_name = '%s.%s' % (plugins.__name__, name)
         __import__(full_name)
-
-
-class LogFormatter(logging.Formatter):
-    """
-    Log formatter that uses UTC for all timestamps.
-    """
-    converter = time.gmtime
 
 
 def make_repr(name, *args, **kw):

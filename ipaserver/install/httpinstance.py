@@ -20,7 +20,7 @@
 import os
 import os.path
 import tempfile
-import logging
+from ipapython.ipa_log_manager import *
 import pwd
 import shutil
 
@@ -279,7 +279,7 @@ class HTTPInstance(service.Service):
             try:
                 self.fstore.restore_file(f)
             except ValueError, error:
-                logging.debug(error)
+                root_logger.debug(error)
                 pass
 
         # Remove the configuration files we create

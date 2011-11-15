@@ -25,7 +25,7 @@ from ipapython.ipautil import CalledProcessError
 from ipaserver.install import installutils
 import ipaclient.ipachangeconf
 from optparse import OptionGroup
-import logging
+from ipapython.ipa_log_manager import *
 import sys
 import os
 import signal
@@ -138,25 +138,12 @@ def parse_options():
     return safe_options, options
 
 def logging_setup(options):
+    log_file = None
+
     if os.getegid() == 0:
         log_file = "/var/log/ipareplica-conncheck.log"
-        old_umask = os.umask(077)
-        logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s %(levelname)s %(message)s',
-                        filename=log_file,
-                        filemode='w')
-        os.umask(old_umask)
 
-    console = logging.StreamHandler()
-    # If the debug option is set, also log debug messages to the console
-    if options.debug:
-        console.setLevel(logging.DEBUG)
-    else:
-        # Otherwise, log critical and error messages
-        console.setLevel(logging.ERROR)
-    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
+    standard_logging_setup(log_file, debug=options.debug)
 
 def clean_responders(responders):
     if not responders:
@@ -217,8 +204,8 @@ def configure_krb5_conf(realm, kdc, filename):
     appopts = [{'name':'pam', 'type':'subsection', 'value':pamopts}]
     opts.append({'name':'appdefaults', 'type':'section', 'value':appopts})
 
-    logging.debug("Writing temporary Kerberos configuration to %s:\n%s"
-            % (filename, krbconf.dump(opts)))
+    root_logger.debug("Writing temporary Kerberos configuration to %s:\n%s"
+                              % (filename, krbconf.dump(opts)))
 
     krbconf.newConf(filename, opts)
 
@@ -265,8 +252,8 @@ def main():
     safe_options, options = parse_options()
 
     logging_setup(options)
-    logging.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
-    logging.debug("missing options might be asked for interactively later\n")
+    root_logger.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
+    root_logger.debug("missing options might be asked for interactively later\n")
 
     signal.signal(signal.SIGTERM, sigterm_handler)
     signal.signal(signal.SIGINT, sigterm_handler)
@@ -291,7 +278,7 @@ def main():
         global RESPONDERS
         print_info("Start listening on required ports for remote master check")
         for port in required_ports:
-            logging.debug("Start listening on port %d (%s)" % (port.port, port.description))
+            root_logger.debug("Start listening on port %d (%s)" % (port.port, port.description))
             responder = PortResponder(port.port, port.stream)
             responder.start()
             RESPONDERS.append(responder)
