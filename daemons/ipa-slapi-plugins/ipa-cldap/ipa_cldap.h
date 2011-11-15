@@ -68,6 +68,17 @@ struct ipa_cldap_ctx {
     int sd;
 };
 
+struct kvp {
+    struct berval attr;
+    struct berval value;
+};
+
+struct kvp_list {
+    struct kvp *pairs;
+    int allocated;
+    int top;
+};
+
 struct ipa_cldap_req {
     int fd;
 
@@ -76,6 +87,11 @@ struct ipa_cldap_req {
 
     char dgram[MAX_DG_SIZE];
     size_t dgsize;
+
+    ber_int_t id;
+
+    /* filter members */
+    struct kvp_list kvps;
 };
 
 void *ipa_cldap_worker(struct ipa_cldap_ctx *ctx);
