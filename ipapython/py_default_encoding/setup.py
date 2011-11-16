@@ -18,6 +18,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from distutils.core import setup, Extension
+from distutils.sysconfig import get_python_inc
+import sys
+import os
+
+python_header = os.path.join(get_python_inc(plat_specific=1), 'Python.h')
+if not os.path.exists(python_header):
+    sys.exit("Cannot find Python development packages that provide Python.h")
 
 default_encoding_utf8 = Extension('default_encoding_utf8', ['default_encoding_utf8.c'])
 
