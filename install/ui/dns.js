@@ -145,7 +145,7 @@ IPA.dns.zone_entity = function(spec) {
                         {
                             type: 'force_dnszone_add_checkbox',
                             name: 'force',
-                            metadata: IPA.get_method_option('dnszone_add', 'force')
+                            metadata: IPA.get_command_option('dnszone_add', 'force')
                         }
                     ]
                 }
@@ -745,7 +745,7 @@ IPA.dnsrecord_type_widget = function(spec) {
 };
 
 IPA.force_dnszone_add_checkbox_widget = function(spec) {
-    var metadata = IPA.get_method_option('dnszone_add', spec.name);
+    var metadata = IPA.get_command_option('dnszone_add', spec.name);
     spec.label = metadata.label;
     spec.tooltip = metadata.doc;
     return IPA.checkbox_widget(spec);

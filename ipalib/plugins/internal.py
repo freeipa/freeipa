@@ -48,16 +48,34 @@ class json_metadata(Command):
         ),
     )
 
+    takes_options = (
+        Str('object?',
+            doc=_('Name of object to export'),
+        ),
+        Str('method?',
+            doc=_('Name of method to export'),
+        ),
+        Str('command?',
+            doc=_('Name of command to export'),
+        ),
+    )
+
     has_output = (
         Output('objects', dict, doc=_('Dict of JSON encoded IPA Objects')),
         Output('methods', dict, doc=_('Dict of JSON encoded IPA Methods')),
+        Output('commands', dict, doc=_('Dict of JSON encoded IPA Commands')),
     )
 
-    def execute(self, objname, methodname):
+    def execute(self, objname, methodname, **options):
         objects = dict()
         methods = dict()
+        commands = dict()
 
-        if objname :
+        empty = True
+
+        try:
+            if not objname:
+                objname = options['object']
             if objname in self.api.Object:
                 o = self.api.Object[objname]
                 objects = dict([(o.name, json_serialize(o))])
@@ -65,25 +83,52 @@ class json_metadata(Command):
                 objects = dict(
                     (o.name, json_serialize(o)) for o in self.api.Object()
                 )
-        elif methodname:
-            if  methodname in self.api.Method:
+            empty = False
+        except KeyError:
+            pass
+
+        try:
+            if not methodname:
+                methodname = options['method']
+            if methodname in self.api.Method:
                 m = self.api.Method[methodname]
                 methods = dict([(m.name, json_serialize(m))])
             elif methodname == "all":
                 methods = dict(
                     (m.name, json_serialize(m)) for m in self.api.Method()
                 )
-        else:
+            empty = False
+        except KeyError:
+            pass
+
+        try:
+            cmdname = options['command']
+            if cmdname in self.api.Command:
+                c = self.api.Command[cmdname]
+                commands = dict([(c.name, json_serialize(c))])
+            elif cmdname == "all":
+                commands = dict(
+                    (c.name, json_serialize(c)) for c in self.api.Command()
+                )
+            empty = False
+        except KeyError:
+            pass
+
+        if empty:
             objects = dict(
                 (o.name, json_serialize(o)) for o in self.api.Object()
             )
             methods = dict(
                 (m.name, json_serialize(m)) for m in self.api.Method()
             )
+            commands = dict(
+                (c.name, json_serialize(c)) for c in self.api.Command()
+            )
 
         retval = dict([
             ("objects", objects),
             ("methods", methods),
+            ("commands", commands),
         ])
 
         return retval
@@ -312,6 +357,9 @@ class i18n_messages(Command):
             },
             "hbacsvcgroup": {
                 "services": _("Services"),
+            },
+            "hbactest": {
+                "label": _("HBAC Test"),
             },
             "host": {
                 "certificate": _("Host Certificate"),

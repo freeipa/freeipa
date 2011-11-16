@@ -666,7 +666,7 @@ IPA.sudo.options_section = function(spec) {
 
         that.table.create_column({
             name: 'ipasudoopt',
-            label: IPA.get_method_option('sudorule_add_option', 'ipasudoopt').label,
+            label: IPA.get_command_option('sudorule_add_option', 'ipasudoopt').label,
             entity_name:that.entity.name,
             primary_key: true
         });
@@ -766,7 +766,7 @@ IPA.sudo.options_section = function(spec) {
 
     that.show_add_dialog = function() {
 
-        var label = IPA.get_method_option('sudorule_add_option', 'ipasudoopt').label;
+        var label = IPA.get_command_option('sudorule_add_option', 'ipasudoopt').label;
 
         var title = IPA.messages.dialogs.add_title;
         title = title.replace('${entity}', label);
@@ -828,7 +828,7 @@ IPA.sudo.options_section = function(spec) {
 
     that.show_remove_dialog = function() {
 
-        var label = IPA.get_method_option('sudorule_add_option', 'ipasudoopt').label;
+        var label = IPA.get_command_option('sudorule_add_option', 'ipasudoopt').label;
         var values = that.table.get_selected_values();
 
         if (!values.length) {

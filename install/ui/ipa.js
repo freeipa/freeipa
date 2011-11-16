@@ -66,41 +66,14 @@ var IPA = function() {
 
         $.ajaxSetup(that.ajax_options);
 
-        var methods = IPA.command({
-            name: 'ipa_init_methods',
-            method: 'json_metadata',
-            options: {
-                methodname: 'all'
-            },
-            on_success: function(data, text_status, xhr) {
-                that.metadata.methods = data.result.methods;
-            }
-        });
-
-        var objects = IPA.command({
-            name: 'ipa_init_objects',
-            method: 'json_metadata',
-            options: {
-                objname: 'all'
-            },
-            on_success: function(data, text_status, xhr) {
-                that.metadata.objects = data.result.objects;
-            }
-        });
-
-        var metadata_command = IPA.concurrent_command({
-            commands: [
-                methods,
-                objects
-            ],
-            on_success: params.on_success
-        });
-
         var batch = IPA.batch_command({
             name: 'ipa_init',
             retry: false,
             on_success: function() {
-                metadata_command.execute();
+                that.init_metadata({
+                    on_success: params.on_success,
+                    on_error: params.on_error
+                });
             },
             on_error: function(xhr, text_status, error_thrown) {
 
@@ -166,6 +139,42 @@ var IPA = function() {
         }));
 
         batch.execute();
+    };
+
+    that.init_metadata = function(params) {
+
+        var objects = IPA.command({
+            name: 'ipa_init_objects',
+            method: 'json_metadata',
+            options: {
+                object: 'all'
+            },
+            on_success: function(data, text_status, xhr) {
+                that.metadata.objects = data.result.objects;
+            }
+        });
+
+        var commands = IPA.command({
+            name: 'ipa_init_commands',
+            method: 'json_metadata',
+            options: {
+                command: 'all'
+            },
+            on_success: function(data, text_status, xhr) {
+                that.metadata.commands = data.result.commands;
+            }
+        });
+
+        var metadata_command = IPA.concurrent_command({
+            commands: [
+                objects,
+                commands
+            ],
+            on_success: params.on_success,
+            on_error: params.on_error
+        });
+
+        metadata_command.execute();
     };
 
     that.register = function(name, factory) {
@@ -798,9 +807,9 @@ IPA.get_entity_param = function(entity_name, name) {
     return null;
 };
 
-IPA.get_method_arg = function(method_name, name) {
+IPA.get_command_arg = function(command_name, arg_name) {
 
-    var metadata = IPA.metadata.methods[method_name];
+    var metadata = IPA.metadata.commands[command_name];
     if (!metadata) {
         return null;
     }
@@ -811,7 +820,7 @@ IPA.get_method_arg = function(method_name, name) {
     }
 
     for (var i=0; i<args.length; i++) {
-        if (args[i].name === name) {
+        if (args[i].name === arg_name) {
             return args[i];
         }
     }
@@ -819,9 +828,9 @@ IPA.get_method_arg = function(method_name, name) {
     return null;
 };
 
-IPA.get_method_option = function(method_name, name) {
+IPA.get_command_option = function(command_name, option_name) {
 
-    var metadata = IPA.metadata.methods[method_name];
+    var metadata = IPA.metadata.commands[command_name];
     if (!metadata) {
         return null;
     }
@@ -832,7 +841,7 @@ IPA.get_method_option = function(method_name, name) {
     }
 
     for (var i=0; i<options.length; i++) {
-        if (options[i].name === name) {
+        if (options[i].name === option_name) {
             return options[i];
         }
     }
