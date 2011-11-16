@@ -28,8 +28,8 @@ Groups of users
 
 Manage groups of users. By default, new groups are POSIX groups. You
 can add the --nonposix option to the group-add command to mark a new group
-as non-POSIX, and you can use the same argument to the group-mod command
-to convert a non-POSIX group to a POSIX group. POSIX groups cannot be
+as non-POSIX. You can use the --posix argument with the group-mod command
+to convert a non-POSIX group into a POSIX group. POSIX groups cannot be
 converted to non-POSIX groups.
 
 Every group must have a description.
