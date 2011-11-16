@@ -941,6 +941,17 @@ class Command(HasParam):
 
         return rv
 
+    # list of attributes we want exported to JSON
+    json_friendly_attributes = (
+        'name', 'takes_args', 'takes_options',
+    )
+
+    def __json__(self):
+        json_dict = dict(
+            (a, getattr(self, a)) for a in self.json_friendly_attributes
+        )
+        return json_dict
+
 class LocalOrRemote(Command):
     """
     A command that is explicitly executed locally or remotely.

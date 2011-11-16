@@ -1684,11 +1684,15 @@ command: i18n_messages
 args: 0,0,1
 output: Output('messages', <type 'dict'>, None)
 command: json_metadata
-args: 2,0,2
+args: 2,3,3
 arg: Str('objname?')
 arg: Str('methodname?')
+option: Str('object?')
+option: Str('method?')
+option: Str('command?')
 output: Output('objects', <type 'dict'>, None)
 output: Output('methods', <type 'dict'>, None)
+output: Output('commands', <type 'dict'>, None)
 command: krbtpolicy_mod
 args: 1,9,3
 arg: Str('uid', attribute=True, cli_name='user', multivalue=False, primary_key=True, query=True, required=False)

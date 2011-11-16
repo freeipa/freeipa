@@ -132,12 +132,12 @@ IPA.automount.map_entity = function(spec) {
                     fields: [
                         {
                             name: 'key',
-                            label: IPA.get_method_option(
+                            label: IPA.get_command_option(
                                 'automountmap_add_indirect', 'key').label
                         },
                         {
                             name: 'parentmap',
-                            label: IPA.get_method_option(
+                            label: IPA.get_command_option(
                                 'automountmap_add_indirect', 'parentmap').label
                         }
                     ]

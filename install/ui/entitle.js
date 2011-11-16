@@ -51,7 +51,7 @@ IPA.entitle.entity = function(spec) {
                     fields: [
                         {
                             name: 'uuid',
-                            label: IPA.get_method_option('entitle_register', 'ipaentitlementid').label,
+                            label: IPA.get_command_option('entitle_register', 'ipaentitlementid').label,
                             read_only: true
                         },
                         {
@@ -72,7 +72,7 @@ IPA.entitle.entity = function(spec) {
                         },
                         {
                             name: 'quantity',
-                            label: IPA.get_method_arg('entitle_consume', 'quantity').label,
+                            label: IPA.get_command_arg('entitle_consume', 'quantity').label,
                             read_only: true
                         },
                         {
@@ -96,7 +96,7 @@ IPA.entitle.entity = function(spec) {
                 },
                 {
                     name: 'quantity',
-                    label: IPA.get_method_arg('entitle_consume', 'quantity').label
+                    label: IPA.get_command_arg('entitle_consume', 'quantity').label
                 },
                 {
                     name: 'start',
@@ -121,17 +121,17 @@ IPA.entitle.entity = function(spec) {
             fields: [
                 {
                     name: 'username',
-                    label: IPA.get_method_arg('entitle_register', 'username').label
+                    label: IPA.get_command_arg('entitle_register', 'username').label
                 },
                 {
                     name: 'password',
-                    label: IPA.get_method_option('entitle_register', 'password').label,
+                    label: IPA.get_command_option('entitle_register', 'password').label,
                     type: 'password'
                 }
 /* currently not supported
                 , {
                     name: 'ipaentitlementid',
-                    label: IPA.get_method_option('entitle_register', 'ipaentitlementid').label
+                    label: IPA.get_command_option('entitle_register', 'ipaentitlementid').label
                 }
 */
             ]
@@ -155,8 +155,8 @@ IPA.entitle.entity = function(spec) {
             fields: [
                 {
                     name: 'quantity',
-                    label: IPA.get_method_arg('entitle_consume', 'quantity').label,
-                    metadata: IPA.get_method_arg('entitle_consume', 'quantity')
+                    label: IPA.get_command_arg('entitle_consume', 'quantity').label,
+                    metadata: IPA.get_command_arg('entitle_consume', 'quantity')
                 }
             ]
         }).

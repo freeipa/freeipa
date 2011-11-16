@@ -119,7 +119,7 @@ IPA.service.entity = function(spec) {
                         {
                             type: 'checkbox',
                             name: 'force',
-                            metadata: IPA.get_method_option('service_add', 'force')
+                            metadata: IPA.get_command_option('service_add', 'force')
                         }
                     ]
                 }

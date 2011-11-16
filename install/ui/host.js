@@ -144,12 +144,12 @@ IPA.host.entity = function(spec) {
                     fields: [
                         {
                             name: 'ip_address',
-                            metadata: IPA.get_method_option('host_add', 'ip_address')
+                            metadata: IPA.get_command_option('host_add', 'ip_address')
                         },
                         {
                             type: 'force_host_add_checkbox',
                             name: 'force',
-                            metadata: IPA.get_method_option('host_add', 'force')
+                            metadata: IPA.get_command_option('host_add', 'force')
                         }
                     ]
                 }
@@ -392,7 +392,7 @@ IPA.host_deleter_dialog = function(spec) {
 
         that.deleter_dialog_create();
 
-        var metadata = IPA.get_method_option('host_del', 'updatedns');
+        var metadata = IPA.get_command_option('host_del', 'updatedns');
 
         that.updatedns = $('<input/>', {
             type: 'checkbox',
@@ -492,7 +492,7 @@ IPA.utc_date_column_format = function(value){
 
 
 IPA.force_host_add_checkbox_widget = function(spec) {
-    var metadata = IPA.get_method_option('host_add', spec.name);
+    var metadata = IPA.get_command_option('host_add', spec.name);
     spec.label = metadata.label;
     spec.tooltip = metadata.doc;
     return IPA.checkbox_widget(spec);
