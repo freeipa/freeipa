@@ -102,6 +102,7 @@ current block assignments:
 
 from inspect import isclass
 from text import _ as ugettext, ngettext as ungettext
+from text import Gettext, NGettext
 from constants import TYPE_ERROR
 
 
@@ -268,7 +269,9 @@ class PublicError(StandardError):
             else:
                 self.strerror = self.format % kw
         else:
-            if type(message) is not unicode:
+            if isinstance(message, (Gettext, NGettext)):
+                message = unicode(message)
+            elif type(message) is not unicode:
                 raise TypeError(
                     TYPE_ERROR % ('message', unicode, message, type(message))
                 )
