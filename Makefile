@@ -68,7 +68,7 @@ install: all server-install
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
-client-install: client
+client-install: client client-dirs
 	@for subdir in $(CLIENTDIRS); do \
 		(cd $$subdir && $(MAKE) install) || exit 1; \
 	done
@@ -77,6 +77,15 @@ client-install: client
 		python setup-client.py install; \
 	else \
 		python setup-client.py install --root $(DESTDIR); \
+	fi
+
+client-dirs:
+	@if [ "$(DESTDIR)" != "" ] ; then \
+		mkdir -p $(DESTDIR)/etc/ipa ; \
+		mkdir -p $(DESTDIR)/var/lib/ipa-client/sysrestore ; \
+	else \
+		echo "DESTDIR was not set, please create /etc/ipa and /var/lib/ipa-client/sysrestore" ; \
+		echo "Without those directories ipa-client-install will fail" ; \
 	fi
 
 lint:
