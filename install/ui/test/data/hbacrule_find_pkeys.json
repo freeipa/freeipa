@@ -2,16 +2,28 @@
     "error": null,
     "id": null,
     "result": {
-        "count": 1,
+        "count": 3,
         "result": [
             {
                 "cn": [
                     "allow_all"
                 ],
                 "dn": "ipauniqueid=ca842a42-a445-11e0-87ff-525400b55a47,cn=hbac,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "rule1"
+                ],
+                "dn": "ipauniqueid=4ed8b682-edf511df-b3f78f4b-11cc007b,cn=hbac,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "rule2"
+                ],
+                "dn": "ipauniqueid=12e2e4ba-120d-11e1-bbf7-525400e135d8,cn=hbac,dc=dev,dc=example,dc=com"
             }
         ],
-        "summary": "1 HBAC rule matched",
+        "summary": "3 HBAC rules matched",
         "truncated": false
     }
 }

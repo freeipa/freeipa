@@ -1,0 +1,16 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "error": null,
+        "matched": [
+            "allow_all",
+            "rule1"
+        ],
+        "notmatched": [
+            "rule2"
+        ],
+        "summary": "Access granted: True",
+        "value": true
+    }
+}

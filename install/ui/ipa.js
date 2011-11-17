@@ -341,6 +341,10 @@ IPA.command = function(spec) {
         that.options[name] = value;
     };
 
+    that.set_options = function(options) {
+        $.extend(that.options, options);
+    };
+
     that.add_option = function(name, value) {
         var values = that.options[name];
         if (!values) {
@@ -878,9 +882,13 @@ IPA.get_member_attribute = function(obj_name, member) {
 };
 
 IPA.create_network_spinner = function(){
-    return $('<span />',{
-        'class':'network-activity-indicator',
-        html: '<img src="images/spinner-small.gif" />'});
+    var span = $('<span/>', {
+        'class': 'network-activity-indicator'
+    });
+    $('<img/>', {
+        src: 'images/spinner-small.gif'
+    }).appendTo(span);
+    return span;
 };
 
 IPA.dirty_dialog = function(spec) {

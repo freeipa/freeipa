@@ -25,6 +25,7 @@ app_DATA =				\
 	field.js			\
 	group.js 			\
 	hbac.js 			\
+	hbactest.js 			\
 	host.js 			\
 	hostgroup.js 			\
 	index.html 			\

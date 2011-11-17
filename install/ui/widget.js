@@ -1257,7 +1257,15 @@ IPA.table_widget = function (spec) {
         $('input[name="'+that.name+'"]', that.thead).attr('checked', false).
             attr('title', IPA.messages.search.select_all);
         $('input[name="'+that.name+'"]', that.tbody).attr('checked', false);
+        that.select_changed();
+    };
 
+    that.set_values = function(values) {
+        $('input[name="'+that.name+'"]', that.tbody).attr('checked', false);
+        for (var i=0; values && i<values.length; i++) {
+            var value = values[i];
+            $('input[name="'+that.name+'"][value="'+value+'"]', that.tbody).attr('checked', true);
+        }
         that.select_changed();
     };
 
@@ -1274,8 +1282,6 @@ IPA.table_widget = function (spec) {
             var record = that.get_record(result, i);
             that.add_record(record);
         }
-
-        that.unselect_all();
     };
 
     that.save = function() {
