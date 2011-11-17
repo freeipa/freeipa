@@ -979,9 +979,12 @@ IPA.table_widget = function (spec) {
     that.save_values = spec.save_values === undefined ? true : spec.save_values;
     that['class'] = spec['class'];
 
+    that.pagination = spec.pagination;
     that.current_page = 1;
     that.total_pages = 1;
-    that.page_length = spec.page_length;
+    that.page_length = spec.page_length || 20;
+
+    that.multivalued = spec.multivalued === undefined ? true : spec.multivalued;
 
     that.columns = $.ordered_map();
 
@@ -1043,20 +1046,22 @@ IPA.table_widget = function (spec) {
                 'style': 'width: 22px;'
             }).appendTo(tr);
 
-            var select_all_checkbox = $('<input/>', {
-                type: 'checkbox',
-                name: 'select',
-                title: IPA.messages.search.select_all
-            }).appendTo(th);
+            if (that.multivalued) {
+                var select_all_checkbox = $('<input/>', {
+                    type: 'checkbox',
+                    name: that.name,
+                    title: IPA.messages.search.select_all
+                }).appendTo(th);
 
-            select_all_checkbox.change(function() {
-                if(select_all_checkbox.is(':checked')) {
-                    that.select_all();
-                } else {
-                    that.unselect_all();
-                }
-                return false;
-            });
+                select_all_checkbox.change(function() {
+                    if(select_all_checkbox.is(':checked')) {
+                        that.select_all();
+                    } else {
+                        that.unselect_all();
+                    }
+                    return false;
+                });
+            }
         }
 
         var columns = that.columns.values;
@@ -1122,11 +1127,19 @@ IPA.table_widget = function (spec) {
                 'style': 'width: '+ IPA.checkbox_column_width +'px;'
             }).appendTo(that.row);
 
-            $('<input/>', {
-                'type': 'checkbox',
-                'name': 'select',
-                'value': 'user'
-            }).appendTo(td);
+            if (that.multivalued) {
+                $('<input/>', {
+                    type: 'checkbox',
+                    name: that.name,
+                    value: ''
+                }).appendTo(td);
+            } else {
+                $('<input/>', {
+                    type: 'radio',
+                    name: that.name,
+                    value: ''
+                }).appendTo(td);
+            }
         }
 
         for (/* var */ i=0; i<columns.length; i++) {
@@ -1156,11 +1169,11 @@ IPA.table_widget = function (spec) {
             'name': 'summary'
         }).appendTo(td);
 
-        that.pagination = $('<span/>', {
-            'name': 'pagination'
+        that.pagination_control = $('<span/>', {
+            'class': 'pagination-control'
         }).appendTo(td);
 
-        if (that.page_length) {
+        if (that.pagination) {
 
             $('<a/>', {
                 text: IPA.messages.widget.prev,
@@ -1169,9 +1182,9 @@ IPA.table_widget = function (spec) {
                     that.prev_page();
                     return false;
                 }
-            }).appendTo(that.pagination);
+            }).appendTo(that.pagination_control);
 
-            that.pagination.append(' ');
+            that.pagination_control.append(' ');
 
             $('<a/>', {
                 text: IPA.messages.widget.next,
@@ -1180,11 +1193,11 @@ IPA.table_widget = function (spec) {
                     that.next_page();
                     return false;
                 }
-            }).appendTo(that.pagination);
+            }).appendTo(that.pagination_control);
 
-            that.pagination.append(' ');
-            that.pagination.append(IPA.messages.widget.page);
-            that.pagination.append(': ');
+            that.pagination_control.append(' ');
+            that.pagination_control.append(IPA.messages.widget.page);
+            that.pagination_control.append(': ');
 
             that.current_page_input = $('<input/>', {
                 type: 'text',
@@ -1195,13 +1208,13 @@ IPA.table_widget = function (spec) {
                         that.set_page(page);
                     }
                 }
-            }).appendTo(that.pagination);
+            }).appendTo(that.pagination_control);
 
-            that.pagination.append(' / ');
+            that.pagination_control.append(' / ');
 
             that.total_pages_span = $('<span/>', {
                 name: 'total_pages'
-            }).appendTo(that.pagination);
+            }).appendTo(that.pagination_control);
         }
     };
 
@@ -1234,16 +1247,16 @@ IPA.table_widget = function (spec) {
     };
 
     that.select_all = function() {
-        $('input[name=select]', that.thead).attr('checked', true).
+        $('input[name="'+that.name+'"]', that.thead).attr('checked', true).
             attr('title', IPA.messages.search.unselect_all);
-        $('input[name=select]', that.tbody).attr('checked', true);
+        $('input[name="'+that.name+'"]', that.tbody).attr('checked', true);
         that.select_changed();
     };
 
     that.unselect_all = function() {
-        $('input[name=select]', that.thead).attr('checked', false).
+        $('input[name="'+that.name+'"]', that.thead).attr('checked', false).
             attr('title', IPA.messages.search.select_all);
-        $('input[name=select]', that.tbody).attr('checked', false);
+        $('input[name="'+that.name+'"]', that.tbody).attr('checked', false);
 
         that.select_changed();
     };
@@ -1269,7 +1282,7 @@ IPA.table_widget = function (spec) {
         if (that.save_values) {
             var values = [];
 
-            $('input[name="select"]', that.tbody).each(function() {
+            $('input[name="'+that.name+'"]', that.tbody).each(function() {
                 values.push($(this).val());
             });
 
@@ -1283,7 +1296,7 @@ IPA.table_widget = function (spec) {
     that.get_selected_values = function() {
         var values = [];
 
-        $('input[name="select"]:checked', that.tbody).each(function() {
+        $('input[name="'+that.name+'"]:checked', that.tbody).each(function() {
             values.push($(this).val());
         });
 
@@ -1291,7 +1304,7 @@ IPA.table_widget = function (spec) {
     };
 
     that.get_selected_rows = function() {
-        return $('input[name="select"]:checked', that.tbody).closest('tr');
+        return $('input[name="'+that.name+'"]:checked', that.tbody).closest('tr');
     };
 
     that.get_record = function(result, index) {
@@ -1319,7 +1332,7 @@ IPA.table_widget = function (spec) {
         var tr = that.row.clone();
         tr.appendTo(that.tbody);
 
-        $('input[name="select"]', tr).click(function(){
+        $('input[name="'+that.name+'"]', tr).click(function(){
             that.select_changed();
         });
 
@@ -1332,7 +1345,7 @@ IPA.table_widget = function (spec) {
             value = value ? value.toString() : '';
 
             if (column.primary_key) {
-                $('input[name="select"]', tr).val(value);
+                $('input[name="'+that.name+'"]', tr).val(value);
             }
 
             var span = $('span[name="'+column.name+'"]', tr);
@@ -1343,7 +1356,9 @@ IPA.table_widget = function (spec) {
 
     that.add_rows = function(rows) {
         for (var i=0; i<rows.length; i++) {
-            that.tbody.append(rows[i]);
+            var tr = rows[i];
+            $('input', tr).attr('name', that.name);
+            that.tbody.append(tr);
         }
     };
 
@@ -1351,7 +1366,7 @@ IPA.table_widget = function (spec) {
         var rows = [];
         that.tbody.children().each(function() {
             var tr = $(this);
-            if (!$('input[name="select"]', tr).get(0).checked) return;
+            if (!$('input[name="'+that.name+'"]', tr).get(0).checked) return;
             tr.detach();
             rows.push(tr);
         });
@@ -1366,9 +1381,9 @@ IPA.table_widget = function (spec) {
 
     that.set_enabled = function(enabled) {
         if (enabled) {
-            $('input[name="select"]', that.table).attr('disabled', false);
+            $('input[name="'+that.name+'"]', that.table).attr('disabled', false);
         } else {
-            $('input[name="select"]', that.table).attr('disabled', true);
+            $('input[name="'+that.name+'"]', that.table).attr('disabled', true);
         }
     };
 

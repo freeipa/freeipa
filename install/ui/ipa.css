@@ -714,15 +714,15 @@ span.main-nav-off > a:visited {
     margin-right: 4em;
 }
 
-.search-table span[name=pagination] {
+.search-table .pagination-control {
     float: right;
 }
 
-.search-table span[name=pagination] a {
+.search-table .pagination-control a {
     cursor:pointer;
 }
 
-.search-table span[name=pagination] input[name=current_page] {
+.search-table .pagination-control input[name=current_page] {
     width: 22px;
 }
 

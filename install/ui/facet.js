@@ -391,7 +391,6 @@ IPA.table_facet = function(spec) {
     var that = IPA.facet(spec);
 
     that.managed_entity_name = spec.managed_entity_name || that.entity.name;
-    that.page_length = spec.page_length === undefined ? 20 : spec.page_length;
 
     that.pagination = spec.pagination === undefined ? true : spec.pagination;
     that.search_all = spec.search_all;
@@ -509,7 +508,7 @@ IPA.table_facet = function(spec) {
             name: entity.metadata.primary_key,
             label: entity.metadata.label,
             entity: entity,
-            page_length: that.page_length,
+            pagination: true,
             search_all: that.search_all,
             scrollable: true,
             selectable: that.selectable && !that.read_only
