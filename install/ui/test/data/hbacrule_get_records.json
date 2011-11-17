@@ -2,7 +2,7 @@
     "error": null,
     "id": null,
     "result": {
-        "count": 1,
+        "count": 3,
         "results": [
             {
                 "error": null,
@@ -35,6 +35,87 @@
                 },
                 "summary": null,
                 "value": "allow_all"
+            },
+            {
+                "error": null,
+                "result": {
+                    "accessruletype": [
+                        "allow"
+                    ],
+                    "cn": [
+                        "rule1"
+                    ],
+                    "description": [
+                        "Test Rule"
+                    ],
+                    "dn": "ipauniqueid=4ed8b682-edf511df-b3f78f4b-11cc007b,cn=hbac,dc=dev,dc=example,dc=com",
+                    "ipaenabledflag": [
+                        "TRUE"
+                    ],
+                    "memberhost_host": [
+                        "dev.example.com"
+                    ],
+                    "memberhost_hostgroup": [
+                        "production"
+                    ],
+                    "memberservice_hbacsvc": [
+                        "ftp",
+                        "sshd"
+                    ],
+                    "memberservice_hbacsvcgroup": [
+                        "sudo"
+                    ],
+                    "memberuser_group": [
+                        "editors"
+                    ],
+                    "memberuser_user": [
+                        "admin",
+                        "test"
+                    ],
+                    "sourcehost_host": [
+                        "dev.example.com"
+                    ],
+                    "sourcehost_hostgroup": [
+                        "staging"
+                    ]
+                },
+                "summary": null,
+                "value": "rule1"
+            },
+            {
+                "error": null,
+                "result": {
+                    "accessruletype": [
+                        "allow"
+                    ],
+                    "cn": [
+                        "rule2"
+                    ],
+                    "description": [
+                        "Test Rule"
+                    ],
+                    "dn": "ipauniqueid=12e2e4ba-120d-11e1-bbf7-525400e135d8,cn=hbac,dc=dev,dc=example,dc=com",
+                    "ipaenabledflag": [
+                        "FALSE"
+                    ],
+                    "memberhost_host": [
+                        "test.example.com"
+                    ],
+                    "memberhost_hostgroup": [
+                        "staging"
+                    ],
+                    "memberuser_group": [
+                        "ipausers"
+                    ],
+                    "servicecategory": [
+                        "all"
+                    ],
+                    "sourcehost_host": [
+                        "test.example.com"
+                    ]
+                },
+                "summary": null,
+                "value": "rule2"
             }
         ]
     }

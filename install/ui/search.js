@@ -59,6 +59,8 @@ IPA.search_facet = function(spec) {
             'class': 'right-aligned-facet-controls'
         }).appendTo(that.controls);
 
+        span.append(IPA.create_network_spinner());
+
         var filter_container = $('<div/>', {
             'class': 'search-filter'
         }).appendTo(span);
@@ -83,8 +85,6 @@ IPA.search_facet = function(spec) {
                 return false;
             }
         }).appendTo(filter_container);
-
-        span.append(IPA.create_network_spinner());
 
         that.remove_button = IPA.action_button({
             name: 'remove',
@@ -183,12 +183,14 @@ IPA.search_facet = function(spec) {
     that.refresh = function() {
 
         var filter = [];
-        var current_entity = that.managed_entity;
-        filter.unshift(IPA.nav.get_state(current_entity.name+'-filter'));
-        current_entity = current_entity.get_containing_entity();
-        while (current_entity !== null) {
-            filter.unshift(IPA.nav.get_state(current_entity.name+'-pkey'));
-            current_entity = current_entity.get_containing_entity();
+        var entity = that.managed_entity;
+
+        filter.unshift(IPA.nav.get_state(entity.name+'-filter'));
+        entity = entity.get_containing_entity();
+
+        while (entity !== null) {
+            filter.unshift(IPA.nav.get_state(entity.name+'-pkey'));
+            entity = entity.get_containing_entity();
         }
 
         var command = IPA.command({

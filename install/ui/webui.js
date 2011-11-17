@@ -52,7 +52,8 @@ IPA.admin_navigation = function(spec) {
             {name: 'hbac', label: IPA.messages.tabs.hbac, children: [
                  {entity: 'hbacrule'},
                  {entity: 'hbacsvc'},
-                 {entity: 'hbacsvcgroup'}
+                 {entity: 'hbacsvcgroup'},
+                 {entity: 'hbactest'}
             ]},
             {name: 'sudo', label: IPA.messages.tabs.sudo, children: [
                  {entity: 'sudorule'},

@@ -53,9 +53,11 @@ body {
 
 .network-activity-indicator {
     visibility: hidden;
-    padding-right: 11px;
-    float: right;
-    padding-top: 3px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    margin: 5px 3px;
+    display: inline-block;
 }
 
 /* ---- Container ---- */
@@ -233,10 +235,12 @@ body {
 }
 
 /* ---- Logged-in As ---- */
-#loggedinas {
+.header-right {
     float: right;
+}
+
+.header-loggedinas {
     line-height: 34px;
-    margin-right: 10px;
     color: #fff;
 }
 
@@ -581,6 +585,7 @@ span.main-nav-off > a:visited {
     bottom: 0;
     height: 30px;
     line-height: 30px;
+    padding: 0 6px 0 6px;
 }
 
 .right-aligned-facet-controls {
@@ -603,6 +608,7 @@ span.main-nav-off > a:visited {
     left: 0;
     right: 0;
     bottom: 0;
+    margin: 0 12px;
     padding: 0;
 }
 
@@ -633,7 +639,6 @@ span.main-nav-off > a:visited {
 }
 
 .search-filter {
-    float: right;
     width: 215px;
     -moz-border-radius: 15px !important;
     -webkit-border-radius: 15px !important;
@@ -643,7 +648,8 @@ span.main-nav-off > a:visited {
     height: 20px;
     line-height: 20px;
     padding: 0 8px 0;
-    margin: 5px 0 5px;
+    margin: 5px;
+    display: inline-block;
 }
 
 .search-filter input {

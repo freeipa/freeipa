@@ -30,6 +30,7 @@
     <script type="text/javascript" src="user.js"></script>
     <script type="text/javascript" src="group.js"></script>
     <script type="text/javascript" src="hbac.js"></script>
+    <script type="text/javascript" src="hbactest.js"></script>
     <script type="text/javascript" src="host.js"></script>
     <script type="text/javascript" src="hostgroup.js"></script>
     <script type="text/javascript" src="netgroup.js"></script>
@@ -64,11 +65,13 @@
             <span class="header-logo">
                  <a href="#"><img src="images/ipa-logo.png" /><img src="images/ipa-banner.png" /></a>
             </span>
-            <span id="header-network-activity-indicator" class="network-activity-indicator">
-                 <img src="images/spinner-header.gif" />
-            </span>
-            <span id="loggedinas" class="header-loggedinas">
-                 <a href="#"><span id="login_header">Logged in as</span>: <strong>user@FREEIPA.ORG</strong></a>
+            <span class="header-right">
+                <span id="loggedinas" class="header-loggedinas">
+                     <a href="#"><span id="login_header">Logged in as</span>: <strong>user@FREEIPA.ORG</strong></a>
+                </span>
+                <span id="header-network-activity-indicator" class="network-activity-indicator">
+                     <img src="images/spinner-header.gif" />
+                </span>
             </span>
         </div>
 

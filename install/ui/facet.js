@@ -110,6 +110,9 @@ IPA.facet = function(spec) {
         that.header.load(data.result.result);
     };
 
+    that.refresh = function() {
+    };
+
     that.clear = function() {
     };
 
@@ -320,7 +323,7 @@ IPA.facet_header = function(spec) {
         }).appendTo(container);
 
         var span = $('<h3/>', {
-            text: that.facet.entity.metadata.label
+            text: that.facet.entity.label
         }).appendTo(that.title_container);
 
         if (!that.facet.disable_facet_tabs) {
@@ -341,9 +344,6 @@ IPA.facet_header = function(spec) {
     that.load = function(data) {
         if (!that.facet.disable_facet_tabs) {
             var pkey = that.facet.pkey;
-            if(!pkey || !data) {
-                pkey = '';
-            }
 
             var facet_groups = that.facet.entity.facet_groups.values;
             for (var i=0; i<facet_groups.length; i++) {
@@ -353,12 +353,14 @@ IPA.facet_header = function(spec) {
                 if (!span.length) continue;
 
                 var label = facet_group.label;
-                if (label) {
+                if (pkey && label) {
                     label = label.replace('${primary_key}', pkey);
-
-                    var label_container = $('.facet-group-label', span);
-                    label_container.text(label);
+                } else {
+                    label = '';
                 }
+
+                var label_container = $('.facet-group-label', span);
+                label_container.text(label);
 
                 var facets = facet_group.facets.values;
                 for (var j=0; j<facets.length; j++) {
@@ -461,15 +463,13 @@ IPA.table_facet = function(spec) {
 
     that.load_all = function(data) {
 
-        that.table.empty();
-
         var result = data.result.result;
+        var records = [];
         for (var i=0; i<result.length; i++) {
             var record = that.table.get_record(result[i], 0);
-            that.table.add_record(record);
+            records.push(record);
         }
-
-        that.table.unselect_all();
+        that.load_records(records);
 
         if (data.result.truncated) {
             var message = IPA.messages.search.truncated;
@@ -480,7 +480,7 @@ IPA.table_facet = function(spec) {
         }
     };
 
-    that.get_pkeys = function(data){
+    that.get_pkeys = function(data) {
         return [];
     };
 
@@ -511,9 +511,8 @@ IPA.table_facet = function(spec) {
         that.table.current_page = page;
 
         if (!that.pkeys || !that.pkeys.length) {
-            that.table.empty();
+            that.load_records([]);
             that.table.summary.text(IPA.messages.association.no_entries);
-            that.table.unselect_all();
             return;
         }
 
@@ -535,13 +534,13 @@ IPA.table_facet = function(spec) {
         var columns = that.table.columns.values;
         if (columns.length == 1) { // show pkey only
             var name = columns[0].name;
-            that.table.empty();
+            var records = [];
             for (var i=0; i<that.values.length; i++) {
                 var record = {};
                 record[name] = that.values[i];
-                that.table.add_record(record);
+                records.push(record);
             }
-            that.table.unselect_all();
+            that.load_records(records);
             return;
         }
 
@@ -549,23 +548,31 @@ IPA.table_facet = function(spec) {
         that.get_records(
             function(data, text_status, xhr) {
                 var results = data.result.results;
-                that.table.empty();
+                var records = [];
                 for (var i=0; i<results.length; i++) {
                     var record = results[i].result;
-                    that.table.add_record(record);
+                    records.push(record);
                 }
-                that.table.unselect_all();
+                that.load_records(records);
             },
             function(xhr, text_status, error_thrown) {
-                that.table.empty();
+                that.load_records([]);
                 var summary = that.table.summary.empty();
                 summary.append(error_thrown.name+': '+error_thrown.message);
             }
         );
     };
 
+    that.load_records = function(records) {
+        that.table.empty();
+        for (var i=0; i<records.length; i++) {
+            that.table.add_record(records[i]);
+        }
+        that.table.set_values(that.selected_values);
+    };
+
     that.get_records_command_name = function() {
-        return that.entity.name+'_get_records';
+        return that.managed_entity_name+'_get_records';
     };
 
     that.get_records = function(on_success, on_error) {
@@ -597,10 +604,10 @@ IPA.table_facet = function(spec) {
 
     that.select_changed = function() {
 
-        var values = that.table.get_selected_values();
+        that.selected_values = that.table.get_selected_values();
 
         if (that.remove_button) {
-            if (values.length === 0) {
+            if (that.selected_values.length === 0) {
                 that.remove_button.addClass('action-button-disabled');
             } else {
                 that.remove_button.removeClass('action-button-disabled');
