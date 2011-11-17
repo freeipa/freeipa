@@ -33,9 +33,10 @@ IPA.hbac.rule_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.search_facet({
+        that.builder.search_facet({
             search_all: true,
             columns: [
                 'cn',
@@ -60,9 +61,10 @@ IPA.hbac.service_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.search_facet({
+        that.builder.search_facet({
             columns: [
                 'cn',
                 'description'
@@ -125,9 +127,10 @@ IPA.hbac.service_group_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.search_facet({
+        that.builder.search_facet({
             columns: [
                 'cn',
                 'description'

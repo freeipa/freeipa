@@ -29,9 +29,10 @@ IPA.config.entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.details_facet({
+        that.builder.details_facet({
             title: IPA.metadata.objects.config.label,
             sections: [
                 {

@@ -37,9 +37,10 @@ IPA.entitle.entity = function(spec) {
 
     that.status = IPA.entitle.unregistered;
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.facet_groups([ 'account', 'certificates' ]).
+        that.builder.facet_groups([ 'account', 'certificates' ]).
         details_facet({
             factory: IPA.entitle.details_facet,
             label: IPA.messages.objects.entitle.account,

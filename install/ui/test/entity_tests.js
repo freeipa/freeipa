@@ -35,12 +35,12 @@ module('entity',{
 
                     var that = IPA.entity(spec);
 
-                    that.init = function(params) {
-                        that.entity_init(params);
+                    that.init = function() {
+                        that.entity_init();
 
-                            params.builder.search_facet({
-                                columns: [ 'uid' ]
-                            });
+                        that.builder.search_facet({
+                            columns: [ 'uid' ]
+                        });
                     };
 
                     return that;

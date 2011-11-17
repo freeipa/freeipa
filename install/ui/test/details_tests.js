@@ -40,12 +40,13 @@ module('details', {
 
         details_container = $('<div id="details"/>').appendTo(document.body);
 
-        var obj_name = 'user';
-        IPA.entity_factories.user=
-            function(){
-                return IPA.entity({name:obj_name,
-                                   metadata:IPA.metadata.objects.user});
-            };
+        IPA.register('user', function(spec) {
+
+            return IPA.entity({
+                name: 'user',
+                metadata: IPA.metadata.objects.user
+            });
+        });
     },
     teardown: function() {
         details_container.remove();
@@ -175,10 +176,10 @@ test("Testing details lifecycle: create, load.", function(){
 
         var that = IPA.entity(spec);
 
-        that.init = function(params) {
-            that.entity_init(params);
+        that.init = function() {
+            that.entity_init();
 
-            params.builder.details_facet({
+            that.builder.details_facet({
                 sections: [
                     {
                         name: 'identity',

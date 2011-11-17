@@ -41,10 +41,11 @@ test("Testing IPA.navigation.create().", function() {
     //Force reset of entities
     IPA.entities = $.ordered_map();
 
-    IPA.entity_factories.user =  function() {
+    IPA.register('user', function(spec) {
+
         var that = IPA.entity({
             name: 'user',
-            metadata:IPA.metadata.objects.user,
+            metadata: IPA.metadata.objects.user,
             facets: [
                 {
                     type: 'search'
@@ -57,18 +58,25 @@ test("Testing IPA.navigation.create().", function() {
             same(container.attr('name'), 'user', 'user container name');
             same(container[0].nodeName, 'DIV', 'user container element');
         };
+
         return that;
-    };
-    IPA.entity_factories.group = function(){
-        var that  = IPA.entity({name: 'group',
-                               metadata:IPA.metadata.objects.group});
+    });
+
+    IPA.register('group', function(spec) {
+
+        var that = IPA.entity({
+            name: 'group',
+            metadata: IPA.metadata.objects.group
+        });
+
         that.display = function(container){
             group_mock_called = true;
             same(container.attr('name'), 'group','user container name');
             same(container[0].nodeName, 'DIV', 'user container element');
         };
+
         return that;
-    };
+    });
 
     var navigation_container = $('<div id="navigation"/>').appendTo(document.body);
     var entity_container = $('<div id="content"/>').appendTo(document.body);

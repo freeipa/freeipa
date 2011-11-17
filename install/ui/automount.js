@@ -29,9 +29,10 @@ IPA.automount.location_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.facet_groups([ 'automountmap', 'settings' ]).
+        that.builder.facet_groups([ 'automountmap', 'settings' ]).
         search_facet({
             title: IPA.metadata.objects.automountlocation.label,
             columns:['cn']
@@ -64,9 +65,10 @@ IPA.automount.map_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.containing_entity('automountlocation').
+        that.builder.containing_entity('automountlocation').
         facet_groups([ 'automountkey', 'settings' ]).
         nested_search_facet({
             facet_group: 'automountkey',
@@ -153,9 +155,10 @@ IPA.automount.key_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.containing_entity('automountmap').
+        that.builder.containing_entity('automountmap').
         details_facet({
             sections: [
                 {
