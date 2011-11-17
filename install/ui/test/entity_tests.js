@@ -31,14 +31,20 @@ module('entity',{
             url: 'data',
             on_success: function(data, text_status, xhr) {
 
-                IPA.entity_factories.user = function(){
-                    return IPA.
-                        entity_builder().
-                        entity('user').
-                        search_facet({
-                            columns:['uid']}).
-                        build();
-                };
+                IPA.register('user', function(spec) {
+
+                    var that = IPA.entity(spec);
+
+                    that.init = function(params) {
+                        that.entity_init(params);
+
+                            params.builder.search_facet({
+                                columns: [ 'uid' ]
+                            });
+                    };
+
+                    return that;
+                });
             },
             on_error: function(xhr, text_status, error_thrown) {
                 ok(false, "ipa_init() failed: "+error_thrown);
@@ -60,12 +66,7 @@ test('Testing IPA.entity_set_search_definition().', function() {
         return true;
     };
 
-    var entity =   IPA.
-        entity_builder().
-        entity('user').
-        search_facet({
-            columns:['uid']}).
-        build();
+    var entity = IPA.get_entity('user');
 
     var entity_container = $('<div/>', {
         name: 'user',

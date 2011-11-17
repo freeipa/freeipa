@@ -176,7 +176,45 @@ var IPA = function() {
     };
 
     that.register = function(name, factory) {
+        that.remove_entity(name);
         that.entity_factories[name] = factory;
+    };
+
+    that.create_entity = function(name) {
+        var factory = that.entity_factories[name];
+        if (!factory) return null;
+
+        try {
+            var builder = that.entity_builder();
+
+            builder.entity({
+                factory: factory,
+                name: name
+            });
+
+            var entity = builder.build();
+
+            entity.init({
+                builder: builder
+            });
+
+            return entity;
+
+        } catch (e) {
+            if (e.expected) {
+                /*expected exceptions thrown by builder just mean that
+                  entities are not to be registered. */
+                return null;
+            }
+
+            if (e.message) {
+                alert(e.message);
+            } else {
+                alert(e);
+            }
+
+            return null;
+        }
     };
 
     that.get_entities = function() {
@@ -186,39 +224,8 @@ var IPA = function() {
     that.get_entity = function(name) {
         var entity = that.entities.get(name);
         if (!entity) {
-            var factory = that.entity_factories[name];
-            if (!factory) {
-                return null;
-            }
-
-            try {
-                var builder = that.entity_builder();
-
-                builder.entity({
-                    factory: factory,
-                    name: name
-                });
-
-                entity = builder.build();
-                entity.init({
-                    builder: builder
-                });
-
-                that.add_entity(entity);
-
-            } catch (e) {
-                if (e.expected) {
-                    /*expected exceptions thrown by builder just mean that
-                      entities are not to be registered. */
-                    return null;
-                }
-                if (e.message) {
-                    alert(e.message);
-                } else {
-                    alert(e);
-                }
-                return null;
-            }
+            entity = that.create_entity(name);
+            if (entity) that.add_entity(entity);
         }
         return entity;
     };

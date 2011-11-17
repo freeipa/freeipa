@@ -156,30 +156,58 @@ test("Testing details lifecycle: create, load.", function(){
         return widget;
     }
 
-    var entity =   IPA.
-        entity_builder().
-        entity('user').
-        details_facet({sections:[
-            {
-                name: 'identity',
-                label: IPA.messages.details.identity,
-                fields:['title','givenname','sn','cn','displayname', 'initials']
-            },
-            {
-                name: 'contact',
-                label:'contact',
-                fields:
-                [  {factory: test_widget,name:'test'},
-                   {factory: IPA.multivalued_text_widget, name:'mail'},
-                   {factory: IPA.multivalued_text_widget,
-                    name:'telephonenumber'},
-                   {factory: IPA.multivalued_text_widget, name:'pager'},
-                   {factory: IPA.multivalued_text_widget, name:'mobile'},
-                   {factory: IPA.multivalued_text_widget,
-                    name:'facsimiletelephonenumber'}]
-            }
-        ]}).build();
+    IPA.register('user', function(spec) {
 
+        var that = IPA.entity(spec);
+
+        that.init = function(params) {
+            that.entity_init(params);
+
+            params.builder.details_facet({
+                sections: [
+                    {
+                        name: 'identity',
+                        label: IPA.messages.details.identity,
+                        fields: [ 'title', 'givenname', 'sn', 'cn', 'displayname', 'initials' ]
+                    },
+                    {
+                        name: 'contact',
+                        label: 'contact',
+                        fields: [
+                            {
+                                factory: test_widget,
+                                name:'test'
+                            },
+                            {
+                                factory: IPA.multivalued_text_widget,
+                                name:'mail'
+                            },
+                            {
+                                factory: IPA.multivalued_text_widget,
+                                name:'telephonenumber'
+                            },
+                            {
+                                factory: IPA.multivalued_text_widget,
+                                name:'pager'
+                            },
+                            {
+                                factory: IPA.multivalued_text_widget,
+                                name:'mobile'
+                            },
+                            {
+                                factory: IPA.multivalued_text_widget,
+                                name:'facsimiletelephonenumber'
+                            }
+                        ]
+                    }
+                ]
+            });
+        };
+
+        return that;
+    });
+
+    var entity = IPA.get_entity('user');
 
     var entity_container = $('<div/>', {
         name: 'user',
