@@ -217,6 +217,7 @@ IPA.entity = function(spec) {
         return [that.name + '-pkey'];
     };
 
+    that.entity_init = that.init;
 
     return that;
 };
