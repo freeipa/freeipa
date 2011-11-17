@@ -204,6 +204,52 @@ done:
     return ret;
 }
 
+static void ipa_cldap_respond(struct ipa_cldap_ctx *ctx,
+                              struct ipa_cldap_req *req,
+                              struct berval *nbtblob)
+{
+    struct berval *bv = NULL;
+    BerElement *be;
+    int ret;
+
+    be = ber_alloc_t(0);
+    if (!be) {
+        LOG_OOM();
+        return;
+    }
+
+    /* result */
+    ret = ber_printf(be, "{it{s{{s[O]}}}}", req->id,
+                         LDAP_RES_SEARCH_ENTRY, "", "netlogon", nbtblob);
+    if (ret == LBER_ERROR) {
+        LOG("Failed to encode CLDAP reply\n");
+        goto done;
+    }
+    /* done */
+    ret = ber_printf(be, "{it{ess}}", req->id,
+                         LDAP_RES_SEARCH_RESULT, 0, "", "");
+    if (ret == LBER_ERROR) {
+        LOG("Failed to encode CLDAP reply\n");
+        goto done;
+    }
+    /* get data blob */
+    ret = ber_flatten(be, &bv);
+    if (ret == LBER_ERROR) {
+        LOG("Failed to encode CLDAP reply\n");
+        goto done;
+    }
+
+    ret = sendto(ctx->sd, bv->bv_val, bv->bv_len, 0,
+                 (struct sockaddr *)&req->ss, req->ss_len);
+    if (ret == -1) {
+        LOG("Failed to send CLDAP reply (%d, %s)\n", errno, strerror(errno));
+    }
+
+done:
+    ber_bvfree(bv);
+    ber_free(be, 1);
+}
+
 static void ipa_cldap_process(struct ipa_cldap_ctx *ctx,
                               struct ipa_cldap_req *req)
 {
@@ -221,6 +267,8 @@ static void ipa_cldap_process(struct ipa_cldap_ctx *ctx,
     if (ret) {
         goto done;
     }
+
+    ipa_cldap_respond(ctx, req, &reply);
 
 done:
     ipa_cldap_free_kvps(&req->kvps);
