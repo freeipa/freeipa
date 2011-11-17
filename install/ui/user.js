@@ -29,14 +29,15 @@ IPA.user.entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    var link = true;
-    if (IPA.nav && IPA.nav.name == 'self-service') {
-        link = false;
-    }
+    that.init = function() {
+        that.entity_init();
 
-    that.init = function(params) {
+        var link = true;
+        if (IPA.nav && IPA.nav.name == 'self-service') {
+            link = false;
+        }
 
-        params.builder.search_facet({
+        that.builder.search_facet({
             columns: [
                 'uid',
                 'givenname',

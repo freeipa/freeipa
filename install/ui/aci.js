@@ -29,9 +29,10 @@ IPA.aci.permission_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.facet_groups([ 'privilege' , 'settings' ]).
+        that.builder.facet_groups([ 'privilege' , 'settings' ]).
         search_facet({
             columns: [ 'cn' ]
         }).
@@ -203,9 +204,10 @@ IPA.aci.privilege_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.facet_groups([ 'role', 'settings', 'permission' ]).
+        that.builder.facet_groups([ 'role', 'settings', 'permission' ]).
         search_facet({
             columns: [
                 'cn',
@@ -259,9 +261,10 @@ IPA.aci.role_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.facet_groups([ 'member', 'settings', 'privilege' ]).
+        that.builder.facet_groups([ 'member', 'settings', 'privilege' ]).
         search_facet({
             columns: [
                 'cn',
@@ -308,9 +311,10 @@ IPA.aci.selfservice_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.search_facet({
+        that.builder.search_facet({
             pagination: false,
             columns: [ 'aciname' ]
         }).
@@ -349,9 +353,10 @@ IPA.aci.delegation_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.search_facet({
+        that.builder.search_facet({
             pagination: false,
             columns: [ 'aciname' ]
         }).

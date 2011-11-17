@@ -32,10 +32,12 @@ IPA.entity = function(spec) {
     spec = spec || {};
 
     var that = {};
-    that.metadata = spec.metadata;
+
     that.name = spec.name;
-    that.label = spec.label || spec.metadata.label || spec.name;
-    that.title = spec.title || that.label;
+    that.label = spec.label;
+
+    that.metadata = spec.metadata;
+    that.builder = spec.builder;
 
     that.dialogs = $.ordered_map();
     that.dialog_specs = spec.dialogs || [];
@@ -52,7 +54,21 @@ IPA.entity = function(spec) {
     that.redirect_facet = spec.redirect_facet;
     that.containing_entity = null;
 
-    that.init = function(params) {
+    that.init = function() {
+        if (!that.metadata) {
+            that.metadata = that.get_default_metadata();
+            if (!that.metadata) {
+                throw {
+                    expected: true,
+                    message: "Entity " + that.name + " not supported by server."
+                };
+            }
+        }
+        that.label = that.label || that.metadata.label || that.name;
+    };
+
+    that.get_default_metadata = function() {
+        return IPA.metadata.objects[that.name];
     };
 
     that.get_containing_entity = function() {
@@ -210,6 +226,7 @@ IPA.entity = function(spec) {
         pkey.unshift(IPA.nav.get_state(current_entity.name+'-pkey'));
         return pkey;
     };
+
     /* most entites only require -pkey for their primary keys, but some
        are more specific.  This call allows those entites a place
        to override the other parameters. */
@@ -303,14 +320,6 @@ IPA.entity_builder = function() {
             factory = spec.factory || IPA.entity;
         } else {
             spec = { name: spec };
-        }
-
-        spec.metadata = spec.metadata || IPA.metadata.objects[spec.name];
-        if (!spec.metadata) {
-            throw {
-                expected: true,
-                message: "Entity " + spec.name + "not supported by server."
-            };
         }
 
         entity = factory(spec);

@@ -29,9 +29,10 @@ IPA.pwpolicy.entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.search_facet({
+        that.builder.search_facet({
             columns:['cn','cospriority']}).
         details_facet({
             sections:[
@@ -79,9 +80,10 @@ IPA.krbtpolicy.entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.details_facet({
+        that.builder.details_facet({
             title: IPA.metadata.objects.krbtpolicy.label,
             sections: [
                 {

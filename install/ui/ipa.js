@@ -200,14 +200,12 @@ var IPA = function() {
 
             builder.entity({
                 factory: factory,
-                name: name
+                name: name,
+                builder: builder
             });
 
             var entity = builder.build();
-
-            entity.init({
-                builder: builder
-            });
+            entity.init();
 
             return entity;
 

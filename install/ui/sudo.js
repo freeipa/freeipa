@@ -32,9 +32,10 @@ IPA.sudo.rule_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.search_facet({
+        that.builder.search_facet({
             columns: [
                 'cn',
                 'ipaenabledflag',
@@ -58,9 +59,10 @@ IPA.sudo.command_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.search_facet({
+        that.builder.search_facet({
             columns: [
                 'sudocmd',
                 'description'
@@ -123,9 +125,10 @@ IPA.sudo.command_group_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    that.init = function(params) {
+    that.init = function() {
+        that.entity_init();
 
-        params.builder.search_facet({
+        that.builder.search_facet({
             columns: [
                 'cn',
                 'description'

@@ -29,16 +29,17 @@ IPA.dns.zone_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    if (!IPA.dns_enabled) {
-        var except = {
-            expected: true
-        };
-        throw except;
-    }
+    that.init = function() {
 
-    that.init = function(params) {
+        if (!IPA.dns_enabled) {
+            throw {
+                expected: true
+            };
+        }
 
-        params.builder.facet_groups([ 'dnsrecord', 'settings' ]).
+        that.entity_init();
+
+        that.builder.facet_groups([ 'dnsrecord', 'settings' ]).
         search_facet({
             title: IPA.metadata.objects.dnszone.label,
             columns: [ 'idnsname' ]
@@ -483,16 +484,17 @@ IPA.dns.record_entity = function(spec) {
 
     var that = IPA.entity(spec);
 
-    if (!IPA.dns_enabled) {
-        var except = {
-            expected: true
-        };
-        throw except;
-    }
+    that.init = function() {
 
-    that.init = function(params) {
+        if (!IPA.dns_enabled) {
+            throw {
+                expected: true
+            };
+        }
 
-        params.builder.containing_entity('dnszone').
+        that.entity_init();
+
+        that.builder.containing_entity('dnszone').
         details_facet({
             post_update_hook:function(data){
                 var result = data.result.result;
