@@ -175,6 +175,21 @@ fi
 AC_SUBST(XMLRPC_LIBS)
 
 dnl ---------------------------------------------------------------------------
+dnl - Check for libintl
+dnl ---------------------------------------------------------------------------
+SAVE_LIBS="$LIBS"
+LIBINTL_LIBS=
+AC_CHECK_HEADER(libintl.h, [], [AC_MSG_ERROR([libintl.h not found, please install xgettext])])
+AC_SEARCH_LIBS([bindtextdomain], [libintl],[], [])
+if test "x$ac_cv_search_bindtextdomain" = "xno" ; then
+  AC_MSG_ERROR([libintl is not found and your libc does not support gettext, please install xgettext])
+elif test "x$ac_cv_search_bindtextdomain" != "xnone required" ; then
+  LIBINTL_LIBS="$ac_cv_search_bindtextdomain"
+fi
+LIBS="$SAVELIBS"
+AC_SUBST(LIBINTL_LIBS)
+
+dnl ---------------------------------------------------------------------------
 dnl - Set the data install directory since we don't use pkgdatadir
 dnl ---------------------------------------------------------------------------
 

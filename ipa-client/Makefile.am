@@ -50,6 +50,7 @@ ipa_getkeytab_LDADD = 		\
 	$(OPENLDAP_LIBS)	\
 	$(SASL_LIBS)		\
 	$(POPT_LIBS)		\
+	$(LIBINTL_LIBS)         \
 	$(NULL)
 
 ipa_rmkeytab_SOURCES =		\
@@ -60,6 +61,7 @@ ipa_rmkeytab_SOURCES =		\
 ipa_rmkeytab_LDADD = 		\
 	$(KRB5_LIBS)		\
 	$(POPT_LIBS)		\
+	$(LIBINTL_LIBS)         \
 	$(NULL)
 
 ipa_join_SOURCES =		\
@@ -75,6 +77,7 @@ ipa_join_LDADD = 		\
 	$(CURL_LIBS)		\
 	$(XMLRPC_LIBS)		\
 	$(POPT_LIBS)		\
+	$(LIBINTL_LIBS)         \
 	$(NULL)
 
 SUBDIRS =			\
