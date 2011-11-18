@@ -1250,11 +1250,11 @@ def install(options, env, fstore, statestore):
 def main():
     safe_options, options = parse_options()
 
+    if not os.getegid() == 0:
+        sys.exit("\nYou must be root to run ipa-client-install.\n")
     logging_setup(options)
     logging.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
     logging.debug("missing options might be asked for interactively later\n")
-    if not os.getegid() == 0:
-        sys.exit("\nYou must be root to run ipa-client-install.\n")
 
     env={"PATH":"/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
 
