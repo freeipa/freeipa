@@ -214,6 +214,7 @@ def main():
     print "\t\tUDP Ports:"
     print "\t\t  * 138: netbios-dgm"
     print "\t\t  * 139: netbios-ssn"
+    print "\t\t  * 389: (C)LDAP"
     print "\t\t  * 445: microsoft-ds"
     print ""
     print "\tAdditionally you have to make sure the FreeIPA LDAP server cannot reached"
@@ -221,8 +222,6 @@ def main():
     print "\tfollowing ports for these servers:"
     print "\t\tTCP Ports:"
     print "\t\t  * 389, 636: LDAP/LDAPS"
-    print "\t\tUDP Ports:"
-    print "\t\t  * 389: (C)LDAP"
     print "\tYou may want to choose to REJECT the network packets instead of DROPing them"
     print "\tto avoid timeouts on the AD domain controllers."
 

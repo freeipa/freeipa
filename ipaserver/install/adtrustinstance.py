@@ -254,6 +254,9 @@ class ADTRUSTInstance(service.Service):
         conf_fd.write('config backend = registry\n')
         conf_fd.close()
 
+    def __add_cldap_module(self):
+        self._ldap_mod("ipa-cldap-conf.ldif", self.sub_dict)
+
     def __write_smb_registry(self):
         template = os.path.join(ipautil.SHARE_DIR, "smb.conf.template")
         conf = ipautil.template_file(template, self.sub_dict)
@@ -415,6 +418,7 @@ class ADTRUSTInstance(service.Service):
                   self.__set_smb_ldap_password)
         self.step("Adding cifs Kerberos principal", self.__setup_principal)
         self.step("Adding admin(group) SIDs", self.__add_admin_sids)
+        self.step("Activation CLDAP plugin", self.__add_cldap_module)
         self.step("configuring smbd to start on boot", self.__enable)
         if not self.no_msdcs:
             self.step("adding special DNS service records", \
