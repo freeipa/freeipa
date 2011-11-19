@@ -173,7 +173,7 @@ IPA.facet_policy = function() {
     that.post_create = function() {
     };
 
-    that.post_load = function() {
+    that.post_load = function(data) {
     };
 
     return that;
@@ -235,8 +235,6 @@ IPA.details_facet = function(spec) {
     var that = IPA.facet(spec);
 
     that.entity = spec.entity;
-    that.pre_execute_hook = spec.pre_execute_hook;
-    that.post_update_hook = spec.post_update_hook;
     that.update_command_name = spec.update_command_name || 'mod';
     that.command_mode = spec.command_mode || 'save'; // [save, info]
 
@@ -274,7 +272,7 @@ IPA.details_facet = function(spec) {
             if (!pkey_name){
                 return pkey;
             }
-            var pkey_val = that.data[pkey_name];
+            var pkey_val = that.data.result.result[pkey_name];
             if (pkey_val instanceof Array) {
                 pkey.push(pkey_val[0]);
             } else {
@@ -457,7 +455,7 @@ IPA.details_facet = function(spec) {
         var fields = that.fields.get_fields();
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
-            field.load(data);
+            field.load(data.result.result);
         }
         that.policies.post_load(data);
         that.enable_update(false);
@@ -515,17 +513,7 @@ IPA.details_facet = function(spec) {
 
 
     that.on_update_success = function(data, text_status, xhr) {
-
-        if (data.error)
-            return;
-
-        if (that.post_update_hook) {
-            that.post_update_hook(data, text_status);
-            return;
-        }
-
-        var result = data.result.result;
-        that.load(result);
+        that.load(data);
     };
 
     that.on_update_error = function(xhr, text_status, error_thrown) {
@@ -543,7 +531,7 @@ IPA.details_facet = function(spec) {
         }
     };
 
-    that.create_fields_update_command = function(update_info, on_win, on_fail) {
+    that.create_fields_update_command = function(update_info) {
 
         var args = that.get_primary_key();
         var command = IPA.command({
@@ -553,9 +541,7 @@ IPA.details_facet = function(spec) {
             options: {
                 all: true,
                 rights: true
-            },
-            on_success: on_win,
-            on_error: on_fail
+            }
         });
 
         //set command options
@@ -564,12 +550,10 @@ IPA.details_facet = function(spec) {
         return command;
     };
 
-    that.create_batch_update_command = function(update_info, on_win, on_fail) {
+    that.create_batch_update_command = function(update_info) {
 
         var batch = IPA.batch_command({
-            'name': that.entity.name + '_details_update',
-            'on_success': on_win,
-            'on_error': on_fail
+            name: that.entity.name + '_details_update'
         });
 
         var new_update_info = IPA.update_info_builder.copy(update_info);
@@ -599,21 +583,11 @@ IPA.details_facet = function(spec) {
         dialog.open();
     };
 
-    that.update = function(on_win, on_fail) {
-
-        var on_success = function(data, text_status, xhr) {
-            that.on_update_success(data, text_status, xhr);
-            if (on_win) on_win.call(this, data, text_status, xhr);
-        };
-
-        var on_error = function(xhr, text_status, error_thrown) {
-            that.on_update_error(xhr, text_status, error_thrown);
-            if (on_fail) on_fail.call(this, xhr, text_status, error_thrown);
-        };
+    that.create_update_command = function() {
 
         var command, update_info;
 
-        if(that.command_mode === 'info') {
+        if (that.command_mode === 'info') {
             update_info = that.get_update_info();
         } else {
             update_info = that.save_as_update_info(true, true);
@@ -621,19 +595,28 @@ IPA.details_facet = function(spec) {
 
         if (update_info.commands.length <= 0) {
             //normal command
-            command = that.create_fields_update_command(update_info,
-                                                        on_success,
-                                                        on_error);
+            command = that.create_fields_update_command(update_info);
         } else {
             //batch command
-            command = that.create_batch_update_command(update_info,
-                                                        on_success,
-                                                        on_error);
+            command = that.create_batch_update_command(update_info);
         }
 
-        if (that.pre_execute_hook){
-            that.pre_execute_hook(command);
-        }
+        return command;
+    };
+
+    that.update = function(on_success, on_error) {
+
+        var command = that.create_update_command();
+
+        command.on_success = function(data, text_status, xhr) {
+            that.on_update_success(data, text_status, xhr);
+            if (on_success) on_success.call(this, data, text_status, xhr);
+        };
+
+        command.on_error = function(xhr, text_status, error_thrown) {
+            that.on_update_error(xhr, text_status, error_thrown);
+            if (on_error) on_error.call(this, xhr, text_status, error_thrown);
+        };
 
         command.execute();
     };
@@ -642,9 +625,7 @@ IPA.details_facet = function(spec) {
         return that.entity.name+'_show';
     };
 
-    that.refresh = function() {
-
-        that.pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+    that.create_refresh_command = function() {
 
         var command = IPA.command({
             name: that.get_refresh_command_name(),
@@ -655,21 +636,30 @@ IPA.details_facet = function(spec) {
 
         if (that.pkey) {
             command.args = that.get_primary_key(true);
+        }
 
-        } else if (that.entity.redirect_facet) {
+        return command;
+    };
+
+    that.refresh = function() {
+
+        that.pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+
+        if (!that.pkey && that.entity.redirect_facet) {
             that.redirect();
             return;
         }
 
+        var command = that.create_refresh_command();
+
         command.on_success = function(data, text_status, xhr) {
-            that.load(data.result.result);
+            that.load(data);
         };
 
-        command.on_error = that.on_error;
-
-        if (that.pre_execute_hook) {
-            that.pre_execute_hook(command);
-        }
+        command.on_error = function(xhr, text_status, error_thrown) {
+            that.redirect_error(error_thrown);
+            that.report_error(error_thrown);
+        };
 
         command.execute();
     };
@@ -733,7 +723,9 @@ IPA.details_facet = function(spec) {
 
     that.init();
 
-    that.details_facet_create_content = that.create_content;
+    // methods that should be invoked by subclasses
+    that.details_facet_create_update_command = that.create_update_command;
+    that.details_facet_create_refresh_command = that.create_refresh_command;
     that.details_facet_load = that.load;
 
     return that;

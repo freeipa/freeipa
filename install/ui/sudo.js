@@ -87,12 +87,8 @@ IPA.sudo.command_entity = function(spec) {
             name: 'memberof_sudocmdgroup',
             associator: IPA.serial_associator,
             columns:[
-                {
-                    name: 'cn',
-                    primary_key: true,
-                    link: true
-                },
-                { name: 'description' }
+                'cn',
+                'description'
             ],
             adder_columns: [
                 {
@@ -152,12 +148,8 @@ IPA.sudo.command_group_entity = function(spec) {
         association_facet({
             name: 'member_sudocmd',
             columns: [
-                {
-                    name: 'sudocmd',
-                    primary_key: true,
-                    link: true
-                },
-                { name: 'description' }
+                'sudocmd',
+                'description'
             ],
             adder_columns: [
                 {

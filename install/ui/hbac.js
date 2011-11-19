@@ -102,12 +102,8 @@ IPA.hbac.service_entity = function(spec) {
             name: 'memberof_hbacsvcgroup',
             associator: IPA.serial_associator,
             columns:[
-                {
-                    name: 'cn',
-                    primary_key: true,
-                    link: true
-                },
-                { name: 'description' }
+                'cn',
+                'description'
             ],
             adder_columns: [
                 {
@@ -167,12 +163,8 @@ IPA.hbac.service_group_entity = function(spec) {
         association_facet({
             name: 'member_hbacsvc',
             columns:[
-                {
-                    name: 'cn',
-                    primary_key: true,
-                    link: true
-                },
-                { name: 'description' }
+                'cn',
+                'description'
             ],
             adder_columns: [
                 {

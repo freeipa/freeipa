@@ -58,15 +58,11 @@ IPA.group.entity = function(spec) {
         association_facet({
             name: 'member_user',
             columns:[
-                {
-                    name: 'uid',
-                    primary_key: true,
-                    link: true
-                },
-                {name: 'uidnumber'},
-                {name: 'mail'},
-                {name: 'telephonenumber'},
-                {name: 'title'}
+                'uid',
+                'uidnumber',
+                'mail',
+                'telephonenumber',
+                'title'
             ],
             adder_columns:[
                 {

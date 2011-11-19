@@ -753,11 +753,6 @@ IPA.association_facet = function (spec) {
         var column;
         var i;
 
-        var adder_columns = spec.adder_columns || [];
-        for (i=0; i<adder_columns.length; i++) {
-            that.create_adder_column(adder_columns[i]);
-        }
-
         var pkey_name;
         if (that.other_entity) {
             pkey_name = IPA.metadata.objects[that.other_entity].primary_key;
@@ -765,10 +760,22 @@ IPA.association_facet = function (spec) {
 
         if (!that.columns.length){
             that.create_column({
-                name: pkey_name,
-                primary_key: true,
-                link: spec.link
+                name: pkey_name
             });
+        }
+
+        var columns = that.columns.values;
+        for (i=0; i<columns.length; i++) {
+            column = columns[i];
+            column.link = spec.link;
+        }
+
+        var other_entity = IPA.get_entity(that.other_entity);
+        that.init_table(other_entity);
+
+        var adder_columns = spec.adder_columns || [];
+        for (i=0; i<adder_columns.length; i++) {
+            that.create_adder_column(adder_columns[i]);
         }
 
         if (!that.adder_columns.length) {
@@ -783,9 +790,6 @@ IPA.association_facet = function (spec) {
             column = adder_columns[i];
             column.entity_name = that.other_entity;
         }
-
-        var other_entity = IPA.get_entity(that.other_entity);
-        that.init_table(other_entity);
     };
 
     that.get_records_command_name = function() {
@@ -882,10 +886,6 @@ IPA.association_facet = function (spec) {
         }
     };
 
-    that.create_content = function(container) {
-        that.table.create(container);
-    };
-
     that.show = function() {
         that.facet_show();
 
@@ -903,7 +903,7 @@ IPA.association_facet = function (spec) {
         title = title.replace('${primary_key}', pkey);
         title = title.replace('${other_entity}', label);
 
-        var pkeys = that.data[that.get_attribute_name()];
+        var pkeys = that.data.result.result[that.get_attribute_name()];
 
         var dialog = IPA.association_adder_dialog({
             title: title,
@@ -995,8 +995,8 @@ IPA.association_facet = function (spec) {
         dialog.open(that.container);
     };
 
-    that.load_pkeys = function(result) {
-        that.pkeys = that.data[that.get_attribute_name()] || [];
+    that.get_pkeys = function(data) {
+        return data.result.result[that.get_attribute_name()] || [];
     };
 
     that.refresh = function() {
@@ -1020,10 +1020,13 @@ IPA.association_facet = function (spec) {
         });
 
         command.on_success = function(data, text_status, xhr) {
-            that.load(data.result.result);
+            that.load(data);
         };
 
-        command.on_error = that.on_error;
+        command.on_error = function(xhr, text_status, error_thrown) {
+            that.redirect_error(error_thrown);
+            that.report_error(error_thrown);
+        };
 
         command.execute();
     };

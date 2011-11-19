@@ -716,7 +716,7 @@ IPA.permission_target_policy = function (widget_name) {
         for (var i=0; i<targets.length; i++) {
             var target = targets[i];
 
-            if(data[target]) {
+            if(data.result.result[target]) {
                 that.select_target(target);
             } else {
                 that.set_target_visible(target, false);
