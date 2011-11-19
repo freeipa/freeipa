@@ -112,7 +112,9 @@ test("Testing IPA.details_section.create().", function() {
 
 test("Testing details lifecycle: create, load.", function(){
 
-    var result = {};
+    var data = {};
+    data.result = {};
+    data.result.result = {};
 
     IPA.command({
         entity: 'user',
@@ -242,7 +244,7 @@ test("Testing details lifecycle: create, load.", function(){
 
     facet.create(facet_container);
 
-    facet.load(result);
+    facet.load(data);
 
     var contact = $('.details-section[name=contact]', facet_container);
 
@@ -314,10 +316,12 @@ test("Testing IPA.details_section_create again()",function() {
     var details = $("<div/>");
     container.append(details);
 
-    var result = {};
+    var data = {};
+    data.result = {};
+    data.result.result = {};
 
     section.create(container);
-    facet.load(result);
+    facet.load(data);
 
     var table = $('table', container);
 

@@ -32,10 +32,7 @@ IPA.user.entity = function(spec) {
     that.init = function() {
         that.entity_init();
 
-        var link = true;
-        if (IPA.nav && IPA.nav.name == 'self-service') {
-            link = false;
-        }
+        var link = IPA.nav.name == 'self-service' ? false : undefined;
 
         that.builder.search_facet({
             columns: [

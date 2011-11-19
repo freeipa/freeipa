@@ -48,20 +48,7 @@ IPA.search_facet = function(spec) {
 
         that.managed_entity = IPA.get_entity(that.managed_entity_name);
 
-        var columns = that.columns.values;
-        for (var i=0; i<columns.length; i++) {
-            var column = columns[i];
-
-            var metadata = IPA.get_entity_param(that.managed_entity_name, column.name);
-            column.primary_key = metadata && metadata.primary_key;
-            column.link = column.primary_key;
-        }
-
         that.init_table(that.managed_entity);
-    };
-
-    that.create_content = function(container) {
-        that.table.create(container);
     };
 
     that.create_header = function(container) {
@@ -124,7 +111,6 @@ IPA.search_facet = function(spec) {
         }).appendTo(that.controls);
     };
 
-
     that.show = function() {
         that.facet_show();
 
@@ -178,44 +164,23 @@ IPA.search_facet = function(spec) {
         IPA.nav.push_state(state);
     };
 
-    that.load_pkeys = function(result) {
-        that.pkeys = [];
+    that.get_pkeys = function(data) {
+        var result = data.result.result;
+        var pkey_name = that.managed_entity.metadata.primary_key;
+        var pkeys = [];
         for (var i=0; i<result.length; i++) {
             var record = result[i];
-            var values = record[that.managed_entity.metadata.primary_key];
-            that.pkeys.push(values[0]);
+            var values = record[pkey_name];
+            pkeys.push(values[0]);
         }
-        return that.pkeys;
-    };
-
-    that.on_error = function(xhr, text_status, error_thrown) {
-        that.report_error(error_thrown);
+        return pkeys;
     };
 
     that.get_search_command_name = function() {
-        return that.managed_entity.name + '_find' + (that.pagination ? "_pkeys" : "");
+        return that.managed_entity.name + '_find' + (that.pagination ? '_pkeys' : '');
     };
 
     that.refresh = function() {
-
-        function on_success(data, text_status, xhr) {
-
-            that.load(data.result.result);
-
-            if (data.result.truncated) {
-                var message = IPA.messages.search.truncated;
-                message = message.replace('${counter}', data.result.count);
-                that.table.summary.text(message);
-            } else {
-                that.table.summary.text(data.result.summary);
-            }
-
-            that.table.current_page_input.val(that.table.current_page);
-            that.table.total_pages_span.text(that.table.total_pages);
-
-            that.filter.focus();
-            that.select_changed();
-        }
 
         var filter = [];
         var current_entity = that.managed_entity;
@@ -233,15 +198,22 @@ IPA.search_facet = function(spec) {
             args: filter,
             options: {
                 all: that.search_all
-            },
-            on_success: on_success,
-            on_error: that.on_error
+            }
         });
 
         if (that.pagination) {
             command.set_option('pkey_only', true);
             command.set_option('sizelimit', 0);
         }
+
+        command.on_success = function(data, text_status, xhr) {
+            that.filter.focus();
+            that.load(data);
+        };
+
+        command.on_error = function(xhr, text_status, error_thrown) {
+            that.report_error(error_thrown);
+        };
 
         command.execute();
     };
@@ -260,7 +232,6 @@ IPA.search_facet = function(spec) {
     init();
 
     // methods that should be invoked by subclasses
-    that.search_facet_create_content = that.create_content;
     that.search_facet_refresh = that.refresh;
 
     return that;

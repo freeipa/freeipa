@@ -85,8 +85,8 @@ IPA.entitle.entity = function(spec) {
                 }
             ]
         }).
-        search_facet({
-            factory: IPA.entitle.search_facet,
+        facet({
+            factory: IPA.entitle.certificates_facet,
             name: 'certificates',
             label: IPA.messages.objects.entitle.certificates,
             facet_group: 'certificates',
@@ -365,7 +365,7 @@ IPA.entitle.details_facet = function(spec) {
                 // that.register_offline_button.css('display', 'none');
             }
 
-            that.load(data.result.result);
+            that.load(data);
 
             summary.empty();
         }
@@ -375,13 +375,15 @@ IPA.entitle.details_facet = function(spec) {
             that.register_online_button.css('display', 'inline');
             // that.register_offline_button.css('display', 'inline');
 
-            var result = {
+            var data = {};
+            data.result = {};
+            data.result.result = {
                 uuid: '',
                 product: '',
                 quantity: 0,
                 consumed: 0
             };
-            that.load(result);
+            that.load(data);
 
             summary.empty();
             summary.append(error_thrown.name+': '+error_thrown.message);
@@ -395,13 +397,17 @@ IPA.entitle.details_facet = function(spec) {
     return that;
 };
 
-IPA.entitle.search_facet = function(spec) {
+IPA.entitle.certificates_facet = function(spec) {
 
     spec = spec || {};
     spec.disable_facet_tabs = false;
     spec.selectable = false;
 
-    var that = IPA.search_facet(spec);
+    var that = IPA.table_facet(spec);
+
+    var init = function() {
+        that.init_table(that.entity);
+    };
 
     that.create_header = function(container) {
 
@@ -455,16 +461,7 @@ IPA.entitle.search_facet = function(spec) {
                 that.import_button.css('display', 'inline');
             }
 
-            that.load(data.result.result);
-
-            var summary = $('span[name=summary]', that.table.tfoot).empty();
-            if (data.result.truncated) {
-                var message = IPA.messages.search.truncated;
-                message = message.replace('${counter}', data.result.count);
-                summary.text(message);
-            } else {
-                summary.text(data.result.summary);
-            }
+            that.load(data);
         }
 
         function on_error(xhr, text_status, error_thrown) {
@@ -472,8 +469,7 @@ IPA.entitle.search_facet = function(spec) {
             that.consume_button.css('display', 'none');
             that.import_button.css('display', 'inline');
 
-            var summary = $('span[name=summary]', that.table.tfoot).empty();
-            summary.append(error_thrown.name+': '+error_thrown.message);
+            that.table.summary.text(error_thrown.name+': '+error_thrown.message);
         }
 
         that.entity.get_status(
@@ -484,6 +480,8 @@ IPA.entitle.search_facet = function(spec) {
             },
             on_error);
     };
+
+    init();
 
     return that;
 };

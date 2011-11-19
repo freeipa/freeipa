@@ -160,6 +160,7 @@ IPA.automount.key_entity = function(spec) {
 
         that.builder.containing_entity('automountmap').
         details_facet({
+            factory: IPA.automount.key_details_facet,
             sections: [
                 {
                     name:'identity',
@@ -173,24 +174,7 @@ IPA.automount.key_entity = function(spec) {
                     ]
                 }
             ],
-            disable_breadcrumb: false,
-            pre_execute_hook : function (command){
-                var entity_name = this.entity_name;
-                var info = IPA.nav.get_state(entity_name + '-info');
-                var key = IPA.nav.get_state(entity_name + '-pkey');
-
-
-                if (command.args.length ==3){
-                    command.args.pop();
-                }
-                if (command.method === 'mod'){
-                    command.options['newautomountinformation'] =
-                        command.options['automountinformation'];
-
-                }
-                command.options['automountkey'] = key;
-                command.options['automountinformation'] = info;
-            }
+            disable_breadcrumb: false
         }).
         adder_dialog({
             show_edit_page : function(entity, result){
@@ -205,6 +189,44 @@ IPA.automount.key_entity = function(spec) {
             },
             fields:['automountkey','automountinformation']
         });
+    };
+
+    return that;
+};
+
+IPA.automount.key_details_facet = function(spec) {
+
+    var that = IPA.details_facet(spec);
+
+    that.create_update_command = function() {
+
+        var command = that.details_facet_create_update_command();
+
+        command.args.pop();
+
+        var key = IPA.nav.get_state(that.entity.name + '-pkey');
+        var info = IPA.nav.get_state(that.entity.name + '-info');
+
+        command.options.newautomountinformation = command.options.automountinformation;
+        command.options.automountkey = key;
+        command.options.automountinformation = info;
+
+        return command;
+    };
+
+    that.create_refresh_command = function() {
+
+        var command = that.details_facet_create_refresh_command();
+
+        command.args.pop();
+
+        var key = IPA.nav.get_state(that.entity.name + '-pkey');
+        var info = IPA.nav.get_state(that.entity.name + '-info');
+
+        command.options.automountkey = key;
+        command.options.automountinformation = info;
+
+        return command;
     };
 
     return that;

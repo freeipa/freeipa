@@ -185,8 +185,13 @@ var get_visible_rows = function(section) {
 };
 
 test("Testing aci grouptarget.", function() {
-    var sample_data_filter_only = { targetgroup:"ipausers" };
-    target_facet.load(sample_data_filter_only);
+    var data = {};
+    data.result = {};
+    data.result.result = {
+        targetgroup: 'ipausers'
+    };
+
+    target_facet.load(data);
 
     same(target_widget.target, 'targetgroup' , 'group control selected');
 
@@ -200,9 +205,13 @@ test("Testing aci grouptarget.", function() {
 });
 
 test("Testing type target.", function() {
-    var sample_data = { type:"hostgroup" };
+    var data = {};
+    data.result = {};
+    data.result.result = {
+        type: 'hostgroup'
+    };
 
-    target_facet.load(sample_data);
+    target_facet.load(data);
 
     same(target_widget.target, 'type', 'type selected');
 
@@ -210,7 +219,7 @@ test("Testing type target.", function() {
     var record = {};
     target_facet.save(record);
 
-    same(record.type[0], sample_data.type,
+    same(record.type[0], data.result.result.type,
          "saved type matches sample data");
 
     same(get_visible_rows(target_widget), ['type', 'attrs'],
@@ -223,9 +232,13 @@ test("Testing type target.", function() {
 
 test("Testing filter target.", function() {
 
-    var sample_data = { filter:"somevalue" };
+    var data = {};
+    data.result = {};
+    data.result.result = {
+        filter: 'somevalue'
+    };
 
-    target_facet.load(sample_data);
+    target_facet.load(data);
 
     var record = {};
     target_facet.save(record);
@@ -234,21 +247,24 @@ test("Testing filter target.", function() {
 
     same(get_visible_rows(target_widget), ['filter'], 'filter row visible');
 
-    ok(record.filter[0], sample_data.filter, 'filter set correctly');
+    ok(record.filter[0], data.result.result.filter, 'filter set correctly');
 });
 
 
 
 test("Testing subtree target.", function() {
 
-    var sample_data = {
-        subtree:"ldap:///cn=*,cn=roles,cn=accounts,dc=example,dc=co"};
+    var data = {};
+    data.result = {};
+    data.result.result = {
+        subtree: 'ldap:///cn=*,cn=roles,cn=accounts,dc=example,dc=co'
+    };
 
-    target_facet.load(sample_data);
+    target_facet.load(data);
     var record = {};
     target_facet.save(record);
 
-    same(record.subtree[0], sample_data.subtree, 'subtree set correctly');
+    same(record.subtree[0], data.result.result.subtree, 'subtree set correctly');
 
     same(get_visible_rows(target_widget), ['subtree'], 'subtree row visible');
 });

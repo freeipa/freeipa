@@ -496,174 +496,158 @@ IPA.dns.record_entity = function(spec) {
 
         that.builder.containing_entity('dnszone').
         details_facet({
-            post_update_hook:function(data){
-                var result = data.result.result;
-                 if (result.idnsname) {
-                    this.load(result);
-                } else {
-                    this.reset();
-                    var dialog = IPA.dnsrecord_redirection_dialog();
-                    dialog.open(this.container);
-                }
-            },
+            factory: IPA.dns.record_details_facet,
             disable_breadcrumb: false,
-            sections:[
-               {
-                   name:'identity',
-                   label: IPA.messages.details.identity,
-                   fields:[
-                       {
+            sections: [
+                {
+                    name: 'identity',
+                    label: IPA.messages.details.identity,
+                    fields: [
+                        {
                             type: 'dnsrecord_host_link',
                             name: 'idnsname',
-                            other_entity:'host',
-                            label:IPA.get_entity_param(
-                               'dnsrecord', 'idnsname').label
-                       }
+                            other_entity: 'host',
+                            label: IPA.get_entity_param(
+                                'dnsrecord', 'idnsname').label
+                        }
                    ]
-               },
+                },
                 {
-                    name:'standard',
-                    label:IPA.messages.objects.dnsrecord.standard,
-                    fields:[
+                    name: 'standard',
+                    label: IPA.messages.objects.dnsrecord.standard,
+                    fields: [
                         {
                             type: 'multivalued',
                             name: 'arecord',
-                            metadata: {primary_key: false},
-                            label:'A'
+                            metadata: { primary_key: false },
+                            label: 'A'
                         },
                         {
                             type: 'multivalued',
                             name: 'aaaarecord',
-                            metadata: {primary_key: false},
-                            label:'AAAA'
+                            metadata: { primary_key: false },
+                            label: 'AAAA'
                         },
                         {
                             type: 'multivalued',
                             name: 'ptrrecord',
-                            metadata: {primary_key: false},
-                            label:'PTR'
+                            metadata: { primary_key: false },
+                            label: 'PTR'
                         },
                         {
                             type: 'multivalued',
                             name: 'srvrecord',
-                            metadata: {primary_key: false},
-                            label:'SRV'
+                            metadata: { primary_key: false },
+                            label: 'SRV'
                         },
                         {
                             type: 'multivalued',
                             name: 'txtrecord',
-                            metadata: {primary_key: false},
-                            label:'TXT'
+                            metadata: { primary_key: false },
+                            label: 'TXT'
                         },
                         {
                             type: 'multivalued',
                             name: 'cnamerecord',
-                            metadata: {primary_key: false},
-                            label:'CNAME'
+                            metadata: { primary_key: false },
+                            label: 'CNAME'
                         },
                         {
                             type: 'multivalued',
                             label:'MX',
-                            metadata: {primary_key: false},
-                            name:"mxrecord"
+                            metadata: { primary_key: false },
+                            name: 'mxrecord'
                         },
                         {
                             type: 'multivalued',
                             label:'NS',
-                            metadata: {primary_key: false},
-                            name:"nsrecord"
+                            metadata: { primary_key: false },
+                            name: 'nsrecord'
                         }
-
                     ]
                 },
                 {
-                    name:'unusual',
-                    label:IPA.messages.objects.dnsrecord.other,
-                    fields:[
+                    name: 'other',
+                    label: IPA.messages.objects.dnsrecord.other,
+                    fields: [
                         {
                             type: 'multivalued',
-                            label:'AFSDB',
-                            metadata: {primary_key: false},
-                            name: "afsdbrecord"
+                            name: 'afsdbrecord',
+                            metadata: { primary_key: false },
+                            label: 'AFSDB'
                         },
                         {
                             type: 'multivalued',
-                            label:'CERT',
-                            metadata: {primary_key: false},
-                            name:"certrecord"
+                            name: 'certrecord',
+                            metadata: { primary_key: false },
+                            label: 'CERT'
                         },
                         {
                             type: 'multivalued',
-                            label:'DNAME',
-                            metadata: {primary_key: false},
-                            name:"dnamerecord"
+                            name: 'dnamerecord',
+                            metadata: { primary_key: false },
+                            label: 'DNAME'
                         },
                         {
                             type: 'multivalued',
-                            label:'DSRECORD',
-                            metadata: {primary_key: false},
-                            name:"dsrecord"
+                            name: 'dsrecord',
+                            metadata: { primary_key: false },
+                            label: 'DSRECORD'
                         },
                         {
                             type: 'multivalued',
-                            label:'KEY',
-                            metadata: {primary_key: false},
-                            name:"keyrecord"
+                            name: 'keyrecord',
+                            metadata: { primary_key: false },
+                            label: 'KEY'
                         },
                         {
                             type: 'multivalued',
-                            label:'KX',
-                            metadata: {primary_key: false},
-                            name:"kxrecord"
+                            name: 'kxrecord',
+                            metadata: { primary_key: false },
+                            label: 'KX'
                         },
                         {
                             type: 'multivalued',
-                            label:'LOC',
-                            metadata: {primary_key: false},
-                            name:"locrecord"
+                            name: 'locrecord',
+                            metadata: { primary_key: false },
+                            label: 'LOC'
                         },
                         {
                             type: 'multivalued',
-                            label:'NAPTR',
-                            name:"naptrrecord"
+                            name: 'naptrrecord',
+                            metadata: { primary_key: false },
+                            label: 'NAPTR'
                         },
                         {
                             type: 'multivalued',
-                            label:'NSEC',
-                            metadata: {primary_key: false},
-                            name:"nsecrecord"
+                            name: 'nsecrecord',
+                            metadata: { primary_key: false },
+                            label: 'NSEC'
                         },
                         {
                             type: 'multivalued',
-                            label:'RRSIG',
-                            metadata: {primary_key: false},
-                            name:"rrsigrecord"
+                            name: 'rrsigrecord',
+                            metadata: { primary_key: false },
+                            label: 'RRSIG'
                         },
                         {
                             type: 'multivalued',
-                            label:'SIG',
-                            metadata: {primary_key: false},
-                            name:"sigrecord"
+                            name: 'sigrecord',
+                            metadata: { primary_key: false },
+                            label: 'SIG'
                         },
                         {
                             type: 'multivalued',
-                            label:'SSHFP',
-                            metadata: {primary_key: false},
-                            name:"sshfprecord"
+                            name: 'sshfprecord',
+                            metadata: { primary_key: false },
+                            label: 'SSHFP'
                         }
                     ]
                 }
             ]
         }).
         adder_dialog({
-            pre_execute_hook: function(command) {
-                var record_type = command.options.record_type;
-                var record_data = command.options.record_data;
-
-                delete command.options.record_type;
-                delete command.options.record_data;
-                command.options[record_type] = record_data;
-            },
+            factory: IPA.dns.record_adder_dialog,
             fields: [
                 'idnsname',
                 {
@@ -679,6 +663,47 @@ IPA.dns.record_entity = function(spec) {
                 }
             ]
         });
+    };
+
+    return that;
+};
+
+IPA.dns.record_adder_dialog = function(spec) {
+
+    var that = IPA.entity_adder_dialog(spec);
+
+    that.create_add_command = function(record) {
+
+        var command = that.entity_adder_dialog_create_add_command(record);
+
+        var record_type = command.options.record_type;
+        var record_data = command.options.record_data;
+
+        delete command.options.record_type;
+        delete command.options.record_data;
+
+        command.options[record_type] = record_data;
+
+        return command;
+    };
+
+    return that;
+};
+
+IPA.dns.record_details_facet = function(spec) {
+
+    var that = IPA.details_facet(spec);
+
+    that.on_update_success = function(data, text_status, xhr) {
+
+        if (!data.result.result.idnsname) {
+            that.reset();
+            var dialog = IPA.dnsrecord_redirection_dialog();
+            dialog.open(that.container);
+            return;
+        }
+
+        that.load(data);
     };
 
     return that;

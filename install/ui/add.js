@@ -30,7 +30,6 @@ IPA.entity_adder_dialog = function(spec) {
     var that = IPA.dialog(spec);
 
     that.method = spec.method || 'add';
-    that.pre_execute_hook = spec.pre_execute_hook;
     that.on_error = spec.on_error ;
     that.retry = typeof spec.retry !== 'undefined' ? spec.retry : true;
     that.command = null;
@@ -107,25 +106,17 @@ IPA.entity_adder_dialog = function(spec) {
         IPA.nav.show_entity_page(that.entity, 'default', pkey);
     }
 
-    that.add = function(on_success, on_error) {
+    that.create_add_command = function(record) {
 
         var pkey_name = that.entity.metadata.primary_key;
 
         var command = IPA.command({
             entity: that.entity.name,
             method: that.method,
-            retry: that.retry,
-            on_success: on_success,
-            on_error: on_error
+            retry: that.retry
         });
-        that.command = command;
 
         command.add_args(that.entity.get_primary_key_prefix());
-
-        if (!that.validate()) return;
-
-        var record = {};
-        that.save(record);
 
         var fields = that.fields.get_fields();
         for (var j=0; j<fields.length; j++) {
@@ -145,11 +136,21 @@ IPA.entity_adder_dialog = function(spec) {
             }
         }
 
-        if (that.pre_execute_hook) {
-            that.pre_execute_hook(command);
-        }
+        return command;
+    };
 
-        command.execute();
+    that.add = function(on_success, on_error) {
+
+        if (!that.validate()) return;
+
+        var record = {};
+        that.save(record);
+
+        that.command = that.create_add_command(record);
+        that.command.on_success = on_success;
+        that.command.on_error = on_error;
+
+        that.command.execute();
     };
 
     that.create = function() {
@@ -172,6 +173,7 @@ IPA.entity_adder_dialog = function(spec) {
 
     // methods that should be invoked by subclasses
     that.entity_adder_dialog_create = that.create;
+    that.entity_adder_dialog_create_add_command = that.create_add_command;
 
     init();
 
