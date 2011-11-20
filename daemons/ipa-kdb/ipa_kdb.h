@@ -223,3 +223,10 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
                                     krb5_authdata ***signed_auth_data);
 
 krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx);
+
+/* DELEGATION CHECKS */
+
+krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
+                                                krb5_const_principal client,
+                                                const krb5_db_entry *server,
+                                                krb5_const_principal proxy);

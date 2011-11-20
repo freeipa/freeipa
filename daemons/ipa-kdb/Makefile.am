@@ -34,6 +34,7 @@ ipadb_la_SOURCES = 		\
 	ipa_kdb_principals.c	\
 	ipa_kdb_pwdpolicy.c	\
 	ipa_kdb_mspac.c		\
+	ipa_kdb_delegation.c	\
 	$(KRB5_UTIL_SRCS)	\
 	$(NULL)
 
