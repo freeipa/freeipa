@@ -458,6 +458,6 @@ kdb_vftabl kdb_function_table = {
     NULL,                               /* check_policy_tgs */
     NULL,                               /* audit_as_req */
     NULL,                               /* refresh_config */
-    NULL                                /* check_allowed_to_delegate */
+    ipadb_check_allowed_to_delegate     /* check_allowed_to_delegate */
 };
 
