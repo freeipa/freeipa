@@ -236,6 +236,13 @@ IPA.hbac.test_facet = function(spec) {
         }).appendTo(buttons);
     };
 
+    that.find = function() {
+        var filter = that.filter.val();
+        var state = {};
+        state[that.entity.name+'-'+that.name+'-filter'] = filter;
+        IPA.nav.push_state(state);
+    };
+
     that.back = function() {
         var facet_group = that.entity.get_facet_group('default');
         var index = facet_group.get_facet_index(that.name);
@@ -278,7 +285,7 @@ IPA.hbac.test_facet = function(spec) {
 
     that.refresh = function() {
 
-        var filter = IPA.nav.get_state(that.managed_entity.name+'-filter');
+        var filter = IPA.nav.get_state(that.entity.name+'-'+that.name+'-filter');
 
         var command = IPA.command({
             name: that.get_search_command_name(),
