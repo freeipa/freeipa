@@ -1792,7 +1792,7 @@ IPA.button = function(spec) {
         name: spec.name,
         href: spec.href || '#' + (spec.name || 'button'),
         title: spec.title || spec.label,
-        'class': 'ui-state-default ui-corner-all input_link',
+        'class': 'ui-state-default ui-corner-all button',
         style: spec.style,
         click: spec.click,
         blur: spec.blur

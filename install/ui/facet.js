@@ -702,6 +702,18 @@ IPA.facet_group = function(spec) {
         return that.facets.get(name);
     };
 
+    that.get_facet_index = function(name) {
+        return that.facets.get_key_index(name);
+    };
+
+    that.get_facet_by_index = function(index) {
+        return that.facets.get_value_by_index(index);
+    };
+
+    that.get_facet_count = function(index) {
+        return that.facets.length;
+    };
+
     return that;
 };
 

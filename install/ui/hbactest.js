@@ -204,27 +204,60 @@ IPA.hbac.test_facet = function(spec) {
             style: 'float: right'
         }).appendTo(container);
 
-        that.back_button = IPA.button({
-            name: 'back',
-            label: 'Back',
-            click: function() {
-                if (!that.back_button.hasClass('action-button-disabled')) {
-                    that.back();
+        var facet_group = that.entity.get_facet_group('default');
+        var index = facet_group.get_facet_index(that.name);
+
+        if (index > 0) {
+            that.back_button = IPA.button({
+                name: 'back',
+                label: 'Back',
+                icon: 'ui-icon ui-icon-triangle-1-w',
+                click: function() {
+                    if (!that.back_button.hasClass('action-button-disabled')) {
+                        that.back();
+                    }
+                    return false;
                 }
-                return false;
-            }
-        }).appendTo(buttons);
+            }).appendTo(buttons);
+
+            buttons.append(' ');
+        }
 
         that.next_button = IPA.button({
             name: 'next',
             label: 'Next',
+            icon: 'ui-icon ui-icon-triangle-1-e',
             click: function() {
-                if (!that.add_button.hasClass('action-button-disabled')) {
+                if (!that.next_button.hasClass('action-button-disabled')) {
                     that.next();
                 }
                 return false;
             }
         }).appendTo(buttons);
+    };
+
+    that.back = function() {
+        var facet_group = that.entity.get_facet_group('default');
+        var index = facet_group.get_facet_index(that.name);
+        if (index <= 0) return;
+
+        var facet = facet_group.get_facet_by_index(index - 1);
+
+        var state = {};
+        state[that.entity.name+'-facet'] = facet.name;
+        IPA.nav.push_state(state);
+    };
+
+    that.next = function() {
+        var facet_group = that.entity.get_facet_group('default');
+        var index = facet_group.get_facet_index(that.name);
+        if (index >= facet_group.get_facet_count() - 1) return;
+
+        var facet = facet_group.get_facet_by_index(index + 1);
+
+        var state = {};
+        state[that.entity.name+'-facet'] = facet.name;
+        IPA.nav.push_state(state);
     };
 
     that.get_pkeys = function(data) {
@@ -261,7 +294,7 @@ IPA.hbac.test_facet = function(spec) {
 
         command.on_success = function(data, text_status, xhr) {
             if (that.filter) that.filter.focus();
-            that.load(data); // table_facet.load()
+            that.load(data);
         };
 
         command.on_error = function(xhr, text_status, error_thrown) {
@@ -269,6 +302,10 @@ IPA.hbac.test_facet = function(spec) {
         };
 
         command.execute();
+    };
+
+    that.reset = function() {
+        that.table.set_values([]);
     };
 
     that.save = function(record) {
@@ -336,6 +373,11 @@ IPA.hbac.test_rules_facet = function(spec) {
         that.create_buttons(container);
     };
 
+    that.reset = function() {
+        that.table.set_values([]);
+        if (that.enabled) that.enabled.attr('checked', false);
+        if (that.disabled) that.enabled.attr('checked', false);
+    };
 
     that.save = function(record) {
         if (that.selected_values && that.selected_values.length) {
@@ -409,6 +451,7 @@ IPA.hbac.test_run_facet = function(spec) {
         that.back_button = IPA.button({
             name: 'back',
             label: 'Back',
+            icon: 'ui-icon ui-icon-triangle-1-w',
             click: function() {
                 if (!that.back_button.hasClass('action-button-disabled')) {
                     that.back();
@@ -416,6 +459,8 @@ IPA.hbac.test_run_facet = function(spec) {
                 return false;
             }
         }).appendTo(buttons);
+
+        buttons.append(' ');
 
         that.new_test_button = IPA.button({
             name: 'new_test',
@@ -427,6 +472,36 @@ IPA.hbac.test_run_facet = function(spec) {
                 return false;
             }
         }).appendTo(buttons);
+    };
+
+    that.new_test = function() {
+        var facet = that.entity.get_facet('user');
+        facet.reset();
+
+        facet = that.entity.get_facet('targethost');
+        facet.reset();
+
+        facet = that.entity.get_facet('service');
+        facet.reset();
+
+        facet = that.entity.get_facet('sourcehost');
+        facet.reset();
+
+        facet = that.entity.get_facet('rules');
+        facet.reset();
+
+        facet = that.entity.get_facet('run');
+        facet.reset();
+
+        var state = {};
+        state[that.entity.name+'-facet'] = 'user';
+        IPA.nav.push_state(state);
+    };
+
+    that.reset = function() {
+        that.test_result.text('');
+        that.table.empty();
+        that.table.set_values([]);
     };
 
     that.refresh = function() {
