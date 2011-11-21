@@ -466,7 +466,7 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
     TALLOC_CTX *tmpctx;
     struct ipadb_e_data *ied;
     struct ipadb_context *ipactx;
-    LDAPMessage *results;
+    LDAPMessage *results = NULL;
     LDAPMessage *lentry;
     DATA_BLOB pac_data;
     krb5_data data;
@@ -479,11 +479,6 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
         return KRB5_KDB_DBNOTINITED;
     }
 
-    tmpctx = talloc_new(NULL);
-    if (!tmpctx) {
-        return ENOMEM;
-    }
-
     ied = (struct ipadb_e_data *)client->e_data;
     if (ied->magic != IPA_E_DATA_MAGIC) {
         return EINVAL;
@@ -493,9 +488,14 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
         return 0;
     }
 
+    tmpctx = talloc_new(NULL);
+    if (!tmpctx) {
+        return ENOMEM;
+    }
+
     memset(&pac_info, 0, sizeof(pac_info));
     pac_info.logon_info.info = talloc_zero(tmpctx, struct PAC_LOGON_INFO);
-    if (!tmpctx) {
+    if (!pac_info.logon_info.info) {
         kerr = ENOMEM;
         goto done;
     }
@@ -542,6 +542,7 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
     kerr = krb5_pac_add_buffer(kcontext, *pac, KRB5_PAC_LOGON_INFO, &data);
 
 done:
+    ldap_msgfree(results);
     talloc_free(tmpctx);
     return kerr;
 }
