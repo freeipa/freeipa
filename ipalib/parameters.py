@@ -381,6 +381,9 @@ class Param(ReadOnly):
         ('hint', (str, Gettext), None),
         ('alwaysask', bool, False),
         ('sortorder', int, 2), # see finalize()
+        ('csv', bool, False),
+        ('csv_separator', str, ','),
+        ('csv_skipspace', bool, True),
 
         # The 'default' kwarg gets appended in Param.__init__():
         # ('default', self.type, None),
@@ -492,6 +495,10 @@ class Param(ReadOnly):
                     'exclude', self.exclude,
                 )
             )
+
+        # Check that if csv is set, multivalue is set too
+        if self.csv and not self.multivalue:
+            raise ValueError('%s: cannot have csv without multivalue' % self.nice)
 
         # Check that all the rules are callable
         self.class_rules = tuple(class_rules)
@@ -663,6 +670,23 @@ class Param(ReadOnly):
         kw.update(overrides)
         return klass(name, *self.rules, **kw)
 
+    # The following 2 functions were taken from the Python
+    # documentation at http://docs.python.org/library/csv.html
+    def __utf_8_encoder(self, unicode_csv_data):
+        for line in unicode_csv_data:
+            yield line.encode('utf-8')
+
+    def __unicode_csv_reader(self, unicode_csv_data, dialect=csv.excel, **kwargs):
+        # csv.py doesn't do Unicode; encode temporarily as UTF-8:
+        csv_reader = csv.reader(self.__utf_8_encoder(unicode_csv_data),
+                                dialect=dialect,
+                                delimiter=self.csv_separator, escapechar='\\',
+                                skipinitialspace=self.csv_skipspace,
+                                **kwargs)
+        for row in csv_reader:
+            # decode UTF-8 back to Unicode, cell by cell:
+            yield [unicode(cell, 'utf-8') for cell in row]
+
     def normalize(self, value):
         """
         Normalize ``value`` using normalizer callback.
@@ -686,15 +710,20 @@ class Param(ReadOnly):
 
         :param value: A proposed value for this parameter.
         """
+        if self.multivalue:
+            if self.csv and isinstance(value, basestring):
+                csvreader = self.__unicode_csv_reader([unicode(value)])
+                value = tuple(csvreader.next()) #pylint: disable=E1101
+            elif type(value) not in (tuple, list):
+                value = (value,)
         if self.normalizer is None:
             return value
         if self.multivalue:
-            if type(value) in (tuple, list):
-                return tuple(
-                    self._normalize_scalar(v) for v in value
-                )
-            return (self._normalize_scalar(value),)  # Return a tuple
-        return self._normalize_scalar(value)
+            return tuple(
+                self._normalize_scalar(v) for v in value
+            )
+        else:
+            return self._normalize_scalar(value)
 
     def _normalize_scalar(self, value):
         """
@@ -1525,47 +1554,12 @@ class StrEnum(Enum):
     type = unicode
 
 
-class List(Param):
+class Any(Param):
     """
-    Base class for parameters as a list of values. The input is a delimited
-    string.
+    A parameter capable of holding values of any type. For internal use only.
     """
-    type = tuple
 
-    kwargs = Param.kwargs + (
-        ('separator', str, ','),
-        ('skipspace', bool, True),
-    )
-
-    # The following 2 functions were taken from the Python
-    # documentation at http://docs.python.org/library/csv.html
-    def __utf_8_encoder(self, unicode_csv_data):
-        for line in unicode_csv_data:
-            yield line.encode('utf-8')
-
-    def __unicode_csv_reader(self, unicode_csv_data, dialect=csv.excel, **kwargs):
-        # csv.py doesn't do Unicode; encode temporarily as UTF-8:
-        csv_reader = csv.reader(self.__utf_8_encoder(unicode_csv_data),
-                                dialect=dialect,
-                                delimiter=self.separator, escapechar='\\',
-                                skipinitialspace=self.skipspace,
-                                **kwargs)
-        for row in csv_reader:
-            # decode UTF-8 back to Unicode, cell by cell:
-            yield [unicode(cell, 'utf-8') for cell in row]
-
-    def __init__(self, name, *rules, **kw):
-        kw['multivalue'] = True
-        super(List, self).__init__(name, *rules, **kw)
-
-    def normalize(self, value):
-        if value and not type(value) in (list, tuple):
-            reader = self.__unicode_csv_reader([value])
-            value = []
-            for row in reader:
-                value = value + row
-            value = tuple(value)
-        return super(List, self).normalize(value)
+    type = object
 
     def _convert_scalar(self, value, index=None):
         return value

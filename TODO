@@ -63,11 +63,6 @@ Command Line interface
     own replacement for optparse.  The isn't way to make optparse deal with the
     global options the way Jason would like, so that's another motivation.
 
-  * All "comma-separated list of..." parameters should really be changed to
-    multivalue and have a flag that tells the CLI whether a multivalue should
-    be parsed as comma-separated.  The List type currently satisfy this, but it
-    would be nice to have a comma-separated multivalue of any type.
-
   * Add a File param type so an argument may be read from a file.  This is
     needed for cert-request to pass along the CSR.
 

@@ -120,7 +120,7 @@ targetattr REPLACES the current attributes, it does not add to them.
 
 from ipalib import api, crud, errors
 from ipalib import Object, Command
-from ipalib import Flag, Int, List, Str, StrEnum
+from ipalib import Flag, Int, Str, StrEnum
 from ipalib.aci import ACI
 from ipalib import output
 from ipalib import _, ngettext
@@ -430,18 +430,20 @@ class aci(Object):
             doc=_('User group ACI grants access to'),
             flags=('virtual_attribute',),
         ),
-        List('permissions', validate_permissions,
+        Str('permissions+', validate_permissions,
             cli_name='permissions',
             label=_('Permissions'),
             doc=_('comma-separated list of permissions to grant' \
                 '(read, write, add, delete, all)'),
+            csv=True,
             normalizer=_normalize_permissions,
             flags=('virtual_attribute',),
         ),
-        List('attrs?',
+        Str('attrs*',
             cli_name='attrs',
             label=_('Attributes'),
             doc=_('Comma-separated list of attributes'),
+            csv=True,
             flags=('virtual_attribute',),
         ),
         StrEnum('type?',

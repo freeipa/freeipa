@@ -192,6 +192,10 @@ class test_Param(ClassChecker):
         assert o.include is None
         assert o.exclude is None
         assert o.flags == frozenset()
+        assert o.sortorder == 2
+        assert o.csv is False
+        assert o.csv_separator == ','
+        assert o.csv_skipspace is True
 
         # Test that doc defaults from label:
         o = self.cls('my_param', doc=_('Hello world'))
@@ -266,6 +270,10 @@ class test_Param(ClassChecker):
             'include', frozenset(['server', 'foo']),
             'exclude', frozenset(['client', 'bar']),
         )
+
+        # Test that ValueError is raised if csv is set and multivalue is not set:
+        e = raises(ValueError, self.cls, 'my_param', csv=True)
+        assert str(e) == '%s: cannot have csv without multivalue' % "Param('my_param')"
 
         # Test that _get_default gets set:
         call1 = lambda first, last: first[0] + last
@@ -625,6 +633,48 @@ class test_Param(ClassChecker):
         assert_equal(default, u'The created default')
         assert o._convert_scalar.value is default
         assert o.normalizer.value is default
+
+    def test_csv_normalize(self):
+        """
+        Test the `ipalib.parameters.Param.normalize` method with csv.
+        """
+        o = self.cls('my_list+', csv=True)
+        n = o.normalize('a,b')
+        assert type(n) is tuple
+        assert len(n) is 2
+
+        n = o.normalize('bar,   "hi, there",foo')
+        assert type(n) is tuple
+        assert len(n) is 3
+
+    def test_csv_normalize_separator(self):
+        """
+        Test the `ipalib.parameters.Param.normalize` method with csv and a separator.
+        """
+        o = self.cls('my_list+', csv=True, csv_separator='|')
+
+        n = o.normalize('a')
+        assert type(n) is tuple
+        assert len(n) is 1
+
+        n = o.normalize('a|b')
+        assert type(n) is tuple
+        assert len(n) is 2
+
+    def test_csv_normalize_skipspace(self):
+        """
+        Test the `ipalib.parameters.Param.normalize` method with csv without skipping spaces.
+        """
+        o = self.cls('my_list+', csv=True, csv_skipspace=False)
+
+        n = o.normalize('a')
+        assert type(n) is tuple
+        assert len(n) is 1
+
+        n = o.normalize('a, "b,c", d')
+        assert type(n) is tuple
+        # the output w/o skipspace is ['a',' "b','c"',' d']
+        assert len(n) is 4
 
 
 class test_Flag(ClassChecker):
@@ -1323,66 +1373,6 @@ class test_Float(ClassChecker):
             assert dummy.message == 'can be at most %(maxvalue)f'
             assert dummy.called() is True
             dummy.reset()
-
-
-class test_List(ClassChecker):
-    """
-    Test the `ipalib.parameters.List` class.
-    """
-    _cls = parameters.List
-
-    def test_init(self):
-        """
-        Test the `ipalib.parameters.List.__init__` method.
-        """
-        # Test with no kwargs:
-        o = self.cls('my_list')
-        assert o.type is tuple
-        assert isinstance(o, parameters.List)
-        assert o.multivalue is True
-        assert o.skipspace is True
-
-    def test_normalize(self):
-        """
-        Test the `ipalib.parameters.List.normalize` method.
-        """
-        o = self.cls('my_list')
-        n = o.normalize('a,b')
-        assert type(n) is tuple
-        assert len(n) is 2
-
-        n = o.normalize('bar,   "hi, there",foo')
-        assert type(n) is tuple
-        assert len(n) is 3
-
-    def test_normalize_separator(self):
-        """
-        Test the `ipalib.parameters.List.normalize` method with a separator.
-        """
-        o = self.cls('my_list', separator='|')
-
-        n = o.normalize('a')
-        assert type(n) is tuple
-        assert len(n) is 1
-
-        n = o.normalize('a|b')
-        assert type(n) is tuple
-        assert len(n) is 2
-
-    def test_normalize_skipspace(self):
-        """
-        Test the `ipalib.parameters.List.normalize` method without skipping spaces.
-        """
-        o = self.cls('my_list', skipspace=False)
-
-        n = o.normalize('a')
-        assert type(n) is tuple
-        assert len(n) is 1
-
-        n = o.normalize('a, "b,c", d')
-        assert type(n) is tuple
-        # the output w/o skipspace is ['a',' "b','c"',' d']
-        assert len(n) is 4
 
 class test_AccessTime(ClassChecker):
     """

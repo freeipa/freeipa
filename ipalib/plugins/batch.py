@@ -47,7 +47,7 @@ And then a nested response for each IPA command method sent in the request
 
 from ipalib import api, errors
 from ipalib import Command
-from ipalib import Str, List
+from ipalib.parameters import Str, Any
 from ipalib.output import Output
 from ipalib import output
 from ipalib.text import _
@@ -58,10 +58,10 @@ class batch(Command):
     NO_CLI = True
 
     takes_args = (
-        List('methods?',
-             doc=_('Nested Methods to execute'),
-             ),
-        )
+        Any('methods*',
+            doc=_('Nested Methods to execute'),
+        ),
+    )
 
     take_options = (
         Str('version',
@@ -71,7 +71,7 @@ class batch(Command):
             flags=['no_option', 'no_output'],
             default=API_VERSION,
             autofill=True,
-            )
+        ),
     )
 
     has_output = (

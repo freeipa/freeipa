@@ -19,7 +19,7 @@
 
 import copy
 from ipalib import api, _, ngettext
-from ipalib import Flag, Str, List
+from ipalib import Flag, Str
 from ipalib.request import context
 from ipalib import api, crud, errors
 from ipalib import output
@@ -110,16 +110,18 @@ class delegation(Object):
             doc=_('Delegation name'),
             primary_key=True,
         ),
-        List('permissions?',
+        Str('permissions*',
             cli_name='permissions',
             label=_('Permissions'),
             doc=_('Comma-separated list of permissions to grant ' \
                 '(read, write). Default is write.'),
+            csv=True,
         ),
-        List('attrs',
+        Str('attrs+',
             cli_name='attrs',
             label=_('Attributes'),
             doc=_('Comma-separated list of attributes'),
+            csv=True,
             normalizer=lambda value: value.lower(),
         ),
         Str('memberof',
