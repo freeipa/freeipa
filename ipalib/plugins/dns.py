@@ -24,7 +24,7 @@ import re
 
 from ipalib import api, errors, output
 from ipalib import Command
-from ipalib import Flag, Bool, Int, List, Str, StrEnum
+from ipalib import Flag, Bool, Int, Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.util import validate_zonemgr, normalize_zonemgr, validate_hostname
@@ -1040,16 +1040,16 @@ class dnsrecord_cmd_w_record_options(Command):
         validator = _record_validators.get(rec_type)
         normalizer = _record_normalizers.get(rec_type)
         if validator:
-            return List(
-                '%srecord?' % rec_type.lower(), validator, normalizer=normalizer,
+            return Str(
+                '%srecord*' % rec_type.lower(), validator, normalizer=normalizer,
                 cli_name='%s_rec' % rec_type.lower(), doc=doc,
-                label='%s record' % rec_type, attribute=True
+                label='%s record' % rec_type, csv=True, attribute=True
             )
         else:
-            return List(
-                '%srecord?' % rec_type.lower(), cli_name='%s_rec' % rec_type.lower(),
+            return Str(
+                '%srecord*' % rec_type.lower(), cli_name='%s_rec' % rec_type.lower(),
                 normalizer=normalizer, doc=doc, label='%s record' % rec_type,
-                attribute=True
+                csv=True, attribute=True
             )
 
     def prompt_record_options(self, rec_type_list):

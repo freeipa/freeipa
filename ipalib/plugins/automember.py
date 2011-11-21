@@ -109,18 +109,18 @@ INCLUDE_RE = 'automemberinclusiveregex'
 EXCLUDE_RE = 'automemberexclusiveregex'
 
 regex_attrs = (
-    List('automemberinclusiveregex?',
+    Str('automemberinclusiveregex*',
         cli_name='inclusive_regex',
         label=_('Inclusive Regex'),
         doc=_('Inclusive Regex'),
-        multivalue=True,
+        csv=True,
         alwaysask=True,
     ),
-    List('automemberexclusiveregex?',
+    Str('automemberexclusiveregex*',
         cli_name='exclusive_regex',
         label=_('Exclusive Regex'),
         doc=_('Exclusive Regex'),
-        multivalue=True,
+        csv=True,
         alwaysask=True,
     ),
     Str('key',

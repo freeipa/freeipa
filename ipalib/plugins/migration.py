@@ -21,7 +21,7 @@ import re
 import ldap as _ldap
 
 from ipalib import api, errors, output
-from ipalib import Command, List, Password, Str, Flag, StrEnum
+from ipalib import Command, Password, Str, Flag, StrEnum
 from ipalib.cli import to_cli
 from ipalib.dn import *
 if api.env.in_server and api.env.context in ['lite', 'server']:
@@ -351,45 +351,51 @@ class migrate_ds(Command):
             default=u'ou=groups',
             autofill=True,
         ),
-        List('userobjectclass?',
+        Str('userobjectclass*',
             cli_name='user_objectclass',
             label=_('User object class'),
             doc=_('Comma-separated list of objectclasses used to search for user entries in DS'),
+            csv=True,
             default=(u'person',),
             autofill=True,
         ),
-        List('groupobjectclass?',
+        Str('groupobjectclass*',
             cli_name='group_objectclass',
             label=_('Group object class'),
             doc=_('Comma-separated list of objectclasses used to search for group entries in DS'),
+            csv=True,
             default=(u'groupOfUniqueNames', u'groupOfNames'),
             autofill=True,
         ),
-        List('userignoreobjectclass?',
+        Str('userignoreobjectclass*',
             cli_name='user_ignore_objectclass',
             label=_('Ignore user object class'),
             doc=_('Comma-separated list of objectclasses to be ignored for user entries in DS'),
+            csv=True,
             default=tuple(),
             autofill=True,
         ),
-        List('userignoreattribute?',
+        Str('userignoreattribute*',
             cli_name='user_ignore_attribute',
             label=_('Ignore user attribute'),
             doc=_('Comma-separated list of attributes to be ignored for user entries in DS'),
+            csv=True,
             default=tuple(),
             autofill=True,
         ),
-        List('groupignoreobjectclass?',
+        Str('groupignoreobjectclass*',
             cli_name='group_ignore_objectclass',
             label=_('Ignore group object class'),
             doc=_('Comma-separated list of objectclasses to be ignored for group entries in DS'),
+            csv=True,
             default=tuple(),
             autofill=True,
         ),
-        List('groupignoreattribute?',
+        Str('groupignoreattribute*',
             cli_name='group_ignore_attribute',
             label=_('Ignore group attribute'),
             doc=_('Comma-separated list of attributes to be ignored for group entries in DS'),
+            csv=True,
             default=tuple(),
             autofill=True,
         ),
@@ -457,9 +463,9 @@ can use their Kerberos accounts.''')
             ldap_obj = self.api.Object[ldap_obj_name]
             name = 'exclude_%ss' % to_cli(ldap_obj_name)
             doc = self.exclude_doc % ldap_obj.object_name_plural
-            yield List(
-                '%s?' % name, cli_name=name, doc=doc, default=tuple(),
-                autofill=True
+            yield Str(
+                '%s*' % name, cli_name=name, doc=doc, csv=True,
+                default=tuple(), autofill=True
             )
 
     def normalize_options(self, options):
@@ -470,7 +476,7 @@ can use their Kerberos accounts.''')
         plugin doesn't like that - convert back to empty lists.
         """
         for p in self.params():
-            if isinstance(p, List):
+            if p.csv:
                 if options[p.name]:
                     options[p.name] = tuple(
                         v.lower() for v in options[p.name]

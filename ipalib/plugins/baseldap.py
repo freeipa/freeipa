@@ -27,7 +27,7 @@ from copy import deepcopy
 
 from ipalib import api, crud, errors
 from ipalib import Method, Object, Command
-from ipalib import Flag, Int, List, Str
+from ipalib import Flag, Int, Str
 from ipalib.base import NameSpace
 from ipalib.cli import to_cli, from_cli
 from ipalib import output
@@ -1298,8 +1298,9 @@ class LDAPModMember(LDAPQuery):
                 ldap_obj = self.api.Object[ldap_obj_name]
                 name = to_cli(ldap_obj_name)
                 doc = self.member_param_doc % ldap_obj.object_name_plural
-                yield List('%s?' % name, cli_name='%ss' % name, doc=doc,
-                           label=_('member %s') % ldap_obj.object_name, alwaysask=True)
+                yield Str('%s*' % name, cli_name='%ss' % name, doc=doc,
+                          label=_('member %s') % ldap_obj.object_name,
+                          csv=True, alwaysask=True)
 
     def get_member_dns(self, **options):
         dns = {}
@@ -1593,18 +1594,18 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
                     ldap_obj.object_name_plural
                 )
                 name = '%s%s' % (relationship[1], to_cli(ldap_obj_name))
-                yield List(
-                    '%s?' % name, cli_name='%ss' % name, doc=doc,
-                    label=ldap_obj.object_name
+                yield Str(
+                    '%s*' % name, cli_name='%ss' % name, doc=doc,
+                    label=ldap_obj.object_name, csv=True
                 )
                 doc = self.member_param_excl_doc % (
                     self.obj.object_name_plural, relationship[0].lower(),
                     ldap_obj.object_name_plural
                 )
                 name = '%s%s' % (relationship[2], to_cli(ldap_obj_name))
-                yield List(
-                    '%s?' % name, cli_name='%ss' % name, doc=doc,
-                    label=ldap_obj.object_name
+                yield Str(
+                    '%s*' % name, cli_name='%ss' % name, doc=doc,
+                    label=ldap_obj.object_name, csv=True
                 )
 
     def get_member_filter(self, ldap, **options):
@@ -1784,8 +1785,9 @@ class LDAPModReverseMember(LDAPQuery):
                 ldap_obj = self.api.Object[ldap_obj_name]
                 name = to_cli(ldap_obj_name)
                 doc = self.reverse_param_doc % ldap_obj.object_name_plural
-                yield List('%s?' % name, cli_name='%ss' % name, doc=doc,
-                           label=ldap_obj.object_name, alwaysask=True)
+                yield Str('%s*' % name, cli_name='%ss' % name, doc=doc,
+                          label=ldap_obj.object_name, csv=True,
+                          alwaysask=True)
 
 
 class LDAPAddReverseMember(LDAPModReverseMember):

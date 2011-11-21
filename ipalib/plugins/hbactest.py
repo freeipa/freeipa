@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api, errors, output
-from ipalib import Command, List, Str, Flag
+from ipalib import Command, Str, Flag
 from types import NoneType
 from ipalib.cli import to_cli
 from ipalib import _, ngettext
@@ -186,9 +186,10 @@ class hbactest(Command):
             cli_name='service',
             label=_('Service'),
         ),
-        List('rules?',
+        Str('rules*',
              cli_name='rules',
              label=_('Rules to test. If not specified, --enabled is assumed'),
+             csv=True,
         ),
         Flag('nodetail?',
              cli_name='nodetail',
