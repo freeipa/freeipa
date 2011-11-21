@@ -91,6 +91,7 @@ static int ipadb_ldap_attr_to_tl_data(LDAP *lcontext, LDAPMessage *le,
 
     *result = NULL;
     prev = NULL;
+    next = NULL;
     vals = ldap_get_values_len(lcontext, le, attrname);
     if (vals) {
         for (i = 0; vals[i]; i++) {
