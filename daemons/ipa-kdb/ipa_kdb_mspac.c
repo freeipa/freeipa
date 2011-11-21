@@ -84,6 +84,11 @@ static char *user_pac_attrs[] = {
     NULL
 };
 
+char *deref_search_attrs[] = {
+    "memberOf",
+    NULL
+};
+
 static char *memberof_pac_attrs[] = {
     "gidNumber",
     "ipaNTSecurityIdentifier",
@@ -502,8 +507,10 @@ static krb5_error_code ipadb_get_pac(krb5_context kcontext,
 
 
     /* == Search PAC info == */
-    kerr = ipadb_deref_search(ipactx, ied->entry_dn, user_pac_attrs,
-                              "memberOf", memberof_pac_attrs, &results);
+    kerr = ipadb_deref_search(ipactx, ied->entry_dn, LDAP_SCOPE_BASE,
+                              "(objectclass=*)", user_pac_attrs,
+                              deref_search_attrs, memberof_pac_attrs,
+                              &results);
     if (kerr) {
         goto done;
     }
