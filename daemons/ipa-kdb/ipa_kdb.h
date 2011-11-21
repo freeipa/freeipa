@@ -123,8 +123,11 @@ krb5_error_code ipadb_simple_modify(struct ipadb_context *ipactx,
 krb5_error_code ipadb_simple_delete_val(struct ipadb_context *ipactx,
                                         char *dn, char *attr, char *value);
 krb5_error_code ipadb_deref_search(struct ipadb_context *ipactx,
-                                   char *entry_dn, char **entry_attrs,
-                                   char *deref_attr_name, char **deref_attrs,
+                                   char *base_dn, int scope,
+                                   char *filter,
+                                   char **entry_attrs,
+                                   char **deref_attr_names,
+                                   char **deref_attrs,
                                    LDAPMessage **res);
 
 int ipadb_ldap_attr_to_int(LDAP *lcontext, LDAPMessage *le,

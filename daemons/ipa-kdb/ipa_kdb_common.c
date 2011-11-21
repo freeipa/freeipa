@@ -265,24 +265,39 @@ done:
 }
 
 krb5_error_code ipadb_deref_search(struct ipadb_context *ipactx,
-                                   char *entry_dn, char **entry_attrs,
-                                   char *deref_attr_name, char **deref_attrs,
+                                   char *base_dn, int scope,
+                                   char *filter,
+                                   char **entry_attrs,
+                                   char **deref_attr_names,
+                                   char **deref_attrs,
                                    LDAPMessage **res)
 {
     struct berval derefval = { 0, NULL };
     LDAPControl *ctrl[2] = { NULL, NULL };
-    LDAPDerefSpec ds[2];
+    LDAPDerefSpec *ds;
     krb5_error_code kerr;
     int times;
     int ret;
+    int c;
 
-    ds[0].derefAttr = deref_attr_name;
-    ds[0].attributes = deref_attrs;
-    ds[1].derefAttr = NULL;
+    for (c = 0; deref_attr_names[c]; c++) {
+        /* count */ ;
+    }
+
+    ds = calloc(c, sizeof(LDAPDerefSpec));
+    if (!ds) {
+        return ENOMEM;
+    }
+
+    for (c = 0; deref_attr_names[c]; c++) {
+        ds[c].derefAttr = deref_attr_names[c];
+        ds[c].attributes = deref_attrs;
+    }
 
     ret = ldap_create_deref_control_value(ipactx->lcontext, ds, &derefval);
     if (ret != LDAP_SUCCESS) {
-        return ENOMEM;
+        kerr = ENOMEM;
+        goto done;
     }
 
     ret = ldap_control_create(LDAP_CONTROL_X_DEREF,
@@ -297,8 +312,8 @@ krb5_error_code ipadb_deref_search(struct ipadb_context *ipactx,
     ret = LDAP_SUCCESS;
     while (!ipadb_need_retry(ipactx, ret) && times > 0) {
         times--;
-        ret = ldap_search_ext_s(ipactx->lcontext, entry_dn,
-                                LDAP_SCOPE_BASE, "(objectclass=*)",
+        ret = ldap_search_ext_s(ipactx->lcontext, base_dn,
+                                scope, filter,
                                 entry_attrs, 0,
                                 ctrl, NULL,
                                 &std_timeout, LDAP_NO_LIMIT,
@@ -309,6 +324,7 @@ krb5_error_code ipadb_deref_search(struct ipadb_context *ipactx,
 
 done:
     ldap_memfree(derefval.bv_val);
+    free(ds);
     return kerr;
 }
 
