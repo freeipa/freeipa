@@ -405,7 +405,7 @@ IPA.adder_dialog = function(spec) {
             'class': 'adder-dialog-buttons'
         }).appendTo(container);
 
-        var p = $('<p/>').appendTo(buttons_panel);
+        var div = $('<div/>').appendTo(buttons_panel);
         IPA.button({
             name: 'add',
             label: '>>',
@@ -414,9 +414,9 @@ IPA.adder_dialog = function(spec) {
                 that.update_buttons();
                 return false;
             }
-        }).appendTo(p);
+        }).appendTo(div);
 
-        p = $('<p/>').appendTo(buttons_panel);
+        div = $('<div/>').appendTo(buttons_panel);
         IPA.button({
             name: 'remove',
             label: '<<',
@@ -425,7 +425,7 @@ IPA.adder_dialog = function(spec) {
                 that.update_buttons();
                 return false;
             }
-        }).appendTo(p);
+        }).appendTo(div);
 
         that.filter_field = $('input[name=filter]', that.container);
 

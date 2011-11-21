@@ -126,12 +126,6 @@ body {
     font-size: 11px;
 }
 
-.input_link {
-    text-decoration: none;
-    position: relative;
-    cursor: pointer;
-}
-
 .icon {
     display: inline-block;
     height: 16px;
@@ -950,10 +944,6 @@ a, .ui-widget-content a {
     padding: 0.4em 1em;
 }
 
-[title=">>"] {
-    margin-top: 1em !important;
-}
-
 span.sub-nav-off > a:link, span.sub-nav-off >  a:visited{
     color:white;
 }
@@ -967,15 +957,25 @@ span.main-separator{
     padding:0.1em;
 }
 
-.action-button {
-    background: none;
-    background-image:none;
-    font-family: "Liberation Sans", Arial, sans-serif;
-    font-size: 0.9em;
+.button {
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-block;
+    height: 18px;
 }
 
-.action-button .button-label {
+.button-label {
     padding: 0 0.2em;
+    display: inline-block;
+    height: 16px;
+    line-height: 16px;
+}
+
+.action-button {
+    background: none;
+    background-image: none;
+    font-family: "Liberation Sans", Arial, sans-serif;
+    font-size: 0.9em;
 }
 
 .action-button-disabled {
@@ -1068,7 +1068,7 @@ table.scrollable tbody {
     left: 0;
     right: 0;
     height: 3em;
-    line-height: 3em;
+    line-height: 18px;
 }
 
 .adder-dialog-top input[name=filter] {
@@ -1149,6 +1149,10 @@ table.scrollable tbody {
     padding-top: 10em;
     width: 100%;
     text-align: center;
+}
+
+.adder-dialog-buttons .button {
+    position: relative;
 }
 
 .adder-dialog-internal {
