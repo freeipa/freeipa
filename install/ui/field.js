@@ -572,6 +572,103 @@ IPA.link_field = function(spec) {
     return that;
 };
 
+IPA.field_container = function(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    that.container = spec.container; //usually facet or dialog
+
+    that.fields = $.ordered_map();
+
+    that.get_field = function(name) {
+        return that.fields.get(name);
+    };
+
+    that.get_fields = function(name) {
+        return that.fields.values;
+    };
+
+    that.add_field = function(field) {
+        field.container = that.container;
+        that.fields.put(field.name, field);
+    };
+
+    that.widgets_created = function() {
+        var fields = that.fields.values;
+
+        for (var i=0; i<fields.length; i++) {
+            fields[i].widgets_created();
+        }
+    };
+
+    that.container_add_field = that.add_field;
+
+    return that;
+};
+
+IPA.field_builder = function(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    that.default_factory = spec.default_factory || IPA.field;
+    that.container = spec.container;
+    that.field_options = spec.field_options || {};
+
+    that.get_field_factory = function(spec) {
+
+        var factory;
+        if (spec.factory) {
+            factory = spec.factory;
+        } else if(spec.type) {
+            factory = IPA.field_factories[spec.type];
+        }
+
+        if (!factory) {
+            factory = that.default_factory;
+        }
+
+        return factory;
+    };
+
+    that.build_field = function(spec, container) {
+
+        container = container || that.container;
+
+        if(!(spec instanceof Object)) {
+            spec = { name: spec };
+        }
+
+        if(that.field_options) {
+            $.extend(spec, that.field_options);
+        }
+
+        var factory = that.get_field_factory(spec);
+
+        var field = factory(spec);
+
+        if(container) {
+            container.add_field(field);
+        }
+
+        return field;
+    };
+
+    that.build_fields = function(specs, container) {
+
+        container = container || that.container;
+
+        for(var i=0; i<specs.length; i++) {
+            that.build_field(specs[i], container);
+        }
+    };
+
+    return that;
+};
+
 IPA.field_factories['field'] = IPA.field;
 IPA.field_factories['text'] = IPA.field;
 IPA.field_factories['password'] = IPA.field;

@@ -1830,6 +1830,149 @@ IPA.html_util = function() {
     return that;
 }();
 
+IPA.widget_container = function(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    that.new_container_for_child = spec.new_container_for_child !== undefined ?
+    spec.new_container_for_child : true;
+
+    that.widgets = $.ordered_map();
+    that.widget_builder = spec.widget_builder || IPA.widget_builder();
+
+    that.add_widget = function(widget) {
+        that.widgets.put(widget.name, widget);
+    };
+
+    that.get_widget = function(path) {
+
+        var path_len = path.length;
+        var i = path.indexOf('.');
+        var name, child_path, widget, child;
+
+        if (i >= 0) {
+            name = path.substring(0, i);
+            child_path = path.substring(i + 1);
+
+            child = that.widgets.get(name);
+            widget = child.widgets.get_widget(child_path);
+        } else {
+            widget = that.widgets.get(path);
+        }
+
+        return widget;
+    };
+
+    that.get_widgets = function() {
+        return that.widgets.values;
+    };
+
+    that.create = function(container) {
+
+        var widgets = that.widgets.values;
+        for (var i=0; i<widgets.length; i++) {
+            var widget = widgets[i];
+
+            var child_container = container;
+            if(that.new_container_for_child) {
+                child_container = $('<div/>', {
+                    name: widget.name,
+                    title: widget.label,
+                    'class': widget['class']
+                }).appendTo(container);
+            }
+            widget.create(child_container);
+
+            if(i < widgets.length - 1) {
+                that.create_widget_delimiter(container);
+            }
+        }
+    };
+
+    that.clear = function() {
+
+        var widgets = that.widgets.values;
+        for (var i=0; i<widgets.length; i++) {
+            widgets[i].clear();
+        }
+    };
+
+    that.create_widget_delimiter = function(container) {
+    };
+
+    that.widget_container_create = that.create;
+    that.widget_container_clear = that.clear;
+
+    return that;
+};
+
+IPA.widget_builder = function(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    that.default_factory = spec.default_factory || IPA.text_widget;
+    that.container = spec.container;
+    that.widget_options = spec.widget_options || {};
+
+    that.get_widget_factory = function(spec) {
+
+        var factory;
+        if (spec.factory) {
+            factory = spec.factory;
+        } else if(spec.type) {
+            factory = IPA.widget_factories[spec.type];
+        }
+
+        if (!factory) {
+            factory = that.default_factory;
+        }
+
+        return factory;
+    };
+
+    that.build_widget = function(spec, container) {
+
+        container = container || that.container;
+
+        if(!(spec instanceof Object)) {
+            spec = { name: spec };
+        }
+
+        if(that.widget_options) {
+            $.extend(spec, that.widget_options);
+        }
+
+        var factory = that.get_widget_factory(spec);
+
+        var widget = factory(spec);
+
+        if(container) {
+            container.add_widget(widget);
+        }
+
+        if(spec.widgets) {
+            that.build_widgets(spec.widgets, widget.widgets);
+        }
+
+        return widget;
+    };
+
+    that.build_widgets = function(specs, container) {
+
+        container = container || that.container;
+
+        for(var i=0; i<specs.length; i++) {
+            that.build_widget(specs[i], container);
+        }
+    };
+
+    return that;
+};
+
 IPA.widget_factories['text'] = IPA.text_widget;
 IPA.widget_factories['password'] = IPA.password_widget;
 IPA.widget_factories['checkbox'] = IPA.checkbox_widget;
