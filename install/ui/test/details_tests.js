@@ -142,7 +142,7 @@ test("Testing details lifecycle: create, load.", function(){
     }
 
     function test_widget(spec){
-        var widget = IPA.widget(spec);
+        var widget = IPA.input_widget(spec);
 
         widget.load = function(record) {
             load_called = true;

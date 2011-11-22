@@ -96,7 +96,7 @@ IPA.service_adder_dialog = function(spec) {
     spec = spec || {};
 
     var that = IPA.entity_adder_dialog(spec).
-        field(IPA.widget({
+        field(IPA.input_widget({
             name: 'krbprincipalname',
             required: false,
             entity: spec.entity,
@@ -201,7 +201,7 @@ IPA.service_provisioning_status_widget = function (spec) {
 
     spec = spec || {};
 
-    var that = IPA.widget(spec);
+    var that = IPA.input_widget(spec);
 
     that.create = function(container) {
 
