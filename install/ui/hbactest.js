@@ -37,7 +37,7 @@ IPA.hbac.test_entity = function(spec) {
 
         that.builder.facet_groups([ 'default' ]).
         facet({
-            factory: IPA.hbac.test_facet,
+            factory: IPA.hbac.test_select_facet,
             name: 'user',
             label: 'Who',
             managed_entity_name: 'user',
@@ -50,7 +50,7 @@ IPA.hbac.test_entity = function(spec) {
             ]
         }).
         facet({
-            factory: IPA.hbac.test_facet,
+            factory: IPA.hbac.test_select_facet,
             name: 'targethost',
             label: 'Accessing',
             managed_entity_name: 'host',
@@ -66,7 +66,7 @@ IPA.hbac.test_entity = function(spec) {
             ]
         }).
         facet({
-            factory: IPA.hbac.test_facet,
+            factory: IPA.hbac.test_select_facet,
             name: 'service',
             label: 'Via Service',
             managed_entity_name: 'hbacsvc',
@@ -78,7 +78,7 @@ IPA.hbac.test_entity = function(spec) {
             ]
         }).
         facet({
-            factory: IPA.hbac.test_facet,
+            factory: IPA.hbac.test_select_facet,
             name: 'sourcehost',
             label: 'From Host',
             managed_entity_name: 'host',
@@ -100,7 +100,6 @@ IPA.hbac.test_entity = function(spec) {
             managed_entity_name: 'hbacrule',
             disable_breadcrumb: true,
             facet_group: 'default',
-            multivalued: true,
             columns: [
                 'cn',
                 'ipaenabledflag',
@@ -135,7 +134,6 @@ IPA.hbac.test_facet = function(spec) {
     spec = spec || {};
 
     var that = IPA.table_facet(spec);
-    that.multivalued = spec.multivalued;
 
     var init = function() {
 
@@ -151,51 +149,6 @@ IPA.hbac.test_facet = function(spec) {
         }
 
         that.init_table(that.managed_entity);
-        that.table.multivalued = that.multivalued ? true : false;
-    };
-
-    that.create_content = function(container) {
-
-        var header = $('<h3/>', {
-            text: that.label
-        }).appendTo(container);
-
-        var filter_container = $('<div/>', {
-            'class': 'search-filter'
-        }).appendTo(header);
-
-        that.filter = $('<input/>', {
-            type: 'text',
-            name: 'filter'
-        }).appendTo(filter_container);
-
-        that.filter.keypress(function(e) {
-            /* if the key pressed is the enter key */
-            if (e.which == 13) {
-                that.find();
-            }
-        });
-
-        that.find_button = IPA.action_button({
-            name: 'find',
-            icon: 'search-icon',
-            click: function() {
-                that.find();
-                return false;
-            }
-        }).appendTo(filter_container);
-
-        header.append(IPA.create_network_spinner());
-
-        var div = $('<div/>', {
-            style: 'position: relative; height: 200px'
-        }).appendTo(container);
-
-        that.table.create(div);
-
-        container.append('<br/>');
-
-        that.create_buttons(container);
     };
 
     that.create_buttons = function(container) {
@@ -311,13 +264,124 @@ IPA.hbac.test_facet = function(spec) {
         command.execute();
     };
 
+    init();
+
+    return that;
+};
+
+IPA.hbac.test_select_facet = function(spec) {
+
+    var that = IPA.hbac.test_facet(spec);
+
+    var init = function() {
+        that.table.multivalued = false;
+
+        that.table.set_values = function(values) {
+            if (values && values.length && values[0] === '__external__') {
+                if (that.external_radio) that.external_radio.attr('checked', true);
+            } else {
+                that.table.table_set_values(values);
+            }
+        };
+    };
+
+    that.create_content = function(container) {
+
+        var header = $('<h3/>', {
+            text: that.label
+        }).appendTo(container);
+
+        var filter_container = $('<div/>', {
+            'class': 'search-filter'
+        }).appendTo(header);
+
+        that.filter = $('<input/>', {
+            type: 'text',
+            name: 'filter'
+        }).appendTo(filter_container);
+
+        that.filter.keypress(function(e) {
+            /* if the key pressed is the enter key */
+            if (e.which == 13) {
+                that.find();
+            }
+        });
+
+        that.find_button = IPA.action_button({
+            name: 'find',
+            icon: 'search-icon',
+            click: function() {
+                that.find();
+                return false;
+            }
+        }).appendTo(filter_container);
+
+        header.append(IPA.create_network_spinner());
+
+        var div = $('<div/>', {
+            style: 'position: relative; height: 200px'
+        }).appendTo(container);
+
+        that.table.create(div);
+
+        container.append('<br/>');
+
+        var id = that.entity.name+'-'+that.name+'-external';
+        var pkey_name = that.managed_entity.metadata.primary_key;
+
+        that.external_radio = $('<input/>', {
+            id: id,
+            type: 'radio',
+            name: pkey_name,
+            value: '__external__',
+            click: function() {
+                that.selected_values = [ that.external_radio.val() ];
+            }
+        }).appendTo(container);
+
+        $('<label/>', {
+            text: 'Specify external '+that.managed_entity.metadata.label_singular+':',
+            'for': id
+        }).appendTo(container);
+
+        container.append(' ');
+
+        that.external_text = $('<input/>', {
+            name: 'external',
+            focus: function() {
+                that.external_radio.click();
+            }
+        }).appendTo(container);
+
+        container.append('<br/>');
+
+        that.create_buttons(container);
+    };
+
+    that.get_selected_values = function() {
+        var values = that.table.get_selected_values();
+        if (values && values.length) return values;
+
+        if (that.external_radio && that.external_radio.is(':checked')) {
+            return [ that.external_radio.val() ];
+        }
+
+        return [];
+    };
+
     that.reset = function() {
         that.table.set_values([]);
+        if (that.external_radio) that.external_radio.attr('checked', false);
     };
 
     that.save = function(record) {
         if (that.selected_values && that.selected_values.length) {
-            record[that.name] = that.selected_values[0];
+            var value = that.selected_values[0];
+            if (that.external_radio && value === that.external_radio.val()) {
+                record[that.name] = that.external_text.val();
+            } else {
+                record[that.name] = value;
+            }
         }
     };
 
@@ -380,6 +444,10 @@ IPA.hbac.test_rules_facet = function(spec) {
         that.create_buttons(container);
     };
 
+    that.get_selected_values = function() {
+        return that.table.get_selected_values();
+    };
+
     that.reset = function() {
         that.table.set_values([]);
         if (that.enabled) that.enabled.attr('checked', false);
@@ -397,6 +465,7 @@ IPA.hbac.test_rules_facet = function(spec) {
             record['disabled'] = true;
         }
     };
+
     init();
 
     return that;
