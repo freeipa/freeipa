@@ -127,30 +127,23 @@ IPA.entity_adder_dialog = function(spec) {
         var record = {};
         that.save(record);
 
-        var sections = that.sections.values;
-        for (var i=0; i<sections.length; i++) {
-            var section = sections[i];
+        var fields = that.fields.get_fields();
+        for (var j=0; j<fields.length; j++) {
+            var field = fields[j];
 
-            var section_fields = section.fields.values;
-            for (var j=0; j<section_fields.length; j++) {
-                var field = section_fields[j];
+            var values = record[field.name];
+            if (!values) continue;
 
-                var values = record[field.name];
-                if (!values) continue;
+            // TODO: Handle multi-valued attributes like in detail facet's update()
+            var value = values.join(',');
+            if (!value) continue;
 
-                // TODO: Handle multi-valued attributes like in detail facet's update()
-                var value = values.join(',');
-                if (!value) continue;
-
-                if (field.name == pkey_name) {
-                    command.add_arg(value);
-                } else {
-                    command.set_option(field.name, value);
-                }
+            if (field.name == pkey_name) {
+                command.add_arg(value);
+            } else {
+                command.set_option(field.name, value);
             }
         }
-
-        //alert(JSON.stringify(command.to_json()));
 
         if (that.pre_execute_hook) {
             that.pre_execute_hook(command);

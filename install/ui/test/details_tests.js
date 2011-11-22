@@ -64,7 +64,7 @@ test("Testing IPA.details_section.create().", function() {
 
     section.entity_name = 'user';
 
-    var fields = section.fields.values;
+    var fields = section.fields.get_fields();
     var container = $("<div/>");
     section.create(container);
 
@@ -276,7 +276,7 @@ test("Testing IPA.details_section_create again()",function(){
         text({name:'cn', label:'Entity Name'}).
         text({name:'description', label:'Description'}).
         text({name:'number', label:'Entity ID'});
-    var fields = section.fields.values;
+    var fields = section.fields.get_fields();
     var container = $("<div title='entity'/>");
     var details = $("<div/>");
     container.append(details);

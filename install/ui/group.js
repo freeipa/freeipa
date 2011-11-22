@@ -150,13 +150,13 @@ IPA.group_adder_dialog = function(spec) {
 
     var init = function() {
 
-        var posix_field = that.get_field('nonposix');
+        var posix_field = that.fields.get_field('nonposix');
         posix_field.value_changed.attach(that.on_posix_change);
     };
 
     that.on_posix_change = function (value) {
 
-        var gid_field = that.get_field('gidnumber');
+        var gid_field = that.fields.get_field('gidnumber');
         if(value) {
             gid_field.reset();
         }

@@ -197,8 +197,8 @@ IPA.host_fqdn_section = function(spec) {
     that.create = function(container) {
         that.container = container;
 
-        var hostname = that.get_field('hostname');
-        var dnszone = that.get_field('dnszone');
+        var hostname = that.fields.get_field('hostname');
+        var dnszone = that.fields.get_field('dnszone');
 
         var table = $('<table/>', {
             'class': 'fqdn'
@@ -268,10 +268,10 @@ IPA.host_fqdn_section = function(spec) {
     };
 
     that.save = function(record) {
-        var field = that.get_field('hostname');
+        var field = that.fields.get_field('hostname');
         var hostname = field.save()[0];
 
-        field = that.get_field('dnszone');
+        field = that.fields.get_field('dnszone');
         var dnszone = field.save()[0];
 
         record.fqdn = hostname && dnszone ? [ hostname+'.'+dnszone ] : [];
@@ -444,8 +444,8 @@ IPA.host_enrollment_section = function(spec) {
     that.create = function(container) {
         that.table_section_create(container);
 
-        var keytab_field = that.get_field('has_keytab');
-        var password_field = that.get_field('has_password');
+        var keytab_field = that.fields.get_field('has_keytab');
+        var password_field = that.fields.get_field('has_password');
 
         /**
          * The set_password() in the password field is being customized to

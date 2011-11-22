@@ -37,7 +37,7 @@ IPA.rule_details_section = function(spec) {
 
         that.container = container;
 
-        var field = that.get_field(that.field_name);
+        var field = that.fields.get_field(that.field_name);
         var metadata = IPA.get_entity_param(that.entity.name, that.field_name);
 
         container.append(metadata.doc+':');
@@ -55,13 +55,13 @@ IPA.rule_details_section = function(spec) {
             for (var i=0; i<that.tables.length; i++) {
                 var table = that.tables[i];
 
-                var field = that.get_field(table.field_name);
+                var field = that.fields.get_field(table.field_name);
                 field.set_enabled(enabled);
             }
         }
 
         if (that.options.length) {
-            var category = that.get_field(that.field_name);
+            var category = that.fields.get_field(that.field_name);
             category.options=that.options;
             category.reset = function() {
                 category.widget_reset();
@@ -95,7 +95,7 @@ IPA.rule_details_section = function(spec) {
                 'class': 'field'
             }).appendTo(span);
 
-            field = that.get_field(table.field_name);
+            field = that.fields.get_field(table.field_name);
             field.create(table_span);
         }
 

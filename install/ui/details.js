@@ -4,6 +4,7 @@
  *    Pavel Zuna <pzuna@redhat.com>
  *    Adam Young <ayoung@redhat.com>
  *    Endi S. Dewata <edewata@redhat.com>
+ *    Petr Vobornik <pvoborni@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -162,295 +163,13 @@ IPA.section_builder = function(spec) {
     return that;
 };
 
-IPA.details_section = function(spec) {
-
-    spec = spec || {};
-
-    var that = {};
-
-    that.name = spec.name || '';
-    that.label = spec.label || '';
-    that.entity = spec.entity;
-    that.fields = $.ordered_map();
-
-    that.dirty = false;
-    that.dirty_changed = IPA.observer();
-
-    that.undo = typeof spec.undo == 'undefined' ? true : spec.undo;
-
-    var init = function() {
-        var fields = spec.fields || [];
-        that.add_fields(fields);
-    };
-
-    that.get_field = function(name) {
-        return that.fields.get(name);
-    };
-
-    that.add_field = function(field) {
-        field.entity = that.entity;
-        field.undo = that.undo;
-        that.fields.put(field.name, field);
-        field.dirty_changed.attach(that.field_dirty_changed);
-        return field;
-    };
-
-    that.add_fields = function(fields) {
-        for (var i=0; i<fields.length; i++) {
-            var field_spec = fields[i];
-            var field;
-
-            if (field_spec instanceof Object) {
-                var factory = field_spec.factory || IPA.text_widget;
-                field_spec.entity = that.entity;
-                field = factory(field_spec);
-                that.add_field(field);
-
-            } else {
-                that.text({ name: field_spec });
-            }
-        }
-    };
-
-    that.field = function(field) {
-        that.add_field(field);
-        return that;
-    };
-
-    that.text = function(spec) {
-        spec.entity = that.entity;
-        var field = IPA.text_widget(spec);
-        that.add_field(field);
-        return that;
-    };
-
-    that.multivalued_text = function(spec) {
-        spec.entity = that.entity;
-        var field = IPA.multivalued_text_widget(spec);
-        that.add_field(field);
-        return that;
-    };
-
-    that.textarea = function(spec) {
-        spec.entity = that.entity;
-        var field = IPA.textarea_widget(spec);
-        that.add_field(field);
-        return that;
-    };
-
-    that.radio = function(spec) {
-        spec.entity = that.entity;
-        var field = IPA.radio_widget(spec);
-        that.add_field(field);
-        return that;
-    };
-
-    that.create = function(container) {
-        that.container = container;
-
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            var field = fields[i];
-
-            var field_container = $('<div/>', {
-                name: field.name,
-                title: field.label,
-                'class': 'field'
-            });
-
-            if (field.hidden) {
-                field_container.css('display', 'none');
-            }
-
-            field_container.appendTo(container);
-
-            field.create(field_container);
-        }
-    };
-
-    that.load = function(record) {
-
-        that.record = record;
-
-        var fields = that.fields.values;
-        for (var j=0; j<fields.length; j++) {
-            var field = fields[j];
-            field.load(record);
-        }
-    };
-
-    that.save = function(record) {
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            var field = fields[i];
-            record[field.name] = field.save();
-        }
-    };
-
-    that.reset = function() {
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            var field = fields[i];
-            field.reset();
-        }
-    };
-
-    that.field_dirty_changed = function(dirty) {
-        var old = that.dirty;
-
-        if(dirty) {
-            that.dirty = true;
-        } else {
-            that.dirty = that.is_dirty();
-        }
-
-        if(old !== that.dirty) {
-            that.dirty_changed.notify([that.dirty], that);
-        }
-    };
-
-    that.is_dirty = function() {
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            var field = fields[i];
-            if (field.is_dirty()) {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    that.validate = function() {
-        var valid = true;
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            var field = fields[i];
-            valid &= field.validate() && field.validate_required();
-        }
-        return valid;
-    };
-
-    that.set_visible = function(visible) {
-        if (visible) {
-            that.container.show();
-        } else {
-            that.container.hide();
-        }
-    };
-
-    that.clear = function() {
-        var fields = that.fields.values;
-
-        for (var i=0; i< fields.length; i++) {
-            fields[i].clear();
-        }
-    };
-
-    that.get_update_info = function() {
-
-        var update_info = IPA.update_info_builder.new_update_info();
-
-        var fields = that.fields.values;
-        for(var i=0; i < fields.length; i++) {
-            update_info = IPA.update_info_builder.merge(
-                update_info,
-                fields[i].get_update_info());
-        }
-
-        return update_info;
-    };
-
-    init();
-
-    // methods that should be invoked by subclasses
-    that.section_create = that.create;
-    that.section_load = that.load;
-    that.section_reset = that.reset;
-
-    return that;
-};
-
-IPA.details_table_section = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.details_section(spec);
-
-    that.rows = $.ordered_map();
-
-    that.create = function(container) {
-        that.container = container;
-
-        // do not call section_create() here
-
-        var table = $('<table/>', {
-            'class': 'section-table'
-        }).appendTo(that.container);
-
-        var fields = that.fields.values;
-        for (var i=0; i<fields.length; i++) {
-            var field = fields[i];
-
-            var tr = $('<tr/>');
-            that.add_row(field.name, tr);
-
-            if (field.hidden) {
-                tr.css('display', 'none');
-            }
-
-            tr.appendTo(table);
-
-            var td = $('<td/>', {
-                'class': 'section-cell-label',
-                title: field.label
-            }).appendTo(tr);
-
-            $('<label/>', {
-                name: field.name,
-                'class': 'field-label',
-                text: field.label+':'
-            }).appendTo(td);
-
-            field.create_required(td);
-
-            td = $('<td/>', {
-                'class': 'section-cell-field',
-                title: field.label
-            }).appendTo(tr);
-
-            var field_container = $('<div/>', {
-                name: field.name,
-                'class': 'field'
-            }).appendTo(td);
-
-            field.create(field_container);
-        }
-    };
-
-    that.add_row = function(name, row) {
-        that.rows.put(name, row);
-    };
-
-    that.get_row = function(name) {
-        return that.rows.get(name);
-    };
-
-    that.set_row_visible = function(name, visible) {
-        var row = that.get_row(name);
-        row.css('display', visible ? '' : 'none');
-    };
-
-    that.table_section_create = that.create;
-
-    return that;
-};
-
 IPA.details_facet = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'details';
 
     var that = IPA.facet(spec);
+
     that.entity = spec.entity;
     that.pre_execute_hook = spec.pre_execute_hook;
     that.post_update_hook = spec.post_update_hook;
@@ -460,57 +179,18 @@ IPA.details_facet = function(spec) {
     that.label = spec.label || IPA.messages && IPA.messages.facets && IPA.messages.facets.details;
     that.facet_group = spec.facet_group || 'settings';
 
-    that.sections = $.ordered_map();
+    that.widgets = IPA.widget_container();
+    that.fields = IPA.field_container({ container: that });
 
-    that.add_sections = function(sections) {
+    that.fields.add_field = function(field) {
 
-        if(sections) {
-            for(var i=0; i < sections.length; i++) {
-
-                    var section_spec = sections[i];
-                    section_spec.entity = that.entity;
-
-                    if (!section_spec.label) {
-                        var obj_messages = IPA.messages.objects[that.entity.name];
-                        section_spec.label = obj_messages[section_spec.name];
-                    }
-
-                    section_spec.factory = section_spec.factory || IPA.details_table_section;
-                    var section = section_spec.factory(section_spec);
-
-                    that.add_section(section);
-            }
+        if (field.dirty_changed) {
+            field.dirty_changed.attach(that.field_dirty_changed);
         }
+        that.fields.container_add_field(field);
     };
 
     that.dirty = false;
-
-    that.add_section = function(section) {
-        section.entity = that.entity;
-        that.sections.put(section.name, section);
-        section.dirty_changed.attach(that.section_dirty_changed);
-        return section;
-    };
-
-    that.get_section = function(name) {
-        return that.sections.get(name);
-    };
-
-    that.create_section = function(spec) {
-        spec.entity = that.entity;
-        var section = IPA.details_section(spec);
-        that.add_section(section);
-        return section;
-    };
-
-    that.get_fields = function() {
-        var fields = [];
-        for (var i=0; i<that.sections.length; i++) {
-            var section = that.sections.values[i];
-            $.merge(fields, section.fields.values);
-        }
-        return fields;
-    };
 
     /* the primary key used for show and update is built as an array.
        for most entities, this will be a single element long, but for some
@@ -601,10 +281,12 @@ IPA.details_facet = function(spec) {
                 that.expand_button.css('display', 'none');
                 that.collapse_button.css('display', 'inline');
 
-                var sections = that.sections.values;
-                for (var i=0; i<sections.length; i++) {
-                    var section = sections[i];
-                    that.toggle(section, true);
+                var widgets = that.widgets.get_widgets();
+                for (var i=0; i<widgets.length; i++) {
+                    var widget = widgets[i];
+                    if(widget.toggle) {
+                        widget.toggle(true);
+                    }
                 }
                 return false;
             }
@@ -619,14 +301,20 @@ IPA.details_facet = function(spec) {
                 that.expand_button.css('display', 'inline');
                 that.collapse_button.css('display', 'none');
 
-                var sections = that.sections.values;
-                for (var i=0; i<sections.length; i++) {
-                    var section = sections[i];
-                    that.toggle(section, false);
+                var widgets = that.widgets.get_widgets();
+                for (var i=0; i<widgets.length; i++) {
+                    var widget = widgets[i];
+                    if(widget.toggle) {
+                        widget.toggle(false);
+                    }
                 }
                 return false;
             }
         }).appendTo(that.controls);
+    };
+
+    that.widgets.create_widget_delimiter = function(container) {
+        container.append('<hr/>');
     };
 
     that.create_content = function(container) {
@@ -635,42 +323,7 @@ IPA.details_facet = function(spec) {
             'class': 'details-content'
         }).appendTo(container);
 
-        var sections = that.sections.values;
-        for (var i=0; i<sections.length; i++) {
-            var section = sections[i];
-
-            var header = $('<h2/>', {
-                name: section.name,
-                title: section.label
-            }).appendTo(that.content);
-
-            var icon = $('<span/>', {
-                name: 'icon',
-                'class': 'icon section-expand '+IPA.expanded_icon
-            }).appendTo(header);
-
-            header.append(' ');
-
-            header.append(section.label);
-
-            var div = $('<div/>', {
-                name: section.name,
-                'class': 'details-section'
-            }).appendTo(that.content);
-
-            header.click(function(section, div) {
-                return function() {
-                    var visible = div.is(":visible");
-                    that.toggle(section, !visible);
-                };
-            }(section, div));
-
-            section.create(div);
-
-            if (i < sections.length-1) {
-                that.content.append('<hr/>');
-            }
-        }
+        that.widgets.create(that.content);
 
         $('<span/>', {
             name: 'summary',
@@ -685,27 +338,13 @@ IPA.details_facet = function(spec) {
         that.header.set_pkey(that.pkey);
     };
 
-    that.toggle = function(section, visible) {
-        var header = $('h2[name='+section.name+']', that.container);
-
-        var icon = $('span[name=icon]', header);
-        icon.toggleClass(IPA.expanded_icon, visible);
-        icon.toggleClass(IPA.collapsed_icon, !visible);
-
-        var div = section.container;
-
-        if (visible != div.is(":visible")) {
-            div.slideToggle('slow');
-        }
-    };
-
     that.needs_update = function() {
         if (that._needs_update !== undefined) return that._needs_update;
         var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
         return pkey !== that.pkey;
     };
 
-    that.section_dirty_changed = function(dirty) {
+    that.field_dirty_changed = function(dirty) {
         if(dirty) {
             that.dirty = true;
         } else {
@@ -716,9 +355,9 @@ IPA.details_facet = function(spec) {
     };
 
     that.is_dirty = function() {
-        var sections = that.sections.values;
-        for (var i=0; i<sections.length; i++) {
-            if (sections[i].is_dirty()) {
+        var fields = that.fields.get_fields();
+        for (var i=0; i<fields.length; i++) {
+            if (fields[i].is_dirty()) {
                 return true;
             }
         }
@@ -746,19 +385,19 @@ IPA.details_facet = function(spec) {
     that.load = function(data) {
         that.facet_load(data);
 
-        var sections = that.sections.values;
-        for (var i=0; i<sections.length; i++) {
-            var section = sections[i];
-            section.load(data);
+        var fields = that.fields.get_fields();
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
+            field.load(data);
         }
         that.enable_update(false);
     };
 
     that.save = function(record) {
-        var sections = that.sections.values;
-        for (var i=0; i<sections.length; i++) {
-            var section = sections[i];
-            section.save(record);
+        var fields = that.fields.get_fields();
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
+            field.save(record);
         }
     };
 
@@ -766,33 +405,29 @@ IPA.details_facet = function(spec) {
 
         var record = {};
         var update_info = IPA.update_info_builder.new_update_info();
-        var sections = that.sections.values;
+        var fields = that.fields.get_fields();
 
         that.save(record);
 
-        for (var i=0; i<sections.length; i++) {
-            var section = sections[i];
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
 
-            var section_fields = section.fields.values;
-            for (var j=0; j<section_fields.length; j++) {
-                var field = section_fields[j];
-                if (only_dirty && !field.is_dirty()) continue;
+            if (only_dirty && !field.is_dirty()) continue;
 
-                var values = record[field.name];
-                if (require_value && !values) continue;
+            var values = record[field.name];
+            if (require_value && !values) continue;
 
-                update_info.append_field(field, values);
-            }
+            update_info.append_field(field, values);
         }
 
         return update_info;
     };
 
     that.reset = function() {
-        var sections = that.sections.values;
-        for (var i=0; i<sections.length; i++) {
-            var section = sections[i];
-            section.reset();
+        var fields = that.fields.get_fields();
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
+            field.reset();
         }
         that.enable_update(false);
     };
@@ -800,10 +435,10 @@ IPA.details_facet = function(spec) {
 
     that.validate = function() {
         var valid = true;
-        var sections = that.sections.values;
-        for (var i=0; i<sections.length; i++) {
-            var section = sections[i];
-            valid &= section.validate();
+        var fields = that.fields.get_fields();
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
+            valid &= field.validate() && field.validate_required();
         }
         return valid;
     };
@@ -971,30 +606,61 @@ IPA.details_facet = function(spec) {
 
     that.clear = function() {
         that.header.clear();
-        var sections = that.sections.values;
 
-        for (var i=0; i< sections.length; i++) {
-            sections[i].clear();
-        }
+        that.widgets.clear();
     };
 
     that.get_update_info = function() {
 
         var update_info = IPA.update_info_builder.new_update_info();
 
-        for (var i = 0; i < that.sections.length; i++) {
-            var section = that.sections.values[i];
-            if(section.get_update_info) {
+        var fields = that.fields.get_fields();
+        for (var i = 0; i < fields.length; i++) {
+            var field = fields[i];
+            if(field.get_update_info) {
                 update_info = IPA.update_info_builder.merge(
                     update_info,
-                    section.get_update_info());
+                    field.get_update_info());
             }
         }
 
         return update_info;
     };
 
-    that.add_sections(spec.sections);
+    that.create_builder = function() {
+
+        var widget_builder = IPA.widget_builder({
+            widget_options: {
+                entity: that.entity
+            }
+        });
+        var field_builder = IPA.field_builder({
+            field_options: {
+                entity: that.entity
+            }
+        });
+        var section_builder = IPA.section_builder({
+            container: that,
+            widget_builder: widget_builder,
+            field_builder: field_builder
+        });
+
+        that.builder = IPA.details_builder({
+            container: that,
+            widget_builder: widget_builder,
+            field_builder: field_builder,
+            section_builder: section_builder
+        });
+    };
+
+    that.init = function() {
+
+        that.create_builder();
+        that.builder.build(spec);
+        that.fields.widgets_created();
+    };
+
+    that.init();
 
     that.details_facet_create_content = that.create_content;
     that.details_facet_load = that.load;

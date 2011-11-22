@@ -181,8 +181,8 @@ IPA.user_adder_dialog = function(spec) {
     that.validate = function() {
         var valid = that.dialog_validate();
 
-        var field1 = that.get_field('userpassword');
-        var field2 = that.get_field('userpassword2');
+        var field1 = that.fields.get_field('userpassword');
+        var field2 = that.fields.get_field('userpassword2');
 
         var password1 = field1.save()[0];
         var password2 = field2.save()[0];

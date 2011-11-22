@@ -139,15 +139,15 @@ IPA.service_adder_dialog = function(spec) {
 
     that.save = function(record) {
 
-        var field = that.get_field('service');
+        var field = that.fields.get_field('service');
         var service = field.save()[0];
 
-        field = that.get_field('host');
+        field = that.fields.get_field('host');
         var host = field.save()[0];
 
         record['krbprincipalname'] = [ service+'/'+host ];
 
-        field = that.get_field('force');
+        field = that.fields.get_field('force');
         record['force'] = field.save();
     };
 

@@ -1786,6 +1786,171 @@ IPA.button = function(spec) {
     return button;
 };
 
+IPA.composite_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.widget(spec);
+
+    that.widgets = IPA.widget_container();
+
+    that.create = function(container) {
+
+        that.widget_create(container);
+        that.widgets.create(container);
+    };
+
+    that.clear = function() {
+
+        var widgets = that.widgets.get_widgets();
+
+        for (var i=0; i< widgets.length; i++) {
+            widgets[i].clear();
+        }
+    };
+
+    that.composite_widget_create = that.create;
+    that.composite_widget_clear = that.clear;
+
+    return that;
+};
+
+IPA.collapsible_section = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.composite_widget(spec);
+
+    that.create = function(container) {
+
+        that.header = $('<h2/>', {
+            name: that.name,
+            title: that.label
+        }).appendTo(container);
+
+        that.icon = $('<span/>', {
+            name: 'icon',
+            'class': 'icon section-expand '+IPA.expanded_icon
+        }).appendTo(that.header);
+
+        that.header.append(' ');
+
+        that.header.append(that.label);
+
+        that.content_container = $('<div/>', {
+            name: that.name,
+            'class': 'details-section'
+        }).appendTo(container);
+
+        that.header.click(function() {
+            var visible = that.content_container.is(":visible");
+            that.toggle(!visible);
+        });
+
+        that.composite_widget_create(that.content_container);
+    };
+
+    that.toggle = function(visible) {
+
+        that.icon.toggleClass(IPA.expanded_icon, visible);
+        that.icon.toggleClass(IPA.collapsed_icon, !visible);
+
+        if (visible != that.content_container.is(":visible")) {
+            that.content_container.slideToggle('slow');
+        }
+    };
+
+    return that;
+};
+
+IPA.details_section = IPA.collapsible_section;
+
+IPA.details_table_section = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.details_section(spec);
+
+    that.rows = $.ordered_map();
+
+    that.composite_widget_create = function(container) {
+
+        var table = $('<table/>', {
+            'class': 'section-table'
+        }).appendTo(container);
+
+        var widgets = that.widgets.get_widgets();
+        for (var i=0; i<widgets.length; i++) {
+            var widget = widgets[i];
+            var tr = $('<tr/>');
+            that.add_row(widget.name, tr);
+
+            if (widget.hidden) {
+                tr.css('display', 'none');
+            }
+
+            tr.appendTo(table);
+
+            var td = $('<td/>', {
+                'class': 'section-cell-label',
+                title: widget.label
+            }).appendTo(tr);
+
+            $('<label/>', {
+                name: widget.name,
+                'class': 'field-label',
+                text: widget.label+':'
+            }).appendTo(td);
+
+            if(widget.create_required) {
+                widget.create_required(td);
+            }
+
+            td = $('<td/>', {
+                'class': 'section-cell-field',
+                title: widget.label
+            }).appendTo(tr);
+
+            var widget_container = $('<div/>', {
+                name: widget.name,
+                'class': 'field'
+            }).appendTo(td);
+
+            widget.create(widget_container);
+        }
+    };
+
+
+    that.add_row = function(name, row) {
+        that.rows.put(name, row);
+    };
+
+    that.get_row = function(name) {
+        return that.rows.get(name);
+    };
+
+    that.set_row_visible = function(name, visible) {
+        var row = that.get_row(name);
+        row.css('display', visible ? '' : 'none');
+    };
+
+    that.table_section_create = that.composite_widget_create;
+
+    return that;
+};
+
+//non-collabsible section
+IPA.details_table_section_nc = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.details_table_section(spec);
+
+    that.create = that.table_section_create;
+
+    return that;
+};
+
 IPA.observer = function(spec) {
 
     var that = {};

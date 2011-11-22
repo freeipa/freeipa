@@ -183,52 +183,47 @@ IPA.dnszone_details_facet = function(spec) {
         var record = {};
         that.save(record);
 
-        var sections = that.sections.values;
-        for (var i=0; i<sections.length; i++) {
-            var section = sections[i];
+        var fields = that.fields.get_fields();
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
+            if (!field.is_dirty()) continue;
 
-            var section_fields = section.fields.values;
-            for (var j=0; j<section_fields.length; j++) {
-                var field = section_fields[j];
-                if (!field.is_dirty()) continue;
+            var values = record[field.name];
+            if (!values) continue;
 
-                var values = record[field.name];
-                if (!values) continue;
+            var metadata = field.metadata;
 
-                var metadata = field.metadata;
+            // skip primary key
+            if (metadata && metadata.primary_key) continue;
 
-                // skip primary key
-                if (metadata && metadata.primary_key) continue;
-
-                // check enable/disable
-                if (field.name == 'idnszoneactive') {
-                    if (values[0] == 'FALSE') enable_operation.command.method = 'disable';
-                    enable_operation.execute = true;
-                    continue;
-                }
-
-                if (metadata) {
-                    if (values.length == 1) {
-                        modify_operation.command.set_option(field.name, values[0]);
-                    } else if (field.join) {
-                        modify_operation.command.set_option(field.name, values.join(','));
-                    } else {
-                        modify_operation.command.set_option(field.name, values);
-                    }
-
-                } else {
-                    if (values.length) {
-                        modify_operation.command.set_option('setattr', field.name+'='+values[0]);
-                    } else {
-                        modify_operation.command.set_option('setattr', field.name+'=');
-                    }
-                    for (var l=1; l<values.length; l++) {
-                        modify_operation.command.set_option('addattr', field.name+'='+values[l]);
-                    }
-                }
-
-                modify_operation.execute = true;
+            // check enable/disable
+            if (field.name == 'idnszoneactive') {
+                if (values[0] == 'FALSE') enable_operation.command.method = 'disable';
+                enable_operation.execute = true;
+                continue;
             }
+
+            if (metadata) {
+                if (values.length == 1) {
+                    modify_operation.command.set_option(field.name, values[0]);
+                } else if (field.join) {
+                    modify_operation.command.set_option(field.name, values.join(','));
+                } else {
+                    modify_operation.command.set_option(field.name, values);
+                }
+
+            } else {
+                if (values.length) {
+                    modify_operation.command.set_option('setattr', field.name+'='+values[0]);
+                } else {
+                    modify_operation.command.set_option('setattr', field.name+'=');
+                }
+                for (var l=1; l<values.length; l++) {
+                    modify_operation.command.set_option('addattr', field.name+'='+values[l]);
+                }
+            }
+
+            modify_operation.execute = true;
         }
 
         var batch = IPA.batch_command({
@@ -275,7 +270,7 @@ IPA.dnszone_name_section = function(spec) {
             'class': 'section-table'
         }).appendTo(that.container);
 
-        var idnsname = that.get_field('idnsname');
+        var idnsname = that.fields.get_field('idnsname');
 
         var tr = $('<tr/>').appendTo(table);
 
@@ -315,7 +310,7 @@ IPA.dnszone_name_section = function(spec) {
 
         var idnsname_input = $('input', span);
 
-        var name_from_ip = that.get_field('name_from_ip');
+        var name_from_ip = that.fields.get_field('name_from_ip');
 
         tr = $('<tr/>').appendTo(table);
 
@@ -380,8 +375,8 @@ IPA.dnszone_name_section = function(spec) {
 
     that.save = function(record) {
 
-        var idnsname = that.get_field('idnsname');
-        var name_from_ip = that.get_field('name_from_ip');
+        var idnsname = that.fields.get_field('idnsname');
+        var name_from_ip = that.fields.get_field('name_from_ip');
 
         if (idnsname.radio.is(':checked')) {
             record.idnsname = idnsname.save();
