@@ -830,7 +830,7 @@ IPA.sudo.rule_details_command_section = function(spec) {
 
         that.container = container;
 
-        var field = that.get_field('cmdcategory');
+        var field = that.fields.get_field('cmdcategory');
         var metadata = IPA.get_entity_param(that.entity.name, 'cmdcategory');
 
         var span = $('<span/>', {
@@ -857,7 +857,7 @@ IPA.sudo.rule_details_command_section = function(spec) {
             'class': 'field'
         }).appendTo(span);
 
-        field = that.get_field('memberallowcmd_sudocmd');
+        field = that.fields.get_field('memberallowcmd_sudocmd');
         field.create(table_span);
 
         metadata = IPA.get_entity_param(
@@ -869,7 +869,7 @@ IPA.sudo.rule_details_command_section = function(spec) {
             'class': 'field'
         }).appendTo(span);
 
-        field = that.get_field('memberallowcmd_sudocmdgroup');
+        field = that.fields.get_field('memberallowcmd_sudocmdgroup');
         field.create(table_span);
 
         $('<h3/>', {
@@ -886,7 +886,7 @@ IPA.sudo.rule_details_command_section = function(spec) {
             'class': 'field'
         }).appendTo(span);
 
-        field = that.get_field('memberdenycmd_sudocmd');
+        field = that.fields.get_field('memberdenycmd_sudocmd');
         field.create(table_span);
 
         metadata = IPA.get_entity_param(
@@ -898,21 +898,21 @@ IPA.sudo.rule_details_command_section = function(spec) {
             'class': 'field'
         }).appendTo(span);
 
-        field = that.get_field('memberdenycmd_sudocmdgroup');
+        field = that.fields.get_field('memberdenycmd_sudocmdgroup');
         field.create(table_span);
 
         function update_tables(value) {
 
             var enabled = ('' === value);
 
-            var field = that.get_field('memberallowcmd_sudocmd');
+            var field = that.fields.get_field('memberallowcmd_sudocmd');
             field.set_enabled(enabled);
 
-            field = that.get_field('memberallowcmd_sudocmdgroup');
+            field = that.fields.get_field('memberallowcmd_sudocmdgroup');
             field.set_enabled(enabled);
         }
 
-        var cmdcategory = that.get_field('cmdcategory');
+        var cmdcategory = that.fields.get_field('cmdcategory');
         cmdcategory.reset = function() {
             cmdcategory.widget_reset();
             var values = cmdcategory.save();
@@ -1007,7 +1007,7 @@ IPA.sudo.rule_details_runas_section = function(spec) {
     that.create = function(container) {
         that.container = container;
 
-        var field = that.get_field('ipasudorunasusercategory');
+        var field = that.fields.get_field('ipasudorunasusercategory');
         var metadata = IPA.get_entity_param(
             that.entity.name, 'ipasudorunasusercategory');
 
@@ -1028,7 +1028,7 @@ IPA.sudo.rule_details_runas_section = function(spec) {
             'class': 'field'
         }).appendTo(span);
 
-        field = that.get_field('ipasudorunas_user');
+        field = that.fields.get_field('ipasudorunas_user');
         field.create(table_span);
 
         metadata = IPA.get_entity_param(that.entity.name, 'ipasudorunas_group');
@@ -1039,10 +1039,10 @@ IPA.sudo.rule_details_runas_section = function(spec) {
             'class': 'field'
         }).appendTo(span);
 
-        field = that.get_field('ipasudorunas_group');
+        field = that.fields.get_field('ipasudorunas_group');
         field.create(table_span);
 
-        field = that.get_field('ipasudorunasgroupcategory');
+        field = that.fields.get_field('ipasudorunasgroupcategory');
         metadata = IPA.get_entity_param(
             that.entity.name, 'ipasudorunasgroupcategory');
 
@@ -1065,21 +1065,21 @@ IPA.sudo.rule_details_runas_section = function(spec) {
             'class': 'field'
         }).appendTo(span);
 
-        field = that.get_field('ipasudorunasgroup_group');
+        field = that.fields.get_field('ipasudorunasgroup_group');
         field.create(table_span);
 
         function user_update_tables(value) {
 
             var enabled = ('' === value);
 
-            var field = that.get_field('ipasudorunas_user');
+            var field = that.fields.get_field('ipasudorunas_user');
             field.set_enabled(enabled);
 
-            field = that.get_field('ipasudorunas_group');
+            field = that.fields.get_field('ipasudorunas_group');
             field.set_enabled(enabled);
         }
 
-        var user_category = that.get_field('ipasudorunasusercategory');
+        var user_category = that.fields.get_field('ipasudorunasusercategory');
         user_category.reset = function() {
             user_category.widget_reset();
             var values = user_category.save();
@@ -1099,11 +1099,11 @@ IPA.sudo.rule_details_runas_section = function(spec) {
 
             var enabled = ('' === value);
 
-            var field = that.get_field('ipasudorunasgroup_group');
+            var field = that.fields.get_field('ipasudorunasgroup_group');
             field.set_enabled(enabled);
         }
 
-        var group_category = that.get_field('ipasudorunasgroupcategory');
+        var group_category = that.fields.get_field('ipasudorunasgroupcategory');
         group_category.reset = function() {
             group_category.widget_reset();
             var values = group_category.save();

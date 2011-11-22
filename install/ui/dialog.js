@@ -65,24 +65,9 @@ IPA.dialog = function(spec) {
     that.width = spec.width || 500;
     that.height = spec.height;
 
+    that.widgets = IPA.widget_container();
+    that.fields = IPA.field_container({ container: that });
     that.buttons = $.ordered_map();
-    that.sections = $.ordered_map();
-
-    var init = function() {
-
-        var sections = spec.sections || [];
-
-        for (var i=0; i<sections.length; i++) {
-            var section_spec = sections[i];
-            that.create_section(section_spec);
-        }
-
-        var fields = spec.fields || [];
-
-        // add fields to the default section
-        var section = that.get_section();
-        section.add_fields(fields);
-    };
 
     that.create_button = function(spec) {
         var factory = spec.factory || IPA.dialog_button;
@@ -99,83 +84,21 @@ IPA.dialog = function(spec) {
         return that.buttons.get(name);
     };
 
-    that.get_field = function(name) {
-        for (var i=0; i<that.sections.length; i++) {
-            var section = that.sections.values[i];
-            var field = section.fields.get(name);
-            if (field) return field;
-        }
-        return null;
-    };
-
-    that.get_fields = function() {
-        var fields = [];
-        for (var i=0; i<that.sections.length; i++) {
-            var section = that.sections.values[i];
-            $.merge(fields, section.fields.values);
-        }
-        return fields;
-    };
-
-    that.add_field = function(field) {
-        var section = that.get_section();
-        section.add_field(field);
-        return field;
-    };
-
     that.field = function(field) {
-        that.add_field(field);
+        that.fields.add_field(field);
         return that;
     };
 
     that.validate = function() {
         var valid = true;
-        var sections = that.sections.values;
-        for (var i=0; i<sections.length; i++) {
-            var section = sections[i];
-            valid &= section.validate();
+        var fields = that.fields.get_fields();
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
+            valid &= field.validate() && field.validate_required();
         }
         return valid;
     };
 
-    that.add_section = function(section) {
-        that.sections.put(section.name, section);
-        return that;
-    };
-
-    that.section = function(section) {
-        that.add_section(section);
-        return that;
-    };
-
-    that.create_section = function(spec) {
-
-        var factory = spec.factory || IPA.details_table_section;
-        spec.entity = that.entity;
-        spec.undo = false;
-
-        var section = factory(spec);
-        that.add_section(section);
-
-        return section;
-    };
-
-    that.get_section = function(name) {
-
-        if (name) {
-            return that.sections.get(name);
-
-        } else {
-            var length = that.sections.length;
-            if (length) {
-                // get the last section
-                return that.sections.values[length-1];
-            } else {
-                // create a default section
-                return that.create_section({ name: 'general' });
-            }
-        }
-    };
 
     /**
      * Create content layout
@@ -187,16 +110,16 @@ IPA.dialog = function(spec) {
             'class': 'dialog-message ui-state-highlight ui-corner-all'
         }).appendTo(that.container);
 
-        var sections = that.sections.values;
-        for (var i=0; i<sections.length; i++) {
-            var section = sections[i];
+        var widgets = that.widgets.get_widgets();
+        for (var i=0; i<widgets.length; i++) {
+            var widget = widgets[i];
 
             var div = $('<div/>', {
-                name: section.name,
+                name: widget.name,
                 'class': 'dialog-section'
             }).appendTo(that.container);
 
-            section.create(div);
+            widget.create(div);
         }
 
     };
@@ -258,10 +181,10 @@ IPA.dialog = function(spec) {
     };
 
     that.save = function(record) {
-        var sections = that.sections.values;
-        for (var i=0; i<sections.length; i++) {
-            var section = sections[i];
-            section.save(record);
+        var fields = that.fields.get_fields();
+        for (var i=0; i<fields.length; i++) {
+            var field = fields[i];
+            field.save(record);
         }
     };
 
@@ -271,13 +194,48 @@ IPA.dialog = function(spec) {
     };
 
     that.reset = function() {
-        var sections = that.sections.values;
-        for (var i=0; i<sections.length; i++) {
-            sections[i].reset();
+        var fields = that.fields.get_fields();
+        for (var i=0; i<fields.length; i++) {
+            fields[i].reset();
         }
     };
 
-    init();
+    that.create_builder = function() {
+
+        var widget_builder = IPA.widget_builder({
+            widget_options: {
+                entity: that.entity
+            }
+        });
+        var field_builder = IPA.field_builder({
+            field_options: {
+                undo: false,
+                entity: that.entity
+            }
+        });
+        var section_builder = IPA.section_builder({
+            container: that,
+            section_factory: IPA.details_table_section_nc,
+            widget_builder: widget_builder,
+            field_builder: field_builder
+        });
+
+        that.builder = IPA.details_builder({
+            container: that,
+            widget_builder: widget_builder,
+            field_builder: field_builder,
+            section_builder: section_builder
+        });
+    };
+
+    that.init = function() {
+
+        that.create_builder();
+        that.builder.build(spec);
+        that.fields.widgets_created();
+    };
+
+    that.init();
 
     that.dialog_create = that.create;
     that.dialog_open = that.open;

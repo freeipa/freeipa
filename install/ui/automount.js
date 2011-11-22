@@ -241,9 +241,9 @@ IPA.automountmap_adder_dialog = function(spec) {
     that.create = function() {
         that.entity_adder_dialog_create();
 
-        var method_field = that.get_field('method');
+        var method_field = that.fields.get_field('method');
         var indirect_section = that.get_section('indirect');
-        var key_field = that.get_field('key');
+        var key_field = that.fields.get_field('key');
 
         var direct_input = $('input[value="add"]', method_field.container);
         direct_input.change(function() {
@@ -267,7 +267,7 @@ IPA.automountmap_adder_dialog = function(spec) {
     that.reset = function() {
         that.dialog_reset();
 
-        var method_field = that.get_field('method');
+        var method_field = that.fields.get_field('method');
 
         var direct_input = $('input[value="add"]', method_field.container);
         direct_input.click();
