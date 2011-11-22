@@ -29,6 +29,139 @@
 IPA.expanded_icon = 'expanded-icon';
 IPA.collapsed_icon = 'collapsed-icon';
 
+IPA.details_builder = function(spec) {
+
+    var that = {};
+
+    that.widgets = spec.container.widgets;
+    that.fields = spec.container.fields;
+
+    that.widget_builder = spec.widget_builder || IPA.widget_builder();
+    that.field_builder = spec.field_builder || IPA.field_builder();
+    that.section_builder = spec.section_builder || IPA.section_builder();
+
+    that.build_widget = function(spec) {
+
+        if (!spec) return;
+
+        that.widget_builder.build_widget(spec, that.widgets);
+    };
+
+    that.build_widgets = function(specs) {
+
+        if (!specs) return;
+
+        that.widget_builder.build_widgets(specs, that.widgets);
+    };
+
+    that.build_field = function(spec) {
+
+        if (!spec) return;
+
+        that.field_builder.build_field(spec, that.fields);
+    };
+
+    that.build_fields = function(specs) {
+
+        if (!specs) return;
+
+        that.field_builder.build_fields(specs, that.fields);
+    };
+
+    that.build_sections = function(specs) {
+
+        if (!specs) return;
+
+        that.section_builder.build_sections(specs);
+    };
+
+    that.build = function(spec) {
+
+        if (spec.sections) {
+            that.build_sections(spec.sections);
+
+        } else if (spec.fields && !spec.widgets) {
+
+            var sections = [
+                {
+                    fields: spec.fields
+                }
+            ];
+
+            that.build_sections(sections);
+
+        } else {
+            that.build_fields(spec.fields);
+            that.build_widgets(spec.widgets);
+        }
+    };
+
+    return that;
+};
+
+IPA.section_builder = function(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    that.container = spec.container;
+    that.section_factory = spec.section_factory || IPA.details_table_section;
+
+    that.field_builder = spec.field_builder;
+    that.widget_builder = spec.widget_builder;
+
+    that.build_sections = function(sections) {
+
+        if(!sections) return;
+
+        for (var i=0; i < sections.length; i++) {
+            that.build_section(sections[i], i);
+        }
+    };
+
+    that.build_section = function(section_spec, index) {
+        section_spec.entity = that.entity;
+
+        if (!section_spec.label && section_spec.name) {
+            var obj_messages = IPA.messages.objects[that.container.entity.name];
+            section_spec.label = obj_messages[section_spec.name];
+        }
+
+        if(!section_spec.name) section_spec.name = 'section'+index;
+
+        section_spec.factory = section_spec.factory || that.section_factory;
+        var section = section_spec.factory(section_spec);
+
+        that.container.widgets.add_widget(section);
+
+        that.create_fields(section, section_spec.fields);
+    };
+
+    that.create_fields = function(section, fields_spec) {
+
+        for (var i=0; i < fields_spec.length; i++) {
+            that.create_field(section, fields_spec[i]);
+        }
+    };
+
+    that.create_field = function(section, field_spec) {
+
+        var widget = that.widget_builder.build_widget(field_spec, section.widgets);
+
+        //spec.factory refers to widget factory
+        if(field_spec.factory) delete field_spec.factory;
+
+        var field = that.field_builder.build_field(field_spec, that.container.fields);
+
+        if(widget && field) {
+            field.widget_name = section.name+'.'+widget.name;
+        }
+    };
+
+    return that;
+};
+
 IPA.details_section = function(spec) {
 
     spec = spec || {};
