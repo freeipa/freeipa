@@ -50,6 +50,12 @@ krb5int_find_authdata(krb5_context context,
 #define krb5_find_authdata krb5int_find_authdata
 #endif
 
+#ifndef KRB5_PAC_SERVER_CHECKSUM
+#define KRB5_PAC_SERVER_CHECKSUM 6
+#endif
+#ifndef KRB5_PAC_PRIVSVR_CHECKSUM
+#define KRB5_PAC_PRIVSVR_CHECKSUM 6
+#endif
 
 static char *user_pac_attrs[] = {
     "objectClass",
@@ -552,6 +558,12 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
 {
     krb5_authdata **authdata = NULL;
     krb5_error_code kerr;
+    krb5_ui_4 *buffer_types = NULL;
+    size_t num_buffers;
+    krb5_pac old_pac = NULL;
+    krb5_pac new_pac = NULL;
+    krb5_data data;
+    size_t i;
 
     /* find the existing PAC, if present */
     kerr = krb5_find_authdata(context, tgt_auth_data, NULL,
@@ -573,16 +585,54 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
     kerr = krb5_pac_parse(context,
                           authdata[0]->contents,
                           authdata[0]->length,
-                          pac);
+                          &old_pac);
     if (kerr) {
         goto done;
     }
 
-    kerr = krb5_pac_verify(context, *pac, authtime,
+    kerr = krb5_pac_verify(context, old_pac, authtime,
                             client_princ, krbtgt_key, NULL);
+    if (kerr) {
+        goto done;
+    }
+
+    /* extract buffers and rebuilt pac from scratch so that when re-signing
+     * with a different cksum type does not cause issues due to mismatching
+     * signature buffer lengths */
+    kerr = krb5_pac_init(context, &new_pac);
+    if (kerr) {
+        goto done;
+    }
+
+    kerr = krb5_pac_get_types(context, old_pac, &num_buffers, &buffer_types);
+    if (kerr) {
+        goto done;
+    }
+
+    for (i = 0; i < num_buffers; i++) {
+        if (buffer_types[i] == KRB5_PAC_SERVER_CHECKSUM ||
+            buffer_types[i] == KRB5_PAC_PRIVSVR_CHECKSUM) {
+            continue;
+        }
+        kerr = krb5_pac_get_buffer(context, old_pac,
+                                    buffer_types[i], &data);
+        if (kerr == 0) {
+            kerr = krb5_pac_add_buffer(context, new_pac,
+                                        buffer_types[i], &data);
+        }
+        krb5_free_data_contents(context, &data);
+        if (kerr) {
+            krb5_pac_free(context, new_pac);
+            goto done;
+        }
+    }
+
+    *pac = new_pac;
 
 done:
     krb5_free_authdata(context, authdata);
+    krb5_pac_free(context, old_pac);
+    free(buffer_types);
     return kerr;
 }
 
