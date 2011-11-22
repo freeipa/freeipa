@@ -437,7 +437,7 @@ backend.
 
 As an example, let's see how role is defined. This is fully functioning plugin that
 provides operations on roles:
-#+INCLUDE "role.py" src python -n
+#+INCLUDE "role.py.txt" src python -n
 
 * Extending existing object
 As said earlier, until API instance is finalized, objects, methods, and commands can be
@@ -595,7 +595,7 @@ tool, ~ipa~. Web UI communicates with a FreeIPA server running WSGI application 
 accepts JSON-formatted requests and translates them to calls to FreeIPA plugins.
 
 A following code in ~install/share/ui/wsgi.py~ defines FreeIPA web application:
-#+INCLUDE "wsgi.py" src python -n -r
+#+INCLUDE "wsgi.py.txt" src python -n -r
 
 At line [[(wsgi-app-bootstrap)]] we set up FreeIPA framework with server context. This means
 plugins are loaded and initialized from following locations:
