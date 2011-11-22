@@ -79,12 +79,11 @@ IPA.user.entity = function(spec) {
             {
                 name: 'contact',
                 fields: [
-                    { factory: IPA.multivalued_text_widget, name: 'mail' },
-                    { factory: IPA.multivalued_text_widget, name: 'telephonenumber' },
-                    { factory: IPA.multivalued_text_widget, name: 'pager' },
-                    { factory: IPA.multivalued_text_widget, name: 'mobile' },
-                    { factory: IPA.multivalued_text_widget,
-                      name: 'facsimiletelephonenumber' }
+                    { type: 'multivalued', name: 'mail' },
+                    { type: 'multivalued', name: 'telephonenumber' },
+                    { type: 'multivalued', name: 'pager' },
+                    { type: 'multivalued', name: 'mobile' },
+                    { type: 'multivalued', name: 'facsimiletelephonenumber' }
                 ]
             },
             {
@@ -93,14 +92,14 @@ IPA.user.entity = function(spec) {
             },
             {
                 name: 'employee',
-                fields:
-                ['ou',
-                 {
-                     factory:IPA.entity_select_widget,
-                     name: 'manager',
-                     other_entity: 'user',
-                     other_field: 'uid'
-                 }
+                fields: [
+                    'ou',
+                    {
+                        type: 'entity_select',
+                        name: 'manager',
+                        other_entity: 'user',
+                        other_field: 'uid'
+                    }
                 ]
             },
             {
@@ -207,7 +206,8 @@ IPA.user_status_widget = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.widget(spec);
+    var that = IPA.input_widget(spec);
+
 
     that.create = function(container) {
 
@@ -249,12 +249,13 @@ IPA.user_status_widget = function(spec) {
         }).appendTo(that.link_span);
     };
 
-    that.update = function() {
+    that.update = function(values) {
 
-        if (!that.record) return;
+        //if (!that.record) return;
 
-        var lock_field = 'nsaccountlock';
-        var locked_field = that.record[lock_field];
+        //var lock_field = 'nsaccountlock';
+        //var locked_field = that.record[lock_field];
+        var locked_field = values;
         var locked = false;
 
         if (locked_field instanceof Array) {
@@ -356,6 +357,10 @@ IPA.user_status_widget = function(spec) {
         }).execute();
     };
 
+    that.widgets_created = function() {
+        that.widget = that;
+    };
+
     return that;
 };
 
@@ -363,7 +368,7 @@ IPA.user_password_widget = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.widget(spec);
+    var that = IPA.input_widget(spec);
 
     that.create = function(container) {
 
@@ -385,30 +390,41 @@ IPA.user_password_widget = function(spec) {
         that.pkey = IPA.nav.get_state('user-pkey');
         that.self_service = that.pkey === IPA.whoami.uid[0];
 
-        var dialog = IPA.dialog({
-            title: IPA.messages.password.reset_password,
-            width: 400
-        });
-
-        if (that.self_service) {
-            dialog.add_field(IPA.text_widget({
-                name: 'current_password',
-                label: IPA.messages.password.current_password,
-                type: 'password'
-            }));
+        var sections = [];
+        if(that.self_service) {
+            sections.push({
+                fields: [
+                    {
+                        name: 'current_password',
+                        label: IPA.messages.password.current_password,
+                        type: 'password'
+                    }
+                ]
+            });
         }
 
-        dialog.add_field(IPA.text_widget({
-            name: 'password1',
-            label: IPA.messages.password.new_password,
-            type: 'password'
-        }));
+        sections.push({
+            fields: [
+                {
+                    name: 'password1',
+                    label: IPA.messages.password.new_password,
+                    type: 'password'
+                },
+                {
+                    name: 'password2',
+                    label: IPA.messages.password.verify_password,
+                    type: 'password'
+                }
+            ]
+        });
 
-        dialog.add_field(IPA.text_widget({
-            name: 'password2',
-            label: IPA.messages.password.verify_password,
-            type: 'password'
-        }));
+        var dialog = IPA.dialog({
+            entity: that.entity,
+            title: IPA.messages.password.reset_password,
+            width: 400,
+            sections: sections
+        });
+
 
         dialog.create_button({
             name: 'reset_password',
