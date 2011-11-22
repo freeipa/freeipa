@@ -483,7 +483,7 @@ IPA.cert.status_widget = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.widget(spec);
+    var that = IPA.input_widget(spec);
 
     that.entity_label = spec.entity_label || that.entity.metadata.label_singular;
 

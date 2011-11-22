@@ -698,7 +698,7 @@ IPA.entitle.download_widget = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.widget(spec);
+    var that = IPA.input_widget(spec);
 
     that.create = function(container) {
         that.link = $('<a/>', {

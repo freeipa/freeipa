@@ -47,6 +47,8 @@ IPA.field = function(spec) {
     // writable is set during load
     that.writable = true;
 
+    that.enabled = spec.enabled === undefined ? true : spec.enabled;
+
     that.undo = spec.undo === undefined ? true : spec.undo;
     that.join = spec.join;
 
@@ -89,7 +91,7 @@ IPA.field = function(spec) {
     };
 
     that.update_required = function() {
-        if(that.widget) {
+        if(that.widget && that.widget.set_required) {
             that.widget.set_required(that.is_required());
         }
     };
@@ -208,6 +210,7 @@ IPA.field = function(spec) {
     };
 
     that.reset = function() {
+        that.set_widget_flags();
         that.update_required();
         that.update();
         that.validate();
@@ -237,6 +240,8 @@ IPA.field = function(spec) {
     that.save = function(record) {
 
         var values = that.values;
+
+        if(!that.enabled) return [''];
 
         if(that.widget) {
             values = that.widget.save();
@@ -312,28 +317,32 @@ IPA.field = function(spec) {
             that.show_undo(dirty);
         }
 
-        if(old !== dirty) {
+        if (old !== dirty) {
             that.dirty_changed.notify([], that);
         }
     };
 
 
     that.show_error = function(message) {
-        if(that.widget) that.widget.show_error(message);
+        if (that.widget && that.widget.show_error) that.widget.show_error(message);
     };
 
     that.hide_error = function() {
-        if(that.widget) that.widget.hide_error();
+        if (that.widget && that.widget.hide_error) that.widget.hide_error();
     };
 
     that.show_undo = function(value) {
-        if(that.widget) {
+        if (that.widget && that.widget.show_undo) {
             if(value) { that.widget.show_undo(); }
-            else { that.widget.hide_undo();}
+            else { that.widget.hide_undo(); }
         }
     };
 
-    that.set_enabled = function() {
+    that.set_enabled = function(value) {
+        that.enabled = value;
+        if (that.widget && that.widget.set_enabled) {
+            that.widget.set_enabled(value);
+        }
     };
 
     that.refresh = function() {
@@ -341,11 +350,13 @@ IPA.field = function(spec) {
 
     that.set_widget_flags = function() {
 
-        that.widget.label = that.label;
-        that.widget.title = that.title;
-        that.widget.undo = that.undo;
-        that.widget.writable = that.writable;
-        that.widget.read_only = that.read_only;
+        if (that.widget) {
+            if(that.label) that.widget.label = that.label;
+            if(that.title) that.widget.title = that.title;
+            that.widget.undo = that.undo;
+            that.widget.writable = that.writable;
+            that.widget.read_only = that.read_only;
+        }
     };
 
     that.widgets_created = function() {
@@ -382,3 +393,190 @@ IPA.field = function(spec) {
 
     return that;
 };
+
+IPA.checkbox_field = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.field(spec);
+
+    that.checked = spec.checked || false;
+
+    that.widgets_created = function() {
+
+        that.field_widgets_created();
+        that.widget.checked = that.checked;
+    };
+
+    // a checkbox will always have a value, so it's never required
+    that.is_required = function() {
+        return false;
+    };
+
+    that.checkbox_load = that.load;
+
+    return that;
+};
+
+IPA.checkboxes_field = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.field(spec);
+
+    that.checkbox_load = that.load;
+/*
+    // a checkbox will always have a value, so it's never required
+    that.is_required = function() {
+        return false;
+    };
+*/
+    return that;
+};
+
+IPA.radio_field = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.field(spec);
+
+    // a radio will always have a value, so it's never required
+    that.is_required = function() {
+        return false;
+    };
+
+    that.widgets_created = function() {
+
+        that.field_widgets_created();
+    };
+
+    return that;
+};
+
+IPA.multivalued_field = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.field(spec);
+
+    that.widgets_created = function() {
+
+        that.field_widgets_created();
+    };
+
+    that.load = function(record) {
+
+        that.field_load(record);
+    };
+
+    that.test_dirty = function() {
+        var dirty = that.field_test_dirty();
+        dirty |= that.widget.test_dirty(); //also checks order
+        return dirty;
+    };
+
+    that.widget_value_changed = function() {
+        that.set_dirty(that.test_dirty());
+        //that.validate(); disabling validation for now
+    };
+
+    return that;
+};
+
+IPA.select_field = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.field(spec);
+
+    that.widgets_created = function() {
+
+        that.field_widgets_created();
+    };
+
+    return that;
+};
+
+
+IPA.combobox_field = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.field(spec);
+
+    that.widgets_created = function() {
+
+        that.field_widgets_created();
+        that.widget.input_field_changed.attach(that.on_input_field_changed);
+    };
+
+    that.on_input_field_changed = function() {
+        that.validate();
+    };
+
+    return  that;
+};
+
+IPA.link_field = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.field(spec);
+
+    var other_entity = spec.other_entity;
+
+    function other_pkeys () {
+        return that.entity.get_primary_key();
+    }
+    that.other_pkeys = spec.other_pkeys || other_pkeys;
+
+    that.on_link_clicked = function() {
+
+        IPA.nav.show_entity_page(
+            IPA.get_entity(other_entity),
+            'default',
+            that.other_pkeys());
+    };
+
+    that.load = function(record) {
+
+        that.field_load(record);
+        that.check_entity_link();
+    };
+
+    that.check_entity_link = function() {
+
+        IPA.command({
+            entity: other_entity,
+            method: 'show',
+            args: that.other_pkeys(),
+            options: {},
+            retry: false,
+            on_success: function (result) {
+                that.widget.is_link = result.result !== undefined;
+                that.widget.update(that.values);
+            }
+        }).execute();
+    };
+
+    that.widgets_created = function() {
+        that.field_widgets_created();
+        that.widget.link_clicked.attach(that.on_link_clicked);
+    };
+
+
+    return that;
+};
+
+IPA.field_factories['field'] = IPA.field;
+IPA.field_factories['text'] = IPA.field;
+IPA.field_factories['password'] = IPA.field;
+IPA.field_factories['checkbox'] = IPA.checkbox_field;
+IPA.field_factories['checkboxes'] = IPA.checkboxes_field;
+IPA.field_factories['radio'] = IPA.radio_field;
+IPA.field_factories['multivalued'] = IPA.multivalued_field;
+IPA.field_factories['select'] = IPA.select_field;
+IPA.field_factories['textarea'] = IPA.field;
+IPA.field_factories['entity_select'] = IPA.combobox_field;
+IPA.field_factories['combobox'] = IPA.combobox_field;
+IPA.field_factories['link'] = IPA.link_field;

@@ -199,7 +199,7 @@ test("Testing base widget.", function() {
         name:'title'
     };
 
-    factory = IPA.widget;
+    factory = IPA.input_widget;
     base_widget_test('test_value');
     widget_string_test();
 });
