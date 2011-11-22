@@ -32,55 +32,43 @@ IPA.widget = function(spec) {
 
     var that = {};
 
-
-    that.entity = spec.entity;
-    that.id = spec.id;
     that.name = spec.name;
+    that.id = spec.id;
     that.label = spec.label;
     that.tooltip = spec.tooltip;
+    that.entity = spec.entity; //some old widgets still need it
 
-    that.disabled = spec.disabled;
-    that.hidden = spec.hidden;
+    that.create = function(container) {
+        container.addClass('widget');
+        that.container = container;
+    };
 
-    // override the required flag in metadata
-    that.required = spec.required;
+    that.clear = function() {
+    };
 
-    // read_only is set when widget is created
-    that.read_only = spec.read_only;
+    that.widget_create = that.create;
 
-    // writable is set during load
-    that.writable = true;
+    return that;
+};
+
+IPA.input_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.widget(spec);
 
     that.width = spec.width;
     that.height = spec.height;
 
     that.undo = spec.undo === undefined ? true : spec.undo;
-    that.join = spec.join;
+    that.writable = spec.writable;
+    that.read_only = spec.read_only;
 
-    that.metadata = spec.metadata;
-
-    that.priority = spec.priority;
-
-    that.values = [];
-    that.dirty = false;
-    that.valid = true;
-
-    that.dirty_changed = IPA.observer();
+    //events
+    //each widget can contain several events
     that.value_changed = IPA.observer();
+    that.undo_clicked = IPA.observer();
 
-    var init = function() {
-        if (!that.metadata && that.entity) {
-            that.metadata = IPA.get_entity_param(that.entity.name, that.name);
-        }
-        if (that.metadata) {
-            if (that.label === undefined) {
-                that.label = that.metadata.label;
-            }
-            if (that.tooltip === undefined) {
-                that.tooltip = that.metadata.doc;
-            }
-        }
-    };
 
     that.create_error_link = function(container) {
         container.append(' ');
@@ -101,207 +89,7 @@ IPA.widget = function(spec) {
         }).appendTo(container);
     };
 
-    that.is_required = function() {
-        if (that.read_only) return false;
-        if (!that.writable) return false;
-
-        if (that.required !== undefined) return that.required;
-        return that.metadata && that.metadata.required;
-    };
-
-    that.set_required = function(required) {
-        that.required = required;
-
-        that.update_required();
-    };
-
-    that.update_required = function() {
-        if (that.required_indicator) {
-            that.required_indicator.css('display', that.is_required() ? 'inline' : 'none');
-        }
-    };
-
-    that.validate_required = function() {
-        var values = that.save();
-        if (!values || !values.length || values[0] === '') {
-            if (that.is_required()) {
-                that.valid = false;
-                that.show_error(IPA.messages.widget.validation.required);
-                return false;
-            }
-        }
-        return true;
-    };
-
-    /*returns true and clears the error message if the field value  passes
-      the validation pattern.  If the field value does not pass validation,
-      displays the error message and returns false. */
-    that.validate = function() {
-        that.hide_error();
-        that.valid = true;
-
-        var values = that.save();
-        if (!values) {
-            return that.valid;
-        }
-        if (values.length === 0) {
-            return that.valid;
-        }
-        var value = values[0];
-        if (!value) {
-            return that.valid;
-        }
-
-        if (!that.metadata) {
-            return that.valid;
-        }
-
-        var message;
-
-        if (that.metadata.type == 'int') {
-            if (!value.match(/^-?\d+$/)) {
-                that.valid = false;
-                that.show_error(IPA.messages.widget.validation.integer);
-                return that.valid;
-            }
-
-            if (that.metadata.minvalue !== undefined && value < that.metadata.minvalue) {
-                that.valid = false;
-                message = IPA.messages.widget.validation.min_value;
-                message = message.replace('${value}', that.metadata.minvalue);
-                that.show_error(message);
-                return that.valid;
-            }
-
-            if (that.metadata.maxvalue !== undefined && value > that.metadata.maxvalue) {
-                that.valid = false;
-                message = IPA.messages.widget.validation.max_value;
-                message = message.replace('${value}', that.metadata.maxvalue);
-                that.show_error(message);
-                return that.valid;
-            }
-        }
-
-        if (that.metadata.pattern) {
-            var regex = new RegExp(that.metadata.pattern);
-            if (!value.match(regex)) {
-                that.valid = false;
-                that.show_error(that.metadata.pattern_errmsg);
-                return that.valid;
-            }
-        }
-
-        return that.valid;
-    };
-
-
-    /**
-     * This function compares the original values and the
-     * values entered in the UI. If the values have changed
-     * it will return true.
-     */
-    that.test_dirty = function() {
-
-        if (that.read_only) {
-            return false;
-        }
-
-        var values = that.save();
-
-        if (!values) { // ignore null values
-            return false;
-        }
-
-        if (!that.values) {
-
-            if (values instanceof Array) {
-
-                if ((values.length === 0) ||
-                    (values.length === 1) &&
-                    (values[0] === '')) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        if (values.length != that.values.length) {
-            return true;
-        }
-
-        values.sort();
-        that.values.sort();
-
-        for (var i=0; i<values.length; i++) {
-            if (values[i] != that.values[i]) {
-                return true;
-            }
-        }
-
-        return false;
-    };
-
-    that.create = function(container) {
-        container.addClass('widget');
-        that.container = container;
-    };
-
-    /**
-     * This function stores the entire record and the values
-     * of the field, then invoke reset() to update the UI.
-     */
-    that.load = function(record) {
-        that.record = record;
-
-        var value = record[that.name];
-        if (value instanceof Array) {
-            that.values = value;
-        } else {
-            that.values = value ? [value] : [];
-        }
-
-        that.writable = true;
-
-        if (that.metadata) {
-            if (that.metadata.primary_key) {
-                that.writable = false;
-            }
-
-            if (that.metadata.flags && 'no_update' in that.metadata.flags) {
-                that.writable = false;
-            }
-        }
-
-        if (that.record.attributelevelrights) {
-            var rights = that.record.attributelevelrights[that.name];
-            if (!rights || rights.indexOf('w') < 0) {
-                that.writable = false;
-            }
-        }
-
-        that.reset();
-    };
-
-    that.reset = function() {
-        that.update_required();
-        that.update();
-        that.validate();
-        that.set_dirty(false);
-    };
-
     that.update = function() {
-    };
-
-    that.get_update_info = function() {
-
-        var update_info = IPA.update_info_builder.new_update_info();
-        if(that.is_dirty()) {
-            update_info.fields.push(IPA.update_info_builder.new_field_info(
-                that,
-                that.save()));
-        }
-        return update_info;
     };
 
     /**
@@ -310,16 +98,7 @@ IPA.widget = function(spec) {
      * the field should not be saved.
      */
     that.save = function() {
-        return that.values;
-    };
-
-    /**
-     * This function compares the original values and the
-     * values entered in the UI. If the values have changed
-     * it will return true.
-     */
-    that.is_dirty = function() {
-        return that.dirty;
+        return [];
     };
 
     /**
@@ -341,7 +120,7 @@ IPA.widget = function(spec) {
 
         if(on_undo === undefined) {
             on_undo = function() {
-                that.reset();
+                that.undo_clicked.notify([], that);
             };
         }
 
@@ -350,28 +129,12 @@ IPA.widget = function(spec) {
         }
     };
 
-    that.set_dirty = function(dirty) {
-        var old = that.dirty;
-        that.dirty = dirty;
-        if (that.undo) {
-            if (dirty) {
-                that.show_undo();
-            } else {
-                that.hide_undo();
-            }
-        }
-
-        if(old !== dirty) {
-            that.dirty_changed.notify([], that);
-        }
-    };
-
     that.get_undo = function() {
         return $(that.undo_span);
     };
 
     that.show_undo = function() {
-        $(that.undo_span).css('display', 'inline');
+        that.get_undo().css('display', 'inline');
     };
 
     that.hide_undo = function() {
@@ -393,26 +156,23 @@ IPA.widget = function(spec) {
         error_link.css('display', 'none');
     };
 
-    that.clear = function() {
+    that.set_required = function(required) {
+
+        that.required = required;
+
+        if (that.required_indicator) {
+            that.required_indicator.css('display', that.required ? 'inline' : 'none');
+        }
     };
 
-    that.set_enabled = function() {
-    };
+    that.focus_input = function() {};
+    that.set_deleted = function() {};
 
-    that.refresh = function() {
-    };
 
-    init();
 
     // methods that should be invoked by subclasses
-    that.widget_create = that.create;
     that.widget_hide_error = that.hide_error;
-    that.widget_load = that.load;
-    that.widget_reset = that.reset;
-    that.widget_save = that.save;
-    that.widget_set_dirty = that.set_dirty;
     that.widget_show_error = that.show_error;
-    that.widget_test_dirty = that.test_dirty;
 
     return that;
 };

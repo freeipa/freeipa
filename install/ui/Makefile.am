@@ -22,6 +22,7 @@ app_DATA =				\
 	extension.js 			\
 	facet.js 			\
 	favicon.ico			\
+	field.js			\
 	group.js 			\
 	hbac.js 			\
 	host.js 			\
