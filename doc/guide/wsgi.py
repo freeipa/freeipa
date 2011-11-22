@@ -1,0 +1,26 @@
+from ipalib import api
+from ipalib.config import Env
+from ipalib.constants import DEFAULT_CONFIG
+
+# Determine what debug level is configured. We can only do this
+# by reading in the configuration file(s). The server always reads
+# default.conf and will also read in `context'.conf.
+env = Env()
+env._bootstrap(context='server', log=None)
+env._finalize_core(**dict(DEFAULT_CONFIG))
+
+# Initialize the API with the proper debug level
+api.bootstrap(context='server', debug=env.debug, log=None) (ref:wsgi-app-bootstrap)
+try:
+    api.finalize() (ref:wsgi-app-finalize)
+except StandardError, e:
+    api.log.error('Failed to start IPA: %s' % e)
+else:
+    api.log.info('*** PROCESS START ***')
+
+    # This is the WSGI callable:
+    def application(environ, start_response): (ref:wsgi-app-start)
+        if not environ['wsgi.multithread']:
+            return api.Backend.session(environ, start_response)
+        else:
+            api.log.error("IPA does not work with the threaded MPM, use the pre-fork MPM") (ref:wsgi-app-end)
