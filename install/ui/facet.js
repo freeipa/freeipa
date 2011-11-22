@@ -602,9 +602,13 @@ IPA.table_facet = function(spec) {
         batch.execute();
     };
 
+    that.get_selected_values = function() {
+        return that.table.get_selected_values();
+    };
+
     that.select_changed = function() {
 
-        that.selected_values = that.table.get_selected_values();
+        that.selected_values = that.get_selected_values();
 
         if (that.remove_button) {
             if (that.selected_values.length === 0) {

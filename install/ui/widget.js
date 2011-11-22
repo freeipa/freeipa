@@ -1413,6 +1413,7 @@ IPA.table_widget = function (spec) {
     that.table_set_enabled = that.set_enabled;
     that.table_set_page = that.set_page;
     that.table_show_error = that.show_error;
+    that.table_set_values = that.set_values;
 
     return that;
 };
