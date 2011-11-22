@@ -12,8 +12,8 @@
 #+STYLE: dd {width: 940px;}
 #+STYLE: p {text-align:justify;}
 #+STYLE: body {width: 960px;
-#+STYLE:          margin: 0 auto;
-#+STYLE:          overflow: hidden;}
+#+STYLE:       margin: 0 auto;
+#+STYLE:      }
 #+STYLE: div#content {margin: 0 10px 0 10px;
 #+STYLE:          display: inline;
 #+STYLE:          float: left;
