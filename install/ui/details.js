@@ -163,6 +163,70 @@ IPA.section_builder = function(spec) {
     return that;
 };
 
+IPA.facet_policy = function() {
+
+    var that = {};
+
+    that.init = function() {
+    };
+
+    that.post_create = function() {
+    };
+
+    that.post_load = function() {
+    };
+
+    return that;
+};
+
+IPA.facet_policies = function(spec) {
+
+    var that = {};
+
+    that.container = spec.container;
+    that.policies = [];
+
+    that.add_policy = function(policy) {
+
+        policy.container = that.container;
+        that.policies.push(policy);
+    };
+
+    that.add_policies = function(policies) {
+
+        if (!policies) return;
+
+        for (var i=0; i<policies.length; i++) {
+            that.add_policy(policies[i]);
+        }
+    };
+
+    that.init = function() {
+
+        for (var i=0; i<that.policies.length; i++) {
+            that.policies[i].init();
+        }
+    };
+
+    that.post_create = function() {
+
+         for (var i=0; i<that.policies.length; i++) {
+            that.policies[i].post_create();
+        }
+    };
+
+    that.post_load = function(data) {
+
+         for (var i=0; i<that.policies.length; i++) {
+            that.policies[i].post_load(data);
+        }
+    };
+
+    that.add_policies(spec.policies);
+
+    return that;
+};
+
 IPA.details_facet = function(spec) {
 
     spec = spec || {};
@@ -181,6 +245,10 @@ IPA.details_facet = function(spec) {
 
     that.widgets = IPA.widget_container();
     that.fields = IPA.field_container({ container: that });
+    that.policies = IPA.facet_policies({
+        container: that,
+        policies: spec.policies
+    });
 
     that.fields.add_field = function(field) {
 
@@ -228,6 +296,7 @@ IPA.details_facet = function(spec) {
         }
 
         that.facet_create(container);
+        that.policies.post_create();
     };
 
     that.create_controls = function() {
@@ -390,6 +459,7 @@ IPA.details_facet = function(spec) {
             var field = fields[i];
             field.load(data);
         }
+        that.policies.post_load(data);
         that.enable_update(false);
     };
 
@@ -658,6 +728,7 @@ IPA.details_facet = function(spec) {
         that.create_builder();
         that.builder.build(spec);
         that.fields.widgets_created();
+        that.policies.init();
     };
 
     that.init();

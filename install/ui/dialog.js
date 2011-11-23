@@ -1,6 +1,7 @@
 /*jsl:import ipa.js */
 /*  Authors:
  *    Endi Sukma Dewata <edewata@redhat.com>
+ *    Petr Vobornik <pvoborni@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -19,7 +20,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: widget.js */
+/* REQUIRES: widget.js, details.js */
 
 IPA.dialog_button = function(spec) {
 
@@ -68,6 +69,10 @@ IPA.dialog = function(spec) {
     that.widgets = IPA.widget_container();
     that.fields = IPA.field_container({ container: that });
     that.buttons = $.ordered_map();
+    that.policies = IPA.facet_policies({
+        container: that,
+        policies: spec.policies
+    });
 
     that.create_button = function(spec) {
         var factory = spec.factory || IPA.dialog_button;
@@ -122,6 +127,7 @@ IPA.dialog = function(spec) {
             widget.create(div);
         }
 
+        that.policies.post_create();
     };
 
     that.show_message = function(message) {
@@ -233,6 +239,7 @@ IPA.dialog = function(spec) {
         that.create_builder();
         that.builder.build(spec);
         that.fields.widgets_created();
+        that.policies.init();
     };
 
     that.init();
