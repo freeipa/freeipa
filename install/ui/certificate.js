@@ -712,9 +712,8 @@ IPA.cert.status_widget = function(spec) {
         });
     };
 
-    that.load = function(result) {
+    that.update = function() {
 
-        that.result = result;
         that.pkey = that.get_entity_pkey(that.result);
 
         var entity_certificate = that.get_entity_certificate(that.result);
@@ -919,6 +918,21 @@ IPA.cert.status_widget = function(spec) {
 
         dialog.open();
     }
+
+    return that;
+};
+
+IPA.cert.status_field = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.field(spec);
+
+    that.load = function(result) {
+
+        that.widget.result = result;
+        that.reset();
+    };
 
     return that;
 };
