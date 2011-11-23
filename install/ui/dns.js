@@ -50,7 +50,7 @@ IPA.dns.zone_entity = function(spec) {
                 fields: [
                     'idnsname',
                     {
-                        factory: IPA.radio_widget,
+                        type: 'radio',
                         name: 'idnszoneactive',
                         options: [
                             { value: 'TRUE', label: IPA.get_message('true') },
@@ -66,14 +66,14 @@ IPA.dns.zone_entity = function(spec) {
                     'idnssoaminimum',
                     'dnsttl',
                     {
-                        factory: IPA.combobox_widget,
+                        type: 'combobox',
                         name: 'dnsclass',
                         options: [
                             'IN', 'CS', 'CH', 'HS'
                         ]
                     },
                     {
-                        factory: IPA.radio_widget,
+                        type: 'radio',
                         name: 'idnsallowdynupdate',
                         options: [
                             { value: 'TRUE', label: IPA.get_message('true') },
@@ -81,7 +81,7 @@ IPA.dns.zone_entity = function(spec) {
                         ]
                     },
                     {
-                        factory: IPA.textarea_widget,
+                        type: 'textarea',
                         name: 'idnsupdatepolicy'
                     }
                 ]
@@ -122,10 +122,16 @@ IPA.dns.zone_entity = function(spec) {
                     name: 'name',
                     fields: [
                         {
+                            type: 'dnszone_name',
                             name: 'idnsname',
-                            required: false
+                            required: false,
+                            radio_name: 'dnszone_name_type'
                         },
-                        'name_from_ip'
+                        {
+                            type: 'dnszone_name',
+                            name: 'name_from_ip',
+                            radio_name: 'dnszone_name_type'
+                        }
                     ]
                 },
                 {
@@ -137,12 +143,15 @@ IPA.dns.zone_entity = function(spec) {
                             required: false
                         },
                         {
-                            factory: IPA.force_dnszone_add_checkbox_widget,
+                            type: 'force_dnszone_add_checkbox',
                             name: 'force',
                             metadata: IPA.get_method_option('dnszone_add', 'force')
                         }
                     ]
                 }
+            ],
+            policies: [
+                IPA.add_dns_zone_name_policy()
             ]
         });
     };
@@ -270,7 +279,7 @@ IPA.dnszone_name_section = function(spec) {
             'class': 'section-table'
         }).appendTo(that.container);
 
-        var idnsname = that.fields.get_field('idnsname');
+        var idnsname = that.widgets.get_widget('idnsname');
 
         var tr = $('<tr/>').appendTo(table);
 
@@ -282,15 +291,10 @@ IPA.dnszone_name_section = function(spec) {
         var label = $('<label/>', {
             name: 'idnsname',
             'class': 'field-label',
-            'for': 'dnszone-adder-dialog-idnsname-radio'
+            'for': idnsname.radio_id
         }).appendTo(td);
 
-        idnsname.radio = $('<input/>', {
-            type: 'radio',
-            id: 'dnszone-adder-dialog-idnsname-radio',
-            name: 'type',
-            value: idnsname.name
-        }).appendTo(label);
+        idnsname.create_radio(label);
 
         label.append(idnsname.label+':');
 
@@ -310,7 +314,7 @@ IPA.dnszone_name_section = function(spec) {
 
         var idnsname_input = $('input', span);
 
-        var name_from_ip = that.fields.get_field('name_from_ip');
+        var name_from_ip = that.widgets.get_widget('name_from_ip');
 
         tr = $('<tr/>').appendTo(table);
 
@@ -322,15 +326,10 @@ IPA.dnszone_name_section = function(spec) {
         label = $('<label/>', {
             name: 'name_from_ip',
             'class': 'field-label',
-            'for': 'dnszone-adder-dialog-name_from_ip-radio'
+            'for': name_from_ip.radio_id
         }).appendTo(td);
 
-        name_from_ip.radio = $('<input/>', {
-            type: 'radio',
-            id: 'dnszone-adder-dialog-name_from_ip-radio',
-            name: 'type',
-            value: name_from_ip.name
-        }).appendTo(label);
+        name_from_ip.create_radio(label);
 
         label.append(name_from_ip.label+':');
 
@@ -348,46 +347,86 @@ IPA.dnszone_name_section = function(spec) {
 
         name_from_ip.create(span);
 
-        var name_from_ip_input = $('input', span);
-
-        idnsname.radio.click(function() {
-            idnsname_input.attr('disabled', false);
-            name_from_ip_input.attr('disabled', true);
-
-            idnsname.set_required(true);
-            name_from_ip.set_required(false);
-
-            name_from_ip.reset();
-        });
-
-        name_from_ip.radio.click(function() {
-            idnsname_input.attr('disabled', true);
-            name_from_ip_input.attr('disabled', false);
-
-            idnsname.set_required(false);
-            name_from_ip.set_required(true);
-
-            idnsname.reset();
-        });
-
         idnsname.radio.click();
     };
 
-    that.save = function(record) {
 
-        var idnsname = that.fields.get_field('idnsname');
-        var name_from_ip = that.fields.get_field('name_from_ip');
+    return that;
+};
 
-        if (idnsname.radio.is(':checked')) {
-            record.idnsname = idnsname.save();
+IPA.add_dns_zone_name_policy = function() {
 
-        } else {
-            record.name_from_ip = name_from_ip.save();
-        }
+    var that = IPA.facet_policy();
+
+    that.init = function() {
+        var idnsname_w = this.container.widgets.get_widget('name.idnsname');
+        var name_from_ip_w = this.container.widgets.get_widget('name.name_from_ip');
+
+        var idnsname_f = this.container.fields.get_field('idnsname');
+        var name_from_ip_f = this.container.fields.get_field('name_from_ip');
+
+        idnsname_w.radio_clicked.attach(function() {
+            idnsname_w.input.attr('disabled', false);
+            name_from_ip_w.input.attr('disabled', true);
+
+            idnsname_f.set_required(true);
+            name_from_ip_f.set_required(false);
+
+            name_from_ip_f.reset();
+        });
+
+        name_from_ip_w.radio_clicked.attach(function() {
+            idnsname_w.input.attr('disabled', true);
+            name_from_ip_w.input.attr('disabled', false);
+
+            idnsname_f.set_required(false);
+            name_from_ip_f.set_required(true);
+
+            idnsname_f.reset();
+        });
     };
 
     return that;
 };
+
+IPA.dnszone_name_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.text_widget(spec);
+
+    that.radio_name = spec.radio_name;
+    that.radio_clicked = IPA.observer();
+    that.text_save = that.save;
+    that.radio_id = IPA.html_util.get_next_id(that.radio_name);
+
+    that.save = function() {
+
+        var values = [];
+
+        if (that.radio.is(':checked')) {
+            values = that.text_save();
+        }
+        return values;
+    };
+
+    that.create_radio = function(container) {
+
+        that.radio = $('<input/>', {
+            type: 'radio',
+            id: that.radio_id,
+            name: that.radio_name,
+            value: that.name,
+            click: function() {
+                that.radio_clicked.notify([], that);
+            }
+        }).appendTo(container);
+    };
+
+    return that;
+};
+
+IPA.widget_factories['dnszone_name'] = IPA.dnszone_name_widget;
 
 IPA.dnszone_adder_dialog = function(spec) {
 
@@ -472,7 +511,7 @@ IPA.dns.record_entity = function(spec) {
                    label: IPA.messages.details.identity,
                    fields:[
                        {
-                           factory:IPA.dnsrecord_host_link_widget,
+                           type: 'dnsrecord_host_link',
                            name: 'idnsname',
                            other_entity:'host',
                            label:IPA.get_entity_param(
@@ -649,14 +688,17 @@ IPA.dnsrecord_redirection_dialog = function(spec) {
     return that;
 };
 
-IPA.dnsrecord_host_link_widget = function(spec) {
-    var that = IPA.entity_link_widget(spec);
+IPA.dnsrecord_host_link_field = function(spec) {
+    var that = IPA.link_field(spec);
     that.other_pkeys = function() {
         var pkey = that.entity.get_primary_key();
         return [pkey[0]+'.'+pkey[1]];
     };
     return that;
 };
+
+IPA.field_factories['dnsrecord_host_link'] = IPA.dnsrecord_host_link_field;
+IPA.widget_factories['dnsrecord_host_link'] = IPA.link_widget;
 
 IPA.dns_record_types = function() {
     var attrs = IPA.metadata.objects.dnsrecord.default_attributes;
@@ -688,6 +730,9 @@ IPA.force_dnszone_add_checkbox_widget = function(spec) {
     spec.tooltip = metadata.doc;
     return IPA.checkbox_widget(spec);
 };
+
+IPA.widget_factories['force_dnszone_add_checkbox'] = IPA.force_dnszone_add_checkbox_widget;
+IPA.field_factories['force_dnszone_add_checkbox'] = IPA.checkbox_field;
 
 
 IPA.dnsrecord_get_delete_values = function() {
