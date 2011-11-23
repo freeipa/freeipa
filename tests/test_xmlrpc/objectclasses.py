@@ -123,5 +123,15 @@ netgroup = [
 
 automember = [
     u'top',
-    u'automemberregexrule'
+    u'automemberregexrule',
+]
+
+selinuxusermap = [
+    u'ipaassociation',
+    u'ipaselinuxusermap',
+]
+
+hbacrule = [
+    u'ipaassociation',
+    u'ipahbacrule',
 ]

@@ -1529,6 +1529,22 @@ class NotRegisteredError(ExecutionError):
     format = _('Not registered yet')
 
 
+class DependentEntry(ExecutionError):
+    """
+    **4307** Raised when an entry being deleted has dependencies
+
+    For example:
+    >>> raise DependentEntry(label=u'SELinux User Map', key=u'test', dependent=u'test1')
+    Traceback (most recent call last):
+      ...
+    DependentEntry: Not registered yet
+
+    """
+
+    errno = 4307
+    format = _('%(key)s cannot be deleted because %(label)s %(dependent)s requires it')
+
+
 ##############################################################################
 # 5000 - 5999: Generic errors
 

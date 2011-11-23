@@ -239,6 +239,14 @@ class hbacrule_del(LDAPDelete):
 
     msg_summary = _('Deleted HBAC rule "%(value)s"')
 
+    def pre_callback(self, ldap, dn, *keys, **options):
+        kw = dict(seealso=dn)
+        _entries = api.Command.selinuxusermap_find(None, **kw)
+        if _entries['count']:
+            raise errors.DependentEntry(key=keys[0], label=self.api.Object['selinuxusermap'].label_singular, dependent=_entries['result'][0]['cn'][0])
+
+        return dn
+
 api.register(hbacrule_del)
 
 

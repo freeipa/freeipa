@@ -267,3 +267,41 @@ dn: $SUFFIX
 replace:aci:'(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Add DNS entries";allow (add) groupdn = "ldap:///cn=add dns entries,cn=permissions,cn=pbac,$SUFFIX";)::(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:add dns entries";allow (add) groupdn = "ldap:///cn=add dns entries,cn=permissions,cn=pbac,$SUFFIX";)'
 replace:aci:'(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Remove DNS entries";allow (delete) groupdn = "ldap:///cn=remove dns entries,cn=permissions,cn=pbac,$SUFFIX";)::(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:remove dns entries";allow (delete) groupdn = "ldap:///cn=remove dns entries,cn=permissions,cn=pbac,$SUFFIX";)'
 replace:aci:'(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Update DNS entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX";)::(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:update dns entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX";)'
+
+# SELinux User Mapping
+dn: cn=SELinux User Map Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:cn: SELinux User Map Administrators
+default:description: SELinux User Map Administrators
+
+dn: cn=Add SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:cn: Add SELinux User Maps
+default:member: cn=SELinux User Map Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Remove SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:cn: Remove SELinux User Maps
+default:member: cn=SELinux User Map Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Modify SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:cn: Modify SELinux User Maps
+default:member: cn=SELinux User Map Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: $SUFFIX
+add:aci:'(target = "ldap:///ipauniqueid=*,cn=usermap,cn=selinux,$SUFFIX")(version 3.0;acl "permission:Add SELinux User Maps";allow (add) groupdn = "ldap:///cn=Add SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX";)'
+
+dn: $SUFFIX
+add:aci:'(target = "ldap:///ipauniqueid=*,cn=usermap,cn=selinux,$SUFFIX")(version 3.0;acl "permission:Remove SELinux User Maps";allow (delete) groupdn = "ldap:///cn=Remove SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX";)'
+
+dn: $SUFFIX
+add:aci:'(targetattr = "cn || memberuser || memberhost || seealso || ipaselinuxuser || ipaenabledflag")(target = "ldap:///ipauniqueid=*,cn=usermap,cn=selinux,$SUFFIX")(version 3.0;acl "permission:Modify SELinux User Maps";allow (write) groupdn = "ldap:///cn=Modify SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX";)'
