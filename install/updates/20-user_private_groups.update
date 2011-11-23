@@ -16,9 +16,11 @@ default:mepMappedAttr: description: User private group for $$uid
 
 dn: cn=UPG Definition,cn=Definitions,cn=Managed Entries,cn=etc,$SUFFIX
 default:objectclass: extensibleObject
-replace:originFilter:objectclass=posixAccount::(&(objectclass=posixAccount)(!(description=__no_upg__)))
 default:cn: UPG Definition
 default:originScope: cn=users,cn=accounts,$SUFFIX
 default:originFilter: objectclass=posixAccount
 default:managedBase: cn=groups,cn=accounts,$SUFFIX
 default:managedTemplate: cn=UPG Template,cn=Templates,cn=Managed Entries,cn=etc,$SUFFIX
+
+dn: cn=UPG Definition,cn=Definitions,cn=Managed Entries,cn=etc,$SUFFIX
+replace:originFilter: objectclass=posixAccount::(&(objectclass=posixAccount)(!(description=__no_upg__)))

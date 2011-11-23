@@ -594,16 +594,29 @@ class API(DictProxy):
         self.import_plugins('ipalib')
         if self.env.in_server:
             self.import_plugins('ipaserver')
+        if self.env.context in ('installer', 'updates'):
+            self.import_plugins('ipaserver/install/plugins')
 
     # FIXME: This method has no unit test
     def import_plugins(self, package):
         """
         Import modules in ``plugins`` sub-package of ``package``.
         """
+        package = package.replace(os.path.sep, '.')
         subpackage = '%s.plugins' % package
         try:
             parent = __import__(package)
-            plugins = __import__(subpackage).plugins
+            parts = package.split('.')[1:]
+            if parts:
+                for part in parts:
+                    if part == 'plugins':
+                        plugins = subpackage.plugins
+                        subpackage = plugins.__name__
+                        break
+                    subpackage = parent.__getattribute__(part)
+                    parent = subpackage
+            else:
+                plugins = __import__(subpackage).plugins
         except ImportError, e:
             self.log.error(
                 'cannot import plugins sub-package %s: %s', subpackage, e

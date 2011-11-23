@@ -875,7 +875,7 @@ freeIPA.org:
 import os
 import plugable
 from backend import Backend
-from frontend import Command, LocalOrRemote
+from frontend import Command, LocalOrRemote, Updater
 from frontend import Object, Method, Property
 from crud import Create, Retrieve, Update, Delete, Search
 from parameters import DefaultFrom, Bool, Flag, Int, Float, Bytes, Str, IA5Str, Password,List
@@ -907,7 +907,7 @@ def create_api(mode='dummy'):
 
         - `backend.Backend`
     """
-    api = plugable.API(Command, Object, Method, Property, Backend)
+    api = plugable.API(Command, Object, Method, Property, Backend, Updater)
     if mode is not None:
         api.env.mode = mode
     assert mode != 'production'

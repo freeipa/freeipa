@@ -33,6 +33,7 @@ try:
     from ipaserver.install.upgradeinstance import IPAUpgrade
     from ipapython import sysrestore
     import krbV
+    from ipalib import api
     from ipapython.ipa_log_manager import *
 except ImportError:
     print >> sys.stderr, """\
@@ -49,15 +50,19 @@ def parse_options():
     parser = IPAOptionParser(usage=usage, formatter=config.IPAFormatter())
 
     parser.add_option("-d", "--debug", action="store_true", dest="debug",
-                      help="Display debugging information about the update(s)")
+                      help="Display debugging information about the update(s)",
+                      default=False)
     parser.add_option("-t", "--test", action="store_true", dest="test",
-                      help="Run through the update without changing anything")
+                      help="Run through the update without changing anything",
+                      default=False)
     parser.add_option("-y", dest="password",
                       help="File containing the Directory Manager password")
     parser.add_option("-l", '--ldapi', action="store_true", dest="ldapi",
                       default=False, help="Connect to the LDAP server using the ldapi socket")
     parser.add_option("-u", '--upgrade', action="store_true", dest="upgrade",
                       default=False, help="Upgrade an installed server in offline mode")
+    parser.add_option("-p", '--plugins', action="store_true", dest="plugins",
+                      default=False, help="Execute update plugins. Always true when applying all update files.")
     parser.add_option("-W", '--password', action="store_true",
                       dest="ask_password",
                       help="Prompt for the Directory Manager password")
@@ -78,6 +83,7 @@ def get_dirman_password():
 def main():
     badsyntax = False
     upgradefailed = False
+    run_plugins = False
 
     safe_options, options, args = parse_options()
 
@@ -96,14 +102,30 @@ def main():
             if dirman_password is None:
                 sys.exit("\nDirectory Manager password required")
 
+    if options.upgrade:
+        standard_logging_setup('/var/log/ipaupgrade.log', verbose=True, debug=options.debug, filemode='a')
+    else:
+        standard_logging_setup(None, verbose=True, debug=options.debug)
+
+    cfg = dict (
+        in_server=True,
+        context='updates',
+        debug=options.debug,
+    )
+    api.bootstrap(**cfg)
+    api.finalize()
+
     files = []
     if len(args) > 0:
         files = args
 
+    if len(files) < 1:
+        run_plugins = True
+
+    updates = None
     if options.upgrade:
         if os.getegid() != 0:
             sys.exit('Upgrade can only be done as root')
-        standard_logging_setup('/var/log/ipaupgrade.log', verbose=True, debug=options.debug, filemode='a')
         root_logger.debug('%s was invoked with arguments %s and options: %s' % (sys.argv[0], args, safe_options))
         realm = krbV.default_context().default_realm
         upgrade = IPAUpgrade(realm, files, live_run=not options.test)
@@ -112,21 +134,24 @@ def main():
         badsyntax = upgrade.badsyntax
         upgradefailed = upgrade.upgradefailed
     else:
-        standard_logging_setup(None, verbose=True, debug=options.debug)
-        ld = LDAPUpdate(dm_password=dirman_password, sub_dict={}, live_run=not options.test, ldapi=options.ldapi)
+        ld = LDAPUpdate(dm_password=dirman_password, sub_dict={}, live_run=not options.test, ldapi=options.ldapi, plugins=options.plugins or run_plugins)
         if len(files) < 1:
             files = ld.get_all_files(UPDATES_DIR)
         modified = ld.update(files)
 
     if badsyntax:
+        root_logger.info('Bad syntax detected in upgrade file(s).')
         print 'Bad syntax detected in upgrade file(s).'
         return 1
     elif upgradefailed:
+        root_logger.info('IPA upgrade failed.')
         print 'IPA upgrade failed.'
         return 1
     elif modified and options.test:
+        root_logger.info('Update complete, changes to be made, test mode')
         return 2
     else:
+        root_logger.info('Update complete')
         return 0
 
 try:

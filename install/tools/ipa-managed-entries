@@ -130,12 +130,10 @@ def main():
         entries = conn.search_s(
             managed_entry_definitions_dn, ldap.SCOPE_SUBTREE, filter
             )
-        managed_entries = [entry.dn for entry in entries]
+        managed_entries = [entry.cn for entry in entries]
         if managed_entries:
             print "Available Managed Entry Definitions:"
             for managed_entry in managed_entries:
-                rdn = DN(managed_entry)
-                managed_entry = rdn[0].value
                 print managed_entry
         retval = 0
         sys.exit()
