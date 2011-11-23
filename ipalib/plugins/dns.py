@@ -27,7 +27,7 @@ from ipalib import Command
 from ipalib import Flag, Bool, Int, List, Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
-from ipalib.util import validate_zonemgr, validate_hostname
+from ipalib.util import validate_zonemgr, normalize_zonemgr, validate_hostname
 from ipapython import dnsclient
 from ipapython.ipautil import valid_ip
 from ldap import explode_dn
@@ -151,13 +151,6 @@ def _rname_validator(ugettext, zonemgr):
     except ValueError, e:
         return unicode(e)
     return None
-
-# normalizer for admin email
-def _rname_normalizer(value):
-    value = value.replace('@', '.')
-    if not value.endswith('.'):
-        value += '.'
-    return value
 
 def _create_zone_serial(**kwargs):
     """Generate serial number for zones."""
@@ -678,7 +671,7 @@ class dnszone(LDAPObject):
             label=_('Administrator e-mail address'),
             doc=_('Administrator e-mail address'),
             default_from=lambda idnsname: 'root.%s' % idnsname,
-            normalizer=_rname_normalizer,
+            normalizer=normalize_zonemgr,
         ),
         Int('idnssoaserial?',
             cli_name='serial',
