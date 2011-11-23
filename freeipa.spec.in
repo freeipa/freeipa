@@ -98,7 +98,6 @@ Requires: krb5-server >= 1.9.1-15
 %else
 Requires: krb5-server
 %endif
-Requires: krb5-server-ldap
 Requires: krb5-pkinit-openssl
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
