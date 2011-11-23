@@ -670,7 +670,7 @@ class dnszone(LDAPObject):
             cli_name='admin_email',
             label=_('Administrator e-mail address'),
             doc=_('Administrator e-mail address'),
-            default_from=lambda idnsname: 'root.%s' % idnsname,
+            default_from=lambda idnsname: 'hostmaster.%s' % idnsname,
             normalizer=normalize_zonemgr,
         ),
         Int('idnssoaserial?',
