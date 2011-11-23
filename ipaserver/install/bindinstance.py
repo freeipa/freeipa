@@ -32,7 +32,7 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipalib.constants import DNS_ZONE_REFRESH
 from ipalib.parameters import IA5Str
-from ipalib.util import validate_zonemgr
+from ipalib.util import validate_zonemgr, normalize_zonemgr
 from ipapython.ipa_log_manager import *
 
 import ipalib
@@ -187,6 +187,9 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_addres
     if update_policy is None:
         update_policy = "grant %(realm)s krb5-self * A; grant %(realm)s krb5-self * AAAA;" % dict(realm=api.env.realm)
 
+    if zonemgr is None:
+        zonemgr = 'root.%s' % name
+
     if ns_hostname is None:
         # automatically retrieve list of DNS masters
         dns_masters = api.Object.dnsrecord.get_dns_masters()
@@ -298,10 +301,6 @@ def zonemgr_callback(option, opt_str, value, parser):
     except ValueError, e:
         parser.error("invalid zonemgr: " + unicode(e))
 
-    name = opt_str.replace('--','')
-    v = unicode(value, 'utf-8')
-    ia = IA5Str(name)
-    ia._convert_scalar(v)
     parser.values.zonemgr = value
 
 class DnsBackup(object):
@@ -387,10 +386,10 @@ class BindInstance(service.Service):
         self.zone_refresh = zone_refresh
         self.zone_notif = zone_notif
 
-        if zonemgr:
-            self.zonemgr = zonemgr.replace('@','.')
-        else:
+        if not zonemgr:
             self.zonemgr = 'root.%s.%s' % (self.host, self.domain)
+        else:
+            self.zonemgr = normalize_zonemgr(zonemgr)
 
         self.__setup_sub_dict()
 

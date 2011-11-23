@@ -196,32 +196,62 @@ def check_writable_file(filename):
     except (IOError, OSError), e:
         raise errors.FileError(reason=str(e))
 
+def normalize_zonemgr(zonemgr):
+    if not zonemgr:
+        # do not normalize empty or None value
+        return zonemgr
+    if '@' in zonemgr:
+        # local-part needs to be normalized
+        name, at, domain = zonemgr.partition('@')
+        name = name.replace('.', '\\.')
+        zonemgr = u''.join((name, u'.', domain))
+
+    if not zonemgr.endswith('.'):
+        zonemgr = zonemgr + u'.'
+
+    return zonemgr
 
 def validate_zonemgr(zonemgr):
     """ See RFC 1033, 1035 """
-    regex_domain = re.compile(r'^[a-z0-9][a-z0-9-]*$', re.IGNORECASE)
-    regex_name = re.compile(r'^[a-z0-9][a-z0-9-_]*$', re.IGNORECASE)
+    regex_domain = re.compile(r'^[a-z0-9]([a-z0-9-]?[a-z0-9])*$', re.IGNORECASE)
+    regex_local_part = re.compile(r'^[a-z0-9]([a-z0-9-_\.]?[a-z0-9])*$',
+                                    re.IGNORECASE)
+
+    local_part_errmsg = _('mail account may only include letters, numbers, -, _ and a dot. There may not be consecutive -, _ and . characters')
 
     if len(zonemgr) > 255:
         raise ValueError(_('cannot be longer that 255 characters'))
 
+    if zonemgr.endswith('.'):
+        zonemgr = zonemgr[:-1]
+
     if zonemgr.count('@') == 1:
-        name, dot, domain = zonemgr.partition('@')
+        local_part, dot, domain = zonemgr.partition('@')
+        if not regex_local_part.match(local_part):
+            raise ValueError(local_part_errmsg)
     elif zonemgr.count('@') > 1:
         raise ValueError(_('too many \'@\' characters'))
     else:
-        # address in SOA format already (without @)
-        name, dot, domain = zonemgr.partition('.')
+        last_fake_sep = zonemgr.rfind('\\.')
+        if last_fake_sep != -1: # there is a 'fake' local-part/domain separator
+            sep = zonemgr.find('.', last_fake_sep+2)
+            if sep == -1:
+                raise ValueError(_('address domain is not fully qualified ' \
+                          '("example.com" instead of just "example")'))
+            local_part = zonemgr[:sep]
+            domain = zonemgr[sep+1:]
 
-    if domain.endswith('.'):
-        domain = domain[:-1]
+            if not all(regex_local_part.match(part) for part in local_part.split('\\.')):
+                raise ValueError(local_part_errmsg)
+        else:
+            local_part, dot, domain = zonemgr.partition('.')
+
+            if not regex_local_part.match(local_part):
+                raise ValueError(local_part_errmsg)
 
     if '.' not in domain:
         raise ValueError(_('address domain is not fully qualified ' \
                           '("example.com" instead of just "example")'))
-
-    if not regex_name.match(name):
-        raise ValueError(_('mail account may only include letters, numbers, -, and _'))
 
     if not all(regex_domain.match(part) for part in domain.split(".")):
         raise ValueError(_('domain name may only include letters, numbers, and -'))
