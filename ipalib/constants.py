@@ -96,6 +96,7 @@ DEFAULT_CONFIG = (
     ('container_sudocmdgroup', 'cn=sudocmdgroups,cn=sudo'),
     ('container_entitlements', 'cn=entitlements,cn=etc'),
     ('container_automember', 'cn=automember,cn=etc'),
+    ('container_selinux', 'cn=usermap,cn=selinux'),
 
     # Ports, hosts, and URIs:
     # FIXME: let's renamed xmlrpc_uri to rpc_xml_uri

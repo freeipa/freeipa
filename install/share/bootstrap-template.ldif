@@ -346,6 +346,8 @@ ipaUserObjectClasses: ipaobject
 ipaDefaultEmailDomain: $DOMAIN
 ipaMigrationEnabled: FALSE
 ipaConfigString: AllowNThash
+ipaSELinuxUserMapOrder: guest_u:s0$$xguest_u:s0$$user_u:s0-s0:c0.c1023$$staff_u:s0-s0:c0.c1023$$unconfined_u:s0-s0:c0.c1023
+ipaSELinuxUserMapDefault: guest_u:s0
 
 dn: cn=cosTemplates,cn=accounts,$SUFFIX
 changetype: add
@@ -364,3 +366,16 @@ objectClass: cosClassicDefinition
 cosTemplateDn: cn=cosTemplates,cn=accounts,$SUFFIX
 cosAttribute: krbPwdPolicyReference override
 cosSpecifier: memberOf
+
+dn: cn=selinux,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: selinux
+
+dn: cn=usermap,cn=selinux,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: usermap
+

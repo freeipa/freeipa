@@ -47,6 +47,9 @@ Certificate Subject base: the configured certificate subject base,
 Password plug-in features: currently defines additional hashes that the
   password will generate (there may be other conditions).
 
+When setting the order list for mapping SELinux users you may need to
+quote the value so it isn't interpreted by the shell.
+
 EXAMPLES:
 
  Show basic server configuration:
@@ -66,6 +69,9 @@ EXAMPLES:
 
  Enable migration mode to make "ipa migrate-ds" command operational:
    ipa config-mod --enable-migration=TRUE
+
+ Define SELinux user map order:
+   ipa config-mod --ipaselinuxusermaporder='guest_u:s0$xguest_u:s0$user_u:s0-s0:c0.c1023$staff_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023'
 """)
 
 def validate_searchtimelimit(ugettext, limit):
@@ -83,7 +89,7 @@ class config(LDAPObject):
         'ipadefaultprimarygroup', 'ipadefaultemaildomain', 'ipasearchtimelimit',
         'ipasearchrecordslimit', 'ipausersearchfields', 'ipagroupsearchfields',
         'ipamigrationenabled', 'ipacertificatesubjectbase',
-        'ipapwdexpadvnotify',
+        'ipapwdexpadvnotify', 'ipaselinuxusermaporder', 'ipaselinuxusermapdefault',
     ]
 
     label = _('Configuration')
@@ -172,6 +178,14 @@ class config(LDAPObject):
             doc=_('Extra hashes to generate in password plug-in'),
             flags=['no_update'],
         ),
+        Str('ipaselinuxusermaporder?',
+            label=_('SELinux user map order'),
+            doc=_('Order in increasing priority of SELinux users, delimited by $'),
+        ),
+        Str('ipaselinuxusermapdefault?',
+            label=_('Default SELinux user'),
+            doc=_('Default SELinux user when no match is found in SELinux map rule'),
+        ),
     )
 
     def get_dn(self, *keys, **kwargs):
@@ -227,6 +241,31 @@ class config_mod(LDAPUpdate):
                         raise errors.ValidationError(name=attr,
                                 error=_('%s default attribute %s would not be allowed!') \
                                 % (obj, obj_attr))
+
+        if 'ipaselinuxusermapdefault' in options and options['ipaselinuxusermapdefault'] is None:
+            raise errors.ValidationError(name='ipaselinuxusermapdefault',
+                error=_('SELinux user map default user may not be empty'))
+
+        # Make sure the default user is in the list
+        if 'ipaselinuxusermapdefault' in options or \
+          'ipaselinuxusermaporder' in options:
+            config = None
+            if 'ipaselinuxusermapdefault' in options:
+                defaultuser = options['ipaselinuxusermapdefault']
+            else:
+                config = ldap.get_ipa_config()[1]
+                defaultuser = config['ipaselinuxusermapdefault']
+
+            if 'ipaselinuxusermaporder' in options:
+                order = options['ipaselinuxusermaporder']
+            else:
+                if not config:
+                    config = ldap.get_ipa_config()[1]
+                order = config['ipaselinuxusermaporder']
+            userlist = order[0].split('$')
+            if defaultuser not in userlist:
+                raise errors.ValidationError(name='ipaselinuxusermaporder',
+                    error=_('Default SELinux user map default user not in order list'))
 
         return dn
 
