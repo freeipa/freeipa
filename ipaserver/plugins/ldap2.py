@@ -34,6 +34,7 @@ import shutil
 import tempfile
 import time
 import re
+import pwd
 
 import krbV
 from ipapython.ipa_log_manager import *
@@ -313,7 +314,7 @@ class ldap2(CrudBackend, Encoder):
     @encode_args(2, 3, 'bind_dn', 'bind_pw')
     def create_connection(self, ccache=None, bind_dn='', bind_pw='',
             tls_cacertfile=None, tls_certfile=None, tls_keyfile=None,
-            debug_level=0):
+            debug_level=0, autobind=False):
         """
         Connect to LDAP server.
 
@@ -326,6 +327,7 @@ class ldap2(CrudBackend, Encoder):
         tls_cacertfile -- TLS CA certificate filename
         tls_certfile -- TLS certificate filename
         tls_keyfile - TLS bind key filename
+        autobind - autobind as the current user
 
         Extends backend.Connectible.create_connection.
         """
@@ -342,7 +344,7 @@ class ldap2(CrudBackend, Encoder):
 
         try:
             conn = _ldap.initialize(self.ldap_uri)
-            if self.ldap_uri.startswith('ldapi://'):
+            if self.ldap_uri.startswith('ldapi://') and ccache:
                 conn.set_option(_ldap.OPT_HOST_NAME, api.env.host)
             if ccache is not None:
                 os.environ['KRB5CCNAME'] = ccache
@@ -351,8 +353,14 @@ class ldap2(CrudBackend, Encoder):
                             context=krbV.default_context()).principal().name
                 setattr(context, 'principal', principal)
             else:
-                # no kerberos ccache, use simple bind
-                conn.simple_bind_s(bind_dn, bind_pw)
+                # no kerberos ccache, use simple bind or external sasl
+                if autobind:
+                    pent = pwd.getpwuid(os.geteuid())
+                    auth_tokens = _ldap.sasl.external(pent.pw_name)
+                    conn.sasl_interactive_bind_s("", auth_tokens)
+                else:
+                    conn.simple_bind_s(bind_dn, bind_pw)
+
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
 

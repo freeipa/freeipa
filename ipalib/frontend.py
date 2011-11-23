@@ -30,7 +30,7 @@ from util import make_repr
 from output import Output, Entry, ListOfEntries
 from text import _, ngettext
 
-from errors import ZeroArgumentError, MaxArgumentError, OverlapError, RequiresRoot, VersionError, RequirementError
+from errors import ZeroArgumentError, MaxArgumentError, OverlapError, RequiresRoot, VersionError, RequirementError, ValidationError
 from errors import InvocationError
 from constants import TYPE_ERROR
 from ipapython.version import API_VERSION
@@ -557,7 +557,11 @@ class Command(HasParam):
                 # None means "delete this attribute"
                 value = None
             if attr in self.params:
-                value = self.params[attr](value)
+                try:
+                    value = self.params[attr](value)
+                except ValidationError, err:
+                    (name, error) = str(err.strerror).split(':')
+                    raise ValidationError(name=attr, error=error)
             if append and attr in newdict:
                 if type(value) in (tuple,):
                     newdict[attr] += list(value)
@@ -1334,3 +1338,39 @@ class Property(Attribute):
                 attr = getattr(self, name)
                 if is_rule(attr):
                     yield attr
+
+class Updater(Method):
+    """
+    An LDAP update with an associated object (always update).
+
+    All plugins that subclass from `Updater` will be automatically available
+    as a server update function.
+
+    Plugins that subclass from Updater are registered in the ``api.Updater``
+    namespace. For example:
+
+    >>> from ipalib import create_api
+    >>> api = create_api()
+    >>> class my(Object):
+    ...     pass
+    ...
+    >>> api.register(my)
+    >>> class my_update(Updater):
+    ...     pass
+    ...
+    >>> api.register(my_update)
+    >>> api.finalize()
+    >>> list(api.Updater)
+    ['my_update']
+    >>> api.Updater.my_update # doctest:+ELLIPSIS
+    ipalib.frontend.my_update()
+    """
+    def __init__(self):
+        super(Updater, self).__init__()
+
+    def __call__(self, **options):
+        self.debug(
+            'raw: %s', self.name
+        )
+
+        return self.execute(**options)

@@ -31,6 +31,7 @@ from ipaserver import ipaldap
 from ipapython import entity, ipautil
 from ipalib import util
 from ipalib import errors
+from ipalib import api
 import ldap
 from ldap.dn import escape_dn_chars
 from ipapython.ipa_log_manager import *
@@ -42,6 +43,8 @@ import os
 import pwd
 import fnmatch
 import csv
+from ipaserver.install.plugins import PRE_UPDATE, POST_UPDATE
+from ipaserver.install.plugins import FIRST, MIDDLE, LAST
 
 class BadSyntax(Exception):
     def __init__(self, value):
@@ -49,32 +52,15 @@ class BadSyntax(Exception):
     def __str__(self):
         return repr(self.value)
 
-class IPARestart(service.Service):
-    """
-    Restart the 389 DS service prior to performing deletions.
-    """
-    def __init__(self, live_run=True):
-        """
-        This class is present to provide ldapupdate the means to
-        restart 389 DS to apply updates prior to performing deletes.
-        """
-
-        service.Service.__init__(self, "dirsrv")
-        self.live_run = live_run
-
-    def create_instance(self):
-        self.step("stopping directory server", self.stop)
-        self.step("starting directory server", self.start)
-        self.start_creation("Restarting IPA to initialize updates before performing deletes:")
-
 class LDAPUpdate:
     def __init__(self, dm_password, sub_dict={}, live_run=True,
-                 online=True, ldapi=False):
+                 online=True, ldapi=False, plugins=False):
         """dm_password = Directory Manager password
            sub_dict = substitution dictionary
            live_run = Apply the changes or just test
            online = do an online LDAP update or use an experimental LDIF updater
            ldapi = bind using ldapi. This assumes autobind is enabled.
+           plugins = execute the pre/post update plugins
         """
         self.sub_dict = sub_dict
         self.live_run = live_run
@@ -83,6 +69,7 @@ class LDAPUpdate:
         self.modified = False
         self.online = online
         self.ldapi = ldapi
+        self.plugins = plugins
         self.pw_name = pwd.getpwuid(os.geteuid()).pw_name
 
         if sub_dict.get("REALM"):
@@ -554,11 +541,11 @@ class LDAPUpdate:
                     # skip this update type, it occurs in  __delete_entries()
                     return None
                 elif utype == 'replace':
-                    # v has the format "old:: new"
+                    # v has the format "old::new"
                     try:
                         (old, new) = v.split('::', 1)
                     except ValueError:
-                        raise BadSyntax, "bad syntax in replace, needs to be in the format old: new in %s" % v
+                        raise BadSyntax, "bad syntax in replace, needs to be in the format old::new in %s" % v
                     try:
                         e.remove(old)
                         e.append(new)
@@ -708,11 +695,12 @@ class LDAPUpdate:
         deletes = updates.get('deleteentry', [])
         for d in deletes:
             try:
-               if self.live_run:
-                   self.conn.deleteEntry(dn)
-               self.modified = True
+                root_logger.info('Deleting entry %s", dn)
+                if self.live_run:
+                    self.conn.deleteEntry(dn)
+                self.modified = True
             except errors.NotFound, e:
-                root_logger.info("Deleting non-existent entry %s", e)
+                root_logger.info("%s did not exist:%s", (dn, e))
                 self.modified = True
             except errors.DatabaseError, e:
                 root_logger.error("Delete failed: %s", e)
@@ -724,11 +712,12 @@ class LDAPUpdate:
 
             if utype == 'deleteentry':
                 try:
-                   if self.live_run:
-                       self.conn.deleteEntry(dn)
-                   self.modified = True
+                    root_logger.info('Deleting entry %s", dn)
+                    if self.live_run:
+                        self.conn.deleteEntry(dn)
+                    self.modified = True
                 except errors.NotFound, e:
-                    root_logger.info("Deleting non-existent entry %s", e)
+                    root_logger.info("%s did not exist:%s", (dn, e))
                     self.modified = True
                 except errors.DatabaseError, e:
                     root_logger.error("Delete failed: %s", e)
@@ -772,16 +761,49 @@ class LDAPUpdate:
         else:
             raise RuntimeError("Offline updates are not supported.")
 
+    def __run_updates(self, dn_list, all_updates):
+        # For adds and updates we want to apply updates from shortest
+        # to greatest length of the DN. For deletes we want the reverse.
+        sortedkeys = dn_list.keys()
+        sortedkeys.sort()
+        for k in sortedkeys:
+            for dn in dn_list[k]:
+                self.__update_record(all_updates[dn])
+
+        sortedkeys.reverse()
+        for k in sortedkeys:
+            for dn in dn_list[k]:
+                self.__delete_record(all_updates[dn])
+
     def update(self, files):
         """Execute the update. files is a list of the update files to use.
 
            returns True if anything was changed, otherwise False
         """
 
+        updates = None
+        if self.plugins:
+            logging.info('PRE_UPDATE')
+            updates = api.Backend.updateclient.update(PRE_UPDATE, self.dm_password, self.ldapi, self.live_run)
+
         try:
             self.create_connection()
             all_updates = {}
             dn_list = {}
+            # Start with any updates passed in from pre-update plugins
+            if updates:
+                for entry in updates:
+                    all_updates.update(entry)
+                for upd in updates:
+                    for dn in upd:
+                        dn_explode = ldap.explode_dn(dn.lower())
+                        l = len(dn_explode)
+                        if dn_list.get(l):
+                            if dn not in dn_list[l]:
+                                dn_list[l].append(dn)
+                        else:
+                            dn_list[l] = [dn]
+
             for f in files:
                 try:
                     root_logger.info("Parsing file %s" % f)
@@ -792,40 +814,38 @@ class LDAPUpdate:
 
                 (all_updates, dn_list) = self.parse_update_file(data, all_updates, dn_list)
 
-            # Process Managed Entry Updates
-            managed_entries = self.__update_managed_entries()
-            if managed_entries:
-                managed_entry_dns = [[m[entry]['dn'] for entry in m] for m in managed_entries]
-                l = len(dn_list.keys())
-
-                # Add Managed Entry DN's to the DN List
-                for dn in managed_entry_dns:
-                    l+=1
-                    dn_list[l] = dn
-                # Add Managed Entry Updates to All Updates List
-                for managed_entry in managed_entries:
-                    all_updates.update(managed_entry)
-
-            # For adds and updates we want to apply updates from shortest
-            # to greatest length of the DN. For deletes we want the reverse.
-            sortedkeys = dn_list.keys()
-            sortedkeys.sort()
-            for k in sortedkeys:
-                for dn in dn_list[k]:
-                    self.__update_record(all_updates[dn])
-
-            # Restart 389 Directory Service
-            socket_name = '/var/run/slapd-%s.socket' % self.realm.replace('.','-')
-            iparestart = IPARestart()
-            iparestart.create_instance()
-            installutils.wait_for_open_socket(socket_name)
-            self.create_connection()
-
-            sortedkeys.reverse()
-            for k in sortedkeys:
-                for dn in dn_list[k]:
-                    self.__delete_record(all_updates[dn])
+            self.__run_updates(dn_list, all_updates)
         finally:
             if self.conn: self.conn.unbind()
+
+        if self.plugins:
+            logging.info('POST_UPDATE')
+            updates = api.Backend.updateclient.update(POST_UPDATE, self.dm_password, self.ldapi, self.live_run)
+            dn_list = {}
+            for upd in updates:
+                for dn in upd:
+                    dn_explode = ldap.explode_dn(dn.lower())
+                    l = len(dn_explode)
+                    if dn_list.get(l):
+                        if dn not in dn_list[l]:
+                            dn_list[l].append(dn)
+                    else:
+                        dn_list[l] = [dn]
+            self.__run_updates(dn_list, updates)
+
+        return self.modified
+
+
+    def update_from_dict(self, dn_list, updates):
+        """
+        Apply updates internally as opposed to from a file.
+
+        dn_list is a list of dns to be updated
+        updates is a dictionary containing the updates
+        """
+        if not self.conn:
+            self.create_connection()
+
+        self.__run_updates(dn_list, updates)
 
         return self.modified

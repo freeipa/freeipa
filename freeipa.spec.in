@@ -386,8 +386,12 @@ fi
 %endif
 if [ $1 -gt 1 ] ; then
     /usr/sbin/ipa-upgradeconfig || :
-    /usr/sbin/ipa-ldap-updater --upgrade >/dev/null 2>&1 || :
 fi
+
+%posttrans server
+# This must be run in posttrans so that updates from previous
+# execution that may no longer be shipped are not applied.
+/usr/sbin/ipa-ldap-updater --upgrade >/dev/null 2>&1 || :
 
 %preun server
 if [ $1 = 0 ]; then
