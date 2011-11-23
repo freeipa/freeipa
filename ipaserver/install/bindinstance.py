@@ -188,7 +188,7 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_addres
         update_policy = "grant %(realm)s krb5-self * A; grant %(realm)s krb5-self * AAAA;" % dict(realm=api.env.realm)
 
     if zonemgr is None:
-        zonemgr = 'root.%s' % name
+        zonemgr = 'hostmaster.%s' % name
 
     if ns_hostname is None:
         # automatically retrieve list of DNS masters
@@ -387,7 +387,7 @@ class BindInstance(service.Service):
         self.zone_notif = zone_notif
 
         if not zonemgr:
-            self.zonemgr = 'root.%s.%s' % (self.host, self.domain)
+            self.zonemgr = 'hostmaster.%s' % self.domain
         else:
             self.zonemgr = normalize_zonemgr(zonemgr)
 
