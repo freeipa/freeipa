@@ -106,7 +106,7 @@ class IPAUpgrade(service.Service):
                 self.files = ld.get_all_files(ldapupdate.UPDATES_DIR)
             self.modified = ld.update(self.files)
         except ldapupdate.BadSyntax, e:
-            logging.error('Bad syntax in upgrade %s' % str(e))
+            root_logger.error('Bad syntax in upgrade %s' % str(e))
             self.modified = False
             self.badsyntax = True
         except Exception, e:

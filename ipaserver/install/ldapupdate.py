@@ -695,7 +695,7 @@ class LDAPUpdate:
         deletes = updates.get('deleteentry', [])
         for d in deletes:
             try:
-                root_logger.info('Deleting entry %s", dn)
+                root_logger.info("Deleting entry %s", dn)
                 if self.live_run:
                     self.conn.deleteEntry(dn)
                 self.modified = True
@@ -712,7 +712,7 @@ class LDAPUpdate:
 
             if utype == 'deleteentry':
                 try:
-                    root_logger.info('Deleting entry %s", dn)
+                    root_logger.info("Deleting entry %s", dn)
                     if self.live_run:
                         self.conn.deleteEntry(dn)
                     self.modified = True
@@ -783,7 +783,7 @@ class LDAPUpdate:
 
         updates = None
         if self.plugins:
-            logging.info('PRE_UPDATE')
+            root_logger.info('PRE_UPDATE')
             updates = api.Backend.updateclient.update(PRE_UPDATE, self.dm_password, self.ldapi, self.live_run)
 
         try:
@@ -819,7 +819,7 @@ class LDAPUpdate:
             if self.conn: self.conn.unbind()
 
         if self.plugins:
-            logging.info('POST_UPDATE')
+            root_logger.info('POST_UPDATE')
             updates = api.Backend.updateclient.update(POST_UPDATE, self.dm_password, self.ldapi, self.live_run)
             dn_list = {}
             for upd in updates:
