@@ -395,8 +395,9 @@ done:
 
 int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
                       struct ipapwd_data *data, char *userpw,
-                      int is_krb, int is_smb, Slapi_Value ***svals,
-                      char **nthash, char **lmhash, char **errMesg)
+                      int is_krb, int is_smb, int is_ipant, Slapi_Value ***svals,
+                      char **nthash, char **lmhash, Slapi_Value ***ntvals,
+                      char **errMesg)
 {
     int rc;
 
@@ -417,7 +418,7 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
         }
     }
 
-    if (is_smb) {
+    if (is_smb || is_ipant) {
         char lm[33], nt[33];
         struct ntlm_keys ntlm;
         int ret;
@@ -442,6 +443,20 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
             nt[32] = '\0';
             *nthash = slapi_ch_strdup(nt);
         }
+
+        if (is_ipant) {
+            *ntvals = (Slapi_Value **)calloc(2, sizeof(Slapi_Value *));
+            if (!svals) {
+                LOG_OOM();
+                rc = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
+            (*ntvals)[0] = slapi_value_new();
+            if (slapi_value_set((*ntvals)[0], ntlm.nt, 16) == NULL) {
+                rc = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
+        }
     }
 
     rc = LDAP_SUCCESS;
@@ -451,6 +466,7 @@ done:
     /* when error, free possibly allocated output parameters */
     if (rc) {
         ipapwd_free_slapi_value_array(svals);
+        ipapwd_free_slapi_value_array(ntvals);
     }
 
     return rc;

@@ -163,7 +163,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     char *dn = NULL;
     struct ipapwd_operation *pwdop = NULL;
     void *op;
-    int is_repl_op, is_root, is_krb, is_smb;
+    int is_repl_op, is_root, is_krb, is_smb, is_ipant;
     int ret;
     int rc = LDAP_SUCCESS;
 
@@ -240,7 +240,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     }
 
     rc = ipapwd_entry_checks(pb, e,
-                             &is_root, &is_krb, &is_smb,
+                             &is_root, &is_krb, &is_smb, &is_ipant,
                              NULL, SLAPI_ACL_ADD);
     if (rc != LDAP_SUCCESS) {
         goto done;
@@ -307,17 +307,18 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
         goto done;
     }
 
-    if (is_krb || is_smb) {
+    if (is_krb || is_smb || is_ipant) {
 
         Slapi_Value **svals = NULL;
+        Slapi_Value **ntvals = NULL;
         char *nt = NULL;
         char *lm = NULL;
 
         pwdop->is_krb = is_krb;
 
         rc = ipapwd_gen_hashes(krbcfg, &pwdop->pwdata,
-                               userpw, is_krb, is_smb,
-                               &svals, &nt, &lm, &errMesg);
+                               userpw, is_krb, is_smb, is_ipant,
+                               &svals, &nt, &lm, &ntvals, &errMesg);
         if (rc != LDAP_SUCCESS) {
             goto done;
         }
@@ -335,15 +336,20 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
             ipapwd_free_slapi_value_array(&svals);
         }
 
-        if (lm) {
+        if (lm && is_smb) {
             /* set value */
             slapi_entry_attr_set_charptr(e, "sambaLMPassword", lm);
             slapi_ch_free_string(&lm);
         }
-        if (nt) {
+        if (nt && is_smb) {
             /* set value */
             slapi_entry_attr_set_charptr(e, "sambaNTPassword", nt);
             slapi_ch_free_string(&nt);
+        }
+
+        if (ntvals && is_ipant) {
+            slapi_entry_attr_replace_sv(e, "ipaNTHash", ntvals);
+            ipapwd_free_slapi_value_array(&ntvals);
         }
 
         if (is_smb) {
@@ -397,7 +403,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     struct slapi_entry *e = NULL;
     struct ipapwd_operation *pwdop = NULL;
     void *op;
-    int is_repl_op, is_pwd_op, is_root, is_krb, is_smb;
+    int is_repl_op, is_pwd_op, is_root, is_krb, is_smb, is_ipant;
     int has_krb_keys = 0;
     int has_history = 0;
     int gen_krb_keys = 0;
@@ -514,7 +520,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     }
 
     rc = ipapwd_entry_checks(pb, e,
-                             &is_root, &is_krb, &is_smb,
+                             &is_root, &is_krb, &is_smb, &is_ipant,
                              SLAPI_USERPWD_ATTR, SLAPI_ACL_WRITE);
     if (rc) {
         goto done;
@@ -585,6 +591,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
                  * flags, so we sero them out and see if they get set again */
                 is_krb = 0;
                 is_smb = 0;
+                is_ipant = 0;
 
             case LDAP_MOD_ADD:
                 bv = slapi_mod_get_first_value(smod);
@@ -598,6 +605,8 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
                         is_krb = 1;
                     if (0 == strncasecmp("sambaSamAccount", bv->bv_val, bv->bv_len))
                         is_smb = 1;
+                    if (0 == strncasecmp("ipaNTUserAttrs", bv->bv_val, bv->bv_len))
+                        is_ipant = 1;
                 } while ((bv = slapi_mod_get_next_value(smod)) != NULL);
 
                 break;
@@ -606,6 +615,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
                 /* can this happen for objectclasses ? */
                 is_krb = 0;
                 is_smb = 0;
+                is_ipant = 0;
 
             default:
                 break;
@@ -654,7 +664,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
 
     /* Check this is a clear text password, or refuse operation (only if we need
      * to comput other hashes */
-    if (! unhashedpw && (gen_krb_keys || is_smb)) {
+    if (! unhashedpw && (gen_krb_keys || is_smb || is_ipant)) {
         if ('{' == userpw[0]) {
             if (0 == strncasecmp(userpw, "{CLEAR}", strlen("{CLEAR}"))) {
                 unhashedpw = slapi_ch_strdup(&userpw[strlen("{CLEAR}")]);
@@ -746,15 +756,16 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
         }
     }
 
-    if (gen_krb_keys || is_smb) {
+    if (gen_krb_keys || is_smb || is_ipant) {
 
         Slapi_Value **svals = NULL;
+        Slapi_Value **ntvals = NULL;
         char *nt = NULL;
         char *lm = NULL;
 
         rc = ipapwd_gen_hashes(krbcfg, &pwdop->pwdata, unhashedpw,
-                               gen_krb_keys, is_smb,
-                               &svals, &nt, &lm, &errMesg);
+                               gen_krb_keys, is_smb, is_ipant,
+                               &svals, &nt, &lm, &ntvals, &errMesg);
         if (rc) {
             goto done;
         }
@@ -766,17 +777,23 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
             ipapwd_free_slapi_value_array(&svals);
         }
 
-        if (lm) {
+        if (lm && is_smb) {
             /* replace value */
             slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
                                   "sambaLMPassword", lm);
             slapi_ch_free_string(&lm);
         }
-        if (nt) {
+        if (nt && is_smb) {
             /* replace value */
             slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
                                   "sambaNTPassword", nt);
             slapi_ch_free_string(&nt);
+        }
+
+        if (ntvals && is_ipant) {
+            slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE,
+                                      "ipaNTHash", ntvals);
+            ipapwd_free_slapi_value_array(&ntvals);
         }
 
         if (is_smb) {

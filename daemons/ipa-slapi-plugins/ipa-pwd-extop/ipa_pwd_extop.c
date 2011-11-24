@@ -156,7 +156,7 @@ static int ipapwd_chpwop(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	Slapi_Value *objectclass=NULL;
 	char *attrlist[] = {"*", "passwordHistory", NULL };
 	struct ipapwd_data pwdata;
-	int is_krb, is_smb;
+	int is_krb, is_smb, is_ipant;
     char *principal = NULL;
 
 	/* Get the ber value of the extended operation */
@@ -365,7 +365,7 @@ parse_req_done:
     }
 
 	 rc = ipapwd_entry_checks(pb, targetEntry,
-				&is_root, &is_krb, &is_smb,
+				&is_root, &is_krb, &is_smb, &is_ipant,
 				SLAPI_USERPWD_ATTR, SLAPI_ACL_WRITE);
 	 if (rc) {
 		goto free_and_return;

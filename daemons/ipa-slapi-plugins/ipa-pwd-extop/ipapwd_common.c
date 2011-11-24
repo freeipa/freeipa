@@ -498,7 +498,7 @@ done:
 /*==Common-public-functions=============================================*/
 
 int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
-                        int *is_root, int *is_krb, int *is_smb,
+                        int *is_root, int *is_krb, int *is_smb, int *is_ipant,
                         char *attr, int acc)
 {
     Slapi_Value *sval;
@@ -533,6 +533,15 @@ int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
         goto done;
     }
     *is_smb = slapi_entry_attr_has_syntax_value(e, SLAPI_ATTR_OBJECTCLASS, sval);
+    slapi_value_free(&sval);
+
+    sval = slapi_value_new_string("ipaNTUserAttrs");
+    if (!sval) {
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+    *is_ipant = slapi_entry_attr_has_syntax_value(e, SLAPI_ATTR_OBJECTCLASS,
+                                                  sval);
     slapi_value_free(&sval);
 
     rc = LDAP_SUCCESS;
@@ -765,14 +774,17 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
     int ret = 0;
     Slapi_Mods *smods = NULL;
     Slapi_Value **svals = NULL;
+    Slapi_Value **ntvals = NULL;
     Slapi_Value **pwvals = NULL;
     struct tm utctime;
     char timestr[GENERALIZED_TIME_LENGTH+1];
     char *lm = NULL;
     char *nt = NULL;
     int is_smb = 0;
+    int is_ipant = 0;
     int is_host = 0;
     Slapi_Value *sambaSamAccount;
+    Slapi_Value *ipaNTUserAttrs;
     Slapi_Value *ipaHost;
     char *errMesg = NULL;
     char *modtime = NULL;
@@ -782,9 +794,16 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
     sambaSamAccount = slapi_value_new_string("sambaSamAccount");
     if (slapi_entry_attr_has_syntax_value(data->target,
                                           "objectClass", sambaSamAccount)) {
-        is_smb = 1;;
+        is_smb = 1;
     }
     slapi_value_free(&sambaSamAccount);
+
+    ipaNTUserAttrs = slapi_value_new_string("ipaNTUserAttrs");
+    if (slapi_entry_attr_has_syntax_value(data->target,
+                                          "objectClass", ipaNTUserAttrs)) {
+        is_ipant = 1;
+    }
+    slapi_value_free(&ipaNTUserAttrs);
 
     ipaHost = slapi_value_new_string("ipaHost");
     if (slapi_entry_attr_has_syntax_value(data->target,
@@ -795,8 +814,8 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
 
     ret = ipapwd_gen_hashes(krbcfg, data,
                             data->password,
-                            is_krb, is_smb,
-                            &svals, &nt, &lm, &errMesg);
+                            is_krb, is_smb, is_ipant,
+                            &svals, &nt, &lm, &ntvals, &errMesg);
     if (ret) {
         goto free_and_return;
     }
@@ -835,15 +854,21 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
 		}
 	}
 
-    if (lm) {
+    if (lm && is_smb) {
         slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
                               "sambaLMPassword", lm);
     }
 
-    if (nt) {
+    if (nt && is_smb) {
         slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
                               "sambaNTPassword", nt);
     }
+
+    if (ntvals && is_ipant) {
+        slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE,
+                                  "ipaNTHash", ntvals);
+    }
+
     if (is_smb) {
         /* with samba integration we need to also set sambaPwdLastSet or
          * samba will decide the user has to change the password again */
@@ -899,6 +924,7 @@ free_and_return:
     if (modtime) slapi_ch_free((void **)&modtime);
     slapi_mods_free(&smods);
     ipapwd_free_slapi_value_array(&svals);
+    ipapwd_free_slapi_value_array(&ntvals);
     ipapwd_free_slapi_value_array(&pwvals);
 
     return ret;

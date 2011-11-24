@@ -113,7 +113,7 @@ struct ipapwd_krbcfg {
 };
 
 int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
-                        int *is_root, int *is_krb, int *is_smb,
+                        int *is_root, int *is_krb, int *is_smb, int *is_ipant,
                         char *attr, int access);
 int ipapwd_gen_checks(Slapi_PBlock *pb, char **errMesg,
                       struct ipapwd_krbcfg **config, int check_flags);
@@ -144,8 +144,9 @@ void ipapwd_keyset_free(struct ipapwd_keyset **pkset);
 
 int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
                       struct ipapwd_data *data, char *userpw,
-                      int is_krb, int is_smb, Slapi_Value ***svals,
-                      char **nthash, char **lmhash, char **errMesg);
+                      int is_krb, int is_smb, int is_ipant,
+                      Slapi_Value ***svals, char **nthash, char **lmhash,
+                      Slapi_Value ***ntvals, char **errMesg);
 
 /* from ipapwd_prepost.c */
 int ipapwd_ext_init(void);
