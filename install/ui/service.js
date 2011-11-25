@@ -41,13 +41,13 @@ IPA.service.entity = function(spec) {
                     fields: [
                         'krbprincipalname',
                         {
-                            factory: IPA.service_name_widget,
+                            type: 'service_name',
                             name: 'service',
                             label: IPA.messages.objects.service.service,
                             read_only: true
                         },
                         {
-                            factory: IPA.service_host_widget,
+                            type: 'service_host',
                             name: 'host',
                             label: IPA.messages.objects.service.host,
                             read_only: true
@@ -58,8 +58,8 @@ IPA.service.entity = function(spec) {
                     name: 'provisioning',
                     fields: [
                         {
-                            factory: IPA.service_provisioning_status_widget,
-                            name: 'provisioning_status',
+                            type: 'service_provisioning_status',
+                            name: 'krblastpwdchange',
                             label: IPA.messages.objects.service.status
                         }
                     ]
@@ -68,7 +68,7 @@ IPA.service.entity = function(spec) {
                     name: 'certificate',
                     fields: [
                         {
-                            factory: IPA.service_certificate_status_widget,
+                            type: 'service_certificate_status',
                             name: 'certificate_status',
                             label: IPA.messages.objects.service.status
                         }
@@ -84,7 +84,46 @@ IPA.service.entity = function(spec) {
         standard_association_facets().
         adder_dialog({
             factory: IPA.service_adder_dialog,
-            height: 350
+            height: 350,
+            sections: [
+                {
+                    fields: [
+                        {
+                            type: 'combobox',
+                            name: 'service',
+                            label: IPA.messages.objects.service.service,
+                            options: [
+                                'cifs',
+                                'DNS',
+                                'ftp',
+                                'HTTP',
+                                'imap',
+                                'ldap',
+                                'libvirt',
+                                'nfs',
+                                'smtp',
+                                'qpidd'
+                            ],
+                            editable: true,
+                            size: 10,
+                            required: true
+                        },
+                        {
+                            type: 'entity_select',
+                            name: 'host',
+                            other_entity: 'host',
+                            other_field: 'fqdn',
+                            label: IPA.messages.objects.service.host,
+                            required: true
+                        },
+                        {
+                            type: 'checkbox',
+                            name: 'force',
+                            metadata: IPA.get_method_option('service_add', 'force')
+                        }
+                    ]
+                }
+            ]
         });
     };
 
@@ -95,47 +134,21 @@ IPA.service_adder_dialog = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.entity_adder_dialog(spec).
-        field(IPA.input_widget({
-            name: 'krbprincipalname',
-            required: false,
-            entity: spec.entity,
-            hidden: true
-        })).
-        field(IPA.combobox_widget({
-            name: 'service',
-            label: IPA.messages.objects.service.service,
-            options: [
-                'cifs',
-                'DNS',
-                'ftp',
-                'HTTP',
-                'imap',
-                'ldap',
-                'libvirt',
-                'nfs',
-                'smtp',
-                'qpidd'
-            ],
-            editable: true,
-            size: 10,
-            entity: spec.entity,
-            required: true
-        })).
-        field(IPA.entity_select_widget({
-            name: 'host',
-            other_entity: 'host',
-            other_field: 'fqdn',
-            entity: spec.entity,
-            label: IPA.messages.objects.service.host,
-            required: true
-        })).
-        field(IPA.checkbox_widget({
-            name: 'force',
-            entity: spec.entity,
-            metadata: IPA.get_method_option('service_add', 'force')
-        }));
+    var that = IPA.entity_adder_dialog(spec);
 
+    var init = function() {
+
+        //small hack - krbprincipalname should not be displayed. This way
+        //creation of associated widget is skipped.
+        //In future it would be better split section definion into widget and
+        //fields definition and create custom field with two associated
+        //widgets - 'service' and 'host' with this dialog's save logic.
+        that.builder.build_field({
+            type: 'field',
+            name: 'krbprincipalname',
+            required: false
+        });
+    };
 
     that.save = function(record) {
 
@@ -151,20 +164,20 @@ IPA.service_adder_dialog = function(spec) {
         record['force'] = field.save();
     };
 
+    init();
+
     return that;
 };
 
-
-
-IPA.service_name_widget = function(spec) {
+IPA.service_name_field = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.text_widget(spec);
+    var that = IPA.field(spec);
 
     that.load = function(record) {
 
-        that.text_load(record);
+        that.field_load(record);
 
         var krbprincipalname = record['krbprincipalname'][0];
         var value = krbprincipalname.replace(/\/.*$/, '');
@@ -176,15 +189,19 @@ IPA.service_name_widget = function(spec) {
     return that;
 };
 
-IPA.service_host_widget = function(spec) {
+IPA.field_factories['service_name'] = IPA.service_name_field;
+IPA.widget_factories['service_name'] = IPA.text_widget;
+
+
+IPA.service_host_field = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.text_widget(spec);
+    var that = IPA.field(spec);
 
     that.load = function(record) {
 
-        that.text_load(record);
+        that.field_load(record);
 
         var krbprincipalname = record['krbprincipalname'][0];
         var value = krbprincipalname.replace(/^.*\//, '').replace(/@.*$/, '');
@@ -196,6 +213,8 @@ IPA.service_host_widget = function(spec) {
     return that;
 };
 
+IPA.field_factories['service_host'] = IPA.service_host_field;
+IPA.widget_factories['service_host'] = IPA.text_widget;
 
 IPA.service_provisioning_status_widget = function (spec) {
 
@@ -279,11 +298,10 @@ IPA.service_provisioning_status_widget = function (spec) {
             name: 'unprovision',
             label: IPA.messages.objects.service.unprovision,
             click: function() {
-                var pkey = that.result['krbprincipalname'][0];
                 IPA.command({
                     entity: that.entity.name,
                     method: 'disable',
-                    args: [pkey],
+                    args: [that.pkey],
                     on_success: function(data, text_status, xhr) {
                         set_status('missing');
                         dialog.close();
@@ -300,10 +318,10 @@ IPA.service_provisioning_status_widget = function (spec) {
         return false;
     };
 
-    that.load = function(result) {
-        that.result = result;
-        var krblastpwdchange = result['krblastpwdchange'];
-        set_status(krblastpwdchange ? 'valid' : 'missing');
+    that.update = function(values) {
+        that.pkey = values.pkey;
+        that.status = values.value;
+        set_status(values.value ? 'valid' : 'missing');
     };
 
     that.clear = function() {
@@ -318,6 +336,30 @@ IPA.service_provisioning_status_widget = function (spec) {
 
     return that;
 };
+
+IPA.service_provisioning_status_field = function (spec) {
+
+    spec = spec || {};
+
+    var that = IPA.field(spec);
+
+    that.load = function(record) {
+
+        that.values = {
+            value: record[that.name],
+            pkey: record['krbprincipalname'][0]
+        };
+
+        that.load_writable(record);
+
+        that.reset();
+    };
+
+    return that;
+};
+
+IPA.field_factories['service_provisioning_status'] = IPA.service_provisioning_status_field;
+IPA.widget_factories['service_provisioning_status'] = IPA.service_provisioning_status_widget;
 
 IPA.service_certificate_status_widget = function (spec) {
 
@@ -346,5 +388,8 @@ IPA.service_certificate_status_widget = function (spec) {
 
     return that;
 };
+
+IPA.widget_factories['service_certificate_status'] = IPA.service_certificate_status_widget;
+IPA.field_factories['service_certificate_status'] = IPA.cert.status_field;
 
 IPA.register('service', IPA.service.entity);
