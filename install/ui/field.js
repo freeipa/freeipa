@@ -187,6 +187,13 @@ IPA.field = function(spec) {
             that.values = [''];
         }
 
+        that.load_writable(record);
+
+        that.reset();
+    };
+
+    that.load_writable = function(record) {
+
         that.writable = true;
 
         if (that.metadata) {
@@ -199,14 +206,12 @@ IPA.field = function(spec) {
             }
         }
 
-        if (that.record.attributelevelrights) {
-            var rights = that.record.attributelevelrights[that.name];
+        if (record.attributelevelrights) {
+            var rights = record.attributelevelrights[that.name];
             if (!rights || rights.indexOf('w') < 0) {
                 that.writable = false;
             }
         }
-
-        that.reset();
     };
 
     that.reset = function() {
