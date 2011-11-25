@@ -261,33 +261,21 @@ IPA.field = function(spec) {
      */
     that.test_dirty = function() {
 
-        if (that.read_only) {
-            return false;
-        }
+        if (that.read_only) return false;
 
         var values = that.save();
 
-        if (!values) { // ignore null values
-            return false;
-        }
+        //check for empty value: null, [''], '', []
+        var orig_empty = that.is_empty(that.values);
+        var new_empty= that.is_empty(values);
+        if (orig_empty && new_empty) return false;
+        if (orig_empty != new_empty) return true;
 
-        if (!that.values) {
+        //strict equality - checks object's ref equality, numbers, strings
+        if (values === that.values) return false;
 
-            if (values instanceof Array) {
-
-                if ((values.length === 0) ||
-                    (values.length === 1) &&
-                    (values[0] === '')) {
-                    return false;
-                    }
-            }
-
-            return true;
-        }
-
-        if (values.length != that.values.length) {
-            return true;
-        }
+        //compare values in array
+        if (values.length !== that.values.length) return true;
 
         values.sort();
         that.values.sort();
@@ -299,6 +287,22 @@ IPA.field = function(spec) {
         }
 
         return false;
+    };
+
+    that.is_empty = function(value) {
+
+        var empty = false;
+
+        if (!value) empty = true;
+
+        if (value instanceof Array) {
+            empty |= (value.length === 0) ||
+                     (value.length === 1) && (value[0] === '');
+        }
+
+        if (value === '') empty = true;
+
+        return empty;
     };
 
     /**
