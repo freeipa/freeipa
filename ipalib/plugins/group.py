@@ -202,7 +202,18 @@ class group_mod(LDAPUpdate):
                 entry_attrs['objectclass'] = old_entry_attrs['objectclass']
                 if not 'gidnumber' in options:
                     entry_attrs['gidnumber'] = 999
+        # Can't check for this in a validator because we lack context
+        if 'gidnumber' in options and options['gidnumber'] is None:
+            raise errors.RequirementError(name='gid')
         return dn
+
+    def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
+        # Check again for GID requirement in case someone tried to clear it
+        # using --setattr.
+        if isinstance(exc, errors.ObjectclassViolation):
+            if 'gidNumber' in exc.message and 'posixGroup' in exc.message:
+                raise errors.RequirementError(name='gid')
+        raise exc
 
 api.register(group_mod)
 
