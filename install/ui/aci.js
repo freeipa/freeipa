@@ -37,27 +37,78 @@ IPA.aci.permission_entity = function(spec) {
         }).
         details_facet({
             factory: IPA.aci.permission_details_facet,
-            sections: [
+            fields: [
                 {
-                    name: 'identity',
-                    fields: [ 'cn' ]
+                    name:'cn',
+                    widget: 'identity.cn'
                 },
                 {
+                    type: 'rights',
+                    name: 'permissions',
+                    join: true,
+                    widget: 'rights.permissions'
+                },
+                {
+                    type: 'select',
+                    name: 'target',
+                    widget: 'target.target'
+                },
+                {
+                    name: 'filter',
+                    widget: 'target.filter',
+                    enabled: false
+                },
+                {
+                    name: 'subtree',
+                    widget: 'target.subtree',
+                    enabled: false
+                },
+                {
+                    type: 'entity_select',
+                    name: 'targetgroup',
+                    widget: 'target.targetgroup',
+                    enabled: false
+                },
+                {
+                    type: 'select',
+                    name: 'type',
+                    widget: 'target.type',
+                    enabled: false
+                },
+                {
+                    name: 'attrs',
+                    widget: 'target.attrs',
+                    enabled: false
+                }
+            ],
+            widgets: [
+                {
+                    type: 'details_table_section',
+                    name: 'identity',
+                    label: IPA.messages.objects.permission.identity,
+                    widgets: ['cn']
+                },
+                {
+                    type: 'details_table_section',
                     name: 'rights',
                     label: IPA.messages.objects.permission.rights,
-                    fields: [
+                    widgets: [
                         {
-                            factory: IPA.rights_widget,
-                            name: 'permissions',
-                            join: true
+                            type: 'rights',
+                            name: 'permissions'
                         }
                     ]
                 },
                 {
-                    factory: IPA.permission_target_section,
+                    type: 'permission_target',
+                    container_factory: IPA.details_table_section,
+                    label: IPA.messages.objects.permission.rights,
                     name: 'target',
-                    label: IPA.messages.objects.permission.target
+                    show_target: false
                 }
+            ],
+            policies: [
+                IPA.permission_target_policy('target')
             ]
         }).
         association_facet({
@@ -66,24 +117,70 @@ IPA.aci.permission_entity = function(spec) {
         }).
         adder_dialog({
             height: 450,
-            sections: [
+            fields: [
                 {
+                    name:'cn',
+                    widget: 'general.cn'
+                },
+                {
+                    type: 'rights',
+                    name: 'permissions',
+                    join: true,
+                    widget: 'general.permissions'
+                },
+                {
+                    type: 'select',
+                    name: 'target',
+                    widget: 'target.target'
+                },
+                {
+                    name: 'filter',
+                    widget: 'target.filter',
+                    enabled: false
+                },
+                {
+                    name: 'subtree',
+                    widget: 'target.subtree',
+                    enabled: false
+                },
+                {
+                    type: 'entity_select',
+                    name: 'targetgroup',
+                    widget: 'target.targetgroup',
+                    enabled: false
+                },
+                {
+                    type: 'select',
+                    name: 'type',
+                    widget: 'target.type',
+                    enabled: false
+                },
+                {
+                    name: 'attrs',
+                    widget: 'target.attrs',
+                    enabled: false
+                }
+            ],
+            widgets: [
+                {
+                    type: 'details_table_section_nc',
                     name: 'general',
-                    fields: [
+                    widgets: [
                         'cn',
                         {
-                            factory: IPA.rights_widget,
-                            name: 'permissions',
-                            join: true
+                            type: 'rights',
+                            name: 'permissions'
                         }
                     ]
                 },
                 {
-                    factory: IPA.permission_target_section,
-                    name: 'target',
-                    label: IPA.messages.objects.permission.target,
+                    type: 'permission_target',
+                    name:'target',
                     show_target: true
                 }
+            ],
+            policies: [
+                IPA.permission_target_policy('target')
             ]
         });
     };
@@ -123,7 +220,7 @@ IPA.aci.privilege_entity = function(spec) {
                     fields: [
                         'cn',
                         {
-                            factory: IPA.textarea_widget,
+                            type: 'textarea',
                             name: 'description'
                         }
                     ]
@@ -148,7 +245,7 @@ IPA.aci.privilege_entity = function(spec) {
             fields: [
                 'cn',
                 {
-                    factory: IPA.textarea_widget,
+                    type: 'textarea',
                     name: 'description'
                 }
             ]
@@ -179,7 +276,7 @@ IPA.aci.role_entity = function(spec) {
                     fields: [
                         'cn',
                         {
-                            factory: IPA.textarea_widget,
+                            type: 'textarea',
                             name: 'description'
                         }
                     ]
@@ -197,7 +294,7 @@ IPA.aci.role_entity = function(spec) {
             fields: [
                 'cn',
                 {
-                    factory: IPA.textarea_widget,
+                    type: 'textarea',
                     name: 'description'
                 }
             ]
@@ -225,7 +322,7 @@ IPA.aci.selfservice_entity = function(spec) {
                     fields: [
                         'aciname',
                         {
-                            factory: IPA.attributes_widget,
+                            type: 'attributes',
                             object_type: 'user',
                             name: 'attrs'
                         }
@@ -237,7 +334,7 @@ IPA.aci.selfservice_entity = function(spec) {
             fields: [
                 'aciname',
                 {
-                    factory: IPA.attributes_widget,
+                    type: 'attributes',
                     object_type: 'user',
                     name: 'attrs'
                 }
@@ -266,21 +363,22 @@ IPA.aci.delegation_entity = function(spec) {
                     fields: [
                         'aciname',
                         {
-                            factory: IPA.entity_select_widget,
+                            type: 'entity_select',
                             name: 'group',
                             other_entity: 'group',
                             other_field: 'cn'
                         },
                         {
-                            factory: IPA.entity_select_widget,
+                            type: 'entity_select',
                             name: 'memberof',
                             other_entity: 'group',
                             other_field: 'cn',
                             join: true
                         },
                         {
-                            factory: IPA.attributes_widget,
-                            name: 'attrs', object_type: 'user',
+                            type: 'attributes',
+                            name: 'attrs',
+                            object_type: 'user',
                             join: true
                         }
                     ]
@@ -292,20 +390,20 @@ IPA.aci.delegation_entity = function(spec) {
             fields: [
                 'aciname',
                 {
-                    factory: IPA.entity_select_widget,
+                    type: 'entity_select',
                     name: 'group',
                     other_entity: 'group',
                     other_field: 'cn'
                 },
                 {
-                    factory: IPA.entity_select_widget,
+                    type: 'entity_select',
                     name: 'memberof',
                     other_entity: 'group',
                     other_field: 'cn',
                     join: true
                 },
                 {
-                    factory: IPA.attributes_widget,
+                    type: 'attributes',
                     name: 'attrs',
                     object_type: 'user',
                     join: true
@@ -347,7 +445,7 @@ IPA.attributes_widget = function(spec) {
                 click: function() {
                     $('.aci-attribute', that.table).
                         attr('checked', $(this).attr('checked'));
-                    that.set_dirty(that.test_dirty());
+                    that.value_changed.notify([], that);
                 }
             })
         })).append($('<th/>', {
@@ -366,24 +464,19 @@ IPA.attributes_widget = function(spec) {
         that.create_error_link(container);
     };
 
-    that.load = function(record) {
+    that.update = function(values) {
 
-        that.record = record;
         that.values = [];
 
-        var values = record[that.name] || [];
+        values = values || [];
         for (var i=0; i<values.length; i++) {
             var value = values[i].toLowerCase();
             that.values.push(value);
         }
 
-        that.reset();
-    };
-
-    that.update = function() {
         that.populate(that.object_type);
         that.append();
-        that.checkboxes_update();
+        that.checkboxes_update(values);
     };
 
     that.populate = function(object_type) {
@@ -410,7 +503,7 @@ IPA.attributes_widget = function(spec) {
                 value: value,
                 'class': 'aci-attribute',
                 click: function() {
-                    that.set_dirty(that.test_dirty());
+                    that.value_changed.notify([], that);
                 }
             }));
             td =  $('<td/>').appendTo(aci_tr);
@@ -447,7 +540,7 @@ IPA.attributes_widget = function(spec) {
                     value: value,
                     'class': 'aci-attribute',
                     change: function() {
-                        that.set_dirty(that.test_dirty());
+                        that.value_changed.notify([], that);
                     }
                 }));
 
@@ -466,6 +559,9 @@ IPA.attributes_widget = function(spec) {
     return that;
 };
 
+IPA.widget_factories['attributes'] = IPA.attributes_widget;
+IPA.field_factories['attributes'] = IPA.checkboxes_field;
+
 IPA.rights_widget = function(spec) {
 
     var that = IPA.checkboxes_widget(spec);
@@ -479,11 +575,16 @@ IPA.rights_widget = function(spec) {
     return that;
 };
 
-IPA.permission_target_section = function(spec) {
+IPA.widget_factories['rights'] = IPA.rights_widget;
+IPA.field_factories['rights'] = IPA.checkboxes_field;
+
+IPA.permission_target_widget = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.details_table_section(spec);
+    var factory = spec.container_factory || IPA.details_table_section_nc;
+
+    var that = factory(spec);
 
     that.targets = [ 'filter', 'subtree', 'targetgroup', 'type' ];
     that.target = that.targets[0];
@@ -508,11 +609,8 @@ IPA.permission_target_section = function(spec) {
             });
         }
 
-        that.target_select.value_changed.attach(function(value) {
-            that.select_target(value);
-        });
+        that.widgets.add_widget(that.target_select);
 
-        that.add_field(that.target_select);
 
         that.filter_text = IPA.text_widget({
             entity: that.entity,
@@ -520,7 +618,7 @@ IPA.permission_target_section = function(spec) {
             hidden: true
         });
 
-        that.add_field(that.filter_text);
+        that.widgets.add_widget(that.filter_text);
 
         that.subtree_textarea = IPA.textarea_widget({
             entity: that.entity,
@@ -530,7 +628,7 @@ IPA.permission_target_section = function(spec) {
             hidden: true
         });
 
-        that.add_field(that.subtree_textarea);
+        that.widgets.add_widget(that.subtree_textarea);
 
         that.group_select = IPA.entity_select_widget({
             entity: that.entity,
@@ -540,7 +638,7 @@ IPA.permission_target_section = function(spec) {
             hidden: true
         });
 
-        that.add_field(that.group_select);
+        that.widgets.add_widget(that.group_select);
 
         that.type_select = IPA.select_widget({
             entity: that.entity,
@@ -560,12 +658,7 @@ IPA.permission_target_section = function(spec) {
             });
         }
 
-        that.type_select.value_changed.attach(function(value) {
-            that.attribute_table.object_type = value;
-            that.attribute_table.reset();
-        });
-
-        that.add_field(that.type_select);
+        that.widgets.add_widget(that.type_select);
 
         that.attribute_table = IPA.attributes_widget({
             entity: that.entity,
@@ -574,72 +667,94 @@ IPA.permission_target_section = function(spec) {
             hidden: true
         });
 
-        that.add_field(that.attribute_table);
-    };
-
-    that.select_target = function(target) {
-        that.set_target_visible(that.target, false);
-        that.target = target;
-        that.set_target_visible(that.target, true);
-    };
-
-    that.set_target_visible = function(target, visible) {
-
-        var field = that.get_field(that.target);
-        field.hidden = !visible;
-        that.set_row_visible(that.target, visible);
-
-        if (that.target == 'type') {
-            field = that.get_field('attrs');
-            field.hidden = !visible;
-            that.set_row_visible('attrs', visible);
-
-        } else {
-            field.set_required(visible);
-        }
-    };
-
-    that.create = function(container) {
-        that.table_section_create(container);
-        that.select_target(that.targets[0]);
-    };
-
-    that.load = function(record) {
-
-        var options = that.target_select.options;
-        for (var i=0; i<options.length; i++) {
-            var option = options[i];
-            var target = option.value;
-            if (record[target]) {
-                record.target = target;
-                break;
-            }
-        }
-
-        if (!record.target) {
-            alert(IPA.messages.objects.permission.invalid_target);
-            return;
-        }
-
-        that.select_target(record.target);
-        that.section_load(record);
-    };
-
-    that.save = function(record) {
-
-        var field = that.get_field(that.target);
-        record[field.name] = field.save();
-
-        if (that.target == 'type') {
-            field = that.get_field('attrs');
-            record[field.name] = field.save();
-        }
+        that.widgets.add_widget(that.attribute_table);
     };
 
     init();
 
     return that;
 };
+
+IPA.permission_target_policy = function (widget_name) {
+
+    var that = IPA.facet_policy();
+
+    that.init = function() {
+
+        that.permission_target = that.container.widgets.get_widget(widget_name);
+        var widgets = that.permission_target.widgets;
+
+        var target_select = widgets.get_widget('target');
+        target_select.value_changed.attach(function() {
+            var target = target_select.save()[0];
+            that.select_target(target);
+        });
+
+        var type_select = widgets.get_widget('type');
+        var attribute_table = widgets.get_widget('attrs');
+        var attribute_field = that.container.fields.get_field('attrs');
+        type_select.value_changed.attach(function() {
+            var type = type_select.save()[0];
+            attribute_table.object_type = type;
+            attribute_field.reset();
+        });
+    };
+
+    that.post_create = function() {
+        that.select_target(that.permission_target.targets[0]);
+    };
+
+    that.post_load = function(data) {
+
+        var targets = that.permission_target.targets;
+
+        for (var i=0; i<targets.length; i++) {
+            var target = targets[i];
+
+            if(data[target]) {
+                that.select_target(target);
+            } else {
+                that.set_target_visible(target, false);
+            }
+        }
+    };
+
+    that.select_target = function(target) {
+        that.set_target_visible(that.permission_target.target, false);
+        that.permission_target.target = target;
+        that.set_target_visible(that.permission_target.target, true);
+    };
+
+    that.set_target_visible = function(target, visible) {
+
+        var widgets = that.permission_target.widgets;
+        var fields = that.container.fields;
+
+        var widget = widgets.get_widget(target);
+        widget.hidden = !visible;
+        that.permission_target.set_row_visible(target, visible);
+
+        var field = fields.get_field(target);
+        field.enabled = visible;
+
+        if (target === 'type') {
+            widget = widgets.get_widget('attrs');
+            widget.hidden = !visible;
+            that.permission_target.set_row_visible('attrs', visible);
+
+            field = fields.get_field('attrs');
+            field.enabled = visible;
+        } else {
+            field.set_required(visible);
+        }
+    };
+
+
+    return that;
+};
+
+IPA.widget_factories['permission_target'] = IPA.permission_target_widget;
+
 
 IPA.register('permission', IPA.aci.permission_entity);
 IPA.register('privilege', IPA.aci.privilege_entity);
