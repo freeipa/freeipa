@@ -44,7 +44,7 @@ IPA.hostgroup.entity = function(spec) {
                     fields: [
                         'cn',
                         {
-                            factory: IPA.textarea_widget,
+                            type: 'textarea',
                             name: 'description'
                         }
                     ]
@@ -76,7 +76,7 @@ IPA.hostgroup.entity = function(spec) {
             fields: [
                 'cn',
                 {
-                    factory: IPA.textarea_widget,
+                    type: 'textarea',
                     name: 'description'
                 }
             ]

@@ -92,7 +92,7 @@ IPA.automount.map_entity = function(spec) {
                     fields: [
                         'automountmapname',
                         {
-                            factory: IPA.textarea_widget,
+                            type: 'textarea',
                             name: 'description'
                         }
                     ]
@@ -106,7 +106,7 @@ IPA.automount.map_entity = function(spec) {
                     name: 'general',
                     fields: [
                         {
-                            factory: IPA.radio_widget,
+                            type: 'radio',
                             name: 'method',
                             label: IPA.messages.objects.automountmap.map_type,
                             options: [
@@ -122,7 +122,7 @@ IPA.automount.map_entity = function(spec) {
                         },
                         'automountmapname',
                         {
-                            factory: IPA.textarea_widget,
+                            type: 'textarea',
                             name: 'description'
                         }
                     ]

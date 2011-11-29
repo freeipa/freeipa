@@ -511,10 +511,10 @@ IPA.dns.record_entity = function(spec) {
                    label: IPA.messages.details.identity,
                    fields:[
                        {
-                           type: 'dnsrecord_host_link',
-                           name: 'idnsname',
-                           other_entity:'host',
-                           label:IPA.get_entity_param(
+                            type: 'dnsrecord_host_link',
+                            name: 'idnsname',
+                            other_entity:'host',
+                            label:IPA.get_entity_param(
                                'dnsrecord', 'idnsname').label
                        }
                    ]
@@ -523,45 +523,53 @@ IPA.dns.record_entity = function(spec) {
                     name:'standard',
                     label:IPA.messages.objects.dnsrecord.standard,
                     fields:[
-                        { factory: IPA.multivalued_text_widget,
-                          name: 'arecord',
-                          metadata: {primary_key: false},
-                          label:'A'
+                        {
+                            type: 'multivalued',
+                            name: 'arecord',
+                            metadata: {primary_key: false},
+                            label:'A'
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          name: 'aaaarecord',
-                          metadata: {primary_key: false},
-                          label:'AAAA'
+                        {
+                            type: 'multivalued',
+                            name: 'aaaarecord',
+                            metadata: {primary_key: false},
+                            label:'AAAA'
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          name: 'ptrrecord',
-                          metadata: {primary_key: false},
-                          label:'PTR'
+                        {
+                            type: 'multivalued',
+                            name: 'ptrrecord',
+                            metadata: {primary_key: false},
+                            label:'PTR'
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          name: 'srvrecord',
-                          metadata: {primary_key: false},
-                          label:'SRV'
+                        {
+                            type: 'multivalued',
+                            name: 'srvrecord',
+                            metadata: {primary_key: false},
+                            label:'SRV'
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          name: 'txtrecord',
-                          metadata: {primary_key: false},
-                          label:'TXT'
+                        {
+                            type: 'multivalued',
+                            name: 'txtrecord',
+                            metadata: {primary_key: false},
+                            label:'TXT'
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          name: 'cnamerecord',
-                          metadata: {primary_key: false},
-                          label:'CNAME'
+                        {
+                            type: 'multivalued',
+                            name: 'cnamerecord',
+                            metadata: {primary_key: false},
+                            label:'CNAME'
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          label:'MX',
-                          metadata: {primary_key: false},
-                          name:"mxrecord"
+                        {
+                            type: 'multivalued',
+                            label:'MX',
+                            metadata: {primary_key: false},
+                            name:"mxrecord"
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          label:'NS',
-                          metadata: {primary_key: false},
-                          name:"nsrecord"
+                        {
+                            type: 'multivalued',
+                            label:'NS',
+                            metadata: {primary_key: false},
+                            name:"nsrecord"
                         }
 
                     ]
@@ -570,64 +578,76 @@ IPA.dns.record_entity = function(spec) {
                     name:'unusual',
                     label:IPA.messages.objects.dnsrecord.other,
                     fields:[
-                        { factory: IPA.multivalued_text_widget,
-                          label:'AFSDB',
-                          metadata: {primary_key: false},
-                          name: "afsdbrecord"
+                        {
+                            type: 'multivalued',
+                            label:'AFSDB',
+                            metadata: {primary_key: false},
+                            name: "afsdbrecord"
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          label:'CERT',
-                          metadata: {primary_key: false},
-                          name:"certrecord"
+                        {
+                            type: 'multivalued',
+                            label:'CERT',
+                            metadata: {primary_key: false},
+                            name:"certrecord"
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          label:'DNAME',
-                          metadata: {primary_key: false},
-                          name:"dnamerecord"
+                        {
+                            type: 'multivalued',
+                            label:'DNAME',
+                            metadata: {primary_key: false},
+                            name:"dnamerecord"
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          label:'DSRECORD',
-                          metadata: {primary_key: false},
-                          name:"dsrecord"
+                        {
+                            type: 'multivalued',
+                            label:'DSRECORD',
+                            metadata: {primary_key: false},
+                            name:"dsrecord"
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          label:'KEY',
-                          metadata: {primary_key: false},
-                          name:"keyrecord"
+                        {
+                            type: 'multivalued',
+                            label:'KEY',
+                            metadata: {primary_key: false},
+                            name:"keyrecord"
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          label:'KX',
-                          metadata: {primary_key: false},
-                          name:"kxrecord"
+                        {
+                            type: 'multivalued',
+                            label:'KX',
+                            metadata: {primary_key: false},
+                            name:"kxrecord"
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          label:'LOC',
-                          metadata: {primary_key: false},
-                          name:"locrecord"
+                        {
+                            type: 'multivalued',
+                            label:'LOC',
+                            metadata: {primary_key: false},
+                            name:"locrecord"
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          label:'NAPTR',
-                          name:"naptrrecord"
+                        {
+                            type: 'multivalued',
+                            label:'NAPTR',
+                            name:"naptrrecord"
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          label:'NSEC',
-                          metadata: {primary_key: false},
-                          name:"nsecrecord"
+                        {
+                            type: 'multivalued',
+                            label:'NSEC',
+                            metadata: {primary_key: false},
+                            name:"nsecrecord"
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          label:'RRSIG',
-                          metadata: {primary_key: false},
-                          name:"rrsigrecord"
+                        {
+                            type: 'multivalued',
+                            label:'RRSIG',
+                            metadata: {primary_key: false},
+                            name:"rrsigrecord"
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          label:'SIG',
-                          metadata: {primary_key: false},
-                          name:"sigrecord"
+                        {
+                            type: 'multivalued',
+                            label:'SIG',
+                            metadata: {primary_key: false},
+                            name:"sigrecord"
                         },
-                        { factory: IPA.multivalued_text_widget,
-                          label:'SSHFP',
-                          metadata: {primary_key: false},
-                          name:"sshfprecord"
+                        {
+                            type: 'multivalued',
+                            label:'SSHFP',
+                            metadata: {primary_key: false},
+                            name:"sshfprecord"
                         }
                     ]
                 }
@@ -645,14 +665,14 @@ IPA.dns.record_entity = function(spec) {
             fields: [
                 'idnsname',
                 {
+                    factory: IPA.dnsrecord_type_widget,
                     name: 'record_type',
-                    label: IPA.messages.objects.dnsrecord.type,
-                    factory: IPA.dnsrecord_type_widget
+                    label: IPA.messages.objects.dnsrecord.type
                 },
                 {
+                    type: 'text',
                     name: 'record_data',
                     label: IPA.messages.objects.dnsrecord.data,
-                    factory: IPA.text_widget,
                     required: true
                 }
             ]
