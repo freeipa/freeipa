@@ -577,6 +577,44 @@ IPA.link_field = function(spec) {
     return that;
 };
 
+IPA.enable_field = function(spec) {
+
+    spec = spec  || {};
+
+    var that = IPA.radio_field(spec);
+
+    that.enable_method = spec.enable_method || 'enable';
+    that.disable_method = spec.enable_method || 'disable';
+    that.enable_option = spec.enable_option || 'TRUE';
+
+    that.get_update_info = function() {
+
+        var info = IPA.update_info_builder.new_update_info();
+        if(that.test_dirty()) {
+            var values = that.save();
+            var method = that.disable_method;
+
+            if(values[0] === that.enable_option) {
+                method = that.enable_method;
+            }
+
+            var command = IPA.command({
+                entity: that.entity.name,
+                method: method,
+                args: that.entity.get_primary_key(),
+                options: {all: true, rights: true}
+            });
+
+
+            info.append_command(command, that.priority);
+        }
+
+        return info;
+    };
+
+    return that;
+};
+
 IPA.field_container = function(spec) {
 
     spec = spec || {};
@@ -686,3 +724,4 @@ IPA.field_factories['textarea'] = IPA.field;
 IPA.field_factories['entity_select'] = IPA.combobox_field;
 IPA.field_factories['combobox'] = IPA.combobox_field;
 IPA.field_factories['link'] = IPA.link_field;
+IPA.field_factories['enable'] = IPA.enable_field;

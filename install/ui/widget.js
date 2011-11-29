@@ -1951,6 +1951,36 @@ IPA.details_table_section_nc = function(spec) {
     return that;
 };
 
+IPA.enable_widget = function(spec) {
+
+    spec = spec  || {};
+
+    var that = IPA.radio_widget(spec);
+
+    return that;
+};
+
+
+IPA.header_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.widget(spec);
+
+    that.level = spec.level || 3;
+    that.text = spec.text;
+    that.description = spec.description;
+
+    that.create = function(container) {
+        container.append($('<h'+that.level+' />', {
+            text: that.text,
+            title: that.description
+        }));
+    };
+
+    return that;
+};
+
 IPA.observer = function(spec) {
 
     var that = {};
@@ -2151,3 +2181,4 @@ IPA.widget_factories['combobox'] = IPA.combobox_widget;
 IPA.widget_factories['link'] = IPA.link_widget;
 IPA.widget_factories['details_table_section'] = IPA.details_table_section;
 IPA.widget_factories['details_table_section_nc'] = IPA.details_table_section_nc;
+IPA.widget_factories['enable'] = IPA.enable_widget;

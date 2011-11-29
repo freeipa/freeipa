@@ -432,6 +432,7 @@ IPA.association_table_widget = function (spec) {
             $('.action-button', that.table).addClass('action-button-disabled');
             that.unselect_all();
         }
+        that.enabled = enabled;
     };
 
     that.select_changed = function() {
@@ -483,11 +484,13 @@ IPA.association_table_widget = function (spec) {
 
     that.load = function(result) {
         that.values = result[that.name] || [];
-        that.reset();
+        that.update();
         that.unselect_all();
     };
 
-    that.update = function() {
+    that.update = function(values) {
+
+        if(values) that.values = values;
 
         that.empty();
 
