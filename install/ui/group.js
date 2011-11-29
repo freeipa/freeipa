@@ -151,16 +151,16 @@ IPA.group_adder_dialog = function(spec) {
     var init = function() {
 
         var posix_field = that.fields.get_field('nonposix');
-        posix_field.value_changed.attach(that.on_posix_change);
+        posix_field.widget.value_changed.attach(that.on_posix_change);
     };
 
     that.on_posix_change = function (value) {
 
         var gid_field = that.fields.get_field('gidnumber');
-        if(value) {
+        if (value[0]) {
             gid_field.reset();
         }
-        gid_field.set_enabled(!value);
+        gid_field.set_enabled(!value[0]);
     };
 
     init();
