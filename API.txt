@@ -218,8 +218,8 @@ arg: Str('automountlocationcn', cli_name='automountlocation', query=True, requir
 arg: IA5Str('automountmapautomountmapname', cli_name='automountmap', query=True, required=True)
 option: IA5Str('automountkey', attribute=True, cli_name='key', multivalue=False, required=True)
 option: IA5Str('automountinformation', attribute=True, cli_name='info', multivalue=False, required=True)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -253,13 +253,14 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: automountkey_mod
-args: 2,10,3
+args: 2,11,3
 arg: Str('automountlocationcn', cli_name='automountlocation', query=True, required=True)
 arg: IA5Str('automountmapautomountmapname', cli_name='automountmap', query=True, required=True)
 option: IA5Str('automountkey', alwaysask=False, attribute=True, cli_name='key', multivalue=False, required=True)
 option: IA5Str('automountinformation', attribute=True, autofill=False, cli_name='info', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: IA5Str('newautomountinformation?', cli_name='newinfo')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -285,8 +286,8 @@ output: Output('value', <type 'unicode'>, None)
 command: automountlocation_add
 args: 1,5,3
 arg: Str('cn', attribute=True, cli_name='location', multivalue=False, primary_key=True, required=True)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -339,8 +340,8 @@ args: 2,6,3
 arg: Str('automountlocationcn', cli_name='automountlocation', query=True, required=True)
 arg: IA5Str('automountmapname', attribute=True, cli_name='map', multivalue=False, primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -352,8 +353,8 @@ args: 2,8,3
 arg: Str('automountlocationcn', cli_name='automountlocation', query=True, required=True)
 arg: IA5Str('automountmapname', attribute=True, cli_name='map', multivalue=False, primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('key', cli_name='mount')
 option: Str('parentmap?', autofill=True, cli_name='parentmap', default=u'auto.master')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -387,12 +388,13 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: automountmap_mod
-args: 2,7,3
+args: 2,8,3
 arg: Str('automountlocationcn', cli_name='automountlocation', query=True, required=True)
 arg: IA5Str('automountmapname', attribute=True, cli_name='map', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -442,7 +444,7 @@ args: 1,0,1
 arg: Str('request_id')
 output: Output('result', None, None)
 command: config_mod
-args: 0,19,3
+args: 0,20,3
 option: Int('ipamaxusernamelength', attribute=True, autofill=False, cli_name='maxusername', minvalue=1, multivalue=False, required=False)
 option: IA5Str('ipahomesrootdir', attribute=True, autofill=False, cli_name='homedirectory', multivalue=False, required=False)
 option: Str('ipadefaultloginshell', attribute=True, autofill=False, cli_name='defaultshell', multivalue=False, required=False)
@@ -456,8 +458,9 @@ option: Bool('ipamigrationenabled', attribute=True, autofill=False, cli_name='en
 option: List('ipagroupobjectclasses', attribute=True, autofill=False, cli_name='groupobjectclasses', multivalue=True, required=False)
 option: List('ipauserobjectclasses', attribute=True, autofill=False, cli_name='userobjectclasses', multivalue=True, required=False)
 option: Int('ipapwdexpadvnotify', attribute=True, autofill=False, cli_name='pwdexpnotify', minvalue=0, multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -479,8 +482,8 @@ args: 1,7,3
 arg: Str('cn', attribute=True, cli_name='cn', multivalue=False, primary_key=True, required=True)
 option: Str('krbpwdpolicyreference', attribute=True, cli_name='krbpwdpolicyreference', multivalue=False, required=True)
 option: Int('cospriority', attribute=True, cli_name='cospriority', minvalue=0, multivalue=False, required=True)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -511,12 +514,13 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: cosentry_mod
-args: 1,8,3
+args: 1,9,3
 arg: Str('cn', attribute=True, cli_name='cn', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('krbpwdpolicyreference', attribute=True, autofill=False, cli_name='krbpwdpolicyreference', multivalue=False, required=False)
 option: Int('cospriority', attribute=True, autofill=False, cli_name='cospriority', minvalue=0, multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -607,8 +611,8 @@ arg: Str('dnszoneidnsname', cli_name='dnszone', query=True, required=True)
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
 option: Int('dnsttl', attribute=True, cli_name='ttl', multivalue=False, required=False)
 option: StrEnum('dnsclass', attribute=True, cli_name='class', multivalue=False, required=False, values=(u'IN', u'CS', u'CH', u'HS'))
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('force', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -868,8 +872,8 @@ option: Int('dnsttl', attribute=True, cli_name='ttl', multivalue=False, required
 option: StrEnum('dnsclass', attribute=True, cli_name='class', multivalue=False, required=False, values=(u'IN', u'CS', u'CH', u'HS'))
 option: Str('idnsupdatepolicy', attribute=True, cli_name='update_policy', multivalue=False, required=False)
 option: Bool('idnsallowdynupdate', attribute=True, autofill=True, cli_name='dynamic_update', default=False, multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('force', autofill=True, default=False)
 option: Str('ip_address?')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -926,7 +930,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: dnszone_mod
-args: 1,18,3
+args: 1,19,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('name_from_ip', attribute=False, autofill=False, cli_name='name_from_ip', multivalue=False, required=False)
 option: Str('idnssoamname', attribute=True, autofill=False, cli_name='name_server', multivalue=False, required=False)
@@ -940,8 +944,9 @@ option: Int('dnsttl', attribute=True, autofill=False, cli_name='ttl', multivalue
 option: StrEnum('dnsclass', attribute=True, autofill=False, cli_name='class', multivalue=False, required=False, values=(u'IN', u'CS', u'CH', u'HS'))
 option: Str('idnsupdatepolicy', attribute=True, autofill=False, cli_name='update_policy', multivalue=False, required=False)
 option: Bool('idnsallowdynupdate', attribute=True, autofill=False, cli_name='dynamic_update', default=False, multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -993,15 +998,15 @@ output: Output('truncated', <type 'bool'>, None)
 command: entitle_import
 args: 1,3,1
 arg: File('usercertificate*', cli_name='certificate_file')
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('uuid?', autofill=True, default=u'IMPORTED')
 output: Output('result', <type 'dict'>, None)
 command: entitle_register
 args: 1,7,3
 arg: Str('username')
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('ipaentitlementid?')
 option: Password('password', confirm=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -1036,8 +1041,8 @@ args: 1,8,3
 arg: Str('cn', attribute=True, cli_name='group_name', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=True)
 option: Int('gidnumber', attribute=True, cli_name='gid', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('nonposix', autofill=True, cli_name='nonposix', default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -1101,12 +1106,13 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: group_mod
-args: 1,10,3
+args: 1,11,3
 arg: Str('cn', attribute=True, cli_name='group_name', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
 option: Int('gidnumber', attribute=True, autofill=False, cli_name='gid', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('posix', autofill=True, cli_name='posix', default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -1146,8 +1152,8 @@ option: StrEnum('hostcategory', attribute=True, cli_name='hostcat', multivalue=F
 option: StrEnum('sourcehostcategory', attribute=True, cli_name='srchostcat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('servicecategory', attribute=True, cli_name='servicecat', multivalue=False, required=False, values=(u'all',))
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -1238,7 +1244,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: hbacrule_mod
-args: 1,12,3
+args: 1,13,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: StrEnum('accessruletype', attribute=True, autofill=False, cli_name='type', default=u'allow', exclude='webui', multivalue=False, required=False, values=(u'allow', u'deny'))
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
@@ -1246,8 +1252,9 @@ option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostca
 option: StrEnum('sourcehostcategory', attribute=True, autofill=False, cli_name='srchostcat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('servicecategory', attribute=True, autofill=False, cli_name='servicecat', multivalue=False, required=False, values=(u'all',))
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -1313,8 +1320,8 @@ command: hbacsvc_add
 args: 1,6,3
 arg: Str('cn', attribute=True, cli_name='service', multivalue=False, primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -1344,11 +1351,12 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: hbacsvc_mod
-args: 1,7,3
+args: 1,8,3
 arg: Str('cn', attribute=True, cli_name='service', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -1370,8 +1378,8 @@ command: hbacsvcgroup_add
 args: 1,6,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=True)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -1411,11 +1419,12 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: hbacsvcgroup_mod
-args: 1,7,3
+args: 1,8,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -1537,7 +1546,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: host_mod
-args: 1,15,3
+args: 1,16,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
 option: Str('l', attribute=True, autofill=False, cli_name='locality', multivalue=False, required=False)
@@ -1547,8 +1556,9 @@ option: Str('nsosversion', attribute=True, autofill=False, cli_name='os', multiv
 option: Str('userpassword', attribute=True, autofill=False, cli_name='password', multivalue=False, required=False)
 option: Flag('random', attribute=False, autofill=True, cli_name='random', default=False, multivalue=False, required=False)
 option: Bytes('usercertificate', attribute=True, autofill=False, cli_name='certificate', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Str('krbprincipalname?', attribute=True, cli_name='principalname')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -1582,8 +1592,8 @@ command: hostgroup_add
 args: 1,6,3
 arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=False, primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=True)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -1636,11 +1646,12 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: hostgroup_mod
-args: 1,7,3
+args: 1,8,3
 arg: Str('cn', attribute=True, cli_name='hostgroup_name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -1679,12 +1690,13 @@ arg: Str('methodname?')
 output: Output('objects', <type 'dict'>, None)
 output: Output('methods', <type 'dict'>, None)
 command: krbtpolicy_mod
-args: 1,8,3
+args: 1,9,3
 arg: Str('uid', attribute=True, cli_name='user', multivalue=False, primary_key=True, query=True, required=False)
 option: Int('krbmaxticketlife', attribute=True, autofill=False, cli_name='maxlife', minvalue=1, multivalue=False, required=False)
 option: Int('krbmaxrenewableage', attribute=True, autofill=False, cli_name='maxrenew', minvalue=1, multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -1739,8 +1751,8 @@ option: Str('description', attribute=True, cli_name='desc', multivalue=False, re
 option: Str('nisdomainname', attribute=True, cli_name='nisdomain', multivalue=False, required=False)
 option: StrEnum('usercategory', attribute=True, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, cli_name='hostcat', multivalue=False, required=False, values=(u'all',))
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -1802,14 +1814,15 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: netgroup_mod
-args: 1,10,3
+args: 1,11,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
 option: Str('nisdomainname', attribute=True, autofill=False, cli_name='nisdomain', multivalue=False, required=False)
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
 option: StrEnum('hostcategory', attribute=True, autofill=False, cli_name='hostcat', multivalue=False, required=False, values=(u'all',))
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -1859,8 +1872,8 @@ option: Str('memberof', alwaysask=True, attribute=True, autofill=False, cli_name
 option: Str('filter', alwaysask=True, attribute=True, autofill=False, cli_name='filter', multivalue=False, query=True, required=False)
 option: Str('subtree', alwaysask=True, attribute=True, autofill=False, cli_name='subtree', multivalue=False, query=True, required=False)
 option: Str('targetgroup', alwaysask=True, attribute=True, autofill=False, cli_name='targetgroup', multivalue=False, query=True, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -1906,7 +1919,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: permission_mod
-args: 1,14,3
+args: 1,15,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: List('permissions', attribute=True, autofill=False, cli_name='permissions', multivalue=True, required=False)
 option: List('attrs', alwaysask=True, attribute=True, autofill=False, cli_name='attrs', multivalue=True, query=True, required=False)
@@ -1915,8 +1928,9 @@ option: Str('memberof', alwaysask=True, attribute=True, autofill=False, cli_name
 option: Str('filter', alwaysask=True, attribute=True, autofill=False, cli_name='filter', multivalue=False, query=True, required=False)
 option: Str('subtree', alwaysask=True, attribute=True, autofill=False, cli_name='subtree', multivalue=False, query=True, required=False)
 option: Str('targetgroup', alwaysask=True, attribute=True, autofill=False, cli_name='targetgroup', multivalue=False, query=True, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -1963,8 +1977,8 @@ command: privilege_add
 args: 1,6,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=True)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -2014,11 +2028,12 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: privilege_mod
-args: 1,8,3
+args: 1,9,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -2069,8 +2084,8 @@ option: Int('cospriority', attribute=False, cli_name='priority', minvalue=0, mul
 option: Int('krbpwdmaxfailure', attribute=True, cli_name='maxfail', minvalue=0, multivalue=False, required=False)
 option: Int('krbpwdfailurecountinterval', attribute=True, cli_name='failinterval', minvalue=0, multivalue=False, required=False)
 option: Int('krbpwdlockoutduration', attribute=True, cli_name='lockouttime', minvalue=0, multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -2108,7 +2123,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: pwpolicy_mod
-args: 1,15,3
+args: 1,16,3
 arg: Str('cn', attribute=True, cli_name='group', multivalue=False, primary_key=True, query=True, required=False)
 option: Int('krbmaxpwdlife', attribute=True, autofill=False, cli_name='maxlife', minvalue=0, multivalue=False, required=False)
 option: Int('krbminpwdlife', attribute=True, autofill=False, cli_name='minlife', minvalue=0, multivalue=False, required=False)
@@ -2119,8 +2134,9 @@ option: Int('cospriority', attribute=False, autofill=False, cli_name='priority',
 option: Int('krbpwdmaxfailure', attribute=True, autofill=False, cli_name='maxfail', minvalue=0, multivalue=False, required=False)
 option: Int('krbpwdfailurecountinterval', attribute=True, autofill=False, cli_name='failinterval', minvalue=0, multivalue=False, required=False)
 option: Int('krbpwdlockoutduration', attribute=True, autofill=False, cli_name='lockouttime', minvalue=0, multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -2143,8 +2159,8 @@ command: role_add
 args: 1,6,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=True)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -2197,11 +2213,12 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: role_mod
-args: 1,8,3
+args: 1,9,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -2344,11 +2361,12 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: service_mod
-args: 1,7,3
+args: 1,8,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=False, primary_key=True, query=True, required=True)
 option: Bytes('usercertificate', attribute=True, autofill=False, cli_name='certificate', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -2381,8 +2399,8 @@ command: sudocmd_add
 args: 1,6,3
 arg: Str('sudocmd', attribute=True, cli_name='command', multivalue=False, primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -2412,11 +2430,12 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: sudocmd_mod
-args: 1,7,3
+args: 1,8,3
 arg: Str('sudocmd', attribute=True, cli_name='command', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -2438,8 +2457,8 @@ command: sudocmdgroup_add
 args: 1,6,3
 arg: Str('cn', attribute=True, cli_name='sudocmdgroup_name', multivalue=False, primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=True)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -2479,11 +2498,12 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: sudocmdgroup_mod
-args: 1,7,3
+args: 1,8,3
 arg: Str('cn', attribute=True, cli_name='sudocmdgroup_name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -2523,8 +2543,8 @@ option: StrEnum('ipasudorunasgroupcategory', attribute=True, cli_name='runasgrou
 option: Str('externaluser', attribute=True, cli_name='externaluser', multivalue=False, required=False)
 option: Str('ipasudorunasextuser', attribute=True, cli_name='runasexternaluser', multivalue=False, required=False)
 option: Str('ipasudorunasextgroup', attribute=True, cli_name='runasexternalgroup', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -2640,7 +2660,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: sudorule_mod
-args: 1,15,3
+args: 1,16,3
 arg: Str('cn', attribute=True, cli_name='sudorule_name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
 option: StrEnum('usercategory', attribute=True, autofill=False, cli_name='usercat', multivalue=False, required=False, values=(u'all',))
@@ -2651,8 +2671,9 @@ option: StrEnum('ipasudorunasgroupcategory', attribute=True, autofill=False, cli
 option: Str('externaluser', attribute=True, autofill=False, cli_name='externaluser', multivalue=False, required=False)
 option: Str('ipasudorunasextuser', attribute=True, autofill=False, cli_name='runasexternaluser', multivalue=False, required=False)
 option: Str('ipasudorunasextgroup', attribute=True, autofill=False, cli_name='runasexternalgroup', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -2768,8 +2789,8 @@ option: Str('ou', attribute=True, cli_name='orgunit', multivalue=False, required
 option: Str('title', attribute=True, cli_name='title', multivalue=False, required=False)
 option: Str('manager', attribute=True, cli_name='manager', multivalue=False, required=False)
 option: Str('carlicense', attribute=True, cli_name='carlicense', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('noprivate', autofill=True, cli_name='noprivate', default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
@@ -2847,7 +2868,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: user_mod
-args: 1,31,3
+args: 1,32,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, query=True, required=True)
 option: Str('givenname', attribute=True, autofill=False, cli_name='first', multivalue=False, required=False)
 option: Str('sn', attribute=True, autofill=False, cli_name='last', multivalue=False, required=False)
@@ -2873,8 +2894,9 @@ option: Str('ou', attribute=True, autofill=False, cli_name='orgunit', multivalue
 option: Str('title', attribute=True, autofill=False, cli_name='title', multivalue=False, required=False)
 option: Str('manager', attribute=True, autofill=False, cli_name='manager', multivalue=False, required=False)
 option: Str('carlicense', attribute=True, autofill=False, cli_name='carlicense', multivalue=False, required=False)
-option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')

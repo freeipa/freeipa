@@ -755,6 +755,10 @@ class test_group(Declarative):
                     dn=lambda x: DN(x) == \
                         DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
                            api.env.basedn),
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    memberof_group=[u'ipausers'],
                     has_keytab=False,
                     has_password=False,
                 ),

@@ -210,6 +210,128 @@ class test_attr(Declarative):
 
 
         dict(
+            desc='Delete one phone number for %r' % user1,
+            command=(
+                'user_mod', [user1], dict(delattr=u'telephoneNumber=301-555-1212')
+            ),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Finkle'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    mail=[u'test@example.com', u'test2@example.com'],
+                    memberof_group=[u'ipausers'],
+                    telephonenumber=[u'202-888-9833', u'703-555-1212'],
+                    nsaccountlock=False,
+                    has_keytab=False,
+                    has_password=False,
+                ),
+                summary=u'Modified user "tuser1"',
+                value=user1,
+            ),
+        ),
+
+
+        dict(
+            desc='Try deleting the number again for %r' % user1,
+            command=(
+                'user_mod', [user1], dict(delattr=u'telephoneNumber=301-555-1212')
+            ),
+            expected=errors.AttrValueNotFound(attr='telephoneNumber', value='301-555-1212')
+        ),
+
+
+        dict(
+            desc='Add and delete one phone number for %r' % user1,
+            command=(
+                'user_mod', [user1], dict(addattr=u'telephoneNumber=301-555-1212',
+                                          delattr=u'telephoneNumber=202-888-9833')
+            ),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Finkle'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    mail=[u'test@example.com', u'test2@example.com'],
+                    memberof_group=[u'ipausers'],
+                    telephonenumber=[u'301-555-1212', u'703-555-1212'],
+                    nsaccountlock=False,
+                    has_keytab=False,
+                    has_password=False,
+                ),
+                summary=u'Modified user "tuser1"',
+                value=user1,
+            ),
+        ),
+
+
+        dict(
+            desc='Add and delete the same phone number for %r' % user1,
+            command=(
+                'user_mod', [user1], dict(addattr=(u'telephoneNumber=301-555-1212',
+                                                   u'telephoneNumber=202-888-9833'),
+                                          delattr=u'telephoneNumber=301-555-1212')
+            ),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Finkle'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    mail=[u'test@example.com', u'test2@example.com'],
+                    memberof_group=[u'ipausers'],
+                    telephonenumber=[u'703-555-1212', u'301-555-1212', u'202-888-9833'],
+                    nsaccountlock=False,
+                    has_keytab=False,
+                    has_password=False,
+                ),
+                summary=u'Modified user "tuser1"',
+                value=user1,
+            ),
+        ),
+
+
+        dict(
+            desc='Set and delete the a phone number for %r' % user1,
+            command=(
+                'user_mod', [user1], dict(setattr=(u'telephoneNumber=301-555-1212',
+                                                   u'telephoneNumber=202-888-9833'),
+                                          delattr=u'telephoneNumber=301-555-1212')
+            ),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Finkle'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    mail=[u'test@example.com', u'test2@example.com'],
+                    memberof_group=[u'ipausers'],
+                    telephonenumber=[u'202-888-9833'],
+                    nsaccountlock=False,
+                    has_keytab=False,
+                    has_password=False,
+                ),
+                summary=u'Modified user "tuser1"',
+                value=user1,
+            ),
+        ),
+
+
+        dict(
             desc='Try setting givenname to None with setattr in %r' % user1,
             command=(
                 'user_mod', [user1], dict(setattr=(u'givenname='))
@@ -243,7 +365,7 @@ class test_attr(Declarative):
                     gidnumber=[fuzzy_digits],
                     mail=[u'test@example.com', u'test2@example.com'],
                     memberof_group=[u'ipausers'],
-                    telephonenumber=[u'301-555-1212', u'202-888-9833', u'703-555-1212'],
+                    telephonenumber=[u'202-888-9833'],
                     nsaccountlock=False,
                     has_keytab=False,
                     has_password=False,
@@ -270,7 +392,7 @@ class test_attr(Declarative):
                     gidnumber=[fuzzy_digits],
                     mail=[u'test@example.com', u'test2@example.com'],
                     memberof_group=[u'ipausers'],
-                    telephonenumber=[u'301-555-1212', u'202-888-9833', u'703-555-1212'],
+                    telephonenumber=[u'202-888-9833'],
                     nsaccountlock=False,
                     has_keytab=False,
                     has_password=False,
