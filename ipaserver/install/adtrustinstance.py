@@ -25,7 +25,6 @@ import tempfile
 import installutils
 from ipaserver import ipaldap
 from ipaserver.install.dsinstance import realm_to_serverid
-from ipaserver.install.bindinstance import get_rr, add_rr, del_rr
 from ipalib import errors
 from ipapython import sysrestore
 from ipapython import ipautil
@@ -246,29 +245,6 @@ class ADTRUSTInstance(service.Service):
         except ipautil.CalledProcessError, e:
             root_logger.critical("Failed to add key for %s" % cifs_principal)
 
-    def __add_dns_service_records(self):
-        zone = self.domain_name
-        ipa_srv_rec = ("_ldap._tcp", "_kerberos._tcp", "_kerberos._udp")
-        win_srv_suffix = (".Default-First-Site-Name._sites.dc._msdcs",
-                          ".dc._msdcs")
-
-        for srv in ipa_srv_rec:
-            ipa_rdata = get_rr(zone, srv, "SRV")
-            if not ipa_rdata:
-                print "Canot find %s service record in locally, please add " \
-                      "%s.Default-First-Site-Name._sites.dc._msdcs and " \
-                      "%s.dc._msdcs for the %s DNS zone to your DNS server" % \
-                      (srv, srv, srv, zone)
-            else:
-                for suff in win_srv_suffix:
-                    win_srv = srv+suff
-                    win_rdata = get_rr(zone, win_srv, "SRV")
-                    if win_rdata:
-                        for rec in win_rdata:
-                            del_rr(zone, win_srv, "SRV", rec)
-                    for rec in ipa_rdata:
-                        add_rr(zone, win_srv, "SRV", rec)
-
     def __start(self):
         try:
             self.start()
@@ -335,7 +311,6 @@ class ADTRUSTInstance(service.Service):
         self.step("Adding cifs Kerberos principal", self.__setup_principal)
         self.step("Adding admin(group) SIDs", self.__add_admin_sids)
         self.step("configuring smbd to start on boot", self.__enable)
-        self.step("adding special DNS service records", self.__add_dns_service_records)
         self.step("starting smbd", self.__start)
 
         self.start_creation("Configuring smbd:")
