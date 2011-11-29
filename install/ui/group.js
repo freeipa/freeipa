@@ -46,7 +46,7 @@ IPA.group.entity = function(spec) {
                     fields: [
                         'cn',
                         {
-                            factory: IPA.textarea_widget,
+                            type: 'textarea',
                             name: 'description'
                         },
                         'gidnumber'
@@ -110,11 +110,11 @@ IPA.group.entity = function(spec) {
             fields: [
                 'cn',
                 {
-                    factory: IPA.textarea_widget,
+                    type: 'textarea',
                     name: 'description'
                 },
                 {
-                    factory: IPA.group_nonposix_checkbox_widget,
+                    type: 'nonposix_checkbox',
                     name: 'nonposix',
                     label: IPA.messages.objects.group.posix,
                     checked: true
@@ -141,6 +141,9 @@ IPA.group_nonposix_checkbox_widget = function (spec) {
 
     return that;
 };
+
+IPA.widget_factories['nonposix_checkbox'] = IPA.group_nonposix_checkbox_widget;
+IPA.field_factories['nonposix_checkbox'] = IPA.checkbox_fields;
 
 IPA.group_adder_dialog = function(spec) {
 

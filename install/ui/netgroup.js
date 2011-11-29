@@ -43,7 +43,7 @@ IPA.netgroup.entity = function(spec) {
                     fields: [
                         'cn',
                         {
-                            factory: IPA.textarea_widget,
+                            type: 'textarea',
                             name: 'description'
                         },
                         'nisdomainname'
@@ -76,7 +76,7 @@ IPA.netgroup.entity = function(spec) {
             fields: [
                 'cn',
                 {
-                    factory: IPA.textarea_widget,
+                    type: 'textarea',
                     name: 'description'
                 }
             ]

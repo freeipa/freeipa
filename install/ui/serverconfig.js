@@ -49,7 +49,7 @@ IPA.config.entity = function(spec) {
                         'ipausersearchfields',
                         'ipadefaultemaildomain',
                         {
-                            factory: IPA.entity_select_widget,
+                            type: 'entity_select',
                             name: 'ipadefaultprimarygroup',
                             other_entity: 'group',
                             other_field: 'cn'
@@ -59,11 +59,11 @@ IPA.config.entity = function(spec) {
                         'ipamaxusernamelength',
                         'ipapwdexpadvnotify',
                         {
-                            factory: IPA.checkbox_widget,
+                            type: 'checkbox',
                             name: 'ipamigrationenabled'
                         },
                         {
-                            factory: IPA.multivalued_text_widget,
+                            type: 'multivalued',
                             name: 'ipauserobjectclasses'
                         }
                     ]
@@ -74,7 +74,7 @@ IPA.config.entity = function(spec) {
                     fields: [
                         'ipagroupsearchfields',
                         {
-                            factory: IPA.multivalued_text_widget,
+                            type: 'multivalued',
                             name: 'ipagroupobjectclasses'
                         }
                     ]
