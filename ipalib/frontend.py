@@ -30,7 +30,7 @@ from util import make_repr
 from output import Output, Entry, ListOfEntries
 from text import _, ngettext
 
-from errors import ZeroArgumentError, MaxArgumentError, OverlapError, RequiresRoot, VersionError, RequirementError, ValidationError
+from errors import ZeroArgumentError, MaxArgumentError, OverlapError, RequiresRoot, VersionError, RequirementError
 from errors import InvocationError
 from constants import TYPE_ERROR
 from ipapython.version import API_VERSION
@@ -535,45 +535,6 @@ class Command(HasParam):
         kw = self.args_options_2_params(*args, **options)
         return dict(self.__attributes_2_entry(kw))
 
-    def __convert_2_dict(self, attrs, append=True):
-        """
-        Convert a string in the form of name/value pairs into
-        a dictionary. The incoming attribute may be a string or
-        a list.
-
-        Any attribute found that is also a param is validated.
-
-        append controls whether this returns a list of values or a single
-        value.
-        """
-        newdict = {}
-        if not type(attrs) in (list, tuple):
-            attrs = [attrs]
-        for a in attrs:
-            m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", a)
-            attr = str(m.group(1)).lower()
-            value = m.group(2)
-            if len(value) == 0:
-                # None means "delete this attribute"
-                value = None
-            if attr in self.params:
-                try:
-                    value = self.params[attr](value)
-                except ValidationError, err:
-                    (name, error) = str(err.strerror).split(':')
-                    raise ValidationError(name=attr, error=error)
-            if append and attr in newdict:
-                if type(value) in (tuple,):
-                    newdict[attr] += list(value)
-                else:
-                    newdict[attr].append(value)
-            else:
-                if type(value) in (tuple,):
-                    newdict[attr] = list(value)
-                else:
-                    newdict[attr] = [value]
-        return newdict
-
     def __attributes_2_entry(self, kw):
         for name in self.params:
             if self.params[name].attribute and name in kw:
@@ -582,27 +543,6 @@ class Command(HasParam):
                     yield (name, [v for v in value])
                 else:
                     yield (name, kw[name])
-
-        adddict = {}
-        if kw.get('setattr'):
-            adddict = self.__convert_2_dict(kw['setattr'], append=False)
-
-        if kw.get('addattr'):
-            for (k, v) in self.__convert_2_dict(kw['addattr']).iteritems():
-                if k in adddict:
-                    adddict[k] += v
-                else:
-                    adddict[k] = v
-
-        for name in adddict:
-            value = adddict[name]
-            if isinstance(value, list):
-                if len(value) == 1:
-                    yield (name, value[0])
-                else:
-                    yield (name, [v for v in value])
-            else:
-                yield (name, value)
 
     def params_2_args_options(self, **params):
         """

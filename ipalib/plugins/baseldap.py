@@ -26,7 +26,7 @@ import time
 from copy import deepcopy
 
 from ipalib import api, crud, errors
-from ipalib import Method, Object
+from ipalib import Method, Object, Command
 from ipalib import Flag, Int, List, Str
 from ipalib.base import NameSpace
 from ipalib.cli import to_cli, from_cli
@@ -175,22 +175,13 @@ def validate_add_attribute(ugettext, attr):
 def validate_set_attribute(ugettext, attr):
     validate_attribute(ugettext, 'setattr', attr)
 
+def validate_del_attribute(ugettext, attr):
+    validate_attribute(ugettext, 'delattr', attr)
+
 def validate_attribute(ugettext, name, attr):
     m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", attr)
     if not m or len(m.groups()) != 2:
         raise errors.ValidationError(name=name, error='Invalid format. Should be name=value')
-
-def get_attributes(attrs):
-    """
-    Given a list of values in the form name=value, return a list of name.
-    """
-    attrlist=[]
-    if attrs:
-        for attr in attrs:
-            m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", attr)
-            attrlist.append(str(m.group(1)).lower())
-    return attrlist
-
 
 def get_effective_rights(ldap, dn, attrs=None):
     if attrs is None:
@@ -498,21 +489,6 @@ class LDAPObject(Object):
         return json_dict
 
 
-# Options used by create and update.
-_attr_options = (
-    Str('addattr*', validate_add_attribute,
-        cli_name='addattr',
-        doc=_('Add an attribute/value pair. Format is attr=value. The attribute must be part of the schema.'),
-        exclude='webui',
-    ),
-    Str('setattr*', validate_set_attribute,
-        cli_name='setattr',
-        doc=_("""Set an attribute to a name/value pair. Format is attr=value.
-For multi-valued attributes, the command replaces the values already present."""),
-        exclude='webui',
-    ),
-)
-
 # addattr can cause parameters to have more than one value even if not defined
 # as multivalue, make sure this isn't the case
 def _check_single_value_attrs(params, entry_attrs):
@@ -647,11 +623,169 @@ class CallbackInterface(Method):
         return rv
 
 
-class LDAPCreate(CallbackInterface, crud.Create):
+class BaseLDAPCommand(CallbackInterface, Command):
+    """
+    Base class for Base LDAP Commands.
+    """
+    setattr_option = Str('setattr*', validate_set_attribute,
+                         cli_name='setattr',
+                         doc=_("""Set an attribute to a name/value pair. Format is attr=value.
+For multi-valued attributes, the command replaces the values already present."""),
+                         exclude='webui',
+                        )
+    addattr_option = Str('addattr*', validate_add_attribute,
+                         cli_name='addattr',
+                         doc=_("""Add an attribute/value pair. Format is attr=value. The attribute
+must be part of the schema."""),
+                         exclude='webui',
+                        )
+    delattr_option = Str('delattr*', validate_del_attribute,
+                         cli_name='delattr',
+                         doc=_("""Delete an attribute/value pair. The option will be evaluated
+last, after all sets and adds."""),
+                         exclude='webui',
+                        )
+
+    def _convert_2_dict(self, attrs, append=True):
+        """
+        Convert a string in the form of name/value pairs into a dictionary.
+        The incoming attribute may be a string or a list.
+
+        Any attribute found that is also a param is validated.
+
+        :param attrs: A list of name/value pairs
+
+        :param append: controls whether this returns a list of values or a single
+        value.
+        """
+        newdict = {}
+        if not type(attrs) in (list, tuple):
+            attrs = [attrs]
+        for a in attrs:
+            m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", a)
+            attr = str(m.group(1)).lower()
+            value = m.group(2)
+            if len(value) == 0:
+                # None means "delete this attribute"
+                value = None
+            if attr in self.params:
+                try:
+                   value = self.params[attr](value)
+                except errors.ValidationError, err:
+                    (name, error) = str(err.strerror).split(':')
+                    raise errors.ValidationError(name=attr, error=error)
+            if append and attr in newdict:
+                if type(value) in (tuple,):
+                    newdict[attr] += list(value)
+                else:
+                    newdict[attr].append(value)
+            else:
+                if type(value) in (tuple,):
+                    newdict[attr] = list(value)
+                else:
+                    newdict[attr] = [value]
+        return newdict
+
+    def process_attr_options(self, entry_attrs, dn, keys, options):
+        """
+        Process all --setattr, --addattr, and --delattr options and add the 
+        resulting value to the list of attributes. --setattr is processed first,
+        then --addattr and finally --delattr.
+
+        When --setattr is not used then the original LDAP object is looked up 
+        (of course, not when dn is None) and the changes are applied to old 
+        object values.
+
+        Attribute values deleted by --delattr may be deleted from attribute
+        values set or added by --setattr, --addattr. For example, the following
+        attributes will result in a NOOP:
+
+        --addattr=attribute=foo --delattr=attribute=foo
+
+        AttrValueNotFound exception may be raised when an attribute value was 
+        not found either by --setattr and --addattr nor in existing LDAP object.
+
+        :param entry_attrs: A list of attributes that will be updated
+        :param dn: dn of updated LDAP object or None if a new object is created
+        :param keys: List of command arguments
+        :param options: List of options
+        """
+        if all(k not in options for k in ("setattr", "addattr", "delattr")):
+            return
+
+        ldap = self.obj.backend
+
+        adddict = self._convert_2_dict(options.get('addattr', []))
+        setdict = self._convert_2_dict(options.get('setattr', []))
+        deldict = self._convert_2_dict(options.get('delattr', []))
+
+        setattrs = set(setdict.keys())
+        addattrs = set(adddict.keys())
+        delattrs = set(deldict.keys())
+
+        if dn is None:
+            direct_add = addattrs
+            direct_del = delattrs
+            needldapattrs = []
+        else:
+            direct_add = setattrs & addattrs
+            direct_del = setattrs & delattrs
+            needldapattrs = list((addattrs | delattrs) - setattrs)
+
+        for attr, val in setdict.iteritems():
+            entry_attrs[attr] = val
+
+        for attr in direct_add:
+            entry_attrs.setdefault(attr, []).extend(adddict[attr])
+
+        for attr in direct_del:
+            for delval in deldict[attr]:
+                try:
+                    entry_attrs[attr].remove(delval)
+                except ValueError:
+                    raise errors.AttrValueNotFound(attr=attr,
+                                                   value=delval)
+
+        if needldapattrs:
+            try:
+                (dn, old_entry) = ldap.get_entry(
+                    dn, needldapattrs, normalize=self.obj.normalize_dn
+                )
+            except errors.ExecutionError, e:
+                try:
+                    (dn, old_entry) = self._call_exc_callbacks(
+                        keys, options, e, ldap.get_entry, dn, [],
+                        normalize=self.obj.normalize_dn
+                    )
+                except errors.NotFound:
+                    self.obj.handle_not_found(*keys)
+            for attr in needldapattrs:
+                entry_attrs[attr] = old_entry.get(attr, [])
+
+                if attr in addattrs:
+                    entry_attrs[attr].extend(adddict.get(attr, []))
+
+                for delval in deldict.get(attr, []):
+                    try:
+                        entry_attrs[attr].remove(delval)
+                    except ValueError:
+                        raise errors.AttrValueNotFound(attr=attr, value=delval)
+
+        # normalize all values
+        changedattrs = setattrs | addattrs | delattrs
+        for attr in changedattrs:
+            # remove duplicite and invalid values
+            entry_attrs[attr] = list(set([val for val in entry_attrs[attr] if val]))
+            if not entry_attrs[attr]:
+                entry_attrs[attr] = None
+            elif len(entry_attrs[attr]) == 1:
+                    entry_attrs[attr] = entry_attrs[attr][0]
+
+class LDAPCreate(BaseLDAPCommand, crud.Create):
     """
     Create a new entry in LDAP.
     """
-    takes_options = _attr_options
+    takes_options = (BaseLDAPCommand.setattr_option, BaseLDAPCommand.addattr_option)
 
     def get_args(self):
         #pylint: disable=E1003
@@ -668,6 +802,9 @@ class LDAPCreate(CallbackInterface, crud.Create):
         ldap = self.obj.backend
 
         entry_attrs = self.args_options_2_entry(*keys, **options)
+
+        self.process_attr_options(entry_attrs, None, keys, options)
+
         entry_attrs['objectclass'] = deepcopy(self.obj.object_class)
 
         if self.obj.object_class_config:
@@ -794,7 +931,7 @@ class LDAPCreate(CallbackInterface, crud.Create):
         )
         return json_dict
 
-class LDAPQuery(CallbackInterface, crud.PKQuery):
+class LDAPQuery(BaseLDAPCommand, crud.PKQuery):
     """
     Base class for commands that need to retrieve an existing entry.
     """
@@ -917,7 +1054,10 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     Update an LDAP entry.
     """
 
-    takes_options = _attr_options + (
+    takes_options = (
+        BaseLDAPCommand.setattr_option,
+        BaseLDAPCommand.addattr_option,
+        BaseLDAPCommand.delattr_option,
         Flag('rights',
             label=_('Rights'),
             doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
@@ -951,34 +1091,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         entry_attrs = self.args_options_2_entry(**options)
 
-        """
-        Some special handling is needed because we need to update the
-        values here rather than letting ldap.update_entry() do the work. We
-        have to do the work of adding new values to an existing attribute
-        because if we pass just what is addded only the new values get
-        set.
-        """
-        if 'addattr' in options:
-            setset = set(get_attributes(options.get('setattr', [])))
-            addset = set(get_attributes(options.get('addattr', [])))
-            difflist = list(addset.difference(setset))
-            if difflist:
-                try:
-                    (dn, old_entry) = ldap.get_entry(
-                        dn, difflist, normalize=self.obj.normalize_dn
-                    )
-                except errors.ExecutionError, e:
-                    try:
-                        (dn, old_entry) = self._call_exc_callbacks(
-                            keys, options, e, ldap.get_entry, dn, [],
-                            normalize=self.obj.normalize_dn
-                        )
-                    except errors.NotFound:
-                        self.obj.handle_not_found(*keys)
-                for a in old_entry:
-                    if not isinstance(entry_attrs[a], (list, tuple)):
-                        entry_attrs[a] = [entry_attrs[a]]
-                    entry_attrs[a] = list(entry_attrs[a]) + old_entry[a]
+        self.process_attr_options(entry_attrs, dn, keys, options)
 
         if options.get('all', False):
             attrs_list = ['*'] + self.obj.default_attributes
@@ -1426,7 +1539,7 @@ class LDAPRemoveMember(LDAPModMember):
         return
 
 
-class LDAPSearch(CallbackInterface, crud.Search):
+class LDAPSearch(BaseLDAPCommand, crud.Search):
     """
     Retrieve all LDAP entries matching the given criteria.
     """
