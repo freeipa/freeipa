@@ -46,6 +46,15 @@ IPA.widget = function(spec) {
     that.clear = function() {
     };
 
+    that.set_visible = function(visible) {
+
+        if (visible) {
+            that.container.show();
+        } else {
+            that.container.hide();
+        }
+    };
+
     that.widget_create = that.create;
 
     return that;
@@ -1823,6 +1832,8 @@ IPA.collapsible_section = function(spec) {
 
     that.create = function(container) {
 
+        that.widget_create(container);
+
         that.header = $('<h2/>', {
             name: that.name,
             title: that.label
@@ -1874,6 +1885,8 @@ IPA.details_table_section = function(spec) {
     that.rows = $.ordered_map();
 
     that.composite_widget_create = function(container) {
+
+        that.widget_create(container);
 
         var table = $('<table/>', {
             'class': 'section-table'
