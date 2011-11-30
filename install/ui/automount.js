@@ -241,11 +241,11 @@ IPA.automountmap_adder_dialog = function(spec) {
     that.create = function() {
         that.entity_adder_dialog_create();
 
-        var method_field = that.fields.get_field('method');
-        var indirect_section = that.get_section('indirect');
+        var method_widget = that.widgets.get_widget('general.method');
+        var indirect_section = that.widgets.get_widget('indirect');
         var key_field = that.fields.get_field('key');
 
-        var direct_input = $('input[value="add"]', method_field.container);
+        var direct_input = $('input[value="add"]', method_widget.container);
         direct_input.change(function() {
             that.method = 'add';
 
@@ -253,7 +253,7 @@ IPA.automountmap_adder_dialog = function(spec) {
             indirect_section.set_visible(false);
         });
 
-        var indirect_input = $('input[value="add_indirect"]', method_field.container);
+        var indirect_input = $('input[value="add_indirect"]', method_widget.container);
         indirect_input.change(function() {
             that.method = 'add_indirect';
 
@@ -267,9 +267,9 @@ IPA.automountmap_adder_dialog = function(spec) {
     that.reset = function() {
         that.dialog_reset();
 
-        var method_field = that.fields.get_field('method');
+        var method_widget = that.widgets.get_widget('general.method');
 
-        var direct_input = $('input[value="add"]', method_field.container);
+        var direct_input = $('input[value="add"]', method_widget.container);
         direct_input.click();
     };
 
