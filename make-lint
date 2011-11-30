@@ -92,7 +92,7 @@ class IPATypeChecker(TypeChecker):
             inferred = []
 
         for owner in inferred:
-            if not isinstance(owner, Class) and not isinstance(owner, Instance):
+            if not isinstance(owner, Class) and type(owner) is not Instance:
                 continue
 
             ignored = self._find_ignored_attrs(owner)
