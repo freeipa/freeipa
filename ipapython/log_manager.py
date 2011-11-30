@@ -769,19 +769,54 @@ class LogManager(object):
           LogManager instance
 
         '''
+        self.loggers = {}       # dict, key is logger name, value is logger object
+        self.handlers = {}      # dict, key is handler name, value is handler object
+
         self.configure_state = configure_state
         self.root_logger_name = root_logger_name
-        self.default_level = logging.ERROR
+        self.default_level = 'error'
         self.debug = False
         self.verbose = False
         self.logger_regexps = []
 
-        self.loggers = {}       # dict, key is logger name, value is logger object
-        self.handlers = {}      # dict, key is handler name, value is handler object
-
         self.root_logger = self.get_logger(self.root_logger_name)
         # Stop loggers and handlers from searching above our root
         self.root_logger.propagate = False
+
+
+    def _get_default_level(self):
+        return self._default_level
+
+    def _set_default_level(self, value):
+        level = parse_log_level(value)
+        self._default_level = level
+        self.apply_configuration()
+
+    default_level = property(_get_default_level, _set_default_level,
+                             doc='see log_manager.parse_log_level()` for details on how the level can be specified during assignement.')
+
+    def set_default_level(self, level, configure_state=None):
+        '''
+        Reset the default logger level, updates all loggers.
+        Note, the default_level may also be set by assigning to the
+        default_level attribute but that does not update the configure_state,
+        this method is provided as a convenience to simultaneously set the
+        configure_state if so desired.
+        
+        :parameters:
+          level
+            The new default level for the log manager.  See
+            `log_manager.parse_log_level()` for details on how the
+            level can be specified.
+          configure_state
+            If other than None update the log manger's configure_state
+            variable to this object. Clients of the log manager can
+            use configure_state to track the state of the log manager.
+
+        '''
+        level = parse_log_level(level)
+        self._default_level = level
+        self.apply_configuration(configure_state)
 
 
     def __str__(self):

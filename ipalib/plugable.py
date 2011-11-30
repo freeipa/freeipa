@@ -469,6 +469,7 @@ class API(DictProxy):
         if log_mgr.configure_state != 'default' or self.env.validate_api:
             return
 
+        log_mgr.default_level = 'info'
         log_mgr.configure_from_env(self.env, configure_state='api')
         # Add stderr handler:
         level = 'info'
