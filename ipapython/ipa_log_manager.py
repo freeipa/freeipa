@@ -75,7 +75,6 @@ class IPALogManager(LogManager):
     '''
 
     log_logger_level_config_re = re.compile(r'^log_logger_level_(debug|info|warn|warning|error|critical|\d+)$')
-    log_handler_level_config_re = re.compile(r'^log_handler_(\S+)_level$')
 
     def __init__(self, configure_state=None):
         '''
@@ -117,37 +116,11 @@ class IPALogManager(LogManager):
           will usually need to escape the dot in the logger names by
           preceeding it with a backslash.
 
-        Handler Levels
-          *log_handler_XXX_level = level*
-
-          Handler levels may be specified with a key containing the
-          name of the handler (XXX) and whose value is the level. For
-          example::
-
-            log_handler_console_level = debug
-
-          Would set the console handler level to debug.
-
-          These are the predefined log handlers:
-
-          console
-            Writes to stderr.
-          file
-            Writes to the default log file.
-
-
         The return value of this function is a dict with the following
         format:
 
         logger_regexps
           List of (regexp, level) tuples
-        handlers
-          Dict, key is handler name, value is dict of handler config.
-
-          Handler config dict:
-
-          level
-            handler log level
 
         :parameters:
           env
@@ -158,9 +131,7 @@ class IPALogManager(LogManager):
             use configure_state to track the state of the log manager.
         '''
         logger_regexps = []
-        handlers = {}
         config = {'logger_regexps' : logger_regexps,
-                  'handlers'       : handlers,
                  }
 
         for attr in ('debug', 'verbose'):
@@ -178,25 +149,7 @@ class IPALogManager(LogManager):
                 regexps = re.split('\s*,\s*', value)
                 # Add the regexp, it maps to the configured level
                 for regexp in regexps:
-                    print "%s %s" % (regexp, level)
                     logger_regexps.append((regexp, level))
-                continue
-
-            # Get handler configuration
-            match = IPALogManager.log_handler_level_config_re.search(attr)
-            if match:
-                value = getattr(env, attr)
-                try:
-                    level = parse_log_level(value)
-                except Exception, e:
-                    print >>sys.stderr, 'ERROR could not parse log handler level: %s=%s' % (attr, value)
-                    continue
-                name = match.group(1)
-                print "%s %s" % (name, level)
-                handler_config = handlers.get(name)
-                if handler_config is None:
-                    handler_config = {'name' : name}
-                handler_config['level'] = level
                 continue
 
         self.configure(config, configure_state)
