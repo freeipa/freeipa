@@ -42,7 +42,8 @@ SERVICE_LIST = {
     'MEMCACHE':('ipa_memcached', 39),
     'HTTP':('httpd', 40),
     'CA':('pki-cad', 50),
-    'ADTRUST':('smb', 60)
+    'ADTRUST':('smb', 60),
+    'EXTID':('winbind', 70)
 }
 
 def print_msg(message, output_fd=sys.stdout):

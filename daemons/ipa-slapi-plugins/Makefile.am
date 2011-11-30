@@ -6,6 +6,7 @@ SUBDIRS =			\
 	ipa-lockout		\
 	ipa-modrdn		\
 	ipa-pwd-extop		\
+	ipa-extdom-extop	\
 	ipa-uuid		\
 	ipa-version		\
 	ipa-winsync		\

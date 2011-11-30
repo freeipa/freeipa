@@ -237,8 +237,19 @@ PKG_CHECK_MODULES([NDRPAC], [ndr_krb5pac])
 PKG_CHECK_MODULES([NDRNBT], [ndr_nbt])
 PKG_CHECK_MODULES([NDR], [ndr])
 PKG_CHECK_MODULES([SAMBAUTIL], [samba-util])
-SAMBA40EXTRA_LIBPATH="-L`$PKG_CONFIG --variable=libdir samba-util`/samba"
+SAMBA40EXTRA_LIBPATH="-L`$PKG_CONFIG --variable=libdir samba-util`/samba -Wl,-rpath=`$PKG_CONFIG --variable=libdir samba-util`/samba"
 AC_SUBST(SAMBA40EXTRA_LIBPATH)
+AC_CHECK_HEADERS([samba-4.0/wbclient.h],
+                 ,
+                 [AC_MSG_ERROR([samba-4.0/wbclient.h not found])],
+                 [#include <stdbool.h>
+                  #include <stdint.h>])
+AC_CHECK_LIB([wbclient],
+             [wbcLookupSid],
+             [WBCLIENT_LIBS="$SAMBA40EXTRA_LIBPATH -lwbclient"],
+             [AC_MSG_ERROR([libwbclient does not have wbcLookupSid])],
+             [$SAMBA40EXTRA_LIBPATH])
+AC_SUBST(WBCLIENT_LIBS)
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for check unit test framework http://check.sourceforge.net/
@@ -250,6 +261,11 @@ else
     AC_CHECK_HEADERS([check.h],,AC_MSG_ERROR([Could not find CHECK headers]))
 fi
 AM_CONDITIONAL([HAVE_CHECK], [test x$have_check != x])
+
+dnl -- dirsrv is needed for the extdom unit tests --
+PKG_CHECK_MODULES([DIRSRV], [dirsrv])
+dnl -- sss_idmap is needed by the extdom exop --
+PKG_CHECK_MODULES([SSSIDMAP], [sss_idmap])
 
 dnl ---------------------------------------------------------------------------
 dnl - Set the data install directory since we don't use pkgdatadir
@@ -320,6 +336,7 @@ AC_CONFIG_FILES([
     ipa-slapi-plugins/ipa-enrollment/Makefile
     ipa-slapi-plugins/ipa-lockout/Makefile
     ipa-slapi-plugins/ipa-pwd-extop/Makefile
+    ipa-slapi-plugins/ipa-extdom-extop/Makefile
     ipa-slapi-plugins/ipa-winsync/Makefile
     ipa-slapi-plugins/ipa-version/Makefile
     ipa-slapi-plugins/ipa-uuid/Makefile

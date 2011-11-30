@@ -230,6 +230,12 @@ class ADTRUSTInstance(service.Service):
         except:
             pass
 
+    def __add_extdom_module(self):
+        try:
+            self._ldap_mod("ipa-extdom-extop-conf.ldif", self.sub_dict)
+        except:
+            pass
+
     def __write_smb_registry(self):
         template = os.path.join(ipautil.SHARE_DIR, "smb.conf.template")
         conf = ipautil.template_file(template, self.sub_dict)
@@ -361,8 +367,9 @@ class ADTRUSTInstance(service.Service):
     def __start(self):
         try:
             self.start()
+            ipaservices.service('winbind').start()
         except:
-            root_logger.critical("smbd service failed to start")
+            root_logger.critical("CIFS services failed to start")
 
     def __stop(self):
         self.backup_state("running", self.is_running())
@@ -387,7 +394,12 @@ class ADTRUSTInstance(service.Service):
                              self.suffix)
         except (ldap.ALREADY_EXISTS, errors.DuplicateEntry), e:
             root_logger.info("ADTRUST Service startup entry already exists.")
-            pass
+
+        try:
+            self.ldap_enable('EXTID', self.fqdn, self.dm_password, \
+                             self.suffix)
+        except (ldap.ALREADY_EXISTS, errors.DuplicateEntry), e:
+            root_logger.info("EXTID Service startup entry already exists.")
 
     def __setup_sub_dict(self):
         self.sub_dict = dict(REALM = self.realm_name,
@@ -438,17 +450,18 @@ class ADTRUSTInstance(service.Service):
         self.step("adding admin(group) SIDs", self.__add_admin_sids)
         self.step("activating CLDAP plugin", self.__add_cldap_module)
         self.step("activating sidgen plugin and task", self.__add_sidgen_module)
+        self.step("activating extdom plugin", self.__add_extdom_module)
         self.step("configuring smbd to start on boot", self.__enable)
         if not self.no_msdcs:
             self.step("adding special DNS service records", \
                       self.__add_dns_service_records)
-        self.step("restarting Directory Server to take MS PAC and CLDAP changes into account", \
+        self.step("restarting Directory Server to take MS PAC and LDAP plugins changes into account", \
                   self.__restart_dirsrv)
         self.step("setting SELinux booleans", \
                   self.__configure_selinux_for_smbd)
-        self.step("starting smbd", self.__start)
+        self.step("starting CIFS services", self.__start)
 
-        self.start_creation("Configuring smbd:")
+        self.start_creation("Configuring CIFS:")
 
     def uninstall(self):
         if self.is_configured():

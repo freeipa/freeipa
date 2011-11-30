@@ -1,0 +1,16 @@
+dn: cn=ipa_extdom_extop,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: nsSlapdPlugin
+objectclass: extensibleObject
+cn: ipa_extdom_extop
+nsslapd-pluginpath: libipa_extdom_extop
+nsslapd-plugininitfunc: ipa_extdom_init
+nsslapd-plugintype: extendedop
+nsslapd-pluginenabled: on
+nsslapd-pluginid: ipa_extdom_extop
+nsslapd-pluginversion: 1.0
+nsslapd-pluginvendor: RedHat
+nsslapd-plugindescription: Support resolving IDs in trusted domains to names and back
+nsslapd-plugin-depends-on-type: database
+nsslapd-basedn: $SUFFIX
