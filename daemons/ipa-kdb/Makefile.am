@@ -17,7 +17,6 @@ INCLUDES =						\
 	$(AM_CFLAGS)					\
 	$(LDAP_CFLAGS)					\
 	$(KRB5_CFLAGS)					\
-	$(SSL_CFLAGS)					\
 	$(WARN_CFLAGS)					\
 	$(NDRPAC_CFLAGS)				\
 	$(NULL)
@@ -45,7 +44,6 @@ ipadb_la_LDFLAGS = 		\
 
 ipadb_la_LIBADD = 		\
 	$(KRB5_LIBS)		\
-	$(SSL_LIBS)		\
 	$(LDAP_LIBS)		\
 	$(NDRPAC_LIBS)		\
 	$(NULL)
