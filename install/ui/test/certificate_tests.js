@@ -24,38 +24,31 @@ test("Testing certificate_parse_dn().", function() {
 
     same(
         IPA.cert.parse_dn(), {},
-        "Checking IPA.cert.parse_dn()"
-    );
+        "Checking IPA.cert.parse_dn()");
 
     same(
         IPA.cert.parse_dn(''), {},
-        "Checking IPA.cert.parse_dn('')"
-    );
+        "Checking IPA.cert.parse_dn('')");
 
     same(
         IPA.cert.parse_dn('c=US'), {'c': 'US'},
-        "Checking IPA.cert.parse_dn('c=US')"
-    );
+        "Checking IPA.cert.parse_dn('c=US')");
 
     same(
         IPA.cert.parse_dn('st=TX,c=US'), {'st': 'TX','c': 'US'},
-        "Checking IPA.cert.parse_dn('st=TX,c=US')"
-    );
+        "Checking IPA.cert.parse_dn('st=TX,c=US')");
 
     same(
         IPA.cert.parse_dn('c=US,st=TX'), {'st': 'TX','c': 'US'},
-        "Checking IPA.cert.parse_dn('c=US,st=TX')"
-    );
+        "Checking IPA.cert.parse_dn('c=US,st=TX')");
 
     same(
         IPA.cert.parse_dn(' st = New Mexico , c = US '), {'st': 'New Mexico','c': 'US'},
-        "Checking IPA.cert.parse_dn(' st = New Mexico , c = US ')"
-    );
+        "Checking IPA.cert.parse_dn(' st = New Mexico , c = US ')");
 
     same(
         IPA.cert.parse_dn('ST=TX,C=US'), {'st': 'TX','c': 'US'},
-        "Checking IPA.cert.parse_dn('ST=TX,C=US')"
-    );
+        "Checking IPA.cert.parse_dn('ST=TX,C=US')");
 
     same(
         IPA.cert.parse_dn('cn=dev.example.com,ou=Engineering,o=Example,l=Austin,ST=TX,C=US'),
@@ -66,8 +59,7 @@ test("Testing certificate_parse_dn().", function() {
             'st': 'TX',
             'c': 'US'
         },
-        "Checking IPA.cert.parse_dn('cn=dev.example.com,ou=Engineering,o=Example,l=Austin,ST=TX,C=US')"
-    );
+        "Checking IPA.cert.parse_dn('cn=dev.example.com,ou=Engineering,o=Example,l=Austin,ST=TX,C=US')");
 
     same(
         IPA.cert.parse_dn('cn=John Smith,ou=Developers,ou=Users,dc=example,dc=com'),
@@ -76,6 +68,5 @@ test("Testing certificate_parse_dn().", function() {
             'ou': ['Developers','Users'],
             'dc': ['example', 'com']
         },
-        "Checking IPA.cert.parse_dn('cn=John Smith,ou=Developers,ou=Users,dc=example,dc=com')"
-    );
+        "Checking IPA.cert.parse_dn('cn=John Smith,ou=Developers,ou=Users,dc=example,dc=com')");
 });

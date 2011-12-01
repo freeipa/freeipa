@@ -149,13 +149,11 @@ test("Testing IPA.navigation.update() with valid index.", function() {
 
     same(
         tabs_container.tabs('option', 'selected'), 0,
-        "Active tab at level 1"
-    );
+        "Active tab at level 1");
 
     same(
         $('.tabs[name=identity]', tabs_container).tabs('option', 'selected'), 1,
-        "Active tab at level 2"
-    );
+        "Active tab at level 2");
 
     navigation.remove_state("identity");
 
@@ -201,13 +199,11 @@ test("Testing IPA.navigation.update() with out-of-range index.", function() {
 
     same(
         tabs_container.tabs('option', 'selected'), 0,
-        "Active tab at level 1"
-    );
+        "Active tab at level 1");
 
     same(
         $('.tabs[name=identity]', tabs_container).tabs('option', 'selected'), 0,
-        "Active tab at level 2"
-    );
+        "Active tab at level 2");
 
     navigation.remove_state("identity");
 

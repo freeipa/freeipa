@@ -51,18 +51,15 @@ test("Testing serial_associator().", function() {
 
                 equals(
                     command.entity, params.other_entity,
-                    'Checking IPA.command() parameter: entity'
-                );
+                    'Checking IPA.command() parameter: entity');
 
                 equals(
                     command.method, params.method,
-                    'Checking IPA.command() parameter: method'
-                );
+                    'Checking IPA.command() parameter: method');
 
                 equals(
                     command.args[0], 'user'+(i+1),
-                    'Checking IPA.command() parameter: primary key'
-                );
+                    'Checking IPA.command() parameter: primary key');
             }
 
             that.on_success({});
@@ -107,18 +104,15 @@ test("Testing bulk_associator().", function() {
 
             equals(
                 that.method, params.method,
-                'Checking IPA.command() parameter: method'
-            );
+                'Checking IPA.command() parameter: method');
 
             equals(
                 that.args[0], params.pkey,
-                'Checking IPA.command() parameter: primary key'
-            );
+                'Checking IPA.command() parameter: primary key');
 
             equals(
                 that.options[params.other_entity], 'user1,user2,user3',
-                'Checking IPA.command() parameter: options[\""+params.other_entity+"\"]'
-            );
+                'Checking IPA.command() parameter: options[\""+params.other_entity+"\"]');
 
             that.on_success({});
         };
