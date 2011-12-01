@@ -42,56 +42,46 @@ test("Testing IPA.get_entity_param().", function() {
     var metadata = IPA.get_entity_param("user", "uid");
     ok(
         metadata,
-        "IPA.get_entity_param(\"user\", \"uid\") not null"
-    );
+        "IPA.get_entity_param(\"user\", \"uid\") not null");
 
     equals(
         metadata["label"], "User login",
-        "IPA.get_entity_param(\"user\", \"uid\")[\"label\"]"
-    );
+        "IPA.get_entity_param(\"user\", \"uid\")[\"label\"]");
 
     equals(
         IPA.get_entity_param("user", "wrong_attribute"), null,
-        "IPA.get_entity_param(\"user\", \"wrong_attribute\")"
-    );
+        "IPA.get_entity_param(\"user\", \"wrong_attribute\")");
 
     equals(
         IPA.get_entity_param("user", null), null,
-        "IPA.get_entity_param(\"user\", null)"
-    );
+        "IPA.get_entity_param(\"user\", null)");
 
     equals(
         IPA.get_entity_param("wrong_entity", "uid"), null,
-        "IPA.get_entity_param(\"wrong_entity\", \"uid\")"
-    );
+        "IPA.get_entity_param(\"wrong_entity\", \"uid\")");
 
     equals(
         IPA.get_entity_param(null, "uid"), null,
-        "IPA.get_entity_param(null, \"uid\")"
-    );
+        "IPA.get_entity_param(null, \"uid\")");
 });
 
 test("Testing IPA.get_member_attribute().", function() {
 
     equals(
         IPA.get_member_attribute("user", "group"), "memberof",
-        "IPA.get_member_attribute(\"user\", \"group\")"
-    );
+        "IPA.get_member_attribute(\"user\", \"group\")");
 
     equals(
         IPA.get_member_attribute("user", "host"), null,
-        "IPA.get_member_attribute(\"user\", \"host\")"
-    );
+        "IPA.get_member_attribute(\"user\", \"host\")");
 
     equals(
         IPA.get_member_attribute("user", null), null,
-        "IPA.get_member_attribute(\"user\", null)"
-    );
+        "IPA.get_member_attribute(\"user\", null)");
 
     equals(
         IPA.get_member_attribute(null, "group"), null,
-        "IPA.get_member_attribute(null, \"group\")"
-    );
+        "IPA.get_member_attribute(null, \"group\")");
 });
 
 test("Testing successful IPA.command().", function() {
@@ -129,20 +119,17 @@ test("Testing successful IPA.command().", function() {
 
         equals(
             request.url, "data/"+object+"_"+method+".json",
-            "Checking request.url"
-        );
+            "Checking request.url");
 
         var data = JSON.parse(request.data);
 
         equals(
             data.method, object+'_'+method,
-            "Checking method"
-        );
+            "Checking method");
 
         same(
             data.params, [args, options],
-            "Checking parameters"
-        );
+            "Checking parameters");
 
         request.success(xhr, text_status, error_thrown);
     };
@@ -158,20 +145,17 @@ test("Testing successful IPA.command().", function() {
 
     equals(
         ajax_counter, 1,
-        "Checking ajax invocation counter"
-    );
+        "Checking ajax invocation counter");
 
     var dialog = $('#error_dialog');
 
     ok(
-        dialog.length == 0,
-        "The dialog box is not created."
-    );
+        dialog.length === 0,
+        "The dialog box is not created.");
 
     ok(
-        success_handler_counter == 1 && error_handler_counter == 0,
-        "Only the success handler is called."
-    );
+        success_handler_counter === 1 && error_handler_counter === 0,
+        "Only the success handler is called.");
 
     $.ajax = orig;
 });
@@ -209,22 +193,14 @@ test("Testing unsuccessful IPA.command().", function() {
     $.ajax = function(request) {
         ajax_counter++;
 
-        equals(
-            request.url, "data/"+object+"_"+method+".json",
-            "Checking request.url"
-        );
+        equals(request.url, "data/"+object+"_"+method+".json",
+               "Checking request.url");
 
         var data = JSON.parse(request.data);
 
-        equals(
-            data.method, object+'_'+method,
-            "Checking method"
-        );
+        equals(data.method, object+'_'+method, "Checking method");
 
-        same(
-            data.params, [args, options],
-            "Checking parameters"
-        );
+        same(data.params, [args, options], "Checking parameters");
 
         request.error(xhr, text_status, error_thrown);
     };
@@ -243,18 +219,15 @@ test("Testing unsuccessful IPA.command().", function() {
 
     equals(
         ajax_counter, 1,
-        "Checking ajax invocation counter"
-    );
+        "Checking ajax invocation counter");
 
     ok(
-        ui_dialog.length == 1 && dialog.dialog('isOpen'),
-        "The dialog box is created and open."
-    );
+        ui_dialog.length === 1 && dialog.dialog('isOpen'),
+        "The dialog box is created and open.");
 
     ok(
-        success_handler_counter == 0 && error_handler_counter == 0,
-        "Initially none of the handlers are called."
-    );
+        success_handler_counter === 0 && error_handler_counter === 0,
+        "Initially none of the handlers are called.");
 
     // search the retry button from the beginning
     var retry = $('button', ui_dialog).first();
@@ -262,13 +235,11 @@ test("Testing unsuccessful IPA.command().", function() {
 
     equals(
         ajax_counter, 2,
-        "Checking ajax invocation counter"
-    );
+        "Checking ajax invocation counter");
 
     ok(
-        success_handler_counter == 0 && error_handler_counter == 0,
-        "After 1st retry, none of the handlers are called."
-    );
+        success_handler_counter === 0 && error_handler_counter === 0,
+        "After 1st retry, none of the handlers are called.");
 
     // search the retry button from the beginning again because the dialog
     // has been recreated
@@ -276,15 +247,11 @@ test("Testing unsuccessful IPA.command().", function() {
     retry = $('button', ui_dialog).first();
     retry.trigger('click');
 
-    equals(
-        ajax_counter, 3,
-        "Checking ajax invocation counter"
-    );
+    equals(ajax_counter, 3,
+        "Checking ajax invocation counter");
 
-    ok(
-        success_handler_counter == 0 && error_handler_counter == 0,
-        "After 2nd retry, none of the handlers are called."
-    );
+    ok(success_handler_counter === 0 && error_handler_counter === 0,
+        "After 2nd retry, none of the handlers are called.");
 
     // search the cancel button from the beginning because the dialog has
     // been recreated
@@ -292,22 +259,16 @@ test("Testing unsuccessful IPA.command().", function() {
     var cancel = $('button', ui_dialog).first().next();
     cancel.trigger('click');
 
-    equals(
-        ajax_counter, 3,
-        "Checking ajax invocation counter"
-    );
+    equals(ajax_counter, 3,
+        "Checking ajax invocation counter");
 
     dialog = $('#error_dialog');
 
-    ok(
-        dialog.length == 0,
-        "After cancel, the dialog box is closed."
-    );
+    ok(dialog.length === 0,
+        "After cancel, the dialog box is closed.");
 
-    ok(
-        success_handler_counter == 0 && error_handler_counter == 1,
-        "Only the error handler is called."
-    );
+    ok(success_handler_counter === 0 && error_handler_counter === 1,
+        "Only the error handler is called.");
 
     $.ajax = orig;
 });
@@ -336,7 +297,7 @@ test("Testing observer.", function() {
         } else {
             ok(false, "Fail function 2 callback");
         }
-    }
+    };
 
     obj.event.attach(func);
     obj.event.notify([param1_value, param2_value], obj);

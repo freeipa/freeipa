@@ -55,16 +55,24 @@ module('details', {
 
 test("Testing IPA.details_section.create().", function() {
 
-    var section = IPA.details_table_section({
+    var facet = IPA.details_facet({
         entity: IPA.get_entity('user'),
-        name:'IDIDID', label:'NAMENAMENAME'}).
-        text({name:'cn'}).
-        text({name:'uid'}).
-        text({name:'mail'});
+        sections: [
+            {
+                name:'IDIDID',
+                label:'NAMENAMENAME',
+                fields: [
+                    'cn', 'uid', 'mail'
+                ]
+            }
+        ]
+    });
 
-    section.entity_name = 'user';
+    var section = facet.widgets.get_widget('IDIDID');
 
-    var fields = section.fields.get_fields();
+    ok(section !== null, 'Verifying section existence.');
+
+    var fields = section.widgets.get_widgets();
     var container = $("<div/>");
     section.create(container);
 
@@ -72,14 +80,12 @@ test("Testing IPA.details_section.create().", function() {
 
     same(
         table.length, 1,
-        'Verifying table'
-    );
+        'Verifying table');
 
     var rows = $('tr', table);
     same(
         rows.length, fields.length,
-        'Verifying table rows'
-    );
+        'Verifying table rows');
 
     for (var i=0; i<fields.length; i++) {
         var field = fields[i];
@@ -87,20 +93,17 @@ test("Testing IPA.details_section.create().", function() {
         var field_label = $('.field-label[name='+field.name+']', container);
         same(
             field_label.text(), field.label+':',
-            'Verifying label for field '+field.name
-        );
+            'Verifying label for field '+field.name);
 
         var field_container = $('.field[name='+field.name+']', container);
 
         ok(
             field_container.length,
-            'Verifying container for field '+field.name
-        );
+            'Verifying container for field '+field.name);
 
         ok(
             field_container.hasClass('widget'),
-            'Verifying field '+field.name+' was created'
-        );
+            'Verifying field '+field.name+' was created');
     }
 });
 
@@ -141,20 +144,32 @@ test("Testing details lifecycle: create, load.", function(){
         load_called = true;
     }
 
-    function test_widget(spec){
-        var widget = IPA.input_widget(spec);
+    function test_field(spec) {
+        var that = IPA.field(spec);
 
-        widget.load = function(record) {
+        that.load = function(record) {
             load_called = true;
-            widget.widget_load(record);
+            that.field_load(record);
         };
 
-        widget.save = function() {
-            save_called = true;
-            return widget.widget_save();
-        };
-        return widget;
+        return that;
     }
+
+    function test_widget(spec) {
+        var that = IPA.input_widget(spec);
+
+        that.widget_save = that.save;
+
+        that.save = function() {
+            save_called = true;
+            return that.widget_save();
+        };
+
+        return that;
+    }
+
+    IPA.field_factories['test'] = test_field;
+    IPA.widget_factories['test'] = test_widget;
 
     IPA.register('user', function(spec) {
 
@@ -175,27 +190,27 @@ test("Testing details lifecycle: create, load.", function(){
                         label: 'contact',
                         fields: [
                             {
-                                factory: test_widget,
+                                type: 'test',
                                 name:'test'
                             },
                             {
-                                factory: IPA.multivalued_text_widget,
+                                type: 'multivalued',
                                 name:'mail'
                             },
                             {
-                                factory: IPA.multivalued_text_widget,
+                                type: 'multivalued',
                                 name:'telephonenumber'
                             },
                             {
-                                factory: IPA.multivalued_text_widget,
+                                type: 'multivalued',
                                 name:'pager'
                             },
                             {
-                                factory: IPA.multivalued_text_widget,
+                                type: 'multivalued',
                                 name:'mobile'
                             },
                             {
-                                factory: IPA.multivalued_text_widget,
+                                type: 'multivalued',
                                 name:'facsimiletelephonenumber'
                             }
                         ]
@@ -232,35 +247,30 @@ test("Testing details lifecycle: create, load.", function(){
 
     ok(
         contact.length,
-        'Verifying section for contact is created'
-    );
+        'Verifying section for contact is created');
 
     var identity = $('.details-section[name=identity]', facet_container);
 
     ok(
         identity.length,
-        'Verifying section for identity is created'
-    );
+        'Verifying section for identity is created');
 
     var rows = $('tr', identity);
 
     same(
         rows.length, 6,
-        'Verifying rows for identity'
-    );
+        'Verifying rows for identity');
 
     facet_container.attr('id','user');
 
     ok (load_called, 'load manager called');
 
-    var section = facet.sections.get('contact');
-    var field = section.fields.get('test');
+    var field = facet.fields.get_field('test');
     field.set_dirty(true);
 
     facet.update(
-        function(){update_success_called = true},
-        function(){update_failure_called = true}
-    );
+        function(){update_success_called = true;},
+        function(){update_failure_called = true;});
 
     ok (update_success_called,'update success called');
     ok (!update_failure_called,'update failure not called');
@@ -269,14 +279,36 @@ test("Testing details lifecycle: create, load.", function(){
 });
 
 
-test("Testing IPA.details_section_create again()",function(){
+test("Testing IPA.details_section_create again()",function() {
 
-    var section = IPA.details_table_section({
-        name: 'IDIDID', label: 'NAMENAMENAME',entity: IPA.get_entity('user')}).
-        text({name:'cn', label:'Entity Name'}).
-        text({name:'description', label:'Description'}).
-        text({name:'number', label:'Entity ID'});
-    var fields = section.fields.get_fields();
+    var facet = IPA.details_facet({
+        entity: IPA.get_entity('user'),
+        sections: [
+            {
+                name:'IDIDID',
+                label:'NAMENAMENAME',
+                fields: [
+                    {
+                        name: 'cn',
+                        label: 'Entity Name'
+                    },
+                    {
+                        name: 'description',
+                        label: 'Description'
+                    },
+                    {
+                        name: 'number',
+                        label: 'Entity ID'
+                    }
+                ]
+            }
+        ]
+    });
+
+    var section = facet.widgets.get_widget('IDIDID');
+    ok(section !== null, 'Verifying section existence.');
+    var fields = section.widgets.get_widgets();
+
     var container = $("<div title='entity'/>");
     var details = $("<div/>");
     container.append(details);
@@ -284,20 +316,18 @@ test("Testing IPA.details_section_create again()",function(){
     var result = {};
 
     section.create(container);
-    section.load(result);
+    facet.load(result);
 
     var table = $('table', container);
 
     same(
         table.length, 1,
-        'Verifying table'
-    );
+        'Verifying table');
 
     var rows = $('tr', table);
     same(
         rows.length, fields.length,
-        'Verifying table rows'
-    );
+        'Verifying table rows');
 
     for (var i=0; i<fields.length; i++) {
         var field = fields[i];
@@ -305,19 +335,16 @@ test("Testing IPA.details_section_create again()",function(){
         var field_label = $('.field-label[name='+field.name+']', container);
         same(
             field_label.text(), field.label+':',
-            'Verifying label for field '+field.name
-        );
+            'Verifying label for field '+field.name);
 
         var field_container = $('.field[name='+field.name+']', container);
 
         ok(
             field_container.length,
-            'Verifying container for field '+field.name
-        );
+            'Verifying container for field '+field.name);
 
         ok(
             field_container.hasClass('widget'),
-            'Verifying field '+field.name+' was created'
-        );
+            'Verifying field '+field.name+' was created');
     }
 });

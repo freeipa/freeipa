@@ -88,18 +88,15 @@ test('Testing IPA.entity_set_search_definition().', function() {
     var column = facet.get_columns()[0];
     ok(
         column,
-        'column is not null'
-    );
+        'column is not null');
 
     equals(
         column.name, 'uid',
-        'column.name'
-    );
+        'column.name');
 
     equals(
         column.label, 'User login',
-        'column.label'
-    );
+        'column.label');
 
 });
 
