@@ -184,11 +184,6 @@ class config_mod(LDAPUpdate):
     __doc__ = _('Modify configuration options.')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        if 'ipamigrationenabled' in entry_attrs:
-            if entry_attrs['ipamigrationenabled']:
-                entry_attrs['ipamigrationenabled'] = 'TRUE'
-            else:
-                entry_attrs['ipamigrationenabled'] = 'FALSE'
         if 'ipadefaultprimarygroup' in entry_attrs:
             group=entry_attrs['ipadefaultprimarygroup']
             try:
