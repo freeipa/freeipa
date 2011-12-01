@@ -12,6 +12,7 @@ app_DATA =				\
 	add.js				\
 	association.js			\
 	automount.js			\
+	browser.js			\
 	certificate.js 			\
 	details.js 			\
 	dialog.js 			\
