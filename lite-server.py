@@ -80,6 +80,7 @@ class WebUIApp(object):
         f = None
         try:
             f = open(requested_file, 'r')
+            api.log.info('Request file %s' % requested_file)
             start_response('200 OK', [('Content-Type', mime_type)])
             return [f.read()]
         except IOError:
@@ -88,6 +89,7 @@ class WebUIApp(object):
         finally:
             if f is not None:
                 f.close()
+            api.log.info('Request done')
 
 
 if __name__ == '__main__':
