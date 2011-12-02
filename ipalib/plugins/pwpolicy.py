@@ -455,6 +455,18 @@ api.register(pwpolicy_show)
 class pwpolicy_find(LDAPSearch):
     __doc__ = _('Search for group password policies.')
 
+    def sort_priority(self,x,y):
+        # global policy will be always last in the output
+        if x[1]['cn'][0] == global_policy_name:
+            return 1
+        elif y[1]['cn'][0] == global_policy_name:
+            return -1
+        else:
+            # policies with higher priority will be at the beginning of the list
+            return cmp(int(x[1]['cospriority'][0]), int(y[1]['cospriority'][0]))
+
+    entries_sortfn = sort_priority
+
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if options.get('pkey_only', False):
             return False
