@@ -1548,6 +1548,10 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
     member_param_incl_doc = _('Search for %s with these %s %s.')
     member_param_excl_doc = _('Search for %s without these %s %s.')
 
+    # pointer to function for entries sorting
+    # if no function is assigned the entries are sorted by their primary key value
+    entries_sortfn = None
+
     takes_options = (
         Int('timelimit?',
             label=_('Time Limit'),
@@ -1726,9 +1730,12 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
             else:
                 callback(self, ldap, entries, truncated, *args, **options)
 
-        if self.obj.primary_key:
-            sortfn=lambda x,y: cmp(x[1][self.obj.primary_key.name][0].lower(), y[1][self.obj.primary_key.name][0].lower())
-            entries.sort(sortfn)
+        if not self.entries_sortfn:
+            if self.obj.primary_key:
+                sortfn=lambda x,y: cmp(x[1][self.obj.primary_key.name][0].lower(), y[1][self.obj.primary_key.name][0].lower())
+                entries.sort(sortfn)
+        else:
+            entries.sort(self.entries_sortfn)
 
         if not options.get('raw', False):
             for e in entries:
