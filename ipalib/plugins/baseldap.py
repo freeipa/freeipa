@@ -105,6 +105,12 @@ global_output_params = (
     Str('member_sudocmd?',
         label='Member Sudo commands',
     ),
+    Str('memberof_sudorule?',
+        label='Member of Sudo rule',
+    ),
+    Str('memberof_hbacrule?',
+        label='Member of HBAC rule',
+    ),
     Str('memberindirect_user?',
         label=_('Indirect Member users'),
     ),
@@ -143,6 +149,12 @@ global_output_params = (
     ),
     Str('memberofindirect_role?',
         label='Indirect Member of role',
+    ),
+    Str('memberofindirect_sudorule?',
+        label='Indirect Member of Sudo rule',
+    ),
+    Str('memberofindirect_hbacrule?',
+        label='Indirect Member of HBAC rule',
     ),
     Str('externalhost?',
         label=_('External host'),
@@ -688,12 +700,12 @@ last, after all sets and adds."""),
 
     def process_attr_options(self, entry_attrs, dn, keys, options):
         """
-        Process all --setattr, --addattr, and --delattr options and add the 
+        Process all --setattr, --addattr, and --delattr options and add the
         resulting value to the list of attributes. --setattr is processed first,
         then --addattr and finally --delattr.
 
-        When --setattr is not used then the original LDAP object is looked up 
-        (of course, not when dn is None) and the changes are applied to old 
+        When --setattr is not used then the original LDAP object is looked up
+        (of course, not when dn is None) and the changes are applied to old
         object values.
 
         Attribute values deleted by --delattr may be deleted from attribute
@@ -702,7 +714,7 @@ last, after all sets and adds."""),
 
         --addattr=attribute=foo --delattr=attribute=foo
 
-        AttrValueNotFound exception may be raised when an attribute value was 
+        AttrValueNotFound exception may be raised when an attribute value was
         not found either by --setattr and --addattr nor in existing LDAP object.
 
         :param entry_attrs: A list of attributes that will be updated
