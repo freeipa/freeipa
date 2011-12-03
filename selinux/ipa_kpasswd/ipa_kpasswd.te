@@ -64,6 +64,7 @@ corenet_tcp_bind_all_nodes(ipa_kpasswd_t)
 corenet_udp_bind_all_nodes(ipa_kpasswd_t)
 corenet_tcp_bind_kerberos_admin_port(ipa_kpasswd_t)
 corenet_udp_bind_kerberos_admin_port(ipa_kpasswd_t)
+corenet_tcp_connect_ldap_port(ipa_kpasswd_t)
 require {
 	type krb5kdc_conf_t; 
 };
@@ -78,3 +79,8 @@ optional_policy(`
     corenet_udp_bind_kerberos_password_port(ipa_kpasswd_t)
 ')
 
+require {
+    type urandom_device_t;
+}
+
+allow ipa_kpasswd_t urandom_device_t:chr_file { open read getattr };
