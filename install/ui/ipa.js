@@ -734,8 +734,8 @@ IPA.concurrent_command = function(spec) {
 
         for(var i=0; i < that.commands.length; i++) {
             var command_info = that.commands[i];
-            all_completed &= command_info.completed;
-            all_success &= command_info.success;
+            all_completed = all_completed &&  command_info.completed;
+            all_success = all_success && command_info.success;
         }
 
         if(all_completed) {

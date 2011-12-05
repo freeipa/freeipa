@@ -99,7 +99,7 @@ IPA.dialog = function(spec) {
         var fields = that.fields.get_fields();
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
-            valid &= field.validate() && field.validate_required();
+            valid = field.validate() && field.validate_required() && valid;
         }
         return valid;
     };

@@ -515,7 +515,7 @@ IPA.multivalued_text_widget = function(spec) {
         var dirty = false;
 
         for(var i=0; i < that.rows.length; i++) {
-            dirty |= that.test_dirty_row(that.rows[i]);
+            dirty = dirty || that.test_dirty_row(that.rows[i]);
         }
 
         return dirty;

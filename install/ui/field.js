@@ -301,8 +301,8 @@ IPA.field = function(spec) {
         if (!value) empty = true;
 
         if (value instanceof Array) {
-            empty |= (value.length === 0) ||
-                     (value.length === 1) && (value[0] === '');
+            empty = empty || value.length === 0 ||
+                    (value.length === 1) && (value[0] === '');
         }
 
         if (value === '') empty = true;
@@ -480,7 +480,7 @@ IPA.multivalued_field = function(spec) {
 
     that.test_dirty = function() {
         var dirty = that.field_test_dirty();
-        dirty |= that.widget.test_dirty(); //also checks order
+        dirty = dirty || that.widget.test_dirty(); //also checks order
         return dirty;
     };
 
