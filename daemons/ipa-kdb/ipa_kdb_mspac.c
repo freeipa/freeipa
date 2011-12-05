@@ -692,18 +692,11 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
             goto done;
         }
     }
-#if 0
-    if (pac == NULL && client != NULL) {
 
-        code = ks_get_pac(context, client, &pac);
-        if (code != 0) {
-            goto done;
-        }
-    }
-#endif
     if (pac == NULL) {
-        kerr = KRB5_PLUGIN_OP_NOTSUPP;
-/*        kerr = KRB5_KDB_DBTYPE_NOSUP; */
+        /* No PAC to deal with, proceed */
+        *signed_auth_data = NULL;
+        kerr = 0;
         goto done;
     }
 
