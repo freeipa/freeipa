@@ -145,6 +145,27 @@ def nickname_exists(nickname):
         else:
             return False
 
+# Checks whether nss_ldap or nss-pam-ldapd is installed. If anyone of mandatory files was found returns True and list of all files found.
+def nssldap_exists():
+    files_to_check = [{'function':'configure_ldap_conf', 'mandatory':['/etc/ldap.conf','/etc/nss_ldap.conf','/etc/libnss-ldap.conf'], 'optional':['/etc/pam_ldap.conf']},
+                      {'function':'configure_nslcd_conf', 'mandatory':['/etc/nslcd.conf']}]
+    files_found = {}
+    retval = False
+
+    for function in files_to_check:
+        files_found[function['function']]=[]
+        for file_type in ['mandatory','optional']:
+            try:
+                for filename in function[file_type]:
+                    if file_exists(filename):
+                        files_found[function['function']].append(filename)
+                        if file_type == 'mandatory':
+                            retval = True
+            except KeyError:
+                pass
+
+    return (retval, files_found)
+
 def emit_quiet(quiet, message):
     if not quiet:
         print message
@@ -412,7 +433,7 @@ def configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server):
 
     return 0
 
-def configure_ldap_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options):
+def configure_ldap_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options, files):
     ldapconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
     ldapconf.setOptionAssignment(" ")
 
@@ -443,24 +464,22 @@ def configure_ldap_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
     opts.append({'name':'empty', 'type':'empty'})
 
     ret = (0, None, None)
-    files = []
+
     # Depending on the release and distribution this may exist in any
     # number of different file names, update what we find
-    for filename in ['/etc/ldap.conf', '/etc/nss_ldap.conf', '/etc/libnss-ldap.conf', '/etc/pam_ldap.conf']:
-        if file_exists(filename):
-            try:
-                fstore.backup_file(filename)
-                ldapconf.newConf(filename, opts)
-                files.append(filename)
-            except Exception, e:
-                print "Creation of %s: %s" % (filename, str(e))
-                return (1, 'LDAP', filename)
+    for filename in files:
+        try:
+            fstore.backup_file(filename)
+            ldapconf.newConf(filename, opts)
+        except Exception, e:
+            print "Creation of %s: %s" % (filename, str(e))
+            return (1, 'LDAP', filename)
 
     if files:
         return (0, 'LDAP', ', '.join(files))
     return ret
 
-def configure_nslcd_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options):
+def configure_nslcd_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options, files):
     nslcdconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
     nslcdconf.setOptionAssignment(" ")
 
@@ -484,12 +503,12 @@ def configure_nslcd_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, 
 
     opts.append({'name':'empty', 'type':'empty'})
 
-    if file_exists('/etc/nslcd.conf'):
+    for filename in files:
         try:
-            fstore.backup_file('/etc/nslcd.conf')
-            nslcdconf.newConf('/etc/nslcd.conf', opts)
+            fstore.backup_file(filename)
+            nslcdconf.newConf(filename, opts)
         except Exception, e:
-            print "Creation of %s: %s" % ('/etc/nslcd.conf', str(e))
+            print "Creation of %s: %s" % (filename, str(e))
             return (1, None, None)
 
     nslcd = ipaservices.knownservices.nslcd
@@ -508,7 +527,7 @@ def configure_nslcd_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, 
         root_logger.debug("%s daemon is not installed, skip configuration" % (nslcd.service_name))
         return (0, None, None)
 
-    return (0, 'NSLCD', '/etc/nslcd.conf')
+    return (0, 'NSLCD', ', '.join(files))
 
 def hardcode_ldap_server(cli_server):
     """
@@ -854,6 +873,13 @@ def install(options, env, fstore, statestore):
         print 'Invalid hostname \'%s\', must be lower-case.' % hostname
         return CLIENT_INSTALL_ERROR
 
+    # when installing with '--no-sssd' option, check whether nss-ldap is installed
+    if not options.sssd:
+        (nssldap_installed, nosssd_files) = nssldap_exists()
+        if not nssldap_installed:
+            print "One of these packages must be installed: nss_ldap or nss-pam-ldapd"
+            return CLIENT_INSTALL_ERROR
+
     # Create the discovery instance
     ds = ipadiscovery.IPADiscovery()
 
@@ -1187,7 +1213,7 @@ def install(options, env, fstore, statestore):
     # change its configuration otherways
     if not options.sssd:
         for configurer in [configure_ldap_conf, configure_nslcd_conf]:
-            (retcode, conf, filename) = configurer(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options)
+            (retcode, conf, filename) = configurer(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options, nosssd_files[configurer.__name__])
             if retcode:
                 return CLIENT_INSTALL_ERROR
             if conf:
