@@ -40,7 +40,10 @@ IPA.hbac.rule_entity = function(spec) {
             search_all: true,
             columns: [
                 'cn',
-                'ipaenabledflag',
+                {
+                    name: 'ipaenabledflag',
+                    format: IPA.boolean_format
+                },
                 'description'
             ]
         }).
