@@ -39,7 +39,8 @@ IPA.host.entity = function(spec) {
                 'description',
                 {
                     name: 'has_keytab',
-                    label: IPA.messages.objects.host.enrolled
+                    label: IPA.messages.objects.host.enrolled,
+                    format: IPA.boolean_format
                 }
             ]
         }).

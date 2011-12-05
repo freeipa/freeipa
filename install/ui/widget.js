@@ -902,6 +902,27 @@ IPA.textarea_widget = function (spec) {
     return that;
 };
 
+IPA.boolean_format = function(value) {
+
+    if (value === undefined || value === null) return '';
+
+    if (value instanceof Array) {
+        value = value[0];
+    }
+
+    var normalized_value = typeof value === 'string' ? value.toLowerCase() : '';
+
+    if (value === false || normalized_value === 'false') {
+        return IPA.messages['false'];
+    }
+
+    if (value === true || normalized_value === 'true') {
+        return IPA.messages['true'];
+    }
+
+    return value;
+};
+
 /*
   The entity name must be set in the spec either directly or via entity.name
 */

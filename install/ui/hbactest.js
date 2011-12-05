@@ -61,7 +61,8 @@ IPA.hbac.test_entity = function(spec) {
                 'description',
                 {
                     name: 'has_keytab',
-                    label: IPA.messages.objects.host.enrolled
+                    label: IPA.messages.objects.host.enrolled,
+                    format: IPA.boolean_format
                 }
             ]
         }).
@@ -89,7 +90,8 @@ IPA.hbac.test_entity = function(spec) {
                 'description',
                 {
                     name: 'has_keytab',
-                    label: IPA.messages.objects.host.enrolled
+                    label: IPA.messages.objects.host.enrolled,
+                    format: IPA.boolean_format
                 }
             ]
         }).
@@ -102,7 +104,10 @@ IPA.hbac.test_entity = function(spec) {
             facet_group: 'default',
             columns: [
                 'cn',
-                'ipaenabledflag',
+                {
+                    name: 'ipaenabledflag',
+                    format: IPA.boolean_format
+                },
                 'description'
             ]
         }).
@@ -118,9 +123,13 @@ IPA.hbac.test_entity = function(spec) {
                 'cn',
                 {
                     name: 'matched',
-                    label: IPA.messages.objects.hbactest.matched
+                    label: IPA.messages.objects.hbactest.matched,
+                    format: IPA.boolean_format
                 },
-                'ipaenabledflag',
+                {
+                    name: 'ipaenabledflag',
+                    format: IPA.boolean_format
+                },
                 'description'
             ]
         });

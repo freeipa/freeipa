@@ -38,7 +38,10 @@ IPA.sudo.rule_entity = function(spec) {
         that.builder.search_facet({
             columns: [
                 'cn',
-                'ipaenabledflag',
+                {
+                    name: 'ipaenabledflag',
+                    format: IPA.boolean_format
+                },
                 'description'
             ]
         }).
