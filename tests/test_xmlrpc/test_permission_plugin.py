@@ -290,7 +290,7 @@ class test_permission(Declarative):
         dict(
             desc='Update %r' % permission1,
             command=(
-                'permission_mod', [permission1], dict(permissions=u'read')
+                'permission_mod', [permission1], dict(permissions=u'read', memberof=u'ipausers')
             ),
             expected=dict(
                 value=permission1,
@@ -301,6 +301,7 @@ class test_permission(Declarative):
                     member_privilege=[privilege1],
                     type=u'user',
                     permissions=[u'read'],
+                    memberof=u'ipausers',
                 ),
             ),
         ),
@@ -318,6 +319,7 @@ class test_permission(Declarative):
                     'member_privilege': [privilege1],
                     'type': u'user',
                     'permissions': [u'read'],
+                    'memberof': u'ipausers',
                 },
             ),
         ),
@@ -347,6 +349,7 @@ class test_permission(Declarative):
                     'member_privilege': [privilege1],
                     'type': u'user',
                     'permissions': [u'read'],
+                    'memberof': u'ipausers',
                 },
             ),
         ),
@@ -368,6 +371,7 @@ class test_permission(Declarative):
                     'member_privilege': [privilege1],
                     'type': u'user',
                     'permissions': [u'all'],
+                    'memberof': u'ipausers',
                 },
             ),
         ),
@@ -437,5 +441,61 @@ class test_permission(Declarative):
                 summary=u'Deleted privilege "%s"' % privilege1,
             )
         ),
+
+
+        dict(
+            desc='Create memberof permission %r' % permission1,
+            command=(
+                'permission_add', [permission1], dict(
+                     memberof=u'editors',
+                     permissions=u'write',
+                )
+            ),
+            expected=dict(
+                value=permission1,
+                summary=u'Added permission "%s"' % permission1,
+                result=dict(
+                    dn=lambda x: DN(x) == permission1_dn,
+                    cn=[permission1],
+                    objectclass=objectclasses.permission,
+                    memberof=u'editors',
+                    permissions=[u'write'],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Delete %r' % permission1,
+            command=('permission_del', [permission1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                value=permission1,
+                summary=u'Deleted permission "%s"' % permission1,
+            )
+        ),
+
+
+        dict(
+            desc='Create targetgroup permission %r' % permission1,
+            command=(
+                'permission_add', [permission1], dict(
+                     targetgroup=u'editors',
+                     permissions=u'write',
+                )
+            ),
+            expected=dict(
+                value=permission1,
+                summary=u'Added permission "%s"' % permission1,
+                result=dict(
+                    dn=lambda x: DN(x) == permission1_dn,
+                    cn=[permission1],
+                    objectclass=objectclasses.permission,
+                    targetgroup=u'editors',
+                    permissions=[u'write'],
+                ),
+            ),
+        ),
+
 
     ]
