@@ -98,7 +98,7 @@ class permission(LDAPObject):
         'memberindirect', 'ipapermissiontype',
     ]
     aci_attributes = ['group', 'permissions', 'attrs', 'type',
-        'filter', 'subtree', 'targetgroup',
+        'filter', 'subtree', 'targetgroup', 'memberof',
     ]
     attribute_members = {
         'member': ['privilege'],
@@ -338,7 +338,7 @@ class permission_mod(LDAPUpdate):
 
         result = self.api.Command.permission_show(cn, **options)['result']
         for r in result:
-            if not r.startswith('member'):
+            if not r.startswith('member_'):
                 entry_attrs[r] = result[r]
         return dn
 

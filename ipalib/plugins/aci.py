@@ -122,6 +122,7 @@ from ipalib import api, crud, errors
 from ipalib import Object, Command
 from ipalib import Flag, Int, Str, StrEnum
 from ipalib.aci import ACI
+from ipalib.dn import DN
 from ipalib import output
 from ipalib import _, ngettext
 if api.env.in_server and api.env.context in ['lite', 'server']:
@@ -312,8 +313,10 @@ def _aci_to_kw(ldap, a, test=False):
         kw['attrs'] = tuple(kw['attrs'])
     if 'targetfilter' in a.target:
         target = a.target['targetfilter']['expression']
-        if target.startswith('(memberOf') or target.startswith('memberOf'):
-            kw['memberof'] = unicode(target)
+        if target.startswith('(memberOf=') or target.startswith('memberOf='):
+            (junk, memberof) = target.split('memberOf=', 1)
+            memberof = DN(memberof)
+            kw['memberof'] = memberof['cn']
         else:
             kw['filter'] = unicode(target)
     if 'target' in a.target:
@@ -332,8 +335,8 @@ def _aci_to_kw(ldap, a, test=False):
                 # targetgroup attr, otherwise we consider it a subtree
                 if api.env.container_group in target:
                     targetdn = unicode(target.replace('ldap:///',''))
-                    (dn, entry_attrs) = ldap.get_entry(targetdn, ['cn'])
-                    kw['targetgroup'] = entry_attrs['cn'][0]
+                    target = DN(targetdn)
+                    kw['targetgroup'] = target['cn']
                 else:
                     kw['subtree'] = unicode(target)
 
