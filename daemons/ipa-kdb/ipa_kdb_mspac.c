@@ -554,10 +554,27 @@ done:
     return kerr;
 }
 
+static bool is_cross_realm_krbtgt(krb5_const_principal princ)
+{
+    if ((princ->length != 2) ||
+        (princ->data[0].length != 6) ||
+        (strncasecmp(princ->data[0].data, "krbtgt", 6) != 0)) {
+        return false;
+    }
+    if (princ->data[1].length == princ->realm.length &&
+        strncasecmp(princ->data[1].data,
+                    princ->realm.data, princ->realm.length) == 0) {
+        return false;
+    }
+
+    return true;
+}
+
 static krb5_error_code ipadb_verify_pac(krb5_context context,
                                         unsigned int flags,
                                         krb5_const_principal client_princ,
-                                        krb5_db_entry *client,
+                                        krb5_db_entry *server,
+                                        krb5_db_entry *krbtgt,
                                         krb5_keyblock *server_key,
                                         krb5_keyblock *krbtgt_key,
                                         krb5_timestamp authtime,
@@ -565,6 +582,8 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
                                         krb5_pac *pac)
 {
     krb5_authdata **authdata = NULL;
+    krb5_keyblock *srv_key = NULL;
+    krb5_keyblock *priv_key = NULL;
     krb5_error_code kerr;
     krb5_ui_4 *buffer_types = NULL;
     size_t num_buffers;
@@ -598,8 +617,30 @@ static krb5_error_code ipadb_verify_pac(krb5_context context,
         goto done;
     }
 
+    /* for cross realm trusts cases we need to check the right checksum.
+     * when the PAC is signed by our realm, we can always just check it
+     * passing our realm krbtgt key as the kdc checksum key (privsvr).
+     * But when a trusted realm passes us a PAC the kdc checksum is
+     * generated with that realm krbtgt key, so we need to use the cross
+     * realm krbtgt to check the 'server' checksum instead. */
+    if (is_cross_realm_krbtgt(krbtgt->princ)) {
+        /* krbtgt from a trusted realm */
+
+        /* FIXME:
+         * We must refuse a PAC that comes signed with a cross realm TGT
+         * where the client pretends to be from our realm. It is an attempt
+         * at getting us to sign fake credentials with the help of a
+         * compromised trusted realm */
+
+        /* TODO: Here is where we need to plug our PAC Filtering, later on */
+        srv_key = krbtgt_key;
+    } else {
+        /* krbtgt from our own realm */
+        priv_key = krbtgt_key;
+    }
+
     kerr = krb5_pac_verify(context, old_pac, authtime,
-                            client_princ, krbtgt_key, NULL);
+                            client_princ, srv_key, priv_key);
     if (kerr) {
         goto done;
     }
@@ -684,9 +725,8 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     }
 
     if (!is_as_req) {
-        kerr = ipadb_verify_pac(context, flags,
-                                ks_client_princ, client,
-                                server_key, krbtgt_key,
+        kerr = ipadb_verify_pac(context, flags, ks_client_princ,
+                                server, krbtgt, server_key, krbtgt_key,
                                 authtime, tgt_auth_data, &pac);
         if (kerr != 0) {
             goto done;
