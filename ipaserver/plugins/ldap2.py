@@ -450,6 +450,15 @@ class ldap2(CrudBackend, Encoder):
             conn = _ldap.initialize(self.ldap_uri)
             if self.ldap_uri.startswith('ldapi://') and ccache:
                 conn.set_option(_ldap.OPT_HOST_NAME, api.env.host)
+            minssf = conn.get_option(_ldap.OPT_X_SASL_SSF_MIN)
+            maxssf = conn.get_option(_ldap.OPT_X_SASL_SSF_MAX)
+            # Always connect with at least an SSF of 56, confidentiality
+            # This also protects us from a broken ldap.conf
+            if minssf < 56:
+                minssf = 56
+                conn.set_option(_ldap.OPT_X_SASL_SSF_MIN, minssf)
+                if maxssf < minssf:
+                    conn.set_option(_ldap.OPT_X_SASL_SSF_MAX, minssf)
             if ccache is not None:
                 os.environ['KRB5CCNAME'] = ccache
                 conn.sasl_interactive_bind_s('', SASL_AUTH)
