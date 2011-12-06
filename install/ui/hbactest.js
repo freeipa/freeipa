@@ -154,7 +154,7 @@ IPA.hbac.test_facet = function(spec) {
     that.create_buttons = function(container) {
 
         var buttons = $('<div/>', {
-            style: 'float: right'
+            'class': 'hbac-test-navigation-buttons'
         }).appendTo(container);
 
         var facet_group = that.entity.get_facet_group('default');
@@ -233,7 +233,7 @@ IPA.hbac.test_facet = function(spec) {
     };
 
     that.get_search_command_name = function() {
-        return that.managed_entity.name + '_find' + (that.pagination ? "_pkeys" : "");
+        return that.managed_entity.name + '_find' + (that.pagination ? '_pkeys' : '');
     };
 
     that.refresh = function() {
@@ -287,9 +287,14 @@ IPA.hbac.test_select_facet = function(spec) {
 
     that.create_content = function(container) {
 
-        var header = $('<h3/>', {
-            text: that.label
+        var header = $('<div/>', {
+            'class': 'hbac-test-header'
         }).appendTo(container);
+
+        var title = $('<span/>', {
+            text: that.label,
+            'class': 'hbac-test-title'
+        }).appendTo(header);
 
         var filter_container = $('<div/>', {
             'class': 'search-filter'
@@ -318,16 +323,20 @@ IPA.hbac.test_select_facet = function(spec) {
 
         header.append(IPA.create_network_spinner());
 
-        var div = $('<div/>', {
-            style: 'position: relative; height: 200px'
+        var content = $('<div/>', {
+            'class': 'hbac-test-content'
         }).appendTo(container);
 
-        that.table.create(div);
-
-        container.append('<br/>');
+        that.table.create(content);
 
         var id = that.entity.name+'-'+that.name+'-external';
         var pkey_name = that.managed_entity.metadata.primary_key;
+
+        var tr = $('<tr/>').appendTo(that.table.tfoot);
+
+        var td = $('<td/>', {
+            name: 'external'
+        }).appendTo(tr);
 
         that.external_radio = $('<input/>', {
             id: id,
@@ -337,25 +346,27 @@ IPA.hbac.test_select_facet = function(spec) {
             click: function() {
                 that.selected_values = [ that.external_radio.val() ];
             }
-        }).appendTo(container);
+        }).appendTo(td);
 
         $('<label/>', {
             text: 'Specify external '+that.managed_entity.metadata.label_singular+':',
             'for': id
-        }).appendTo(container);
+        }).appendTo(td);
 
-        container.append(' ');
+        td.append(' ');
 
         that.external_text = $('<input/>', {
             name: 'external',
             focus: function() {
                 that.external_radio.click();
             }
+        }).appendTo(td);
+
+        var footer = $('<div/>', {
+            'class': 'hbac-test-footer'
         }).appendTo(container);
 
-        container.append('<br/>');
-
-        that.create_buttons(container);
+        that.create_buttons(footer);
     };
 
     that.get_selected_values = function() {
@@ -401,12 +412,13 @@ IPA.hbac.test_rules_facet = function(spec) {
 
     that.create_content = function(container) {
 
-        var header = $('<p/>', {
+        var header = $('<div/>', {
+            'class': 'hbac-test-header'
         }).appendTo(container);
 
-        $('<h3/>', {
+        var title = $('<span/>', {
             text: that.label,
-            style: 'display: inline-block'
+            'class': 'hbac-test-title'
         }).appendTo(header);
 
         header.append(' ');
@@ -433,15 +445,17 @@ IPA.hbac.test_rules_facet = function(spec) {
             text: 'Include disabled'
         }).appendTo(header);
 
-        var div = $('<div/>', {
-            style: 'position: relative; height: 200px'
+        var content = $('<div/>', {
+            'class': 'hbac-test-content'
         }).appendTo(container);
 
-        that.table.create(div);
+        that.table.create(content);
 
-        container.append('<br/>');
+        var footer = $('<div/>', {
+            'class': 'hbac-test-footer'
+        }).appendTo(container);
 
-        that.create_buttons(container);
+        that.create_buttons(footer);
     };
 
     that.get_selected_values = function() {
@@ -483,13 +497,17 @@ IPA.hbac.test_run_facet = function(spec) {
 
     that.create_content = function(container) {
 
-        var action_panel = $('<div/>', {
-            style: 'border: 1px solid #C9C3BA; padding: 10px'
+        var header = $('<div/>', {
+            'class': 'hbac-test-header'
         }).appendTo(container);
 
-        var action_button = $('<div/>', {
-            style: 'width: 100px; display: inline-block'
-        }).appendTo(action_panel);
+        var top_panel = $('<div/>', {
+            'class': 'hbac-test-top-panel'
+        }).appendTo(header);
+
+        var button_panel = $('<div/>', {
+            'class': 'hbac-test-button-panel'
+        }).appendTo(top_panel);
 
         that.run_button = IPA.button({
             name: 'run',
@@ -500,29 +518,58 @@ IPA.hbac.test_run_facet = function(spec) {
                 }
                 return false;
             }
-        }).appendTo(action_button);
+        }).appendTo(button_panel);
 
-        var action_result = $('<div/>', {
-            style: 'display: inline-block'
-        }).appendTo(action_panel);
+        var result_panel = $('<div/>', {
+            'class': 'hbac-test-result-panel'
+        }).appendTo(top_panel);
 
-        that.test_result = $('<p/>').appendTo(action_result);
+        that.test_result = $('<p/>', {
+            'class': 'hbac-test-title'
+        }).appendTo(result_panel);
 
-        var header = $('<h3/>', {
-            text: 'Rules'
+        var title = $('<span/>', {
+            text: 'Rules',
+            'class': 'hbac-test-title'
+        }).appendTo(header);
+
+        header.append(' ');
+
+        that.matched = $('<input/>', {
+            id: 'hbactest-rules-matched',
+            type: 'checkbox',
+            name: 'matched'
+        }).appendTo(header);
+
+        $('<label/>', {
+            'for': 'hbactest-rules-matched',
+            text: 'Matched'
+        }).appendTo(header);
+
+        that.unmatched = $('<input/>', {
+            id: 'hbactest-rules-unmatched',
+            type: 'checkbox',
+            name: 'disabled'
+        }).appendTo(header);
+
+        $('<label/>', {
+            'for': 'hbactest-rules-unmatched',
+            text: 'Unmatched'
+        }).appendTo(header);
+
+        var content = $('<div/>', {
+            'class': 'hbac-test-content'
         }).appendTo(container);
 
-        var div = $('<div/>', {
-            style: 'position: relative; height: 200px'
+        that.table.create(content);
+
+        var footer = $('<div/>', {
+            'class': 'hbac-test-footer'
         }).appendTo(container);
-
-        that.table.create(div);
-
-        container.append('<br/>');
 
         var buttons = $('<div/>', {
-            style: 'float: right'
-        }).appendTo(container);
+            'class': 'hbac-test-navigation-buttons'
+        }).appendTo(footer);
 
         that.back_button = IPA.button({
             name: 'back',
