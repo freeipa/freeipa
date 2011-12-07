@@ -1657,7 +1657,7 @@ output: Output('notmatched', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>),
 output: Output('error', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>), None)
 output: Output('value', <type 'bool'>, None)
 command: host_add
-args: 1,15,3
+args: 1,16,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
 option: Str('l', attribute=True, cli_name='locality', multivalue=False, required=False)
@@ -1668,6 +1668,7 @@ option: Str('userpassword', attribute=True, cli_name='password', multivalue=Fals
 option: Flag('random', attribute=False, autofill=True, cli_name='random', default=False, multivalue=False, required=False)
 option: Bytes('usercertificate', attribute=True, cli_name='certificate', multivalue=False, required=False)
 option: Str('macaddress', attribute=True, cli_name='macaddress', csv=True, multivalue=True, pattern='^([a-fA-F0-9]{2}[:|\\-]?){5}[a-fA-F0-9]{2}$', pattern_errmsg='Must be of the form HH:HH:HH:HH:HH:HH, where each H is a hexadecimal character.', required=False)
+option: Bytes('ipasshpubkey', attribute=True, cli_name='sshpubkey', multivalue=True, required=False)
 option: Flag('force', autofill=True, default=False)
 option: Flag('no_reverse', autofill=True, default=False)
 option: Str('ip_address?')
@@ -1739,7 +1740,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: host_mod
-args: 1,17,3
+args: 1,19,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
 option: Str('l', attribute=True, autofill=False, cli_name='locality', multivalue=False, required=False)
@@ -1750,11 +1751,13 @@ option: Str('userpassword', attribute=True, autofill=False, cli_name='password',
 option: Flag('random', attribute=False, autofill=True, cli_name='random', default=False, multivalue=False, required=False)
 option: Bytes('usercertificate', attribute=True, autofill=False, cli_name='certificate', multivalue=False, required=False)
 option: Str('macaddress', attribute=True, autofill=False, cli_name='macaddress', csv=True, multivalue=True, pattern='^([a-fA-F0-9]{2}[:|\\-]?){5}[a-fA-F0-9]{2}$', pattern_errmsg='Must be of the form HH:HH:HH:HH:HH:HH, where each H is a hexadecimal character.', required=False)
+option: Bytes('ipasshpubkey', attribute=True, autofill=False, cli_name='sshpubkey', multivalue=True, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Str('krbprincipalname?', attribute=True, cli_name='principalname')
+option: Flag('updatedns?', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -3087,7 +3090,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: user_add
-args: 1,32,3
+args: 1,33,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, required=True)
 option: Str('givenname', attribute=True, cli_name='first', multivalue=False, required=True)
 option: Str('sn', attribute=True, cli_name='last', multivalue=False, required=True)
@@ -3115,6 +3118,7 @@ option: Str('ou', attribute=True, cli_name='orgunit', multivalue=False, required
 option: Str('title', attribute=True, cli_name='title', multivalue=False, required=False)
 option: Str('manager', attribute=True, cli_name='manager', multivalue=False, required=False)
 option: Str('carlicense', attribute=True, cli_name='carlicense', multivalue=False, required=False)
+option: Bytes('ipasshpubkey', attribute=True, cli_name='sshpubkey', multivalue=True, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('noprivate', autofill=True, cli_name='noprivate', default=False)
@@ -3194,7 +3198,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: user_mod
-args: 1,33,3
+args: 1,34,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, query=True, required=True)
 option: Str('givenname', attribute=True, autofill=False, cli_name='first', multivalue=False, required=False)
 option: Str('sn', attribute=True, autofill=False, cli_name='last', multivalue=False, required=False)
@@ -3221,6 +3225,7 @@ option: Str('ou', attribute=True, autofill=False, cli_name='orgunit', multivalue
 option: Str('title', attribute=True, autofill=False, cli_name='title', multivalue=False, required=False)
 option: Str('manager', attribute=True, autofill=False, cli_name='manager', multivalue=False, required=False)
 option: Str('carlicense', attribute=True, autofill=False, cli_name='carlicense', multivalue=False, required=False)
+option: Bytes('ipasshpubkey', attribute=True, autofill=False, cli_name='sshpubkey', multivalue=True, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')

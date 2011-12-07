@@ -18,16 +18,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api, errors
-from ipalib import Flag, Int, Password, Str, Bool
-from ipalib.plugins.baseldap import *
-from ipalib.request import context
 from time import gmtime, strftime
 import copy
+import string
+
+from ipalib import api, errors
+from ipalib import Flag, Int, Password, Str, Bool, Bytes
+from ipalib.plugins.baseldap import *
+from ipalib.request import context
 from ipalib import _, ngettext
 from ipapython.ipautil import ipa_generate_password
-import string
 import posixpath
+from ipalib.util import validate_sshpubkey, output_sshpubkey
 
 __doc__ = _("""
 Users
@@ -154,12 +156,12 @@ class user(LDAPObject):
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
         'uidnumber', 'gidnumber', 'mail', 'ou',
         'telephonenumber', 'title', 'memberof', 'nsaccountlock',
-        'memberofindirect',
+        'memberofindirect', 'sshpubkeyfp',
     ]
     search_display_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
         'mail', 'telephonenumber', 'title', 'nsaccountlock',
-        'uidnumber', 'gidnumber',
+        'uidnumber', 'gidnumber', 'sshpubkeyfp',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -309,6 +311,15 @@ class user(LDAPObject):
         Bool('nsaccountlock?',
             label=_('Account disabled'),
             flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Bytes('ipasshpubkey*', validate_sshpubkey,
+            cli_name='sshpubkey',
+            label=_('Base-64 encoded SSH public key'),
+            flags=['no_search'],
+        ),
+        Str('sshpubkeyfp*',
+            label=_('SSH public key fingerprint'),
+            flags=['virtual_attribute', 'no_create', 'no_update', 'no_search'],
         ),
     )
 
@@ -489,6 +500,9 @@ class user_add(LDAPCreate):
                 pass
 
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
+
+        output_sshpubkey(ldap, dn, entry_attrs)
+
         return dn
 
 api.register(user_add)
@@ -522,6 +536,14 @@ class user_mod(LDAPUpdate):
             entry_attrs['userpassword'] = ipa_generate_password(user_pwdchars)
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
+        if 'ipasshpubkey' in entry_attrs:
+            if 'objectclass' in entry_attrs:
+                obj_classes = entry_attrs['objectclass']
+            else:
+                (_dn, _entry_attrs) = ldap.get_entry(dn, ['objectclass'])
+                obj_classes = entry_attrs['objectclass'] = _entry_attrs['objectclass']
+            if 'ipasshuser' not in obj_classes:
+                obj_classes.append('ipasshuser')
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -534,6 +556,7 @@ class user_mod(LDAPUpdate):
         convert_nsaccountlock(entry_attrs)
         self.obj._convert_manager(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
+        output_sshpubkey(ldap, dn, entry_attrs)
         return dn
 
 api.register(user_mod)
@@ -567,6 +590,7 @@ class user_find(LDAPSearch):
             self.obj._convert_manager(attrs, **options)
             self.obj.get_password_attributes(ldap, dn, attrs)
             convert_nsaccountlock(attrs)
+            output_sshpubkey(ldap, dn, attrs)
 
     msg_summary = ngettext(
         '%(count)d user matched', '%(count)d users matched', 0
@@ -584,6 +608,7 @@ class user_show(LDAPRetrieve):
         convert_nsaccountlock(entry_attrs)
         self.obj._convert_manager(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
+        output_sshpubkey(ldap, dn, entry_attrs)
         return dn
 
 api.register(user_show)

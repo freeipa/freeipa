@@ -31,6 +31,8 @@ user_base = [
     u'krbprincipalaux',
     u'krbticketpolicyaux',
     u'ipaobject',
+    u'ipasshuser',
+    u'ipaSshGroupOfPubKeys',
 ]
 
 user = user_base + [u'mepOriginEntry']
@@ -44,6 +46,8 @@ group = [
 ]
 
 host = [
+    u'ipasshhost',
+    u'ipaSshGroupOfPubKeys',
     u'ieee802device',
     u'ipaobject',
     u'nshost',

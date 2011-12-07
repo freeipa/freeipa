@@ -110,7 +110,7 @@ class KrbInstance(service.Service):
         # Create a host entry for this master
         host_dn = "fqdn=%s,cn=computers,cn=accounts,%s" % (self.fqdn, self.suffix)
         host_entry = ipaldap.Entry(host_dn)
-        host_entry.setValues('objectclass', ['top', 'ipaobject', 'nshost', 'ipahost', 'ipaservice', 'pkiuser', 'krbprincipalaux', 'krbprincipal', 'krbticketpolicyaux'])
+        host_entry.setValues('objectclass', ['top', 'ipaobject', 'nshost', 'ipahost', 'ipaservice', 'pkiuser', 'krbprincipalaux', 'krbprincipal', 'krbticketpolicyaux', 'ipasshhost'])
         host_entry.setValues('krbextradata', service_entry.getValues('krbextradata'))
         host_entry.setValue('krblastpwdchange', service_entry.getValue('krblastpwdchange'))
         if 'krbpasswordexpiration' in service_entry.toDict():

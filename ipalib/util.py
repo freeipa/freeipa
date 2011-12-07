@@ -32,6 +32,7 @@ from weakref import WeakKeyDictionary
 from ipalib import errors
 from ipalib.text import _
 from ipapython import dnsclient
+from ipapython.ipautil import decode_ssh_pubkey
 
 
 def json_serialize(obj):
@@ -277,6 +278,37 @@ def validate_hostname(hostname, check_fqdn=True):
     if not all(regex_name.match(part) for part in hostname.split(".")):
         raise ValueError(_('only letters, numbers, and - are allowed. ' \
                            '- must not be the last name character'))
+
+def validate_sshpubkey(ugettext, pubkey):
+    try:
+        algo, data, fp = decode_ssh_pubkey(pubkey)
+    except ValueError:
+        return _('invalid SSH public key')
+
+def output_sshpubkey(ldap, dn, entry_attrs):
+    if 'ipasshpubkey' in entry_attrs:
+        pubkeys = entry_attrs.get('ipasshpubkey')
+    else:
+        entry = ldap.get_entry(dn, ['ipasshpubkey'])
+        pubkeys = entry[1].get('ipasshpubkey')
+    if pubkeys is None:
+        return
+
+    fingerprints = []
+    for pubkey in pubkeys:
+        try:
+            algo, data, fp = decode_ssh_pubkey(pubkey)
+            fp = u':'.join([fp[j:j+2] for j in range(0, len(fp), 2)])
+            fingerprints.append(u'%s (%s)' % (fp, algo))
+        except ValueError:
+            pass
+    if fingerprints:
+        entry_attrs['sshpubkeyfp'] = fingerprints
+
+def normalize_sshpubkeyfp(value):
+    value = value.split()[0]
+    value = unicode(c for c in value if c in '0123456789ABCDEFabcdef')
+    return value
 
 class cachedproperty(object):
     """
