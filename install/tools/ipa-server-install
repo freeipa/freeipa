@@ -141,6 +141,10 @@ def parse_options():
                       help="Don't install allow_all HBAC rule")
     basic_group.add_option("--no-ui-redirect", dest="ui_redirect", action="store_false",
                       default=True, help="Do not automatically redirect to the Web UI")
+    basic_group.add_option("--ssh-trust-dns", dest="trust_sshfp", default=False, action="store_true",
+                      help="configure OpenSSH client to trust DNS SSHFP records")
+    basic_group.add_option("--no-sshd", dest="conf_sshd", default=True, action="store_false",
+                      help="do not configure OpenSSH server")
     basic_group.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="print debugging information")
     basic_group.add_option("-U", "--unattended", dest="unattended", action="store_true",
@@ -1042,6 +1046,10 @@ def main():
         args = ["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--domain", domain_name, "--server", host_name, "--realm", realm_name, "--hostname", host_name]
         if not options.create_sshfp:
             args.append("--no-dns-sshfp")
+        if options.trust_sshfp:
+            args.append("--ssh-trust-dns")
+        if not options.conf_sshd:
+            args.append("--no-sshd")
         run(args)
     except Exception, e:
         sys.exit("Configuration of client side components failed!\nipa-client-install returned: " + str(e))
