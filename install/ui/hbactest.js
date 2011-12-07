@@ -117,7 +117,6 @@ IPA.hbac.test_entity = function(spec) {
             label: IPA.messages.objects.hbactest.run_test,
             managed_entity_name: 'hbacrule',
             disable_breadcrumb: true,
-            pagination: true,
             facet_group: 'default',
             columns: [
                 'cn',
@@ -198,13 +197,6 @@ IPA.hbac.test_facet = function(spec) {
         }).appendTo(buttons);
     };
 
-    that.find = function() {
-        var filter = that.filter.val();
-        var state = {};
-        state[that.entity.name+'-'+that.name+'-filter'] = filter;
-        IPA.nav.push_state(state);
-    };
-
     that.prev = function() {
         var facet_group = that.entity.get_facet_group('default');
         var index = facet_group.get_facet_index(that.name);
@@ -262,7 +254,6 @@ IPA.hbac.test_facet = function(spec) {
         }
 
         command.on_success = function(data, text_status, xhr) {
-            if (that.filter) that.filter.focus();
             that.load(data);
         };
 
@@ -368,7 +359,7 @@ IPA.hbac.test_select_facet = function(spec) {
         td.append(' ');
 
         that.external_text = $('<input/>', {
-            name: 'external',
+            name: id,
             focus: function() {
                 that.external_radio.click();
             }
@@ -379,6 +370,13 @@ IPA.hbac.test_select_facet = function(spec) {
         }).appendTo(container);
 
         that.create_buttons(footer);
+    };
+
+    that.find = function() {
+        var filter = that.filter.val();
+        var state = {};
+        state[that.entity.name+'-'+that.name+'-filter'] = filter;
+        IPA.nav.push_state(state);
     };
 
     that.get_selected_values = function() {
@@ -393,8 +391,9 @@ IPA.hbac.test_select_facet = function(spec) {
     };
 
     that.reset = function() {
-        that.table.set_values([]);
+        delete that.selected_values;
         if (that.external_radio) that.external_radio.attr('checked', false);
+        if (that.external_text) that.external_text.val('');
     };
 
     that.save = function(record) {
@@ -475,9 +474,9 @@ IPA.hbac.test_rules_facet = function(spec) {
     };
 
     that.reset = function() {
-        that.table.set_values([]);
+        delete that.selected_values;
         if (that.enabled) that.enabled.attr('checked', false);
-        if (that.disabled) that.enabled.attr('checked', false);
+        if (that.disabled) that.disabled.attr('checked', false);
     };
 
     that.save = function(record) {
@@ -505,6 +504,8 @@ IPA.hbac.test_run_facet = function(spec) {
 
     var init = function() {
         that.table.selectable = false;
+        that.show_matched = true;
+        that.show_unmatched = true;
     };
 
     that.create_content = function(container) {
@@ -547,10 +548,15 @@ IPA.hbac.test_run_facet = function(spec) {
 
         header.append(' ');
 
-        that.matched = $('<input/>', {
+        that.matched_checkbox = $('<input/>', {
             id: 'hbactest-rules-matched',
             type: 'checkbox',
-            name: 'matched'
+            name: 'matched',
+            checked: true,
+            change: function() {
+                that.show_matched = that.matched_checkbox.is(':checked');
+                that.refresh();
+            }
         }).appendTo(header);
 
         $('<label/>', {
@@ -558,10 +564,15 @@ IPA.hbac.test_run_facet = function(spec) {
             text: IPA.messages.objects.hbactest.matched
         }).appendTo(header);
 
-        that.unmatched = $('<input/>', {
+        that.unmatched_checkbox = $('<input/>', {
             id: 'hbactest-rules-unmatched',
             type: 'checkbox',
-            name: 'disabled'
+            name: 'disabled',
+            checked: true,
+            change: function() {
+                that.show_unmatched = that.unmatched_checkbox.is(':checked');
+                that.refresh();
+            }
         }).appendTo(header);
 
         $('<label/>', {
@@ -634,12 +645,26 @@ IPA.hbac.test_run_facet = function(spec) {
     };
 
     that.reset = function() {
-        that.test_result.text('');
-        that.table.empty();
-        that.table.set_values([]);
+        delete that.data;
+        that.show_matched = true;
+        that.show_unmatched = true;
+        if (that.matched_checkbox) that.matched_checkbox.attr('checked', true);
+        if (that.unmatched_checkbox) that.unmatched_checkbox.attr('checked', true);
+        that.refresh();
     };
 
     that.refresh = function() {
+        if (that.data) {
+            var message = that.data.result.value ?
+                IPA.messages.objects.hbactest.access_granted :
+                IPA.messages.objects.hbactest.access_denied;
+            that.test_result.text(message);
+
+        } else {
+            that.test_result.text('');
+        }
+
+        that.load(that.data);
     };
 
     that.run = function() {
@@ -666,12 +691,8 @@ IPA.hbac.test_run_facet = function(spec) {
         command.set_options(options);
 
         command.on_success = function(data, text_status, xhr) {
-            var message = data.result.value ?
-                IPA.messages.objects.hbactest.access_granted :
-                IPA.messages.objects.hbactest.access_denied;
-            that.test_result.text(message);
-
-            that.load(data);
+            that.data = data;
+            that.refresh();
         };
 
         command.execute();
@@ -682,7 +703,7 @@ IPA.hbac.test_run_facet = function(spec) {
         that.matched = {};
 
         var matched = data.result.matched;
-        if (matched) {
+        if (that.show_matched && matched) {
             for (var i=0; i<matched.length; i++) {
                 var pkey = matched[i];
                 pkeys.push(pkey);
@@ -691,7 +712,7 @@ IPA.hbac.test_run_facet = function(spec) {
         }
 
         var notmatched = data.result.notmatched;
-        if (notmatched) {
+        if (that.show_unmatched && notmatched) {
             for (i=0; i<notmatched.length; i++) {
                 pkey = notmatched[i];
                 pkeys.push(pkey);
@@ -700,6 +721,16 @@ IPA.hbac.test_run_facet = function(spec) {
         }
 
         return pkeys;
+    };
+
+    that.get_records_command_name = function() {
+        if (that.show_matched && !that.show_unmatched) {
+            return 'hbactest_matched';
+        }
+        if (!that.show_matched && that.show_unmatched) {
+            return 'hbactest_unmatched';
+        }
+        return that.managed_entity_name+'_get_records';
     };
 
     that.load_records = function(records) {
