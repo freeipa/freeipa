@@ -84,6 +84,10 @@ def parse_options():
     basic_group.add_option("--ntp-server", dest="ntp_server", help="ntp server to use")
     basic_group.add_option("-N", "--no-ntp", action="store_false",
                       help="do not configure ntp", default=True, dest="conf_ntp")
+    basic_group.add_option("--ssh-trust-dns", dest="trust_sshfp", default=False, action="store_true",
+                      help="configure OpenSSH client to trust DNS SSHFP records")
+    basic_group.add_option("--no-sshd", dest="conf_sshd", default=True, action="store_false",
+                      help="do not configure OpenSSH server")
     basic_group.add_option("--no-dns-sshfp", dest="create_sshfp", default=True, action="store_false",
                       help="do not automatically create DNS SSHFP records")
     basic_group.add_option("-f", "--force", dest="force", action="store_true",
@@ -290,8 +294,12 @@ def uninstall(options, env, quiet=False):
 
     emit_quiet(quiet, "Disabling client Kerberos and LDAP configurations")
     was_sssd_installed = False
+    was_sshd_configured = False
     if fstore.has_files():
         was_sssd_installed = fstore.has_file("/etc/sssd/sssd.conf")
+
+        sshd_config = os.path.join(ipaservices.knownservices.sshd.get_config_dir(), "sshd_config")
+        was_sshd_configured = fstore.has_file(sshd_config)
     try:
         auth_config = ipaservices.authconfig()
         if statestore.has_state('authconfig'):
@@ -384,6 +392,9 @@ def uninstall(options, env, quiet=False):
         else:
            if restored:
                ipaservices.knownservices.ntpd.restart()
+
+    if was_sshd_configured and ipaservices.knownservices.sshd.is_running():
+        ipaservices.knownservices.sshd.restart()
 
     if was_sssd_installed and was_sssd_configured:
         # SSSD was installed before our installation, config now is restored, restart it
@@ -750,6 +761,101 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
     sssdconfig.write("/etc/sssd/sssd.conf")
 
     return 0
+
+def change_ssh_config(filename, changes, sections):
+    if len(changes) == 0:
+        return True
+
+    try:
+        f = open(filename, 'r')
+    except IOError, e:
+        root_logger.error("Failed to open '%s': %s" % (filename, str(e)))
+        return False
+
+    lines = []
+    in_section = False
+    for line in f:
+        if in_section:
+            lines.append(line)
+            continue
+        pline = line.strip()
+        if len(pline) == 0 or pline.startswith('#'):
+            lines.append(line)
+            continue
+        parts = pline.split()
+        option = parts[0].lower()
+        for key in sections:
+            if key.lower() == option:
+                in_section = True
+                break
+        if in_section:
+            break
+        for opt in changes:
+            if opt.lower() == option:
+                line = None
+                break
+        if line is not None:
+            lines.append(line)
+    for opt in changes:
+        lines.append('%s %s\n' % (opt, changes[opt]))
+    lines.append('\n')
+    if in_section:
+        lines.append(line)
+    for line in f:
+        lines.append(line)
+
+    f.close()
+
+    try:
+        f = open(filename, 'w')
+    except IOError, e:
+        root_logger.error("Failed to open '%s': %s" % (filename, str(e)))
+        return False
+
+    f.write(''.join(lines))
+
+    f.close()
+
+    return True
+
+def configure_ssh(fstore, ssh_dir, options):
+    ssh_config = os.path.join(ssh_dir, 'ssh_config')
+    sshd_config = os.path.join(ssh_dir, 'sshd_config')
+
+    if file_exists(ssh_config):
+        fstore.backup_file(ssh_config)
+
+        changes = {}
+        if options.trust_sshfp:
+            changes['VerifyHostKeyDNS'] = 'yes'
+
+        change_ssh_config(ssh_config, changes, ['Host'])
+        print 'Configured', ssh_config
+
+    if not options.conf_sshd:
+        return
+
+    sshd = ipaservices.knownservices.sshd
+    if not sshd.is_installed():
+        root_logger.debug("%s daemon is not installed, skip configuration" % (sshd.service_name))
+        return
+
+    fstore.backup_file(sshd_config)
+
+    changes = {
+        'KerberosAuthentication': 'yes',
+        'GSSAPIAuthentication': 'yes',
+        'UsePAM': 'yes',
+    }
+
+    change_ssh_config(sshd_config, changes, ['Match'])
+    print 'Configured', sshd_config
+
+    if sshd.is_running():
+        try:
+            sshd.restart()
+        except Exception, e:
+            log_service_error(sshd.service_name, 'restart', e)
 
 def resolve_ipaddress(server):
     """ Connect to the server's LDAP port in order to determine what ip
@@ -1339,6 +1445,8 @@ def install(options, env, fstore, statestore):
             ntp_server = cli_server
         ipaclient.ntpconf.config_ntp(ntp_server, fstore, statestore)
         print "NTP enabled"
+
+    configure_ssh(fstore, ipaservices.knownservices.sshd.get_config_dir(), options)
 
     print "Client configuration complete."
 
