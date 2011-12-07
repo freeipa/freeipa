@@ -3233,3 +3233,9 @@ NTSTATUS samba_module_init(void)
 	return smb_register_passdb(PASSDB_INTERFACE_VERSION, "ipasam",
 				   pdb_init_ipasam);
 }
+
+NTSTATUS samba_init_module(void)
+{
+	return smb_register_passdb(PASSDB_INTERFACE_VERSION, "ipasam",
+				   pdb_init_ipasam);
+}
