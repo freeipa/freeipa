@@ -39,7 +39,7 @@ IPA.hbac.test_entity = function(spec) {
         facet({
             factory: IPA.hbac.test_select_facet,
             name: 'user',
-            label: 'Who',
+            label: IPA.messages.objects.hbacrule.user,
             managed_entity_name: 'user',
             disable_breadcrumb: true,
             facet_group: 'default',
@@ -52,7 +52,7 @@ IPA.hbac.test_entity = function(spec) {
         facet({
             factory: IPA.hbac.test_select_facet,
             name: 'targethost',
-            label: 'Accessing',
+            label: IPA.messages.objects.hbacrule.host,
             managed_entity_name: 'host',
             disable_breadcrumb: true,
             facet_group: 'default',
@@ -68,7 +68,7 @@ IPA.hbac.test_entity = function(spec) {
         facet({
             factory: IPA.hbac.test_select_facet,
             name: 'service',
-            label: 'Via Service',
+            label: IPA.messages.objects.hbacrule.service,
             managed_entity_name: 'hbacsvc',
             disable_breadcrumb: true,
             facet_group: 'default',
@@ -80,7 +80,7 @@ IPA.hbac.test_entity = function(spec) {
         facet({
             factory: IPA.hbac.test_select_facet,
             name: 'sourcehost',
-            label: 'From Host',
+            label: IPA.messages.objects.hbacrule.sourcehost,
             managed_entity_name: 'host',
             disable_breadcrumb: true,
             facet_group: 'default',
@@ -96,7 +96,7 @@ IPA.hbac.test_entity = function(spec) {
         facet({
             factory: IPA.hbac.test_rules_facet,
             name: 'rules',
-            label: 'On Rules',
+            label: IPA.messages.objects.hbactest.rules,
             managed_entity_name: 'hbacrule',
             disable_breadcrumb: true,
             facet_group: 'default',
@@ -108,8 +108,8 @@ IPA.hbac.test_entity = function(spec) {
         }).
         facet({
             factory: IPA.hbac.test_run_facet,
-            name: 'run',
-            label: 'Run Test',
+            name: 'run_test',
+            label: IPA.messages.objects.hbactest.run_test,
             managed_entity_name: 'hbacrule',
             disable_breadcrumb: true,
             pagination: true,
@@ -118,7 +118,7 @@ IPA.hbac.test_entity = function(spec) {
                 'cn',
                 {
                     name: 'matched',
-                    label: 'Matched'
+                    label: IPA.messages.objects.hbactest.matched
                 },
                 'ipaenabledflag',
                 'description'
@@ -161,13 +161,13 @@ IPA.hbac.test_facet = function(spec) {
         var index = facet_group.get_facet_index(that.name);
 
         if (index > 0) {
-            that.back_button = IPA.button({
-                name: 'back',
-                label: 'Back',
+            that.prev_button = IPA.button({
+                name: 'prev',
+                label: IPA.messages.widget.prev,
                 icon: 'ui-icon ui-icon-triangle-1-w',
                 click: function() {
-                    if (!that.back_button.hasClass('action-button-disabled')) {
-                        that.back();
+                    if (!that.prev_button.hasClass('action-button-disabled')) {
+                        that.prev();
                     }
                     return false;
                 }
@@ -178,7 +178,7 @@ IPA.hbac.test_facet = function(spec) {
 
         that.next_button = IPA.button({
             name: 'next',
-            label: 'Next',
+            label: IPA.messages.widget.next,
             icon: 'ui-icon ui-icon-triangle-1-e',
             click: function() {
                 if (!that.next_button.hasClass('action-button-disabled')) {
@@ -196,7 +196,7 @@ IPA.hbac.test_facet = function(spec) {
         IPA.nav.push_state(state);
     };
 
-    that.back = function() {
+    that.prev = function() {
         var facet_group = that.entity.get_facet_group('default');
         var index = facet_group.get_facet_index(that.name);
         if (index <= 0) return;
@@ -348,8 +348,11 @@ IPA.hbac.test_select_facet = function(spec) {
             }
         }).appendTo(td);
 
+        var message = IPA.messages.objects.hbactest.specify_external;
+        message = message.replace('${entity}', that.managed_entity.metadata.label_singular);
+
         $('<label/>', {
-            text: 'Specify external '+that.managed_entity.metadata.label_singular+':',
+            text: message+':',
             'for': id
         }).appendTo(td);
 
@@ -431,7 +434,7 @@ IPA.hbac.test_rules_facet = function(spec) {
 
         $('<label/>', {
             'for': 'hbactest-rules-include-enabled',
-            text: 'Include enabled'
+            text: IPA.messages.objects.hbactest.include_enabled
         }).appendTo(header);
 
         that.disabled = $('<input/>', {
@@ -442,7 +445,7 @@ IPA.hbac.test_rules_facet = function(spec) {
 
         $('<label/>', {
             'for': 'hbactest-rules-include-disabled',
-            text: 'Include disabled'
+            text: IPA.messages.objects.hbactest.include_disabled
         }).appendTo(header);
 
         var content = $('<div/>', {
@@ -510,8 +513,8 @@ IPA.hbac.test_run_facet = function(spec) {
         }).appendTo(top_panel);
 
         that.run_button = IPA.button({
-            name: 'run',
-            label: 'Run Test',
+            name: 'run_test',
+            label: IPA.messages.objects.hbactest.run_test,
             click: function() {
                 if (!that.run_button.hasClass('action-button-disabled')) {
                     that.run();
@@ -529,7 +532,7 @@ IPA.hbac.test_run_facet = function(spec) {
         }).appendTo(result_panel);
 
         var title = $('<span/>', {
-            text: 'Rules',
+            text: IPA.messages.objects.hbactest.rules,
             'class': 'hbac-test-title'
         }).appendTo(header);
 
@@ -543,7 +546,7 @@ IPA.hbac.test_run_facet = function(spec) {
 
         $('<label/>', {
             'for': 'hbactest-rules-matched',
-            text: 'Matched'
+            text: IPA.messages.objects.hbactest.matched
         }).appendTo(header);
 
         that.unmatched = $('<input/>', {
@@ -554,7 +557,7 @@ IPA.hbac.test_run_facet = function(spec) {
 
         $('<label/>', {
             'for': 'hbactest-rules-unmatched',
-            text: 'Unmatched'
+            text: IPA.messages.objects.hbactest.unmatched
         }).appendTo(header);
 
         var content = $('<div/>', {
@@ -571,13 +574,13 @@ IPA.hbac.test_run_facet = function(spec) {
             'class': 'hbac-test-navigation-buttons'
         }).appendTo(footer);
 
-        that.back_button = IPA.button({
-            name: 'back',
-            label: 'Back',
+        that.prev_button = IPA.button({
+            name: 'prev',
+            label: IPA.messages.widget.prev,
             icon: 'ui-icon ui-icon-triangle-1-w',
             click: function() {
-                if (!that.back_button.hasClass('action-button-disabled')) {
-                    that.back();
+                if (!that.prev_button.hasClass('action-button-disabled')) {
+                    that.prev();
                 }
                 return false;
             }
@@ -587,7 +590,7 @@ IPA.hbac.test_run_facet = function(spec) {
 
         that.new_test_button = IPA.button({
             name: 'new_test',
-            label: 'New Test',
+            label: IPA.messages.objects.hbactest.new_test,
             click: function() {
                 if (!that.new_test_button.hasClass('action-button-disabled')) {
                     that.new_test();
@@ -613,7 +616,7 @@ IPA.hbac.test_run_facet = function(spec) {
         facet = that.entity.get_facet('rules');
         facet.reset();
 
-        facet = that.entity.get_facet('run');
+        facet = that.entity.get_facet('run_test');
         facet.reset();
 
         var state = {};
@@ -654,7 +657,9 @@ IPA.hbac.test_run_facet = function(spec) {
         command.set_options(options);
 
         command.on_success = function(data, text_status, xhr) {
-            var message = data.result.value ? 'Access granted' : 'Access Denied';
+            var message = data.result.value ?
+                IPA.messages.objects.hbactest.access_granted :
+                IPA.messages.objects.hbactest.access_denied;
             that.test_result.text(message);
 
             that.load(data);

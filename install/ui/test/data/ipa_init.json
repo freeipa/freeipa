@@ -221,7 +221,17 @@
                             "services": "Services"
                         },
                         "hbactest": {
-                            "label": "HBAC Test"
+                            "access_denied": "Access Denied",
+                            "access_granted": "Access Granted",
+                            "include_disabled": "Include Disabled",
+                            "include_enabled": "Include Enabled",
+                            "label": "HBAC Test",
+                            "matched": "Matched",
+                            "new_test": "New Test",
+                            "rules": "Rules",
+                            "run_test": "Run Test",
+                            "specify_external": "Specify external ${entity}",
+                            "unmatched": "Unmatched"
                         },
                         "host": {
                             "certificate": "Host Certificate",
