@@ -25,7 +25,7 @@ import tempfile
 import ldap
 from ldap import LDAPError
 from ipapython.ipautil import run, CalledProcessError, valid_ip, get_ipa_basedn, \
-                              realm_to_suffix, format_netloc
+                              realm_to_suffix, format_netloc, parse_items
 
 
 NOT_FQDN = -1
@@ -170,19 +170,35 @@ class IPADiscovery:
         self.kdc = krbret[1]
 
         root_logger.debug("[ipacheckldap]")
-        # check ldap now
-        ldapret = self.ipacheckldap(self.server, self.realm)
+        # We may have received multiple servers corresponding to the domain
+        # Iterate through all of those to check if it is IPA LDAP server
+        servers = parse_items(self.server)
+        ldapret = [NOT_IPA_SERVER]
+        ldapaccess = True
+        for server in servers:
+            # check ldap now
+            ldapret = self.ipacheckldap(server, self.realm)
 
-        if ldapret[0] == 0:
-            self.server = ldapret[1]
-            self.realm = ldapret[2]
+            if ldapret[0] == 0:
+                self.server = ldapret[1]
+                self.realm = ldapret[2]
+                break
 
-        if ldapret[0] == NO_ACCESS_TO_LDAP and self.realm is None:
+            if ldapret[0] == NO_ACCESS_TO_LDAP:
+                ldapaccess = False
+
+        # If one of LDAP servers checked rejects access (may be anonymous
+        # bind is disabled), assume realm and basedn generated off domain.
+        # Note that in case ldapret[0] == 0 and ldapaccess == False (one of
+        # servers didn't provide access but another one succeeded), self.realm
+        # will be set already to a proper value above, self.basdn will be
+        # initialized during the LDAP check itself and we'll skip these two checks.
+        if not ldapaccess and self.realm is None:
             # Assume realm is the same as domain.upper()
             self.realm = self.domain.upper()
             root_logger.debug("Assuming realm is the same as domain: %s" % self.realm)
 
-        if ldapret[0] == NO_ACCESS_TO_LDAP and self.basedn is None:
+        if not ldapaccess and self.basedn is None:
             # Generate suffix from realm
             self.basedn = realm_to_suffix(self.realm)
             root_logger.debug("Generate basedn from realm: %s" % self.basedn)
@@ -200,7 +216,7 @@ class IPADiscovery:
         Errno is an error number:
             0 means all ok
             1 means we could not check the info in LDAP (may happend when
-                anonymous binds are siabled)
+                anonymous binds are disabled)
             2 means the server is certainly not an IPA server
         """
 
