@@ -685,6 +685,93 @@ done:
     return kerr;
 }
 
+static krb5_error_code ipadb_sign_pac(krb5_context context,
+                                      krb5_const_principal client_princ,
+                                      krb5_db_entry *server,
+                                      krb5_db_entry *krbtgt,
+                                      krb5_keyblock *server_key,
+                                      krb5_keyblock *krbtgt_key,
+                                      krb5_timestamp authtime,
+                                      krb5_pac pac,
+                                      krb5_data *pac_data)
+{
+    krb5_keyblock *right_krbtgt_signing_key = NULL;
+    krb5_key_data *right_krbtgt_key;
+    krb5_db_entry *right_krbtgt = NULL;
+    krb5_principal krbtgt_princ = NULL;
+    krb5_error_code kerr;
+    char *princ = NULL;
+    int ret;
+
+    /* for cross realm trusts cases we need to sign with the right key.
+     * we need to fetch the right key on our own until the DAL is fixed
+     * to pass us separate check tgt keys and sign tgt keys */
+
+    /* We can only ever create the kdc checksum with our realm tgt key.
+     * So, if we get a cross realm tgt we have to fetch our realm tgt
+     * instead. */
+    if (is_cross_realm_krbtgt(krbtgt->princ)) {
+
+        ret = asprintf(&princ, "krbtgt/%.*s@%.*s",
+                       server->princ->realm.length,
+                       server->princ->realm.data,
+                       server->princ->realm.length,
+                       server->princ->realm.data);
+        if (ret == -1) {
+            princ = NULL;
+            kerr = ENOMEM;
+            goto done;
+        }
+
+        kerr = krb5_parse_name(context, princ, &krbtgt_princ);
+        if (kerr) {
+            goto done;
+        }
+
+        kerr = ipadb_get_principal(context, krbtgt_princ, 0, &right_krbtgt);
+        if (kerr) {
+            goto done;
+        }
+
+        kerr = krb5_dbe_find_enctype(context, right_krbtgt,
+                                     -1, -1, 0, &right_krbtgt_key);
+        if (kerr) {
+            goto done;
+        }
+        if (!right_krbtgt_key) {
+            kerr = KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN;
+            goto done;
+        }
+
+        right_krbtgt_signing_key = malloc(sizeof(krb5_keyblock));
+        if (!right_krbtgt_signing_key) {
+            kerr = ENOMEM;
+            goto done;
+        }
+
+        kerr = krb5_dbe_decrypt_key_data(context, NULL, right_krbtgt_key,
+                                         right_krbtgt_signing_key, NULL);
+        if (kerr) {
+            goto done;
+        }
+
+    } else {
+        right_krbtgt_signing_key = krbtgt_key;
+    }
+
+    kerr = krb5_pac_sign(context, pac, authtime, client_princ,
+                         server_key, right_krbtgt_signing_key, pac_data);
+
+done:
+    free(princ);
+    krb5_free_principal(context, krbtgt_princ);
+    ipadb_free_principal(context, right_krbtgt);
+    if (right_krbtgt_signing_key != krbtgt_key) {
+        krb5_free_keyblock(context, right_krbtgt_signing_key);
+    }
+    return kerr;
+}
+
 krb5_error_code ipadb_sign_authdata(krb5_context context,
                                     unsigned int flags,
                                     krb5_const_principal client_princ,
@@ -740,8 +827,8 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         goto done;
     }
 
-    kerr = krb5_pac_sign(context, pac, authtime, ks_client_princ,
-                         server_key, krbtgt_key, &pac_data);
+    kerr = ipadb_sign_pac(context, ks_client_princ, server, krbtgt,
+                          server_key, krbtgt_key, authtime, pac, &pac_data);
     if (kerr != 0) {
         goto done;
     }
