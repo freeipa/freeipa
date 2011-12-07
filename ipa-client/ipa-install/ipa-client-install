@@ -765,6 +765,29 @@ def resolve_ipaddress(server):
 
     return addr
 
+def do_nsupdate(update_txt):
+    root_logger.debug("Writing nsupdate commands to %s:\n%s"
+            % (UPDATE_FILE, update_txt))
+
+    update_fd = file(UPDATE_FILE, "w")
+    update_fd.write(update_txt)
+    update_fd.flush()
+    update_fd.close()
+
+    result = False
+    try:
+        ipautil.run(['/usr/bin/nsupdate', '-g', UPDATE_FILE])
+        result = True
+    except CalledProcessError, e:
+        root_logger.debug('nsupdate failed: %s' % str(e))
+
+    try:
+        os.remove(UPDATE_FILE)
+    except:
+        pass
+
+    return result
+
 UPDATE_TEMPLATE_A = """
 zone $ZONE.
 update delete $HOSTNAME. IN A
@@ -807,25 +830,10 @@ def update_dns(server, hostname):
 
     update_txt = ipautil.template_str(template, sub_dict)
 
-    root_logger.debug("Writing nsupdate commands to %s:\n%s"
-            % (UPDATE_FILE, update_txt))
-
-    update_fd = file(UPDATE_FILE, "w")
-    update_fd.write(update_txt)
-    update_fd.flush()
-    update_fd.close()
-
-    try:
-        ipautil.run(['/usr/bin/nsupdate', '-g', UPDATE_FILE],
-                    env={'KRB5CCNAME':CCACHE_FILE})
+    if do_nsupdate(update_txt):
         print "DNS server record set to: %s -> %s" % (hostname, ip)
-    except CalledProcessError, e:
-        print >>sys.stderr, "Failed to update DNS A record. (%s)" % str(e)
-
-    try:
-        os.remove(UPDATE_FILE)
-    except:
-        pass
+    else:
+        print >>sys.stderr, "Failed to update DNS records."
 
 def client_dns(server, hostname, dns_updates=False):
 
