@@ -22,6 +22,8 @@ import platform
 import os
 import sys
 from nss.error import NSPRError
+import nss.nss as nss
+import netaddr
 
 from ipalib import api, errors, util
 from ipalib import Str, Flag, Bytes
@@ -34,11 +36,9 @@ from ipalib.plugins.dns import add_forward_record
 from ipalib import _, ngettext
 from ipalib import x509
 from ipalib.dn import *
-from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
 from ipalib.request import context
-import base64
-import nss.nss as nss
-import netaddr
+from ipalib.util import validate_sshpubkey, output_sshpubkey
+from ipapython.ipautil import ipa_generate_password, CheckedIPAddress, make_sshfp
 
 __doc__ = _("""
 Hosts/Machines
@@ -86,6 +86,9 @@ EXAMPLES:
 
  Modify information about a host:
    ipa host-mod --os='Fedora 12' test.example.com
+
+ Remove SSH public keys of a host and update DNS to reflect this change:
+   ipa host-mod --sshpubkey= --updatedns test.example.com
 
  Disable the host Kerberos key, SSL certificate and all of its services:
    ipa host-disable test.example.com
@@ -162,6 +165,22 @@ def remove_fwd_ptr(ipaddr, host, domain, recordtype):
     except errors.NotFound:
         pass
 
+def update_sshfp_record(zone, record, entry_attrs):
+    if 'ipasshpubkey' not in entry_attrs:
+        return
+
+    pubkeys = entry_attrs['ipasshpubkey'] or ()
+    sshfps=[]
+    for pubkey in pubkeys:
+        sshfp = unicode(make_sshfp(pubkey))
+        if sshfp is not None:
+            sshfps.append(sshfp)
+
+    try:
+        api.Command['dnsrecord_mod'](zone, record, sshfprecord=sshfps)
+    except errors.EmptyModlist:
+        pass
+
 host_output_params = (
     Flag('has_keytab',
         label=_('Keytab'),
@@ -226,6 +245,7 @@ class host(LDAPObject):
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
         'managedby', 'memberindirect', 'memberofindirect', 'macaddress',
+        'sshpubkeyfp',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -314,6 +334,15 @@ class host(LDAPObject):
             csv=True,
             label=_('MAC address'),
             doc=_('Hardware MAC address(es) on this host'),
+        ),
+        Bytes('ipasshpubkey*', validate_sshpubkey,
+            cli_name='sshpubkey',
+            label=_('Base-64 encoded SSH public key'),
+            flags=['no_search'],
+        ),
+        Str('sshpubkeyfp*',
+            label=_('SSH public key fingerprint'),
+            flags=['virtual_attribute', 'no_create', 'no_update', 'no_search'],
         ),
     )
 
@@ -452,33 +481,37 @@ class host_add(LDAPCreate):
             entry_attrs['usercertificate'] = cert
         entry_attrs['managedby'] = dn
         entry_attrs['objectclass'].append('ieee802device')
+        entry_attrs['objectclass'].append('ipasshhost')
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         exc = None
-        try:
-            if 'ip_address' in options and dns_container_exists(ldap):
+        if dns_container_exists(ldap):
+            try:
                 parts = keys[-1].split('.')
                 domain = unicode('.'.join(parts[1:]))
 
-                ip = CheckedIPAddress(options['ip_address'], match_local=False)
-                add_forward_record(domain, parts[0], unicode(ip))
+                if 'ip_address' in options:
+                    ip = CheckedIPAddress(options['ip_address'], match_local=False)
+                    add_forward_record(domain, parts[0], unicode(ip))
 
-                if not options.get('no_reverse', False):
-                    try:
-                        prefixlen = None
-                        if not ip.defaultnet:
-                            prefixlen = ip.prefixlen
-                        revzone, revname = get_reverse_zone(ip, prefixlen)
-                        addkw = { 'ptrrecord' : keys[-1]+'.' }
-                        api.Command['dnsrecord_add'](revzone, revname, **addkw)
-                    except errors.EmptyModlist:
-                        # the entry already exists and matches
-                        pass
+                    if not options.get('no_reverse', False):
+                        try:
+                            prefixlen = None
+                            if not ip.defaultnet:
+                                prefixlen = ip.prefixlen
+                            revzone, revname = get_reverse_zone(ip, prefixlen)
+                            addkw = { 'ptrrecord' : keys[-1]+'.' }
+                            api.Command['dnsrecord_add'](revzone, revname, **addkw)
+                        except errors.EmptyModlist:
+                            # the entry already exists and matches
+                            pass
 
-                del options['ip_address']
-        except Exception, e:
-            exc = e
+                    del options['ip_address']
+
+                update_sshfp_record(domain, unicode(parts[0]), entry_attrs)
+            except Exception, e:
+                exc = e
         if options.get('random', False):
             try:
                 entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
@@ -493,12 +526,14 @@ class host_add(LDAPCreate):
         set_certificate_attrs(entry_attrs)
 
         if options.get('all', False):
-                entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
+            entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         if entry_attrs['has_password']:
             # If an OTP is set there is no keytab, at least not one
             # fetched anywhere.
             entry_attrs['has_keytab'] = False
+
+        output_sshpubkey(ldap, dn, entry_attrs)
 
         return dn
 
@@ -632,6 +667,10 @@ class host_mod(LDAPUpdate):
             doc=_('Kerberos principal name for this host'),
             attribute=True,
         ),
+        Flag('updatedns?',
+            doc=_('Update DNS entries'),
+            default=False,
+        ),
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -688,6 +727,7 @@ class host_mod(LDAPUpdate):
                         raise nsprerr
 
             entry_attrs['usercertificate'] = cert
+
         if options.get('random'):
             entry_attrs['userpassword'] = ipa_generate_password()
             setattr(context, 'randompassword', entry_attrs['userpassword'])
@@ -702,6 +742,30 @@ class host_mod(LDAPUpdate):
             if 'ieee802device' not in obj_classes:
                 obj_classes.append('ieee802device')
                 entry_attrs['objectclass'] = obj_classes
+
+        if options.get('updatedns', False) and dns_container_exists(ldap):
+            parts = keys[-1].split('.')
+            domain = unicode('.'.join(parts[1:]))
+            result = api.Command['dnszone_find']()['result']
+            match = False
+            for zone in result:
+                if domain == zone['idnsname'][0]:
+                    match = True
+                    break
+            if not match:
+                raise errors.NotFound(
+                    reason=_('DNS zone %(zone)s not found') % dict(zone=domain)
+                )
+            update_sshfp_record(domain, unicode(parts[0]), entry_attrs)
+
+        if 'ipasshpubkey' in entry_attrs:
+            if 'objectclass' in entry_attrs:
+                obj_classes = entry_attrs['objectclass']
+            else:
+                (_dn, _entry_attrs) = ldap.get_entry(dn, ['objectclass'])
+                obj_classes = entry_attrs['objectclass'] = _entry_attrs['objectclass']
+            if 'ipasshhost' not in obj_classes:
+                obj_classes.append('ipasshhost')
 
         return dn
 
@@ -719,6 +783,8 @@ class host_mod(LDAPUpdate):
             entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
 
         self.obj.suppress_netgroup_memberof(entry_attrs)
+
+        output_sshpubkey(ldap, dn, entry_attrs)
 
         return dn
 
@@ -802,6 +868,8 @@ class host_find(LDAPSearch):
             if options.get('all', False):
                 entry_attrs['managing'] = self.obj.get_managed_hosts(entry[0])
 
+            output_sshpubkey(ldap, dn, entry_attrs)
+
 api.register(host_find)
 
 
@@ -830,6 +898,8 @@ class host_show(LDAPRetrieve):
             entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
 
         self.obj.suppress_netgroup_memberof(entry_attrs)
+
+        output_sshpubkey(ldap, dn, entry_attrs)
 
         return dn
 
