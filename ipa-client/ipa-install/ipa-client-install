@@ -39,6 +39,7 @@ try:
     from ipapython import version
     from ipapython import certmonger
     from ipapython.config import IPAOptionParser
+    from ipalib import api, errors
     import SSSDConfig
     from ConfigParser import RawConfigParser
     from optparse import SUPPRESS_HELP, OptionGroup
@@ -786,7 +787,6 @@ CCACHE_FILE = "/etc/ipa/.dns_ccache"
 def update_dns(server, hostname):
 
     ip = resolve_ipaddress(server)
-    princ = 'host/%s' % hostname
 
     sub_dict = dict(HOSTNAME=hostname,
                     IPADDRESS=ip,
@@ -816,12 +816,6 @@ def update_dns(server, hostname):
     update_fd.close()
 
     try:
-        ipautil.run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab', princ],
-                    env={'KRB5CCNAME':CCACHE_FILE})
-    except CalledProcessError, e:
-        print >>sys.stderr, "Failed to obtain host TGT."
-
-    try:
         ipautil.run(['/usr/bin/nsupdate', '-g', UPDATE_FILE],
                     env={'KRB5CCNAME':CCACHE_FILE})
         print "DNS server record set to: %s -> %s" % (hostname, ip)
@@ -830,7 +824,6 @@ def update_dns(server, hostname):
 
     try:
         os.remove(UPDATE_FILE)
-        os.remove(CCACHE_FILE)
     except:
         pass
 
@@ -1123,6 +1116,13 @@ def install(options, env, fstore, statestore):
         configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server)
         print "Created /etc/ipa/default.conf"
 
+    api.bootstrap(context='cli_installer', debug=options.debug)
+    api.finalize()
+    if 'config_loaded' not in api.env:
+        print >>sys.stderr, "Failed to initialize IPA API."
+        return CLIENT_INSTALL_ERROR
+    api.Backend.xmlclient.connect()
+
     # Always back up sssd.conf. It gets updated by authconfig --enablekrb5.
     fstore.backup_file("/etc/sssd/sssd.conf")
     if options.sssd:
@@ -1142,9 +1142,20 @@ def install(options, env, fstore, statestore):
 
         print "Configured /etc/krb5.conf for IPA realm " + cli_realm
 
-        client_dns(cli_server, hostname, options.dns_updates)
+    os.environ['KRB5CCNAME'] = CCACHE_FILE
+    try:
+        ipautil.run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab', 'host/%s' % hostname])
+    except CalledProcessError, e:
+        print >>sys.stderr, "Failed to obtain host TGT."
 
+    if not options.on_master:
+        client_dns(cli_server, hostname, options.dns_updates)
         configure_certmonger(fstore, subject_base, cli_realm, hostname, options)
+
+    try:
+        os.remove(CCACHE_FILE)
+    except:
+        pass
 
     #Name Server Caching Daemon. Disable for SSSD, use otherwise (if installed)
     nscd = ipaservices.knownservices.nscd
@@ -1306,3 +1317,8 @@ except KeyboardInterrupt:
     sys.exit(1)
 except RuntimeError, e:
     sys.exit(e)
+finally:
+    try:
+        os.remove(CCACHE_FILE)
+    except:
+        pass
