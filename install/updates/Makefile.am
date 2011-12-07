@@ -7,6 +7,7 @@ app_DATA =				\
 	10-RFC4876.update		\
 	10-config.update		\
 	10-sudo.update			\
+	10-ssh.update			\
 	19-managed-entries.update	\
 	20-aci.update			\
 	20-dna.update			\

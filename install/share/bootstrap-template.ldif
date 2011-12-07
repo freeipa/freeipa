@@ -192,6 +192,7 @@ objectClass: krbprincipalaux
 objectClass: krbticketpolicyaux
 objectClass: inetuser
 objectClass: ipaobject
+objectClass: ipasshuser
 uid: admin
 krbPrincipalName: admin@$REALM
 cn: Administrator
@@ -365,6 +366,7 @@ ipaUserObjectClasses: posixaccount
 ipaUserObjectClasses: krbprincipalaux
 ipaUserObjectClasses: krbticketpolicyaux
 ipaUserObjectClasses: ipaobject
+ipaUserObjectClasses: ipasshuser
 ipaDefaultEmailDomain: $DOMAIN
 ipaMigrationEnabled: FALSE
 ipaConfigString: AllowNThash
