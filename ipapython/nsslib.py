@@ -201,7 +201,11 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
         if nss.nss_is_initialized():
             # close any open NSS database and use the new one
             ssl.clear_session_cache()
-            nss.nss_shutdown()
+            try:
+                nss.nss_shutdown()
+            except NSPRError, e:
+                if e.errno != error.SEC_ERROR_NOT_INITIALIZED:
+                    raise e
         nss.nss_init(dbdir)
         ssl.set_domestic_policy()
         nss.set_password_callback(self.password_callback)
