@@ -1371,11 +1371,11 @@ div.entity[name=hbactest] .content-table tfoot td[name=external] {
     text-align: left;
 }
 
-div.entity[name=hbactest] div.facet[name=run] .hbac-test-header {
+div.entity[name=hbactest] div.facet[name=run_test] .hbac-test-header {
     height: 100px;
 }
 
-div.entity[name=hbactest] div.facet[name=run] .hbac-test-content {
+div.entity[name=hbactest] div.facet[name=run_test] .hbac-test-content {
     top: 100px;
 }
 

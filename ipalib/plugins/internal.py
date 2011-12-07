@@ -361,7 +361,17 @@ class i18n_messages(Command):
                 "services": _("Services"),
             },
             "hbactest": {
+                "access_denied": _("Access Denied"),
+                "access_granted": _("Access Granted"),
+                "include_disabled": _("Include Disabled"),
+                "include_enabled": _("Include Enabled"),
                 "label": _("HBAC Test"),
+                "matched": _("Matched"),
+                "new_test": _("New Test"),
+                "rules": _("Rules"),
+                "run_test": _("Run Test"),
+                "specify_external": _("Specify external ${entity}"),
+                "unmatched": _("Unmatched"),
             },
             "host": {
                 "certificate": _("Host Certificate"),
