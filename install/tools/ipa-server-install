@@ -792,12 +792,6 @@ def main():
     if options.reverse_zone and not bindinstance.verify_reverse_zone(options.reverse_zone, ip):
         sys.exit(1)
 
-    print "The IPA Master Server will be configured with"
-    print "Hostname:    " + host_name
-    print "IP address:  " + ip_address
-    print "Domain name: " + domain_name
-    print ""
-
     if not options.realm_name:
         realm_name = read_realm_name(domain_name, options.unattended)
         root_logger.debug("read realm_name: %s\n" % realm_name)
@@ -847,6 +841,25 @@ def main():
     else:
         dns_forwarders = ()
     root_logger.debug("will use dns_forwarders: %s\n" % str(dns_forwarders))
+
+    print
+    print "The IPA Master Server will be configured with:"
+    print "Hostname:      %s" % host_name
+    print "IP address:    %s" % ip_address
+    print "Domain name:   %s" % domain_name
+    print "Realm name:    %s" % realm_name
+    print
+
+    if options.setup_dns:
+        print "BIND DNS server will be configured to serve IPA domain with:"
+        print "Forwarders:    %s" % ("No forwarders" if not dns_forwarders \
+                else ", ".join([str(ip) for ip in dns_forwarders]))
+        print "Reverse zone:  %s" % ("No reverse zone" if options.no_reverse \
+                else reverse_zone)
+        print
+
+    if not options.unattended and not user_input("Continue to configure the system with these values?", False):
+        sys.exit("Installation aborted")
 
     # Installation has started. No IPA sysrestore items are restored in case of
     # failure to enable root cause investigation
