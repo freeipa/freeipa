@@ -28,6 +28,7 @@ try:
     from ipapython.ipa_log_manager import *
     import tempfile
     import getpass
+    from base64 import b64decode
     from ipaclient import ipadiscovery
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
@@ -83,6 +84,8 @@ def parse_options():
     basic_group.add_option("--ntp-server", dest="ntp_server", help="ntp server to use")
     basic_group.add_option("-N", "--no-ntp", action="store_false",
                       help="do not configure ntp", default=True, dest="conf_ntp")
+    basic_group.add_option("--no-dns-sshfp", dest="create_sshfp", default=True, action="store_false",
+                      help="do not automatically create DNS SSHFP records")
     basic_group.add_option("-f", "--force", dest="force", action="store_true",
                       default=False, help="force setting of LDAP/Kerberos conf")
     basic_group.add_option("-d", "--debug", dest="debug", action="store_true",
@@ -853,6 +856,65 @@ def client_dns(server, hostname, dns_updates=False):
     if dns_updates or not dns_ok:
         update_dns(server, hostname)
 
+def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
+    pubkeys = []
+    for basename in os.listdir(ssh_dir):
+        if not basename.endswith('.pub'):
+            continue
+        filename = os.path.join(ssh_dir, basename)
+
+        try:
+            f = open(filename, 'r')
+        except IOError, e:
+            root_logger.warning("Failed to open '%s': %s" % (filename, str(e)))
+            continue
+
+        for line in f:
+            line = line[:-1]
+            if line.startswith('#'):
+                continue
+            parts = line.split()
+            if len(parts) < 2:
+                continue
+            try:
+                pubkey = b64decode(parts[1])
+            except TypeError:
+                continue
+            try:
+                algo, data, fp = ipautil.decode_ssh_pubkey(pubkey)
+            except ValueError:
+                continue
+            if parts[0] != algo:
+                continue
+            root_logger.debug("Adding SSH public key from %s" % filename)
+            pubkeys.append(unicode(parts[1]))
+
+        f.close()
+
+    try:
+        result = api.Command['host_mod'](unicode(hostname), ipasshpubkey=pubkeys, updatedns=False)
+    except errors.EmptyModlist:
+        pass
+    except StandardError, e:
+        root_logger.warning("host_mod: %s" % str(e))
+        print >>sys.stderr, "Failed to upload host SSH public keys."
+        return
+
+    if create_sshfp:
+        zone = '.'.join(hostname.split('.')[1:])
+        ttl = 1200
+
+        update_txt = 'zone %s.\nupdate delete %s. IN SSHFP\nsend\n' % (zone, hostname)
+        for pubkey in pubkeys:
+            pubkey = b64decode(pubkey)
+            sshfp = ipautil.make_sshfp(pubkey)
+            if sshfp is not None:
+                update_txt += 'update add %s. %s IN SSHFP %s\n' % (hostname, ttl, sshfp)
+        update_txt += 'send\n'
+
+        if not do_nsupdate(update_txt):
+            print "Warning: Could not update DNS SSHFP records."
+
 def install(options, env, fstore, statestore):
     dnsok = False
 
@@ -1159,6 +1221,8 @@ def install(options, env, fstore, statestore):
     if not options.on_master:
         client_dns(cli_server, hostname, options.dns_updates)
         configure_certmonger(fstore, subject_base, cli_realm, hostname, options)
+
+    update_ssh_keys(cli_server, hostname, ipaservices.knownservices.sshd.get_config_dir(), options.create_sshfp)
 
     try:
         os.remove(CCACHE_FILE)
