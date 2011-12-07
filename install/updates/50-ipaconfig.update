@@ -2,3 +2,4 @@ dn: cn=ipaConfig,cn=etc,$SUFFIX
 default:ipaSELinuxUserMapOrder: guest_u:s0$$xguest_u:s0$$user_u:s0-s0:c0.c1023$$staff_u:s0-s0:c0.c1023$$unconfined_u:s0-s0:c0.c1023
 default:ipaSELinuxUserMapDefault: guest_u:s0
 
+add:ipaUserObjectClasses: ipasshuser
