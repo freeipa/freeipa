@@ -16,6 +16,7 @@ dn: $SUFFIX
 changetype: modify
 add: aci
 aci: (targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype  || businesscategory || ou")(version 3.0;acl "selfservice:User Self service";allow (write) userdn = "ldap:///self";)
+aci: (targetattr = "ipasshpubkey")(version 3.0;acl "selfservice:Users can manage their own SSH public keys";allow (write) userdn = "ldap:///self";)
 
 dn: cn=etc,$SUFFIX
 changetype: modify
@@ -52,6 +53,7 @@ dn: cn=computers,cn=accounts,$SUFFIX
 changetype: modify
 add: aci
 aci: (targetattr="usercertificate || krblastpwdchange || description || l || nshostlocation || nshardwareplatform || nsosversion")(version 3.0; acl "Hosts can modify their own certs and keytabs"; allow(write) userdn = "ldap:///self";)
+aci: (targetattr="ipasshpubkey")(version 3.0; acl "Hosts can modify their own SSH public keys"; allow(write) userdn = "ldap:///self";)
 
 # Define which hosts can edit other hosts
 # The managedby attribute stores the DN of hosts that are allowed to manage
@@ -60,6 +62,7 @@ dn: cn=computers,cn=accounts,$SUFFIX
 changetype: modify
 add: aci
 aci: (targetattr="userCertificate || krbPrincipalKey")(version 3.0; acl "Hosts can manage other host Certificates and kerberos keys"; allow(write) userattr = "parent[0,1].managedby#USERDN";)
+aci: (targetattr="ipasshpubkey")(version 3.0; acl "Hosts can manage other host SSH public keys"; allow(write) userattr = "parent[0,1].managedby#USERDN";)
 
 dn: cn=computers,cn=accounts,$SUFFIX
 changetype: modify

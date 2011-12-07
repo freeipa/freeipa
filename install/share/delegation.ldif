@@ -221,6 +221,14 @@ objectClass: ipapermission
 cn: Modify Users
 member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
 
+dn: cn=Manage User SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Manage User SSH Public Keys
+member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
+
 # Group administration
 
 dn: cn=Add Groups,cn=permissions,cn=pbac,$SUFFIX
@@ -279,6 +287,14 @@ objectClass: top
 objectClass: groupofnames
 objectClass: ipapermission
 cn: Modify Hosts
+member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Manage Host SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Manage Host SSH Public Keys
 member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
 
 # Hostgroup administration
@@ -554,6 +570,7 @@ aci: (targetattr = "krbLastAdminUnlock || krbLoginFailedCount")(target = "ldap:/
 aci: (targetattr = "member")(target = "ldap:///cn=ipausers,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add user to default group";allow (write) groupdn = "ldap:///cn=Add user to default group,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Users";allow (delete) groupdn = "ldap:///cn=Remove Users,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype || businesscategory || ou || mepmanagedentry || objectclass")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Users";allow (write) groupdn = "ldap:///cn=Modify Users,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "ipasshpubkey")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage User SSH Public Keys";allow (write) groupdn = "ldap:///cn=Manage User SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Group administration
 
@@ -575,6 +592,7 @@ add: aci
 aci: (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Hosts";allow (add) groupdn = "ldap:///cn=Add Hosts,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Hosts";allow (delete) groupdn = "ldap:///cn=Remove Hosts,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (targetattr = "description || l || nshostlocation || nshardwareplatform || nsosversion")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Hosts";allow (write) groupdn = "ldap:///cn=Modify Hosts,cn=permissions,cn=pbac,$SUFFIX";)
+aci: (targetattr = "ipasshpubkey")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage Host SSH Public Keys";allow (write) groupdn = "ldap:///cn=Manage Host SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Hostgroup administration
 
