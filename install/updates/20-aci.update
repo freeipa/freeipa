@@ -6,3 +6,13 @@ add:aci: '(targetfilter = "(objectClass=mepManagedEntry)")(targetattr = "*")(ver
 # We can do a query on a DN to see if an attribute exists.
 dn: cn=accounts,$SUFFIX
 add:aci: (targetattr="userPassword || krbPrincipalKey")(version 3.0; acl "Search existence of password and kerberos keys"; allow(search) userdn = "ldap:///all";)
+
+# SSH public keys
+dn: $SUFFIX
+add:aci:'(targetattr = "ipasshpubkey")(version 3.0;acl "selfservice:Users can manage their own SSH public keys";allow (write) userdn = "ldap:///self";)'
+
+dn: cn=computers,cn=accounts,$SUFFIX
+add:aci:'(targetattr="ipasshpubkey")(version 3.0; acl "Hosts can modify their own SSH public keys"; allow(write) userdn = "ldap:///self";)'
+
+dn: cn=computers,cn=accounts,$SUFFIX
+add:aci:'(targetattr="ipasshpubkey")(version 3.0; acl "Hosts can manage other host SSH public keys"; allow(write) userattr = "parent[0,1].managedby#USERDN";)'
