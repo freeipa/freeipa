@@ -200,6 +200,8 @@ def parse_options():
     dns_group.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
                       default=False,
                       help="Do not use DNS for hostname lookup during installation")
+    dns_group.add_option("--no-dns-sshfp", dest="create_sshfp", default=True, action="store_false",
+                      help="do not automatically create DNS SSHFP records")
     parser.add_option_group(dns_group)
 
     uninstall_group = OptionGroup(parser, "uninstall options")
@@ -1037,7 +1039,10 @@ def main():
 
     # Call client install script
     try:
-        run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--domain", domain_name, "--server", host_name, "--realm", realm_name, "--hostname", host_name])
+        args = ["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--domain", domain_name, "--server", host_name, "--realm", realm_name, "--hostname", host_name]
+        if not options.create_sshfp:
+            args.append("--no-dns-sshfp")
+        run(args)
     except Exception, e:
         sys.exit("Configuration of client side components failed!\nipa-client-install returned: " + str(e))
 
