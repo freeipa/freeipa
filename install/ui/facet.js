@@ -107,7 +107,7 @@ IPA.facet = function(spec) {
 
     that.load = function(data) {
         that.data = data;
-        that.header.load(data.result.result);
+        that.header.load(data);
     };
 
     that.refresh = function() {
@@ -367,6 +367,8 @@ IPA.facet_header = function(spec) {
     };
 
     that.load = function(data) {
+        if (!data) return;
+        var result = data.result.result;
         if (!that.facet.disable_facet_tabs) {
             var pkey = that.facet.pkey;
 
@@ -392,7 +394,7 @@ IPA.facet_header = function(spec) {
                     var facet = facets[j];
                     var link = $('li[name='+facet.name+'] a', span);
 
-                    var values = data ? data[facet.name] : null;
+                    var values = result ? result[facet.name] : null;
                     if (values) {
                         link.text(facet.label+' ('+values.length+')');
                     } else {
@@ -472,6 +474,13 @@ IPA.table_facet = function(spec) {
     that.load = function(data) {
         that.facet_load(data);
 
+        if (!data) {
+            that.table.empty();
+            that.table.summary.text('');
+            that.table.pagination_control.css('visibility', 'hidden');
+            return;
+        }
+
         that.table.current_page = 1;
         that.table.total_pages = 1;
 
@@ -483,6 +492,8 @@ IPA.table_facet = function(spec) {
 
         that.table.current_page_input.val(that.table.current_page);
         that.table.total_pages_span.text(that.table.total_pages);
+
+        that.table.pagination_control.css('visibility', 'visible');
     };
 
 
