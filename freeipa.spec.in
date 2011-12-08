@@ -92,17 +92,13 @@ Requires(pre): 389-ds-base >= 1.2.10-0.5.a5
 Requires: openldap-clients
 Requires: nss
 Requires: nss-tools
-%if 0%{?fedora} >= 16
-Requires: krb5-server >= 1.9.1-15
-%else
-Requires: krb5-server
-%endif
+Requires: krb5-server >= 1.9.2-6
 Requires: krb5-pkinit-openssl
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
 Requires: httpd
 Requires: mod_wsgi
-Requires: mod_auth_kerb >= 5.4-9
+Requires: mod_auth_kerb >= 5.4-8
 Requires: mod_nss >= 1.0.8-10
 Requires: python-ldap
 Requires: python-krbV
@@ -665,11 +661,14 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
-* Wed Jan 11 2012 Simo Sorce <simo@redhat.com? - 2.2.0-7
+* Tue Jan 31 2012 Rob Crittenden <rcritten@redhat.com> - 2.2.0-8
+- Set min for krb5-server to 1.9.2-6 to pick up needed s4u2proxy patches
+
+* Wed Jan 11 2012 Simo Sorce <simo@redhat.com> - 2.2.0-7
 - Remove dependency on samba4 libs
 
 * Wed Jan 11 2012 Rob Crittenden <rcritten@redhat.com> - 2.2.0-6
-- Set min for mod_auth_kerb to 5.4-9 to pick up s4u2proxy support
+- Set min for mod_auth_kerb to 5.4-8 to pick up s4u2proxy support
 
 * Tue Jan 10 2012 Alexander Bokovoy <abokovoy@redhat.com> - 2.2.0-5
 - Fix dependency for samba4-devel package

@@ -530,6 +530,9 @@ class API(DictProxy):
         parser.add_option('-d', '--debug', action='store_true',
             help='Produce full debuging output',
         )
+        parser.add_option('--delegate', action='store_true',
+            help='Delegate the TGT to the IPA server',
+        )
         parser.add_option('-v', '--verbose', action='count',
             help='Produce more verbose output. A second -v displays the XML-RPC request',
         )
@@ -570,7 +573,7 @@ class API(DictProxy):
                     pass
                 overrides[str(key.strip())] = value.strip()
         for key in ('conf', 'debug', 'verbose', 'prompt_all', 'interactive',
-            'fallback'):
+            'fallback', 'delegate'):
             value = getattr(options, key, None)
             if value is not None:
                 overrides[key] = value
