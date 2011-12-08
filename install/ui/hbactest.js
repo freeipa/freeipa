@@ -407,6 +407,25 @@ IPA.hbac.test_select_facet = function(spec) {
         }
     };
 
+    that.validate = function(record) {
+        if (record[that.name]) return true;
+
+        var dialog = IPA.message_dialog({
+            title: IPA.messages.dialogs.validation_title,
+            message: IPA.messages.dialogs.validation_message
+        });
+
+        dialog.on_ok = function() {
+            var state = {};
+            state[that.entity.name+'-facet'] = that.name;
+            IPA.nav.push_state(state);
+        };
+
+        dialog.open();
+
+        return false;
+    };
+
     init();
 
     return that;
@@ -675,15 +694,19 @@ IPA.hbac.test_run_facet = function(spec) {
 
         var facet = that.entity.get_facet('user');
         facet.save(options);
+        if (!facet.validate(options)) return;
 
         facet = that.entity.get_facet('targethost');
         facet.save(options);
+        if (!facet.validate(options)) return;
 
         facet = that.entity.get_facet('service');
         facet.save(options);
+        if (!facet.validate(options)) return;
 
         facet = that.entity.get_facet('sourcehost');
         facet.save(options);
+        if (!facet.validate(options)) return;
 
         facet = that.entity.get_facet('rules');
         facet.save(options);
