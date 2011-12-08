@@ -314,6 +314,11 @@ class exuser(Object):
         ),
     )
 
+    # You may not want to return all attributes in the entry by default.
+    # Use default_attributes to limit the list of returned values. The
+    # caller can set all to True to return all attributes.
+    default_attributes = ['uid', 'givenname', 'sn']
+
 # register the object, uncomment this line if you want to try it out
 #api.register(exuser)
 
@@ -352,7 +357,7 @@ class exuser_show(Method):
         if options.get('all', False):
             attrs_list = ['*']
         else:
-            attrs_list = [p.name for p in self.output_params()]
+            attrs_list = self.obj.default_attributes
 
         (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
         entry_attrs['dn'] = dn
@@ -398,7 +403,7 @@ class exuser_find(Method):
         if options.get('all', False):
             attrs_list = ['*']
         else:
-            attrs_list = [p.name for p in self.output_params()]
+            attrs_list = self.obj.default_attributes
 
         # perform the search
         (entries, truncated) = ldap.find_entries(

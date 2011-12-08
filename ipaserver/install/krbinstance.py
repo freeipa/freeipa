@@ -284,7 +284,7 @@ class KrbInstance(service.Service):
         entry.setValues("nsSaslMapFilterTemplate", '(krbPrincipalName=\\1@\\2)')
 
         try:
-            self.admin_conn.add_s(entry)
+            self.admin_conn.addEntry(entry)
         except ldap.ALREADY_EXISTS:
             logging.critical("failed to add Full Principal Sasl mapping")
             raise e
@@ -297,7 +297,7 @@ class KrbInstance(service.Service):
         entry.setValues("nsSaslMapFilterTemplate", '(krbPrincipalName=&@%s)' % self.realm)
 
         try:
-            self.admin_conn.add_s(entry)
+            self.admin_conn.addEntry(entry)
         except ldap.ALREADY_EXISTS:
             logging.critical("failed to add Name Only Sasl mapping")
             raise e
