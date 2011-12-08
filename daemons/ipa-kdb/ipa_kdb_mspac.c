@@ -54,7 +54,7 @@ krb5int_find_authdata(krb5_context context,
 #define KRB5_PAC_SERVER_CHECKSUM 6
 #endif
 #ifndef KRB5_PAC_PRIVSVR_CHECKSUM
-#define KRB5_PAC_PRIVSVR_CHECKSUM 6
+#define KRB5_PAC_PRIVSVR_CHECKSUM 7
 #endif
 
 static char *user_pac_attrs[] = {
