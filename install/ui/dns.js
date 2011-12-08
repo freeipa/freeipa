@@ -447,35 +447,41 @@ IPA.dns.record_search_facet = function(spec) {
 
     var that = IPA.nested_search_facet(spec);
 
-    var init = function() {
+    that.load_all = function(data) {
 
-        that.table.load = function(result) {
+        var types = IPA.dns_record_types();
 
-            that.table.empty();
+        var result = data.result.result;
+        var records = [];
 
-            var types = IPA.dns_record_types();
+        for (var i=0; i<result.length; i++) {
+            var record = result[i];
 
-            for (var i=0; i<result.length; i++) {
-                var record = result[i];
+            for (var j=0; j<types.length; j++) {
+                var type = types[j];
+                if (!record[type.value]) continue;
 
-                for (var j=0; j<types.length; j++) {
-                    var type = types[j].value;
-                    if (!record[type]) continue;
-
-                    var data = record[type];
-                    for (var k=0; k<data.length; k++) {
-                        that.table.add_record({
-                            idnsname: record.idnsname,
-                            type: type,
-                            data: data[k]
-                        });
-                    }
+                var values = record[type.value];
+                for (var k=0; k<values.length; k++) {
+                    records.push({
+                        idnsname: record.idnsname,
+                        type: type.label,
+                        data: values[k]
+                    });
                 }
             }
-        };
-    };
+        }
 
-    init();
+        that.load_records(records);
+
+        if (data.result.truncated) {
+            var message = IPA.messages.search.truncated;
+            message = message.replace('${counter}', data.result.count);
+            that.table.summary.text(message);
+        } else {
+            that.table.summary.text(data.result.summary);
+        }
+    };
 
     return that;
 };
