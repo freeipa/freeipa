@@ -575,6 +575,10 @@ class ldap2(CrudBackend, Encoder):
         """
         assert isinstance(filters, (list, tuple))
         filters = [f for f in filters if f]
+        if filters and rules == self.MATCH_NONE: # unary operator
+            return '(%s%s)' % (self.MATCH_NONE,
+                               self.combine_filters(filters, self.MATCH_ANY))
+
         if len(filters) > 1:
             flt = '(%s' % rules
         else:
@@ -603,19 +607,10 @@ class ldap2(CrudBackend, Encoder):
                                       False - forbid trailing filter wildcard when exact=False
         """
         if isinstance(value, (list, tuple)):
-            flts = []
-            if rules == self.MATCH_NONE:
-                for v in value:
-                    flts.append(
-                        self.make_filter_from_attr(attr, v, exact=exact,
+            make_filter_rules = self.MATCH_ANY if rules == self.MATCH_NONE else rules
+            flts = [ self.make_filter_from_attr(attr, v, exact=exact,
                             leading_wildcard=leading_wildcard,
-                            trailing_wildcard=trailing_wildcard)
-                    )
-                return '(!%s)' % self.combine_filters(flts)
-            for v in value:
-                flts.append(self.make_filter_from_attr(attr, v, rules, exact,
-                            leading_wildcard=leading_wildcard,
-                            trailing_wildcard=trailing_wildcard))
+                            trailing_wildcard=trailing_wildcard) for v in value ]
             return self.combine_filters(flts, rules)
         elif value is not None:
             value = _ldap_filter.escape_filter_chars(value)
@@ -651,11 +646,12 @@ class ldap2(CrudBackend, Encoder):
         ldap2.MATCH_ALL - match entries that match all attributes
         ldap2.MATCH_ANY - match entries that match any of attribute
         """
+        make_filter_rules = self.MATCH_ANY if rules == self.MATCH_NONE else rules
         flts = []
         if attrs_list is None:
             for (k, v) in entry_attrs.iteritems():
                 flts.append(
-                    self.make_filter_from_attr(k, v, rules, exact,
+                    self.make_filter_from_attr(k, v, make_filter_rules, exact,
                         leading_wildcard, trailing_wildcard)
                 )
         else:
@@ -663,7 +659,7 @@ class ldap2(CrudBackend, Encoder):
                 value = entry_attrs.get(a, None)
                 if value is not None:
                     flts.append(
-                        self.make_filter_from_attr(a, value, rules, exact,
+                        self.make_filter_from_attr(a, value, make_filter_rules, exact,
                             leading_wildcard, trailing_wildcard)
                     )
         return self.combine_filters(flts, rules)
