@@ -18,6 +18,12 @@ dn: $SUFFIX
 add:aci: '(targetattr = "ipausersearchfields || ipagroupsearchfields || ipasearchtimelimit || ipasearchrecordslimit || ipacustomfields || ipahomesrootdir || ipadefaultloginshell || ipadefaultprimarygroup || ipamaxusernamelength || ipapwdexpadvnotify || ipauserobjectclasses || ipagroupobjectclasses || ipadefaultemaildomain || ipamigrationenabled || ipacertificatesubjectbase || ipaconfigstring")(target = "ldap:///cn=ipaconfig,cn=etc,$SUFFIX" )(version 3.0 ; acl "permission:Write IPA Configuration"; allow (write) groupdn = "ldap:///cn=Write IPA Configuration,cn=permissions,cn=pbac,$SUFFIX";)'
 
 # Host-Based Access Control
+dn: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: nestedgroup
+default:objectClass: groupofnames
+default:objectClass: top
+default:cn: HBAC Administrator
+default:description: HBAC Administrator
 
 dn: cn=Add HBAC rule,cn=permissions,cn=pbac,$SUFFIX
 default:objectClass: groupofnames
@@ -82,13 +88,6 @@ default:objectClass: top
 default:cn: Manage HBAC service group membership
 default:member: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
-default:objectClass: nestedgroup
-default:objectClass: groupofnames
-default:objectClass: top
-default:cn: HBAC Administrator
-default:description: HBAC Administrator
-
 dn: $SUFFIX
 add:aci: '(target = "ldap:///ipauniqueid=*,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Add HBAC rule";allow (add) groupdn = "ldap:///cn=Add HBAC rule,cn=permissions,cn=pbac,$SUFFIX";)'
 add:aci: '(target = "ldap:///ipauniqueid=*,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Delete HBAC rule";allow (delete) groupdn = "ldap:///cn=Delete HBAC rule,cn=permissions,cn=pbac,$SUFFIX";)'
@@ -101,6 +100,13 @@ add:aci: '(target = "ldap:///cn=*,cn=hbacservicegroups,cn=hbac,$SUFFIX")(version
 add:aci: '(targetattr = "member")(target = "ldap:///cn=*,cn=hbacservicegroups,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Manage HBAC service group membership";allow (write) groupdn = "ldap:///cn=Manage HBAC service group membership,cn=permissions,cn=pbac,$SUFFIX";)'
 
 # SUDO
+
+dn: cn=Sudo Administrator,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: nestedgroup
+default:objectClass: groupofnames
+default:objectClass: top
+default:cn: Sudo Administrator
+default:description: Sudo Administrator
 
 dn: cn=Add Sudo rule,cn=permissions,cn=pbac,$SUFFIX
 default:objectClass: groupofnames
@@ -165,13 +171,6 @@ default:objectClass: top
 default:cn: Manage Sudo command group membership
 default:member: cn=Sudo Administrator,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=Sudo Administrator,cn=privileges,cn=pbac,$SUFFIX
-default:objectClass: nestedgroup
-default:objectClass: groupofnames
-default:objectClass: top
-default:cn: Sudo Administrator
-default:description: Sudo Administrator
-
 dn: $SUFFIX
 add:aci: '(target = "ldap:///ipauniqueid=*,cn=sudorules,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Add Sudo rule";allow (add) groupdn = "ldap:///cn=Add Sudo rule,cn=permissions,cn=pbac,$SUFFIX";)'
 add:aci: '(target = "ldap:///ipauniqueid=*,cn=sudorules,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Delete Sudo rule";allow (delete) groupdn = "ldap:///cn=Delete Sudo rule,cn=permissions,cn=pbac,$SUFFIX";)'
@@ -184,6 +183,13 @@ add:aci: '(target = "ldap:///cn=*,cn=sudocmdgroups,cn=sudo,$SUFFIX")(version 3.0
 add:aci: '(targetattr = "member")(target = "ldap:///cn=*,cn=sudocmdgroups,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Manage Sudo command group membership";allow (write) groupdn = "ldap:///cn=Manage Sudo command group membership,cn=permissions,cn=pbac,$SUFFIX";)'
 
 # Password Policy
+dn: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: nestedgroup
+default:objectClass: groupofnames
+default:objectClass: top
+default:cn: Password Policy Administrator
+default:description: Password Policy Administrator
+
 dn: cn=Add Group Password Policy costemplate,cn=permissions,cn=pbac,$SUFFIX
 default:objectClass: groupofnames
 default:objectClass: ipapermission
@@ -225,13 +231,6 @@ default:objectClass: ipapermission
 default:objectClass: top
 default:cn: Modify Group Password Policy
 default:member: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
-default:objectClass: nestedgroup
-default:objectClass: groupofnames
-default:objectClass: top
-default:cn: Password Policy Administrator
-default:description: Password Policy Administrator
 
 dn: $SUFFIX
 add:aci: '(target = "ldap:///cn=*,cn=costemplates,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Group Password Policy costemplate";allow (add) groupdn = "ldap:///cn=Add Group Password Policy costemplate,cn=permissions,cn=pbac,$SUFFIX";)'
