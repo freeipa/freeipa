@@ -1,0 +1,10 @@
+#
+# This needs to come later in the cycle otherwise the DN sorting is going
+# to cause it to execute before the member attributes are added
+dn: cn=Update PBAC memberOf $TIME, cn=memberof task, cn=tasks, cn=config
+add: objectClass: top
+add: objectClass: extensibleObject
+add: cn: IPA PBAC memberOf $TIME
+add: basedn: 'cn=privileges,cn=pbac,$SUFFIX'
+add: filter: (objectclass=*)
+add: ttl: 10
