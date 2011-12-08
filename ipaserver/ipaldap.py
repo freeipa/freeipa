@@ -31,6 +31,7 @@ import cStringIO
 import time
 import struct
 import ldap.sasl
+import ldapurl
 from ldap.controls import LDAPControl,DecodeControlTuples,EncodeControlTuples
 from ldap.ldapobject import SimpleLDAPObject
 from ipaserver import ipautil
@@ -38,9 +39,11 @@ from ipalib import errors
 from ipapython.ipautil import format_netloc
 from ipapython.entity import Entity
 from ipaserver.plugins.ldap2 import IPASimpleLDAPObject
+from ipaserver.install import installutils
 
 # Global variable to define SASL auth
 SASL_AUTH = ldap.sasl.sasl({},'GSSAPI')
+DEFAULT_TIMEOUT = 10
 
 class IPAEntryLDAPObject(IPASimpleLDAPObject):
     def __init__(self, *args, **kwds):
@@ -331,6 +334,26 @@ class IPAdmin(IPAEntryLDAPObject):
         except ldap.LDAPError, e:
             raise errors.DatabaseError(desc=desc,info=info)
 
+    def __wait_for_connection(self, timeout):
+        lurl = ldapurl.LDAPUrl(self._uri)
+        if lurl.urlscheme == 'ldapi':
+            installutils.wait_for_open_socket(lurl.hostport, timeout)
+        else:
+            (host,port) = lurl.hostport.split(':')
+            installutils.wait_for_open_ports(host, int(port), timeout)
+
+    def __bind_with_wait(self, bind_func, timeout, *args, **kwargs):
+        try:
+            bind_func(*args, **kwargs)
+        except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN), e:
+            if not timeout:
+                raise e
+            try:
+                self.__wait_for_connection(timeout)
+            except:
+                raise e
+            bind_func(*args, **kwargs)
+
     def toLDAPURL(self):
         return "ldap://%s/" % format_netloc(self.host, self.port)
 
@@ -347,19 +370,19 @@ class IPAdmin(IPAEntryLDAPObject):
         except ldap.LDAPError, e:
             self.__handle_errors(e)
 
-    def do_simple_bind(self, binddn="cn=directory manager", bindpw=""):
+    def do_simple_bind(self, binddn="cn=directory manager", bindpw="", timeout=DEFAULT_TIMEOUT):
         self.binddn = binddn
         self.bindpwd = bindpw
-        self.simple_bind_s(binddn, bindpw)
+        self.__bind_with_wait(self.simple_bind_s, timeout, binddn, bindpw)
         self.__lateinit()
 
-    def do_sasl_gssapi_bind(self):
-        self.sasl_interactive_bind_s('', SASL_AUTH)
+    def do_sasl_gssapi_bind(self, timeout=DEFAULT_TIMEOUT):
+        self.__bind_with_wait(self.sasl_interactive_bind_s, timeout, '', SASL_AUTH)
         self.__lateinit()
 
-    def do_external_bind(self, user_name=None):
+    def do_external_bind(self, user_name=None, timeout=DEFAULT_TIMEOUT):
         auth_tokens = ldap.sasl.external(user_name)
-        self.sasl_interactive_bind_s("", auth_tokens)
+        self.__bind_with_wait(self.sasl_interactive_bind_s, timeout, '', auth_tokens)
         self.__lateinit()
 
     def getEntry(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
