@@ -1064,7 +1064,7 @@ IPA.table_widget = function (spec) {
 
         if (that.selectable) {
             th = $('<th/>', {
-                'style': 'width: 22px;'
+                'style': 'width: '+IPA.checkbox_column_width+'px;'
             }).appendTo(tr);
 
             if (that.multivalued) {
@@ -1101,29 +1101,32 @@ IPA.table_widget = function (spec) {
                     /* don't use the checkbox column as part of the overall
                        calculation for column widths.  It is so small
                        that it throws off the average. */
-                    width = (that.table.width() -
-                             (that.selectable ?
-                              IPA.checkbox_column_width : 0)) /
+                    width = (that.table.width() - 4 -
+                             ((that.selectable ?
+                              IPA.checkbox_column_width : 0) + 14)) /
                         columns.length;
+                    width -= 16; //cell padding, border, spacing
                 }
                 width += 'px';
                 th.css('width', width);
+                th.css('max-width', width);
                 column.width = width;
             } else {
                 if (column.width) {
                     th.css('width', column.width);
+                    th.css('max-width', column.width);
                 }
             }
 
             var label = column.label;
 
-            $('<span/>', {
+            $('<div/>', {
                 'style': 'float: left;',
                 'html': label
             }).appendTo(th);
 
             if (i == columns.length-1) {
-                that.buttons = $('<span/>', {
+                that.buttons = $('<div/>', {
                     'name': 'buttons',
                     'style': 'float: right;'
                 }).appendTo(th);
@@ -1145,7 +1148,7 @@ IPA.table_widget = function (spec) {
 
         if (that.selectable) {
             td = $('<td/>', {
-                'style': 'width: '+ IPA.checkbox_column_width +'px;'
+                'style': 'width: '+ (IPA.checkbox_column_width + 7) +'px;'
             }).appendTo(that.row);
 
             if (that.multivalued) {
@@ -1168,10 +1171,14 @@ IPA.table_widget = function (spec) {
 
             td = $('<td/>').appendTo(that.row);
             if (column.width) {
-                td.css('width', column.width);
+                width = parseInt(
+                        column.width.substring(0, column.width.length-2),10);
+                width += 7; //data cells lack right padding
+                td.css('width', width);
+                td.css('max-width', width);
             }
 
-            $('<span/>', {
+            $('<div/>', {
                 'name': column.name
             }).appendTo(td);
         }
@@ -1375,9 +1382,9 @@ IPA.table_widget = function (spec) {
                 $('input[name="'+that.name+'"]', tr).val(value);
             }
 
-            var span = $('span[name="'+column.name+'"]', tr);
+            var div = $('div[name="'+column.name+'"]', tr);
 
-            column.setup(span, record);
+            column.setup(div, record);
         }
     };
 

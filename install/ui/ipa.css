@@ -680,7 +680,7 @@ span.main-nav-off > a:visited {
 }
 
 .search-table thead tr th {
-    padding: 0 0.5em;
+    padding: 0 6px;
     background-color:#f6f6f6;
     color:#333333;
     text-align: left;
@@ -689,11 +689,17 @@ span.main-nav-off > a:visited {
 }
 
 .search-table thead tr th .action-button {
-    margin: 0 0 0 0.5em;
+    margin: 0 0 0 6px;
 }
 
 .search-table tbody td {
-    padding-left: 0.5em;
+    padding: 0 0 0 7px;
+}
+
+.search-table thead th div,
+.search-table tbody td div
+{
+    word-wrap: break-word;
 }
 
 .search-table tfoot td {
@@ -820,9 +826,11 @@ hr {
 .section-cell-label {
     vertical-align: top;
     width: 120px;
+    max-width: 120px;
 }
 
 .section-cell-field {
+    max-width: 650px;
 }
 
 .details-section {
@@ -841,10 +849,12 @@ hr {
     text-align: right;
     vertical-align: top;
     width: 120px;
+    word-wrap: break-word;
 }
 
 .details-section .section-cell-field {
     font-weight: bold;
+    word-wrap: break-word;
 }
 
 .undo {
@@ -1111,11 +1121,12 @@ table.scrollable tbody {
     right: 0;
     height: 1.5em;
     line-height: 1.5em;
+    padding: 0.2em 1em;
 }
 
 .adder-dialog-content {
     position: absolute;
-    top: 1.5em;
+    top: 1.9em;
     left: 0;
     right: 0;
     bottom: 0;
@@ -1177,7 +1188,7 @@ table.scrollable tbody {
 }
 
 .adder-dialog-external .adder-dialog-content {
-    top: 1.9em;
+    top: 2.1em;
 }
 
 .adder-dialog-external input {

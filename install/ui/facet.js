@@ -193,12 +193,28 @@ IPA.facet_header = function(spec) {
         }
     };
 
+    that.limit_text = function(value, max_length) {
+
+        if (!value) return '';
+
+        var limited_text = value;
+
+        if (value.length && value.length > max_length + 3) {
+            limited_text = value.substring(0, max_length)+'...';
+        }
+
+        return limited_text;
+    };
+
     that.set_pkey = function(value) {
 
         if (!value) return;
 
+        var limited_value = that.limit_text(value, 60);
+
         if (!that.facet.disable_breadcrumb) {
             var breadcrumb = [];
+
             var entity = that.facet.entity.get_containing_entity();
 
             while (entity) {
@@ -218,17 +234,25 @@ IPA.facet_header = function(spec) {
             }
 
             that.path.empty();
+            var key_max_lenght = 60/breadcrumb.length;
 
-            for (var i=0; i<breadcrumb.length; i++){
+            for (var i=0; i<breadcrumb.length; i++) {
+                var item = breadcrumb[i];
+
+                var entity_key = item.text();
+                var limited_entity_key = that.limit_text(entity_key, key_max_lenght);
+                item.text(limited_entity_key);
+
                 that.path.append(' &raquo; ');
-                that.path.append(breadcrumb[i]);
+                that.path.append(item);
             }
 
             that.path.append(' &raquo; ');
 
             $('<span>', {
                 'class': 'breadcrumb-element',
-                text: value
+                title: value,
+                text: limited_value
             }).appendTo(that.path);
         }
 
@@ -239,7 +263,8 @@ IPA.facet_header = function(spec) {
 
         $('<span/>', {
             'class': 'facet-pkey',
-            text: value
+            title: value,
+            text: limited_value
         }).appendTo(h3);
     };
 
