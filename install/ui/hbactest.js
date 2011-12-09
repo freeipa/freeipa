@@ -586,7 +586,7 @@ IPA.hbac.test_run_facet = function(spec) {
         that.unmatched_checkbox = $('<input/>', {
             id: 'hbactest-rules-unmatched',
             type: 'checkbox',
-            name: 'disabled',
+            name: 'unmatched',
             checked: true,
             change: function() {
                 that.show_unmatched = that.unmatched_checkbox.is(':checked');
