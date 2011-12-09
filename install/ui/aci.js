@@ -32,7 +32,7 @@ IPA.aci.permission_entity = function(spec) {
     that.init = function() {
         that.entity_init();
 
-        that.builder.facet_groups([ 'privilege' , 'settings' ]).
+        that.builder.facet_groups(['settings', 'privilege']).
         search_facet({
             columns: [ 'cn' ]
         }).
@@ -207,7 +207,7 @@ IPA.aci.privilege_entity = function(spec) {
     that.init = function() {
         that.entity_init();
 
-        that.builder.facet_groups([ 'role', 'settings', 'permission' ]).
+        that.builder.facet_groups(['permission', 'settings', 'role']).
         search_facet({
             columns: [
                 'cn',
@@ -264,7 +264,7 @@ IPA.aci.role_entity = function(spec) {
     that.init = function() {
         that.entity_init();
 
-        that.builder.facet_groups([ 'member', 'settings', 'privilege' ]).
+        that.builder.facet_groups(['member', 'privilege', 'settings']).
         search_facet({
             columns: [
                 'cn',
