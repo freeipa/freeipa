@@ -1097,6 +1097,19 @@ IPA.error_list = function() {
     return that;
 };
 
+IPA.limit_text = function(value, max_length) {
+
+    if (!value) return '';
+
+    var limited_text = value;
+
+    if (value.length && value.length > max_length) {
+        limited_text = value.substring(0, max_length - 3)+'...';
+    }
+
+    return limited_text;
+};
+
 IPA.config = {
     default_priority: 500
 };
