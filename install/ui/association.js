@@ -207,6 +207,8 @@ IPA.association_adder_dialog = function(spec) {
             other_attribute_member = 'memberof';
         else if (that.attribute_member == 'memberof')
             other_attribute_member = 'member';
+        else if (that.attribute_member == 'managedby')
+            other_attribute_member = 'managing';
 
         var relationship = relationships[other_attribute_member];
         if (relationship) {
