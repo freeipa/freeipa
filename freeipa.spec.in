@@ -31,7 +31,7 @@ BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
 %if 0%{?fedora} >= 16
 BuildRequires:  systemd-units
 %endif
-BuildRequires: samba-4.0-devel
+BuildRequires: samba4-devel
 %endif
 BuildRequires:  nspr-devel
 BuildRequires:  nss-devel
@@ -615,6 +615,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Tue Jan 10 2012 Alexander Bokovoy <abokovoy@redhat.com> - 2.2.0-5
+- Fix dependency for samba4-devel package
+
 * Mon Jan  9 2012 Endi S. Dewata <edewata@redhat.com> - 2.2.0-4
 - Removed hbac-deny-remove.html
 
