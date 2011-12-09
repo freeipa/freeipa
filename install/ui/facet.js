@@ -193,24 +193,11 @@ IPA.facet_header = function(spec) {
         }
     };
 
-    that.limit_text = function(value, max_length) {
-
-        if (!value) return '';
-
-        var limited_text = value;
-
-        if (value.length && value.length > max_length + 3) {
-            limited_text = value.substring(0, max_length)+'...';
-        }
-
-        return limited_text;
-    };
-
     that.set_pkey = function(value) {
 
         if (!value) return;
 
-        var limited_value = that.limit_text(value, 60);
+        var limited_value = IPA.limit_text(value, 60);
 
         if (!that.facet.disable_breadcrumb) {
             var breadcrumb = [];
@@ -234,13 +221,13 @@ IPA.facet_header = function(spec) {
             }
 
             that.path.empty();
-            var key_max_lenght = 60/breadcrumb.length;
+            var key_max_lenght = 60 / breadcrumb.length;
 
             for (var i=0; i<breadcrumb.length; i++) {
                 var item = breadcrumb[i];
 
                 var entity_key = item.text();
-                var limited_entity_key = that.limit_text(entity_key, key_max_lenght);
+                var limited_entity_key = IPA.limit_text(entity_key, key_max_lenght);
                 item.text(limited_entity_key);
 
                 that.path.append(' &raquo; ');
@@ -381,13 +368,15 @@ IPA.facet_header = function(spec) {
 
                 var label = facet_group.label;
                 if (pkey && label) {
-                    label = label.replace('${primary_key}', pkey);
+                    var limited_pkey = IPA.limit_text(pkey, 20);
+                    label = label.replace('${primary_key}', limited_pkey);
                 } else {
                     label = '';
                 }
 
                 var label_container = $('.facet-group-label', span);
                 label_container.text(label);
+                if (pkey) label_container.attr('title', pkey);
 
                 var facets = facet_group.facets.values;
                 for (var j=0; j<facets.length; j++) {

@@ -1091,32 +1091,27 @@ IPA.table_widget = function (spec) {
 
             th = $('<th/>').appendTo(tr);
 
-            if (that.scrollable) {
-                var width;
-                if (column.width) {
-                    width = parseInt(
-                        column.width.substring(0, column.width.length-2),10);
-                    width += 16;
-                } else {
-                    /* don't use the checkbox column as part of the overall
-                       calculation for column widths.  It is so small
-                       that it throws off the average. */
-                    width = (that.table.width() - 4 -
-                             ((that.selectable ?
-                              IPA.checkbox_column_width : 0) + 14)) /
-                        columns.length;
-                    width -= 16; //cell padding, border, spacing
-                }
-                width += 'px';
-                th.css('width', width);
-                th.css('max-width', width);
-                column.width = width;
+            var width;
+            var cell_spacing = 16; //cell padding(2x6px), border (2x1px), spacing (2px)
+            if (column.width) {
+                width = parseInt(
+                    column.width.substring(0, column.width.length-2),10);
+                width += 16;
             } else {
-                if (column.width) {
-                    th.css('width', column.width);
-                    th.css('max-width', column.width);
-                }
+                /* don't use the checkbox column as part of the overall
+                    calculation for column widths.  It is so small
+                    that it throws off the average. */
+                width = (that.thead.width() -
+                        2 - //first cell spacing
+                        ((that.selectable ? IPA.checkbox_column_width +
+                          cell_spacing : 0))) /
+                        columns.length;
+                width -= cell_spacing;
             }
+            width += 'px';
+            th.css('width', width);
+            th.css('max-width', width);
+            column.width = width;
 
             var label = column.label;
 
@@ -1131,9 +1126,7 @@ IPA.table_widget = function (spec) {
                     'style': 'float: right;'
                 }).appendTo(th);
             }
-            if (that.scrollable && !column.width){
-                column.width = th.width() +'px';
-            }
+
         }
 
         that.tbody = $('<tbody/>').appendTo(that.table);
@@ -1174,6 +1167,7 @@ IPA.table_widget = function (spec) {
                 width = parseInt(
                         column.width.substring(0, column.width.length-2),10);
                 width += 7; //data cells lack right padding
+                width += 'px';
                 td.css('width', width);
                 td.css('max-width', width);
             }
