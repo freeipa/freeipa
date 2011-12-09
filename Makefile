@@ -161,6 +161,7 @@ tarballs: local-archive
 	rm -rf dist/$(TARBALL_PREFIX)
 
 rpmroot:
+	rm -rf $(RPMBUILD)
 	mkdir -p $(RPMBUILD)/BUILD
 	mkdir -p $(RPMBUILD)/RPMS
 	mkdir -p $(RPMBUILD)/SOURCES
