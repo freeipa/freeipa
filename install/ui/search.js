@@ -162,8 +162,11 @@ IPA.search_facet = function(spec) {
         var pkeys = [];
         for (var i=0; i<result.length; i++) {
             var record = result[i];
-            var values = record[pkey_name];
-            pkeys.push(values[0]);
+            var value = record[pkey_name];
+            if (value instanceof Array) {
+                value = value[0];
+            }
+            pkeys.push(value);
         }
         return pkeys;
     };
