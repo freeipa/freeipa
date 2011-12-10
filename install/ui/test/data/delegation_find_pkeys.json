@@ -1,0 +1,14 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "count": 1,
+        "result": [
+            {
+                "aciname": "Test Delegation"
+            }
+        ],
+        "summary": "1 delegation matched",
+        "truncated": false
+    }
+}

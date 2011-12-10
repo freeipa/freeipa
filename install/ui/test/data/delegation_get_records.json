@@ -1,0 +1,30 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "count": 1,
+        "results": [
+            {
+                "error": null,
+                "result": {
+                    "aciname": "Test Delegation",
+                    "attrs": [
+                        "cn",
+                        "displayname",
+                        "givenname",
+                        "initials",
+                        "sn",
+                        "title"
+                    ],
+                    "group": "editors",
+                    "memberof": "ipausers",
+                    "permissions": [
+                        "write"
+                    ]
+                },
+                "summary": null,
+                "value": "Test Delegation"
+            }
+        ]
+    }
+}

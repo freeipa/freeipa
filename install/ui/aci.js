@@ -327,7 +327,6 @@ IPA.aci.selfservice_entity = function(spec) {
         that.entity_init();
 
         that.builder.search_facet({
-            pagination: false,
             columns: [ 'aciname' ]
         }).
         details_facet({
@@ -371,7 +370,6 @@ IPA.aci.delegation_entity = function(spec) {
         that.entity_init();
 
         that.builder.search_facet({
-            pagination: false,
             columns: [ 'aciname' ]
         }).
         details_facet({
