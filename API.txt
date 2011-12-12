@@ -2894,7 +2894,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: user_add
-args: 1,31,3
+args: 1,32,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, required=True)
 option: Str('givenname', attribute=True, cli_name='first', multivalue=False, required=True)
 option: Str('sn', attribute=True, cli_name='last', multivalue=False, required=True)
@@ -2907,6 +2907,7 @@ option: Str('loginshell', attribute=True, cli_name='shell', default=u'/bin/sh', 
 option: Str('krbprincipalname', attribute=True, autofill=True, cli_name='principal', multivalue=False, required=False)
 option: Str('mail', attribute=True, cli_name='email', multivalue=True, required=False)
 option: Password('userpassword', attribute=True, cli_name='password', exclude='webui', multivalue=False, required=False)
+option: Flag('random', attribute=False, autofill=True, cli_name='random', default=False, multivalue=False, required=False)
 option: Int('uidnumber', attribute=True, autofill=True, cli_name='uid', default=999, minvalue=1, multivalue=False, required=True)
 option: Int('gidnumber', attribute=True, autofill=True, cli_name='gidnumber', multivalue=False, required=True)
 option: Str('street', attribute=True, cli_name='street', multivalue=False, required=False)
@@ -3000,7 +3001,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: user_mod
-args: 1,32,3
+args: 1,33,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', pattern_errmsg='may only include letters, numbers, _, -, . and $', primary_key=True, query=True, required=True)
 option: Str('givenname', attribute=True, autofill=False, cli_name='first', multivalue=False, required=False)
 option: Str('sn', attribute=True, autofill=False, cli_name='last', multivalue=False, required=False)
@@ -3012,6 +3013,7 @@ option: Str('gecos', attribute=True, autofill=False, cli_name='gecos', multivalu
 option: Str('loginshell', attribute=True, autofill=False, cli_name='shell', default=u'/bin/sh', multivalue=False, required=False)
 option: Str('mail', attribute=True, autofill=False, cli_name='email', multivalue=True, required=False)
 option: Password('userpassword', attribute=True, autofill=False, cli_name='password', exclude='webui', multivalue=False, required=False)
+option: Flag('random', attribute=False, autofill=True, cli_name='random', default=False, multivalue=False, required=False)
 option: Int('uidnumber', attribute=True, autofill=False, cli_name='uid', default=999, minvalue=1, multivalue=False, required=False)
 option: Int('gidnumber', attribute=True, autofill=False, cli_name='gidnumber', multivalue=False, required=False)
 option: Str('street', attribute=True, autofill=False, cli_name='street', multivalue=False, required=False)

@@ -550,20 +550,34 @@ def parse_generalized_time(timestr):
     except ValueError:
         return None
 
-def ipa_generate_password():
+def ipa_generate_password(characters=None,pwd_len=None):
+    ''' Generates password. Password cannot start or end with a whitespace
+    character. It also cannot be formed by whitespace characters only.
+    Length of password as well as string of characters to be used by
+    generator could be optionaly specified by characters and pwd_len
+    parameters, otherwise default values will be used: characters string
+    will be formed by all printable non-whitespace characters and space,
+    pwd_len will be equal to value of GEN_PWD_LEN.
+    '''
+    if not characters:
+        characters=string.digits + string.ascii_letters + string.punctuation + ' '
+    else:
+        if characters.isspace():
+            raise ValueError("password cannot be formed by whitespaces only")
+    if not pwd_len:
+        pwd_len = GEN_PWD_LEN
+
+    upper_bound = len(characters) - 1
     rndpwd = ''
     r = random.SystemRandom()
-    for x in range(GEN_PWD_LEN):
-        # do not generate space (chr(32)) as the first or last character
-        if x == 0 or x == (GEN_PWD_LEN-1):
-            rndchar = chr(r.randint(33,126))
-        else:
-            rndchar = chr(r.randint(32,126))
 
+    for x in range(pwd_len):
+        rndchar = characters[r.randint(0,upper_bound)]
+        if (x == 0) or (x == pwd_len-1):
+            while rndchar.isspace():
+                rndchar = characters[r.randint(0,upper_bound)]
         rndpwd += rndchar
-
     return rndpwd
-
 
 def format_list(items, quote=None, page_width=80):
     '''Format a list of items formatting them so they wrap to fit the

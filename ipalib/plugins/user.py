@@ -25,6 +25,8 @@ from ipalib.request import context
 from time import gmtime, strftime
 import copy
 from ipalib import _, ngettext
+from ipapython.ipautil import ipa_generate_password
+import string
 
 __doc__ = _("""
 Users
@@ -73,6 +75,9 @@ user_output_params = (
         label=_('Kerberos keys available'),
     ),
    )
+
+# characters to be used for generating random user passwords
+user_pwdchars = string.digits + string.ascii_letters + '_,.@+-='
 
 def validate_nsaccountlock(entry_attrs):
     if 'nsaccountlock' in entry_attrs:
@@ -237,6 +242,15 @@ class user(LDAPObject):
             # FIXME: This is temporary till bug is fixed causing updates to
             # bomb out via the webUI.
             exclude='webui',
+        ),
+        Flag('random?',
+            doc=_('Generate a random user password'),
+            flags=('no_search', 'virtual_attribute'),
+            default=False,
+        ),
+        Str('randompassword?',
+            label=_('Random password'),
+            flags=('no_create', 'no_update', 'no_search', 'virtual_attribute'),
         ),
         Int('uidnumber',
             cli_name='uid',
@@ -430,6 +444,11 @@ class user_add(LDAPCreate):
                     raise errors.NotFound(reason=error_msg)
                 entry_attrs['gidnumber'] = group_attrs['gidnumber']
 
+        if 'userpassword' not in entry_attrs and options.get('random'):
+            entry_attrs['userpassword'] = ipa_generate_password(user_pwdchars)
+            # save the password so it can be displayed in post_callback
+            setattr(context, 'randompassword', entry_attrs['userpassword'])
+
         if 'mail' in entry_attrs:
             entry_attrs['mail'] = self.obj._normalize_email(entry_attrs['mail'], config)
 
@@ -465,6 +484,13 @@ class user_add(LDAPCreate):
                 newentry = wait_for_value(ldap, dn, 'objectclass', 'mepOriginEntry')
                 entry_from_entry(entry_attrs, newentry)
 
+        if options.get('random', False):
+            try:
+                entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
+            except AttributeError:
+                # if both randompassword and userpassword options were used
+                pass
+
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         return dn
 
@@ -495,9 +521,19 @@ class user_mod(LDAPUpdate):
         if 'manager' in entry_attrs:
             entry_attrs['manager'] = self.obj._normalize_manager(entry_attrs['manager'])
         validate_nsaccountlock(entry_attrs)
+        if 'userpassword' not in entry_attrs and options.get('random'):
+            entry_attrs['userpassword'] = ipa_generate_password(user_pwdchars)
+            # save the password so it can be displayed in post_callback
+            setattr(context, 'randompassword', entry_attrs['userpassword'])
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if options.get('random', False):
+            try:
+                entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
+            except AttributeError:
+                # if both randompassword and userpassword options were used
+                pass
         convert_nsaccountlock(entry_attrs)
         self.obj._convert_manager(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
