@@ -240,6 +240,16 @@ PKG_CHECK_MODULES([SAMBAUTIL], [samba-util])
 SAMBA40EXTRA_LIBPATH="-L`$PKG_CONFIG --variable=libdir samba-util`/samba"
 AC_SUBST(SAMBA40EXTRA_LIBPATH)
 
+dnl ---------------------------------------------------------------------------
+dnl - Check for check unit test framework http://check.sourceforge.net/
+dnl ---------------------------------------------------------------------------
+PKG_CHECK_MODULES([CHECK], [check >= 0.9.5], [have_check=1], [have_check=])
+if test x$have_check = x; then
+    AC_MSG_WARN([Without the 'CHECK' library, you will be unable to run all tests in the 'make check' suite])
+else
+    AC_CHECK_HEADERS([check.h],,AC_MSG_ERROR([Could not find CHECK headers]))
+fi
+AM_CONDITIONAL([HAVE_CHECK], [test x$have_check != x])
 
 dnl ---------------------------------------------------------------------------
 dnl - Set the data install directory since we don't use pkgdatadir
