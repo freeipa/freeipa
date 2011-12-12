@@ -32,7 +32,8 @@ IPA.user.entity = function(spec) {
     that.init = function() {
         that.entity_init();
 
-        var link = IPA.nav.name == 'self-service' ? false : undefined;
+        var self_service = IPA.nav.name === 'self-service';
+        var link = self_service ? false : undefined;
 
         that.builder.search_facet({
             columns: [
@@ -108,31 +109,36 @@ IPA.user.entity = function(spec) {
         association_facet({
             name: 'memberof_group',
             associator: IPA.serial_associator,
-            link: link
+            link: link,
+            read_only: self_service
         }).
         association_facet({
             name: 'memberof_netgroup',
             associator: IPA.serial_associator,
-            link: link
+            link: link,
+            read_only: self_service
         }).
         association_facet({
             name: 'memberof_role',
             associator: IPA.serial_associator,
-            link: link
+            link: link,
+            read_only: self_service
         }).
         association_facet({
             name: 'memberof_hbacrule',
             associator: IPA.serial_associator,
             add_method: 'add_user',
             remove_method: 'remove_user',
-            link: link
+            link: link,
+            read_only: self_service
         }).
         association_facet({
             name: 'memberof_sudorule',
             associator: IPA.serial_associator,
             add_method: 'add_user',
             remove_method: 'remove_user',
-            link: link
+            link: link,
+            read_only: self_service
         }).
         standard_association_facets({
             link: link
