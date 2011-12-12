@@ -53,6 +53,16 @@ fuzzy_date = Fuzzy('^[a-zA-Z]{3} [a-zA-Z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4} UTC$'
 
 fuzzy_issuer = Fuzzy(type=basestring, test=lambda issuer: valid_issuer(issuer, api.env.realm))
 
+# Matches password - password consists of all printable characters without whitespaces
+# The only exception is space, but space cannot be at the beggingin or end of the pwd
+fuzzy_password = Fuzzy('^\S([\S ]*\S)*$')
+
+# Matches generalized time value. Time format is: %Y%m%d%H%M%SZ
+fuzzy_dergeneralizedtime = Fuzzy('^[0-9]{14}Z$')
+
+# match any string
+fuzzy_string = Fuzzy(type=basestring)
+
 try:
     if not api.Backend.xmlclient.isconnected():
         api.Backend.xmlclient.connect(fallback=False)

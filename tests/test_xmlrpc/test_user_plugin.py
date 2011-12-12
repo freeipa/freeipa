@@ -25,7 +25,7 @@ Test the `ipalib/plugins/user.py` module.
 
 from ipalib import api, errors
 from tests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_password, fuzzy_string, fuzzy_dergeneralizedtime
 from ipalib.dn import *
 
 user1=u'tuser1'
@@ -722,6 +722,132 @@ class test_user(Declarative):
             ),
         ),
 
+        dict(
+            desc='Create %r with random password' % user1,
+            command=(
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1', random=True)
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "tuser1"',
+                result=dict(
+                    gecos=[u'Test User1'],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    krbprincipalname=[u'tuser1@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    displayname=[u'Test User1'],
+                    cn=[u'Test User1'],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',user1),('cn','groups'),('cn','accounts'),
+                            api.env.basedn)],
+                    memberof_group=[u'ipausers'],
+                    has_keytab=True,
+                    has_password=True,
+                    randompassword=fuzzy_password,
+                    krbextradata=[fuzzy_string],
+                    krbpasswordexpiration=[fuzzy_dergeneralizedtime],
+                    krblastpwdchange=[fuzzy_dergeneralizedtime],
+                    dn=lambda x: DN(x) == \
+                        DN(('uid','tuser1'),('cn','users'),('cn','accounts'),
+                           api.env.basedn),
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % user1,
+            command=('user_del', [user1], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                summary=u'Deleted user "tuser1"',
+                value=user1,
+            ),
+        ),
+
+        dict(
+            desc='Create %r' % user2,
+            command=(
+                'user_add', [user2], dict(givenname=u'Test', sn=u'User2')
+            ),
+            expected=dict(
+                value=user2,
+                summary=u'Added user "tuser2"',
+                result=dict(
+                    gecos=[u'Test User2'],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser2'],
+                    krbprincipalname=[u'tuser2@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User2'],
+                    uid=[user2],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    displayname=[u'Test User2'],
+                    cn=[u'Test User2'],
+                    initials=[u'TU'],
+                    ipauniqueid=[fuzzy_uuid],
+                    krbpwdpolicyreference=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn','global_policy'),('cn',api.env.realm),
+                            ('cn','kerberos'),api.env.basedn)],
+                    mepmanagedentry=lambda x: [DN(i) for i in x] == \
+                        [DN(('cn',user2),('cn','groups'),('cn','accounts'),
+                            api.env.basedn)],
+                    memberof_group=[u'ipausers'],
+                    has_keytab=False,
+                    has_password=False,
+                    dn=lambda x: DN(x) == \
+                        DN(('uid','tuser2'),('cn','users'),('cn','accounts'),
+                           api.env.basedn),
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Modify %r with random password' % user2,
+            command=(
+                'user_mod', [user2], dict(random=True)
+            ),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser2'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User2'],
+                    uid=[user2],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    memberof_group=[u'ipausers'],
+                    nsaccountlock=False,
+                    has_keytab=True,
+                    has_password=True,
+                    randompassword=fuzzy_password,
+                ),
+                summary=u'Modified user "tuser2"',
+                value=user2,
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % user2,
+            command=('user_del', [user2], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                summary=u'Deleted user "tuser2"',
+                value=user2,
+            ),
+        ),
 
         dict(
             desc='Create user %r with upper-case principal' % user1,
