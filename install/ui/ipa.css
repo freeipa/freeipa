@@ -546,28 +546,48 @@ span.main-nav-off > a:visited {
     border-left: 1px solid #c9c3ba;
     border-right: 1px solid #c9c3ba;
     margin: 0 0 0;
-    padding: 6px 16px;
+    padding: 8px 16px 4px 16px;
     text-decoration: none;
     display: inline-block;
     line-height: 19px;
-    background-image: url(images/facet-tab-off.png);
     color: #666666;
-}
-
-.facet-tab li a:hover {
-    background-color: #f1f0ee;
 }
 
 .facet-tab li a.selected {
     color: #6C6F73;
     background-color: #f1f0ee;
     font-weight: bold;
-    background-image: url(images/facet-tab-on.png);
     height: 20px;
 }
 
 .facet-tab li.settings {
     margin-left:1em;  margin-right:1em;
+}
+
+
+/* Facet tabs coloring */
+
+.facet-group li a {
+    background-image: url(images/facet-tab-off.png);
+    background-repeat: repeat-x;
+    background-position: 0px -33px;
+}
+
+.facet-group li a.selected {
+    background-image: url(images/facet-tab-on.png);
+}
+
+div[name=settings].facet-group li a {
+    background-position: 0px -66px;
+}
+
+.facet-group li[name^=member] a,
+.facet-group li[name^=managedby] a {
+    background-position: 0px 0px;
+}
+
+.facet-group li[name^=memberof] a {
+    background-position: 0px -33px;
 }
 
 /* ---- Facet Controls ---- */

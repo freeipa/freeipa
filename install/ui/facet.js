@@ -280,7 +280,7 @@ IPA.facet_header = function(spec) {
 
     that.create_facet_group = function(container, facet_group) {
 
-        var section = $('<span/>', {
+        var section = $('<div/>', {
             name: facet_group.name,
             'class': 'facet-group'
         }).appendTo(container);
