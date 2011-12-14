@@ -636,8 +636,12 @@ IPA.link_field = function(spec) {
             args: that.other_pkeys(),
             options: {},
             retry: false,
-            on_success: function (result) {
-                that.widget.is_link = result.result !== undefined;
+            on_success: function(data) {
+                that.widget.is_link = data.result && data.result.result;
+                that.widget.update(that.values);
+            },
+            on_error: function() {
+                that.widget.is_link = false;
                 that.widget.update(that.values);
             }
         }).execute();
