@@ -105,6 +105,29 @@ IPA.rule_association_table_widget = function(spec) {
 
     that.enabled = spec.enabled !== undefined ? spec.enabled : true;
 
+    that.setup_column = function(column, div, record) {
+        var suppress_link = false;
+        if (that.external) {
+            suppress_link = record[that.external] === 'true';
+        }
+        column.setup(div, record, suppress_link);
+    };
+
+    that.create_columns = function() {
+
+        if (!that.columns.length) {
+            that.association_table_widget_create_columns();
+            if (that.external) {
+                that.create_column({
+                    name: that.external,
+                    label: IPA.messages.objects.sudorule.external,
+                    entity_name: that.other_entity,
+                    format: IPA.boolean_format
+                });
+            }
+        }
+    };
+
     that.create_add_dialog = function() {
 
         var entity_label = that.entity.metadata.label_singular;
@@ -138,12 +161,30 @@ IPA.rule_association_table_field = function(spec) {
 
     that.external = spec.external;
 
+    that.set_values_external = function(values, external) {
+
+        for (var i=0; i<values.length; i++) {
+
+            var record = values[i];
+
+            if (typeof record !== 'object') {
+                record = {};
+                record[that.name] = values[i];
+            }
+
+            record[that.external] = external;
+
+            values[i] = record;
+        }
+    };
 
     that.load = function(result) {
         that.values = result[that.name] || [];
 
         if (that.external) {
+            that.set_values_external(that.values, '');
             var external_values = result[that.external] || [];
+            that.set_values_external(external_values, 'true');
             $.merge(that.values, external_values);
         }
 

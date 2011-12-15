@@ -322,10 +322,7 @@ IPA.association_table_widget = function (spec) {
         return column;
     };
 
-    that.create = function(container) {
-
-        var column;
-
+    that.create_columns = function() {
         // create a column if none defined
         if (!that.columns.length) {
             that.create_column({
@@ -336,7 +333,10 @@ IPA.association_table_widget = function (spec) {
                 link: true
             });
         }
+    };
 
+    that.init_columns = function() {
+        var column;
         var columns = that.columns.values;
         for (var i=0; i<columns.length; i++) {
             column = columns[i];
@@ -349,12 +349,27 @@ IPA.association_table_widget = function (spec) {
                 };
             }
         }
+    };
 
+    that.init_adder_columns = function() {
+        var column;
         var adder_columns = that.adder_columns.values;
         for (var j=0; j<adder_columns.length; j++) {
             column = adder_columns[j];
             column.entity_name = that.other_entity;
         }
+    };
+
+    that.init = function() {
+
+        that.create_columns();
+        that.init_columns();
+        that.init_adder_columns();
+    };
+
+    that.create = function(container) {
+
+        that.init();
 
         that.table_create(container);
 
@@ -450,40 +465,6 @@ IPA.association_table_widget = function (spec) {
         }
     };
 
-    that.get_records = function(on_success, on_error) {
-
-        var length = that.values.length;
-        if (!length) return;
-
-        if (length > 100) {
-            length = 100;
-        }
-
-        var batch = IPA.batch_command({
-            name: that.entity.name+'_'+that.name,
-            on_success: on_success,
-            on_error: on_error
-        });
-
-        for (var i=0; i<length; i++) {
-            var value = that.values[i];
-
-            var command = IPA.command({
-                entity: that.other_entity,
-                method: 'show',
-                args: [value],
-                options: {
-                    all: true,
-                    rights: true
-                }
-            });
-
-            batch.add_command(command);
-        }
-
-        batch.execute();
-    };
-
     that.load = function(result) {
         that.values = result[that.name] || [];
         that.update();
@@ -492,29 +473,23 @@ IPA.association_table_widget = function (spec) {
 
     that.update = function(values) {
 
-        if(values) that.values = values;
+        if (values) that.values = values;
 
         that.empty();
 
+        var i;
         var columns = that.columns.values;
         if (columns.length == 1) { // show pkey only
             var name = columns[0].name;
-            for (var i=0; i<that.values.length; i++) {
+            for (i=0; i<that.values.length; i++) {
                 var record = {};
                 record[name] = that.values[i];
                 that.add_record(record);
             }
-
-        } else { // get and show additional fields
-            that.get_records(
-                function(data, text_status, xhr) {
-                    var results = data.result.results;
-                    for (var i=0; i<results.length; i++) {
-                        var record = results[i].result;
-                        that.add_record(record);
-                    }
-                }
-            );
+        } else {
+            for (i=0; i<that.values.length; i++) {
+                that.add_record(that.values[i]);
+            }
         }
     };
 
@@ -666,6 +641,7 @@ IPA.association_table_widget = function (spec) {
     }
 
     // methods that should be invoked by subclasses
+    that.association_table_widget_create_columns = that.create_columns;
     that.association_table_widget_show_add_dialog = that.show_add_dialog;
     that.association_table_widget_show_remove_dialog = that.show_remove_dialog;
 
