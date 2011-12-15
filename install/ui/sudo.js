@@ -278,6 +278,7 @@ IPA.sudorule_details_facet = function(spec) {
             type: 'rule_association_table',
             name: 'memberuser_user',
             widget: 'user.rule.memberuser_user',
+            external: 'externaluser',
             priority: IPA.sudo.remove_method_priority
         },
         {
@@ -352,6 +353,7 @@ IPA.sudorule_details_facet = function(spec) {
             type: 'rule_association_table',
             name: 'memberhost_host',
             widget: 'host.rule.memberhost_host',
+            external: 'externalhost',
             priority: IPA.sudo.remove_method_priority
         },
         {
@@ -541,6 +543,7 @@ IPA.sudorule_details_facet = function(spec) {
             type: 'rule_association_table',
             name: 'ipasudorunas_user',
             widget: 'runas.runas_users.ipasudorunas_user',
+            external: 'ipasudorunasextuser',
             priority: IPA.sudo.remove_method_priority
         },
         {
@@ -558,6 +561,7 @@ IPA.sudorule_details_facet = function(spec) {
             type: 'rule_association_table',
             name: 'ipasudorunasgroup_group',
             widget: 'runas.runas_groups.ipasudorunasgroup_group',
+            external: 'ipasudorunasextgroup',
             priority: IPA.sudo.remove_method_priority
         }
     );
