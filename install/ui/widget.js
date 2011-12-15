@@ -948,7 +948,7 @@ IPA.column = function (spec) {
         throw except;
     }
 
-    that.setup = function(container, record) {
+    that.setup = function(container, record, suppress_link) {
 
         container.empty();
 
@@ -958,7 +958,7 @@ IPA.column = function (spec) {
         }
         value = value ? value.toString() : '';
 
-        if (that.link) {
+        if (that.link && !suppress_link) {
             $('<a/>', {
                 href: '#'+value,
                 text: value,
@@ -1378,8 +1378,12 @@ IPA.table_widget = function (spec) {
 
             var div = $('div[name="'+column.name+'"]', tr);
 
-            column.setup(div, record);
+            that.setup_column(column, div, record);
         }
+    };
+
+    that.setup_column = function(column, div, record) {
+        column.setup(div, record);
     };
 
     that.add_rows = function(rows) {
