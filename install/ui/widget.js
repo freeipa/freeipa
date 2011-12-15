@@ -1084,34 +1084,53 @@ IPA.table_widget = function (spec) {
                 });
             }
         }
-
         var columns = that.columns.values;
-        for (var i=0; i<columns.length; i++) {
-            var column = columns[i];
+        var column;
+
+        var columns_without_width = 0;
+        var per_column_space = 16; //cell padding(2x6px), border (2x1px), spacing (2px)
+        var available_width = that.thead.width();
+        available_width -= 2;  //first cell spacing
+
+        //subtract checkbox column
+        if(that.selectable) {
+            available_width -= IPA.checkbox_column_width;
+            available_width -= per_column_space;
+        }
+
+        //subtract width of columns with their width set
+        for (i=0; i<columns.length; i++) {
+            column = columns[i];
+            if (column.width) {
+                available_width -= parseInt(
+                    column.width.substring(0, column.width.length-2),10);
+                available_width -= per_column_space;
+            } else {
+                columns_without_width++;
+            }
+        }
+
+        //width for columns without width set
+        var new_column_width = (available_width -
+                                per_column_space * columns_without_width) /
+                                columns_without_width;
+
+
+        //set the new width, now all columns should have width set
+        for (i=0; i<columns.length; i++) {
+            column = columns[i];
+            if (!column.width) {
+                column.width = new_column_width+"px";
+            }
+        }
+
+        for (i=0; i<columns.length; i++) {
+            column = columns[i];
 
             th = $('<th/>').appendTo(tr);
 
-            var width;
-            var cell_spacing = 16; //cell padding(2x6px), border (2x1px), spacing (2px)
-            if (column.width) {
-                width = parseInt(
-                    column.width.substring(0, column.width.length-2),10);
-                width += 16;
-            } else {
-                /* don't use the checkbox column as part of the overall
-                    calculation for column widths.  It is so small
-                    that it throws off the average. */
-                width = (that.thead.width() -
-                        2 - //first cell spacing
-                        ((that.selectable ? IPA.checkbox_column_width +
-                          cell_spacing : 0))) /
-                        columns.length;
-                width -= cell_spacing;
-            }
-            width += 'px';
-            th.css('width', width);
-            th.css('max-width', width);
-            column.width = width;
+            th.css('width', column.width);
+            th.css('max-width', column.width);
 
             var label = column.label;
 
@@ -1158,6 +1177,8 @@ IPA.table_widget = function (spec) {
                 }).appendTo(td);
             }
         }
+
+        var width;
 
         for (/* var */ i=0; i<columns.length; i++) {
             /* var */ column = columns[i];
