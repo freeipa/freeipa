@@ -305,6 +305,8 @@ IPA.association_table_widget = function (spec) {
 
     that.adder_columns = $.ordered_map();
 
+    that.needs_refresh = IPA.observer();
+
     that.get_adder_column = function(name) {
         return that.adder_columns.get(name);
     };
@@ -644,24 +646,7 @@ IPA.association_table_widget = function (spec) {
 
     that.refresh = function() {
 
-        function on_success(data, text_status, xhr) {
-            that.load(data.result.result);
-        }
-
-        function on_error(xhr, text_status, error_thrown) {
-            var summary = $('span[name=summary]', that.tfoot).empty();
-            summary.append(error_thrown.name+': '+error_thrown.message);
-        }
-
-        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
-        IPA.command({
-            entity: that.entity.name,
-            method: 'show',
-            args: [pkey],
-            options: { all: true, rights: true },
-            on_success: on_success,
-            on_error: on_error
-        }).execute();
+        that.needs_refresh.notify([], that);
     };
 
     /*initialization code*/
@@ -686,6 +671,45 @@ IPA.association_table_widget = function (spec) {
 
     return that;
 };
+
+IPA.association_table_field = function (spec) {
+
+    spec = spec || {};
+
+    var that = IPA.field(spec);
+
+    that.refresh = function() {
+
+        function on_success(data, text_status, xhr) {
+            that.load(data.result.result);
+        }
+
+        function on_error(xhr, text_status, error_thrown) {
+            that.widget.summary.text(error_thrown.name+': '+error_thrown.message);
+        }
+
+        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        IPA.command({
+            entity: that.entity.name,
+            method: 'show',
+            args: [pkey],
+            options: { all: true, rights: true },
+            on_success: on_success,
+            on_error: on_error
+        }).execute();
+    };
+
+    that.widgets_created = function() {
+
+        that.field_widgets_created();
+        that.widget.needs_refresh.attach(that.refresh);
+    };
+
+    return that;
+};
+
+IPA.widget_factories['association_table'] = IPA.association_table_widget;
+IPA.field_factories['association_table'] = IPA.association_table_field;
 
 
 IPA.association_facet = function (spec) {

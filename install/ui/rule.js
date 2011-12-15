@@ -134,10 +134,14 @@ IPA.rule_association_table_field = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.field(spec);
+    var that = IPA.association_table_field(spec);
+
+    that.external = spec.external;
+
 
     that.load = function(result) {
         that.values = result[that.name] || [];
+
         if (that.external) {
             var external_values = result[that.external] || [];
             $.merge(that.values, external_values);
