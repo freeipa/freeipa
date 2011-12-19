@@ -38,6 +38,7 @@ app_DATA =				\
 	jquery.ordered-map.js 		\
 	json2.js			\
 	navigation.js			\
+	net.js				\
 	netgroup.js 			\
 	overpass_bold-web.eot		\
 	overpass_bold-web.svg		\
