@@ -121,7 +121,6 @@ test("Testing details lifecycle: create, load.", function(){
         method: 'show',
         args: ['kfrog'],
         on_success: function(data, text_status, xhr) {
-            result = data.result.result;
             ok(true, "IPA.command() succeeded.");
         },
         on_error: function(xhr, text_status, error_thrown) {
