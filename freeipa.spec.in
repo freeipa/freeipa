@@ -24,7 +24,7 @@ Source0:        freeipa-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %if ! %{ONLY_CLIENT}
-BuildRequires:  389-ds-base-devel >= 1.2.10-0.5.a5
+BuildRequires:  389-ds-base-devel >= 1.2.10-0.6.a6
 BuildRequires:  svrcore-devel
 BuildRequires:  /usr/share/selinux/devel/Makefile
 BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
