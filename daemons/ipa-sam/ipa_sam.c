@@ -172,17 +172,6 @@ do { \
 #define HAS_KRB_TICKET_POLICY_AUX (1<<9)
 
 struct ipasam_privates {
-	NTSTATUS (*ldapsam_add_sam_account)(struct pdb_methods *,
-					    struct samu *sampass);
-	NTSTATUS (*ldapsam_update_sam_account)(struct pdb_methods *,
-					       struct samu *sampass);
-	NTSTATUS (*ldapsam_create_user)(struct pdb_methods *my_methods,
-					TALLOC_CTX *tmp_ctx, const char *name,
-					uint32_t acb_info, uint32_t *rid);
-	NTSTATUS (*ldapsam_create_dom_group)(struct pdb_methods *my_methods,
-					     TALLOC_CTX *tmp_ctx,
-					     const char *name,
-					     uint32_t *rid);
 	char *realm;
 	char *base_dn;
 	char *trust_dn;
