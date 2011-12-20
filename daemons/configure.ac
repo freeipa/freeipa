@@ -174,7 +174,7 @@ if test "$with_ldap" = "yes"; then
   if test "$with_ldap_lber" = "yes" ; then
     OPENLDAP_LIBS="${OPENLDAP_LIBS} -llber"
   fi
-  OPENLDAP_LIBS="${OPENLDAP_LIBS} -lldap"
+  OPENLDAP_LIBS="${OPENLDAP_LIBS} -lldap_r"
 else
   AC_MSG_ERROR([OpenLDAP not found])
 fi
