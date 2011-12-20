@@ -513,11 +513,11 @@ IPA.hbacrule_details_facet = function(spec) {
 
     var that = IPA.details_facet(spec);
 
-    that.on_update_success = function(data, text_status, xhr) {
+    that.update_on_success = function(data, text_status, xhr) {
         that.refresh();
     };
 
-    that.on_update_error = function(xhr, text_status, error_thrown) {
+    that.update_on_error = function(xhr, text_status, error_thrown) {
         that.refresh();
     };
 

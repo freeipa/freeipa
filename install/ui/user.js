@@ -55,65 +55,133 @@ IPA.user.entity = function(spec) {
                 'title'
             ]
         }).
-        details_facet({ sections: [
-            {
-                name: 'identity',
-                label: IPA.messages.details.identity,
-                fields: [
-                    'title',
-                    'givenname',
-                    'sn',
-                    'cn',
-                    'displayname',
-                    'initials'
-                ]
-            },
-            {
-                name: 'account',
-                fields: [
-                    {
-                        factory: IPA.user_status_widget,
-                        name: 'nsaccountlock',
-                        label: IPA.messages.objects.user.account_status
-                    },
-                    'uid',
-                    { factory: IPA.user_password_widget, name: 'userpassword' },
-                    'uidnumber',
-                    'gidnumber',
-                    'loginshell',
-                    'homedirectory'
-                ]
-            },
-            {
-                name: 'contact',
-                fields: [
-                    { type: 'multivalued', name: 'mail' },
-                    { type: 'multivalued', name: 'telephonenumber' },
-                    { type: 'multivalued', name: 'pager' },
-                    { type: 'multivalued', name: 'mobile' },
-                    { type: 'multivalued', name: 'facsimiletelephonenumber' }
-                ]
-            },
-            {
-                name: 'mailing',
-                fields: ['street', 'l', 'st', 'postalcode']
-            },
-            {
-                name: 'employee',
-                fields: [
-                    'ou',
-                    {
-                        type: 'entity_select',
-                        name: 'manager',
-                        other_entity: 'user',
-                        other_field: 'uid'
-                    }
-                ]
-            },
-            {
-                name: 'misc',
-                fields: ['carlicense']
-            }]
+        details_facet({
+            factory: IPA.user.details_facet,
+            sections: [
+                {
+                    name: 'identity',
+                    label: IPA.messages.details.identity,
+                    fields: [
+                        'title',
+                        'givenname',
+                        'sn',
+                        'cn',
+                        'displayname',
+                        'initials'
+                    ]
+                },
+                {
+                    name: 'account',
+                    fields: [
+                        {
+                            factory: IPA.user_status_widget,
+                            name: 'nsaccountlock',
+                            label: IPA.messages.objects.user.account_status
+                        },
+                        'uid',
+                        {
+                            factory: IPA.user_password_widget,
+                            name: 'userpassword'
+                        },
+                        'uidnumber',
+                        'gidnumber',
+                        'loginshell',
+                        'homedirectory'
+                    ]
+                },
+                {
+                    name: 'pwpolicy',
+                    label: IPA.messages.objects.pwpolicy.identity,
+                    fields: [
+                        {
+                            name: 'krbmaxpwdlife',
+                            label: IPA.get_entity_param('pwpolicy', 'krbmaxpwdlife').label,
+                            read_only: true
+                        },
+                        {
+                            name: 'krbminpwdlife',
+                            label: IPA.get_entity_param('pwpolicy', 'krbminpwdlife').label,
+                            read_only: true
+                        },
+                        {
+                            name: 'krbpwdhistorylength',
+                            label: IPA.get_entity_param('pwpolicy', 'krbpwdhistorylength').label,
+                            read_only: true
+                        },
+                        {
+                            name: 'krbpwdmindiffchars',
+                            label: IPA.get_entity_param('pwpolicy', 'krbpwdmindiffchars').label,
+                            read_only: true
+                        },
+                        {
+                            name: 'krbpwdminlength',
+                            label: IPA.get_entity_param('pwpolicy', 'krbpwdminlength').label,
+                            read_only: true
+                        },
+                        {
+                            name: 'krbpwdmaxfailure',
+                            label: IPA.get_entity_param('pwpolicy', 'krbpwdmaxfailure').label,
+                            read_only: true
+                        },
+                        {
+                            name: 'krbpwdfailurecountinterval',
+                            label: IPA.get_entity_param('pwpolicy', 'krbpwdfailurecountinterval').label,
+                            read_only: true
+                        },
+                        {
+                            name: 'krbpwdlockoutduration',
+                            label: IPA.get_entity_param('pwpolicy', 'krbpwdlockoutduration').label,
+                            read_only: true
+                        }
+                    ]
+                },
+                {
+                    name: 'krbtpolicy',
+                    label: IPA.messages.objects.krbtpolicy.identity,
+                    fields: [
+                        {
+                            name: 'krbmaxrenewableage',
+                            label: IPA.get_entity_param('krbtpolicy', 'krbmaxrenewableage').label,
+                            read_only: true
+                        },
+                        {
+                            name: 'krbmaxticketlife',
+                            label: IPA.get_entity_param('krbtpolicy', 'krbmaxticketlife').label,
+                            read_only: true
+                        }
+                    ]
+                },
+                {
+                    name: 'contact',
+                    fields: [
+                        { type: 'multivalued', name: 'mail' },
+                        { type: 'multivalued', name: 'telephonenumber' },
+                        { type: 'multivalued', name: 'pager' },
+                        { type: 'multivalued', name: 'mobile' },
+                        { type: 'multivalued', name: 'facsimiletelephonenumber' }
+                    ]
+                },
+                {
+                    name: 'mailing',
+                    fields: ['street', 'l', 'st', 'postalcode']
+                },
+                {
+                    name: 'employee',
+                    fields: [
+                        'ou',
+                        {
+                            type: 'entity_select',
+                            name: 'manager',
+                            other_entity: 'user',
+                            other_field: 'uid'
+                        }
+                    ]
+                },
+                {
+                    name: 'misc',
+                    fields: [ 'carlicense' ]
+                }
+            ]
         }).
         association_facet({
             name: 'memberof_group',
@@ -181,6 +249,77 @@ IPA.user.entity = function(spec) {
                 }
             ]
         });
+    };
+
+    return that;
+};
+
+IPA.user.details_facet = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.details_facet(spec);
+
+    that.refresh_on_success = function(data, text_status, xhr) {
+        that.details_facet_refresh_on_success(data, text_status, xhr);
+
+        var batch = IPA.batch_command({
+            name: 'user_get_policies'
+        });
+
+        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+
+        var pwpolicy_command = IPA.command({
+            entity: 'pwpolicy',
+            method: 'show',
+            options: {
+                user: pkey,
+                all: true,
+                rights: true
+            }
+        });
+
+        pwpolicy_command.on_success = function(data, text_status, xhr) {
+            // TODO: Use nested fields: that.fields.get_field('pwpolicy').get_fields();
+            var fields = that.fields.get_fields();
+            for (var i=0; i<fields.length; i++) {
+                var field = fields[i];
+
+                // load result into pwpolicy fields
+                if (field.widget_name.match(/^pwpolicy\./)) {
+                    field.load(data.result);
+                }
+            }
+        };
+
+        batch.add_command(pwpolicy_command);
+
+        var krbtpolicy_command = IPA.command({
+            entity: 'krbtpolicy',
+            method: 'show',
+            args: [ pkey ],
+            options: {
+                all: true,
+                rights: true
+            }
+        });
+
+        krbtpolicy_command.on_success = function(data, text_status, xhr) {
+            // TODO: Use nested fields: that.fields.get_field('krbtpolicy').get_fields();
+            var fields = that.fields.get_fields();
+            for (var i=0; i<fields.length; i++) {
+                var field = fields[i];
+
+                // load result into krbtpolicy fields
+                if (field.widget_name.match(/^krbtpolicy\./)) {
+                    field.load(data.result);
+                }
+            }
+        };
+
+        batch.add_command(krbtpolicy_command);
+
+        batch.execute();
     };
 
     return that;

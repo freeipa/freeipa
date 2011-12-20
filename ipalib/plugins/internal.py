@@ -398,7 +398,7 @@ class i18n_messages(Command):
                 "identity": _("Host Group Settings"),
             },
             "krbtpolicy": {
-                "identity": _("Kerberos ticket policy"),
+                "identity": _("Kerberos Ticket Policy"),
                 },
             "netgroup": {
                 "identity": _("Netgroup Settings"),

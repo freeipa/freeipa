@@ -704,7 +704,7 @@ IPA.dns.record_details_facet = function(spec) {
 
     var that = IPA.details_facet(spec);
 
-    that.on_update_success = function(data, text_status, xhr) {
+    that.update_on_success = function(data, text_status, xhr) {
 
         if (!data.result.result.idnsname) {
             that.reset();
