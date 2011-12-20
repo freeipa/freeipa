@@ -110,6 +110,12 @@
             "krblastpwdchange": [
                 "20101105172205Z"
             ],
+            "krbmaxrenewableage": [
+                "604800"
+            ],
+            "krbmaxticketlife": [
+                "86400"
+            ],
             "krbpasswordexpiration": [
                 "20101105172205Z"
             ],

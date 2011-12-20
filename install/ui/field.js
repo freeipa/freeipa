@@ -198,10 +198,10 @@ IPA.field = function(spec) {
     that.get_update_info = function() {
 
         var update_info = IPA.update_info_builder.new_update_info();
-        if(that.is_dirty()) {
-            update_info.fields.push(IPA.update_info_builder.new_field_info(
-                that,
-                that.save()));
+        if (that.is_dirty()) {
+            var values = that.save();
+            var field_info = IPA.update_info_builder.new_field_info(that, values);
+            update_info.fields.push(field_info);
         }
         return update_info;
     };
@@ -679,6 +679,7 @@ IPA.enable_field = function(spec) {
     return that;
 };
 
+// TODO: Add support for nested fields
 IPA.field_container = function(spec) {
 
     spec = spec || {};

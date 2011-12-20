@@ -512,11 +512,11 @@ IPA.details_facet = function(spec) {
     };
 
 
-    that.on_update_success = function(data, text_status, xhr) {
+    that.update_on_success = function(data, text_status, xhr) {
         that.load(data);
     };
 
-    that.on_update_error = function(xhr, text_status, error_thrown) {
+    that.update_on_error = function(xhr, text_status, error_thrown) {
     };
 
     that.add_fields_to_command = function(update_info, command) {
@@ -559,9 +559,8 @@ IPA.details_facet = function(spec) {
         var new_update_info = IPA.update_info_builder.copy(update_info);
 
         if (update_info.fields.length > 0) {
-            new_update_info.append_command(
-                that.create_fields_update_command(update_info),
-                IPA.config.default_priority);
+            var command = that.create_fields_update_command(update_info);
+            new_update_info.append_command(command, IPA.config.default_priority);
         }
 
         new_update_info.commands.sort(function(a, b) {
@@ -609,12 +608,12 @@ IPA.details_facet = function(spec) {
         var command = that.create_update_command();
 
         command.on_success = function(data, text_status, xhr) {
-            that.on_update_success(data, text_status, xhr);
+            that.update_on_success(data, text_status, xhr);
             if (on_success) on_success.call(this, data, text_status, xhr);
         };
 
         command.on_error = function(xhr, text_status, error_thrown) {
-            that.on_update_error(xhr, text_status, error_thrown);
+            that.update_on_error(xhr, text_status, error_thrown);
             if (on_error) on_error.call(this, xhr, text_status, error_thrown);
         };
 
@@ -641,7 +640,16 @@ IPA.details_facet = function(spec) {
         return command;
     };
 
-    that.refresh = function() {
+    that.refresh_on_success = function(data, text_status, xhr) {
+        that.load(data);
+    };
+
+    that.refresh_on_error = function(xhr, text_status, error_thrown) {
+        that.redirect_error(error_thrown);
+        that.report_error(error_thrown);
+    };
+
+    that.refresh = function(on_success, on_error) {
 
         that.pkey = IPA.nav.get_state(that.entity.name+'-pkey');
 
@@ -653,12 +661,13 @@ IPA.details_facet = function(spec) {
         var command = that.create_refresh_command();
 
         command.on_success = function(data, text_status, xhr) {
-            that.load(data);
+            that.refresh_on_success(data, text_status, xhr);
+            if (on_success) on_success.call(this, data, text_status, xhr);
         };
 
         command.on_error = function(xhr, text_status, error_thrown) {
-            that.redirect_error(error_thrown);
-            that.report_error(error_thrown);
+            that.refresh_on_error(xhr, text_status, error_thrown);
+            if (on_error) on_error.call(this, xhr, text_status, error_thrown);
         };
 
         command.execute();
@@ -677,10 +686,9 @@ IPA.details_facet = function(spec) {
         var fields = that.fields.get_fields();
         for (var i = 0; i < fields.length; i++) {
             var field = fields[i];
-            if(field.get_update_info) {
-                update_info = IPA.update_info_builder.merge(
-                    update_info,
-                    field.get_update_info());
+            if (field.get_update_info) {
+                var ui = field.get_update_info();
+                update_info = IPA.update_info_builder.merge(update_info, ui);
             }
         }
 
@@ -726,6 +734,7 @@ IPA.details_facet = function(spec) {
     // methods that should be invoked by subclasses
     that.details_facet_create_update_command = that.create_update_command;
     that.details_facet_create_refresh_command = that.create_refresh_command;
+    that.details_facet_refresh_on_success = that.refresh_on_success;
     that.details_facet_load = that.load;
 
     return that;
@@ -739,12 +748,13 @@ IPA.update_info = function(spec) {
     that.commands = spec.commands || [];
 
     that.append_field = function(field, value) {
-        that.fields.push(IPA.update_info_builder.new_field_info(field, value));
+        var field_info = IPA.update_info_builder.new_field_info(field, value);
+        that.fields.push(field_info);
     };
 
     that.append_command = function (command, priority) {
-        that.commands.push(IPA.update_info_builder.new_command_info(command,
-                                                                    priority));
+        var command_info = IPA.update_info_builder.new_command_info(command, priority);
+        that.commands.push(command_info);
     };
 
     return that;

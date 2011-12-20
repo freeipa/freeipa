@@ -1,0 +1,135 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "count": 2,
+        "results": [
+            {
+                "error": null,
+                "result": {
+                    "attributelevelrights": {
+                        "aci": "rscwo",
+                        "cn": "rscwo",
+                        "krbmaxpwdlife": "rscwo",
+                        "krbminpwdlife": "rscwo",
+                        "krbpwdfailurecountinterval": "rscwo",
+                        "krbpwdhistorylength": "rscwo",
+                        "krbpwdlockoutduration": "rscwo",
+                        "krbpwdmaxfailure": "rscwo",
+                        "krbpwdmindiffchars": "rscwo",
+                        "krbpwdminlength": "rscwo",
+                        "nsaccountlock": "rscwo",
+                        "objectclass": "rscwo"
+                    },
+                    "cn": [
+                        "global_policy"
+                    ],
+                    "dn": "cn=global_policy,cn=dev.example.com,cn=kerberos,dc=dev,dc=example,dc=com",
+                    "krbmaxpwdlife": [
+                        "90"
+                    ],
+                    "krbminpwdlife": [
+                        "1"
+                    ],
+                    "krbpwdfailurecountinterval": [
+                        "60"
+                    ],
+                    "krbpwdhistorylength": [
+                        "0"
+                    ],
+                    "krbpwdlockoutduration": [
+                        "10"
+                    ],
+                    "krbpwdmaxfailure": [
+                        "3"
+                    ],
+                    "krbpwdmindiffchars": [
+                        "0"
+                    ],
+                    "krbpwdminlength": [
+                        "8"
+                    ],
+                    "objectclass": [
+                        "top",
+                        "nsContainer",
+                        "krbPwdPolicy"
+                    ]
+                },
+                "summary": null,
+                "value": "global_policy"
+            },
+            {
+                "error": null,
+                "result": {
+                    "attributelevelrights": {
+                        "aci": "rscwo",
+                        "cn": "rscwo",
+                        "krbadmservers": "rscwo",
+                        "krbdefaultencsalttypes": "rscwo",
+                        "krbkdcservers": "rscwo",
+                        "krbldapservers": "rscwo",
+                        "krbmaxrenewableage": "rscwo",
+                        "krbmaxticketlife": "rscwo",
+                        "krbmkey": "none",
+                        "krbprinccontainerref": "rscwo",
+                        "krbprincnamingattr": "rscwo",
+                        "krbpwdpolicyreference": "rsc",
+                        "krbpwdservers": "rscwo",
+                        "krbsearchscope": "rscwo",
+                        "krbsubtrees": "rscwo",
+                        "krbsupportedencsalttypes": "rscwo",
+                        "krbticketflags": "rsc",
+                        "krbticketpolicyreference": "rsc",
+                        "krbupenabled": "rsc",
+                        "nsaccountlock": "rscwo",
+                        "objectclass": "rscwo"
+                    },
+                    "cn": [
+                        "DEV.EXAMPLE.COM"
+                    ],
+                    "dn": "cn=dev.example.com,cn=kerberos,dc=dev,dc=example,dc=com",
+                    "krbdefaultencsalttypes": [
+                        "aes256-cts:special",
+                        "aes128-cts:special",
+                        "des3-hmac-sha1:special",
+                        "arcfour-hmac:special"
+                    ],
+                    "krbmaxrenewableage": [
+                        "604800"
+                    ],
+                    "krbmaxticketlife": [
+                        "86400"
+                    ],
+                    "krbsearchscope": [
+                        "2"
+                    ],
+                    "krbsubtrees": [
+                        "dc=dev,dc=example,dc=com"
+                    ],
+                    "krbsupportedencsalttypes": [
+                        "aes256-cts:normal",
+                        "aes256-cts:special",
+                        "aes128-cts:normal",
+                        "aes128-cts:special",
+                        "des3-hmac-sha1:normal",
+                        "des3-hmac-sha1:special",
+                        "arcfour-hmac:normal",
+                        "arcfour-hmac:special",
+                        "des-hmac-sha1:normal",
+                        "des-cbc-md5:normal",
+                        "des-cbc-crc:normal",
+                        "des-cbc-crc:v4",
+                        "des-cbc-crc:afs3"
+                    ],
+                    "objectclass": [
+                        "top",
+                        "krbrealmcontainer",
+                        "krbticketpolicyaux"
+                    ]
+                },
+                "summary": null,
+                "value": ""
+            }
+        ]
+    }
+}

@@ -561,96 +561,104 @@ IPA.batch_command = function (spec) {
     that.execute = function() {
         that.errors.clear();
 
-        IPA.command({
+        var command = IPA.command({
             name: that.name,
             entity: that.entity,
             method: that.method,
             args: that.args,
             options: that.options,
-            retry: that.retry,
-            on_success: function(data, text_status, xhr) {
+            retry: that.retry
+        });
 
-                for (var i=0; i<that.commands.length; i++) {
-                    var command = that.commands[i];
-                    var result = data.result.results[i];
+        command.on_success = that.batch_command_on_success;
+        command.on_error = that.batch_command_on_error;
 
-                    var name = '';
-                    var message = '';
+        command.execute();
+    };
 
-                    if (!result) {
-                        name = IPA.get_message('errors.internal_error', 'Internal Error')+' '+xhr.status;
-                        message = result ? xhr.statusText : IPA.get_message('errors.internal_error', 'Internal Error');
+    that.batch_command_on_success = function(data, text_status, xhr) {
 
-                        that.errors.add(command, name, message, text_status);
+        for (var i=0; i<that.commands.length; i++) {
+            var command = that.commands[i];
+            var result = data.result.results[i];
 
-                        if (command.on_error) command.on_error.call(
-                            this,
-                            xhr,
-                            text_status,
-                            {
-                                name: name,
-                                message: message
-                            }
-                        );
+            var name = '';
+            var message = '';
 
-                    } else if (result.error) {
-                        name = IPA.get_message('errors.ipa_error', 'IPA Error')+(result.error.code ? ' '+result.error.code : '');
-                        message = result.error.message || result.error;
+            if (!result) {
+                name = IPA.get_message('errors.internal_error', 'Internal Error')+' '+xhr.status;
+                message = result ? xhr.statusText : IPA.get_message('errors.internal_error', 'Internal Error');
 
-                        that.errors.add(command, name, message, text_status);
+                that.errors.add(command, name, message, text_status);
 
-                        if (command.on_error) command.on_error.call(
-                            this,
-                            xhr,
-                            text_status,
-                            {
-                                name: name,
-                                code: result.error.code,
-                                message: message,
-                                data: result
-                            }
-                        );
-
-                    } else {
-                        var failed = that.get_failed(command, result, text_status, xhr);
-                        that.errors.add_range(failed);
-
-                        if (command.on_success) command.on_success.call(this, result, text_status, xhr);
+                if (command.on_error) command.on_error.call(
+                    this,
+                    xhr,
+                    text_status,
+                    {
+                        name: name,
+                        message: message
                     }
-                }
-                //check for partial errors and show error dialog
-                if(that.show_error && that.errors.errors.length > 0) {
-                    var ajax = this;
-                    var dialog = IPA.error_dialog({
-                        xhr: xhr,
-                        text_status: text_status,
-                        error_thrown: {
-                            name: IPA.get_message('dialogs.batch_error_title', 'Operations Error'),
-                            message: that.error_message
-                        },
-                        command: that,
-                        errors: that.errors.errors,
-                        visible_buttons: ['ok']
-                    });
+                );
 
-                    dialog.on_ok = function() {
-                        dialog.close();
-                        if (that.on_success) that.on_success.call(ajax, data, text_status, xhr);
-                    };
+            } else if (result.error) {
+                name = IPA.get_message('errors.ipa_error', 'IPA Error')+(result.error.code ? ' '+result.error.code : '');
+                message = result.error.message || result.error;
 
-                    dialog.open();
+                that.errors.add(command, name, message, text_status);
 
-                } else {
-                    if (that.on_success) that.on_success.call(this, data, text_status, xhr);
-                }
-            },
-            on_error: function(xhr, text_status, error_thrown) {
-                // TODO: undefined behavior
-                if (that.on_error) {
-                    that.on_error.call(this, xhr, text_status, error_thrown);
-                }
+                if (command.on_error) command.on_error.call(
+                    this,
+                    xhr,
+                    text_status,
+                    {
+                        name: name,
+                        code: result.error.code,
+                        message: message,
+                        data: result
+                    }
+                );
+
+            } else {
+                var failed = that.get_failed(command, result, text_status, xhr);
+                that.errors.add_range(failed);
+
+                if (command.on_success) command.on_success.call(this, result, text_status, xhr);
             }
-        }).execute();
+        }
+
+        //check for partial errors and show error dialog
+        if (that.show_error && that.errors.errors.length > 0) {
+            var ajax = this;
+            var dialog = IPA.error_dialog({
+                xhr: xhr,
+                text_status: text_status,
+                error_thrown: {
+                    name: IPA.get_message('dialogs.batch_error_title', 'Operations Error'),
+                    message: that.error_message
+                },
+                command: that,
+                errors: that.errors.errors,
+                visible_buttons: [ 'ok' ]
+            });
+
+            dialog.on_ok = function() {
+                dialog.close();
+                if (that.on_success) that.on_success.call(ajax, data, text_status, xhr);
+            };
+
+            dialog.open();
+
+        } else {
+            if (that.on_success) that.on_success.call(this, data, text_status, xhr);
+        }
+    };
+
+    that.batch_command_on_error = function(xhr, text_status, error_thrown) {
+        // TODO: undefined behavior
+        if (that.on_error) {
+            that.on_error.call(this, xhr, text_status, error_thrown);
+        }
     };
 
     return that;

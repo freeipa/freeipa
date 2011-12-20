@@ -260,7 +260,7 @@
                             "identity": "Host Group Settings"
                         },
                         "krbtpolicy": {
-                            "identity": "Kerberos ticket policy"
+                            "identity": "Kerberos Ticket Policy"
                         },
                         "netgroup": {
                             "identity": "Netgroup Settings"
