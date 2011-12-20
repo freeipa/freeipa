@@ -412,8 +412,8 @@ IPA.hbacrule_details_facet = function(spec) {
                     name: 'rule',
                     radio_name: 'servicecategory',
                     options: [
-                        { 'value': 'all', 'label': IPA.messages.objects.hbacrule.any_host },
-                        { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_hosts }
+                        { 'value': 'all', 'label': IPA.messages.objects.hbacrule.any_service },
+                        { 'value': '', 'label': IPA.messages.objects.hbacrule.specified_services }
                     ],
                     tables: [
                         { 'name': 'memberservice_hbacsvc' },
