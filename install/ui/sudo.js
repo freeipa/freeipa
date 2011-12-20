@@ -237,32 +237,21 @@ IPA.sudorule_details_facet = function(spec) {
     // Options
     //
 
-    spec.fields.push.apply(spec.fields, [
+    spec.fields.push(
         {
             name: 'ipasudoopt',
             widget: 'options.ipasudoopt'
         }
-    ]);
+    );
 
-    spec.widgets.push.apply(spec.widgets, [
+    spec.widgets.push(
         {
             factory: IPA.sudo.options_section,
             name: 'options',
             label: IPA.messages.objects.sudorule.options,
             facet: that
         }
-    ]);
-
-/*
-    function options_section(){
-        var section = IPA.sudo.options_section({
-            name: 'options',
-            label: IPA.messages.objects.sudorule.options,
-            entity: that.entity,
-            facet: that
-        });
-        return section;
-    }*/
+    );
 
     //
     // Users
@@ -469,11 +458,11 @@ IPA.sudorule_details_facet = function(spec) {
                     options: [
                         {
                             value: 'all',
-                            label: IPA.messages.objects.sudorule.anyone
+                            label: IPA.messages.objects.sudorule.any_command
                         },
                         {
                             value: '',
-                            label: IPA.messages.objects.sudorule.specified_users
+                            label: IPA.messages.objects.sudorule.specified_commands
                         }
                     ],
                     tables: [
