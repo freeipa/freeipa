@@ -695,7 +695,7 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options):
         except:
             print "%s request for host certificate failed" % (cmonger.service_name)
 
-def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
+def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, client_domain):
     try:
         sssdconfig = SSSDConfig.SSSDConfig()
         sssdconfig.import_config()
@@ -747,6 +747,10 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
         root_logger.debug("Unable to activate the SSH service in SSSD config.")
 
     domain.add_provider('ipa', 'id')
+
+    #add discovery domain if client domain different from server domain
+    if cli_domain != client_domain:
+        domain.set_option('dns_discovery_domain', cli_domain)
 
     if not options.on_master:
         domain.set_option('ipa_server', '_srv_, %s' % cli_server)
@@ -1348,7 +1352,7 @@ def install(options, env, fstore, statestore):
     # Always back up sssd.conf. It gets updated by authconfig --enablekrb5.
     fstore.backup_file("/etc/sssd/sssd.conf")
     if options.sssd:
-        if configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options):
+        if configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, client_domain):
             return CLIENT_INSTALL_ERROR
         print "Configured /etc/sssd/sssd.conf"
 
