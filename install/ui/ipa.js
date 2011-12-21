@@ -120,6 +120,7 @@ var IPA = function() {
             },
             on_success: function(data, text_status, xhr) {
                 that.whoami = data.result[0];
+                that.principal = that.whoami.krbprincipalname[0];
             }
         }));
 
@@ -418,6 +419,9 @@ IPA.command = function(spec) {
                     url: this.url,
                     message: data ? xhr.statusText : IPA.get_message('errors.no_response', 'No response')
                 });
+
+            } else if (IPA.principal && data.principal && IPA.principal !== data.principal) {
+                window.location.reload();
 
             } else if (data.error) {
                 // error_handler() calls IPA.hide_activity_icon()

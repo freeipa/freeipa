@@ -469,6 +469,7 @@ class jsonserver(WSGIExecutioner):
             result=result,
             error=error,
             id=_id,
+            principal=unicode(context.principal),
         )
         response = json_encode_binary(response)
         return json.dumps(response, sort_keys=True, indent=4)
