@@ -7,6 +7,7 @@ require {
         type var_run_t;
         type krb5kdc_t;
         type cert_t;
+        type dirsrv_t;
         class sock_file write;
         class unix_stream_socket connectto;
         class file write;
@@ -15,6 +16,7 @@ require {
 # Let Apache, bind and the KDC talk to DS over ldapi
 allow httpd_t var_run_t:sock_file write;
 allow httpd_t initrc_t:unix_stream_socket connectto;
+allow httpd_t dirsrv_t:unix_stream_socket connectto;
 allow krb5kdc_t var_run_t:sock_file write;
 allow krb5kdc_t initrc_t:unix_stream_socket connectto;
 allow named_t var_run_t:sock_file write;
