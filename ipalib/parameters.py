@@ -384,6 +384,7 @@ class Param(ReadOnly):
         ('csv', bool, False),
         ('csv_separator', str, ','),
         ('csv_skipspace', bool, True),
+        ('option_group', unicode, None),
 
         # The 'default' kwarg gets appended in Param.__init__():
         # ('default', self.type, None),
