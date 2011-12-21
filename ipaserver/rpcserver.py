@@ -33,6 +33,7 @@ from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import make_repr
 from ipalib.compat import json
 from wsgiref.util import shift_path_info
+from ipapython.version import VERSION
 import base64
 import os
 import string
@@ -470,6 +471,7 @@ class jsonserver(WSGIExecutioner):
             error=error,
             id=_id,
             principal=unicode(context.principal),
+            version=unicode(VERSION),
         )
         response = json_encode_binary(response)
         return json.dumps(response, sort_keys=True, indent=4)

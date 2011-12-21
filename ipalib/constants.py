@@ -22,6 +22,7 @@
 All constants centralised in one file.
 """
 import socket
+from ipapython.version import VERSION
 try:
     FQDN = socket.getfqdn()
 except:
@@ -63,6 +64,8 @@ CONFIG_SECTION = 'global'
 # This is a tuple instead of a dict so that it is immutable.
 # To create a dict with this config, just "d = dict(DEFAULT_CONFIG)".
 DEFAULT_CONFIG = (
+    ('version', VERSION),
+
     # Domain, realm, basedn:
     ('domain', 'example.com'),
     ('realm', 'EXAMPLE.COM'),
