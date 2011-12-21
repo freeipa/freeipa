@@ -375,9 +375,16 @@ class textui(backend.Backend):
                         indent=indent+1
                     )
                 else:
-                    self.print_attribute(
-                        label, value, format, indent, one_value_per_line
-                    )
+                    if isinstance(value, (list, tuple)) and \
+                       all(isinstance(val, dict) for val in value):
+                        # this is a list of entries (dicts), not values
+                        self.print_attribute(label, u'', format, indent)
+                        self.print_entries(value, order, labels, flags, print_all,
+                                format, indent+1)
+                    else:
+                        self.print_attribute(
+                            label, value, format, indent, one_value_per_line
+                        )
                 del entry[key]
         if print_all:
             for key in sorted(entry):
@@ -1002,6 +1009,7 @@ class cli(backend.Executioner):
         parser = optparse.OptionParser(
             usage=' '.join(self.usage_iter(cmd))
         )
+        option_groups = {}
         for option in cmd.options():
             kw = dict(
                 dest=option.name,
@@ -1025,7 +1033,18 @@ class cli(backend.Executioner):
                 o = optparse.make_option('-%s' % option.cli_short_name, '--%s' % to_cli(option.cli_name), **kw)
             else:
                 o = optparse.make_option('--%s' % to_cli(option.cli_name), **kw)
-            parser.add_option(o)
+
+            if option.option_group is not None:
+                option_group = option_groups.get(option.option_group)
+                if option_group is None:
+                    option_group = optparse.OptionGroup(parser,
+                                                        option.option_group)
+                    parser.add_option_group(option_group)
+                    option_groups[option.option_group] = option_group
+
+                option_group.add_option(o)
+            else:
+                parser.add_option(o)
         return parser
 
     def usage_iter(self, cmd):
