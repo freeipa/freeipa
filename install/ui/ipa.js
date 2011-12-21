@@ -128,6 +128,7 @@ var IPA = function() {
             method: 'env',
             on_success: function(data, text_status, xhr) {
                 that.env = data.result;
+                that.version = that.env.version;
             }
         }));
 
@@ -419,6 +420,9 @@ IPA.command = function(spec) {
                     url: this.url,
                     message: data ? xhr.statusText : IPA.get_message('errors.no_response', 'No response')
                 });
+
+            } else if (IPA.version && data.version && IPA.version !== data.version) {
+                window.location.reload();
 
             } else if (IPA.principal && data.principal && IPA.principal !== data.principal) {
                 window.location.reload();
