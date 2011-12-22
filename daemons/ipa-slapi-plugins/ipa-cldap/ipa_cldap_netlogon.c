@@ -215,6 +215,7 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
                        struct berval *reply)
 {
     char hostname[MAXHOSTNAMELEN + 1]; /* NOTE: lenght hardcoded in kernel */
+    char domname[MAXHOSTNAMELEN + 1]; /* NOTE: lenght hardcoded in kernel */
     char *domain = NULL;
     char *guid = NULL;
     char *sid = NULL;
@@ -289,9 +290,28 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
                   req->kvps.pairs[i].attr.bv_val);
     }
 
-    if (!domain || !ntver) {
+    if (!ntver) {
         ret = EINVAL;
         goto done;
+    }
+
+    /* If no domain is provide the client is asking for our own domain,
+     * read our own domain name from the system */
+    if (!domain) {
+        ret = getdomainname(domname, MAXHOSTNAMELEN);
+        if (ret == -1) {
+            ret = errno;
+            goto done;
+        }
+        domname[MAXHOSTNAMELEN] = '\0';
+        p = strchr(hostname, '.');
+        if (p) {
+            domain = strdup(p + 1);
+            if (!domain) {
+                ret = ENOMEM;
+                goto done;
+            }
+        }
     }
 
     /* FIXME: we support only NETLOGON_NT_VERSION_5EX for now */
