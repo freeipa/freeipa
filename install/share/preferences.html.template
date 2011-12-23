@@ -52,7 +52,6 @@
 
       try {
         prefFuncBool('network.negotiate-auth.using-native-gsslib', true);
-        prefFuncChar('network.negotiate-auth.delegation-uris', '.$DOMAIN');
         prefFuncChar('network.negotiate-auth.trusted-uris', '.$DOMAIN');
         prefFuncBool('network.negotiate-auth.allow-proxies', true);
       } catch (e) {
