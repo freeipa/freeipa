@@ -72,4 +72,4 @@ freeipa.spec
 ipapython/setup.py
 ipapython/version.py
 version.m4
-
+ipapython/services.py
