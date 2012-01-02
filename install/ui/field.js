@@ -53,6 +53,7 @@ IPA.field = function(spec) {
     that.join = spec.join;
 
     that.metadata = spec.metadata;
+    that.validators = spec.validators || [];
 
     that.priority = spec.priority;
 
@@ -74,6 +75,8 @@ IPA.field = function(spec) {
                 that.tooltip = that.metadata.doc;
             }
         }
+
+        that.validators.push(IPA.metadata_validator());
     };
 
     that.is_required = function() {
@@ -98,71 +101,37 @@ IPA.field = function(spec) {
 
     that.validate_required = function() {
         var values = that.save();
-        if (!values || !values.length || values[0] === '') {
-            if (that.is_required()) {
-                that.valid = false;
-                that.show_error(IPA.messages.widget.validation.required);
-                return false;
-            }
+        if (that.is_empty(values) && that.is_required()) {
+            that.valid = false;
+            that.show_error(IPA.messages.widget.validation.required);
+            return false;
         }
         return true;
     };
 
-    /*returns true and clears the error message if the field value  passes
-     *   the validation pattern.  If the field value does not pass validation,
-     *   displays the error message and returns false. */
+    /**
+     *   Returns true and clears the error message if the field value passes
+     *   the validation pattern. If the field value does not pass validation,
+     *   displays the error message and returns false.
+     */
     that.validate = function() {
         that.hide_error();
         that.valid = true;
 
         var values = that.save();
-        if (!values) {
+
+        if (that.is_empty(values)) {
             return that.valid;
         }
-        if (values.length === 0) {
-            return that.valid;
-        }
+
         var value = values[0];
-        if (!value) {
-            return that.valid;
-        }
 
-        if (!that.metadata) {
-            return that.valid;
-        }
-
-        var message;
-
-        if (that.metadata.type == 'int') {
-            if (!value.match(/^-?\d+$/)) {
-                that.valid = false;
-                that.show_error(IPA.messages.widget.validation.integer);
-                return that.valid;
-            }
-
-            if (that.metadata.minvalue !== undefined && value < that.metadata.minvalue) {
-                that.valid = false;
-                message = IPA.messages.widget.validation.min_value;
-                message = message.replace('${value}', that.metadata.minvalue);
-                that.show_error(message);
-                return that.valid;
-            }
-
-            if (that.metadata.maxvalue !== undefined && value > that.metadata.maxvalue) {
-                that.valid = false;
-                message = IPA.messages.widget.validation.max_value;
-                message = message.replace('${value}', that.metadata.maxvalue);
-                that.show_error(message);
-                return that.valid;
-            }
-        }
-
-        if (that.metadata.pattern) {
-            var regex = new RegExp(that.metadata.pattern);
-            if (!value.match(regex)) {
-                that.valid = false;
-                that.show_error(that.metadata.pattern_errmsg);
-                return that.valid;
+        for (var i=0; i<that.validators.length; i++) {
+            var validation_result = that.validators[i].validate(value, that);
+            that.valid = validation_result.valid;
+            if (!that.valid) {
+                that.show_error(validation_result.message);
+                break;
             }
         }
 
@@ -399,6 +368,73 @@ IPA.field = function(spec) {
     that.field_show_error = that.show_error;
     that.field_test_dirty = that.test_dirty;
     that.field_widgets_created = that.widgets_created;
+
+    return that;
+};
+
+IPA.validator = function(spec) {
+
+    spec = spec || {};
+
+    var that = {};
+
+    that.validate = function() {
+        return { valid: true };
+    };
+
+    return that;
+};
+
+IPA.metadata_validator = function(spec) {
+
+    var that = IPA.validator(spec);
+
+    that.validate = function(value, context) {
+
+        var message;
+        var metadata = context.metadata;
+
+        if (!metadata) return { valid: true };
+
+        if (metadata.type == 'int') {
+            if (!value.match(/^-?\d+$/)) {
+                return {
+                    valid: false,
+                    message: IPA.messages.widget.validation.integer
+                };
+            }
+
+            if (metadata.minvalue !== undefined && value < metadata.minvalue) {
+                message = IPA.messages.widget.validation.min_value;
+                message = message.replace('${value}', metadata.minvalue);
+                return {
+                    valid: false,
+                    message: message
+                };
+            }
+
+            if (metadata.maxvalue !== undefined && value > metadata.maxvalue) {
+                message = IPA.messages.widget.validation.max_value;
+                message = message.replace('${value}', metadata.maxvalue);
+                return {
+                    valid: false,
+                    message: message
+                };
+            }
+        }
+
+        if (metadata.pattern) {
+            var regex = new RegExp(metadata.pattern);
+            if (!value.match(regex)) {
+                return {
+                    valid: false,
+                    message: metadata.pattern_errmsg
+                };
+            }
+        }
+
+        return { valid: true };
+    };
 
     return that;
 };
