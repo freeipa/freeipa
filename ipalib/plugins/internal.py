@@ -515,6 +515,9 @@ class i18n_messages(Command):
             "validation": {
                 "error": _("Text does not match field pattern"),
                 "integer": _("Must be an integer"),
+                "ip_address": _('Not a valid IP address'),
+                "ip_v4_address": _('Not a valid IPv4 address'),
+                "ip_v6_address": _('Not a valid IPv6 address'),
                 "max_value": _("Maximum value is ${value}"),
                 "min_value": _("Minimum value is ${value}"),
                 "required": _("Required field"),

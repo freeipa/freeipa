@@ -1,5 +1,6 @@
 /*jsl:import ipa.js */
 /*jsl:import search.js */
+/*jsl:import net.js */
 
 /*  Authors:
  *    Adam Young <ayoung@redhat.com>
@@ -21,7 +22,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js, widget.js */
+/* REQUIRES: ipa.js, details.js, search.js, add.js, facet.js, entity.js,
+ *           net.js, widget.js */
 
 IPA.dns = {};
 
@@ -526,13 +528,15 @@ IPA.dns.record_entity = function(spec) {
                             type: 'multivalued',
                             name: 'arecord',
                             metadata: { primary_key: false },
-                            label: 'A'
+                            label: 'A',
+                            validators: [ IPA.ip_v4_address_validator() ]
                         },
                         {
                             type: 'multivalued',
                             name: 'aaaarecord',
                             metadata: { primary_key: false },
-                            label: 'AAAA'
+                            label: 'AAAA',
+                            validators: [ IPA.ip_v6_address_validator() ]
                         },
                         {
                             type: 'multivalued',
@@ -822,6 +826,56 @@ IPA.dnsrecord_get_delete_values = function() {
     }
 
     return value_array;
+};
+
+IPA.ip_address_validator = function(spec) {
+
+    var that = IPA.validator(spec);
+
+    that.address_type = spec.address_type;
+    that.message = spec.message || IPA.messages.widget.validation.ip_address;
+
+    that.validate = function(value) {
+
+        var address = NET.ip_address(value);
+
+        if (!address.valid || !that.is_type_match(address.type)) {
+            return {
+                valid: false,
+                message: that.message
+            };
+        }
+
+        return { valid: true };
+    };
+
+    that.is_type_match = function(net_type) {
+
+        return (!that.address_type ||
+
+                (that.address_type === 'IPv4' &&
+                    (net_type === 'v4-quads' || net_type === 'v4-int')) ||
+
+                (that.address_type === 'IPv6' && net_type === 'v6'));
+    };
+
+    return that;
+};
+
+IPA.ip_v4_address_validator = function(spec) {
+
+    spec = spec || {};
+    spec.address_type = 'IPv4';
+    spec.message = IPA.messages.widget.validation.ip_v4_address;
+    return IPA.ip_address_validator(spec);
+};
+
+IPA.ip_v6_address_validator = function(spec) {
+
+    spec = spec || {};
+    spec.address_type = 'IPv6';
+    spec.message = IPA.messages.widget.validation.ip_v6_address;
+    return IPA.ip_address_validator(spec);
 };
 
 IPA.register('dnszone', IPA.dns.zone_entity);

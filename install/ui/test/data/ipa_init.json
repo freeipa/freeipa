@@ -376,6 +376,9 @@
                         "validation": {
                             "error": "Text does not match field pattern",
                             "integer": "Must be an integer",
+                            "ip_address": "Not a valid IP address",
+                            "ip_v4_address": "Not a valid IPv4 address",
+                            "ip_v6_address": "Not a valid IPv6 address",
                             "max_value": "Maximum value is ${value}",
                             "min_value": "Minimum value is ${value}",
                             "required": "Required field"
