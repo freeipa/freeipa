@@ -562,6 +562,8 @@ def main():
     global installation_cleanup
     ds = None
 
+    bootstrap_logging()
+
     safe_options, options = parse_options()
 
     if os.getegid() != 0:

@@ -70,6 +70,7 @@ def get_dirman_password():
     return installutils.read_password("Directory Manager (existing master)", confirm=False, validate=False)
 
 def main():
+    installutils.bootstrap_logging()
     safe_options, options, filename = parse_options()
     installutils.standard_logging_setup("/var/log/ipareplica-ca-install.log", options.debug)
     logging.debug('%s was invoked with argument "%s" and options: %s' % (sys.argv[0], filename, safe_options))
