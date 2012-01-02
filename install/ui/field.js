@@ -522,7 +522,35 @@ IPA.multivalued_field = function(spec) {
 
     that.widget_value_changed = function() {
         that.set_dirty(that.test_dirty());
-        //that.validate(); disabling validation for now
+        that.validate();
+    };
+
+    that.validate = function() {
+
+        that.hide_error();
+        that.valid = true;
+
+        var values = that.save();
+
+        if (that.is_empty(values)) {
+            return that.valid;
+        }
+
+        for (var i=0; i<values.length; i++) {
+
+            for (var j=0; j<that.validators.length; j++) {
+
+                var validation_result = that.validators[j].validate(values[i], that);
+                if (!validation_result.valid) {
+                    that.valid = false;
+                    var row_index = that.widget.get_saved_value_row_index(i);
+                    that.widget.show_child_error(row_index, validation_result.message);
+                    break;
+                }
+            }
+        }
+
+        return that.valid;
     };
 
     return that;

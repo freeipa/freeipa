@@ -351,7 +351,7 @@ IPA.multivalued_text_widget = function(spec) {
         for(var i=0; i<that.rows.length; i++) {
             var row = that.rows[i];
             row.widget.hide_undo();
-            if(row.is_new) row.remove_link.show();
+            row.remove_link.show();
         }
     };
 
@@ -363,6 +363,31 @@ IPA.multivalued_text_widget = function(spec) {
     that.show_child_undo = function(index) {
         that.rows[index].widget.show_undo();
         that.show_undo();
+    };
+
+    that.hide_error = function() {
+
+        that.widget_hide_error();
+
+        for (var i=0; i<that.rows.length; i++) {
+            that.rows[i].widget.hide_error();
+        }
+    };
+
+    that.show_child_error = function(index, error) {
+
+        that.rows[index].widget.show_error(error);
+    };
+
+    that.get_saved_value_row_index = function(index) {
+
+        for (var i=0; i<that.rows.length;i++) {
+
+            if(that.rows[i].deleted) index++;
+            if(i === index) return i;
+        }
+
+        return -1; //error state
     };
 
     that.save = function() {
