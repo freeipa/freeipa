@@ -125,6 +125,11 @@ NET.ip_address = function(spec) {
 
         var i;
 
+        //usecases like ':'
+        if (that.parts.length <= 2) {
+            return that.set_error('invalid format');
+        }
+
         for (i=0; i<that.parts.length; i++) {
             var part = that.parts[i];
 
