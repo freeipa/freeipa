@@ -49,6 +49,11 @@ module('aci', {
                         enabled: false
                     },
                     {
+                        type: 'entity_select',
+                        name: 'memberof',
+                        widget: 'target.memberof'
+                    },
+                    {
                         name: 'subtree',
                         widget: 'target.subtree',
                         enabled: false
@@ -224,7 +229,7 @@ test("Testing type target.", function() {
     same(record.type[0], data.result.result.type,
          "saved type matches sample data");
 
-    same(get_visible_rows(target_widget), ['type', 'attrs'],
+    same(get_visible_rows(target_widget), ['memberof', 'type', 'attrs'],
         'type and attrs rows visible');
 
     ok((record.attrs.length > 10),
@@ -268,7 +273,7 @@ test("Testing subtree target.", function() {
 
     same(record.subtree[0], data.result.result.subtree, 'subtree set correctly');
 
-    same(get_visible_rows(target_widget), ['subtree'], 'subtree row visible');
+    same(get_visible_rows(target_widget), ['memberof', 'subtree'], 'subtree row visible');
 });
 
 
