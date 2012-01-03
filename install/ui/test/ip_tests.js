@@ -156,6 +156,9 @@ test('Testing incorrect IPv6 addresses', function() {
     address = NET.ip_address('2001:db8:85a3:0:0:8a2e:370');
     ok(!address.valid, 'Missing part - 2001:db8:85a3:0:0:8a2e:370');
 
+    address = NET.ip_address(':');
+    ok(!address.valid, 'Address - :');
+
     address = NET.ip_address('::1::');
     ok(!address.valid, 'Address - ::1::');
 
