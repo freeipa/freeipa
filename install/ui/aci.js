@@ -60,6 +60,11 @@ IPA.aci.permission_entity = function(spec) {
                     enabled: false
                 },
                 {
+                    type: 'entity_select',
+                    name: 'memberof',
+                    widget: 'target.memberof'
+                },
+                {
                     name: 'subtree',
                     widget: 'target.subtree',
                     enabled: false
@@ -87,7 +92,9 @@ IPA.aci.permission_entity = function(spec) {
                     type: 'details_table_section',
                     name: 'identity',
                     label: IPA.messages.objects.permission.identity,
-                    widgets: ['cn']
+                    widgets: [
+                        'cn'
+                    ]
                 },
                 {
                     type: 'details_table_section',
@@ -103,7 +110,7 @@ IPA.aci.permission_entity = function(spec) {
                 {
                     type: 'permission_target',
                     container_factory: IPA.details_table_section,
-                    label: IPA.messages.objects.permission.rights,
+                    label: IPA.messages.objects.permission.target,
                     name: 'target',
                     show_target: false
                 }
@@ -138,6 +145,11 @@ IPA.aci.permission_entity = function(spec) {
                     name: 'filter',
                     widget: 'target.filter',
                     enabled: false
+                },
+                {
+                    type: 'entity_select',
+                    name: 'memberof',
+                    widget: 'target.memberof'
                 },
                 {
                     name: 'subtree',
@@ -621,6 +633,16 @@ IPA.permission_target_widget = function(spec) {
         that.widgets.add_widget(that.target_select);
 
 
+        that.memberof_select = IPA.entity_select_widget({
+            entity: that.entity,
+            name: 'memberof',
+            other_entity: that.group_entity,
+            other_field: 'cn',
+            hidden: true
+        });
+
+        that.widgets.add_widget(that.memberof_select);
+
         that.filter_text = IPA.text_widget({
             entity: that.entity,
             name: 'filter',
@@ -717,6 +739,8 @@ IPA.permission_target_policy = function (widget_name) {
 
         var targets = that.permission_target.targets;
 
+        that.set_target_visible_core('memberof', false);
+
         for (var i=0; i<targets.length; i++) {
             var target = targets[i];
 
@@ -736,26 +760,27 @@ IPA.permission_target_policy = function (widget_name) {
 
     that.set_target_visible = function(target, visible) {
 
-        var widgets = that.permission_target.widgets;
-        var fields = that.container.fields;
-
-        var widget = widgets.get_widget(target);
-        widget.hidden = !visible;
-        that.permission_target.set_row_visible(target, visible);
-
-        var field = fields.get_field(target);
-        field.enabled = visible;
+        that.set_target_visible_core(target, visible);
 
         if (target === 'type') {
-            widget = widgets.get_widget('attrs');
-            widget.hidden = !visible;
-            that.permission_target.set_row_visible('attrs', visible);
-
-            field = fields.get_field('attrs');
-            field.enabled = visible;
+            that.set_target_visible_core('attrs', visible);
         } else {
+            var field = that.container.fields.get_field(target);
             field.set_required(visible);
         }
+
+        if (visible) {
+            var member_of_visible = target === 'type' || target === 'subtree';
+            that.set_target_visible_core('memberof', member_of_visible);
+        }
+    };
+
+    that.set_target_visible_core = function(target, visible) {
+        var widget = that.permission_target.widgets.get_widget(target);
+        var field = that.container.fields.get_field(target);
+        that.permission_target.set_row_visible(target, visible);
+        field.enabled = visible;
+        widget.hidden = !visible;
     };
 
 
