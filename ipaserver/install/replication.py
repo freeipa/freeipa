@@ -654,7 +654,9 @@ class ReplicationManager(object):
         self.replica_config(conn, replica_id, repldn)
         self.setup_changelog(conn)
 
-    def setup_replication(self, r_hostname, r_port=389, r_sslport=636, r_binddn=None, r_bindpw=None, starttls=False):
+    def setup_replication(self, r_hostname, r_port=389, r_sslport=636,
+                          r_binddn=None, r_bindpw=None, starttls=False,
+                          is_cs_replica=False):
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
         if starttls:
@@ -679,14 +681,22 @@ class ReplicationManager(object):
         self.basic_replication_setup(r_conn, r_id,
                                      self.repl_man_dn, self.repl_man_passwd)
 
-        self.setup_agreement(r_conn, self.conn.host, port=r_port,
-                             repl_man_dn=self.repl_man_dn,
-                             repl_man_passwd=self.repl_man_passwd,
-                             master=True)
-        self.setup_agreement(self.conn, r_hostname, port=r_port,
-                             repl_man_dn=self.repl_man_dn,
-                             repl_man_passwd=self.repl_man_passwd,
-                             master=False)
+        if is_cs_replica:
+            self.setup_agreement(r_conn, self.conn.host, port=r_port,
+                                 repl_man_dn=self.repl_man_dn,
+                                 repl_man_passwd=self.repl_man_passwd,
+                                 master=True)
+            self.setup_agreement(self.conn, r_hostname, port=r_port,
+                                 repl_man_dn=self.repl_man_dn,
+                                 repl_man_passwd=self.repl_man_passwd,
+                                 master=False)
+        else:
+            self.setup_agreement(r_conn, self.conn.host, port=r_port,
+                                 repl_man_dn=self.repl_man_dn,
+                                 repl_man_passwd=self.repl_man_passwd)
+            self.setup_agreement(self.conn, r_hostname, port=r_port,
+                                 repl_man_dn=self.repl_man_dn,
+                                 repl_man_passwd=self.repl_man_passwd)
 
         #Finally start replication
         ret = self.start_replication(r_conn, master=True)
