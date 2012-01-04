@@ -354,7 +354,7 @@ def main():
     finally:
         os.umask(old_umask)
 
-    api.bootstrap(in_server=True)
+    api.bootstrap(in_server=True, context='installer')
     api.finalize()
 
     # Create DS group if it doesn't exist yet
