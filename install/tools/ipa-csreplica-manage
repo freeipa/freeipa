@@ -334,7 +334,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
     except Exception, e:
         sys.exit("Failed to get data from '%s': %s" % (replica1, convert_error(e)))
 
-    repl1.setup_replication(replica2, PORT, 0, "cn=Directory Manager", dirman_passwd, True)
+    repl1.setup_replication(replica2, PORT, 0, "cn=Directory Manager", dirman_passwd, True, True)
     print "Connected '%s' to '%s'" % (replica1, replica2)
 
 def re_initialize(realm, options):
