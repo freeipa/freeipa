@@ -227,8 +227,8 @@ class ReplicationManager(object):
         ent.setValues("sn", "replication manager pseudo user")
 
         try:
-            conn.add_s(ent)
-        except ldap.ALREADY_EXISTS:
+            conn.addEntry(ent)
+        except errors.DuplicateEntry:
             conn.modify_s(dn, [(ldap.MOD_REPLACE, "userpassword", pw)])
             pass
 
@@ -277,7 +277,7 @@ class ReplicationManager(object):
         entry.setValues('nsds5replicabinddn', [replica_binddn])
         entry.setValues('nsds5replicalegacyconsumer', "off")
 
-        conn.add_s(entry)
+        conn.addEntry(entry)
 
     def setup_changelog(self, conn):
         dn = "cn=changelog5, cn=config"
@@ -287,8 +287,8 @@ class ReplicationManager(object):
         entry.setValues('cn', "changelog5")
         entry.setValues('nsslapd-changelogdir', dirpath)
         try:
-            conn.add_s(entry)
-        except ldap.ALREADY_EXISTS:
+            conn.addEntry(entry)
+        except errors.DuplicateEntry:
             return
 
     def setup_chaining_backend(self, conn):
@@ -310,11 +310,11 @@ class ReplicationManager(object):
                 entry.setValues('nsmultiplexorbinddn', self.repl_man_dn)
                 entry.setValues('nsmultiplexorcredentials', self.repl_man_passwd)
 
-                self.conn.add_s(entry)
+                self.conn.addEntry(entry)
                 done = True
-            except ldap.ALREADY_EXISTS:
+            except errors.DuplicateEntry:
                 benum += 1
-            except ldap.LDAPError, e:
+            except errors.ExecutionError, e:
                 print "Could not add backend entry " + dn, e
                 raise
 
@@ -378,7 +378,7 @@ class ReplicationManager(object):
         entry.setValues("objectclass", ["account", "simplesecurityobject"])
         entry.setValues("uid", "passsync")
         entry.setValues("userPassword", password)
-        conn.add_s(entry)
+        conn.addEntry(entry)
 
         # Add it to the list of users allowed to bypass password policy
         extop_dn = "cn=ipa_pwd_extop,cn=plugins,cn=config"
@@ -476,7 +476,7 @@ class ReplicationManager(object):
         if iswinsync:
             self.setup_winsync_agmt(entry, win_subtree)
 
-        a_conn.add_s(entry)
+        a_conn.addEntry(entry)
 
         try:
             mod = [(ldap.MOD_ADD, 'nsDS5ReplicatedAttributeListTotal',
@@ -765,7 +765,7 @@ class ReplicationManager(object):
         entry.setValues("ipaConfigString", "winsync:%s" % self.hostname)
 
         try:
-            self.conn.add_s(entry)
+            self.conn.addEntry(entry)
         except Exception, e:
             root_logger.info("Failed to create public entry for winsync replica")
 
