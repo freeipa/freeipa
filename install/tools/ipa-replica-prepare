@@ -298,12 +298,6 @@ def main():
 
     check_ipa_configuration(api.env.realm)
 
-    if not options.ip_address:
-        try:
-            api.Command['dns_resolve'](replica_fqdn.decode('utf-8'))
-        except errors.NotFound:
-            sys.exit("Neither an A nor AAAA record for host '%s' does not exist in DNS.\nUse the --ip-address option to add DNS entries for the replica." % replica_fqdn)
-
     if api.env.host == replica_fqdn:
         print "You can't create a replica on itself"
         sys.exit(1)

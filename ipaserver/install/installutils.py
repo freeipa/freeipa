@@ -520,6 +520,68 @@ def get_host_name(no_host_dns):
     verify_fqdn(hostname, no_host_dns)
     return hostname
 
+def get_server_ip_address(host_name, fstore, unattended, options):
+    # Check we have a public IP that is associated with the hostname
+    try:
+        hostaddr = resolve_host(host_name)
+    except HostnameLocalhost:
+        print >> sys.stderr, "The hostname resolves to the localhost address (127.0.0.1/::1)"
+        print >> sys.stderr, "Please change your /etc/hosts file so that the hostname"
+        print >> sys.stderr, "resolves to the ip address of your network interface."
+        print >> sys.stderr, "The KDC service does not listen on localhost"
+        print >> sys.stderr, ""
+        print >> sys.stderr, "Please fix your /etc/hosts file and restart the setup program"
+        sys.exit(1)
+
+    ip_add_to_hosts = False
+    if hostaddr is not None:
+        ip = ipautil.CheckedIPAddress(hostaddr, match_local=True)
+    else:
+        # hostname is not resolvable
+        ip = options.ip_address
+        ip_add_to_hosts = True
+
+    if ip is None:
+        print "Unable to resolve IP address for host name"
+        if unattended:
+            sys.exit(1)
+
+    if options.ip_address:
+        if options.ip_address != ip and not options.setup_dns:
+            print >>sys.stderr, "Error: the hostname resolves to an IP address that is different"
+            print >>sys.stderr, "from the one provided on the command line.  Please fix your DNS"
+            print >>sys.stderr, "or /etc/hosts file and restart the installation."
+            sys.exit(1)
+
+        ip = options.ip_address
+
+    if ip is None:
+        ip = read_ip_address(host_name, fstore)
+        root_logger.debug("read ip_address: %s\n" % str(ip))
+
+    ip_address = str(ip)
+
+    # check /etc/hosts sanity, add a record when needed
+    hosts_record = record_in_hosts(ip_address)
+
+    if hosts_record is None:
+        if ip_add_to_hosts:
+            print "Adding ["+ip_address+" "+host_name+"] to your /etc/hosts file"
+            fstore.backup_file("/etc/hosts")
+            add_record_to_hosts(ip_address, host_name)
+    else:
+        primary_host = hosts_record[1][0]
+        if primary_host != host_name:
+            print >>sys.stderr, "Error: there is already a record in /etc/hosts for IP address %s:" \
+                    % ip_address
+            print >>sys.stderr, hosts_record[0], " ".join(hosts_record[1])
+            print >>sys.stderr, "Chosen hostname %s does not match configured canonical hostname %s" \
+                    % (host_name, primary_host)
+            print >>sys.stderr, "Please fix your /etc/hosts file and restart the installation."
+            sys.exit(1)
+
+    return ip
+
 def expand_replica_info(filename, password):
     """
     Decrypt and expand a replica installation file into a temporary

@@ -52,6 +52,9 @@ def parse_options():
     basic_group = OptionGroup(parser, "basic options")
     basic_group.add_option("--setup-ca", dest="setup_ca", action="store_true",
                       default=False, help="configure a dogtag CA")
+    basic_group.add_option("--ip-address", dest="ip_address",
+                      type="ip", ip_local=True,
+                      help="Replica server IP Address")
     basic_group.add_option("-p", "--password", dest="password", sensitive=True,
                       help="Directory Manager (existing master) password")
     basic_group.add_option("-w", "--admin-password", dest="admin_password", sensitive=True,
@@ -284,6 +287,9 @@ def main():
     global sstore
     sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
 
+    global fstore
+    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+
     # check the bind is installed
     if options.setup_dns:
         check_bind()
@@ -333,6 +339,9 @@ def main():
     # check connection
     if not options.skip_conncheck:
         replica_conn_check(config.master_host_name, config.host_name, config.realm_name, options.setup_ca, options.admin_password)
+
+    # check replica host IP resolution
+    ip = installutils.get_server_ip_address(config.host_name, fstore, True, options)
 
     # Create the management framework config file
     # Note: We must do this before bootstraping and finalizing ipalib.api
