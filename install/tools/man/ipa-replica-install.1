@@ -32,6 +32,9 @@ The replica_file is created using the ipa\-replica\-prepare utility.
 Install and configure a CA on this replica. If a CA is not configured then
 certificate operations will be forwarded to a master with a CA installed.
 .TP
+\fB\-\-ip\-address\fR=\fIIP_ADDRESS\fR
+The IP address of this server. If this address does not match the address the host resolves to and --setup-dns is not selected the installation will fail. If the server hostname is not resolvable, a record for the hostname and IP_ADDRESS is added to /etc/hosts.
+.TP
 \fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 Directory Manager (existing master) password
 .TP
