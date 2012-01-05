@@ -927,25 +927,67 @@ IPA.textarea_widget = function (spec) {
     return that;
 };
 
-IPA.boolean_format = function(value) {
+IPA.format = function(spec) {
 
-    if (value === undefined || value === null) return '';
+    spec = spec || {};
 
-    if (value instanceof Array) {
-        value = value[0];
-    }
+    var that = {};
 
-    var normalized_value = typeof value === 'string' ? value.toLowerCase() : '';
+    that.format = function(value) {
+        return value;
+    };
 
-    if (value === false || normalized_value === 'false') {
-        return IPA.messages['false'];
-    }
+    return that;
+};
 
-    if (value === true || normalized_value === 'true') {
-        return IPA.messages['true'];
-    }
+IPA.boolean_format = function(spec) {
 
-    return value;
+    spec = spec || {};
+
+    var that = IPA.format(spec);
+
+    that.true_value = spec.true_value || IPA.messages['true'];
+    that.false_value = spec.false_value || IPA.messages['false'];
+    that.show_false = spec.show_false;
+    that.invert_value = spec.invert_value;
+
+    that.format = function(value) {
+
+        if (value === undefined || value === null) return '';
+
+        if (value instanceof Array) {
+            value = value[0];
+        }
+
+        if (typeof value === 'string') {
+            value = value.toLowerCase();
+
+            if (value === 'true') {
+                value = true;
+            } else if (value === 'false') {
+                value = false;
+            } // leave other values unchanged
+        }
+
+        if (typeof value === 'boolean') {
+            if (that.invert_value) value = !value;
+
+            if (value) {
+                value = that.true_value;
+
+            } else {
+                if (that.show_false) {
+                    value = that.false_value;
+                } else {
+                    value = '';
+                }
+            }
+        }
+
+        return value;
+    };
+
+    return that;
 };
 
 /*
@@ -978,8 +1020,8 @@ IPA.column = function (spec) {
         container.empty();
 
         var value = record[that.name];
-        if (that.format && value) {
-            value = that.format(value);
+        if (that.format) {
+            value = that.format.format(value);
         }
         value = value ? value.toString() : '';
 

@@ -46,7 +46,16 @@ IPA.hbac.test_entity = function(spec) {
             columns: [
                 'uid',
                 'givenname',
-                'sn'
+                'sn',
+                {
+                    name: 'nsaccountlock',
+                    format: IPA.boolean_format({
+                        true_value: IPA.messages.objects.user.active,
+                        false_value: IPA.messages.objects.user.inactive,
+                        invert_value: true
+                    }),
+                    label: IPA.messages.objects.user.account_status
+                }
             ]
         }).
         facet({
@@ -62,7 +71,7 @@ IPA.hbac.test_entity = function(spec) {
                 {
                     name: 'has_keytab',
                     label: IPA.messages.objects.host.enrolled,
-                    format: IPA.boolean_format
+                    format: IPA.boolean_format()
                 }
             ]
         }).
@@ -91,7 +100,7 @@ IPA.hbac.test_entity = function(spec) {
                 {
                     name: 'has_keytab',
                     label: IPA.messages.objects.host.enrolled,
-                    format: IPA.boolean_format
+                    format: IPA.boolean_format()
                 }
             ]
         }).
@@ -106,7 +115,7 @@ IPA.hbac.test_entity = function(spec) {
                 'cn',
                 {
                     name: 'ipaenabledflag',
-                    format: IPA.boolean_format
+                    format: IPA.boolean_format()
                 },
                 'description'
             ]
@@ -123,11 +132,11 @@ IPA.hbac.test_entity = function(spec) {
                 {
                     name: 'matched',
                     label: IPA.messages.objects.hbactest.matched,
-                    format: IPA.boolean_format
+                    format: IPA.boolean_format()
                 },
                 {
                     name: 'ipaenabledflag',
-                    format: IPA.boolean_format
+                    format: IPA.boolean_format()
                 },
                 'description'
             ]

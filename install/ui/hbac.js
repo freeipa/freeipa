@@ -42,7 +42,7 @@ IPA.hbac.rule_entity = function(spec) {
                 'cn',
                 {
                     name: 'ipaenabledflag',
-                    format: IPA.boolean_format
+                    format: IPA.boolean_format()
                 },
                 'description'
             ]

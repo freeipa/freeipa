@@ -122,7 +122,7 @@ IPA.rule_association_table_widget = function(spec) {
                     name: that.external,
                     label: IPA.messages.objects.sudorule.external,
                     entity: that.other_entity,
-                    format: IPA.boolean_format,
+                    format: IPA.boolean_format(),
                     width: '200px'
                 });
             }

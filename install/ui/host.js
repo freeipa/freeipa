@@ -40,7 +40,7 @@ IPA.host.entity = function(spec) {
                 {
                     name: 'has_keytab',
                     label: IPA.messages.objects.host.enrolled,
-                    format: IPA.boolean_format
+                    format: IPA.boolean_format()
                 }
             ]
         }).
@@ -466,30 +466,42 @@ IPA.field_factories['host_dnsrecord_entity_link'] = IPA.host_dnsrecord_entity_li
 IPA.widget_factories['host_dnsrecord_entity_link'] = IPA.link_widget;
 
 /* Take an LDAP format date in UTC and format it */
-IPA.utc_date_column_format = function(value){
-    if (!value) {
-        return "";
-    }
-    if (value.length  != "20101119025910Z".length){
-        return value;
-    }
-    /* We only handle GMT */
-    if (value.charAt(value.length -1) !== 'Z'){
-        return value;
-    }
+IPA.utc_date_column_format = function(spec) {
 
-    var date = new Date();
+    spec = spec || {};
 
-    date.setUTCFullYear(
-        value.substring(0, 4),    // YYYY
-        value.substring(4, 6)-1,  // MM (0-11)
-        value.substring(6, 8));   // DD (1-31)
-    date.setUTCHours(
-        value.substring(8, 10),   // HH (0-23)
-        value.substring(10, 12),  // MM (0-59)
-        value.substring(12, 14)); // SS (0-59)
-    var formated = date.toString();
-    return  formated;
+    var that = IPA.format(spec);
+
+    that.format = function(value) {
+
+        if (!value) return '';
+
+        // verify length
+        if (value.length  != '20101119025910Z'.length) {
+            return value;
+        }
+
+        /* We only handle GMT */
+        if (value.charAt(value.length -1) !== 'Z') {
+            return value;
+        }
+
+        var date = new Date();
+
+        date.setUTCFullYear(
+            value.substring(0, 4),    // YYYY
+            value.substring(4, 6)-1,  // MM (0-11)
+            value.substring(6, 8));   // DD (1-31)
+
+        date.setUTCHours(
+            value.substring(8, 10),   // HH (0-23)
+            value.substring(10, 12),  // MM (0-59)
+            value.substring(12, 14)); // SS (0-59)
+
+        return date.toString();
+    };
+
+    return that;
 };
 
 
