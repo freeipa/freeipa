@@ -40,6 +40,15 @@ IPA.user.entity = function(spec) {
                 'uid',
                 'givenname',
                 'sn',
+                {
+                    name: 'nsaccountlock',
+                    format: IPA.boolean_format({
+                        true_value: IPA.messages.objects.user.active,
+                        false_value: IPA.messages.objects.user.inactive,
+                        invert_value: true
+                    }),
+                    label: IPA.messages.objects.user.account_status
+                },
                 'uidnumber',
                 'mail',
                 'telephonenumber',
