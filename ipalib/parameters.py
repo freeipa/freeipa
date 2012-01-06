@@ -711,11 +711,17 @@ class Param(ReadOnly):
         :param value: A proposed value for this parameter.
         """
         if self.multivalue:
-            if self.csv and isinstance(value, basestring):
-                csvreader = self.__unicode_csv_reader([unicode(value)])
-                value = tuple(csvreader.next()) #pylint: disable=E1101
-            elif type(value) not in (tuple, list):
+            if type(value) not in (tuple, list):
                 value = (value,)
+            if self.csv:
+                newval = ()
+                for v in value:
+                    if isinstance(v, basestring):
+                        csvreader = self.__unicode_csv_reader([unicode(v)])
+                        newval += tuple(csvreader.next()) #pylint: disable=E1101
+                    else:
+                        newval += (v,)
+                value = newval
         if self.normalizer is None:
             return value
         if self.multivalue:
