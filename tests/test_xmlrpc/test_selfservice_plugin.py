@@ -173,6 +173,31 @@ class test_selfservice(Declarative):
 
 
         dict(
+            desc='Try to update %r with empty permissions' % selfservice1,
+            command=(
+                'selfservice_mod', [selfservice1], dict(permissions=None)
+            ),
+            expected=errors.RequirementError(name='permissions'),
+        ),
+
+
+        dict(
+            desc='Retrieve %r to verify invalid update' % selfservice1,
+            command=('selfservice_show', [selfservice1], {}),
+            expected=dict(
+                value=selfservice1,
+                summary=None,
+                result={
+                        'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
+                        'permissions': [u'read'],
+                        'selfaci': True,
+                        'aciname': selfservice1,
+                },
+            ),
+        ),
+
+
+        dict(
             desc='Delete %r' % selfservice1,
             command=('selfservice_del', [selfservice1], {}),
             expected=dict(

@@ -117,6 +117,7 @@ must include all existing attributes as well. When doing an aci-mod the
 targetattr REPLACES the current attributes, it does not add to them.
 
 """
+from copy import deepcopy
 
 from ipalib import api, crud, errors
 from ipalib import Object, Command
@@ -614,14 +615,18 @@ class aci_mod(crud.Update):
         # The strategy here is to convert the ACI we're updating back into
         # a series of keywords. Then we replace any keywords that have been
         # updated and convert that back into an ACI and write it out.
-        newkw =  _aci_to_kw(ldap, aci)
+        oldkw = _aci_to_kw(ldap, aci)
+        newkw = deepcopy(oldkw)
         if 'selfaci' in newkw and newkw['selfaci'] == True:
             # selfaci is set in aci_to_kw to True only if the target is self
             kw['selfaci'] = True
         for k in kw.keys():
             newkw[k] = kw[k]
-        if 'aciname' in newkw:
-            del newkw['aciname']
+        for acikw in (oldkw, newkw):
+            try:
+                del acikw['aciname']
+            except KeyError:
+                pass
 
         # _make_aci is what is run in aci_add and validates the input.
         # Do this before we delete the existing ACI.
@@ -631,7 +636,16 @@ class aci_mod(crud.Update):
 
         self.api.Command['aci_del'](aciname, **kw)
 
-        result = self.api.Command['aci_add'](aciname, **newkw)['result']
+        try:
+            result = self.api.Command['aci_add'](aciname, **newkw)['result']
+        except Exception, e:
+            # ACI could not be added, try to restore the old deleted ACI and
+            # report the ADD error back to user
+            try:
+                self.api.Command['aci_add'](aciname, **oldkw)
+            except:
+                pass
+            raise e
 
         if kw.get('raw', False):
             result = dict(aci=unicode(newaci))
