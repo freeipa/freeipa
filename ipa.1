@@ -16,7 +16,7 @@
 .\"
 .\" Author: Pavel Zuna <pzuna@redhat.com>
 .\"
-.TH "IPA" "1" "02/22/2010" "IPA 2\&.0\&.0" "IPA CLI Manual"
+.TH "ipa" "1" "Jan 24 2012" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa \- IPA command\-line interface
 .SH "SYNOPSIS"
@@ -92,7 +92,7 @@ Search for existing objects.
 .LP
 The above types of commands except \fBfind\fR take the objects primary key (e.g. user name for users) as their only positional argument unless there can be only one object of the given type. They can also take a number of options (some of which might be required in the case of \fBadd\fR) that represent the objects attributes.
 
-\fBfind\fR commands take an optional criteria string as their only positional argument. If present, all objects with an attribute that contains the criteria string are displayed. If an option representing an attribute is set, only object with the attribute exactly matching the specified value are displayed. Without parameters all objects of the corresponding type are displayed.
+\fBfind\fR commands take an optional criteria string as their only positional argument. If present, all objects with an attribute that contains the criteria string are displayed. If an option representing an attribute is set, only object with the attribute exactly matching the specified value are displayed. Options with empty values are ignored. Without parameters all objects of the corresponding type are displayed.
 
 For IPA objects with attributes that can contain references to other objects (e.g. groups), the following action are usually available:
 .TP
