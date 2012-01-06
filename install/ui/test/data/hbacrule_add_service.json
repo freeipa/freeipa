@@ -20,7 +20,7 @@
             "cn": [
                 "test"
             ],
-            "dn": "ipauniqueid=e8aca082-e64a11df-9864f2e0-e0578392,cn=hbac,dc=dev,dc=example,dc=com",
+            "dn": "ipauniqueid=e8aca082-e64a11df-9864f2e0-e0578392,cn=hbac,dc=example,dc=com",
             "ipaenabledflag": [
                 "TRUE"
             ],

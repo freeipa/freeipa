@@ -32,7 +32,7 @@
             "cn": [
                 "rule1"
             ],
-            "dn": "ipauniqueid=4ed8b682-edf511df-b3f78f4b-11cc007b,cn=hbac,dc=dev,dc=example,dc=com",
+            "dn": "ipauniqueid=4ed8b682-edf511df-b3f78f4b-11cc007b,cn=hbac,dc=example,dc=com",
             "ipaenabledflag": [
                 "TRUE"
             ],

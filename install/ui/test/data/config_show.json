@@ -28,9 +28,9 @@
             "cn": [
                 "ipaConfig"
             ],
-            "dn": "cn=ipaconfig,cn=etc,dc=dev,dc=example,dc=com",
+            "dn": "cn=ipaconfig,cn=etc,dc=example,dc=com",
             "ipacertificatesubjectbase": [
-                "O=DEV.EXAMPLE.COM"
+                "O=EXAMPLE.COM"
             ],
             "ipaconfigstring": [
                 "AllowNThash"

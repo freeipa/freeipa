@@ -10,7 +10,7 @@
                     "automountmapname": [
                         "auto.direct"
                     ],
-                    "dn": "automountmapname=auto.direct,cn=bos,cn=automount,dc=dev,dc=example,dc=com",
+                    "dn": "automountmapname=auto.direct,cn=bos,cn=automount,dc=example,dc=com",
                     "objectclass": [
                         "automountmap",
                         "top"
@@ -25,7 +25,7 @@
                     "automountmapname": [
                         "auto.home"
                     ],
-                    "dn": "automountmapname=auto.home,cn=bos,cn=automount,dc=dev,dc=example,dc=com",
+                    "dn": "automountmapname=auto.home,cn=bos,cn=automount,dc=example,dc=com",
                     "objectclass": [
                         "automountmap",
                         "top"
@@ -40,7 +40,7 @@
                     "automountmapname": [
                         "auto.log"
                     ],
-                    "dn": "automountmapname=auto.log,cn=bos,cn=automount,dc=dev,dc=example,dc=com",
+                    "dn": "automountmapname=auto.log,cn=bos,cn=automount,dc=example,dc=com",
                     "objectclass": [
                         "automountmap",
                         "top"
@@ -55,7 +55,7 @@
                     "automountmapname": [
                         "auto.master"
                     ],
-                    "dn": "automountmapname=auto.master,cn=bos,cn=automount,dc=dev,dc=example,dc=com",
+                    "dn": "automountmapname=auto.master,cn=bos,cn=automount,dc=example,dc=com",
                     "objectclass": [
                         "automountmap",
                         "top"

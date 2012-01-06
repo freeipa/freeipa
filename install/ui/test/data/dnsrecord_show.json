@@ -48,7 +48,7 @@
                 "sshfprecord": "rscwo",
                 "txtrecord": "rscwo"
             },
-            "dn": "idnsname=testrec,idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
+            "dn": "idnsname=testrec,idnsname=example.com,cn=dns,dc=example,dc=com",
             "idnsname": [
                 "testrec"
             ],

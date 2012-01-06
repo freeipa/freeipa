@@ -11,7 +11,7 @@
                 "description": [
                     "Account administrators group"
                 ],
-                "dn": "cn=admins,cn=groups,cn=accounts,dc=dev,dc=example,dc=com",
+                "dn": "cn=admins,cn=groups,cn=accounts,dc=example,dc=com",
                 "gidnumber": [
                     "1420800000"
                 ],
@@ -26,7 +26,7 @@
                 "description": [
                     "Default group for all users"
                 ],
-                "dn": "cn=ipausers,cn=groups,cn=accounts,dc=dev,dc=example,dc=com",
+                "dn": "cn=ipausers,cn=groups,cn=accounts,dc=example,dc=com",
                 "gidnumber": [
                     "1420800001"
                 ],
@@ -46,7 +46,7 @@
                 "description": [
                     "Limited admins who can edit other users"
                 ],
-                "dn": "cn=editors,cn=groups,cn=accounts,dc=dev,dc=example,dc=com",
+                "dn": "cn=editors,cn=groups,cn=accounts,dc=example,dc=com",
                 "gidnumber": [
                     "1420800002"
                 ]
@@ -58,7 +58,7 @@
                 "description": [
                     "Monsters on Sesame Street"
                 ],
-                "dn": "cn=monsters,cn=groups,cn=accounts,dc=dev,dc=example,dc=com",
+                "dn": "cn=monsters,cn=groups,cn=accounts,dc=example,dc=com",
                 "gidnumber": [
                     "1420800009"
                 ]
@@ -70,7 +70,7 @@
                 "description": [
                     "Muppets moonlighting for CTW"
                 ],
-                "dn": "cn=muppets,cn=groups,cn=accounts,dc=dev,dc=example,dc=com",
+                "dn": "cn=muppets,cn=groups,cn=accounts,dc=example,dc=com",
                 "gidnumber": [
                     "1420800010"
                 ]

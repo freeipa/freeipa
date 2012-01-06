@@ -13,7 +13,7 @@
                     "description": [
                         "Default group for all users"
                     ],
-                    "dn": "cn=ipausers,cn=groups,cn=accounts,dc=dev,dc=example,dc=com",
+                    "dn": "cn=ipausers,cn=groups,cn=accounts,dc=example,dc=com",
                     "gidnumber": [
                         "1662072956"
                     ],
@@ -41,7 +41,7 @@
                     "description": [
                         "Limited admins who can edit other users"
                     ],
-                    "dn": "cn=editors,cn=groups,cn=accounts,dc=dev,dc=example,dc=com",
+                    "dn": "cn=editors,cn=groups,cn=accounts,dc=example,dc=com",
                     "gidnumber": [
                         "1662072957"
                     ],

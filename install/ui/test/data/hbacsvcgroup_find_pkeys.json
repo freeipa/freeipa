@@ -8,7 +8,7 @@
                 "cn": [
                     "Sudo"
                 ],
-                "dn": "cn=sudo,cn=hbacservicegroups,cn=hbac,dc=dev,dc=example,dc=com"
+                "dn": "cn=sudo,cn=hbacservicegroups,cn=hbac,dc=example,dc=com"
             }
         ],
         "summary": "1 group matched",

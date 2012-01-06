@@ -12,7 +12,7 @@
             "description": [
                 "/var/log/ipa mountinfogoeshere"
             ],
-            "dn": "description=/var/log/ipa mountinfogoeshere,automountmapname=auto.master,cn=default,cn=automount,dc=dev,dc=example,dc=com",
+            "dn": "description=/var/log/ipa mountinfogoeshere,automountmapname=auto.master,cn=default,cn=automount,dc=example,dc=com",
             "objectclass": [
                 "automount",
                 "top"

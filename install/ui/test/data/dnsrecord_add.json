@@ -6,7 +6,7 @@
             "arecord": [
                 "1.2.3.4"
             ],
-            "dn": "idnsname=a4,idnsname=dev.example.com,cn=dns,dc=example,dc=com",
+            "dn": "idnsname=a4,idnsname=example.com,cn=dns,dc=example,dc=com",
             "idnsname": [
                 "a4"
             ],

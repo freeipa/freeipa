@@ -437,8 +437,9 @@ IPA.cert.request_dialog = function(spec) {
 
     var that = IPA.dialog(spec);
 
-    that.width = spec.width || 500;
-    that.height = spec.height || 400;
+    that.width = spec.width || 600;
+    that.height = spec.height || 450;
+    that.message = spec.message;
 
     that.request = spec.request;
 
@@ -466,14 +467,11 @@ IPA.cert.request_dialog = function(spec) {
     });
 
     that.create = function() {
-        that.container.append(IPA.messages.objects.cert.enter_csr+':');
-        that.container.append('<br/>');
-        that.container.append('<br/>');
+        that.container.append(that.message);
 
         that.textarea = $('<textarea/>', {
             style: 'width: 100%; height: 225px;'
         }).appendTo(that.container);
-
     };
 
     return that;
@@ -829,8 +827,9 @@ IPA.cert.status_widget = function(spec) {
         title = title.replace('${primary_key}', entity_name);
 
         var dialog = IPA.cert.request_dialog({
-            'title': title,
-            'request': function(values) {
+            title: title,
+            message: that.request_message,
+            request: function(values) {
                 var request = values['request'];
 
                 IPA.command({

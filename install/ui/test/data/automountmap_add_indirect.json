@@ -9,7 +9,7 @@
             "description": [
                 "test"
             ],
-            "dn": "automountmapname=test,cn=default,cn=automount,dc=dev,dc=example,dc=com",
+            "dn": "automountmapname=test,cn=default,cn=automount,dc=example,dc=com",
             "objectclass": [
                 "automountmap",
                 "top"

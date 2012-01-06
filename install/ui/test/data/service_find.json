@@ -5,10 +5,10 @@
         "count": 3,
         "result": [
             {
-                "dn": "krbprincipalname=ldap/dev.example.com@dev.example.com,cn=services,cn=accounts,dc=dev,dc=example,dc=com",
+                "dn": "krbprincipalname=ldap/dev.example.com@EXAMPLE.COM,cn=services,cn=accounts,dc=example,dc=com",
                 "has_keytab": true,
                 "krbprincipalname": [
-                    "ldap/dev.example.com@DEV.EXAMPLE.COM"
+                    "ldap/dev.example.com@EXAMPLE.COM"
                 ],
                 "managedby_host": [
                     "dev.example.com"
@@ -20,10 +20,10 @@
                 ]
             },
             {
-                "dn": "krbprincipalname=http/dev.example.com@dev.example.com,cn=services,cn=accounts,dc=dev,dc=example,dc=com",
+                "dn": "krbprincipalname=http/dev.example.com@EXAMPLE.COM,cn=services,cn=accounts,dc=example,dc=com",
                 "has_keytab": true,
                 "krbprincipalname": [
-                    "HTTP/dev.example.com@DEV.EXAMPLE.COM"
+                    "HTTP/dev.example.com@EXAMPLE.COM"
                 ],
                 "usercertificate": [
                     {
@@ -32,10 +32,10 @@
                 ]
             },
             {
-                "dn": "krbprincipalname=test/dev.example.com@dev.example.com,cn=services,cn=accounts,dc=dev,dc=example,dc=com",
+                "dn": "krbprincipalname=test/dev.example.com@EXAMPLE.COM,cn=services,cn=accounts,dc=example,dc=com",
                 "has_keytab": false,
                 "krbprincipalname": [
-                    "test/dev.example.com@DEV.EXAMPLE.COM"
+                    "test/dev.example.com@EXAMPLE.COM"
                 ],
                 "managedby_host": [
                     "dev.example.com"

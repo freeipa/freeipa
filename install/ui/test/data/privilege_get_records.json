@@ -272,7 +272,7 @@
                     ],
                     "dn": "cn=dnsserver,cn=privileges,cn=accounts,dc=example,dc=com",
                     "memberindirect": [
-                        "krbprincipalname=dns/ipa.example.com@example.com,cn=services,cn=accounts,dc=example,dc=com"
+                        "krbprincipalname=dns/dev.example.com@example.com,cn=services,cn=accounts,dc=example,dc=com"
                     ]
                 },
                 "summary": null,

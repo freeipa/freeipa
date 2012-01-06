@@ -30,7 +30,7 @@
             "description": [
                 "Target Group Permission"
             ],
-            "dn": "cn=group,cn=permissions,cn=pbac,dc=ipa",
+            "dn": "cn=group,cn=permissions,cn=pbac,dc=example,dc=com",
             "objectclass": [
                 "groupofnames",
                 "top"

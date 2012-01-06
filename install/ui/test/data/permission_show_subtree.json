@@ -26,7 +26,7 @@
             "description": [
                 "Subtree Permission"
             ],
-            "dn": "cn=subtree,cn=permissions,cn=pbac,dc=ipa",
+            "dn": "cn=subtree,cn=permissions,cn=pbac,dc=example,dc=com",
             "objectclass": [
                 "groupofnames",
                 "top"
@@ -34,7 +34,7 @@
             "permissions": [
                 "write"
             ],
-            "subtree": "ldap:///dc=ipa"
+            "subtree": "ldap:///dc=example,dc=com"
         },
         "summary": null,
         "value": "subtree"

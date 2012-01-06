@@ -6,7 +6,7 @@
             "automountmapname": [
                 "auto.log"
             ],
-            "dn": "automountmapname=auto.log,cn=mtv,cn=automount,dc=dev,dc=example,dc=com",
+            "dn": "automountmapname=auto.log,cn=mtv,cn=automount,dc=example,dc=com",
             "objectclass": [
                 "automountmap",
                 "top"

@@ -3,12 +3,12 @@
     "id": 0,
     "result": {
         "result": {
-            "dn": "krbprincipalname=test/dev.example.com@dev.example.com,cn=services,cn=accounts,dc=dev,dc=example,dc=com",
+            "dn": "krbprincipalname=test/dev.example.com@EXAMPLE.COM,cn=services,cn=accounts,dc=example,dc=com",
             "ipauniqueid": [
                 "5b314ad9-bae4-11df-b82f-00163e72f2d9"
             ],
             "krbprincipalname": [
-                "test/dev.example.com@DEV.EXAMPLE.COM"
+                "test/dev.example.com@EXAMPLE.COM"
             ],
             "managedby_host": [
                 "dev.example.com"
@@ -23,7 +23,7 @@
                 "top"
             ]
         },
-        "summary": "Added service \"test/dev.example.com@DEV.EXAMPLE.COM\"",
-        "value": "test/dev.example.com@DEV.EXAMPLE.COM"
+        "summary": "Added service \"test/dev.example.com@EXAMPLE.COM\"",
+        "value": "test/dev.example.com@EXAMPLE.COM"
     }
 }
