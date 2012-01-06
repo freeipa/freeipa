@@ -705,21 +705,21 @@ class aci_find(crud.Search):
         else:
             results = list(acis)
 
-        if 'aciname' in kw:
+        if kw.get('aciname'):
             for a in acis:
                 prefix, name = _parse_aci_name(a.name)
                 if name != kw['aciname']:
                     results.remove(a)
             acis = list(results)
 
-        if 'aciprefix' in kw:
+        if kw.get('aciprefix'):
             for a in acis:
                 prefix, name = _parse_aci_name(a.name)
                 if prefix != kw['aciprefix']:
                     results.remove(a)
             acis = list(results)
 
-        if 'attrs' in kw:
+        if kw.get('attrs'):
             for a in acis:
                 if not 'targetattr' in a.target:
                     results.remove(a)
@@ -732,7 +732,7 @@ class aci_find(crud.Search):
                     results.remove(a)
             acis = list(results)
 
-        if 'permission' in kw:
+        if kw.get('permission'):
             try:
                 self.api.Command['permission_show'](
                     kw['permission']
@@ -745,7 +745,7 @@ class aci_find(crud.Search):
                         results.remove(a)
                 acis = list(results)
 
-        if 'permissions' in kw:
+        if kw.get('permissions'):
             for a in acis:
                 alist1 = sorted(a.permissions)
                 alist2 = sorted(kw['permissions'])
@@ -753,7 +753,7 @@ class aci_find(crud.Search):
                     results.remove(a)
             acis = list(results)
 
-        if 'memberof' in kw:
+        if kw.get('memberof'):
             try:
                 dn = _group_from_memberof(kw['memberof'])
             except errors.NotFound:
@@ -768,7 +768,7 @@ class aci_find(crud.Search):
                     else:
                         results.remove(a)
 
-        if 'type' in kw:
+        if kw.get('type'):
             for a in acis:
                 if 'target' in a.target:
                     target = a.target['target']['expression']
@@ -786,7 +786,7 @@ class aci_find(crud.Search):
                     except ValueError:
                         pass
 
-        if 'selfaci' in kw and kw['selfaci'] == True:
+        if kw.get('selfaci', False) is True:
             for a in acis:
                 if a.bindrule['expression'] != u'ldap:///self':
                     try:
@@ -794,7 +794,7 @@ class aci_find(crud.Search):
                     except ValueError:
                         pass
 
-        if 'group' in kw:
+        if kw.get('group'):
             for a in acis:
                 groupdn = a.bindrule['expression']
                 groupdn = groupdn.replace('ldap:///','')
@@ -808,7 +808,7 @@ class aci_find(crud.Search):
                     except ValueError:
                         pass
 
-        if 'targetgroup' in kw:
+        if kw.get('targetgroup'):
             for a in acis:
                 found = False
                 if 'target' in a.target:
@@ -825,7 +825,7 @@ class aci_find(crud.Search):
                     except ValueError:
                         pass
 
-        if 'filter' in kw:
+        if kw.get('filter'):
             if not kw['filter'].startswith('('):
                 kw['filter'] = unicode('('+kw['filter']+')')
             for a in acis:

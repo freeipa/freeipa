@@ -154,6 +154,25 @@ class test_selfservice(Declarative):
 
 
         dict(
+            desc='Search for %r with empty attrs and permissions' % selfservice1,
+            command=('selfservice_find', [selfservice1], {'attrs' : None, 'permissions' : None}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 selfservice matched',
+                result=[
+                    {
+                        'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
+                        'permissions': [u'write'],
+                        'selfaci': True,
+                        'aciname': selfservice1,
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
             desc='Update %r' % selfservice1,
             command=(
                 'selfservice_mod', [selfservice1], dict(permissions=u'read')
