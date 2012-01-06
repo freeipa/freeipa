@@ -257,8 +257,12 @@ def validate_zonemgr(zonemgr):
     if not all(regex_domain.match(part) for part in domain.split(".")):
         raise ValueError(_('domain name may only include letters, numbers, and -'))
 
-def validate_hostname(hostname):
-    """ See RFC 952, 1123"""
+def validate_hostname(hostname, check_fqdn=True):
+    """ See RFC 952, 1123
+
+    :param hostname Checked value
+    :param check_fqdn Check if hostname is fully qualified
+    """
     regex_name = re.compile(r'^[a-z0-9]([a-z0-9-]?[a-z0-9])*$', re.IGNORECASE)
 
     if len(hostname) > 255:
@@ -267,12 +271,12 @@ def validate_hostname(hostname):
     if hostname.endswith('.'):
         hostname = hostname[:-1]
 
-    if '.' not in hostname:
-        raise ValueError(_('hostname is not fully qualified'))
+    if check_fqdn and '.' not in hostname:
+        raise ValueError(_('not fully qualified'))
 
     if not all(regex_name.match(part) for part in hostname.split(".")):
-        raise ValueError(_('hostname parts may only include letters, numbers, and - ' \
-                           '(which is not allowed as the last character)'))
+        raise ValueError(_('only letters, numbers, and - are allowed. ' \
+                           '- must not be the last name character'))
 
 class cachedproperty(object):
     """

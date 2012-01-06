@@ -1,6 +1,6 @@
 # Authors:
-#   Pavel Zuna <pzuna@redhat.com>
 #   Martin Kosek <mkosek@redhat.com>
+#   Pavel Zuna <pzuna@redhat.com>
 #
 # Copyright (C) 2010  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -22,9 +22,10 @@ import netaddr
 import time
 import re
 
+from ipalib.request import context
 from ipalib import api, errors, output
 from ipalib import Command
-from ipalib import Flag, Bool, Int, Str, StrEnum
+from ipalib.parameters import Flag, Bool, Int, Float, Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.util import validate_zonemgr, normalize_zonemgr, validate_hostname
@@ -166,12 +167,23 @@ def _reverse_zone_name(netstr):
     else:
         return None
 
-def _validate_ipaddr(ugettext, ipaddr):
+def _validate_ipaddr(ugettext, ipaddr, ip_version=None):
     try:
         ip = netaddr.IPAddress(ipaddr)
+
+        if ip_version is not None:
+            if ip.version != ip_version:
+                return _('invalid IP address version (is %(value)d, must be %(required_value)d)!') \
+                        % dict(value=ip.version, required_value=ip_version)
     except (netaddr.AddrFormatError, ValueError):
         return _('invalid IP address format')
     return None
+
+def _validate_ip4addr(ugettext, ipaddr):
+    return _validate_ipaddr(ugettext, ipaddr, 4)
+
+def _validate_ip6addr(ugettext, ipaddr):
+    return _validate_ipaddr(ugettext, ipaddr, 6)
 
 def _validate_ipnet(ugettext, ipnet):
     try:
@@ -180,191 +192,401 @@ def _validate_ipnet(ugettext, ipnet):
         return _('invalid IP network format')
     return None
 
-def _validate_srv(ugettext, srv):
-    """see RFC 2782"""
+def _domain_name_validator(ugettext, value):
     try:
-        prio, weight, port, host = srv.split()
-    except ValueError:
-        return _('format must be specified as "priority weight port target"')
-
-    try:
-        prio = int(prio)
-        weight = int(weight)
-        port = int(port)
-    except ValueError:
-        return _('format must be specified as "priority weight port target" '\
-                 '(see RFC 2782 for details)')
-
-    return None
-
-def _validate_mx(ugettext, mx):
-    """see RFC 1035"""
-    try:
-        prio, host = mx.split()
-    except ValueError:
-        return _('format must be specified as "priority mailserver" '\
-                 '(see RFC 1035 for details)')
-
-    try:
-        prio = int(prio)
-    except ValueError:
-        return _('the value of priority must be integer')
-
-    if prio < 0 or prio > 65535:
-        return _('the value of priority must be between 0 and 65535')
-
-    return None
-
-def _validate_naptr(ugettext, naptr):
-    """see RFC 2915"""
-    try:
-        order, pref, flags, svc, regexp, replacement = naptr.split()
-    except ValueError:
-        return _('format must be specified as "order preference flags service '\
-                 'regexp replacement" (see RFC 2915 for details)')
-
-    try:
-        order = int(order)
-        pref = int(pref)
-    except ValueError:
-        return _('order and preference must be integers')
-
-    if order < 0 or order > 65535 or pref < 0 or pref > 65535:
-        return _('the value of order and preference must be between 0 and 65535')
-
-    flags = flags.replace('"','')
-    flags = flags.replace('\'','')
-    if len(flags) != 1:
-        return _('flag must be a single character (quotation is allowed)')
-    if flags.upper() not in "SAUP":
-        return _('flag must be one of "S", "A", "U", or "P"')
-
-    return None
-
-def _validate_afsdb(ugettext, afsdb):
-    """see RFC 1183"""
-    try:
-        sub, host = afsdb.split()
-    except ValueError:
-        return _('format must be specified as "subtype hostname" (see RFC 1183 for details)')
-
-    try:
-        sub = int(sub)
-    except ValueError:
-        return _('the value of subtype must be integer')
-
-    if sub < 0 or sub > 65535:
-        return _('the value of subtype must be between 0 and 65535')
-
-    return None
-
-def _validate_cert(ugettext, cert):
-    """see RFC 4398"""
-    try:
-        cert_type, key_tag, algorithm, certificate = cert.split()
-    except ValueError:
-        return _('format must be specified as "type key_tag algorithm certificate_or_crl" '\
-                 '(see RFC 4398 for details)')
-
-    try:
-        cert_type = int(cert_type)
-        key_tag = int(key_tag)
-        algorithm = int(algorithm)
-    except ValueError:
-        return _('key_tag, algorithm and digest_type must be integers')
-
-    if cert_type < 0 or cert_type > 65535 or key_tag < 0 or key_tag > 65535:
-        return _('the value of type and key_tag must be between 0 and 65535')
-
-    if algorithm < 0 or algorithm > 255:
-        return _('the value of algorithm must be between 0 and 255')
-
-    return None
-
-def _validate_cname(ugettext, cname):
-    """see RFC 1035"""
-    try:
-        validate_hostname(cname)
+        # Allow domain name which is not fully qualified. These are supported
+        # in bind and then translated as <non-fqdn-name>.<domain>.
+        validate_hostname(value, check_fqdn=False)
     except ValueError, e:
-        return _('format must be specified as "domain_name" (see RFC 1035 for details): %s') \
+        return _('invalid domain-name: %s') \
             % unicode(e)
 
     return None
 
-def _validate_dname(ugettext, dname):
-    """see RFC 2672"""
+def _hostname_validator(ugettext, value):
     try:
-        validate_hostname(dname)
+        validate_hostname(value)
     except ValueError, e:
-        return _('format must be specified as "target" (see RFC 2672 for details): %s') \
+        return _('invalid domain-name: %s') \
             % unicode(e)
 
     return None
 
-def _validate_ds(ugettext, ds):
-    """see RFC 4034"""
-    try:
-        key_tag, algorithm, digest_type, digest = ds.split()
-    except ValueError:
-        return _('format must be specified as "key_tag algorithm digest_type digest" '\
-                 '(see RFC 4034 for details)')
+def _normalize_hostname(domain_name):
+    """Make it fully-qualified"""
+    if domain_name[-1] != '.':
+        return domain_name + '.'
+    else:
+        return domain_name
 
-    try:
-        key_tag = int(key_tag)
-        algorithm = int(algorithm)
-        digest_type = int(digest_type)
-    except ValueError:
-        return _('key_tag, algorithm and digest_type must be integers')
+class DNSRecord(Str):
+    parts = None
+    supported = True
+    # supported RR types: https://fedorahosted.org/bind-dyndb-ldap/browser/doc/schema
 
-    if key_tag < 0 or key_tag > 65535:
-        return _('the value of flags must be between 0 and 65535')
+    label_format = _("%s record")
+    part_label_format = "%s %s"
+    doc_format = _('Comma-separated list of raw %s records')
+    option_group_format = _('%s Record')
+    see_rfc_msg = _("(see RFC %s for details)")
+    part_name_format = "%s_part_%s"
+    cli_name_format = "%s_%s"
+    format_error_msg = None
 
-    if algorithm < 0 or algorithm > 255 or digest_type < 0 or digest_type > 255:
-        return _('the value of algorithm and digest_type must be between 0 and 255')
+    kwargs = Str.kwargs + (
+        ('validatedns', bool, True),
+        ('normalizedns', bool, True),
+    )
 
-    return None
+    # should be replaced in subclasses
+    rrtype = None
+    rfc = None
 
-def _validate_key(ugettext, key):
-    """see RFC 2535"""
-    try:
-        flags, protocol, algorithm, digest = key.split()
-    except ValueError:
-        return _('format must be specified as "flags protocol algorithm public_key" '\
-                 '(see RFC 2535 for details)')
+    def __init__(self, name=None, *rules, **kw):
+        if self.rrtype not in _record_types:
+            raise ValueError("Unknown RR type: %s. Must be one of %s" % \
+                    (str(self.rrtype), ", ".join(_record_types)))
+        if not name:
+            name = "%srecord*" % self.rrtype.lower()
+        kw.setdefault('cli_name', '%s_rec' % self.rrtype.lower())
+        kw.setdefault('label', self.label_format % self.rrtype)
+        kw.setdefault('doc', self.doc_format % self.rrtype)
+        kw['csv'] = True
 
-    try:
-        flags = int(flags)
-        protocol = int(protocol)
-        algorithm = int(algorithm)
-    except ValueError:
-        return _('flags, protocol and algorithm must be integers')
+        if not self.supported:
+            kw['flags'] = ('no_option',)
 
-    if flags < 0 or flags > 65535:
-        return _('the value of flags must be between 0 and 65535')
+        super(DNSRecord, self).__init__(name, *rules, **kw)
 
-    if protocol < 0 or protocol > 255:
-        return _('the value of protocol must be between 0 and 255')
+    def _get_part_values(self, value):
+        values = value.split()
+        if len(values) != len(self.parts):
+            return None
+        return tuple(values)
 
-    if algorithm < 0 or algorithm > 255:
-        return _('the value of algorithm must be between 0 and 255')
+    def _convert_scalar(self, value, index=None):
+        if isinstance(value, (tuple, list)):
+            # convert parsed values to the string
+            if len(value) != len(self.parts):
+                raise errors.ConversionError(name=self.name, index=index,
+                      error=_("Invalid number of parts!"))
+            return u" ".join(super(DNSRecord, self)._convert_scalar(v, index) \
+                             for v in value if v is not None)
+        return super(DNSRecord, self)._convert_scalar(value, index)
 
-    return None
+    def normalize(self, value):
+        if self.normalizedns: #pylint: disable=E1101
+            if isinstance(value, (tuple, list)):
+                value = tuple(
+                            self._normalize_parts(v) for v in value \
+                                    if v is not None
+                        )
+            elif value is not None:
+                value = (self._normalize_parts(value),)
 
-def _validate_loc(ugettext, loc):
-    """see RFC 1876"""
-    regex = re.compile(\
-        r'(?P<d1>\d{1,2}\s+)(?P<m1>\d{1,2}\s+)?(?P<s1>\d{1,2}\.?\d{1,3}?\s+)'\
-        r'?[N|S]\s+'\
-        r'(?P<d2>\d{1,2}\s+)(?P<m2>\d{1,2}\s+)?(?P<s2>\d{1,2}\.?\d{1,3}?\s+)'\
-        r'?[W|E]\s+'\
-        r'(?P<alt>-?\d{1,8}\.?\d{1,2}?)m?\s*'\
-        r'(?P<siz>\d{1,8}\.?\d{1,2}?)?m?\s*'\
-        r'(?P<hp>\d{1,8}\.?\d{1,2}?)?m?\s*(?P<vp>\d{1,8}\.?\d{1,2}?)?m?\s*$')
+        return super(DNSRecord, self).normalize(value)
 
-    m = regex.match(loc)
+    def _normalize_parts(self, value):
+        """
+        Normalize a DNS record value using normalizers for its parts.
+        """
+        if self.parts is None:
+            return value
+        try:
+            values = self._get_part_values(value)
+            if not values:
+                return value
 
-    if m is None:
-        return _("""format must be specified as
+            new_values = [ part.normalize(values[part_id]) \
+                            for part_id, part in enumerate(self.parts) ]
+
+            value = self._convert_scalar(new_values)
+        except Exception:
+            # cannot normalize, rather return original value than fail
+            pass
+        return value
+
+    def _rule_validatedns(self, _, value):
+        if not self.validatedns: #pylint: disable=E1101
+            return
+
+        if value is None:
+            return
+
+        if not self.supported:
+            return _('DNS RR type "%s" is not supported by bind-dyndb-ldap plugin') \
+                     % self.rrtype
+
+        if self.parts is None:
+            return
+
+        # validate record format
+        values = self._get_part_values(value)
+        if not values:
+            if not self.format_error_msg:
+                part_names = [part.name.upper() for part in self.parts]
+
+                if self.rfc:
+                    see_rfc_msg = " " + self.see_rfc_msg % self.rfc
+                else:
+                    see_rfc_msg = ""
+                return _('format must be specified as "%(format)s" %(rfcs)s') \
+                    % dict(format=" ".join(part_names), rfcs=see_rfc_msg)
+            else:
+                return self.format_error_msg
+
+        # validate every part
+        for part_id, part in enumerate(self.parts):
+            val = part.normalize(values[part_id])
+            val = part.convert(val)
+            part.validate(val)
+        return None
+
+class ARecord(DNSRecord):
+    rrtype = 'A'
+    rfc = 1035
+    parts = (
+        Str('ip_address',
+            _validate_ip4addr,
+            label=_('IP Address'),
+        ),
+    )
+
+class A6Record(DNSRecord):
+    rrtype = 'A6'
+    rfc = 3226
+    parts = None    # experimental rr type
+
+class AAAARecord(DNSRecord):
+    rrtype = 'AAAA'
+    rfc = 3596
+    parts = (
+        Str('ip_address',
+            _validate_ip6addr,
+            label=_('IP Address'),
+        ),
+    )
+
+class AFSDBRecord(DNSRecord):
+    rrtype = 'AFSDB'
+    rfc = 1183
+    parts = (
+        Int('subtype?',
+            label=_('Subtype'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Str('hostname',
+            _domain_name_validator,
+            label=_('Hostname'),
+        ),
+    )
+
+class APLRecord(DNSRecord):
+    rrtype = 'APL'
+    rfc = 3123
+    supported = False
+
+class CERTRecord(DNSRecord):
+    rrtype = 'CERT'
+    rfc = 4398
+    parts = (
+        Int('type',
+            label=_('Certificate Type'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Int('key_tag',
+            label=_('Key Tag'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Int('algorithm',
+            label=_('Algorithm'),
+            minvalue=0,
+            maxvalue=255,
+        ),
+        Str('certificate_or_crl',
+            label=_('Certificate/CRL'),
+        ),
+    )
+
+class CNAMERecord(DNSRecord):
+    rrtype = 'CNAME'
+    rfc = 1035
+    parts = (
+        Str('hostname',
+            _domain_name_validator,
+            label=_('Hostname'),
+            doc=_('A hostname which this alias hostname points to'),
+        ),
+    )
+
+class DHCIDRecord(DNSRecord):
+    rrtype = 'DHCID'
+    rfc = 4701
+    supported = False
+
+class DLVRecord(DNSRecord):
+    rrtype = 'DLV'
+    rfc = 4431
+    supported = False
+
+class DNAMERecord(DNSRecord):
+    rrtype = 'DNAME'
+    rfc = 2672
+    parts = (
+        Str('target',
+            _domain_name_validator,
+            label=_('Target'),
+        ),
+    )
+
+class DNSKEYRecord(DNSRecord):
+    rrtype = 'DNSKEY'
+    rfc = 4034
+    supported = False
+
+class DSRecord(DNSRecord):
+    rrtype = 'DS'
+    rfc = 4034
+    parts = (
+        Int('key_tag',
+            label=_('Key Tag'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Int('algorithm',
+            label=_('Algorithm'),
+            minvalue=0,
+            maxvalue=255,
+        ),
+        Int('digest_type',
+            label=_('Digest Type'),
+            minvalue=0,
+            maxvalue=255,
+        ),
+        Str('digest',
+            label=_('Digest'),
+        ),
+    )
+
+class HIPRecord(DNSRecord):
+    rrtype = 'HIP'
+    rfc = 5205
+    supported = False
+
+class KEYRecord(DNSRecord):
+    rrtype = 'KEY'
+    rfc = 2535
+    parts = (
+        Int('flags',
+            label=_('Flags'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Int('protocol',
+            label=_('Protocol'),
+            minvalue=0,
+            maxvalue=255,
+        ),
+        Int('algorithm',
+            label=_('Algorithm'),
+            minvalue=0,
+            maxvalue=255,
+        ),
+        Str('public_key',
+            label=_('Public Key'),
+        ),
+    )
+
+class IPSECKEYRecord(DNSRecord):
+    rrtype = 'IPSECKEY'
+    rfc = 4025
+    supported = False
+
+class KXRecord(DNSRecord):
+    rrtype = 'KX'
+    rfc = 2230
+    parts = (
+        Int('preference',
+            label=_('Preference'),
+            doc=_('Preference given to this exchanger. Lower values are more preferred'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Str('exchanger',
+            _domain_name_validator,
+            label=_('Exchanger'),
+            doc=_('A host willing to act as a key exchanger'),
+        ),
+    )
+
+class LOCRecord(DNSRecord):
+    rrtype = 'LOC'
+    rfc = 1876
+    parts = (
+        Int('lat_deg',
+            label=_('Degrees Latitude'),
+            minvalue=0,
+            maxvalue=90,
+        ),
+        Int('lat_min?',
+            label=_('Minutes Latitude'),
+            minvalue=0,
+            maxvalue=59,
+        ),
+        Float('lat_sec?',
+            label=_('Seconds Latitude'),
+            minvalue=0.0,
+            maxvalue=59.999,
+        ),
+        StrEnum('lat_dir',
+            label=_('Direction Latitude'),
+            values=(u'N', u'S',),
+        ),
+        Int('lon_deg',
+            label=_('Degrees Longtitude'),
+            minvalue=0,
+            maxvalue=180,
+        ),
+        Int('lon_min?',
+            label=_('Minutes Longtitude'),
+            minvalue=0,
+            maxvalue=59,
+        ),
+        Float('lon_sec?',
+            label=_('Seconds Longtitude'),
+            minvalue=0.0,
+            maxvalue=59.999,
+        ),
+        StrEnum('lon_dir',
+            label=_('Direction Longtitude'),
+            values=(u'E', u'W',),
+        ),
+        Float('altitude',
+            label=_('Altitude'),
+            minvalue=-100000.00,
+            maxvalue=42849672.95,
+        ),
+        Float('size?',
+            label=_('Size'),
+            minvalue=0.0,
+            maxvalue=90000000.00,
+        ),
+        Float('h_precision?',
+            label=_('Horizontal Precision'),
+            minvalue=0.0,
+            maxvalue=90000000.00,
+        ),
+        Float('v_precision?',
+            label=_('Vertical Precision'),
+            minvalue=0.0,
+            maxvalue=90000000.00,
+        ),
+    )
+
+    format_error_msg = _("""format must be specified as
     "d1 [m1 [s1]] {"N"|"S"}  d2 [m2 [s2]] {"E"|"W"} alt["m"] [siz["m"] [hp["m"] [vp["m"]]]]"
     where:
        d1:     [0 .. 90]            (degrees latitude)
@@ -375,208 +597,308 @@ def _validate_loc(ugettext, loc):
        siz, hp, vp: [0 .. 90000000.00] (size/precision in meters)
     See RFC 1876 for details""")
 
-    attrs = {}
-    for attr in ('d1', 'd2', 'm1', 'm2'):
-        if m.group(attr) is not None:
-            try:
-                attrs[attr] = int(m.group(attr))
-            except ValueError:
-                return _('%s must be integer') % attr
+    def _get_part_values(self, value):
+        regex = re.compile(\
+            r'(?P<d1>\d{1,2}\s+)(?P<m1>\d{1,2}\s+)?(?P<s1>\d{1,2}\.?\d{1,3}?\s+)?'\
+            r'(?P<dir1>[N|S])\s+'\
+            r'(?P<d2>\d{1,3}\s+)(?P<m2>\d{1,2}\s+)?(?P<s2>\d{1,2}\.?\d{1,3}?\s+)?'\
+            r'(?P<dir2>[W|E])\s+'\
+            r'(?P<alt>-?\d{1,8}\.?\d{1,2}?)m?\s*'\
+            r'(?P<siz>\d{1,8}\.?\d{1,2}?)?m?\s*'\
+            r'(?P<hp>\d{1,8}\.?\d{1,2}?)?m?\s*(?P<vp>\d{1,8}\.?\d{1,2}?)?m?\s*$')
 
-    for attr in ('s1', 's2', 'alt', 'siz', 'hp', 'vp'):
-        if m.group(attr) is not None:
-            try:
-                attrs[attr] = float(m.group(attr))
-            except ValueError:
-                return _('%s must be float') % attr
+        m = regex.match(value)
 
-    if attrs.get('d1', 0) > 90 or attrs.get('d2', 0) > 90:
-        return _(u'd1 and d2 must be between 0 and 90')
+        if m is None:
+            return None
 
-    if attrs.get('m1', 0) >= 60 or attrs.get('m2', 0) >= 60 or \
-       attrs.get('s1', 0) >= 60 or attrs.get('s2', 0) >= 60:
-        return _('m1, m2, s1 and s2 must be between 0 and 59.999')
+        return tuple(x.strip() if x is not None else x for x in m.groups())
 
-    if attrs.get('alt', 0) < -100000.00 or attrs.get('alt', 0) > 42849672.95:
-        return _('alt must be between -100000.00 and 42849672.95')
+class MXRecord(DNSRecord):
+    rrtype = 'MX'
+    rfc = 1035
+    parts = (
+        Int('preference',
+            label=_('Preference'),
+            doc=_('Preference given to this exchanger. Lower values are more preferred'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Str('exchanger',
+            _domain_name_validator,
+            label=_('Exchanger'),
+            doc=_('A host willing to act as a mail exchanger'),
+        ),
+    )
 
-    if attrs.get('siz', 0) > 90000000.00 or attrs.get('hp', 0) > 90000000.00 or \
-       attrs.get('vp', 0) > 90000000.00:
-        return _('siz, hp and vp must be between 0 and 90000000.00')
+class NSRecord(DNSRecord):
+    rrtype = 'NS'
+    rfc = 1035
 
-    return None
+    parts = (
+        Str('hostname',
+            _domain_name_validator,
+            label=_('Hostname'),
+        ),
+    )
 
-def _validate_ns(ugettext, ns):
-    """see RFC 1035"""
+class NSECRecord(DNSRecord):
+    rrtype = 'NSEC'
+    rfc = 4034
+    format_error_msg = _('format must be specified as "NEXT TYPE1 '\
+                         '[TYPE2 [TYPE3 [...]]]" (see RFC 4034 for details)')
+    _allowed_types = (u'SOA',) + _record_types
+
+    parts = (
+        Str('next',
+            _domain_name_validator,
+            label=_('Next Domain Name'),
+        ),
+        StrEnum('types',
+            label=_('Type Map'),
+            multivalue=True,
+            values=_allowed_types,
+        ),
+    )
+
+    def _get_part_values(self, value):
+        values = value.split()
+
+        if len(values) < 2:
+            return None
+
+        return (values[0], tuple(values[1:]))
+
+class NSEC3Record(DNSRecord):
+    rrtype = 'NSEC3'
+    rfc = 5155
+    supported = False
+
+class NSEC3PARAMRecord(DNSRecord):
+    rrtype = 'NSEC3PARAM'
+    rfc = 5155
+    supported = False
+
+def _validate_naptr_flags(ugettext, flags):
+    allowed_flags = u'SAUP'
+    flags = flags.replace('"','').replace('\'','')
+
+    for flag in flags:
+        if flag not in allowed_flags:
+            return _('flags must be one of "S", "A", "U", or "P"')
+
+class NAPTRRecord(DNSRecord):
+    rrtype = 'NAPTR'
+    rfc = 2915
+
+    parts = (
+        Int('order',
+            label=_('Order'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Int('preference',
+            label=_('Preference'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Str('flags',
+            _validate_naptr_flags,
+            label=_('Flags'),
+            normalizer=lambda x:x.upper()
+        ),
+        Str('service',
+            label=_('Service'),
+        ),
+        Str('regexp',
+            label=_('Regular Expression'),
+        ),
+        Str('replacement',
+            label=_('Replacement'),
+        ),
+    )
+
+class PTRRecord(DNSRecord):
+    rrtype = 'PTR'
+    rfc = 1035
+    parts = (
+        Str('hostname',
+            _hostname_validator,
+            normalizer=_normalize_hostname,
+            label=_('Hostname'),
+            doc=_('The hostname this reverse record points to'),
+        ),
+    )
+
+class RPRecord(DNSRecord):
+    rrtype = 'RP'
+    rfc = 1183
+    supported = False
+
+class SRVRecord(DNSRecord):
+    rrtype = 'SRV'
+    rfc = 2782
+    parts = (
+        Int('priority',
+            label=_('Priority'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Int('weight',
+            label=_('Weight'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Int('port',
+            label=_('Port'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Str('target',
+            label=_('Target'),
+            doc=_('The domain name of the target host or \'.\' if the service is decidedly not available at this domain'),
+        ),
+    )
+
+def _sig_time_validator(ugettext, value):
+    time_format = "%Y%m%d%H%M%S"
     try:
-        ns, = ns.split()
+        time.strptime(value, time_format)
     except ValueError:
-        return _('format must be specified as "domain_name" (see RFC 1035 for details)')
-
-    return None
-
-def _validate_nsec(ugettext, nsec):
-    """see RFC 4034"""
-    fields = nsec.split()
-
-    if len(fields) < 2:
-        return _('format must be specified as "next_domain_name type1 '\
-                '[type2 [type3 [...]]]" (see RFC 4034 for details)')
-
-    allowed_types = (u'SOA',) + _record_types
-    for i in range(1, len(fields)):
-        sig_type = fields[i]
-        if sig_type not in allowed_types:
-            return _('type must be one of ' + u', '.join(allowed_types))
-
-    return None
-
-def _validate_kx(ugettext, kx):
-    """see RFC 2230"""
-    try:
-        preference, exchanger = kx.split()
-    except ValueError:
-        return _('format must be specified as "preference exchanger" '\
-                 '(see RFC 2230 for details)')
-
-    try:
-        preference = int(preference)
-    except ValueError:
-        return _(u'the value of preference must be integer')
-
-    if preference < 0 or preference > 65535:
-        return _('the value of preference must be between 0 and 65535')
-
-    return None
-
-def _validate_ptr(ugettext, ptr):
-    """see RFC 1035"""
-    try:
-        validate_hostname(ptr)
-    except ValueError, e:
-        return _('format must be specified as "domain_name" (see RFC 1035 for details): %s') \
-            % unicode(e)
-
-    return None
-
-def _validate_sig(ugettext, sig):
-    """see RFCs 2535, 4034"""
-    try:
-        sig_type, algorithm, labels, ttl, sig_expiration, \
-                sig_inception, tag, signer, signature = sig.split()
-    except ValueError:
-        return _('format must be specified as "type_covered algorithm labels original_ttl ' \
-               'signature_expiration signature_inception key_tag signers_name signature" '\
-               '(see RFC 2535, 4034 for details)')
-
-    allowed_types = [x for x in _record_types if x != u'SIG']
-    if sig_type not in allowed_types:
-        return _('type_covered must be one of ' + u', '.join(allowed_types))
-
-    try:
-        algorithm = int(algorithm)
-        labels = int(labels)
-        ttl = int(ttl)
-        tag = int(tag)
-    except ValueError:
-        return _('algorithm, labels, original_ttl and key_tag must be integers')
-
-    try:
-        time_format = "%Y%m%d%H%M%S"
-        sig_inception = time.strptime(sig_inception, time_format)
-        sig_expiration = time.strptime(sig_expiration, time_format)
-    except ValueError, e:
-        return _('signature_expiration and signature_inception must follow time ' \
-               'format "YYYYMMDDHHMMSS"')
-
-    if algorithm < 0 or algorithm > 255 or labels < 0 or labels > 255:
-        return _('the value of algorithm and labels must be between 0 and 255')
-
-    if ttl < 0 or ttl > 4294967295:
-        return _('the value of original_ttl must be between 0 and 4294967295')
-
-    if tag < 0 or tag > 65535:
-        return _('the value of tag must be between 0 and 65535')
-
-    return None
-
-def _validate_sshfp(ugettext, sshfp):
-    """see RFCs 4255"""
-    try:
-       algorithm, fp_type, fingerprint = sshfp.split()
-    except ValueError:
-        return _('format must be specified as "algorithm fp_type fingerprint" '\
-                 '(see RFC 4255 for details)')
-
-    try:
-        algorithm = int(algorithm)
-        fp_type = int(fp_type)
-    except ValueError:
-        return _('algorithm and fp_type must be integers')
-
-    if algorithm < 0 or algorithm > 255 or fp_type < 0 or fp_type > 255:
-        return _('the value of algorithm and fp_type must be between 0 and 255')
-
-    return None
-
-def _validate_unsupported(ugettext, val):
-    """
-    See https://fedorahosted.org/bind-dyndb-ldap/browser/doc/schema for a
-    list of supported records in bind-dyndb-ldap plugin
-    """
-    return _('This DNS RR type is not supported by bind-dyndb-ldap plugin')
+        return _('the value does not follow "YYYYMMDDHHMMSS" time format')
 
 
-def _normalize_domain_name(domain_name):
-    """Make it fully-qualified"""
-    if domain_name[-1] != '.':
-        return domain_name + '.'
-    else:
-        return domain_name
+class SIGRecord(DNSRecord):
+    rrtype = 'SIG'
+    rfc = 2535
+    _allowed_types = tuple([u'SOA'] + [x for x in _record_types if x != u'SIG'])
 
-# Not validated RR types:
-#   - A6: downgraded to experimental state by RFC 3363, AAAA is preferred
+    parts = (
+        StrEnum('type_covered',
+            label=_('Type Covered'),
+            values=_allowed_types,
+        ),
+        Int('algorithm',
+            label=_('Algorithm'),
+            minvalue=0,
+            maxvalue=255,
+        ),
+        Int('labels',
+            label=_('Labels'),
+            minvalue=0,
+            maxvalue=255,
+        ),
+        Int('original_ttl',
+            label=_('Original TTL'),
+            minvalue=0,
+            maxvalue=4294967295,
+        ),
+        Str('signature_expiration',
+            _sig_time_validator,
+            label=_('Signature Expiration'),
+        ),
+        Str('signature_inception',
+            _sig_time_validator,
+            label=_('Signature Inception'),
+        ),
+        Int('key_tag',
+            label=_('Key Tag'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Str('signers_name',
+            label=_('Signer\'s Name'),
+        ),
+        Str('signature',
+            label=_('Signature'),
+        ),
+    )
 
-_record_validators = {
-    u'A': _validate_ipaddr,
-    u'AAAA': _validate_ipaddr,
-    u'AFSDB': _validate_afsdb,
-    u'APL': _validate_unsupported,
-    u'CERT': _validate_cert,
-    u'CNAME': _validate_cname,
-    u'DHCID': _validate_unsupported,
-    u'DLV': _validate_unsupported,
-    u'DNAME': _validate_dname,
-    u'DNSKEY': _validate_unsupported,
-    u'DS': _validate_ds,
-    u'HIP': _validate_unsupported,
-    u'KEY': _validate_key,
-    u'IPSECKEY': _validate_unsupported,
-    u'KX': _validate_kx,
-    u'LOC': _validate_loc,
-    u'MX': _validate_mx,
-    u'NS': _validate_ns,
-    u'NSEC': _validate_nsec,
-    u'NSEC3': _validate_unsupported,
-    u'NSEC3PARAM': _validate_unsupported,
-    u'NAPTR': _validate_naptr,
-    u'PTR': _validate_ptr,
-    u'RP': _validate_unsupported,
-    u'SRV': _validate_srv,
-    u'SIG': _validate_sig,
-    u'RRSIG': _validate_sig,
-    u'SSHFP': _validate_sshfp,
-    u'TA': _validate_unsupported,
-    u'TKEY': _validate_unsupported,
-    u'TSIG': _validate_unsupported,
-}
+class SPFRecord(DNSRecord):
+    rrtype = 'SPF'
+    rfc = 4408
+    supported = False
 
-_record_normalizers = {
-    u'CNAME': _normalize_domain_name,
-    u'DNAME': _normalize_domain_name,
-    u'NS': _normalize_domain_name,
-    u'PTR': _normalize_domain_name,
-}
+class RRSIGRecord(SIGRecord):
+    rrtype = 'RRSIG'
+    rfc = 4034
+
+class SSHFPRecord(DNSRecord):
+    rrtype = 'SSHFP'
+    rfc = 4255
+    parts = (
+        Int('algorithm',
+            label=_('Algorithm'),
+            minvalue=0,
+            maxvalue=255,
+        ),
+        Int('fp_type',
+            label=_('Fingerprint Type'),
+            minvalue=0,
+            maxvalue=255,
+        ),
+        Str('fingerprint',
+            label=_('Fingerprint'),
+        ),
+    )
+
+class TARecord(DNSRecord):
+    rrtype = 'TA'
+    supported = False
+
+class TKEYRecord(DNSRecord):
+    rrtype = 'TKEY'
+    supported = False
+
+class TSIGRecord(DNSRecord):
+    rrtype = 'TSIG'
+    supported = False
+
+class TXTRecord(DNSRecord):
+    rrtype = 'TXT'
+    rfc = 1035
+    parts = (
+        Str('data',
+            label=_('Text Data'),
+        ),
+    )
+
+_dns_record_options = (
+    ARecord(),
+    AAAARecord(),
+    A6Record(),
+    AFSDBRecord(),
+    APLRecord(),
+    CERTRecord(),
+    CNAMERecord(),
+    DHCIDRecord(),
+    DLVRecord(),
+    DNAMERecord(),
+    DNSKEYRecord(),
+    DSRecord(),
+    HIPRecord(),
+    IPSECKEYRecord(),
+    KEYRecord(),
+    KXRecord(),
+    LOCRecord(),
+    MXRecord(),
+    NAPTRRecord(),
+    NSRecord(),
+    NSECRecord(),
+    NSEC3Record(),
+    NSEC3PARAMRecord(),
+    PTRRecord(),
+    RRSIGRecord(),
+    RPRecord(),
+    SIGRecord(),
+    SPFRecord(),
+    SRVRecord(),
+    SSHFPRecord(),
+    TARecord(),
+    TKEYRecord(),
+    TSIGRecord(),
+    TXTRecord(),
+)
 
 # dictionary of valid reverse zone -> number of address components
 _valid_reverse_zones = {
@@ -590,18 +912,6 @@ def zone_is_reverse(zone_name):
             return True
 
     return False
-
-
-def has_cli_options(entry, no_option_msg, allow_empty_attrs=False):
-    entry = dict((t, entry.get(t, [])) for t in _record_attributes)
-    if allow_empty_attrs:
-        numattr = len(entry)
-    else:
-        numattr = reduce(lambda x,y: x+y,
-                      map(lambda x: len(x), [ v for v in entry.values() if v is not None ]))
-    if numattr == 0:
-        raise errors.OptionError(no_option_msg)
-    return entry
 
 def is_ns_rec_resolvable(name):
     try:
@@ -841,7 +1151,7 @@ class dnszone_find(LDAPSearch):
             if 'idnsname' not in options:
                 options['idnsname'] = self.obj.params['idnsname'].get_default(**options)
             del options['name_from_ip']
-        return super(dnszone_find, self).args_options_2_entry(self, *args, **options)
+        return super(dnszone_find, self).args_options_2_entry(*args, **options)
 
     takes_options = LDAPSearch.takes_options + (
         Flag('forward_only',
@@ -922,7 +1232,7 @@ class dnsrecord(LDAPObject):
     object_name = _('DNS resource record')
     object_name_plural = _('DNS resource records')
     object_class = ['top', 'idnsrecord']
-    default_attributes = _record_attributes + ['idnsname']
+    default_attributes = ['idnsname'] + _record_attributes
 
     label = _('DNS Resource Records')
     label_singular = _('DNS Resource Record')
@@ -945,7 +1255,7 @@ class dnsrecord(LDAPObject):
             doc=_('DNS class'),
             values=_record_classes,
         ),
-    )
+    ) + _dns_record_options
 
     def _nsrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if options.get('force', False):
@@ -974,8 +1284,8 @@ class dnsrecord(LDAPObject):
         ip_addr_comp_count = len(addr.split('.')) + len(zone.split('.'))
         if ip_addr_comp_count != zone_len:
             raise errors.ValidationError(name='cn',
-                error=unicode(_('Reverse zone %s requires exactly %d IP address components, %d given')
-                % (zone_name, zone_len, ip_addr_comp_count)))
+                error=unicode(_('Reverse zone %(name)s requires exactly %(count)d IP address components, %(user_count)d given')
+                % dict(name=zone_name, count=zone_len, user_count=ip_addr_comp_count)))
 
         return dn
 
@@ -1016,47 +1326,38 @@ class dnsrecord(LDAPObject):
 
         return dns_masters
 
-api.register(dnsrecord)
+    def has_cli_options(self, options, no_option_msg, allow_empty_attrs=False):
+        if any(k in options for k in ('setattr', 'addattr', 'delattr')):
+            return
 
+        has_options = False
+        for attr in options.keys():
+            if attr in self.params and not self.params[attr].primary_key:
+                if options[attr] or allow_empty_attrs:
+                    has_options = True
+                    break
 
-class dnsrecord_cmd_w_record_options(Command):
-    """
-    Base class for DNS record commands with record options.
-    """
-    record_param_doc = 'comma-separated list of %s records'
-
-    def get_record_options(self):
-        for t in _record_types:
-            t = t.encode('utf-8')
-            yield self.get_record_option(t)
-
-    def record_options_2_entry(self, **options):
-        entries = dict((t, options.get(t, [])) for t in _record_attributes)
-        entries.update(dict((k, []) for (k,v) in entries.iteritems() if v == None ))
-        return entries
+        if not has_options:
+            raise errors.OptionError(no_option_msg)
 
     def get_record_option(self, rec_type):
-        doc = self.record_param_doc % rec_type
-        validator = _record_validators.get(rec_type)
-        normalizer = _record_normalizers.get(rec_type)
-        if validator:
-            return Str(
-                '%srecord*' % rec_type.lower(), validator, normalizer=normalizer,
-                cli_name='%s_rec' % rec_type.lower(), doc=doc,
-                label='%s record' % rec_type, csv=True, attribute=True
-            )
+        name = '%srecord' % rec_type.lower()
+        if name in self.params:
+            return self.params[name]
         else:
-            return Str(
-                '%srecord*' % rec_type.lower(), cli_name='%s_rec' % rec_type.lower(),
-                normalizer=normalizer, doc=doc, label='%s record' % rec_type,
-                csv=True, attribute=True
-            )
+            return None
+
+    def get_record_entry_attrs(self, entry_attrs):
+        return dict((attr, val) for attr,val in entry_attrs.iteritems() \
+                    if attr in self.params and not self.params[attr].primary_key)
 
     def prompt_record_options(self, rec_type_list):
         user_options = {}
         # ask for all usual record types
         for rec_type in rec_type_list:
             rec_option = self.get_record_option(rec_type)
+            if rec_option is None:
+                continue
             raw = self.Backend.textui.prompt(rec_option.label,optional=True)
             rec_value = rec_option(raw)
             if rec_value is not None:
@@ -1064,88 +1365,10 @@ class dnsrecord_cmd_w_record_options(Command):
 
         return user_options
 
-
-class dnsrecord_mod_record(LDAPQuery, dnsrecord_cmd_w_record_options):
-    """
-    Base class for adding/removing records from DNS resource entries.
-    """
-    has_output = output.standard_entry
-
-    def get_options(self):
-        for option in super(dnsrecord_mod_record, self).get_options():
-            yield option
-        for option in self.get_record_options():
-            yield option
-
-    def execute(self, *keys, **options):
-        ldap = self.obj.backend
-
-        dn = self.obj.get_dn(*keys, **options)
-
-        entry_attrs = self.record_options_2_entry(**options)
-
-        dn = self.pre_callback(ldap, dn, entry_attrs, *keys, **options)
-
-        try:
-            (dn, old_entry_attrs) = ldap.get_entry(dn, entry_attrs.keys())
-        except errors.NotFound:
-            self.obj.handle_not_found(*keys)
-
-        self.update_old_entry_callback(entry_attrs, old_entry_attrs)
-
-        try:
-            ldap.update_entry(dn, old_entry_attrs)
-        except errors.EmptyModlist:
-            pass
-
-        if options.get('all', False):
-            attrs_list = ['*']
-        else:
-            attrs_list = list(
-                set(self.obj.default_attributes + entry_attrs.keys())
-            )
-
-        try:
-            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
-        except errors.NotFound:
-            self.obj.handle_not_found(*keys)
-
-        if self.obj.is_pkey_zone_record(*keys):
-            entry_attrs[self.obj.primary_key.name] = [_dns_zone_record]
-
-        retval = self.post_callback(keys, entry_attrs)
-        if retval:
-            return retval
-
-        return dict(result=entry_attrs, value=keys[-1])
-
-    def update_old_entry_callback(self, entry_attrs, old_entry_attrs):
-        pass
-
-    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        return dn
-
-    def post_callback(self, keys, entry_attrs):
-        pass
+api.register(dnsrecord)
 
 
-class dnsrecord_add_record(dnsrecord_mod_record):
-    """
-    Add records to DNS resource.
-    """
-    NO_CLI = True
-
-    def update_old_entry_callback(self, entry_attrs, old_entry_attrs):
-        for (a, v) in entry_attrs.iteritems():
-            if not isinstance(v, (list, tuple)):
-                v = [v]
-            old_entry_attrs.setdefault(a, [])
-            old_entry_attrs[a] += v
-
-api.register(dnsrecord_add_record)
-
-
-class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
+class dnsrecord_add(LDAPCreate):
     __doc__ = _('Add new DNS resource record.')
 
     no_option_msg = 'No options to add a specific record provided.\n' \
@@ -1158,21 +1381,18 @@ class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
         ),
     )
 
-    def get_options(self):
-        for option in super(dnsrecord_add, self).get_options():
-            yield option
-        for option in self.get_record_options():
-            yield option
-
     def args_options_2_entry(self, *keys, **options):
-        has_cli_options(options, self.no_option_msg)
+        self.obj.has_cli_options(options, self.no_option_msg)
         return super(dnsrecord_add, self).args_options_2_entry(*keys, **options)
 
     def interactive_prompt_callback(self, kw):
-        for param in kw.keys():
-            if param in _record_attributes:
-                # some record type entered, skip this helper
-                return
+        try:
+            self.obj.has_cli_options(kw, self.no_option_msg)
+        except errors.OptionError:
+            pass
+        else:
+            # some record type entered, skip this helper
+            return
 
         # check zone type
         if kw['idnsname'] == _dns_zone_record:
@@ -1183,45 +1403,55 @@ class dnsrecord_add(LDAPCreate, dnsrecord_cmd_w_record_options):
             top_record_types = _top_record_types
 
         # ask for all usual record types
-        user_options = self.prompt_record_options(top_record_types)
+        user_options = self.obj.prompt_record_options(top_record_types)
         kw.update(user_options)
 
-    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         for rtype in options:
             rtype_cb = '_%s_pre_callback' % rtype
             if hasattr(self.obj, rtype_cb):
                 dn = getattr(self.obj, rtype_cb)(ldap, dn, entry_attrs, *keys, **options)
 
+        try:
+            (dn_, old_entry) = ldap.get_entry(
+                        dn, entry_attrs.keys(),
+                        normalize=self.obj.normalize_dn)
+            for attr in old_entry.keys():
+                if attr not in _record_attributes:
+                    continue
+                if not isinstance(entry_attrs[attr], (tuple, list)):
+                    vals = [entry_attrs[attr]]
+                else:
+                    vals = list(entry_attrs[attr])
+                entry_attrs[attr] = list(set(old_entry[attr] + vals))
+        except errors.NotFound:
+            pass
         return dn
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         if call_func.func_name == 'add_entry':
             if isinstance(exc, errors.DuplicateEntry):
-                self.obj.methods.add_record(
-                    *keys, **self.record_options_2_entry(**options)
-                )
+                # A new record is being added to existing LDAP DNS object
+                # Update can be safely run as old record values has been
+                # already merged in pre_callback
+                ldap = self.obj.backend
+                dn = call_args[0]
+                entry_attrs = self.obj.get_record_entry_attrs(call_args[1])
+                ldap.update_entry(dn, entry_attrs, **call_kwargs)
                 return
         raise exc
 
 api.register(dnsrecord_add)
 
 
-class dnsrecord_mod(dnsrecord_mod_record):
+class dnsrecord_mod(LDAPUpdate):
     __doc__ = _('Modify a DNS resource record.')
 
     no_option_msg = 'No options to modify a specific record provided.'
 
-    def update_old_entry_callback(self, entry_attrs, old_entry_attrs):
-        for (a, v) in entry_attrs.iteritems():
-            if not isinstance(v, (list, tuple)):
-                v = [v]
-            old_entry_attrs.setdefault(a, [])
-            if v or v is None:   # overwrite the old entry
-                old_entry_attrs[a] = v
-
-    def record_options_2_entry(self, **options):
-        entries = dict((t, options.get(t, [])) for t in _record_attributes)
-        return has_cli_options(entries, self.no_option_msg, True)
+    def args_options_2_entry(self, *keys, **options):
+        self.obj.has_cli_options(options, self.no_option_msg, True)
+        return super(dnsrecord_mod, self).args_options_2_entry(*keys, **options)
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         for rtype in options:
@@ -1233,12 +1463,26 @@ class dnsrecord_mod(dnsrecord_mod_record):
 
         return dn
 
-    def post_callback(self, keys, entry_attrs):
+    def execute(self, *keys, **options):
+        result = super(dnsrecord_mod, self).execute(*keys, **options)
+
+        # remove if empty
         if not self.obj.is_pkey_zone_record(*keys):
-            for a in _record_attributes:
-                if a in entry_attrs and entry_attrs[a]:
-                    return
-            return self.obj.methods.delentry(*keys)
+            dn = self.obj.get_dn(*keys, **options)
+            ldap = self.obj.backend
+            (dn_, old_entry) = ldap.get_entry(
+                    dn, _record_attributes,
+                    normalize=self.obj.normalize_dn)
+
+            del_all = True
+            for attr in old_entry:
+                if old_entry[attr]:
+                    del_all = False
+                    break
+
+            if del_all:
+                return self.obj.methods.delentry(*keys)
+        return result
 
 api.register(dnsrecord_mod)
 
@@ -1253,7 +1497,7 @@ class dnsrecord_delentry(LDAPDelete):
 api.register(dnsrecord_delentry)
 
 
-class dnsrecord_del(dnsrecord_mod_record):
+class dnsrecord_del(LDAPUpdate):
     __doc__ = _('Delete DNS resource record.')
 
     no_option_msg = _('Neither --del-all nor options to delete a specific record provided.\n'\
@@ -1265,23 +1509,70 @@ class dnsrecord_del(dnsrecord_mod_record):
             ),
     )
 
+    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        try:
+            (dn_, old_entry) = ldap.get_entry(
+                    dn, _record_attributes,
+                    normalize=self.obj.normalize_dn)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
+        for attr in entry_attrs.keys():
+            if attr not in _record_attributes:
+                continue
+            if not isinstance(entry_attrs[attr], (tuple, list)):
+                vals = [entry_attrs[attr]]
+            else:
+                vals = entry_attrs[attr]
+
+            for val in vals:
+                try:
+                    old_entry[attr].remove(val)
+                except (KeyError, ValueError):
+                    raise errors.AttrValueNotFound(attr=attr,
+                                                   value=val)
+            entry_attrs[attr] = list(set(old_entry[attr]))
+
+        if not self.obj.is_pkey_zone_record(*keys):
+            del_all = True
+            for attr in old_entry:
+                if old_entry[attr]:
+                    del_all = False
+                    break
+            setattr(context, 'del_all', del_all)
+
+        return dn
+
     def execute(self, *keys, **options):
         if options.get('del_all', False):
+            if self.obj.is_pkey_zone_record(*keys):
+                raise errors.ValidationError(
+                        name='del_all',
+                        error=_('Zone record \'%s\' cannot be deleted') \
+                                % _dns_zone_record
+                      )
             return self.obj.methods.delentry(*keys)
 
-        return super(dnsrecord_del, self).execute(*keys, **options)
+        result = super(dnsrecord_del, self).execute(*keys, **options)
 
-    def record_options_2_entry(self, **options):
-        entry = super(dnsrecord_del, self).record_options_2_entry(**options)
-        return has_cli_options(entry, self.no_option_msg)
+        if getattr(context, 'del_all', False):
+            return self.obj.methods.delentry(*keys)
+        return result
+
+    def args_options_2_entry(self, *keys, **options):
+        self.obj.has_cli_options(options, self.no_option_msg)
+        return super(dnsrecord_del, self).args_options_2_entry(*keys, **options)
 
     def interactive_prompt_callback(self, kw):
         if kw.get('del_all', False):
             return
-        for param in kw.keys():
-            if param in _record_attributes:
-                # we have something to delete, skip this helper
-                return
+        try:
+            self.obj.has_cli_options(kw, self.no_option_msg)
+        except errors.OptionError:
+            pass
+        else:
+            # some record type entered, skip this helper
+            return
 
         # get DNS record first so that the NotFound exception is raised
         # before the helper would start
@@ -1296,12 +1587,9 @@ class dnsrecord_del(dnsrecord_mod_record):
             return
 
         # ask user for records to be removed
-        dns_record = api.Command['dnsrecord_show'](kw['dnszoneidnsname'], kw['idnsname'])['result']
-        rec_types = [rec_type for rec_type in dns_record if rec_type in _record_attributes]
-
         self.Backend.textui.print_plain(_(u'Current DNS record contents:\n'))
         present_params = []
-        for param in self.params():
+        for param in self.params:
             if param.name in _record_attributes and param.name in dns_record:
                 present_params.append(param)
                 rec_type_content = u', '.join(dns_record[param.name])
@@ -1313,40 +1601,19 @@ class dnsrecord_del(dnsrecord_mod_record):
             deleted_values = []
             for rec_value in dns_record[param.name]:
                 user_del_value = self.Backend.textui.prompt_yesno(
-                        _("Delete %s '%s'?") % (param.label, rec_value), default=False)
+                        _("Delete %(name)s '%(value)s'?") \
+                            % dict(name=param.label, value=rec_value), default=False)
                 if user_del_value is True:
                      deleted_values.append(rec_value)
             if deleted_values:
                 deleted_list = u','.join(deleted_values)
                 kw[param.name] = param(deleted_list)
 
-    def update_old_entry_callback(self, entry_attrs, old_entry_attrs):
-        for (a, v) in entry_attrs.iteritems():
-            if not isinstance(v, (list, tuple)):
-                v = [v]
-            for val in v:
-                try:
-                    old_entry_attrs[a].remove(val)
-                except (KeyError, ValueError):
-                    raise errors.NotFound(reason=_('%s record with value %s not found') %
-                                          (self.obj.attr_to_cli(a), val))
-
-    def post_callback(self, keys, entry_attrs):
-        if not self.obj.is_pkey_zone_record(*keys):
-            for a in _record_attributes:
-                if a in entry_attrs and entry_attrs[a]:
-                    return
-            return self.obj.methods.delentry(*keys)
-
 api.register(dnsrecord_del)
 
 
-class dnsrecord_show(LDAPRetrieve, dnsrecord_cmd_w_record_options):
+class dnsrecord_show(LDAPRetrieve):
     __doc__ = _('Display DNS resource.')
-
-    def has_output_params(self):
-        for option in self.get_record_options():
-            yield option
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if self.obj.is_pkey_zone_record(*keys):
@@ -1356,21 +1623,11 @@ class dnsrecord_show(LDAPRetrieve, dnsrecord_cmd_w_record_options):
 api.register(dnsrecord_show)
 
 
-class dnsrecord_find(LDAPSearch, dnsrecord_cmd_w_record_options):
+class dnsrecord_find(LDAPSearch):
     __doc__ = _('Search for DNS resources.')
 
-    def get_options(self):
-        for option in super(dnsrecord_find, self).get_options():
-            yield option
-        for option in self.get_record_options():
-            yield option.clone(query=True)
-
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
-        record_attrs = self.record_options_2_entry(**options)
-        record_filter = ldap.make_filter(record_attrs, rules=ldap.MATCH_ALL)
-        filter = ldap.combine_filters(
-            (filter, record_filter), rules=ldap.MATCH_ALL
-        )
+        # include zone record (root entry) in the search
         return (filter, base_dn, ldap.SCOPE_SUBTREE)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
