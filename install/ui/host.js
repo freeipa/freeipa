@@ -861,14 +861,35 @@ IPA.host_password_field = function (spec) {
 IPA.widget_factories['host_password'] = IPA.host_password_widget;
 IPA.field_factories['host_password'] = IPA.host_password_field;
 
-IPA.host_certificate_status_widget = function (spec) {
+IPA.host.certificate_status_field = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.cert.status_field(spec);
+
+    that.load = function(result) {
+
+        that.widget.result = result;
+
+        var message = IPA.messages.objects.cert.request_message;
+        message = message.replace(/\$\{hostname\}/g, result.fqdn[0]);
+        message = message.replace(/\$\{realm\}/g, IPA.env.realm);
+        that.widget.request_message = message;
+
+        that.reset();
+    };
+
+    return that;
+};
+
+IPA.host.certificate_status_widget = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.cert.status_widget(spec);
 
     that.get_entity_pkey = function(result) {
-        var values = result['fqdn'];
+        var values = result.fqdn;
         return values ? values[0] : null;
     };
 
@@ -877,19 +898,19 @@ IPA.host_certificate_status_widget = function (spec) {
     };
 
     that.get_entity_principal = function(result) {
-        var values = result['krbprincipalname'];
+        var values = result.krbprincipalname;
         return values ? values[0] : null;
     };
 
     that.get_entity_certificate = function(result) {
-        var values = result['usercertificate'];
+        var values = result.usercertificate;
         return values ? values[0].__base64__ : null;
     };
 
     return that;
 };
 
-IPA.widget_factories['host_certificate_status'] = IPA.host_certificate_status_widget;
-IPA.field_factories['host_certificate_status'] = IPA.cert.status_field;
+IPA.widget_factories['host_certificate_status'] = IPA.host.certificate_status_widget;
+IPA.field_factories['host_certificate_status'] = IPA.host.certificate_status_field;
 
 IPA.register('host', IPA.host.entity);

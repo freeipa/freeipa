@@ -4,7 +4,7 @@
     "result": {
         "result": {
             "krbprincipalname": [
-                "test/dev.example.com@DEV.EXAMPLE.COM"
+                "test/dev.example.com@EXAMPLE.COM"
             ], 
             "managedby_host": [
                 "dev.example.com"
@@ -15,7 +15,7 @@
                 }
             ]
         }, 
-        "summary": "Modified service \"test/dev.example.com@DEV.EXAMPLE.COM\"", 
-        "value": "test/dev.example.com@DEV.EXAMPLE.COM"
+        "summary": "Modified service \"test/dev.example.com@EXAMPLE.COM\"",
+        "value": "test/dev.example.com@EXAMPLE.COM"
     }
 }

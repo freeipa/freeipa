@@ -47,12 +47,12 @@
                 "sshfprecord": "rscwo",
                 "txtrecord": "rscwo"
             },
-            "dn": "idnsname=dev.example.com,cn=dns,dc=example,dc=com",
+            "dn": "idnsname=example.com,cn=dns,dc=example,dc=com",
             "idnsallowdynupdate": [
                 "FALSE"
             ],
             "idnsname": [
-                "dev.example.com"
+                "example.com"
             ],
             "idnssoaexpire": [
                 "1209600"
@@ -70,7 +70,7 @@
                 "900"
             ],
             "idnssoarname": [
-                "root.dev.example.com."
+                "root.example.com."
             ],
             "idnssoaserial": [
                 "2010021201"
@@ -85,6 +85,6 @@
             ]
         },
         "summary": null,
-        "value": "dev.example.com"
+        "value": "example.com"
     }
 }

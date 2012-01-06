@@ -52,10 +52,10 @@
                 "ac28dca0-f3b5-11df-879f-00163e72f2d9"
             ],
             "krbprincipalname": [
-                "host/test.example.com@DEV.EXAMPLE.COM"
+                "host/test.example.com@EXAMPLE.COM"
             ],
             "managedby": [
-                "fqdn=test.example.com,cn=computers,cn=accounts,dc=dev,dc=example,dc=com"
+                "fqdn=test.example.com,cn=computers,cn=accounts,dc=example,dc=com"
             ],
             "objectclass": [
                 "ipaobject",

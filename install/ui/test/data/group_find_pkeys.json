@@ -8,31 +8,31 @@
                 "cn": [
                     "admins"
                 ],
-                "dn": "cn=admins,cn=groups,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=admins,cn=groups,cn=accounts,dc=example,dc=com"
             },
             {
                 "cn": [
                     "ipausers"
                 ],
-                "dn": "cn=ipausers,cn=groups,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=ipausers,cn=groups,cn=accounts,dc=example,dc=com"
             },
             {
                 "cn": [
                     "editors"
                 ],
-                "dn": "cn=editors,cn=groups,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=editors,cn=groups,cn=accounts,dc=example,dc=com"
             },
             {
                 "cn": [
                     "monsters"
                 ],
-                "dn": "cn=monsters,cn=groups,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=monsters,cn=groups,cn=accounts,dc=example,dc=com"
             },
             {
                 "cn": [
                     "muppets"
                 ],
-                "dn": "cn=muppets,cn=groups,cn=accounts,dc=dev,dc=example,dc=com"
+                "dn": "cn=muppets,cn=groups,cn=accounts,dc=example,dc=com"
             }
         ],
         "summary": "5 groups matched",

@@ -27,9 +27,9 @@
                 "objectclass": "rscwo"
             },
             "cn": [
-                "DEV.EXAMPLE.COM"
+                "EXAMPLE.COM"
             ],
-            "dn": "cn=dev.example.com,cn=kerberos,dc=dev,dc=example,dc=com",
+            "dn": "cn=EXAMPLE.COM,cn=kerberos,dc=example,dc=com",
             "krbdefaultencsalttypes": [
                 "aes256-cts:special",
                 "aes128-cts:special",
@@ -46,7 +46,7 @@
                 "2"
             ],
             "krbsubtrees": [
-                "dc=dev,dc=example,dc=com"
+                "dc=example,dc=com"
             ],
             "krbsupportedencsalttypes": [
                 "aes256-cts:normal",

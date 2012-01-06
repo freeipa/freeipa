@@ -5,20 +5,20 @@
         "count": 3,
         "result": [
             {
-                "cn": "GLOBAL",
-                "dn": "cn=accounts,dc=example,dc=com"
+                "cn": "global_policy",
+                "dn": "cn=global_policy,cn=example.com,cn=kerberos,dc=example,dc=com"
             },
             {
                 "cn": [
-                    "testgroup12"
+                    "ipausers"
                 ],
-                "dn": "cn=testgroup12,cn=example.com,cn=kerberos,dc=example,dc=com"
+                "dn": "cn=ipausers,cn=example.com,cn=kerberos,dc=example,dc=com"
             },
             {
                 "cn": [
-                    "testgroup22"
+                    "editors"
                 ],
-                "dn": "cn=testgroup22,cn=example.com,cn=kerberos,dc=example,dc=com"
+                "dn": "cn=editors,cn=example.com,cn=kerberos,dc=example,dc=com"
             }
         ],
         "summary": null,

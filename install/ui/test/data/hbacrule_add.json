@@ -9,7 +9,7 @@
             "cn": [
                 "test"
             ],
-            "dn": "ipauniqueid=f3e69e82-e3b411df-bfde9b13-2b28c216,cn=hbac,dc=dev,dc=example,dc=com",
+            "dn": "ipauniqueid=f3e69e82-e3b411df-bfde9b13-2b28c216,cn=hbac,dc=example,dc=com",
             "ipaenabledflag": [
                 "TRUE"
             ],

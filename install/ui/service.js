@@ -180,7 +180,7 @@ IPA.service_name_field = function(spec) {
 
         that.field_load(record);
 
-        var krbprincipalname = record['krbprincipalname'][0];
+        var krbprincipalname = record.krbprincipalname[0];
         var value = krbprincipalname.replace(/\/.*$/, '');
         that.values = [value];
 
@@ -204,7 +204,7 @@ IPA.service_host_field = function(spec) {
 
         that.field_load(record);
 
-        var krbprincipalname = record['krbprincipalname'][0];
+        var krbprincipalname = record.krbprincipalname[0];
         var value = krbprincipalname.replace(/^.*\//, '').replace(/@.*$/, '');
         that.values = [value];
 
@@ -362,14 +362,38 @@ IPA.service_provisioning_status_field = function (spec) {
 IPA.field_factories['service_provisioning_status'] = IPA.service_provisioning_status_field;
 IPA.widget_factories['service_provisioning_status'] = IPA.service_provisioning_status_widget;
 
-IPA.service_certificate_status_widget = function (spec) {
+IPA.service.certificate_status_field = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.cert.status_field(spec);
+
+    that.load = function(result) {
+
+        that.widget.result = result;
+
+        var krbprincipalname = result.krbprincipalname[0];
+        var hostname = krbprincipalname.replace(/^.*\//, '').replace(/@.*$/, '');
+
+        var message = IPA.messages.objects.cert.request_message;
+        message = message.replace(/\$\{hostname\}/g, hostname);
+        message = message.replace(/\$\{realm\}/g, IPA.env.realm);
+        that.widget.request_message = message;
+
+        that.reset();
+    };
+
+    return that;
+};
+
+IPA.service.certificate_status_widget = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.cert.status_widget(spec);
 
     that.get_entity_pkey = function(result) {
-        var values = result['krbprincipalname'];
+        var values = result.krbprincipalname;
         return values ? values[0] : null;
     };
 
@@ -383,14 +407,14 @@ IPA.service_certificate_status_widget = function (spec) {
     };
 
     that.get_entity_certificate = function(result) {
-        var values = result['usercertificate'];
+        var values = result.usercertificate;
         return values ? values[0].__base64__ : null;
     };
 
     return that;
 };
 
-IPA.widget_factories['service_certificate_status'] = IPA.service_certificate_status_widget;
-IPA.field_factories['service_certificate_status'] = IPA.cert.status_field;
+IPA.widget_factories['service_certificate_status'] = IPA.service.certificate_status_widget;
+IPA.field_factories['service_certificate_status'] = IPA.service.certificate_status_field;
 
 IPA.register('service', IPA.service.entity);

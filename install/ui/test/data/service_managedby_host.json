@@ -53,7 +53,7 @@
                     "description": [
                         "Development"
                     ],
-                    "dn": "fqdn=dev.example.com,cn=computers,cn=accounts,dc=dev,dc=example,dc=com",
+                    "dn": "fqdn=dev.example.com,cn=computers,cn=accounts,dc=example,dc=com",
                     "fqdn": [
                         "dev.example.com"
                     ],
@@ -76,7 +76,7 @@
                         "19700101000000Z"
                     ],
                     "krbprincipalname": [
-                        "host/dev.example.com@DEV.EXAMPLE.COM"
+                        "host/dev.example.com@EXAMPLE.COM"
                     ],
                     "krbticketflags": [
                         "0"
