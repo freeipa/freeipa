@@ -414,6 +414,13 @@ class test_dns(Declarative):
 
 
         dict(
+            desc='Try to delete root zone record \'@\' in %r' % (dnszone1),
+            command=('dnsrecord_del', [dnszone1, u'@'], {'del_all' : True}),
+            expected=errors.ValidationError(name='del_all', error=''),
+        ),
+
+
+        dict(
             desc='Create record %r in zone %r' % (dnszone1, dnsres1),
             command=('dnsrecord_add', [dnszone1, dnsres1], {'arecord': u'127.0.0.1'}),
             expected={
@@ -575,13 +582,13 @@ class test_dns(Declarative):
 
         dict(
             desc='Try to add invalid LOC record to zone %r using dnsrecord_add' % (dnszone1),
-            command=('dnsrecord_add', [dnszone1, u'@'], {'locrecord': u"91 11 42.4 N 16 36 29.6 E 227.64m" }),
+            command=('dnsrecord_add', [dnszone1, u'@'], {'locrecord': u"91 11 42.4 N 16 36 29.6 E 227.64" }),
             expected=errors.ValidationError(name='locrecord', error=''),
         ),
 
         dict(
             desc='Add LOC record to zone %r using dnsrecord_add' % (dnszone1),
-            command=('dnsrecord_add', [dnszone1, u'@'], {'locrecord': u"49 11 42.4 N 16 36 29.6 E 227.64m" }),
+            command=('dnsrecord_add', [dnszone1, u'@'], {'locrecord': u"49 11 42.4 N 16 36 29.6 E 227.64" }),
             expected={
                 'value': u'@',
                 'summary': None,
@@ -591,7 +598,7 @@ class test_dns(Declarative):
                     'idnsname': [dnszone1],
                     'mxrecord': [u"0 %s" % dnszone1_mname],
                     'nsrecord': [dnszone1_mname],
-                    'locrecord': [u"49 11 42.4 N 16 36 29.6 E 227.64m"],
+                    'locrecord': [u"49 11 42.4 N 16 36 29.6 E 227.64"],
                 },
             },
         ),
@@ -604,7 +611,7 @@ class test_dns(Declarative):
 
         dict(
             desc='Add CNAME record to %r using dnsrecord_add' % (dnsres1),
-            command=('dnsrecord_add', [dnszone1, dnsres1], {'cnamerecord': u'foo-1.example.com' }),
+            command=('dnsrecord_add', [dnszone1, dnsres1], {'cnamerecord': u'foo-1.example.com.' }),
             expected={
                 'value': dnsres1,
                 'summary': None,
@@ -626,7 +633,7 @@ class test_dns(Declarative):
 
         dict(
             desc='Add KX record to %r using dnsrecord_add' % (dnsres1),
-            command=('dnsrecord_add', [dnszone1, dnsres1], {'kxrecord': u'1 foo-1.example.com' }),
+            command=('dnsrecord_add', [dnszone1, dnsres1], {'kxrecord': u'1 foo-1' }),
             expected={
                 'value': dnsres1,
                 'summary': None,
@@ -636,7 +643,7 @@ class test_dns(Declarative):
                     'idnsname': [dnsres1],
                     'arecord': [u'10.10.0.1'],
                     'cnamerecord': [u'foo-1.example.com.'],
-                    'kxrecord': [u'1 foo-1.example.com'],
+                    'kxrecord': [u'1 foo-1'],
                 },
             },
         ),
