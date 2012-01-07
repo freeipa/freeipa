@@ -48,6 +48,13 @@ class test_hbactest(XMLRPC_test):
     test_sourcehostgroup = u'hbacrule_test_src_hostgroup'
     test_service = u'ssh'
 
+    # Auxiliary funcion for checking existence of warning for specified rule
+    def check_rule_presence(self,rule_name,warnings):
+        for warning in warnings:
+            if rule_name in warning:
+                return True
+        return False
+
     def test_0_hbactest_addrules(self):
         """
         Prepare data by adding test HBAC rules using `xmlrpc.hbacrule_add'.
@@ -114,6 +121,19 @@ class test_hbactest(XMLRPC_test):
         assert type(ret['error']) == NoneType
         for i in [0,1,2,3]:
             assert self.rule_names[i] in ret['matched']
+            assert self.rule_names[i] in ret['warning'][i]
+
+        # same test without sourcehost value
+        ret = api.Command['hbactest'](
+            user=self.test_user,
+            targethost=self.test_host,
+            service=self.test_service,
+            rules=self.rule_names
+        )
+        assert ret['value'] == True
+        assert type(ret['error']) == NoneType
+        for i in [0,1,2,3]:
+            assert self.rule_names[i] in ret['matched']
 
     def test_b_hbactest_check_rules_nodetail(self):
         """
@@ -122,6 +142,20 @@ class test_hbactest(XMLRPC_test):
         ret = api.Command['hbactest'](
             user=self.test_user,
             sourcehost=self.test_sourcehost,
+            targethost=self.test_host,
+            service=self.test_service,
+            rules=self.rule_names,
+            nodetail=True
+        )
+        assert ret['value'] == True
+        assert ret['error'] == None
+        assert ret['matched'] == None
+        assert ret['notmatched'] == None
+        assert ret['warning'] == None
+
+        # same test without sourcehost value
+        ret = api.Command['hbactest'](
+            user=self.test_user,
             targethost=self.test_host,
             service=self.test_service,
             rules=self.rule_names,
@@ -148,6 +182,17 @@ class test_hbactest(XMLRPC_test):
         # Thus, check that our two enabled rules are in matched, nothing more
         for i in [0,2]:
             assert self.rule_names[i] in ret['matched']
+            assert self.check_rule_presence(self.rule_names[i], ret['warning'])
+
+        # same test without sourcehost value
+        ret = api.Command['hbactest'](
+            user=self.test_user,
+            targethost=self.test_host,
+            service=self.test_service,
+            enabled=True
+        )
+        for i in [0,2]:
+            assert self.rule_names[i] in ret['matched']
 
     def test_d_hbactest_check_rules_disabled_detail(self):
         """
@@ -165,6 +210,17 @@ class test_hbactest(XMLRPC_test):
         # Thus, check that our two disabled rules are in matched, nothing more
         for i in [1,3]:
             assert self.rule_names[i] in ret['matched']
+            assert self.check_rule_presence(self.rule_names[i], ret['warning'])
+
+        # same test without sourcehost value
+        ret = api.Command['hbactest'](
+            user=self.test_user,
+            targethost=self.test_host,
+            service=self.test_service,
+            disabled=True
+        )
+        for i in [1,3]:
+            assert self.rule_names[i] in ret['matched']
 
     def test_e_hbactest_check_non_existing_rule_detail(self):
         """
@@ -173,6 +229,21 @@ class test_hbactest(XMLRPC_test):
         ret = api.Command['hbactest'](
             user=self.test_user,
             sourcehost=self.test_sourcehost,
+            targethost=self.test_host,
+            service=self.test_service,
+            rules=[u'%s_1x1' % (rule) for rule in self.rule_names],
+            nodetail=True
+        )
+
+        assert ret['value'] == False
+        assert ret['matched'] == None
+        assert ret['notmatched'] == None
+        for rule in self.rule_names:
+            assert u'%s_1x1' % (rule) in ret['error']
+
+        # same test without sourcehost value
+        ret = api.Command['hbactest'](
+            user=self.test_user,
             targethost=self.test_host,
             service=self.test_service,
             rules=[u'%s_1x1' % (rule) for rule in self.rule_names],
