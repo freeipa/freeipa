@@ -28,20 +28,21 @@ __doc__ = _("""
 Simulate use of Host-based access controls
 
 HBAC rules control who can access what services on what hosts and from where.
-You can use HBAC to control which users or groups on a source host can
-access a service, or group of services, on a target host.
+You can use HBAC to control which users or groups can access a service,
+or group of services, on a target host.
 
 Since applying HBAC rules implies use of a production environment,
 this plugin aims to provide simulation of HBAC rules evaluation without
 having access to the production environment.
 
- Test user coming from source host to a service on a named host against
+ Test user coming to a service on a named host against
  existing enabled rules.
 
- ipa hbactest --user= --srchost= --host= --service=
+ ipa hbactest --user= --host= --service=
               [--rules=rules-list] [--nodetail] [--enabled] [--disabled]
+              [--srchost= ]
 
- --user, --srchost, --host, and --service are mandatory, others are optional.
+ --user, --host, and --service are mandatory, others are optional.
 
  If --rules is specified simulate enabling of the specified rules and test
  the login of the user using only these rules.
@@ -57,10 +58,12 @@ having access to the production environment.
 
  If no --rules specified, simulation is run against all IPA enabled rules.
 
+ If --srchost is specified, it will be ignored. It is left because of compatibility reasons only.
+
 EXAMPLES:
 
     1. Use all enabled HBAC rules in IPA database to simulate:
-    $ ipa  hbactest --user=a1a --srchost=foo --host=bar --service=sshd
+    $ ipa  hbactest --user=a1a --host=bar --service=sshd
     --------------------
     Access granted: True
     --------------------
@@ -70,13 +73,13 @@ EXAMPLES:
       matched: allow_all
 
     2. Disable detailed summary of how rules were applied:
-    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=sshd --nodetail
+    $ ipa hbactest --user=a1a --host=bar --service=sshd --nodetail
     --------------------
     Access granted: True
     --------------------
 
     3. Test explicitly specified HBAC rules:
-    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=sshd \
+    $ ipa hbactest --user=a1a --host=bar --service=sshd \
           --rules=my-second-rule,myrule
     ---------------------
     Access granted: False
@@ -85,7 +88,7 @@ EXAMPLES:
       notmatched: myrule
 
     4. Use all enabled HBAC rules in IPA database + explicitly specified rules:
-    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=sshd \
+    $ ipa hbactest --user=a1a --host=bar --service=sshd \
           --rules=my-second-rule,myrule --enabled
     --------------------
     Access granted: True
@@ -96,14 +99,14 @@ EXAMPLES:
       matched: allow_all
 
     5. Test all disabled HBAC rules in IPA database:
-    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=sshd --disabled
+    $ ipa hbactest --user=a1a --host=bar --service=sshd --disabled
     ---------------------
     Access granted: False
     ---------------------
       notmatched: new-rule
 
     6. Test all disabled HBAC rules in IPA database + explicitly specified rules:
-    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=sshd \
+    $ ipa hbactest --user=a1a --host=bar --service=sshd \
           --rules=my-second-rule,myrule --disabled
     ---------------------
     Access granted: False
@@ -113,7 +116,7 @@ EXAMPLES:
       notmatched: myrule
 
     7. Test all (enabled and disabled) HBAC rules in IPA database:
-    $ ipa hbactest --user=a1a --srchost=foo --host=bar --service=sshd \
+    $ ipa hbactest --user=a1a --host=bar --service=sshd \
           --enabled --disabled
     --------------------
     Access granted: True
@@ -139,8 +142,9 @@ def convert_to_ipa_rule(rule):
         )
     for element in structure:
         category = '%scategory' % (element[0])
-        if category in rule and rule[category][0] == u'all':
+        if (category in rule and rule[category][0] == u'all') or (element[0] == 'sourcehost'):
             # rule applies to all elements
+            # sourcehost is always set to 'all'
             element[4].category = set([pyhbac.HBAC_CATEGORY_ALL])
         else:
             # rule is about specific entities
@@ -162,6 +166,7 @@ class hbactest(Command):
 
     has_output = (
         output.summary,
+        output.Output('warning', (list, tuple, NoneType),   _('Warning')),
         output.Output('matched', (list, tuple, NoneType),   _('Matched rules')),
         output.Output('notmatched', (list, tuple, NoneType), _('Not matched rules')),
         output.Output('error', (list, tuple, NoneType), _('Non-existent or invalid rules')),
@@ -174,7 +179,7 @@ class hbactest(Command):
             label=_('User name'),
             primary_key=True,
         ),
-        Str('sourcehost',
+        Str('sourcehost?',
             cli_name='srchost',
             label=_('Source host'),
         ),
@@ -265,7 +270,7 @@ class hbactest(Command):
             # Error, unresolved rules are left in --rules
             return {'summary' : unicode(_(u'Unresolved rules in --rules')),
                     'error': testrules, 'matched': None, 'notmatched': None,
-                    'value' : False}
+                    'warning' : None, 'value' : False}
 
         # Rules are converted to pyhbac format, build request and then test it
         request = pyhbac.HbacRequest()
@@ -290,16 +295,20 @@ class hbactest(Command):
             except:
                 pass
 
-        if options['sourcehost'] != u'all':
-            try:
-                request.srchost.name = self.canonicalize(options['sourcehost'])
-                srchost_result = self.api.Command.host_show(request.srchost.name)['result']
-                groups = srchost_result['memberof_hostgroup']
-                if 'memberofindirect_hostgroup' in srchost_result:
-                    groups += search_result['memberofindirect_hostgroup']
-                request.srchost.groups = sorted(set(groups))
-            except:
-                 pass
+        if options.get('sourcehost'):
+            warning_flag = True
+            if options['sourcehost'] != u'all':
+                try:
+                    request.srchost.name = self.canonicalize(options['sourcehost'])
+                    srchost_result = self.api.Command.host_show(request.srchost.name)['result']
+                    groups = srchost_result['memberof_hostgroup']
+                    if 'memberofindirect_hostgroup' in srchost_result:
+                        groups += search_result['memberofindirect_hostgroup']
+                    request.srchost.groups = sorted(set(groups))
+                except:
+                     pass
+        else:
+            warning_flag = False
 
         if options['targethost'] != u'all':
             try:
@@ -315,8 +324,9 @@ class hbactest(Command):
         matched_rules = []
         notmatched_rules = []
         error_rules = []
+        warning_rules = []
 
-        result = {'matched':None, 'notmatched':None, 'error':None}
+        result = {'warning':None, 'matched':None, 'notmatched':None, 'error':None}
         if not options['nodetail']:
             # Validate runs rules one-by-one and reports failed ones
             for ipa_rule in rules:
@@ -326,6 +336,8 @@ class hbactest(Command):
                         matched_rules.append(ipa_rule.name)
                     if res == pyhbac.HBAC_EVAL_DENY:
                         notmatched_rules.append(ipa_rule.name)
+                    if warning_flag:
+                        warning_rules.append(u'Sourcehost value of rule "%s" is ignored' % (ipa_rule.name))
                 except pyhbac.HbacError as (code, rule_name):
                     if code == pyhbac.HBAC_EVAL_ERROR:
                         error_rules.append(rule_name)
@@ -348,6 +360,8 @@ class hbactest(Command):
             result['notmatched'] = notmatched_rules
         if len(error_rules) > 0:
             result['error'] = error_rules
+        if len(warning_rules) > 0:
+            result['warning'] = warning_rules
 
         result['value'] = access_granted
         return result
