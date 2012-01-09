@@ -157,7 +157,7 @@ NET.ip_address = function(spec) {
 
             //add missing zeros for not empty parts
             if (part.length !== 0 && part.length < 4) {
-                part = add_trailing_zeros(part, 4 - part.length);
+                part = add_leading_zeros(part, 4 - part.length);
                 that.parts[i] = part;
             }
         }
@@ -211,11 +211,11 @@ NET.ip_address = function(spec) {
     function dec_2_hex(val) {
         var dec = parseInt(val, 10);
         var hex = dec.toString(16);
-        hex = add_trailing_zeros(hex, 2 - hex.length);
+        hex = add_leading_zeros(hex, 2 - hex.length);
         return hex;
     }
 
-    function add_trailing_zeros(val, num) {
+    function add_leading_zeros(val, num) {
         for (var i=0; i<num; i++) {
             val='0'+val;
         }
@@ -327,7 +327,7 @@ NET.ip_address = function(spec) {
 
             //check for leading zeros
             if (i === 0 && digit === 0 && number.length > 1) {
-                return that.set_error('invalid format: trailing zeros');
+                return that.set_error('invalid format: leading zeros');
             }
         }
 
@@ -362,7 +362,7 @@ NET.ip_address = function(spec) {
 
         var hex_str = integer.toString(16);
         if (hex_str.length < 8) {
-            hex_str = add_trailing_zeros(hex_str, 8 - hex_str.length);
+            hex_str = add_leading_zeros(hex_str, 8 - hex_str.length);
         }
 
         for (var i=0; i<hex_str.length; i+=2) {

@@ -504,11 +504,6 @@ IPA.multivalued_field = function(spec) {
 
     var that = IPA.field(spec);
 
-    that.widgets_created = function() {
-
-        that.field_widgets_created();
-    };
-
     that.load = function(record) {
 
         that.field_load(record);
@@ -518,11 +513,6 @@ IPA.multivalued_field = function(spec) {
         var dirty = that.field_test_dirty();
         dirty = dirty || that.widget.test_dirty(); //also checks order
         return dirty;
-    };
-
-    that.widget_value_changed = function() {
-        that.set_dirty(that.test_dirty());
-        that.validate();
     };
 
     that.validate = function() {
