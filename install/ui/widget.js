@@ -406,8 +406,15 @@ IPA.multivalued_text_widget = function(spec) {
 
     that.extract_child_value = function(value) {
 
-        if (value.length) return value[0];
+        if (value instanceof Array) {
+            if (value.length > 0) {
+                return value[0];
+            }
+            return '';
+        }
+
         if (value) return value;
+
         return '';
     };
 
@@ -851,7 +858,14 @@ IPA.select_widget = function(spec) {
     };
 
     that.save = function() {
-        var value = that.select.val() || '';
+        var value;
+
+        if (that.select) {
+            value = that.select.val() || '';
+        } else if (that.options.length > 0) {
+            value = that.options[0].value; //will be default value
+        }
+
         return [value];
     };
 

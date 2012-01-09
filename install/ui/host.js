@@ -146,6 +146,7 @@ IPA.host.entity = function(spec) {
                     fields: [
                         {
                             name: 'ip_address',
+                            validators: [ IPA.ip_address_validator() ],
                             metadata: IPA.get_command_option('host_add', 'ip_address')
                         },
                         {

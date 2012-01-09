@@ -659,17 +659,39 @@ IPA.dns.record_entity = function(spec) {
         adder_dialog({
             factory: IPA.dns.record_adder_dialog,
             fields: [
-                'idnsname',
                 {
-                    factory: IPA.dnsrecord_type_widget,
-                    name: 'record_type',
-                    label: IPA.messages.objects.dnsrecord.type
+                    name: 'idnsname',
+                    widget: 'general.idnsname'
                 },
                 {
-                    type: 'text',
+                    name: 'record_type',
+                    widget: 'general.record_type'
+                },
+                {
+                    type: 'dnsrecord',
                     name: 'record_data',
-                    label: IPA.messages.objects.dnsrecord.data,
-                    required: true
+                    required: true,
+                    widget: 'general.record_data',
+                    type_widget: 'general.record_type'
+                }
+            ],
+            widgets: [
+                {
+                    name: 'general',
+                    type: 'details_table_section_nc',
+                    widgets: [
+                        'idnsname',
+                        {
+                            type: 'dnsrecord_type',
+                            name: 'record_type',
+                            label: IPA.messages.objects.dnsrecord.type
+                        },
+                        {
+                            type: 'text',
+                            name: 'record_data',
+                            label: IPA.messages.objects.dnsrecord.data
+                        }
+                    ]
                 }
             ]
         });
@@ -696,6 +718,7 @@ IPA.dns.record_adder_dialog = function(spec) {
 
         return command;
     };
+
 
     return that;
 };
@@ -781,6 +804,55 @@ IPA.dnsrecord_type_widget = function(spec) {
     return that;
 };
 
+IPA.widget_factories['dnsrecord_type'] = IPA.dnsrecord_type_widget;
+
+IPA.dnsrecord_field = function(spec) {
+
+    spec = spec || {};
+    var that = IPA.field(spec);
+
+    that.type_widget_name = spec.type_widget || '';
+
+    that.normal_validators = [];
+    that.a_record_validators = [
+        IPA.ip_v4_address_validator()
+    ];
+    that.aaaa_record_validators = [
+        IPA.ip_v6_address_validator()
+    ];
+
+    that.on_type_change = function() {
+
+        var type = that.type_widget.save()[0];
+
+        if (type === 'arecord') {
+            that.validators = that.a_record_validators;
+        } else if (type === 'aaaarecord') {
+            that.validators = that.aaaa_record_validators;
+        } else {
+            that.validators = that.normal_validators;
+        }
+
+        that.validate();
+    };
+
+    that.widgets_created = function() {
+
+        that.field_widgets_created();
+        that.type_widget = that.container.widgets.get_widget(that.type_widget_name);
+        that.type_widget.value_changed.attach(that.on_type_change);
+    };
+
+    that.reset = function() {
+        that.field_reset();
+        that.on_type_change();
+    };
+
+    return that;
+};
+
+IPA.field_factories['dnsrecord'] = IPA.dnsrecord_field;
+
 IPA.force_dnszone_add_checkbox_widget = function(spec) {
     var metadata = IPA.get_command_option('dnszone_add', spec.name);
     spec.label = metadata.label;
@@ -830,6 +902,7 @@ IPA.dnsrecord_get_delete_values = function() {
 
 IPA.ip_address_validator = function(spec) {
 
+    spec = spec || {};
     var that = IPA.validator(spec);
 
     that.address_type = spec.address_type;
