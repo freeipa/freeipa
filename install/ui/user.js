@@ -261,13 +261,27 @@ IPA.user.details_facet = function(spec) {
     var that = IPA.details_facet(spec);
 
     that.refresh_on_success = function(data, text_status, xhr) {
-        that.details_facet_refresh_on_success(data, text_status, xhr);
+        // do not load data from batch
+    };
 
-        var batch = IPA.batch_command({
-            name: 'user_get_policies'
-        });
+    that.create_refresh_command = function() {
 
         var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+
+        var batch = IPA.batch_command({
+            name: 'user_details_refresh'
+        });
+
+        var user_command = that.details_facet_create_refresh_command();
+
+        user_command.on_success = function(data, text_status, xhr) {
+            // create data that mimics user-show output
+            var user_data = {};
+            user_data.result = data;
+            that.load(user_data);
+        };
+
+        batch.add_command(user_command);
 
         var pwpolicy_command = IPA.command({
             entity: 'pwpolicy',
@@ -319,7 +333,7 @@ IPA.user.details_facet = function(spec) {
 
         batch.add_command(krbtpolicy_command);
 
-        batch.execute();
+        return batch;
     };
 
     return that;
