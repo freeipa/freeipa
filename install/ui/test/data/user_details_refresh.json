@@ -1,0 +1,303 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "count": 3,
+        "results": [
+            {
+                "result": {
+                    "attributelevelrights": {
+                        "aci": "rscwo",
+                        "audio": "rscwo",
+                        "businesscategory": "rscwo",
+                        "carlicense": "rscwo",
+                        "cn": "rscwo",
+                        "departmentnumber": "rscwo",
+                        "description": "rscwo",
+                        "destinationindicator": "rscwo",
+                        "dialupaccess": "rscwo",
+                        "displayname": "rscwo",
+                        "employeenumber": "rscwo",
+                        "employeetype": "rscwo",
+                        "facsimiletelephonenumber": "rscwo",
+                        "gecos": "rscwo",
+                        "gidnumber": "rscwo",
+                        "givenname": "rscwo",
+                        "homedirectory": "rscwo",
+                        "homephone": "rscwo",
+                        "homepostaladdress": "rscwo",
+                        "inetuserhttpurl": "rscwo",
+                        "inetuserstatus": "rscwo",
+                        "initials": "rscwo",
+                        "internationalisdnnumber": "rscwo",
+                        "ipauniqueid": "rsc",
+                        "jpegphoto": "rscwo",
+                        "krbcanonicalname": "rscwo",
+                        "krbextradata": "rscwo",
+                        "krblastfailedauth": "rscwo",
+                        "krblastpwdchange": "rscwo",
+                        "krblastsuccessfulauth": "rscwo",
+                        "krbloginfailedcount": "rscwo",
+                        "krbmaxrenewableage": "rscwo",
+                        "krbmaxticketlife": "rscwo",
+                        "krbpasswordexpiration": "rscwo",
+                        "krbprincipalaliases": "rscwo",
+                        "krbprincipalexpiration": "rscwo",
+                        "krbprincipalkey": "wo",
+                        "krbprincipalname": "rscwo",
+                        "krbprincipaltype": "rscwo",
+                        "krbpwdhistory": "rscwo",
+                        "krbpwdpolicyreference": "rscwo",
+                        "krbticketflags": "rscwo",
+                        "krbticketpolicyreference": "rscwo",
+                        "krbupenabled": "rscwo",
+                        "l": "rscwo",
+                        "labeleduri": "rscwo",
+                        "loginshell": "rscwo",
+                        "mail": "rscwo",
+                        "manager": "rscwo",
+                        "memberof": "rsc",
+                        "mepmanagedentry": "rscwo",
+                        "mobile": "rscwo",
+                        "nsaccountlock": "rscwo",
+                        "o": "rscwo",
+                        "objectclass": "rscwo",
+                        "ou": "rscwo",
+                        "pager": "rscwo",
+                        "photo": "rscwo",
+                        "physicaldeliveryofficename": "rscwo",
+                        "postaladdress": "rscwo",
+                        "postalcode": "rscwo",
+                        "postofficebox": "rscwo",
+                        "preferreddeliverymethod": "rscwo",
+                        "preferredlanguage": "rscwo",
+                        "registeredaddress": "rscwo",
+                        "roomnumber": "rscwo",
+                        "secretary": "rscwo",
+                        "seealso": "rscwo",
+                        "sn": "rscwo",
+                        "st": "rscwo",
+                        "street": "rscwo",
+                        "telephonenumber": "rscwo",
+                        "teletexterminalidentifier": "rscwo",
+                        "telexnumber": "rscwo",
+                        "title": "rscwo",
+                        "uid": "rscwo",
+                        "uidnumber": "rscwo",
+                        "usercertificate": "rscwo",
+                        "userpassword": "wo",
+                        "userpkcs12": "rscwo",
+                        "usersmimecertificate": "rscwo",
+                        "x121address": "rscwo",
+                        "x500uniqueidentifier": "rscwo"
+                    },
+                    "cn": [
+                        "Kermit The Frog"
+                    ],
+                    "dn": "uid=kfrog,cn=users,cn=accounts,dc=example,dc=com",
+                    "gecos": [
+                        "kfrog"
+                    ],
+                    "gidnumber": [
+                        "953553261"
+                    ],
+                    "givenname": [
+                        "Kermit"
+                    ],
+                    "homedirectory": [
+                        "/home/kfrog"
+                    ],
+                    "ipauniqueid": [
+                        "a2854798-e7d811df-b69ad8ca-cb44a24c"
+                    ],
+                    "krblastpwdchange": [
+                        "20101105172205Z"
+                    ],
+                    "krbmaxrenewableage": [
+                        "604800"
+                    ],
+                    "krbmaxticketlife": [
+                        "86400"
+                    ],
+                    "krbpasswordexpiration": [
+                        "20101105172205Z"
+                    ],
+                    "krbprincipalname": [
+                        "kfrog@EXAMPLE.COM"
+                    ],
+                    "krbpwdpolicyreference": [
+                        "cn=global_policy,cn=EXAMPLE.COM,cn=kerberos,dc=example,dc=com"
+                    ],
+                    "loginshell": [
+                        "/bin/sh"
+                    ],
+                    "mail": [
+                        "kermit@muppets.com"
+                    ],
+                    "memberof_group": [
+                        "ipausers",
+                        "muppets"
+                    ],
+                    "memberofindirect_group": [
+                        "editors"
+                    ],
+                    "mepmanagedentry": [
+                        "cn=kfrog,cn=groups,cn=accounts,dc=example,dc=com"
+                    ],
+                    "nsaccountlock": [
+                        "False"
+                    ],
+                    "objectclass": [
+                        "top",
+                        "person",
+                        "organizationalperson",
+                        "inetorgperson",
+                        "inetuser",
+                        "posixaccount",
+                        "krbprincipalaux",
+                        "krbticketpolicyaux",
+                        "ipaobject",
+                        "mepOriginEntry"
+                    ],
+                    "sn": [
+                        "Frog"
+                    ],
+                    "uid": [
+                        "kfrog"
+                    ],
+                    "uidnumber": [
+                        "953553261"
+                    ]
+                },
+                "summary": null,
+                "value": "kfrog"
+            },
+            {
+                "error": null,
+                "result": {
+                    "attributelevelrights": {
+                        "aci": "rscwo",
+                        "cn": "rscwo",
+                        "krbmaxpwdlife": "rscwo",
+                        "krbminpwdlife": "rscwo",
+                        "krbpwdfailurecountinterval": "rscwo",
+                        "krbpwdhistorylength": "rscwo",
+                        "krbpwdlockoutduration": "rscwo",
+                        "krbpwdmaxfailure": "rscwo",
+                        "krbpwdmindiffchars": "rscwo",
+                        "krbpwdminlength": "rscwo",
+                        "nsaccountlock": "rscwo",
+                        "objectclass": "rscwo"
+                    },
+                    "cn": [
+                        "global_policy"
+                    ],
+                    "dn": "cn=global_policy,cn=dev.example.com,cn=kerberos,dc=dev,dc=example,dc=com",
+                    "krbmaxpwdlife": [
+                        "90"
+                    ],
+                    "krbminpwdlife": [
+                        "1"
+                    ],
+                    "krbpwdfailurecountinterval": [
+                        "60"
+                    ],
+                    "krbpwdhistorylength": [
+                        "0"
+                    ],
+                    "krbpwdlockoutduration": [
+                        "10"
+                    ],
+                    "krbpwdmaxfailure": [
+                        "3"
+                    ],
+                    "krbpwdmindiffchars": [
+                        "0"
+                    ],
+                    "krbpwdminlength": [
+                        "8"
+                    ],
+                    "objectclass": [
+                        "top",
+                        "nsContainer",
+                        "krbPwdPolicy"
+                    ]
+                },
+                "summary": null,
+                "value": "global_policy"
+            },
+            {
+                "error": null,
+                "result": {
+                    "attributelevelrights": {
+                        "aci": "rscwo",
+                        "cn": "rscwo",
+                        "krbadmservers": "rscwo",
+                        "krbdefaultencsalttypes": "rscwo",
+                        "krbkdcservers": "rscwo",
+                        "krbldapservers": "rscwo",
+                        "krbmaxrenewableage": "rscwo",
+                        "krbmaxticketlife": "rscwo",
+                        "krbmkey": "none",
+                        "krbprinccontainerref": "rscwo",
+                        "krbprincnamingattr": "rscwo",
+                        "krbpwdpolicyreference": "rsc",
+                        "krbpwdservers": "rscwo",
+                        "krbsearchscope": "rscwo",
+                        "krbsubtrees": "rscwo",
+                        "krbsupportedencsalttypes": "rscwo",
+                        "krbticketflags": "rsc",
+                        "krbticketpolicyreference": "rsc",
+                        "krbupenabled": "rsc",
+                        "nsaccountlock": "rscwo",
+                        "objectclass": "rscwo"
+                    },
+                    "cn": [
+                        "DEV.EXAMPLE.COM"
+                    ],
+                    "dn": "cn=dev.example.com,cn=kerberos,dc=dev,dc=example,dc=com",
+                    "krbdefaultencsalttypes": [
+                        "aes256-cts:special",
+                        "aes128-cts:special",
+                        "des3-hmac-sha1:special",
+                        "arcfour-hmac:special"
+                    ],
+                    "krbmaxrenewableage": [
+                        "604800"
+                    ],
+                    "krbmaxticketlife": [
+                        "86400"
+                    ],
+                    "krbsearchscope": [
+                        "2"
+                    ],
+                    "krbsubtrees": [
+                        "dc=dev,dc=example,dc=com"
+                    ],
+                    "krbsupportedencsalttypes": [
+                        "aes256-cts:normal",
+                        "aes256-cts:special",
+                        "aes128-cts:normal",
+                        "aes128-cts:special",
+                        "des3-hmac-sha1:normal",
+                        "des3-hmac-sha1:special",
+                        "arcfour-hmac:normal",
+                        "arcfour-hmac:special",
+                        "des-hmac-sha1:normal",
+                        "des-cbc-md5:normal",
+                        "des-cbc-crc:normal",
+                        "des-cbc-crc:v4",
+                        "des-cbc-crc:afs3"
+                    ],
+                    "objectclass": [
+                        "top",
+                        "krbrealmcontainer",
+                        "krbticketpolicyaux"
+                    ]
+                },
+                "summary": null,
+                "value": ""
+            }
+        ]
+    }
+}
