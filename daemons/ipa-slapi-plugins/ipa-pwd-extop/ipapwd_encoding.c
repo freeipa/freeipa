@@ -102,36 +102,6 @@ void ipapwd_keyset_free(struct ipapwd_keyset **pkset)
     *pkset = NULL;
 }
 
-static krb5_error_code ipa_get_random_salt(krb5_context krbctx,
-                                           krb5_data *salt)
-{
-    krb5_error_code kerr;
-    int i, v;
-
-    /* make random salt */
-    salt->length = KRB5P_SALT_SIZE;
-    salt->data = malloc(KRB5P_SALT_SIZE);
-    if (!salt->data) {
-        return ENOMEM;
-    }
-    kerr = krb5_c_random_make_octets(krbctx, salt);
-    if (kerr) {
-        return kerr;
-    }
-
-    /* Windows treats the salt as a string.
-     * To avoid any compatibility issue, limits octects only to
-     * the ASCII printable range, or 0x20 <= val <= 0x7E */
-    for (i = 0; i < salt->length; i++) {
-        v = (unsigned char)salt->data[i];
-        v %= 0x5E; /* 7E - 20 */
-        v += 0x20; /* add base */
-        salt->data[i] = v;
-    }
-
-    return 0;
-}
-
 static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
                                         struct ipapwd_data *data,
                                         char **errMesg)
