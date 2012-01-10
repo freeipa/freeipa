@@ -299,12 +299,12 @@ make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} client
 
 %install
 rm -rf %{buildroot}
-%if ! %{ONLY_CLIENT}
 %if 0%{?fedora} >= 16
 export SUPPORTED_PLATFORM=fedora16
 # Force re-generate of platform support
 rm -f ipapython/services.py
 %endif
+%if ! %{ONLY_CLIENT}
 make install DESTDIR=%{buildroot}
 cd selinux
 make install DESTDIR=%{buildroot}
