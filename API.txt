@@ -1634,7 +1634,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: hbactest
-args: 0,8,6
+args: 0,9,6
 option: Str('user', cli_name='user', primary_key=True)
 option: Str('sourcehost?', cli_name='srchost')
 option: Str('targethost', cli_name='host')
@@ -1643,6 +1643,7 @@ option: Str('rules*', cli_name='rules', csv=True)
 option: Flag('nodetail?', autofill=True, cli_name='nodetail', default=False)
 option: Flag('enabled?', autofill=True, cli_name='enabled', default=False)
 option: Flag('disabled?', autofill=True, cli_name='disabled', default=False)
+option: Int('sizelimit?', autofill=False, minvalue=0)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('warning', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>), None)
 output: Output('matched', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>), None)

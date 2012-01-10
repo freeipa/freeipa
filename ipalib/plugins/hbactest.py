@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api, errors, output
-from ipalib import Command, Str, Flag
+from ipalib import Command, Str, Flag, Int
 from types import NoneType
 from ipalib.cli import to_cli
 from ipalib import _, ngettext
@@ -40,7 +40,7 @@ having access to the production environment.
 
  ipa hbactest --user= --host= --service=
               [--rules=rules-list] [--nodetail] [--enabled] [--disabled]
-              [--srchost= ]
+              [--srchost= ] [--sizelimit= ]
 
  --user, --host, and --service are mandatory, others are optional.
 
@@ -57,6 +57,8 @@ having access to the production environment.
  all IPA enabled rules.
 
  If no --rules specified, simulation is run against all IPA enabled rules.
+ By default there is a IPA-wide limit to number of entries fetched, you can change it
+ with --sizelimit option.
 
  If --srchost is specified, it will be ignored. It is left because of compatibility reasons only.
 
@@ -208,6 +210,13 @@ class hbactest(Command):
              cli_name='disabled',
              label=_('Include all disabled IPA rules into test'),
         ),
+        Int('sizelimit?',
+            label=_('Size Limit'),
+            doc=_('Maximum number of rules to process when no --rules is specified'),
+            flags=['no_display'],
+            minvalue=0,
+            autofill=False,
+        ),
     )
 
     def canonicalize(self, host):
@@ -224,7 +233,6 @@ class hbactest(Command):
         # 2. Required options are (user, source host, target host, service)
         # 3. Options: rules to test (--rules, --enabled, --disabled), request for detail output
         rules = []
-        hbacset = self.api.Command.hbacrule_find()['result']
 
         # Use all enabled IPA rules by default
         all_enabled = True
@@ -238,6 +246,10 @@ class hbactest(Command):
             all_enabled = False
             all_disabled = False
 
+        sizelimit = None
+        if 'sizelimit' in options:
+            sizelimit = int(options['sizelimit'])
+
         # Check if --disabled is specified, include all disabled IPA rules
         if options['disabled']:
             all_disabled = True
@@ -246,6 +258,16 @@ class hbactest(Command):
         # Finally, if enabled is specified implicitly, override above decisions
         if options['enabled']:
             all_enabled = True
+
+        hbacset = []
+        if len(testrules) == 0:
+            hbacset = self.api.Command.hbacrule_find(sizelimit=sizelimit)['result']
+        else:
+            for rule in testrules:
+                try:
+                    hbacset.append(self.api.Command.hbacrule_show(rule)['result'])
+                except:
+                    pass
 
         # We have some rules, import them
         # --enabled will import all enabled rules (default)
