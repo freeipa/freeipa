@@ -31,7 +31,6 @@ BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
 %if 0%{?fedora} >= 16
 BuildRequires:  systemd-units
 %endif
-BuildRequires: samba4-devel
 %endif
 BuildRequires:  nspr-devel
 BuildRequires:  nss-devel
@@ -615,6 +614,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Wed Jan 11 2012 Simo Sorce <simo@redhat.com? - 2.2.0-7
+- Remove dependency on samba4 libs
+
 * Wed Jan 11 2012 Rob Crittenden <rcritten@redhat.com> - 2.2.0-6
 - Set min for mod_auth_kerb to 5.4-9 to pick up s4u2proxy support
 

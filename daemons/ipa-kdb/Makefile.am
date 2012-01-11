@@ -18,7 +18,6 @@ INCLUDES =						\
 	$(LDAP_CFLAGS)					\
 	$(KRB5_CFLAGS)					\
 	$(WARN_CFLAGS)					\
-	$(NDRPAC_CFLAGS)				\
 	$(NULL)
 
 plugindir = $(libdir)/krb5/plugins/kdb
@@ -33,7 +32,6 @@ ipadb_la_SOURCES = 		\
 	ipa_kdb_passwords.c	\
 	ipa_kdb_principals.c	\
 	ipa_kdb_pwdpolicy.c	\
-	ipa_kdb_mspac.c		\
 	ipa_kdb_delegation.c	\
 	$(KRB5_UTIL_SRCS)	\
 	$(NULL)
@@ -46,7 +44,6 @@ ipadb_la_LDFLAGS = 		\
 ipadb_la_LIBADD = 		\
 	$(KRB5_LIBS)		\
 	$(LDAP_LIBS)		\
-	$(NDRPAC_LIBS)		\
 	$(NULL)
 
 dist_noinst_DATA = ipa_kdb.exports

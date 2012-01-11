@@ -206,6 +206,7 @@ krb5_error_code ipadb_get_pwd_expiration(krb5_context context,
                                          struct ipadb_e_data *ied,
                                          time_t *expire_time);
 
+#if 0
 /* MS-PAC FUNCTIONS */
 
 krb5_error_code ipadb_sign_authdata(krb5_context context,
@@ -223,6 +224,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
                                     krb5_authdata ***signed_auth_data);
 
 krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx);
+#endif
 
 /* DELEGATION CHECKS */
 
