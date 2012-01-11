@@ -136,6 +136,9 @@ class HTTPInstance(service.Service):
         pent = pwd.getpwnam("apache")
         os.chown("/etc/httpd/conf/ipa.keytab", pent.pw_uid, pent.pw_gid)
 
+        # Clean up existing ccache
+        installutils.remove_file('/tmp/krb5cc_%d' % pent.pw_uid)
+
     def __configure_http(self):
         target_fname = '/etc/httpd/conf.d/ipa.conf'
         http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa.conf", self.sub_dict)

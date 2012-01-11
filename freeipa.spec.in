@@ -103,7 +103,7 @@ Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
 Requires: httpd
 Requires: mod_wsgi
-Requires: mod_auth_kerb
+Requires: mod_auth_kerb >= 5.4-9
 Requires: mod_nss >= 1.0.8-10
 Requires: python-ldap
 Requires: python-krbV
@@ -621,6 +621,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %changelog
+* Wed Jan 11 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-14
+- Set min for mod_auth_kerb to 5.4-9 to pick up s4u2proxy support
+
 * Fri Dec 9 2011 Alexander Bokovoy <abokovoy@redhat.com> - 2.99.0-13
 - Fix dependency for samba4-devel package
 
