@@ -907,7 +907,6 @@ class SIGRecord(DNSRecord):
         Int('original_ttl',
             label=_('Original TTL'),
             minvalue=0,
-            maxvalue=4294967295,
         ),
         Str('signature_expiration',
             _sig_time_validator,
