@@ -24,7 +24,31 @@ from ipalib import _, ngettext
 from ipapython.version import VERSION, API_VERSION
 
 __doc__ = _("""
-Ping the remote IPA server
+Ping the remote IPA server to ensure it is running.
+
+The ping command sends an echo request to an IPA server. The server
+returns its version information. This is used by an IPA client
+to confirm that the server is available and accepting requests.
+
+The server from xmlrpc_uri in /etc/ipa/default.conf is contacted first.
+If it does not respond then the client will contact any servers defined
+by ldap SRV records in DNS.
+
+EXAMPLES:
+
+ Ping an IPA server:
+   ipa ping
+   ------------------------------------------
+   IPA server version 2.1.9. API version 2.20
+   ------------------------------------------
+
+ Ping an IPA server verbosely:
+   ipa -v ping
+   ipa: INFO: trying https://ipa.example.com/ipa/xml
+   ipa: INFO: Forwarding 'ping' to server u'https://ipa.example.com/ipa/xml'
+   -----------------------------------------------------
+   IPA server version 2.1.9. API version 2.20
+   -----------------------------------------------------
 """)
 
 class ping(Command):
