@@ -127,9 +127,13 @@ def main():
     if options.list_managed_entries:
         # List available Managed Entry Plugins
         managed_entries = None
-        entries = conn.search_s(
-            managed_entry_definitions_dn, ldap.SCOPE_SUBTREE, filter
-            )
+        try:
+            entries = conn.search_s(
+                managed_entry_definitions_dn, ldap.SCOPE_SUBTREE, filter
+                )
+        except Exception, e:
+            root_logger.debug("Search for managed entries failed: %s" % str(e))
+            sys.exit("Unable to find managed entries at %s" % managed_entry_definitions_dn)
         managed_entries = [entry.cn for entry in entries]
         if managed_entries:
             print "Available Managed Entry Definitions:"
