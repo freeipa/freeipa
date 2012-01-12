@@ -71,12 +71,12 @@ IPA.automount.map_entity = function(spec) {
         that.builder.containing_entity('automountlocation').
         facet_groups([ 'automountkey', 'settings' ]).
         nested_search_facet({
+            factory: IPA.automount.key_search_facet,
             facet_group: 'automountkey',
             nested_entity: 'automountkey',
             pagination: false,
             label: IPA.metadata.objects.automountkey.label,
             name: 'keys',
-            get_values: IPA.get_option_values,
             columns: [
                 {
                     factory: IPA.automount_key_column,
@@ -301,19 +301,28 @@ IPA.automountmap_adder_dialog = function(spec) {
     return that;
 };
 
-IPA.get_option_values = function(){
+IPA.automount.key_search_facet = function(spec) {
 
-    var values = [];
-    $('input[name="select"]:checked', this.table.tbody).each(function() {
-        var value = {};
-        $('span',$(this).parent().parent()).each(function(){
-            var name = this.attributes['name'].value;
+    var that = IPA.nested_search_facet(spec);
 
-            value[name] = $(this).text();
+    that.get_selected_values = function() {
+
+        var values = [];
+
+        $('input[name="description"]:checked', that.table.tbody).each(function() {
+            var value = {};
+            $('div', $(this).parent().parent()).each(function() {
+                var div = $(this);
+                var name = div.attr('name');
+                value[name] = div.text();
+            });
+            values.push(value);
         });
-        values.push (value);
-    });
-    return values;
+
+        return values;
+    };
+
+    return that;
 };
 
 IPA.register('automountlocation', IPA.automount.location_entity);
