@@ -41,11 +41,11 @@ entry is added to the appropriate group or hostgroup.
 
 EXAMPLES:
 
- Create the initial group or hostgroup:
+ Add the initial group or hostgroup:
    ipa hostgroup-add --desc="Web Servers" webservers
    ipa group-add --desc="Developers" devel
 
- Create the initial rule:
+ Add the initial rule:
    ipa automember-add --type=hostgroup webservers
    ipa automember-add --type=group devel
 
@@ -84,7 +84,7 @@ EXAMPLES:
     ipa automember-default-group-set --default-group=webservers --type=hostgroup
     ipa automember-default-group-set --default-group=ipausers --type=group
 
- Set the default target group:
+ Remove the default target group:
     ipa automember-default-group-remove --type=hostgroup
     ipa automember-default-group-remove --type=group
 
@@ -174,7 +174,7 @@ class automember(LDAPObject):
         Str('automemberdefaultgroup?',
             cli_name='default_group',
             label=_('Default Group'),
-            doc=_('Default group for entires to land'),
+            doc=_('Default group for entries to land'),
             flags=['no_create', 'no_update', 'no_search']
         ),
     )
@@ -347,7 +347,7 @@ class automember_remove_condition(LDAPUpdate):
     """)
     takes_options = regex_attrs + group_type
     takes_args = automember_rule
-    msg_summary = _('Removed condition(s) to "%(value)s"')
+    msg_summary = _('Removed condition(s) from "%(value)s"')
 
     # Prepare the output to expect failed results
     has_output = (
