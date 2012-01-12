@@ -98,7 +98,6 @@ IPA.dns.zone_entity = function(spec) {
             pagination: false,
             title: IPA.metadata.objects.dnszone.label_singular,
             label: IPA.metadata.objects.dnsrecord.label,
-            get_values: IPA.dnsrecord_get_delete_values,
             columns: [
                 {
                     name: 'idnsname',
@@ -485,6 +484,46 @@ IPA.dns.record_search_facet = function(spec) {
         }
     };
 
+    that.get_selected_values = function() {
+
+        var values = [];
+
+        var records = {};
+        var value;
+        var record_type;
+
+        $('input[name="idnsname"]:checked', that.table.tbody).each(function() {
+            $('div', $(this).parent().parent()).each(function() {
+                var div = $(this);
+                var name = div.attr('name');
+                var text = div.text();
+
+                if (name === 'idnsname') {
+                    value = records[text];
+                    if (!value) {
+                        value = { pkey: text };
+                        records[text] = value;
+                    }
+                } else if (name === 'type') {
+                    record_type = text.toLowerCase()+'record';
+
+                } else if (name === 'data') {
+                    if (!value[record_type]) {
+                        value[record_type] = text;
+                    } else {
+                         value[record_type] += ',' + text;
+                    }
+                }
+            });
+        });
+
+        for (var key in records) {
+            values.push(records[key]);
+        }
+
+        return values;
+    };
+
     return that;
 };
 
@@ -863,42 +902,6 @@ IPA.force_dnszone_add_checkbox_widget = function(spec) {
 IPA.widget_factories['force_dnszone_add_checkbox'] = IPA.force_dnszone_add_checkbox_widget;
 IPA.field_factories['force_dnszone_add_checkbox'] = IPA.checkbox_field;
 
-
-IPA.dnsrecord_get_delete_values = function() {
-
-    var records = {};
-    var value;
-    var record_type;
-    $('input[name="select"]:checked', this.table.tbody).each(function() {
-
-        $('span',$(this).parent().parent()).each(function(){
-            var name = this.attributes['name'].value;
-
-            if (name === 'idnsname'){
-                value = records[$(this).text()];
-                if (!value){
-                    value = {pkey:$(this).text()};
-                    records[$(this).text()] = value;
-                }
-            }else if (name === 'type'){
-                record_type = $(this).text();
-            }else if (name === 'data'){
-                if (!value[record_type]){
-                    value[record_type] = $(this).text();
-                }else{
-                     value[record_type] += "," + $(this).text();
-                }
-            }
-        });
-    });
-
-    var value_array = [];
-    for (var key in records){
-        value_array.push(records[key]);
-    }
-
-    return value_array;
-};
 
 IPA.ip_address_validator = function(spec) {
 

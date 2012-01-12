@@ -38,12 +38,6 @@ IPA.search_facet = function(spec) {
 
     var that = IPA.table_facet(spec);
 
-    function get_values() {
-        return that.table.get_selected_values();
-    }
-
-    that.get_values = spec.get_values || get_values;
-
     var init = function() {
 
         that.init_table(that.managed_entity);
@@ -127,7 +121,7 @@ IPA.search_facet = function(spec) {
 
     that.show_remove_dialog = function() {
 
-        var values = that.get_values();
+        var values = that.get_selected_values();
 
         var title;
         if (!values.length) {
