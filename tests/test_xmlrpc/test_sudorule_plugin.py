@@ -47,7 +47,7 @@ class test_sudorule(XMLRPC_test):
     test_denycommand = u'/usr/bin/testdenysudocmd1'
     test_runasuser = u'manager'
     test_runasgroup = u'manager'
-    test_catagory = u'all'
+    test_category = u'all'
     test_option = u'authenticate'
 
     def test_0_sudorule_add(self):
@@ -520,7 +520,99 @@ class test_sudorule(XMLRPC_test):
         assert 'memberdenycmd_sudocmd' not in entry
         assert 'memberdenycmd_sudocmdgroup' not in entry
 
-    def test_c_sudorule_clear_testing_data(self):
+    def test_c_sudorule_exclusiveuser(self):
+        """
+        Test adding a user to an Sudo rule when usercat='all'
+        """
+        api.Command['sudorule_mod'](self.rule_name, usercategory=u'all')
+        try:
+            api.Command['sudorule_add_user'](self.rule_name, users='admin')
+        except errors.MutuallyExclusiveError:
+            pass
+        api.Command['sudorule_mod'](self.rule_name, usercategory=u'')
+
+    def test_d_sudorule_exclusiveuser(self):
+        """
+        Test setting usercat='all' in an Sudo rule when there are users
+        """
+        api.Command['sudorule_add_user'](self.rule_name, users='admin')
+        try:
+            api.Command['sudorule_mod'](self.rule_name, usercategory=u'all')
+        except errors.MutuallyExclusiveError:
+            pass
+        finally:
+            api.Command['sudorule_remove_user'](self.rule_name, users='admin')
+
+    def test_e_sudorule_exclusivehost(self):
+        """
+        Test adding a host to an Sudo rule when hostcat='all'
+        """
+        api.Command['sudorule_mod'](self.rule_name, hostcategory=u'all')
+        try:
+            api.Command['sudorule_add_host'](self.rule_name, host=self.test_host)
+        except errors.MutuallyExclusiveError:
+            pass
+        api.Command['sudorule_mod'](self.rule_name, hostcategory=u'')
+
+    def test_f_sudorule_exclusivehost(self):
+        """
+        Test setting hostcat='all' in an Sudo rule when there are hosts
+        """
+        api.Command['sudorule_add_host'](self.rule_name, host=self.test_host)
+        try:
+            api.Command['sudorule_mod'](self.rule_name, hostcategory=u'all')
+        except errors.MutuallyExclusiveError:
+            pass
+        finally:
+            api.Command['sudorule_remove_host'](self.rule_name, host=self.test_host)
+
+    def test_g_sudorule_exclusivecommand(self):
+        """
+        Test adding a command to an Sudo rule when cmdcategory='all'
+        """
+        api.Command['sudorule_mod'](self.rule_name, cmdcategory=u'all')
+        try:
+            api.Command['sudorule_add_allow_command'](self.rule_name, sudocmd=self.test_command)
+        except errors.MutuallyExclusiveError:
+            pass
+        api.Command['sudorule_mod'](self.rule_name, cmdcategory=u'')
+
+    def test_h_sudorule_exclusivecommand(self):
+        """
+        Test setting cmdcategory='all' in an Sudo rule when there are commands
+        """
+        api.Command['sudorule_add_allow_command'](self.rule_name, sudocmd=self.test_command)
+        try:
+            api.Command['sudorule_mod'](self.rule_name, cmdcategory=u'all')
+        except errors.MutuallyExclusiveError:
+            pass
+        finally:
+            api.Command['sudorule_remove_allow_command'](self.rule_name, sudocmd=self.test_command)
+
+    def test_i_sudorule_exclusiverunas(self):
+        """
+        Test adding a runasuser to an Sudo rule when ipasudorunasusercategory='all'
+        """
+        api.Command['sudorule_mod'](self.rule_name, ipasudorunasusercategory=u'all')
+        try:
+            api.Command['sudorule_add_runasuser'](self.rule_name, sudocmd=self.test_user)
+        except errors.MutuallyExclusiveError:
+            pass
+        api.Command['sudorule_mod'](self.rule_name, ipasudorunasusercategory=u'')
+
+    def test_j_sudorule_exclusiverunas(self):
+        """
+        Test setting ipasudorunasusercategory='all' in an Sudo rule when there are runas users
+        """
+        api.Command['sudorule_add_runasuser'](self.rule_name, user=self.test_user)
+        try:
+            api.Command['sudorule_mod'](self.rule_name, ipasudorunasusercategory=u'all')
+        except errors.MutuallyExclusiveError:
+            pass
+        finally:
+            api.Command['sudorule_remove_runasuser'](self.rule_name, user=self.test_command)
+
+    def test_k_sudorule_clear_testing_data(self):
         """
         Clear data for Sudo rule plugin testing.
         """
@@ -534,7 +626,7 @@ class test_sudorule(XMLRPC_test):
         api.Command['sudocmdgroup_del'](self.test_sudodenycmdgroup)
 
 
-    def test_f_sudorule_del(self):
+    def test_l_sudorule_del(self):
         """
         Test deleting a Sudo rule using `xmlrpc.sudorule_del`.
         """

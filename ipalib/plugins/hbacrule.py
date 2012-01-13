@@ -96,10 +96,13 @@ def is_all(options, attribute):
     """
     See if options[attribute] is lower-case 'all' in a safe way.
     """
-    if attribute in options and \
-        options[attribute] is not None and \
-        options[attribute].lower() == 'all':
-        return True
+    if attribute in options and options[attribute] is not None:
+        if type(options[attribute]) in (list, tuple):
+            value = options[attribute][0].lower()
+        else:
+            value = options[attribute].lower()
+        if value == 'all':
+            return True
     else:
         return False
 
