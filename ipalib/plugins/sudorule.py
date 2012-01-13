@@ -20,6 +20,7 @@
 from ipalib import api, errors
 from ipalib import Str, StrEnum
 from ipalib.plugins.baseldap import *
+from ipalib.plugins.hbacrule import is_all
 from ipalib import _, ngettext
 
 __doc__ = _("""
@@ -77,6 +78,8 @@ class sudorule(LDAPObject):
         'description', 'usercategory', 'hostcategory',
         'cmdcategory', 'memberuser', 'memberhost',
         'memberallowcmd', 'memberdenycmd', 'ipasudoopt',
+        'ipasudorunas', 'ipasudorunasgroup',
+        'ipasudorunasusercategory', 'ipasudorunasgroupcategory',
     ]
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
@@ -232,6 +235,25 @@ class sudorule_mod(LDAPUpdate):
     __doc__ = _('Modify Sudo Rule.')
 
     msg_summary = _('Modified Sudo Rule "%(value)s"')
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        try:
+            (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
+        if is_all(options, 'usercategory') and 'memberuser' in _entry_attrs:
+            raise errors.MutuallyExclusiveError(reason=_("user category cannot be set to 'all' while there are users"))
+        if is_all(options, 'hostcategory') and 'memberhost' in _entry_attrs:
+            raise errors.MutuallyExclusiveError(reason=_("host category cannot be set to 'all' while there are hosts"))
+        if is_all(options, 'cmdcategory') and ('memberallowcmd' or
+            'memberdenywcmd') in _entry_attrs:
+            raise errors.MutuallyExclusiveError(reason=_("command category cannot be set to 'all' while there are allow or deny commands"))
+        if is_all(options, 'ipasudorunasusercategory') and 'ipasudorunas' in _entry_attrs:
+            raise errors.MutuallyExclusiveError(reason=_("user runAs category cannot be set to 'all' while there are users"))
+        if is_all(options, 'ipasudorunasgroupcategory') and 'ipasudorunasgroup' in _entry_attrs:
+            raise errors.MutuallyExclusiveError(reason=_("group runAs category cannot be set to 'all' while there are groups"))
+
+        return dn
 
 api.register(sudorule_mod)
 
@@ -306,6 +328,16 @@ class sudorule_add_allow_command(LDAPAddMember):
     member_attributes = ['memberallowcmd']
     member_count_out = ('%i object added.', '%i objects added.')
 
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        try:
+            (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+        if is_all(_entry_attrs, 'cmdcategory'):
+            raise errors.MutuallyExclusiveError(reason=_("commands cannot be added when command category='all'"))
+
+        return dn
+
 api.register(sudorule_add_allow_command)
 
 
@@ -324,6 +356,15 @@ class sudorule_add_deny_command(LDAPAddMember):
     member_attributes = ['memberdenycmd']
     member_count_out = ('%i object added.', '%i objects added.')
 
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        try:
+            (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+        if is_all(_entry_attrs, 'cmdcategory'):
+            raise errors.MutuallyExclusiveError(reason=_("commands cannot be added when command category='all'"))
+        return dn
+
 api.register(sudorule_add_deny_command)
 
 
@@ -341,6 +382,15 @@ class sudorule_add_user(LDAPAddMember):
 
     member_attributes = ['memberuser']
     member_count_out = ('%i object added.', '%i objects added.')
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        try:
+            (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+        if is_all(_entry_attrs, 'usercategory'):
+            raise errors.MutuallyExclusiveError(reason=_("users cannot be added when user category='all'"))
+        return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         completed_external = 0
@@ -409,6 +459,15 @@ class sudorule_add_host(LDAPAddMember):
 
     member_attributes = ['memberhost']
     member_count_out = ('%i object added.', '%i objects added.')
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        try:
+            (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+        if is_all(_entry_attrs, 'hostcategory'):
+            raise errors.MutuallyExclusiveError(reason=_("hosts cannot be added when host category='all'"))
+        return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         completed_external = 0
@@ -484,6 +543,14 @@ class sudorule_add_runasuser(LDAPAddMember):
             if v.upper() == u'ALL':
                 return False
             return True
+
+        try:
+            (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+        if is_all(_entry_attrs, 'ipasudorunasusercategory') or \
+          is_all(_entry_attrs, 'ipasudorunasgroupcategory'):
+            raise errors.MutuallyExclusiveError(reason=_("users cannot be added when runAs user or runAs group category='all'"))
 
         if 'user' in options:
             for name in options['user']:
@@ -574,6 +641,14 @@ class sudorule_add_runasgroup(LDAPAddMember):
             if v.upper() == u'ALL':
                 return False
             return True
+
+        try:
+            (_dn, _entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+        if is_all(_entry_attrs, 'ipasudorunasusercategory') or \
+          is_all(_entry_attrs, 'ipasudorunasgroupcategory'):
+            raise errors.MutuallyExclusiveError(reason=_("users cannot be added when runAs user or runAs group category='all'"))
 
         if 'group' in options:
             for name in options['group']:
