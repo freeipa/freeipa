@@ -281,6 +281,14 @@
                             "identity": "Role Settings"
                         },
                         "selfservice": {},
+                        "selinuxusermap": {
+                            "any_host": "Any Host",
+                            "anyone": "Anyone",
+                            "host": "Host",
+                            "specified_hosts": "Specified Hosts and Groups",
+                            "specified_users": "Specified Users and Groups",
+                            "user": "User"
+                        },
                         "service": {
                             "certificate": "Service Certificate",
                             "delete_key_unprovision": "Delete Key, Unprovision",
@@ -394,7 +402,7 @@
                         "cn": [
                             "Administrator"
                         ],
-                        "dn": "uid=admin,cn=users,cn=accounts,dc=example,dc=com",
+                        "dn": "uid=admin,cn=users,cn=accounts,dc=dev,dc=example,dc=com",
                         "gecos": [
                             "Administrator"
                         ],
@@ -418,16 +426,13 @@
                             }
                         ],
                         "krblastpwdchange": [
-                            "20110913052109Z"
-                        ],
-                        "krblastsuccessfulauth": [
-                            "20110913053553Z"
+                            "20120110142413Z"
                         ],
                         "krbpasswordexpiration": [
                             "20111212052109Z"
                         ],
                         "krbprincipalname": [
-                            "admin@EXAMPLE.COM"
+                            "admin@DEV.EXAMPLE.COM"
                         ],
                         "loginshell": [
                             "/bin/bash"
@@ -460,10 +465,10 @@
                 "truncated": false
             },
             {
-                "count": 72,
+                "count": 75,
                 "error": null,
                 "result": {
-                    "basedn": "dc=example,dc=com",
+                    "basedn": "dc=dev,dc=example,dc=com",
                     "bin": "/var/www",
                     "ca_agent_install_port": 9443,
                     "ca_agent_port": 443,
@@ -497,6 +502,7 @@
                     "container_privilege": "cn=privileges,cn=pbac",
                     "container_rolegroup": "cn=roles,cn=accounts",
                     "container_roles": "cn=roles,cn=policies",
+                    "container_selinux": "cn=usermap,cn=selinux",
                     "container_service": "cn=services,cn=accounts",
                     "container_sudocmd": "cn=sudocmds,cn=sudo",
                     "container_sudocmdgroup": "cn=sudocmdgroups,cn=sudo",
@@ -515,16 +521,17 @@
                     "in_tree": false,
                     "interactive": true,
                     "ipalib": "/usr/lib/python2.7/site-packages/ipalib",
-                    "ldap_uri": "ldapi://%2fvar%2frun%2fslapd-EXAMPLE-COM.socket",
+                    "ldap_uri": "ldapi://%2fvar%2frun%2fslapd-DEV-EXAMPLE-COM.socket",
                     "log": null,
                     "logdir": "/var/log/ipa",
                     "mode": "production",
                     "mount_ipa": "/ipa/",
                     "mount_jsonserver": "json",
                     "mount_xmlserver": "xml",
+                    "plugins_on_demand": false,
                     "prompt_all": false,
-                    "ra_plugin": "selfsign",
-                    "realm": "EXAMPLE.COM",
+                    "ra_plugin": "dogtag",
+                    "realm": "DEV.EXAMPLE.COM",
                     "rpc_json_uri": "http://localhost:8888/ipa/json",
                     "script": "/var/www/mod_wsgi",
                     "site_packages": "/usr/lib/python2.7/site-packages",
@@ -536,8 +543,8 @@
                     "webui_prod": true,
                     "xmlrpc_uri": "https://dev.example.com/ipa/xml"
                 },
-                "summary": "72 variables",
-                "total": 72
+                "summary": "75 variables",
+                "total": 75
             },
             {
                 "error": null,

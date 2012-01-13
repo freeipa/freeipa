@@ -51,6 +51,7 @@ app_DATA =				\
 	policy.js			\
 	rule.js 			\
 	search.js 			\
+	selinux.js 			\
 	serverconfig.js			\
 	service.js 			\
 	sudo.js				\
