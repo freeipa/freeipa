@@ -420,6 +420,14 @@ class i18n_messages(Command):
             },
             "selfservice": {
             },
+            "selinuxusermap": {
+                "any_host": _("Any Host"),
+                "anyone": _("Anyone"),
+                "host": _("Host"),
+                "specified_hosts": _("Specified Hosts and Groups"),
+                "specified_users": _("Specified Users and Groups"),
+                "user": _("User"),
+            },
             "service": {
                 "certificate": _("Service Certificate"),
                 "delete_key_unprovision": _("Delete Key, Unprovision"),

@@ -205,7 +205,7 @@ IPA.hbacrule_details_facet = function(spec) {
         {
             type: 'enable',
             name: 'ipaenabledflag',
-            priority: IPA.sudo.enable_priority,
+            priority: IPA.hbac.enable_priority,
             widget: 'general.ipaenabledflag'
         }
     ];

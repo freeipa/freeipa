@@ -1,0 +1,39 @@
+{
+    "error": null,
+    "id": null,
+    "result": {
+        "count": 1,
+        "results": [
+            {
+                "error": null,
+                "result": {
+                    "cn": [
+                        "karel_unconfined"
+                    ],
+                    "description": [
+                        "description"
+                    ],
+                    "dn": "ipauniqueid=dbe2ffa0-3c2c-11e1-ad81-00163e6185c4,cn=usermap,cn=selinux,dc=dev,dc=example,dc=com",
+                    "ipaenabledflag": [
+                        "TRUE"
+                    ],
+                    "ipaselinuxuser": [
+                        "unconfined_u:s0-s0:c0.c1023"
+                    ],
+                    "ipauniqueid": [
+                        "dbe2ffa0-3c2c-11e1-ad81-00163e6185c4"
+                    ],
+                    "memberuser_user": [
+                        "karel"
+                    ],
+                    "objectclass": [
+                        "ipaassociation",
+                        "ipaselinuxusermap"
+                    ]
+                },
+                "summary": null,
+                "value": "karel_unconfined"
+            }
+        ]
+    }
+}

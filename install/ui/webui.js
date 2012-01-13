@@ -67,7 +67,8 @@ IPA.admin_navigation = function(spec) {
                 {entity: 'automountmap', hidden: true},
                 {entity: 'automountkey', hidden: true}]},
             {entity: 'pwpolicy'},
-            {entity: 'krbtpolicy'}
+            {entity: 'krbtpolicy'},
+            {entity: 'selinuxusermap'}
         ]},
         {name: 'ipaserver', label: IPA.messages.tabs.ipaserver, children: [
             {name: 'rolebased', label: IPA.messages.tabs.role, children: [
