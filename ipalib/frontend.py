@@ -396,6 +396,7 @@ class Command(HasParam):
     args = Plugin.finalize_attr('args')
     options = Plugin.finalize_attr('options')
     params = Plugin.finalize_attr('params')
+    params_by_default = Plugin.finalize_attr('params_by_default')
     obj = None
 
     use_output_validation = True
@@ -419,11 +420,7 @@ class Command(HasParam):
         self.debug(
             'raw: %s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
-        while True:
-            default = self.get_default(**params)
-            if len(default) == 0:
-                break
-            params.update(default)
+        params.update(self.get_default(**params))
         params = self.normalize(**params)
         params = self.convert(**params)
         self.debug(
@@ -648,17 +645,53 @@ class Command(HasParam):
         >>> c.get_default(color=u'Yellow')
         {}
         """
-        return dict(self.__get_default_iter(kw))
+        params = [p.name for p in self.params() if p.name not in kw and (p.required or p.autofill)]
+        return dict(self.__get_default_iter(params, kw))
 
-    def __get_default_iter(self, kw):
+    def get_default_of(self, name, **kw):
         """
-        Generator method used by `Command.get_default`.
+        Return default value for parameter `name`.
         """
-        for param in self.params():
-            if param.name in kw:
-                continue
-            if param.required or param.autofill:
-                default = param.get_default(**kw)
+        default = dict(self.__get_default_iter([name], kw))
+        return default.get(name)
+
+    def __get_default_iter(self, params, kw):
+        """
+        Generator method used by `Command.get_default` and `Command.get_default_of`.
+        """
+        # Find out what additional parameters are needed to dynamically create
+        # the default values with default_from.
+        dep = set()
+        for param in reversed(self.params_by_default):
+            if param.name in params or param.name in dep:
+                if param.default_from is None:
+                    continue
+                for name in param.default_from.keys:
+                    dep.add(name)
+
+        for param in self.params_by_default():
+            default = None
+            hasdefault = False
+            if param.name in dep:
+                if param.name in kw:
+                    # Parameter is specified, convert and validate the value.
+                    kw[param.name] = param(kw[param.name], **kw)
+                else:
+                    # Parameter is not specified, use default value. Convert
+                    # and validate the value, it might not be returned so
+                    # there's no guarantee it will be converted and validated
+                    # later.
+                    default = param(None, **kw)
+                    if default is not None:
+                        kw[param.name] = default
+                    hasdefault = True
+            if param.name in params:
+                if not hasdefault:
+                    # Default value is not available from the previous step,
+                    # get it now. At this point it is certain that the value
+                    # will be returned, so let the caller care about conversion
+                    # and validation.
+                    default = param.get_default(**kw)
                 if default is not None:
                     yield (param.name, default)
 
@@ -753,6 +786,7 @@ class Command(HasParam):
         else:
             self.max_args = None
         self._create_param_namespace('options')
+        params_nosort = tuple(self.args()) + tuple(self.options()) #pylint: disable=E1102
         def get_key(p):
             if p.required:
                 if p.sortorder < 0:
@@ -762,9 +796,26 @@ class Command(HasParam):
                 return 1
             return 2
         self.params = NameSpace(
-            sorted(tuple(self.args()) + tuple(self.options()), key=get_key),    #pylint: disable=E1102
+            sorted(params_nosort, key=get_key),
             sort=False
         )
+        # Sort params so that the ones with default_from come after the ones
+        # that the default_from might depend on and save the result in
+        # params_by_default namespace.
+        params = []
+        for i in params_nosort:
+            pos = len(params)
+            for j in params_nosort:
+                if j.default_from is None:
+                    continue
+                if i.name not in j.default_from.keys:
+                    continue
+                try:
+                    pos = min(pos, params.index(j))
+                except ValueError:
+                    pass
+            params.insert(pos, i)
+        self.params_by_default = NameSpace(params, sort=False)
         self.output = NameSpace(self._iter_output(), sort=False)
         self._create_param_namespace('output_params')
         super(Command, self)._on_finalize()

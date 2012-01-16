@@ -48,7 +48,7 @@ import plugable
 import util
 from errors import (PublicError, CommandError, HelpError, InternalError,
         NoSuchNamespaceError, ValidationError, NotFound, NotConfiguredError,
-        PromptFailed)
+        PromptFailed, ConversionError)
 from constants import CLI_TAB
 from parameters import Password, Bytes, File, Str, StrEnum
 from text import _
@@ -1152,7 +1152,7 @@ class cli(backend.Executioner):
             if (param.required and param.name not in kw) or \
                 (param.alwaysask and honor_alwaysask) or self.env.prompt_all:
                 if param.autofill:
-                    kw[param.name] = param.get_default(**kw)
+                    kw[param.name] = cmd.get_default_of(param.name, **kw)
                 if param.name in kw and kw[param.name] is not None:
                     continue
                 if param.password:
@@ -1160,7 +1160,7 @@ class cli(backend.Executioner):
                         param.label, param.confirm
                     )
                 else:
-                    default = param.get_default(**kw)
+                    default = cmd.get_default_of(param.name, **kw)
                     error = None
                     while True:
                         if error is not None:
@@ -1172,7 +1172,7 @@ class cli(backend.Executioner):
                             if value is not None:
                                 kw[param.name] = value
                             break
-                        except ValidationError, e:
+                        except (ValidationError, ConversionError), e:
                             error = e.error
             elif param.password and kw.get(param.name, False) is True:
                 kw[param.name] = self.Backend.textui.prompt_password(
