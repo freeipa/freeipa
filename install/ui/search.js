@@ -47,15 +47,15 @@ IPA.search_facet = function(spec) {
 
         that.facet_create_header(container);
 
-        var span = $('<div/>', {
+        var div = $('<div/>', {
             'class': 'right-aligned-facet-controls'
         }).appendTo(that.controls);
 
-        span.append(IPA.create_network_spinner());
+        div.append(IPA.create_network_spinner());
 
         var filter_container = $('<div/>', {
             'class': 'search-filter'
-        }).appendTo(span);
+        }).appendTo(div);
 
         that.filter = $('<input/>', {
             type: 'text',
@@ -77,6 +77,17 @@ IPA.search_facet = function(spec) {
                 return false;
             }
         }).appendTo(filter_container);
+
+        that.refresh_button = IPA.action_button({
+            name: 'refresh',
+            href: 'refresh',
+            label: IPA.messages.buttons.refresh,
+            icon: 'reset-icon',
+            click: function() {
+                that.refresh();
+                return false;
+            }
+        }).appendTo(that.controls);
 
         that.remove_button = IPA.action_button({
             name: 'remove',

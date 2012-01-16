@@ -801,6 +801,17 @@ IPA.association_facet = function (spec) {
 
         that.facet_create_header(container);
 
+        that.refresh_button = IPA.action_button({
+            name: 'refresh',
+            href: 'refresh',
+            label: IPA.messages.buttons.refresh,
+            icon: 'reset-icon',
+            click: function() {
+                that.refresh();
+                return false;
+            }
+        }).appendTo(that.controls);
+
         if (!that.read_only) {
             that.remove_button = IPA.action_button({
                 name: 'remove',
@@ -829,12 +840,13 @@ IPA.association_facet = function (spec) {
         }
 
         if (that.indirect_attribute_member) {
-            var span = $('<span/>', {
+
+            var div = $('<div/>', {
                 'class': 'right-aligned-facet-controls'
             }).appendTo(that.controls);
 
-            span.append(IPA.messages.association.show_results);
-            span.append(' ');
+            div.append(IPA.messages.association.show_results);
+            div.append(' ');
 
             var name = that.entity.name+'-'+that.attribute_member+'-'+that.other_entity.name+'-type-radio';
             var direct_id = name + '-direct';
@@ -849,14 +861,14 @@ IPA.association_facet = function (spec) {
                     that.refresh();
                     return true;
                 }
-            }).appendTo(span);
+            }).appendTo(div);
 
             $('<label/>', {
                 text: IPA.messages.association.direct_membership,
                 'for': direct_id
-            }).appendTo(span);
+            }).appendTo(div);
 
-            span.append(' ');
+            div.append(' ');
 
             var indirect_id = name + '-indirect';
 
@@ -870,12 +882,12 @@ IPA.association_facet = function (spec) {
                     that.refresh();
                     return true;
                 }
-            }).appendTo(span);
+            }).appendTo(div);
 
             $('<label/>', {
                 text: IPA.messages.association.indirect_membership,
                 'for': indirect_id
-            }).appendTo(span);
+            }).appendTo(div);
         }
     };
 
@@ -1019,8 +1031,8 @@ IPA.association_facet = function (spec) {
 
         if (that.association_type == 'direct') {
             if (that.direct_radio) that.direct_radio.attr('checked', true);
-            if (that.add_button) that.add_button.css('display', 'inline');
-            if (that.remove_button) that.remove_button.css('display', 'inline');
+            if (that.add_button) that.add_button.css('display', 'inline-block');
+            if (that.remove_button) that.remove_button.css('display', 'inline-block');
         } else {
             if (that.indirect_radio) that.indirect_radio.attr('checked', true);
             if (that.add_button) that.add_button.css('display', 'none');
