@@ -269,6 +269,27 @@ class test_permission(Declarative):
 
 
         dict(
+            desc='Search for %r with --pkey-only' % permission1,
+            command=('permission_find', [permission1], {'pkey_only' : True}),
+            expected=dict(
+                count=2,
+                truncated=False,
+                summary=u'2 permissions matched',
+                result=[
+                    {
+                        'dn': lambda x: DN(x) == permission1_dn,
+                        'cn': [permission1],
+                    },
+                    {
+                        'dn': lambda x: DN(x) == permission2_dn,
+                        'cn': [permission2],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r' % privilege1,
             command=('privilege_find', [privilege1], {}),
             expected=dict(

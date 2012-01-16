@@ -1552,6 +1552,12 @@ class LDAPRemoveMember(LDAPModMember):
         return
 
 
+def gen_pkey_only_option(cli_name):
+    return Flag('pkey_only?',
+                label=_('Primary key only'),
+                doc=_('Results should contain primary key attribute only ("%s")') \
+                    % to_cli(cli_name),)
+
 class LDAPSearch(BaseLDAPCommand, crud.Search):
     """
     Retrieve all LDAP entries matching the given criteria.
@@ -1594,11 +1600,7 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
             yield option
         if self.obj.primary_key and \
                 'no_output' not in self.obj.primary_key.flags:
-            yield Flag('pkey_only?',
-                       label=_('Primary key only'),
-                       doc=_('Results should contain primary key attribute only ("%s")') \
-                               % to_cli(self.obj.primary_key.cli_name),
-                      )
+            yield gen_pkey_only_option(self.obj.primary_key.cli_name)
         for attr in self.member_attributes:
             for ldap_obj_name in self.obj.attribute_members[attr]:
                 ldap_obj = self.api.Object[ldap_obj_name]

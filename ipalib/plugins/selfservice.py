@@ -24,6 +24,7 @@ from ipalib.request import context
 from ipalib import api, crud, errors
 from ipalib import output
 from ipalib import Object, Command
+from ipalib.plugins.baseldap import gen_pkey_only_option
 
 __doc__ = _("""
 Self-service Permissions
@@ -181,6 +182,8 @@ class selfservice_find(crud.Search):
     msg_summary = ngettext(
         '%(count)d selfservice matched', '%(count)d selfservices matched', 0
     )
+
+    takes_options = (gen_pkey_only_option("name"),)
 
     def execute(self, term, **kw):
         kw['selfaci'] = True

@@ -27,7 +27,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: aci_find
-args: 1,15,4
+args: 1,16,4
 arg: Str('criteria?')
 option: Str('aciname', attribute=False, autofill=False, cli_name='name', multivalue=False, primary_key=True, query=True, required=False)
 option: Str('permission', attribute=False, autofill=False, cli_name='permission', multivalue=False, query=True, required=False)
@@ -41,6 +41,7 @@ option: Str('subtree', attribute=False, autofill=False, cli_name='subtree', mult
 option: Str('targetgroup', attribute=False, autofill=False, cli_name='targetgroup', multivalue=False, query=True, required=False)
 option: Bool('selfaci', attribute=False, autofill=False, cli_name='self', default=False, multivalue=False, query=True, required=False)
 option: StrEnum('aciprefix?', cli_name='prefix', multivalue=False, required=False, values=(u'permission', u'delegation', u'selfservice', u'none'))
+option: Flag('pkey_only?', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -560,13 +561,14 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: delegation_find
-args: 1,8,4
+args: 1,9,4
 arg: Str('criteria?')
 option: Str('aciname', attribute=True, autofill=False, cli_name='name', multivalue=False, primary_key=True, query=True, required=False)
 option: Str('permissions', attribute=True, autofill=False, cli_name='permissions', csv=True, multivalue=True, query=True, required=False)
 option: Str('attrs', attribute=True, autofill=False, cli_name='attrs', csv=True, multivalue=True, query=True, required=False)
 option: Str('memberof', attribute=True, autofill=False, cli_name='membergroup', multivalue=False, query=True, required=False)
 option: Str('group', attribute=True, autofill=False, cli_name='group', multivalue=False, query=True, required=False)
+option: Flag('pkey_only?', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -2465,11 +2467,12 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: selfservice_find
-args: 1,6,4
+args: 1,7,4
 arg: Str('criteria?')
 option: Str('aciname', attribute=True, autofill=False, cli_name='name', multivalue=False, primary_key=True, query=True, required=False)
 option: Str('permissions', attribute=True, autofill=False, cli_name='permissions', csv=True, multivalue=True, query=True, required=False)
 option: Str('attrs', attribute=True, autofill=False, cli_name='attrs', csv=True, multivalue=True, query=True, required=False)
+option: Flag('pkey_only?', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')

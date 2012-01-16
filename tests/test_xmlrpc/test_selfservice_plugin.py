@@ -137,6 +137,21 @@ class test_selfservice(Declarative):
             ),
         ),
 
+        dict(
+            desc='Search for %r with --pkey-only' % selfservice1,
+            command=('selfservice_find', [selfservice1], {'pkey_only' : True}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 selfservice matched',
+                result=[
+                    {
+                        'aciname': selfservice1,
+                    },
+                ],
+            ),
+        ),
+
 
         dict(
             desc='Update %r' % selfservice1,

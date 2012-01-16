@@ -126,6 +126,7 @@ from ipalib.aci import ACI
 from ipalib.dn import DN
 from ipalib import output
 from ipalib import _, ngettext
+from ipalib.plugins.baseldap import gen_pkey_only_option
 if api.env.in_server and api.env.context in ['lite', 'server']:
     from ldap import explode_dn
 from ipapython.ipa_log_manager import *
@@ -297,7 +298,7 @@ def _make_aci(ldap, current, aciname, kw):
 
     return a
 
-def _aci_to_kw(ldap, a, test=False):
+def _aci_to_kw(ldap, a, test=False, pkey_only=False):
     """Convert an ACI into its equivalent keywords.
 
        This is used for the modify operation so we can merge the
@@ -306,6 +307,8 @@ def _aci_to_kw(ldap, a, test=False):
     """
     kw = {}
     kw['aciprefix'], kw['aciname'] = _parse_aci_name(a.name)
+    if pkey_only:
+        return kw
     kw['permissions'] = tuple(a.permissions)
     if 'targetattr' in a.target:
         kw['attrs'] = list(a.target['targetattr']['expression'])
@@ -682,7 +685,8 @@ class aci_find(crud.Search):
     NO_CLI = True
     msg_summary = ngettext('%(count)d ACI matched', '%(count)d ACIs matched', 0)
 
-    takes_options = (_prefix_option.clone_rename("aciprefix?", required=False),)
+    takes_options = (_prefix_option.clone_rename("aciprefix?", required=False),
+                     gen_pkey_only_option("name"),)
 
     def execute(self, term, **kw):
         ldap = self.api.Backend.ldap2
@@ -837,7 +841,8 @@ class aci_find(crud.Search):
             if kw.get('raw', False):
                 aci = dict(aci=unicode(result))
             else:
-                aci = _aci_to_kw(ldap, result)
+                aci = _aci_to_kw(ldap, result,
+                        pkey_only=kw.get('pkey_only', False))
             acis.append(aci)
 
         return dict(

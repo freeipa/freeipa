@@ -147,6 +147,22 @@ class test_delegation(Declarative):
 
 
         dict(
+            desc='Search for %r with --pkey-only' % delegation1,
+            command=('delegation_find', [delegation1], {'pkey_only' : True}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 delegation matched',
+                result=[
+                    {
+                    'aciname': delegation1,
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
             desc='Update %r' % delegation1,
             command=(
                 'delegation_mod', [delegation1], dict(permissions=u'read')
