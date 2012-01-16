@@ -1,5 +1,6 @@
 # Authors:
 #   Rob Crittenden <rcritten@redhat.com>
+#   Martin Kosek <mkosek@redhat.com>
 #
 # Copyright (C) 2010  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -24,6 +25,7 @@ from ipalib.request import context
 from ipalib import api, crud, errors
 from ipalib import output
 from ipalib import Object, Command
+from ipalib.plugins.baseldap import gen_pkey_only_option
 
 __doc__ = _("""
 Group to Group Delegation
@@ -52,45 +54,6 @@ EXAMPLES:
 """)
 
 ACI_PREFIX=u"delegation"
-
-def convert_delegation(ldap, aci):
-    """
-    memberOf is in filter but we want to pull out the group for easier
-    displaying.
-    """
-    filter = aci['memberof']
-    st = filter.find('memberOf=')
-    if st == -1:
-        raise errors.NotFound(reason=_('Delegation \'%(permission)s\' not found') % dict(permission=aci['aciname']))
-    en = filter.find(')', st)
-    membergroup = filter[st+9:en]
-    try:
-        (dn, entry_attrs) = ldap.get_entry(membergroup, ['cn'])
-    except Exception, e:
-        # Uh oh, the group we're granting access to has an error
-        msg = _('Error retrieving member group %(group)s: %(error)s') % (membergroup, str(e))
-        raise errors.NonFatalError(reason=msg)
-    aci['memberof'] = entry_attrs['cn'][0]
-
-    del aci['aciprefix']     # do not include prefix in result
-
-    return aci
-
-def is_delegation(ldap, aciname):
-    """
-    Determine if the ACI is a Delegation ACI and raise an exception if it
-    isn't.
-
-    Return the result if it is a delegation ACI, adding a new attribute
-    membergroup.
-    """
-    result = api.Command['aci_show'](aciname, aciprefix=ACI_PREFIX)['result']
-    if 'memberof' in result:
-        result = convert_delegation(ldap, result)
-    else:
-        raise errors.NotFound(reason=_('Delegation \'%(permission)s\' not found') % dict(permission=aciname))
-    return result
-
 
 class delegation(Object):
     """
@@ -163,8 +126,12 @@ class delegation_add(crud.Create):
             kw['permissions'] = (u'write',)
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_add'](aciname, **kw)['result']
-        if 'memberof' in result:
-            result = convert_delegation(ldap, result)
+
+        # do not include prefix in result
+        try:
+            del result['aciprefix']
+        except KeyError:
+            pass
 
         return dict(
             result=result,
@@ -181,8 +148,6 @@ class delegation_del(crud.Delete):
     msg_summary = _('Deleted delegation "%(value)s"')
 
     def execute(self, aciname, **kw):
-        ldap = self.api.Backend.ldap2
-        is_delegation(ldap, aciname)
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_del'](aciname, **kw)
         return dict(
@@ -199,12 +164,15 @@ class delegation_mod(crud.Update):
     msg_summary = _('Modified delegation "%(value)s"')
 
     def execute(self, aciname, **kw):
-        ldap = self.api.Backend.ldap2
-        is_delegation(ldap, aciname)
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_mod'](aciname, **kw)['result']
-        if 'memberof' in result:
-            result = convert_delegation(ldap, result)
+
+        # do not include prefix in result
+        try:
+            del result['aciprefix']
+        except KeyError:
+            pass
+
         return dict(
             result=result,
             value=aciname,
@@ -220,17 +188,18 @@ class delegation_find(crud.Search):
         '%(count)d delegation matched', '%(count)d delegations matched', 0
     )
 
+    takes_options = (gen_pkey_only_option("name"),)
+
     def execute(self, term, **kw):
         ldap = self.api.Backend.ldap2
         kw['aciprefix'] = ACI_PREFIX
-        acis = api.Command['aci_find'](term, **kw)['result']
-        results = []
-        for aci in acis:
+        results = api.Command['aci_find'](term, **kw)['result']
+
+        for aci in results:
+            # do not include prefix in result
             try:
-                if 'memberof' in aci:
-                    aci = convert_delegation(ldap, aci)
-                    results.append(aci)
-            except errors.NotFound:
+                del aci['aciprefix']
+            except KeyError:
                 pass
 
         return dict(
@@ -252,8 +221,12 @@ class delegation_show(crud.Retrieve):
     )
 
     def execute(self, aciname, **kw):
-        ldap = self.api.Backend.ldap2
-        result = is_delegation(ldap, aciname)
+        result = api.Command['aci_show'](aciname, aciprefix=ACI_PREFIX)['result']
+        # do not include prefix in result
+        try:
+            del result['aciprefix']
+        except KeyError:
+            pass
         return dict(
             result=result,
             value=aciname,
