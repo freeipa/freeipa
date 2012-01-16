@@ -187,6 +187,7 @@ class i18n_messages(Command):
             "get": _("Get"),
             "issue": _("Issue"),
             "ok": _("OK"),
+            "refresh": _("Refresh"),
             "remove": _("Delete"),
             "reset": _("Reset"),
             "restore": _("Restore"),

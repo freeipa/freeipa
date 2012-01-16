@@ -299,6 +299,17 @@ IPA.details_facet = function(spec) {
 
     that.create_controls = function() {
 
+        that.refresh_button = IPA.action_button({
+            name: 'refresh',
+            href: 'refresh',
+            label: IPA.messages.buttons.refresh,
+            icon: 'reset-icon',
+            click: function() {
+                that.refresh();
+                return false;
+            }
+        }).appendTo(that.controls);
+
         that.reset_button = IPA.action_button({
             name: 'reset',
             label: IPA.messages.buttons.reset,
@@ -346,7 +357,7 @@ IPA.details_facet = function(spec) {
             style: 'display: none;',
             click: function() {
                 that.expand_button.css('display', 'none');
-                that.collapse_button.css('display', 'inline');
+                that.collapse_button.css('display', 'inline-block');
 
                 var widgets = that.widgets.get_widgets();
                 for (var i=0; i<widgets.length; i++) {
@@ -365,7 +376,7 @@ IPA.details_facet = function(spec) {
             label: IPA.messages.details.collapse_all,
             'class': 'right-aligned-facet-controls',
             click: function() {
-                that.expand_button.css('display', 'inline');
+                that.expand_button.css('display', 'inline-block');
                 that.collapse_button.css('display', 'none');
 
                 var widgets = that.widgets.get_widgets();

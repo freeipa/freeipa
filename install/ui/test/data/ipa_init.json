@@ -52,6 +52,7 @@
                         "get": "Get",
                         "issue": "Issue",
                         "ok": "OK",
+                        "refresh": "Refresh",
                         "remove": "Delete",
                         "reset": "Reset",
                         "restore": "Restore",
