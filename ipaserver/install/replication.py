@@ -211,6 +211,28 @@ class ReplicationManager(object):
 
         return res
 
+    def get_replication_agreement(self, hostname):
+        """
+        The replication agreements are stored in
+        cn="$SUFFIX",cn=mapping tree,cn=config
+
+        Get the replication agreement for a specific host.
+
+        Returns None if not found.
+        """
+
+        filt = "(&(objectclass=nsds5ReplicationAgreement)(nsDS5ReplicaHost=%s))" % hostname
+        try:
+            entry = self.conn.search_s("cn=mapping tree,cn=config",
+                                       ldap.SCOPE_SUBTREE, filt)
+        except ldap.NO_SUCH_OBJECT:
+            return None
+
+        if len(entry) == 0:
+            return None
+        else:
+            return entry[0] # There can be only one
+
     def add_replication_manager(self, conn, dn, pw):
         """
         Create a pseudo user to use for replication.
