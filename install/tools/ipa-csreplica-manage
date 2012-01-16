@@ -267,12 +267,26 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
     repl1.delete_agreement(replica2)
     repl1.delete_referral(replica2)
 
+    print "Deleted replication agreement from '%s' to '%s'" % (replica1, replica2)
+
 def del_master(realm, hostname, options):
 
     force_del = False
 
     delrepl = None
-    # 1. Connect to the dogtag DS to be removed.
+
+    # 1. Connect to the local dogtag DS server
+    try:
+        thisrepl = CSReplicationManager(realm, options.host,
+                                        options.dirman_passwd)
+    except Exception, e:
+        sys.exit("Failed to connect to server %s: %s" % (options.host, convert_error(e)))
+
+    # 2. Ensure we have an agreement with the master
+    if thisrepl.get_replication_agreement(hostname) is None:
+        sys.exit("'%s' has no replication agreement for '%s'" % (options.host, hostname))
+
+    # 3. Connect to the dogtag DS to be removed.
     try:
         delrepl = CSReplicationManager(realm, hostname, options.dirman_passwd)
     except Exception, e:
@@ -283,21 +297,14 @@ def del_master(realm, hostname, options):
             print "Unable to connect to replica %s, forcing removal" % hostname
             force_del = True
 
-    # 2. Connect to the local dogtag DS server
-    try:
-        thisrepl = CSReplicationManager(realm, options.host,
-                                        options.dirman_passwd)
-    except Exception, e:
-        sys.exit("Failed to connect to server %s: %s" % (options.host, convert_error(e)))
-
-    # 2. Get list of agreements.
+    # 4. Get list of agreements.
     if delrepl is None:
         # server not up, just remove it from this server
         replica_names = [options.host]
     else:
         replica_names = delrepl.find_ipa_replication_agreements()
 
-    # 3. Remove each agreement
+    # 5. Remove each agreement
     for r in replica_names:
         try:
             del_link(realm, r, hostname, options.dirman_passwd, force=True)

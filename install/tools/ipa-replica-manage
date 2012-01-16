@@ -272,12 +272,25 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         except Exception, e:
             print "Error deleting winsync replica shared info: %s" % str(e)
 
+    print "Deleted replication agreement from '%s' to '%s'" % (replica1, replica2)
 
 def del_master(realm, hostname, options):
 
     force_del = False
 
-    # 1. Connect to the master to be removed.
+    # 1. Connect to the local server
+    try:
+        thisrepl = replication.ReplicationManager(realm, options.host,
+                                                  options.dirman_passwd)
+    except Exception, e:
+        print "Failed to connect to server %s: %s" % (options.host, str(e))
+        sys.exit(1)
+
+    # 2. Ensure we have an agreement with the master
+    if thisrepl.get_replication_agreement(hostname) is None:
+        sys.exit("'%s' has no replication agreement for '%s'" % (options.host, hostname))
+
+    # 3. Connect to the master to be removed.
     try:
         delrepl = replication.ReplicationManager(realm, hostname, options.dirman_passwd)
     except Exception, e:
@@ -287,14 +300,6 @@ def del_master(realm, hostname, options):
         else:
             print "Unable to connect to replica %s, forcing removal" % hostname
             force_del = True
-
-    # 2. Connect to the local server
-    try:
-        thisrepl = replication.ReplicationManager(realm, options.host,
-                                                  options.dirman_passwd)
-    except Exception, e:
-        print "Failed to connect to server %s: %s" % (options.host, str(e))
-        sys.exit(1)
 
     if force_del:
         dn = 'cn=masters,cn=ipa,cn=etc,%s' % thisrepl.suffix
@@ -306,21 +311,21 @@ def del_master(realm, hostname, options):
         # 2. Get list of agreements.
         replica_names = delrepl.find_ipa_replication_agreements()
 
-    # 3. Remove each agreement
+    # 4. Remove each agreement
     for r in replica_names:
         try:
             del_link(realm, r, hostname, options.dirman_passwd, force=True)
         except Exception, e:
             print "There were issues removing a connection: %s" % str(e)
 
-    # 4. Finally clean up the removed replica common entries.
+    # 5. Finally clean up the removed replica common entries.
     try:
         thisrepl.replica_cleanup(hostname, realm, force=True)
     except Exception, e:
         print "Failed to cleanup %s entries: %s" % (hostname, str(e))
         print "You may need to manually remove them from the tree"
 
-    # 5. And clean up the removed replica DNS entries if any.
+    # 6. And clean up the removed replica DNS entries if any.
     try:
         if bindinstance.dns_container_exists(options.host, thisrepl.suffix,
                                              dm_password=options.dirman_passwd):
