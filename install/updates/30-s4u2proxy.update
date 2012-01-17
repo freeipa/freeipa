@@ -8,11 +8,11 @@ default: objectClass: ipaKrb5DelegationACL
 default: objectClass: groupOfPrincipals
 default: objectClass: top
 default: cn: ipa-http-delegation
-default: memberPrincipal: HTTP/$HOST@$REALM
+default: memberPrincipal: HTTP/$FQDN@$REALM
 default: ipaAllowedTarget: 'cn=ipa-ldap-delegation-targets,cn=etc,$SUFFIX'
 
 dn: cn=ipa-ldap-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
 default: objectClass: groupOfPrincipals
 default: objectClass: top
 default: cn: ipa-ldap-delegation-targets
-default: memberPrincipal: ldap/$HOST@$REALM
+default: memberPrincipal: ldap/$FQDN@$REALM
