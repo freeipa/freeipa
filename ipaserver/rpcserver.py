@@ -37,6 +37,7 @@ from ipapython.version import VERSION
 import base64
 import os
 import string
+from decimal import Decimal
 _not_found_template = """<html>
 <head>
 <title>404 Not Found</title>
@@ -385,6 +386,8 @@ def json_encode_binary(val):
         return new_list
     elif isinstance(val, str):
         return {'__base64__' : base64.b64encode(val)}
+    elif isinstance(val, Decimal):
+        return {'__base64__' : base64.b64encode(str(val))}
     else:
         return val
 

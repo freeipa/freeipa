@@ -227,7 +227,7 @@ verbose = Flag('verbose', default=True)
            specified when constructing =Int= parameter:
            - /minvalue/ :: minimal value that this parameter accepts, defaults to =MININT=
            - /maxvalue/ :: maximum value this parameter can accept, defaults to =MAXINT=
-- /Float/ :: floating point parameters that are stored in Python's float type. =Float= has
+- /Decimal/ :: floating point parameters that are stored in Python's Decimal type. =Decimal= has
              the same two additional properties as =Int=. Unlike =Int=, there are no
              default values for the minimal and maximum boundaries.
 - /Bytes/ :: a parameter to represent binary data.
@@ -294,9 +294,9 @@ class tank(Object):
     takes_params = (
         StrEnum('species*', label=u'Species', doc=u'Fish species',
                  values=(u'Angelfish', u'Betta', u'Cichlid', u'Firemouth')),
-        Float('height', label=u'Height', doc=u'height in mm', default=400.0),
-        Float('width', label=u'Width', doc=u'width in mm', default=400.0),
-        Float('depth', label=u'Depth', doc=u'Depth in mm', default=300.0)
+        Decimal('height', label=u'Height', doc=u'height in mm', default='400.0'),
+        Decimal('width', label=u'Width', doc=u'width in mm', default='400.0'),
+        Decimal('depth', label=u'Depth', doc=u'Depth in mm', default='300.0')
     )
 
 api.register(tank) (ref:register)

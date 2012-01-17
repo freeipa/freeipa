@@ -100,6 +100,7 @@ a more detailed description for clarity.
 """
 
 import re
+import decimal
 from types import NoneType
 from util import make_repr
 from text import _ as ugettext
@@ -723,8 +724,6 @@ class Param(ReadOnly):
                     else:
                         newval += (v,)
                 value = newval
-        if self.normalizer is None:
-            return value
         if self.multivalue:
             return tuple(
                 self._normalize_scalar(v) for v in value
@@ -739,6 +738,8 @@ class Param(ReadOnly):
         This method is called once for each value in a multivalue.
         """
         if type(value) is not unicode:
+            return value
+        if self.normalizer is None:
             return value
         try:
             return self.normalizer(value)
@@ -1100,7 +1101,7 @@ class Flag(Bool):
 
 class Number(Param):
     """
-    Base class for the `Int` and `Float` parameters.
+    Base class for the `Int` and `Decimal` parameters.
     """
 
     def _convert_scalar(self, value, index=None):
@@ -1225,36 +1226,59 @@ class Int(Number):
                 )
 
 
-class Float(Number):
+class Decimal(Number):
     """
-    A parameter for floating-point values (stored in the ``float`` type).
+    A parameter for floating-point values (stored in the ``Decimal`` type).
+
+    Python Decimal type helps overcome problems tied to plain "float" type,
+    e.g. problem with representation or value comparison. In order to safely
+    transfer the value over RPC libraries, it is being converted to string
+    which is then converted back to Decimal number.
     """
 
-    type = float
+    type = decimal.Decimal
     type_error = _('must be a decimal number')
 
     kwargs = Param.kwargs + (
-        ('minvalue', float, None),
-        ('maxvalue', float, None),
+        ('minvalue', decimal.Decimal, None),
+        ('maxvalue', decimal.Decimal, None),
+        ('precision', int, None),
     )
 
     def __init__(self, name, *rules, **kw):
-        #pylint: disable=E1003
-        super(Number, self).__init__(name, *rules, **kw)
+        for kwparam in ('minvalue', 'maxvalue', 'default'):
+            value = kw.get(kwparam)
+            if value is None:
+                continue
+            if isinstance(value, (basestring, float)):
+                try:
+                    value = decimal.Decimal(value)
+                except Exception, e:
+                    raise ValueError(
+                       '%s: cannot parse kwarg %s: %s' % (
+                        name, kwparam, str(e)))
+                kw[kwparam] = value
 
-        if (self.minvalue > self.maxvalue) and (self.minvalue is not None and self.maxvalue is not None):
+        super(Decimal, self).__init__(name, *rules, **kw)
+
+        if (self.minvalue > self.maxvalue) \
+            and (self.minvalue is not None and \
+                 self.maxvalue is not None):
             raise ValueError(
-                '%s: minvalue > maxvalue (minvalue=%r, maxvalue=%r)' % (
+                '%s: minvalue > maxvalue (minvalue=%s, maxvalue=%s)' % (
                     self.nice, self.minvalue, self.maxvalue)
             )
+
+        if self.precision is not None and self.precision < 0:
+            raise ValueError('%s: precision must be at least 0' % self.nice)
 
     def _rule_minvalue(self, _, value):
         """
         Check min constraint.
         """
-        assert type(value) is float
+        assert type(value) is decimal.Decimal
         if value < self.minvalue:
-            return _('must be at least %(minvalue)f') % dict(
+            return _('must be at least %(minvalue)s') % dict(
                 minvalue=self.minvalue,
             )
 
@@ -1262,12 +1286,39 @@ class Float(Number):
         """
         Check max constraint.
         """
-        assert type(value) is float
+        assert type(value) is decimal.Decimal
         if value > self.maxvalue:
-            return _('can be at most %(maxvalue)f') % dict(
+            return _('can be at most %(maxvalue)s') % dict(
                 maxvalue=self.maxvalue,
             )
 
+    def _enforce_precision(self, value):
+        assert type(value) is decimal.Decimal
+        if self.precision is not None:
+            quantize_exp = decimal.Decimal(10) ** -self.precision
+            return value.quantize(quantize_exp)
+
+        return value
+
+    def _convert_scalar(self, value, index=None):
+        if isinstance(value, (basestring, float)):
+            try:
+                value = decimal.Decimal(value)
+            except Exception, e:
+                raise ConversionError(name=self.name, index=index,
+                                      error=unicode(e))
+
+        if isinstance(value, decimal.Decimal):
+            x = self._enforce_precision(value)
+            return x
+
+        return super(Decimal, self)._convert_scalar(value, index)
+
+    def _normalize_scalar(self, value):
+        if isinstance(value, decimal.Decimal):
+            value = self._enforce_precision(value)
+
+        return super(Decimal, self)._normalize_scalar(value)
 
 class Data(Param):
     """
@@ -1423,7 +1474,7 @@ class Str(Data):
         """
         if type(value) is self.type:
             return value
-        if type(value) in (int, float):
+        if type(value) in (int, float, decimal.Decimal):
             return self.type(value)
         if type(value) in (tuple, list):
             raise ConversionError(name=self.name, index=index,
