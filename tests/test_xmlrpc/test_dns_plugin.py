@@ -598,7 +598,7 @@ class test_dns(Declarative):
                     'idnsname': [dnszone1],
                     'mxrecord': [u"0 %s" % dnszone1_mname],
                     'nsrecord': [dnszone1_mname],
-                    'locrecord': [u"49 11 42.4 N 16 36 29.6 E 227.64"],
+                    'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64"],
                 },
             },
         ),

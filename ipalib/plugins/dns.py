@@ -25,7 +25,7 @@ import re
 from ipalib.request import context
 from ipalib import api, errors, output
 from ipalib import Command
-from ipalib.parameters import Flag, Bool, Int, Float, Str, StrEnum, Any
+from ipalib.parameters import Flag, Bool, Int, Decimal, Str, StrEnum, Any
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.util import validate_zonemgr, normalize_zonemgr, validate_hostname
@@ -345,7 +345,12 @@ class DNSRecord(Str):
             if not values:
                 return value
 
-            new_values = [ part.normalize(values[part_id]) \
+            converted_values = [ part._convert_scalar(values[part_id]) \
+                                 if values[part_id] is not None else None
+                                 for part_id, part in enumerate(self.parts)
+                               ]
+
+            new_values = [ part.normalize(converted_values[part_id]) \
                             for part_id, part in enumerate(self.parts) ]
 
             value = self._convert_scalar(new_values)
@@ -626,10 +631,11 @@ class LOCRecord(DNSRecord):
             minvalue=0,
             maxvalue=59,
         ),
-        Float('lat_sec?',
+        Decimal('lat_sec?',
             label=_('Seconds Latitude'),
-            minvalue=0.0,
-            maxvalue=59.999,
+            minvalue='0.0',
+            maxvalue='59.999',
+            precision=3,
         ),
         StrEnum('lat_dir',
             label=_('Direction Latitude'),
@@ -645,34 +651,39 @@ class LOCRecord(DNSRecord):
             minvalue=0,
             maxvalue=59,
         ),
-        Float('lon_sec?',
+        Decimal('lon_sec?',
             label=_('Seconds Longtitude'),
-            minvalue=0.0,
-            maxvalue=59.999,
+            minvalue='0.0',
+            maxvalue='59.999',
+            precision=3,
         ),
         StrEnum('lon_dir',
             label=_('Direction Longtitude'),
             values=(u'E', u'W',),
         ),
-        Float('altitude',
+        Decimal('altitude',
             label=_('Altitude'),
-            minvalue=-100000.00,
-            maxvalue=42849672.95,
+            minvalue='-100000.00',
+            maxvalue='42849672.95',
+            precision=2,
         ),
-        Float('size?',
+        Decimal('size?',
             label=_('Size'),
-            minvalue=0.0,
-            maxvalue=90000000.00,
+            minvalue='0.0',
+            maxvalue='90000000.00',
+            precision=2,
         ),
-        Float('h_precision?',
+        Decimal('h_precision?',
             label=_('Horizontal Precision'),
-            minvalue=0.0,
-            maxvalue=90000000.00,
+            minvalue='0.0',
+            maxvalue='90000000.00',
+            precision=2,
         ),
-        Float('v_precision?',
+        Decimal('v_precision?',
             label=_('Vertical Precision'),
-            minvalue=0.0,
-            maxvalue=90000000.00,
+            minvalue='0.0',
+            maxvalue='90000000.00',
+            precision=2,
         ),
     )
 

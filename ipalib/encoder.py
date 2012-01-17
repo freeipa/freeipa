@@ -20,6 +20,8 @@
 Encoding capabilities.
 """
 
+from decimal import Decimal
+
 class EncoderSettings(object):
     """
     Container for encoder settings.
@@ -77,7 +79,7 @@ class Encoder(object):
             return self.encoder_settings.encode_postprocessor(
                 var.encode(self.encoder_settings.encode_to)
             )
-        elif isinstance(var, (bool, float, int, long)):
+        elif isinstance(var, (bool, float, Decimal, int, long)):
             return self.encoder_settings.encode_postprocessor(
                 str(var).encode(self.encoder_settings.encode_to)
             )
@@ -131,7 +133,7 @@ class Encoder(object):
             return self.encoder_settings.decode_postprocessor(
                 var.decode(self.encoder_settings.decode_from)
             )
-        elif isinstance(var, (bool, float, int, long)):
+        elif isinstance(var, (bool, float, Decimal, int, long)):
             return var
         elif isinstance(var, list):
             return [self.decode(m) for m in var]

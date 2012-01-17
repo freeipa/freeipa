@@ -25,6 +25,7 @@ Test the `ipalib.parameters` module.
 import re
 import sys
 from types import NoneType
+from decimal import Decimal
 from inspect import isclass
 from tests.util import raises, ClassChecker, read_only
 from tests.util import dummy_ugettext, assert_equal
@@ -1300,77 +1301,77 @@ class test_Int(ClassChecker):
         assert o._convert_scalar(u'0x10')  == 16
         assert o._convert_scalar(u'020')   == 16
 
-class test_Float(ClassChecker):
+class test_Decimal(ClassChecker):
     """
-    Test the `ipalib.parameters.Float` class.
+    Test the `ipalib.parameters.Decimal` class.
     """
-    _cls = parameters.Float
+    _cls = parameters.Decimal
 
     def test_init(self):
         """
-        Test the `ipalib.parameters.Float.__init__` method.
+        Test the `ipalib.parameters.Decimal.__init__` method.
         """
         # Test with no kwargs:
         o = self.cls('my_number')
-        assert o.type is float
-        assert isinstance(o, parameters.Float)
+        assert o.type is Decimal
+        assert isinstance(o, parameters.Decimal)
         assert o.minvalue is None
         assert o.maxvalue is None
 
         # Test when min > max:
-        e = raises(ValueError, self.cls, 'my_number', minvalue=22.5, maxvalue=15.1)
+        e = raises(ValueError, self.cls, 'my_number', minvalue=Decimal('22.5'), maxvalue=Decimal('15.1'))
         assert str(e) == \
-            "Float('my_number'): minvalue > maxvalue (minvalue=22.5, maxvalue=15.1)"
+            "Decimal('my_number'): minvalue > maxvalue (minvalue=22.5, maxvalue=15.1)"
 
     def test_rule_minvalue(self):
         """
-        Test the `ipalib.parameters.Float._rule_minvalue` method.
+        Test the `ipalib.parameters.Decimal._rule_minvalue` method.
         """
-        o = self.cls('my_number', minvalue=3.1)
-        assert o.minvalue == 3.1
+        o = self.cls('my_number', minvalue='3.1')
+        assert o.minvalue == Decimal('3.1')
         rule = o._rule_minvalue
-        translation = u'minvalue=%(minvalue)r'
+        translation = u'minvalue=%(minvalue)s'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
         # Test with passing values:
-        for value in (3.2, 99.0):
+        for value in (Decimal('3.2'), Decimal('99.0')):
             assert rule(dummy, value) is None
             assert dummy.called() is False
 
         # Test with failing values:
-        for value in (-1.2, 0.0, 3.0):
+        for value in (Decimal('-1.2'), Decimal('0.0'), Decimal('3.0')):
             assert_equal(
                 rule(dummy, value),
-                translation % dict(minvalue=3.1)
+                translation % dict(minvalue=Decimal('3.1'))
             )
-            assert dummy.message == 'must be at least %(minvalue)f'
+            assert dummy.message == 'must be at least %(minvalue)s'
             assert dummy.called() is True
             dummy.reset()
 
     def test_rule_maxvalue(self):
         """
-        Test the `ipalib.parameters.Float._rule_maxvalue` method.
+        Test the `ipalib.parameters.Decimal._rule_maxvalue` method.
         """
-        o = self.cls('my_number', maxvalue=4.7)
-        assert o.maxvalue == 4.7
+        o = self.cls('my_number', maxvalue='4.7')
+        assert o.maxvalue == Decimal('4.7')
         rule = o._rule_maxvalue
         translation = u'maxvalue=%(maxvalue)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
         # Test with passing values:
-        for value in (-1.0, 0.1, 4.2):
+        for value in (Decimal('-1.0'), Decimal('0.1'), Decimal('4.2')):
             assert rule(dummy, value) is None
             assert dummy.called() is False
 
         # Test with failing values:
-        for value in (5.3, 99.9):
+        for value in (Decimal('5.3'), Decimal('99.9')):
             assert_equal(
                 rule(dummy, value),
-                translation % dict(maxvalue=4.7)
+                translation % dict(maxvalue=Decimal('4.7'))
             )
-            assert dummy.message == 'can be at most %(maxvalue)f'
+            assert dummy.message == 'can be at most %(maxvalue)s'
             assert dummy.called() is True
             dummy.reset()
 

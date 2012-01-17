@@ -61,7 +61,7 @@ class IPATypeChecker(TypeChecker):
             'sortorder', 'csv', 'csv_separator', 'csv_skipspace'],
         'ipalib.parameters.Bool': ['truths', 'falsehoods'],
         'ipalib.parameters.Int': ['minvalue', 'maxvalue'],
-        'ipalib.parameters.Float': ['minvalue', 'maxvalue'],
+        'ipalib.parameters.Decimal': ['minvalue', 'maxvalue', 'precision'],
         'ipalib.parameters.Data': ['minlength', 'maxlength', 'length',
             'pattern', 'pattern_errmsg'],
         'ipalib.parameters.Enum': ['values'],

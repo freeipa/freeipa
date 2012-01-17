@@ -31,6 +31,7 @@ Also see the `ipaserver.rpcserver` module.
 """
 
 from types import NoneType
+from decimal import Decimal
 import threading
 import sys
 import os
@@ -86,6 +87,9 @@ def xml_wrap(value):
         )
     if type(value) is str:
         return Binary(value)
+    if type(value) is Decimal:
+        # transfer Decimal as a string
+        return unicode(value)
     assert type(value) in (unicode, int, float, bool, NoneType)
     return value
 
