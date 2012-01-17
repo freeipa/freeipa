@@ -75,5 +75,28 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function() {
         return that.values[index];
     };
 
+    that.sort = function() {
+        var keys = that.keys.slice(0);
+        keys.sort();
+        return that.trim(keys);
+    };
+
+    that.slice = function(start, end) {
+        var keys = that.keys.slice(start, end);
+        return that.trim(keys);
+    };
+
+    that.trim = function(keys) {
+        var new_map = $.ordered_map();
+
+        for (var i=0; i<keys.length; i++) {
+            var key = keys[i];
+            var value = that.get(key);
+            new_map.put(key, value);
+        }
+
+        return new_map;
+    };
+
     return that;
 };

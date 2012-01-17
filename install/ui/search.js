@@ -156,26 +156,15 @@ IPA.search_facet = function(spec) {
         IPA.nav.push_state(state);
     };
 
-    that.get_pkeys = function(data) {
-        var result = data.result.result;
-        var pkey_name = that.managed_entity.metadata.primary_key;
-        var pkeys = [];
-        for (var i=0; i<result.length; i++) {
-            var record = result[i];
-            var value = record[pkey_name];
-            if (value instanceof Array) {
-                value = value[0];
-            }
-            pkeys.push(value);
-        }
-        return pkeys;
-    };
-
     that.get_search_command_name = function() {
-        return that.managed_entity.name + '_find' + (that.pagination ? '_pkeys' : '');
+        var name = that.managed_entity.name + '_find';
+        if (that.pagination && !that.search_all_entries) {
+            name += '_pkeys';
+        }
+        return name;
     };
 
-    that.refresh = function() {
+    that.create_refresh_command = function() {
 
         var filter = [];
         var entity = that.managed_entity;
@@ -194,14 +183,21 @@ IPA.search_facet = function(spec) {
             method: 'find',
             args: filter,
             options: {
-                all: that.search_all
+                all: that.search_all_attributes
             }
         });
 
         if (that.pagination) {
-            command.set_option('pkey_only', true);
+            if (!that.search_all_entries) command.set_option('pkey_only', true);
             command.set_option('sizelimit', 0);
         }
+
+        return command;
+    };
+
+    that.refresh = function() {
+
+        var command = that.create_refresh_command();
 
         command.on_success = function(data, text_status, xhr) {
             that.filter.focus();
@@ -230,6 +226,7 @@ IPA.search_facet = function(spec) {
 
     // methods that should be invoked by subclasses
     that.search_facet_refresh = that.refresh;
+    that.search_facet_create_refresh_command = that.create_refresh_command;
 
     return that;
 };

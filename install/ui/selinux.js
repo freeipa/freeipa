@@ -35,7 +35,7 @@ IPA.selinux.selinuxusermap_entity = function(spec) {
         that.entity_init();
 
         that.builder.search_facet({
-            search_all: true,
+            search_all_attributes: true,
             columns: [
                 'cn',
                 'ipaselinuxuser',
