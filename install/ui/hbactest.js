@@ -230,18 +230,6 @@ IPA.hbac.test_facet = function(spec) {
         IPA.nav.push_state(state);
     };
 
-    that.get_pkeys = function(data) {
-        var result = data.result.result;
-        var pkey_name = that.managed_entity.metadata.primary_key;
-        var pkeys = [];
-        for (var i=0; i<result.length; i++) {
-            var record = result[i];
-            var values = record[pkey_name];
-            pkeys.push(values[0]);
-        }
-        return pkeys;
-    };
-
     that.get_search_command_name = function() {
         return that.managed_entity.name + '_find' + (that.pagination ? '_pkeys' : '');
     };
@@ -730,16 +718,15 @@ IPA.hbac.test_run_facet = function(spec) {
         command.execute();
     };
 
-    that.get_pkeys = function(data) {
-        var pkeys = [];
-        that.matched = {};
+    that.get_records_map = function(data) {
+
+        var records_map = $.ordered_map();
 
         var matched = data.result.matched;
         if (that.show_matched && matched) {
             for (var i=0; i<matched.length; i++) {
                 var pkey = matched[i];
-                pkeys.push(pkey);
-                that.matched[pkey] = 'TRUE';
+                records_map.put(pkey, { matched: true });
             }
         }
 
@@ -747,12 +734,11 @@ IPA.hbac.test_run_facet = function(spec) {
         if (that.show_unmatched && notmatched) {
             for (i=0; i<notmatched.length; i++) {
                 pkey = notmatched[i];
-                pkeys.push(pkey);
-                that.matched[pkey] = 'FALSE';
+                records_map.put(pkey, { matched: false });
             }
         }
 
-        return pkeys;
+        return records_map;
     };
 
     that.get_records_command_name = function() {
@@ -763,18 +749,6 @@ IPA.hbac.test_run_facet = function(spec) {
             return 'hbactest_unmatched';
         }
         return that.managed_entity.name+'_get_records';
-    };
-
-    that.load_records = function(records) {
-        var pkey_name = that.table.entity.metadata.primary_key;
-        that.table.empty();
-        for (var i=0; i<records.length; i++) {
-            var record = records[i];
-            var pkey = record[pkey_name][0];
-            record.matched = that.matched[pkey];
-            that.table.add_record(record);
-        }
-        that.table.set_values(that.selected_values);
     };
 
     init();

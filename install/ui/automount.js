@@ -74,7 +74,7 @@ IPA.automount.map_entity = function(spec) {
             factory: IPA.automount.key_search_facet,
             facet_group: 'automountkey',
             nested_entity: 'automountkey',
-            pagination: false,
+            search_all_entries: true,
             label: IPA.metadata.objects.automountkey.label,
             name: 'keys',
             columns: [
@@ -237,9 +237,13 @@ IPA.automount_key_column = function(spec) {
     var that = IPA.column(spec);
 
     that.setup = function(container, record) {
+
         container.empty();
+
         var key = record.automountkey;
+        if (key instanceof Array) key = key[0];
         var info = record.automountinformation;
+        if (info instanceof Array) info = info[0];
 
         $('<a/>', {
             href: '#'+key,

@@ -998,8 +998,21 @@ IPA.association_facet = function (spec) {
         dialog.open(that.container);
     };
 
-    that.get_pkeys = function(data) {
-        return data.result.result[that.get_attribute_name()] || [];
+    that.get_records_map = function(data) {
+
+        var records_map = $.ordered_map();
+        var association_name = that.get_attribute_name();
+        var pkey_name = that.managed_entity.metadata.primary_key;
+
+        var pkeys = data.result.result[association_name];
+        for (var i=0; pkeys && i<pkeys.length; i++) {
+            var pkey = pkeys[i];
+            var record = {};
+            record[pkey_name] = pkey;
+            records_map.put(pkey, record);
+        }
+
+        return records_map;
     };
 
     that.refresh = function() {

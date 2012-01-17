@@ -409,7 +409,8 @@ IPA.table_facet = function(spec) {
     that.managed_entity = spec.managed_entity ? IPA.get_entity(spec.managed_entity) : that.entity;
 
     that.pagination = spec.pagination === undefined ? true : spec.pagination;
-    that.search_all = spec.search_all;
+    that.search_all_entries = spec.search_all_entries;
+    that.search_all_attributes = spec.search_all_attributes;
     that.selectable = spec.selectable === undefined ? true : spec.selectable;
 
     that.columns = $.ordered_map();
@@ -504,20 +505,30 @@ IPA.table_facet = function(spec) {
         }
     };
 
-    that.get_pkeys = function(data) {
-        return [];
+    that.get_records_map = function(data) {
+
+        var records_map = $.ordered_map();
+
+        var result = data.result.result;
+        var pkey_name = that.managed_entity.metadata.primary_key;
+
+        for (var i=0; i<result.length; i++) {
+            var record = result[i];
+            var pkey = record[pkey_name];
+            if (pkey instanceof Array) pkey = pkey[0];
+            records_map.put(pkey, record);
+        }
+
+        return records_map;
     };
 
     that.load_page = function(data) {
 
-        that.pkeys = that.get_pkeys(data);
+        // get primary keys (and the complete records if search_all_entries is true)
+        var records_map = that.get_records_map(data);
 
-        if (that.pkeys.length) {
-            that.table.total_pages =
-                Math.ceil(that.pkeys.length / that.table.page_length);
-        } else {
-            that.table.total_pages = 1;
-        }
+        var total = records_map.length;
+        that.table.total_pages = total ? Math.ceil(total / that.table.page_length) : 1;
 
         delete that.table.current_page;
 
@@ -534,15 +545,13 @@ IPA.table_facet = function(spec) {
         }
         that.table.current_page = page;
 
-        if (!that.pkeys || !that.pkeys.length) {
-            that.load_records([]);
+        if (!total) {
             that.table.summary.text(IPA.messages.association.no_entries);
+            that.load_records([]);
             return;
         }
 
-        that.pkeys.sort();
-        var total = that.pkeys.length;
-
+        // calculate the start and end of the current page
         var start = (that.table.current_page - 1) * that.table.page_length + 1;
         var end = that.table.current_page * that.table.page_length;
         end = end > total ? total : end;
@@ -553,31 +562,37 @@ IPA.table_facet = function(spec) {
         summary = summary.replace('${total}', total);
         that.table.summary.text(summary);
 
-        that.values = that.pkeys.slice(start-1, end);
+        // sort map based on primary keys
+        records_map = records_map.sort();
+
+        // trim map leaving the entries visible in the current page only
+        records_map = records_map.slice(start-1, end);
 
         var columns = that.table.columns.values;
-        if (columns.length == 1) { // show pkey only
-            var name = columns[0].name;
-            var records = [];
-            for (var i=0; i<that.values.length; i++) {
-                var record = {};
-                record[name] = that.values[i];
-                records.push(record);
-            }
-            that.load_records(records);
+        if (columns.length == 1) { // show primary keys only
+            that.load_records(records_map.values);
             return;
         }
 
-        // get and show additional fields
+        if (that.search_all_entries) {
+            // map contains the primary keys and the complete records
+            that.load_records(records_map.values);
+            return;
+        }
+
+        // get the complete records
         that.get_records(
+            records_map.keys,
             function(data, text_status, xhr) {
                 var results = data.result.results;
-                var records = [];
-                for (var i=0; i<results.length; i++) {
-                    var record = results[i].result;
-                    records.push(record);
+                for (var i=0; i<records_map.length; i++) {
+                    var pkey = records_map.keys[i];
+                    var record = records_map.get(pkey);
+                    // merge the record obtained from the refresh()
+                    // with the record obtained from get_records()
+                    $.extend(record, results[i].result);
                 }
-                that.load_records(records);
+                that.load_records(records_map.values);
             },
             function(xhr, text_status, error_thrown) {
                 that.load_records([]);
@@ -599,10 +614,7 @@ IPA.table_facet = function(spec) {
         return that.managed_entity.name+'_get_records';
     };
 
-    that.get_records = function(on_success, on_error) {
-
-        var length = that.values.length;
-        if (!length) return;
+    that.get_records = function(pkeys, on_success, on_error) {
 
         var batch = IPA.batch_command({
             name: that.get_records_command_name(),
@@ -610,13 +622,13 @@ IPA.table_facet = function(spec) {
             on_error: on_error
         });
 
-        for (var i=0; i<length; i++) {
-            var pkey = that.values[i];
+        for (var i=0; i<pkeys.length; i++) {
+            var pkey = pkeys[i];
 
             var command = IPA.command({
                 entity: that.table.entity.name,
                 method: 'show',
-                args: [pkey],
+                args: [ pkey ],
                 options: { all: true }
             });
 
@@ -651,7 +663,7 @@ IPA.table_facet = function(spec) {
             label: entity.metadata.label,
             entity: entity,
             pagination: true,
-            search_all: that.search_all,
+            search_all_attributes: that.search_all_attributes,
             scrollable: true,
             selectable: that.selectable && !that.read_only
         });

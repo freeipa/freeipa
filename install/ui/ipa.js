@@ -351,6 +351,10 @@ IPA.command = function(spec) {
         return that.options[name];
     };
 
+    that.remove_option = function(name) {
+        delete that.options[name];
+    };
+
     that.execute = function() {
 
         function dialog_open(xhr, text_status, error_thrown) {
