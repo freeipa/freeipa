@@ -36,6 +36,7 @@ host1 = u'testhost1.%s' % api.env.domain
 hostdn1 = DN(('fqdn',host1),('cn','computers'),('cn','accounts'),
          api.env.basedn)
 hbacrule1 = u'testhbacrule1'
+hbacrule2 = u'testhbacrule12'
 
 fuzzy_selinuxusermapdn = Fuzzy(
     'ipauniqueid=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12},%s,%s' % (api.env.container_selinux, api.env.basedn)
@@ -51,6 +52,7 @@ class test_selinuxusermap(Declarative):
         ('user_del', [user1], {}),
         ('host_del', [host1], {}),
         ('hbacrule_del', [hbacrule1], {}),
+        ('hbacrule_del', [hbacrule2], {}),
     ]
 
     tests = [
@@ -310,6 +312,26 @@ class test_selinuxusermap(Declarative):
         ),
 
 
+        dict(
+            desc='Create HBAC rule %r' % hbacrule2,
+            command=(
+                'hbacrule_add', [hbacrule2], {}
+            ),
+            expected=dict(
+                value=hbacrule2,
+                summary=u'Added HBAC rule "%s"' % hbacrule2,
+                result=dict(
+                    cn=[hbacrule2],
+                    objectclass=objectclasses.hbacrule,
+                    ipauniqueid=[fuzzy_uuid],
+                    accessruletype=[u'allow'],
+                    ipaenabledflag=[u'TRUE'],
+                    dn=fuzzy_hbacruledn,
+                ),
+            ),
+        ),
+
+
         ###############
         # Fill out rule with members and/or pointers to HBAC rules
         dict(
@@ -539,6 +561,19 @@ class test_selinuxusermap(Declarative):
             desc='Try to delete HBAC rule pointed to by %r' % rule1,
             command=('hbacrule_del', [hbacrule1], {}),
             expected=errors.DependentEntry(key=hbacrule1, label=u'SELinux User Map', dependent=rule1)
+        ),
+
+
+        # This tests selinuxusermap-find --hbacrule=<foo> returns an
+        # exact match
+        dict(
+            desc='Try to delete similarly named HBAC rule %r' % hbacrule2,
+            command=('hbacrule_del', [hbacrule2], {}),
+            expected=dict(
+                result=dict(failed=u''),
+                value=hbacrule2,
+                summary=u'Deleted HBAC rule "%s"' % hbacrule2,
+            )
         ),
 
 

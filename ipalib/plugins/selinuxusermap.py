@@ -29,7 +29,9 @@ SELinux User Mapping
 Map IPA users to SELinux users by host.
 
 Hosts, hostgroups, users and groups can be either defined within
-the rule or it may point to an existing HBAC rule.
+the rule or it may point to an existing HBAC rule. When using
+--hbacrule option to selinuxusermap-find an exact match is made on the
+HBAC rule name, so only one or zero entries will be returned.
 
 EXAMPLES:
 
@@ -53,6 +55,9 @@ EXAMPLES:
 
  Enable a named rule:
    ipa selinuxusermap-enable test1
+
+ Find a rule referencing a specific HBAC rule:
+   ipa selinuxusermap-find --hbacrule=allow_some
 
  Remove a named rule:
    ipa selinuxusermap-del john_unconfined
@@ -298,12 +303,16 @@ class selinuxusermap_find(LDAPSearch):
 
     def execute(self, *args, **options):
         # If searching on hbacrule we need to find the uuid to search on
-        if 'seealso' in options:
-            kw = dict(cn=options['seealso'], all=True)
-            _entries = api.Command.hbacrule_find(None, **kw)['result']
-            del options['seealso']
-            if _entries:
-                options['seealso'] = _entries[0]['dn']
+        if options.get('seealso'):
+            hbacrule = options['seealso']
+
+            try:
+                hbac = api.Command['hbacrule_show'](hbacrule,
+all=True)['result']
+                dn = hbac['dn']
+            except errors.NotFound:
+                return dict(count=0, result=[], truncated=False)
+            options['seealso'] = dn
 
         return super(selinuxusermap_find, self).execute(*args, **options)
 
