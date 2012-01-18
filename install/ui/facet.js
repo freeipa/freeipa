@@ -413,6 +413,9 @@ IPA.table_facet = function(spec) {
     that.search_all_attributes = spec.search_all_attributes;
     that.selectable = spec.selectable === undefined ? true : spec.selectable;
 
+    that.row_enabled_attribute = spec.row_enabled_attribute;
+    that.row_disabled_attribute = spec.row_disabled_attribute;
+
     that.columns = $.ordered_map();
 
     var init = function() {
@@ -605,9 +608,29 @@ IPA.table_facet = function(spec) {
     that.load_records = function(records) {
         that.table.empty();
         for (var i=0; i<records.length; i++) {
-            that.table.add_record(records[i]);
+            that.add_record(records[i]);
         }
         that.table.set_values(that.selected_values);
+    };
+
+    that.add_record = function(record) {
+
+        var tr = that.table.add_record(record);
+
+        var attribute;
+        if (that.row_enabled_attribute) {
+            attribute = that.row_enabled_attribute;
+        } else if (that.row_disabled_attribute) {
+            attribute = that.row_disabled_attribute;
+        } else {
+            return;
+        }
+
+        var value = record[attribute];
+        var column = that.table.get_column(attribute);
+        if (column.format) value = column.format.parse(value);
+
+        that.table.set_row_enabled(tr, value);
     };
 
     that.get_records_command_name = function() {

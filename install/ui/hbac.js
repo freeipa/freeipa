@@ -37,12 +37,15 @@ IPA.hbac.rule_entity = function(spec) {
         that.entity_init();
 
         that.builder.search_facet({
+            row_enabled_attribute: 'ipaenabledflag',
             search_all_attributes: true,
             columns: [
                 'cn',
                 {
                     name: 'ipaenabledflag',
-                    format: IPA.boolean_format()
+                    format: IPA.boolean_format({
+                        show_false: true
+                    })
                 },
                 'description'
             ]

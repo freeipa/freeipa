@@ -36,6 +36,7 @@ IPA.user.entity = function(spec) {
         var link = self_service ? false : undefined;
 
         that.builder.search_facet({
+            row_disabled_attribute: 'nsaccountlock',
             columns: [
                 'uid',
                 'givenname',
@@ -45,7 +46,8 @@ IPA.user.entity = function(spec) {
                     format: IPA.boolean_format({
                         true_value: IPA.messages.objects.user.active,
                         false_value: IPA.messages.objects.user.inactive,
-                        invert_value: true
+                        invert_value: true,
+                        show_false: true
                     }),
                     label: IPA.messages.objects.user.account_status
                 },
