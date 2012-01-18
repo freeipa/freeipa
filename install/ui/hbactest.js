@@ -43,6 +43,7 @@ IPA.hbac.test_entity = function(spec) {
             managed_entity: 'user',
             disable_breadcrumb: true,
             facet_group: 'default',
+            row_disabled_attribute: 'nsaccountlock',
             columns: [
                 'uid',
                 'givenname',
@@ -52,7 +53,8 @@ IPA.hbac.test_entity = function(spec) {
                     format: IPA.boolean_format({
                         true_value: IPA.messages.objects.user.active,
                         false_value: IPA.messages.objects.user.inactive,
-                        invert_value: true
+                        invert_value: true,
+                        show_false: true
                     }),
                     label: IPA.messages.objects.user.account_status
                 }
@@ -111,11 +113,14 @@ IPA.hbac.test_entity = function(spec) {
             managed_entity: 'hbacrule',
             disable_breadcrumb: true,
             facet_group: 'default',
+            row_enabled_attribute: 'ipaenabledflag',
             columns: [
                 'cn',
                 {
                     name: 'ipaenabledflag',
-                    format: IPA.boolean_format()
+                    format: IPA.boolean_format({
+                        show_false: true
+                    })
                 },
                 'description'
             ]
@@ -127,6 +132,7 @@ IPA.hbac.test_entity = function(spec) {
             managed_entity: 'hbacrule',
             disable_breadcrumb: true,
             facet_group: 'default',
+            row_enabled_attribute: 'ipaenabledflag',
             columns: [
                 'cn',
                 {
@@ -136,7 +142,9 @@ IPA.hbac.test_entity = function(spec) {
                 },
                 {
                     name: 'ipaenabledflag',
-                    format: IPA.boolean_format()
+                    format: IPA.boolean_format({
+                        show_false: true
+                    })
                 },
                 'description'
             ]

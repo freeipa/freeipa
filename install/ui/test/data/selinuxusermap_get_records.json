@@ -33,6 +33,36 @@
                 },
                 "summary": null,
                 "value": "karel_unconfined"
+            },
+            {
+                "error": null,
+                "result": {
+                    "cn": [
+                        "test01"
+                    ],
+                    "description": [
+                        "Test SELinux User Map 01"
+                    ],
+                    "dn": "ipauniqueid=dbe2ffa0-3c2c-11e1-ad81-00163e6185c4,cn=usermap,cn=selinux,dc=dev,dc=example,dc=com",
+                    "ipaenabledflag": [
+                        "FALSE"
+                    ],
+                    "ipaselinuxuser": [
+                        "xguest_u:s0"
+                    ],
+                    "ipauniqueid": [
+                        "dbe2ffa0-3c2c-11e1-ad81-00163e6185c4"
+                    ],
+                    "memberuser_user": [
+                        "karel"
+                    ],
+                    "objectclass": [
+                        "ipaassociation",
+                        "ipaselinuxusermap"
+                    ]
+                },
+                "summary": null,
+                "value": "test01"
             }
         ]
     }

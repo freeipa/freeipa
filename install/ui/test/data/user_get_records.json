@@ -610,7 +610,7 @@
                     "mepmanagedentry": [
                         "cn=aortega,cn=groups,cn=accounts,dc=example,dc=com"
                     ],
-                    "nsaccountlock": false,
+                    "nsaccountlock": true,
                     "objectclass": [
                         "top",
                         "person",
@@ -681,7 +681,7 @@
                     "mepmanagedentry": [
                         "cn=aortiz,cn=groups,cn=accounts,dc=example,dc=com"
                     ],
-                    "nsaccountlock": false,
+                    "nsaccountlock": true,
                     "objectclass": [
                         "top",
                         "person",
@@ -1107,7 +1107,7 @@
                     "mepmanagedentry": [
                         "cn=bbauer,cn=groups,cn=accounts,dc=example,dc=com"
                     ],
-                    "nsaccountlock": false,
+                    "nsaccountlock": true,
                     "objectclass": [
                         "top",
                         "person",

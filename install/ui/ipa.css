@@ -659,6 +659,10 @@ div[name=settings].facet-group li a {
     bottom: 35px;
 }
 
+.content-table tbody tr.disabled {
+    color: gray;
+}
+
 .search-filter {
     width: 215px;
     -moz-border-radius: 15px !important;

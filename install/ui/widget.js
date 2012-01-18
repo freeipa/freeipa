@@ -947,6 +947,12 @@ IPA.format = function(spec) {
 
     var that = {};
 
+    // parse attribute value into a normalized value
+    that.parse = function(value) {
+        return value;
+    };
+
+    // format normalized value
     that.format = function(value) {
         return value;
     };
@@ -965,7 +971,8 @@ IPA.boolean_format = function(spec) {
     that.show_false = spec.show_false;
     that.invert_value = spec.invert_value;
 
-    that.format = function(value) {
+    // convert string boolean value into real boolean value, or keep the original value
+    that.parse = function(value) {
 
         if (value === undefined || value === null) return '';
 
@@ -985,7 +992,15 @@ IPA.boolean_format = function(spec) {
 
         if (typeof value === 'boolean') {
             if (that.invert_value) value = !value;
+        }
 
+        return value;
+    };
+
+    // convert boolean value into formatted string, or keep the original value
+    that.format = function(value) {
+
+        if (typeof value === 'boolean') {
             if (value) {
                 value = that.true_value;
 
@@ -1035,6 +1050,7 @@ IPA.column = function (spec) {
 
         var value = record[that.name];
         if (that.format) {
+            value = that.format.parse(value);
             value = that.format.format(value);
         }
         value = value ? value.toString() : '';
@@ -1481,6 +1497,16 @@ IPA.table_widget = function (spec) {
             var div = $('div[name="'+column.name+'"]', tr);
 
             that.setup_column(column, div, record);
+        }
+
+        return tr;
+    };
+
+    that.set_row_enabled = function(tr, enabled) {
+        if (enabled) {
+            tr.removeClass('disabled');
+        } else {
+            tr.addClass('disabled');
         }
     };
 

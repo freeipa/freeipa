@@ -6,7 +6,13 @@
         "result": [
             {
                 "cn": [
-                    "test"
+                    "test01"
+                ],
+                "dn": "ipauniqueid=4fc57a02-f23311df-b268e50e-a3b3ef71,cn=sudorules,cn=sudo,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "test02"
                 ],
                 "dn": "ipauniqueid=4fc57a02-f23311df-b268e50e-a3b3ef71,cn=sudorules,cn=sudo,dc=example,dc=com"
             }
