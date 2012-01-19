@@ -1,14 +1,65 @@
 {
     "error": null,
-    "id": 12,
+    "id": null,
     "result": {
         "result": {
-            "arecord": [
-                "1.2.3.4"
+            "dn": "idnsname=my,idnsname=example.com,cn=dns,dc=dev,dc=example,dc=com",
+            "dnsrecords": [
+                {
+                    "a_part_ip_address": "10.10.10.11",
+                    "dnsdata": "10.10.10.11",
+                    "dnstype": "A"
+                },
+                {
+                    "a_part_ip_address": "10.10.10.12",
+                    "dnsdata": "10.10.10.12",
+                    "dnstype": "A"
+                },
+                {
+                    "a_part_ip_address": "10.10.10.13",
+                    "dnsdata": "10.10.10.13",
+                    "dnstype": "A"
+                },
+                {
+                    "a_part_ip_address": "10.10.10.14",
+                    "dnsdata": "10.10.10.14",
+                    "dnstype": "A"
+                },
+                {
+                    "a_part_ip_address": "10.10.10.16",
+                    "dnsdata": "10.10.10.16",
+                    "dnstype": "A"
+                },
+                {
+                    "a_part_ip_address": "10.10.10.15",
+                    "dnsdata": "10.10.10.15",
+                    "dnstype": "A"
+                },
+                {
+                    "dnsdata": "10 abc",
+                    "dnstype": "KX",
+                    "kx_part_exchanger": "abc",
+                    "kx_part_preference": "10"
+                },
+                {
+                    "dnsdata": "11 foo",
+                    "dnstype": "KX",
+                    "kx_part_exchanger": "foo",
+                    "kx_part_preference": "11"
+                },
+                {
+                    "dnsdata": "data",
+                    "dnstype": "TXT",
+                    "txt_part_data": "data"
+                },
+                {
+                    "aaaa_part_ip_address": "::1:2:3:4",
+                    "dnsdata": "::1:2:3:4",
+                    "dnstype": "AAAA"
+                }
             ],
-            "dn": "idnsname=a4,idnsname=example.com,cn=dns,dc=example,dc=com",
             "idnsname": [
-                "a4"
+                "my"
             ],
             "objectclass": [
                 "top",
@@ -16,6 +67,6 @@
             ]
         },
         "summary": null,
-        "value": "a4"
+        "value": "my"
     }
 }

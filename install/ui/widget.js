@@ -744,6 +744,7 @@ IPA.radio_widget = function(spec) {
 
     var that = IPA.input_widget(spec);
 
+    that.default_value = spec.default_value;
     that.options = spec.options;
 
     that.create = function(container) {
@@ -802,6 +803,9 @@ IPA.radio_widget = function(spec) {
         var input = $(that.selector+'[value="'+value+'"]', that.container);
         if (input.length) {
             input.attr('checked', true);
+        } else if (that.default_value) {
+            input = $(that.selector+'[value="'+that.default_value+'"]', that.container);
+            input.attr('checked', true);
         }
 
         that.value_changed.notify([that.save()], that);
@@ -809,6 +813,11 @@ IPA.radio_widget = function(spec) {
 
     that.clear = function() {
         $(that.selector, that.container).attr('checked', false);
+
+        if (that.default_value) {
+            var input = $(that.selector+'[value="'+that.default_value+'"]', that.container);
+            input.attr('checked', true);
+        }
     };
 
     // methods that should be invoked by subclasses
@@ -1118,6 +1127,7 @@ IPA.table_widget = function (spec) {
     that.multivalued = spec.multivalued === undefined ? true : spec.multivalued;
 
     that.columns = $.ordered_map();
+    that.value_attr_name = spec.value_attribute || that.name;
 
     that.get_columns = function() {
         return that.columns.values;
@@ -1430,9 +1440,23 @@ IPA.table_widget = function (spec) {
 
         that.empty();
 
-        that.values = result[that.name] || [];
+        that.values = result[that.value_attr_name] || [];
         for (var i=0; i<that.values.length; i++) {
             var record = that.get_record(result, i);
+            that.add_record(record);
+        }
+    };
+
+    that.update = function(records) {
+
+        that.empty();
+
+        that.values = [];
+        that.records = records;
+
+        for (var i=0; i<records.length; i++) {
+            var record = records[i];
+            that.values.push(record[that.value_attr_name]);
             that.add_record(record);
         }
     };
@@ -1495,21 +1519,29 @@ IPA.table_widget = function (spec) {
             that.select_changed();
         });
 
-
+        var select_set = false;
+        var value;
         var columns = that.columns.values;
+
         for (var i=0; i<columns.length; i++){
             var column = columns[i];
 
-            var value = record[column.name];
+            value = record[column.name];
             value = value ? value.toString() : '';
 
             if (column.primary_key) {
                 $('input[name="'+that.name+'"]', tr).val(value);
+                select_set = true;
             }
 
             var div = $('div[name="'+column.name+'"]', tr);
 
             that.setup_column(column, div, record);
+        }
+
+        if (!select_set) {
+            value = record[that.value_attr_name];
+            $('input[name="'+that.name+'"]', tr).val(value);
         }
 
         return tr;
@@ -1581,6 +1613,7 @@ IPA.table_widget = function (spec) {
     that.table_set_page = that.set_page;
     that.table_show_error = that.show_error;
     that.table_set_values = that.set_values;
+    that.table_update = that.update;
 
     return that;
 };
@@ -2370,17 +2403,21 @@ IPA.widget_builder = function(spec) {
     return that;
 };
 
-IPA.widget_factories['text'] = IPA.text_widget;
-IPA.widget_factories['password'] = IPA.password_widget;
+
+
 IPA.widget_factories['checkbox'] = IPA.checkbox_widget;
 IPA.widget_factories['checkboxes'] = IPA.checkboxes_widget;
-IPA.widget_factories['radio'] = IPA.radio_widget;
-IPA.widget_factories['multivalued'] = IPA.multivalued_text_widget;
-IPA.widget_factories['select'] = IPA.select_widget;
-IPA.widget_factories['textarea'] = IPA.textarea_widget;
-IPA.widget_factories['entity_select'] = IPA.entity_select_widget;
 IPA.widget_factories['combobox'] = IPA.combobox_widget;
-IPA.widget_factories['link'] = IPA.link_widget;
+IPA.widget_factories['composite_widget'] = IPA.composite_widget;
 IPA.widget_factories['details_table_section'] = IPA.details_table_section;
 IPA.widget_factories['details_table_section_nc'] = IPA.details_table_section_nc;
 IPA.widget_factories['enable'] = IPA.enable_widget;
+IPA.widget_factories['entity_select'] = IPA.entity_select_widget;
+IPA.widget_factories['header'] = IPA.header_widget;
+IPA.widget_factories['link'] = IPA.link_widget;
+IPA.widget_factories['multivalued'] = IPA.multivalued_text_widget;
+IPA.widget_factories['password'] = IPA.password_widget;
+IPA.widget_factories['radio'] = IPA.radio_widget;
+IPA.widget_factories['select'] = IPA.select_widget;
+IPA.widget_factories['textarea'] = IPA.textarea_widget;
+IPA.widget_factories['text'] = IPA.text_widget;

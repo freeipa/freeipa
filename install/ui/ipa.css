@@ -1456,3 +1456,15 @@ div.entity[name=hbactest] div.facet[name=run_test] .hbac-test-content {
 .hbac-test-navigation-buttons {
     float: right;
 }
+
+
+/* ---- DNS ---- */
+
+.dnstype-table div[name=position] {
+
+    padding-right: 9px;
+}
+
+.dnstype-table td {
+    font-weight: normal;
+}
