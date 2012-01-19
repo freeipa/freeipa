@@ -19,7 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api
-from ipalib import Bool, Int, Str, IA5Str
+from ipalib import Bool, Int, Str, IA5Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _
 from ipalib.errors import ValidationError
@@ -89,7 +89,8 @@ class config(LDAPObject):
         'ipadefaultprimarygroup', 'ipadefaultemaildomain', 'ipasearchtimelimit',
         'ipasearchrecordslimit', 'ipausersearchfields', 'ipagroupsearchfields',
         'ipamigrationenabled', 'ipacertificatesubjectbase',
-        'ipapwdexpadvnotify', 'ipaselinuxusermaporder', 'ipaselinuxusermapdefault',
+        'ipapwdexpadvnotify', 'ipaselinuxusermaporder',
+        'ipaselinuxusermapdefault', 'ipaconfigstring',
     ]
 
     label = _('Configuration')
@@ -172,11 +173,12 @@ class config(LDAPObject):
             doc=_('Number of days\'s notice of impending password expiration'),
             minvalue=0,
         ),
-        Str('ipaconfigstring?',
+        StrEnum('ipaconfigstring*',
             cli_name='ipaconfigstring',
             label=_('Password plugin features'),
             doc=_('Extra hashes to generate in password plug-in'),
-            flags=['no_update'],
+            values=(u'AllowLMhash', u'AllowNThash'),
+            csv=True,
         ),
         Str('ipaselinuxusermaporder?',
             label=_('SELinux user map order'),

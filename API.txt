@@ -445,7 +445,7 @@ args: 1,0,1
 arg: Str('request_id')
 output: Output('result', None, None)
 command: config_mod
-args: 0,22,3
+args: 0,23,3
 option: Int('ipamaxusernamelength', attribute=True, autofill=False, cli_name='maxusername', minvalue=1, multivalue=False, required=False)
 option: IA5Str('ipahomesrootdir', attribute=True, autofill=False, cli_name='homedirectory', multivalue=False, required=False)
 option: Str('ipadefaultloginshell', attribute=True, autofill=False, cli_name='defaultshell', multivalue=False, required=False)
@@ -459,6 +459,7 @@ option: Bool('ipamigrationenabled', attribute=True, autofill=False, cli_name='en
 option: Str('ipagroupobjectclasses', attribute=True, autofill=False, cli_name='groupobjectclasses', csv=True, multivalue=True, required=False)
 option: Str('ipauserobjectclasses', attribute=True, autofill=False, cli_name='userobjectclasses', csv=True, multivalue=True, required=False)
 option: Int('ipapwdexpadvnotify', attribute=True, autofill=False, cli_name='pwdexpnotify', minvalue=0, multivalue=False, required=False)
+option: StrEnum('ipaconfigstring', attribute=True, autofill=False, cli_name='ipaconfigstring', csv=True, multivalue=True, required=False, values=(u'AllowLMhash', u'AllowNThash'))
 option: Str('ipaselinuxusermaporder', attribute=True, autofill=False, cli_name='ipaselinuxusermaporder', multivalue=False, required=False)
 option: Str('ipaselinuxusermapdefault', attribute=True, autofill=False, cli_name='ipaselinuxusermapdefault', multivalue=False, required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
