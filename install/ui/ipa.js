@@ -1130,6 +1130,22 @@ IPA.limit_text = function(value, max_length) {
     return limited_text;
 };
 
+IPA.create_options = function(labels, values) {
+
+    if(!values) values = labels;
+
+    var options = [];
+
+    for (var i=0; i<labels.length; i++) {
+        options.push({
+            label: labels[i],
+            value: values[i]
+        });
+    }
+
+    return options;
+};
+
 IPA.config = {
     default_priority: 500
 };

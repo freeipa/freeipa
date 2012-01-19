@@ -101,7 +101,7 @@ IPA.field = function(spec) {
 
     that.validate_required = function() {
         var values = that.save();
-        if (that.is_empty(values) && that.is_required()) {
+        if (that.is_empty(values) && that.is_required() && that.enabled) {
             that.valid = false;
             that.show_error(IPA.messages.widget.validation.required);
             return false;
@@ -117,6 +117,8 @@ IPA.field = function(spec) {
     that.validate = function() {
         that.hide_error();
         that.valid = true;
+
+        if (!that.enabled) return that.valid;
 
         var values = that.save();
 
