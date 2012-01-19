@@ -401,13 +401,27 @@ class DNSRecord(Str):
     def get_parts(self):
         if self.parts is None:
             return tuple()
-        return tuple(part.clone_rename(self.part_name_format % (self.rrtype.lower(), part.name),
-                     cli_name=self.cli_name_format % (self.rrtype.lower(), part.name),
-                     label=self.part_label_format % (self.rrtype, unicode(part.label)),
-                     required=False,
-                     option_group=self.option_group_format % self.rrtype,
-                     flags=(tuple(part.flags) + ('dnsrecord_part', 'virtual_attribute',))) \
-                     for part in self.parts)
+
+        parts = []
+
+        for part in self.parts:
+            name = self.part_name_format % (self.rrtype.lower(), part.name)
+            cli_name = self.cli_name_format % (self.rrtype.lower(), part.name)
+            label = self.part_label_format % (self.rrtype, unicode(part.label))
+            option_group = self.option_group_format % self.rrtype
+            flags = list(part.flags) + ['dnsrecord_part', 'virtual_attribute',]
+
+            if not part.required:
+                flags.append('dnsrecord_optional')
+
+            parts.append(part.clone_rename(name,
+                         cli_name=cli_name,
+                         label=label,
+                         required=False,
+                         option_group=option_group,
+                         flags=flags))
+
+        return tuple(parts)
 
     def prompt_parts(self, backend, mod_dnsvalue=None):
         mod_parts = None
