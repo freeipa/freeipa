@@ -1019,6 +1019,19 @@ IPA.boolean_format = function(spec) {
     return that;
 };
 
+IPA.boolean_status_format = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.boolean_format(spec);
+
+    that.true_value = spec.true_value || IPA.messages.status.enabled;
+    that.false_value = spec.false_value || IPA.messages.status.disabled;
+    that.show_false = true;
+
+    return that;
+};
+
 /*
   The entity name must be set in the spec either directly or via entity.name
 */

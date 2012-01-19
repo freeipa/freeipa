@@ -43,13 +43,10 @@ IPA.user.entity = function(spec) {
                 'sn',
                 {
                     name: 'nsaccountlock',
-                    format: IPA.boolean_format({
-                        true_value: IPA.messages.objects.user.active,
-                        false_value: IPA.messages.objects.user.inactive,
-                        invert_value: true,
-                        show_false: true
-                    }),
-                    label: IPA.messages.objects.user.account_status
+                    label: IPA.messages.status.label,
+                    format: IPA.boolean_status_format({
+                        invert_value: true
+                    })
                 },
                 'uidnumber',
                 'mail',
@@ -78,7 +75,7 @@ IPA.user.entity = function(spec) {
                         {
                             factory: IPA.user_status_widget,
                             name: 'nsaccountlock',
-                            label: IPA.messages.objects.user.account_status
+                            label: IPA.messages.status.label
                         },
                         'uid',
                         {
@@ -439,19 +436,19 @@ IPA.user_status_widget = function(spec) {
         var action;
 
         if (locked) {
-            status = IPA.messages.objects.user.inactive;
-            action = 'activate';
+            status = IPA.messages.status.disabled;
+            action = 'enable';
 
         } else {
-            status = IPA.messages.objects.user.active;
-            action = 'deactivate';
+            status = IPA.messages.status.enabled;
+            action = 'disable';
         }
 
         that.status_span.html(status);
         that.status_link.attr('href', action);
 
-        var message = IPA.messages.objects.user.activation_link;
-        var action_label = IPA.messages.objects.user[action];
+        var message = IPA.messages.objects.user.status_link;
+        var action_label = IPA.messages.status[action];
         message = message.replace('${action}', action_label);
 
         that.status_link.html(message);
@@ -473,12 +470,12 @@ IPA.user_status_widget = function(spec) {
 
         var action = that.status_link.attr('href');
 
-        var message = IPA.messages.objects.user.activation_confirmation;
-        var action_label = IPA.messages.objects.user[action];
+        var message = IPA.messages.objects.user.status_confirmation;
+        var action_label = IPA.messages.status[action];
         message = message.replace('${action}', action_label.toLocaleLowerCase());
 
         var dialog = IPA.dialog({
-            'title': IPA.messages.dialogs.confirmation
+            title: IPA.messages.dialogs.confirmation
         });
 
         dialog.create = function() {
@@ -490,7 +487,7 @@ IPA.user_status_widget = function(spec) {
             label: action_label,
             click: function() {
                 that.set_status(
-                    action == 'activate',
+                    action,
                     function(data, textStatus, xhr) {
                         var facet = that.entity.get_facet();
                         facet.refresh();
@@ -511,10 +508,9 @@ IPA.user_status_widget = function(spec) {
         dialog.open(that.container);
     };
 
-    that.set_status = function(enabled, on_success, on_error) {
+    that.set_status = function(method, on_success, on_error) {
 
         var pkey = IPA.nav.get_state('user-pkey');
-        var method = enabled ? 'enable' : 'disable';
 
         IPA.command({
             entity: 'user',

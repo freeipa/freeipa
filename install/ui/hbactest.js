@@ -50,13 +50,10 @@ IPA.hbac.test_entity = function(spec) {
                 'sn',
                 {
                     name: 'nsaccountlock',
-                    format: IPA.boolean_format({
-                        true_value: IPA.messages.objects.user.active,
-                        false_value: IPA.messages.objects.user.inactive,
-                        invert_value: true,
-                        show_false: true
-                    }),
-                    label: IPA.messages.objects.user.account_status
+                    label: IPA.messages.status.label,
+                    format: IPA.boolean_status_format({
+                        invert_value: true
+                    })
                 }
             ]
         }).
@@ -118,9 +115,8 @@ IPA.hbac.test_entity = function(spec) {
                 'cn',
                 {
                     name: 'ipaenabledflag',
-                    format: IPA.boolean_format({
-                        show_false: true
-                    })
+                    label: IPA.messages.status.label,
+                    format: IPA.boolean_status_format()
                 },
                 'description'
             ]
@@ -142,9 +138,8 @@ IPA.hbac.test_entity = function(spec) {
                 },
                 {
                     name: 'ipaenabledflag',
-                    format: IPA.boolean_format({
-                        show_false: true
-                    })
+                    label: IPA.messages.status.label,
+                    format: IPA.boolean_status_format()
                 },
                 'description'
             ]

@@ -101,6 +101,55 @@
                 },
                 "summary": null,
                 "value": "example.com"
+            },
+            {
+                "error": null,
+                "result": {
+                    "dn": "idnsname=test.com,cn=dns,dc=example,dc=com",
+                    "idnsallowdynupdate": [
+                        "TRUE"
+                    ],
+                    "idnsname": [
+                        "test.com"
+                    ],
+                    "idnssoaexpire": [
+                        "1209600"
+                    ],
+                    "idnssoaminimum": [
+                        "3600"
+                    ],
+                    "idnssoamname": [
+                        "dev.example.com."
+                    ],
+                    "idnssoarefresh": [
+                        "3600"
+                    ],
+                    "idnssoaretry": [
+                        "900"
+                    ],
+                    "idnssoarname": [
+                        "root.dev.example.com."
+                    ],
+                    "idnssoaserial": [
+                        "2010021201"
+                    ],
+                    "idnsupdatepolicy": [
+                        "grant TEST.COM krb5-self * A;"
+                    ],
+                    "idnszoneactive": [
+                        "FALSE"
+                    ],
+                    "nsrecord": [
+                        "dev.example.com."
+                    ],
+                    "objectclass": [
+                        "top",
+                        "idnsrecord",
+                        "idnszone"
+                    ]
+                },
+                "summary": null,
+                "value": "test.com"
             }
         ]
     }

@@ -42,9 +42,8 @@ IPA.selinux.selinuxusermap_entity = function(spec) {
                 'ipaselinuxuser',
                 {
                     name: 'ipaenabledflag',
-                    format: IPA.boolean_format({
-                        show_false: true
-                    })
+                    label: IPA.messages.status.label,
+                    format: IPA.boolean_status_format()
                 },
                 'description'
             ]
@@ -96,6 +95,7 @@ IPA.selinux_details_facet = function(spec) {
         {
             type: 'enable',
             name: 'ipaenabledflag',
+            label: IPA.messages.status.label,
             priority: IPA.selinux.enable_priority,
             widget: 'general.ipaenabledflag'
         }
@@ -128,8 +128,8 @@ IPA.selinux_details_facet = function(spec) {
                     type: 'enable',
                     name: 'ipaenabledflag',
                     options: [
-                        { value: 'TRUE', label: IPA.get_message('true') },
-                        { value: 'FALSE', label: IPA.get_message('false') }
+                        { value: 'TRUE', label: IPA.messages.status.enabled },
+                        { value: 'FALSE', label: IPA.messages.status.disabled }
                     ]
                 }
             ]
