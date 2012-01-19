@@ -15,6 +15,12 @@
                 "idnsname": [
                     "example.com"
                 ]
+            },
+            {
+                "dn": "idnsname=test.com,cn=dns,dc=example,dc=com",
+                "idnsname": [
+                    "test.com"
+                ]
             }
         ],
         "summary": null,

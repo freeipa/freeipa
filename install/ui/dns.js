@@ -43,8 +43,16 @@ IPA.dns.zone_entity = function(spec) {
 
         that.builder.facet_groups([ 'dnsrecord', 'settings' ]).
         search_facet({
+            row_enabled_attribute: 'idnszoneactive',
             title: IPA.metadata.objects.dnszone.label,
-            columns: [ 'idnsname' ]
+            columns: [
+                'idnsname',
+                {
+                    name: 'idnszoneactive',
+                    label: IPA.messages.status.label,
+                    format: IPA.boolean_status_format()
+                }
+            ]
         }).
         details_facet({
             factory: IPA.dnszone_details_facet,
@@ -55,9 +63,10 @@ IPA.dns.zone_entity = function(spec) {
                     {
                         type: 'radio',
                         name: 'idnszoneactive',
+                        label: IPA.messages.status.label,
                         options: [
-                            { value: 'TRUE', label: IPA.get_message('true') },
-                            { value: 'FALSE', label: IPA.get_message('false') }
+                            { value: 'TRUE', label: IPA.messages.status.enabled },
+                            { value: 'FALSE', label: IPA.messages.status.disabled }
                         ]
                     },
                     'idnssoamname',

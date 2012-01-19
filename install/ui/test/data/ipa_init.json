@@ -202,12 +202,10 @@
                             "posix": "Is this a POSIX group?"
                         },
                         "hbacrule": {
-                            "active": "Active",
                             "any_host": "Any Host",
                             "any_service": "Any Service",
                             "anyone": "Anyone",
                             "host": "Accessing",
-                            "inactive": "Inactive",
                             "ipaenabledflag": "Rule status",
                             "service": "Via Service",
                             "sourcehost": "From",
@@ -310,7 +308,6 @@
                             "commands": "Commands"
                         },
                         "sudorule": {
-                            "active": "Active",
                             "allow": "Allow",
                             "any_command": "Any Command",
                             "any_group": "Any Group",
@@ -320,7 +317,6 @@
                             "deny": "Deny",
                             "external": "External",
                             "host": "Access this host",
-                            "inactive": "Inactive",
                             "ipaenabledflag": "Rule status",
                             "options": "Options",
                             "runas": "As Whom",
@@ -333,17 +329,13 @@
                         "user": {
                             "account": "Account Settings",
                             "account_status": "Account Status",
-                            "activate": "Activate",
-                            "activation_confirmation": "Are you sure you want to ${action} the user?<br/>The change will take effect immediately.",
-                            "activation_link": "Click to ${action}",
-                            "active": "Active",
                             "contact": "Contact Settings",
-                            "deactivate": "Deactivate",
                             "employee": "Employee Information",
                             "error_changing_status": "Error changing account status",
-                            "inactive": "Inactive",
                             "mailing": "Mailing Address",
-                            "misc": "Misc. Information"
+                            "misc": "Misc. Information",
+                            "status_confirmation": "Are you sure you want to ${action} the user?<br/>The change will take effect immediately.",
+                            "status_link": "Click to ${action}"
                         }
                     },
                     "password": {
@@ -362,6 +354,13 @@
                         "select_all": "Select All",
                         "truncated": "Query returned more results than the configured size limit. Displaying the first ${counter} results.",
                         "unselect_all": "Unselect All"
+                    },
+                    "status": {
+                        "disable": "Disable",
+                        "disabled": "Disabled",
+                        "enable": "Enable",
+                        "enabled": "Enabled",
+                        "label": "Status"
                     },
                     "tabs": {
                         "audit": "Audit",
