@@ -224,7 +224,7 @@ class host(LDAPObject):
     default_attributes = [
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
-        'managedby', 'memberindirect', 'memberofindirect',
+        'managedby', 'memberindirect', 'memberofindirect', 'macaddress',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -305,6 +305,14 @@ class host(LDAPObject):
         Str('krbprincipalname?',
             label=_('Principal name'),
             flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('macaddress*',
+            normalizer=lambda value: value.upper(),
+            pattern='^([a-fA-F0-9]{2}[:|\-]?){5}[a-fA-F0-9]{2}$',
+            pattern_errmsg='Must be of the form HH:HH:HH:HH:HH:HH, where each H is a hexadecimal character.',
+            csv=True,
+            label=_('MAC address'),
+            doc=_('Hardware MAC address(es) on this host'),
         ),
     )
 
@@ -442,6 +450,7 @@ class host_add(LDAPCreate):
             x509.verify_cert_subject(ldap, keys[-1], cert)
             entry_attrs['usercertificate'] = cert
         entry_attrs['managedby'] = dn
+        entry_attrs['objectclass'].append('ieee802device')
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -681,6 +690,17 @@ class host_mod(LDAPUpdate):
         if options.get('random'):
             entry_attrs['userpassword'] = ipa_generate_password()
             setattr(context, 'randompassword', entry_attrs['userpassword'])
+        if 'macaddress' in entry_attrs:
+            if 'objectclass' in entry_attrs:
+                obj_classes = entry_attrs['objectclass']
+            else:
+                (_dn, _entry_attrs) = ldap.get_entry(
+                    dn, ['objectclass']
+                )
+                obj_classes = _entry_attrs['objectclass']
+            if 'ieee802device' not in obj_classes:
+                obj_classes.append('ieee802device')
+                entry_attrs['objectclass'] = obj_classes
 
         return dn
 
