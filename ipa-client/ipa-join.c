@@ -937,6 +937,12 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
         goto cleanup;
     }
 
+    if ((!strcmp(host, "localhost")) || (!strcmp(host, "localhost.localdomain"))){
+        fprintf(stderr, _("The hostname must not be: %s\n"), host);
+        rval = 16;
+        goto cleanup;
+    }
+
     if (bindpw)
         rval = join_ldap(ipaserver, host, &hostdn, bindpw, basedn, &princ, &subject, quiet);
     else {
