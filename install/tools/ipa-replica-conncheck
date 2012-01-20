@@ -237,7 +237,7 @@ class PortResponder(threading.Thread):
 def port_check(host, port_list):
     ip = installutils.resolve_host(host)
 
-    if ip is None:
+    if not ip:
         raise RuntimeError("Port check failed! Unable to resolve host name '%s'" % host)
 
     failed_ports = []

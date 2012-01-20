@@ -147,7 +147,26 @@ def main():
     else:
         hostaddr = resolve_host(api.env.host)
         try:
-            ip = hostaddr and ipautil.CheckedIPAddress(hostaddr, match_local=True)
+            if len(hostaddr) > 1:
+                print >> sys.stderr, "The server hostname resolves to more than one address:"
+                for addr in hostaddr:
+                    print >> sys.stderr, "  %s" % addr
+
+                if options.ip_address:
+                    if str(options.ip_address) not in hostaddr:
+                        print >> sys.stderr, "Address passed in --ip-address did not match any resolved"
+                        print >> sys.stderr, "address!"
+                        sys.exit(1)
+                    print "Selected IP address:", str(options.ip_address)
+                    ip = options.ip_address
+                else:
+                    if options.unattended:
+                        print >> sys.stderr, "Please use --ip-address option to specify the address"
+                        sys.exit(1)
+                    else:
+                        ip = read_ip_address(api.env.host, fstore)
+            else:
+                ip = hostaddr and ipautil.CheckedIPAddress(hostaddr[0], match_local=True)
         except Exception, e:
             print "Error: Invalid IP Address %s: %s" % (ip, e)
             ip = None

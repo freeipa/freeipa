@@ -90,27 +90,35 @@ def verify_dns_records(host_name, responses, resaddr, family):
     if family not in familykw.keys():
         raise RuntimeError("Unknown faimily %s\n" % family)
 
-    rec = None
+    rec_list = []
     for rsn in responses:
-        if rsn.dns_type == familykw[family]['dns_type']:
-            rec = rsn
-            break
+        if rsn.section == dnsclient.DNS_S_ANSWER and \
+                rsn.dns_type == familykw[family]['dns_type']:
+            rec_list.append(rsn)
 
-    if rec == None:
+    if not rec_list:
         raise IOError(errno.ENOENT,
                       "Warning: Hostname (%s) not found in DNS" % host_name)
 
     if family == 'ipv4':
-        familykw[family]['address'] = socket.inet_ntop(socket.AF_INET,
-                                                       struct.pack('!L',rec.rdata.address))
+        familykw[family]['address'] = [socket.inet_ntop(socket.AF_INET,
+                                                        struct.pack('!L',rec.rdata.address)) \
+                                                                for rec in rec_list]
     else:
-        familykw[family]['address'] = socket.inet_ntop(socket.AF_INET6,
-                                                       struct.pack('!16B', *rec.rdata.address))
+        familykw[family]['address'] = [socket.inet_ntop(socket.AF_INET6,
+                                                        struct.pack('!16B', *rec.rdata.address)) \
+                                                                for rec in rec_list]
 
     # Check that DNS address is the same is address returned via standard glibc calls
-    dns_addr = netaddr.IPAddress(familykw[family]['address'])
-    if dns_addr.format() != resaddr:
-        raise RuntimeError("The network address %s does not match the DNS lookup %s. Check /etc/hosts and ensure that %s is the IP address for %s" % (dns_addr.format(), resaddr, dns_addr.format(), host_name))
+    dns_addrs = [netaddr.IPAddress(addr) for addr in familykw[family]['address']]
+    dns_addr = None
+    for addr in dns_addrs:
+        if addr.format() == resaddr:
+            dns_addr = addr
+            break
+
+    if dns_addr is None:
+        raise RuntimeError("Host address %s does not match any address in DNS lookup."  % resaddr)
 
     rs = dnsclient.query(dns_addr.reverse_dns, dnsclient.DNS_C_IN, dnsclient.DNS_T_PTR)
     if len(rs) == 0:
@@ -498,14 +506,19 @@ def resolve_host(host_name):
     try:
         addrinfos = socket.getaddrinfo(host_name, None,
                                        socket.AF_UNSPEC, socket.SOCK_STREAM)
+
+        ip_list = []
+
         for ai in addrinfos:
             ip = ai[4][0]
             if ip == "127.0.0.1" or ip == "::1":
                 raise HostnameLocalhost("The hostname resolves to the localhost address")
 
-        return addrinfos[0][4][0]
-    except:
-        return None
+            ip_list.append(ip)
+
+        return ip_list
+    except socket.error:
+        return []
 
 def get_host_name(no_host_dns):
     """
@@ -534,8 +547,27 @@ def get_server_ip_address(host_name, fstore, unattended, options):
         sys.exit(1)
 
     ip_add_to_hosts = False
-    if hostaddr is not None:
-        ip = ipautil.CheckedIPAddress(hostaddr, match_local=True)
+
+    if len(hostaddr) > 1:
+        print >> sys.stderr, "The server hostname resolves to more than one address:"
+        for addr in hostaddr:
+            print >> sys.stderr, "  %s" % addr
+
+        if options.ip_address:
+            if str(options.ip_address) not in hostaddr:
+                print >> sys.stderr, "Address passed in --ip-address did not match any resolved"
+                print >> sys.stderr, "address!"
+                sys.exit(1)
+            print "Selected IP address:", str(options.ip_address)
+            ip = options.ip_address
+        else:
+            if unattended:
+                print >> sys.stderr, "Please use --ip-address option to specify the address"
+                sys.exit(1)
+            else:
+                ip = read_ip_address(host_name, fstore)
+    elif len(hostaddr) == 1:
+        ip = ipautil.CheckedIPAddress(hostaddr[0], match_local=True)
     else:
         # hostname is not resolvable
         ip = options.ip_address
