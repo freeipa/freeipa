@@ -44,6 +44,7 @@ group = [
 ]
 
 host = [
+    u'ieee802device',
     u'ipaobject',
     u'nshost',
     u'ipahost',

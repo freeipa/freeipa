@@ -1653,7 +1653,7 @@ output: Output('notmatched', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>),
 output: Output('error', (<type 'list'>, <type 'tuple'>, <type 'NoneType'>), None)
 output: Output('value', <type 'bool'>, None)
 command: host_add
-args: 1,14,3
+args: 1,15,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, required=True)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
 option: Str('l', attribute=True, cli_name='locality', multivalue=False, required=False)
@@ -1663,6 +1663,7 @@ option: Str('nsosversion', attribute=True, cli_name='os', multivalue=False, requ
 option: Str('userpassword', attribute=True, cli_name='password', multivalue=False, required=False)
 option: Flag('random', attribute=False, autofill=True, cli_name='random', default=False, multivalue=False, required=False)
 option: Bytes('usercertificate', attribute=True, cli_name='certificate', multivalue=False, required=False)
+option: Str('macaddress', attribute=True, cli_name='macaddress', csv=True, multivalue=True, pattern='^([a-fA-F0-9]{2}[:|\\-]?){5}[a-fA-F0-9]{2}$', pattern_errmsg='Must be of the form HH:HH:HH:HH:HH:HH, where each H is a hexadecimal character.', required=False)
 option: Flag('force', autofill=True, default=False)
 option: Flag('no_reverse', autofill=True, default=False)
 option: Str('ip_address?')
@@ -1696,7 +1697,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: host_find
-args: 1,28,4
+args: 1,29,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('fqdn', attribute=True, autofill=False, cli_name='hostname', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, query=True, required=False)
@@ -1706,6 +1707,7 @@ option: Str('nshardwareplatform', attribute=True, autofill=False, cli_name='plat
 option: Str('nsosversion', attribute=True, autofill=False, cli_name='os', multivalue=False, query=True, required=False)
 option: Str('userpassword', attribute=True, autofill=False, cli_name='password', multivalue=False, query=True, required=False)
 option: Bytes('usercertificate', attribute=True, autofill=False, cli_name='certificate', multivalue=False, query=True, required=False)
+option: Str('macaddress', attribute=True, autofill=False, cli_name='macaddress', csv=True, multivalue=True, pattern='^([a-fA-F0-9]{2}[:|\\-]?){5}[a-fA-F0-9]{2}$', pattern_errmsg='Must be of the form HH:HH:HH:HH:HH:HH, where each H is a hexadecimal character.', query=True, required=False)
 option: Int('timelimit?', autofill=False, minvalue=0)
 option: Int('sizelimit?', autofill=False, minvalue=0)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -1731,7 +1733,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('count', <type 'int'>, None)
 output: Output('truncated', <type 'bool'>, None)
 command: host_mod
-args: 1,16,3
+args: 1,17,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, query=True, required=True)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
 option: Str('l', attribute=True, autofill=False, cli_name='locality', multivalue=False, required=False)
@@ -1741,6 +1743,7 @@ option: Str('nsosversion', attribute=True, autofill=False, cli_name='os', multiv
 option: Str('userpassword', attribute=True, autofill=False, cli_name='password', multivalue=False, required=False)
 option: Flag('random', attribute=False, autofill=True, cli_name='random', default=False, multivalue=False, required=False)
 option: Bytes('usercertificate', attribute=True, autofill=False, cli_name='certificate', multivalue=False, required=False)
+option: Str('macaddress', attribute=True, autofill=False, cli_name='macaddress', csv=True, multivalue=True, pattern='^([a-fA-F0-9]{2}[:|\\-]?){5}[a-fA-F0-9]{2}$', pattern_errmsg='Must be of the form HH:HH:HH:HH:HH:HH, where each H is a hexadecimal character.', required=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')

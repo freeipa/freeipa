@@ -431,6 +431,71 @@ class test_host(Declarative):
 
 
         dict(
+            desc='Add MAC address to %r' % fqdn1,
+            command=('host_mod', [fqdn1], dict(macaddress=u'00:50:56:30:F6:5F')),
+            expected=dict(
+                value=fqdn1,
+                summary=u'Modified host "%s"' % fqdn1,
+                result=dict(
+                    description=[u'Updated host 1'],
+                    fqdn=[fqdn1],
+                    l=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[u'%s' % fqdn1],
+                    usercertificate=[base64.b64decode(servercert)],
+                    valid_not_before=fuzzy_date,
+                    valid_not_after=fuzzy_date,
+                    subject=lambda x: DN(x) == \
+                        DN(('CN',api.env.host),('O',api.env.realm)),
+                    serial_number=fuzzy_digits,
+                    md5_fingerprint=fuzzy_hash,
+                    sha1_fingerprint=fuzzy_hash,
+                    macaddress=[u'00:50:56:30:F6:5F'],
+                    issuer=fuzzy_issuer,
+                    has_keytab=False,
+                    has_password=False,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Add another MAC address to %r' % fqdn1,
+            command=('host_mod', [fqdn1], dict(macaddress=[u'00:50:56:30:F6:5F', u'00:50:56:2C:8D:82'])),
+            expected=dict(
+                value=fqdn1,
+                summary=u'Modified host "%s"' % fqdn1,
+                result=dict(
+                    description=[u'Updated host 1'],
+                    fqdn=[fqdn1],
+                    l=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[u'%s' % fqdn1],
+                    usercertificate=[base64.b64decode(servercert)],
+                    valid_not_before=fuzzy_date,
+                    valid_not_after=fuzzy_date,
+                    subject=lambda x: DN(x) == \
+                        DN(('CN',api.env.host),('O',api.env.realm)),
+                    serial_number=fuzzy_digits,
+                    md5_fingerprint=fuzzy_hash,
+                    sha1_fingerprint=fuzzy_hash,
+                    macaddress=[u'00:50:56:30:F6:5F', u'00:50:56:2C:8D:82'],
+                    issuer=fuzzy_issuer,
+                    has_keytab=False,
+                    has_password=False,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Add an illegal MAC address to %r' % fqdn1,
+            command=('host_mod', [fqdn1], dict(macaddress=[u'xx'])),
+            expected=errors.ValidationError(name='macaddress', error='invalid \'macaddress\': Must be of the form HH:HH:HH:HH:HH:HH, where each H is a hexadecimal character.'),
+        ),
+
+
+        dict(
             desc='Delete %r' % fqdn1,
             command=('host_del', [fqdn1], {}),
             expected=dict(
