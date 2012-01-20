@@ -164,6 +164,9 @@ def main():
     exit gracefully.
     """
 
+    if not os.geteuid()==0:
+        sys.exit("\nYou must be root to run this script.\n")
+
     try:
         krbctx = krbV.default_context()
     except krbV.Krb5Error, e:

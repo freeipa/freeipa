@@ -26,7 +26,9 @@ A tool to update the IPA Apache configuration during an upgrade.
 
 It examines the VERSION value in the head of \fI/etc/httpd/conf.d/ipa.conf\fR and \fI/etc/httpd/conf.d/ipa\-rewrite.conf\fR and compares this with the templates. If an update is needed then new files are written.
 
-This is not intended to be run by an end\-user. It is executed when the IPA rpms are upgraded.
+It also will convert a CA configured to be accessible via ports 9443, 9444, 9445 and 9446 to be proxied by the IPA web server on ports 80 and 443.
+
+This is not intended to be run by an end\-user. It is executed when the IPA rpms are upgraded. This must be run as the root user.
 .SH "EXIT STATUS"
 0 if the update was successful or there was nothing to do
 
