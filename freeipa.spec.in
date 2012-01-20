@@ -557,6 +557,7 @@ fi
 %{_mandir}/man1/ipa-managed-entries.1.gz
 %{_mandir}/man1/ipa-ldap-updater.1.gz
 %{_mandir}/man8/ipactl.8.gz
+%{_mandir}/man8/ipa-upgradeconfig.8.gz
 %{_mandir}/man1/ipa-compliance.1.gz
 
 %files server-selinux
