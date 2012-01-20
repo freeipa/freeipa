@@ -203,8 +203,8 @@ def validate_ipaddr(ugettext, ipaddr):
     """
     try:
         ip = CheckedIPAddress(ipaddr, match_local=False)
-    except:
-        return _('invalid IP address')
+    except Exception, e:
+        return unicode(e)
     return None
 
 
