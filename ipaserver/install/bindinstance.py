@@ -197,7 +197,13 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_addres
             raise errors.NotFound("No IPA server with DNS support found!")
         ns_main = dns_masters.pop(0)
         ns_replicas = dns_masters
-        ns_ip_address = resolve_host(ns_main)
+        addresses = resolve_host(ns_main)
+
+        if len(addresses) > 0:
+            # use the first address
+            ns_ip_address = addresses[0]
+        else:
+            ns_ip_address = None
     else:
         ns_main = ns_hostname
         ns_replicas = []
@@ -230,7 +236,13 @@ def add_reverse_zone(zone, ns_hostname=None, ns_ip_address=None,
             raise errors.NotFound("No IPA server with DNS support found!")
         ns_main = dns_masters.pop(0)
         ns_replicas = dns_masters
-        ns_ip_address = resolve_host(ns_main)
+        addresses = resolve_host(ns_main)
+
+        if len(addresses) > 0:
+            # use the first address
+            ns_ip_address = addresses[0]
+        else:
+            ns_ip_address = None
     else:
         ns_main = ns_hostname
         ns_replicas = []

@@ -200,27 +200,22 @@ def install_bind(config, options):
     else:
         forwarders = ()
     bind = bindinstance.BindInstance(dm_password=config.dirman_password)
-    ip_address = resolve_host(config.host_name)
-    if not ip_address:
-        sys.exit("Unable to resolve IP address for host name")
-    ip = ipautil.CheckedIPAddress(ip_address, match_local=True)
-    ip_address = str(ip)
 
     if options.reverse_zone:
-        if not bindinstance.verify_reverse_zone(options.reverse_zone, ip):
+        if not bindinstance.verify_reverse_zone(options.reverse_zone, config.ip):
             sys.exit(1)
         reverse_zone = bindinstance.normalize_zone(options.reverse_zone)
     else:
-        reverse_zone = bindinstance.find_reverse_zone(ip)
+        reverse_zone = bindinstance.find_reverse_zone(config.ip)
         if reverse_zone is None and not options.no_reverse:
-            reverse_zone = bindinstance.get_reverse_zone_default(ip)
+            reverse_zone = bindinstance.get_reverse_zone_default(config.ip)
             if not options.unattended and bindinstance.create_reverse():
-                reverse_zone = bindinstance.read_reverse_zone(reverse_zone, ip)
+                reverse_zone = bindinstance.read_reverse_zone(reverse_zone, config.ip)
 
     if reverse_zone is not None:
         print "Using reverse zone %s" % reverse_zone
 
-    bind.setup(config.host_name, ip_address, config.realm_name,
+    bind.setup(config.host_name, config.ip_address, config.realm_name,
                config.domain_name, forwarders, options.conf_ntp, reverse_zone)
     bind.create_instance()
 
@@ -240,14 +235,9 @@ def install_dns_records(config, options):
                               bind_pw=config.dirman_password,
                               tls_cacertfile=CACERT)
     bind = bindinstance.BindInstance(dm_password=config.dirman_password)
-    ip_address = resolve_host(config.host_name)
-    if not ip_address:
-        sys.exit("Unable to resolve IP address for host name")
-    ip = ipautil.CheckedIPAddress(ip_address, match_local=True)
-    ip_address = str(ip)
-    reverse_zone = bindinstance.find_reverse_zone(ip)
+    reverse_zone = bindinstance.find_reverse_zone(config.ip)
 
-    bind.add_master_dns_records(config.host_name, ip_address,
+    bind.add_master_dns_records(config.host_name, config.ip_address,
                                 config.realm_name, config.domain_name,
                                 reverse_zone, options.conf_ntp)
 
@@ -341,7 +331,8 @@ def main():
         replica_conn_check(config.master_host_name, config.host_name, config.realm_name, options.setup_ca, options.admin_password)
 
     # check replica host IP resolution
-    ip = installutils.get_server_ip_address(config.host_name, fstore, True, options)
+    config.ip = installutils.get_server_ip_address(config.host_name, fstore, True, options)
+    config.ip_address = str(config.ip)
 
     # Create the management framework config file
     # Note: We must do this before bootstraping and finalizing ipalib.api

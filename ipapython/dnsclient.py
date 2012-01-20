@@ -40,6 +40,11 @@ DNS_T_AAAA = 28
 DNS_T_SRV = 33
 DNS_T_ANY = 255
 
+DNS_S_QUERY = 1
+DNS_S_ANSWER = 2
+DNS_S_AUTHORITY = 3
+DNS_S_ADDITIONAL = 4
+
 DEBUG_DNSCLIENT = False
 
 class DNSQueryHeader:
@@ -105,6 +110,7 @@ class DNSResult:
 		self.dns_ttl = 0
 		self.dns_rlength = 0
 		self.rdata = None
+		self.section = None
 
 	def unpack(self, data):
 		(self.dns_type, self.dns_class, self.dns_ttl,
@@ -398,47 +404,51 @@ def dnsParseResults(results):
 			print "Queried for '%s', class = %d, type = %d." % (label,
 				qq.dns_class, qq.dns_type)
 
-	for i in xrange(header.dns_ancount + header.dns_nscount + header.dns_arcount):
-		(rest, label) = dnsParseLabel(rest, results)
-		if label is None:
-			return []
+	for (rec_count, section_id) in ((header.dns_ancount, DNS_S_ANSWER),
+									(header.dns_nscount, DNS_S_AUTHORITY),
+									(header.dns_arcount, DNS_S_ADDITIONAL)):
+		for i in xrange(rec_count):
+			(rest, label) = dnsParseLabel(rest, results)
+			if label is None:
+				return []
 
-		rr = DNSResult()
+			rr = DNSResult()
 
-		rr.dns_name = label
+			rr.dns_name = label
+			rr.section = section_id
 
-		if len(rest) < rr.size():
-			return []
+			if len(rest) < rr.size():
+				return []
 
-		rr.unpack(rest)
-		
-		rest = rest[rr.size():]
+			rr.unpack(rest)
 
-		if DEBUG_DNSCLIENT:
-			print "Answer %d for '%s', class = %d, type = %d, ttl = %d." % (i,
-				rr.dns_name, rr.dns_class, rr.dns_type,
-				rr.dns_ttl)
+			rest = rest[rr.size():]
 
-		if len(rest) < rr.dns_rlength:
 			if DEBUG_DNSCLIENT:
-				print "Answer too short."
-			return []
-		
-		fmap = { DNS_T_A: dnsParseA, DNS_T_NS: dnsParseNS,
-			DNS_T_CNAME: dnsParseCNAME, DNS_T_SOA: dnsParseSOA,
-			DNS_T_NULL: dnsParseNULL, DNS_T_WKS: dnsParseWKS,
-			DNS_T_PTR: dnsParsePTR, DNS_T_HINFO: dnsParseHINFO,
-			DNS_T_MX: dnsParseMX, DNS_T_TXT: dnsParseTXT,
-			DNS_T_AAAA : dnsParseAAAA, DNS_T_SRV: dnsParseSRV}
+				print "Answer %d for '%s', class = %d, type = %d, ttl = %d." % (i,
+					rr.dns_name, rr.dns_class, rr.dns_type,
+					rr.dns_ttl)
 
-		if not rr.dns_type in fmap:
-			if DEBUG_DNSCLIENT:
-				print "Don't know how to parse RR type %d!" %	rr.dns_type
-		else:
-			rr.rdata = fmap[rr.dns_type](rest[:rr.dns_rlength], results)
+			if len(rest) < rr.dns_rlength:
+				if DEBUG_DNSCLIENT:
+					print "Answer too short."
+				return []
 
-		rest = rest[rr.dns_rlength:]
-		rrlist += [rr]
+			fmap = { DNS_T_A: dnsParseA, DNS_T_NS: dnsParseNS,
+				DNS_T_CNAME: dnsParseCNAME, DNS_T_SOA: dnsParseSOA,
+				DNS_T_NULL: dnsParseNULL, DNS_T_WKS: dnsParseWKS,
+				DNS_T_PTR: dnsParsePTR, DNS_T_HINFO: dnsParseHINFO,
+				DNS_T_MX: dnsParseMX, DNS_T_TXT: dnsParseTXT,
+				DNS_T_AAAA : dnsParseAAAA, DNS_T_SRV: dnsParseSRV}
+
+			if not rr.dns_type in fmap:
+				if DEBUG_DNSCLIENT:
+					print "Don't know how to parse RR type %d!" %	rr.dns_type
+			else:
+				rr.rdata = fmap[rr.dns_type](rest[:rr.dns_rlength], results)
+
+			rest = rest[rr.dns_rlength:]
+			rrlist += [rr]
 
 	return rrlist
 
