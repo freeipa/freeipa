@@ -153,6 +153,10 @@ Requires(postun): python initscripts chkconfig
 Conflicts: bind-dyndb-ldap < 1.0.0-0.1.b1
 Conflicts: bind < 9.8.1-1
 
+# mod_proxy provides a single API to communicate over SSL. If mod_ssl
+# is even loaded into Apache then it grabs this interface.
+Conflicts: mod_ssl
+
 Obsoletes: ipa-server >= 1.0
 
 %description server
@@ -668,6 +672,9 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
+* Thu Feb 23 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-17
+- Add Conflicts on mod_ssl
+
 * Thu Feb 16 2012 Rob Crittenden <rcritten@redhat.com> - 2.99.0-16
 - Set min for 389-ds-base to 1.2.10.1-1 to fix install segfault,
   schema replication.
