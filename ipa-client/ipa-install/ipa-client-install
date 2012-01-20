@@ -872,6 +872,9 @@ def install(options, env, fstore, statestore):
     if hostname != hostname.lower():
         print 'Invalid hostname \'%s\', must be lower-case.' % hostname
         return CLIENT_INSTALL_ERROR
+    if (hostname == 'localhost') or (hostname == 'localhost.localdomain'):
+        print 'Invalid hostname, \'%s\' must not be used.' % hostname
+        return CLIENT_INSTALL_ERROR
 
     # when installing with '--no-sssd' option, check whether nss-ldap is installed
     if not options.sssd:
