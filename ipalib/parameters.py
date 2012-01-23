@@ -101,6 +101,10 @@ a more detailed description for clarity.
 
 import re
 import decimal
+import base64
+import csv
+from xmlrpclib import MAXINT, MININT
+
 from types import NoneType
 from util import make_repr
 from text import _ as ugettext
@@ -109,8 +113,6 @@ from errors import ConversionError, RequirementError, ValidationError
 from errors import PasswordMismatch
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
 from text import Gettext, FixMe
-import csv
-from xmlrpclib import MAXINT, MININT
 
 
 class DefaultFrom(ReadOnly):
@@ -1439,6 +1441,14 @@ class Bytes(Data):
             return _('must be exactly %(length)d bytes') % dict(
                 length=self.length,
             )
+
+    def _convert_scalar(self, value, index=None):
+        if isinstance(value, unicode):
+            try:
+                value = base64.b64decode(value)
+            except TypeError:
+                raise ConversionError(name=self.name, index=index, error=self.type_error)
+        return super(Bytes, self)._convert_scalar(value, index)
 
 
 class Str(Data):

@@ -24,6 +24,7 @@ import re
 import json
 import time
 from copy import deepcopy
+import base64
 
 from ipalib import api, crud, errors
 from ipalib import Method, Object, Command
@@ -862,6 +863,9 @@ last, after all sets and adds."""),
                     try:
                         entry_attrs[attr].remove(delval)
                     except ValueError:
+                        if isinstance(delval, str):
+                            # This is a Binary value, base64 encode it
+                            delval = unicode(base64.b64encode(delval))
                         raise errors.AttrValueNotFound(attr=attr, value=delval)
 
         # normalize all values
@@ -871,8 +875,8 @@ last, after all sets and adds."""),
             entry_attrs[attr] = list(set([val for val in entry_attrs[attr] if val]))
             if not entry_attrs[attr]:
                 entry_attrs[attr] = None
-            elif len(entry_attrs[attr]) == 1:
-                    entry_attrs[attr] = entry_attrs[attr][0]
+            elif isinstance(entry_attrs[attr], (tuple, list)) and len(entry_attrs[attr]) == 1:
+                entry_attrs[attr] = entry_attrs[attr][0]
 
 class LDAPCreate(BaseLDAPCommand, crud.Create):
     """
