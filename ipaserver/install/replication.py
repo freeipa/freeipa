@@ -460,7 +460,6 @@ class ReplicationManager(object):
         entry.setValues('nsds5replicatimeout', str(TIMEOUT))
         entry.setValues('nsds5replicaroot', self.suffix)
         if master is None:
-            entry.setValues('nsds5replicaupdateschedule', '0000-2359 0123456')
             entry.setValues('nsDS5ReplicatedAttributeList',
                             '(objectclass=*) $ EXCLUDE %s' % " ".join(excludes))
         entry.setValues('description', "me to %s" % b_hostname)
@@ -853,22 +852,20 @@ class ReplicationManager(object):
 
         dn = entry[0].dn
         schedule = entry[0].nsds5replicaupdateschedule
-        if schedule is None:
-            schedule = '0000-2359 0123456'
 
         # On the remote chance of a match. We force a synch to happen right
-        # now by changing the schedule to something else and quickly changing
-        # it back.
-        if newschedule == schedule:
-            newschedule = '2358-2359 1'
-        root_logger.info("Changing agreement %s schedule to %s to force synch" %
+        # now by setting the schedule to something and quickly removing it.
+        if schedule is not None:
+            if newschedule == schedule:
+                newschedule = '2358-2359 1'
+        root_logger.info("Setting agreement %s schedule to %s to force synch" %
                      (dn, newschedule))
         mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaUpdateSchedule', [ newschedule ])]
         conn.modify_s(dn, mod)
         time.sleep(1)
-        root_logger.info("Changing agreement %s to restore original schedule %s" %
-                     (dn, schedule))
-        mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaUpdateSchedule', [ schedule ])]
+        root_logger.info("Deleting schedule %s from agreement %s" %
+                     (newschedule, dn))
+        mod = [(ldap.MOD_DELETE, 'nsDS5ReplicaUpdateSchedule', None)]
         conn.modify_s(dn, mod)
 
     def get_agreement_type(self, hostname):
