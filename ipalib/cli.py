@@ -1054,11 +1054,7 @@ class cli(backend.Executioner):
         Decode param values if appropriate.
         """
         for (key, value) in kw.iteritems():
-            param = cmd.params[key]
-            if isinstance(param, Bytes):
-                yield (key, value)
-            else:
-                yield (key, self.Backend.textui.decode(value))
+            yield (key, self.Backend.textui.decode(value))
 
     def build_parser(self, cmd):
         parser = CLIOptionParser(
