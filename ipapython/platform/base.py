@@ -21,8 +21,9 @@ from ipalib.plugable import MagicDict
 # Canonical names of services as IPA wants to see them. As we need to have *some* naming,
 # set them as in Red Hat distributions. Actual implementation should make them available
 # through knownservices.<name> and take care of remapping internally, if needed
-wellknownservices = ['certmonger', 'dirsrv', 'httpd', 'ipa', 'krb5kdc', 'messagebus',
-                     'nslcd', 'nscd', 'ntpd', 'portmap', 'rpcbind', 'kadmin']
+wellknownservices = ['certmonger', 'dirsrv', 'httpd', 'ipa', 'krb5kdc',
+                     'messagebus', 'nslcd', 'nscd', 'ntpd', 'portmap',
+                     'rpcbind', 'kadmin', 'sshd']
 
 class AuthConfig(object):
     """
@@ -139,6 +140,9 @@ class PlatformService(object):
         return
 
     def remove(self, instance_name=""):
+        return
+
+    def get_config_dir(self, instance_name=""):
         return
 
 class KnownServices(MagicDict):

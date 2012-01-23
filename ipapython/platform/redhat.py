@@ -82,6 +82,10 @@ class RedHatService(base.PlatformService):
     def remove(self, instance_name=""):
         ipautil.run(["/sbin/chkconfig", "--del", self.service_name])
 
+class RedHatSSHService(RedHatService):
+    def get_config_dir(self, instance_name=""):
+        return '/etc/ssh'
+
 class RedHatAuthConfig(base.AuthConfig):
     """
     AuthConfig class implements system-independent interface to configure
@@ -109,16 +113,21 @@ class RedHatAuthConfig(base.AuthConfig):
         args = self.__build_args()
         ipautil.run(["/usr/sbin/authconfig"]+args)
 
+def redhat_service(name):
+    if name == 'sshd':
+        return RedHatSSHService(name)
+    return RedHatService(name)
+
 class RedHatServices(base.KnownServices):
     def __init__(self):
         services = dict()
         for s in base.wellknownservices:
-            services[s] = RedHatService(s)
+            services[s] = redhat_service(s)
         # Call base class constructor. This will lock services to read-only
         super(RedHatServices, self).__init__(services)
 
 authconfig = RedHatAuthConfig
-service = RedHatService
+service = redhat_service
 knownservices = RedHatServices()
 
 def restore_context(filepath):

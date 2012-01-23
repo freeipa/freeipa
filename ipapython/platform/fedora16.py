@@ -100,12 +100,18 @@ class Fedora16IPAService(Fedora16Service):
         super(Fedora16IPAService, self).enable(instance_name)
         self.restart(instance_name)
 
+class Fedora16SSHService(Fedora16Service):
+    def get_config_dir(self, instance_name=""):
+        return '/etc/ssh'
+
 # Redirect directory server service through special sub-class due to its special handling of instances
 def f16_service(name):
     if name == 'dirsrv':
         return Fedora16DirectoryService(name)
     if name == 'ipa':
         return Fedora16IPAService(name)
+    if name == 'sshd':
+        return Fedora16SSHService(name)
     return Fedora16Service(name)
 
 class Fedora16Services(base.KnownServices):
