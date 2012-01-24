@@ -38,6 +38,8 @@ IPA.search_facet = function(spec) {
 
     var that = IPA.table_facet(spec);
 
+    that.deleter_dialog = spec.deleter_dialog || IPA.search_deleter_dialog;
+
     var init = function() {
 
         that.init_table(that.managed_entity);
@@ -144,7 +146,7 @@ IPA.search_facet = function(spec) {
         var dialog = that.managed_entity.get_dialog('remove');
 
         if (!dialog) {
-            dialog = IPA.search_deleter_dialog();
+            dialog = that.deleter_dialog();
         }
 
         dialog.entity_name = that.managed_entity.name;

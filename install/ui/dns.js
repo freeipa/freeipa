@@ -105,7 +105,7 @@ IPA.dns.zone_entity = function(spec) {
             facet_group: 'dnsrecord',
             nested_entity : 'dnsrecord',
             name: 'records',
-            pagination: false,
+            deleter_dialog: IPA.dns.record_search_deleter_dialog,
             title: IPA.metadata.objects.dnszone.label_singular,
             label: IPA.metadata.objects.dnsrecord.label,
             columns: [
@@ -468,80 +468,101 @@ IPA.dns.record_search_facet = function(spec) {
 
     var that = IPA.nested_search_facet(spec);
 
-    that.load_all = function(data) {
+    that.get_records = function(pkeys, on_success, on_error) {
+
+        var batch = IPA.batch_command({
+            name: that.get_records_command_name(),
+            on_success: on_success,
+            on_error: on_error
+        });
+
+        var zone = IPA.nav.get_state('dnszone-pkey');
+
+        for (var i=0; i<pkeys.length; i++) {
+            var pkey = pkeys[i];
+
+            var command = IPA.command({
+                entity: that.table.entity.name,
+                method: 'show',
+                args: [zone, pkey],
+                options: { all: true }
+            });
+
+            batch.add_command(command);
+        }
+
+        batch.execute();
+    };
+
+
+    that.load_records = function(records) {
+        that.table.empty();
 
         var types = IPA.dns_record_types();
 
-        var result = data.result.result;
-        var records = [];
+        for (var i=0; i<records.length; i++) {
 
-        for (var i=0; i<result.length; i++) {
-            var record = result[i];
+            var original = records[i];
+            var record = {
+                idnsname: original.idnsname,
+                values: []
+            };
 
             for (var j=0; j<types.length; j++) {
                 var type = types[j];
-                if (!record[type.value]) continue;
+                if (!original[type.value]) continue;
 
-                var values = record[type.value];
+                var values = original[type.value];
                 for (var k=0; k<values.length; k++) {
-                    records.push({
-                        idnsname: record.idnsname,
+                    record.values.push({
                         type: type.label,
                         data: values[k]
                     });
                 }
             }
+
+            that.add_record(record);
         }
+        that.table.set_values(that.selected_values);
+    };
 
-        that.load_records(records);
+    that.add_record = function(record) {
 
-        if (data.result.truncated) {
-            var message = IPA.messages.search.truncated;
-            message = message.replace('${counter}', data.result.count);
-            that.table.summary.text(message);
-        } else {
-            that.table.summary.text(data.result.summary);
+        for (var i=0; i<record.values.length; i++) {
+
+            var value = record.values[i];
+
+            if (i === 0) {
+                value.idnsname = record.idnsname;
+            }
+
+            var tr = that.table.add_record(value);
+
+            if (i > 0) {
+                $('input[name="'+that.table.name+'"]', tr).remove();
+            }
         }
     };
 
-    that.get_selected_values = function() {
+    return that;
+};
 
-        var values = [];
+IPA.dns.record_search_deleter_dialog = function(spec) {
 
-        var records = {};
-        var value;
-        var record_type;
+    spec = spec || {};
 
-        $('input[name="idnsname"]:checked', that.table.tbody).each(function() {
-            $('div', $(this).parent().parent()).each(function() {
-                var div = $(this);
-                var name = div.attr('name');
-                var text = div.text();
+    var that = IPA.search_deleter_dialog(spec);
 
-                if (name === 'idnsname') {
-                    value = records[text];
-                    if (!value) {
-                        value = { pkey: text };
-                        records[text] = value;
-                    }
-                } else if (name === 'type') {
-                    record_type = text.toLowerCase()+'record';
+    that.create_command = function() {
 
-                } else if (name === 'data') {
-                    if (!value[record_type]) {
-                        value[record_type] = text;
-                    } else {
-                         value[record_type] += ',' + text;
-                    }
-                }
-            });
-        });
+        var batch = that.search_deleter_dialog_create_command();
 
-        for (var key in records) {
-            values.push(records[key]);
+        for (var i=0; i<batch.commands.length; i++) {
+            var command = batch.commands[i];
+            command.set_option('del_all', true);
         }
 
-        return values;
+        return batch;
     };
 
     return that;
