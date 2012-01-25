@@ -368,6 +368,7 @@
                     },
                     "tabs": {
                         "audit": "Audit",
+                        "automember": "Automember",
                         "automount": "Automount",
                         "dns": "DNS",
                         "hbac": "Host Based Access Control",

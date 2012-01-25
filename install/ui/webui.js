@@ -68,7 +68,14 @@ IPA.admin_navigation = function(spec) {
                 {entity: 'automountkey', hidden: true}]},
             {entity: 'pwpolicy'},
             {entity: 'krbtpolicy'},
-            {entity: 'selinuxusermap'}
+            {entity: 'selinuxusermap'},
+            {name: 'automember', label: 'Automember', //TODO: translate IPA.messages.tabs.automember
+             children: [
+                { name: 'amgroup', entity: 'automember',
+                  facet: 'searchgroup', label: 'User group rules'}, //TODO: translate
+                { name: 'amhostgroup', entity: 'automember',
+                  facet: 'searchhostgroup', label: 'Host group rules'} //TODO: translate
+            ]}
         ]},
         {name: 'ipaserver', label: IPA.messages.tabs.ipaserver, children: [
             {name: 'rolebased', label: IPA.messages.tabs.role, children: [

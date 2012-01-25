@@ -660,9 +660,9 @@ IPA.table_facet = function(spec) {
         return that.managed_entity.name+'_get_records';
     };
 
-    that.get_records = function(pkeys, on_success, on_error) {
+    that.create_get_records_command = function(pkeys, on_success, on_error) {
 
-        var batch = IPA.batch_command({
+         var batch = IPA.batch_command({
             name: that.get_records_command_name(),
             on_success: on_success,
             on_error: on_error
@@ -680,6 +680,13 @@ IPA.table_facet = function(spec) {
 
             batch.add_command(command);
         }
+
+        return batch;
+    };
+
+    that.get_records = function(pkeys, on_success, on_error) {
+
+        var batch = that.create_get_records_command(pkeys, on_success, on_error);
 
         batch.execute();
     };
@@ -765,6 +772,8 @@ IPA.table_facet = function(spec) {
     };
 
     init();
+
+    that.table_facet_create_get_records_command = that.create_get_records_command;
 
     return that;
 };

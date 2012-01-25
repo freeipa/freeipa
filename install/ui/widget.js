@@ -1678,6 +1678,355 @@ IPA.table_widget = function (spec) {
     return that;
 };
 
+
+IPA.attribute_table_widget = function(spec) {
+
+
+    spec = spec || {};
+    spec.columns = spec.columns || [];
+
+    var that = IPA.table_widget(spec);
+
+    that.attribute_name = spec.attribute_name || that.name;
+    that.adder_dialog_spec = spec.adder_dialog;
+    that.css_class = spec.css_class;
+
+    that.add_command = spec.add_command;
+    that.remove_command = spec.remove_command;
+
+    that.on_add = spec.on_add;
+    that.on_add_error = spec.on_add_error;
+    that.on_remove = spec.on_remove;
+    that.on_remove_error = spec.on_remove_error;
+
+    that.create_column = function(spec) {
+
+        if (typeof spec === 'string') {
+            spec = {
+                name: spec
+            };
+        }
+
+        spec.entity = that.entity;
+
+        var factory = spec.factory || IPA.column;
+
+        var column = factory(spec);
+        that.add_column(column);
+        return column;
+    };
+
+    that.create_columns = function() {
+        that.clear_columns();
+        if (spec.columns) {
+            for (var i=0; i<spec.columns.length; i++) {
+                that.create_column(spec.columns[i]);
+            }
+        }
+
+        that.post_create_columns();
+    };
+
+    that.post_create_columns = function() {
+    };
+
+    that.create_buttons = function(container) {
+
+        that.remove_button = IPA.action_button({
+            name: 'remove',
+            label: IPA.messages.buttons.remove,
+            icon: 'remove-icon',
+            'class': 'action-button-disabled',
+            click: function() {
+                if (!that.remove_button.hasClass('action-button-disabled')) {
+                    that.remove_handler();
+                }
+                return false;
+            }
+        }).appendTo(container);
+
+        that.add_button = IPA.action_button({
+            name: 'add',
+            label: IPA.messages.buttons.add,
+            icon: 'add-icon',
+            click: function() {
+                if (!that.add_button.hasClass('action-button-disabled')) {
+                    that.add_handler();
+                }
+                return false;
+            }
+        }).appendTo(container);
+    };
+
+    that.create = function(container) {
+
+        that.create_columns();
+        that.table_create(container);
+        if (that.css_class)
+            container.addClass(that.css_class);
+        that.create_buttons(that.buttons);
+    };
+
+    that.set_enabled = function(enabled) {
+        that.table_set_enabled(enabled);
+        if (enabled) {
+            if(that.add_button) {
+                that.add_button.removeClass('action-button-disabled');
+            }
+        } else {
+            $('.action-button', that.table).addClass('action-button-disabled');
+            that.unselect_all();
+        }
+        that.enabled = enabled;
+    };
+
+    that.select_changed = function() {
+
+        var values = that.get_selected_values();
+
+        if (that.remove_button) {
+            if (values.length === 0) {
+                that.remove_button.addClass('action-button-disabled');
+            } else {
+                that.remove_button.removeClass('action-button-disabled');
+            }
+        }
+    };
+
+    that.add_handler = function() {
+        var facet = that.entity.get_facet();
+
+        if (facet.is_dirty()) {
+            var dialog = IPA.dirty_dialog({
+                entity:that.entity,
+                facet: facet
+            });
+
+            dialog.callback = function() {
+                that.show_add_dialog();
+            };
+
+            dialog.open(that.container);
+
+        } else {
+            that.show_add_dialog();
+        }
+    };
+
+    that.remove_handler = function() {
+        var facet = that.entity.get_facet();
+
+        if (facet.is_dirty()) {
+            var dialog = IPA.dirty_dialog({
+                entity:that.entity,
+                facet: facet
+            });
+
+            dialog.callback = function() {
+                that.show_remove_dialog();
+            };
+
+            dialog.open(that.container);
+
+        } else {
+            that.show_remove_dialog();
+        }
+    };
+
+    that.show_remove_dialog = function() {
+
+        var dialog = that.create_remove_dialog();
+        if (dialog) dialog.open(that.container);
+    };
+
+    that.create_remove_dialog = function() {
+        var selected_values = that.get_selected_values();
+
+        if (!selected_values.length) {
+            var message = IPA.messages.dialogs.remove_empty;
+            alert(message);
+            return null;
+        }
+
+        var dialog = IPA.deleter_dialog({
+            entity: that.entity,
+            values: selected_values
+        });
+
+        dialog.execute = function() {
+            var command = that.create_remove_command(
+                selected_values,
+                function(data, text_status, xhr) {
+                    var handler = that.on_remove || that.on_command_success;
+                    handler.call(this, data, text_status, xhr);
+                    dialog.close();
+                },
+                function(xhr, text_status, error_thrown) {
+                    var handler = that.on_remove_error || that.on_command_error;
+                    handler.call(this, xhr, text_status, error_thrown);
+                    dialog.close();
+                }
+            );
+            command.execute();
+        };
+
+        return dialog;
+    };
+
+    that.on_command_success = function(data) {
+        that.reload_facet(data);
+    };
+
+    that.on_command_error = function() {
+        that.refresh_facet();
+    };
+
+    that.get_pkeys = function() {
+        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        return [pkey];
+    };
+
+    that.get_additional_options = function() {
+        return [];
+    };
+
+    that.create_remove_command = function(values, on_success, on_error) {
+
+        var pkeys = that.get_pkeys();
+
+        var command = IPA.command({
+            entity: that.entity.name,
+            method: that.remove_command || 'del',
+            args: pkeys,
+            on_success: on_success,
+            on_error: on_error
+        });
+
+        command.set_option(that.attribute_name, values.join(','));
+
+        var additional_options = that.get_additional_options();
+        for (var i=0; i<additional_options.length; i++) {
+            var option = additional_options[i];
+            command.set_option(option.name, option.value);
+        }
+
+        return command;
+    };
+
+    that.create_add_dialog = function() {
+
+        var dialog_spec = {
+            entity: that.entity,
+            method: that.add_command
+        };
+
+        if (that.adder_dialog_spec) {
+            $.extend(dialog_spec, that.adder_dialog_spec);
+        }
+
+        var label = that.entity.metadata.label_singular;
+        var pkey = IPA.nav.get_state(that.entity.name+'-pkey');
+        dialog_spec.title = dialog_spec.title || IPA.messages.dialogs.add_title;
+        dialog_spec.title = dialog_spec.title.replace('${entity}', label);
+        dialog_spec.title = dialog_spec.title.replace('${pkey}', pkey);
+
+
+        var factory = dialog_spec.factory || IPA.entity_adder_dialog;
+        var dialog = factory(dialog_spec);
+
+        var cancel_button = dialog.buttons.get('cancel');
+        dialog.buttons.empty();
+
+        dialog.create_button({
+            name: 'add',
+            label: IPA.messages.buttons.add,
+            click: function() {
+                dialog.hide_message();
+                dialog.add(
+                    function(data, text_status, xhr) {
+                        var handler = that.on_add || that.on_command_success;
+                        handler.call(this, data, text_status, xhr);
+                        dialog.close();
+                    },
+                    dialog.on_error);
+            }
+        });
+
+        dialog.create_button({
+            name: 'add_and_add_another',
+            label: IPA.messages.buttons.add_and_add_another,
+            click: function() {
+                dialog.hide_message();
+                dialog.add(
+                    function(data, text_status, xhr) {
+                        var label = that.entity.metadata.label_singular;
+                        var message = IPA.messages.dialogs.add_confirmation;
+                        message = message.replace('${entity}', label);
+                        dialog.show_message(message);
+
+                        var handler = that.on_add || that.on_command_success;
+                        handler.call(this, data, text_status, xhr);
+
+                        dialog.reset();
+                    },
+                    dialog.on_error);
+            }
+        });
+
+        dialog.buttons.put('cancel', cancel_button);
+
+        dialog.create_add_command = function(record) {
+            return that.adder_dialog_create_command(dialog, record);
+        };
+
+        return dialog;
+    };
+
+    that.adder_dialog_create_command = function(dialog, record) {
+        var command  = dialog.entity_adder_dialog_create_add_command(record);
+        command.args = that.get_pkeys();
+
+        var additional_options = that.get_additional_options();
+        for (var i=0; i<additional_options.length; i++) {
+            var option = additional_options[i];
+            command.set_option(option.name, option.value);
+        }
+
+        return command;
+    };
+
+    that.show_add_dialog = function() {
+
+        var dialog = that.create_add_dialog();
+        dialog.open(that.container);
+    };
+
+    that.update = function(values) {
+        that.table_update(values);
+        that.unselect_all();
+    };
+
+    that.reload_facet = function(data) {
+
+        //FIXME: bad approach - widget is directly manipulating with facet
+        var facet = IPA.current_entity.get_facet();
+        facet.load(data);
+    };
+
+    that.refresh_facet = function() {
+
+        //FIXME: bad approach
+        var facet = IPA.current_entity.get_facet();
+        facet.refresh();
+    };
+
+    that.attribute_table_adder_dialog_create_command = that.adder_dialog_create_command;
+    that.attribute_table_create_remove_command = that.create_remove_command;
+    that.attribute_table_update = that.update;
+
+    return that;
+};
+
 IPA.combobox_widget = function(spec) {
 
     spec = spec || {};
@@ -2464,7 +2813,7 @@ IPA.widget_builder = function(spec) {
 };
 
 
-
+IPA.widget_factories['attribute_table'] = IPA.attribute_table_widget;
 IPA.widget_factories['checkbox'] = IPA.checkbox_widget;
 IPA.widget_factories['checkboxes'] = IPA.checkboxes_widget;
 IPA.widget_factories['combobox'] = IPA.combobox_widget;

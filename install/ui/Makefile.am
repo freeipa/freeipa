@@ -11,6 +11,7 @@ app_DATA =				\
 	aci.js				\
 	add.js				\
 	association.js			\
+	automember.js			\
 	automount.js			\
 	browser.js			\
 	certificate.js 			\
