@@ -345,6 +345,13 @@ mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d/
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa.conf
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
+mkdir -p %{buildroot}%{_usr}/share/ipa/html/
+/bin/touch %{buildroot}%{_usr}/share/ipa/html/ca.crt
+/bin/touch %{buildroot}%{_usr}/share/ipa/html/configure.jar
+/bin/touch %{buildroot}%{_usr}/share/ipa/html/krb.con
+/bin/touch %{buildroot}%{_usr}/share/ipa/html/krb5.ini
+/bin/touch %{buildroot}%{_usr}/share/ipa/html/krbrealm.con
+/bin/touch %{buildroot}%{_usr}/share/ipa/html/preferences.html
 mkdir -p %{buildroot}%{_initrddir}
 %if 0%{?fedora} >= 16
 # Default to systemd initscripts for F16 and above
@@ -357,6 +364,7 @@ install -m755 init/SystemV/ipa.init %{buildroot}%{_initrddir}/ipa
 
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/default.conf
+/bin/touch %{buildroot}%{_sysconfdir}/ipa/ca.crt
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
 
 %if ! %{ONLY_CLIENT}
@@ -529,6 +537,12 @@ fi
 %{_usr}/share/ipa/ipa.conf
 %{_usr}/share/ipa/ipa-rewrite.conf
 %{_usr}/share/ipa/ipa-pki-proxy.conf
+%ghost %attr(0644,root,apache) %config(noreplace) %{_usr}/share/ipa/html/ca.crt
+%ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/configure.jar
+%ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb.con
+%ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb5.ini
+%ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krbrealm.con
+%ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/preferences.html
 %dir %{_usr}/share/ipa/updates/
 %{_usr}/share/ipa/updates/*
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
@@ -613,6 +627,7 @@ fi
 %{python_sitearch}/python_default_encoding-*.egg-info
 %endif
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
+%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 
 %changelog
 * Wed Jan 11 2012 Simo Sorce <simo@redhat.com? - 2.2.0-7
