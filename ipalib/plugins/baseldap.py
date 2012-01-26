@@ -1595,6 +1595,31 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
         for arg in super(crud.Search, self).get_args():
             yield arg
 
+    def get_member_options(self, attr):
+        for ldap_obj_name in self.obj.attribute_members[attr]:
+            ldap_obj = self.api.Object[ldap_obj_name]
+            relationship = self.obj.relationships.get(
+                attr, ['member', '', 'no_']
+            )
+            doc = self.member_param_incl_doc % (
+                self.obj.object_name_plural, relationship[0].lower(),
+                ldap_obj.object_name_plural
+            )
+            name = '%s%s' % (relationship[1], to_cli(ldap_obj_name))
+            yield Str(
+                '%s*' % name, cli_name='%ss' % name, doc=doc,
+                label=ldap_obj.object_name, csv=True
+            )
+            doc = self.member_param_excl_doc % (
+                self.obj.object_name_plural, relationship[0].lower(),
+                ldap_obj.object_name_plural
+            )
+            name = '%s%s' % (relationship[2], to_cli(ldap_obj_name))
+            yield Str(
+                '%s*' % name, cli_name='%ss' % name, doc=doc,
+                label=ldap_obj.object_name, csv=True
+            )
+
     def get_options(self):
         for option in super(LDAPSearch, self).get_options():
             yield option
@@ -1602,29 +1627,8 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
                 'no_output' not in self.obj.primary_key.flags:
             yield gen_pkey_only_option(self.obj.primary_key.cli_name)
         for attr in self.member_attributes:
-            for ldap_obj_name in self.obj.attribute_members[attr]:
-                ldap_obj = self.api.Object[ldap_obj_name]
-                relationship = self.obj.relationships.get(
-                    attr, ['member', '', 'no_']
-                )
-                doc = self.member_param_incl_doc % (
-                    self.obj.object_name_plural, relationship[0].lower(),
-                    ldap_obj.object_name_plural
-                )
-                name = '%s%s' % (relationship[1], to_cli(ldap_obj_name))
-                yield Str(
-                    '%s*' % name, cli_name='%ss' % name, doc=doc,
-                    label=ldap_obj.object_name, csv=True
-                )
-                doc = self.member_param_excl_doc % (
-                    self.obj.object_name_plural, relationship[0].lower(),
-                    ldap_obj.object_name_plural
-                )
-                name = '%s%s' % (relationship[2], to_cli(ldap_obj_name))
-                yield Str(
-                    '%s*' % name, cli_name='%ss' % name, doc=doc,
-                    label=ldap_obj.object_name, csv=True
-                )
+            for option in self.get_member_options(attr):
+                yield option
 
     def get_member_filter(self, ldap, **options):
         filter = ''

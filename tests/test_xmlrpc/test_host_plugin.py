@@ -391,6 +391,39 @@ class test_host(Declarative):
         ),
 
         dict(
+            desc='Search for hosts with --man-hosts and --not-man-hosts',
+            command=('host_find', [], {'man_host' : fqdn3, 'not_man_host' : fqdn1}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 host matched',
+                result=[
+                    dict(
+                        dn=lambda x: DN(x) == dn3,
+                        fqdn=[fqdn3],
+                        description=[u'Test host 2'],
+                        l=[u'Undisclosed location 2'],
+                        krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                        has_keytab=False,
+                        has_password=False,
+                        managedby_host=[u'%s' % fqdn3, u'%s' % fqdn1],
+                    ),
+                ],
+            ),
+        ),
+
+        dict(
+            desc='Try to search for hosts with --man-hosts',
+            command=('host_find', [], {'man_host' : [fqdn3,fqdn4]}),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary=u'0 hosts matched',
+                result=[],
+            ),
+        ),
+
+        dict(
             desc='Remove managedby_host %r from %r' % (fqdn1, fqdn3),
             command=('host_remove_managedby', [fqdn3],
                 dict(
