@@ -33,6 +33,7 @@ from ipalib.plugins.dns import dns_container_exists, _record_types
 from ipalib.plugins.dns import add_forward_record
 from ipalib import _, ngettext
 from ipalib import x509
+from ipalib.dn import *
 from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
 from ipalib.request import context
 import base64
@@ -733,10 +734,56 @@ class host_find(LDAPSearch):
     )
     member_attributes = ['memberof', 'enrolledby', 'managedby']
 
+    def get_options(self):
+        for option in super(host_find, self).get_options():
+            yield option
+        # "managing" membership has to be added and processed separately
+        for option in self.get_member_options('managing'):
+            yield option
+
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
         if 'locality' in attrs_list:
             attrs_list.remove('locality')
             attrs_list.append('l')
+        if 'man_host' in options or 'not_man_host' in options:
+            hosts = []
+            if options.get('man_host') is not None:
+                for pkey in options.get('man_host', []):
+                    dn = self.obj.get_dn(pkey)
+                    try:
+                        (dn, entry_attrs) = ldap.get_entry(dn, ['managedby'])
+                    except errors.NotFound:
+                        self.obj.handle_not_found(pkey)
+                    hosts.append(set(entry_attrs.get('managedby', '')))
+                hosts = list(reduce(lambda s1, s2: s1 & s2, hosts))
+
+                if not hosts:
+                    # There is no host managing _all_ hosts in --man-hosts
+                    filter = ldap.combine_filters(
+                        (filter, '(objectclass=disabled)'), ldap.MATCH_ALL
+                    )
+
+            not_hosts = []
+            if options.get('not_man_host') is not None:
+                for pkey in options.get('not_man_host', []):
+                    dn = self.obj.get_dn(pkey)
+                    try:
+                        (dn, entry_attrs) = ldap.get_entry(dn, ['managedby'])
+                    except errors.NotFound:
+                        self.obj.handle_not_found(pkey)
+                    not_hosts += entry_attrs.get('managedby', [])
+                not_hosts = list(set(not_hosts))
+
+            for target_hosts, filter_op in ((hosts, ldap.MATCH_ANY),
+                                            (not_hosts, ldap.MATCH_NONE)):
+                hosts_avas = [DN(host)[0][0] for host in target_hosts]
+                hosts_filters = [ldap.make_filter_from_attr(ava.attr, ava.value) for ava in hosts_avas]
+                hosts_filter = ldap.combine_filters(hosts_filters, filter_op)
+
+                filter = ldap.combine_filters(
+                        (filter, hosts_filter), ldap.MATCH_ALL
+                    )
+
         return (filter.replace('locality', 'l'), base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):

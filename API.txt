@@ -1697,7 +1697,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('result', <type 'bool'>, None)
 output: Output('value', <type 'unicode'>, None)
 command: host_find
-args: 1,29,4
+args: 1,31,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Str('fqdn', attribute=True, autofill=False, cli_name='hostname', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9][a-zA-Z0-9-\\.]{0,254}$', pattern_errmsg='may only include letters, numbers, and -', primary_key=True, query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, query=True, required=False)
@@ -1728,6 +1728,8 @@ option: Str('enroll_by_user*', cli_name='enroll_by_users', csv=True)
 option: Str('not_enroll_by_user*', cli_name='not_enroll_by_users', csv=True)
 option: Str('man_by_host*', cli_name='man_by_hosts', csv=True)
 option: Str('not_man_by_host*', cli_name='not_man_by_hosts', csv=True)
+option: Str('man_host*', cli_name='man_hosts', csv=True)
+option: Str('not_man_host*', cli_name='not_man_hosts', csv=True)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
 output: Output('count', <type 'int'>, None)
