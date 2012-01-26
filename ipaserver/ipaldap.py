@@ -346,7 +346,9 @@ class IPAdmin(IPAEntryLDAPObject):
         try:
             bind_func(*args, **kwargs)
         except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN), e:
-            if not timeout:
+            if not timeout or 'TLS' in e.args[0].get('info', ''):
+                # No connection to continue on if we have a TLS failure
+                # https://bugzilla.redhat.com/show_bug.cgi?id=784989
                 raise e
             try:
                 self.__wait_for_connection(timeout)
