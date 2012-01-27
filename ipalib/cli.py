@@ -942,6 +942,61 @@ class Collector(object):
     def __todict__(self):
         return dict(self.__options)
 
+class CLIOptionParserFormatter(optparse.IndentedHelpFormatter):
+    def format_argument(self, name, help_string):
+        result = []
+        opt_width = self.help_position - self.current_indent - 2
+        if len(name) > opt_width:
+            name = "%*s%s\n" % (self.current_indent, "", name)
+            indent_first = self.help_position
+        else:                       # start help on same line as name
+            name = "%*s%-*s  " % (self.current_indent, "", opt_width, name)
+            indent_first = 0
+        result.append(name)
+        if help_string:
+            help_lines = textwrap.wrap(help_string, self.help_width)
+            result.append("%*s%s\n" % (indent_first, "", help_lines[0]))
+            result.extend(["%*s%s\n" % (self.help_position, "", line)
+                           for line in help_lines[1:]])
+        elif name[-1] != "\n":
+            result.append("\n")
+        return "".join(result)
+
+class CLIOptionParser(optparse.OptionParser):
+    """
+    This OptionParser subclass adds an ability to print positional
+    arguments in CLI help. Custom formatter is used to format the argument
+    list in the same way as OptionParser formats options.
+    """
+    def __init__(self, *args, **kwargs):
+        self._arguments = []
+        if 'formatter' not in kwargs:
+            kwargs['formatter'] = CLIOptionParserFormatter()
+        optparse.OptionParser.__init__(self, *args, **kwargs)
+
+    def format_option_help(self, formatter=None):
+        """
+        Prepend argument help to standard OptionParser's option help
+        """
+        option_help = optparse.OptionParser.format_option_help(self, formatter)
+
+        if isinstance(formatter, CLIOptionParserFormatter):
+            heading = unicode(_("Positional arguments"))
+            arguments = [formatter.format_heading(heading)]
+            formatter.indent()
+            for (name, help_string) in self._arguments:
+                arguments.append(formatter.format_argument(name, help_string))
+            formatter.dedent()
+            if len(arguments) > 1:
+                # there is more than just the heading
+                arguments.append(u"\n")
+            else:
+                arguments = []
+            option_help = "".join(arguments) + option_help
+        return option_help
+
+    def add_argument(self, name, help_string):
+        self._arguments.append((name, help_string))
 
 class cli(backend.Executioner):
     """
@@ -1006,7 +1061,7 @@ class cli(backend.Executioner):
                 yield (key, self.Backend.textui.decode(value))
 
     def build_parser(self, cmd):
-        parser = optparse.OptionParser(
+        parser = CLIOptionParser(
             usage=' '.join(self.usage_iter(cmd))
         )
         option_groups = {}
@@ -1045,20 +1100,37 @@ class cli(backend.Executioner):
                 option_group.add_option(o)
             else:
                 parser.add_option(o)
+
+        for arg in cmd.args():
+            name = self.__get_arg_name(arg, format_name=False)
+            if name is None:
+                continue
+            doc = unicode(arg.doc)
+            parser.add_argument(name, doc)
+
         return parser
+
+    def __get_arg_name(self, arg, format_name=True):
+        if arg.password:
+            return
+
+        name = to_cli(arg.cli_name).upper()
+        if not format_name:
+            return name
+        if arg.multivalue:
+            name = '%s...' % name
+        if arg.required:
+            return name
+        else:
+            return '[%s]' % name
 
     def usage_iter(self, cmd):
         yield 'Usage: %%prog [global-options] %s' % to_cli(cmd.name)
         for arg in cmd.args():
-            if arg.password:
+            name = self.__get_arg_name(arg)
+            if name is None:
                 continue
-            name = to_cli(arg.cli_name).upper()
-            if arg.multivalue:
-                name = '%s...' % name
-            if arg.required:
-                yield name
-            else:
-                yield '[%s]' % name
+            yield name
         yield '[options]'
 
     def prompt_interactively(self, cmd, kw):
