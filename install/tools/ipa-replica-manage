@@ -287,29 +287,35 @@ def del_master(realm, hostname, options):
         sys.exit(1)
 
     # 2. Ensure we have an agreement with the master
-    if thisrepl.get_replication_agreement(hostname) is None:
+    agreement = thisrepl.get_replication_agreement(hostname)
+    if agreement is None:
         sys.exit("'%s' has no replication agreement for '%s'" % (options.host, hostname))
 
-    # 3. Connect to the master to be removed.
-    try:
-        delrepl = replication.ReplicationManager(realm, hostname, options.dirman_passwd)
-    except Exception, e:
-        if not options.force:
-            print "Unable to delete replica %s: %s" % (hostname, str(e))
-            sys.exit(1)
-        else:
-            print "Unable to connect to replica %s, forcing removal" % hostname
-            force_del = True
+    # 3. If an IPA agreement connect to the master to be removed.
+    repltype = thisrepl.get_agreement_type(hostname)
+    if repltype == replication.IPA_REPLICA:
+        try:
+            delrepl = replication.ReplicationManager(realm, hostname, options.dirman_passwd)
+        except Exception, e:
+            if not options.force:
+                print "Unable to delete replica %s: %s" % (hostname, str(e))
+                sys.exit(1)
+            else:
+                print "Unable to connect to replica %s, forcing removal" % hostname
+                force_del = True
 
-    if force_del:
-        dn = 'cn=masters,cn=ipa,cn=etc,%s' % thisrepl.suffix
-        res = thisrepl.conn.search_s(dn, ldap.SCOPE_ONELEVEL)
-        replica_names = []
-        for entry in res:
-            replica_names.append(entry.cn)
+        if force_del:
+            dn = 'cn=masters,cn=ipa,cn=etc,%s' % thisrepl.suffix
+            res = thisrepl.conn.search_s(dn, ldap.SCOPE_ONELEVEL)
+            replica_names = []
+            for entry in res:
+                replica_names.append(entry.cn)
+        else:
+            # Get list of agreements.
+            replica_names = delrepl.find_ipa_replication_agreements()
     else:
-        # 2. Get list of agreements.
-        replica_names = delrepl.find_ipa_replication_agreements()
+        # WINSYNC replica, delete agreement from current host
+        replica_names = [options.host]
 
     # 4. Remove each agreement
     for r in replica_names:
@@ -347,6 +353,9 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
         if not options.binddn or not options.bindpw or not options.cacert or not options.passsync:
             root_logger.error("The arguments --binddn, --bindpw, --passsync and --cacert are required to create a winsync agreement")
             sys.exit(1)
+        if os.getegid() != 0:
+            root_logger.error("winsync agreements need to be created as root")
+            sys.exit(1)
 
     if options.cacert:
         # have to install the given CA cert before doing anything else
@@ -382,34 +391,43 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
         repl1.setup_gssapi_replication(replica2, "cn=Directory Manager", dirman_passwd)
     print "Connected '%s' to '%s'" % (replica1, replica2)
 
-def re_initialize(realm, options):
+def re_initialize(realm, thishost, fromhost, dirman_passwd):
 
-    if not options.fromhost:
-        print "re-initialize requires the option --from <host name>"
-        sys.exit(1)
+    thisrepl = replication.ReplicationManager(realm, thishost, dirman_passwd)
+    agreement = thisrepl.get_replication_agreement(fromhost)
+    if agreement is None:
+        sys.exit("'%s' has no replication agreement for '%s'" % (thishost, fromhost))
+    repltype = thisrepl.get_agreement_type(fromhost)
+    if repltype == replication.WINSYNC:
+        # With winsync we don't have a "remote" agreement, it is all local
+        repl = replication.ReplicationManager(realm, thishost, dirman_passwd)
+        repl.initialize_replication(agreement.dn, repl.conn)
+        repl.wait_for_repl_init(repl.conn, agreement.dn)
+    else:
+        repl = replication.ReplicationManager(realm, fromhost, dirman_passwd)
+        agreement = repl.get_replication_agreement(thishost)
+        repl.force_sync(repl.conn, thishost)
 
-    repl = replication.ReplicationManager(realm, options.fromhost, options.dirman_passwd)
+        repl.initialize_replication(agreement.dn, repl.conn)
+        repl.wait_for_repl_init(repl.conn, agreement.dn)
 
-    thishost = installutils.get_fqdn()
-
-    filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % thishost
-    entry = repl.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
-    if len(entry) == 0:
-        root_logger.error("Unable to find %s -> %s replication agreement" % (options.fromhost, thishost))
-        sys.exit(1)
-    if len(entry) > 1:
-        root_logger.error("Found multiple agreements for %s. Only initializing the first one returned: %s" % (thishost, entry[0].dn))
-
-    repl.initialize_replication(entry[0].dn, repl.conn)
-    repl.wait_for_repl_init(repl.conn, entry[0].dn)
-
-    ds = dsinstance.DsInstance(realm_name = realm, dm_password = options.dirman_passwd)
+    ds = dsinstance.DsInstance(realm_name = realm, dm_password = dirman_passwd)
     ds.init_memberof()
 
 def force_sync(realm, thishost, fromhost, dirman_passwd):
 
-    repl = replication.ReplicationManager(realm, fromhost, dirman_passwd)
-    repl.force_sync(repl.conn, thishost)
+    thisrepl = replication.ReplicationManager(realm, thishost, dirman_passwd)
+    agreement = thisrepl.get_replication_agreement(fromhost)
+    if agreement is None:
+        sys.exit("'%s' has no replication agreement for '%s'" % (thishost, fromhost))
+    repltype = thisrepl.get_agreement_type(fromhost)
+    if repltype == replication.WINSYNC:
+        # With winsync we don't have a "remote" agreement, it is all local
+        repl = replication.ReplicationManager(realm, thishost, dirman_passwd)
+        repl.force_sync(repl.conn, fromhost)
+    else:
+        repl = replication.ReplicationManager(realm, fromhost, dirman_passwd)
+        repl.force_sync(repl.conn, thishost)
 
 def main():
     if os.getegid() == 0:
@@ -460,7 +478,10 @@ def main():
     elif args[0] == "del":
         del_master(realm, args[1], options)
     elif args[0] == "re-initialize":
-        re_initialize(realm, options)
+        if not options.fromhost:
+            print "re-initialize requires the option --from <host name>"
+            sys.exit(1)
+        re_initialize(realm, host, options.fromhost, dirman_passwd)
     elif args[0] == "force-sync":
         if not options.fromhost:
             print "force-sync requires the option --from <host name>"
