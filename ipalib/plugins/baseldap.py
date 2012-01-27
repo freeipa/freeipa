@@ -1591,7 +1591,9 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
         #pylint: disable=E1003
         for key in self.obj.get_ancestor_primary_keys():
             yield key
-        yield Str('criteria?', noextrawhitespace=False)
+        yield Str('criteria?',
+                  noextrawhitespace=False,
+                  doc=_('A string searched in all relevant object attributes'))
         for arg in super(crud.Search, self).get_args():
             yield arg
 
