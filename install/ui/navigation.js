@@ -191,7 +191,7 @@ IPA.navigation = function(spec) {
 
         // push entity path and facet state
         state = {};
-        $.extend(state, that.get_path_state(tab.entity.name));
+        $.extend(state, that.get_path_state(tab.name));
         $.extend(state, facet.state);
         $.bbq.pushState(state, 2);
 
@@ -204,6 +204,26 @@ IPA.navigation = function(spec) {
 
     that.remove_state = function(key) {
         $.bbq.removeState(key);
+    };
+
+    that.show_tab = function(tab_name, pkey) {
+
+        var tab = that.get_tab(tab_name);
+
+        var state = that.get_path_state(tab.name);
+
+        if (tab.entity) {
+
+            if (tab.facet) {
+                state[tab.entity.name + '-facet'] = tab.facet;
+            }
+
+            if (pkey) {
+                state[tab.entity.name + '-pkey'] = pkey;
+            }
+        }
+
+        return that.push_state(state);
     };
 
     that.show_page = function(entity_name, facet_name, pkey) {
@@ -243,6 +263,22 @@ IPA.navigation = function(spec) {
         return that.push_state(state);
     };
 
+    that.get_tab_facet = function(tab_name) {
+
+        var facet = null;
+        var tab = that.get_tab(tab_name);
+
+        if (tab.entity) {
+            if (tab.facet) {
+                facet = tab.entity.get_facet(tab.facet);
+            } else {
+                facet = tab.entity.get_facet(tab.entity.redirect_facet);
+            }
+        }
+
+        return facet;
+    };
+
 
     that.create = function() {
 
@@ -279,7 +315,7 @@ IPA.navigation = function(spec) {
                 }
 
                 // selection is triggered by mouse click, update the URL state
-                return that.show_page(name);
+                return that.show_tab(name);
             }
         });
     };
@@ -389,8 +425,8 @@ IPA.navigation = function(spec) {
                                      that.content);
             if (!entity_container.length) {
                 tab.content = $('<div/>', {
-                    name: tab.name,
-                    title: tab.label,
+                    name: tab.entity.name,
+                    title: tab.entity.label,
                     'class': 'entity'
                 }).appendTo(that.content);
                 tab.entity.create(tab.content);
