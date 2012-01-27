@@ -36,6 +36,7 @@ IPA.facet = function(spec) {
     that.name = spec.name;
     that.label = spec.label;
     that.title = spec.title || that.label;
+    that.tab_label = spec.tab_label || that.label;
     that.display_class = spec.display_class;
 
     that.disable_breadcrumb = spec.disable_breadcrumb;
@@ -49,6 +50,8 @@ IPA.facet = function(spec) {
 
     // facet group name
     that.facet_group = spec.facet_group;
+
+    that.redirect_info = spec.redirect_info;
 
     that.state = {};
 
@@ -132,15 +135,39 @@ IPA.facet = function(spec) {
         that.content.append('<p>'+error_thrown.message+'</p>');
     };
 
-    that.redirect = function() {
+    that.get_redirect_facet = function() {
+
         var entity = that.entity;
         while (entity.containing_entity) {
             entity = entity.get_containing_entity();
         }
+        var facet_name = that.entity.redirect_facet;
+        var entity_name = entity.name;
+        var tab_name, facet;
 
-        IPA.nav.show_page(
-            entity.name,
-            that.entity.redirect_facet);
+        if (that.redirect_info) {
+            entity_name = that.redirect_info.entity || entity_name;
+            facet_name = that.redirect_info.facet || facet_name;
+            tab_name = that.redirect_info.tab;
+        }
+
+        if (tab_name) {
+            facet = IPA.nav.get_tab_facet(tab_name);
+        }
+
+        if (!facet) {
+            entity = IPA.get_entity(entity_name);
+            facet = entity.get_facet(facet_name);
+        }
+
+        return facet;
+    };
+
+    that.redirect = function() {
+
+        var facet = that.get_redirect_facet();
+        if (!facet) return;
+        IPA.nav.show_page(facet.entity.name, facet.name);
     };
 
     var redirect_error_codes = [4001];
@@ -149,12 +176,10 @@ IPA.facet = function(spec) {
 
         /*If the error is in talking to the server, don't attempt to redirect,
           as there is nothing any other facet can do either. */
-        if (that.entity.redirect_facet) {
-            for (var i=0; i<redirect_error_codes.length; i++) {
-                if (error_thrown.code === redirect_error_codes[i]) {
-                    that.redirect();
-                    return;
-                }
+        for (var i=0; i<redirect_error_codes.length; i++) {
+            if (error_thrown.code === redirect_error_codes[i]) {
+                that.redirect();
+                return;
             }
         }
     };
@@ -244,7 +269,7 @@ IPA.facet_header = function(spec) {
 
         that.title_container.empty();
         var h3 = $('<h3/>').appendTo(that.title_container);
-        h3.append(that.facet.title);
+        h3.append(that.facet.label);
         h3.append(': ');
 
         $('<span/>', {
@@ -272,7 +297,7 @@ IPA.facet_header = function(spec) {
         }).appendTo(container);
 
         $('<a/>', {
-            text: other_facet.label,
+            text: other_facet.tab_label,
             id: other_facet.name
         }).appendTo(li);
     };
@@ -310,13 +335,10 @@ IPA.facet_header = function(spec) {
                 'class': 'back-link'
             }).appendTo(that.breadcrumb);
 
-            var entity = that.facet.entity;
-            while (entity.containing_entity) {
-                entity = entity.get_containing_entity();
-            }
+            var redirect_facet = that.facet.get_redirect_facet();
 
             $('<a/>', {
-                text: entity.metadata.label,
+                text: redirect_facet.label,
                 click: function() {
                     that.facet.redirect();
                     return false;
@@ -334,7 +356,7 @@ IPA.facet_header = function(spec) {
         }).appendTo(container);
 
         var span = $('<h3/>', {
-            text: that.facet.entity.label
+            text: that.facet.label
         }).appendTo(that.title_container);
 
         if (!that.facet.disable_facet_tabs) {
@@ -384,9 +406,9 @@ IPA.facet_header = function(spec) {
 
                     var values = result ? result[facet.name] : null;
                     if (values) {
-                        link.text(facet.label+' ('+values.length+')');
+                        link.text(facet.tab_label+' ('+values.length+')');
                     } else {
-                        link.text(facet.label);
+                        link.text(facet.tab_label);
                     }
                 }
             }
@@ -415,6 +437,7 @@ IPA.table_facet = function(spec) {
 
     that.row_enabled_attribute = spec.row_enabled_attribute;
     that.row_disabled_attribute = spec.row_disabled_attribute;
+    that.details_facet_name = spec.details_facet || 'default';
 
     that.columns = $.ordered_map();
 
@@ -701,7 +724,7 @@ IPA.table_facet = function(spec) {
 
             if (column.link && column.primary_key) {
                 column.link_handler = function(value) {
-                    IPA.nav.show_page(entity.name, 'default', value);
+                    IPA.nav.show_page(entity.name, that.details_facet_name, value);
                     return false;
                 };
             }
@@ -834,7 +857,8 @@ IPA.facet_builder = function(entity) {
     that.prepare_search_spec = function(spec) {
 
         spec.title = spec.title || entity.metadata.label;
-        spec.label = spec.label || IPA.messages.facets.search;
+        spec.label = spec.label || entity.metadata.label;
+        spec.tab_label = spec.tab_label || IPA.messages.facets.search;
         spec.factory = spec.factory || IPA.search_facet;
 
         add_redirect_info();
@@ -844,7 +868,8 @@ IPA.facet_builder = function(entity) {
     that.prepare_nested_search_spec = function(spec) {
 
         spec.title = spec.title || entity.metadata.label_singular;
-        spec.label = spec.label || IPA.messages.facets.search;
+        spec.label = spec.label || entity.metadata.label;
+        spec.tab_label = spec.tab_label || IPA.messages.facets.search;
         spec.factory = spec.factory || IPA.nested_search_facet;
 
         return spec;
@@ -852,7 +877,8 @@ IPA.facet_builder = function(entity) {
 
     that.prepare_details_spec = function(spec) {
         spec.title = spec.title || entity.metadata.label_singular;
-        spec.label = spec.label || IPA.messages.facets.details;
+        spec.label = spec.label || entity.metadata.label_singular;
+        spec.tab_label = spec.tab_label || IPA.messages.facets.details;
         spec.factory = spec.factory || IPA.details_facet;
 
         return spec;
@@ -875,9 +901,8 @@ IPA.facet_builder = function(entity) {
 
         spec.factory = spec.factory || IPA.association_facet;
 
-        spec.title = spec.label || entity.metadata.label_singular;
-
-        spec.label = spec.label ||
+        spec.label = spec.label || entity.metadata.label_singular;
+        spec.tab_label = spec.tab_label ||
             (IPA.metadata.objects[spec.other_entity] ?
             IPA.metadata.objects[spec.other_entity].label : spec.other_entity);
 

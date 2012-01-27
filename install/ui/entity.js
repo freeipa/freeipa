@@ -377,7 +377,7 @@ IPA.entity_builder = function() {
 
         that.facet(spec);
 
-        add_redirect_info();
+        add_redirect_info(spec.name);
 
         return that;
     };
@@ -487,8 +487,9 @@ IPA.entity_builder = function() {
     }
 
     function add_redirect_info(facet_name){
+        facet_name = facet_name || 'search';
         if (!entity.redirect_facet){
-            entity.redirect_facet = 'search';
+            entity.redirect_facet = facet_name;
         }
     }
 
