@@ -226,7 +226,7 @@ class ReplicationManager(object):
         Returns None if not found.
         """
 
-        filt = "(&(objectclass=nsds5ReplicationAgreement)(nsDS5ReplicaHost=%s))" % hostname
+        filt = "(&(|(objectclass=nsds5ReplicationAgreement)(objectclass=nsDSWindowsReplicationAgreement))(nsDS5ReplicaHost=%s))" % hostname
         try:
             entry = self.conn.search_s("cn=mapping tree,cn=config",
                                        ldap.SCOPE_SUBTREE, filt)
