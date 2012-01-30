@@ -62,6 +62,10 @@ enable it:
 
  ipa config-mod --enable-migration=TRUE
 
+If a base DN is not provided with --basedn then IPA will use either
+the value of defaultNamingContext if it is set or the first value
+in namingContexts set in the root of the remote LDAP server.
+
 EXAMPLES:
 
  The simplest migration, accepting all defaults:
@@ -353,14 +357,14 @@ class migrate_ds(Command):
         Str('usercontainer?',
             cli_name='user_container',
             label=_('User container'),
-            doc=_('RDN of container for users in DS'),
+            doc=_('RDN of container for users in DS relative to base DN'),
             default=u'ou=people',
             autofill=True,
         ),
         Str('groupcontainer?',
             cli_name='group_container',
             label=_('Group container'),
-            doc=_('RDN of container for groups in DS'),
+            doc=_('RDN of container for groups in DS relative to base DN'),
             default=u'ou=groups',
             autofill=True,
         ),
@@ -430,6 +434,11 @@ class migrate_ds(Command):
             label=_('Continue'),
             doc=_('Continuous operation mode. Errors are reported but the process continues'),
             default=False,
+        ),
+        Str('basedn?',
+            cli_name='base_dn',
+            label=_('Base DN'),
+            doc=_('Base DN on remote LDAP server'),
         ),
     )
 
@@ -526,14 +535,14 @@ can use their Kerberos accounts.''')
             try:
                 (entries, truncated) = ds_ldap.find_entries(
                     search_filter, ['*'], search_bases[ldap_obj_name],
-                    ds_ldap.SCOPE_ONELEVEL,
+                    _ldap.SCOPE_ONELEVEL,
                     time_limit=0, size_limit=-1,
                     search_refs=True    # migrated DS may contain search references
                 )
             except errors.NotFound:
                 if not options.get('continue',False):
                     raise errors.NotFound(
-                        reason=_('Container for %(container)s not found') % {'container': ldap_obj_name}
+                        reason=_('Container for %(container)s not found at %(search_base)s') % {'container': ldap_obj_name, 'search_base': search_bases[ldap_obj_name]}
                     )
                 else:
                     truncated = False
@@ -627,6 +636,8 @@ can use their Kerberos accounts.''')
 
         config = ldap.get_ipa_config()[1]
 
+        ds_base_dn = options.get('basedn')
+
         # check if migration mode is enabled
         if config.get('ipamigrationenabled', ('FALSE', ))[0] == 'FALSE':
             return dict(result={}, failed={}, enabled=False)
@@ -635,15 +646,19 @@ can use their Kerberos accounts.''')
         ds_ldap = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
         ds_ldap.connect(bind_dn=options['binddn'], bind_pw=bindpw)
 
-        # retrieve DS base DN
-        (entries, truncated) = ds_ldap.find_entries(
-            '', ['namingcontexts'], '', ds_ldap.SCOPE_BASE,
-            size_limit=-1, time_limit=0,
-        )
-        try:
-            ds_base_dn = entries[0][1]['namingcontexts'][0]
-        except (IndexError, KeyError), e:
-            raise StandardError(str(e))
+        if not ds_base_dn:
+            # retrieve base DN from remote LDAP server
+            (entries, truncated) = ds_ldap.find_entries(
+                '', ['namingcontexts', 'defaultnamingcontext'], '',
+                _ldap.SCOPE_BASE, size_limit=-1, time_limit=0,
+            )
+            if 'defaultnamingcontext' in entries[0][1]:
+                ds_base_dn = entries[0][1]['defaultnamingcontext'][0]
+            else:
+                try:
+                    ds_base_dn = entries[0][1]['namingcontexts'][0]
+                except (IndexError, KeyError), e:
+                    raise StandardError(str(e))
 
         # migrate!
         (migrated, failed) = self.migrate(

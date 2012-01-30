@@ -1191,10 +1191,16 @@ def get_ipa_basedn(conn):
     :param conn: Bound LDAP connection that will be used for searching
     """
     entries = conn.search_ext_s(
-        '', scope=ldap.SCOPE_BASE, attrlist=['namingcontexts']
+        '', scope=ldap.SCOPE_BASE, attrlist=['defaultnamingcontext', 'namingcontexts']
     )
 
     contexts = entries[0][1]['namingcontexts']
+    if entries[0][1].get('defaultnamingcontext'):
+        # If there is a defaultNamingContext examine that one first
+        default = entries[0][1]['defaultnamingcontext'][0]
+        if default in contexts:
+            contexts.remove(default)
+        contexts.insert(0, entries[0][1]['defaultnamingcontext'][0])
     for context in contexts:
         root_logger.debug("Check if naming context '%s' is for IPA" % context)
         try:
