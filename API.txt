@@ -1893,7 +1893,7 @@ output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('value', <type 'unicode'>, None)
 command: migrate_ds
-args: 2,14,3
+args: 2,15,3
 arg: Str('ldapuri', cli_name='ldap_uri')
 arg: Password('bindpw', cli_name='password', confirm=False)
 option: Str('binddn?', autofill=True, cli_name='bind_dn', default=u'cn=directory manager')
@@ -1908,6 +1908,7 @@ option: Str('groupignoreattribute*', autofill=True, cli_name='group_ignore_attri
 option: Flag('groupoverwritegid', autofill=True, cli_name='group_overwrite_gid', default=False)
 option: StrEnum('schema?', autofill=True, cli_name='schema', default=u'RFC2307bis', values=(u'RFC2307bis', u'RFC2307'))
 option: Flag('continue?', autofill=True, default=False)
+option: Str('basedn?', cli_name='base_dn')
 option: Str('exclude_groups*', autofill=True, cli_name='exclude_groups', csv=True, default=())
 option: Str('exclude_users*', autofill=True, cli_name='exclude_users', csv=True, default=())
 output: Output('result', <type 'dict'>, None)
