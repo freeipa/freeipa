@@ -1058,6 +1058,12 @@ span.main-separator{
 
 .strikethrough { text-decoration: line-through; }
 
+textarea.certificate {
+    font-family: "Courier New";
+    width: 100%;
+    height: 250px;
+}
+
 table.certificate-status {
     line-height: 2;
 }

@@ -173,7 +173,7 @@ IPA.cert.download_dialog = function(spec) {
     var that = IPA.dialog(spec);
 
     that.width = spec.width || 500;
-    that.height = spec.height || 400;
+    that.height = spec.height || 380;
     that.add_pem_delimiters = typeof spec.add_pem_delimiters == 'undefined' ? true : spec.add_pem_delimiters;
 
     that.certificate = spec.certificate || '';
@@ -188,8 +188,8 @@ IPA.cert.download_dialog = function(spec) {
 
     that.create = function() {
         var textarea = $('<textarea/>', {
-            readonly: 'yes',
-            style: 'width: 100%; height: 275px;'
+            'class': 'certificate',
+            readonly: 'yes'
         }).appendTo(that.container);
 
         var certificate = that.certificate;
@@ -438,7 +438,7 @@ IPA.cert.request_dialog = function(spec) {
     var that = IPA.dialog(spec);
 
     that.width = spec.width || 600;
-    that.height = spec.height || 450;
+    that.height = spec.height || 480;
     that.message = spec.message;
 
     that.request = spec.request;
@@ -470,7 +470,7 @@ IPA.cert.request_dialog = function(spec) {
         that.container.append(that.message);
 
         that.textarea = $('<textarea/>', {
-            style: 'width: 100%; height: 225px;'
+            'class': 'certificate'
         }).appendTo(that.container);
     };
 
@@ -732,16 +732,16 @@ IPA.cert.status_widget = function(spec) {
     };
 
     function set_status(status, revocation_reason) {
-        that.status_valid.css('display', status == IPA.cert.CERTIFICATE_STATUS_VALID ? 'inline' : 'none');
-        that.status_missing.css('display', status == IPA.cert.CERTIFICATE_STATUS_MISSING ? 'inline' : 'none');
+        that.status_valid.css('display', status == IPA.cert.CERTIFICATE_STATUS_VALID ? '' : 'none');
+        that.status_missing.css('display', status == IPA.cert.CERTIFICATE_STATUS_MISSING ? '' : 'none');
 
         if (!that.is_selfsign()) {
-            that.status_revoked.css('display', status == IPA.cert.CERTIFICATE_STATUS_REVOKED ? 'inline' : 'none');
-            that.revoke_button.css('display', status == IPA.cert.CERTIFICATE_STATUS_VALID ? 'inline' : 'none');
+            that.status_revoked.css('display', status == IPA.cert.CERTIFICATE_STATUS_REVOKED ? '' : 'none');
+            that.revoke_button.css('display', status == IPA.cert.CERTIFICATE_STATUS_VALID ? '' : 'none');
 
             var reason = IPA.cert.CRL_REASON[revocation_reason];
             that.revocation_reason.html(revocation_reason === undefined || reason === null ? '' : IPA.messages.objects.cert[reason]);
-            that.restore_button.css('display', reason == 'certificate_hold' ? 'inline' : 'none');
+            that.restore_button.css('display', reason == 'certificate_hold' ? '' : 'none');
         }
     }
 
