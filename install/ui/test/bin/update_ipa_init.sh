@@ -43,6 +43,7 @@ json="{
 curl -v\
  -H "Content-Type: application/json"\
  -H "Accept: applicaton/json"\
+ -H "Referer: https://`hostname`/ipa/xml"\
  --negotiate\
  --delegation always\
  -u :\

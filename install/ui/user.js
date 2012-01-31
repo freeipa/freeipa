@@ -82,6 +82,12 @@ IPA.user.entity = function(spec) {
                             factory: IPA.user_password_widget,
                             name: 'userpassword'
                         },
+                        {
+                            name: 'krbpasswordexpiration',
+                            label: IPA.messages.objects.user.krbpasswordexpiration,
+                            read_only: true,
+                            formatter: IPA.utc_date_formatter()
+                        },
                         'uidnumber',
                         'gidnumber',
                         'loginshell',
@@ -551,11 +557,11 @@ IPA.user_password_widget = function(spec) {
 
     that.show_dialog = function() {
 
-        that.pkey = IPA.nav.get_state('user-pkey');
-        that.self_service = that.pkey === IPA.whoami.uid[0];
+        var pkey = IPA.nav.get_state('user-pkey');
+        var self_service = pkey === IPA.whoami.uid[0];
 
         var sections = [];
-        if(that.self_service) {
+        if (self_service) {
             sections.push({
                 fields: [
                     {
@@ -600,7 +606,7 @@ IPA.user_password_widget = function(spec) {
 
                 var current_password;
 
-                if (that.self_service) {
+                if (self_service) {
                     current_password = record.current_password[0];
                     if (!current_password) {
                         alert(IPA.messages.password.current_password_required);
@@ -617,11 +623,15 @@ IPA.user_password_widget = function(spec) {
                 }
 
                 that.set_password(
+                    pkey,
                     current_password,
                     new_password,
                     function(data, text_status, xhr) {
                         alert(IPA.messages.password.password_change_complete);
                         dialog.close();
+                        // refresh password expiration field
+                        var facet = IPA.current_entity.get_facet();
+                        facet.refresh();
                     },
                     function(xhr, text_status, error_thrown) {
                         dialog.close();
@@ -641,18 +651,11 @@ IPA.user_password_widget = function(spec) {
         dialog.open(that.container);
     };
 
-    that.set_password = function(current_password, password, on_success, on_error) {
-
-        var args;
-        if (that.self_service) {
-            args = [];
-        } else {
-            args = [that.pkey];
-        }
+    that.set_password = function(pkey, current_password, password, on_success, on_error) {
 
         var command = IPA.command({
             method: 'passwd',
-            args: args,
+            args: [ pkey ],
             options: {
                 current_password: current_password,
                 password: password
