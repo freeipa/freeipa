@@ -44,7 +44,7 @@ IPA.user.entity = function(spec) {
                 {
                     name: 'nsaccountlock',
                     label: IPA.messages.status.label,
-                    format: IPA.boolean_status_format({
+                    formatter: IPA.boolean_status_formatter({
                         invert_value: true
                     })
                 },

@@ -628,7 +628,7 @@ IPA.table_facet = function(spec) {
 
         var value = record[attribute];
         var column = that.table.get_column(attribute);
-        if (column.format) value = column.format.parse(value);
+        if (column.formatter) value = column.formatter.parse(value);
 
         that.table.set_row_enabled(tr, value);
     };

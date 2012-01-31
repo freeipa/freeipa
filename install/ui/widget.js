@@ -950,11 +950,13 @@ IPA.textarea_widget = function (spec) {
     return that;
 };
 
-IPA.format = function(spec) {
+IPA.formatter = function(spec) {
 
     spec = spec || {};
 
     var that = {};
+
+    that.type = spec.type; // default is text
 
     // parse attribute value into a normalized value
     that.parse = function(value) {
@@ -969,11 +971,11 @@ IPA.format = function(spec) {
     return that;
 };
 
-IPA.boolean_format = function(spec) {
+IPA.boolean_formatter = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.format(spec);
+    var that = IPA.formatter(spec);
 
     that.true_value = spec.true_value || IPA.messages['true'];
     that.false_value = spec.false_value || IPA.messages['false'];
@@ -1025,18 +1027,29 @@ IPA.boolean_format = function(spec) {
         return value;
     };
 
+    that.boolean_formatter_parse = that.parse;
+    that.boolean_formatter_format = that.format;
+
     return that;
 };
 
-IPA.boolean_status_format = function(spec) {
+IPA.boolean_status_formatter = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.boolean_format(spec);
+    var that = IPA.boolean_formatter(spec);
 
     that.true_value = spec.true_value || IPA.messages.status.enabled;
     that.false_value = spec.false_value || IPA.messages.status.disabled;
     that.show_false = true;
+    that.type = 'html';
+
+    that.format = function(value) {
+        var status = value ? 'enabled' : 'disabled';
+        var formatted_value = that.boolean_formatter_format(value);
+        formatted_value = '<span class=\"icon '+status+'-icon\"/> '+formatted_value;
+        return formatted_value;
+    };
 
     return that;
 };
@@ -1057,7 +1070,7 @@ IPA.column = function (spec) {
     that.width = spec.width;
     that.primary_key = spec.primary_key;
     that.link = spec.link;
-    that.format = spec.format;
+    that.formatter = spec.formatter;
 
     if (!that.entity) {
         throw {
@@ -1071,23 +1084,31 @@ IPA.column = function (spec) {
         container.empty();
 
         var value = record[that.name];
-        if (that.format) {
-            value = that.format.parse(value);
-            value = that.format.format(value);
+        var type;
+        if (that.formatter) {
+            value = that.formatter.parse(value);
+            value = that.formatter.format(value);
+            type = that.formatter.type;
         }
         value = value ? value.toString() : '';
 
+        var c;
         if (that.link && !suppress_link) {
-            $('<a/>', {
+            c = $('<a/>', {
                 href: '#'+value,
-                text: value,
                 click: function() {
                     return that.link_handler(value);
                 }
             }).appendTo(container);
 
         } else {
-            container.text(value);
+            c = container;
+        }
+
+        if (type === 'html') {
+            c.html(value);
+        } else {
+            c.text(value);
         }
     };
 
