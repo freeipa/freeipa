@@ -85,7 +85,7 @@ def parse_options():
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
     dns_group.add_option("--reverse-zone", dest="reverse_zone", help="The reverse DNS zone to use")
     dns_group.add_option("--no-reverse", dest="no_reverse", action="store_true",
-                      default=False, help="Do not create reverse DNS zone")
+                      default=False, help="Do not create new reverse DNS zone")
     dns_group.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
                       default=False,
                       help="Do not use DNS for hostname lookup during installation")
