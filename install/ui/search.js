@@ -114,6 +114,13 @@ IPA.search_facet = function(spec) {
                 return false;
             }
         }).appendTo(that.controls);
+
+        var self_service = IPA.nav.name === 'self-service';
+
+        if (self_service) {
+            that.remove_button.css('display', 'none');
+            that.add_button.css('display', 'none');
+        }
     };
 
     that.show = function() {
