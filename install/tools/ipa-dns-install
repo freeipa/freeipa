@@ -48,7 +48,7 @@ def parse_options():
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
     parser.add_option("--reverse-zone", dest="reverse_zone", help="The reverse DNS zone to use")
     parser.add_option("--no-reverse", dest="no_reverse", action="store_true",
-                      default=False, help="Do not create reverse DNS zone")
+                      default=False, help="Do not create new reverse DNS zone")
     parser.add_option("--zonemgr", action="callback", callback=bindinstance.zonemgr_callback,
                       type="string",
                       help="DNS zone manager e-mail address. Defaults to root")

@@ -44,7 +44,7 @@ Do not add any DNS forwarders, send non\-resolvable addresses to the DNS root se
 The reverse DNS zone to use
 .TP
 \fB\-\-no\-reverse\fR
-Do not create reverse DNS zone
+Do not create new reverse DNS zone. If used on a replica and a reverse DNS zone already exists for the subnet, it will be used.
 .TP
 \fB\-\-zonemgr\fR
 The e\-mail address of the DNS zone manager. Defaults too root@host.domain
