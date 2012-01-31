@@ -1054,6 +1054,45 @@ IPA.boolean_status_formatter = function(spec) {
     return that;
 };
 
+/* Take an LDAP format date in UTC and format it */
+IPA.utc_date_formatter = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.formatter(spec);
+
+    that.format = function(value) {
+
+        if (!value) return '';
+
+        // verify length
+        if (value.length  != 'YYYYmmddHHMMSSZ'.length) {
+            return value;
+        }
+
+        /* We only handle GMT */
+        if (value.charAt(value.length -1) !== 'Z') {
+            return value;
+        }
+
+        var date = new Date();
+
+        date.setUTCFullYear(
+            value.substring(0, 4),    // YYYY
+            value.substring(4, 6)-1,  // mm (0-11)
+            value.substring(6, 8));   // dd (1-31)
+
+        date.setUTCHours(
+            value.substring(8, 10),   // HH (0-23)
+            value.substring(10, 12),  // MM (0-59)
+            value.substring(12, 14)); // SS (0-59)
+
+        return date.toString();
+    };
+
+    return that;
+};
+
 /*
   The entity name must be set in the spec either directly or via entity.name
 */

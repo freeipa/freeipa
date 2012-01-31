@@ -474,6 +474,7 @@ class i18n_messages(Command):
                 "contact": _("Contact Settings"),
                 "employee": _("Employee Information"),
                 "error_changing_status": _("Error changing account status"),
+                "krbpasswordexpiration": _("Password expiration"),
                 "mailing": _("Mailing Address"),
                 "misc": _("Misc. Information"),
                 "status_confirmation": _("Are you sure you want to ${action} the user?<br/>The change will take effect immediately."),

@@ -34,6 +34,7 @@ IPA.field = function(spec) {
     that.name = spec.name;
     that.label = spec.label;
     that.tooltip = spec.tooltip;
+    that.formatter = spec.formatter;
 
     that.widget = null;
     that.widget_name = spec.widget;
@@ -194,7 +195,25 @@ IPA.field = function(spec) {
     };
 
     that.update = function() {
-        if(that.widget && that.widget.update) that.widget.update(that.values);
+
+        if (!that.widget || !that.widget.update) return;
+
+        var formatted_values;
+
+        // The formatter is currently only used on read-only fields only
+        // because it cannot parse formatted values back to internal values.
+        if (that.formatter && that.read_only) {
+            formatted_values = [];
+            for (var i=0; that.values && i<that.values.length; i++) {
+                var value = that.values[i];
+                var formatted_value = that.formatter.format(value);
+                formatted_values.push(formatted_value);
+            }
+        } else {
+            formatted_values = that.values;
+        }
+
+        that.widget.update(formatted_values);
     };
 
     that.get_update_info = function() {
