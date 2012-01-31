@@ -169,6 +169,18 @@ body {
     margin: -4px 0 0 1px;
 }
 
+.enabled-icon {
+    background-image: url(images/ui-icons_222222_256x240.png);
+    background-position: -64px -144px;
+    margin: -4px 0 0 1px;
+}
+
+.disabled-icon {
+    background-image: url(images/ui-icons_bbbbbb_256x240.png);
+    background-position: -64px -128px;
+    margin: -4px 0 0 1px;
+}
+
 .register-icon {
     background: url(images/entitle-register.png);
     margin: -4px 0 0 1px;

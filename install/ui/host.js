@@ -40,7 +40,7 @@ IPA.host.entity = function(spec) {
                 {
                     name: 'has_keytab',
                     label: IPA.messages.objects.host.enrolled,
-                    format: IPA.boolean_format()
+                    formatter: IPA.boolean_formatter()
                 }
             ]
         }).
@@ -467,11 +467,11 @@ IPA.field_factories['host_dnsrecord_entity_link'] = IPA.host_dnsrecord_entity_li
 IPA.widget_factories['host_dnsrecord_entity_link'] = IPA.link_widget;
 
 /* Take an LDAP format date in UTC and format it */
-IPA.utc_date_column_format = function(spec) {
+IPA.utc_date_column_formatter = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.format(spec);
+    var that = IPA.formatter(spec);
 
     that.format = function(value) {
 
