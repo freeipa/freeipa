@@ -1106,14 +1106,9 @@ def get_gsserror(e):
 
 
 
-def host_port_open(host, port, socket_stream=True, socket_timeout=None):
+def host_port_open(host, port, socket_type=socket.SOCK_STREAM, socket_timeout=None):
     families = (socket.AF_INET, socket.AF_INET6)
     success = False
-
-    if socket_stream:
-        socket_type = socket.SOCK_STREAM
-    else:
-        socket_type = socket.SOCK_DGRAM
 
     for family in families:
         try:
@@ -1126,6 +1121,11 @@ def host_port_open(host, port, socket_stream=True, socket_timeout=None):
                 s.settimeout(socket_timeout)
 
             s.connect((host, port))
+
+            if socket_type == socket.SOCK_DGRAM:
+                s.send('')
+                s.recv(512)
+
             success = True
         except socket.error, e:
             pass
@@ -1137,13 +1137,8 @@ def host_port_open(host, port, socket_stream=True, socket_timeout=None):
 
     return False
 
-def bind_port_responder(port, socket_stream=True, socket_timeout=None, responder_data=None):
+def bind_port_responder(port, socket_type=socket.SOCK_STREAM, socket_timeout=None, responder_data=None):
     families = (socket.AF_INET, socket.AF_INET6)
-
-    if socket_stream:
-        socket_type = socket.SOCK_STREAM
-    else:
-        socket_type = socket.SOCK_DGRAM
 
     host = ''   # all available interfaces
 
@@ -1157,13 +1152,13 @@ def bind_port_responder(port, socket_stream=True, socket_timeout=None, responder
     if socket_timeout is not None:
         s.settimeout(socket_timeout)
 
-    if socket_stream:
+    if socket_type == socket.SOCK_STREAM:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     try:
         s.bind((host, port))
 
-        if socket_stream:
+        if socket_type == socket.SOCK_STREAM:
             s.listen(1)
             connection, client_address = s.accept()
             try:
@@ -1171,8 +1166,8 @@ def bind_port_responder(port, socket_stream=True, socket_timeout=None, responder
                     connection.sendall(responder_data) #pylint: disable=E1101
             finally:
                 connection.close()
-        else:
-            data, addr = s.recvfrom( 512 ) # buffer size is 1024 bytes
+        elif socket_type == socket.SOCK_DGRAM:
+            data, addr = s.recvfrom(1)
 
             if responder_data:
                 s.sendto(responder_data, addr)
