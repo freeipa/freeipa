@@ -143,13 +143,20 @@ class netgroup_add(LDAPCreate):
 
     has_output_params = LDAPCreate.has_output_params + output_params
     msg_summary = _('Added netgroup "%(value)s"')
+
+    msg_collision = _(u'hostgroup with name "%s" already exists. ' \
+                      u'Hostgroups and netgroups share a common namespace')
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         entry_attrs.setdefault('nisdomainname', self.api.env.domain)
 
         try:
-            # check duplicity with netgroups first to provide proper error
-            netgroup = api.Command['netgroup_show'](keys[-1])
-            self.obj.handle_duplicate_entry(*keys)
+            dn = self.obj.get_dn(keys[-1])
+            (dn_, netgroup) = ldap.get_entry(dn, ['objectclass'])
+            if 'mepManagedEntry' in netgroup.get('objectclass', []):
+                raise errors.DuplicateEntry(message=unicode(self.msg_collision % keys[-1]))
+            else:
+                self.obj.handle_duplicate_entry(*keys)
         except errors.NotFound:
             pass
 
@@ -158,10 +165,7 @@ class netgroup_add(LDAPCreate):
             # make sure that we don't create a collision if the plugin is
             # (temporarily) disabled
             netgroup = api.Command['hostgroup_show'](keys[-1])
-            raise errors.DuplicateEntry(message=unicode(_(\
-                    u'hostgroup with name "%s" already exists. ' \
-                    u'Hostgroups and netgroups share a common namespace'\
-                    ) % keys[-1]))
+            raise errors.DuplicateEntry(message=unicode(self.msg_collision % keys[-1]))
         except errors.NotFound:
             pass
 
