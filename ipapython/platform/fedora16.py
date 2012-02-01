@@ -59,24 +59,24 @@ class Fedora16Service(systemd.SystemdService):
         super(Fedora16Service, self).__init__(service_name)
 
 # Special handling of directory server service
-# LimitNOFILE needs to be increased or any value set in the directory for this value will fail
-# Read /lib/systemd/system/dirsrv@.service for details.
-# We do modification of LimitNOFILE on service.enable() but we also need to explicitly enable instances
-# to install proper symlinks as dirsrv.target.wants/ dependencies. Unfortunately, ipa-server-install
-# does not do explicit dirsrv.enable() because the service startup is handled by ipactl.
+#
+# We need to explicitly enable instances to install proper symlinks as dirsrv.target.wants/
+# dependencies. Standard systemd service class does it on #enable() method call. Unfortunately,
+# ipa-server-install does not do explicit dirsrv.enable() because the service startup is handled by ipactl.
+#
 # If we wouldn't do this, our instances will not be started as systemd would not have any clue
 # about instances (PKI-IPA and the domain we serve) at all. Thus, hook into dirsrv.restart().
 class Fedora16DirectoryService(Fedora16Service):
     def enable(self, instance_name=""):
         super(Fedora16DirectoryService, self).enable(instance_name)
-        srv_etc = os.path.join(self.SYSTEMD_ETC_PATH, self.service_name)
-        if os.path.exists(srv_etc):
+        dirsrv_systemd = "/etc/sysconfig/dirsrv.systemd"
+        if os.path.exists(dirsrv_systemd):
             # We need to enable LimitNOFILE=8192 in the dirsrv@.service
-            # We rely on the fact that [Service] section is the last one
-            # and if variable is not there, it will be added as the last line
+            # Since 389-ds-base-1.2.10-0.8.a7 the configuration of the service parameters is performed
+            # via /etc/sysconfig/dirsrv.systemd file which is imported by systemd into dirsrv@.service unit
             replacevars = {'LimitNOFILE':'8192'}
-            ipautil.config_replace_variables(srv_etc, replacevars=replacevars)
-            redhat.restore_context(srv_etc)
+            ipautil.inifile_replace_variables(dirsrv_systemd, 'service', replacevars=replacevars)
+            redhat.restore_context(dirsrv_systemd)
             ipautil.run(["/bin/systemctl", "--system", "daemon-reload"],raiseonerr=False)
 
     def restart(self, instance_name="", capture_output=True):
