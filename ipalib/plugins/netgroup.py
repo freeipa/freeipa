@@ -250,31 +250,7 @@ class netgroup_add_member(LDAPAddMember):
     member_attributes = ['memberuser', 'memberhost', 'member']
     has_output_params = LDAPAddMember.has_output_params + output_params
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
-        completed_external = 0
-        # Sift through the host failures. We assume that these are all
-        # hosts that aren't stored in IPA, aka external hosts.
-        if 'memberhost' in failed and 'host' in failed['memberhost']:
-            (dn, entry_attrs_) = ldap.get_entry(dn, ['externalhost'])
-            members = entry_attrs.get('memberhost', [])
-            external_hosts = entry_attrs_.get('externalhost', [])
-            failed_hosts = []
-            for host in failed['memberhost']['host']:
-                hostname = host[0].lower()
-                host_dn = self.api.Object['host'].get_dn(hostname)
-                if hostname not in external_hosts and host_dn not in members:
-                    external_hosts.append(hostname)
-                    completed_external += 1
-                else:
-                    failed_hosts.append(hostname)
-            if completed_external:
-                try:
-                    ldap.update_entry(dn, {'externalhost': external_hosts})
-                except errors.EmptyModlist:
-                    pass
-                failed['memberhost']['host'] = failed_hosts
-                entry_attrs['externalhost'] = external_hosts
-        return (completed + completed_external, dn)
-
+        return add_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
 
 api.register(netgroup_add_member)
 
@@ -285,27 +261,6 @@ class netgroup_remove_member(LDAPRemoveMember):
     member_attributes = ['memberuser', 'memberhost', 'member']
     has_output_params = LDAPRemoveMember.has_output_params + output_params
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
-        # Run through the host failures and gracefully remove any defined as
-        # as an externalhost.
-        if 'memberhost' in failed and 'host' in failed['memberhost']:
-            (dn, entry_attrs_) = ldap.get_entry(dn, ['externalhost'])
-            external_hosts = entry_attrs_.get('externalhost', [])
-            failed_hosts = []
-            completed_external = 0
-            for host in failed['memberhost']['host']:
-                hostname = host[0].lower()
-                if hostname in external_hosts:
-                    external_hosts.remove(hostname)
-                    completed_external += 1
-                else:
-                    failed_hosts.append(hostname)
-            if completed_external:
-                try:
-                    ldap.update_entry(dn, {'externalhost': external_hosts})
-                except errors.EmptyModlist:
-                    pass
-                failed['memberhost']['host'] = failed_hosts
-                entry_attrs['externalhost'] = external_hosts
-        return (completed + completed_external, dn)
+        return remove_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
 
 api.register(netgroup_remove_member)

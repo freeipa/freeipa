@@ -436,7 +436,7 @@ class test_sudorule(XMLRPC_test):
         assert ret['completed'] == 1
         failed = ret['failed']
         entry = ret['result']
-        assert 'externalhost' not in entry
+        assert len(entry['externalhost']) == 0
 
     def test_a_sudorule_add_allow_command(self):
         """
