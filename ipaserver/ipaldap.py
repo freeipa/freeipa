@@ -32,7 +32,7 @@ import time
 import struct
 import ldap.sasl
 import ldapurl
-from ldap.controls import LDAPControl,DecodeControlTuples,EncodeControlTuples
+from ldap.controls import LDAPControl
 from ldap.ldapobject import SimpleLDAPObject
 from ipaserver import ipautil
 from ipaserver.install import installutils
