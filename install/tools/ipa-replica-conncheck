@@ -34,6 +34,7 @@ import socket
 import time
 import threading
 import errno
+from socket import SOCK_STREAM, SOCK_DGRAM
 
 CONNECT_TIMEOUT = 5
 RESPONDERS = [ ]
@@ -42,24 +43,24 @@ CCACHE_FILE = "/etc/ipa/.conncheck_ccache"
 KRB5_CONFIG = None
 
 class CheckedPort(object):
-    def __init__(self, port, stream, description):
+    def __init__(self, port, port_type, description):
         self.port = port
-        self.stream = stream
+        self.port_type = port_type
         self.description = description
 
 BASE_PORTS = [
-                CheckedPort(389, True, "Directory Service: Unsecure port"),
-                CheckedPort(636, True, "Directory Service: Secure port"),
-                CheckedPort(88, True, "Kerberos KDC: TCP"),
-                CheckedPort(88, False, "Kerberos KDC: UDP"),
-                CheckedPort(464, True, "Kerberos Kpasswd: TCP"),
-                CheckedPort(464, False, "Kerberos Kpasswd: UDP"),
-                CheckedPort(80, True, "HTTP Server: Unsecure port"),
-                CheckedPort(443, True, "HTTP Server: Secure port"),
+                CheckedPort(389, SOCK_STREAM, "Directory Service: Unsecure port"),
+                CheckedPort(636, SOCK_STREAM, "Directory Service: Secure port"),
+                CheckedPort(88, SOCK_STREAM, "Kerberos KDC: TCP"),
+                CheckedPort(88, SOCK_DGRAM, "Kerberos KDC: UDP"),
+                CheckedPort(464, SOCK_STREAM, "Kerberos Kpasswd: TCP"),
+                CheckedPort(464, SOCK_DGRAM, "Kerberos Kpasswd: UDP"),
+                CheckedPort(80, SOCK_STREAM, "HTTP Server: Unsecure port"),
+                CheckedPort(443, SOCK_STREAM, "HTTP Server: Secure port"),
              ]
 
 CA_PORTS  = [
-                CheckedPort(7389, True, "PKI-CA: Directory Service port"),
+                CheckedPort(7389, SOCK_STREAM, "PKI-CA: Directory Service port"),
             ]
 
 def print_info(msg):
@@ -211,18 +212,20 @@ def configure_krb5_conf(realm, kdc, filename):
 
 class PortResponder(threading.Thread):
 
-    def __init__(self, port, socket_stream = True, socket_timeout=1):
+    def __init__(self, port, port_type, socket_timeout=1):
         super(PortResponder, self).__init__()
         self.port = port
-        self.socket_stream = socket_stream
+        self.port_type = port_type
         self.socket_timeout = socket_timeout
         self._stop_request = False
 
     def run(self):
         while not self._stop_request:
             try:
-                ipautil.bind_port_responder(self.port, self.socket_stream,
-                        self.socket_timeout, responder_data="FreeIPA")
+                ipautil.bind_port_responder(self.port,
+                        self.port_type,
+                        socket_timeout=self.socket_timeout,
+                        responder_data="FreeIPA")
             except socket.timeout:
                 pass
             except socket.error, e:
@@ -242,7 +245,7 @@ def port_check(host, port_list):
 
     failed_ports = []
     for port in port_list:
-        if ipautil.host_port_open(host, port.port, port.stream, CONNECT_TIMEOUT):
+        if ipautil.host_port_open(host, port.port, port.port_type, socket_timeout=CONNECT_TIMEOUT):
             result = "OK"
         else:
             failed_ports.append(port)
@@ -250,8 +253,12 @@ def port_check(host, port_list):
         print_info("   %s (%d): %s" % (port.description, port.port, result))
 
     if failed_ports:
-        msg_ports = ", ".join([str(port.port) for port in failed_ports])
-        raise RuntimeError("Port check failed! Inaccessible port(s): %s" % msg_ports)
+        msg_ports = []
+        for port in failed_ports:
+            port_type_text = "TCP" if port.port_type == SOCK_STREAM else "UDP"
+            msg_ports.append('%d (%s)' % (port.port, port_type_text))
+        raise RuntimeError("Port check failed! Inaccessible port(s): %s" \
+                % ", ".join(msg_ports))
 
 def main():
     safe_options, options = parse_options()
@@ -276,15 +283,26 @@ def main():
     if options.master:
         # check ports on master first
         print_info("Check connection from replica to remote master '%s':" % options.master)
-        port_check( options.master, required_ports)
+        tcp_ports = [ port for port in required_ports if port.port_type == SOCK_STREAM ]
+        udp_ports = [ port for port in required_ports if port.port_type == SOCK_DGRAM ]
+        port_check(options.master, tcp_ports)
+
+        if udp_ports:
+            print_info("\nThe following list of ports use UDP protocol and would need to be")
+            print_info("checked manually:")
+            for port in udp_ports:
+                result = "SKIPPED"
+                print_info("   %s (%d): %s" % (port.description, port.port, result))
+
         print_info("\nConnection from replica to master is OK.")
 
         # create listeners
         global RESPONDERS
         print_info("Start listening on required ports for remote master check")
+
         for port in required_ports:
             root_logger.debug("Start listening on port %d (%s)" % (port.port, port.description))
-            responder = PortResponder(port.port, port.stream)
+            responder = PortResponder(port.port, port.port_type)
             responder.start()
             RESPONDERS.append(responder)
 
