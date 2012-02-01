@@ -1259,11 +1259,109 @@ $)''', re.VERBOSE)
         new_vars = replacevars.copy()
         new_vars.update(appendvars)
         newvars_view = set(new_vars.keys()) - set(old_values.keys())
-        append_view = (set(appendvars.keys()) - set(replacevars.keys())) - set(old_values.keys())
+        append_view = (set(appendvars.keys()) - newvars_view)
         for item in newvars_view:
             new_config.write("%s=%s\n" % (item,new_vars[item]))
         for item in append_view:
             new_config.write("%s=%s\n" % (item,appendvars[item]))
+        new_config.flush()
+        # Make sure the resulting file is readable by others before installing it
+        os.fchmod(new_config.fileno(), orig_stat.st_mode)
+        os.fchown(new_config.fileno(), orig_stat.st_uid, orig_stat.st_gid)
+
+    # At this point new_config is closed but not removed due to 'delete=False' above
+    # Now, install the temporary file as configuration and ensure old version is available as .orig
+    # While .orig file is not used during uninstall, it is left there for administrator.
+    install_file(temp_filename, filepath)
+
+    return old_values
+
+def inifile_replace_variables(filepath, section, replacevars=dict(), appendvars=dict()):
+    """
+    Take a section-structured key=value based configuration file, and write new version
+    with certain values replaced or appended within the section
+
+    All (key,value) pairs from replacevars and appendvars that were not found
+    in the configuration file, will be added there.
+
+    It is responsibility of a caller to ensure that replacevars and
+    appendvars do not overlap.
+
+    It is responsibility of a caller to back up file.
+
+    returns dictionary of affected keys and their previous values
+
+    One have to run restore_context(filepath) afterwards or
+    security context of the file will not be correct after modification
+    """
+    pattern = re.compile('''
+(^
+                        \[
+        (?P<section>    .+) \]
+                        (\s+((\#|;).*)?)?
+$)|(^
+                        \s*
+        (?P<option>     [^\#;]+?)
+                        (\s*=\s*)
+        (?P<value>      .+?)?
+                        (\s*((\#|;).*)?)?
+$)''', re.VERBOSE)
+    def add_options(config, replacevars, appendvars, oldvars):
+        # add all options from replacevars and appendvars that were not found in the file
+        new_vars = replacevars.copy()
+        new_vars.update(appendvars)
+        newvars_view = set(new_vars.keys()) - set(oldvars.keys())
+        append_view = (set(appendvars.keys()) - newvars_view)
+        for item in newvars_view:
+            config.write("%s=%s\n" % (item,new_vars[item]))
+        for item in append_view:
+            config.write("%s=%s\n" % (item,appendvars[item]))
+
+    orig_stat = os.stat(filepath)
+    old_values = dict()
+    temp_filename = None
+    with tempfile.NamedTemporaryFile(delete=False) as new_config:
+        temp_filename = new_config.name
+        with open(filepath, 'r') as f:
+            in_section = False
+            finished = False
+            line_idx = 1
+            for line in f:
+                line_idx = line_idx + 1
+                new_line = line
+                m = pattern.match(line)
+                if m:
+                    sect, option, value = m.group('section', 'option', 'value')
+                    if in_section and sect is not None:
+                        # End of the searched section, add remaining options
+                        add_options(new_config, replacevars, appendvars, old_values)
+                        finished = True
+                    if sect is not None:
+                        # New section is found, check whether it is the one we are looking for
+                        in_section = (str(sect).lower() == str(section).lower())
+                    if option is not None and in_section:
+                        # Great, this is an option from the section we are loking for
+                        if replacevars and option in replacevars:
+                            # replace value completely
+                            new_line = u"%s=%s\n" % (option, replacevars[option])
+                            old_values[option] = value
+                        if appendvars and option in appendvars:
+                            # append a new value unless it is already existing in the original one
+                            if not value:
+                                new_line = u"%s=%s\n" % (option, appendvars[option])
+                            elif value.find(appendvars[option]) == -1:
+                                new_line = u"%s=%s %s\n" % (option, value, appendvars[option])
+                            old_values[option] = value
+                    new_config.write(new_line)
+            # We have finished parsing the original file.
+            # There are two remaining cases:
+            # 1. Section we were looking for was not found, we need to add it.
+            if not (in_section or finished):
+                new_config.write("[%s]\n" % (section))
+            # 2. The section is the last one but some options were not found, add them.
+            if in_section or not finished:
+                add_options(new_config, replacevars, appendvars, old_values)
+
         new_config.flush()
         # Make sure the resulting file is readable by others before installing it
         os.fchmod(new_config.fileno(), orig_stat.st_mode)
