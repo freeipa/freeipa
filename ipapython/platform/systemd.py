@@ -137,16 +137,12 @@ class SystemdService(base.PlatformService):
 
         if len(instance_name) > 0 and l > 1:
             # New instance, we need to do following:
-            # 1. Copy <service>@.service to /etc/systemd/system/ if it is not there
-            # 2. Make /etc/systemd/system/<service>.target.wants/ if it is not there
-            # 3. Link /etc/systemd/system/<service>.target.wants/<service>@<instance_name>.service to
-            #    /etc/systemd/system/<service>@.service
-            srv_etc = os.path.join(self.SYSTEMD_ETC_PATH, self.service_name)
+            # 1. Make /etc/systemd/system/<service>.target.wants/ if it is not there
+            # 2. Link /etc/systemd/system/<service>.target.wants/<service>@<instance_name>.service to
+            #    /lib/systemd/system/<service>@.service
             srv_tgt = os.path.join(self.SYSTEMD_ETC_PATH, self.SYSTEMD_SRV_TARGET % (elements[0]))
             srv_lnk = os.path.join(srv_tgt, self.service_instance(instance_name))
             try:
-                if not ipautil.file_exists(srv_etc):
-                    shutil.copy(self.lib_path, srv_etc)
                 if not ipautil.dir_exists(srv_tgt):
                     os.mkdir(srv_tgt)
                 if os.path.exists(srv_lnk):
@@ -156,11 +152,11 @@ class SystemdService(base.PlatformService):
                     # object does not exist _or_ is a broken link
                     if not os.path.islink(srv_lnk):
                         # if it truly does not exist, make a link
-                        os.symlink(srv_etc, srv_lnk)
+                        os.symlink(self.lib_path, srv_lnk)
                     else:
                         # Link exists and it is broken, make new one
                         os.unlink(srv_lnk)
-                        os.symlink(srv_etc, srv_lnk)
+                        os.symlink(self.lib_path, srv_lnk)
                 ipautil.run(["/bin/systemctl", "--system", "daemon-reload"])
             except:
                 pass
@@ -172,7 +168,7 @@ class SystemdService(base.PlatformService):
         if instance_name != "" and len(elements) > 1:
             # Remove instance, we need to do following:
             #  Remove link from /etc/systemd/system/<service>.target.wants/<service>@<instance_name>.service
-            #  to /etc/systemd/system/<service>@.service
+            #  to /lib/systemd/system/<service>@.service
             srv_tgt = os.path.join(self.SYSTEMD_ETC_PATH, self.SYSTEMD_SRV_TARGET % (elements[0]))
             srv_lnk = os.path.join(srv_tgt, self.service_instance(instance_name))
             try:
