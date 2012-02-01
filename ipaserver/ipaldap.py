@@ -554,16 +554,17 @@ class IPAdmin(IPAEntryLDAPObject):
             if not(isinstance(new_values,list) or isinstance(new_values,tuple)):
                 new_values = [new_values]
             new_values = filter(lambda value:value!=None, new_values)
-            new_values = set(new_values)
 
             old_values = old_entry.get(key, [])
             if not(isinstance(old_values,list) or isinstance(old_values,tuple)):
                 old_values = [old_values]
             old_values = filter(lambda value:value!=None, old_values)
-            old_values = set(old_values)
 
-            adds = list(new_values.difference(old_values))
-            removes = list(old_values.difference(new_values))
+            # We used to convert to sets and use difference to calculate
+            # the changes but this did not preserve order which is important
+            # particularly for schema
+            adds = [x for x in new_values if x not in old_values]
+            removes = [x for x in old_values if x not in new_values]
 
             if len(adds) == 0 and len(removes) == 0:
                 continue
