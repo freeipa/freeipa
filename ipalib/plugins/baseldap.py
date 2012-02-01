@@ -178,6 +178,12 @@ global_output_params = (
         label=_('Failed to remove'),
         flags=['suppress_empty'],
     ),
+    Str('ipasudorunas',
+        label=_('Failed RunAs'),
+    ),
+    Str('ipasudorunasgroup',
+        label=_('Failed RunAsGroup'),
+    ),
 )
 
 
@@ -305,6 +311,81 @@ def wait_for_value(ldap, dn, attr, value):
                     break
 
     return entry_attrs
+
+def add_external_post_callback(memberattr, membertype, externalattr, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+    """
+    Post callback to add failed members as external members.
+
+    This should be called by a commands post callback directly.
+
+    memberattr is one of memberuser,
+    membertype is the type of member: user,
+    externalattr is one of externaluser,
+    """
+    completed_external = 0
+    # Sift through the failures. We assume that these are all
+    # entries that aren't stored in IPA, aka external entries.
+    if memberattr in failed and membertype in failed[memberattr]:
+        (dn, entry_attrs_) = ldap.get_entry(dn, [externalattr])
+        members = entry_attrs.get(memberattr, [])
+        external_entries = entry_attrs_.get(externalattr, [])
+        failed_entries = []
+        for entry in failed[memberattr][membertype]:
+            membername = entry[0].lower()
+            member_dn = api.Object[membertype].get_dn(membername)
+            if membername not in external_entries and \
+              member_dn not in members:
+                # Not an IPA entry, assume external
+                external_entries.append(membername)
+                completed_external += 1
+            elif membername in external_entries and \
+              member_dn not in members:
+                # Already an external member, reset the error message
+                msg = unicode(errors.AlreadyGroupMember().message)
+                newerror = (entry[0], msg)
+                ind = failed[memberattr][membertype].index(entry)
+                failed[memberattr][membertype][ind] = newerror
+                failed_entries.append(membername)
+            else:
+                # Really a failure
+                failed_entries.append(membername)
+
+        if completed_external:
+            try:
+                ldap.update_entry(dn, {externalattr: external_entries})
+            except errors.EmptyModlist:
+                pass
+            failed[memberattr][membertype] = failed_entries
+            entry_attrs[externalattr] = external_entries
+
+    return (completed + completed_external, dn)
+
+def remove_external_post_callback(memberattr, membertype, externalattr, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+    # Run through the failures and gracefully remove any member defined
+    # as an external member.
+    if memberattr in failed and membertype in failed[memberattr]:
+        (dn, entry_attrs_) = ldap.get_entry(dn, [externalattr])
+        external_entries = entry_attrs_.get(externalattr, [])
+        failed_entries = []
+        completed_external = 0
+        for entry in failed[memberattr][membertype]:
+            membername = entry[0].lower()
+            if membername in external_entries:
+                external_entries.remove(membername)
+                completed_external += 1
+            else:
+                failed_entries.append(membername)
+
+        if completed_external:
+            try:
+                ldap.update_entry(dn, {externalattr: external_entries})
+            except errors.EmptyModlist:
+                pass
+            failed[memberattr][membertype] = failed_entries
+            entry_attrs[externalattr] = external_entries
+
+    return (completed + completed_external, dn)
+
 
 class LDAPObject(Object):
     """
