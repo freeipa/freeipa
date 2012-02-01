@@ -110,7 +110,7 @@ possible due to SSSDConfig reader encountering unsupported options,
 \fBipa\-client\-install\fR will not run further and ask to fix SSSD config
 first. When this option is not specified, \fBipa\-client\-install\fR will back
 up SSSD config and create new one. The back up version will be restored during
-uninstall. 
+uninstall.
 
 .SS "UNINSTALL OPTIONS"
 .TP
@@ -120,6 +120,38 @@ Remove the IPA client software and restore the configuration to the pre\-IPA sta
 \fB\-U\fR, \fB\-\-unattended\fR
 Unattended uninstallation. The user will not be prompted.
 
+.SH "FILES"
+.TP
+Files that will be replaced if SSSD is configured (default):
+
+/etc/sssd/sssd.conf\p
+.TP
+Files that will be replaced if they exist and SSSD is not configured (\-\-no\-sssd):
+
+/etc/ldap.conf\p
+/etc/nss_ldap.conf\p
+/etc/libnss\-ldap.conf\p
+/etc/pam_ldap.conf\p
+/etc/nslcd.conf\p
+.TP
+Files replaced if NTP is enabled:
+
+/etc/ntp.conf\p
+/etc/sysconfig/ntpd\p
+/etc/ntp/step\-tickers\p
+.TP
+Files always created (replacing existing content):
+
+/etc/krb5.conf\p
+/etc/ipa/ca.crt\p
+/etc/ipa/default.conf\p
+/etc/openldap/ldap.conf\p
+.TP
+Files updated, existing content is maintained:
+
+/etc/pki/nssdb\p
+/etc/krb5.keytab\p
+/etc/sysconfig/network\p
 .SH "EXIT STATUS"
 0 if the installation was successful
 
