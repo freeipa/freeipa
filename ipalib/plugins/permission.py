@@ -84,6 +84,9 @@ output_params = (
     Str('ipapermissiontype',
         label=_('Permission Type'),
     ),
+    Str('aci',
+        label=_('ACI'),
+    ),
 )
 
 class permission(LDAPObject):
@@ -97,7 +100,7 @@ class permission(LDAPObject):
     default_attributes = ['cn', 'member', 'memberof',
         'memberindirect', 'ipapermissiontype',
     ]
-    aci_attributes = ['group', 'permissions', 'attrs', 'type',
+    aci_attributes = ['aci', 'group', 'permissions', 'attrs', 'type',
         'filter', 'subtree', 'targetgroup', 'memberof',
     ]
     attribute_members = {
@@ -180,6 +183,7 @@ class permission_add(LDAPCreate):
     __doc__ = _('Add a new permission.')
 
     msg_summary = _('Added permission "%(value)s"')
+    has_output_params = LDAPCreate.has_output_params + output_params
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         # Test the ACI before going any further
@@ -335,11 +339,15 @@ class permission_mod(LDAPUpdate):
                         newname=options['rename'], newprefix=ACI_PREFIX)
 
             cn = options['rename']     # rename finished
+        print "permission_rename1", entry_attrs
 
+        print "permission_rename1 result options", options
         result = self.api.Command.permission_show(cn, **options)['result']
+        print "permission_rename1 result", result
         for r in result:
             if not r.startswith('member_'):
                 entry_attrs[r] = result[r]
+        print "permission_rename2", entry_attrs
         return dn
 
 api.register(permission_mod)
@@ -359,7 +367,7 @@ class permission_find(LDAPSearch):
         for entry in entries:
             (dn, attrs) = entry
             try:
-                aci = self.api.Command.aci_show(attrs['cn'][0], aciprefix=ACI_PREFIX)['result']
+                aci = self.api.Command.aci_show(attrs['cn'][0], aciprefix=ACI_PREFIX, **options)['result']
 
                 # copy information from respective ACI to permission entry
                 for attr in self.obj.aci_attributes:
@@ -372,7 +380,13 @@ class permission_find(LDAPSearch):
         # aren't already in the list along with their permission info.
         options['aciprefix'] = ACI_PREFIX
 
-        aciresults = self.api.Command.aci_find(*args, **options)
+        opts = copy.copy(options)
+        try:
+            # permission ACI attribute is needed
+            del opts['raw']
+        except:
+            pass
+        aciresults = self.api.Command.aci_find(*args, **opts)
         truncated = truncated or aciresults['truncated']
         results = aciresults['result']
 
@@ -385,15 +399,11 @@ class permission_find(LDAPSearch):
                         found = True
                         break
                 if not found:
-                    permission = self.api.Command.permission_show(aci['permission'])
-                    attrs = permission['result']
-                    for attr in self.obj.aci_attributes:
-                        if attr in aci:
-                            attrs[attr] = aci[attr]
-                    dn = attrs['dn']
-                    del attrs['dn']
-                    if (dn, attrs) not in entries:
-                        entries.append((dn, attrs))
+                    permission = self.api.Command.permission_show(aci['permission'], **options)['result']
+                    dn = permission['dn']
+                    del permission['dn']
+                    if (dn, permission) not in entries:
+                        entries.append((dn, permission))
 
 api.register(permission_find)
 
@@ -404,7 +414,7 @@ class permission_show(LDAPRetrieve):
     has_output_params = LDAPRetrieve.has_output_params + output_params
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         try:
-            aci = self.api.Command.aci_show(keys[-1], aciprefix=ACI_PREFIX)['result']
+            aci = self.api.Command.aci_show(keys[-1], aciprefix=ACI_PREFIX, **options)['result']
             for attr in self.obj.aci_attributes:
                 if attr in aci:
                     entry_attrs[attr] = aci[attr]

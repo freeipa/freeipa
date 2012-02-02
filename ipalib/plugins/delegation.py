@@ -55,6 +55,12 @@ EXAMPLES:
 
 ACI_PREFIX=u"delegation"
 
+output_params = (
+    Str('aci',
+        label=_('ACI'),
+    ),
+)
+
 class delegation(Object):
     """
     Delegation object.
@@ -112,6 +118,13 @@ class delegation(Object):
         json_dict['methods'] = [m for m in self.methods]
         return json_dict
 
+    def postprocess_result(self, result):
+        try:
+            # do not include prefix in result
+            del result['aciprefix']
+        except KeyError:
+            pass
+
 api.register(delegation)
 
 
@@ -119,19 +132,14 @@ class delegation_add(crud.Create):
     __doc__ = _('Add a new delegation.')
 
     msg_summary = _('Added delegation "%(value)s"')
+    has_output_params = output_params
 
     def execute(self, aciname, **kw):
-        ldap = self.api.Backend.ldap2
         if not 'permissions' in kw:
             kw['permissions'] = (u'write',)
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_add'](aciname, **kw)['result']
-
-        # do not include prefix in result
-        try:
-            del result['aciprefix']
-        except KeyError:
-            pass
+        self.obj.postprocess_result(result)
 
         return dict(
             result=result,
@@ -150,6 +158,7 @@ class delegation_del(crud.Delete):
     def execute(self, aciname, **kw):
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_del'](aciname, **kw)
+        self.obj.postprocess_result(result)
         return dict(
             result=True,
             value=aciname,
@@ -162,16 +171,12 @@ class delegation_mod(crud.Update):
     __doc__ = _('Modify a delegation.')
 
     msg_summary = _('Modified delegation "%(value)s"')
+    has_output_params = output_params
 
     def execute(self, aciname, **kw):
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_mod'](aciname, **kw)['result']
-
-        # do not include prefix in result
-        try:
-            del result['aciprefix']
-        except KeyError:
-            pass
+        self.obj.postprocess_result(result)
 
         return dict(
             result=result,
@@ -189,18 +194,14 @@ class delegation_find(crud.Search):
     )
 
     takes_options = (gen_pkey_only_option("name"),)
+    has_output_params = output_params
 
     def execute(self, term, **kw):
-        ldap = self.api.Backend.ldap2
         kw['aciprefix'] = ACI_PREFIX
         results = api.Command['aci_find'](term, **kw)['result']
 
         for aci in results:
-            # do not include prefix in result
-            try:
-                del aci['aciprefix']
-            except KeyError:
-                pass
+            self.obj.postprocess_result(aci)
 
         return dict(
             result=results,
@@ -214,19 +215,11 @@ api.register(delegation_find)
 class delegation_show(crud.Retrieve):
     __doc__ = _('Display information about a delegation.')
 
-    has_output_params = (
-        Str('aci',
-            label=_('ACI'),
-        ),
-    )
+    has_output_params = output_params
 
     def execute(self, aciname, **kw):
-        result = api.Command['aci_show'](aciname, aciprefix=ACI_PREFIX)['result']
-        # do not include prefix in result
-        try:
-            del result['aciprefix']
-        except KeyError:
-            pass
+        result = api.Command['aci_show'](aciname, aciprefix=ACI_PREFIX, **kw)['result']
+        self.obj.postprocess_result(result)
         return dict(
             result=result,
             value=aciname,
