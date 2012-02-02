@@ -27,6 +27,10 @@
 #define IPAPWD_DEFAULT_PWDLIFE (90 * 24 *3600)
 #define IPAPWD_DEFAULT_MINLEN 0
 
+/*
+ * IMPORTANT: please update error string table in ipa_pwd.c if you change this
+ * error code table.
+ */
 enum ipapwd_error {
     IPAPWD_POLICY_ERROR = -1,
     IPAPWD_POLICY_OK = 0,
@@ -54,6 +58,8 @@ int ipapwd_check_policy(struct ipapwd_policy *policy,
                         time_t pwd_expiration,
                         time_t last_pwd_change,
                         char **pwd_history);
+
+char * ipapwd_error2string(enum ipapwd_error err);
 
 int ipapwd_generate_new_history(char *password,
                                 time_t cur_time,

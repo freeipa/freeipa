@@ -302,7 +302,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
 
     ret = ipapwd_CheckPolicy(&pwdop->pwdata);
     if (ret) {
-        errMesg = "Password Fails to meet minimum strength criteria";
+        errMesg = ipapwd_error2string(ret);
         rc = LDAP_CONSTRAINT_VIOLATION;
         goto done;
     }
@@ -740,7 +740,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     if (has_krb_keys == 0) {
         ret = ipapwd_CheckPolicy(&pwdop->pwdata);
         if (ret) {
-            errMesg = "Password Fails to meet minimum strength criteria";
+            errMesg = ipapwd_error2string(ret);
             rc = LDAP_CONSTRAINT_VIOLATION;
             goto done;
         }

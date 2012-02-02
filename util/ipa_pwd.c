@@ -538,6 +538,26 @@ int ipapwd_check_policy(struct ipapwd_policy *policy,
     return IPAPWD_POLICY_OK;
 }
 
+char * IPAPWD_ERROR_STRINGS[] = {
+    "Password is OK",
+    "Account expired",
+    "Too soon to change password",
+    "Password is too short",
+    "Password reuse not permitted",
+    "Password is too simple"
+};
+
+char * IPAPWD_ERROR_STRING_GENERAL = "Password does not meet the policy requirements";
+
+char * ipapwd_error2string(enum ipapwd_error err) {
+   if (err < 0 || err > IPAPWD_POLICY_PWD_COMPLEXITY) {
+       /* IPAPWD_POLICY_ERROR or out of boundary, return general error */
+       return IPAPWD_ERROR_STRING_GENERAL;
+   }
+
+   return IPAPWD_ERROR_STRINGS[err];
+}
+
 /**
 * @brief    Generate a new password history using the new password
 *
