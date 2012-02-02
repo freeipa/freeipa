@@ -461,7 +461,7 @@ parse_req_done:
 	/* check the policy */
 	ret = ipapwd_CheckPolicy(&pwdata);
 	if (ret) {
-		errMesg = "Password Fails to meet minimum strength criteria";
+		errMesg = ipapwd_error2string(ret);
 		if (ret == IPAPWD_POLICY_ERROR) {
 			errMesg = "Internal error";
 			rc = ret;
