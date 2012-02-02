@@ -1486,3 +1486,37 @@ div.entity[name=hbactest] div.facet[name=run_test] .hbac-test-content {
 .dnstype-table td {
     font-weight: normal;
 }
+
+/* --- Automember --- */
+
+.automember-header {
+    position: absolute;
+    top: 0;
+    left: 3px;
+    right: 3px;
+    height: 52px;
+}
+
+.automember-content {
+    position: absolute;
+    top: 52px;
+    left: 0;
+    right: 0;
+    bottom: 0px;
+}
+
+.automember-header .default_group {
+    border-bottom: 1px solid #DFDFDF;
+    border-top: 1px solid #DFDFDF;
+    padding-bottom: 5px;
+    padding-top: 8px;
+}
+
+.automember-header .default_group h2 {
+    display: inline-block;
+    margin: 0 15px 0 20px;
+}
+
+.automember-header .default_group label {
+    margin-right: 20px;
+}
